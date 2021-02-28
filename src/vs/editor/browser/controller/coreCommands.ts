@@ -1753,7 +1753,7 @@ export namespace CoreEditingCommands {
 		}
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: any): void {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 			editor.executeCommands(this.id, TypeOperations.lineBreakInsert(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
 		}
 	});
@@ -1775,9 +1775,9 @@ export namespace CoreEditingCommands {
 		}
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: any): void {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 			editor.executeCommands(this.id, TypeOperations.outdent(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 	});
 
@@ -1798,9 +1798,9 @@ export namespace CoreEditingCommands {
 		}
 
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: any): void {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 			editor.executeCommands(this.id, TypeOperations.tab(viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection)));
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 	});
 
@@ -1822,8 +1822,9 @@ export namespace CoreEditingCommands {
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: any): void {
 			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteLeft(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection));
 			if (shouldPushStackElementBefore) {
-				editor.pushUndoStop();
+				editor.eventuallyPushUndoStop();
 			}
+			console.log(commands);
 			editor.executeCommands(this.id, commands);
 			viewModel.setPrevEditOperationType(EditOperationType.DeletingLeft);
 		}
@@ -1846,7 +1847,7 @@ export namespace CoreEditingCommands {
 		public runCoreEditingCommand(editor: ICodeEditor, viewModel: IViewModel, args: any): void {
 			const [shouldPushStackElementBefore, commands] = DeleteOperations.deleteRight(viewModel.getPrevEditOperationType(), viewModel.cursorConfig, viewModel.model, viewModel.getCursorStates().map(s => s.modelState.selection));
 			if (shouldPushStackElementBefore) {
-				editor.pushUndoStop();
+				editor.eventuallyPushUndoStop();
 			}
 			editor.executeCommands(this.id, commands);
 			viewModel.setPrevEditOperationType(EditOperationType.DeletingRight);

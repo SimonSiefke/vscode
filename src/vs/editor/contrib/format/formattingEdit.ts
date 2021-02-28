@@ -45,7 +45,7 @@ export class FormattingEdit {
 
 	static execute(editor: ICodeEditor, _edits: TextEdit[], addUndoStops: boolean) {
 		if (addUndoStops) {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 		const edits = FormattingEdit._handleEolEdits(editor, _edits);
 		if (edits.length === 1 && FormattingEdit._isFullModelReplaceEdit(editor, edits[0])) {
@@ -55,7 +55,7 @@ export class FormattingEdit {
 			editor.executeEdits('formatEditsCommand', edits.map(edit => EditOperation.replaceMove(Range.lift(edit.range), edit.text)));
 		}
 		if (addUndoStops) {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 	}
 }

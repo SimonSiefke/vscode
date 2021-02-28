@@ -4797,6 +4797,7 @@ declare namespace monaco.editor {
 		 * Create an "undo stop" in the undo-redo stack.
 		 */
 		pushUndoStop(): boolean;
+		eventuallyPushUndoStop(): void;
 		/**
 		 * Remove the "undo stop" in the undo-redo stack.
 		 */

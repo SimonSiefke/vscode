@@ -83,6 +83,10 @@ export class SimpleCommentEditor extends CodeEditorWidget {
 		return EditorExtensionsRegistry.getEditorActions();
 	}
 
+	public eventuallyPushUndoStop(){
+		return;
+	}
+
 	public static getEditorOptions(): IEditorOptions {
 		return {
 			wordWrap: 'on',

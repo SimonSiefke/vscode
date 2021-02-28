@@ -108,9 +108,9 @@ class InPlaceReplaceController implements IEditorContribution {
 			// Insert new text
 			const command = new InPlaceReplaceCommand(editRange, selection!, result.value);
 
-			this.editor.pushUndoStop();
+			this.editor.eventuallyPushUndoStop();
 			this.editor.executeCommand(source, command);
-			this.editor.pushUndoStop();
+			this.editor.eventuallyPushUndoStop();
 
 			// add decoration
 			this.decorationIds = this.editor.deltaDecorations(this.decorationIds, [{

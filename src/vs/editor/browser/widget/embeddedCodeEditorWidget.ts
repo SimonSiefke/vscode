@@ -61,6 +61,10 @@ export class EmbeddedCodeEditorWidget extends CodeEditorWidget {
 		objects.mixin(this._overwriteOptions, newOptions, true);
 		super.updateOptions(this._overwriteOptions);
 	}
+
+	public eventuallyPushUndoStop(){
+		return;
+	}
 }
 
 export class EmbeddedDiffEditorWidget extends DiffEditorWidget {

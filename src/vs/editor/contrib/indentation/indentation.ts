@@ -160,9 +160,9 @@ export class IndentationToSpacesAction extends EditorAction {
 		}
 		const command = new IndentationToSpacesCommand(selection, modelOpts.tabSize);
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, [command]);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 
 		model.updateOptions({
 			insertSpaces: true
@@ -194,9 +194,9 @@ export class IndentationToTabsAction extends EditorAction {
 		}
 		const command = new IndentationToTabsCommand(selection, modelOpts.tabSize);
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, [command]);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 
 		model.updateOptions({
 			insertSpaces: false
@@ -316,9 +316,9 @@ export class ReindentLinesAction extends EditorAction {
 		}
 		let edits = getReindentEditOperations(model, 1, model.getLineCount());
 		if (edits.length > 0) {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 			editor.executeEdits(this.id, edits);
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 	}
 }
@@ -367,9 +367,9 @@ export class ReindentSelectedLinesAction extends EditorAction {
 		}
 
 		if (edits.length > 0) {
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 			editor.executeEdits(this.id, edits);
-			editor.pushUndoStop();
+			editor.eventuallyPushUndoStop();
 		}
 	}
 }
@@ -583,10 +583,10 @@ export class AutoIndentOnPaste implements IEditorContribution {
 		}
 
 		if (textEdits.length > 0) {
-			this.editor.pushUndoStop();
+			this.editor.eventuallyPushUndoStop();
 			let cmd = new AutoIndentOnPasteCommand(textEdits, this.editor.getSelection()!);
 			this.editor.executeCommand('autoIndentOnPaste', cmd);
-			this.editor.pushUndoStop();
+			this.editor.eventuallyPushUndoStop();
 		}
 	}
 

@@ -239,6 +239,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	private _decorationTypeKeysToIds: { [decorationTypeKey: string]: string[] };
 	private _decorationTypeSubtypes: { [decorationTypeKey: string]: { [subtype: string]: boolean } };
 
+	private pendingUndoStop:boolean;
+
 	constructor(
 		domElement: HTMLElement,
 		_options: Readonly<editorBrowser.IEditorConstructionOptions>,
@@ -254,6 +256,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		super();
 
 		const options = { ..._options };
+
+		this.pendingUndoStop=false;
 
 		this._domElement = domElement;
 		this._overflowWidgetsDomNode = options.overflowWidgetsDomNode;
@@ -1057,6 +1061,12 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		if (!this._modelData || text.length === 0) {
 			return;
 		}
+		console.log('type', source);
+		if(this.pendingUndoStop){
+			console.log('apply pending undo stop');
+			this.pushUndoStop();
+			this.pendingUndoStop=false;
+		}
 		if (source === 'keyboard') {
 			this._onWillType.fire(text);
 		}
@@ -1127,6 +1137,19 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		this._modelData.model.pushStackElement();
 		return true;
 	}
+
+	public eventuallyPushUndoStop(): void {
+		if (!this._modelData) {
+			return ;
+		}
+		if (this._configuration.options.get(EditorOption.readOnly)) {
+			// read only editor => sorry!
+			return ;
+		}
+		this.pendingUndoStop = true;
+
+	}
+
 
 	public popUndoStop(): boolean {
 		if (!this._modelData) {

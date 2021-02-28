@@ -693,6 +693,8 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 */
 	pushUndoStop(): boolean;
 
+	eventuallyPushUndoStop(): void;
+
 	/**
 	 * Remove the "undo stop" in the undo-redo stack.
 	 */

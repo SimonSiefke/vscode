@@ -373,9 +373,9 @@ export abstract class DeleteWordCommand extends EditorCommand {
 			return new ReplaceCommand(deleteRange, '');
 		});
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 
 	protected abstract _delete(ctx: DeleteWordContext, wordNavigationType: WordNavigationType): Range;
@@ -505,9 +505,9 @@ export class DeleteInsideWord extends EditorAction {
 			return new ReplaceCommand(deleteRange, '');
 		});
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 

@@ -327,7 +327,7 @@ export class SuggestController implements IEditorContribution {
 				typeListener.dispose();
 				didType = true;
 				if (!(oldFlags & InsertFlags.NoAfterUndoStop)) {
-					this.editor.pushUndoStop();
+					this.editor.eventuallyPushUndoStop();
 				}
 			});
 
@@ -348,7 +348,7 @@ export class SuggestController implements IEditorContribution {
 				);
 				scrollState.restoreRelativeVerticalPositionOfCursor(this.editor);
 				if (didType || !(oldFlags & InsertFlags.NoAfterUndoStop)) {
-					this.editor.pushUndoStop();
+					this.editor.eventuallyPushUndoStop();
 				}
 				return true;
 			}).then(applied => {
@@ -526,7 +526,7 @@ export class SuggestController implements IEditorContribution {
 
 	acceptSelectedSuggestion(keepAlternativeSuggestions: boolean, alternativeOverwriteConfig: boolean): void {
 		const item = this.widget.value.getFocusedItem();
-		let flags = 0;
+		let flags = InsertFlags.NoAfterUndoStop;
 		if (keepAlternativeSuggestions) {
 			flags |= InsertFlags.KeepAlternativeSuggestions;
 		}

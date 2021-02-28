@@ -66,9 +66,9 @@ abstract class AbstractCopyLinesAction extends EditorAction {
 			commands.push(new CopyLinesCommand(selection.selection, this.down, selection.ignore));
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -153,9 +153,9 @@ export class DuplicateSelectionAction extends EditorAction {
 			}
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -180,9 +180,9 @@ abstract class AbstractMoveLinesAction extends EditorAction {
 			commands.push(new MoveLinesCommand(selection, this.down, autoIndent));
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -254,9 +254,9 @@ export abstract class AbstractSortLinesAction extends EditorAction {
 			commands[i] = new SortLinesCommand(selections[i], this.descending);
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -317,9 +317,9 @@ export class TrimTrailingWhitespaceAction extends EditorAction {
 
 		let command = new TrimTrailingWhitespaceCommand(selection, cursors);
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, [command]);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -385,9 +385,9 @@ export class DeleteLinesAction extends EditorAction {
 			linesDeleted += (op.endLineNumber - op.startLineNumber + 1);
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeEdits(this.id, edits, cursorState);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 
 	private _getLinesToRemove(editor: IActiveCodeEditor): IDeleteLinesOperation[] {
@@ -455,9 +455,9 @@ export class IndentLinesAction extends EditorAction {
 		if (!viewModel) {
 			return;
 		}
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, TypeOperations.indent(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -501,7 +501,7 @@ export class InsertLineBeforeAction extends EditorAction {
 		if (!viewModel) {
 			return;
 		}
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, TypeOperations.lineInsertBefore(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
 	}
 }
@@ -526,7 +526,7 @@ export class InsertLineAfterAction extends EditorAction {
 		if (!viewModel) {
 			return;
 		}
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, TypeOperations.lineInsertAfter(viewModel.cursorConfig, editor.getModel(), editor.getSelections()));
 	}
 }
@@ -561,9 +561,9 @@ export abstract class AbstractDeleteAllToBoundaryAction extends EditorAction {
 			return EditOperation.replace(range, '');
 		});
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeEdits(this.id, edits, endCursorState);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 
 	/**
@@ -873,9 +873,9 @@ export class JoinLinesAction extends EditorAction {
 		}
 
 		endCursorState.unshift(endPrimaryCursor);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeEdits(this.id, edits, endCursorState);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -931,9 +931,9 @@ export class TransposeAction extends EditorAction {
 			}
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeCommands(this.id, commands);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 }
 
@@ -970,9 +970,9 @@ export abstract class AbstractCaseAction extends EditorAction {
 			}
 		}
 
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 		editor.executeEdits(this.id, textEdits);
-		editor.pushUndoStop();
+		editor.eventuallyPushUndoStop();
 	}
 
 	protected abstract _modifyText(text: string, wordSeparators: string): string;

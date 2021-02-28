@@ -410,6 +410,11 @@ export class StandaloneEditor extends StandaloneCodeEditor implements IStandalon
 		super.dispose();
 	}
 
+
+	public eventuallyPushUndoStop(){
+		return;
+	}
+
 	public updateOptions(newOptions: Readonly<IEditorOptions & IGlobalEditorOptions>): void {
 		updateConfigurationService(this._configurationService, newOptions, false);
 		if (typeof newOptions.theme === 'string') {
