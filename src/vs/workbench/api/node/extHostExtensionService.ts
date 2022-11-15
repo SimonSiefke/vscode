@@ -89,7 +89,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 		return extensionDescription.main;
 	}
 
-	protected async _loadCommonJSModule<T>(extension: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
+	protected async _loadCommonJSModule<T>(extension: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, type?:'module'|'commonjs'): Promise<T> {
 		if (module.scheme !== Schemas.file) {
 			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
 		}
@@ -105,7 +105,12 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 			if (extensionId) {
 				performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
 			}
-			r = require.__$__nodeRequire<T>(module.fsPath);
+			if(type==='module'){
+				r = await require.__$__nodeImport<T>(module.fsPath);
+			}else {
+				r = require.__$__nodeRequire<T>(module.fsPath);
+
+			}
 		} finally {
 			if (extensionId) {
 				performance.mark(`code/extHost/didLoadExtensionCode/${extensionId}`);

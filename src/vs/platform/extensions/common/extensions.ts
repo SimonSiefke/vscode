@@ -287,6 +287,7 @@ export interface IRelaxedExtensionManifest {
 	api?: string;
 	scripts?: { [key: string]: string };
 	capabilities?: IExtensionCapabilities;
+	type?:'module'|'commonjs'
 }
 
 export type IExtensionManifest = Readonly<IRelaxedExtensionManifest>;

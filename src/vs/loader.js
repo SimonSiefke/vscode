@@ -1066,6 +1066,7 @@ var AMDLoader;
         }
         var nodeRequire = function nodeRequire(what) {
             recorder.record(33 /* NodeBeginNativeRequire */, what);
+            console.log({ what })
             try {
                 return _nodeRequire(what);
             }
@@ -1642,6 +1643,9 @@ var AMDLoader;
                 _this.configure(params, shouldOverwrite);
             };
             result.__$__nodeRequire = AMDLoader.global.nodeRequire;
+            result.__$__nodeImport = (path) => {
+                return import(path)
+            }
             return result;
         };
         ModuleManager.prototype._loadModule = function (moduleId) {

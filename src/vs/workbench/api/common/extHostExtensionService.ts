@@ -476,8 +476,10 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 		this._logService.flush();
 
 		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
+		// @ts-ignore
+		console.log('type'+  extensionDescription.type)
 		return Promise.all([
-			this._loadCommonJSModule<IExtensionModule>(extensionDescription, joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder),
+			this._loadCommonJSModule<IExtensionModule>(extensionDescription, joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder, extensionDescription.type),
 			this._loadExtensionContext(extensionDescription)
 		]).then(values => {
 			performance.mark(`code/extHost/willActivateExtension/${extensionDescription.identifier.value}`);
@@ -935,7 +937,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 
 	protected abstract _beforeAlmostReadyToRunExtensions(): Promise<void>;
 	protected abstract _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined;
-	protected abstract _loadCommonJSModule<T extends object | undefined>(extensionId: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
+	protected abstract _loadCommonJSModule<T extends object | undefined>(extensionId: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, type?:'module'|'commonjs'): Promise<T>;
 	public abstract $setRemoteEnvironment(env: { [key: string]: string | null }): Promise<void>;
 }
 
