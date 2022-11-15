@@ -309,7 +309,7 @@ class ExtensionHostProcess extends Disposable {
 		}
 		const sw = StopWatch.create(false);
 		this._process = fork(
-			FileAccess.asFileUri('bootstrap-fork').fsPath,
+			FileAccess.asFileUri('bootstrap-fork-esm.mjs').fsPath,
 			['--type=extensionHost', '--skipWorkspaceStorageLock'],
 			mixin({ cwd: cwd() }, opts),
 		);
