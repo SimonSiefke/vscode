@@ -20,6 +20,7 @@ import { cwd } from 'vs/base/common/process';
 import type { EventEmitter } from 'events';
 import * as electron from 'electron';
 import { IWindowsMainService } from 'vs/platform/windows/electron-main/windows';
+import { join } from 'path';
 
 declare namespace UtilityProcessProposedApi {
 	interface ForkOptions {
@@ -308,10 +309,13 @@ class ExtensionHostProcess extends Disposable {
 			this._logService.info(`Calling fork to start extension host...`);
 		}
 		const sw = StopWatch.create(false);
+		opts.execArgv||=[]
+		const loaderPath = join(__dirname, 'esm-loader.js')
+		opts.execArgv.unshift(`--experimental-loader=${loaderPath}`)
 		this._process = fork(
 			FileAccess.asFileUri('bootstrap-fork-esm.mjs').fsPath,
-			['--type=extensionHost', '--skipWorkspaceStorageLock'],
-			mixin({ cwd: cwd() }, opts),
+			[  '--type=extensionHost', '--skipWorkspaceStorageLock'],
+			mixin({ cwd: cwd()  }, opts),
 		);
 		const forkTime = sw.elapsed();
 		const pid = this._process.pid!;
