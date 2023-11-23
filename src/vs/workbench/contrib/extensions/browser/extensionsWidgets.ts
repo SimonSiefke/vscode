@@ -529,6 +529,7 @@ export class ExtensionHoverWidget extends ExtensionWidget {
 	}
 
 	render(): void {
+		this.hover.clear()
 		this.hover.value = undefined;
 		if (this.extension) {
 			this.hover.value = setupCustomHover({
@@ -553,7 +554,6 @@ export class ExtensionHoverWidget extends ExtensionWidget {
 			return undefined;
 		}
 		const markdown = new MarkdownString('', { isTrusted: true, supportThemeIcons: true });
-
 		markdown.appendMarkdown(`**${this.extension.displayName}**`);
 		if (semver.valid(this.extension.version)) {
 			markdown.appendMarkdown(`&nbsp;<span style="background-color:#8080802B;">**&nbsp;_v${this.extension.version}_**&nbsp;</span>`);
@@ -721,11 +721,13 @@ export class ExtensionStatusWidget extends ExtensionWidget {
 	) {
 		super();
 		this.render();
+		this._register(extensionStatusAction)
 		this._register(extensionStatusAction.onDidChangeStatus(() => this.render()));
 	}
 
 	render(): void {
 		reset(this.container);
+		this.renderDisposables.clear()
 		const extensionStatus = this.extensionStatusAction.status;
 		if (extensionStatus) {
 			const markdown = new MarkdownString('', { isTrusted: true, supportThemeIcons: true });

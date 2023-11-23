@@ -375,7 +375,7 @@ export class ExtensionEditor extends EditorPane {
 		}));
 
 		const otherExtensionContainers: IExtensionContainer[] = [];
-		const extensionStatusAction = this.instantiationService.createInstance(ExtensionStatusAction);
+		const extensionStatusAction = this._register(this.instantiationService.createInstance(ExtensionStatusAction));
 		const extensionStatusWidget = this._register(this.instantiationService.createInstance(ExtensionStatusWidget, append(actionsAndStatusContainer, $('.status')), extensionStatusAction));
 
 		otherExtensionContainers.push(extensionStatusAction, new class extends ExtensionWidget {
