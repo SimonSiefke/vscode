@@ -7,7 +7,7 @@ import { EventEmitter } from 'node:events'
 import gulp from 'gulp';
 import * as util from './lib/util.js';
 import * as task from './lib/task.js';
-import { transpileClientSWC, transpileTask, compileTask, watchTask, compileApiProposalNamesTask, watchApiProposalNamesTask } from './lib/compilation.js';
+import { transpileTask, compileTask, watchTask, compileApiProposalNamesTask, watchApiProposalNamesTask } from './lib/compilation.js';
 import { monacoTypecheckTask/* , monacoTypecheckWatchTask */ } from './gulpfile.editor.js';
 import { compileExtensionsTask, watchExtensionsTask, compileExtensionMediaTask } from './gulpfile.extensions.js';
 import { dirname } from 'node:path'

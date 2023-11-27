@@ -7,7 +7,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as codesign from 'electron-osx-sign';
 import { spawn } from '@malept/cross-spawn-promise';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
 
 function getElectronVersion(): string {

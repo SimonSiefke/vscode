@@ -19,7 +19,11 @@ import File from 'vinyl';
 import * as task from './task.js';
 import { Mangler } from './mangle/index.js';
 import { RawSourceMap } from 'source-map';
-const watch = require('./watch');
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import watch from './watch/index.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 
 // --- gulp-tsb: compile and transpile --------------------------------

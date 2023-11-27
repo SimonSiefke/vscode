@@ -5,6 +5,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 if (process.argv.length !== 3) {
 	console.error('Usage: node listNodeModules.js OUTPUT_FILE');

@@ -5,7 +5,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 const { dirs } = require('../../npm/dirs');
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '../../../');
 const shasum = crypto.createHash('sha1');
 shasum.update(fs.readFileSync(path.join(ROOT, 'build/.cachesalt')));

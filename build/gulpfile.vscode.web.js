@@ -20,7 +20,10 @@ import packageJson from '../package.json' assert {type: 'json'};
 import { compileBuildTask } from './gulpfile.compile.js';
 import * as extensions from './lib/extensions.js';
 import * as buildfile from '../src/buildfile.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.dirname(__dirname);
 const BUILD_ROOT = path.dirname(REPO_ROOT);
 const WEB_FOLDER = path.join(REPO_ROOT, 'remote', 'web');
