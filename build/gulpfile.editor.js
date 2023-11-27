@@ -498,10 +498,8 @@ function createTscCompileTask(watch) {
 	};
 }
 
-const monacoTypecheckWatchTask = task.define('monaco-typecheck-watch', createTscCompileTask(true));
-exports.monacoTypecheckWatchTask = monacoTypecheckWatchTask;
+export const monacoTypecheckWatchTask = task.define('monaco-typecheck-watch', createTscCompileTask(true));
 
-const monacoTypecheckTask = task.define('monaco-typecheck', createTscCompileTask(false));
-exports.monacoTypecheckTask = monacoTypecheckTask;
+export const monacoTypecheckTask = task.define('monaco-typecheck', createTscCompileTask(false));
 
 //#endregion
