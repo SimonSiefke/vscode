@@ -14,6 +14,9 @@ import _rimraf from 'rimraf';
 import VinylFile from 'vinyl';
 import { pathToFileURL } from 'url';
 import ternaryStream from 'ternary-stream';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = path.dirname(path.dirname(__dirname));
 const NoCancellationToken = { isCancellationRequested: () => false };
 export function incremental(streamProvider, initial, supportsCancellation) {

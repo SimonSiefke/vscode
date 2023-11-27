@@ -8,10 +8,13 @@ import type * as ts from 'typescript';
 import * as path from 'path';
 import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import tsfmt from '../../tsfmt.json' assert {type: 'json'};
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const dtsv = '3';
-
-const tsfmt = require('../../tsfmt.json');
 
 const SRC = path.join(__dirname, '../../src');
 export const RECIPE_PATH = path.join(__dirname, '../monaco/monaco.d.ts.recipe');

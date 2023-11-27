@@ -8,6 +8,10 @@ import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as fs from 'fs';
 import * as path from 'path';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 class ErrorLog {
 	constructor(public id: string) {
