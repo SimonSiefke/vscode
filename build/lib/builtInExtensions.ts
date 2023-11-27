@@ -14,8 +14,11 @@ import * as ext from './extensions.js';
 import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import { Stream } from 'stream';
+import mkdirp from 'mkdirp';
+import { dirname } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const mkdirp = require('mkdirp');
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export interface IExtensionDefinition {
 	name: string;
@@ -174,7 +177,7 @@ export function getBuiltInExtensions(): Promise<void> {
 	});
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	getBuiltInExtensions().then(() => process.exit(0)).catch(err => {
 		console.error(err);
 		process.exit(1);

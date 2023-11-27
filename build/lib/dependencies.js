@@ -5,6 +5,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cp from 'child_process';
+import { dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const parseSemver = require('parse-semver');
 const root = fs.realpathSync(path.dirname(path.dirname(__dirname)));
 function asYarnDependency(prefix, tree) {
@@ -66,7 +71,7 @@ export function getProductionDependencies(folderPath) {
     }
     return [...new Set(result)];
 }
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.log(JSON.stringify(getProductionDependencies(root), null, '  '));
 }
 //# sourceMappingURL=dependencies.js.map

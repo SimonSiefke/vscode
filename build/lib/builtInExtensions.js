@@ -12,7 +12,8 @@ import * as vfs from 'vinyl-fs';
 import * as ext from './extensions.js';
 import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
-const mkdirp = require('mkdirp');
+import mkdirp from 'mkdirp';
+import { pathToFileURL } from 'node:url';
 const root = path.dirname(path.dirname(__dirname));
 const productjson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../product.json'), 'utf8'));
 const builtInExtensions = productjson.builtInExtensions || [];
@@ -123,7 +124,7 @@ export function getBuiltInExtensions() {
             .on('end', resolve);
     });
 }
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     getBuiltInExtensions().then(() => process.exit(0)).catch(err => {
         console.error(err);
         process.exit(1);

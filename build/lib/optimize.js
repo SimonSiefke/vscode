@@ -17,6 +17,8 @@ import { createStatsStream } from './stats.js';
 import * as util from './util.js';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_PATH = path.join(__dirname, '../..');
 function log(prefix, message) {
