@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as  filter from 'gulp-filter';
-import * as es from 'event-stream';
+import * as filter from 'gulp-filter';
+import es from 'event-stream';
 import VinylFile from 'vinyl';
-import * as  vfs from 'vinyl-fs';
-import * as  path from 'node:path';
-import * as  fs from 'node:fs';
+import * as vfs from 'vinyl-fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import pall from 'p-all';
 import { all, copyrightFilter, unicodeFilter, indentationFilter, tsFormattingFilter, eslintFilter, stylelintFilter } from './filters.js';
 import { createRequire } from 'node:module';

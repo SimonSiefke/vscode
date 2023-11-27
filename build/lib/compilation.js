@@ -43,7 +43,7 @@ function getTypeScriptCompilerOptions(src) {
 }
 async function createCompile(src, build, emitError, transpileOnly) {
     const tsb = await import('./tsb/index.js');
-    const sourcemaps = await import('gulp-sourcemaps');
+    const { default: sourcemaps } = await import('gulp-sourcemaps');
     const projectPath = path.join(__dirname, '../../', src, 'tsconfig.json');
     const overrideOptions = { ...getTypeScriptCompilerOptions(src), inlineSources: Boolean(build) };
     if (!build) {

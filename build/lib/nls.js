@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import lazy from 'lazy.js';
-import * as ev from 'event-stream';
+import es from 'event-stream';
 import File from 'vinyl';
 import * as sm from 'source-map';
 import * as path from 'path';
-const { duplex, through } = ev;
+const { duplex, through } = es;
 var CollectStepResult;
 (function (CollectStepResult) {
     CollectStepResult[CollectStepResult["Yes"] = 0] = "Yes";

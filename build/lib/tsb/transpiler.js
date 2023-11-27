@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as swc from '@swc/core';
-import * as ts from 'typescript';
+import ts from 'typescript';
 import * as threads from 'node:worker_threads';
 import Vinyl from 'vinyl';
 import { cpus } from 'node:os';

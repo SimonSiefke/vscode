@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as es from 'event-stream';
+import es from 'event-stream';
 import fancyLog from 'fancy-log';
-import * as ansiColors from 'ansi-colors';
+import ansiColors from 'ansi-colors';
 import * as fs from 'fs';
 import * as path from 'path';
 import { dirname } from 'node:path'
