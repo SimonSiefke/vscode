@@ -10,7 +10,10 @@ import * as ts from 'typescript';
 import { pathToFileURL } from 'url';
 import * as workerpool from 'workerpool';
 import { StaticLanguageServiceHost } from './staticLanguageServiceHost.js';
-import * as buildfile from '../../../src/buildfile.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const buildfile = require('../../../src/buildfile');
 
 class ShortIdent {
 

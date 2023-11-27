@@ -16,7 +16,10 @@ import * as bundle from './bundle.js';
 import { Language, processNlsFiles } from './i18n.js';
 import { createStatsStream } from './stats.js';
 import * as util from './util.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT_PATH = path.join(__dirname, '../..');
 
 function log(prefix: string, message: string): void {
