@@ -3,39 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import gulp from 'gulp';
+import merge from 'gulp-merge-json';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as cp from 'node:child_process';
+import * as path from 'node:path';
+import es from 'event-stream';
+import * as vfs from 'vinyl-fs';
+import rename from 'gulp-rename';
+import replace from 'gulp-replace';
+import filter from 'gulp-filter';
+import * as util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import * as task from './lib/task.js';
+import * as buildfile from '../src/buildfile.js';
+import * as optimize from './lib/optimize.js';
+import packageJson from '../package.json' assert {type: 'json'};
+import product from '../product.json' assert {type: 'json'};
+import crypto from 'node:crypto';
+import * as i18n from './lib/i18n.js';
+import { getProductionDependencies } from './lib/dependencies.js';
+import { config } from './lib/electron.js';
+import { createAsar } from './lib/asar.js';
+import minimist from 'minimist';
+import { compileBuildTask } from './gulpfile.compile.js';
+import { compileExtensionsBuildTask, compileExtensionMediaBuildTask } from './gulpfile.extensions.js';
+import { promisify } from 'util';
+import globModule from 'glob';
+import rceditModule from 'rcedit';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-const gulp = require('gulp');
-const merge = require('gulp-merge-json');
-const fs = require('fs');
-const os = require('os');
-const cp = require('child_process');
-const path = require('path');
-const es = require('event-stream');
-const vfs = require('vinyl-fs');
-const rename = require('gulp-rename');
-const replace = require('gulp-replace');
-const filter = require('gulp-filter');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const buildfile = require('../src/buildfile');
-const optimize = require('./lib/optimize');
+const global = promisify(globModule)
+const rcedit = promisify(rceditModule)
+
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname);
 const commit = getVersion(root);
-const packageJson = require('../package.json');
-const product = require('../product.json');
-const crypto = require('crypto');
-const i18n = require('./lib/i18n');
-const { getProductionDependencies } = require('./lib/dependencies');
-const { config } = require('./lib/electron');
-const createAsar = require('./lib/asar').createAsar;
-const minimist = require('minimist');
-const { compileBuildTask } = require('./gulpfile.compile');
-const { compileExtensionsBuildTask, compileExtensionMediaBuildTask } = require('./gulpfile.extensions');
-const { promisify } = require('util');
-const glob = promisify(require('glob'));
-const rcedit = promisify(require('rcedit'));
 
 // Build
 const vscodeEntryPoints = [

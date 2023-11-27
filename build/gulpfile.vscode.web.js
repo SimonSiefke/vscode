@@ -3,24 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
-const gulp = require('gulp');
-const path = require('path');
-const es = require('event-stream');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const optimize = require('./lib/optimize');
-const product = require('../product.json');
-const rename = require('gulp-rename');
-const filter = require('gulp-filter');
-const { getProductionDependencies } = require('./lib/dependencies');
-const vfs = require('vinyl-fs');
-const replace = require('gulp-replace');
-const packageJson = require('../package.json');
-const { compileBuildTask } = require('./gulpfile.compile');
-const extensions = require('./lib/extensions');
+import gulp from 'gulp';
+import path from 'node:path';
+import es from 'event-stream';
+import util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import task from './lib/task.js';
+import optimize from './lib/optimize.js';
+import product from '../product.json' assert {type: 'json'};
+import rename from 'gulp-rename';
+import filter from 'gulp-filter';
+import { getProductionDependencies } from './lib/dependencies.js';
+import vfs from 'vinyl-fs';
+import replace from 'gulp-replace';
+import packageJson from '../package.json' assert {type: 'json'};
+import { compileBuildTask } from './gulpfile.compile.js';
+import * as extensions from './lib/extensions.js';
+import * as buildfile from '../src/buildfile.js';
 
 const REPO_ROOT = path.dirname(__dirname);
 const BUILD_ROOT = path.dirname(REPO_ROOT);
@@ -30,7 +29,7 @@ const commit = getVersion(REPO_ROOT);
 const quality = product.quality;
 const version = (quality && quality !== 'stable') ? `${packageJson.version}-${quality}` : packageJson.version;
 
-const vscodeWebResourceIncludes = [
+export const vscodeWebResourceIncludes = [
 	// Workbench
 	'out-build/vs/{base,platform,editor,workbench}/**/*.{svg,png,jpg,mp3}',
 	'out-build/vs/code/browser/workbench/*.html',
@@ -47,7 +46,6 @@ const vscodeWebResourceIncludes = [
 	// Web node paths (needed for integration tests)
 	'out-build/vs/webPackagePaths.js',
 ];
-exports.vscodeWebResourceIncludes = vscodeWebResourceIncludes;
 
 const vscodeWebResources = [
 
@@ -61,9 +59,8 @@ const vscodeWebResources = [
 	'!**/test/**'
 ];
 
-const buildfile = require('../src/buildfile');
 
-const vscodeWebEntryPoints = [
+export const vscodeWebEntryPoints = [
 	buildfile.entrypoint('vs/workbench/workbench.web.main'),
 	buildfile.base,
 	buildfile.workerExtensionHost,
@@ -74,7 +71,6 @@ const vscodeWebEntryPoints = [
 	buildfile.keyboardMaps,
 	buildfile.workbenchWeb
 ].flat();
-exports.vscodeWebEntryPoints = vscodeWebEntryPoints;
 
 const buildDate = new Date().toISOString();
 
@@ -144,13 +140,12 @@ const combineContentPatchers = (...patchers) => {
  * @param extensionsRoot {string} The location where extension will be read from
  * @param {object} product The parsed product.json file contents
  */
-const createVSCodeWebFileContentMapper = (extensionsRoot, product) => {
+export const createVSCodeWebFileContentMapper = (extensionsRoot, product) => {
 	return combineContentPatchers(
 		createVSCodeWebProductConfigurationPatcher(product),
 		createVSCodeWebBuiltinExtensionsPatcher(extensionsRoot)
 	);
 };
-exports.createVSCodeWebFileContentMapper = createVSCodeWebFileContentMapper;
 
 const optimizeVSCodeWebTask = task.define('optimize-vscode-web', task.series(
 	util.rimraf('out-vscode-web'),

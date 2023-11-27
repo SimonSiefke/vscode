@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
-const fs = require('fs').promises;
-const path = require('path');
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
 async function* getYarnLockFiles(dir) {
 	const files = await fs.readdir(dir);

@@ -3,23 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import gulp from 'gulp';
+import replace from 'gulp-replace';
+import rename from 'gulp-rename';
+import shell from 'gulp-shell';
+import es from 'event-stream';
+import vfs from 'vinyl-fs';
+import * as util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import * as task from './lib/task.js';
+import * as packageJson from '../package.json' assert { type: 'json' };
+import * as  product from '../product.json' assert {type: 'json'};
+import * as  dependenciesGenerator from './linux/dependencies-generator.js';
+import * as sysrootInstaller from './linux/debian/install-sysroot.js';
+import { recommendedDep as debianRecommendedDependencies } from './linux/debian/dep-lists';
+import * as path from 'node:path';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const gulp = require('gulp');
-const replace = require('gulp-replace');
-const rename = require('gulp-rename');
-const shell = require('gulp-shell');
-const es = require('event-stream');
-const vfs = require('vinyl-fs');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const packageJson = require('../package.json');
-const product = require('../product.json');
-const dependenciesGenerator = require('./linux/dependencies-generator');
-const sysrootInstaller = require('./linux/debian/install-sysroot');
-const debianRecommendedDependencies = require('./linux/debian/dep-lists').recommendedDeps;
-const path = require('path');
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname);
 const commit = getVersion(root);
 

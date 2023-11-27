@@ -12,10 +12,15 @@
  * all ⊃ eol ⊇ indentation ⊃ copyright ⊃ typescript
  */
 
-const { readFileSync } = require('fs');
-const { join } = require('path');
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-module.exports.all = [
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+export const all = [
 	'*',
 	'build/**/*',
 	'extensions/**/*',
@@ -28,7 +33,7 @@ module.exports.all = [
 	'!**/node_modules/**',
 ];
 
-module.exports.unicodeFilter = [
+export const unicodeFilter = [
 	'**',
 
 	'!**/ThirdPartyNotices.txt',
@@ -61,7 +66,7 @@ module.exports.unicodeFilter = [
 	'!src/vs/workbench/services/keybinding/browser/keyboardLayouts/**',
 ];
 
-module.exports.indentationFilter = [
+export const indentationFilter = [
 	'**',
 
 	// except specific files
@@ -135,7 +140,7 @@ module.exports.indentationFilter = [
 	'!extensions/simple-browser/media/*.js',
 ];
 
-module.exports.copyrightFilter = [
+export const copyrightFilter = [
 	'**',
 	'!**/*.desktop',
 	'!**/*.json',
@@ -174,7 +179,7 @@ module.exports.copyrightFilter = [
 	'!src/vs/editor/test/node/classification/typescript-test.ts',
 ];
 
-module.exports.tsFormattingFilter = [
+export const tsFormattingFilter = [
 	'src/**/*.ts',
 	'test/**/*.ts',
 	'extensions/**/*.ts',
@@ -191,7 +196,7 @@ module.exports.tsFormattingFilter = [
 	'!extensions/html-language-features/server/lib/jquery.d.ts',
 ];
 
-module.exports.eslintFilter = [
+export const eslintFilter = [
 	'**/*.js',
 	'**/*.ts',
 	...readFileSync(join(__dirname, '../.eslintignore'))
@@ -201,6 +206,6 @@ module.exports.eslintFilter = [
 		.map(line => `!${line}`)
 ];
 
-module.exports.stylelintFilter = [
+export const stylelintFilter = [
 	'src/**/*.css'
 ];

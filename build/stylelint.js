@@ -3,15 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const es = require('event-stream');
-const vfs = require('vinyl-fs');
-const { stylelintFilter } = require('./filters');
-const { getVariableNameValidator } = require('./lib/stylelint/validateVariableNames');
-
-module.exports = gulpstylelint;
+import * as  es from 'event-stream';
+import * as  vfs from 'vinyl-fs';
+import { stylelintFilter } from './filters.js';
+import { getVariableNameValidator } from './lib/stylelint/validateVariableNames.js';
 
 /** use regex on lines */
-function gulpstylelint(reporter) {
+export function gulpstylelint(reporter) {
 	const variableValidator = getVariableNameValidator();
 	let errorCount = 0;
 	return es.through(function (file) {

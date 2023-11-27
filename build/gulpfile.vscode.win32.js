@@ -3,20 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import gulp from 'gulp';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
+import assert from 'node:assert';
+import * as cp from 'node:child_process';
+import * as util from './lib/util';
+import * as task from './lib/task';
+import * as pkg from '../package.json';
+import * as product from '../product.json';
+import * as vfs from 'vinyl-fs';
+import * as rcedit from 'rcedit';
+import * as mkdirp from 'mkdirp';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-const gulp = require('gulp');
-const path = require('path');
-const fs = require('fs');
-const assert = require('assert');
-const cp = require('child_process');
-const util = require('./lib/util');
-const task = require('./lib/task');
-const pkg = require('../package.json');
-const product = require('../product.json');
-const vfs = require('vinyl-fs');
-const rcedit = require('rcedit');
-const mkdirp = require('mkdirp');
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const repoPath = path.dirname(__dirname);
 const buildPath = (/** @type {string} */ arch) => path.join(path.dirname(repoPath), `VSCode-win32-${arch}`);

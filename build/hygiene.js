@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const filter = require('gulp-filter');
-const es = require('event-stream');
-const VinylFile = require('vinyl');
-const vfs = require('vinyl-fs');
-const path = require('path');
-const fs = require('fs');
-const pall = require('p-all');
+import * as  filter from 'gulp-filter';
+import * as es from 'event-stream';
+import VinylFile from 'vinyl';
+import * as  vfs from 'vinyl-fs';
+import * as  path from 'node:path';
+import * as  fs from 'node:fs';
+import pall from 'p-all';
+import { all, copyrightFilter, unicodeFilter, indentationFilter, tsFormattingFilter, eslintFilter, stylelintFilter } from './filters.js';
+import { createRequire } from 'node:module';
 
-const { all, copyrightFilter, unicodeFilter, indentationFilter, tsFormattingFilter, eslintFilter, stylelintFilter } = require('./filters');
+const require = createRequire(import.meta.url);
+
 
 const copyrightHeaderLines = [
 	'/*---------------------------------------------------------------------------------------------',
@@ -20,7 +23,7 @@ const copyrightHeaderLines = [
 	' *--------------------------------------------------------------------------------------------*/',
 ];
 
-function hygiene(some, linting = true) {
+export function hygiene(some, linting = true) {
 	const gulpeslint = require('gulp-eslint');
 	const gulpstylelint = require('./stylelint');
 	const tsfmt = require('typescript-formatter');
@@ -236,9 +239,9 @@ function hygiene(some, linting = true) {
 	);
 }
 
-module.exports.hygiene = hygiene;
 
-function createGitIndexVinyls(paths) {
+async function createGitIndexVinyls(paths) {
+
 	const cp = require('child_process');
 	const repositoryPath = process.cwd();
 
