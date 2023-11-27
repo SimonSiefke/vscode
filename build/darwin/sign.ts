@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as codesign from 'electron-osx-sign';
 import { spawn } from '@malept/cross-spawn-promise';
 import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
@@ -120,7 +120,7 @@ async function main(buildDir?: string): Promise<void> {
 	await codesign.signAsync(appOpts as any);
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	main(process.argv[2]).catch(err => {
 		console.error(err);
 		process.exit(1);

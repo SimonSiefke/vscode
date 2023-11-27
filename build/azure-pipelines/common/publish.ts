@@ -18,6 +18,7 @@ import { ClientSecretCredential } from '@azure/identity';
 import * as cp from 'child_process';
 import * as os from 'os';
 import { Worker, isMainThread, workerData } from 'node:worker_threads';
+import { pathToFileURL } from 'node:url';
 
 function e(name: string): string {
 	const result = process.env[name];
@@ -830,7 +831,7 @@ async function main() {
 	console.log(`All ${done.size} artifacts published!`);
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	main().then(() => {
 		process.exit(0);
 	}, err => {

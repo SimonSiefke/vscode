@@ -8,7 +8,7 @@ import extract from 'extract-zip';
 import * as path from 'path';
 import { downloadArtifact } from '@electron/get';
 import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = path.dirname(path.dirname(__dirname));
 const d = debug('explorer-appx-fetcher');
@@ -44,7 +44,7 @@ async function main(outputDir) {
     const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf8'));
     await downloadExplorerAppx(outputDir, product.quality, arch);
 }
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     main(process.argv[2]).catch(err => {
         console.error(err);
         process.exit(1);

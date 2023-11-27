@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as os from 'os';
+import { pathToFileURL } from 'node:url';
 export class Temp {
     _files = [];
     tmpNameSync() {
@@ -160,7 +161,7 @@ export function main([esrpCliPath, type, cert, username, password, folderPath, p
         process.exit(1);
     }
 }
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     main(process.argv.slice(2));
     process.exit(0);
 }

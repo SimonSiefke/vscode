@@ -7,7 +7,10 @@
 		".profile-oss": true,
 		"**/.DS_Store": true,
 		".vscode-test": true,
-		"cli/target": true
+		"cli/target": true,
+		"build/**/*.js": {
+			"when": "$(basename).ts"
+		}
 	},
 	"files.associations": {
 		"cglicenses.json": "jsonc",

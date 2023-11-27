@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 import * as fs from 'fs';
 import * as path from 'path';
-import { argv } from 'process';
 import { SourceMapGenerator } from 'source-map';
 import * as ts from 'typescript';
 import { pathToFileURL } from 'url';
 import * as workerpool from 'workerpool';
 import { StaticLanguageServiceHost } from './staticLanguageServiceHost.js';
-const buildfile = require('../../../src/buildfile');
+import * as buildfile from '../../../src/buildfile.js';
 class ShortIdent {
     prefix;
     static _keywords = new Set(['await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger',
@@ -650,7 +649,7 @@ async function _run() {
         }
     }
 }
-if (__filename === argv[1]) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     _run();
 }
 //# sourceMappingURL=index.js.map

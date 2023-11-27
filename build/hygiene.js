@@ -283,7 +283,7 @@ async function createGitIndexVinyls(paths) {
 }
 
 // this allows us to run hygiene as a git pre-commit hook
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	const cp = require('child_process');
 
 	process.on('unhandledRejection', (reason, p) => {

@@ -11,7 +11,7 @@ import debug from 'debug';
 import extract from 'extract-zip';
 import { downloadArtifact } from '@electron/get';
 import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
 	await downloadLibcxxHeaders(libcxxabiHeadersDownloadDir, electronVersion, 'libcxxabi');
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	main().catch(err => {
 		console.error(err);
 		process.exit(1);

@@ -5,13 +5,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { argv } from 'process';
 import { Mapping, SourceMapGenerator } from 'source-map';
 import * as ts from 'typescript';
 import { pathToFileURL } from 'url';
 import * as workerpool from 'workerpool';
 import { StaticLanguageServiceHost } from './staticLanguageServiceHost.js';
-import buildfile from '../../../src/buildfile.js';
+import * as buildfile from '../../../src/buildfile.js';
 
 class ShortIdent {
 
@@ -768,6 +767,6 @@ async function _run() {
 	}
 }
 
-if (__filename === argv[1]) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	_run();
 }

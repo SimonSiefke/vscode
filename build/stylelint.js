@@ -46,7 +46,7 @@ function stylelint() {
 		.pipe(es.through(function () { /* noop, important for the stream to end */ }));
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	stylelint().on('error', (err) => {
 		console.error();
 		console.error(err);

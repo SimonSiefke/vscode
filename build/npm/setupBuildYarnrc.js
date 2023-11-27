@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const path = require('path');
-const fs = require('fs');
+import { pathToFileURL } from 'node:url';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 // make sure we install the deps of build for the system installed
 // node, since that is the driver of gulp
@@ -20,6 +21,6 @@ arch "${process.arch}"`;
 
 exports.setupBuildYarnrc = setupBuildYarnrc;
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	setupBuildYarnrc();
 }
