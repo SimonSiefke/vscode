@@ -15,7 +15,10 @@ import { ThroughStream } from 'through';
 import * as sm from 'source-map';
 import { pathToFileURL } from 'url';
 import ternaryStream from 'ternary-stream';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
 
 export interface ICancellationToken {

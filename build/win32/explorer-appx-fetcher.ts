@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import * as fs from 'fs';
 import debug from 'debug';
-import { default as extract } from 'extract-zip';
+import extract from 'extract-zip';
 import * as path from 'path';
 import { downloadArtifact } from '@electron/get';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
 
 const d = debug('explorer-appx-fetcher');

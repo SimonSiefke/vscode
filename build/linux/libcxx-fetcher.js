@@ -8,6 +8,9 @@ import * as path from 'path';
 import debug from 'debug';
 import extract from 'extract-zip';
 import { downloadArtifact } from '@electron/get';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = path.dirname(path.dirname(__dirname));
 const d = debug('libcxx-fetcher');
 export async function downloadLibcxxHeaders(outDir, electronVersion, lib_name) {
