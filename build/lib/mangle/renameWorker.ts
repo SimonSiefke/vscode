@@ -5,7 +5,7 @@
 
 import * as ts from 'typescript';
 import * as workerpool from 'workerpool';
-import { StaticLanguageServiceHost } from './staticLanguageServiceHost';
+import { StaticLanguageServiceHost } from './staticLanguageServiceHost.js';
 
 let service: ts.LanguageService | undefined;// = ts.createLanguageService(new StaticLanguageServiceHost(projectPath));
 

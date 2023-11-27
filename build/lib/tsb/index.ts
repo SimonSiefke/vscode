@@ -5,15 +5,15 @@
 
 import * as Vinyl from 'vinyl';
 import * as through from 'through';
-import * as builder from './builder';
+import * as builder from './builder.js';
 import * as ts from 'typescript';
 import { Readable, Writable, Duplex } from 'stream';
 import { dirname } from 'path';
-import { strings } from './utils';
+import { strings } from './utils.js';
 import { readFileSync, statSync } from 'fs';
 import * as log from 'fancy-log';
 import colors = require('ansi-colors');
-import { ITranspiler, SwcTranspiler, TscTranspiler } from './transpiler';
+import { ITranspiler, SwcTranspiler, TscTranspiler } from './transpiler.js';
 
 export interface IncrementalCompiler {
 	(token?: any): Readable & Writable;

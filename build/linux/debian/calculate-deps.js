@@ -8,8 +8,8 @@ import { spawnSync } from 'child_process';
 import { constants, statSync } from 'fs';
 import { tmpdir } from 'os';
 const path = __require("path");
-import * as manifests from '../../../cgmanifest.json';
-import { additionalDeps } from './dep-lists';
+import manifests from '../../../cgmanifest.json' assert { type: 'json' };
+import { additionalDeps } from './dep-lists.js';
 export function generatePackageDeps(files, arch, sysroot) {
     const dependencies = files.map(file => calculatePackageDeps(file, arch, sysroot));
     const additionalDepsSet = new Set(additionalDeps);

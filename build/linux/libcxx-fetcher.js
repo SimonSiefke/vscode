@@ -5,7 +5,7 @@
 // Can be removed once https://github.com/electron/electron-rebuild/pull/703 is available.
 import * as fs from 'fs';
 import * as path from 'path';
-import * as debug from 'debug';
+import debug from 'debug';
 import * as extract from 'extract-zip';
 import { downloadArtifact } from '@electron/get';
 const root = path.dirname(path.dirname(__dirname));

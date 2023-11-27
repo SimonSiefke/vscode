@@ -5,17 +5,17 @@
 
 import * as es from 'event-stream';
 import * as gulp from 'gulp';
-import * as concat from 'gulp-concat';
+import concat from 'gulp-concat';
 import * as filter from 'gulp-filter';
-import * as fancyLog from 'fancy-log';
+import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as path from 'path';
-import * as pump from 'pump';
+import pump from 'pump';
 import * as VinylFile from 'vinyl';
-import * as bundle from './bundle';
-import { Language, processNlsFiles } from './i18n';
-import { createStatsStream } from './stats';
-import * as util from './util';
+import * as bundle from './bundle.js';
+import { Language, processNlsFiles } from './i18n.js';
+import { createStatsStream } from './stats.js';
+import * as util from './util.js';
 
 const REPO_ROOT_PATH = path.join(__dirname, '../..');
 

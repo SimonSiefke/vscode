@@ -8,7 +8,7 @@ import { tmpdir } from 'os';
 import * as fs from 'fs';
 import * as https from 'https';
 import * as path from 'path';
-import * as util from '../../lib/util';
+import * as util from '../../lib/util.js';
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:build/linux/sysroot_scripts/install-sysroot.py.
 const URL_PREFIX = 'https://msftelectron.blob.core.windows.net';
 const URL_PATH = 'sysroots/toolchain';

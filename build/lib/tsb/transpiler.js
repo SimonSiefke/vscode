@@ -5,7 +5,7 @@
 import * as swc from '@swc/core';
 import * as ts from 'typescript';
 import * as threads from 'node:worker_threads';
-import * as Vinyl from 'vinyl';
+import Vinyl from 'vinyl';
 import { cpus } from 'node:os';
 function transpile(tsSrc, options) {
     const isAmd = /\n(import|export)/m.test(tsSrc);

@@ -10,7 +10,7 @@ import type { ReadableStream } from 'stream/web';
 import { pipeline } from 'node:stream/promises';
 import * as yauzl from 'yauzl';
 import * as crypto from 'crypto';
-import { retry } from './retry';
+import { retry } from './retry.js';
 import { BlobServiceClient, BlockBlobParallelUploadOptions, StorageRetryPolicyType } from '@azure/storage-blob';
 import * as mime from 'mime';
 import { CosmosClient } from '@azure/cosmos';

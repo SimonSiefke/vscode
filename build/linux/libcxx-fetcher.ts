@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as debug from 'debug';
+import debug from 'debug';
 import * as extract from 'extract-zip';
 import { downloadArtifact } from '@electron/get';
 

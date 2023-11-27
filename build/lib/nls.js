@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as lazy from 'lazy.js';
+import lazy from 'lazy.js';
 import { duplex, through } from 'event-stream';
-import * as File from 'vinyl';
+import File from 'vinyl';
 import * as sm from 'source-map';
 import * as path from 'path';
 var CollectStepResult;

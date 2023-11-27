@@ -6,8 +6,8 @@
 'use strict';
 
 import * as fs from 'fs';
-import * as debug from 'debug';
-import * as extract from 'extract-zip';
+import debug from 'debug';
+import { default as extract } from 'extract-zip';
 import * as path from 'path';
 import { downloadArtifact } from '@electron/get';
 

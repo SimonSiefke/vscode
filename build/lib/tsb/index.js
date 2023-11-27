@@ -6,15 +6,15 @@ import { createRequire as _createRequire } from "module";
 const __require = _createRequire(import.meta.url);
 import * as Vinyl from 'vinyl';
 import * as through from 'through';
-import * as builder from './builder';
+import * as builder from './builder.js';
 import * as ts from 'typescript';
 import { Readable, Duplex } from 'stream';
 import { dirname } from 'path';
-import { strings } from './utils';
+import { strings } from './utils.js';
 import { readFileSync, statSync } from 'fs';
 import * as log from 'fancy-log';
 const colors = __require("ansi-colors");
-import { SwcTranspiler, TscTranspiler } from './transpiler';
+import { SwcTranspiler, TscTranspiler } from './transpiler.js';
 class EmptyDuplex extends Duplex {
     _write(_chunk, _encoding, callback) { callback(); }
     _read() { this.push(null); }

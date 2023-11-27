@@ -7,12 +7,12 @@ import { createRequire as _createRequire } from "module";
 const __require = _createRequire(import.meta.url);
 import { spawnSync } from 'child_process';
 const path = __require("path");
-import { generatePackageDeps as generatePackageDepsDebian } from './debian/calculate-deps';
-import { generatePackageDeps as generatePackageDepsRpm } from './rpm/calculate-deps';
-import { referenceGeneratedDepsByArch as debianGeneratedDeps } from './debian/dep-lists';
-import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-lists';
-import { isDebianArchString } from './debian/types';
-import { isRpmArchString } from './rpm/types';
+import { generatePackageDeps as generatePackageDepsDebian } from './debian/calculate-deps.js';
+import { generatePackageDeps as generatePackageDepsRpm } from './rpm/calculate-deps.js';
+import { referenceGeneratedDepsByArch as debianGeneratedDeps } from './debian/dep-lists.js';
+import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-lists.js';
+import { isDebianArchString } from './debian/types.js';
+import { isRpmArchString } from './rpm/types.js';
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
 // If false, we warn about new dependencies if they show up

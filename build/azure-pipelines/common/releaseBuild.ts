@@ -5,7 +5,7 @@
 
 import { ClientSecretCredential } from '@azure/identity';
 import { CosmosClient } from '@azure/cosmos';
-import { retry } from './retry';
+import { retry } from './retry.js';
 
 function getEnv(name: string): string {
 	const result = process.env[name];

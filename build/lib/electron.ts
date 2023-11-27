@@ -6,9 +6,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vfs from 'vinyl-fs';
-import * as filter from 'gulp-filter';
-import * as util from './util';
-import { getVersion } from './getVersion';
+import filter from 'gulp-filter';
+import * as util from './util.js';
+import { getVersion } from './getVersion.js';
 
 type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
 type DarwinDocumentType = {

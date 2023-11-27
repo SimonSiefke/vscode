@@ -7,17 +7,17 @@ import * as es from 'event-stream';
 import * as fs from 'fs';
 import * as gulp from 'gulp';
 import * as path from 'path';
-import * as monacodts from './monaco-api.ts';
+import * as monacodts from './monaco-api.js';
 import * as nls from './nls.js';
-import { createReporter } from './reporter.ts';
-import * as util from './util.ts';
-import * as fancyLog from 'fancy-log';
+import { createReporter } from './reporter.js';
+import * as util from './util.js';
+import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as os from 'os';
 import ts = require('typescript');
 import * as File from 'vinyl';
-import * as task from './task.ts';
-import { Mangler } from './mangle/index.ts';
+import * as task from './task.js';
+import { Mangler } from './mangle/index.js';
 import { RawSourceMap } from 'source-map';
 const watch = require('./watch');
 
@@ -42,7 +42,7 @@ function getTypeScriptCompilerOptions(src: string): ts.CompilerOptions {
 }
 
 function createCompile(src: string, build: boolean, emitError: boolean, transpileOnly: boolean | { swc: boolean }) {
-	const tsb = require('./tsb') as typeof import('./tsb');
+	const tsb = require('./tsb') as typeof import('./tsb/index.js');
 	const sourcemaps = require('gulp-sourcemaps') as typeof import('gulp-sourcemaps');
 
 
