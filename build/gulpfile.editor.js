@@ -3,24 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const gulp = require('gulp');
-const path = require('path');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const optimize = require('./lib/optimize');
-const es = require('event-stream');
-const File = require('vinyl');
-const i18n = require('./lib/i18n');
-const standalone = require('./lib/standalone');
-const cp = require('child_process');
-const compilation = require('./lib/compilation');
-const monacoapi = require('./lib/monaco-api');
-const fs = require('fs');
+import gulp from 'gulp';
+import * as path from 'node:path';
+import * as util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import * as task from './lib/task.js';
+import * as  optimize from './lib/optimize.js';
+import es from 'event-stream';
+import File from 'vinyl';
+import * as i18n from './lib/i18n.js';
+import * as standalone from './lib/standalone.js';
+import * as cp from 'node:child_process';
+import * as compilation from './lib/compilation.js';
+import * as monacoapi from './lib/monaco-api.js';
+import * as fs from 'node:fs';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
+import * as monacoPackageJson from './monaco/package.json' assert { type: 'json' }
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname);
 const sha1 = getVersion(root);
-const semver = require('./monaco/package.json').version;
+const semver = monacoPackageJson.version;
 const headerVersion = semver + '(' + sha1 + ')';
 
 // Build
@@ -445,7 +450,7 @@ gulp.task('monacodts', task.define('monacodts', () => {
 
 function createTscCompileTask(watch) {
 	return () => {
-		const createReporter = require('./lib/reporter').createReporter;
+		const createReporter = require('./lib/reporter.js').createReporter;
 
 		return new Promise((resolve, reject) => {
 			const args = ['./node_modules/.bin/tsc', '-p', './src/tsconfig.monaco.json', '--noEmit'];

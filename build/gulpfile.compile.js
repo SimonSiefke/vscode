@@ -3,13 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
-const gulp = require('gulp');
-const util = require('./lib/util');
-const task = require('./lib/task');
-const compilation = require('./lib/compilation');
-const optimize = require('./lib/optimize');
+import gulp from 'gulp';
+import * as util from './lib/util.js';
+import * as task from './lib/task.js';
+import * as compilation from './lib/compilation.js';
+import * as optimize from './lib/optimize.js';
 
 function makeCompileBuildTask(disableMangle) {
 	return task.series(

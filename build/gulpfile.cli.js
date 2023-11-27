@@ -3,24 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 //@ts-check
 
-const es = require('event-stream');
-const gulp = require('gulp');
-const path = require('path');
-const fancyLog = require('fancy-log');
-const ansiColors = require('ansi-colors');
-const cp = require('child_process');
-const { tmpdir } = require('os');
-const { promises: fs, existsSync, mkdirSync, rmSync } = require('fs');
+import * as es from 'event-stream';
+import { default as gulp } from 'gulp';
+import * as path from 'node:path';
+import { default as fancyLog } from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as cp from 'child_process';
+import { tmpdir } from 'node:os';
+import { promises as fs, existsSync, mkdirSync, rmSync } from 'node:fs';
+import * as task from './lib/task.js';
+import * as watcher from './lib/watch.js';
+import { debounce } from './lib/util.js';
+import { createReporter } from './lib/reporter.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-const task = require('./lib/task');
-const watcher = require('./lib/watch');
-const { debounce } = require('./lib/util');
-const createReporter = require('./lib/reporter').createReporter;
-
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = 'cli';
 const rootAbs = path.resolve(__dirname, '..', root);
 const src = `${root}/src`;

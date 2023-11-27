@@ -3,9 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const es = require('event-stream');
-const vfs = require('vinyl-fs');
-const { eslintFilter } = require('./filters');
+import * as es from 'event-stream';
+import * as vfs from 'vinyl-fs';
+import { eslintFilter } from './filters.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 function eslint() {
 	const gulpeslint = require('gulp-eslint');
