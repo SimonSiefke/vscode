@@ -1,19 +1,19 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const es = require("event-stream");
-const vfs = require("vinyl-fs");
-const merge = require("gulp-merge-json");
-const gzip = require("gulp-gzip");
-const identity_1 = require("@azure/identity");
-const path = require("path");
-const fs_1 = require("fs");
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
+import * as es from 'event-stream';
+import * as vfs from 'vinyl-fs';
+import * as merge from 'gulp-merge-json';
+import * as gzip from 'gulp-gzip';
+import { ClientSecretCredential } from '@azure/identity';
+const path = __require("path");
+import { readFileSync } from 'fs';
 const azure = require('gulp-azure-storage');
 const commit = process.env['BUILD_SOURCEVERSION'];
-const credential = new identity_1.ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
+const credential = new ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
 function main() {
     return new Promise((c, e) => {
         es.merge(vfs.src('out-vscode-web-min/nls.metadata.json', { base: 'out-vscode-web-min' }), vfs.src('.build/extensions/**/nls.metadata.json', { base: '.build/extensions' }), vfs.src('.build/extensions/**/nls.metadata.header.json', { base: '.build/extensions' }), vfs.src('.build/extensions/**/package.nls.json', { base: '.build/extensions' }))
@@ -67,7 +67,7 @@ function main() {
                 }
                 // Get extension id and use that as the key
                 const folderPath = path.join(file.base, file.relative.split('/')[0]);
-                const manifest = (0, fs_1.readFileSync)(path.join(folderPath, 'package.json'), 'utf-8');
+                const manifest = readFileSync(path.join(folderPath, 'package.json'), 'utf-8');
                 const manifestJson = JSON.parse(manifest);
                 const key = manifestJson.publisher + '.' + manifestJson.name;
                 return { [key]: parsedJson };

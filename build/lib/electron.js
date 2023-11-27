@@ -1,22 +1,19 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.config = void 0;
-const fs = require("fs");
-const path = require("path");
-const vfs = require("vinyl-fs");
-const filter = require("gulp-filter");
-const util = require("./util");
-const getVersion_1 = require("./getVersion");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vfs from 'vinyl-fs';
+import * as filter from 'gulp-filter';
+import * as util from './util';
+import { getVersion } from './getVersion';
 function isDocumentSuffix(str) {
     return str === 'document' || str === 'script' || str === 'file' || str === 'source code';
 }
 const root = path.dirname(path.dirname(__dirname));
 const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf8'));
-const commit = (0, getVersion_1.getVersion)(root);
+const commit = getVersion(root);
 function createTemplate(input) {
     return (params) => {
         return input.replace(/<%=\s*([^\s]+)\s*%>/g, (match, key) => {
@@ -82,7 +79,7 @@ function darwinBundleDocumentTypes(types, icon) {
     });
 }
 const { electronVersion, msBuildId } = util.getElectronVersion();
-exports.config = {
+export const config = {
     version: electronVersion,
     tag: product.electronRepository ? `v${electronVersion}-${msBuildId}` : undefined,
     productAppName: product.nameLong,
@@ -190,7 +187,7 @@ function getElectron(arch) {
         const electron = require('@vscode/gulp-electron');
         const json = require('gulp-json-editor');
         const electronOpts = {
-            ...exports.config,
+            ...config,
             platform: process.platform,
             arch: arch === 'armhf' ? 'arm' : arch,
             ffmpegChromium: false,

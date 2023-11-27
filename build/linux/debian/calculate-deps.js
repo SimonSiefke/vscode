@@ -1,27 +1,25 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.generatePackageDeps = void 0;
-const child_process_1 = require("child_process");
-const fs_1 = require("fs");
-const os_1 = require("os");
-const path = require("path");
-const manifests = require("../../../cgmanifest.json");
-const dep_lists_1 = require("./dep-lists");
-function generatePackageDeps(files, arch, sysroot) {
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
+import { spawnSync } from 'child_process';
+import { constants, statSync } from 'fs';
+import { tmpdir } from 'os';
+const path = __require("path");
+import * as manifests from '../../../cgmanifest.json';
+import { additionalDeps } from './dep-lists';
+export function generatePackageDeps(files, arch, sysroot) {
     const dependencies = files.map(file => calculatePackageDeps(file, arch, sysroot));
-    const additionalDepsSet = new Set(dep_lists_1.additionalDeps);
+    const additionalDepsSet = new Set(additionalDeps);
     dependencies.push(additionalDepsSet);
     return dependencies;
 }
-exports.generatePackageDeps = generatePackageDeps;
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/calculate_package_deps.py.
 function calculatePackageDeps(binaryPath, arch, sysroot) {
     try {
-        if (!((0, fs_1.statSync)(binaryPath).mode & fs_1.constants.S_IXUSR)) {
+        if (!(statSync(binaryPath).mode & constants.S_IXUSR)) {
             throw new Error(`Binary ${binaryPath} needs to have an executable bit set.`);
         }
     }
@@ -34,8 +32,8 @@ function calculatePackageDeps(binaryPath, arch, sysroot) {
         return registration.component.type === 'git' && registration.component.git.name === 'chromium';
     });
     const dpkgShlibdepsUrl = `https://raw.githubusercontent.com/chromium/chromium/${chromiumManifest[0].version}/third_party/dpkg-shlibdeps/dpkg-shlibdeps.pl`;
-    const dpkgShlibdepsScriptLocation = `${(0, os_1.tmpdir)()}/dpkg-shlibdeps.pl`;
-    const result = (0, child_process_1.spawnSync)('curl', [dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation]);
+    const dpkgShlibdepsScriptLocation = `${tmpdir()}/dpkg-shlibdeps.pl`;
+    const result = spawnSync('curl', [dpkgShlibdepsUrl, '-o', dpkgShlibdepsScriptLocation]);
     if (result.status !== 0) {
         throw new Error('Cannot retrieve dpkg-shlibdeps. Stderr:\n' + result.stderr);
     }
@@ -53,7 +51,7 @@ function calculatePackageDeps(binaryPath, arch, sysroot) {
     }
     cmd.push(`-l${sysroot}/usr/lib`);
     cmd.push('-O', '-e', path.resolve(binaryPath));
-    const dpkgShlibdepsResult = (0, child_process_1.spawnSync)('perl', cmd, { cwd: sysroot });
+    const dpkgShlibdepsResult = spawnSync('perl', cmd, { cwd: sysroot });
     if (dpkgShlibdepsResult.status !== 0) {
         throw new Error(`dpkg-shlibdeps failed with exit code ${dpkgShlibdepsResult.status}. stderr:\n${dpkgShlibdepsResult.stderr} `);
     }

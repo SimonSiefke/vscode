@@ -1,13 +1,13 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require("fs");
-const path = require("path");
-const url = require("url");
-const ansiColors = require("ansi-colors");
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
+import * as fs from 'fs';
+import * as path from 'path';
+import * as url from 'url';
+const ansiColors = __require("ansi-colors");
 const root = path.dirname(path.dirname(__dirname));
 const rootCG = path.join(root, 'extensionsCG');
 const productjson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../product.json'), 'utf8'));

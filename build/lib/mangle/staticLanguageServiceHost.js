@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StaticLanguageServiceHost = void 0;
-const ts = require("typescript");
-const path = require("path");
-class StaticLanguageServiceHost {
+import * as ts from 'typescript';
+import * as path from 'path';
+export class StaticLanguageServiceHost {
     projectPath;
     _cmdLine;
     _scriptSnapshots = new Map();
@@ -61,5 +58,4 @@ class StaticLanguageServiceHost {
     // this is necessary to make source references work.
     realpath = ts.sys.realpath;
 }
-exports.StaticLanguageServiceHost = StaticLanguageServiceHost;
 //# sourceMappingURL=staticLanguageServiceHost.js.map

@@ -14,7 +14,7 @@ import * as cp from 'child_process';
 import { tmpdir } from 'node:os';
 import { promises as fs, existsSync, mkdirSync, rmSync } from 'node:fs';
 import * as task from './lib/task.js';
-import * as watcher from './lib/watch.js';
+import * as watcher from './lib/watch/index.js';
 import { debounce } from './lib/util.js';
 import { createReporter } from './lib/reporter.js';
 import { dirname } from 'node:path'

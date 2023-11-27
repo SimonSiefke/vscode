@@ -1,23 +1,21 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require("fs");
-const path = require("path");
-const stream_1 = require("stream");
-const promises_1 = require("node:stream/promises");
-const yauzl = require("yauzl");
-const crypto = require("crypto");
-const retry_1 = require("./retry");
-const storage_blob_1 = require("@azure/storage-blob");
-const mime = require("mime");
-const cosmos_1 = require("@azure/cosmos");
-const identity_1 = require("@azure/identity");
-const cp = require("child_process");
-const os = require("os");
-const node_worker_threads_1 = require("node:worker_threads");
+import * as fs from 'fs';
+import * as path from 'path';
+import { Readable } from 'stream';
+import { pipeline } from 'node:stream/promises';
+import * as yauzl from 'yauzl';
+import * as crypto from 'crypto';
+import { retry } from './retry';
+import { BlobServiceClient, StorageRetryPolicyType } from '@azure/storage-blob';
+import * as mime from 'mime';
+import { CosmosClient } from '@azure/cosmos';
+import { ClientSecretCredential } from '@azure/identity';
+import * as cp from 'child_process';
+import * as os from 'os';
+import { Worker, isMainThread, workerData } from 'node:worker_threads';
 function e(name) {
     const result = process.env[name];
     if (typeof result !== 'string') {
@@ -64,7 +62,7 @@ class ProvisionService {
                 }]
         });
         this.log(`Provisioning ${fileName} (releaseId: ${releaseId}, fileId: ${fileId})...`);
-        const res = await (0, retry_1.retry)(() => this.request('POST', '/api/v2/ProvisionedFiles/CreateProvisionedFiles', { body }));
+        const res = await retry(() => this.request('POST', '/api/v2/ProvisionedFiles/CreateProvisionedFiles', { body }));
         if (!res.IsSuccess) {
             throw new Error(`Failed to submit provisioning request: ${JSON.stringify(res.ErrorDetails)}`);
         }
@@ -237,7 +235,7 @@ class ESRPClient {
 async function releaseAndProvision(log, releaseTenantId, releaseClientId, releaseAuthCertSubjectName, releaseRequestSigningCertSubjectName, provisionTenantId, provisionAADUsername, provisionAADPassword, version, quality, filePath) {
     const fileName = `${quality}/${version}/${path.basename(filePath)}`;
     const result = `${e('PRSS_CDN_URL')}/${fileName}`;
-    const res = await (0, retry_1.retry)(() => fetch(result));
+    const res = await retry(() => fetch(result));
     if (res.status === 200) {
         log(`Already released and provisioned: ${result}`);
         return result;
@@ -246,7 +244,7 @@ async function releaseAndProvision(log, releaseTenantId, releaseClientId, releas
     process.on('exit', () => tmp.dispose());
     const esrpclient = new ESRPClient(log, tmp, releaseTenantId, releaseClientId, releaseAuthCertSubjectName, releaseRequestSigningCertSubjectName);
     const release = await esrpclient.release(version, filePath);
-    const credential = new identity_1.ClientSecretCredential(provisionTenantId, provisionAADUsername, provisionAADPassword);
+    const credential = new ClientSecretCredential(provisionTenantId, provisionAADUsername, provisionAADPassword);
     const accessToken = await credential.getToken(['https://microsoft.onmicrosoft.com/DS.Provisioning.WebApi/.default']);
     const service = new ProvisionService(log, accessToken.token);
     await service.provision(release.releaseId, release.fileId, fileName);
@@ -325,7 +323,7 @@ async function downloadArtifact(artifact, downloadPath) {
         if (!res.ok) {
             throw new Error(`Unexpected status code: ${res.status}`);
         }
-        await (0, promises_1.pipeline)(stream_1.Readable.fromWeb(res.body), fs.createWriteStream(downloadPath));
+        await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(downloadPath));
     }
     finally {
         clearTimeout(timeout);
@@ -470,8 +468,8 @@ function getRealType(type) {
 async function uploadAssetLegacy(log, quality, commit, filePath) {
     const fileName = path.basename(filePath);
     const blobName = commit + '/' + fileName;
-    const credential = new identity_1.ClientSecretCredential(e('AZURE_TENANT_ID'), e('AZURE_CLIENT_ID'), e('AZURE_CLIENT_SECRET'));
-    const blobServiceClient = new storage_blob_1.BlobServiceClient(`https://vscode.blob.core.windows.net`, credential, { retryOptions: { retryPolicyType: storage_blob_1.StorageRetryPolicyType.FIXED, tryTimeoutInMs: 2 * 60 * 1000 } });
+    const credential = new ClientSecretCredential(e('AZURE_TENANT_ID'), e('AZURE_CLIENT_ID'), e('AZURE_CLIENT_SECRET'));
+    const blobServiceClient = new BlobServiceClient(`https://vscode.blob.core.windows.net`, credential, { retryOptions: { retryPolicyType: StorageRetryPolicyType.FIXED, tryTimeoutInMs: 2 * 60 * 1000 } });
     const containerClient = blobServiceClient.getContainerClient(quality);
     const blobClient = containerClient.getBlockBlobClient(blobName);
     const blobOptions = {
@@ -513,10 +511,10 @@ async function processArtifact(artifact, artifactFilePath) {
     ]);
     const asset = { platform, type, url: assetUrl, hash: sha1hash, mooncakeUrl: prssUrl, prssUrl, sha256hash, size, supportsFastUpdate: true };
     log('Creating asset...', JSON.stringify(asset));
-    await (0, retry_1.retry)(async (attempt) => {
+    await retry(async (attempt) => {
         log(`Creating asset in Cosmos DB (attempt ${attempt})...`);
-        const aadCredentials = new identity_1.ClientSecretCredential(e('AZURE_TENANT_ID'), e('AZURE_CLIENT_ID'), e('AZURE_CLIENT_SECRET'));
-        const client = new cosmos_1.CosmosClient({ endpoint: e('AZURE_DOCUMENTDB_ENDPOINT'), aadCredentials });
+        const aadCredentials = new ClientSecretCredential(e('AZURE_TENANT_ID'), e('AZURE_CLIENT_ID'), e('AZURE_CLIENT_SECRET'));
+        const client = new CosmosClient({ endpoint: e('AZURE_DOCUMENTDB_ENDPOINT'), aadCredentials });
         const scripts = client.database('builds').container(quality).scripts;
         await scripts.storedProcedure('createAsset').execute('', [commit, asset, true]);
     });
@@ -529,8 +527,8 @@ async function processArtifact(artifact, artifactFilePath) {
 // properly. For each extracted artifact, we spawn a worker thread to upload it to
 // the CDN and finally update the build in Cosmos DB.
 async function main() {
-    if (!node_worker_threads_1.isMainThread) {
-        const { artifact, artifactFilePath } = node_worker_threads_1.workerData;
+    if (!isMainThread) {
+        const { artifact, artifactFilePath } = workerData;
         await processArtifact(artifact, artifactFilePath);
         return;
     }
@@ -558,7 +556,7 @@ async function main() {
     let resultPromise = Promise.resolve([]);
     const operations = [];
     while (true) {
-        const [timeline, artifacts] = await Promise.all([(0, retry_1.retry)(() => getPipelineTimeline()), (0, retry_1.retry)(() => getPipelineArtifacts())]);
+        const [timeline, artifacts] = await Promise.all([retry(() => getPipelineTimeline()), retry(() => getPipelineArtifacts())]);
         const stagesCompleted = new Set(timeline.records.filter(r => r.type === 'Stage' && r.state === 'completed' && stages.has(r.name)).map(r => r.name));
         const stagesInProgress = [...stages].filter(s => !stagesCompleted.has(s));
         const artifactsInProgress = artifacts.filter(a => processing.has(a.name));
@@ -580,7 +578,7 @@ async function main() {
             }
             console.log(`[${artifact.name}] Found new artifact`);
             const artifactZipPath = path.join(e('AGENT_TEMPDIRECTORY'), `${artifact.name}.zip`);
-            await (0, retry_1.retry)(async (attempt) => {
+            await retry(async (attempt) => {
                 const start = Date.now();
                 console.log(`[${artifact.name}] Downloading (attempt ${attempt})...`);
                 await downloadArtifact(artifact, artifactZipPath);
@@ -597,7 +595,7 @@ async function main() {
             }
             processing.add(artifact.name);
             const promise = new Promise((resolve, reject) => {
-                const worker = new node_worker_threads_1.Worker(__filename, { workerData: { artifact, artifactFilePath } });
+                const worker = new Worker(__filename, { workerData: { artifact, artifactFilePath } });
                 worker.on('error', reject);
                 worker.on('exit', code => {
                     if (code === 0) {

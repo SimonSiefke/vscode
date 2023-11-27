@@ -1,20 +1,17 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBuiltInExtensions = exports.getExtensionStream = void 0;
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const rimraf = require("rimraf");
-const es = require("event-stream");
-const rename = require("gulp-rename");
-const vfs = require("vinyl-fs");
-const ext = require("./extensions");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as rimraf from 'rimraf';
+import * as es from 'event-stream';
+import * as rename from 'gulp-rename';
+import * as vfs from 'vinyl-fs';
+import * as ext from './extensions';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
 const mkdirp = require('mkdirp');
 const root = path.dirname(path.dirname(__dirname));
 const productjson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../product.json'), 'utf8'));
@@ -49,7 +46,7 @@ function getExtensionDownloadStream(extension) {
     return (galleryServiceUrl ? ext.fromMarketplace(galleryServiceUrl, extension) : ext.fromGithub(extension))
         .pipe(rename(p => p.dirname = `${extension.name}/${p.dirname}`));
 }
-function getExtensionStream(extension) {
+export function getExtensionStream(extension) {
     // if the extension exists on disk, use those files instead of downloading anew
     if (isUpToDate(extension)) {
         log('[extensions]', `${extension.name}@${extension.version} up to date`, ansiColors.green('✔︎'));
@@ -58,7 +55,6 @@ function getExtensionStream(extension) {
     }
     return getExtensionDownloadStream(extension);
 }
-exports.getExtensionStream = getExtensionStream;
 function syncMarketplaceExtension(extension) {
     const galleryServiceUrl = productjson.extensionsGallery?.serviceUrl;
     const source = ansiColors.blue(galleryServiceUrl ? '[marketplace]' : '[github]');
@@ -110,7 +106,7 @@ function writeControlFile(control) {
     mkdirp.sync(path.dirname(controlFilePath));
     fs.writeFileSync(controlFilePath, JSON.stringify(control, null, 2));
 }
-function getBuiltInExtensions() {
+export function getBuiltInExtensions() {
     log('Synchronizing built-in extensions...');
     log(`You can manage built-in extensions with the ${ansiColors.cyan('--builtin')} flag`);
     const control = readControlFile();
@@ -127,7 +123,6 @@ function getBuiltInExtensions() {
             .on('end', resolve);
     });
 }
-exports.getBuiltInExtensions = getBuiltInExtensions;
 if (require.main === module) {
     getBuiltInExtensions().then(() => process.exit(0)).catch(err => {
         console.error(err);

@@ -3,16 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.downloadExplorerAppx = void 0;
-const fs = require("fs");
-const debug = require("debug");
-const extract = require("extract-zip");
-const path = require("path");
-const get_1 = require("@electron/get");
+import * as fs from 'fs';
+import * as debug from 'debug';
+import * as extract from 'extract-zip';
+import * as path from 'path';
+import { downloadArtifact } from '@electron/get';
 const root = path.dirname(path.dirname(__dirname));
 const d = debug('explorer-appx-fetcher');
-async function downloadExplorerAppx(outDir, quality = 'stable', targetArch = 'x64') {
+export async function downloadExplorerAppx(outDir, quality = 'stable', targetArch = 'x64') {
     const fileNamePrefix = quality === 'insider' ? 'code_insiders' : 'code';
     const fileName = `${fileNamePrefix}_explorer_${targetArch}.zip`;
     if (await fs.existsSync(path.resolve(outDir, 'resources.pri'))) {
@@ -22,7 +20,7 @@ async function downloadExplorerAppx(outDir, quality = 'stable', targetArch = 'x6
         await fs.mkdirSync(outDir, { recursive: true });
     }
     d(`downloading ${fileName}`);
-    const artifact = await (0, get_1.downloadArtifact)({
+    const artifact = await downloadArtifact({
         isGeneric: true,
         version: '3.0.4',
         artifactName: fileName,
@@ -36,7 +34,6 @@ async function downloadExplorerAppx(outDir, quality = 'stable', targetArch = 'x6
     d(`unpacking from ${fileName}`);
     await extract(artifact, { dir: fs.realpathSync(outDir) });
 }
-exports.downloadExplorerAppx = downloadExplorerAppx;
 async function main(outputDir) {
     const arch = process.env['VSCODE_ARCH'];
     if (!outputDir) {

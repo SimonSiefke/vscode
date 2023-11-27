@@ -1,20 +1,17 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.shake = exports.toStringShakeLevel = exports.ShakeLevel = void 0;
-const fs = require("fs");
-const path = require("path");
+import * as fs from 'fs';
+import * as path from 'path';
 const TYPESCRIPT_LIB_FOLDER = path.dirname(require.resolve('typescript/lib/lib.d.ts'));
-var ShakeLevel;
+export var ShakeLevel;
 (function (ShakeLevel) {
     ShakeLevel[ShakeLevel["Files"] = 0] = "Files";
     ShakeLevel[ShakeLevel["InnerFile"] = 1] = "InnerFile";
     ShakeLevel[ShakeLevel["ClassMembers"] = 2] = "ClassMembers";
-})(ShakeLevel || (exports.ShakeLevel = ShakeLevel = {}));
-function toStringShakeLevel(shakeLevel) {
+})(ShakeLevel || (ShakeLevel = {}));
+export function toStringShakeLevel(shakeLevel) {
     switch (shakeLevel) {
         case 0 /* ShakeLevel.Files */:
             return 'Files (0)';
@@ -24,7 +21,6 @@ function toStringShakeLevel(shakeLevel) {
             return 'ClassMembers (2)';
     }
 }
-exports.toStringShakeLevel = toStringShakeLevel;
 function printDiagnostics(options, diagnostics) {
     for (const diag of diagnostics) {
         let result = '';
@@ -39,7 +35,7 @@ function printDiagnostics(options, diagnostics) {
         console.log(result);
     }
 }
-function shake(options) {
+export function shake(options) {
     const ts = require('typescript');
     const languageService = createTypeScriptLanguageService(ts, options);
     const program = languageService.getProgram();
@@ -61,7 +57,6 @@ function shake(options) {
     markNodes(ts, languageService, options);
     return generateResult(ts, languageService, options.shakeLevel);
 }
-exports.shake = shake;
 //#region Discovery, LanguageService & Setup
 function createTypeScriptLanguageService(ts, options) {
     // Discover referenced files

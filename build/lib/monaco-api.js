@@ -1,18 +1,15 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.execute = exports.run3 = exports.DeclarationResolver = exports.FSProvider = exports.RECIPE_PATH = void 0;
-const fs = require("fs");
-const path = require("path");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
 const dtsv = '3';
 const tsfmt = require('../../tsfmt.json');
 const SRC = path.join(__dirname, '../../src');
-exports.RECIPE_PATH = path.join(__dirname, '../monaco/monaco.d.ts.recipe');
+export const RECIPE_PATH = path.join(__dirname, '../monaco/monaco.d.ts.recipe');
 const DECLARATION_PATH = path.join(__dirname, '../../src/vs/monaco.d.ts');
 function logErr(message, ...rest) {
     fancyLog(ansiColors.yellow(`[monaco.d.ts]`), message, ...rest);
@@ -462,7 +459,7 @@ function generateDeclarationFile(ts, recipe, sourceFileGetter) {
     };
 }
 function _run(ts, sourceFileGetter) {
-    const recipe = fs.readFileSync(exports.RECIPE_PATH).toString();
+    const recipe = fs.readFileSync(RECIPE_PATH).toString();
     const t = generateDeclarationFile(ts, recipe, sourceFileGetter);
     if (!t) {
         return null;
@@ -482,7 +479,7 @@ function _run(ts, sourceFileGetter) {
         isTheSame
     };
 }
-class FSProvider {
+export class FSProvider {
     existsSync(filePath) {
         return fs.existsSync(filePath);
     }
@@ -493,7 +490,6 @@ class FSProvider {
         return fs.readFileSync(filePath);
     }
 }
-exports.FSProvider = FSProvider;
 class CacheEntry {
     sourceFile;
     mtime;
@@ -502,7 +498,7 @@ class CacheEntry {
         this.mtime = mtime;
     }
 }
-class DeclarationResolver {
+export class DeclarationResolver {
     _fsProvider;
     ts;
     _sourceFileCache;
@@ -554,12 +550,10 @@ class DeclarationResolver {
         return new CacheEntry(this.ts.createSourceFile(fileName, text, this.ts.ScriptTarget.ES5), mtime);
     }
 }
-exports.DeclarationResolver = DeclarationResolver;
-function run3(resolver) {
+export function run3(resolver) {
     const sourceFileGetter = (moduleId) => resolver.getDeclarationSourceFile(moduleId);
     return _run(resolver.ts, sourceFileGetter);
 }
-exports.run3 = run3;
 class TypeScriptLanguageServiceHost {
     _ts;
     _libs;
@@ -616,12 +610,11 @@ class TypeScriptLanguageServiceHost {
         return path in this._files || path in this._libs;
     }
 }
-function execute() {
+export function execute() {
     const r = run3(new DeclarationResolver(new FSProvider()));
     if (!r) {
         throw new Error(`monaco.d.ts generation error - Cannot continue`);
     }
     return r;
 }
-exports.execute = execute;
 //# sourceMappingURL=monaco-api.js.map

@@ -1,17 +1,14 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchGithub = exports.fetchUrl = exports.fetchUrls = void 0;
-const es = require("event-stream");
-const VinylFile = require("vinyl");
-const log = require("fancy-log");
-const ansiColors = require("ansi-colors");
-const crypto = require("crypto");
-const through2 = require("through2");
-function fetchUrls(urls, options) {
+import * as es from 'event-stream';
+import * as VinylFile from 'vinyl';
+import * as log from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as crypto from 'crypto';
+import * as through2 from 'through2';
+export function fetchUrls(urls, options) {
     if (options === undefined) {
         options = {};
     }
@@ -30,8 +27,7 @@ function fetchUrls(urls, options) {
         });
     }));
 }
-exports.fetchUrls = fetchUrls;
-async function fetchUrl(url, options, retries = 10, retryDelay = 1000) {
+export async function fetchUrl(url, options, retries = 10, retryDelay = 1000) {
     const verbose = !!options.verbose ?? (!!process.env['CI'] || !!process.env['BUILD_ARTIFACTSTAGINGDIRECTORY']);
     try {
         let startTime = 0;
@@ -90,7 +86,6 @@ async function fetchUrl(url, options, retries = 10, retryDelay = 1000) {
         throw e;
     }
 }
-exports.fetchUrl = fetchUrl;
 const ghApiHeaders = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'VSCode Build',
@@ -108,7 +103,7 @@ const ghDownloadHeaders = {
  * @param assetName for example (name) => name === `win-x64-node.exe` - must be an asset that exists
  * @returns a stream with the asset as file
  */
-function fetchGithub(repo, options) {
+export function fetchGithub(repo, options) {
     return fetchUrls(`/repos/${repo.replace(/^\/|\/$/g, '')}/releases/tags/v${options.version}`, {
         base: 'https://api.github.com',
         verbose: options.verbose,
@@ -131,5 +126,4 @@ function fetchGithub(repo, options) {
         }
     }));
 }
-exports.fetchGithub = fetchGithub;
 //# sourceMappingURL=fetch.js.map

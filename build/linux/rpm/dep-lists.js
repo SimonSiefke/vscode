@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.referenceGeneratedDepsByArch = exports.additionalDeps = void 0;
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/rpm/additional_deps
 // Additional dependencies not in the rpm find-requires output.
-exports.additionalDeps = [
+export const additionalDeps = [
     'ca-certificates', // Make sure users have SSL certificates.
     'libgtk-3.so.0()(64bit)',
     'libnss3.so(NSS_3.22)(64bit)',
@@ -17,7 +14,7 @@ exports.additionalDeps = [
     'libcurl.so.4()(64bit)',
     'xdg-utils' // OS integration
 ];
-exports.referenceGeneratedDepsByArch = {
+export const referenceGeneratedDepsByArch = {
     'x86_64': [
         'ca-certificates',
         'ld-linux-x86-64.so.2()(64bit)',

@@ -1,22 +1,19 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSysroot = void 0;
-const child_process_1 = require("child_process");
-const crypto_1 = require("crypto");
-const os_1 = require("os");
-const fs = require("fs");
-const https = require("https");
-const path = require("path");
-const util = require("../../lib/util");
+import { spawnSync } from 'child_process';
+import { createHash } from 'crypto';
+import { tmpdir } from 'os';
+import * as fs from 'fs';
+import * as https from 'https';
+import * as path from 'path';
+import * as util from '../../lib/util';
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:build/linux/sysroot_scripts/install-sysroot.py.
 const URL_PREFIX = 'https://msftelectron.blob.core.windows.net';
 const URL_PATH = 'sysroots/toolchain';
 function getSha(filename) {
-    const hash = (0, crypto_1.createHash)('sha1');
+    const hash = createHash('sha1');
     // Read file 1 MB at a time
     const fd = fs.openSync(filename, 'r');
     const buffer = Buffer.alloc(1024 * 1024);
@@ -29,10 +26,10 @@ function getSha(filename) {
     hash.update(buffer.slice(0, bytesRead));
     return hash.digest('hex');
 }
-async function getSysroot(arch) {
+export async function getSysroot(arch) {
     const sysrootJSONUrl = `https://raw.githubusercontent.com/electron/electron/v${util.getElectronVersion().electronVersion}/script/sysroots.json`;
-    const sysrootDictLocation = `${(0, os_1.tmpdir)()}/sysroots.json`;
-    const result = (0, child_process_1.spawnSync)('curl', [sysrootJSONUrl, '-o', sysrootDictLocation]);
+    const sysrootDictLocation = `${tmpdir()}/sysroots.json`;
+    const result = spawnSync('curl', [sysrootJSONUrl, '-o', sysrootDictLocation]);
     if (result.status !== 0) {
         throw new Error('Cannot retrieve sysroots.json. Stderr:\n' + result.stderr);
     }
@@ -41,7 +38,7 @@ async function getSysroot(arch) {
     const sysrootDict = sysrootInfo[sysrootArch];
     const tarballFilename = sysrootDict['Tarball'];
     const tarballSha = sysrootDict['Sha1Sum'];
-    const sysroot = path.join((0, os_1.tmpdir)(), sysrootDict['SysrootDir']);
+    const sysroot = path.join(tmpdir(), sysrootDict['SysrootDir']);
     const url = [URL_PREFIX, URL_PATH, tarballSha, tarballFilename].join('/');
     const stamp = path.join(sysroot, '.stamp');
     if (fs.existsSync(stamp) && fs.readFileSync(stamp).toString() === url) {
@@ -78,7 +75,7 @@ async function getSysroot(arch) {
     if (sha !== tarballSha) {
         throw new Error(`Tarball sha1sum is wrong. Expected ${tarballSha}, actual ${sha}`);
     }
-    const proc = (0, child_process_1.spawnSync)('tar', ['xf', tarball, '-C', sysroot]);
+    const proc = spawnSync('tar', ['xf', tarball, '-C', sysroot]);
     if (proc.status) {
         throw new Error('Tarball extraction failed with code ' + proc.status);
     }
@@ -86,5 +83,4 @@ async function getSysroot(arch) {
     fs.writeFileSync(stamp, url);
     return sysroot;
 }
-exports.getSysroot = getSysroot;
 //# sourceMappingURL=install-sysroot.js.map

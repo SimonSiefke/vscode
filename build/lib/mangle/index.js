@@ -1,18 +1,15 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Mangler = void 0;
-const fs = require("fs");
-const path = require("path");
-const process_1 = require("process");
-const source_map_1 = require("source-map");
-const ts = require("typescript");
-const url_1 = require("url");
-const workerpool = require("workerpool");
-const staticLanguageServiceHost_1 = require("./staticLanguageServiceHost");
+import * as fs from 'fs';
+import * as path from 'path';
+import { argv } from 'process';
+import { SourceMapGenerator } from 'source-map';
+import * as ts from 'typescript';
+import { pathToFileURL } from 'url';
+import * as workerpool from 'workerpool';
+import { StaticLanguageServiceHost } from './staticLanguageServiceHost';
 const buildfile = require('../../../src/buildfile');
 class ShortIdent {
     prefix;
@@ -340,7 +337,7 @@ class DeclarationData {
  * 4. Lookup rename locations for these fields
  * 5. Prepare and apply edits
  */
-class Mangler {
+export class Mangler {
     projectPath;
     log;
     config;
@@ -352,7 +349,7 @@ class Mangler {
         this.projectPath = projectPath;
         this.log = log;
         this.config = config;
-        this.service = ts.createLanguageService(new staticLanguageServiceHost_1.StaticLanguageServiceHost(projectPath));
+        this.service = ts.createLanguageService(new StaticLanguageServiceHost(projectPath));
         this.renameWorkerPool = workerpool.pool(path.join(__dirname, 'renameWorker.js'), {
             maxWorkers: 1,
             minWorkers: 'max'
@@ -548,7 +545,7 @@ class Mangler {
         for (const item of this.service.getProgram().getSourceFiles()) {
             const { mapRoot, sourceRoot } = this.service.getProgram().getCompilerOptions();
             const projectDir = path.dirname(this.projectPath);
-            const sourceMapRoot = mapRoot ?? (0, url_1.pathToFileURL)(sourceRoot ?? projectDir).toString();
+            const sourceMapRoot = mapRoot ?? pathToFileURL(sourceRoot ?? projectDir).toString();
             // source maps
             let generator;
             let newFullText;
@@ -598,7 +595,7 @@ class Mangler {
                     });
                 }
                 // source map generation, make sure to get mappings per line correct
-                generator = new source_map_1.SourceMapGenerator({ file: path.basename(item.fileName), sourceRoot: sourceMapRoot });
+                generator = new SourceMapGenerator({ file: path.basename(item.fileName), sourceRoot: sourceMapRoot });
                 generator.setSourceContent(relativeFileName, item.getFullText());
                 for (const [, mappings] of mappingsByLine) {
                     let lineDelta = 0;
@@ -618,7 +615,6 @@ class Mangler {
         return result;
     }
 }
-exports.Mangler = Mangler;
 // --- ast utils
 function hasModifier(node, kind) {
     const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
@@ -654,7 +650,7 @@ async function _run() {
         }
     }
 }
-if (__filename === process_1.argv[1]) {
+if (__filename === argv[1]) {
     _run();
 }
 //# sourceMappingURL=index.js.map

@@ -1,13 +1,11 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const fs = require("fs");
-const vscode_universal_bundler_1 = require("vscode-universal-bundler");
-const cross_spawn_promise_1 = require("@malept/cross-spawn-promise");
+import * as path from 'path';
+import * as fs from 'fs';
+import { makeUniversalApp } from 'vscode-universal-bundler';
+import { spawn } from '@malept/cross-spawn-promise';
 const root = path.dirname(path.dirname(__dirname));
 async function main(buildDir) {
     const arch = process.env['VSCODE_ARCH'];
@@ -22,7 +20,7 @@ async function main(buildDir) {
     const arm64AsarPath = path.join(arm64AppPath, 'Contents', 'Resources', 'app', 'node_modules.asar');
     const outAppPath = path.join(buildDir, `VSCode-darwin-${arch}`, appName);
     const productJsonPath = path.resolve(outAppPath, 'Contents', 'Resources', 'app', 'product.json');
-    await (0, vscode_universal_bundler_1.makeUniversalApp)({
+    await makeUniversalApp({
         x64AppPath,
         arm64AppPath,
         x64AsarPath,
@@ -45,8 +43,8 @@ async function main(buildDir) {
     });
     fs.writeFileSync(productJsonPath, JSON.stringify(productJson, null, '\t'));
     // Verify if native module architecture is correct
-    const findOutput = await (0, cross_spawn_promise_1.spawn)('find', [outAppPath, '-name', 'kerberos.node']);
-    const lipoOutput = await (0, cross_spawn_promise_1.spawn)('lipo', ['-archs', findOutput.replace(/\n$/, '')]);
+    const findOutput = await spawn('find', [outAppPath, '-name', 'kerberos.node']);
+    const lipoOutput = await spawn('lipo', ['-archs', findOutput.replace(/\n$/, '')]);
     if (lipoOutput.replace(/\n$/, '') !== 'x86_64 arm64') {
         throw new Error(`Invalid arch, got : ${lipoOutput}`);
     }

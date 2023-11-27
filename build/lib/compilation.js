@@ -1,28 +1,27 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.watchApiProposalNamesTask = exports.compileApiProposalNamesTask = exports.watchTask = exports.compileTask = exports.transpileTask = void 0;
-const es = require("event-stream");
-const fs = require("fs");
-const gulp = require("gulp");
-const path = require("path");
-const monacodts = require("./monaco-api");
-const nls = require("./nls");
-const reporter_1 = require("./reporter");
-const util = require("./util");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
-const os = require("os");
-const ts = require("typescript");
-const File = require("vinyl");
-const task = require("./task");
-const index_1 = require("./mangle/index");
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
+import * as es from 'event-stream';
+import * as fs from 'fs';
+import * as gulp from 'gulp';
+import * as path from 'path';
+import * as monacodts from './monaco-api.ts';
+import * as nls from './nls.js';
+import { createReporter } from './reporter.ts';
+import * as util from './util.ts';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as os from 'os';
+const ts = __require("typescript");
+import * as File from 'vinyl';
+import * as task from './task.ts';
+import { Mangler } from './mangle/index.ts';
 const watch = require('./watch');
 // --- gulp-tsb: compile and transpile --------------------------------
-const reporter = (0, reporter_1.createReporter)();
+const reporter = createReporter();
 function getTypeScriptCompilerOptions(src) {
     const rootDir = path.join(__dirname, `../../${src}`);
     const options = {};
@@ -81,7 +80,7 @@ function createCompile(src, build, emitError, transpileOnly) {
     pipeline.projectPath = projectPath;
     return pipeline;
 }
-function transpileTask(src, out, swc) {
+export function transpileTask(src, out, swc) {
     const task = () => {
         const transpile = createCompile(src, false, true, { swc });
         const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
@@ -92,8 +91,7 @@ function transpileTask(src, out, swc) {
     task.taskName = `transpile-${path.basename(src)}`;
     return task;
 }
-exports.transpileTask = transpileTask;
-function compileTask(src, out, build, options = {}) {
+export function compileTask(src, out, build, options = {}) {
     const task = () => {
         if (os.totalmem() < 4000000000) {
             throw new Error('compilation requires 4GB of RAM');
@@ -107,7 +105,7 @@ function compileTask(src, out, build, options = {}) {
         // mangle: TypeScript to TypeScript
         let mangleStream = es.through();
         if (build && !options.disableMangle) {
-            let ts2tsMangler = new index_1.Mangler(compile.projectPath, (...data) => fancyLog(ansiColors.blue('[mangler]'), ...data), { mangleExports: true, manglePrivateFields: true });
+            let ts2tsMangler = new Mangler(compile.projectPath, (...data) => fancyLog(ansiColors.blue('[mangler]'), ...data), { mangleExports: true, manglePrivateFields: true });
             const newContentsByFileName = ts2tsMangler.computeNewFileContents(new Set(['saveState']));
             mangleStream = es.through(async function write(data) {
                 const tsNormalPath = ts.normalizePath(data.path);
@@ -133,8 +131,7 @@ function compileTask(src, out, build, options = {}) {
     task.taskName = `compile-${path.basename(src)}`;
     return task;
 }
-exports.compileTask = compileTask;
-function watchTask(out, build) {
+export function watchTask(out, build) {
     const task = () => {
         const compile = createCompile('src', build, false, false);
         const src = gulp.src('src/**', { base: 'src' });
@@ -149,7 +146,6 @@ function watchTask(out, build) {
     task.taskName = `watch-${path.basename(out)}`;
     return task;
 }
-exports.watchTask = watchTask;
 const REPO_SRC_FOLDER = path.join(__dirname, '../../src');
 class MonacoGenerator {
     _isWatch;
@@ -272,14 +268,14 @@ function generateApiProposalNames() {
     }));
     return es.duplex(input, output);
 }
-const apiProposalNamesReporter = (0, reporter_1.createReporter)('api-proposal-names');
-exports.compileApiProposalNamesTask = task.define('compile-api-proposal-names', () => {
+const apiProposalNamesReporter = createReporter('api-proposal-names');
+export const compileApiProposalNamesTask = task.define('compile-api-proposal-names', () => {
     return gulp.src('src/vscode-dts/**')
         .pipe(generateApiProposalNames())
         .pipe(gulp.dest('src'))
         .pipe(apiProposalNamesReporter.end(true));
 });
-exports.watchApiProposalNamesTask = task.define('watch-api-proposal-names', () => {
+export const watchApiProposalNamesTask = task.define('watch-api-proposal-names', () => {
     const task = () => gulp.src('src/vscode-dts/**')
         .pipe(generateApiProposalNames())
         .pipe(apiProposalNamesReporter.end(true));

@@ -1,11 +1,8 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.graph = exports.strings = exports.collections = void 0;
-var collections;
+export var collections;
 (function (collections) {
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     function lookup(collection, key) {
@@ -44,8 +41,8 @@ var collections;
         return hasOwnProperty.call(collection, key);
     }
     collections.contains = contains;
-})(collections || (exports.collections = collections = {}));
-var strings;
+})(collections || (collections = {}));
+export var strings;
 (function (strings) {
     /**
      * The empty string. The one and only.
@@ -59,8 +56,8 @@ var strings;
         });
     }
     strings.format = format;
-})(strings || (exports.strings = strings = {}));
-var graph;
+})(strings || (strings = {}));
+export var graph;
 (function (graph) {
     function newNode(data) {
         return {
@@ -122,5 +119,5 @@ var graph;
         }
     }
     graph.Graph = Graph;
-})(graph || (exports.graph = graph = {}));
+})(graph || (graph = {}));
 //# sourceMappingURL=utils.js.map

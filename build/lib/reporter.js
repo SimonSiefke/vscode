@@ -1,15 +1,12 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createReporter = void 0;
-const es = require("event-stream");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
-const fs = require("fs");
-const path = require("path");
+import * as es from 'event-stream';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as fs from 'fs';
+import * as path from 'path';
 class ErrorLog {
     id;
     constructor(id) {
@@ -72,7 +69,7 @@ try {
 catch (err) {
     // ignore
 }
-function createReporter(id) {
+export function createReporter(id) {
     const errorLog = getErrorLog(id);
     const errors = [];
     errorLog.allErrors.push(errors);
@@ -99,5 +96,4 @@ function createReporter(id) {
     };
     return result;
 }
-exports.createReporter = createReporter;
 //# sourceMappingURL=reporter.js.map

@@ -1,28 +1,25 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.minifyTask = exports.optimizeTask = exports.optimizeLoaderTask = exports.loaderConfig = void 0;
-const es = require("event-stream");
-const gulp = require("gulp");
-const concat = require("gulp-concat");
-const filter = require("gulp-filter");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
-const path = require("path");
-const pump = require("pump");
-const VinylFile = require("vinyl");
-const bundle = require("./bundle");
-const i18n_1 = require("./i18n");
-const stats_1 = require("./stats");
-const util = require("./util");
+import * as es from 'event-stream';
+import * as gulp from 'gulp';
+import * as concat from 'gulp-concat';
+import * as filter from 'gulp-filter';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as path from 'path';
+import * as pump from 'pump';
+import * as VinylFile from 'vinyl';
+import * as bundle from './bundle';
+import { processNlsFiles } from './i18n';
+import { createStatsStream } from './stats';
+import * as util from './util';
 const REPO_ROOT_PATH = path.join(__dirname, '../..');
 function log(prefix, message) {
     fancyLog(ansiColors.cyan('[' + prefix + ']'), message);
 }
-function loaderConfig() {
+export function loaderConfig() {
     const result = {
         paths: {
             'vs': 'out-build/vs',
@@ -33,7 +30,6 @@ function loaderConfig() {
     result['vs/css'] = { inlineResources: true };
     return result;
 }
-exports.loaderConfig = loaderConfig;
 const IS_OUR_COPYRIGHT_REGEXP = /Copyright \(C\) Microsoft Corporation/i;
 function loaderPlugin(src, base, amdModuleId) {
     return (gulp
@@ -134,7 +130,7 @@ function toConcatStream(src, bundledFileHeader, sources, dest, fileContentMapper
     return es.readArray(treatedSources)
         .pipe(useSourcemaps ? util.loadSourcemaps() : es.through())
         .pipe(concat(dest))
-        .pipe((0, stats_1.createStatsStream)(dest));
+        .pipe(createStatsStream(dest));
 }
 function toBundleStream(src, bundledFileHeader, bundles, fileContentMapper) {
     return es.merge(bundles.map(function (bundle) {
@@ -188,7 +184,7 @@ function optimizeAMDTask(opts) {
         addComment: true,
         includeContent: true
     }))
-        .pipe(opts.languages && opts.languages.length ? (0, i18n_1.processNlsFiles)({
+        .pipe(opts.languages && opts.languages.length ? processNlsFiles({
         fileHeader: bundledFileHeader,
         languages: opts.languages
     }) : es.through());
@@ -220,11 +216,10 @@ function optimizeManualTask(options) {
     });
     return es.merge(...concatenations);
 }
-function optimizeLoaderTask(src, out, bundleLoader, bundledFileHeader = '', externalLoaderInfo) {
+export function optimizeLoaderTask(src, out, bundleLoader, bundledFileHeader = '', externalLoaderInfo) {
     return () => loader(src, bundledFileHeader, bundleLoader, externalLoaderInfo).pipe(gulp.dest(out));
 }
-exports.optimizeLoaderTask = optimizeLoaderTask;
-function optimizeTask(opts) {
+export function optimizeTask(opts) {
     return function () {
         const optimizers = [optimizeAMDTask(opts.amd)];
         if (opts.commonJS) {
@@ -236,8 +231,7 @@ function optimizeTask(opts) {
         return es.merge(...optimizers).pipe(gulp.dest(opts.out));
     };
 }
-exports.optimizeTask = optimizeTask;
-function minifyTask(src, sourceMapBaseUrl) {
+export function minifyTask(src, sourceMapBaseUrl) {
     const esbuild = require('esbuild');
     const sourceMappingURL = sourceMapBaseUrl ? ((f) => `${sourceMapBaseUrl}/${f.relative}.map`) : undefined;
     return cb => {
@@ -284,5 +278,4 @@ function minifyTask(src, sourceMapBaseUrl) {
         }), gulp.dest(src + '-min'), (err) => cb(err));
     };
 }
-exports.minifyTask = minifyTask;
 //# sourceMappingURL=optimize.js.map

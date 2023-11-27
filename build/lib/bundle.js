@@ -1,17 +1,14 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.bundle = void 0;
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vm from 'vm';
 /**
  * Bundle `entryPoints` given config `config`.
  */
-function bundle(entryPoints, config, callback) {
+export function bundle(entryPoints, config, callback) {
     const entryPointsMap = {};
     entryPoints.forEach((module) => {
         if (entryPointsMap[module.name]) {
@@ -78,7 +75,6 @@ function bundle(entryPoints, config, callback) {
         });
     }, (err) => callback(err, null));
 }
-exports.bundle = bundle;
 function emitEntryPoints(modules, entryPoints) {
     const modulesMap = {};
     modules.forEach((m) => {

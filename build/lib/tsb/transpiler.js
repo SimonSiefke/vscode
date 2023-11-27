@@ -1,15 +1,12 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SwcTranspiler = exports.TscTranspiler = void 0;
-const swc = require("@swc/core");
-const ts = require("typescript");
-const threads = require("node:worker_threads");
-const Vinyl = require("vinyl");
-const node_os_1 = require("node:os");
+import * as swc from '@swc/core';
+import * as ts from 'typescript';
+import * as threads from 'node:worker_threads';
+import * as Vinyl from 'vinyl';
+import { cpus } from 'node:os';
 function transpile(tsSrc, options) {
     const isAmd = /\n(import|export)/m.test(tsSrc);
     if (!isAmd && options.compilerOptions?.module === ts.ModuleKind.AMD) {
@@ -144,10 +141,10 @@ class TranspileWorker {
         });
     }
 }
-class TscTranspiler {
+export class TscTranspiler {
     _onError;
     _cmdLine;
-    static P = Math.floor((0, node_os_1.cpus)().length * .5);
+    static P = Math.floor(cpus().length * .5);
     _outputFileNames;
     onOutfile;
     _workerPool = [];
@@ -223,14 +220,13 @@ class TscTranspiler {
         }
     }
 }
-exports.TscTranspiler = TscTranspiler;
 function _isDefaultEmpty(src) {
     return src
         .replace('"use strict";', '')
         .replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1')
         .trim().length === 0;
 }
-class SwcTranspiler {
+export class SwcTranspiler {
     _logFn;
     _onError;
     _cmdLine;
@@ -323,5 +319,4 @@ class SwcTranspiler {
         }
     };
 }
-exports.SwcTranspiler = SwcTranspiler;
 //# sourceMappingURL=transpiler.js.map

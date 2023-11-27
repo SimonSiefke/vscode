@@ -5,7 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as tss from './treeshaking';
+import * as tss from './treeshaking.js';
 
 const REPO_ROOT = path.join(__dirname, '../../');
 const SRC_DIR = path.join(REPO_ROOT, 'src');

@@ -1,20 +1,18 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const es = require("event-stream");
-const vfs = require("vinyl-fs");
-const util = require("../lib/util");
+import * as path from 'path';
+import * as es from 'event-stream';
+import * as vfs from 'vinyl-fs';
+import * as util from '../lib/util';
 // @ts-ignore
-const deps = require("../lib/dependencies");
-const identity_1 = require("@azure/identity");
+import * as deps from '../lib/dependencies';
+import { ClientSecretCredential } from '@azure/identity';
 const azure = require('gulp-azure-storage');
 const root = path.dirname(path.dirname(__dirname));
 const commit = process.env['BUILD_SOURCEVERSION'];
-const credential = new identity_1.ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
+const credential = new ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
 // optionally allow to pass in explicit base/maps to upload
 const [, , base, maps] = process.argv;
 function src(base, maps = `${base}/**/*.map`) {

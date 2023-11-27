@@ -1,12 +1,9 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.define = exports.parallel = exports.series = void 0;
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
 function _isPromise(p) {
     if (typeof p.then === 'function') {
         return true;
@@ -58,7 +55,7 @@ async function _doExecute(task) {
         taskResult.on('error', err => reject(err));
     });
 }
-function series(...tasks) {
+export function series(...tasks) {
     const result = async () => {
         for (let i = 0; i < tasks.length; i++) {
             await _execute(tasks[i]);
@@ -67,16 +64,14 @@ function series(...tasks) {
     result._tasks = tasks;
     return result;
 }
-exports.series = series;
-function parallel(...tasks) {
+export function parallel(...tasks) {
     const result = async () => {
         await Promise.all(tasks.map(t => _execute(t)));
     };
     result._tasks = tasks;
     return result;
 }
-exports.parallel = parallel;
-function define(name, task) {
+export function define(name, task) {
     if (task._tasks) {
         // This is a composite task
         const lastTask = task._tasks[task._tasks.length - 1];
@@ -94,5 +89,4 @@ function define(name, task) {
     task.displayName = name;
     return task;
 }
-exports.define = define;
 //# sourceMappingURL=task.js.map

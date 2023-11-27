@@ -1,11 +1,9 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require("fs");
-const path = require("path");
+import * as fs from 'fs';
+import * as path from 'path';
 if (process.argv.length !== 3) {
     console.error('Usage: node listNodeModules.js OUTPUT_FILE');
     process.exit(-1);

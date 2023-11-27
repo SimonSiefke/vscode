@@ -1,15 +1,13 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const cp = require("child_process");
-const fs = require("fs");
-const File = require("vinyl");
-const es = require("event-stream");
-const filter = require("gulp-filter");
+import * as path from 'path';
+import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as File from 'vinyl';
+import * as es from 'event-stream';
+import * as filter from 'gulp-filter';
 const watcherPath = path.join(__dirname, 'watcher.exe');
 function toChangeType(type) {
     switch (type) {

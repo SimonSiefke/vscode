@@ -1,12 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const identity_1 = require("@azure/identity");
-const cosmos_1 = require("@azure/cosmos");
-const retry_1 = require("./retry");
+import { ClientSecretCredential } from '@azure/identity';
+import { CosmosClient } from '@azure/cosmos';
+import { retry } from './retry';
 if (process.argv.length !== 3) {
     console.error('Usage: node createBuild.js VERSION');
     process.exit(-1);
@@ -40,10 +38,10 @@ async function main() {
         assets: [],
         updates: {}
     };
-    const aadCredentials = new identity_1.ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
-    const client = new cosmos_1.CosmosClient({ endpoint: process.env['AZURE_DOCUMENTDB_ENDPOINT'], aadCredentials });
+    const aadCredentials = new ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
+    const client = new CosmosClient({ endpoint: process.env['AZURE_DOCUMENTDB_ENDPOINT'], aadCredentials });
     const scripts = client.database('builds').container(quality).scripts;
-    await (0, retry_1.retry)(() => scripts.storedProcedure('createBuild').execute('', [{ ...build, _partitionKey: '' }]));
+    await retry(() => scripts.storedProcedure('createBuild').execute('', [{ ...build, _partitionKey: '' }]));
 }
 main().then(() => {
     console.log('Build successfully created');

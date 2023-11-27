@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createESMSourcesAndResources2 = exports.extractEditor = void 0;
-const fs = require("fs");
-const path = require("path");
-const tss = require("./treeshaking");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as tss from './treeshaking.js';
 const REPO_ROOT = path.join(__dirname, '../../');
 const SRC_DIR = path.join(REPO_ROOT, 'src');
 const dirCache = {};
@@ -26,7 +23,7 @@ function writeFile(filePath, contents) {
     ensureDirs(path.dirname(filePath));
     fs.writeFileSync(filePath, contents);
 }
-function extractEditor(options) {
+export function extractEditor(options) {
     const ts = require('typescript');
     const tsConfig = JSON.parse(fs.readFileSync(path.join(options.sourcesRoot, 'tsconfig.monaco.json')).toString());
     let compilerOptions;
@@ -111,8 +108,7 @@ function extractEditor(options) {
         'vs/nls.mock.ts',
     ].forEach(copyFile);
 }
-exports.extractEditor = extractEditor;
-function createESMSourcesAndResources2(options) {
+export function createESMSourcesAndResources2(options) {
     const ts = require('typescript');
     const SRC_FOLDER = path.join(REPO_ROOT, options.srcFolder);
     const OUT_FOLDER = path.join(REPO_ROOT, options.outFolder);
@@ -251,7 +247,6 @@ function createESMSourcesAndResources2(options) {
         }
     }
 }
-exports.createESMSourcesAndResources2 = createESMSourcesAndResources2;
 function transportCSS(module, enqueue, write) {
     if (!/\.css/.test(module)) {
         return false;

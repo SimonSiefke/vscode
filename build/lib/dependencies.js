@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProductionDependencies = void 0;
-const fs = require("fs");
-const path = require("path");
-const cp = require("child_process");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as cp from 'child_process';
 const parseSemver = require('parse-semver');
 const root = fs.realpathSync(path.dirname(path.dirname(__dirname)));
 function asYarnDependency(prefix, tree) {
@@ -47,7 +44,7 @@ function getYarnProductionDependencies(folderPath) {
         .map(tree => asYarnDependency(path.join(folderPath, 'node_modules'), tree))
         .filter((dep) => !!dep);
 }
-function getProductionDependencies(folderPath) {
+export function getProductionDependencies(folderPath) {
     const result = [];
     const deps = getYarnProductionDependencies(folderPath);
     const flatten = (dep) => { result.push({ name: dep.name, version: dep.version, path: dep.path }); dep.children.forEach(flatten); };
@@ -69,7 +66,6 @@ function getProductionDependencies(folderPath) {
     }
     return [...new Set(result)];
 }
-exports.getProductionDependencies = getProductionDependencies;
 if (require.main === module) {
     console.log(JSON.stringify(getProductionDependencies(root), null, '  '));
 }

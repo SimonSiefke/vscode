@@ -1,19 +1,17 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const es = require("event-stream");
-const Vinyl = require("vinyl");
-const vfs = require("vinyl-fs");
-const filter = require("gulp-filter");
-const gzip = require("gulp-gzip");
-const mime = require("mime");
-const identity_1 = require("@azure/identity");
+import * as es from 'event-stream';
+import * as Vinyl from 'vinyl';
+import * as vfs from 'vinyl-fs';
+import * as filter from 'gulp-filter';
+import * as gzip from 'gulp-gzip';
+import * as mime from 'mime';
+import { ClientSecretCredential } from '@azure/identity';
 const azure = require('gulp-azure-storage');
 const commit = process.env['BUILD_SOURCEVERSION'];
-const credential = new identity_1.ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
+const credential = new ClientSecretCredential(process.env['AZURE_TENANT_ID'], process.env['AZURE_CLIENT_ID'], process.env['AZURE_CLIENT_SECRET']);
 mime.define({
     'application/typescript': ['ts'],
     'application/json': ['code-snippets'],

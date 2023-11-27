@@ -1,25 +1,22 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.prepareIslFiles = exports.prepareI18nPackFiles = exports.createXlfFilesForIsl = exports.createXlfFilesForExtensions = exports.EXTERNAL_EXTENSIONS = exports.createXlfFilesForCoreBundle = exports.getResource = exports.processNlsFiles = exports.XLF = exports.Line = exports.extraLanguages = exports.defaultLanguages = void 0;
-const path = require("path");
-const fs = require("fs");
-const event_stream_1 = require("event-stream");
-const jsonMerge = require("gulp-merge-json");
-const File = require("vinyl");
-const xml2js = require("xml2js");
-const gulp = require("gulp");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
-const iconv = require("@vscode/iconv-lite-umd");
-const l10n_dev_1 = require("@vscode/l10n-dev");
+import * as path from 'path';
+import * as fs from 'fs';
+import { map, merge, through } from 'event-stream';
+import * as jsonMerge from 'gulp-merge-json';
+import * as File from 'vinyl';
+import * as xml2js from 'xml2js';
+import * as gulp from 'gulp';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
+import * as iconv from '@vscode/iconv-lite-umd';
+import { getL10nXlf, getL10nFilesFromXlf, getL10nJson } from '@vscode/l10n-dev';
 function log(message, ...rest) {
     fancyLog(ansiColors.green('[i18n]'), message, ...rest);
 }
-exports.defaultLanguages = [
+export const defaultLanguages = [
     { id: 'zh-tw', folderName: 'cht', translationId: 'zh-hant' },
     { id: 'zh-cn', folderName: 'chs', translationId: 'zh-hans' },
     { id: 'ja', folderName: 'jpn' },
@@ -31,7 +28,7 @@ exports.defaultLanguages = [
     { id: 'it', folderName: 'ita' }
 ];
 // languages requested by the community to non-stable builds
-exports.extraLanguages = [
+export const extraLanguages = [
     { id: 'pt-br', folderName: 'ptb' },
     { id: 'hu', folderName: 'hun' },
     { id: 'tr', folderName: 'trk' }
@@ -56,7 +53,7 @@ var BundledFormat;
     }
     BundledFormat.is = is;
 })(BundledFormat || (BundledFormat = {}));
-class Line {
+export class Line {
     buffer = [];
     constructor(indent = 0) {
         if (indent > 0) {
@@ -71,7 +68,6 @@ class Line {
         return this.buffer.join('');
     }
 }
-exports.Line = Line;
 class TextModel {
     _lines;
     constructor(contents) {
@@ -81,7 +77,7 @@ class TextModel {
         return this._lines;
     }
 }
-class XLF {
+export class XLF {
     project;
     buffer;
     files;
@@ -215,7 +211,6 @@ class XLF {
         });
     };
 }
-exports.XLF = XLF;
 function sortLanguages(languages) {
     return languages.sort((a, b) => {
         return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
@@ -404,8 +399,8 @@ function processCoreBundleFormat(fileHeader, languages, json, emitter) {
         }
     });
 }
-function processNlsFiles(opts) {
-    return (0, event_stream_1.through)(function (file) {
+export function processNlsFiles(opts) {
+    return through(function (file) {
         const fileName = path.basename(file.path);
         if (fileName === 'nls.metadata.json') {
             let json = null;
@@ -423,9 +418,8 @@ function processNlsFiles(opts) {
         this.queue(file);
     });
 }
-exports.processNlsFiles = processNlsFiles;
 const editorProject = 'vscode-editor', workbenchProject = 'vscode-workbench', extensionsProject = 'vscode-extensions', setupProject = 'vscode-setup', serverProject = 'vscode-server';
-function getResource(sourceFile) {
+export function getResource(sourceFile) {
     let resource;
     if (/^vs\/platform/.test(sourceFile)) {
         return { name: 'vs/platform', project: editorProject };
@@ -458,9 +452,8 @@ function getResource(sourceFile) {
     }
     throw new Error(`Could not identify the XLF bundle for ${sourceFile}`);
 }
-exports.getResource = getResource;
-function createXlfFilesForCoreBundle() {
-    return (0, event_stream_1.through)(function (file) {
+export function createXlfFilesForCoreBundle() {
+    return through(function (file) {
         const basename = path.basename(file.path);
         if (basename === 'nls.metadata.json') {
             if (file.isBuffer()) {
@@ -506,7 +499,6 @@ function createXlfFilesForCoreBundle() {
         }
     });
 }
-exports.createXlfFilesForCoreBundle = createXlfFilesForCoreBundle;
 function createL10nBundleForExtension(extensionFolderName, prefixWithBuildFolder) {
     const prefix = prefixWithBuildFolder ? '.build/' : '';
     return gulp
@@ -518,7 +510,7 @@ function createL10nBundleForExtension(extensionFolderName, prefixWithBuildFolder
         // // For any dependencies pulled in that bundle @vscode/l10n. They needed to export the bundle
         `${prefix}extensions/${extensionFolderName}/**/bundle.l10n.json`,
     ])
-        .pipe((0, event_stream_1.map)(function (data, callback) {
+        .pipe(map(function (data, callback) {
         const file = data;
         if (!file.isBuffer()) {
             // Not a buffer so we drop it
@@ -528,7 +520,7 @@ function createL10nBundleForExtension(extensionFolderName, prefixWithBuildFolder
         const extension = path.extname(file.relative);
         if (extension !== '.json') {
             const contents = file.contents.toString('utf8');
-            (0, l10n_dev_1.getL10nJson)([{ contents, extension }])
+            getL10nJson([{ contents, extension }])
                 .then((json) => {
                 callback(undefined, new File({
                     path: `extensions/${extensionFolderName}/bundle.l10n.json`,
@@ -566,16 +558,16 @@ function createL10nBundleForExtension(extensionFolderName, prefixWithBuildFolder
         concatArrays: true
     }));
 }
-exports.EXTERNAL_EXTENSIONS = [
+export const EXTERNAL_EXTENSIONS = [
     'ms-vscode.js-debug',
     'ms-vscode.js-debug-companion',
     'ms-vscode.vscode-js-profile-table',
 ];
-function createXlfFilesForExtensions() {
+export function createXlfFilesForExtensions() {
     let counter = 0;
     let folderStreamEnded = false;
     let folderStreamEndEmitted = false;
-    return (0, event_stream_1.through)(function (extensionFolder) {
+    return through(function (extensionFolder) {
         const folderStream = this;
         const stat = fs.statSync(extensionFolder.path);
         if (!stat.isDirectory()) {
@@ -597,7 +589,7 @@ function createXlfFilesForExtensions() {
             }
             return _l10nMap;
         }
-        (0, event_stream_1.merge)(gulp.src([`.build/extensions/${extensionFolderName}/package.nls.json`, `.build/extensions/${extensionFolderName}/**/nls.metadata.json`], { allowEmpty: true }), createL10nBundleForExtension(extensionFolderName, exports.EXTERNAL_EXTENSIONS.includes(extensionId))).pipe((0, event_stream_1.through)(function (file) {
+        merge(gulp.src([`.build/extensions/${extensionFolderName}/package.nls.json`, `.build/extensions/${extensionFolderName}/**/nls.metadata.json`], { allowEmpty: true }), createL10nBundleForExtension(extensionFolderName, EXTERNAL_EXTENSIONS.includes(extensionId))).pipe(through(function (file) {
             if (file.isBuffer()) {
                 const buffer = file.contents;
                 const basename = path.basename(file.path);
@@ -634,7 +626,7 @@ function createXlfFilesForExtensions() {
             if (_l10nMap?.size > 0) {
                 const xlfFile = new File({
                     path: path.join(extensionsProject, extensionId + '.xlf'),
-                    contents: Buffer.from((0, l10n_dev_1.getL10nXlf)(_l10nMap), 'utf8')
+                    contents: Buffer.from(getL10nXlf(_l10nMap), 'utf8')
                 });
                 folderStream.queue(xlfFile);
             }
@@ -653,9 +645,8 @@ function createXlfFilesForExtensions() {
         }
     });
 }
-exports.createXlfFilesForExtensions = createXlfFilesForExtensions;
-function createXlfFilesForIsl() {
-    return (0, event_stream_1.through)(function (file) {
+export function createXlfFilesForIsl() {
+    return through(function (file) {
         let projectName, resourceFile;
         if (path.basename(file.path) === 'messages.en.isl') {
             projectName = setupProject;
@@ -704,7 +695,6 @@ function createXlfFilesForIsl() {
         this.queue(xlfFile);
     });
 }
-exports.createXlfFilesForIsl = createXlfFilesForIsl;
 function createI18nFile(name, messages) {
     const result = Object.create(null);
     result[''] = [
@@ -735,21 +725,21 @@ function getRecordFromL10nJsonFormat(l10nJsonFormat) {
     }
     return record;
 }
-function prepareI18nPackFiles(resultingTranslationPaths) {
+export function prepareI18nPackFiles(resultingTranslationPaths) {
     const parsePromises = [];
     const mainPack = { version: i18nPackVersion, contents: {} };
     const extensionsPacks = {};
     const errors = [];
-    return (0, event_stream_1.through)(function (xlf) {
+    return through(function (xlf) {
         let project = path.basename(path.dirname(path.dirname(xlf.relative)));
         // strip `-new` since vscode-extensions-loc uses the `-new` suffix to indicate that it's from the new loc pipeline
         const resource = path.basename(path.basename(xlf.relative, '.xlf'), '-new');
-        if (exports.EXTERNAL_EXTENSIONS.find(e => e === resource)) {
+        if (EXTERNAL_EXTENSIONS.find(e => e === resource)) {
             project = extensionsProject;
         }
         const contents = xlf.contents.toString();
         log(`Found ${project}: ${resource}`);
-        const parsePromise = (0, l10n_dev_1.getL10nFilesFromXlf)(contents);
+        const parsePromise = getL10nFilesFromXlf(contents);
         parsePromises.push(parsePromise);
         parsePromise.then(resolvedFiles => {
             resolvedFiles.forEach(file => {
@@ -793,10 +783,9 @@ function prepareI18nPackFiles(resultingTranslationPaths) {
         });
     });
 }
-exports.prepareI18nPackFiles = prepareI18nPackFiles;
-function prepareIslFiles(language, innoSetupConfig) {
+export function prepareIslFiles(language, innoSetupConfig) {
     const parsePromises = [];
-    return (0, event_stream_1.through)(function (xlf) {
+    return through(function (xlf) {
         const stream = this;
         const parsePromise = XLF.parse(xlf.contents.toString());
         parsePromises.push(parsePromise);
@@ -816,7 +805,6 @@ function prepareIslFiles(language, innoSetupConfig) {
         });
     });
 }
-exports.prepareIslFiles = prepareIslFiles;
 function createIslFile(name, messages, language, innoSetup) {
     const content = [];
     let originalContent;

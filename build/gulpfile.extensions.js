@@ -12,7 +12,7 @@ import filter from 'gulp-filter';
 import * as util from './lib/util.js';
 import { getVersion } from './lib/getVersion.js';
 import * as task from './lib/task.js';
-import * as watcher from './lib/watch.js';
+import * as watcher from './lib/watch/index.js';
 import { createReporter } from './lib/reporter.js';
 import glob from 'glob';
 import plumber from 'gulp-plumber';

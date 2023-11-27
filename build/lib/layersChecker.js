@@ -1,13 +1,11 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const ts = require("typescript");
-const fs_1 = require("fs");
-const path_1 = require("path");
-const minimatch_1 = require("minimatch");
+import * as ts from 'typescript';
+import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname, join } from 'path';
+import { match } from 'minimatch';
 //
 // #############################################################################################
 //
@@ -228,7 +226,7 @@ const RULES = [
         ]
     }
 ];
-const TS_CONFIG_PATH = (0, path_1.join)(__dirname, '../../', 'src', 'tsconfig.json');
+const TS_CONFIG_PATH = join(__dirname, '../../', 'src', 'tsconfig.json');
 let hasErrors = false;
 function checkFile(program, sourceFile, rule) {
     checkNode(sourceFile);
@@ -291,8 +289,8 @@ function checkFile(program, sourceFile, rule) {
 }
 function createProgram(tsconfigPath) {
     const tsConfig = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
-    const configHostParser = { fileExists: fs_1.existsSync, readDirectory: ts.sys.readDirectory, readFile: file => (0, fs_1.readFileSync)(file, 'utf8'), useCaseSensitiveFileNames: process.platform === 'linux' };
-    const tsConfigParsed = ts.parseJsonConfigFileContent(tsConfig.config, configHostParser, (0, path_1.resolve)((0, path_1.dirname)(tsconfigPath)), { noEmit: true });
+    const configHostParser = { fileExists: existsSync, readDirectory: ts.sys.readDirectory, readFile: file => readFileSync(file, 'utf8'), useCaseSensitiveFileNames: process.platform === 'linux' };
+    const tsConfigParsed = ts.parseJsonConfigFileContent(tsConfig.config, configHostParser, resolve(dirname(tsconfigPath)), { noEmit: true });
     const compilerHost = ts.createCompilerHost(tsConfigParsed.options, true);
     return ts.createProgram(tsConfigParsed.fileNames, tsConfigParsed.options, compilerHost);
 }
@@ -302,7 +300,7 @@ function createProgram(tsconfigPath) {
 const program = createProgram(TS_CONFIG_PATH);
 for (const sourceFile of program.getSourceFiles()) {
     for (const rule of RULES) {
-        if ((0, minimatch_1.match)([sourceFile.fileName], rule.target).length > 0) {
+        if (match([sourceFile.fileName], rule.target).length > 0) {
             if (!rule.skip) {
                 checkFile(program, sourceFile, rule);
             }

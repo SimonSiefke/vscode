@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.referenceGeneratedDepsByArch = exports.recommendedDeps = exports.additionalDeps = void 0;
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/additional_deps
 // Additional dependencies not in the dpkg-shlibdeps output.
-exports.additionalDeps = [
+export const additionalDeps = [
     'ca-certificates', // Make sure users have SSL certificates.
     'libgtk-3-0 (>= 3.9.10) | libgtk-4-1',
     'libnss3 (>= 3.26)',
@@ -19,10 +16,10 @@ exports.additionalDeps = [
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/manual_recommends
 // Dependencies that we can only recommend
 // for now since some of the older distros don't support them.
-exports.recommendedDeps = [
+export const recommendedDeps = [
     'libvulkan1' // Move to additionalDeps once support for Trusty and Jessie are dropped.
 ];
-exports.referenceGeneratedDepsByArch = {
+export const referenceGeneratedDepsByArch = {
     'amd64': [
         'ca-certificates',
         'libasound2 (>= 1.0.17)',

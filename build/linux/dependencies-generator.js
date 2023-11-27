@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDependencies = void 0;
-const child_process_1 = require("child_process");
-const path = require("path");
-const calculate_deps_1 = require("./debian/calculate-deps");
-const calculate_deps_2 = require("./rpm/calculate-deps");
-const dep_lists_1 = require("./debian/dep-lists");
-const dep_lists_2 = require("./rpm/dep-lists");
-const types_1 = require("./debian/types");
-const types_2 = require("./rpm/types");
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
+import { spawnSync } from 'child_process';
+const path = __require("path");
+import { generatePackageDeps as generatePackageDepsDebian } from './debian/calculate-deps';
+import { generatePackageDeps as generatePackageDepsRpm } from './rpm/calculate-deps';
+import { referenceGeneratedDepsByArch as debianGeneratedDeps } from './debian/dep-lists';
+import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-lists';
+import { isDebianArchString } from './debian/types';
+import { isRpmArchString } from './rpm/types';
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
 // If false, we warn about new dependencies if they show up
@@ -31,21 +31,21 @@ const bundledDeps = [
     'libvk_swiftshader.so',
     'libffmpeg.so'
 ];
-function getDependencies(packageType, buildDir, applicationName, arch, sysroot) {
+export function getDependencies(packageType, buildDir, applicationName, arch, sysroot) {
     if (packageType === 'deb') {
-        if (!(0, types_1.isDebianArchString)(arch)) {
+        if (!isDebianArchString(arch)) {
             throw new Error('Invalid Debian arch string ' + arch);
         }
         if (!sysroot) {
             throw new Error('Missing sysroot parameter');
         }
     }
-    if (packageType === 'rpm' && !(0, types_2.isRpmArchString)(arch)) {
+    if (packageType === 'rpm' && !isRpmArchString(arch)) {
         throw new Error('Invalid RPM arch string ' + arch);
     }
     // Get the files for which we want to find dependencies.
     const nativeModulesPath = path.join(buildDir, 'resources', 'app', 'node_modules.asar.unpacked');
-    const findResult = (0, child_process_1.spawnSync)('find', [nativeModulesPath, '-name', '*.node']);
+    const findResult = spawnSync('find', [nativeModulesPath, '-name', '*.node']);
     if (findResult.status) {
         console.error('Error finding files:');
         console.error(findResult.stderr.toString());
@@ -59,8 +59,8 @@ function getDependencies(packageType, buildDir, applicationName, arch, sysroot) 
     files.push(path.join(buildDir, 'chrome_crashpad_handler'));
     // Generate the dependencies.
     const dependencies = packageType === 'deb' ?
-        (0, calculate_deps_1.generatePackageDeps)(files, arch, sysroot) :
-        (0, calculate_deps_2.generatePackageDeps)(files);
+        generatePackageDepsDebian(files, arch, sysroot) :
+        generatePackageDepsRpm(files);
     // Merge all the dependencies.
     const mergedDependencies = mergePackageDeps(dependencies);
     // Exclude bundled dependencies and sort
@@ -68,8 +68,8 @@ function getDependencies(packageType, buildDir, applicationName, arch, sysroot) 
         return !bundledDeps.some(bundledDep => dependency.startsWith(bundledDep));
     }).sort();
     const referenceGeneratedDeps = packageType === 'deb' ?
-        dep_lists_1.referenceGeneratedDepsByArch[arch] :
-        dep_lists_2.referenceGeneratedDepsByArch[arch];
+        debianGeneratedDeps[arch] :
+        rpmGeneratedDeps[arch];
     if (JSON.stringify(sortedDependencies) !== JSON.stringify(referenceGeneratedDeps)) {
         const failMessage = 'The dependencies list has changed.'
             + '\nOld:\n' + referenceGeneratedDeps.join('\n')
@@ -83,7 +83,6 @@ function getDependencies(packageType, buildDir, applicationName, arch, sysroot) 
     }
     return sortedDependencies;
 }
-exports.getDependencies = getDependencies;
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/rpm/merge_package_deps.py.
 function mergePackageDeps(inputDeps) {
     const requires = new Set();

@@ -1,13 +1,11 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require("fs");
-const path = require("path");
-const codesign = require("electron-osx-sign");
-const cross_spawn_promise_1 = require("@malept/cross-spawn-promise");
+import * as fs from 'fs';
+import * as path from 'path';
+import * as codesign from 'electron-osx-sign';
+import { spawn } from '@malept/cross-spawn-promise';
 const root = path.dirname(path.dirname(__dirname));
 function getElectronVersion() {
     const yarnrc = fs.readFileSync(path.join(root, '.yarnrc'), 'utf8');
@@ -77,21 +75,21 @@ async function main(buildDir) {
     // Only overwrite plist entries for x64 and arm64 builds,
     // universal will get its copy from the x64 build.
     if (arch !== 'universal') {
-        await (0, cross_spawn_promise_1.spawn)('plutil', [
+        await spawn('plutil', [
             '-insert',
             'NSAppleEventsUsageDescription',
             '-string',
             'An application in Visual Studio Code wants to use AppleScript.',
             `${infoPlistPath}`
         ]);
-        await (0, cross_spawn_promise_1.spawn)('plutil', [
+        await spawn('plutil', [
             '-replace',
             'NSMicrophoneUsageDescription',
             '-string',
             'An application in Visual Studio Code wants to use the Microphone.',
             `${infoPlistPath}`
         ]);
-        await (0, cross_spawn_promise_1.spawn)('plutil', [
+        await spawn('plutil', [
             '-replace',
             'NSCameraUsageDescription',
             '-string',

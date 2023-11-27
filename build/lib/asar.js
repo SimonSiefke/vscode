@@ -1,17 +1,14 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAsar = void 0;
-const path = require("path");
-const es = require("event-stream");
+import * as path from 'path';
+import * as es from 'event-stream';
 const pickle = require('chromium-pickle-js');
 const Filesystem = require('asar/lib/filesystem');
-const VinylFile = require("vinyl");
-const minimatch = require("minimatch");
-function createAsar(folderPath, unpackGlobs, destFilename) {
+import * as VinylFile from 'vinyl';
+import * as minimatch from 'minimatch';
+export function createAsar(folderPath, unpackGlobs, destFilename) {
     const shouldUnpackFile = (file) => {
         for (let i = 0; i < unpackGlobs.length; i++) {
             if (minimatch(file.relative, unpackGlobs[i])) {
@@ -115,5 +112,4 @@ function createAsar(folderPath, unpackGlobs, destFilename) {
         }
     });
 }
-exports.createAsar = createAsar;
 //# sourceMappingURL=asar.js.map

@@ -1,28 +1,25 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTypeScriptBuilder = exports.CancellationToken = void 0;
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const utils = require("./utils");
-const colors = require("ansi-colors");
-const ts = require("typescript");
-const Vinyl = require("vinyl");
-const source_map_1 = require("source-map");
-var CancellationToken;
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import * as utils from './utils';
+import * as colors from 'ansi-colors';
+import * as ts from 'typescript';
+import * as Vinyl from 'vinyl';
+import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
+export var CancellationToken;
 (function (CancellationToken) {
     CancellationToken.None = {
         isCancellationRequested() { return false; }
     };
-})(CancellationToken || (exports.CancellationToken = CancellationToken = {}));
+})(CancellationToken || (CancellationToken = {}));
 function normalize(path) {
     return path.replace(/\\/g, '/');
 }
-function createTypeScriptBuilder(config, projectFile, cmd) {
+export function createTypeScriptBuilder(config, projectFile, cmd) {
     const _log = config.logFn;
     const host = new LanguageServiceHost(cmd, projectFile, _log);
     const service = ts.createLanguageService(host, ts.createDocumentRegistry());
@@ -133,10 +130,10 @@ function createTypeScriptBuilder(config, projectFile, cmd) {
                                 // in step 2 we apply the line edits to the typescript source map
                                 const snapshot = host.getScriptSnapshot(fileName);
                                 if (snapshot instanceof VinylScriptSnapshot && snapshot.sourceMap) {
-                                    const inputSMC = new source_map_1.SourceMapConsumer(snapshot.sourceMap);
-                                    const tsSMC = new source_map_1.SourceMapConsumer(sourceMap);
+                                    const inputSMC = new SourceMapConsumer(snapshot.sourceMap);
+                                    const tsSMC = new SourceMapConsumer(sourceMap);
                                     let didChange = false;
-                                    const smg = new source_map_1.SourceMapGenerator({
+                                    const smg = new SourceMapGenerator({
                                         file: sourceMap.file,
                                         sourceRoot: sourceMap.sourceRoot
                                     });
@@ -364,7 +361,6 @@ function createTypeScriptBuilder(config, projectFile, cmd) {
         languageService: service
     };
 }
-exports.createTypeScriptBuilder = createTypeScriptBuilder;
 class ScriptSnapshot {
     _text;
     _mtime;

@@ -1,13 +1,10 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createStatsStream = void 0;
-const es = require("event-stream");
-const fancyLog = require("fancy-log");
-const ansiColors = require("ansi-colors");
+import * as es from 'event-stream';
+import * as fancyLog from 'fancy-log';
+import * as ansiColors from 'ansi-colors';
 class Entry {
     name;
     totalCount;
@@ -40,7 +37,7 @@ class Entry {
     }
 }
 const _entries = new Map();
-function createStatsStream(group, log) {
+export function createStatsStream(group, log) {
     const entry = new Entry(group, 0, 0);
     _entries.set(entry.name, entry);
     return es.through(function (data) {
@@ -73,5 +70,4 @@ function createStatsStream(group, log) {
         this.emit('end');
     });
 }
-exports.createStatsStream = createStatsStream;
 //# sourceMappingURL=stats.js.map

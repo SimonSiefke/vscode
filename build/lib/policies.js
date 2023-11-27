@@ -1,15 +1,13 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-const child_process_1 = require("child_process");
-const fs_1 = require("fs");
-const path = require("path");
-const byline = require("byline");
-const ripgrep_1 = require("@vscode/ripgrep");
-const Parser = require("tree-sitter");
+import { spawn } from 'child_process';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import * as byline from 'byline';
+import { rgPath } from '@vscode/ripgrep';
+import * as Parser from 'tree-sitter';
 const { typescript } = require('tree-sitter-typescript');
 const product = require('../../product.json');
 const packageJson = require('../../package.json');
@@ -340,7 +338,7 @@ function getPolicies(moduleName, node) {
 async function getFiles(root) {
     return new Promise((c, e) => {
         const result = [];
-        const rg = (0, child_process_1.spawn)(ripgrep_1.rgPath, ['-l', 'registerConfiguration\\(', '-g', 'src/**/*.ts', '-g', '!src/**/test/**', root]);
+        const rg = spawn(rgPath, ['-l', 'registerConfiguration\\(', '-g', 'src/**/*.ts', '-g', '!src/**/test/**', root]);
         const stream = byline(rg.stdout.setEncoding('utf8'));
         stream.on('data', path => result.push(path));
         stream.on('error', err => e(err));
@@ -482,7 +480,7 @@ async function parsePolicies() {
     const policies = [];
     for (const file of files) {
         const moduleName = path.relative(base, file).replace(/\.ts$/i, '').replace(/\\/g, '/');
-        const contents = await fs_1.promises.readFile(file, { encoding: 'utf8' });
+        const contents = await fs.readFile(file, { encoding: 'utf8' });
         const tree = parser.parse(contents);
         policies.push(...getPolicies(moduleName, tree.rootNode));
     }
@@ -508,13 +506,13 @@ async function main() {
     const [policies, translations] = await Promise.all([parsePolicies(), getTranslations()]);
     const { admx, adml } = await renderGP(policies, translations);
     const root = '.build/policies/win32';
-    await fs_1.promises.rm(root, { recursive: true, force: true });
-    await fs_1.promises.mkdir(root, { recursive: true });
-    await fs_1.promises.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(/\r?\n/g, '\n'));
+    await fs.rm(root, { recursive: true, force: true });
+    await fs.mkdir(root, { recursive: true });
+    await fs.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(/\r?\n/g, '\n'));
     for (const { languageId, contents } of adml) {
         const languagePath = path.join(root, languageId === 'en-us' ? 'en-us' : Languages[languageId]);
-        await fs_1.promises.mkdir(languagePath, { recursive: true });
-        await fs_1.promises.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(/\r?\n/g, '\n'));
+        await fs.mkdir(languagePath, { recursive: true });
+        await fs.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(/\r?\n/g, '\n'));
     }
 }
 if (require.main === module) {

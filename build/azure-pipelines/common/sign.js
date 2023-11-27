@@ -1,16 +1,13 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.main = exports.Temp = void 0;
-const cp = require("child_process");
-const fs = require("fs");
-const crypto = require("crypto");
-const path = require("path");
-const os = require("os");
-class Temp {
+import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
+import * as path from 'path';
+import * as os from 'os';
+export class Temp {
     _files = [];
     tmpNameSync() {
         const file = path.join(os.tmpdir(), crypto.randomBytes(20).toString('hex'));
@@ -28,7 +25,6 @@ class Temp {
         }
     }
 }
-exports.Temp = Temp;
 function getParams(type) {
     switch (type) {
         case 'sign-windows':
@@ -108,7 +104,7 @@ function getParams(type) {
             throw new Error(`Sign type ${type} not found`);
     }
 }
-function main([esrpCliPath, type, cert, username, password, folderPath, pattern]) {
+export function main([esrpCliPath, type, cert, username, password, folderPath, pattern]) {
     const tmp = new Temp();
     process.on('exit', () => tmp.dispose());
     const patternPath = tmp.tmpNameSync();
@@ -164,7 +160,6 @@ function main([esrpCliPath, type, cert, username, password, folderPath, pattern]
         process.exit(1);
     }
 }
-exports.main = main;
 if (require.main === module) {
     main(process.argv.slice(2));
     process.exit(0);

@@ -1,15 +1,12 @@
-"use strict";
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.nls = void 0;
-const lazy = require("lazy.js");
-const event_stream_1 = require("event-stream");
-const File = require("vinyl");
-const sm = require("source-map");
-const path = require("path");
+import * as lazy from 'lazy.js';
+import { duplex, through } from 'event-stream';
+import * as File from 'vinyl';
+import * as sm from 'source-map';
+import * as path from 'path';
 var CollectStepResult;
 (function (CollectStepResult) {
     CollectStepResult[CollectStepResult["Yes"] = 0] = "Yes";
@@ -52,9 +49,9 @@ define([], [${wrap + lines.map(l => indent + l).join(',\n') + wrap}]);`;
 /**
  * Returns a stream containing the patched JavaScript and source maps.
  */
-function nls() {
-    const input = (0, event_stream_1.through)();
-    const output = input.pipe((0, event_stream_1.through)(function (f) {
+export function nls() {
+    const input = through();
+    const output = input.pipe(through(function (f) {
         if (!f.sourceMap) {
             return this.emit('error', new Error(`File ${f.relative} does not have sourcemaps.`));
         }
@@ -72,9 +69,8 @@ function nls() {
         }
         _nls.patchFiles(f, typescript).forEach(f => this.emit('data', f));
     }));
-    return (0, event_stream_1.duplex)(input, output);
+    return duplex(input, output);
 }
-exports.nls = nls;
 function isImportNode(ts, node) {
     return node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration;
 }
