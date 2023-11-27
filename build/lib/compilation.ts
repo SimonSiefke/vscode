@@ -5,7 +5,7 @@
 
 import * as es from 'event-stream';
 import * as fs from 'fs';
-import * as gulp from 'gulp';
+import gulp from 'gulp';
 import * as path from 'path';
 import * as monacodts from './monaco-api.js';
 import * as nls from './nls.js';
@@ -14,7 +14,7 @@ import * as util from './util.js';
 import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as os from 'os';
-import ts = require('typescript');
+import ts from 'typescript';
 import File from 'vinyl';
 import * as task from './task.js';
 import { Mangler } from './mangle/index.js';
@@ -22,8 +22,12 @@ import { RawSourceMap } from 'source-map';
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import watch from './watch/index.js';
+import { createRequire } from 'node:module';
+import { pipeline } from 'stream/promises';
 
+const require = createRequire(import.meta.url);
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const __filename = fileURLToPath(import.meta.url)
 
 
 // --- gulp-tsb: compile and transpile --------------------------------
@@ -45,9 +49,9 @@ function getTypeScriptCompilerOptions(src: string): ts.CompilerOptions {
 	return options;
 }
 
-function createCompile(src: string, build: boolean, emitError: boolean, transpileOnly: boolean | { swc: boolean }) {
-	const tsb = require('./tsb') as typeof import('./tsb/index.js');
-	const sourcemaps = require('gulp-sourcemaps') as typeof import('gulp-sourcemaps');
+async function createCompile(src: string, build: boolean, emitError: boolean, transpileOnly: boolean | { swc: boolean }) {
+	const tsb = await import('./tsb/index.js') as typeof import('./tsb/index.js');
+	const sourcemaps = await import('gulp-sourcemaps') as typeof import('gulp-sourcemaps');
 
 
 	const projectPath = path.join(__dirname, '../../', src, 'tsconfig.json');
@@ -97,31 +101,27 @@ function createCompile(src: string, build: boolean, emitError: boolean, transpil
 	return pipeline;
 }
 
-export function transpileTask(src: string, out: string, swc: boolean): task.StreamTask {
+export function transpileTask(src: string, out: string, swc: boolean): task.PromiseTask {
 
-	const task = () => {
-
-		const transpile = createCompile(src, false, true, { swc });
+	const task = async () => {
+		const transpile = await createCompile(src, false, true, { swc });
 		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
-
-		return srcPipe
-			.pipe(transpile())
-			.pipe(gulp.dest(out));
+		await pipeline(srcPipe, transpile(), gulp.dest(out))
 	};
 
 	task.taskName = `transpile-${path.basename(src)}`;
 	return task;
 }
 
-export function compileTask(src: string, out: string, build: boolean, options: { disableMangle?: boolean } = {}): task.StreamTask {
+export function compileTask(src: string, out: string, build: boolean, options: { disableMangle?: boolean } = {}): task.PromiseTask {
 
-	const task = () => {
+	const task = async () => {
 
 		if (os.totalmem() < 4_000_000_000) {
 			throw new Error('compilation requires 4GB of RAM');
 		}
 
-		const compile = createCompile(src, build, true, false);
+		const compile = await createCompile(src, build, true, false);
 		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
 		const generator = new MonacoGenerator(false);
 		if (src === 'src') {
@@ -151,21 +151,17 @@ export function compileTask(src: string, out: string, build: boolean, options: {
 			});
 		}
 
-		return srcPipe
-			.pipe(mangleStream)
-			.pipe(generator.stream)
-			.pipe(compile())
-			.pipe(gulp.dest(out));
+		await pipeline(srcPipe, mangleStream, generator.stream, compile(), gulp.dest(out));
 	};
 
 	task.taskName = `compile-${path.basename(src)}`;
 	return task;
 }
 
-export function watchTask(out: string, build: boolean): task.StreamTask {
+export function watchTask(out: string, build: boolean): task.PromiseTask {
 
-	const task = () => {
-		const compile = createCompile('src', build, false, false);
+	const task = async () => {
+		const compile = await createCompile('src', build, false, false);
 
 		const src = gulp.src('src/**', { base: 'src' });
 		const watchSrc = watch('src/**', { base: 'src', readDelay: 200 });
@@ -173,10 +169,10 @@ export function watchTask(out: string, build: boolean): task.StreamTask {
 		const generator = new MonacoGenerator(true);
 		generator.execute();
 
-		return watchSrc
-			.pipe(generator.stream)
-			.pipe(util.incremental(compile, src, true))
-			.pipe(gulp.dest(out));
+		await pipeline(watchSrc,
+			generator.stream,
+			util.incremental(compile, src, true),
+			gulp.dest(out));
 	};
 	task.taskName = `watch-${path.basename(out)}`;
 	return task;

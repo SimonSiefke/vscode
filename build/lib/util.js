@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { createRequire as _createRequire } from "module";
 const __require = _createRequire(import.meta.url);
-import * as es from 'event-stream';
+import es from 'event-stream';
 const _debounce = __require("debounce");
 import _filter from 'gulp-filter';
 import rename from 'gulp-rename';

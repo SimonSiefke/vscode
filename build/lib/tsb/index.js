@@ -7,7 +7,7 @@ const __require = _createRequire(import.meta.url);
 import Vinyl from 'vinyl';
 import through from 'through';
 import * as builder from './builder.js';
-import * as ts from 'typescript';
+import ts from 'typescript';
 import { Readable, Duplex } from 'stream';
 import { dirname } from 'path';
 import { strings } from './utils.js';
