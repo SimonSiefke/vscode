@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as path from 'path';
-import * as es from 'event-stream';
+import es from 'event-stream';
 import * as vfs from 'vinyl-fs';
 import * as util from '../lib/util.js';
 import * as deps from '../lib/dependencies.js';

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as es from 'event-stream';
+import es from 'event-stream';
 import * as fs from 'fs';
 import gulp from 'gulp';
 import * as path from 'path';

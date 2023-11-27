@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as es from 'event-stream';
-import * as vfs from 'vinyl-fs';
+import es from 'event-stream';
+import vfs from 'vinyl-fs';
 import { stylelintFilter } from './filters.js';
 import { getVariableNameValidator } from './lib/stylelint/validateVariableNames.js';
 

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import * as es from 'event-stream';
+import es from 'event-stream';
 import VinylFile from 'vinyl';
 import minimatch from 'minimatch';
 import { createRequire } from 'node:module';

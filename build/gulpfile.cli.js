@@ -5,10 +5,10 @@
 
 //@ts-check
 
-import * as es from 'event-stream';
-import { default as gulp } from 'gulp';
+import es from 'event-stream';
+import gulp from 'gulp';
 import * as path from 'node:path';
-import { default as fancyLog } from 'fancy-log';
+import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as cp from 'child_process';
 import { tmpdir } from 'node:os';
