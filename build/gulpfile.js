@@ -3,17 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import { EventEmitter } from 'node:events'
+import gulp from 'gulp';
+import * as util from './lib/util.js';
+import * as task from './lib/task.js';
+import { transpileClientSWC, transpileTask, compileTask, watchTask, compileApiProposalNamesTask, watchApiProposalNamesTask } from './lib/compilation.js';
+import { monacoTypecheckTask/* , monacoTypecheckWatchTask */ } from './gulpfile.editor.js';
+import { compileExtensionsTask, watchExtensionsTask, compileExtensionMediaTask } from './gulpfile.extensions.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Increase max listeners for event emitters
-require('events').EventEmitter.defaultMaxListeners = 100;
-
-const gulp = require('gulp');
-const util = require('./lib/util');
-const task = require('./lib/task');
-const { transpileClientSWC, transpileTask, compileTask, watchTask, compileApiProposalNamesTask, watchApiProposalNamesTask } = require('./lib/compilation');
-const { monacoTypecheckTask/* , monacoTypecheckWatchTask */ } = require('./gulpfile.editor');
-const { compileExtensionsTask, watchExtensionsTask, compileExtensionMediaTask } = require('./gulpfile.extensions');
+EventEmitter.defaultMaxListeners = 100;
 
 // API proposal names
 gulp.task(compileApiProposalNamesTask);
