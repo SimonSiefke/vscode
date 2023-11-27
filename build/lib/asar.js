@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 import * as path from 'path';
 import * as es from 'event-stream';
-const pickle = require('chromium-pickle-js');
-const Filesystem = require('asar/lib/filesystem');
 import VinylFile from 'vinyl';
 import minimatch from 'minimatch';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const pickle = require('chromium-pickle-js');
+const Filesystem = require('asar/lib/filesystem');
 export function createAsar(folderPath, unpackGlobs, destFilename) {
     const shouldUnpackFile = (file) => {
         for (let i = 0; i < unpackGlobs.length; i++) {

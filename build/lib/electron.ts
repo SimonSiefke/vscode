@@ -9,9 +9,11 @@ import * as vfs from 'vinyl-fs';
 import filter from 'gulp-filter';
 import * as util from './util.js';
 import { getVersion } from './getVersion.js';
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'path';
+import { dirname } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
@@ -240,7 +242,7 @@ async function main(arch: string = process.arch): Promise<void> {
 	}
 }
 
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	main(process.argv[2]).catch(err => {
 		console.error(err);
 		process.exit(1);
