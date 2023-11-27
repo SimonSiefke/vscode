@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 import * as fs from 'fs';
 import * as path from 'path';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 const TYPESCRIPT_LIB_FOLDER = path.dirname(require.resolve('typescript/lib/lib.d.ts'));
 export var ShakeLevel;
 (function (ShakeLevel) {

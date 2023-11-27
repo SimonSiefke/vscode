@@ -6,7 +6,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type * as ts from 'typescript';
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
 const TYPESCRIPT_LIB_FOLDER = path.dirname(require.resolve('typescript/lib/lib.d.ts'));
 
 export const enum ShakeLevel {

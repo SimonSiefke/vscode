@@ -6,7 +6,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as tss from './treeshaking.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.join(__dirname, '../../');
 const SRC_DIR = path.join(REPO_ROOT, 'src');
 
