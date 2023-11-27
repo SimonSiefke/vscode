@@ -16,7 +16,7 @@ import replace from 'gulp-replace';
 import filter from 'gulp-filter';
 import { getProductionDependencies } from './lib/dependencies.js';
 import vfs from 'vinyl-fs';
-import packageJson from '../package.json' assert {type: 'json'};
+import packageJson from '../package.json' assert { type: 'json'};
 import flatmap from 'gulp-flatmap';
 import gunzip from 'gulp-gunzip';
 import File from 'vinyl';

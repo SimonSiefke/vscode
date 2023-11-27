@@ -8,6 +8,9 @@ import * as vfs from 'vinyl-fs';
 import filter from 'gulp-filter';
 import * as util from './util.js';
 import { getVersion } from './getVersion.js';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'path';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 function isDocumentSuffix(str) {
     return str === 'document' || str === 'script' || str === 'file' || str === 'source code';
 }

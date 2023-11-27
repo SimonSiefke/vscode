@@ -9,6 +9,10 @@ import * as vfs from 'vinyl-fs';
 import filter from 'gulp-filter';
 import * as util from './util.js';
 import { getVersion } from './getVersion.js';
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
 type DarwinDocumentType = {

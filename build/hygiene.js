@@ -12,6 +12,7 @@ import * as  fs from 'node:fs';
 import pall from 'p-all';
 import { all, copyrightFilter, unicodeFilter, indentationFilter, tsFormattingFilter, eslintFilter, stylelintFilter } from './filters.js';
 import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url'
 
 const require = createRequire(import.meta.url);
 

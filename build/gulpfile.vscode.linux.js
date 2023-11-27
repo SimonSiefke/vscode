@@ -13,7 +13,7 @@ import * as util from './lib/util.js';
 import { getVersion } from './lib/getVersion.js';
 import * as task from './lib/task.js';
 import * as packageJson from '../package.json' assert { type: 'json' };
-import * as  product from '../product.json' assert {type: 'json'};
+import * as  product from '../product.json' assert { type: 'json'};
 import * as  dependenciesGenerator from './linux/dependencies-generator.js';
 import * as sysrootInstaller from './linux/debian/install-sysroot.js';
 import { recommendedDep as debianRecommendedDependencies } from './linux/debian/dep-lists.js';
