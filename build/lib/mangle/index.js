@@ -9,7 +9,7 @@ import { SourceMapGenerator } from 'source-map';
 import * as ts from 'typescript';
 import { pathToFileURL } from 'url';
 import * as workerpool from 'workerpool';
-import { StaticLanguageServiceHost } from './staticLanguageServiceHost';
+import { StaticLanguageServiceHost } from './staticLanguageServiceHost.js';
 const buildfile = require('../../../src/buildfile');
 class ShortIdent {
     prefix;

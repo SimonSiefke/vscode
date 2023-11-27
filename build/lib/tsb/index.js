@@ -12,7 +12,7 @@ import { Readable, Duplex } from 'stream';
 import { dirname } from 'path';
 import { strings } from './utils.js';
 import { readFileSync, statSync } from 'fs';
-import * as log from 'fancy-log';
+import log from 'fancy-log';
 const colors = __require("ansi-colors");
 import { SwcTranspiler, TscTranspiler } from './transpiler.js';
 class EmptyDuplex extends Duplex {

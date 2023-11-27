@@ -2,8 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { createRequire as _createRequire } from "module";
-const __require = _createRequire(import.meta.url);
 import * as es from 'event-stream';
 import * as fs from 'fs';
 import * as cp from 'child_process';
@@ -13,12 +11,13 @@ import * as path from 'path';
 import * as File from 'vinyl';
 import { createStatsStream } from './stats.js';
 import * as util2 from './util.js';
-const vzip = require('gulp-vinyl-zip');
-const filter = __require("gulp-filter");
-const rename = __require("gulp-rename");
+// @ts-ignore
+import vzip from 'gulp-vinyl-zip';
+import filter from 'gulp-filter';
+import rename from 'gulp-rename';
 import * as fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
-const buffer = require('gulp-buffer');
+import buffer from 'gulp-buffer';
 import * as jsoncParser from 'jsonc-parser';
 import { getProductionDependencies } from './dependencies.js';
 import { getExtensionStream } from './builtInExtensions.js';

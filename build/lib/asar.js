@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as es from 'event-stream';
 const pickle = require('chromium-pickle-js');
 const Filesystem = require('asar/lib/filesystem');
-import * as VinylFile from 'vinyl';
+import VinylFile from 'vinyl';
 import minimatch from 'minimatch';
 export function createAsar(folderPath, unpackGlobs, destFilename) {
     const shouldUnpackFile = (file) => {

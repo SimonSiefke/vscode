@@ -11,7 +11,7 @@ import { Readable, Writable, Duplex } from 'stream';
 import { dirname } from 'path';
 import { strings } from './utils.js';
 import { readFileSync, statSync } from 'fs';
-import * as log from 'fancy-log';
+import log from 'fancy-log';
 import colors = require('ansi-colors');
 import { ITranspiler, SwcTranspiler, TscTranspiler } from './transpiler.js';
 

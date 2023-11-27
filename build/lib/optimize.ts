@@ -6,12 +6,12 @@
 import * as es from 'event-stream';
 import * as gulp from 'gulp';
 import concat from 'gulp-concat';
-import * as filter from 'gulp-filter';
+import filter from 'gulp-filter';
 import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as path from 'path';
 import pump from 'pump';
-import * as VinylFile from 'vinyl';
+import VinylFile from 'vinyl';
 import * as bundle from './bundle.js';
 import { Language, processNlsFiles } from './i18n.js';
 import { createStatsStream } from './stats.js';
