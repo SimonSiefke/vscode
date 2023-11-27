@@ -3,33 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import gulp from 'gulp';
+import * as path from 'node:path';
+import es from 'event-stream';
+import * as util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import * as task from './lib/task.js';
+import * as optimize from './lib/optimize.js';
+import product from '../product.json' assert {type: 'json'};
+import rename from 'gulp-rename';
+import replace from 'gulp-replace';
+import filter from 'gulp-filter';
+import { getProductionDependencies } from './lib/dependencies.js';
+import vfs from 'vinyl-fs';
+import packageJson from '../package.json' assert {type: 'json'};
+import flatmap from 'gulp-flatmap';
+import gunzip from 'gulp-gunzip';
+import File from 'vinyl';
+import * as fs from 'node:fs';
+import glob from 'glob';
+import { compileBuildTask } from './gulpfile.compile.js';
+import { compileExtensionsBuildTask, compileExtensionMediaBuildTask } from './gulpfile.extensions.js';
+import { vscodeWebEntryPoints, vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } from './gulpfile.vscode.web.js';
+import * as cp from 'node:child_process';
+import log from 'fancy-log';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-const gulp = require('gulp');
-const path = require('path');
-const es = require('event-stream');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const optimize = require('./lib/optimize');
-const product = require('../product.json');
-const rename = require('gulp-rename');
-const replace = require('gulp-replace');
-const filter = require('gulp-filter');
-const { getProductionDependencies } = require('./lib/dependencies');
-const vfs = require('vinyl-fs');
-const packageJson = require('../package.json');
-const flatmap = require('gulp-flatmap');
-const gunzip = require('gulp-gunzip');
-const File = require('vinyl');
-const fs = require('fs');
-const glob = require('glob');
-const { compileBuildTask } = require('./gulpfile.compile');
-const { compileExtensionsBuildTask, compileExtensionMediaBuildTask } = require('./gulpfile.extensions');
-const { vscodeWebEntryPoints, vscodeWebResourceIncludes, createVSCodeWebFileContentMapper } = require('./gulpfile.vscode.web');
-const cp = require('child_process');
-const log = require('fancy-log');
-
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.dirname(__dirname);
 const commit = getVersion(REPO_ROOT);
 const BUILD_ROOT = path.dirname(REPO_ROOT);
@@ -180,9 +183,9 @@ if (defaultNodeTask) {
 }
 
 function nodejs(platform, arch) {
-	const { fetchUrls, fetchGithub } = require('./lib/fetch');
+	const { fetchUrls, fetchGithub } = require('./lib/fetch.js');
 	const untar = require('gulp-untar');
-	const crypto = require('crypto');
+	const crypto = require('node:crypto');
 
 	if (arch === 'armhf') {
 		arch = 'armv7l';

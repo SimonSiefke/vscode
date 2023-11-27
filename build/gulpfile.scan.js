@@ -3,18 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
+import gulp from 'gulp';
+import path from 'node:path';
+import * as task from './lib/task.js';
+import * as util from './lib/util.js';
+import electron from '@vscode/gulp-electron';
+import { config } from './lib/electron.js';
+import filter from 'gulp-filter';
+import deps from './lib/dependencies.js';
+import { existsSync, readdirSync } from 'node:fs';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const gulp = require('gulp');
-const path = require('path');
-const task = require('./lib/task');
-const util = require('./lib/util');
-const electron = require('@vscode/gulp-electron');
-const { config } = require('./lib/electron');
-const filter = require('gulp-filter');
-const deps = require('./lib/dependencies');
-const { existsSync, readdirSync } = require('fs');
-
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname);
 
 const BUILD_TARGETS = [

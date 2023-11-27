@@ -3,11 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const gulp = require('gulp');
-const es = require('event-stream');
-const path = require('path');
-const task = require('./lib/task');
-const { hygiene } = require('./hygiene');
+import gulp from 'gulp';
+import es from 'event-stream';
+import * as path from 'node:path';
+import * as task from './lib/task.js';
+import { hygiene } from './hygiene.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /**
  * @param {string} actualPath

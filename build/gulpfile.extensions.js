@@ -3,24 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Increase max listeners for event emitters
-require('events').EventEmitter.defaultMaxListeners = 100;
+import { EventEmitter } from 'node:events'
+import gulp from 'gulp';
+import * as path from 'node:path';
+import * as nodeUtil from 'node:util';
+import es from 'event-stream';
+import filter from 'gulp-filter';
+import * as util from './lib/util.js';
+import { getVersion } from './lib/getVersion.js';
+import * as task from './lib/task.js';
+import * as watcher from './lib/watch.js';
+import { createReporter } from './lib/reporter.js';
+import glob from 'glob';
+import plumber from 'gulp-plumber';
+import * as ext from './lib/extensions.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module';
 
-const gulp = require('gulp');
-const path = require('path');
-const nodeUtil = require('util');
-const es = require('event-stream');
-const filter = require('gulp-filter');
-const util = require('./lib/util');
-const { getVersion } = require('./lib/getVersion');
-const task = require('./lib/task');
-const watcher = require('./lib/watch');
-const createReporter = require('./lib/reporter').createReporter;
-const glob = require('glob');
+// Increase max listeners for event emitters
+EventEmitter.defaultMaxListeners = 100;
+
+const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(__dirname);
 const commit = getVersion(root);
-const plumber = require('gulp-plumber');
-const ext = require('./lib/extensions');
 
 const extensionsPath = path.join(path.dirname(__dirname), 'extensions');
 
@@ -104,7 +111,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 
 	function createPipeline(build, emitError, transpileOnly) {
 		const nlsDev = require('vscode-nls-dev');
-		const tsb = require('./lib/tsb');
+		const tsb = require('./lib/tsb.js');
 		const sourcemaps = require('gulp-sourcemaps');
 
 		const reporter = createReporter('extensions');
