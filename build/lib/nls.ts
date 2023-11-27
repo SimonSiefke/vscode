@@ -5,10 +5,12 @@
 
 import type * as ts from 'typescript';
 import lazy from 'lazy.js';
-import { duplex, through } from 'event-stream';
+import * as ev from 'event-stream';
 import File from 'vinyl';
 import * as sm from 'source-map';
 import * as  path from 'path';
+
+const { duplex, through } = ev
 
 declare class FileSourceMap extends File {
 	public sourceMap: sm.RawSourceMap;

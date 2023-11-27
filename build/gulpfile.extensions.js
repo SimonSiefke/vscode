@@ -226,17 +226,14 @@ gulp.task(compileExtensionsBuildLegacyTask);
 
 //#region Extension media
 
-const compileExtensionMediaTask = task.define('compile-extension-media', () => ext.buildExtensionMedia(false));
+export const compileExtensionMediaTask = task.define('compile-extension-media', () => ext.buildExtensionMedia(false));
 gulp.task(compileExtensionMediaTask);
-exports.compileExtensionMediaTask = compileExtensionMediaTask;
 
-const watchExtensionMedia = task.define('watch-extension-media', () => ext.buildExtensionMedia(true));
+export const watchExtensionMedia = task.define('watch-extension-media', () => ext.buildExtensionMedia(true));
 gulp.task(watchExtensionMedia);
-exports.watchExtensionMedia = watchExtensionMedia;
 
-const compileExtensionMediaBuildTask = task.define('compile-extension-media-build', () => ext.buildExtensionMedia(false, '.build/extensions'));
+export const compileExtensionMediaBuildTask = task.define('compile-extension-media-build', () => ext.buildExtensionMedia(false, '.build/extensions'));
 gulp.task(compileExtensionMediaBuildTask);
-exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
 
 //#endregion
 
@@ -252,7 +249,7 @@ const compileExtensionsBuildTask = task.define('compile-extensions-build', task.
 gulp.task(compileExtensionsBuildTask);
 gulp.task(task.define('extensions-ci', task.series(compileExtensionsBuildTask, compileExtensionMediaBuildTask)));
 
-const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-build-pr', task.series(
+export const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-build-pr', task.series(
 	cleanExtensionsBuildTask,
 	task.define('bundle-marketplace-extensions-build', () => ext.packageMarketplaceExtensionsStream(false).pipe(gulp.dest('.build'))),
 	task.define('bundle-extensions-build-pr', () => ext.packageLocalExtensionsStream(false, true).pipe(gulp.dest('.build'))),
@@ -261,18 +258,13 @@ const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-bu
 gulp.task(compileExtensionsBuildPullRequestTask);
 gulp.task(task.define('extensions-ci-pr', task.series(compileExtensionsBuildPullRequestTask, compileExtensionMediaBuildTask)));
 
-
-exports.compileExtensionsBuildTask = compileExtensionsBuildTask;
-
 //#endregion
 
-const compileWebExtensionsTask = task.define('compile-web', () => buildWebExtensions(false));
+export const compileWebExtensionsTask = task.define('compile-web', () => buildWebExtensions(false));
 gulp.task(compileWebExtensionsTask);
-exports.compileWebExtensionsTask = compileWebExtensionsTask;
 
-const watchWebExtensionsTask = task.define('watch-web', () => buildWebExtensions(true));
+export const watchWebExtensionsTask = task.define('watch-web', () => buildWebExtensions(true));
 gulp.task(watchWebExtensionsTask);
-exports.watchWebExtensionsTask = watchWebExtensionsTask;
 
 /**
  * @param {boolean} isWatch

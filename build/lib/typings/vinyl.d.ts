@@ -132,4 +132,6 @@ declare module "vinyl" {
 
 	export default File;
 
+	export = File
+
 }

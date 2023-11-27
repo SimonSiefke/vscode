@@ -5,8 +5,8 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-
-import { map, merge, through, ThroughStream } from 'event-stream';
+import * as ev from 'event-stream';
+import type { ThroughStream } from 'event-stream';
 import jsonMerge from 'gulp-merge-json';
 import File from 'vinyl';
 import xml2js from 'xml2js';
@@ -15,6 +15,8 @@ import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as iconv from '@vscode/iconv-lite-umd';
 import { l10nJsonFormat, getL10nXlf, l10nJsonDetails, getL10nFilesFromXlf, getL10nJson } from '@vscode/l10n-dev';
+
+const { map, merge, through, } = ev
 
 function log(message: any, ...rest: any[]): void {
 	fancyLog(ansiColors.green('[i18n]'), message, ...rest);
