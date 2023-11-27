@@ -381,7 +381,7 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 
 	return cb => {
 		const cssnano = require('cssnano') as typeof import('cssnano');
-		const postcss = require('gulp-postcss') as typeof import('gulp-postcss');
+		const postcss = require('gulp-postcss') as typeof import('gulp-postcss').default;
 		const sourcemaps = require('gulp-sourcemaps') as typeof import('gulp-sourcemaps');
 		const svgmin = require('gulp-svgmin') as typeof import('gulp-svgmin');
 

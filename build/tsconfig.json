@@ -19,7 +19,8 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"newLine": "lf",
-		"noEmit": true
+		"noEmit": true,
+		"skipLibCheck": true
 	},
 	"include": ["**/*.ts", "**/*.js"],
 	"exclude": ["node_modules/**"]
