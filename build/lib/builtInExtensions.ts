@@ -12,11 +12,14 @@ import rename from 'gulp-rename';
 import * as vfs from 'vinyl-fs';
 import * as ext from './extensions.js';
 import fancyLog from 'fancy-log';
-import * as ansiColors from 'ansi-colors';
+import { default as ansiColors } from 'ansi-colors';
 import { Stream } from 'stream';
 import mkdirp from 'mkdirp';
 import { dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+
+console.log(ansiColors)
+console.log(ansiColors.cyan)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

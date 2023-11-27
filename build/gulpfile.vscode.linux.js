@@ -16,7 +16,7 @@ import * as packageJson from '../package.json' assert { type: 'json' };
 import * as  product from '../product.json' assert {type: 'json'};
 import * as  dependenciesGenerator from './linux/dependencies-generator.js';
 import * as sysrootInstaller from './linux/debian/install-sysroot.js';
-import { recommendedDep as debianRecommendedDependencies } from './linux/debian/dep-lists';
+import { recommendedDep as debianRecommendedDependencies } from './linux/debian/dep-lists.js';
 import * as path from 'node:path';
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'

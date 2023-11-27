@@ -18,7 +18,7 @@ import vzip from 'gulp-vinyl-zip';
 import filter from 'gulp-filter';
 import rename from 'gulp-rename';
 import fancyLog from 'fancy-log';
-import * as ansiColors from 'ansi-colors';
+import { default as ansiColors } from 'ansi-colors';
 import buffer from 'gulp-buffer';
 import * as jsoncParser from 'jsonc-parser';
 import webpack from 'webpack';
@@ -26,7 +26,13 @@ import { getProductionDependencies } from './dependencies.js';
 import { IExtensionDefinition, getExtensionStream } from './builtInExtensions.js';
 import { getVersion } from './getVersion.js';
 import { fetchUrls, fetchGithub } from './fetch.js';
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+console.log(ansiColors)
+console.log(ansiColors.cyan)
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = path.dirname(path.dirname(__dirname));
 const commit = getVersion(root);
 const sourceMappingURLBase = `https://ticino.blob.core.windows.net/sourcemaps/${commit}`;
