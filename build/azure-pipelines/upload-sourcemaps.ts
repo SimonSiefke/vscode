@@ -5,11 +5,10 @@
 
 import * as path from 'path';
 import * as es from 'event-stream';
-import * as Vinyl from 'vinyl';
+import Vinyl from 'vinyl';
 import * as vfs from 'vinyl-fs';
 import * as util from '../lib/util.js';
-// @ts-ignore
-import * as deps from '../lib/dependencies';
+import * as deps from '../lib/dependencies.js';
 import { ClientSecretCredential } from '@azure/identity';
 const azure = require('gulp-azure-storage');
 

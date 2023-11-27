@@ -59,7 +59,7 @@ function createCompile(src: string, build: boolean, emitError: boolean, transpil
 	}, err => reporter(err));
 
 	function pipeline(token?: util.ICancellationToken) {
-		const bom = require('gulp-bom') as typeof import('gulp-bom');
+		const bom = require('gulp-bom') as typeof import('gulp-bom').default;
 
 		const tsFilter = util.filter(data => /\.ts$/.test(data.path));
 		const isUtf8Test = (f: File) => /(\/|\\)test(\/|\\).*utf8/.test(f.path);

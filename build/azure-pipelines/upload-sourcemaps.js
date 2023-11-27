@@ -6,8 +6,7 @@ import * as path from 'path';
 import * as es from 'event-stream';
 import * as vfs from 'vinyl-fs';
 import * as util from '../lib/util.js';
-// @ts-ignore
-import * as deps from '../lib/dependencies';
+import * as deps from '../lib/dependencies.js';
 import { ClientSecretCredential } from '@azure/identity';
 const azure = require('gulp-azure-storage');
 const root = path.dirname(path.dirname(__dirname));
