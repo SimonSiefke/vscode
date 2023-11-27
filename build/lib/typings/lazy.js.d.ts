@@ -271,6 +271,5 @@ declare module Lazy {
 }
 
 declare module 'lazy.js' {
-	export = Lazy;
+	export default Lazy;
 }
-

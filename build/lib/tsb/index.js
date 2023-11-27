@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 import { createRequire as _createRequire } from "module";
 const __require = _createRequire(import.meta.url);
-import * as Vinyl from 'vinyl';
-import * as through from 'through';
+import Vinyl from 'vinyl';
+import through from 'through';
 import * as builder from './builder.js';
 import * as ts from 'typescript';
 import { Readable, Duplex } from 'stream';

@@ -6,7 +6,7 @@ declare module "gulp-bom" {
 	 * This is required as per:
 	 * https://github.com/microsoft/TypeScript/issues/5073
 	 */
-	namespace f {}
+	namespace f { }
 
-	export = f;
+	export default f;
 }

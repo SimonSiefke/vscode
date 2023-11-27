@@ -5,11 +5,11 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { map, merge, through } from 'event-stream';
-import * as jsonMerge from 'gulp-merge-json';
-import * as File from 'vinyl';
-import * as xml2js from 'xml2js';
+import jsonMerge from 'gulp-merge-json';
+import File from 'vinyl';
+import xml2js from 'xml2js';
 import * as gulp from 'gulp';
-import * as fancyLog from 'fancy-log';
+import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as iconv from '@vscode/iconv-lite-umd';
 import { getL10nXlf, getL10nFilesFromXlf, getL10nJson } from '@vscode/l10n-dev';

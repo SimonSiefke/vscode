@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as es from 'event-stream';
 import * as Vinyl from 'vinyl';
 import * as vfs from 'vinyl-fs';
-import * as util from '../lib/util';
+import * as util from '../lib/util.js';
 // @ts-ignore
 import * as deps from '../lib/dependencies';
 import { ClientSecretCredential } from '@azure/identity';
@@ -73,4 +73,3 @@ main().catch(err => {
 	console.error(err);
 	process.exit(1);
 });
-

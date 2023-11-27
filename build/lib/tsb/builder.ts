@@ -9,7 +9,7 @@ import * as crypto from 'crypto';
 import * as utils from './utils.js';
 import * as colors from 'ansi-colors';
 import * as ts from 'typescript';
-import * as Vinyl from 'vinyl';
+import Vinyl from 'vinyl';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 export interface IConfiguration {

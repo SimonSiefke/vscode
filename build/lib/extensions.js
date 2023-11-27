@@ -8,14 +8,14 @@ import * as cp from 'child_process';
 import * as glob from 'glob';
 import * as gulp from 'gulp';
 import * as path from 'path';
-import * as File from 'vinyl';
+import File from 'vinyl';
 import { createStatsStream } from './stats.js';
 import * as util2 from './util.js';
 // @ts-ignore
 import vzip from 'gulp-vinyl-zip';
 import filter from 'gulp-filter';
 import rename from 'gulp-rename';
-import * as fancyLog from 'fancy-log';
+import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import buffer from 'gulp-buffer';
 import * as jsoncParser from 'jsonc-parser';

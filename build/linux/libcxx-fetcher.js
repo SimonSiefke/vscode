@@ -6,7 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import debug from 'debug';
-import * as extract from 'extract-zip';
+import extract from 'extract-zip';
 import { downloadArtifact } from '@electron/get';
 const root = path.dirname(path.dirname(__dirname));
 const d = debug('libcxx-fetcher');

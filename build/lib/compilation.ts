@@ -15,7 +15,7 @@ import fancyLog from 'fancy-log';
 import * as ansiColors from 'ansi-colors';
 import * as os from 'os';
 import ts = require('typescript');
-import * as File from 'vinyl';
+import File from 'vinyl';
 import * as task from './task.js';
 import { Mangler } from './mangle/index.js';
 import { RawSourceMap } from 'source-map';

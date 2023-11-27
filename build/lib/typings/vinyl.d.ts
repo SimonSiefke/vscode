@@ -130,6 +130,6 @@ declare module "vinyl" {
 	 */
 	namespace File { }
 
-	export = File;
+	export default File;
 
 }
