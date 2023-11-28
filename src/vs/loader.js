@@ -18,7 +18,7 @@
  *---------------------------------------------------------------------------------------------
  *---------------------------------------------------------------------------------------------
  *--------------------------------------------------------------------------------------------*/
-const _amdLoaderGlobal = this;
+const _amdLoaderGlobal = this || globalThis;
 const _commonjsGlobal = typeof global === 'object' ? global : {};
 var AMDLoader;
 (function (AMDLoader) {
@@ -551,18 +551,22 @@ var AMDLoader;
 		load(moduleManager, scriptSrc, callback, errorback) {
 			if (!this._scriptLoader) {
 				if (this._env.isWebWorker) {
+					console.log('is webworker')
 					this._scriptLoader = new WorkerScriptLoader();
 				}
 				else if (this._env.isElectronRenderer) {
+					console.log('is electron')
 					const { preferScriptTags } = moduleManager.getConfig().getOptionsLiteral();
-					if (preferScriptTags) {
+					if (preferScriptTags || Math) {
 						this._scriptLoader = new BrowserScriptLoader();
 					}
 					else {
+						console.log('is node el')
 						this._scriptLoader = new NodeScriptLoader(this._env);
 					}
 				}
 				else if (this._env.isNode) {
+					console.log('is node')
 					this._scriptLoader = new NodeScriptLoader(this._env);
 				}
 				else {
@@ -616,7 +620,8 @@ var AMDLoader;
 			script.addEventListener('load', loadEventListener);
 			script.addEventListener('error', errorEventListener);
 		}
-		load(moduleManager, scriptSrc, callback, errorback) {
+		async load(moduleManager, scriptSrc, callback, errorback) {
+			console.log('loade', scriptSrc)
 			if (/^node\|/.test(scriptSrc)) {
 				let opts = moduleManager.getConfig().getOptionsLiteral();
 				let nodeRequire = ensureRecordedNodeRequire(moduleManager.getRecorder(), (opts.nodeRequire || AMDLoader.global.nodeRequire));
@@ -631,8 +636,23 @@ var AMDLoader;
 				}
 				moduleManager.enqueueDefineAnonymousModule([], () => moduleExports);
 				callback();
-			}
-			else {
+			} else {
+				if (await cachedCanUseImport()) {
+					try {
+						// const { trustedTypesPolicy } = moduleManager.getConfig().getOptionsLiteral();
+						// if (trustedTypesPolicy) {
+						// 	scriptSrc = trustedTypesPolicy.createScriptURL(scriptSrc);
+						// }
+						console.log('native import', scriptSrc)
+						await import(scriptSrc)
+						callback()
+					} catch (error) {
+						console.log('error', scriptSrc, error)
+						errorback(error)
+					}
+					return
+				}
+				console.log('cannot use import')
 				let script = document.createElement('script');
 				script.setAttribute('async', 'async');
 				script.setAttribute('type', 'text/javascript');
@@ -665,6 +685,27 @@ var AMDLoader;
 			return false;
 		}
 	}
+
+	async function canUseImport() {
+		try {
+			const testUrl = 'data:text/javascript,'
+			await import(testUrl);
+			return true;
+		} catch {
+			console.log('canont use import')
+			return false;
+		}
+	}
+
+	let _cachedCanUseImport = undefined;
+
+	async function cachedCanUseImport() {
+		if (!_cachedCanUseImport) {
+			_cachedCanUseImport = canUseImport()
+		}
+		return _cachedCanUseImport
+	}
+
 	class WorkerScriptLoader {
 		constructor() {
 			this._cachedCanUseEval = null;
@@ -675,7 +716,7 @@ var AMDLoader;
 			}
 			return this._cachedCanUseEval;
 		}
-		load(moduleManager, scriptSrc, callback, errorback) {
+		async load(moduleManager, scriptSrc, callback, errorback) {
 			if (/^node\|/.test(scriptSrc)) {
 				const opts = moduleManager.getConfig().getOptionsLiteral();
 				const nodeRequire = ensureRecordedNodeRequire(moduleManager.getRecorder(), (opts.nodeRequire || AMDLoader.global.nodeRequire));
@@ -690,11 +731,25 @@ var AMDLoader;
 				}
 				moduleManager.enqueueDefineAnonymousModule([], function () { return moduleExports; });
 				callback();
-			}
-			else {
+			} else if (await cachedCanUseImport()) {
+				try {
+					const { trustedTypesPolicy } = moduleManager.getConfig().getOptionsLiteral();
+					// if (trustedTypesPolicy) {
+					// 	scriptSrc = trustedTypesPolicy.createScriptURL(scriptSrc);
+					// }
+					// const absolutePath = new URL(scriptSrc, import.meta.url).toString()
+					console.log('worker import', scriptSrc)
+					await import(scriptSrc)
+					callback()
+				} catch (error) {
+					console.log('failed', scriptSrc)
+					errorback(error)
+				}
+			} else {
 				const { trustedTypesPolicy } = moduleManager.getConfig().getOptionsLiteral();
 				const isCrossOrigin = (/^((http:)|(https:)|(file:))/.test(scriptSrc) && scriptSrc.substring(0, self.origin.length) !== self.origin);
 				if (!isCrossOrigin && this._canUseEval(moduleManager)) {
+					console.log('eval', self.name, scriptSrc)
 					// use `fetch` if possible because `importScripts`
 					// is synchronous and can lead to deadlocks on Safari
 					fetch(scriptSrc).then((response) => {
@@ -717,6 +772,7 @@ var AMDLoader;
 					if (trustedTypesPolicy) {
 						scriptSrc = trustedTypesPolicy.createScriptURL(scriptSrc);
 					}
+					console.log('importscript', scriptSrc)
 					importScripts(scriptSrc);
 					callback();
 				}

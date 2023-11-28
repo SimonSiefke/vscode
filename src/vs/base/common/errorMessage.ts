@@ -85,6 +85,8 @@ export function toErrorMessage(error: any = null, verbose: boolean = false): str
 		return error.message;
 	}
 
+	console.log(error)
+
 	return nls.localize('error.defaultMessage', "An unknown error occurred. Please consult the log for more details.");
 }
 

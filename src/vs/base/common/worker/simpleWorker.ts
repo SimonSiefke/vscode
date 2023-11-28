@@ -507,7 +507,7 @@ export class SimpleWorkerServer<H extends object> {
 		const hostProxy = createProxyObject<H>(hostMethods, proxyMethodRequest, proxyListen);
 
 		if (this._requestHandlerFactory) {
-			// static request handler
+			// static request handlerP
 			this._requestHandler = this._requestHandlerFactory(hostProxy);
 			return Promise.resolve(getAllMethodNames(this._requestHandler));
 		}

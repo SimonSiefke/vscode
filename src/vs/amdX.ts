@@ -134,6 +134,7 @@ class AMDModuleImporter {
 				if (this._amdPolicy) {
 					scriptSrc = this._amdPolicy.createScriptURL(scriptSrc) as any as string;
 				}
+				console.log('importscript amdx')
 				importScripts(scriptSrc);
 				resolve(this._defineCalls.pop());
 			} catch (err) {

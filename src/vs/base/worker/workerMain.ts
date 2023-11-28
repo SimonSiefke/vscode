@@ -64,12 +64,26 @@
 		}
 	}
 
-	function loadAMDLoader() {
+	function canUseImport() {
+		try {
+			importScripts("data:text/javascript,");
+			return false;
+		} catch { }
+		return true;
+	}
+
+	async function loadAMDLoader() {
+		if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
+			return
+		}
+		const loaderSrc: string | TrustedScriptURL = new URL(monacoBaseUrl + 'vs/loader.js', import.meta.url).toString();
+
+		if (canUseImport()) {
+			console.log('nativ import', loaderSrc)
+			await import(loaderSrc)
+			return
+		}
 		return new Promise<void>((resolve, reject) => {
-			if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
-				return resolve();
-			}
-			const loaderSrc: string | TrustedScriptURL = monacoBaseUrl + 'vs/loader.js';
 
 			const isCrossOrigin = (/^((http:)|(https:)|(file:))/.test(loaderSrc) && loaderSrc.substring(0, globalThis.origin.length) !== globalThis.origin);
 			if (!isCrossOrigin && canUseEval()) {
@@ -81,6 +95,7 @@
 					}
 					return response.text();
 				}).then((text) => {
+					console.log('eval', text)
 					text = `${text}\n//# sourceURL=${loaderSrc}`;
 					const func = (
 						trustedTypesPolicy
@@ -93,6 +108,7 @@
 				return;
 			}
 
+			console.log('importscript', 'workermain', loaderSrc)
 			if (trustedTypesPolicy) {
 				importScripts(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
 			} else {
@@ -103,6 +119,7 @@
 	}
 
 	function configureAMDLoader() {
+		console.log({ monacoBaseUrl })
 		require.config({
 			baseUrl: monacoBaseUrl,
 			catchError: true,
@@ -111,22 +128,21 @@
 		});
 	}
 
-	function loadCode(moduleId: string) {
-		loadAMDLoader().then(() => {
-			configureAMDLoader();
-			require([moduleId], function (ws) {
-				setTimeout(function () {
-					const messageHandler = ws.create((msg: any, transfer?: Transferable[]) => {
-						(<any>globalThis).postMessage(msg, transfer);
-					}, null);
+	async function loadCode(moduleId: string) {
+		await loadAMDLoader()
+		configureAMDLoader();
+		require([moduleId], function (ws) {
+			setTimeout(function () {
+				const messageHandler = ws.create((msg: any, transfer?: Transferable[]) => {
+					(<any>globalThis).postMessage(msg, transfer);
+				}, null);
 
-					globalThis.onmessage = (e: MessageEvent) => messageHandler.onmessage(e.data, e.ports);
-					while (beforeReadyMessages.length > 0) {
-						const e = beforeReadyMessages.shift()!;
-						messageHandler.onmessage(e.data, e.ports);
-					}
-				}, 0);
-			});
+				globalThis.onmessage = (e: MessageEvent) => messageHandler.onmessage(e.data, e.ports);
+				while (beforeReadyMessages.length > 0) {
+					const e = beforeReadyMessages.shift()!;
+					messageHandler.onmessage(e.data, e.ports);
+				}
+			}, 0);
 		});
 	}
 

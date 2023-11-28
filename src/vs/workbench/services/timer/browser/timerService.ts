@@ -552,7 +552,7 @@ export abstract class AbstractTimerService implements ITimerService {
 				const blob = new Blob([`(${jsSrc})();`], { type: 'application/javascript' });
 				const blobUrl = URL.createObjectURL(blob);
 
-				const worker = createBlobWorker(blobUrl, { name: 'perfBaseline' });
+				const worker = createBlobWorker(blobUrl, { name: 'perfBaseline', });
 				return new Promise<number>(resolve => {
 					worker.onmessage = e => resolve(e.data.value);
 
