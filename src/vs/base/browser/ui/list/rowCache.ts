@@ -123,12 +123,14 @@ export class RowCache<T> implements IDisposable {
 			for (const cachedRow of cachedRows) {
 				const renderer = this.getRenderer(templateId);
 				renderer.disposeTemplate(cachedRow.templateData);
+				// renderer.disposeElement(element, index, templateData, height)
 				cachedRow.templateData = null;
 			}
 		});
 
 		this.cache.clear();
 		this.transactionNodesPendingRemoval.clear();
+		this.renderers = new Map()
 	}
 
 	private getRenderer(templateId: string): IListRenderer<T, any> {
