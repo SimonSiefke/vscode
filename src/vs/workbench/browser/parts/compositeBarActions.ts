@@ -159,7 +159,7 @@ export class CompoisteBarActionViewItem extends BaseActionViewItem {
 
 	private readonly hoverDisposables = this._register(new DisposableStore());
 	private lastHover: IHoverWidget | undefined;
-	private readonly showHoverScheduler = new RunOnceScheduler(() => this.showHover(), 0);
+	private readonly showHoverScheduler = this._register(new RunOnceScheduler(() => this.showHover(), 0));
 
 	constructor(
 		action: CompositeBarAction,

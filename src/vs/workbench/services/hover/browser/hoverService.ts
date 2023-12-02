@@ -89,7 +89,7 @@ export class HoverService implements IHoverService {
 			new HoverContextViewDelegate(hover, focus),
 			options.container
 		);
-		hover.onRequestLayout(() => provider.layout());
+		hoverDisposables.add(hover.onRequestLayout(() => provider.layout()));
 		if (options.persistence?.sticky) {
 			hoverDisposables.add(addDisposableListener(getWindow(options.container).document, EventType.MOUSE_DOWN, e => {
 				if (!isAncestor(e.target as HTMLElement, hover.domNode)) {

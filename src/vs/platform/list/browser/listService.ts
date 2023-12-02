@@ -295,6 +295,7 @@ export class WorkbenchList<T> extends List<T> {
 		this.disposables.add(workbenchListOptionsDisposable);
 
 		this.contextKeyService = createScopedContextKeyService(contextKeyService, this);
+		this.disposables.add(this.contextKeyService);
 
 		this.disposables.add(createScrollObserver(this.contextKeyService, this));
 
