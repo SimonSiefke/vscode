@@ -117,9 +117,9 @@ class CloseButton extends Disposable {
 
 		const closeButton = dom.append(innerDiv, $('.button' + ThemeIcon.asCSSSelector(registerIcon('color-picker-close', Codicon.close, localize('closeIcon', 'Icon to close the color picker')))));
 		closeButton.classList.add('close-icon');
-		this._button.onclick = () => {
-			this._onClicked.fire();
-		};
+		this._register(dom.addDisposableListener(this._button, 'click', () => {
+			this._onClicked.fire()
+		}))
 	}
 }
 
@@ -264,14 +264,14 @@ class SaturationBox extends Disposable {
 
 		this.monitor.startMonitoring(e.target, e.pointerId, e.buttons, event => this.onDidChangePosition(event.pageX - origin.left, event.pageY - origin.top), () => null);
 
-		const pointerUpListener = dom.addDisposableListener(e.target.ownerDocument, dom.EventType.POINTER_UP, () => {
+		const pointerUpListener = this._register(dom.addDisposableListener(e.target.ownerDocument, dom.EventType.POINTER_UP, () => {
 			this._onColorFlushed.fire();
 			pointerUpListener.dispose();
 			if (this.monitor) {
 				this.monitor.stopMonitoring(true);
 				this.monitor = null;
 			}
-		}, true);
+		}, true));
 	}
 
 	private onDidChangePosition(left: number, top: number): void {
@@ -338,10 +338,10 @@ abstract class Strip extends Disposable {
 	protected slider: HTMLElement;
 	private height!: number;
 
-	private readonly _onDidChange = new Emitter<number>();
+	private readonly _onDidChange = this._register(new Emitter<number>());
 	readonly onDidChange: Event<number> = this._onDidChange.event;
 
-	private readonly _onColorFlushed = new Emitter<void>();
+	private readonly _onColorFlushed = this._register(new Emitter<void>());
 	readonly onColorFlushed: Event<void> = this._onColorFlushed.event;
 
 	constructor(container: HTMLElement, protected model: ColorPickerModel, showingStandaloneColorPicker: boolean = false) {
@@ -455,9 +455,9 @@ export class InsertButton extends Disposable {
 		this._button = dom.append(container, document.createElement('button'));
 		this._button.classList.add('insert-button');
 		this._button.textContent = 'Insert';
-		this._button.onclick = e => {
-			this._onClicked.fire();
-		};
+		this._register(dom.addDisposableListener(this._button, 'click', () => {
+			this._onClicked.fire()
+		}))
 	}
 
 	public get button(): HTMLElement {

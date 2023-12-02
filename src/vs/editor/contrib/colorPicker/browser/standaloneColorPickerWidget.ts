@@ -241,19 +241,20 @@ export class StandaloneColorPickerWidget extends Disposable implements IContentW
 		const saturationBoxWidth = colorPickerBody.saturationBox.domNode.clientWidth;
 		const widthOfOriginalColorBox = colorPickerBody.domNode.clientWidth - saturationBoxWidth - CLOSE_BUTTON_WIDTH - PADDING;
 		const enterButton: InsertButton | null = colorPickerWidget.body.enterButton;
-		enterButton?.onClicked(() => {
-			this.updateEditor();
-			this.hide();
-		});
+
+		// enterButton?.onClicked(() => {
+		// 	this.updateEditor();
+		// 	this.hide();
+		// }, null, this._store);
 		const colorPickerHeader = colorPickerWidget.header;
 		const pickedColorNode = colorPickerHeader.pickedColorNode;
 		pickedColorNode.style.width = saturationBoxWidth + PADDING + 'px';
 		const originalColorNode = colorPickerHeader.originalColorNode;
 		originalColorNode.style.width = widthOfOriginalColorBox + 'px';
 		const closeButton = colorPickerWidget.header.closeButton;
-		closeButton?.onClicked(() => {
-			this.hide();
-		});
+		// closeButton?.onClicked(() => {
+		// 	this.hide();
+		// }, null, this._store);
 		// When found in the editor, highlight the selection in the editor
 		if (foundInEditor) {
 			if (enterButton) {
