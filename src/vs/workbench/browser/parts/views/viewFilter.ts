@@ -93,7 +93,7 @@ export class FilterWidget extends Widget {
 		@IKeybindingService private readonly keybindingService: IKeybindingService
 	) {
 		super();
-		this.delayedFilterUpdate = new Delayer<void>(400);
+		this.delayedFilterUpdate = this._register(new Delayer<void>(400));
 		this._register(toDisposable(() => this.delayedFilterUpdate.cancel()));
 
 		if (options.focusContextKey) {
