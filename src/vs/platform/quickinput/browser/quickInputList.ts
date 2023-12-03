@@ -393,6 +393,9 @@ class ListElementRenderer implements IListRenderer<IListElement, IListElementTem
 	disposeTemplate(data: IListElementTemplateData): void {
 		data.toDisposeElement = dispose(data.toDisposeElement);
 		data.toDisposeTemplate = dispose(data.toDisposeTemplate);
+		data.actionBar.dispose()
+		// @ts-ignore
+		data.keybinding = undefined
 	}
 }
 
