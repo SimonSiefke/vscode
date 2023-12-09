@@ -203,7 +203,7 @@ export class OpenEditorsView extends ViewPane {
 			new OpenEditorRenderer(this.listLabels, this.instantiationService, this.keybindingService, this.configurationService)
 		], {
 			identityProvider: { getId: (element: OpenEditor | IEditorGroup) => element instanceof OpenEditor ? element.getId() : element.id.toString() },
-			dnd: new OpenEditorsDragAndDrop(this.instantiationService, this.editorGroupService),
+			dnd: this._register(new OpenEditorsDragAndDrop(this.instantiationService, this.editorGroupService)),
 			overrideStyles: {
 				listBackground: this.getBackgroundColor()
 			},
@@ -252,21 +252,25 @@ export class OpenEditorsView extends ViewPane {
 		this.readonlyEditorFocusedContext = OpenEditorsReadonlyEditorContext.bindTo(this.contextKeyService);
 
 		this._register(this.list.onContextMenu(e => this.onListContextMenu(e)));
-		this.list.onDidChangeFocus(e => {
-			this.resourceContext.reset();
-			this.groupFocusedContext.reset();
-			this.dirtyEditorFocusedContext.reset();
-			this.readonlyEditorFocusedContext.reset();
-			const element = e.elements.length ? e.elements[0] : undefined;
-			if (element instanceof OpenEditor) {
-				const resource = element.getResource();
-				this.dirtyEditorFocusedContext.set(element.editor.isDirty() && !element.editor.isSaving());
-				this.readonlyEditorFocusedContext.set(!!element.editor.isReadonly());
-				this.resourceContext.set(resource ?? null);
-			} else if (!!element) {
-				this.groupFocusedContext.set(true);
-			}
-		});
+		this._register(
+
+			this.list.onDidChangeFocus(e => {
+				this.resourceContext.reset();
+				this.groupFocusedContext.reset();
+				this.dirtyEditorFocusedContext.reset();
+				this.readonlyEditorFocusedContext.reset();
+				const element = e.elements.length ? e.elements[0] : undefined;
+				if (element instanceof OpenEditor) {
+					const resource = element.getResource();
+					this.dirtyEditorFocusedContext.set(element.editor.isDirty() && !element.editor.isSaving());
+					this.readonlyEditorFocusedContext.set(!!element.editor.isReadonly());
+					this.resourceContext.set(resource ?? null);
+				} else if (!!element) {
+					this.groupFocusedContext.set(true);
+				}
+			})
+		)
+			;
 
 		// Open when selecting via keyboard
 		this._register(this.list.onMouseMiddleClick(e => {

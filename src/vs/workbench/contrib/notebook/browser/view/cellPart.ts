@@ -228,4 +228,8 @@ export class CellPartsCollection extends Disposable {
 			}
 		});
 	}
+
+	public override dispose(): void {
+
+	}
 }

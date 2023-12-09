@@ -36,7 +36,7 @@ export class InlineCompletionsController extends Disposable {
 		return editor.getContribution<InlineCompletionsController>(InlineCompletionsController.ID);
 	}
 
-	public readonly model = disposableObservableValue<InlineCompletionsModel | undefined>('inlineCompletionModel', undefined);
+	public readonly model = this._register(disposableObservableValue<InlineCompletionsModel | undefined>('inlineCompletionModel', undefined));
 	private readonly _textModelVersionId = observableValue<number, VersionIdChangeReason>(this, -1);
 	private readonly _cursorPosition = observableValue<Position>(this, new Position(1, 1));
 	private readonly _suggestWidgetAdaptor = this._register(new SuggestWidgetAdaptor(

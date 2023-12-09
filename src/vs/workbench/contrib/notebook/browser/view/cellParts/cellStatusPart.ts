@@ -259,7 +259,9 @@ export class CellEditorStatusBar extends CellContentPart {
 	override dispose() {
 		super.dispose();
 		dispose(this.leftItems);
+		this.leftItems = []
 		dispose(this.rightItems);
+		this.rightItems = []
 	}
 }
 

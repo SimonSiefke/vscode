@@ -299,6 +299,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			this._textModelRef.dispose();
 			this._textModelRef = undefined;
 		}
+
 	}
 
 	getText(): string {
@@ -668,6 +669,10 @@ export abstract class BaseCellViewModel extends Disposable {
 		}
 
 		this._textModelRef?.dispose();
+
+		// this._cellStatusBarItems.forEach(item=>item)
+		this._cellStatusBarItems.clear()
+		// this._editorViewStates?.viewState
 	}
 
 	toJSON(): object {

@@ -313,7 +313,7 @@ export class CodeCellRenderer extends AbstractCellRenderer implements IListRende
 		const cellParts = new CellPartsCollection(DOM.getWindow(rootContainer), [
 			focusIndicatorPart,
 			templateDisposables.add(scopedInstaService.createInstance(CellChatPart, this.notebookEditor, cellChatPart)),
-			templateDisposables.add(scopedInstaService.createInstance(CellEditorStatusBar, this.notebookEditor, container, editorPart, editor)),
+			// templateDisposables.add(scopedInstaService.createInstance(CellEditorStatusBar, this.notebookEditor, container, editorPart, editor)),
 			templateDisposables.add(scopedInstaService.createInstance(CellProgressBar, editorPart, cellInputCollapsedContainer)),
 			templateDisposables.add(scopedInstaService.createInstance(RunToolbar, this.notebookEditor, contextKeyService, container, runButtonContainer)),
 			templateDisposables.add(new CellDecorations(rootContainer, decorationContainer)),
@@ -376,10 +376,14 @@ export class CodeCellRenderer extends AbstractCellRenderer implements IListRende
 
 	disposeTemplate(templateData: CodeCellRenderTemplate): void {
 		templateData.templateDisposables.clear();
+		templateData.cellParts.dispose()
+		templateData.editor.dispose()
 	}
 
 	disposeElement(element: ICellViewModel, index: number, templateData: CodeCellRenderTemplate, height: number | undefined): void {
 		templateData.elementDisposables.clear();
+		templateData.editor.dispose()
+		console.log('dispose size', this.renderedEditors.size)
 		this.renderedEditors.delete(element);
 	}
 }

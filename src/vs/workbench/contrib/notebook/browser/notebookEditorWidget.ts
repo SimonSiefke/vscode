@@ -323,6 +323,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		this.scopedContextKeyService = contextKeyService.createScoped(this._overlayContainer);
 		this.instantiationService = instantiationService.createChild(new ServiceCollection([IContextKeyService, this.scopedContextKeyService]));
 
+		// this.scopedContextKeyService.
 		this._register(_notebookService.onDidChangeOutputRenderers(() => {
 			this._updateOutputRenderers();
 		}));

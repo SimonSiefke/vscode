@@ -278,6 +278,7 @@ export class SuggestDetailsOverlay implements IOverlayWidget {
 	) {
 
 		this._resizable = new ResizableHTMLElement();
+		this._disposables.add(this._resizable);
 		this._resizable.domNode.classList.add('suggest-details-container');
 		this._resizable.domNode.appendChild(widget.domNode);
 		this._resizable.enableSashes(false, true, true, false);

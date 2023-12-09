@@ -1873,6 +1873,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		const removeDomNode = this._modelData.hasRealView ? this._modelData.view.domNode.domNode : null;
 
 		this._modelData.dispose();
+		this._modelData.view.dispose()
+		this._modelData.viewModel.dispose()
 		this._modelData = null;
 
 		this._domElement.removeAttribute('data-mode-id');

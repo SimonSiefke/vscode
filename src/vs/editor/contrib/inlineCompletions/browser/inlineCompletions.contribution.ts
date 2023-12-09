@@ -10,15 +10,15 @@ import { InlineCompletionsHoverParticipant } from 'vs/editor/contrib/inlineCompl
 import { InlineCompletionsController } from 'vs/editor/contrib/inlineCompletions/browser/inlineCompletionsController';
 import { registerAction2 } from 'vs/platform/actions/common/actions';
 
-registerEditorContribution(InlineCompletionsController.ID, InlineCompletionsController, EditorContributionInstantiation.Eventually);
+// registerEditorContribution(InlineCompletionsController.ID, InlineCompletionsController, EditorContributionInstantiation.Eventually);
 
-registerEditorAction(TriggerInlineSuggestionAction);
-registerEditorAction(ShowNextInlineSuggestionAction);
-registerEditorAction(ShowPreviousInlineSuggestionAction);
-registerEditorAction(AcceptNextWordOfInlineCompletion);
-registerEditorAction(AcceptNextLineOfInlineCompletion);
-registerEditorAction(AcceptInlineCompletion);
-registerEditorAction(HideInlineCompletion);
-registerAction2(ToggleAlwaysShowInlineSuggestionToolbar);
+// registerEditorAction(TriggerInlineSuggestionAction);
+// registerEditorAction(ShowNextInlineSuggestionAction);
+// registerEditorAction(ShowPreviousInlineSuggestionAction);
+// registerEditorAction(AcceptNextWordOfInlineCompletion);
+// registerEditorAction(AcceptNextLineOfInlineCompletion);
+// registerEditorAction(AcceptInlineCompletion);
+// registerEditorAction(HideInlineCompletion);
+// registerAction2(ToggleAlwaysShowInlineSuggestionToolbar);
 
-HoverParticipantRegistry.register(InlineCompletionsHoverParticipant);
+// HoverParticipantRegistry.register(InlineCompletionsHoverParticipant);

@@ -87,6 +87,8 @@ export class BetweenCellToolbar extends CellOverlayPart {
 		this.updateInternalLayoutNow(element);
 	}
 
+
+
 	override updateInternalLayoutNow(element: ICellViewModel) {
 		const bottomToolbarOffset = element.layoutInfo.bottomToolbarOffset;
 		this._bottomCellToolbarContainer.style.transform = `translateY(${bottomToolbarOffset}px)`;

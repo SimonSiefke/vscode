@@ -308,6 +308,19 @@ export class SuggestWidget implements IDisposable {
 		this._showTimeout.dispose();
 		this._contentWidget.dispose();
 		this.element.dispose();
+		this._pendingLayout.dispose()
+		this._pendingShowDetails.dispose()
+		this._currentSuggestionDetails?.cancel()
+		this._focusedItem = undefined
+		this._completionModel = undefined
+		this.element.dispose()
+		this._list.dispose()
+		this._showTimeout.dispose()
+		this._onDidSelect.dispose()
+		this._onDidFocus.dispose()
+		this._onDidHide.dispose()
+		this._onDidShow.dispose()
+		this._onDetailsKeydown.dispose()
 	}
 
 	private _onEditorMouseDown(mouseEvent: IEditorMouseEvent): void {
