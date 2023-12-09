@@ -273,7 +273,7 @@ export interface IListView<T> extends ISpliceable<T>, IDisposable {
  * @remarks It is a low-level widget, not meant to be used directly. Refer to the
  * List widget instead.
  */
-export class ListView<T> implements IListView<T> {
+export class ListView<T> extends Disposable implements IListView<T> {
 
 	private static InstanceCount = 0;
 	readonly domId = `list_id_${++ListView.InstanceCount}`;
@@ -293,7 +293,7 @@ export class ListView<T> implements IListView<T> {
 	private scrollableElement: SmoothScrollableElement;
 	private _scrollHeight: number = 0;
 	private scrollableElementUpdateDisposable: IDisposable | null = null;
-	private scrollableElementWidthDelayer = new Delayer<void>(50);
+	private scrollableElementWidthDelayer = this._register(new Delayer<void>(50));
 	private splicing = false;
 	private dragOverAnimationDisposable: IDisposable | undefined;
 	private dragOverAnimationStopDisposable: IDisposable = Disposable.None;
@@ -312,12 +312,11 @@ export class ListView<T> implements IListView<T> {
 	private currentDragFeedbackDisposable: IDisposable = Disposable.None;
 	private onDragLeaveTimeout: IDisposable = Disposable.None;
 
-	private readonly disposables: DisposableStore = new DisposableStore();
 
-	private readonly _onDidChangeContentHeight = new Emitter<number>();
-	private readonly _onDidChangeContentWidth = new Emitter<number>();
-	readonly onDidChangeContentHeight: Event<number> = Event.latch(this._onDidChangeContentHeight.event, undefined, this.disposables);
-	readonly onDidChangeContentWidth: Event<number> = Event.latch(this._onDidChangeContentWidth.event, undefined, this.disposables);
+	private readonly _onDidChangeContentHeight = this._register(new Emitter<number>());
+	private readonly _onDidChangeContentWidth = this._register(new Emitter<number>());
+	readonly onDidChangeContentHeight: Event<number> = Event.latch(this._onDidChangeContentHeight.event, undefined, this._store);
+	readonly onDidChangeContentWidth: Event<number> = Event.latch(this._onDidChangeContentWidth.event, undefined, this._store);
 	get contentHeight(): number { return this.rangeMap.size; }
 	get contentWidth(): number { return this.scrollWidth ?? 0; }
 
@@ -361,6 +360,7 @@ export class ListView<T> implements IListView<T> {
 		renderers: IListRenderer<any /* TODO@joao */, any>[],
 		options: IListViewOptions<T> = DefaultOptions as IListViewOptions<T>
 	) {
+		super()
 		if (options.horizontalScrolling && options.supportDynamicHeights) {
 			throw new Error('Horizontal scrolling and dynamic heights not supported simultaneously');
 		}
@@ -373,7 +373,7 @@ export class ListView<T> implements IListView<T> {
 			this.renderers.set(renderer.templateId, renderer);
 		}
 
-		this.cache = this.disposables.add(new RowCache(this.renderers));
+		this.cache = this._register(new RowCache(this.renderers));
 
 		this.lastRenderTop = 0;
 		this.lastRenderHeight = 0;
@@ -403,14 +403,14 @@ export class ListView<T> implements IListView<T> {
 			this.rowsContainer.style.contain = 'strict';
 		}
 
-		this.disposables.add(Gesture.addTarget(this.rowsContainer));
+		this._register(Gesture.addTarget(this.rowsContainer));
 
-		this.scrollable = this.disposables.add(new Scrollable({
+		this.scrollable = this._register(new Scrollable({
 			forceIntegerValues: true,
 			smoothScrollDuration: (options.smoothScrolling ?? false) ? 125 : 0,
 			scheduleAtNextAnimationFrame: cb => scheduleAtNextAnimationFrame(getWindow(this.domNode), cb)
 		}));
-		this.scrollableElement = this.disposables.add(new SmoothScrollableElement(this.rowsContainer, {
+		this.scrollableElement = this._register(new SmoothScrollableElement(this.rowsContainer, {
 			alwaysConsumeMouseWheel: options.alwaysConsumeMouseWheel ?? DefaultOptions.alwaysConsumeMouseWheel,
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: options.verticalScrollMode ?? DefaultOptions.verticalScrollMode,
@@ -423,22 +423,22 @@ export class ListView<T> implements IListView<T> {
 		this.domNode.appendChild(this.scrollableElement.getDomNode());
 		container.appendChild(this.domNode);
 
-		this.scrollableElement.onScroll(this.onScroll, this, this.disposables);
-		this.disposables.add(addDisposableListener(this.rowsContainer, TouchEventType.Change, e => this.onTouchChange(e as GestureEvent)));
+		this.scrollableElement.onScroll(this.onScroll, this, this._store);
+		this._register(addDisposableListener(this.rowsContainer, TouchEventType.Change, e => this.onTouchChange(e as GestureEvent)));
 
 		// Prevent the monaco-scrollable-element from scrolling
 		// https://github.com/microsoft/vscode/issues/44181
-		this.disposables.add(addDisposableListener(this.scrollableElement.getDomNode(), 'scroll', e => (e.target as HTMLElement).scrollTop = 0));
+		this._register(addDisposableListener(this.scrollableElement.getDomNode(), 'scroll', e => (e.target as HTMLElement).scrollTop = 0));
 
-		this.disposables.add(addDisposableListener(this.domNode, 'dragover', e => this.onDragOver(this.toDragEvent(e))));
-		this.disposables.add(addDisposableListener(this.domNode, 'drop', e => this.onDrop(this.toDragEvent(e))));
-		this.disposables.add(addDisposableListener(this.domNode, 'dragleave', e => this.onDragLeave(this.toDragEvent(e))));
-		this.disposables.add(addDisposableListener(this.domNode, 'dragend', e => this.onDragEnd(e)));
+		this._register(addDisposableListener(this.domNode, 'dragover', e => this.onDragOver(this.toDragEvent(e))));
+		this._register(addDisposableListener(this.domNode, 'drop', e => this.onDrop(this.toDragEvent(e))));
+		this._register(addDisposableListener(this.domNode, 'dragleave', e => this.onDragLeave(this.toDragEvent(e))));
+		this._register(addDisposableListener(this.domNode, 'dragend', e => this.onDragEnd(e)));
 
 		this.setRowLineHeight = options.setRowLineHeight ?? DefaultOptions.setRowLineHeight;
 		this.setRowHeight = options.setRowHeight ?? DefaultOptions.setRowHeight;
 		this.supportDynamicHeights = options.supportDynamicHeights ?? DefaultOptions.supportDynamicHeights;
-		this.dnd = options.dnd ?? this.disposables.add(DefaultOptions.dnd);
+		this.dnd = options.dnd ?? this._register(DefaultOptions.dnd);
 
 		this.layout(options.initialSize?.height, options.initialSize?.width);
 	}
@@ -1046,17 +1046,17 @@ export class ListView<T> implements IListView<T> {
 
 	// Events
 
-	@memoize get onMouseClick(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'click')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseDblClick(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'dblclick')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseMiddleClick(): Event<IListMouseEvent<T>> { return Event.filter(Event.map(this.disposables.add(new DomEmitter(this.domNode, 'auxclick')).event, e => this.toMouseEvent(e as MouseEvent), this.disposables), e => e.browserEvent.button === 1, this.disposables); }
-	@memoize get onMouseUp(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'mouseup')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseDown(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'mousedown')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseOver(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'mouseover')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseMove(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'mousemove')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onMouseOut(): Event<IListMouseEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'mouseout')).event, e => this.toMouseEvent(e), this.disposables); }
-	@memoize get onContextMenu(): Event<IListMouseEvent<T> | IListGestureEvent<T>> { return Event.any<IListMouseEvent<any> | IListGestureEvent<any>>(Event.map(this.disposables.add(new DomEmitter(this.domNode, 'contextmenu')).event, e => this.toMouseEvent(e), this.disposables), Event.map(this.disposables.add(new DomEmitter(this.domNode, TouchEventType.Contextmenu)).event as Event<GestureEvent>, e => this.toGestureEvent(e), this.disposables)); }
-	@memoize get onTouchStart(): Event<IListTouchEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.domNode, 'touchstart')).event, e => this.toTouchEvent(e), this.disposables); }
-	@memoize get onTap(): Event<IListGestureEvent<T>> { return Event.map(this.disposables.add(new DomEmitter(this.rowsContainer, TouchEventType.Tap)).event, e => this.toGestureEvent(e as GestureEvent), this.disposables); }
+	@memoize get onMouseClick(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'click')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseDblClick(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'dblclick')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseMiddleClick(): Event<IListMouseEvent<T>> { return Event.filter(Event.map(this._register(new DomEmitter(this.domNode, 'auxclick')).event, e => this.toMouseEvent(e as MouseEvent), this._store), e => e.browserEvent.button === 1, this._store); }
+	@memoize get onMouseUp(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'mouseup')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseDown(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'mousedown')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseOver(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'mouseover')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseMove(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'mousemove')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onMouseOut(): Event<IListMouseEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'mouseout')).event, e => this.toMouseEvent(e), this._store); }
+	@memoize get onContextMenu(): Event<IListMouseEvent<T> | IListGestureEvent<T>> { return Event.any<IListMouseEvent<any> | IListGestureEvent<any>>(Event.map(this._register(new DomEmitter(this.domNode, 'contextmenu')).event, e => this.toMouseEvent(e), this._store), Event.map(this._register(new DomEmitter(this.domNode, TouchEventType.Contextmenu)).event as Event<GestureEvent>, e => this.toGestureEvent(e), this._store)); }
+	@memoize get onTouchStart(): Event<IListTouchEvent<T>> { return Event.map(this._register(new DomEmitter(this.domNode, 'touchstart')).event, e => this.toTouchEvent(e), this._store); }
+	@memoize get onTap(): Event<IListGestureEvent<T>> { return Event.map(this._register(new DomEmitter(this.rowsContainer, TouchEventType.Tap)).event, e => this.toGestureEvent(e as GestureEvent), this._store); }
 
 	private toMouseEvent(browserEvent: MouseEvent): IListMouseEvent<T> {
 		const index = this.getItemIndexFromEventTarget(browserEvent.target || null);
@@ -1248,7 +1248,7 @@ export class ListView<T> implements IListView<T> {
 
 	private onDragLeave(event: IListDragEvent<T>): void {
 		this.onDragLeaveTimeout.dispose();
-		this.onDragLeaveTimeout = disposableTimeout(() => this.clearDragOverFeedback(), 100, this.disposables);
+		this.onDragLeaveTimeout = disposableTimeout(() => this.clearDragOverFeedback(), 100, this._store);
 		if (this.currentDragData) {
 			this.dnd.onDragLeave?.(this.currentDragData, event.element, event.index, event.browserEvent);
 		}
@@ -1306,7 +1306,7 @@ export class ListView<T> implements IListView<T> {
 				this.dragOverAnimationDisposable.dispose();
 				this.dragOverAnimationDisposable = undefined;
 			}
-		}, 1000, this.disposables);
+		}, 1000, this._store);
 
 		this.dragOverMouseY = event.pageY;
 	}
@@ -1531,7 +1531,7 @@ export class ListView<T> implements IListView<T> {
 
 	// Dispose
 
-	dispose() {
+	override	dispose() {
 		for (const item of this.items) {
 			item.dragStartDisposable.dispose();
 			item.checkedDisposable.dispose();
@@ -1552,6 +1552,6 @@ export class ListView<T> implements IListView<T> {
 		}
 
 		this.dragOverAnimationDisposable?.dispose();
-		this.disposables.dispose();
+		super.dispose()
 	}
 }

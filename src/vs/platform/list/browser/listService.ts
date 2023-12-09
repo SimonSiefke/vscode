@@ -296,6 +296,7 @@ export class WorkbenchList<T> extends List<T> {
 		this.disposables.add(workbenchListOptionsDisposable);
 
 		this.contextKeyService = createScopedContextKeyService(contextKeyService, this);
+		this.disposables.add(this.contextKeyService);
 
 		this.disposables.add(createScrollObserver(this.contextKeyService, this));
 
@@ -429,6 +430,7 @@ export class WorkbenchPagedList<T> extends PagedList<T> {
 		this.disposables.add(workbenchListOptionsDisposable);
 
 		this.contextKeyService = createScopedContextKeyService(contextKeyService, this);
+		this.disposables.add(this.contextKeyService);
 
 		this.disposables.add(createScrollObserver(this.contextKeyService, this.widget));
 
@@ -1210,6 +1212,7 @@ class WorkbenchTreeInternals<TInput, T, TFilterData> {
 		@IConfigurationService configurationService: IConfigurationService
 	) {
 		this.contextKeyService = createScopedContextKeyService(contextKeyService, tree);
+		this.disposables.push(this.contextKeyService)
 
 		this.disposables.push(createScrollObserver(this.contextKeyService, tree));
 

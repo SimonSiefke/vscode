@@ -409,9 +409,10 @@ export class CustomMenubarControl extends MenubarControl {
 		this._onFocusStateChange = this._register(new Emitter<boolean>());
 
 		this.actionRunner = this._register(new ActionRunner());
-		this.actionRunner.onDidRun(e => {
+		this._register(this.actionRunner.onDidRun(e => {
 			this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: e.action.id, from: 'menu' });
-		});
+		})
+		)
 
 		this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
 			this.recentlyOpened = recentlyOpened;
