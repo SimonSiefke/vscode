@@ -137,6 +137,7 @@ export class KeybindingsEditor extends EditorPane implements IKeybindingsEditorP
 
 	override create(parent: HTMLElement): void {
 		super.create(parent);
+		console.log('create keybindings editor')
 		this._register(registerNavigableContainer({
 			focusNotifiers: [this],
 			focusNextWidget: () => {
@@ -864,6 +865,7 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 		} else {
 			actions.push(this.createAddAction(keybindingItemEntry));
 		}
+		console.log('action bar length', templateData.actionBar.length())
 		templateData.actionBar.push(actions, { icon: true });
 	}
 
