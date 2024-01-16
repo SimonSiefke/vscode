@@ -119,18 +119,18 @@ export class KeybindingsEditor extends EditorPane implements IKeybindingsEditorP
 		@IConfigurationService private readonly configurationService: IConfigurationService
 	) {
 		super(KeybindingsEditor.ID, telemetryService, themeService, storageService);
-		this.delayedFiltering = new Delayer<void>(300);
+		this.delayedFiltering = this._register(new Delayer<void>(300));
 		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get())));
 
 		this.keybindingsEditorContextKey = CONTEXT_KEYBINDINGS_EDITOR.bindTo(this.contextKeyService);
 		this.searchFocusContextKey = CONTEXT_KEYBINDINGS_SEARCH_FOCUS.bindTo(this.contextKeyService);
 		this.keybindingFocusContextKey = CONTEXT_KEYBINDING_FOCUS.bindTo(this.contextKeyService);
-		this.searchHistoryDelayer = new Delayer<void>(500);
+		this.searchHistoryDelayer = this._register(new Delayer<void>(500));
 
-		this.recordKeysAction = new Action(KEYBINDINGS_EDITOR_COMMAND_RECORD_SEARCH_KEYS, localize('recordKeysLabel', "Record Keys"), ThemeIcon.asClassName(keybindingsRecordKeysIcon));
+		this.recordKeysAction = this._register(new Action(KEYBINDINGS_EDITOR_COMMAND_RECORD_SEARCH_KEYS, localize('recordKeysLabel', "Record Keys"), ThemeIcon.asClassName(keybindingsRecordKeysIcon)));
 		this.recordKeysAction.checked = false;
 
-		this.sortByPrecedenceAction = new Action(KEYBINDINGS_EDITOR_COMMAND_SORTBY_PRECEDENCE, localize('sortByPrecedeneLabel', "Sort by Precedence (Highest first)"), ThemeIcon.asClassName(keybindingsSortIcon));
+		this.sortByPrecedenceAction = this._register(new Action(KEYBINDINGS_EDITOR_COMMAND_SORTBY_PRECEDENCE, localize('sortByPrecedeneLabel', "Sort by Precedence (Highest first)"), ThemeIcon.asClassName(keybindingsSortIcon)));
 		this.sortByPrecedenceAction.checked = false;
 		this.overflowWidgetsDomNode = $('.keybindings-overflow-widgets-container.monaco-editor');
 	}
@@ -851,6 +851,7 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 
 	renderTemplate(container: HTMLElement): IActionsColumnTemplateData {
 		const element = DOM.append(container, $('.actions'));
+		console.log('render template')
 		const actionBar = new ActionBar(element, { animated: false });
 		return { actionBar };
 	}
@@ -889,6 +890,7 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 	}
 
 	disposeTemplate(templateData: IActionsColumnTemplateData): void {
+		console.log('dispose action bar')
 		templateData.actionBar.dispose();
 	}
 

@@ -198,6 +198,7 @@ export abstract class EditorPane extends Composite implements IEditorPane {
 	}
 
 	override dispose(): void {
+		console.log('dispose editor pane')
 		this._input = undefined;
 		this._options = undefined;
 
