@@ -392,6 +392,7 @@ export class EditorPanes extends Disposable {
 			return existingEditorPane;
 		}
 
+		console.log('create editor pane')
 		// Otherwise instantiate new
 		const editorPane = this._register(descriptor.instantiate(this.instantiationService));
 		this.editorPanes.push(editorPane);
@@ -401,12 +402,13 @@ export class EditorPanes extends Disposable {
 
 	private doSetActiveEditorPane(editorPane: EditorPane | null) {
 		this._activeEditorPane = editorPane;
-
+		console.log('set active', editorPane?.getId())
 		// Clear out previous active editor pane listeners
 		this.activeEditorPaneDisposables.clear();
 
 		// Listen to editor pane changes
 		if (editorPane) {
+			this.activeEditorPaneDisposables.add(editorPane)
 			this.activeEditorPaneDisposables.add(editorPane.onDidChangeSizeConstraints(e => this._onDidChangeSizeConstraints.fire(e)));
 			this.activeEditorPaneDisposables.add(editorPane.onDidFocus(() => this._onDidFocus.fire()));
 		}
