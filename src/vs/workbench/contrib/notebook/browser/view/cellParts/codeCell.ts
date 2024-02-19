@@ -202,8 +202,6 @@ export class CodeCell extends Disposable {
 		const cts = new CancellationTokenSource();
 		this._register({ dispose() { cts.dispose(true); } });
 		raceCancellation(this.viewCell.resolveTextModel(), cts.token).then(model => {
-			this.templateData.editor.getModel()?.dispose()
-			this.templateData.editor.setModel(null)
 			if (this._isDisposed) {
 				model?.dispose();
 				return;
@@ -569,10 +567,7 @@ export class CodeCell extends Disposable {
 			this.notebookEditor.focusContainer();
 		}
 
-		this.templateData.editor.getModel()?.dispose();
-		this.templateData.editor.setModel(null);
 		this.templateData.editor = null!; // Strict null override - nulling out in dispose
-
 		this.viewCell.detachTextEditor();
 		this._removeInputCollapsePreview();
 		this._outputContainerRenderer.dispose();
