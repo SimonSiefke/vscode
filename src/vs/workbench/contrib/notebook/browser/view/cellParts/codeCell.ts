@@ -215,7 +215,7 @@ export class CodeCell extends Disposable {
 
 
 			if (model && this.templateData.editor) {
-				this._registerModelListeners(model);
+				this._reigsterModelListeners(model);
 				this.templateData.editor.setModel(model);
 				model.updateOptions({
 					indentSize: this._cellEditorOptions.indentSize,
@@ -312,7 +312,7 @@ export class CodeCell extends Disposable {
 		}));
 	}
 
-	private _registerModelListeners(model: ITextModel) {
+	private _reigsterModelListeners(model: ITextModel) {
 		this._register(model.onDidChangeTokens(() => {
 			if (this.viewCell.isInputCollapsed && this._inputCollapseElement) {
 				// flush the collapsed input with the latest tokens
