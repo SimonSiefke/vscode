@@ -7,7 +7,7 @@ import { localize } from 'vs/nls';
 import { IAction, toAction } from 'vs/base/common/actions';
 import { Emitter } from 'vs/base/common/event';
 import Severity from 'vs/base/common/severity';
-import { Disposable, DisposableStore } from 'vs/base/common/lifecycle';
+import { Disposable, DisposableStore, toDisposable } from 'vs/base/common/lifecycle';
 import { EditorExtensions, EditorInputCapabilities, IEditorOpenContext, IVisibleEditorPane, createEditorOpenError, isEditorOpenError } from 'vs/workbench/common/editor';
 import { EditorInput } from 'vs/workbench/common/editor/editorInput';
 import { Dimension, show, hide, IDomNodePagePosition, isAncestor, getWindow, getActiveElement } from 'vs/base/browser/dom';
@@ -111,6 +111,9 @@ export class EditorPanes extends Disposable {
 
 	private registerListeners(): void {
 		this._register(this.workspaceTrustService.onDidChangeTrust(() => this.onDidChangeWorkspaceTrust()));
+		this._register(toDisposable(() => {
+			console.log('dispose panes')
+		}))
 	}
 
 	private onDidChangeWorkspaceTrust() {
@@ -386,12 +389,14 @@ export class EditorPanes extends Disposable {
 
 	private doInstantiateEditorPane(descriptor: IEditorPaneDescriptor): EditorPane {
 
+		console.log(this.editorPanes.map(x => x.getId()))
 		// Return early if already instantiated
 		const existingEditorPane = this.editorPanes.find(editorPane => descriptor.describes(editorPane));
 		if (existingEditorPane) {
 			return existingEditorPane;
 		}
 
+		console.log('create editor pane')
 		// Otherwise instantiate new
 		const editorPane = this._register(descriptor.instantiate(this.instantiationService));
 		this.editorPanes.push(editorPane);
@@ -401,12 +406,13 @@ export class EditorPanes extends Disposable {
 
 	private doSetActiveEditorPane(editorPane: EditorPane | null) {
 		this._activeEditorPane = editorPane;
-
+		console.log('set active', editorPane?.getId())
 		// Clear out previous active editor pane listeners
 		this.activeEditorPaneDisposables.clear();
 
 		// Listen to editor pane changes
 		if (editorPane) {
+			// this.activeEditorPaneDisposables.add(editorPane)
 			this.activeEditorPaneDisposables.add(editorPane.onDidChangeSizeConstraints(e => this._onDidChangeSizeConstraints.fire(e)));
 			this.activeEditorPaneDisposables.add(editorPane.onDidFocus(() => this._onDidFocus.fire()));
 		}

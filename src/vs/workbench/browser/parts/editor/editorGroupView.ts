@@ -228,6 +228,10 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 			// Update styles
 			this.updateStyles();
+
+			this._register(toDisposable(() => {
+				console.log('dispose group view')
+			}))
 		}
 		//#endregion
 
