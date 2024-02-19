@@ -571,9 +571,8 @@ export class CodeCell extends Disposable {
 
 		this.templateData.editor.getModel()?.dispose();
 		this.templateData.editor.setModel(null);
-		this.templateData.editor.dispose();
-		// @ts-ignore
-		this.templateData.editor = null
+		this.templateData.editor = null!; // Strict null override - nulling out in dispose
+
 		this.viewCell.detachTextEditor();
 		this._removeInputCollapsePreview();
 		this._outputContainerRenderer.dispose();
