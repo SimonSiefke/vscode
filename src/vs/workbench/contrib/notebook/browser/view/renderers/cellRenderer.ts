@@ -376,9 +376,7 @@ export class CodeCellRenderer extends AbstractCellRenderer implements IListRende
 	}
 
 	disposeTemplate(templateData: CodeCellRenderTemplate): void {
-		// templateData.editor = null!; // Strict null override - nulling out in dispose
-		templateData.elementDisposables.dispose();
-		templateData.templateDisposables.dispose();
+		templateData.templateDisposables.clear();
 	}
 
 	disposeElement(element: ICellViewModel, index: number, templateData: CodeCellRenderTemplate, height: number | undefined): void {
