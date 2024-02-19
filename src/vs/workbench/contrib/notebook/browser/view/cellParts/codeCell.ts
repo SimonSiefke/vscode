@@ -148,10 +148,12 @@ export class CodeCell extends Disposable {
 		this._register({ dispose() { cts.dispose(true); } });
 		raceCancellation(this.viewCell.resolveTextModel(), cts.token).then(model => {
 			if (this._isDisposed) {
+				model?.dispose()
 				return;
 			}
 
 			if (model) {
+				this._register(model)
 				model.updateOptions({
 					indentSize: this._cellEditorOptions.indentSize,
 					tabSize: this._cellEditorOptions.tabSize,
@@ -200,12 +202,20 @@ export class CodeCell extends Disposable {
 		const cts = new CancellationTokenSource();
 		this._register({ dispose() { cts.dispose(true); } });
 		raceCancellation(this.viewCell.resolveTextModel(), cts.token).then(model => {
+			this.templateData.editor.getModel()?.dispose()
+			this.templateData.editor.setModel(null)
 			if (this._isDisposed) {
+				model?.dispose();
 				return;
 			}
 
+			if (model) {
+				this._register(model)
+			}
+
+
 			if (model && this.templateData.editor) {
-				this._reigsterModelListeners(model);
+				this._registerModelListeners(model);
 				this.templateData.editor.setModel(model);
 				model.updateOptions({
 					indentSize: this._cellEditorOptions.indentSize,
@@ -302,7 +312,7 @@ export class CodeCell extends Disposable {
 		}));
 	}
 
-	private _reigsterModelListeners(model: ITextModel) {
+	private _registerModelListeners(model: ITextModel) {
 		this._register(model.onDidChangeTokens(() => {
 			if (this.viewCell.isInputCollapsed && this._inputCollapseElement) {
 				// flush the collapsed input with the latest tokens
@@ -559,6 +569,11 @@ export class CodeCell extends Disposable {
 			this.notebookEditor.focusContainer();
 		}
 
+		this.templateData.editor.getModel()?.dispose();
+		this.templateData.editor.setModel(null);
+		this.templateData.editor.dispose();
+		// @ts-ignore
+		this.templateData.editor = null
 		this.viewCell.detachTextEditor();
 		this._removeInputCollapsePreview();
 		this._outputContainerRenderer.dispose();
