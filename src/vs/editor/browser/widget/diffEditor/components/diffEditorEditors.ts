@@ -19,6 +19,7 @@ import { localize } from 'vs/nls';
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { DiffEditorOptions } from '../diffEditorOptions';
+import { View } from 'vs/editor/browser/view.js';
 
 export class DiffEditorEditors extends Disposable {
 	public readonly original = this._register(this._createLeftHandSideEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.originalEditor || {}));
@@ -71,6 +72,17 @@ export class DiffEditorEditors extends Disposable {
 
 			this.modified.updateOptions(this._adjustOptionsForRightHandSide(reader, changeSummary));
 			this.original.updateOptions(this._adjustOptionsForLeftHandSide(reader, changeSummary));
+
+			const originalView = this.original.getView()
+			const modifiedView = this.modified.getView()
+			if (!originalView || !modifiedView) {
+				return
+			}
+			modifiedView.appendToScrollContainer(originalView.getLinesContent())
+			console.log({ view: originalView, other: modifiedView })
+			// other.appendLinesContent(view. )
+			// console.log({ o: view })
+			// this.modified.addViewLines(this.original._getViewModel())
 		}));
 	}
 
@@ -78,6 +90,7 @@ export class DiffEditorEditors extends Disposable {
 		const leftHandSideOptions = this._adjustOptionsForLeftHandSide(undefined, options);
 		const editor = this._constructInnerEditor(this._instantiationService, this.originalEditorElement, leftHandSideOptions, codeEditorWidgetOptions);
 		editor.setContextValue('isInDiffLeftEditor', true);
+		// editor.
 		return editor;
 	}
 
@@ -107,26 +120,26 @@ export class DiffEditorEditors extends Disposable {
 
 	private _adjustOptionsForLeftHandSide(_reader: IReader | undefined, changedOptions: Readonly<IDiffEditorConstructionOptions>): IEditorConstructionOptions {
 		const result = this._adjustOptionsForSubEditor(changedOptions);
-		if (!this._options.renderSideBySide.get()) {
-			// never wrap hidden editor
-			result.wordWrapOverride1 = 'off';
-			result.wordWrapOverride2 = 'off';
-			result.stickyScroll = { enabled: false };
+		// if (!this._options.renderSideBySide.get()) {
+		// 	// never wrap hidden editor
+		// 	result.wordWrapOverride1 = 'off';
+		// 	result.wordWrapOverride2 = 'off';
+		// 	result.stickyScroll = { enabled: false };
 
-			// Disable unicode highlighting for the original side in inline mode, as they are not shown anyway.
-			result.unicodeHighlight = { nonBasicASCII: false, ambiguousCharacters: false, invisibleCharacters: false };
-		} else {
-			result.unicodeHighlight = this._options.editorOptions.get().unicodeHighlight || {};
-			result.wordWrapOverride1 = this._options.diffWordWrap.get();
-		}
-		result.glyphMargin = this._options.renderSideBySide.get();
+		// 	// Disable unicode highlighting for the original side in inline mode, as they are not shown anyway.
+		// 	result.unicodeHighlight = { nonBasicASCII: false, ambiguousCharacters: false, invisibleCharacters: false };
+		// } else {
+		// 	result.unicodeHighlight = this._options.editorOptions.get().unicodeHighlight || {};
+		// 	result.wordWrapOverride1 = this._options.diffWordWrap.get();
+		// }
+		// result.glyphMargin = this._options.renderSideBySide.get();
 
-		if (changedOptions.originalAriaLabel) {
-			result.ariaLabel = changedOptions.originalAriaLabel;
-		}
+		// if (changedOptions.originalAriaLabel) {
+		// 	result.ariaLabel = changedOptions.originalAriaLabel;
+		// }
 		result.ariaLabel = this._updateAriaLabel(result.ariaLabel);
-		result.readOnly = !this._options.originalEditable.get();
-		result.dropIntoEditor = { enabled: !result.readOnly };
+		// result.readOnly = !this._options.originalEditable.get();
+		// result.dropIntoEditor = { enabled: !result.readOnly };
 		result.extraEditorClassName = 'original-in-monaco-diff-editor';
 		return result;
 	}

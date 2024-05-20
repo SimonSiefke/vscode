@@ -243,6 +243,14 @@ export class View extends ViewEventHandler {
 		this._pointerHandler = this._register(new PointerHandler(this._context, viewController, this._createPointerHandlerHelper()));
 	}
 
+	public getLinesContent() {
+		return this._linesContent
+	}
+
+	public appendToScrollContainer(node: FastDomNode<HTMLElement>) {
+		this._scrollbar.getDomNode().appendChild(node)
+	}
+
 	private _computeGlyphMarginLanes(): IGlyphMarginLanesModel {
 		const model = this._context.viewModel.model;
 		const laneModel = this._context.viewModel.glyphLanes;
