@@ -35,33 +35,33 @@ export function renderLines(source: LineSource, options: RenderOptions, decorati
 		if (lineBreakData) {
 			let lastBreakOffset = 0;
 			for (const breakOffset of lineBreakData.breakOffsets) {
-				const viewLineTokens = lineTokens.sliceAndInflate(lastBreakOffset, breakOffset, 0);
-				maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
-					renderedLineCount,
-					viewLineTokens,
-					LineDecoration.extractWrapped(actualDecorations, lastBreakOffset, breakOffset),
-					hasCharChanges,
-					source.mightContainNonBasicASCII,
-					source.mightContainRTL,
-					options,
-					sb
-				));
+				// const viewLineTokens = lineTokens.sliceAndInflate(lastBreakOffset, breakOffset, 0);
+				// maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
+				// 	renderedLineCount,
+				// 	viewLineTokens,
+				// 	LineDecoration.extractWrapped(actualDecorations, lastBreakOffset, breakOffset),
+				// 	hasCharChanges,
+				// 	source.mightContainNonBasicASCII,
+				// 	source.mightContainRTL,
+				// 	options,
+				// 	sb
+				// ));
 				renderedLineCount++;
 				lastBreakOffset = breakOffset;
 			}
 			viewLineCounts.push(lineBreakData.breakOffsets.length);
 		} else {
 			viewLineCounts.push(1);
-			maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
-				renderedLineCount,
-				lineTokens,
-				actualDecorations,
-				hasCharChanges,
-				source.mightContainNonBasicASCII,
-				source.mightContainRTL,
-				options,
-				sb,
-			));
+			// maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
+			// 	renderedLineCount,
+			// 	lineTokens,
+			// 	actualDecorations,
+			// 	hasCharChanges,
+			// 	source.mightContainNonBasicASCII,
+			// 	source.mightContainRTL,
+			// 	options,
+			// 	sb,
+			// ));
 			renderedLineCount++;
 		}
 	}
