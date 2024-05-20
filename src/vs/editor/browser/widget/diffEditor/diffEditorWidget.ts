@@ -374,6 +374,8 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 
 			modifiedLeft = gutterWidth + originalWidth;
 			modifiedWidth = fullWidth - modifiedLeft - overviewRulerPartWidth;
+
+			originalWidth = modifiedWidth
 		}
 
 		this.elements.original.style.left = originalLeft + 'px';
