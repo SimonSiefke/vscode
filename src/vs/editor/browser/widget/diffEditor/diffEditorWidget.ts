@@ -51,6 +51,7 @@ import { DiffEditorViewModel, DiffMapping, DiffState } from './diffEditorViewMod
 export interface IDiffCodeEditorWidgetOptions {
 	originalEditor?: ICodeEditorWidgetOptions;
 	modifiedEditor?: ICodeEditorWidgetOptions;
+	inlineEditor?: ICodeEditorWidgetOptions;
 }
 
 export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
@@ -152,7 +153,12 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 			(i, c, o, o2) => this._createInnerEditor(i, c, o, o2),
 		));
 
-		this.elements.inline.textContent = 'inline diff editor'
+		// this.elements.inline.textContent = 'inline diff editor'
+		// const editor = this._createInnerEditor(this._instantiationService, this.elements.inline, options, {
+
+		// })
+
+		// editor.getModel()
 
 		this._register(bindContextKey(EditorContextKeys.diffEditorOriginalWritable, this._contextKeyService,
 			reader => this._options.originalEditable.read(reader)
@@ -478,6 +484,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 				observableFromEvent.batchEventsGlobally(tx, () => {
 					this._editors.original.setModel(vm ? vm.model.model.original : null);
 					this._editors.modified.setModel(vm ? vm.model.model.modified : null);
+					this._editors.inline.setModel(vm ? vm.model.model.modified : null);
 				});
 				const prevValue = this._diffModel.get();
 				const shouldDispose = this._shouldDisposeDiffModel;

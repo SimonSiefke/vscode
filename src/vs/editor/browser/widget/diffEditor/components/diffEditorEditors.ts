@@ -24,6 +24,7 @@ import { View } from 'vs/editor/browser/view.js';
 export class DiffEditorEditors extends Disposable {
 	public readonly original = this._register(this._createLeftHandSideEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.originalEditor || {}));
 	public readonly modified = this._register(this._createRightHandSideEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.modifiedEditor || {}));
+	public readonly inline = this._register(this.createInlineEditor(this._options.editorOptions.get(), this._argCodeEditorWidgetOptions.inlineEditor || {}));
 
 	private readonly _onDidContentSizeChange = this._register(new Emitter<IContentSizeChangedEvent>());
 	public get onDidContentSizeChange() { return this._onDidContentSizeChange.event; }
@@ -73,18 +74,28 @@ export class DiffEditorEditors extends Disposable {
 
 			this.modified.updateOptions(this._adjustOptionsForRightHandSide(reader, changeSummary));
 			this.original.updateOptions(this._adjustOptionsForLeftHandSide(reader, changeSummary));
+			this.inline.updateOptions(this._adjustOptionsForRightHandSide(reader, changeSummary));
 
 			const originalView = this.original.getView()
 			const modifiedView = this.modified.getView()
 			if (!originalView || !modifiedView) {
 				return
 			}
-			modifiedView.appendToScrollContainer(originalView.getLinesContent())
-			console.log({ view: originalView, other: modifiedView })
+			// modifiedView.appendToScrollContainer(originalView.getLinesContent())
+			// console.log({ view: originalView, other: modifiedView })
 			// other.appendLinesContent(view. )
 			// console.log({ o: view })
 			// this.modified.addViewLines(this.original._getViewModel())
 		}));
+	}
+
+
+	private createInlineEditor(options: Readonly<IDiffEditorConstructionOptions>, codeEditorWidgetOptions: ICodeEditorWidgetOptions) {
+		const leftHandSideOptions = this._adjustOptionsForRightHandSide(undefined, options);
+		const editor = this._constructInnerEditor(this._instantiationService, this.inlineElement, leftHandSideOptions, codeEditorWidgetOptions);
+		editor.setContextValue('isInDiffLeftEditor', true);
+		// editor.
+		return editor;
 	}
 
 	private _createLeftHandSideEditor(options: Readonly<IDiffEditorConstructionOptions>, codeEditorWidgetOptions: ICodeEditorWidgetOptions): CodeEditorWidget {
