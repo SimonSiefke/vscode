@@ -2580,6 +2580,7 @@ declare namespace monaco.editor {
 	export interface IDiffEditorViewState {
 		original: ICodeEditorViewState | null;
 		modified: ICodeEditorViewState | null;
+		inline: ICodeEditorViewState | null;
 		modelState?: unknown;
 	}
 

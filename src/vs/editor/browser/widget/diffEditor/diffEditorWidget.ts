@@ -400,9 +400,14 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		this.elements.modified.style.width = modifiedWidth + 'px';
 		this._editors.modified.layout({ width: modifiedWidth, height: fullHeight }, true);
 
+
+		this.elements.inline.style.left = modifiedLeft + 'px'
+		this.elements.inline.style.width = modifiedWidth + 'px'
+		this._editors.inline.layout({ width: modifiedWidth, height: fullHeight }, true)
 		return {
 			modifiedEditor: this._editors.modified.getLayoutInfo(),
 			originalEditor: this._editors.original.getLayoutInfo(),
+			inlineEditor: this._editors.inline.getLayoutInfo(),
 		};
 	});
 
@@ -417,7 +422,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		}
 	}
 
-	protected override get _targetEditor(): CodeEditorWidget { return this._editors.modified; }
+	protected override get _targetEditor(): CodeEditorWidget { return this._editors.inline; }
 
 	override getEditorType(): string { return EditorType.IDiffEditor; }
 
@@ -425,11 +430,13 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		// TODO: Only compute diffs when diff editor is visible
 		this._editors.original.onVisible();
 		this._editors.modified.onVisible();
+		this._editors.inline.onVisible();
 	}
 
 	override onHide(): void {
 		this._editors.original.onHide();
 		this._editors.modified.onHide();
+		this._editors.inline.onHide();
 	}
 
 	override layout(dimension?: IDimension | undefined): void {
@@ -441,9 +448,11 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 	public override saveViewState(): IDiffEditorViewState {
 		const originalViewState = this._editors.original.saveViewState();
 		const modifiedViewState = this._editors.modified.saveViewState();
+		const inlineViewState = this._editors.inline.saveViewState();
 		return {
 			original: originalViewState,
 			modified: modifiedViewState,
+			inline: inlineViewState,
 			modelState: this._diffModel.get()?.serializeState(),
 		};
 	}
@@ -453,6 +462,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 			const diffEditorState = s as IDiffEditorViewState;
 			this._editors.original.restoreViewState(diffEditorState.original);
 			this._editors.modified.restoreViewState(diffEditorState.modified);
+			this._editors.inline.restoreViewState(diffEditorState.inline);
 			if (diffEditorState.modelState) {
 				this._diffModel.get()?.restoreSerializedState(diffEditorState.modelState as any);
 			}
@@ -462,6 +472,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 	public handleInitialized(): void {
 		this._editors.original.handleInitialized();
 		this._editors.modified.handleInitialized();
+		this._editors.inline.handleInitialized();
 	}
 
 	public createViewModel(model: IDiffEditorModel): IDiffEditorViewModel {
@@ -509,6 +520,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 	getContainerDomNode(): HTMLElement { return this._domElement; }
 	getOriginalEditor(): ICodeEditor { return this._editors.original; }
 	getModifiedEditor(): ICodeEditor { return this._editors.modified; }
+	getInlineEditor(): ICodeEditor { return this._editors.inline; }
 
 	setBoundarySashes(sashes: IBoundarySashes): void {
 		this._boundarySashes.set(sashes, undefined);

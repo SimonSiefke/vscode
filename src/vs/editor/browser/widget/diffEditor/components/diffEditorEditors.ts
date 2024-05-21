@@ -91,9 +91,9 @@ export class DiffEditorEditors extends Disposable {
 
 
 	private createInlineEditor(options: Readonly<IDiffEditorConstructionOptions>, codeEditorWidgetOptions: ICodeEditorWidgetOptions) {
-		const leftHandSideOptions = this._adjustOptionsForRightHandSide(undefined, options);
-		const editor = this._constructInnerEditor(this._instantiationService, this.inlineElement, leftHandSideOptions, codeEditorWidgetOptions);
-		editor.setContextValue('isInDiffLeftEditor', true);
+		const inlineOptions = this._adjustOptionsForInline(undefined, options);
+		const editor = this._constructInnerEditor(this._instantiationService, this.inlineElement, inlineOptions, codeEditorWidgetOptions);
+		editor.setContextValue('isInDiffInlineEditor', true);
 		// editor.
 		return editor;
 	}
@@ -156,6 +156,21 @@ export class DiffEditorEditors extends Disposable {
 		result.extraEditorClassName = 'original-in-monaco-diff-editor';
 		return result;
 	}
+
+
+	private _adjustOptionsForInline(reader: IReader | undefined, changedOptions: Readonly<IDiffEditorConstructionOptions>): IEditorConstructionOptions {
+		const result = this._adjustOptionsForSubEditor(changedOptions);
+		if (changedOptions.modifiedAriaLabel) {
+			result.ariaLabel = changedOptions.modifiedAriaLabel;
+		}
+		result.ariaLabel = this._updateAriaLabel(result.ariaLabel);
+		result.wordWrapOverride1 = this._options.diffWordWrap.get();
+		result.revealHorizontalRightPadding = EditorOptions.revealHorizontalRightPadding.defaultValue + OverviewRulerFeature.ENTIRE_DIFF_OVERVIEW_WIDTH;
+		result.scrollbar!.verticalHasArrows = false;
+		result.extraEditorClassName = 'inline-in-monaco-diff-editor';
+		return result;
+	}
+
 
 	private _adjustOptionsForRightHandSide(reader: IReader | undefined, changedOptions: Readonly<IDiffEditorConstructionOptions>): IEditorConstructionOptions {
 		const result = this._adjustOptionsForSubEditor(changedOptions);
