@@ -59,6 +59,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 	private readonly elements = h('div.monaco-diff-editor.side-by-side', { style: { position: 'relative', height: '100%' } }, [
 		h('div.editor.original@original', { style: { position: 'absolute', height: '100%', } }),
 		h('div.editor.modified@modified', { style: { position: 'absolute', height: '100%', } }),
+		h('div.editor.inline@inline', { style: { position: 'absolute', height: '100%', } }),
 		h('div.accessibleDiffViewer@accessibleDiffViewer', { style: { position: 'absolute', height: '100%' } }),
 	]);
 	private readonly _diffModel = observableValue<DiffEditorViewModel | undefined>(this, undefined);
@@ -139,14 +140,19 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 			reader => (this._diffModel.read(reader)?.diff.read(reader)?.mappings.length ?? 0) > 0
 		));
 
+		const fakeOriginal = document.createElement('div')
+		const fakeModified = document.createElement('div')
 		this._editors = this._register(this._instantiationService.createInstance(
 			DiffEditorEditors,
-			this.elements.original,
-			this.elements.modified,
+			fakeOriginal,
+			fakeModified,
+			this.elements.inline,
 			this._options,
 			codeEditorWidgetOptions,
 			(i, c, o, o2) => this._createInnerEditor(i, c, o, o2),
 		));
+
+		this.elements.inline.textContent = 'inline diff editor'
 
 		this._register(bindContextKey(EditorContextKeys.diffEditorOriginalWritable, this._contextKeyService,
 			reader => this._options.originalEditable.read(reader)

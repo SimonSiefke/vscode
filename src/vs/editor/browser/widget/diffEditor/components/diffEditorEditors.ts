@@ -46,6 +46,7 @@ export class DiffEditorEditors extends Disposable {
 	constructor(
 		private readonly originalEditorElement: HTMLElement,
 		private readonly modifiedEditorElement: HTMLElement,
+		private readonly inlineElement: HTMLElement,
 		private readonly _options: DiffEditorOptions,
 		private _argCodeEditorWidgetOptions: IDiffCodeEditorWidgetOptions,
 		private readonly _createInnerEditor: (instantiationService: IInstantiationService, container: HTMLElement, options: Readonly<IEditorOptions>, editorWidgetOptions: ICodeEditorWidgetOptions) => CodeEditorWidget,
