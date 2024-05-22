@@ -431,7 +431,7 @@ function runTests(opts) {
 	});
 }
 
-globalThis.setRun((e, opts) => {
+globalThis.setTestRun((e, opts) => {
 	initLoader(opts);
 	runTests(opts).catch(err => {
 		if (typeof err !== 'string') {

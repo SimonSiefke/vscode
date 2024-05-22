@@ -357,6 +357,6 @@
 		})
 
 		// @ts-ignore
-		window.testSetRun = setRun
+		window.setTestRun = setRun
 	}
 }());
