@@ -37,7 +37,7 @@ import { IDiffComputationResult, ILineChange } from 'vs/editor/common/diff/legac
 import { LineRangeMapping, RangeMapping } from 'vs/editor/common/diff/rangeMapping';
 import { EditorType, IDiffEditorModel, IDiffEditorViewModel, IDiffEditorViewState } from 'vs/editor/common/editorCommon';
 import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
-import { IIdentifiedSingleEditOperation } from 'vs/editor/common/model';
+import { IIdentifiedSingleEditOperation, ITextModel } from 'vs/editor/common/model';
 import { AccessibilitySignal, IAccessibilitySignalService } from 'vs/platform/accessibilitySignal/browser/accessibilitySignalService';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
@@ -47,11 +47,44 @@ import { DiffEditorEditors } from './components/diffEditorEditors';
 import { DelegatingEditor } from './delegatingEditorImpl';
 import { DiffEditorOptions } from './diffEditorOptions';
 import { DiffEditorViewModel, DiffMapping, DiffState } from './diffEditorViewModel';
+import { URI } from 'vs/base/common/uri';
 
 export interface IDiffCodeEditorWidgetOptions {
 	originalEditor?: ICodeEditorWidgetOptions;
 	modifiedEditor?: ICodeEditorWidgetOptions;
 	inlineEditor?: ICodeEditorWidgetOptions;
+}
+
+const createCombinedModel = (originalModel: ITextModel, modifiedModel: ITextModel): ITextModel => {
+	return {
+		uri: URI.parse('combined://diff-editor-model'),
+		id: '2182198',
+		applyEdits() {
+			return []
+		},
+		getAllDecorations() {
+			return []
+		},
+		bracketPairs: {},
+		canRedo() {
+			return false
+		},
+		canUndo() {
+			return false
+		},
+		dispose() {
+
+		},
+		getTextBuffer() {
+			return originalModel.getTextBuffer()
+		},
+		getLineContent(lineNumber) {
+			return originalModel.getLineContent(lineNumber)
+		},
+		getLanguageId() {
+			return originalModel.getLanguageId()
+		}
+	}
 }
 
 export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
@@ -495,7 +528,23 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 				observableFromEvent.batchEventsGlobally(tx, () => {
 					this._editors.original.setModel(vm ? vm.model.model.original : null);
 					this._editors.modified.setModel(vm ? vm.model.model.modified : null);
-					this._editors.inline.setModel(vm ? vm.model.model.modified : null);
+					let combinedModel: ITextModel | null = null
+					if (vm?.model.model.modified) {
+						combinedModel
+					}
+					if (!vm) {
+						return
+					}
+					const originalModel = vm.model.model.original
+					const modifiedModel = vm.model.model.modified
+					const models = [originalModel, modifiedModel]
+					let i = 0
+					this._editors.inline.setModel(originalModel)
+					// setInterval(() => {
+					// 	i = (i + 1) % models.length
+					// 	const model = models[i]
+					// 	this._editors.inline.setModel(model);
+					// }, 10000)
 				});
 				const prevValue = this._diffModel.get();
 				const shouldDispose = this._shouldDisposeDiffModel;
