@@ -333,4 +333,30 @@
 		// @ts-ignore
 		window.vscode = globals;
 	}
+
+	const isTest = !process.contextIsolated
+	if (isTest) {
+		let runCallback
+		let args
+
+		const maybeRun = () => {
+			if (!runCallback || !args) {
+				return
+			}
+			runCallback(...args)
+		}
+
+		const setRun = (callback) => {
+			runCallback = callback
+			maybeRun()
+		}
+
+		ipcRenderer.on('run', (e, opts) => {
+			args = [e, opts]
+			maybeRun()
+		})
+
+		// @ts-ignore
+		window.testSetRun = setRun
+	}
 }());
