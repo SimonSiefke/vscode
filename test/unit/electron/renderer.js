@@ -431,7 +431,7 @@ function runTests(opts) {
 	});
 }
 
-ipcRenderer.on('run', (e, opts) => {
+globalThis.setRun((e, opts) => {
 	initLoader(opts);
 	runTests(opts).catch(err => {
 		if (typeof err !== 'string') {
