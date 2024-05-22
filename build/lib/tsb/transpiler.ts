@@ -388,7 +388,7 @@ export class SwcTranspiler implements ITranspiler {
 		},
 		module: {
 			type: 'amd',
-			importInterop: 'node'
+			noInterop: true
 		},
 		minify: false,
 	};
