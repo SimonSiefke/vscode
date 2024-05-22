@@ -58,8 +58,8 @@ function createCompile(src: string, build: boolean, emitError: boolean, transpil
 
 	const transpileWithSwc = typeof transpileOnly !== 'boolean' && transpileOnly.swc
 	if (transpileWithSwc) {
-		overrideOptions.allowSyntheticDefaultImports = true
-		overrideOptions.esModuleInterop = false
+		// overrideOptions.allowSyntheticDefaultImports = true
+		// overrideOptions.esModuleInterop = false
 	} else {
 		overrideOptions.esModuleInterop = true
 	}
