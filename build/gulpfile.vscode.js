@@ -63,8 +63,8 @@ const vscodeResources = [
 	'out-build/vs/base/common/performance.js',
 	'out-build/vs/base/node/{stdForkStart.js,terminateProcess.sh,cpuUsage.sh,ps.sh}',
 	'out-build/vs/base/browser/ui/codicons/codicon/**',
-	'out-build/vs/base/parts/sandbox/electron-sandbox/preload.js',
-	'out-build/vs/base/parts/sandbox/electron-sandbox/preload-aux.js',
+	'out-build/vs/base/parts/sandbox/electron-sandbox/preload.mjs',
+	'out-build/vs/base/parts/sandbox/electron-sandbox/preload-aux.mjs',
 	'out-build/vs/workbench/browser/media/*-theme.css',
 	'out-build/vs/workbench/contrib/debug/**/*.json',
 	'out-build/vs/workbench/contrib/externalTerminal/**/*.scpt',
@@ -205,7 +205,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
 		const out = sourceFolderName;
 
 		const checksums = computeChecksums(out, [
-			'vs/base/parts/sandbox/electron-sandbox/preload.js',
+			'vs/base/parts/sandbox/electron-sandbox/preload.mjs',
 			'vs/workbench/workbench.desktop.main.js',
 			'vs/workbench/workbench.desktop.main.css',
 			'vs/workbench/api/node/extensionHostProcess.js',
