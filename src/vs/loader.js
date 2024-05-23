@@ -848,7 +848,11 @@ var AMDLoader;
 						scriptSource = NodeScriptLoader._PREFIX + data + NodeScriptLoader._SUFFIX;
 					}
 					scriptSource = nodeInstrumenter(scriptSource, normalizedScriptSrc);
-					const scriptOpts = { filename: vmScriptPathOrUri, cachedData };
+					const scriptOpts = {
+						filename: vmScriptPathOrUri, cachedData, importModuleDynamically() {
+							throw new Error('[v8-compile-cache] Dynamic imports are currently not supported. See https://git.io/Jge6z for more information.')
+						}
+					};
 					const script = this._createAndEvalScript(moduleManager, scriptSource, scriptOpts, callback, errorback);
 					this._handleCachedData(script, scriptSource, cachedDataPath, wantsCachedData && !cachedData, moduleManager);
 					this._verifyCachedData(script, scriptSource, cachedDataPath, hashData, moduleManager);
