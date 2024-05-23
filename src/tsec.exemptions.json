@@ -8,6 +8,7 @@
 		"vs/base/worker/workerMain.ts"
 	],
 	"ban-function-calls": [
+		"vs/workbench/api/node/extHostExtensionService.ts",
 		"vs/workbench/api/worker/extHostExtensionService.ts",
 		"vs/base/worker/workerMain.ts",
 		"vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts",
@@ -34,10 +35,6 @@
 		"vs/base/browser/markdownRenderer.ts",
 		"vs/base/test/browser/markdownRenderer.test.ts"
 	],
-	"ban-element-setattribute": [
-		"**/*.ts"
-	],
-	"ban-element-insertadjacenthtml": [
-		"**/*.ts"
-	]
+	"ban-element-setattribute": ["**/*.ts"],
+	"ban-element-insertadjacenthtml": ["**/*.ts"]
 }

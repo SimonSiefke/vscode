@@ -20,6 +20,8 @@ import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleFor
 import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
 import { pathToFileURL } from 'node:url';
 
+const dynamicImport = new Function('specifier', 'return import(specifier)');
+
 class NodeModuleRequireInterceptor extends RequireInterceptor {
 
 	protected _installInterceptor(): void {
@@ -110,9 +112,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 			if (extensionId) {
 				performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
 			}
+			if (extension?.name === 'hello-esm') {
+
+				console.log(extension)
+			}
 			if (extension?.type === 'module') {
 				const uri = pathToFileURL(module.fsPath).toString()
-				r = await import(uri) as T;
+				// TODO change this to a normal dynamic import once esm is supported
+				r = await dynamicImport(uri) as T;
 			} else {
 				r = require.__$__nodeRequire<T>(module.fsPath);
 			}
