@@ -269,6 +269,7 @@ export interface IRelaxedExtensionManifest {
 	engines: { readonly vscode: string };
 	description?: string;
 	main?: string;
+	type?: 'commonjs' | 'module'
 	browser?: string;
 	preview?: boolean;
 	// For now this only supports pointing to l10n bundle files

@@ -18,6 +18,7 @@ import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
 import { realpathSync } from 'vs/base/node/extpath';
 import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
 import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
+import { pathToFileURL } from 'node:url';
 
 class NodeModuleRequireInterceptor extends RequireInterceptor {
 
@@ -109,7 +110,12 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 			if (extensionId) {
 				performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
 			}
-			r = require.__$__nodeRequire<T>(module.fsPath);
+			if (extension?.type === 'module') {
+				const uri = pathToFileURL(module.fsPath).toString()
+				r = await import(uri) as T;
+			} else {
+				r = require.__$__nodeRequire<T>(module.fsPath);
+			}
 		} finally {
 			if (extensionId) {
 				performance.mark(`code/extHost/didLoadExtensionCode/${extensionId}`);
