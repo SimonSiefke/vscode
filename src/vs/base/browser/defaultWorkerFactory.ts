@@ -31,7 +31,7 @@ function getWorker(label: string): Worker | Promise<Worker> {
 		}
 		if (typeof monacoEnvironment.getWorkerUrl === 'function') {
 			const workerUrl = monacoEnvironment.getWorkerUrl('workerMain.js', label);
-			return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label });
+			return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label, type: 'module' });
 		}
 	}
 	// ESM-comment-begin
@@ -39,7 +39,7 @@ function getWorker(label: string): Worker | Promise<Worker> {
 		// check if the JS lives on a different origin
 		const workerMain = require.toUrl('vs/base/worker/workerMain.js'); // explicitly using require.toUrl(), see https://github.com/microsoft/vscode/issues/107440#issuecomment-698982321
 		const workerUrl = getWorkerBootstrapUrl(workerMain, label);
-		return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label });
+		return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label, type: 'module' });
 	}
 	// ESM-comment-end
 	throw new Error(`You must define a function MonacoEnvironment.getWorkerUrl or MonacoEnvironment.getWorker`);
