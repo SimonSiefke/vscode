@@ -76,13 +76,15 @@
 
 	function doImportScript(url: string) {
 		if (canUseImport()) {
+			// @ts-ignore workaround for amd loader
+			globalThis.this = globalThis;
 			return import(url)
 		}
 		return importScripts(url)
 	}
 
 	function loadAMDLoader() {
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<void>(async (resolve, reject) => {
 			if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
 				return resolve();
 			}
@@ -111,9 +113,9 @@
 			}
 
 			if (trustedTypesPolicy) {
-				doImportScript(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
+				await doImportScript(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
 			} else {
-				doImportScript(loaderSrc as string);
+				await doImportScript(loaderSrc as string);
 			}
 			resolve();
 		});
