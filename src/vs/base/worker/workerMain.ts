@@ -64,6 +64,23 @@
 		}
 	}
 
+	function canUseImport() {
+		try {
+			// @ts-ignore
+			import.meta.url;
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	function doImportScript(url: string) {
+		if (canUseImport()) {
+			return import(url)
+		}
+		return importScripts(url)
+	}
+
 	function loadAMDLoader() {
 		return new Promise<void>((resolve, reject) => {
 			if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
@@ -72,7 +89,7 @@
 			const loaderSrc: string | TrustedScriptURL = monacoBaseUrl + 'vs/loader.js';
 
 			const isCrossOrigin = (/^((http:)|(https:)|(file:))/.test(loaderSrc) && loaderSrc.substring(0, globalThis.origin.length) !== globalThis.origin);
-			if (!isCrossOrigin && canUseEval()) {
+			if (!isCrossOrigin && canUseEval() && !Math) {
 				// use `fetch` if possible because `importScripts`
 				// is synchronous and can lead to deadlocks on Safari
 				fetch(loaderSrc).then((response) => {
@@ -94,9 +111,9 @@
 			}
 
 			if (trustedTypesPolicy) {
-				importScripts(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
+				doImportScript(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
 			} else {
-				importScripts(loaderSrc as string);
+				doImportScript(loaderSrc as string);
 			}
 			resolve();
 		});
