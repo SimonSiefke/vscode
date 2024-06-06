@@ -8,6 +8,13 @@ import * as vscode from 'vscode';
 
 export function activate(): void {
 	vscode.commands.registerCommand('hello-error.hello-error', () => {
-		throw new TypeError('x is not a function');
+		try {
+
+			throw new TypeError('x is not a function');
+		} catch (error) {
+			console.error(error);
+		} finally {
+			vscode.window.showInformationMessage('check devtools');
+		}
 	});
 }
