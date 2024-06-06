@@ -1,0 +1,40 @@
+{
+  "name": "hello-error",
+  "publisher": "vscode",
+  "description": "",
+  "displayName": "",
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "categories": [
+    "Other"
+  ],
+  "scripts": {
+    "compile": "gulp compile-extension:hello-error",
+    "watch": "gulp watch-extension:hello-error"
+  },
+  "main": "./out/main",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": false,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "hello-error.hello-error",
+        "title": "Hello Error"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode.git"
+  }
+}
