@@ -238,6 +238,11 @@ export class NativeLocalProcessExtensionHost implements IExtensionHost {
 		if (this._environmentService.args['prof-v8-extensions']) {
 			opts.execArgv.unshift('--prof');
 		}
+		// TODO use setting to configure
+		if (Math) {
+			// opts.execArgv.unshift('--enable-source-maps');
+			env['NODE_OPTIONS'] = '--enable-source-maps';
+		}
 
 		// Refs https://github.com/microsoft/vscode/issues/189805
 		opts.execArgv.unshift('--dns-result-order=ipv4first');
