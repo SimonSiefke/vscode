@@ -10,7 +10,7 @@ import { promiseWithResolvers, ThrottledDelayer } from 'vs/base/common/async';
 import { streamToBuffer, VSBufferReadableStream } from 'vs/base/common/buffer';
 import { CancellationTokenSource } from 'vs/base/common/cancellation';
 import { Emitter, Event } from 'vs/base/common/event';
-import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from 'vs/base/common/lifecycle';
 import { COI } from 'vs/base/common/network';
 import { URI } from 'vs/base/common/uri';
 import { generateUuid } from 'vs/base/common/uuid';
@@ -135,6 +135,8 @@ export class WebviewElement extends Disposable implements IWebview, WebviewFindD
 
 	private readonly _onDidHtmlChange: Emitter<string> = this._register(new Emitter<string>());
 	protected readonly onDidHtmlChange = this._onDidHtmlChange.event;
+
+	private readonly mountDisposables = this._register(new DisposableStore());
 
 	private _messagePort?: MessagePort;
 	private readonly _messageHandlers = new Map<string, Set<(data: any, e: MessageEvent) => void>>();
@@ -452,6 +454,7 @@ export class WebviewElement extends Disposable implements IWebview, WebviewFindD
 	}
 
 	public mountTo(element: HTMLElement, targetWindow: CodeWindow) {
+		this.mountDisposables.clear();
 		if (!this.element) {
 			return;
 		}
@@ -470,13 +473,13 @@ export class WebviewElement extends Disposable implements IWebview, WebviewFindD
 		}
 
 		for (const eventName of [EventType.MOUSE_DOWN, EventType.MOUSE_MOVE, EventType.DROP]) {
-			this._register(addDisposableListener(element, eventName, () => {
+			this.mountDisposables.add(addDisposableListener(element, eventName, () => {
 				this._stopBlockingIframeDragEvents();
 			}));
 		}
 
 		for (const node of [element, targetWindow]) {
-			this._register(addDisposableListener(node, EventType.DRAG_END, () => {
+			this.mountDisposables.add(addDisposableListener(node, EventType.DRAG_END, () => {
 				this._stopBlockingIframeDragEvents();
 			}));
 		}
@@ -487,7 +490,7 @@ export class WebviewElement extends Disposable implements IWebview, WebviewFindD
 	}
 
 	private _registerMessageHandler(targetWindow: CodeWindow) {
-		const subscription = this._register(addDisposableListener(targetWindow, 'message', (e: MessageEvent) => {
+		const subscription = this.mountDisposables.add(addDisposableListener(targetWindow, 'message', (e: MessageEvent) => {
 			if (!this._encodedWebviewOrigin || e?.data?.target !== this.id) {
 				return;
 			}
