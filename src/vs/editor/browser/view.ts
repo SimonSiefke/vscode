@@ -215,37 +215,7 @@ export class View extends ViewEventHandler {
 		this._pointerHandler = this._register(new PointerHandler(this._context, viewController, this._createPointerHandlerHelper()));
 	}
 
-	private _computeGlyphMarginLanes(): IGlyphMarginLanesModel {
-		const model = this._context.viewModel.model;
-		const laneModel = this._context.viewModel.glyphLanes;
-		type Glyph = { range: Range; lane: GlyphMarginLane; persist?: boolean };
-		let glyphs: Glyph[] = [];
-		let maxLineNumber = 0;
 
-		// Add all margin decorations
-		glyphs = glyphs.concat(model.getAllMarginDecorations().map((decoration) => {
-			const lane = decoration.options.glyphMargin?.position ?? GlyphMarginLane.Center;
-			maxLineNumber = Math.max(maxLineNumber, decoration.range.endLineNumber);
-			return { range: decoration.range, lane, persist: decoration.options.glyphMargin?.persistLane };
-		}));
-
-		// Add all glyph margin widgets
-		glyphs = glyphs.concat(this._glyphMarginWidgets.getWidgets().map((widget) => {
-			const range = model.validateRange(widget.preference.range);
-			maxLineNumber = Math.max(maxLineNumber, range.endLineNumber);
-			return { range, lane: widget.preference.lane };
-		}));
-
-		// Sorted by their start position
-		glyphs.sort((a, b) => Range.compareRangesUsingStarts(a.range, b.range));
-
-		laneModel.reset(maxLineNumber);
-		for (const glyph of glyphs) {
-			laneModel.push(glyph.lane, glyph.range, glyph.persist);
-		}
-
-		return laneModel;
-	}
 
 	private _createPointerHandlerHelper(): IPointerHandlerHelper {
 		return {
@@ -448,8 +418,6 @@ export class View extends ViewEventHandler {
 			prepareRenderText: () => {
 				if (this._shouldRecomputeGlyphMarginLanes) {
 					this._shouldRecomputeGlyphMarginLanes = false;
-					const model = this._computeGlyphMarginLanes();
-					this._context.configuration.setGlyphMarginDecorationLaneCount(model.requiredLanes);
 				}
 				inputLatency.onRenderStart();
 			},
