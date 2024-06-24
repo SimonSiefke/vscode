@@ -5,7 +5,17 @@
 
 export as namespace semver;
 
-export = semver;
+export const gte: typeof semver.gte;
+export const gt: typeof semver.gt;
+export const lt: typeof semver.lt;
+export const lte: typeof semver.lte;
+export const rcompare: typeof semver.rcompare;
+export const eq: typeof semver.eq;
+export const satisfies: typeof semver.satisfies;
+export const valid: typeof semver.valid;
+
+
+export default semver;
 
 declare namespace semver {
 

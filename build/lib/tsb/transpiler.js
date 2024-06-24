@@ -10,6 +10,7 @@ const ts = require("typescript");
 const threads = require("node:worker_threads");
 const Vinyl = require("vinyl");
 const node_os_1 = require("node:os");
+const fixEsmFile_js_1 = require("./fixEsmFile.js");
 function transpile(tsSrc, options) {
     const isAmd = /\n(import|export)/m.test(tsSrc);
     if (!isAmd && options.compilerOptions?.module === ts.ModuleKind.AMD) {
@@ -67,6 +68,9 @@ class OutputFileNameOracle {
         };
     }
 }
+function getVsRelativePath(relativePath) {
+    return relativePath.replace(/\\/g, '/');
+}
 class TranspileWorker {
     static pool = 1;
     id = TranspileWorker.pool++;
@@ -107,10 +111,12 @@ class TranspileWorker {
                 }
                 const outBase = options.compilerOptions?.outDir ?? file.base;
                 const outPath = outFileFn(file.path);
+                const vsRelativePath = getVsRelativePath(file.relative);
+                console.log({ vsRelativePath });
                 outFiles.push(new Vinyl({
                     path: outPath,
                     base: outBase,
-                    contents: Buffer.from(jsSrc),
+                    contents: Buffer.from((0, fixEsmFile_js_1.fixEsmFile)(vsRelativePath, jsSrc)),
                 }));
             }
             this._pending = undefined;
@@ -274,10 +280,11 @@ class SwcTranspiler {
             }
             const outBase = this._cmdLine.options.outDir ?? file.base;
             const outPath = this._outputFileNames.getOutputFileName(file.path);
+            const vsRelativePath = getVsRelativePath(file.relative);
             this.onOutfile(new Vinyl({
                 path: outPath,
                 base: outBase,
-                contents: Buffer.from(output.code),
+                contents: Buffer.from((0, fixEsmFile_js_1.fixEsmFile)(vsRelativePath, output.code)),
             }));
             this._logFn('Transpile', `swc took ${Date.now() - t1}ms for ${file.path}`);
         }).catch(err => {

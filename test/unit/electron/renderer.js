@@ -5,8 +5,16 @@
 
 /*eslint-env mocha*/
 
-const fs = require('fs');
-const inspector = require('inspector');
+import '../../../node_modules/mocha/mocha.js';
+import * as coverage from '../coverage.js';
+import { takeSnapshotAndCountClasses } from '../analyzeSnapshot.js';
+import { testGlobals } from './import-map/testGlobals.js';
+
+const { setRun, fs, ipcRenderer, assert, path, url, glob, util } = testGlobals;
+
+const globPromise = util.promisify(glob);
+
+
 
 (function () {
 	const originals = {};
@@ -61,14 +69,7 @@ const inspector = require('inspector');
 	});
 })();
 
-const { ipcRenderer } = require('electron');
-const assert = require('assert');
-const path = require('path');
-const glob = require('glob');
-const util = require('util');
-const bootstrap = require('../../../src/bootstrap');
-const coverage = require('../coverage');
-const { takeSnapshotAndCountClasses } = require('../analyzeSnapshot');
+
 
 // Disabled custom inspect. See #38847
 if (util.inspect && util.inspect['defaultOptions']) {
@@ -100,27 +101,8 @@ let _out;
 function initLoader(opts) {
 	const outdir = opts.build ? 'out-build' : 'out';
 	_out = path.join(__dirname, `../../../${outdir}`);
-
-	// setup loader
-	loader = require(`${_out}/vs/loader`);
-	const loaderConfig = {
-		nodeRequire: require,
-		catchError: true,
-		baseUrl: bootstrap.fileUriFromPath(path.join(__dirname, '../../../src'), { isWindows: process.platform === 'win32' }),
-		paths: {
-			'vs': `../${outdir}/vs`,
-			'lib': `../${outdir}/lib`,
-			'bootstrap-fork': `../${outdir}/bootstrap-fork`
-		}
-	};
-
-	if (opts.coverage) {
-		// initialize coverage if requested
-		coverage.initialize(loaderConfig);
-	}
-
-	loader.require.config(loaderConfig);
 }
+
 
 function createCoverageReport(opts) {
 	if (opts.coverage) {
@@ -129,52 +111,62 @@ function createCoverageReport(opts) {
 	return Promise.resolve(undefined);
 }
 
-function loadWorkbenchTestingUtilsModule() {
-	return new Promise((resolve, reject) => {
-		loader.require(['vs/workbench/test/common/utils'], resolve, reject);
-	});
+
+const doImportUrl = async url => {
+	try {
+		return await import(url);
+	} catch (error) {
+		throw new Error(`Failed to import ${url}: ${error}`);
+	}
+};
+
+
+async function loadWorkbenchTestingUtilsModule() {
+	try {
+		const utilsPath = new URL('../../../out/vs/workbench/test/common/utils.js', import.meta.url).toString();
+		const module = doImportUrl(utilsPath);
+		return module;
+	} catch (error) {
+		throw new Error(`Failed to load utils module: ${error}`);
+	}
 }
+
 
 async function loadModules(modules) {
 	for (const file of modules) {
+		const importUrl = url.pathToFileURL(path.join(_out, file)).toString();
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_PRE_REQUIRE, globalThis, file, mocha);
-		const m = await new Promise((resolve, reject) => loader.require([file], resolve, reject));
+		const m = await doImportUrl(importUrl);
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_REQUIRE, m, file, mocha);
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_POST_REQUIRE, globalThis, file, mocha);
 	}
 }
 
-function loadTestModules(opts) {
+
+async function loadTestModules(opts) {
 
 	if (opts.run) {
 		const files = Array.isArray(opts.run) ? opts.run : [opts.run];
 		const modules = files.map(file => {
 			file = file.replace(/^src/, 'out');
 			file = file.replace(/\.ts$/, '.js');
-			return path.relative(_out, file).replace(/\.js$/, '');
+			return path.relative(_out, file);
 		});
 		return loadModules(modules);
 	}
 
 	const pattern = opts.runGlob || _tests_glob;
 
-	return new Promise((resolve, reject) => {
-		glob(pattern, { cwd: _out }, (err, files) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-			const modules = files.map(file => file.replace(/\.js$/, ''));
-			resolve(modules);
-		});
-	}).then(loadModules);
+	const files = await globPromise(pattern, {
+		cwd: _out
+	});
+	return loadModules(files);
 }
 
 /** @type Mocha.Test */
 let currentTest;
 
 async function loadTests(opts) {
-
 	//#region Unexpected Output
 
 	const _allowedTestOutput = [
@@ -203,22 +195,42 @@ async function loadTests(opts) {
 		'throw ListenerLeakError'
 	]);
 
-	const _allowedSuitesWithOutput = new Set([
-		'InteractiveChatController'
-	]);
+	const _testsWithUnexpectedOutput = false;
 
-	let _testsWithUnexpectedOutput = false;
+	// for (const consoleFn of [console.log, console.error, console.info, console.warn, console.trace, console.debug]) {
+	// 	console[consoleFn.name] = function (msg) {
+	// 		if (!_allowedTestOutput.some(a => a.test(msg)) && !_allowedTestsWithOutput.has(currentTest.title)) {
+	// 			_testsWithUnexpectedOutput = true;
+	// 			consoleFn.apply(console, arguments);
+	// 		}
+	// 	};
+	// }
+	// for (const consoleFn of [console.log, console.error, console.info, console.warn, console.trace, console.debug]) {
+	// 	console[consoleFn.name] = function (msg) {
+	// 		if (!currentTest) {
+	// 			consoleFn.apply(console, arguments);
+	// 		} else if (!_allowedTestOutput.some(a => a.test(msg)) && !_allowedTestsWithOutput.has(currentTest.title)) {
+	// 			_testsWithUnexpectedOutput = true;
+	// 			consoleFn.apply(console, arguments);
+	// 		}
+	// 	};
+	// }
+	// const _allowedSuitesWithOutput = new Set([
+	// 	'InteractiveChatController'
+	// ]);
 
-	for (const consoleFn of [console.log, console.error, console.info, console.warn, console.trace, console.debug]) {
-		console[consoleFn.name] = function (msg) {
-			if (!currentTest) {
-				consoleFn.apply(console, arguments);
-			} else if (!_allowedTestOutput.some(a => a.test(msg)) && !_allowedTestsWithOutput.has(currentTest.title) && !_allowedSuitesWithOutput.has(currentTest.parent?.title)) {
-				_testsWithUnexpectedOutput = true;
-				consoleFn.apply(console, arguments);
-			}
-		};
-	}
+	// let _testsWithUnexpectedOutput = false;
+
+	// for (const consoleFn of [console.log, console.error, console.info, console.warn, console.trace, console.debug]) {
+	// 	console[consoleFn.name] = function (msg) {
+	// 		if (!currentTest) {
+	// 			consoleFn.apply(console, arguments);
+	// 		} else if (!_allowedTestOutput.some(a => a.test(msg)) && !_allowedTestsWithOutput.has(currentTest.title) && !_allowedSuitesWithOutput.has(currentTest.parent?.title)) {
+	// 			_testsWithUnexpectedOutput = true;
+	// 			consoleFn.apply(console, arguments);
+	// 		}
+	// 	};
+	// }
 
 	//#endregion
 
@@ -236,86 +248,78 @@ async function loadTests(opts) {
 		'Search Model: Search reports timed telemetry on search when error is called'
 	]);
 
-	loader.require.config({
-		onError(err) {
-			_loaderErrors.push(err);
-			console.error(err);
+
+
+	const onUnexpectedError = function (err) {
+		if (err.name === 'Canceled') {
+			return; // ignore canceled errors that are common
+		}
+
+		let stack = (err ? err.stack : null);
+		if (!stack) {
+			stack = new Error().stack;
+		}
+
+		_unexpectedErrors.push((err && err.message ? err.message : err) + '\n' + stack);
+	};
+
+	process.on('uncaughtException', error => onUnexpectedError(error));
+	process.on('unhandledRejection', (reason, promise) => {
+		onUnexpectedError(reason);
+		promise.catch(() => { });
+	});
+	window.addEventListener('unhandledrejection', event => {
+		event.preventDefault(); // Do not log to test output, we show an error later when test ends
+		event.stopPropagation();
+
+		if (!_allowedTestsWithUnhandledRejections.has(currentTest.title)) {
+			onUnexpectedError(event.reason);
 		}
 	});
 
-	loader.require(['vs/base/common/errors'], function (errors) {
-
-		const onUnexpectedError = function (err) {
-			if (err.name === 'Canceled') {
-				return; // ignore canceled errors that are common
-			}
-
-			let stack = (err ? err.stack : null);
-			if (!stack) {
-				stack = new Error().stack;
-			}
-
-			_unexpectedErrors.push((err && err.message ? err.message : err) + '\n' + stack);
-		};
-
-		process.on('uncaughtException', error => onUnexpectedError(error));
-		process.on('unhandledRejection', (reason, promise) => {
-			onUnexpectedError(reason);
-			promise.catch(() => { });
-		});
-		window.addEventListener('unhandledrejection', event => {
-			event.preventDefault(); // Do not log to test output, we show an error later when test ends
-			event.stopPropagation();
-
-			if (!_allowedTestsWithUnhandledRejections.has(currentTest.title)) {
-				onUnexpectedError(event.reason);
-			}
-		});
-
-		errors.setUnexpectedErrorHandler(err => unexpectedErrorHandler(err));
-	});
 
 	//#endregion
 
-	return loadWorkbenchTestingUtilsModule().then((workbenchTestingModule) => {
-		const assertCleanState = workbenchTestingModule.assertCleanState;
+	const workbenchTestingModule = await loadWorkbenchTestingUtilsModule();
 
-		suite('Tests are using suiteSetup and setup correctly', () => {
-			test('assertCleanState - check that registries are clean at the start of test running', () => {
-				assertCleanState();
-			});
-		});
+	const assertCleanState = workbenchTestingModule.assertCleanState;
 
-		setup(async () => {
-			await perTestCoverage?.startTest();
-		});
 
-		teardown(async () => {
-			await perTestCoverage?.finishTest(currentTest.file, currentTest.fullTitle());
-
-			// should not have unexpected output
-			if (_testsWithUnexpectedOutput && !opts.dev) {
-				assert.ok(false, 'Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.');
-			}
-
-			// should not have unexpected errors
-			const errors = _unexpectedErrors.concat(_loaderErrors);
-			if (errors.length) {
-				for (const error of errors) {
-					console.error(`Error: Test run should not have unexpected errors:\n${error}`);
-				}
-				assert.ok(false, 'Error: Test run should not have unexpected errors.');
-			}
-		});
-
-		suiteTeardown(() => { // intentionally not in teardown because some tests only cleanup in suiteTeardown
-
-			// should have cleaned up in registries
+	suite('Tests are using suiteSetup and setup correctly', () => {
+		test('assertCleanState - check that registries are clean at the start of test running', () => {
 			assertCleanState();
 		});
-
-		return loadTestModules(opts);
 	});
+
+	setup(async () => {
+		await perTestCoverage?.startTest();
+	});
+
+	teardown(async () => {
+		await perTestCoverage?.finishTest(currentTest.file, currentTest.fullTitle());
+
+		// should not have unexpected output
+		if (_testsWithUnexpectedOutput && !opts.dev) {
+			assert.ok(false, 'Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.');
+		}
+
+		// should not have unexpected errors
+		const errors = _unexpectedErrors.concat(_loaderErrors);
+		if (errors.length) {
+			for (const error of errors) {
+				console.error(`Error: Test run should not have unexpected errors:\n${error}`);
+			}
+			assert.ok(false, 'Error: Test run should not have unexpected errors.');
+		}
+	});
+
+	suiteTeardown(() => { // intentionally not in teardown because some tests only cleanup in suiteTeardown
+
+		// should have cleaned up in registries
+		assertCleanState();
+	});
+
+	await loadTestModules(opts);
 }
 
 function serializeSuite(suite) {
@@ -404,50 +408,91 @@ class IPCReporter {
 	}
 }
 
-function runTests(opts) {
+async function runTests(opts) {
+	mocha.setup({
+		ui: "tdd",
+		timeout:
+			typeof process.env["BUILD_ARTIFACTSTAGINGDIRECTORY"] === "string"
+				? 30000
+				: 5000,
+		forbidOnly:
+			typeof process.env["BUILD_ARTIFACTSTAGINGDIRECTORY"] === "string", // disallow .only() when running on build machine
+	});
+
 	// this *must* come before loadTests, or it doesn't work.
 	if (opts.timeout !== undefined) {
 		mocha.timeout(opts.timeout);
 	}
 
-	return loadTests(opts).then(() => {
+	await loadTests(opts);
 
-		if (opts.grep) {
-			mocha.grep(opts.grep);
-		}
+	if (opts.grep) {
+		mocha.grep(opts.grep);
+	}
 
-		if (!opts.dev) {
-			mocha.reporter(IPCReporter);
-		}
+	if (!opts.dev) {
+		mocha.reporter(IPCReporter);
+	}
 
-		const runner = mocha.run(() => {
-			createCoverageReport(opts).then(() => {
-				ipcRenderer.send('all done');
-			});
+
+
+	const runner = mocha.run(() => {
+		createCoverageReport(opts).then(() => {
+			ipcRenderer.send('all done');
 		});
-
-		runner.on('test', test => currentTest = test);
-
-		if (opts.dev) {
-			runner.on('fail', (test, err) => {
-				console.error(test.fullTitle());
-				console.error(err.stack);
-			});
-		}
 	});
+
+	runner.on('test', test => currentTest = test);
+
+	if (opts.dev) {
+		runner.on('fail', (test, err) => {
+			console.error(test.fullTitle());
+			console.error(err.stack);
+		});
+	}
 }
 
-ipcRenderer.on('run', (e, opts) => {
-	initLoader(opts);
-	runTests(opts).catch(err => {
+
+const mockAlerts = () => {
+	// !!! DO NOT CHANGE !!!
+	// Our unit tests may run in environments without
+	// display (e.g. from builds) and tests may by
+	// accident bring up native dialogs or even open
+	// windows. This we cannot allow as it may crash
+	// the test run.
+	// !!! DO NOT CHANGE !!!
+	window.open = function () {
+		throw new Error("window.open() is not supported in tests!");
+	};
+	window.alert = function () {
+		throw new Error("window.alert() is not supported in tests!");
+	};
+	window.confirm = function () {
+		throw new Error("window.confirm() is not supported in tests!");
+	};
+
+};
+
+const setupMocha = () => {
+
+};
+
+const main = async (e, opts) => {
+	try {
+		mockAlerts();
+		setupMocha();
+		initLoader(opts);
+		await runTests(opts);
+	} catch (err) {
+		console.error(err);
 		if (typeof err !== 'string') {
 			err = JSON.stringify(err);
 		}
-
-		console.error(err);
 		ipcRenderer.send('error', err);
-	});
-});
+	}
+};
+
+setRun(main);
 
 class PerTestCoverage {
 	static async init() {

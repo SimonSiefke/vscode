@@ -48,6 +48,11 @@ function code() {
 	fi
 
 	# Launch Code
+	# exec "$CODE" . "$@"
+	# use default electron version 29.3.1 because
+	# vscode electron electron version 29.3.1 doesn't
+	# support loaders for some reason
+	# exec "npx" "electron" . "$@"
 	exec "$CODE" . $DISABLE_TEST_EXTENSION "$@"
 }
 

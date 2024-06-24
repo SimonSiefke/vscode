@@ -10,21 +10,26 @@
 // come before any mocha imports.
 process.env.MOCHA_COLORS = '1';
 
-const { app, BrowserWindow, ipcMain, crashReporter } = require('electron');
-const product = require('../../../product.json');
-const { tmpdir } = require('os');
-const { existsSync, mkdirSync } = require('fs');
-const path = require('path');
-const mocha = require('mocha');
-const events = require('events');
-const MochaJUnitReporter = require('mocha-junit-reporter');
-const url = require('url');
-const net = require('net');
-const createStatsCollector = require('mocha/lib/stats-collector');
-const { applyReporter, importMochaReporter } = require('../reporter');
+import { app, BrowserWindow, ipcMain, crashReporter } from 'electron';
+import { tmpdir } from 'os';
+import { existsSync, mkdirSync } from 'fs';
+import path from 'path';
+import mocha from 'mocha';
+import events from 'events';
+import MochaJUnitReporter from 'mocha-junit-reporter';
+import url from 'url';
+import net from 'net';
+import createStatsCollector from 'mocha/lib/stats-collector.js';
+import { applyReporter, importMochaReporter } from '../reporter.js';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import minimist from 'minimist';
+import { createRequire } from 'module';
 
-const minimist = require('minimist');
+const require = createRequire(import.meta.url);
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const product = require('../../../product.json')
 /**
  * @type {{
  * grep: string;
@@ -249,7 +254,7 @@ app.on('ready', () => {
 		width: 800,
 		show: false,
 		webPreferences: {
-			preload: path.join(__dirname, '..', '..', '..', 'src', 'vs', 'base', 'parts', 'sandbox', 'electron-sandbox', 'preload.js'), // ensure similar environment as VSCode as tests may depend on this
+			preload: path.join(__dirname, '..', '..', '..', 'src', 'vs', 'base', 'parts', 'sandbox', 'electron-sandbox', 'preload.cjs'), // ensure similar environment as VSCode as tests may depend on this
 			additionalArguments: [`--vscode-window-config=vscode:test-vscode-window-config`],
 			nodeIntegration: true,
 			contextIsolation: false,

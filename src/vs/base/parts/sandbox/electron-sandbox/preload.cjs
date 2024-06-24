@@ -344,3 +344,37 @@
 		window.vscode = globals;
 	}
 }());
+
+
+const isTest = !process.contextIsolated
+
+if (isTest) {
+	const { ipcRenderer } = require('electron');
+
+	let runCallback
+	let args
+
+	const maybeRun = () => {
+		if (!runCallback || !args) {
+			return
+		}
+		runCallback(...args)
+	}
+
+	const setRun = (callback) => {
+		runCallback = callback
+		maybeRun()
+	}
+
+	ipcRenderer.on('run', (e, opts) => {
+		args = [e, opts]
+		maybeRun()
+	})
+
+	// @ts-ignore
+	window.testGlobalRequire = require
+	// @ts-ignore
+	window.testSetRun = setRun
+	// @ts-ignore
+	window.testIpcRenderer = ipcRenderer
+}

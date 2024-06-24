@@ -230,6 +230,7 @@ export class UtilityProcess extends Disposable {
 		this.configuration = configuration;
 
 		const serviceName = `${this.configuration.type}-${this.id}`;
+		// @ts-ignore
 		const modulePath = FileAccess.asFileUri('bootstrap-fork.js').fsPath;
 		const args = this.configuration.args ?? [];
 		const execArgv = this.configuration.execArgv ?? [];
@@ -240,6 +241,9 @@ export class UtilityProcess extends Disposable {
 
 		this.log('creating new...', Severity.Info);
 
+		// @ts-ignore
+		const absolutePath = FileAccess.asFileUri(configuration.entryPoint + '.js').fsPath;
+
 		// Fork utility process
 		this.process = utilityProcess.fork(modulePath, args, {
 			serviceName,
@@ -249,6 +253,17 @@ export class UtilityProcess extends Disposable {
 			forceAllocationsToV8Sandbox,
 			stdio
 		} as ForkOptions & { forceAllocationsToV8Sandbox?: Boolean });
+
+		console.log(this.process.pid);
+		this.process.stderr?.addListener('data', data => {
+			process.stderr.write(data);
+		});
+		this.process.stdout?.addListener('data', data => {
+			process?.stdout.write(data);
+		});
+		this.process.addListener('exit', (code) => {
+			console.log('process has exited', code);
+		});
 
 		// Register to events
 		this.registerListeners(this.process, this.configuration, serviceName);

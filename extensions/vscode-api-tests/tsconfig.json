@@ -2,9 +2,9 @@
 	"extends": "../tsconfig.base.json",
 	"compilerOptions": {
 		"outDir": "./out",
-		"types": [
-			"node"
-		]
+		"esModuleInterop": true,
+		"module": "CommonJS",
+		"types": ["node"]
 	},
 	"include": [
 		"src/**/*",

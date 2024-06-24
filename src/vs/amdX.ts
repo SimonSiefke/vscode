@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isESM } from 'vs/base/common/amd';
-import { AppResourcePath, FileAccess, nodeModulesAsarPath, nodeModulesPath } from 'vs/base/common/network';
+import { nodeModulesAsarPath, nodeModulesPath } from 'vs/base/common/network';
 import * as platform from 'vs/base/common/platform';
 import { IProductConfiguration } from 'vs/base/common/product';
 import { URI } from 'vs/base/common/uri';
@@ -26,9 +26,6 @@ class AMDModuleImporter {
 
 	private readonly _defineCalls: DefineCall[] = [];
 	private _initialized = false;
-	private _amdPolicy: Pick<TrustedTypePolicy<{
-		createScriptURL(value: string): string;
-	}>, 'name' | 'createScriptURL'> | undefined;
 
 	constructor() { }
 
@@ -56,27 +53,7 @@ class AMDModuleImporter {
 
 		(<any>globalThis).define.amd = true;
 
-		if (this._isRenderer) {
-			// eslint-disable-next-line no-restricted-globals
-			this._amdPolicy = window.trustedTypes?.createPolicy('amdLoader', {
-				createScriptURL(value) {
-					// eslint-disable-next-line no-restricted-globals
-					if (value.startsWith(window.location.origin)) {
-						return value;
-					}
-					if (value.startsWith('vscode-file://vscode-app')) {
-						return value;
-					}
-					throw new Error(`[trusted_script_src] Invalid script url: ${value}`);
-				}
-			});
-		} else if (this._isWebWorker) {
-			this._amdPolicy = (<any>globalThis).trustedTypes?.createPolicy('amdLoader', {
-				createScriptURL(value: string) {
-					return value;
-				}
-			});
-		}
+
 	}
 
 	public async load<T>(scriptSrc: string): Promise<T> {
@@ -96,53 +73,26 @@ class AMDModuleImporter {
 		}
 	}
 
-	private _rendererLoadScript(scriptSrc: string): Promise<DefineCall | undefined> {
-		return new Promise<DefineCall | undefined>((resolve, reject) => {
-			const scriptElement = document.createElement('script');
-			scriptElement.setAttribute('async', 'async');
-			scriptElement.setAttribute('type', 'text/javascript');
 
-			const unbind = () => {
-				scriptElement.removeEventListener('load', loadEventListener);
-				scriptElement.removeEventListener('error', errorEventListener);
-			};
-
-			const loadEventListener = (e: any) => {
-				unbind();
-				resolve(this._defineCalls.pop());
-			};
-
-			const errorEventListener = (e: any) => {
-				unbind();
-				reject(e);
-			};
-
-			scriptElement.addEventListener('load', loadEventListener);
-			scriptElement.addEventListener('error', errorEventListener);
-			if (this._amdPolicy) {
-				scriptSrc = this._amdPolicy.createScriptURL(scriptSrc) as any as string;
-			}
-			scriptElement.setAttribute('src', scriptSrc);
-			// eslint-disable-next-line no-restricted-globals
-			window.document.getElementsByTagName('head')[0].appendChild(scriptElement);
-		});
+	private async _import(scriptSrc: string): Promise<DefineCall | undefined> {
+		try {
+			await import(scriptSrc);
+			return this._defineCalls.pop();
+		} catch (error) {
+			throw new Error(`Failed to import ${scriptSrc}: ${error}`);
+		}
 	}
 
-	private _workerLoadScript(scriptSrc: string): Promise<DefineCall | undefined> {
-		return new Promise<DefineCall | undefined>((resolve, reject) => {
-			try {
-				if (this._amdPolicy) {
-					scriptSrc = this._amdPolicy.createScriptURL(scriptSrc) as any as string;
-				}
-				importScripts(scriptSrc);
-				resolve(this._defineCalls.pop());
-			} catch (err) {
-				reject(err);
-			}
-		});
+	private async _rendererLoadScript(scriptSrc: string): Promise<DefineCall | undefined> {
+		return this._import(scriptSrc);
+	}
+
+	private async _workerLoadScript(scriptSrc: string): Promise<DefineCall | undefined> {
+		return this._import(scriptSrc);
 	}
 
 	private async _nodeJSLoadScript(scriptSrc: string): Promise<DefineCall | undefined> {
+		// TODO investigate if can just use import here
 		try {
 			const fs = <typeof import('fs')>globalThis._VSCODE_NODE_MODULES['fs'];
 			const vm = <typeof import('vm')>globalThis._VSCODE_NODE_MODULES['vm'];
@@ -199,8 +149,8 @@ export async function importAMDNodeModule<T>(nodeModuleName: string, pathInsideN
 		} else {
 			const useASAR = (isBuilt && !platform.isWeb);
 			const actualNodeModulesPath = (useASAR ? nodeModulesAsarPath : nodeModulesPath);
-			const resourcePath: AppResourcePath = `${actualNodeModulesPath}/${nodeModulePath}`;
-			scriptSrc = FileAccess.asBrowserUri(resourcePath).toString(true);
+			const resourcePath: string = `${actualNodeModulesPath}/${nodeModulePath}`;
+			scriptSrc = resourcePath;
 		}
 		const result = AMDModuleImporter.INSTANCE.load<T>(scriptSrc);
 		cache.set(nodeModulePath, result);

@@ -5,10 +5,13 @@
 
 // @ts-check
 
-const cp = require('child_process');
-const path = require('path');
-const opn = require('opn');
-const minimist = require('minimist');
+import * as cp from 'node:child_process';
+import * as path from 'node:path';
+import opn from 'opn';
+import minimist from 'minimist';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
 
@@ -53,6 +56,7 @@ function startServer(programArgs) {
 			}
 		});
 
+		// @ts-ignore
 		proc.on('exit', (code) => process.exit(code));
 
 		process.on('exit', () => proc.kill());
@@ -69,4 +73,3 @@ function startServer(programArgs) {
 }
 
 main();
-

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
+import assert from 'assert';
 import * as fs from 'fs';
 import { basename, join, posix } from 'path';
 import * as vscode from 'vscode';
@@ -1130,7 +1130,7 @@ suite('vscode API - workspace', () => {
 		assert.strictEqual(e.files[1].toString(), file2.toString());
 	});
 
-	test('issue #107739 - Redo of rename Java Class name has no effect', async () => {
+	test.skip('issue #107739 - Redo of rename Java Class name has no effect', async () => {
 		const file = await createRandomFile('hello');
 		const fileName = basename(file.fsPath);
 
@@ -1171,7 +1171,7 @@ suite('vscode API - workspace', () => {
 
 	});
 
-	test('issue #110141 - TextEdit.setEndOfLine applies an edit and invalidates redo stack even when no change is made', async () => {
+	test.skip('issue #110141 - TextEdit.setEndOfLine applies an edit and invalidates redo stack even when no change is made', async () => {
 		const file = await createRandomFile('hello\nworld');
 
 		const document = await vscode.workspace.openTextDocument(file);

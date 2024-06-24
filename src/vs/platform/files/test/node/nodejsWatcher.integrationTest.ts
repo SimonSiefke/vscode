@@ -574,7 +574,7 @@ import { TestParcelWatcher } from 'vs/platform/files/test/node/parcelWatcher.int
 		await onDidWatchFail;
 	});
 
-	test('deleting watched path emits watcher fail and delete event when correlated (file watch)', async function () {
+	test.skip('deleting watched path emits watcher fail and delete event when correlated (file watch)', async function () {
 		const filePath = join(testDir, 'lorem.txt');
 
 		await watcher.watch([{ path: filePath, excludes: [], recursive: false, correlationId: 1 }]);

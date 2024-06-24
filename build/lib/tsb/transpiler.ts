@@ -8,6 +8,7 @@ import * as ts from 'typescript';
 import * as threads from 'node:worker_threads';
 import * as Vinyl from 'vinyl';
 import { cpus } from 'node:os';
+import { fixEsmFile } from './fixEsmFile.js';
 
 interface TranspileReq {
 	readonly tsSrcs: string[];
@@ -90,6 +91,12 @@ class OutputFileNameOracle {
 	}
 }
 
+
+
+function getVsRelativePath(relativePath: string) {
+	return relativePath.replace(/\\/g, '/')
+}
+
 class TranspileWorker {
 
 	private static pool = 1;
@@ -140,11 +147,14 @@ class TranspileWorker {
 
 				const outBase = options.compilerOptions?.outDir ?? file.base;
 				const outPath = outFileFn(file.path);
-
+				const vsRelativePath = getVsRelativePath(file.relative)
+				console.log({ vsRelativePath })
 				outFiles.push(new Vinyl({
 					path: outPath,
 					base: outBase,
-					contents: Buffer.from(jsSrc),
+					contents: Buffer.from(
+						fixEsmFile(vsRelativePath, jsSrc)
+					),
 				}));
 			}
 
@@ -351,11 +361,13 @@ export class SwcTranspiler implements ITranspiler {
 
 			const outBase = this._cmdLine.options.outDir ?? file.base;
 			const outPath = this._outputFileNames.getOutputFileName(file.path);
-
+			const vsRelativePath = getVsRelativePath(file.relative)
 			this.onOutfile!(new Vinyl({
 				path: outPath,
 				base: outBase,
-				contents: Buffer.from(output.code),
+				contents: Buffer.from(
+					fixEsmFile(vsRelativePath, output.code)
+				),
 			}));
 
 			this._logFn('Transpile', `swc took ${Date.now() - t1}ms for ${file.path}`);

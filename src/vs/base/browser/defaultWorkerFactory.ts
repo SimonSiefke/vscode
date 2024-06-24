@@ -5,11 +5,12 @@
 
 import { createTrustedTypesPolicy } from 'vs/base/browser/trustedTypes';
 import { onUnexpectedError } from 'vs/base/common/errors';
-import { COI } from 'vs/base/common/network';
+import { COI, FileAccess } from 'vs/base/common/network';
 import { IWorker, IWorkerCallback, IWorkerFactory, logOnceWebWorkerWarning } from 'vs/base/common/worker/simpleWorker';
 import { Disposable, toDisposable } from 'vs/base/common/lifecycle';
 
 const ttPolicy = createTrustedTypesPolicy('defaultWorkerFactory', { createScriptURL: value => value });
+const isEsm = true;
 
 export function createBlobWorker(blobUrl: string, options?: WorkerOptions): Worker {
 	if (!blobUrl.startsWith('blob:')) {
@@ -34,6 +35,11 @@ function getWorker(label: string): Worker | Promise<Worker> {
 			return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label });
 		}
 	}
+	if (isEsm) {
+		const workerMain = FileAccess.asBrowserUri('vs/base/worker/workerMain.js').toString();
+		const workerUrl = getWorkerBootstrapUrl(workerMain, label);
+		return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label, type: 'module' });
+	}
 	// ESM-comment-begin
 	if (typeof require === 'function') {
 		// check if the JS lives on a different origin
@@ -41,11 +47,11 @@ function getWorker(label: string): Worker | Promise<Worker> {
 		const workerUrl = getWorkerBootstrapUrl(workerMain, label);
 		return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) as unknown as string : workerUrl, { name: label });
 	}
+
 	// ESM-comment-end
 	throw new Error(`You must define a function MonacoEnvironment.getWorkerUrl or MonacoEnvironment.getWorker`);
 }
 
-// ESM-comment-begin
 export function getWorkerBootstrapUrl(scriptPath: string, label: string): string {
 	if (/^((http:)|(https:)|(file:))/.test(scriptPath) && scriptPath.substring(0, globalThis.origin.length) !== globalThis.origin) {
 		// this is the cross-origin case
@@ -72,7 +78,6 @@ export function getWorkerBootstrapUrl(scriptPath: string, label: string): string
 		return `${scriptPath}?${params.toString()}#${label}`;
 	}
 }
-// ESM-comment-end
 
 function isPromiseLike<T>(obj: any): obj is PromiseLike<T> {
 	if (typeof obj.then === 'function') {

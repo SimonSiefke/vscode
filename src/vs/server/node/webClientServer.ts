@@ -15,7 +15,7 @@ import { getMediaMime } from 'vs/base/common/mime';
 import { isLinux } from 'vs/base/common/platform';
 import { ILogService } from 'vs/platform/log/common/log';
 import { IServerEnvironmentService } from 'vs/server/node/serverEnvironmentService';
-import { extname, dirname, join, normalize } from 'vs/base/common/path';
+import { extname, join, normalize } from 'vs/base/common/path';
 import { FileAccess, connectionTokenCookieName, connectionTokenQueryName, Schemas, builtinExtensionsPath } from 'vs/base/common/network';
 import { generateUuid } from 'vs/base/common/uuid';
 import { IProductService } from 'vs/platform/product/common/productService';
@@ -91,7 +91,7 @@ export async function serveFile(filePath: string, cacheControl: CacheControl, lo
 	}
 }
 
-const APP_ROOT = dirname(FileAccess.asFileUri('').fsPath);
+const APP_ROOT = FileAccess.appRootPath();
 
 export class WebClientServer {
 
@@ -364,7 +364,7 @@ export class WebClientServer {
 			return void res.end('Not found');
 		}
 
-		const webWorkerExtensionHostIframeScriptSHA = 'sha256-75NYUUvf+5++1WbfCZOV3PSWxBhONpaxwx+mkOFRv/Y=';
+		const webWorkerExtensionHostIframeScriptSHA = 'sha256-kY9UUYVKqEqLEAVtTROHt1WWQaa6H2T/2qbsULl2xsQ=';
 
 		const cspDirectives = [
 			'default-src \'self\';',

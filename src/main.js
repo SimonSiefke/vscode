@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 //@ts-check
-'use strict';
 
 /**
  * @import { IProductConfiguration } from './vs/base/common/product'
@@ -12,9 +11,24 @@
  * @import { NativeParsedArgs } from './vs/platform/environment/common/argv'
  */
 
-const perf = require('./vs/base/common/performance');
+import { createRequire } from 'module';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+
+import * as perf from './vs/base/common/performance.js';
 perf.mark('code/didStartMain');
 
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import { stripComments } from './vs/base/common/stripComments.js';
+import { addUNCHostToAllowlist, getUNCHost } from './vs/base/node/unc.js';
+import { getUserDataPath } from './vs/platform/environment/node/userDataPath.js';
+
+const bootstrap = require('./bootstrap.cjs');
+const bootstrapNode = require('./bootstrap-node.cjs');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -25,8 +39,13 @@ const { parse } = require('./vs/base/common/jsonc');
 const { getUNCHost, addUNCHostToAllowlist } = require('./vs/base/node/unc');
 /** @type {Partial<IProductConfiguration>} */
 // @ts-ignore
+import { Menu, app, crashReporter, protocol } from 'electron';
+
+
+/**
+ * @type {any}
+ */
 const product = require('../product.json');
-const { app, protocol, crashReporter, Menu } = require('electron');
 
 // Enable portable support
 const portable = bootstrapNode.configurePortable(product);
@@ -128,7 +147,7 @@ const osLocale = processZhLocale(resolved.toLowerCase());
 const metaDataFile = path.join(__dirname, 'nls.metadata.json');
 const locale = getUserDefinedLocale(argvConfig);
 if (locale) {
-	const { getNLSConfiguration } = require('./vs/base/node/languagePacks');
+	const { getNLSConfiguration } = await import('./vs/base/node/languagePacks.js');
 	nlsConfigurationPromise = getNLSConfiguration(product.commit, userDataPath, metaDataFile, locale, osLocale);
 }
 
@@ -167,7 +186,7 @@ app.once('ready', function () {
  * @param {string | undefined} codeCachePath
  * @param {NLSConfiguration} nlsConfig
  */
-function startup(codeCachePath, nlsConfig) {
+async function startup(codeCachePath, nlsConfig) {
 	nlsConfig._languagePackSupport = true;
 
 	process.env['VSCODE_NLS_CONFIG'] = JSON.stringify(nlsConfig);
@@ -175,9 +194,9 @@ function startup(codeCachePath, nlsConfig) {
 
 	// Load main in AMD
 	perf.mark('code/willLoadMainBundle');
-	require('./bootstrap-amd').load('vs/code/electron-main/main', () => {
-		perf.mark('code/didLoadMainBundle');
-	});
+	await import('./bootstrap-esm.js');
+	await import('./vs/code/electron-main/main.js');
+	perf.mark('code/didLoadMainBundle');
 }
 
 async function onReady() {
@@ -670,7 +689,7 @@ async function resolveNlsConfiguration() {
 	// See above the comment about the loader and case sensitiveness
 	appLocale = processZhLocale(appLocale.toLowerCase());
 
-	const { getNLSConfiguration } = require('./vs/base/node/languagePacks');
+	const { getNLSConfiguration } = await import('./vs/base/node/languagePacks.js');
 	nlsConfiguration = await getNLSConfiguration(product.commit, userDataPath, metaDataFile, appLocale, osLocale);
 	return nlsConfiguration ?? { locale: 'en', osLocale, availableLanguages: {} };
 }

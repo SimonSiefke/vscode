@@ -19,6 +19,11 @@ import { realpathSync } from 'vs/base/node/extpath';
 import { ExtHostConsoleForwarder } from 'vs/workbench/api/node/extHostConsoleForwarder';
 import { ExtHostDiskFileSystemProvider } from 'vs/workbench/api/node/extHostDiskFileSystemProvider';
 
+import { createRequire } from 'module';
+import { pathToFileURL } from 'url';
+
+const require = createRequire(import.meta.url);
+
 class NodeModuleRequireInterceptor extends RequireInterceptor {
 
 	protected _installInterceptor(): void {
@@ -101,7 +106,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 		activationTimesBuilder.codeLoadingStart();
 		this._logService.trace(`ExtensionService#loadCommonJSModule ${module.toString(true)}`);
 		this._logService.flush();
-		const extensionId = extension?.identifier.value;
+		const extensionId = extension?.identifier?.value;
 		if (extension) {
 			await this._extHostLocalizationService.initializeLocalizedMessages(extension);
 		}
@@ -109,7 +114,12 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 			if (extensionId) {
 				performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
 			}
-			r = require.__$__nodeRequire<T>(module.fsPath);
+			if (extension?.type === 'module') {
+				const uri = pathToFileURL(module.fsPath).toString()
+				r = await import(uri) as T;
+			} else {
+				r = require(module.fsPath) as T;
+			}
 		} finally {
 			if (extensionId) {
 				performance.mark(`code/extHost/didLoadExtensionCode/${extensionId}`);

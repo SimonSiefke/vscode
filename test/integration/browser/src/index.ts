@@ -3,18 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
-import * as cp from 'child_process';
 import * as playwright from '@playwright/test';
-import * as url from 'url';
-import * as tmp from 'tmp';
-import * as rimraf from 'rimraf';
-import { URI } from 'vscode-uri';
-import * as kill from 'tree-kill';
-import * as minimist from 'minimist';
-import { promisify } from 'util';
+import * as cp from 'child_process';
 import { promises } from 'fs';
+import minimist from 'minimist';
+import { fileURLToPath } from 'node:url';
+import * as path from 'path';
+import rimraf from 'rimraf';
+import * as tmp from 'tmp';
+import kill from 'tree-kill';
+import * as url from 'url';
+import { promisify } from 'util';
+import vscodeUri from 'vscode-uri';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+
+const { URI } = vscodeUri;
 const root = path.join(__dirname, '..', '..', '..', '..');
 const logsPath = path.join(root, '.build', 'logs', 'integration-tests-browser');
 
@@ -126,6 +131,10 @@ async function runTestsInBrowser(browserType: BrowserType, endpoint: url.UrlWith
 
 	const host = endpoint.host;
 	const protocol = 'vscode-remote';
+
+	if (!args.workspacePath) {
+		throw new Error('workspacePath is required')
+	}
 
 	const testWorkspacePath = URI.file(path.resolve(args.workspacePath)).path;
 	const testExtensionUri = url.format({ pathname: URI.file(path.resolve(args.extensionDevelopmentPath)).path, protocol, host, slashes: true });

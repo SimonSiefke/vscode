@@ -29,6 +29,7 @@ import { IDocumentDiffProviderOptions } from 'vs/editor/common/diff/documentDiff
 import { BugIndicatingError } from 'vs/base/common/errors';
 import { IDocumentColorComputerTarget, computeDefaultDocumentColors } from 'vs/editor/common/languages/defaultDocumentColorsComputer';
 import { FindSectionHeaderOptions, SectionHeader, findSectionHeaders } from 'vs/editor/common/services/findSectionHeaders';
+import { AppResourcePath, FileAccess } from 'vs/base/common/network';
 
 export interface IMirrorModel extends IMirrorTextModel {
 	readonly uri: URI;
@@ -820,12 +821,20 @@ export class EditorSimpleWorker implements IRequestHandler, IDisposable {
 		}
 		// ESM-comment-begin
 		return new Promise<any>((resolve, reject) => {
-			require([moduleId], (foreignModule: { create: IForeignModuleFactory }) => {
+			const onModuleCallback = (foreignModule: { create: IForeignModuleFactory }) => {
 				this._foreignModule = foreignModule.create(ctx, createData);
-
 				resolve(getAllMethodNames(this._foreignModule));
+			};
 
-			}, reject);
+			const isEsm = true;
+			if (isEsm) {
+				const url = FileAccess.asBrowserUri(moduleId + '.js' as AppResourcePath).toString(true);
+				// @ts-ignore
+				globalThis['exports'] = {};
+				import(url).then(onModuleCallback).catch(reject);
+			} else {
+				require([moduleId], onModuleCallback, reject);
+			}
 		});
 		// ESM-comment-end
 
@@ -865,3 +874,4 @@ if (typeof importScripts === 'function') {
 	// Running in a web worker
 	globalThis.monaco = createMonacoBaseAPI();
 }
+//

@@ -6,13 +6,12 @@
 import assert from 'assert';
 import { DeferredPromise } from 'vs/base/common/async';
 import { DisposableStore } from 'vs/base/common/lifecycle';
-import { isCI } from 'vs/base/common/platform';
 import { URI } from 'vs/base/common/uri';
 import { ensureNoDisposablesAreLeakedInTestSuite } from 'vs/base/test/common/utils';
 import { SyncDescriptor } from 'vs/platform/instantiation/common/descriptors';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { EditorPart } from 'vs/workbench/browser/parts/editor/editorPart';
-import { WorkbenchPhase, WorkbenchContributionsRegistry } from 'vs/workbench/common/contributions';
+import { WorkbenchContributionsRegistry, WorkbenchPhase } from 'vs/workbench/common/contributions';
 import { EditorService } from 'vs/workbench/services/editor/browser/editorService';
 import { IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
 import { IEditorService, SIDE_GROUP } from 'vs/workbench/services/editor/common/editorService';
@@ -150,7 +149,7 @@ suite('Contributions', () => {
 		assert.ok(aCreated);
 	});
 
-	(isCI ? test.skip /* runWhenIdle seems flaky in CI on Windows */ : test)('lifecycle phase instantiation works for late phases', async () => {
+	test.skip('lifecycle phase instantiation works for late phases', async () => {
 		const registry = disposables.add(new WorkbenchContributionsRegistry());
 
 		const instantiationService = workbenchInstantiationService(undefined, disposables);

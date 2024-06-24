@@ -102,6 +102,17 @@ const RULES = [
             '@types/node' // no node.js
         ]
     },
+    // Common: vs/base/common/platform.ts
+    {
+        target: '**/vs/base/common/root.ts',
+        allowedTypes: [
+            ...CORE_TYPES,
+            // Safe access to postMessage() and friends
+            'MessageEvent',
+        ],
+        disallowedTypes: [],
+        disallowedDefinitions: []
+    },
     // Common: vs/base/common/async.ts
     {
         target: '**/vs/base/common/async.ts',
@@ -167,9 +178,16 @@ const RULES = [
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            'lib.dom.d.ts', // no DOM
             '@types/node' // no node.js
         ]
+    },
+    {
+        target: '**/vs/workbench/api/node/extHostExtensionService.ts',
+        allowedTypes: [
+            ...CORE_TYPES,
+        ],
+        disallowedTypes: NATIVE_TYPES,
+        disallowedDefinitions: []
     },
     // Common: vs/base/parts/sandbox/electron-sandbox/preload.js
     {

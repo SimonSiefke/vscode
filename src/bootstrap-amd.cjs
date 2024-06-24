@@ -28,9 +28,8 @@ if (process.env['VSCODE_DEV']) {
 globalThis._VSCODE_PACKAGE_JSON = require('../package.json');
 
 // @ts-ignore
-const loader = require('./vs/loader');
-const bootstrap = require('./bootstrap');
-const performance = require('./vs/base/common/performance');
+const loader = require('./vs/loader.cjs');
+const bootstrap = require('./bootstrap.cjs');
 
 // Bootstrap: NLS
 const nlsConfig = bootstrap.setupNLS();

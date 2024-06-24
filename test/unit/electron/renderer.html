@@ -1,35 +1,65 @@
 <html>
+	<head>
+		<meta charset="utf-8" />
+		<title>VSCode Tests</title>
+		<link href="../../../node_modules/mocha/mocha.css" rel="stylesheet" />
+	</head>
 
-<head>
-	<meta charset="utf-8">
-	<title>VSCode Tests</title>
-	<link href="../../../node_modules/mocha/mocha.css" rel="stylesheet" />
-</head>
+	<body>
+		<div id="mocha"></div>
+		<script type="importmap">
+			{
+				"imports": {
+					"@parcel/watcher": "./import-map/parcel-watcher.js",
+					"@vscode/ripgrep": "./import-map/vscode-ripgrep.js",
+					"@vscode/sqlite3": "./import-map/vscode-sqlite3.js",
+					"@vscode/deviceid": "./import-map/vscode-device-id.js",
+					"@vscode/windows-ca-certs": "./import-map/vscode-windows-ca-certs.js",
+					"@vscode/windows-process-tree": "./import-map/vscode-windows-process-tree.js",
+					"@vscode/windows-registry": "./import-map/vscode-windows-registry.js",
+					"@xterm/addon-canvas": "./import-map/xterm-addon-canvas.js",
+					"@xterm/headless": "./import-map/xterm-headless.js",
+					"@xterm/xterm": "./import-map/xterm.js",
+					"assert": "./import-map/assert.js",
+					"child_process": "./import-map/child_process.js",
+					"cookie": "./import-map/cookie.js",
+					"crypto": "./import-map/crypto.js",
+					"electron": "./import-map/electron.js",
+					"events": "./import-map/events.js",
+					"fs": "./import-map/fs.js",
+					"graceful-fs": "./import-map/graceful-fs.js",
+					"istanbul-lib-coverage": "./import-map/istanbul-lib-coverage.js",
+					"istanbul-lib-instrument": "./import-map/istanbul-lib-instrument.js",
+					"istanbul-lib-report": "./import-map/istanbul-lib-report.js",
+					"istanbul-lib-source-maps": "./import-map/istanbul-lib-source-maps.js",
+					"istanbul-reports": "./import-map/istanbul-reports.js",
+					"jschardet": "./import-map/jschardet.js",
+					"kerberos": "./import-map/kerberos.js",
+					"minimatch": "./import-map/minimatch.js",
+					"minimist": "./import-map/minimist.js",
+					"mocha": "./import-map/mocha.js",
+					"native-is-elevated": "./import-map/native-is-elevated.js",
+					"native-keymap": "./import-map/native-keymap.js",
+					"native-watchdog": "./import-map/native-watchdog.js",
+					"net": "./import-map/net.js",
+					"node:os": "./import-map/os.js",
+					"node:path": "./import-map/path.js",
+					"os": "./import-map/os.js",
+					"path": "./import-map/path.js",
+					"sinon-test": "./import-map/sinon-test.js",
+					"sinon": "./import-map/sinon.js",
+					"stream": "./import-map/stream.js",
+					"string_decoder": "./import-map/string_decoder.js",
+					"url": "./import-map/url.js",
+					"util": "./import-map/util.js",
+					"vscode-regexpp": "./import-map/vscode-regexpp.js",
+					"windows-foreground-love": "./import-map/windows-foreground-love.js",
+					"yauzl": "./import-map/yauzl.js",
+					"zlib": "./import-map/zlib.js"
+				}
+			}
+		</script>
 
-<body>
-	<div id="mocha"></div>
-	<script src="../../../node_modules/mocha/mocha.js"></script>
-
-	<script>
-
-		// !!! DO NOT CHANGE !!!
-		// Our unit tests may run in environments without
-		// display (e.g. from builds) and tests may by
-		// accident bring up native dialogs or even open
-		// windows. This we cannot allow as it may crash
-		// the test run.
-		// !!! DO NOT CHANGE !!!
-		window.open = function () { throw new Error('window.open() is not supported in tests!'); };
-		window.alert = function () { throw new Error('window.alert() is not supported in tests!'); }
-		window.confirm = function () { throw new Error('window.confirm() is not supported in tests!'); }
-
-		mocha.setup({
-			ui: 'tdd',
-			timeout: typeof process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] === 'string' ? 30000 : 5000,
-			forbidOnly: typeof process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] === 'string' // disallow .only() when running on build machine
-		});
-		require('./renderer');
-	</script>
-</body>
-
+		<script type="module" src="renderer.js"></script>
+	</body>
 </html>

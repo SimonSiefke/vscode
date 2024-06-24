@@ -5,9 +5,11 @@
 	],
 	"ban-eval-calls": [
 		"vs/workbench/api/worker/extHostExtensionService.ts",
-		"vs/base/worker/workerMain.ts"
+		"vs/base/worker/workerMain.ts",
+		"vs/loader.cjs"
 	],
 	"ban-function-calls": [
+		"vs/loader.cjs",
 		"vs/workbench/api/worker/extHostExtensionService.ts",
 		"vs/base/worker/workerMain.ts",
 		"vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.ts",
@@ -26,6 +28,7 @@
 	],
 	"ban-worker-importscripts": [
 		"vs/amdX.ts",
+		"vs/loader.cjs",
 		"vs/workbench/services/extensions/worker/polyfillNestedWorker.ts",
 		"vs/workbench/api/worker/extensionHostWorker.ts",
 		"vs/base/worker/workerMain.ts"
@@ -34,10 +37,6 @@
 		"vs/base/browser/markdownRenderer.ts",
 		"vs/base/test/browser/markdownRenderer.test.ts"
 	],
-	"ban-element-setattribute": [
-		"**/*.ts"
-	],
-	"ban-element-insertadjacenthtml": [
-		"**/*.ts"
-	]
+	"ban-element-setattribute": ["**/*.ts", "**/*.cts", "vs/loader.cjs"],
+	"ban-element-insertadjacenthtml": ["**/*.ts", "**/*.cts"]
 }

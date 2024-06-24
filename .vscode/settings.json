@@ -2,15 +2,7 @@
 	"editor.insertSpaces": false,
 	"files.trimTrailingWhitespace": true,
 	"files.exclude": {
-		".git": true,
-		".build": true,
-		".profile-oss": true,
-		"**/.DS_Store": true,
-		".vscode-test": true,
-		"cli/target": true,
-		"build/**/*.js": {
-			"when": "$(basename).ts"
-		}
+		".git": true
 	},
 	"files.associations": {
 		"cglicenses.json": "jsonc",
@@ -32,26 +24,18 @@
 		"src/vs/base/test/common/filters.perf.data.js": true,
 		"src/vs/base/test/node/uri.perf.data.txt": true,
 		"src/vs/workbench/api/test/browser/extHostDocumentData.test.perf-data.ts": true,
-		"src/vs/editor/test/node/diffing/fixtures/**": true,
+		"src/vs/editor/test/node/diffing/fixtures/**": true
 	},
 	"files.readonlyInclude": {
-		"**/node_modules/**/*.*": true,
-		"**/yarn.lock": true,
-		"**/Cargo.lock": true,
-		"src/vs/workbench/workbench.web.main.css": true,
+		"build/**/*.js": true,
+		"extensions/**/dist/**": true,
 		"src/vs/workbench/workbench.desktop.main.css": true,
 		"src/vs/workbench/workbench.desktop.main.nls.js": true,
+		"src/vs/workbench/workbench.web.main.css": true,
 		"src/vs/workbench/workbench.web.main.nls.js": true,
-		"build/**/*.js": true,
-		"out/**": true,
-		"out-build/**": true,
-		"out-vscode/**": true,
-		"out-vscode-reh/**": true,
-		"extensions/**/dist/**": true,
-		"extensions/**/out/**": true,
-		"test/smoke/out/**": true,
 		"test/automation/out/**": true,
 		"test/integration/browser/out/**": true,
+		"test/smoke/out/**": true
 	},
 	"files.readonlyExclude": {
 		"build/builtin/*.js": true,
@@ -80,28 +64,20 @@
 	"typescript.preferences.quoteStyle": "single",
 	"json.schemas": [
 		{
-			"fileMatch": [
-				"cgmanifest.json"
-			],
-			"url": "https://json.schemastore.org/component-detection-manifest.json",
+			"fileMatch": ["cgmanifest.json"],
+			"url": "https://json.schemastore.org/component-detection-manifest.json"
 		},
 		{
-			"fileMatch": [
-				"cglicenses.json"
-			],
+			"fileMatch": ["cglicenses.json"],
 			"url": "./.vscode/cglicenses.schema.json"
 		}
 	],
 	"git.ignoreLimitWarning": true,
-	"git.branchProtection": [
-		"main",
-		"distro",
-		"release/*"
-	],
+	"git.branchProtection": ["main", "distro", "release/*"],
 	"git.branchProtectionPrompt": "alwaysCommitToNewBranch",
 	"git.branchRandomName.enable": true,
 	"git.pullBeforeCheckout": true,
-	"git.mergeEditor": true,
+	"git.mergeEditor": false,
 	"remote.extensionKind": {
 		"msjsdiag.debugger-for-chrome": "workspace"
 	},
@@ -120,11 +96,9 @@
 	},
 	"[rust]": {
 		"editor.defaultFormatter": "rust-lang.rust-analyzer",
-		"editor.formatOnSave": true,
+		"editor.formatOnSave": true
 	},
-	"rust-analyzer.linkedProjects": [
-		"cli/Cargo.toml"
-	],
+	"rust-analyzer.linkedProjects": ["cli/Cargo.toml"],
 	"typescript.tsc.autoDetect": "off",
 	"testing.autoRun.mode": "rerun",
 	"conventionalCommits.scopes": [
@@ -145,15 +119,11 @@
 		]
 	},
 	"extension-test-runner.debugOptions": {
-		"outFiles": [
-			"${workspaceFolder}/extensions/*/out/**/*.js",
-		]
+		"outFiles": ["${workspaceFolder}/extensions/*/out/**/*.js"]
 	},
 	"githubPullRequests.assignCreated": "${user}",
 	"githubPullRequests.defaultMergeMethod": "squash",
-	"githubPullRequests.ignoredPullRequestBranches": [
-		"main"
-	],
+	"githubPullRequests.ignoredPullRequestBranches": ["main"],
 	"application.experimental.rendererProfiling": true,
 	"editor.experimental.asyncTokenization": true,
 	"editor.experimental.asyncTokenizationVerification": true,

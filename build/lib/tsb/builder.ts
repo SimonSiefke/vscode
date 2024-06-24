@@ -11,6 +11,7 @@ import * as colors from 'ansi-colors';
 import * as ts from 'typescript';
 import * as Vinyl from 'vinyl';
 import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
+import { fixEsmFile } from './fixEsmFile.js';
 
 export interface IConfiguration {
 	logFn: (topic: string, message: string) => void;
@@ -35,6 +36,21 @@ export interface ITypeScriptBuilder {
 
 function normalize(path: string): string {
 	return path.replace(/\\/g, '/');
+}
+
+
+let vsRoot = path.join(__dirname, '..', '..', '..', 'src')
+
+if (process.platform === 'win32') {
+	vsRoot = vsRoot.replace(/\\/g, '/')
+}
+
+function getVsRelativePath(absolutePath: string) {
+	absolutePath = absolutePath.replace('/out/vs/vs/', '/out/vs/')
+	if (!absolutePath.startsWith(vsRoot)) {
+		return ''
+	}
+	return absolutePath.slice(vsRoot.length + 1)
 }
 
 export function createTypeScriptBuilder(config: IConfiguration, projectFile: string, cmd: ts.ParsedCommandLine): ITypeScriptBuilder {
@@ -144,9 +160,11 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 							}
 						}
 
+						const vsRelativePath = getVsRelativePath(fileName)
+						const contents = vsRelativePath ? fixEsmFile(vsRelativePath, file.text) : file.text
 						const vinyl = new Vinyl({
 							path: file.name,
-							contents: Buffer.from(file.text),
+							contents: Buffer.from(contents),
 							base: !config._emitWithoutBasePath && baseFor(host.getScriptSnapshot(fileName)) || undefined
 						});
 

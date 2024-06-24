@@ -19,7 +19,7 @@ const filter = require('gulp-filter');
 const util = require('./lib/util');
 const { getVersion } = require('./lib/getVersion');
 const task = require('./lib/task');
-const buildfile = require('../src/buildfile');
+const buildfile = require('./buildfile.cjs');
 const optimize = require('./lib/optimize');
 const root = path.dirname(__dirname);
 const commit = getVersion(root);
@@ -63,7 +63,7 @@ const vscodeResources = [
 	'out-build/vs/base/common/performance.js',
 	'out-build/vs/base/node/{stdForkStart.js,terminateProcess.sh,cpuUsage.sh,ps.sh}',
 	'out-build/vs/base/browser/ui/codicons/codicon/**',
-	'out-build/vs/base/parts/sandbox/electron-sandbox/preload.js',
+	'out-build/vs/base/parts/sandbox/electron-sandbox/preload.cjs',
 	'out-build/vs/base/parts/sandbox/electron-sandbox/preload-aux.js',
 	'out-build/vs/workbench/browser/media/*-theme.css',
 	'out-build/vs/workbench/contrib/debug/**/*.json',
@@ -84,9 +84,9 @@ const vscodeResources = [
 // be inlined into the target window file in this order
 // and they depend on each other in this way.
 const windowBootstrapFiles = [
-	'out-build/bootstrap.js',
-	'out-build/vs/loader.js',
-	'out-build/bootstrap-window.js'
+	'out-build/bootstrap.cjs',
+	'out-build/vs/loader.cjs',
+	'out-build/bootstrap-window.cjs'
 ];
 
 const optimizeVSCodeTask = task.define('optimize-vscode', task.series(
@@ -208,7 +208,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
 		const out = sourceFolderName;
 
 		const checksums = computeChecksums(out, [
-			'vs/base/parts/sandbox/electron-sandbox/preload.js',
+			'vs/base/parts/sandbox/electron-sandbox/preload.cjs',
 			'vs/workbench/workbench.desktop.main.js',
 			'vs/workbench/workbench.desktop.main.css',
 			'vs/workbench/api/node/extensionHostProcess.js',

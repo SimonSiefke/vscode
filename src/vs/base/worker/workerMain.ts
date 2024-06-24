@@ -14,6 +14,7 @@
 	}
 	const monacoEnvironment: IMonacoEnvironment | undefined = (globalThis as any).MonacoEnvironment;
 	const monacoBaseUrl = monacoEnvironment && monacoEnvironment.baseUrl ? monacoEnvironment.baseUrl : '../../../';
+	const isEsm = true;
 
 	function createTrustedTypesPolicy<Options extends TrustedTypePolicyOptions>(
 		policyName: string,
@@ -64,42 +65,36 @@
 		}
 	}
 
-	function loadAMDLoader() {
-		return new Promise<void>((resolve, reject) => {
-			if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
-				return resolve();
+	async function loadAMDLoader() {
+		if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
+			return;
+		}
+		const loaderSrc: string | TrustedScriptURL = monacoBaseUrl + 'vs/loader.cjs';
+		console.log({ loaderSrc })
+		const isCrossOrigin = (/^((http:)|(https:)|(file:))/.test(loaderSrc) && loaderSrc.substring(0, globalThis.origin.length) !== globalThis.origin);
+		if (!isCrossOrigin && canUseEval()) {
+			// use `fetch` if possible because `importScripts`
+			// is synchronous and can lead to deadlocks on Safari
+			const response = await fetch(loaderSrc)
+			if (response.status !== 200) {
+				throw new Error(response.statusText);
 			}
-			const loaderSrc: string | TrustedScriptURL = monacoBaseUrl + 'vs/loader.js';
+			let text = await response.text();
+			text = `${text}\n//# sourceURL=${loaderSrc}`;
+			const func = (
+				trustedTypesPolicy
+					? globalThis.eval(trustedTypesPolicy.createScript('', text) as unknown as string) // CodeQL [SM01632] fetch + eval is used on the web worker instead of importScripts if possible because importScripts is synchronous and we observed deadlocks on Safari
+					: new Function(text) // CodeQL [SM01632] fetch + eval is used on the web worker instead of importScripts if possible because importScripts is synchronous and we observed deadlocks on Safari
+			);
+			func.call(globalThis);
+			return;
+		}
 
-			const isCrossOrigin = (/^((http:)|(https:)|(file:))/.test(loaderSrc) && loaderSrc.substring(0, globalThis.origin.length) !== globalThis.origin);
-			if (!isCrossOrigin && canUseEval()) {
-				// use `fetch` if possible because `importScripts`
-				// is synchronous and can lead to deadlocks on Safari
-				fetch(loaderSrc).then((response) => {
-					if (response.status !== 200) {
-						throw new Error(response.statusText);
-					}
-					return response.text();
-				}).then((text) => {
-					text = `${text}\n//# sourceURL=${loaderSrc}`;
-					const func = (
-						trustedTypesPolicy
-							? globalThis.eval(trustedTypesPolicy.createScript('', text) as unknown as string) // CodeQL [SM01632] fetch + eval is used on the web worker instead of importScripts if possible because importScripts is synchronous and we observed deadlocks on Safari
-							: new Function(text) // CodeQL [SM01632] fetch + eval is used on the web worker instead of importScripts if possible because importScripts is synchronous and we observed deadlocks on Safari
-					);
-					func.call(globalThis);
-					resolve();
-				}).then(undefined, reject);
-				return;
-			}
-
-			if (trustedTypesPolicy) {
-				importScripts(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
-			} else {
-				importScripts(loaderSrc as string);
-			}
-			resolve();
-		});
+		if (trustedTypesPolicy) {
+			importScripts(trustedTypesPolicy.createScriptURL(loaderSrc) as unknown as string);
+		} else {
+			importScripts(loaderSrc as string);
+		}
 	}
 
 	function configureAMDLoader() {
@@ -111,20 +106,30 @@
 		});
 	}
 
-	function loadCode(moduleId: string) {
+	function handleModuleLoaded(module: any) {
+		const messageHandler = module.create((msg: any, transfer?: Transferable[]) => {
+			(<any>globalThis).postMessage(msg, transfer);
+		}, null);
+
+		globalThis.onmessage = (e: MessageEvent) => messageHandler.onmessage(e.data, e.ports);
+		while (beforeReadyMessages.length > 0) {
+			const e = beforeReadyMessages.shift()!;
+			messageHandler.onmessage(e.data, e.ports);
+		}
+	}
+
+	async function loadCode(moduleId: string) {
+		if (isEsm) {
+			const modulePath = new URL('../../../' + moduleId + '.js', import.meta.url).toString();
+			const module = await import(modulePath);
+			handleModuleLoaded((module));
+			return;
+		}
 		loadAMDLoader().then(() => {
 			configureAMDLoader();
 			require([moduleId], function (ws) {
 				setTimeout(function () {
-					const messageHandler = ws.create((msg: any, transfer?: Transferable[]) => {
-						(<any>globalThis).postMessage(msg, transfer);
-					}, null);
-
-					globalThis.onmessage = (e: MessageEvent) => messageHandler.onmessage(e.data, e.ports);
-					while (beforeReadyMessages.length > 0) {
-						const e = beforeReadyMessages.shift()!;
-						messageHandler.onmessage(e.data, e.ports);
-					}
+					handleModuleLoaded(ws);
 				}, 0);
 			});
 		});
@@ -133,7 +138,7 @@
 	// If the loader is already defined, configure it immediately
 	// This helps in the bundled case, where we must load nls files
 	// and they need a correct baseUrl to be loaded.
-	if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd) {
+	if (typeof (<any>globalThis).define === 'function' && (<any>globalThis).define.amd && !isEsm) {
 		configureAMDLoader();
 	}
 
