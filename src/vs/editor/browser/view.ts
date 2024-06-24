@@ -154,12 +154,8 @@ export class View extends ViewEventHandler {
 		this._viewParts.push(this._viewZones);
 
 		// Decorations overview ruler
-		const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
-		this._viewParts.push(decorationsOverviewRuler);
 
 
-		const scrollDecoration = new ScrollDecorationViewPart(this._context);
-		this._viewParts.push(scrollDecoration);
 
 		const contentViewOverlays = new ContentViewOverlays(this._context);
 		this._viewParts.push(contentViewOverlays);
@@ -208,10 +204,6 @@ export class View extends ViewEventHandler {
 
 		// -------------- Wire dom nodes up
 
-		if (decorationsOverviewRuler) {
-			const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
-			overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
-		}
 
 		this._linesContent.appendChild(contentViewOverlays.getDomNode());
 		this._linesContent.appendChild(rulers.domNode);
@@ -221,7 +213,6 @@ export class View extends ViewEventHandler {
 		this._linesContent.appendChild(this._viewCursors.getDomNode());
 		this._overflowGuardContainer.appendChild(margin.getDomNode());
 		this._overflowGuardContainer.appendChild(this._scrollbar.getDomNode());
-		this._overflowGuardContainer.appendChild(scrollDecoration.getDomNode());
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
 		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
