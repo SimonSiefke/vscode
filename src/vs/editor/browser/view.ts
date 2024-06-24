@@ -75,7 +75,6 @@ export interface IGlyphMarginWidgetData {
 
 export class View extends ViewEventHandler {
 
-	private readonly _scrollbar: EditorScrollbar;
 	private readonly _context: ViewContext;
 	private _selections: Selection[];
 
@@ -85,8 +84,6 @@ export class View extends ViewEventHandler {
 	// These are parts, but we must do some API related calls on them, so we keep a reference
 	private readonly _viewZones: ViewZones;
 	private readonly _contentWidgets: ViewContentWidgets;
-	private readonly _overlayWidgets: ViewOverlayWidgets;
-	private readonly _glyphMarginWidgets: GlyphMarginWidgets;
 	private readonly _viewCursors: ViewCursors;
 	private readonly _viewParts: ViewPart[];
 
@@ -96,7 +93,6 @@ export class View extends ViewEventHandler {
 	// Dom nodes
 	private readonly _linesContent: FastDomNode<HTMLElement>;
 	public readonly domNode: FastDomNode<HTMLElement>;
-	private readonly _overflowGuardContainer: FastDomNode<HTMLElement>;
 
 	// Actual mutable state
 	private _shouldRecomputeGlyphMarginLanes: boolean = false;
@@ -139,12 +135,7 @@ export class View extends ViewEventHandler {
 		// Set role 'code' for better screen reader support https://github.com/microsoft/vscode/issues/93438
 		this.domNode.setAttribute('role', 'code');
 
-		this._overflowGuardContainer = createFastDomNode(document.createElement('div'));
-		PartFingerprints.write(this._overflowGuardContainer, PartFingerprint.OverflowGuard);
-		this._overflowGuardContainer.setClassName('overflow-guard');
 
-		this._scrollbar = new EditorScrollbar(this._context, this._linesContent, this.domNode, this._overflowGuardContainer);
-		this._viewParts.push(this._scrollbar);
 
 		// View Lines
 		this._viewLines = new ViewLines(this._context, this._linesContent);
@@ -177,13 +168,10 @@ export class View extends ViewEventHandler {
 		marginViewOverlays.addDynamicOverlay(new LineNumbersOverlay(this._context));
 
 		// Glyph margin widgets
-		this._glyphMarginWidgets = new GlyphMarginWidgets(this._context);
-		this._viewParts.push(this._glyphMarginWidgets);
 
 		const margin = new Margin(this._context);
 		margin.getDomNode().appendChild(this._viewZones.marginDomNode);
 		margin.getDomNode().appendChild(marginViewOverlays.getDomNode());
-		margin.getDomNode().appendChild(this._glyphMarginWidgets.domNode);
 		this._viewParts.push(margin);
 
 		// Content widgets
@@ -194,8 +182,6 @@ export class View extends ViewEventHandler {
 		this._viewParts.push(this._viewCursors);
 
 		// Overlay widgets
-		this._overlayWidgets = new ViewOverlayWidgets(this._context, this.domNode);
-		this._viewParts.push(this._overlayWidgets);
 
 		const rulers = new Rulers(this._context);
 		this._viewParts.push(rulers);
@@ -209,8 +195,6 @@ export class View extends ViewEventHandler {
 		// -------------- Wire dom nodes up
 
 		if (decorationsOverviewRuler) {
-			const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
-			overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
 		}
 
 		this._linesContent.appendChild(contentViewOverlays.getDomNode());
@@ -219,22 +203,11 @@ export class View extends ViewEventHandler {
 		this._linesContent.appendChild(this._viewLines.getDomNode());
 		this._linesContent.appendChild(this._contentWidgets.domNode);
 		this._linesContent.appendChild(this._viewCursors.getDomNode());
-		this._overflowGuardContainer.appendChild(margin.getDomNode());
-		this._overflowGuardContainer.appendChild(this._scrollbar.getDomNode());
-		this._overflowGuardContainer.appendChild(scrollDecoration.getDomNode());
-		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
-		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
-		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
-		this._overflowGuardContainer.appendChild(minimap.getDomNode());
-		this._overflowGuardContainer.appendChild(blockOutline.domNode);
-		this.domNode.appendChild(this._overflowGuardContainer);
 
 		if (overflowWidgetsDomNode) {
 			overflowWidgetsDomNode.appendChild(this._contentWidgets.overflowingContentWidgetsDomNode.domNode);
-			overflowWidgetsDomNode.appendChild(this._overlayWidgets.overflowingOverlayWidgetsDomNode.domNode);
 		} else {
 			this.domNode.appendChild(this._contentWidgets.overflowingContentWidgetsDomNode);
-			this.domNode.appendChild(this._overlayWidgets.overflowingOverlayWidgetsDomNode);
 		}
 
 		this._applyLayout();
@@ -258,11 +231,6 @@ export class View extends ViewEventHandler {
 		}));
 
 		// Add all glyph margin widgets
-		glyphs = glyphs.concat(this._glyphMarginWidgets.getWidgets().map((widget) => {
-			const range = model.validateRange(widget.preference.range);
-			maxLineNumber = Math.max(maxLineNumber, range.endLineNumber);
-			return { range, lane: widget.preference.lane };
-		}));
 
 		// Sorted by their start position
 		glyphs.sort((a, b) => Range.compareRangesUsingStarts(a.range, b.range));
@@ -336,8 +304,6 @@ export class View extends ViewEventHandler {
 		this.domNode.setWidth(layoutInfo.width);
 		this.domNode.setHeight(layoutInfo.height);
 
-		this._overflowGuardContainer.setWidth(layoutInfo.width);
-		this._overflowGuardContainer.setHeight(layoutInfo.height);
 
 		// https://stackoverflow.com/questions/38905916/content-in-google-chrome-larger-than-16777216-px-not-being-rendered
 		this._linesContent.setWidth(16777216);
@@ -524,11 +490,9 @@ export class View extends ViewEventHandler {
 	// --- BEGIN CodeEditor helpers
 
 	public delegateVerticalScrollbarPointerDown(browserEvent: PointerEvent): void {
-		this._scrollbar.delegateVerticalScrollbarPointerDown(browserEvent);
 	}
 
 	public delegateScrollFromMouseWheelEvent(browserEvent: IMouseWheelEvent) {
-		this._scrollbar.delegateScrollFromMouseWheelEvent(browserEvent);
 	}
 
 	public restoreState(scrollPosition: { scrollLeft: number; scrollTop: number }): void {
@@ -628,40 +592,26 @@ export class View extends ViewEventHandler {
 	}
 
 	public addOverlayWidget(widgetData: IOverlayWidgetData): void {
-		this._overlayWidgets.addWidget(widgetData.widget);
 		this.layoutOverlayWidget(widgetData);
 		this._scheduleRender();
 	}
 
 	public layoutOverlayWidget(widgetData: IOverlayWidgetData): void {
-		const shouldRender = this._overlayWidgets.setWidgetPosition(widgetData.widget, widgetData.position);
-		if (shouldRender) {
-			this._scheduleRender();
-		}
 	}
 
 	public removeOverlayWidget(widgetData: IOverlayWidgetData): void {
-		this._overlayWidgets.removeWidget(widgetData.widget);
 		this._scheduleRender();
 	}
 
 	public addGlyphMarginWidget(widgetData: IGlyphMarginWidgetData): void {
-		this._glyphMarginWidgets.addWidget(widgetData.widget);
 		this._shouldRecomputeGlyphMarginLanes = true;
 		this._scheduleRender();
 	}
 
 	public layoutGlyphMarginWidget(widgetData: IGlyphMarginWidgetData): void {
-		const newPreference = widgetData.position;
-		const shouldRender = this._glyphMarginWidgets.setWidgetPosition(widgetData.widget, newPreference);
-		if (shouldRender) {
-			this._shouldRecomputeGlyphMarginLanes = true;
-			this._scheduleRender();
-		}
 	}
 
 	public removeGlyphMarginWidget(widgetData: IGlyphMarginWidgetData): void {
-		this._glyphMarginWidgets.removeWidget(widgetData.widget);
 		this._shouldRecomputeGlyphMarginLanes = true;
 		this._scheduleRender();
 	}
