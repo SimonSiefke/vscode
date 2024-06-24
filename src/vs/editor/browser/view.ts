@@ -390,6 +390,14 @@ export class View extends ViewEventHandler {
 		}
 
 		super.dispose();
+
+		while (this.domNode.domNode.firstChild) {
+			this.domNode.domNode.firstChild.remove();
+		}
+		// @ts-ignore
+		this.domNode.domNode = null;
+		// @ts-ignore
+		this.domNode = null;
 	}
 
 	private _scheduleRender(): void {
