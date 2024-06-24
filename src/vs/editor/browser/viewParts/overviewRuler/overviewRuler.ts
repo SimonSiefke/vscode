@@ -42,6 +42,16 @@ export class OverviewRuler extends ViewEventHandler implements IOverviewRuler {
 	public override dispose(): void {
 		this._context.removeEventHandler(this);
 		super.dispose();
+		// @ts-ignore
+		this._context = null;
+		// @ts-ignore
+		this._zoneManager = null;
+		// @ts-ignore
+		this._domNode.domNode = null;
+		// @ts-ignore
+		this._domNode = null;
+		// @ts-ignore
+		this._context = null;
 	}
 
 	// ---- begin view event handlers

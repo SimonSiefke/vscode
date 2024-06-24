@@ -485,6 +485,8 @@ export class TextAreaHandler extends ViewPart {
 
 	public override dispose(): void {
 		super.dispose();
+		// @ts-ignore
+		this._textAreaInput = null;
 	}
 
 	private _getAndroidWordAtPosition(position: Position): [string, number] {

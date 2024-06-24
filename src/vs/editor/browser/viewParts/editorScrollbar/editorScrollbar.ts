@@ -101,6 +101,10 @@ export class EditorScrollbar extends ViewPart {
 
 	public override dispose(): void {
 		super.dispose();
+		// @ts-ignore
+		this._context.viewModel = null;
+		// @ts-ignore
+		this._context = null;
 	}
 
 	private _setLayout(): void {

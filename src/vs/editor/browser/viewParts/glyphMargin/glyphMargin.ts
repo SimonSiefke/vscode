@@ -160,6 +160,10 @@ export class GlyphMarginWidgets extends ViewPart {
 		this._decorationGlyphsToRender = [];
 		this._widgets = {};
 		super.dispose();
+		// @ts-ignore
+		this._managedDomNodes = null;
+		// @ts-ignore
+		this._context = null;
 	}
 
 	public getWidgets(): IWidgetData[] {

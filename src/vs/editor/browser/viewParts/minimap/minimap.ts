@@ -1340,6 +1340,10 @@ class InnerMinimap extends Disposable {
 		this._sliderTouchMoveListener.dispose();
 		this._sliderTouchEndListener.dispose();
 		super.dispose();
+		// @ts-ignore
+		this._domNode.domNode = null;
+		// @ts-ignore
+		this._domNode = null;
 	}
 
 	private _getMinimapDomNodeClassName(): string {
@@ -2192,4 +2196,3 @@ class ContiguousLineMap<T> {
 		return this._values[lineNumber - this._startLineNumber];
 	}
 }
-

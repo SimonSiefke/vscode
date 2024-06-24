@@ -268,6 +268,8 @@ export class DecorationsOverviewRuler extends ViewPart {
 	public override dispose(): void {
 		super.dispose();
 		this._tokensColorTrackerListener.dispose();
+		// @ts-ignore
+		this._domNode = null!;
 	}
 
 	private _updateSettings(renderNow: boolean): boolean {

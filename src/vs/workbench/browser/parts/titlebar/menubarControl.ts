@@ -552,154 +552,154 @@ export class CustomMenubarControl extends MenubarControl {
 		return { horizontal: horizontalDirection, vertical: verticalDirection };
 	}
 
-	private onDidVisibilityChange(visible: boolean): void {
-		this.visible = visible;
-		this.onDidChangeRecentlyOpened();
-		this._onVisibilityChange.fire(visible);
-	}
+	// private onDidVisibilityChange(visible: boolean): void {
+	// 	this.visible = visible;
+	// 	this.onDidChangeRecentlyOpened();
+	// 	this._onVisibilityChange.fire(visible);
+	// }
 
-	private toActionsArray(menu: IMenu): IAction[] {
-		const result: IAction[] = [];
-		createAndFillInContextMenuActions(menu, { shouldForwardArgs: true }, result);
-		return result;
-	}
+	// private toActionsArray(menu: IMenu): IAction[] {
+	// 	const result: IAction[] = [];
+	// 	createAndFillInContextMenuActions(menu, { shouldForwardArgs: true }, result);
+	// 	return result;
+	// }
 
 	private readonly reinstallDisposables = this._register(new DisposableStore());
 	private setupCustomMenubar(firstTime: boolean): void {
 		// If there is no container, we cannot setup the menubar
-		if (!this.container) {
-			return;
-		}
+		// if (!this.container) {
+		// 	return;
+		// }
 
-		if (firstTime) {
-			// Reset and create new menubar
-			if (this.menubar) {
-				this.reinstallDisposables.clear();
-			}
+		// if (firstTime) {
+		// 	// Reset and create new menubar
+		// 	if (this.menubar) {
+		// 		this.reinstallDisposables.clear();
+		// 	}
 
-			this.menubar = this.reinstallDisposables.add(new MenuBar(this.container, this.getMenuBarOptions(), defaultMenuStyles));
+		// 	this.menubar = this.reinstallDisposables.add(new MenuBar(this.container, this.getMenuBarOptions(), defaultMenuStyles));
 
-			this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
-				this.alwaysOnMnemonics = val;
-				this.menubar?.update(this.getMenuBarOptions());
-			});
+		// 	this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+		// 		this.alwaysOnMnemonics = val;
+		// 		this.menubar?.update(this.getMenuBarOptions());
+		// 	});
 
-			this.reinstallDisposables.add(this.menubar.onFocusStateChange(focused => {
-				this._onFocusStateChange.fire(focused);
+		// 	this.reinstallDisposables.add(this.menubar.onFocusStateChange(focused => {
+		// 		this._onFocusStateChange.fire(focused);
 
-				// When the menubar loses focus, update it to clear any pending updates
-				if (!focused) {
-					if (this.pendingFirstTimeUpdate) {
-						this.setupCustomMenubar(true);
-						this.pendingFirstTimeUpdate = false;
-					} else {
-						this.updateMenubar();
-					}
+		// 		// When the menubar loses focus, update it to clear any pending updates
+		// 		if (!focused) {
+		// 			if (this.pendingFirstTimeUpdate) {
+		// 				this.setupCustomMenubar(true);
+		// 				this.pendingFirstTimeUpdate = false;
+		// 			} else {
+		// 				this.updateMenubar();
+		// 			}
 
-					this.focusInsideMenubar = false;
-				}
-			}));
+		// 			this.focusInsideMenubar = false;
+		// 		}
+		// 	}));
 
-			this.reinstallDisposables.add(this.menubar.onVisibilityChange(e => this.onDidVisibilityChange(e)));
+		// 	this.reinstallDisposables.add(this.menubar.onVisibilityChange(e => this.onDidVisibilityChange(e)));
 
-			// Before we focus the menubar, stop updates to it so that focus-related context keys will work
-			this.reinstallDisposables.add(addDisposableListener(this.container, EventType.FOCUS_IN, () => {
-				this.focusInsideMenubar = true;
-			}));
+		// 	// Before we focus the menubar, stop updates to it so that focus-related context keys will work
+		// 	this.reinstallDisposables.add(addDisposableListener(this.container, EventType.FOCUS_IN, () => {
+		// 		this.focusInsideMenubar = true;
+		// 	}));
 
-			this.reinstallDisposables.add(addDisposableListener(this.container, EventType.FOCUS_OUT, () => {
-				this.focusInsideMenubar = false;
-			}));
+		// 	this.reinstallDisposables.add(addDisposableListener(this.container, EventType.FOCUS_OUT, () => {
+		// 		this.focusInsideMenubar = false;
+		// 	}));
 
-			// Fire visibility change for the first install if menu is shown
-			if (this.menubar.isVisible) {
-				this.onDidVisibilityChange(true);
-			}
-		} else {
-			this.menubar?.update(this.getMenuBarOptions());
-		}
+		// 	// Fire visibility change for the first install if menu is shown
+		// 	if (this.menubar.isVisible) {
+		// 		this.onDidVisibilityChange(true);
+		// 	}
+		// } else {
+		// 	this.menubar?.update(this.getMenuBarOptions());
+		// }
 
-		// Update the menu actions
-		const updateActions = (menuActions: readonly IAction[], target: IAction[], topLevelTitle: string) => {
-			target.splice(0);
+		// // Update the menu actions
+		// const updateActions = (menuActions: readonly IAction[], target: IAction[], topLevelTitle: string) => {
+		// 	// target.splice(0);
 
-			for (const menuItem of menuActions) {
-				this.insertActionsBefore(menuItem, target);
+		// 	// for (const menuItem of menuActions) {
+		// 	// 	this.insertActionsBefore(menuItem, target);
 
-				if (menuItem instanceof Separator) {
-					target.push(menuItem);
-				} else if (menuItem instanceof SubmenuItemAction || menuItem instanceof MenuItemAction) {
-					// use mnemonicTitle whenever possible
-					let title = typeof menuItem.item.title === 'string'
-						? menuItem.item.title
-						: menuItem.item.title.mnemonicTitle ?? menuItem.item.title.value;
+		// 	// 	if (menuItem instanceof Separator) {
+		// 	// 		target.push(menuItem);
+		// 	// 	} else if (menuItem instanceof SubmenuItemAction || menuItem instanceof MenuItemAction) {
+		// 	// 		// use mnemonicTitle whenever possible
+		// 	// 		let title = typeof menuItem.item.title === 'string'
+		// 	// 			? menuItem.item.title
+		// 	// 			: menuItem.item.title.mnemonicTitle ?? menuItem.item.title.value;
 
-					if (menuItem instanceof SubmenuItemAction) {
-						const submenuActions: SubmenuAction[] = [];
-						updateActions(menuItem.actions, submenuActions, topLevelTitle);
+		// 	// 		if (menuItem instanceof SubmenuItemAction) {
+		// 	// 			const submenuActions: SubmenuAction[] = [];
+		// 	// 			updateActions(menuItem.actions, submenuActions, topLevelTitle);
 
-						if (submenuActions.length > 0) {
-							target.push(new SubmenuAction(menuItem.id, mnemonicMenuLabel(title), submenuActions));
-						}
-					} else {
-						if (isICommandActionToggleInfo(menuItem.item.toggled)) {
-							title = menuItem.item.toggled.mnemonicTitle ?? menuItem.item.toggled.title ?? title;
-						}
+		// 	// 			if (submenuActions.length > 0) {
+		// 	// 				target.push(new SubmenuAction(menuItem.id, mnemonicMenuLabel(title), submenuActions));
+		// 	// 			}
+		// 	// 		} else {
+		// 	// 			if (isICommandActionToggleInfo(menuItem.item.toggled)) {
+		// 	// 				title = menuItem.item.toggled.mnemonicTitle ?? menuItem.item.toggled.title ?? title;
+		// 	// 			}
 
-						const newAction = new Action(menuItem.id, mnemonicMenuLabel(title), menuItem.class, menuItem.enabled, () => this.commandService.executeCommand(menuItem.id));
-						newAction.tooltip = menuItem.tooltip;
-						newAction.checked = menuItem.checked;
-						target.push(newAction);
-					}
-				}
+		// 	// 			const newAction = new Action(menuItem.id, mnemonicMenuLabel(title), menuItem.class, menuItem.enabled, () => this.commandService.executeCommand(menuItem.id));
+		// 	// 			newAction.tooltip = menuItem.tooltip;
+		// 	// 			newAction.checked = menuItem.checked;
+		// 	// 			target.push(newAction);
+		// 	// 		}
+		// 	// 	}
 
-			}
+		// 	// }
 
-			// Append web navigation menu items to the file menu when not compact
-			if (topLevelTitle === 'File' && this.currentCompactMenuMode === undefined) {
-				const webActions = this.getWebNavigationActions();
-				if (webActions.length) {
-					target.push(...webActions);
-				}
-			}
-		};
+		// 	// // Append web navigation menu items to the file menu when not compact
+		// 	// if (topLevelTitle === 'File' && this.currentCompactMenuMode === undefined) {
+		// 	// 	const webActions = this.getWebNavigationActions();
+		// 	// 	if (webActions.length) {
+		// 	// 		target.push(...webActions);
+		// 	// 	}
+		// 	// }
+		// };
 
-		for (const title of Object.keys(this.topLevelTitles)) {
-			const menu = this.menus[title];
-			if (firstTime && menu) {
-				this.reinstallDisposables.add(menu.onDidChange(() => {
-					if (!this.focusInsideMenubar) {
-						const actions: IAction[] = [];
-						updateActions(this.toActionsArray(menu), actions, title);
-						this.menubar?.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
-					}
-				}));
+		// for (const title of Object.keys(this.topLevelTitles)) {
+		// 	const menu = this.menus[title];
+		// 	if (firstTime && menu) {
+		// 		this.reinstallDisposables.add(menu.onDidChange(() => {
+		// 			if (!this.focusInsideMenubar) {
+		// 				const actions: IAction[] = [];
+		// 				updateActions(this.toActionsArray(menu), actions, title);
+		// 				this.menubar?.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
+		// 			}
+		// 		}));
 
-				// For the file menu, we need to update if the web nav menu updates as well
-				if (menu === this.menus.File) {
-					this.reinstallDisposables.add(this.webNavigationMenu.onDidChange(() => {
-						if (!this.focusInsideMenubar) {
-							const actions: IAction[] = [];
-							updateActions(this.toActionsArray(menu), actions, title);
-							this.menubar?.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
-						}
-					}));
-				}
-			}
+		// 		// For the file menu, we need to update if the web nav menu updates as well
+		// 		if (menu === this.menus.File) {
+		// 			this.reinstallDisposables.add(this.webNavigationMenu.onDidChange(() => {
+		// 				if (!this.focusInsideMenubar) {
+		// 					const actions: IAction[] = [];
+		// 					updateActions(this.toActionsArray(menu), actions, title);
+		// 					this.menubar?.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
+		// 				}
+		// 			}));
+		// 		}
+		// 	}
 
-			const actions: IAction[] = [];
-			if (menu) {
-				updateActions(this.toActionsArray(menu), actions, title);
-			}
+		// 	const actions: IAction[] = [];
+		// 	if (menu) {
+		// 		updateActions(this.toActionsArray(menu), actions, title);
+		// 	}
 
-			if (this.menubar) {
-				if (!firstTime) {
-					this.menubar.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
-				} else {
-					this.menubar.push({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
-				}
-			}
-		}
+		// 	if (this.menubar) {
+		// 		if (!firstTime) {
+		// 			this.menubar.updateMenu({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
+		// 		} else {
+		// 			this.menubar.push({ actions, label: mnemonicMenuLabel(this.topLevelTitles[title]) });
+		// 		}
+		// 	}
+		// }
 	}
 
 	private getWebNavigationActions(): IAction[] {

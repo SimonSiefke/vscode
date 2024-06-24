@@ -329,6 +329,16 @@ class SaturationBox extends Disposable {
 		const hsva = color.hsva;
 		this.paintSelection(hsva.s, hsva.v);
 	}
+
+	override dispose() {
+		super.dispose();
+		// @ts-ignore
+		this._canvas = null;
+		// @ts-ignore
+		this.domNode = null;
+		// @ts-ignore
+		this._store = null;
+	}
 }
 
 abstract class Strip extends Disposable {

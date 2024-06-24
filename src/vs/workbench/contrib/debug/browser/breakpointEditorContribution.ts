@@ -536,7 +536,9 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 		if (!this.editor.hasModel()) {
 			return;
 		}
-
+		if (Math) {
+			return;
+		}
 		const setCandidateDecorations = (changeAccessor: IModelDecorationsChangeAccessor, desiredCandidatePositions: BreakpointsForLine[]) => {
 			const desiredCandidateDecorations = createCandidateDecorations(model, this.breakpointDecorations, desiredCandidatePositions);
 			const candidateDecorationIds = changeAccessor.deltaDecorations(this.candidateDecorations.map(c => c.decorationId), desiredCandidateDecorations);

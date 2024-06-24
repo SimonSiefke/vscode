@@ -32,6 +32,8 @@ export class DecorationsOverlay extends DynamicViewOverlay {
 		this._context.removeEventHandler(this);
 		this._renderResult = null;
 		super.dispose();
+		// @ts-ignore
+		this._context = null;
 	}
 
 	// --- begin event handlers
