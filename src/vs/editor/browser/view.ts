@@ -184,20 +184,12 @@ export class View extends ViewEventHandler {
 		this._overlayWidgets = new ViewOverlayWidgets(this._context, this.domNode);
 		this._viewParts.push(this._overlayWidgets);
 
-		const rulers = new Rulers(this._context);
-		this._viewParts.push(rulers);
 
-		const blockOutline = new BlockDecorations(this._context);
-		this._viewParts.push(blockOutline);
-
-		const minimap = new Minimap(this._context);
-		this._viewParts.push(minimap);
 
 		// -------------- Wire dom nodes up
 
 
 		this._linesContent.appendChild(contentViewOverlays.getDomNode());
-		this._linesContent.appendChild(rulers.domNode);
 		this._linesContent.appendChild(this._viewZones.domNode);
 		this._linesContent.appendChild(this._viewLines.getDomNode());
 		this._linesContent.appendChild(this._contentWidgets.domNode);
@@ -207,8 +199,6 @@ export class View extends ViewEventHandler {
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
 		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
-		this._overflowGuardContainer.appendChild(minimap.getDomNode());
-		this._overflowGuardContainer.appendChild(blockOutline.domNode);
 		this.domNode.appendChild(this._overflowGuardContainer);
 
 		if (overflowWidgetsDomNode) {
