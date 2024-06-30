@@ -154,27 +154,15 @@ export class View extends ViewEventHandler {
 		this._viewParts.push(this._viewZones);
 
 		// Decorations overview ruler
-		const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
-		this._viewParts.push(decorationsOverviewRuler);
 
 
-		const scrollDecoration = new ScrollDecorationViewPart(this._context);
-		this._viewParts.push(scrollDecoration);
 
 		const contentViewOverlays = new ContentViewOverlays(this._context);
 		this._viewParts.push(contentViewOverlays);
-		contentViewOverlays.addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new SelectionsOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new IndentGuidesOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new DecorationsOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new WhitespaceOverlay(this._context));
 
-		const marginViewOverlays = new MarginViewOverlays(this._context);
-		this._viewParts.push(marginViewOverlays);
-		marginViewOverlays.addDynamicOverlay(new CurrentLineMarginHighlightOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new MarginViewLineDecorationsOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new LinesDecorationsOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new LineNumbersOverlay(this._context));
+
+
+
 
 		// Glyph margin widgets
 		this._glyphMarginWidgets = new GlyphMarginWidgets(this._context);
@@ -182,7 +170,6 @@ export class View extends ViewEventHandler {
 
 		const margin = new Margin(this._context);
 		margin.getDomNode().appendChild(this._viewZones.marginDomNode);
-		margin.getDomNode().appendChild(marginViewOverlays.getDomNode());
 		margin.getDomNode().appendChild(this._glyphMarginWidgets.domNode);
 		this._viewParts.push(margin);
 
@@ -197,36 +184,21 @@ export class View extends ViewEventHandler {
 		this._overlayWidgets = new ViewOverlayWidgets(this._context, this.domNode);
 		this._viewParts.push(this._overlayWidgets);
 
-		const rulers = new Rulers(this._context);
-		this._viewParts.push(rulers);
 
-		const blockOutline = new BlockDecorations(this._context);
-		this._viewParts.push(blockOutline);
-
-		const minimap = new Minimap(this._context);
-		this._viewParts.push(minimap);
 
 		// -------------- Wire dom nodes up
 
-		if (decorationsOverviewRuler) {
-			const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
-			overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
-		}
 
 		this._linesContent.appendChild(contentViewOverlays.getDomNode());
-		this._linesContent.appendChild(rulers.domNode);
 		this._linesContent.appendChild(this._viewZones.domNode);
 		this._linesContent.appendChild(this._viewLines.getDomNode());
 		this._linesContent.appendChild(this._contentWidgets.domNode);
 		this._linesContent.appendChild(this._viewCursors.getDomNode());
 		this._overflowGuardContainer.appendChild(margin.getDomNode());
 		this._overflowGuardContainer.appendChild(this._scrollbar.getDomNode());
-		this._overflowGuardContainer.appendChild(scrollDecoration.getDomNode());
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
 		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
-		this._overflowGuardContainer.appendChild(minimap.getDomNode());
-		this._overflowGuardContainer.appendChild(blockOutline.domNode);
 		this.domNode.appendChild(this._overflowGuardContainer);
 
 		if (overflowWidgetsDomNode) {
@@ -243,37 +215,7 @@ export class View extends ViewEventHandler {
 		this._pointerHandler = this._register(new PointerHandler(this._context, viewController, this._createPointerHandlerHelper()));
 	}
 
-	private _computeGlyphMarginLanes(): IGlyphMarginLanesModel {
-		const model = this._context.viewModel.model;
-		const laneModel = this._context.viewModel.glyphLanes;
-		type Glyph = { range: Range; lane: GlyphMarginLane; persist?: boolean };
-		let glyphs: Glyph[] = [];
-		let maxLineNumber = 0;
 
-		// Add all margin decorations
-		glyphs = glyphs.concat(model.getAllMarginDecorations().map((decoration) => {
-			const lane = decoration.options.glyphMargin?.position ?? GlyphMarginLane.Center;
-			maxLineNumber = Math.max(maxLineNumber, decoration.range.endLineNumber);
-			return { range: decoration.range, lane, persist: decoration.options.glyphMargin?.persistLane };
-		}));
-
-		// Add all glyph margin widgets
-		glyphs = glyphs.concat(this._glyphMarginWidgets.getWidgets().map((widget) => {
-			const range = model.validateRange(widget.preference.range);
-			maxLineNumber = Math.max(maxLineNumber, range.endLineNumber);
-			return { range, lane: widget.preference.lane };
-		}));
-
-		// Sorted by their start position
-		glyphs.sort((a, b) => Range.compareRangesUsingStarts(a.range, b.range));
-
-		laneModel.reset(maxLineNumber);
-		for (const glyph of glyphs) {
-			laneModel.push(glyph.lane, glyph.range, glyph.persist);
-		}
-
-		return laneModel;
-	}
 
 	private _createPointerHandlerHelper(): IPointerHandlerHelper {
 		return {
@@ -399,6 +341,14 @@ export class View extends ViewEventHandler {
 		}
 
 		super.dispose();
+
+		while (this.domNode.domNode.firstChild) {
+			this.domNode.domNode.firstChild.remove();
+		}
+		// @ts-ignore
+		this.domNode.domNode = null;
+		// @ts-ignore
+		this.domNode = null;
 	}
 
 	private _scheduleRender(): void {
@@ -468,8 +418,6 @@ export class View extends ViewEventHandler {
 			prepareRenderText: () => {
 				if (this._shouldRecomputeGlyphMarginLanes) {
 					this._shouldRecomputeGlyphMarginLanes = false;
-					const model = this._computeGlyphMarginLanes();
-					this._context.configuration.setGlyphMarginDecorationLaneCount(model.requiredLanes);
 				}
 				inputLatency.onRenderStart();
 			},
