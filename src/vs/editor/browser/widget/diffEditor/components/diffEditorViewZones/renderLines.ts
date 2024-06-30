@@ -20,6 +20,7 @@ const ttPolicy = createTrustedTypesPolicy('diffEditorWidget', { createHTML: valu
 export function renderLines(source: LineSource, options: RenderOptions, decorations: InlineDecoration[], domNode: HTMLElement): RenderLinesResult {
 	applyFontInfo(domNode, options.fontInfo);
 
+	// @ts-ignore
 	const hasCharChanges = (decorations.length > 0);
 
 	const sb = new StringBuilder(10000);
@@ -28,40 +29,43 @@ export function renderLines(source: LineSource, options: RenderOptions, decorati
 	const viewLineCounts: number[] = [];
 	for (let lineIndex = 0; lineIndex < source.lineTokens.length; lineIndex++) {
 		const lineNumber = lineIndex + 1;
+		// @ts-ignore
 		const lineTokens = source.lineTokens[lineIndex];
 		const lineBreakData = source.lineBreakData[lineIndex];
+		// @ts-ignore
 		const actualDecorations = LineDecoration.filter(decorations, lineNumber, 1, Number.MAX_SAFE_INTEGER);
 
 		if (lineBreakData) {
+			// @ts-ignore
 			let lastBreakOffset = 0;
 			for (const breakOffset of lineBreakData.breakOffsets) {
-				const viewLineTokens = lineTokens.sliceAndInflate(lastBreakOffset, breakOffset, 0);
-				maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
-					renderedLineCount,
-					viewLineTokens,
-					LineDecoration.extractWrapped(actualDecorations, lastBreakOffset, breakOffset),
-					hasCharChanges,
-					source.mightContainNonBasicASCII,
-					source.mightContainRTL,
-					options,
-					sb
-				));
+				// const viewLineTokens = lineTokens.sliceAndInflate(lastBreakOffset, breakOffset, 0);
+				// maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
+				// 	renderedLineCount,
+				// 	viewLineTokens,
+				// 	LineDecoration.extractWrapped(actualDecorations, lastBreakOffset, breakOffset),
+				// 	hasCharChanges,
+				// 	source.mightContainNonBasicASCII,
+				// 	source.mightContainRTL,
+				// 	options,
+				// 	sb
+				// ));
 				renderedLineCount++;
 				lastBreakOffset = breakOffset;
 			}
 			viewLineCounts.push(lineBreakData.breakOffsets.length);
 		} else {
 			viewLineCounts.push(1);
-			maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
-				renderedLineCount,
-				lineTokens,
-				actualDecorations,
-				hasCharChanges,
-				source.mightContainNonBasicASCII,
-				source.mightContainRTL,
-				options,
-				sb,
-			));
+			// maxCharsPerLine = Math.max(maxCharsPerLine, renderOriginalLine(
+			// 	renderedLineCount,
+			// 	lineTokens,
+			// 	actualDecorations,
+			// 	hasCharChanges,
+			// 	source.mightContainNonBasicASCII,
+			// 	source.mightContainRTL,
+			// 	options,
+			// 	sb,
+			// ));
 			renderedLineCount++;
 		}
 	}
@@ -134,6 +138,7 @@ export interface RenderLinesResult {
 	viewLineCounts: number[];
 }
 
+// @ts-ignore
 function renderOriginalLine(
 	viewLineIdx: number,
 	lineTokens: IViewLineTokens,
