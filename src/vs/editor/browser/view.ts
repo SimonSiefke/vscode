@@ -138,6 +138,7 @@ export class View extends ViewEventHandler {
 	// Actual mutable state
 	private _shouldRecomputeGlyphMarginLanes: boolean = false;
 	private _renderAnimationFrame: IDisposable | null;
+	tag: HTMLCanvasElement;
 
 	constructor(
 		commandDelegate: ICommandDelegate,
@@ -149,6 +150,9 @@ export class View extends ViewEventHandler {
 		@IInstantiationService private readonly _instantiationService: IInstantiationService
 	) {
 		super();
+
+		this.tag = document.createElement('canvas');
+		this.tag.className = 'fakeCanvas';
 		this._selections = [new Selection(1, 1, 1, 1)];
 		this._renderAnimationFrame = null;
 
