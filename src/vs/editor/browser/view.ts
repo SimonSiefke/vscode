@@ -203,8 +203,8 @@ export class View extends ViewEventHandler {
 		const blockOutline = new BlockDecorations(this._context);
 		this._viewParts.push(blockOutline);
 
-		const minimap = new Minimap(this._context);
-		this._viewParts.push(minimap);
+		// const minimap = new Minimap(this._context);
+		// this._viewParts.push(minimap);
 
 		// -------------- Wire dom nodes up
 
@@ -225,7 +225,7 @@ export class View extends ViewEventHandler {
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
 		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
-		this._overflowGuardContainer.appendChild(minimap.getDomNode());
+		// this._overflowGuardContainer.appendChild(minimap.getDomNode());
 		this._overflowGuardContainer.appendChild(blockOutline.domNode);
 		this.domNode.appendChild(this._overflowGuardContainer);
 
