@@ -589,7 +589,7 @@ class EditorContributionRegistry {
 	}
 
 	public getEditorContributions(): IEditorContributionDescription[] {
-		return this.editorContributions.slice(0);
+		return [];
 	}
 
 	public registerDiffEditorContribution<Services extends BrandedService[]>(id: string, ctor: { new(editor: IDiffEditor, ...services: Services): IEditorContribution }): void {

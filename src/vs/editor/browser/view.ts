@@ -73,6 +73,43 @@ export interface IGlyphMarginWidgetData {
 	position: IGlyphMarginWidgetPosition;
 }
 
+const clearDomNode = (domNode: ChildNode) => {
+	while (domNode.firstChild) {
+		const element = domNode.firstChild;
+		element.remove();
+		clearDomNode(element);
+	}
+};
+
+
+class FakeMinimap extends ViewPart {
+	canvas?: FastDomNode<HTMLCanvasElement>;
+
+	constructor(context: any) {
+		super(context);
+		this.canvas = createFastDomNode(document.createElement('canvas'));
+		this.canvas.setClassName('fakeMinimap');
+	}
+	public override prepareRender(ctx: RenderingContext): void {
+
+	}
+	public override render(ctx: RestrictedRenderingContext): void {
+	}
+
+	public getDomNode() {
+		return this.canvas;
+	}
+
+	override dispose() {
+		super.dispose();
+		console.log('dispose fake minimap');
+		// @ts-ignore
+		this.canvas.domNode = undefined;
+		// @ts-ignore
+		this.canvas = undefined;
+	}
+}
+
 export class View extends ViewEventHandler {
 
 	private readonly _scrollbar: EditorScrollbar;
@@ -154,8 +191,8 @@ export class View extends ViewEventHandler {
 		this._viewParts.push(this._viewZones);
 
 		// Decorations overview ruler
-		const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
-		this._viewParts.push(decorationsOverviewRuler);
+		// const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
+		// this._viewParts.push(decorationsOverviewRuler);
 
 
 		const scrollDecoration = new ScrollDecorationViewPart(this._context);
@@ -163,18 +200,18 @@ export class View extends ViewEventHandler {
 
 		const contentViewOverlays = new ContentViewOverlays(this._context);
 		this._viewParts.push(contentViewOverlays);
-		contentViewOverlays.addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new SelectionsOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new IndentGuidesOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new DecorationsOverlay(this._context));
-		contentViewOverlays.addDynamicOverlay(new WhitespaceOverlay(this._context));
+		// contentViewOverlays.addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
+		// contentViewOverlays.addDynamicOverlay(new SelectionsOverlay(this._context));
+		// contentViewOverlays.addDynamicOverlay(new IndentGuidesOverlay(this._context));
+		// contentViewOverlays.addDynamicOverlay(new DecorationsOverlay(this._context));
+		// contentViewOverlays.addDynamicOverlay(new WhitespaceOverlay(this._context));
 
-		const marginViewOverlays = new MarginViewOverlays(this._context);
-		this._viewParts.push(marginViewOverlays);
-		marginViewOverlays.addDynamicOverlay(new CurrentLineMarginHighlightOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new MarginViewLineDecorationsOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new LinesDecorationsOverlay(this._context));
-		marginViewOverlays.addDynamicOverlay(new LineNumbersOverlay(this._context));
+		// const marginViewOverlays = new MarginViewOverlays(this._context);
+		// this._viewParts.push(marginViewOverlays);
+		// marginViewOverlays.addDynamicOverlay(new CurrentLineMarginHighlightOverlay(this._context));
+		// marginViewOverlays.addDynamicOverlay(new MarginViewLineDecorationsOverlay(this._context));
+		// marginViewOverlays.addDynamicOverlay(new LinesDecorationsOverlay(this._context));
+		// marginViewOverlays.addDynamicOverlay(new LineNumbersOverlay(this._context));
 
 		// Glyph margin widgets
 		this._glyphMarginWidgets = new GlyphMarginWidgets(this._context);
@@ -182,7 +219,7 @@ export class View extends ViewEventHandler {
 
 		const margin = new Margin(this._context);
 		margin.getDomNode().appendChild(this._viewZones.marginDomNode);
-		margin.getDomNode().appendChild(marginViewOverlays.getDomNode());
+		// margin.getDomNode().appendChild(marginViewOverlays.getDomNode());
 		margin.getDomNode().appendChild(this._glyphMarginWidgets.domNode);
 		this._viewParts.push(margin);
 
@@ -203,15 +240,16 @@ export class View extends ViewEventHandler {
 		const blockOutline = new BlockDecorations(this._context);
 		this._viewParts.push(blockOutline);
 
-		// const minimap = new Minimap(this._context);
-		// this._viewParts.push(minimap);
+		const fakeMinimap = new FakeMinimap(this._context);
+		this._viewParts.push(fakeMinimap);
+
 
 		// -------------- Wire dom nodes up
 
-		if (decorationsOverviewRuler) {
-			const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
-			overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
-		}
+		// if (decorationsOverviewRuler) {
+		// 	const overviewRulerData = this._scrollbar.getOverviewRulerLayoutInfo();
+		// 	overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
+		// }
 
 		this._linesContent.appendChild(contentViewOverlays.getDomNode());
 		this._linesContent.appendChild(rulers.domNode);
@@ -225,7 +263,7 @@ export class View extends ViewEventHandler {
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textArea);
 		this._overflowGuardContainer.appendChild(this._textAreaHandler.textAreaCover);
 		this._overflowGuardContainer.appendChild(this._overlayWidgets.getDomNode());
-		// this._overflowGuardContainer.appendChild(minimap.getDomNode());
+		this._overflowGuardContainer.appendChild(fakeMinimap.getDomNode()!);
 		this._overflowGuardContainer.appendChild(blockOutline.domNode);
 		this.domNode.appendChild(this._overflowGuardContainer);
 
@@ -399,6 +437,13 @@ export class View extends ViewEventHandler {
 		}
 
 		super.dispose();
+
+		clearDomNode(this.domNode.domNode);
+
+		// @ts-ignore
+		this._viewParts = [];
+		// @ts-ignore
+		this._context = undefined;
 	}
 
 	private _scheduleRender(): void {

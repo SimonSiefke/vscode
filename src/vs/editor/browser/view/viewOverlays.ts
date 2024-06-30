@@ -138,6 +138,8 @@ export class ViewOverlays extends ViewPart implements IVisibleLinesHost<ViewOver
 	_viewOverlaysRender(ctx: RestrictedRenderingContext): void {
 		this._visibleLines.renderLines(ctx.viewportData);
 	}
+
+
 }
 
 export class ViewOverlayLine implements IVisibleLine {

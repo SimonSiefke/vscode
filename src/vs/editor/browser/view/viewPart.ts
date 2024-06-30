@@ -21,6 +21,8 @@ export abstract class ViewPart extends ViewEventHandler {
 	public override dispose(): void {
 		this._context.removeEventHandler(this);
 		super.dispose();
+		// @ts-ignore
+		this._context = undefined;
 	}
 
 	public abstract prepareRender(ctx: RenderingContext): void;
