@@ -509,6 +509,8 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 		}
 
 		this.contextViewProvider.hideContextView();
+		this.selectList.dispose();
+		this.selectList = undefined!;
 	}
 
 	private renderSelectDropDown(container: HTMLElement, preLayoutPosition?: boolean): IDisposable {
@@ -730,6 +732,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 
 		this.listRenderer = new SelectListRenderer();
 
+		// this.selectList;
 		this.selectList = new List('SelectBoxCustom', this.selectDropDownListContainer, this, [this.listRenderer], {
 			useShadows: false,
 			verticalScrollMode: ScrollbarVisibility.Visible,
@@ -757,6 +760,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 				getWidgetRole: () => 'listbox'
 			}
 		});
+
 		if (this.selectBoxOptions.ariaLabel) {
 			this.selectList.ariaLabel = this.selectBoxOptions.ariaLabel;
 		}
