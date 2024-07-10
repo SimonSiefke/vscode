@@ -91,7 +91,7 @@ function getIncludeExcludeDisplayValue(element: SettingsTreeSettingElement): IIn
 			// Get source if it's a default value
 			let source: string | undefined;
 			if (defaultValue === data[key] && element.setting.type === 'object' && element.defaultValueSource instanceof Map) {
-				const defaultSource = element.defaultValueSource.get(key);
+				const defaultSource = element.defaultValueSource.get(`${element.setting.key}.${key}`);
 				source = typeof defaultSource === 'string' ? defaultSource : defaultSource?.displayName;
 			}
 
@@ -190,7 +190,7 @@ function getObjectDisplayValue(element: SettingsTreeSettingElement): IObjectData
 		// Get source if it's a default value
 		let source: string | undefined;
 		if (defaultValue === data[key] && element.setting.type === 'object' && element.defaultValueSource instanceof Map) {
-			const defaultSource = element.defaultValueSource.get(key);
+			const defaultSource = element.defaultValueSource.get(`${element.setting.key}.${key}`);
 			source = typeof defaultSource === 'string' ? defaultSource : defaultSource?.displayName;
 		}
 
@@ -2008,7 +2008,7 @@ export class SettingBoolRenderer extends AbstractSettingRenderer implements ITre
 type ManageExtensionClickTelemetryClassification = {
 	extensionId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The extension the user went to manage.' };
 	owner: 'rzhao271';
-	comment: 'Event used to gain insights into when users are using an experimental extension management setting';
+	comment: 'Event used to gain insights into when users interact with an extension management setting';
 };
 
 export class SettingsExtensionToggleRenderer extends AbstractSettingRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingExtensionToggleItemTemplate> {
