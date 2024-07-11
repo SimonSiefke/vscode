@@ -197,6 +197,7 @@ export interface ICodeEditorViewState {
 export interface IDiffEditorViewState {
 	original: ICodeEditorViewState | null;
 	modified: ICodeEditorViewState | null;
+	inline: ICodeEditorViewState | null;
 	modelState?: unknown;
 }
 /**
@@ -770,4 +771,3 @@ export interface CompositionTypePayload {
 	replaceNextCharCnt: number;
 	positionDelta: number;
 }
-
