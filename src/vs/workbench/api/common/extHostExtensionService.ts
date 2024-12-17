@@ -224,6 +224,11 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 			if (this._initData.autoStart) {
 				this._startExtensionHost();
 			}
+			if (
+				this._initData.environment.extensionDevelopmentLocationURI
+			) {
+				console.log('is developing');
+			}
 		} catch (err) {
 			errors.onUnexpectedError(err);
 		}
