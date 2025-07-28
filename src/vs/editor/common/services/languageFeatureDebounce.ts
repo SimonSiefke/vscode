@@ -145,8 +145,9 @@ export class LanguageFeatureDebounceService implements ILanguageFeatureDebounceS
 					(this._overallAverage() | 0) || (min * 1.5), // default is overall default or derived from min-value
 					min,
 					max
-				);
+				)
 			}
+			// TODO this probably needs to be cleaned up once the model is disposed
 			this._data.set(key, info);
 		}
 		return info;
