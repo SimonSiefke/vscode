@@ -380,6 +380,7 @@ export class ListView<T> implements IListView<T> {
 		if (options.horizontalScrolling && options.supportDynamicHeights) {
 			throw new Error('Horizontal scrolling and dynamic heights not supported simultaneously');
 		}
+		this.disposables.add(this.scrollableElementWidthDelayer)
 
 		this.items = [];
 		this.itemId = 0;
