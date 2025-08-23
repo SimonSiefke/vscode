@@ -77,6 +77,7 @@ export class CodeLensContribution implements IEditorContribution {
 		this._disposables.dispose();
 		this._oldCodeLensModels.dispose();
 		this._currentCodeLensModel?.dispose();
+		this._resolveCodeLensesScheduler.dispose();
 	}
 
 	private _getLayoutInfo() {
