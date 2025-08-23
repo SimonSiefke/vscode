@@ -152,10 +152,6 @@ export class CodeLensContribution implements IEditorContribution {
 				disposableTimeout(() => {
 					const cachedLensesNow = this._codeLensCache.get(model);
 					if (cachedLenses === cachedLensesNow) {
-						const existing = this._codeLensCache.get(model);
-						if (existing) {
-							existing.dispose();
-						}
 						this._codeLensCache.delete(model);
 						this._onModelChange();
 					}
@@ -184,18 +180,14 @@ export class CodeLensContribution implements IEditorContribution {
 				this._currentCodeLensModel = result;
 
 				// cache model to reduce flicker
-				const existing = this._codeLensCache.get(model);
-				if (existing) {
-					existing.dispose();
-				}
-				this._codeLensCache.put(model, result);
+				this._codeLensCache.put(model, result.lenses);
 
 				// update moving average
 				const newDelay = this._provideCodeLensDebounce.update(model, Date.now() - t1);
 				scheduler.delay = newDelay;
 
 				// render lenses
-				this._renderCodeLensSymbols(result);
+				this._renderCodeLensSymbols(result.lenses);
 				// dom.scheduleAtNextAnimationFrame(() => this._resolveCodeLensesInViewport());
 				this._resolveCodeLensesInViewportSoon();
 			}, onUnexpectedError);
@@ -299,7 +291,7 @@ export class CodeLensContribution implements IEditorContribution {
 		this._lenses.length = 0;
 	}
 
-	private _renderCodeLensSymbols(symbols: CodeLensModel): void {
+	private _renderCodeLensSymbols(symbols: readonly CodeLensItem[]): void {
 		if (!this._editor.hasModel()) {
 			return;
 		}
@@ -308,7 +300,7 @@ export class CodeLensContribution implements IEditorContribution {
 		const groups: CodeLensItem[][] = [];
 		let lastGroup: CodeLensItem[] | undefined;
 
-		for (const symbol of symbols.lenses) {
+		for (const symbol of symbols) {
 			const line = symbol.symbol.range.startLineNumber;
 			if (line < 1 || line > maxLineNumber) {
 				// invalid code lens
@@ -443,11 +435,7 @@ export class CodeLensContribution implements IEditorContribution {
 			this._resolveCodeLensesScheduler.delay = newDelay;
 
 			if (this._currentCodeLensModel) { // update the cached state with new resolved items
-				const existing = this._codeLensCache.get(model);
-				if (existing) {
-					existing.dispose();
-				}
-				this._codeLensCache.put(model, this._currentCodeLensModel);
+				this._codeLensCache.put(model, this._currentCodeLensModel.lenses);
 			}
 			this._oldCodeLensModels.clear(); // dispose old models once we have updated the UI with the current model
 			if (resolvePromise === this._resolveCodeLensesPromise) {

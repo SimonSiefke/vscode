@@ -7,8 +7,8 @@ import { Event } from '../../../../base/common/event.js';
 import { LRUCache } from '../../../../base/common/map.js';
 import { Range } from '../../../common/core/range.js';
 import { ITextModel } from '../../../common/model.js';
-import { CodeLens, CodeLensList, CodeLensProvider } from '../../../common/languages.js';
-import { CodeLensModel } from './codelens.js';
+import { CodeLensList, CodeLensProvider } from '../../../common/languages.js';
+import { CodeLensItem, } from './codelens.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
@@ -19,8 +19,8 @@ export const ICodeLensCache = createDecorator<ICodeLensCache>('ICodeLensCache');
 
 export interface ICodeLensCache {
 	readonly _serviceBrand: undefined;
-	put(model: ITextModel, data: CodeLensModel): void;
-	get(model: ITextModel): CodeLensModel | undefined;
+	put(model: ITextModel, data: readonly CodeLensItem[]): void;
+	get(model: ITextModel): readonly CodeLensItem[] | undefined;
 	delete(model: ITextModel): void;
 }
 
@@ -33,7 +33,7 @@ class CacheItem {
 
 	constructor(
 		readonly lineCount: number,
-		readonly data: CodeLensModel
+		readonly data: readonly CodeLensItem[]
 	) { }
 }
 
@@ -67,19 +67,20 @@ export class CodeLensCache implements ICodeLensCache {
 		});
 	}
 
-	put(model: ITextModel, data: CodeLensModel): void {
+	put(model: ITextModel, data: readonly CodeLensItem[]): void {
 		// create a copy of the model that is without command-ids
 		// but with comand-labels
-		const copyItems = data.lenses.map((item): CodeLens => {
+		const copyItems = data.map((item): CodeLensItem => {
 			return {
-				range: item.symbol.range,
-				command: item.symbol.command && { id: '', title: item.symbol.command?.title },
+				symbol: {
+
+					range: item.symbol.range,
+					command: item.symbol.command && { id: '', title: item.symbol.command?.title },
+				},
+				provider: this._fakeProvider
 			};
 		});
-		const copyModel = new CodeLensModel();
-		copyModel.add({ lenses: copyItems }, this._fakeProvider);
-
-		const item = new CacheItem(model.getLineCount(), copyModel);
+		const item = new CacheItem(model.getLineCount(), copyItems);
 		this._cache.set(model.uri.toString(), item);
 	}
 
@@ -98,7 +99,7 @@ export class CodeLensCache implements ICodeLensCache {
 		const data: Record<string, ISerializedCacheData> = Object.create(null);
 		for (const [key, value] of this._cache) {
 			const lines = new Set<number>();
-			for (const d of value.data.lenses) {
+			for (const d of value.data) {
 				lines.add(d.symbol.range.startLineNumber);
 			}
 			data[key] = {
@@ -114,14 +115,17 @@ export class CodeLensCache implements ICodeLensCache {
 			const data: Record<string, ISerializedCacheData> = JSON.parse(raw);
 			for (const key in data) {
 				const element = data[key];
-				const lenses: CodeLens[] = [];
+				const lenses: CodeLensItem[] = [];
 				for (const line of element.lines) {
-					lenses.push({ range: new Range(line, 1, line, 11) });
+					lenses.push({
+						symbol: {
+							range: new Range(line, 1, line, 11)
+						},
+						provider: this._fakeProvider
+					});
 				}
 
-				const model = new CodeLensModel();
-				model.add({ lenses }, this._fakeProvider);
-				this._cache.set(key, new CacheItem(element.lineCount, model));
+				this._cache.set(key, new CacheItem(element.lineCount, lenses));
 			}
 		} catch {
 			// ignore...
