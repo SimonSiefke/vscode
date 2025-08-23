@@ -443,6 +443,10 @@ export class CodeLensContribution implements IEditorContribution {
 			this._resolveCodeLensesScheduler.delay = newDelay;
 
 			if (this._currentCodeLensModel) { // update the cached state with new resolved items
+				const existing = this._codeLensCache.get(model);
+				if (existing) {
+					existing.dispose();
+				}
 				this._codeLensCache.put(model, this._currentCodeLensModel);
 			}
 			this._oldCodeLensModels.clear(); // dispose old models once we have updated the UI with the current model
