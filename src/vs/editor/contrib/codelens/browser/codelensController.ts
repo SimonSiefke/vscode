@@ -152,6 +152,10 @@ export class CodeLensContribution implements IEditorContribution {
 				disposableTimeout(() => {
 					const cachedLensesNow = this._codeLensCache.get(model);
 					if (cachedLenses === cachedLensesNow) {
+						const existing = this._codeLensCache.get(model);
+						if (existing) {
+							existing.dispose();
+						}
 						this._codeLensCache.delete(model);
 						this._onModelChange();
 					}
@@ -180,6 +184,10 @@ export class CodeLensContribution implements IEditorContribution {
 				this._currentCodeLensModel = result;
 
 				// cache model to reduce flicker
+				const existing = this._codeLensCache.get(model);
+				if (existing) {
+					existing.dispose();
+				}
 				this._codeLensCache.put(model, result);
 
 				// update moving average
