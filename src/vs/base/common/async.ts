@@ -455,7 +455,7 @@ export class ThrottledDelayer<T> {
 
 	constructor(defaultDelay: number) {
 		this.delayer = new Delayer(defaultDelay);
-		this.throttler = new Throttler();
+		this.throttler = new Throttler()
 	}
 
 	trigger(promiseFactory: ITask<Promise<T>>, delay?: number): Promise<T> {
