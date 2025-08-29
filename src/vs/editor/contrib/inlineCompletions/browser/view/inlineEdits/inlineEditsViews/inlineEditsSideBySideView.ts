@@ -324,6 +324,9 @@ export class InlineEditsSideBySideView extends Disposable implements IInlineEdit
 			};
 		});
 		this._stickyScrollController = StickyScrollController.get(this._editorObs.editor);
+		if (this._stickyScrollController) {
+			this._register(this._stickyScrollController);
+		}
 		this._stickyScrollHeight = this._stickyScrollController ? observableFromEvent(this._stickyScrollController.onDidChangeStickyScrollHeight, () => this._stickyScrollController!.stickyScrollWidgetHeight) : constObservable(0);
 		this._shouldOverflow = derived(reader => {
 			if (!ENABLE_OVERFLOW) {
