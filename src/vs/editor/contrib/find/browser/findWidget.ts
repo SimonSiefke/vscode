@@ -180,7 +180,7 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		this._isReplaceVisible = false;
 		this._ignoreChangeEvent = false;
 
-		this._updateHistoryDelayer = new Delayer<void>(500);
+		this._updateHistoryDelayer = this._register(new Delayer<void>(500));
 		this._register(toDisposable(() => this._updateHistoryDelayer.cancel()));
 		this._register(this._state.onFindReplaceStateChange((e) => this._onStateChanged(e)));
 		this._buildDomNode();
