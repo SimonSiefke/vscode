@@ -7,7 +7,7 @@ import * as dom from '../../../../../../base/browser/dom.js';
 import { Emitter } from '../../../../../../base/common/event.js';
 import { markdownCommandLink, MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
-import { MarkdownRenderer } from '../../../../../../editor/browser/widget/markdownRenderer/browser/markdownRenderer.js';
+import { IMarkdownRenderer } from '../../../../../../platform/markdown/browser/markdownRenderer.js';
 import { localize } from '../../../../../../nls.js';
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { IChatToolInvocation, IChatToolInvocationSerialized, ToolConfirmKind } from '../../../common/chatService.js';
@@ -23,7 +23,6 @@ import { ChatInputOutputMarkdownProgressPart } from './chatInputOutputMarkdownPr
 import { ChatResultListSubPart } from './chatResultListSubPart.js';
 import { ChatTerminalToolConfirmationSubPart } from './chatTerminalToolConfirmationSubPart.js';
 import { ChatTerminalToolProgressPart } from './chatTerminalToolProgressPart.js';
-import { ChatTodoListSubPart } from './chatTodoListSubPart.js';
 import { ToolConfirmationSubPart } from './chatToolConfirmationSubPart.js';
 import { BaseChatToolInvocationSubPart } from './chatToolInvocationSubPart.js';
 import { ChatToolOutputSubPart } from './chatToolOutputPart.js';
@@ -48,17 +47,21 @@ export class ChatToolInvocationPart extends Disposable implements IChatContentPa
 	constructor(
 		private readonly toolInvocation: IChatToolInvocation | IChatToolInvocationSerialized,
 		private readonly context: IChatContentPartRenderContext,
-		private readonly renderer: MarkdownRenderer,
+		private readonly renderer: IMarkdownRenderer,
 		private readonly listPool: CollapsibleListPool,
 		private readonly editorPool: EditorPool,
 		private readonly currentWidthDelegate: () => number,
 		private readonly codeBlockModelCollection: CodeBlockModelCollection,
+		private readonly announcedToolProgressKeys: Set<string> | undefined,
 		private readonly codeBlockStartIndex: number,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) {
 		super();
 
 		this.domNode = dom.$('.chat-tool-invocation-part');
+		if (toolInvocation.fromSubAgent) {
+			this.domNode.classList.add('from-sub-agent');
+		}
 		if (toolInvocation.presentation === 'hidden') {
 			return;
 		}
@@ -83,15 +86,18 @@ export class ChatToolInvocationPart extends Disposable implements IChatContentPa
 				this._onDidChangeHeight.fire();
 			}));
 
-			const approval = this.createApprovalMessage();
-			if (approval) {
-				this.domNode.appendChild(approval);
+			// todo@connor4312/tyriar: standardize how these are displayed
+			if (!(this.subPart instanceof ChatTerminalToolProgressPart)) {
+				const approval = this.createApprovalMessage();
+				if (approval) {
+					this.domNode.appendChild(approval);
+				}
 			}
 		};
 		render();
 	}
 
-	private createApprovalMessage(): HTMLElement | undefined {
+	private get autoApproveMessageContent() {
 		const reason = this.toolInvocation.isConfirmed;
 		if (!reason || typeof reason === 'boolean') {
 			return;
@@ -117,6 +123,12 @@ export class ChatToolInvocationPart extends Disposable implements IChatContentPa
 				return;
 		}
 
+
+		return md;
+	}
+
+	private createApprovalMessage(): HTMLElement | undefined {
+		const md = this.autoApproveMessageContent;
 		if (!md) {
 			return undefined;
 		}
@@ -145,10 +157,6 @@ export class ChatToolInvocationPart extends Disposable implements IChatContentPa
 
 		if (this.toolInvocation.toolSpecificData?.kind === 'terminal') {
 			return this.instantiationService.createInstance(ChatTerminalToolProgressPart, this.toolInvocation, this.toolInvocation.toolSpecificData, this.context, this.renderer, this.editorPool, this.currentWidthDelegate, this.codeBlockStartIndex, this.codeBlockModelCollection);
-		}
-
-		if (this.toolInvocation.toolSpecificData?.kind === 'todoList') {
-			return this.instantiationService.createInstance(ChatTodoListSubPart, this.toolInvocation, this.toolInvocation.toolSpecificData);
 		}
 
 		if (Array.isArray(this.toolInvocation.resultDetails) && this.toolInvocation.resultDetails?.length) {
@@ -191,7 +199,7 @@ export class ChatToolInvocationPart extends Disposable implements IChatContentPa
 			);
 		}
 
-		return this.instantiationService.createInstance(ChatToolProgressSubPart, this.toolInvocation, this.context, this.renderer);
+		return this.instantiationService.createInstance(ChatToolProgressSubPart, this.toolInvocation, this.context, this.renderer, this.announcedToolProgressKeys);
 	}
 
 	hasSameContent(other: IChatRendererContent, followingContent: IChatRendererContent[], element: ChatTreeItem): boolean {
