@@ -909,7 +909,6 @@ export class HistoryService extends Disposable implements IHistoryService {
 	removeFromHistory(arg1: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent): boolean {
 		let removed = false;
 
-		this.editorHistoryListeners.deleteAndDispose(arg1)
 
 		this.ensureHistoryLoaded(this.history);
 
