@@ -357,8 +357,8 @@ export class HistoryService extends Disposable implements IHistoryService {
 	readonly onDidChangeEditorNavigationStack = this._onDidChangeEditorNavigationStack.event;
 
 	private defaultScopedEditorNavigationStack: IEditorNavigationStacks | undefined = undefined;
-	private readonly editorGroupScopedNavigationStacks = new Map<GroupIdentifier, { stack: IEditorNavigationStacks; disposable: IDisposable }>();
-	private readonly editorScopedNavigationStacks = new Map<GroupIdentifier, Map<EditorInput, { stack: IEditorNavigationStacks; disposable: IDisposable }>>();
+	private readonly editorGroupScopedNavigationStacks = this._register(new DisposableMap<GroupIdentifier, IEditorNavigationStacks>)
+	private readonly editorScopedNavigationStacks = this._register(new DisposableMap<GroupIdentifier, DisposableMap<EditorInput, IEditorNavigationStacks>>);
 
 	private editorNavigationScope = GoScope.DEFAULT;
 
@@ -399,18 +399,16 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 				let stacksForGroup = this.editorScopedNavigationStacks.get(group.id);
 				if (!stacksForGroup) {
-					stacksForGroup = new Map<EditorInput, { stack: IEditorNavigationStacks; disposable: IDisposable }>();
+					stacksForGroup = new DisposableMap<EditorInput, IEditorNavigationStacks>();
 					this.editorScopedNavigationStacks.set(group.id, stacksForGroup);
 				}
 
-				let stack = stacksForGroup.get(editor)?.stack;
+				let stack = stacksForGroup.get(editor);
 				if (!stack) {
-					const disposable = new DisposableStore();
+					stack = this.instantiationService.createInstance(EditorNavigationStacks, GoScope.EDITOR);
+					stack.register(stack.onDidChange(() => this._onDidChangeEditorNavigationStack.fire()));
 
-					stack = disposable.add(this.instantiationService.createInstance(EditorNavigationStacks, GoScope.EDITOR));
-					disposable.add(stack.onDidChange(() => this._onDidChangeEditorNavigationStack.fire()));
-
-					stacksForGroup.set(editor, { stack, disposable });
+					stacksForGroup.set(editor, stack);
 				}
 
 				return stack;
@@ -418,14 +416,12 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 			// Per Editor Group
 			case GoScope.EDITOR_GROUP: {
-				let stack = this.editorGroupScopedNavigationStacks.get(group.id)?.stack;
+				let stack = this.editorGroupScopedNavigationStacks.get(group.id);
 				if (!stack) {
-					const disposable = new DisposableStore();
+					stack = this.instantiationService.createInstance(EditorNavigationStacks, GoScope.EDITOR_GROUP);
+					stack.register(stack.onDidChange(() => this._onDidChangeEditorNavigationStack.fire()));
 
-					stack = disposable.add(this.instantiationService.createInstance(EditorNavigationStacks, GoScope.EDITOR_GROUP));
-					disposable.add(stack.onDidChange(() => this._onDidChangeEditorNavigationStack.fire()));
-
-					this.editorGroupScopedNavigationStacks.set(group.id, { stack, disposable });
+					this.editorGroupScopedNavigationStacks.set(group.id, stack);
 				}
 
 				return stack;
@@ -471,14 +467,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 	private handleEditorCloseEventInHistory(e: IEditorCloseEvent): void {
 		const editors = this.editorScopedNavigationStacks.get(e.groupId);
 		if (editors) {
-			const editorStack = editors.get(e.editor);
-			if (editorStack) {
-				editorStack.disposable.dispose();
-				editors.delete(e.editor);
-			}
+			editors.deleteAndDispose(e.editor);
 
 			if (editors.size === 0) {
-				this.editorScopedNavigationStacks.delete(e.groupId);
+				this.editorScopedNavigationStacks.deleteAndDispose(e.groupId);
 			}
 		}
 	}
@@ -489,11 +481,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 		this.defaultScopedEditorNavigationStack?.remove(group.id);
 
 		// Editor groups
-		const editorGroupStack = this.editorGroupScopedNavigationStacks.get(group.id);
-		if (editorGroupStack) {
-			editorGroupStack.disposable.dispose();
-			this.editorGroupScopedNavigationStacks.delete(group.id);
-		}
+		this.editorGroupScopedNavigationStacks.deleteAndDispose(group.id);
 	}
 
 	private clearEditorNavigationStacks(): void {
@@ -517,13 +505,13 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 		// Per editor group
 		for (const [, entry] of this.editorGroupScopedNavigationStacks) {
-			fn(entry.stack);
+			fn(entry);
 		}
 
 		// Per editor
 		for (const [, entries] of this.editorScopedNavigationStacks) {
 			for (const [, entry] of entries) {
-				fn(entry.stack);
+				fn(entry);
 			}
 		}
 	}
@@ -535,18 +523,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 		this.defaultScopedEditorNavigationStack = undefined;
 
 		// Per Editor group
-		for (const [, stack] of this.editorGroupScopedNavigationStacks) {
-			stack.disposable.dispose();
-		}
-		this.editorGroupScopedNavigationStacks.clear();
+		this.editorGroupScopedNavigationStacks.clearAndDisposeAll()
 
 		// Per Editor
-		for (const [, stacks] of this.editorScopedNavigationStacks) {
-			for (const [, stack] of stacks) {
-				stack.disposable.dispose();
-			}
-		}
-		this.editorScopedNavigationStacks.clear();
+		this.editorScopedNavigationStacks.clearAndDisposeAll()
 	}
 
 	//#endregion
@@ -1195,20 +1175,6 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	override dispose(): void {
 		super.dispose();
-
-		for (const [, stack] of this.editorGroupScopedNavigationStacks) {
-			stack.disposable.dispose();
-		}
-
-		for (const [, editors] of this.editorScopedNavigationStacks) {
-			for (const [, stack] of editors) {
-				stack.disposable.dispose();
-			}
-		}
-
-		for (const [, listener] of this.editorHistoryListeners) {
-			listener.dispose();
-		}
 	}
 }
 
@@ -1264,6 +1230,8 @@ interface IEditorNavigationStacks extends IDisposable {
 	clear(): void;
 	remove(arg1: EditorInput | FileChangesEvent | FileOperationEvent | GroupIdentifier): void;
 	move(event: FileOperationEvent): void;
+
+	register(disposable: IDisposable): void
 }
 
 class EditorNavigationStacks extends Disposable implements IEditorNavigationStacks {
@@ -1394,9 +1362,16 @@ class EditorNavigationStacks extends Disposable implements IEditorNavigationStac
 			stack.move(event);
 		}
 	}
+
+	public register(disposable: IDisposable) {
+		this._register(disposable);
+	}
 }
 
 class NoOpEditorNavigationStacks implements IEditorNavigationStacks {
+	register(disposable: IDisposable): void {
+		throw new Error('Method not implemented.');
+	}
 	onDidChange = Event.None;
 
 	canGoForward(): boolean { return false; }
