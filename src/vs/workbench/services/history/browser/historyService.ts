@@ -833,9 +833,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 		// React to editor input disposing
 		if (isEditorInput(editor)) {
-			this.editorHistoryListeners.set(editor,
-				this.editorHelper.onEditorDispose(editor, () => this.updateHistoryOnEditorDispose(historyInput))
-			)
+			this.editorHistoryListeners.set(editor, this.editorHelper.onEditorDispose(editor, () => this.updateHistoryOnEditorDispose(historyInput)))
 		}
 	}
 
@@ -2112,9 +2110,6 @@ class EditorHelper {
 
 	onEditorDispose(editor: EditorInput, listener: Function,): IDisposable {
 		return Event.once(editor.onWillDispose)(() => listener());
-
-
-
 	}
 
 	clearOnEditorDispose(editor: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent, mapEditorToDispose: DisposableMap<EditorInput, DisposableStore>): void {
