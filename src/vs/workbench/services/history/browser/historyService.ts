@@ -780,7 +780,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	private history: Array<EditorInput | IResourceEditorInput> | undefined = undefined;
 
-	private readonly editorHistoryListeners = this._register(new DisposableMap<EditorInput, DisposableStore>);
+	private readonly editorHistoryListeners = this._register(new DisposableMap<EditorInput, IDisposable>);
 
 	private readonly resourceExcludeMatcher = this._register(new WindowIdleValue(mainWindow, () => {
 		const matcher = this._register(this.instantiationService.createInstance(
@@ -824,12 +824,18 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 		// Respect max entries setting
 		if (this.history.length > HistoryService.MAX_HISTORY_ITEMS) {
-			this.editorHelper.clearOnEditorDispose(this.history.pop()!, this.editorHistoryListeners);
+			const editor =
+				this.history.pop()!
+			if (isEditorInput(editor)) {
+				this.editorHistoryListeners.deleteAndDispose(editor)
+			}
 		}
 
 		// React to editor input disposing
 		if (isEditorInput(editor)) {
-			this.editorHelper.onEditorDispose(editor, () => this.updateHistoryOnEditorDispose(historyInput), this.editorHistoryListeners);
+			this.editorHistoryListeners.set(editor,
+				this.editorHelper.onEditorDispose(editor, () => this.updateHistoryOnEditorDispose(historyInput))
+			)
 		}
 	}
 
@@ -883,8 +889,8 @@ export class HistoryService extends Disposable implements IHistoryService {
 			const include = this.includeInHistory(entry);
 
 			// Cleanup any listeners associated with the input when removing from history
-			if (!include) {
-				this.editorHelper.clearOnEditorDispose(entry, this.editorHistoryListeners);
+			if (!include && isEditorInput(entry)) {
+				this.editorHistoryListeners.deleteAndDispose(entry)
 			}
 
 			return include;
@@ -903,6 +909,8 @@ export class HistoryService extends Disposable implements IHistoryService {
 	removeFromHistory(arg1: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent): boolean {
 		let removed = false;
 
+		this.editorHistoryListeners.deleteAndDispose(arg1)
+
 		this.ensureHistoryLoaded(this.history);
 
 		this.history = this.history.filter(entry => {
@@ -910,7 +918,9 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 			// Cleanup any listeners associated with the input when removing from history
 			if (matches) {
-				this.editorHelper.clearOnEditorDispose(arg1, this.editorHistoryListeners);
+				if (isEditorInput(arg1)) {
+					this.editorHistoryListeners.deleteAndDispose(arg1)
+				}
 				removed = true;
 			}
 
@@ -932,7 +942,9 @@ export class HistoryService extends Disposable implements IHistoryService {
 			if (this.editorHelper.matchesEditor(editor, entry)) {
 
 				// Cleanup any listeners associated with the input when replacing from history
-				this.editorHelper.clearOnEditorDispose(editor, this.editorHistoryListeners);
+				if (isEditorInput(editor)) {
+					this.editorHistoryListeners.deleteAndDispose(editor)
+				}
 
 				// Insert replacements but only once
 				if (!replaced) {
@@ -1405,7 +1417,7 @@ export class EditorNavigationStack extends Disposable {
 	private readonly _onDidChange = this._register(new Emitter<void>());
 	readonly onDidChange = this._onDidChange.event;
 
-	private readonly mapEditorToDisposable = this._register(new DisposableMap<EditorInput, DisposableStore>);
+	private readonly mapEditorToDisposable = this._register(new DisposableMap<EditorInput, IDisposable>);
 	private readonly mapGroupToDisposable = this._register(new DisposableMap<GroupIdentifier, IDisposable>);
 
 	private readonly editorHelper: EditorHelper;
@@ -1707,13 +1719,15 @@ ${entryLabels.join('\n')}
 
 		// Clear editor listeners from removed entries
 		for (const removedEntry of removedEntries) {
-			this.editorHelper.clearOnEditorDispose(removedEntry.editor, this.mapEditorToDisposable);
+			if (isEditorInput(removedEntry.editor)) {
+				this.mapEditorToDisposable.deleteAndDispose(removedEntry.editor)
+			}
 		}
 
 		// Remove this from the stack unless the stack input is a resource
 		// that can easily be restored even when the input gets disposed
 		if (isEditorInput(editor)) {
-			this.editorHelper.onEditorDispose(editor, () => this.remove(editor), this.mapEditorToDisposable);
+			this.mapEditorToDisposable.set(editor, this.editorHelper.onEditorDispose(editor, () => this.remove(editor)))
 		}
 
 		// Event
@@ -1759,8 +1773,8 @@ ${entryLabels.join('\n')}
 			const matches = typeof arg1 === 'number' ? entry.groupId === arg1 : this.editorHelper.matchesEditor(arg1, entry.editor);
 
 			// Cleanup any listeners associated with the input when removing
-			if (matches) {
-				this.editorHelper.clearOnEditorDispose(entry.editor, this.mapEditorToDisposable);
+			if (matches && isEditorInput(entry.editor)) {
+				this.mapEditorToDisposable.deleteAndDispose(entry.editor)
 			}
 
 			return !matches;
@@ -2097,22 +2111,11 @@ class EditorHelper {
 		return editorPane.input ? identifier.editor.matches(editorPane.input) : false;
 	}
 
-	onEditorDispose(editor: EditorInput, listener: Function, mapEditorToDispose: DisposableMap<EditorInput, DisposableStore>): void {
-		if (editor.isDisposed()) {
-			listener()
-			return
-		}
-		const toDispose = Event.once(editor.onWillDispose)(() => listener());
+	onEditorDispose(editor: EditorInput, listener: Function,): IDisposable {
+		return Event.once(editor.onWillDispose)(() => listener());
 
-		let disposables = mapEditorToDispose.get(editor);
-		if (!disposables) {
-			disposables = new DisposableStore();
-			mapEditorToDispose.set(editor, disposables);
-			// TODO remove this entry
-			// disposables.add(toDisposable(()=>mapEditorToDispose))
-		}
 
-		disposables.add(toDispose);
+
 	}
 
 	clearOnEditorDispose(editor: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent, mapEditorToDispose: DisposableMap<EditorInput, DisposableStore>): void {
