@@ -12,7 +12,7 @@ import { IEditorService } from '../../editor/common/editorService.js';
 import { GoFilter, GoScope, IHistoryService } from '../common/history.js';
 import { FileChangesEvent, IFileService, FileChangeType, FILES_EXCLUDE_CONFIG, FileOperationEvent, FileOperation } from '../../../../platform/files/common/files.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
-import { dispose, Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, DisposableMap } from '../../../../base/common/lifecycle.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -800,7 +800,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	private history: Array<EditorInput | IResourceEditorInput> | undefined = undefined;
 
-	private readonly editorHistoryListeners = new Map<EditorInput, DisposableStore>();
+	private readonly editorHistoryListeners = this._register(new DisposableMap<EditorInput, DisposableStore>);
 
 	private readonly resourceExcludeMatcher = this._register(new WindowIdleValue(mainWindow, () => {
 		const matcher = this._register(this.instantiationService.createInstance(
@@ -979,11 +979,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	clearRecentlyOpened(): void {
 		this.history = [];
-
-		for (const [, disposable] of this.editorHistoryListeners) {
-			dispose(disposable);
-		}
-		this.editorHistoryListeners.clear();
+		this.editorHistoryListeners.clearAndDisposeAll();
 	}
 
 	getHistory(): readonly (EditorInput | IResourceEditorInput)[] {
@@ -1434,8 +1430,8 @@ export class EditorNavigationStack extends Disposable {
 	private readonly _onDidChange = this._register(new Emitter<void>());
 	readonly onDidChange = this._onDidChange.event;
 
-	private readonly mapEditorToDisposable = new Map<EditorInput, DisposableStore>();
-	private readonly mapGroupToDisposable = new Map<GroupIdentifier, IDisposable>();
+	private readonly mapEditorToDisposable = this._register(new DisposableMap<EditorInput, DisposableStore>);
+	private readonly mapGroupToDisposable = this._register(new DisposableMap<GroupIdentifier, IDisposable>);
 
 	private readonly editorHelper: EditorHelper;
 
@@ -1476,6 +1472,9 @@ export class EditorNavigationStack extends Disposable {
 	private registerListeners(): void {
 		this._register(this.onDidChange(() => this.traceStack()));
 		this._register(this.logService.onDidChangeLogLevel(() => this.traceStack()));
+		this._register(this.editorGroupService.onDidRemoveGroup(group => {
+			this.mapGroupToDisposable.deleteAndDispose(group.id);
+		}));
 	}
 
 	private traceStack(): void {
@@ -1807,8 +1806,7 @@ ${entryLabels.join('\n')}
 
 		// Clear group listener
 		if (typeof arg1 === 'number') {
-			this.mapGroupToDisposable.get(arg1)?.dispose();
-			this.mapGroupToDisposable.delete(arg1);
+			this.mapGroupToDisposable.deleteAndDispose(arg1);
 		}
 
 		// Event
@@ -1835,22 +1833,14 @@ ${entryLabels.join('\n')}
 		this.index = -1;
 		this.previousIndex = -1;
 		this.stack.splice(0);
-
-		for (const [, disposable] of this.mapEditorToDisposable) {
-			dispose(disposable);
-		}
-		this.mapEditorToDisposable.clear();
-
-		for (const [, disposable] of this.mapGroupToDisposable) {
-			dispose(disposable);
-		}
-		this.mapGroupToDisposable.clear();
+		this.mapEditorToDisposable.clearAndDisposeAll();
+		this.mapGroupToDisposable.clearAndDisposeAll();
 	}
 
 	override dispose(): void {
+		this.clear();
 		super.dispose();
 
-		this.clear();
 	}
 
 	//#endregion
@@ -2132,27 +2122,29 @@ class EditorHelper {
 		return editorPane.input ? identifier.editor.matches(editorPane.input) : false;
 	}
 
-	onEditorDispose(editor: EditorInput, listener: Function, mapEditorToDispose: Map<EditorInput, DisposableStore>): void {
+	onEditorDispose(editor: EditorInput, listener: Function, mapEditorToDispose: DisposableMap<EditorInput, DisposableStore>): void {
+		if (editor.isDisposed()) {
+			listener()
+			return
+		}
 		const toDispose = Event.once(editor.onWillDispose)(() => listener());
 
 		let disposables = mapEditorToDispose.get(editor);
 		if (!disposables) {
 			disposables = new DisposableStore();
 			mapEditorToDispose.set(editor, disposables);
+			// TODO remove this entry
+			// disposables.add(toDisposable(()=>mapEditorToDispose))
 		}
 
 		disposables.add(toDispose);
 	}
 
-	clearOnEditorDispose(editor: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent, mapEditorToDispose: Map<EditorInput, DisposableStore>): void {
+	clearOnEditorDispose(editor: EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent, mapEditorToDispose: DisposableMap<EditorInput, DisposableStore>): void {
 		if (!isEditorInput(editor)) {
 			return; // only supported when passing in an actual editor input
 		}
 
-		const disposables = mapEditorToDispose.get(editor);
-		if (disposables) {
-			dispose(disposables);
-			mapEditorToDispose.delete(editor);
-		}
+		mapEditorToDispose.deleteAndDispose(editor);
 	}
 }
