@@ -563,16 +563,33 @@ export class ExtensionsScanner extends Disposable {
 		await this.initializeExtensionSize();
 	}
 
-	async scanExtensions(type: ExtensionType | null, profileLocation: URI): Promise<ILocalExtension[]> {
-		const userScanOptions: ScanOptions = { includeInvalid: true, profileLocation };
-		let scannedExtensions: IScannedExtension[] = [];
-		if (type === null || type === ExtensionType.System) {
-			scannedExtensions.push(...await this.extensionsScannerService.scanAllExtensions({ includeInvalid: true }, userScanOptions, false));
-		} else if (type === ExtensionType.User) {
-			scannedExtensions.push(...await this.extensionsScannerService.scanUserExtensions(userScanOptions));
+	async scanExtensions(type: ExtensionType | null, profileLocation: URI, productVersion: IProductVersion, language?: string): Promise<ILocalExtension[]> {
+		try {
+			const cacheKey: URI = profileLocation.with({ query: language });
+			const userScanOptions: UserExtensionsScanOptions = { includeInvalid: true, profileLocation, productVersion, language };
+			let scannedExtensions: IScannedExtension[] = [];
+			if (type === null || type === ExtensionType.System) {
+				let scanAllExtensionsPromise = this.scanAllExtensionPromise.get(cacheKey);
+				if (!scanAllExtensionsPromise) {
+					scanAllExtensionsPromise = this.extensionsScannerService.scanAllExtensions({ language }, userScanOptions)
+						.finally(() => this.scanAllExtensionPromise.delete(cacheKey));
+					this.scanAllExtensionPromise.set(cacheKey, scanAllExtensionsPromise);
+				}
+				scannedExtensions.push(...await scanAllExtensionsPromise);
+			} else if (type === ExtensionType.User) {
+				let scanUserExtensionsPromise = this.scanUserExtensionsPromise.get(cacheKey);
+				if (!scanUserExtensionsPromise) {
+					scanUserExtensionsPromise = this.extensionsScannerService.scanUserExtensions(userScanOptions)
+						.finally(() => this.scanUserExtensionsPromise.delete(cacheKey));
+					this.scanUserExtensionsPromise.set(cacheKey, scanUserExtensionsPromise);
+				}
+				scannedExtensions.push(...await scanUserExtensionsPromise);
+			}
+			scannedExtensions = type !== null ? scannedExtensions.filter(r => r.type === type) : scannedExtensions;
+			return await Promise.all(scannedExtensions.map(extension => this.toLocalExtension(extension)));
+		} catch (error) {
+			throw toExtensionManagementError(error, ExtensionManagementErrorCode.Scanning);
 		}
-		scannedExtensions = type !== null ? scannedExtensions.filter(r => r.type === type) : scannedExtensions;
-		return Promise.all(scannedExtensions.map(extension => this.toLocalExtension(extension)));
 	}
 
 	async scanAllUserExtensions(): Promise<ILocalExtension[]> {
