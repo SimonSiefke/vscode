@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isObject, isString } from 'vs/base/common/types';
-import { ILocalizedString } from 'vs/platform/action/common/action';
-import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
-import { localize } from 'vs/nls';
-import { ILogger } from 'vs/platform/log/common/log';
+import { isObject, isString } from '../../../base/common/types.js';
+import { ILocalizedString } from '../../action/common/action.js';
+import { IExtensionManifest } from '../../extensions/common/extensions.js';
+import { localize } from '../../../nls.js';
+import { ILogger } from '../../log/common/log.js';
 
 export interface ITranslations {
 	[key: string]: string | { message: string; comment: string[] } | undefined;
@@ -31,7 +31,7 @@ function replaceNLStrings(logger: ILogger, extensionManifest: IExtensionManifest
 	const processEntry = (obj: any, key: string | number, command?: boolean) => {
 		const value = obj[key];
 		if (isString(value)) {
-			const str = <string>value;
+			const str = value;
 			const length = str.length;
 			if (length > 1 && str[0] === '%' && str[length - 1] === '%') {
 				const messageKey = str.substr(1, length - 2);

@@ -3,21 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
-import { readFileSync } from 'fs';
+import assert from 'assert';
+import { readFileSync, promises } from 'fs';
 import { tmpdir } from 'os';
-import { DisposableStore } from 'vs/base/common/lifecycle';
-import { Schemas } from 'vs/base/common/network';
-import { join } from 'vs/base/common/path';
-import { URI } from 'vs/base/common/uri';
-import { Promises, writeFileSync } from 'vs/base/node/pfs';
-import { ensureNoDisposablesAreLeakedInTestSuite } from 'vs/base/test/common/utils';
-import { flakySuite, getRandomTestPath } from 'vs/base/test/node/testUtils';
-import { IFileService } from 'vs/platform/files/common/files';
-import { FileService } from 'vs/platform/files/common/fileService';
-import { DiskFileSystemProvider } from 'vs/platform/files/node/diskFileSystemProvider';
-import { ILogService, NullLogService } from 'vs/platform/log/common/log';
-import { FileStorage, SaveStrategy } from 'vs/platform/state/node/stateService';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Schemas } from '../../../../base/common/network.js';
+import { join } from '../../../../base/common/path.js';
+import { URI } from '../../../../base/common/uri.js';
+import { Promises, writeFileSync } from '../../../../base/node/pfs.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { flakySuite, getRandomTestPath } from '../../../../base/test/node/testUtils.js';
+import { IFileService } from '../../../files/common/files.js';
+import { FileService } from '../../../files/common/fileService.js';
+import { DiskFileSystemProvider } from '../../../files/node/diskFileSystemProvider.js';
+import { ILogService, NullLogService } from '../../../log/common/log.js';
+import { FileStorage, SaveStrategy } from '../../node/stateService.js';
 
 flakySuite('StateService', () => {
 
@@ -37,7 +37,7 @@ flakySuite('StateService', () => {
 		diskFileSystemProvider = disposables.add(new DiskFileSystemProvider(logService));
 		disposables.add(fileService.registerProvider(Schemas.file, diskFileSystemProvider));
 
-		return Promises.mkdir(testDir, { recursive: true });
+		return promises.mkdir(testDir, { recursive: true });
 	});
 
 	teardown(() => {
@@ -170,6 +170,8 @@ flakySuite('StateService', () => {
 		assert.strictEqual(service.getItem('some.setItems.key3'), undefined);
 		assert.strictEqual(service.getItem('some.setItems.key4'), undefined);
 		assert.strictEqual(service.getItem('some.setItems.key5'), undefined);
+
+		return service.close();
 	});
 
 	test('Multiple ops are buffered and applied', async function () {
@@ -199,6 +201,8 @@ flakySuite('StateService', () => {
 		assert.strictEqual(service.getItem('some.key2'), 'some.value2');
 		assert.strictEqual(service.getItem('some.key3'), 'some.value3');
 		assert.strictEqual(service.getItem('some.key4'), undefined);
+
+		return service.close();
 	});
 
 	test('Multiple ops (Immediate Strategy)', async function () {
@@ -228,6 +232,8 @@ flakySuite('StateService', () => {
 		assert.strictEqual(service.getItem('some.key2'), 'some.value2');
 		assert.strictEqual(service.getItem('some.key3'), 'some.value3');
 		assert.strictEqual(service.getItem('some.key4'), undefined);
+
+		return service.close();
 	});
 
 	test('Used before init', async function () {
@@ -253,6 +259,8 @@ flakySuite('StateService', () => {
 		assert.strictEqual(service.getItem('some.key2'), 'some.value2');
 		assert.strictEqual(service.getItem('some.key3'), 'some.value3');
 		assert.strictEqual(service.getItem('some.key4'), undefined);
+
+		return service.close();
 	});
 
 	test('Used after close', async function () {
@@ -276,7 +284,7 @@ flakySuite('StateService', () => {
 		assert.ok(contents.includes('some.value1'));
 		assert.ok(!contents.includes('some.marker'));
 
-		await service.close();
+		return service.close();
 	});
 
 	test('Closed before init', async function () {

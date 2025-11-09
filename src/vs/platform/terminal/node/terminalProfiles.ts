@@ -3,20 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from 'fs';
 import * as cp from 'child_process';
-import { Codicon } from 'vs/base/common/codicons';
-import { basename, delimiter, normalize } from 'vs/base/common/path';
-import { isLinux, isWindows } from 'vs/base/common/platform';
-import { isString } from 'vs/base/common/types';
-import { URI } from 'vs/base/common/uri';
-import * as pfs from 'vs/base/node/pfs';
-import { enumeratePowerShellInstallations } from 'vs/base/node/powershell';
-import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
-import { ILogService } from 'vs/platform/log/common/log';
-import { ITerminalEnvironment, ITerminalExecutable, ITerminalProfile, ITerminalProfileSource, ITerminalUnsafePath, ProfileSource, TerminalIcon, TerminalSettingId } from 'vs/platform/terminal/common/terminal';
-import { findExecutable, getWindowsBuildNumber } from 'vs/platform/terminal/node/terminalEnvironment';
-import { ThemeIcon } from 'vs/base/common/themables';
-import { dirname, resolve } from 'path';
+import { Codicon } from '../../../base/common/codicons.js';
+import { basename, delimiter, normalize, dirname, resolve } from '../../../base/common/path.js';
+import { isLinux, isWindows } from '../../../base/common/platform.js';
+import { findExecutable } from '../../../base/node/processes.js';
+import { hasKey, isString } from '../../../base/common/types.js';
+import { URI } from '../../../base/common/uri.js';
+import * as pfs from '../../../base/node/pfs.js';
+import { enumeratePowerShellInstallations } from '../../../base/node/powershell.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { ILogService } from '../../log/common/log.js';
+import { ITerminalEnvironment, ITerminalExecutable, ITerminalProfile, ITerminalProfileSource, ITerminalUnsafePath, ProfileSource, TerminalIcon, TerminalSettingId } from '../common/terminal.js';
+import { getWindowsBuildNumber } from './terminalEnvironment.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
+
+const enum Constants {
+	UnixShellsPath = '/etc/shells'
+}
 
 let profileSources: Map<string, IPotentialTerminalProfile> | undefined;
 let logIfWslNotInstalled: boolean = true;
@@ -34,7 +39,7 @@ export function detectAvailableProfiles(
 ): Promise<ITerminalProfile[]> {
 	fsProvider = fsProvider || {
 		existsFile: pfs.SymlinkSupport.existsFile,
-		readFile: pfs.Promises.readFile
+		readFile: fs.promises.readFile
 	};
 	if (isWindows) {
 		return detectAvailableWindowsProfiles(
@@ -79,11 +84,9 @@ async function detectAvailableWindowsProfiles(
 	const is32ProcessOn64Windows = process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432');
 	const system32Path = `${process.env['windir']}\\${is32ProcessOn64Windows ? 'Sysnative' : 'System32'}`;
 
-	let useWSLexe = false;
-
-	if (getWindowsBuildNumber() >= 16299) {
-		useWSLexe = true;
-	}
+	// WSL 2 released in the May 2020 Update, this is where the `-d` flag was added that we depend
+	// upon
+	const allowWslDiscovery = getWindowsBuildNumber() >= 19041;
 
 	await initializeWindowsProfiles(testPwshSourcePaths);
 
@@ -103,6 +106,7 @@ async function detectAvailableWindowsProfiles(
 		});
 		detectedProfiles.set('Git Bash', {
 			source: ProfileSource.GitBash,
+			icon: Codicon.terminalGitBash,
 			isAutoDetected: true
 		});
 		detectedProfiles.set('Command Prompt', {
@@ -123,6 +127,8 @@ async function detectAvailableWindowsProfiles(
 				{ path: `${process.env['HOMEDRIVE']}\\msys64\\usr\\bin\\bash.exe`, isUnsafe: true },
 			],
 			args: ['--login', '-i'],
+			// CHERE_INVOKING retains current working directory
+			env: { CHERE_INVOKING: '1' },
 			icon: Codicon.terminalBash,
 			isAutoDetected: true
 		});
@@ -140,17 +146,17 @@ async function detectAvailableWindowsProfiles(
 
 	const resultProfiles: ITerminalProfile[] = await transformToTerminalProfiles(detectedProfiles.entries(), defaultProfileName, fsProvider, shellEnv, logService, variableResolver);
 
-	if (includeDetectedProfiles && useWslProfiles) {
+	if (includeDetectedProfiles && useWslProfiles && allowWslDiscovery) {
 		try {
-			const result = await getWslProfiles(`${system32Path}\\${useWSLexe ? 'wsl' : 'bash'}.exe`, defaultProfileName);
+			const result = await getWslProfiles(`${system32Path}\\wsl.exe`, defaultProfileName);
 			for (const wslProfile of result) {
-				if (!configProfiles || !(wslProfile.profileName in configProfiles)) {
+				if (!configProfiles || !Object.prototype.hasOwnProperty.call(configProfiles, wslProfile.profileName)) {
 					resultProfiles.push(wslProfile);
 				}
 			}
 		} catch (e) {
 			if (logIfWslNotInstalled) {
-				logService?.info('WSL is not installed, so could not detect WSL profiles');
+				logService?.trace('WSL is not installed, so could not detect WSL profiles');
 				logIfWslNotInstalled = false;
 			}
 		}
@@ -171,7 +177,7 @@ async function transformToTerminalProfiles(
 	for (const [profileName, profile] of entries) {
 		promises.push(getValidatedProfile(profileName, profile, defaultProfileName, fsProvider, shellEnv, logService, variableResolver));
 	}
-	return (await Promise.all(promises)).filter(e => !!e) as ITerminalProfile[];
+	return (await Promise.all(promises)).filter(e => !!e);
 }
 
 async function getValidatedProfile(
@@ -190,7 +196,7 @@ async function getValidatedProfile(
 	let args: string[] | string | undefined;
 	let icon: ThemeIcon | URI | { light: URI; dark: URI } | undefined = undefined;
 	// use calculated values if path is not specified
-	if ('source' in profile && !('path' in profile)) {
+	if (hasKey(profile, { source: true })) {
 		const source = profileSources?.get(profile.source);
 		if (!source) {
 			return undefined;
@@ -405,8 +411,8 @@ async function detectAvailableUnixProfiles(
 	const detectedProfiles: Map<string, IUnresolvedTerminalProfile> = new Map();
 
 	// Add non-quick launch profiles
-	if (includeDetectedProfiles) {
-		const contents = (await fsProvider.readFile('/etc/shells')).toString();
+	if (includeDetectedProfiles && await fsProvider.existsFile(Constants.UnixShellsPath)) {
+		const contents = (await fsProvider.readFile(Constants.UnixShellsPath)).toString();
 		const profiles = (
 			(testPaths || contents.split('\n'))
 				.map(e => {
@@ -438,7 +444,7 @@ function applyConfigProfilesToMap(configProfiles: { [key: string]: IUnresolvedTe
 		return;
 	}
 	for (const [profileName, value] of Object.entries(configProfiles)) {
-		if (value === null || typeof value !== 'object' || (!('path' in value) && !('source' in value))) {
+		if (value === null || typeof value !== 'object' || (!hasKey(value, { path: true }) && !hasKey(value, { source: true }))) {
 			profilesMap.delete(profileName);
 		} else {
 			value.icon = value.icon || profilesMap.get(profileName)?.icon;

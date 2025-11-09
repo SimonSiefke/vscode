@@ -62,7 +62,7 @@ export class LinkedList<E> {
 
 		} else if (atTheEnd) {
 			// push
-			const oldLast = this._last!;
+			const oldLast = this._last;
 			this._last = newNode;
 			newNode.prev = oldLast;
 			oldLast.next = newNode;
@@ -105,6 +105,15 @@ export class LinkedList<E> {
 		}
 	}
 
+	peek(): E | undefined {
+		if (this._last === Node.Undefined) {
+			return undefined;
+		} else {
+			const res = this._last.element;
+			return res;
+		}
+	}
+
 	private _remove(node: Node<E>): void {
 		if (node.prev !== Node.Undefined && node.next !== Node.Undefined) {
 			// middle
@@ -119,12 +128,12 @@ export class LinkedList<E> {
 
 		} else if (node.next === Node.Undefined) {
 			// last
-			this._last = this._last!.prev!;
+			this._last = this._last.prev!;
 			this._last.next = Node.Undefined;
 
 		} else if (node.prev === Node.Undefined) {
 			// first
-			this._first = this._first!.next!;
+			this._first = this._first.next!;
 			this._first.prev = Node.Undefined;
 		}
 
