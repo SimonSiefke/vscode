@@ -566,7 +566,7 @@ export class ExtensionsScanner extends Disposable {
 	async scanExtensions(type: ExtensionType | null, profileLocation: URI, productVersion: IProductVersion, language?: string): Promise<ILocalExtension[]> {
 		try {
 			const cacheKey: URI = profileLocation.with({ query: language });
-			const userScanOptions: UserExtensionsScanOptions = { includeInvalid: true, profileLocation, productVersion, language };
+			const userScanOptions: UserExtensionsScanOptions = { includeInvalid: true, useCache: true, profileLocation, productVersion, language };
 			let scannedExtensions: IScannedExtension[] = [];
 			if (type === null || type === ExtensionType.System) {
 				let scanAllExtensionsPromise = this.scanAllExtensionPromise.get(cacheKey);
