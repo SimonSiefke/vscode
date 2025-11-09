@@ -213,7 +213,7 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 		this.logService.trace('Started scanning user extensions', scanOptions.profileLocation);
 		const profileScanOptions: IProfileExtensionsScanOptions | undefined = this.uriIdentityService.extUri.isEqual(scanOptions.profileLocation, this.userDataProfilesService.defaultProfile.extensionsResource) ? { bailOutWhenFileNotFound: true } : undefined;
 		const validateSystemExtensionsCache = this.configurationService.getValue<boolean>('extensions.validateSystemExtensionsCache');
-		const extensionsScannerInput = await this.createExtensionScannerInput(scanOptions.profileLocation, true, ExtensionType.User, scanOptions.language, true, profileScanOptions, scanOptions.productVersion ?? this.getProductVersion());
+		const extensionsScannerInput = await this.createExtensionScannerInput(scanOptions.profileLocation, true, ExtensionType.User, scanOptions.language, validateSystemExtensionsCache, profileScanOptions, scanOptions.productVersion ?? this.getProductVersion());
 		const extensionsScanner = scanOptions.useCache && !extensionsScannerInput.devMode ? this.userExtensionsCachedScanner : this.extensionsScanner;
 		let extensions: IRelaxedScannedExtension[];
 		try {
