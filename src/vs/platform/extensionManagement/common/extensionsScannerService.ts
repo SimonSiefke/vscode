@@ -34,6 +34,7 @@ import { ExtensionsProfileScanningError, ExtensionsProfileScanningErrorCode, IEx
 import { IUserDataProfile, IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { localizeManifest } from './extensionNls.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
 
 export type ManifestMetadata = Partial<{
 	targetPlatform: TargetPlatform;
@@ -172,6 +173,7 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 		@IProductService private readonly productService: IProductService,
 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IConfigurationService private readonly configurationService: IConfigurationService
 	) {
 		super();
 
@@ -210,6 +212,7 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 	async scanUserExtensions(scanOptions: UserExtensionsScanOptions): Promise<IScannedExtension[]> {
 		this.logService.trace('Started scanning user extensions', scanOptions.profileLocation);
 		const profileScanOptions: IProfileExtensionsScanOptions | undefined = this.uriIdentityService.extUri.isEqual(scanOptions.profileLocation, this.userDataProfilesService.defaultProfile.extensionsResource) ? { bailOutWhenFileNotFound: true } : undefined;
+		const validateSystemExtensionsCache = this.configurationService.getValue<boolean>('extensions.validateSystemExtensionsCache');
 		const extensionsScannerInput = await this.createExtensionScannerInput(scanOptions.profileLocation, true, ExtensionType.User, scanOptions.language, true, profileScanOptions, scanOptions.productVersion ?? this.getProductVersion());
 		const extensionsScanner = scanOptions.useCache && !extensionsScannerInput.devMode ? this.userExtensionsCachedScanner : this.extensionsScanner;
 		let extensions: IRelaxedScannedExtension[];
@@ -1055,13 +1058,14 @@ export class NativeExtensionsScannerService extends AbstractExtensionsScannerSer
 		productService: IProductService,
 		uriIdentityService: IUriIdentityService,
 		instantiationService: IInstantiationService,
+		configurationService: IConfigurationService
 	) {
 		super(
 			systemExtensionsLocation,
 			userExtensionsLocation,
 			joinPath(userHome, '.vscode-oss-dev', 'extensions', 'control.json'),
 			currentProfile,
-			userDataProfilesService, extensionsProfileScannerService, fileService, logService, environmentService, productService, uriIdentityService, instantiationService);
+			userDataProfilesService, extensionsProfileScannerService, fileService, logService, environmentService, productService, uriIdentityService, instantiationService, configurationService);
 		this.translationsPromise = (async () => {
 			if (platform.translationsConfigFile) {
 				try {
