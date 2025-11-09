@@ -418,7 +418,7 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 	private async scanDefaultSystemExtensions(language: string | undefined): Promise<IRelaxedScannedExtension[]> {
 		this.logService.trace('Started scanning system extensions');
 		const validateSystemExtensionsCache = this.configurationService.getValue<boolean>('extensions.validateSystemExtensionsCache'); // TODO check if this works as expected
-		const extensionsScannerInput = await this.createExtensionScannerInput(this.systemExtensionsLocation, false, ExtensionType.System, language, true, undefined, this.getProductVersion());
+		const extensionsScannerInput = await this.createExtensionScannerInput(this.systemExtensionsLocation, false, ExtensionType.System, language, validateSystemExtensionsCache, undefined, this.getProductVersion());
 		const extensionsScanner = extensionsScannerInput.devMode ? this.extensionsScanner : this.systemExtensionsCachedScanner;
 		const result = await extensionsScanner.scanExtensions(extensionsScannerInput);
 		this.logService.trace('Scanned system extensions:', result.length);
