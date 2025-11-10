@@ -931,7 +931,7 @@ export class CommentController implements IEditorContribution {
 		this._computeCommentingRangeScheduler = new Delayer<ICommentInfo[]>(200);
 		this.localToDispose.add({
 			dispose: () => {
-				this._computeCommentingRangeScheduler?.cancel();
+				this._computeCommentingRangeScheduler?.dispose();
 				this._computeCommentingRangeScheduler = null;
 			}
 		});
