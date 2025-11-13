@@ -21,6 +21,91 @@ export interface CancelablePromise<T> extends Promise<T> {
 	cancel(): void;
 }
 
+
+// interface SuccessResult<T> {
+// 	value: T
+// 	error: null
+// }
+
+// interface ErrorResult {
+// 	value: null, error: Error
+// }
+
+// type Result<T> = SuccessResult<T> | ErrorResult
+
+
+// const exec = async <T>(callback: (token: CancellationToken) => Promise<T>, token: CancellationToken): Promise<Result<T>> => {
+// 	try {
+
+// 		const value = await callback(token)
+// 		return {
+// 			value,
+// 			error: null
+// 		}
+// 	} catch (error) {
+// 		return {
+// 			value: null,
+// 			error
+// 		}
+// 	}
+// }
+
+// class CancelablePromise2<T> {
+// 	isCancelled: boolean;
+// 	callback: (token: CancellationToken) => Promise<T>;
+
+// 	constructor(callback: (token: CancellationToken) => Promise<T>) {
+// 		const source = new CancellationTokenSource();
+// 		this.isCancelled = false
+// 		this.callback = callback
+// 		const { resolve, reject, promise } = Promise.withResolvers<T>()
+
+// 		const subscription = source.token.onCancellationRequested(() => {
+// 			this.isCancelled = true;
+// 			subscription.dispose();
+// 			source.dispose()
+// 			reject(new CancellationError());
+// 		});
+
+// 	}
+
+// 	async run() {
+
+// 		try {
+
+// 			const value = await this.callback(source.token)
+// 		} catch {
+
+// 		}
+// 		Promise.resolve(thenable).then(value => {
+// 			subscription.dispose();
+// 			source.dispose();
+
+// 			if (!isCancelled) {
+// 				resolve(value);
+
+// 			} else if (isDisposable(value)) {
+// 				// promise has been cancelled, result is disposable and will
+// 				// be cleaned up
+// 				value.dispose();
+// 			}
+// 		}, err => {
+// 			subscription.dispose();
+// 			source.dispose();
+// 			reject(err);
+// 		});
+
+// 		return this.promise
+
+// 	}
+
+
+
+
+
+
+// }
+
 /**
  * Returns a promise that can be cancelled using the provided cancellation token.
  *

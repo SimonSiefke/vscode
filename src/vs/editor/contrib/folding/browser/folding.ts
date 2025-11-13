@@ -305,6 +305,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 
 	public triggerFoldingModelChanged() {
 		if (this.updateScheduler) {
+			this.updateScheduler.cancel()
 			if (this.foldingRegionPromise) {
 				this.foldingRegionPromise.cancel();
 				this.foldingRegionPromise = null;
@@ -368,29 +369,34 @@ export class FoldingController extends Disposable implements IEditorContribution
 		}
 	}
 
-	private revealCursor() {
-		const foldingModel = this.getFoldingModel();
-		if (!foldingModel) {
+	private async revealCursor() {
+		const foldingModel1 = this.getFoldingModel();
+		if (!foldingModel1) {
 			return;
 		}
-		foldingModel.then(foldingModel => { // null is returned if folding got disabled in the meantime
-			if (foldingModel) {
-				const selections = this.editor.getSelections();
-				if (selections && selections.length > 0) {
-					const toToggle: FoldingRegion[] = [];
-					for (const selection of selections) {
-						const lineNumber = selection.selectionStartLineNumber;
-						if (this.hiddenRangeModel && this.hiddenRangeModel.isHidden(lineNumber)) {
-							toToggle.push(...foldingModel.getAllRegionsAtLine(lineNumber, r => r.isCollapsed && lineNumber > r.startLineNumber));
-						}
-					}
-					if (toToggle.length) {
-						foldingModel.toggleCollapseState(toToggle);
-						this.reveal(selections[0].getPosition());
-					}
+		let foldingModel2: FoldingModel | undefined | null
+		try {
+			foldingModel2 = await foldingModel1
+		} catch (err) {
+			onUnexpectedError(err)
+		}
+		if (!foldingModel2) {
+			return
+		}
+		const selections = this.editor.getSelections();
+		if (selections && selections.length > 0) {
+			const toToggle: FoldingRegion[] = [];
+			for (const selection of selections) {
+				const lineNumber = selection.selectionStartLineNumber;
+				if (this.hiddenRangeModel && this.hiddenRangeModel.isHidden(lineNumber)) {
+					toToggle.push(...foldingModel2.getAllRegionsAtLine(lineNumber, r => r.isCollapsed && lineNumber > r.startLineNumber));
 				}
 			}
-		}).then(undefined, onUnexpectedError);
+			if (toToggle.length) {
+				foldingModel2.toggleCollapseState(toToggle);
+				this.reveal(selections[0].getPosition());
+			}
+		}
 
 	}
 
