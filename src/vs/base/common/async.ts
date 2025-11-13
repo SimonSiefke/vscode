@@ -42,6 +42,7 @@ export function createCancelablePromise<T>(callback: (token: CancellationToken) 
 		const subscription = source.token.onCancellationRequested(() => {
 			isCancelled = true;
 			subscription.dispose();
+			source.dispose()
 			reject(new CancellationError());
 		});
 		Promise.resolve(thenable).then(value => {
@@ -326,19 +327,36 @@ interface IScheduledLater extends IDisposable {
 	isTriggered(): boolean;
 }
 
+class TimeoutDeferred {
+	timeout: number;
+	fn: () => void;
+	scheduled: boolean;
+	handle: TimeoutHandle;
+
+	constructor(timeout: number, fn: () => void) {
+		this.timeout = timeout
+		this.fn = fn
+		this.scheduled = true
+		this.handle = setTimeout(() => {
+			this.scheduled = false;
+			fn();
+		}, timeout);
+	}
+
+	isTriggered() {
+		return this.scheduled
+	}
+
+	dispose() {
+		clearTimeout(this.handle);
+		this.handle = null!
+		this.scheduled = false;
+		this.fn = null!
+	}
+}
+
 const timeoutDeferred = (timeout: number, fn: () => void): IScheduledLater => {
-	let scheduled = true;
-	const handle = setTimeout(() => {
-		scheduled = false;
-		fn();
-	}, timeout);
-	return {
-		isTriggered: () => scheduled,
-		dispose: () => {
-			clearTimeout(handle);
-			scheduled = false;
-		},
-	};
+	return new TimeoutDeferred(timeout, fn)
 };
 
 const microtaskDeferred = (fn: () => void): IScheduledLater => {
@@ -445,6 +463,11 @@ export class Delayer<T> implements IDisposable {
 
 	dispose(): void {
 		this.cancel();
+		this.deferred = null;
+		this.completionPromise = null;
+		this.doResolve = null;
+		this.doReject = null;
+		this.task = null;
 	}
 }
 

@@ -263,6 +263,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 				this.foldingModel = null;
 				this.foldingModelPromise = null;
 				this.hiddenRangeModel = null;
+				this.cursorChangedScheduler?.cancel()
 				this.cursorChangedScheduler = null;
 				this.rangeProvider?.dispose();
 				this.rangeProvider = null;
