@@ -2602,7 +2602,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 					this.viewModel.model?.setCheckpoint(undefined);
 				}
 				return result.responseCreatedPromise;
+			} else {
+				this.chatAccessibilityService.disposeRequest(requestId);
 			}
+			// this.chatAccessibilityService.disposeRequest(requestId)
 		}
 		return undefined;
 	}
