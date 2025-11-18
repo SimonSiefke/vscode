@@ -747,6 +747,7 @@ class DecorationCSSRules implements IDisposable {
 	}
 
 	private _removeCSS(): void {
+		console.log(`remove css`, this._unThemedSelector)
 		this._providerArgs.styleSheet.removeRulesContainingSelector(this._unThemedSelector);
 	}
 

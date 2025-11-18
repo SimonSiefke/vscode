@@ -279,7 +279,7 @@ export class GitBlameController {
 		// Editor decoration
 		if (editorDecorationEnabled) {
 			if (!this._editorDecoration) {
-				this._editorDecoration = new GitBlameEditorDecoration(this);
+				this._editorDecoration = new GitBlameEditorDecoration(this)
 			}
 		} else {
 			this._editorDecoration?.dispose();
