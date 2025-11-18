@@ -435,6 +435,7 @@ class DecorationSubTypeOptionsProvider implements IModelDecorationOptionsProvide
 			this._afterContentRules = null;
 		}
 		this._styleSheet.unref();
+		this._styleSheet = undefined
 	}
 }
 
@@ -621,7 +622,7 @@ export const _CSS_MAP: { [prop: string]: string } = {
 };
 
 
-class DecorationCSSRules {
+class DecorationCSSRules implements IDisposable {
 
 	private _theme: IColorTheme;
 	private readonly _className: string;

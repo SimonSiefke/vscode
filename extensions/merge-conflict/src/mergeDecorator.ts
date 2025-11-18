@@ -67,7 +67,7 @@ export default class MergeDecorator implements vscode.Disposable {
 		if (config.enableDecorations || config.enableEditorOverview) {
 			this.decorations['current.content'] = vscode.window.createTextEditorDecorationType(
 				this.generateBlockRenderOptions('merge.currentContentBackground', 'editorOverviewRuler.currentContentForeground', config)
-			);
+			)
 
 			this.decorations['incoming.content'] = vscode.window.createTextEditorDecorationType(
 				this.generateBlockRenderOptions('merge.incomingContentBackground', 'editorOverviewRuler.incomingContentForeground', config)
