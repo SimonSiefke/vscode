@@ -653,6 +653,8 @@ class GitBlameEditorDecoration implements HoverProvider {
 	}
 
 	dispose() {
+		console.log('[git] dispose decoration' + this._decoration.key)
+
 		this._hoverDisposable?.dispose();
 		this._hoverDisposable = undefined;
 

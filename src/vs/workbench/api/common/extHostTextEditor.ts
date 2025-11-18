@@ -29,6 +29,7 @@ export class TextEditorDecorationType {
 		this.value = Object.freeze({
 			key,
 			dispose() {
+				console.log(`[ext proxy remove decoration]`+key)
 				proxy.$removeTextEditorDecorationType(key);
 			}
 		});

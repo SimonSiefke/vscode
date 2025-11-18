@@ -163,9 +163,14 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 				options: options || Object.create(null)
 			};
 			if (!parentTypeKey) {
+				console.log('provider 1' + key)
 				provider = new DecorationTypeOptionsProvider(description, this._themeService, styleSheet, providerArgs);
 			} else {
+				console.log('provider 2' + key)
 				provider = new DecorationSubTypeOptionsProvider(this._themeService, styleSheet, providerArgs);
+			}
+			if (this._decorationOptionProviders.has(key)) {
+				throw new Error(`impossible`)
 			}
 			this._decorationOptionProviders.set(key, provider);
 			this._onDecorationTypeRegistered.fire(key);
@@ -190,6 +195,8 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 				this._decorationOptionProviders.delete(key);
 				provider.dispose();
 				this.listCodeEditors().forEach((ed) => ed.removeDecorationsByType(key));
+			} else {
+				console.log(`not yet disposing provider` + key + 'due to refcount being' + provider.refCount)
 			}
 		}
 	}
@@ -650,6 +657,7 @@ class DecorationCSSRules implements IDisposable {
 		this._className = className;
 
 		this._unThemedSelector = CSSNameHelper.getSelector(this._providerArgs.key, this._providerArgs.parentTypeKey, ruleType);
+		console.log('unthemed selector', this._unThemedSelector);
 
 		this._buildCSS();
 
@@ -665,6 +673,7 @@ class DecorationCSSRules implements IDisposable {
 	}
 
 	public dispose() {
+		this._removeCSS();
 		if (this._hasContent) {
 			this._removeCSS();
 			this._hasContent = false;
