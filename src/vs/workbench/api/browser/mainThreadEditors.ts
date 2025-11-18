@@ -358,12 +358,14 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
 	$registerTextEditorDecorationType(extensionId: ExtensionIdentifier, key: string, options: IDecorationRenderOptions): void {
 		key = `${this._instanceId}-${key}`;
 		this._registeredDecorationTypes[key] = true;
+		console.log('register decoration', key)
 		this._codeEditorService.registerDecorationType(`exthost-api-${extensionId}`, key, options);
 	}
 
 	$removeTextEditorDecorationType(key: string): void {
 		key = `${this._instanceId}-${key}`;
 		delete this._registeredDecorationTypes[key];
+		console.log('removde decoration', key)
 		this._codeEditorService.removeDecorationType(key);
 	}
 
