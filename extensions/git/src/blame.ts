@@ -279,9 +279,11 @@ export class GitBlameController {
 		// Editor decoration
 		if (editorDecorationEnabled) {
 			if (!this._editorDecoration) {
+				console.log('[git] add editor decoration')
 				this._editorDecoration = new GitBlameEditorDecoration(this)
 			}
 		} else {
+			console.log('[git] dispose editor decoration')
 			this._editorDecoration?.dispose();
 			this._editorDecoration = undefined;
 		}
@@ -534,6 +536,7 @@ class GitBlameEditorDecoration implements HoverProvider {
 				color: new ThemeColor('git.blame.editorDecorationForeground')
 			}
 		});
+		console.log('[git] create decoration' + this._decoration.key)
 		this._disposables.push(this._decoration);
 
 		workspace.onDidChangeConfiguration(this._onDidChangeConfiguration, this, this._disposables);

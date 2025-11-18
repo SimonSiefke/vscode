@@ -435,7 +435,8 @@ class DecorationSubTypeOptionsProvider implements IModelDecorationOptionsProvide
 			this._afterContentRules = null;
 		}
 		this._styleSheet.unref();
-		this._styleSheet = undefined
+		// @ts-ignore
+		this._styleSheet = undefined;
 	}
 }
 
