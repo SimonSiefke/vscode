@@ -19,6 +19,8 @@ import { IResourceEditorInput } from '../../../platform/editor/common/editor.js'
 import { IColorTheme, IThemeService } from '../../../platform/theme/common/themeService.js';
 import { ThemeColor } from '../../../base/common/themables.js';
 
+
+
 export abstract class AbstractCodeEditorService extends Disposable implements ICodeEditorService {
 
 	declare readonly _serviceBrand: undefined;
@@ -53,6 +55,7 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 	private readonly _decorationOptionProviders = new Map<string, IModelDecorationOptionsProvider>();
 	private readonly _editorStyleSheets = new Map<string, RefCountedStyleSheet>();
 	private readonly _codeEditorOpenHandlers = new LinkedList<ICodeEditorOpenHandler>();
+
 
 	constructor(
 		@IThemeService private readonly _themeService: IThemeService,
@@ -152,6 +155,33 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 		this._editorStyleSheets.delete(editorId);
 	}
 
+
+	public registerDecorationSubType(description: string, key: string, options: IDecorationRenderOptions, parentTypeKey: string,): void {
+		const parent = this._decorationOptionProviders.get(parentTypeKey)
+		if (!parent) {
+			throw new Error(`decoration parent must be registered`)
+		}
+		const styleSheet = this._getOrCreateStyleSheet(undefined);
+
+		const providerArgs: ProviderArguments = {
+			styleSheet: styleSheet,
+			key: key,
+			parentTypeKey: parentTypeKey,
+			options: options || Object.create(null)
+		};
+		const provider = new DecorationSubTypeOptionsProvider(this._themeService, styleSheet, providerArgs);
+		parent.addSubProvider(provider)
+	}
+
+	public getDecorationSubTypes(parentTypeKey: string,): Record<string, any> {
+		const parent = this._decorationOptionProviders.get(parentTypeKey)
+		if (!parent) {
+			throw new Error(`decoration parent must be registered`)
+		}
+		return parent.getSubTypes()
+	}
+
+
 	// TODO when registering subkey, it is not automatically disposed when disposing key, causing memory leak
 	public registerDecorationType(description: string, key: string, options: IDecorationRenderOptions, parentTypeKey?: string, editor?: ICodeEditor): IDisposable {
 		let provider = this._decorationOptionProviders.get(key);
@@ -167,8 +197,7 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 				console.log('provider 1' + key)
 				provider = new DecorationTypeOptionsProvider(description, this._themeService, styleSheet, providerArgs);
 			} else {
-				console.log('provider 2 ' + key)
-				provider = new DecorationSubTypeOptionsProvider(this._themeService, styleSheet, providerArgs);
+				throw new Error(`parent type must be undefined`)
 			}
 			if (this._decorationOptionProviders.has(key)) {
 				throw new Error(`impossible`)
@@ -395,13 +424,20 @@ export class GlobalStyleSheet {
 	}
 }
 
-interface IModelDecorationOptionsProvider extends IDisposable {
+export
+	interface IModelDecorationOptionsProviderBase extends IDisposable {
 	refCount: number;
 	getOptions(codeEditorService: AbstractCodeEditorService, writable: boolean): IModelDecorationOptions;
 	resolveDecorationCSSRules(): CSSRuleList;
 }
 
-class DecorationSubTypeOptionsProvider implements IModelDecorationOptionsProvider {
+interface IModelDecorationOptionsProvider extends IModelDecorationOptionsProviderBase {
+	getSubTypes(): Record<string, any>;
+	addSubProvider(provider: IModelDecorationOptionsProviderBase): void
+}
+
+
+class DecorationSubTypeOptionsProvider implements IModelDecorationOptionsProviderBase {
 
 	private readonly _styleSheet: GlobalStyleSheet | RefCountedStyleSheet;
 	public refCount: number;
@@ -458,6 +494,7 @@ interface ProviderArguments {
 }
 
 
+
 class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 
 	private readonly _disposables = new DisposableStore();
@@ -482,8 +519,11 @@ class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 	public beforeInjectedText: InjectedTextOptions | undefined;
 	public afterInjectedText: InjectedTextOptions | undefined;
 
+	private _subDecorations: Record<string, IModelDecorationOptionsProvider>
+
 	constructor(description: string, themeService: IThemeService, styleSheet: GlobalStyleSheet | RefCountedStyleSheet, providerArgs: ProviderArguments) {
 		this.description = description;
+		this._subDecorations = {}
 
 		this._styleSheet = styleSheet;
 		this._styleSheet.ref();
@@ -556,6 +596,13 @@ class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 				position: options.overviewRulerLane || OverviewRulerLane.Center
 			};
 		}
+	}
+	addSubProvider(provider: IModelDecorationOptionsProviderBase): void {
+		throw new Error('Method not implemented.');
+	}
+
+	public getSubTypes() {
+		return this._subDecorations
 	}
 
 	public getOptions(codeEditorService: AbstractCodeEditorService, writable: boolean): IModelDecorationOptions {

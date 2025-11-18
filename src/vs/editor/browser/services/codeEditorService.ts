@@ -11,6 +11,7 @@ import { ITextResourceEditorInput } from '../../../platform/editor/common/editor
 import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
 import { URI } from '../../../base/common/uri.js';
 import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IModelDecorationOptionsProviderBase } from './abstractCodeEditorService.js';
 
 export const ICodeEditorService = createDecorator<ICodeEditorService>('codeEditorService');
 
@@ -44,6 +45,8 @@ export interface ICodeEditorService {
 	getFocusedCodeEditor(): ICodeEditor | null;
 
 	registerDecorationType(description: string, key: string, options: IDecorationRenderOptions, parentTypeKey?: string, editor?: ICodeEditor): IDisposable;
+	registerDecorationSubType(description: string, key: string, options: IDecorationRenderOptions, parentTypeKey: string): void;
+	getDecorationSubTypes(key: string): Record<string, IModelDecorationOptionsProviderBase>
 	listDecorationTypes(): string[];
 	removeDecorationType(key: string): void;
 	resolveDecorationOptions(typeKey: string, writable: boolean): IModelDecorationOptions;

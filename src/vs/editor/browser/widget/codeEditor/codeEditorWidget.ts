@@ -247,8 +247,6 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	/**
 	 * map from "parent" decoration type to live decoration ids.
 	 */
-	private _decorationTypeKeysToIds: { [decorationTypeKey: string]: string[] };
-	private _decorationTypeSubtypes: { [decorationTypeKey: string]: { [subtype: string]: boolean } };
 
 	private _bannerDomNode: HTMLElement | null = null;
 
@@ -279,8 +277,6 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		this._overflowWidgetsDomNode = options.overflowWidgetsDomNode;
 		delete options.overflowWidgetsDomNode;
 		this._id = (++EDITOR_ID);
-		this._decorationTypeKeysToIds = {};
-		this._decorationTypeSubtypes = {};
 		this._telemetryData = codeEditorWidgetOptions.telemetryData;
 
 		this._configuration = this._register(this._createConfiguration(codeEditorWidgetOptions.isSimpleWidget || false,
@@ -1366,10 +1362,12 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	public setDecorationsByType(description: string, decorationTypeKey: string, decorationOptions: editorCommon.IDecorationOptions[]): readonly string[] {
 
 		const newDecorationsSubTypes: { [key: string]: boolean } = {};
-		const oldDecorationsSubTypes = this._decorationTypeSubtypes[decorationTypeKey] || {};
-		this._decorationTypeSubtypes[decorationTypeKey] = newDecorationsSubTypes;
+		const oldDecorationsSubTypes = this._codeEditorService.getDecorationSubTypes(decorationTypeKey);
+		// this._decorationTypeSubtypes[decorationTypeKey] = newDecorationsSubTypes;
 
 		const newModelDecorations: IModelDeltaDecoration[] = [];
+
+
 
 		for (const decorationOption of decorationOptions) {
 			let typeKey = decorationTypeKey;
@@ -1382,7 +1380,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 				typeKey = decorationTypeKey + '-' + subType;
 				if (!oldDecorationsSubTypes[subType] && !newDecorationsSubTypes[subType]) {
 					// decoration type did not exist before, register new one
-					this._registerDecorationType(description, typeKey, decorationOption.renderOptions, decorationTypeKey);
+					this._codeEditorService.registerDecorationSubType(description, typeKey, decorationOption.renderOptions, decorationTypeKey);
 				}
 				newDecorationsSubTypes[subType] = true;
 			}
@@ -1396,7 +1394,9 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		// remove decoration sub types that are no longer used, deregister decoration type if necessary
 		for (const subType in oldDecorationsSubTypes) {
 			if (!newDecorationsSubTypes[subType]) {
-				this._removeDecorationType(decorationTypeKey + '-' + subType);
+				const item = oldDecorationsSubTypes[subType]
+				item.dispose()
+				delete oldDecorationsSubTypes[subType]
 			}
 		}
 
