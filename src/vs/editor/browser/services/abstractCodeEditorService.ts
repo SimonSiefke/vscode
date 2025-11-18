@@ -152,6 +152,7 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 		this._editorStyleSheets.delete(editorId);
 	}
 
+	// TODO when registering subkey, it is not automatically disposed when disposing key, causing memory leak
 	public registerDecorationType(description: string, key: string, options: IDecorationRenderOptions, parentTypeKey?: string, editor?: ICodeEditor): IDisposable {
 		let provider = this._decorationOptionProviders.get(key);
 		if (!provider) {
@@ -166,7 +167,7 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 				console.log('provider 1' + key)
 				provider = new DecorationTypeOptionsProvider(description, this._themeService, styleSheet, providerArgs);
 			} else {
-				console.log('provider 2' + key)
+				console.log('provider 2 ' + key)
 				provider = new DecorationSubTypeOptionsProvider(this._themeService, styleSheet, providerArgs);
 			}
 			if (this._decorationOptionProviders.has(key)) {

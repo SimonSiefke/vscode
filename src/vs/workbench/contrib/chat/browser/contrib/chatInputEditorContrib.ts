@@ -57,7 +57,7 @@ class InputEditorDecorations extends Disposable {
 	) {
 		super();
 
-		this.codeEditorService.registerDecorationType(decorationDescription, placeholderDecorationType, {});
+		this._register(this.codeEditorService.registerDecorationType(decorationDescription, placeholderDecorationType, {}));
 
 		this.registeredDecorationTypes();
 
@@ -97,29 +97,22 @@ class InputEditorDecorations extends Disposable {
 	}
 
 	private registeredDecorationTypes() {
-
-		this.codeEditorService.registerDecorationType(decorationDescription, slashCommandTextDecorationType, {
+		this._register(this.codeEditorService.registerDecorationType(decorationDescription, slashCommandTextDecorationType, {
 			color: themeColorFromId(chatSlashCommandForeground),
 			backgroundColor: themeColorFromId(chatSlashCommandBackground),
 			borderRadius: '3px'
-		});
-		this.codeEditorService.registerDecorationType(decorationDescription, variableTextDecorationType, {
+		}))
+		this._register(this.codeEditorService.registerDecorationType(decorationDescription, variableTextDecorationType, {
 			color: themeColorFromId(chatSlashCommandForeground),
 			backgroundColor: themeColorFromId(chatSlashCommandBackground),
 			borderRadius: '3px'
-		});
-		this.codeEditorService.registerDecorationType(decorationDescription, dynamicVariableDecorationType, {
+		}))
+		this._register(this.codeEditorService.registerDecorationType(decorationDescription, dynamicVariableDecorationType, {
 			color: themeColorFromId(chatSlashCommandForeground),
 			backgroundColor: themeColorFromId(chatSlashCommandBackground),
 			borderRadius: '3px',
 			rangeBehavior: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-		});
-
-		this._register(toDisposable(() => {
-			this.codeEditorService.removeDecorationType(variableTextDecorationType);
-			this.codeEditorService.removeDecorationType(dynamicVariableDecorationType);
-			this.codeEditorService.removeDecorationType(slashCommandTextDecorationType);
-		}));
+		}))
 	}
 
 	private getPlaceholderColor(): string | undefined {

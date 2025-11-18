@@ -529,8 +529,10 @@ class GitBlameEditorDecoration implements HoverProvider {
 
 	private _hoverDisposable: IDisposable | undefined;
 	private _disposables: IDisposable[] = [];
+	private _isDisposed: boolean
 
 	constructor(private readonly _controller: GitBlameController) {
+		this._isDisposed = false
 		this._decoration = window.createTextEditorDecorationType({
 			after: {
 				color: new ThemeColor('git.blame.editorDecorationForeground')
@@ -653,6 +655,7 @@ class GitBlameEditorDecoration implements HoverProvider {
 	}
 
 	dispose() {
+		this._isDisposed = true;
 		console.log('[git] dispose decoration' + this._decoration.key)
 
 		this._hoverDisposable?.dispose();

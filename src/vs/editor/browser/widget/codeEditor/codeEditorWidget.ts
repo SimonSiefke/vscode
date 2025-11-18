@@ -1973,8 +1973,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		return model;
 	}
 
-	private _registerDecorationType(description: string, key: string, options: editorCommon.IDecorationRenderOptions, parentTypeKey?: string): void {
-		this._codeEditorService.registerDecorationType(description, key, options, parentTypeKey, this);
+	private _registerDecorationType(description: string, key: string, options: editorCommon.IDecorationRenderOptions, parentTypeKey?: string): IDisposable {
+		return this._codeEditorService.registerDecorationType(description, key, options, parentTypeKey, this);
 	}
 
 	private _removeDecorationType(key: string): void {
