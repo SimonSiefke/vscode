@@ -198,6 +198,8 @@ export abstract class AbstractCodeEditorService extends Disposable implements IC
 			} else {
 				console.log(`not yet disposing provider` + key + 'due to refcount being' + provider.refCount)
 			}
+		} else {
+			console.log(`provider ` + key + ' not found')
 		}
 	}
 
