@@ -244,10 +244,11 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	private _overlayWidgets: { [key: string]: IOverlayWidgetData };
 	private _glyphMarginWidgets: { [key: string]: IGlyphMarginWidgetData };
 
+
 	/**
 	 * map from "parent" decoration type to live decoration ids.
 	 */
-
+	private _decorationTypeKeysToIds: { [decorationTypeKey: string]: string[] };
 	private _bannerDomNode: HTMLElement | null = null;
 
 	private _dropIntoEditorDecorations: EditorDecorationsCollection = this.createDecorationsCollection();
@@ -273,6 +274,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 		const options = { ..._options };
 
+		this._decorationTypeKeysToIds = {}
 		this._domElement = domElement;
 		this._overflowWidgetsDomNode = options.overflowWidgetsDomNode;
 		delete options.overflowWidgetsDomNode;
@@ -527,15 +529,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	private _removeDecorationTypes(): void {
 		this._decorationTypeKeysToIds = {};
-		if (this._decorationTypeSubtypes) {
-			for (const decorationType in this._decorationTypeSubtypes) {
-				const subTypes = this._decorationTypeSubtypes[decorationType];
-				for (const subType in subTypes) {
-					this._removeDecorationType(decorationType + '-' + subType);
-				}
-			}
-			this._decorationTypeSubtypes = {};
-		}
+		// TODO
+
 	}
 
 	public getVisibleRanges(): Range[] {
@@ -1435,9 +1430,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		if (this._decorationTypeKeysToIds.hasOwnProperty(decorationTypeKey)) {
 			delete this._decorationTypeKeysToIds[decorationTypeKey];
 		}
-		if (this._decorationTypeSubtypes.hasOwnProperty(decorationTypeKey)) {
-			delete this._decorationTypeSubtypes[decorationTypeKey];
-		}
+
 	}
 
 	public getLayoutInfo(): EditorLayoutInfo {
