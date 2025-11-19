@@ -1358,11 +1358,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 		const newDecorationsSubTypes: { [key: string]: boolean } = {};
 		const oldDecorationsSubTypes = this._codeEditorService.getDecorationSubTypes(decorationTypeKey);
-		// this._decorationTypeSubtypes[decorationTypeKey] = newDecorationsSubTypes;
-
 		const newModelDecorations: IModelDeltaDecoration[] = [];
-
-
 
 		for (const decorationOption of decorationOptions) {
 			let typeKey = decorationTypeKey;
