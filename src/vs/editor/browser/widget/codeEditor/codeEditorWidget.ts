@@ -1404,11 +1404,12 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	public setDecorationsByTypeFast(decorationTypeKey: string, ranges: IRange[]): void {
 
 		// remove decoration sub types that are no longer used, deregister decoration type if necessary
-		const oldDecorationsSubTypes = this._decorationTypeSubtypes[decorationTypeKey] || {};
+		const oldDecorationsSubTypes = this._codeEditorService.getDecorationSubTypes(decorationTypeKey)
 		for (const subType in oldDecorationsSubTypes) {
-			this._removeDecorationType(decorationTypeKey + '-' + subType);
+			const item = oldDecorationsSubTypes[subType]
+			item.dispose()
+			delete oldDecorationsSubTypes[subType]
 		}
-		this._decorationTypeSubtypes[decorationTypeKey] = {};
 
 		const opts = ModelDecorationOptions.createDynamic(this._resolveDecorationOptions(decorationTypeKey, false));
 		const newModelDecorations: IModelDeltaDecoration[] = new Array<IModelDeltaDecoration>(ranges.length);
@@ -1966,13 +1967,6 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		return model;
 	}
 
-	private _registerDecorationType(description: string, key: string, options: editorCommon.IDecorationRenderOptions, parentTypeKey?: string): IDisposable {
-		return this._codeEditorService.registerDecorationType(description, key, options, parentTypeKey, this);
-	}
-
-	private _removeDecorationType(key: string): void {
-		this._codeEditorService.removeDecorationType(key);
-	}
 
 	private _resolveDecorationOptions(typeKey: string, writable: boolean): IModelDecorationOptions {
 		return this._codeEditorService.resolveDecorationOptions(typeKey, writable);
