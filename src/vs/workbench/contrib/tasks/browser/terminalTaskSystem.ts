@@ -1035,10 +1035,10 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const [terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
 
 		if (error) {
-			return Promise.reject(new Error((<TaskError>error).message));
+			throw new Error((<TaskError>error).message);
 		}
 		if (!terminal) {
-			return Promise.reject(new Error(`Failed to create terminal for task ${task._label}`));
+			throw new Error(`Failed to create terminal for task ${task._label}`);
 		}
 
 		this._taskStartTimes.set(terminal.instanceId, Date.now());
