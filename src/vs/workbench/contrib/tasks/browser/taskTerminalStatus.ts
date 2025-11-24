@@ -5,7 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import Severity from '../../../../base/common/severity.js';
 import { AbstractProblemCollector, StartStopProblemCollector } from '../common/problemCollectors.js';
 import { ITaskGeneralEvent, ITaskProcessEndedEvent, ITaskProcessStartedEvent, TaskEventKind, TaskRunType } from '../common/tasks.js';
@@ -23,7 +23,6 @@ interface ITerminalData extends IDisposable {
 	readonly status: ITerminalStatus;
 	readonly problemMatcher: AbstractProblemCollector;
 	taskRunEnded: boolean;
-	readonly disposeListener: MutableDisposable<IDisposable>;
 }
 
 const TASK_TERMINAL_STATUS_ID = 'task_terminal_status';
@@ -38,7 +37,7 @@ const INFO_TASK_STATUS: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, icon: C
 const INFO_INACTIVE_TASK_STATUS: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, icon: Codicon.info, severity: Severity.Info, tooltip: nls.localize('taskTerminalStatus.infosInactive', "Task has infos and is waiting...") };
 
 export class TaskTerminalStatus extends Disposable {
-	private terminalMap: DisposableMap<number, ITerminalData> = new DisposableMap();
+	private terminalMap: DisposableMap<number, ITerminalData> = this._register(new DisposableMap());
 	private _marker: IMarker | undefined;
 	constructor(@ITaskService taskService: ITaskService, @IAccessibilitySignalService private readonly _accessibilitySignalService: IAccessibilitySignalService) {
 		super();
@@ -55,7 +54,7 @@ export class TaskTerminalStatus extends Disposable {
 	addTerminal(task: Task, terminal: ITerminalInstance, problemMatcher: AbstractProblemCollector) {
 		const status: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, severity: Severity.Info };
 		terminal.statusList.add(status);
-		const store = new DisposableStore()
+		const store = new DisposableStore();
 		store.add(problemMatcher.onDidFindFirstMatch(() => {
 			this._marker = terminal.registerMarker();
 			if (this._marker) {
@@ -72,15 +71,18 @@ export class TaskTerminalStatus extends Disposable {
 			this._marker = undefined;
 		}));
 
+		store.add(terminal.onDisposed(() => {
+			this.terminalMap.deleteAndDispose(terminal.instanceId);
+		}));
+
 		this.terminalMap.set(terminal.instanceId, {
 			terminal,
 			task,
 			status,
 			problemMatcher,
 			taskRunEnded: false,
-			disposeListener: new MutableDisposable(),
 			dispose() {
-				store.dispose()
+				store.dispose();
 			},
 		});
 	}
@@ -143,12 +145,6 @@ export class TaskTerminalStatus extends Disposable {
 		if (!terminalData) {
 			return;
 		}
-		terminalData.disposeListener.value = terminalData.terminal.onDisposed(() => {
-			if (!event.terminalId) {
-				return;
-			}
-			this.terminalMap.deleteAndDispose(event.terminalId);
-		});
 		terminalData.taskRunEnded = false;
 		terminalData.terminal.statusList.remove(terminalData.status);
 		// We don't want to show an infinite status for a background task that doesn't have a problem matcher.
