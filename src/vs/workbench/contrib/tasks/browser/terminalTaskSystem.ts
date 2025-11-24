@@ -874,8 +874,6 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 	}
 
 	private async _executeInBackgroundTerminal(task: CustomTask | ContributedTask, trigger: string, resolver: VariableResolver, workspaceFolder: IWorkspaceFolder | undefined) {
-		let terminal: ITerminalInstance | undefined = undefined;
-		let error: TaskError | undefined = undefined;
 		const problemMatchers = await this._resolveMatchers(resolver, task.configurationProperties.problemMatchers);
 		const watchingProblemMatcher = new WatchingProblemCollector(problemMatchers, this._markerService, this._modelService, this._fileService);
 		if ((problemMatchers.length > 0) && !watchingProblemMatcher.isWatching()) {
@@ -917,7 +915,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		}));
 		watchingProblemMatcher.aboutToStart();
 		let delayer: Async.Delayer<void> | undefined = undefined;
-		[terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
+		const [terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
 
 		if (error) {
 			return Promise.reject(new Error((<TaskError>error).message));
@@ -1033,10 +1031,8 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 
 	private async _executeInForegroundTerminal(task: CustomTask | ContributedTask, trigger: string, resolver: VariableResolver, workspaceFolder: IWorkspaceFolder | undefined) {
 		const { promise, resolve, reject } = Promise.withResolvers<ITaskSummary>();
-		let terminal: ITerminalInstance | undefined = undefined;
-		let error: TaskError | undefined = undefined;
 
-		[terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
+		const [terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
 
 		if (error) {
 			return Promise.reject(new Error((<TaskError>error).message));
@@ -1080,7 +1076,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const onData = terminal.onLineData((line) => {
 			startStopProblemMatcher.processLine(line);
 		});
-		const onExit = terminal!.onExit((terminalLaunchResult) => {
+		const onExit = terminal.onExit((terminalLaunchResult) => {
 			const exitCode = typeof terminalLaunchResult === 'number' ? terminalLaunchResult : terminalLaunchResult?.code;
 			onExit.dispose();
 			const key = task.getMapKey();
