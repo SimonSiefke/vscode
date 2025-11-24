@@ -8,7 +8,7 @@ import { IStringDictionary } from '../../../../base/common/collections.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import * as glob from '../../../../base/common/glob.js';
 import * as json from '../../../../base/common/json.js';
-import { Disposable, DisposableStore, dispose, IDisposable, IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, dispose, IDisposable, IReference, MutableDisposable, SingletonDisposable } from '../../../../base/common/lifecycle.js';
 import { LRUCache, Touch } from '../../../../base/common/map.js';
 import * as Objects from '../../../../base/common/objects.js';
 import { ValidationState, ValidationStatus } from '../../../../base/common/parsers.js';
@@ -106,13 +106,14 @@ export namespace ConfigureTaskAction {
 
 export type TaskQuickPickEntryType = (IQuickPickItem & { task: Task }) | (IQuickPickItem & { folder: IWorkspaceFolder }) | (IQuickPickItem & { settingType: string });
 
-class ProblemReporter implements TaskConfig.IProblemReporter {
+class ProblemReporter extends Disposable implements TaskConfig.IProblemReporter {
 
 	private _validationStatus: ValidationStatus;
-	private readonly _onDidError: Emitter<string> = new Emitter<string>();
+	private readonly _onDidError: Emitter<string> = this._register(new Emitter<string>());
 	public readonly onDidError: Event<string> = this._onDidError.event;
 
 	constructor(private _outputChannel: IOutputChannel) {
+		super();
 		this._validationStatus = new ValidationStatus();
 	}
 
@@ -199,7 +200,9 @@ class TaskMap {
 	}
 }
 
-export abstract class AbstractTaskService extends Disposable implements ITaskService {
+
+
+export abstract class AbstractTaskService extends SingletonDisposable implements ITaskService {
 
 	// private static autoDetectTelemetryName: string = 'taskServer.autoDetect';
 	private static readonly RecentlyUsedTasks_Key = 'workbench.tasks.recentlyUsedTasks';
@@ -2575,8 +2578,8 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		return this._taskSystem?.getTaskProblems(instanceId);
 	}
 
-	private _updateWorkspaceTasks(runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
-		this._workspaceTasksPromise = this._computeWorkspaceTasks(runSource);
+	private _updateWorkspaceTasks(disposables: DisposableStore, runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
+		this._workspaceTasksPromise = this._computeWorkspaceTasks(disposables, runSource);
 		return this._workspaceTasksPromise;
 	}
 
@@ -2593,10 +2596,10 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		return this._taskSystem?.getTerminalsForTasks(task);
 	}
 
-	protected async _computeWorkspaceTasks(runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
+	protected async _computeWorkspaceTasks(disposables: DisposableStore, runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
 		const promises: Promise<IWorkspaceFolderTaskResult | undefined>[] = [];
 		for (const folder of this.workspaceFolders) {
-			promises.push(this._computeWorkspaceFolderTasks(folder, runSource));
+			promises.push(this._computeWorkspaceFolderTasks(disposables, folder, runSource));
 		}
 		const values = await Promise.all(promises);
 		const result = new Map<string, IWorkspaceFolderTaskResult>();
@@ -2633,15 +2636,15 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		return ShellExecutionSupportedContext.getValue(this._contextKeyService) === true && ProcessExecutionSupportedContext.getValue(this._contextKeyService) === true;
 	}
 
-	private async _computeWorkspaceFolderTasks(workspaceFolder: IWorkspaceFolder, runSource: TaskRunSource = TaskRunSource.User): Promise<IWorkspaceFolderTaskResult> {
+	private async _computeWorkspaceFolderTasks(disposables: DisposableStore, workspaceFolder: IWorkspaceFolder, runSource: TaskRunSource = TaskRunSource.User): Promise<IWorkspaceFolderTaskResult> {
 		const workspaceFolderConfiguration = (this._executionEngine === ExecutionEngine.Process ? await this._computeLegacyConfiguration(workspaceFolder) : await this._computeConfiguration(workspaceFolder));
 		if (!workspaceFolderConfiguration || !workspaceFolderConfiguration.config || workspaceFolderConfiguration.hasErrors) {
 			return Promise.resolve({ workspaceFolder, set: undefined, configurations: undefined, hasErrors: workspaceFolderConfiguration ? workspaceFolderConfiguration.hasErrors : false });
 		}
 		await ProblemMatcherRegistry.onReady();
 		const taskSystemInfo: ITaskSystemInfo | undefined = this._getTaskSystemInfo(workspaceFolder.uri.scheme);
-		const problemReporter = new ProblemReporter(this._outputChannel);
-		this._register(problemReporter.onDidError(error => this._showOutput(runSource, undefined, error)));
+		const problemReporter = disposables.add(new ProblemReporter(this._outputChannel));
+		disposables.add(problemReporter.onDidError(error => this._showOutput(runSource, undefined, error)));
 		const parseResult = TaskConfig.parse(workspaceFolder, undefined, taskSystemInfo ? taskSystemInfo.platform : Platform.platform, workspaceFolderConfiguration.config, problemReporter, TaskConfig.TaskConfigSource.TasksJson, this._contextKeyService);
 		let hasErrors = false;
 		if (!parseResult.validationStatus.isOK() && (parseResult.validationStatus.state !== ValidationState.Info)) {

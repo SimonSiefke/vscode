@@ -97,10 +97,10 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		const store = new DisposableStore();
 		switch (capability.type) {
 			case TerminalCapability.BufferMarkDetection:
-				store.add(capability.onMarkAdded(mark => this.registerMarkDecoration(mark)));
+				store.add(capability.onMarkAdded(mark => this.registerMarkDecoration(store, mark,)));
 				break;
 			case TerminalCapability.CommandDetection: {
-				const disposables = this._getCommandDetectionListeners(capability);
+				const disposables = this._getCommandDetectionListeners(store, capability);
 				for (const d of disposables) {
 					store.add(d);
 				}
@@ -114,17 +114,17 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		this._capabilityDisposables.deleteAndDispose(c);
 	}
 
-	registerMarkDecoration(mark: IMarkProperties): IDecoration | undefined {
+	registerMarkDecoration(disposables: DisposableStore, mark: IMarkProperties,): IDecoration | undefined {
 		if (!this._terminal || (!this._showGutterDecorations && !this._showOverviewRulerDecorations)) {
 			return undefined;
 		}
 		if (mark.hidden) {
 			return undefined;
 		}
-		return this.registerCommandDecoration(undefined, undefined, mark);
+		return this.registerCommandDecoration(disposables, undefined, undefined, mark);
 	}
 
-	private _updateDecorationVisibility(): void {
+	private _updateDecorationVisibility(disposables: DisposableStore): void {
 		const showDecorations = this._configurationService.getValue(TerminalSettingId.ShellIntegrationDecorationsEnabled);
 		this._showGutterDecorations = (showDecorations === 'both' || showDecorations === 'gutter');
 		this._showOverviewRulerDecorations = (showDecorations === 'both' || showDecorations === 'overviewRuler');
@@ -135,7 +135,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		}
 		const currentCommand = this._capabilities.get(TerminalCapability.CommandDetection)?.executingCommandObject;
 		if (currentCommand) {
-			this.registerCommandDecoration(currentCommand, true);
+			this.registerCommandDecoration(disposables, currentCommand, true);
 		}
 	}
 
@@ -211,8 +211,8 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 	private _attachToCommandCapability(): void {
 		if (this._capabilities.has(TerminalCapability.CommandDetection)) {
 			const capability = this._capabilities.get(TerminalCapability.CommandDetection)!;
-			const disposables = this._getCommandDetectionListeners(capability);
 			const store = new DisposableStore();
+			const disposables = this._getCommandDetectionListeners(store, capability);
 			for (const d of disposables) {
 				store.add(d);
 			}
@@ -220,18 +220,18 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		}
 	}
 
-	private _getCommandDetectionListeners(capability: ICommandDetectionCapability): IDisposable[] {
+	private _getCommandDetectionListeners(disposables: DisposableStore, capability: ICommandDetectionCapability): IDisposable[] {
 		this._removeCapabilityDisposables(TerminalCapability.CommandDetection);
 
 		const commandDetectionListeners = [];
 		// Command started
 		if (capability.executingCommandObject?.marker) {
-			this.registerCommandDecoration(capability.executingCommandObject, true);
+			this.registerCommandDecoration(disposables, capability.executingCommandObject, true);
 		}
-		commandDetectionListeners.push(capability.onCommandStarted(command => this.registerCommandDecoration(command, true)));
+		commandDetectionListeners.push(capability.onCommandStarted(command => this.registerCommandDecoration(disposables, command, true)));
 		// Command finished
 		for (const command of capability.commands) {
-			this.registerCommandDecoration(command);
+			this.registerCommandDecoration(disposables, command);
 		}
 		commandDetectionListeners.push(capability.onCommandFinished(command => {
 			const buffer = this._terminal?.buffer?.active;
@@ -245,7 +245,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 			);
 
 			if (shouldRegisterDecoration) {
-				this.registerCommandDecoration(command);
+				this.registerCommandDecoration(disposables, command);
 			}
 
 			if (command.exitCode) {
@@ -284,7 +284,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		this._attachToCommandCapability();
 	}
 
-	registerCommandDecoration(command?: ITerminalCommand, beforeCommandExecution?: boolean, markProperties?: IMarkProperties): IDecoration | undefined {
+	registerCommandDecoration(disposables: DisposableStore, command?: ITerminalCommand, beforeCommandExecution?: boolean, markProperties?: IMarkProperties): IDecoration | undefined {
 		if (!this._terminal || (beforeCommandExecution && !command) || (!this._showGutterDecorations && !this._showOverviewRulerDecorations)) {
 			return undefined;
 		}
@@ -299,14 +299,15 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 			overviewRulerOptions: this._showOverviewRulerDecorations ? (beforeCommandExecution
 				? { color, position: 'left' }
 				: { color, position: command?.exitCode ? 'right' : 'left' }) : undefined
-		});
+		})
 		if (!decoration) {
 			return undefined;
 		}
+		disposables.add(decoration);
 		if (beforeCommandExecution) {
 			this._placeholderDecoration = decoration;
 		}
-		decoration.onRender(element => {
+		disposables.add(decoration.onRender(element => {
 			if (element.classList.contains(DecorationSelector.OverviewRuler)) {
 				return;
 			}
@@ -325,8 +326,8 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 				updateLayout(this._configurationService, element);
 				this._updateClasses(element, command, command?.markProperties || markProperties);
 			}
-		});
-		return decoration;
+		}));
+		return decoration
 	}
 
 	registerMenuItems(command: ITerminalCommand, items: IAction[]): IDisposable {
@@ -358,7 +359,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		return [...this._createContextMenu(element, command), this._createHover(element, command)];
 	}
 
-	private _createHover(element: HTMLElement, command: ITerminalCommand | undefined, hoverMessage?: string) {
+	private _createHover(element: HTMLElement, command: ITerminalCommand | undefined, hoverMessage?: string): IDisposable {
 		return this._hoverService.setupDelayedHover(element, () => ({
 			content: new MarkdownString(getTerminalDecorationHoverContent(command, hoverMessage, true))
 		}));

@@ -847,6 +847,30 @@ export class DisposableMap<K, V extends IDisposable = IDisposable> implements ID
 	}
 }
 
+export class SingletonDisposable extends Disposable {
+
+	private _afterConstruction: boolean;
+
+	constructor() {
+		super()
+		this._afterConstruction = false
+	}
+
+	async _postConstruct() {
+		const { resolve, promise } = Promise.withResolvers()
+		setTimeout(resolve, 0)
+		await promise
+		this._afterConstruction = true
+	}
+
+	protected override _register<T extends IDisposable>(o: T): T {
+		if (this._afterConstruction) {
+			throw new Error(`cannot register to singleton disposable after construction`)
+		}
+		return super._register(o)
+	}
+}
+
 /**
  * Call `then` on a Promise, unless the returned disposable is disposed.
  */
