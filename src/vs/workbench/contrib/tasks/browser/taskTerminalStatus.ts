@@ -5,7 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import Severity from '../../../../base/common/severity.js';
 import { AbstractProblemCollector, StartStopProblemCollector } from '../common/problemCollectors.js';
 import { ITaskGeneralEvent, ITaskProcessEndedEvent, ITaskProcessStartedEvent, TaskEventKind, TaskRunType } from '../common/tasks.js';
@@ -17,13 +17,13 @@ import type { IMarker } from '@xterm/xterm';
 import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { ITerminalStatus } from '../../terminal/common/terminal.js';
 
-interface ITerminalData {
-	terminal: ITerminalInstance;
-	task: Task;
-	status: ITerminalStatus;
-	problemMatcher: AbstractProblemCollector;
+interface ITerminalData extends IDisposable {
+	readonly terminal: ITerminalInstance;
+	readonly task: Task;
+	readonly status: ITerminalStatus;
+	readonly problemMatcher: AbstractProblemCollector;
 	taskRunEnded: boolean;
-	disposeListener?: MutableDisposable<IDisposable>;
+	readonly disposeListener: MutableDisposable<IDisposable>;
 }
 
 const TASK_TERMINAL_STATUS_ID = 'task_terminal_status';
@@ -38,7 +38,7 @@ const INFO_TASK_STATUS: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, icon: C
 const INFO_INACTIVE_TASK_STATUS: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, icon: Codicon.info, severity: Severity.Info, tooltip: nls.localize('taskTerminalStatus.infosInactive', "Task has infos and is waiting...") };
 
 export class TaskTerminalStatus extends Disposable {
-	private terminalMap: Map<number, ITerminalData> = new Map();
+	private terminalMap: DisposableMap<number, ITerminalData> = new DisposableMap();
 	private _marker: IMarker | undefined;
 	constructor(@ITaskService taskService: ITaskService, @IAccessibilitySignalService private readonly _accessibilitySignalService: IAccessibilitySignalService) {
 		super();
@@ -50,34 +50,39 @@ export class TaskTerminalStatus extends Disposable {
 				case TaskEventKind.ProcessEnded: this.eventEnd(event); break;
 			}
 		}));
-		this._register(toDisposable(() => {
-			for (const terminalData of this.terminalMap.values()) {
-				terminalData.disposeListener?.dispose();
-			}
-			this.terminalMap.clear();
-		}));
 	}
 
 	addTerminal(task: Task, terminal: ITerminalInstance, problemMatcher: AbstractProblemCollector) {
 		const status: ITerminalStatus = { id: TASK_TERMINAL_STATUS_ID, severity: Severity.Info };
 		terminal.statusList.add(status);
-		this._register(problemMatcher.onDidFindFirstMatch(() => {
+		const store = new DisposableStore()
+		store.add(problemMatcher.onDidFindFirstMatch(() => {
 			this._marker = terminal.registerMarker();
 			if (this._marker) {
-				this._register(this._marker);
+				store.add(this._marker);
 			}
 		}));
-		this._register(problemMatcher.onDidFindErrors(() => {
+		store.add(problemMatcher.onDidFindErrors(() => {
 			if (this._marker) {
 				terminal.addBufferMarker({ marker: this._marker, hoverMessage: nls.localize('task.watchFirstError', "Beginning of detected errors for this run"), disableCommandStorage: true });
 			}
 		}));
-		this._register(problemMatcher.onDidRequestInvalidateLastMarker(() => {
+		store.add(problemMatcher.onDidRequestInvalidateLastMarker(() => {
 			this._marker?.dispose();
 			this._marker = undefined;
 		}));
 
-		this.terminalMap.set(terminal.instanceId, { terminal, task, status, problemMatcher, taskRunEnded: false });
+		this.terminalMap.set(terminal.instanceId, {
+			terminal,
+			task,
+			status,
+			problemMatcher,
+			taskRunEnded: false,
+			disposeListener: new MutableDisposable(),
+			dispose() {
+				store.dispose()
+			},
+		});
 	}
 
 	private terminalFromEvent(event: { terminalId: number | undefined }): ITerminalData | undefined {
@@ -138,16 +143,12 @@ export class TaskTerminalStatus extends Disposable {
 		if (!terminalData) {
 			return;
 		}
-		if (!terminalData.disposeListener) {
-			terminalData.disposeListener = this._register(new MutableDisposable());
-			terminalData.disposeListener.value = terminalData.terminal.onDisposed(() => {
-				if (!event.terminalId) {
-					return;
-				}
-				this.terminalMap.delete(event.terminalId);
-				terminalData.disposeListener?.dispose();
-			});
-		}
+		terminalData.disposeListener.value = terminalData.terminal.onDisposed(() => {
+			if (!event.terminalId) {
+				return;
+			}
+			this.terminalMap.deleteAndDispose(event.terminalId);
+		});
 		terminalData.taskRunEnded = false;
 		terminalData.terminal.statusList.remove(terminalData.status);
 		// We don't want to show an infinite status for a background task that doesn't have a problem matcher.
