@@ -226,6 +226,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		return new Promise<void>(c => {
 			const listener = Event.once(this.onProcessReady)(() => {
 				this._logService.debug(`Terminal process ready (shellProcessId: ${this.shellProcessId})`);
+				listener.dispose();
 				this._store.delete(listener);
 				c(undefined);
 			});
