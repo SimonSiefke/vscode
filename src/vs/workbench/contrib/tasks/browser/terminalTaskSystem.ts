@@ -918,10 +918,10 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const [terminal, error] = await this._createTerminal(task, resolver, workspaceFolder);
 
 		if (error) {
-			return Promise.reject(new Error((<TaskError>error).message));
+			throw new Error((<TaskError>error).message);
 		}
 		if (!terminal) {
-			return Promise.reject(new Error(`Failed to create terminal for task ${task._label}`));
+			throw new Error(`Failed to create terminal for task ${task._label}`);
 		}
 		this._terminalStatusManager.addTerminal(task, terminal, watchingProblemMatcher);
 		this._taskProblemMonitor.addTerminal(terminal, watchingProblemMatcher);
@@ -955,7 +955,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const { promise, resolve, } = Promise.withResolvers<ITaskSummary>();
 
 
-		const onExit = terminal!.onExit((terminalLaunchResult) => {
+		const onExit = terminal.onExit((terminalLaunchResult) => {
 			const exitCode = typeof terminalLaunchResult === 'number' ? terminalLaunchResult : terminalLaunchResult?.code;
 			onData?.dispose();
 			onExit.dispose();
