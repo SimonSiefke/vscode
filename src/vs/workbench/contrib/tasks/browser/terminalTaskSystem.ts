@@ -1051,18 +1051,19 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const startStopProblemMatcher = new StartStopProblemCollector(problemMatchers, this._markerService, this._modelService, ProblemHandlingStrategy.Clean, this._fileService);
 		this._terminalStatusManager.addTerminal(task, terminal, startStopProblemMatcher);
 		this._taskProblemMonitor.addTerminal(terminal, startStopProblemMatcher);
-		this._register(startStopProblemMatcher.onDidStateChange((event) => {
-			if (event.kind === ProblemCollectorEventKind.BackgroundProcessingBegins) {
-				this._fireTaskEvent(TaskEvent.general(TaskEventKind.ProblemMatcherStarted, task, terminal?.instanceId));
-			} else if (event.kind === ProblemCollectorEventKind.BackgroundProcessingEnds) {
-				if (startStopProblemMatcher.numberOfMatches && startStopProblemMatcher.maxMarkerSeverity && startStopProblemMatcher.maxMarkerSeverity >= MarkerSeverity.Error) {
-					this._taskErrors[task.getMapKey()] = true;
-					this._fireTaskEvent(TaskEvent.general(TaskEventKind.ProblemMatcherFoundErrors, task, terminal?.instanceId));
-				} else {
-					this._fireTaskEvent(TaskEvent.problemMatcherEnded(task, this._taskHasErrors(task), terminal?.instanceId));
+		const problemMatcherDisposable =
+			startStopProblemMatcher.onDidStateChange((event) => {
+				if (event.kind === ProblemCollectorEventKind.BackgroundProcessingBegins) {
+					this._fireTaskEvent(TaskEvent.general(TaskEventKind.ProblemMatcherStarted, task, terminal?.instanceId));
+				} else if (event.kind === ProblemCollectorEventKind.BackgroundProcessingEnds) {
+					if (startStopProblemMatcher.numberOfMatches && startStopProblemMatcher.maxMarkerSeverity && startStopProblemMatcher.maxMarkerSeverity >= MarkerSeverity.Error) {
+						this._taskErrors[task.getMapKey()] = true;
+						this._fireTaskEvent(TaskEvent.general(TaskEventKind.ProblemMatcherFoundErrors, task, terminal?.instanceId));
+					} else {
+						this._fireTaskEvent(TaskEvent.problemMatcherEnded(task, this._taskHasErrors(task), terminal?.instanceId));
+					}
 				}
-			}
-		}));
+			});
 		let processStartedSignaled = false;
 		terminal.processReady.then(() => {
 			if (!processStartedSignaled) {
@@ -1079,6 +1080,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		const onExit = terminal.onExit((terminalLaunchResult) => {
 			const exitCode = typeof terminalLaunchResult === 'number' ? terminalLaunchResult : terminalLaunchResult?.code;
 			onExit.dispose();
+			problemMatcherDisposable.dispose();
 			const key = task.getMapKey();
 			this._removeFromActiveTasks(task);
 			this._fireTaskEvent(TaskEvent.changed());
