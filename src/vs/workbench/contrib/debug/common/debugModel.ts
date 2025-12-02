@@ -631,6 +631,10 @@ export class Thread implements IThread {
 		return this.staleCallStack;
 	}
 
+	clearStaleCallStack(): void {
+		this.staleCallStack = [];
+	}
+
 	getTopStackFrame(): IStackFrame | undefined {
 		const callStack = this.getCallStack();
 		const stopReason = this.stoppedDetails?.reason;
@@ -1640,6 +1644,7 @@ export class DebugModel extends Disposable implements IDebugModel {
 										this._onDidChangeCallStack.fire();
 									}
 								}).finally(() => {
+									thread.clearStaleCallStack();
 									deferred.complete();
 									this.schedulers.delete(thread.getId());
 								});

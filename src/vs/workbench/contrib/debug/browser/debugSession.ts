@@ -50,7 +50,7 @@ import { RawDebugSession } from './rawDebugSession.js';
 
 const TRIGGERED_BREAKPOINT_MAX_DELAY = 1500;
 
-export class DebugSession implements IDebugSession {
+export class DebugSession extends Disposable implements IDebugSession {
 	parentSession: IDebugSession | undefined;
 	rememberedCapabilities?: DebugProtocol.Capabilities;
 
@@ -77,20 +77,17 @@ export class DebugSession implements IDebugSession {
 	/** Whether we terminated the correlated run yet. Used so a 2nd terminate request goes through to the underlying session. */
 	private didTerminateTestRun?: boolean;
 
-	private readonly _onDidChangeState = new Emitter<void>();
-	private readonly _onDidEndAdapter = new Emitter<AdapterEndEvent | undefined>();
-
-	private readonly _onDidLoadedSource = new Emitter<LoadedSourceEvent>();
-	private readonly _onDidCustomEvent = new Emitter<DebugProtocol.Event>();
-	private readonly _onDidProgressStart = new Emitter<DebugProtocol.ProgressStartEvent>();
-	private readonly _onDidProgressUpdate = new Emitter<DebugProtocol.ProgressUpdateEvent>();
-	private readonly _onDidProgressEnd = new Emitter<DebugProtocol.ProgressEndEvent>();
-	private readonly _onDidInvalidMemory = new Emitter<DebugProtocol.MemoryEvent>();
-
-	private readonly _onDidChangeREPLElements = new Emitter<IReplElement | undefined>();
-
+	private readonly _onDidChangeState = this._register(new Emitter<void>());
+	private readonly _onDidEndAdapter = this._register(new Emitter<AdapterEndEvent | undefined>());
+	private readonly _onDidLoadedSource = this._register(new Emitter<LoadedSourceEvent>());
+	private readonly _onDidCustomEvent = this._register(new Emitter<DebugProtocol.Event>());
+	private readonly _onDidProgressStart = this._register(new Emitter<DebugProtocol.ProgressStartEvent>());
+	private readonly _onDidProgressUpdate = this._register(new Emitter<DebugProtocol.ProgressUpdateEvent>());
+	private readonly _onDidProgressEnd = this._register(new Emitter<DebugProtocol.ProgressEndEvent>());
+	private readonly _onDidInvalidMemory = this._register(new Emitter<DebugProtocol.MemoryEvent>());
+	private readonly _onDidChangeREPLElements = this._register(new Emitter<IReplElement | undefined>());
 	private _name: string | undefined;
-	private readonly _onDidChangeName = new Emitter<string>();
+	private readonly _onDidChangeName = this._register(new Emitter<string>());
 
 	/**
 	 * Promise set while enabling dependent breakpoints to block the debugger
@@ -122,6 +119,7 @@ export class DebugSession implements IDebugSession {
 		@ITestResultService testResultService: ITestResultService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
 	) {
+		super();
 		this._options = options || {};
 		this.parentSession = this._options.parentSession;
 		if (this.hasSeparateRepl()) {
@@ -1482,6 +1480,7 @@ export class DebugSession implements IDebugSession {
 
 	// Disconnects and clears state. Session can be initialized again for a new connection.
 	private shutdown(): void {
+		this.statusQueue.cancel();
 		this.rawListeners.clear();
 		if (this.raw) {
 			// Send out disconnect and immediatly dispose (do not wait for response) #127418
@@ -1494,13 +1493,19 @@ export class DebugSession implements IDebugSession {
 		this.passFocusScheduler.cancel();
 		this.passFocusScheduler.dispose();
 		this.model.clearThreads(this.getId(), true);
+		this.sources.clear();
+		this.threads.clear();
+		this.threadIds = [];
+		this.stoppedDetails = [];
 		this._onDidChangeState.fire();
 	}
 
-	public dispose() {
+	override dispose() {
 		this.cancelAllRequests();
 		this.rawListeners.dispose();
 		this.globalDisposables.dispose();
+		this._waitToResume = undefined;
+		super.dispose();
 	}
 
 	//---- sources
@@ -1660,6 +1665,7 @@ export class ThreadStatusScheduler extends Disposable {
 			for (const s of this.pendingCancellations) {
 				s.add(undefined);
 			}
+			this.pendingCancellations.length = 0;
 		} else {
 			for (const threadId of threadIds) {
 				this.threadOps.get(threadId)?.cancel();
