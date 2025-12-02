@@ -155,6 +155,7 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 	private _resizeSash!: Sash;
 	private _resized!: boolean;
 	private readonly _updateHistoryDelayer: Delayer<void>;
+	boundUpdateHistory: () => void;
 
 	constructor(
 		codeEditor: ICodeEditor,
@@ -179,13 +180,13 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		this._isReplaceVisible = false;
 		this._ignoreChangeEvent = false;
 
-		this._updateHistoryDelayer = new Delayer<void>(500);
-		this._register(toDisposable(() => this._updateHistoryDelayer.cancel()));
+		this._updateHistoryDelayer = this._register(new Delayer<void>(500));
 		this._register(this._state.onFindReplaceStateChange((e) => this._onStateChanged(e)));
 		this._buildDomNode();
 		this._updateButtons();
 		this._tryUpdateWidgetWidth();
 		this._findInput.inputBox.layout();
+		this.boundUpdateHistory = this._updateHistory.bind(this)
 
 		this._register(this._codeEditor.onDidChangeConfiguration((e: ConfigurationChangedEvent) => {
 			if (e.hasChanged(EditorOption.readOnly)) {
@@ -377,8 +378,12 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		}
 	}
 
-	private _delayedUpdateHistory() {
-		this._updateHistoryDelayer.trigger(this._updateHistory.bind(this)).then(undefined, onUnexpectedError);
+	private async _delayedUpdateHistory() {
+		try {
+			await this._updateHistoryDelayer.trigger(this.boundUpdateHistory)
+		} catch (err) {
+			onUnexpectedError(err);
+		}
 	}
 
 	private _updateHistory() {
