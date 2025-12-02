@@ -663,7 +663,8 @@ export class DebugSession implements IDebugSession {
 		}
 
 		const sessionToken = this.getNewCancellationToken(threadId, token);
-		return this.raw.stackTrace({ threadId, startFrame, levels }, sessionToken);
+		const promise = this.raw.stackTrace({ threadId, startFrame, levels }, sessionToken);
+		return promise.finally(() => this.disposeCancellationToken(threadId, sessionToken));
 	}
 
 	async exceptionInfo(threadId: number): Promise<IExceptionInfo | undefined> {
@@ -869,12 +870,16 @@ export class DebugSession implements IDebugSession {
 		}
 		const sessionCancelationToken = this.getNewCancellationToken(threadId, token);
 
-		return this.raw.completions({
-			frameId,
-			text,
-			column: position.column,
-			line: position.lineNumber,
-		}, sessionCancelationToken);
+		try {
+			return await this.raw.completions({
+				frameId,
+				text,
+				column: position.column,
+				line: position.lineNumber,
+			}, sessionCancelationToken);
+		} finally {
+			this.disposeCancellationToken(threadId, sessionCancelationToken);
+		}
 	}
 
 	async stepInTargets(frameId: number): Promise<{ id: number; label: string }[] | undefined> {
@@ -1545,6 +1550,20 @@ export class DebugSession implements IDebugSession {
 		this.cancellationMap.set(threadId, tokens);
 
 		return tokenSource.token;
+	}
+
+	private disposeCancellationToken(threadId: number, token: CancellationToken): void {
+		const tokens = this.cancellationMap.get(threadId);
+		if (tokens) {
+			const index = tokens.findIndex(t => t.token === token);
+			if (index >= 0) {
+				tokens[index].dispose();
+				tokens.splice(index, 1);
+			}
+			if (tokens.length === 0) {
+				this.cancellationMap.delete(threadId);
+			}
+		}
 	}
 
 	private cancelAllRequests(): void {
