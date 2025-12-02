@@ -446,9 +446,8 @@ interface ProviderArguments {
 }
 
 
-class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
+class DecorationTypeOptionsProvider extends Disposable implements IModelDecorationOptionsProvider {
 
-	private readonly _disposables = new DisposableStore();
 	private readonly _styleSheet: GlobalStyleSheet | RefCountedStyleSheet;
 	public refCount: number;
 
@@ -471,6 +470,7 @@ class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 	public afterInjectedText: InjectedTextOptions | undefined;
 
 	constructor(description: string, themeService: IThemeService, styleSheet: GlobalStyleSheet | RefCountedStyleSheet, providerArgs: ProviderArguments) {
+		super();
 		this.description = description;
 
 		this._styleSheet = styleSheet;
@@ -478,16 +478,14 @@ class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 		this.refCount = 0;
 
 		const createCSSRules = (type: ModelDecorationCSSRuleType) => {
-			const rules = new DecorationCSSRules(type, providerArgs, themeService);
-			this._disposables.add(rules);
+			const rules = this._register(new DecorationCSSRules(type, providerArgs, themeService));
 			if (rules.hasContent) {
 				return rules.className;
 			}
 			return undefined;
 		};
 		const createInlineCSSRules = (type: ModelDecorationCSSRuleType) => {
-			const rules = new DecorationCSSRules(type, providerArgs, themeService);
-			this._disposables.add(rules);
+			const rules = this._register(new DecorationCSSRules(type, providerArgs, themeService));
 			if (rules.hasContent) {
 				return { className: rules.className, hasLetterSpacing: rules.hasLetterSpacing };
 			}
@@ -575,8 +573,8 @@ class DecorationTypeOptionsProvider implements IModelDecorationOptionsProvider {
 		return this._styleSheet.sheet.rules;
 	}
 
-	public dispose(): void {
-		this._disposables.dispose();
+	public override dispose(): void {
+		super.dispose();
 		this._styleSheet.unref();
 	}
 }
@@ -621,7 +619,7 @@ export const _CSS_MAP: { [prop: string]: string } = {
 };
 
 
-class DecorationCSSRules {
+class DecorationCSSRules extends Disposable {
 
 	private _theme: IColorTheme;
 	private readonly _className: string;
@@ -629,11 +627,11 @@ class DecorationCSSRules {
 	private _hasContent: boolean;
 	private _hasLetterSpacing: boolean;
 	private readonly _ruleType: ModelDecorationCSSRuleType;
-	private _themeListener: IDisposable | null;
 	private readonly _providerArgs: ProviderArguments;
 	private _usesThemeColors: boolean;
 
 	constructor(ruleType: ModelDecorationCSSRuleType, providerArgs: ProviderArguments, themeService: IThemeService) {
+		super();
 		this._theme = themeService.getColorTheme();
 		this._ruleType = ruleType;
 		this._providerArgs = providerArgs;
@@ -652,25 +650,20 @@ class DecorationCSSRules {
 		this._buildCSS();
 
 		if (this._usesThemeColors) {
-			this._themeListener = themeService.onDidColorThemeChange(theme => {
+			this._register(themeService.onDidColorThemeChange(() => {
 				this._theme = themeService.getColorTheme();
 				this._removeCSS();
 				this._buildCSS();
-			});
-		} else {
-			this._themeListener = null;
+			}));
 		}
 	}
 
-	public dispose() {
+	public override dispose(): void {
 		if (this._hasContent) {
 			this._removeCSS();
 			this._hasContent = false;
 		}
-		if (this._themeListener) {
-			this._themeListener.dispose();
-			this._themeListener = null;
-		}
+		super.dispose();
 	}
 
 	public get hasContent(): boolean {
