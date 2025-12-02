@@ -86,8 +86,15 @@ interface ISimpleConnectionOptions<T extends RemoteConnection = RemoteConnection
 
 function createTimeoutCancellation(millis: number): CancellationToken {
 	const source = new CancellationTokenSource();
-	setTimeout(() => source.cancel(), millis);
-	return source.token;
+	const handle = setTimeout(() => {
+		source.cancel();
+		source.dispose();
+	}, millis);
+	const token = source.token;
+	token.onCancellationRequested(() => {
+		clearTimeout(handle);
+	});
+	return token;
 }
 
 function combineTimeoutCancellation(a: CancellationToken, b: CancellationToken): CancellationToken {
@@ -95,8 +102,18 @@ function combineTimeoutCancellation(a: CancellationToken, b: CancellationToken):
 		return CancellationToken.Cancelled;
 	}
 	const source = new CancellationTokenSource();
-	a.onCancellationRequested(() => source.cancel());
-	b.onCancellationRequested(() => source.cancel());
+	const aListener = a.onCancellationRequested(() => {
+		source.cancel();
+		aListener.dispose();
+		bListener.dispose();
+		source.dispose();
+	});
+	const bListener = b.onCancellationRequested(() => {
+		source.cancel();
+		aListener.dispose();
+		bListener.dispose();
+		source.dispose();
+	});
 	return source.token;
 }
 
