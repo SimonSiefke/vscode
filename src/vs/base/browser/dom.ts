@@ -2619,44 +2619,6 @@ export class ObserverNodeWithElement<T extends HTMLOrSVGElement = HTMLOrSVGEleme
 	public get element() {
 		return this._element;
 	}
-<<<<<<< Updated upstream
-=======
-
-	private _isHovered: IObservable<boolean> | undefined = undefined;
-
-	get isHovered(): IObservable<boolean> {
-		if (!this._isHovered) {
-			const hovered = observableValue<boolean>('hovered', false);
-			addDisposableListener(this._element, 'mouseenter', (_e) => hovered.set(true, undefined));
-			addDisposableListener(this._element, 'mouseleave', (_e) => hovered.set(false, undefined));
-			this._isHovered = hovered;
-		}
-		return this._isHovered;
-	}
-
-	private _didMouseMoveDuringHover: IObservable<boolean> | undefined = undefined;
-
-	get didMouseMoveDuringHover(): IObservable<boolean> {
-		if (!this._didMouseMoveDuringHover) {
-			let _hovering = false;
-			const hovered = observableValue<boolean>('didMouseMoveDuringHover', false);
-			addDisposableListener(this._element, 'mouseenter', (_e) => {
-				_hovering = true;
-			});
-			addDisposableListener(this._element, 'mousemove', (_e) => {
-				if (_hovering) {
-					hovered.set(true, undefined);
-				}
-			});
-			addDisposableListener(this._element, 'mouseleave', (_e) => {
-				_hovering = false;
-				hovered.set(false, undefined);
-			});
-			this._didMouseMoveDuringHover = hovered;
-		}
-		return this._didMouseMoveDuringHover;
-	}
->>>>>>> Stashed changes
 }
 function setOrRemoveAttribute(element: HTMLOrSVGElement, key: string, value: unknown) {
 	if (value === null || value === undefined) {
