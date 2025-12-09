@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
 import { TernarySearchTree } from '../../../../../base/common/ternarySearchTree.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -334,13 +334,18 @@ export class PlainTextSearchHeadingImpl extends TextSearchHeadingImpl<ITextQuery
 
 	private _createBaseFolderMatch(resource: URI | null, id: string, index: number, query: ITextQuery): ISearchTreeFolderMatch {
 		let folderMatch: ISearchTreeFolderMatch;
+		const store = new DisposableStore();
 		if (resource) {
-			folderMatch = this._register(this.createWorkspaceRootWithResourceImpl(resource, id, index, query));
+			folderMatch = store.add(this.createWorkspaceRootWithResourceImpl(resource, id, index, query));
 		} else {
-			folderMatch = this._register(this.createNoRootWorkspaceImpl(id, index, query));
+			folderMatch = store.add(this.createNoRootWorkspaceImpl(id, index, query));
 		}
-		const disposable = folderMatch.onChange((event) => this._onChange.fire(event));
-		this._register(folderMatch.onDispose(() => disposable.dispose()));
+		store.add(folderMatch.onChange((event) => this._onChange.fire(event)));
+		store.add(folderMatch.onDispose(() => {
+			this._store.delete(store)
+			store.dispose()
+		}));
+		this._store.add(store)
 		return folderMatch;
 	}
 
@@ -349,6 +354,6 @@ export class PlainTextSearchHeadingImpl extends TextSearchHeadingImpl<ITextQuery
 	}
 
 	private createNoRootWorkspaceImpl(id: string, index: number, query: ITextQuery): ISearchTreeFolderMatchNoRoot {
-		return this._register(this.instantiationService.createInstance(FolderMatchNoRootImpl, id, index, query, this));
+		return this.instantiationService.createInstance(FolderMatchNoRootImpl, id, index, query, this);
 	}
 }
