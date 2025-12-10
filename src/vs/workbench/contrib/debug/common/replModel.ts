@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { Disposable, dispose } from '../../../../base/common/lifecycle.js';
 import severity from '../../../../base/common/severity.js';
 import { isObject, isString } from '../../../../base/common/types.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
@@ -19,10 +20,10 @@ const getUniqueId = () => `topReplElement:${topReplElementCounter++}`;
  * General case of data from DAP the `output` event. {@link ReplVariableElement}
  * is used instead only if there is a `variablesReference` with no `output` text.
  */
-export class ReplOutputElement implements INestingReplElement {
+export class ReplOutputElement extends Disposable implements INestingReplElement {
 
 	private _count = 1;
-	private _onDidChangeCount = new Emitter<void>();
+	private _onDidChangeCount = this._register(new Emitter<void>());
 
 	constructor(
 		public session: IDebugSession,
@@ -32,9 +33,10 @@ export class ReplOutputElement implements INestingReplElement {
 		public sourceData?: IReplElementSource,
 		public readonly expression?: IExpression,
 	) {
+		super()
 	}
 
-	toString(includeSource = false): string {
+	override	toString(includeSource = false): string {
 		let valueRespectCount = this.value;
 		for (let i = 1; i < this.count; i++) {
 			valueRespectCount += (valueRespectCount.endsWith('\n') ? '' : '\n') + this.value;
@@ -267,12 +269,14 @@ export interface INewReplElementData {
 	source?: IReplElementSource;
 }
 
-export class ReplModel {
+export class ReplModel extends Disposable {
 	private replElements: IReplElement[] = [];
-	private readonly _onDidChangeElements = new Emitter<IReplElement | undefined>();
+	private readonly _onDidChangeElements = this._register(new Emitter<IReplElement | undefined>());
 	readonly onDidChangeElements = this._onDidChangeElements.event;
 
-	constructor(private readonly configurationService: IConfigurationService) { }
+	constructor(private readonly configurationService: IConfigurationService) {
+		super()
+	}
 
 	getReplElements(): IReplElement[] {
 		return this.replElements;
