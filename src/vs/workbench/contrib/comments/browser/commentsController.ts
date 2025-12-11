@@ -7,7 +7,7 @@ import { Action, IAction } from '../../../../base/common/actions.js';
 import { coalesce } from '../../../../base/common/arrays.js';
 import { findFirstIdxMonotonousOrArrLen } from '../../../../base/common/arraysFind.js';
 import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../base/common/async.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
 import './media/review.css';
 import { ICodeEditor, IEditorMouseEvent, isCodeEditor, isDiffEditor } from '../../../../editor/browser/editorBrowser.js';
@@ -693,22 +693,21 @@ export class CommentController implements IEditorContribution {
 
 	private beginComputeCommentingRanges() {
 		if (this._computeCommentingRangeScheduler) {
-			this._computeCommentingRangeScheduler.trigger(() => {
+			this._computeCommentingRangeScheduler.trigger(async () => {
 				const editorURI = this.editor && this.editor.hasModel() && this.editor.getModel().uri;
 
-				if (editorURI) {
-					return this.commentService.getDocumentComments(editorURI);
-				}
+				try {
+					const commentInfos = editorURI ? await this.commentService.getDocumentComments(editorURI) : [];
 
-				return Promise.resolve([]);
-			}).then(commentInfos => {
-				if (this.commentService.isCommentingEnabled) {
-					const meaningfulCommentInfos = coalesce(commentInfos);
-					this._commentingRangeDecorator.update(this.editor, meaningfulCommentInfos, this.editor?.getPosition()?.lineNumber, this.editor?.getSelection() ?? undefined);
+					if (this.commentService.isCommentingEnabled) {
+						const meaningfulCommentInfos = coalesce(commentInfos);
+						this._commentingRangeDecorator.update(this.editor, meaningfulCommentInfos, this.editor?.getPosition()?.lineNumber, this.editor?.getSelection() ?? undefined);
+					}
+				} catch (err) {
+					if (!isCancellationError(err)) {
+						onUnexpectedError(err);
+					}
 				}
-			}, (err) => {
-				onUnexpectedError(err);
-				return null;
 			});
 		}
 	}
@@ -860,6 +859,8 @@ export class CommentController implements IEditorContribution {
 		this.localToDispose.dispose();
 		dispose(this._editorDisposables);
 		dispose(this._commentWidgets);
+		this._computeCommentingRangeScheduler?.cancel();
+		this._computeCommentingRangeScheduler = null;
 
 		this.editor = null!; // Strict null override - nulling out in dispose
 	}

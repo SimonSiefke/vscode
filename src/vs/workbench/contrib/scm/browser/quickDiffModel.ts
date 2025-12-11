@@ -17,7 +17,7 @@ import { compareChanges, getModifiedEndLineNumber, IQuickDiffService, QuickDiff,
 import { ThrottledDelayer } from '../../../../base/common/async.js';
 import { ISCMRepository, ISCMService } from '../common/scm.js';
 import { sortedDiff, equals } from '../../../../base/common/arrays.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { ISplice } from '../../../../base/common/sequence.js';
 import { DiffState } from '../../../../editor/browser/widget/diffEditor/diffEditorViewModel.js';
@@ -213,13 +213,13 @@ export class QuickDiffModel extends Disposable {
 		this.triggerDiff();
 	}
 
-	private triggerDiff(): void {
+	private async triggerDiff(): Promise<void> {
 		if (!this._diffDelayer) {
 			return;
 		}
 
-		this._diffDelayer
-			.trigger(async () => {
+		await this._diffDelayer.trigger(async () => {
+			try {
 				const result: { allChanges: QuickDiffChange[]; changes: QuickDiffChange[]; mapChanges: Map<string, number[]> } | null = await this.diff();
 
 				const editorModels = Array.from(this._originalEditorModels.values());
@@ -228,8 +228,12 @@ export class QuickDiffModel extends Disposable {
 				}
 
 				this.setChanges(result.allChanges, result.changes, result.mapChanges);
-			})
-			.catch(err => onUnexpectedError(err));
+			} catch (err) {
+				if (!isCancellationError(err)) {
+					onUnexpectedError(err);
+				}
+			}
+		});
 	}
 
 	private setChanges(allChanges: QuickDiffChange[], changes: QuickDiffChange[], mapChanges: Map<string, number[]>): void {

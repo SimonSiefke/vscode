@@ -5,7 +5,7 @@
 
 import { CancelablePromise, createCancelablePromise, Delayer, RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { illegalArgument, onUnexpectedError } from '../../../../base/common/errors.js';
+import { illegalArgument, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
@@ -308,43 +308,54 @@ export class FoldingController extends Disposable implements IEditorContribution
 				this.foldingRegionPromise.cancel();
 				this.foldingRegionPromise = null;
 			}
-			this.foldingModelPromise = this.updateScheduler.trigger(() => {
+			const editor = this.editor;
+			const updateDebounceInfo = this.updateDebounceInfo;
+			const updateScheduler = this.updateScheduler;
+			const foldingImportsByDefault = this._foldingImportsByDefault;
+			const currentModelHasFoldedImports = this._currentModelHasFoldedImports;
+			this.foldingModelPromise = null;
+			this.foldingModelPromise = this.updateScheduler.trigger(async () => {
 				const foldingModel = this.foldingModel;
 				if (!foldingModel) { // null if editor has been disposed, or folding turned off
 					return null;
 				}
 				const sw = new StopWatch();
 				const provider = this.getRangeProvider(foldingModel.textModel);
-				const foldingRegionPromise = this.foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
-				return foldingRegionPromise.then(foldingRanges => {
-					if (foldingRanges && foldingRegionPromise === this.foldingRegionPromise) { // new request or cancelled in the meantime?
-						let scrollState: StableEditorScrollState | undefined;
+				const foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
+				this.foldingRegionPromise = foldingRegionPromise;
+				try {
+					const foldingRanges = await foldingRegionPromise;
+					if (!foldingRanges) {
+						return foldingModel;
+					}
+					let scrollState: StableEditorScrollState | undefined;
 
-						if (this._foldingImportsByDefault && !this._currentModelHasFoldedImports) {
-							const hasChanges = foldingRanges.setCollapsedAllOfType(FoldingRangeKind.Imports.value, true);
-							if (hasChanges) {
-								scrollState = StableEditorScrollState.capture(this.editor);
-								this._currentModelHasFoldedImports = hasChanges;
-							}
-						}
-
-						// some cursors might have moved into hidden regions, make sure they are in expanded regions
-						const selections = this.editor.getSelections();
-						foldingModel.update(foldingRanges, toSelectedLines(selections));
-
-						scrollState?.restore(this.editor);
-
-						// update debounce info
-						const newValue = this.updateDebounceInfo.update(foldingModel.textModel, sw.elapsed());
-						if (this.updateScheduler) {
-							this.updateScheduler.defaultDelay = newValue;
+					if (foldingImportsByDefault && !currentModelHasFoldedImports) {
+						const hasChanges = foldingRanges.setCollapsedAllOfType(FoldingRangeKind.Imports.value, true);
+						if (hasChanges) {
+							scrollState = StableEditorScrollState.capture(editor);
+							this._currentModelHasFoldedImports = true;
 						}
 					}
+
+					// some cursors might have moved into hidden regions, make sure they are in expanded regions
+					const selections = editor.getSelections();
+					foldingModel.update(foldingRanges, toSelectedLines(selections));
+
+					scrollState?.restore(editor);
+
+					// update debounce info
+					const newValue = updateDebounceInfo.update(foldingModel.textModel, sw.elapsed());
+					if (updateScheduler) {
+						updateScheduler.defaultDelay = newValue;
+					}
 					return foldingModel;
-				});
-			}).then(undefined, (err) => {
-				onUnexpectedError(err);
-				return null;
+				} catch (err) {
+					if (!isCancellationError(err)) {
+						onUnexpectedError(err);
+					}
+					return null;
+				}
 			});
 		}
 	}
