@@ -164,6 +164,30 @@ class ExtHostEditorTabGroup {
 		this._dto = dto;
 	}
 
+	acceptFullGroupDtoUpdate(dto: IEditorTabGroupDto) {
+		this._dto = dto;
+		this._activeTabId = '';
+		const existingTabsMap = new Map(this._tabs.map(tab => [tab.tabId, tab]));
+		const newTabs: ExtHostEditorTab[] = [];
+		for (const tabDto of dto.tabs) {
+			if (tabDto.isActive) {
+				this._activeTabId = tabDto.id;
+			}
+			const existingTab = existingTabsMap.get(tabDto.id);
+			if (existingTab) {
+				existingTab.acceptDtoUpdate(tabDto);
+				newTabs.push(existingTab);
+				existingTabsMap.delete(tabDto.id);
+			} else {
+				newTabs.push(new ExtHostEditorTab(tabDto, this, () => this.activeTabId()));
+			}
+		}
+		this._tabs = newTabs;
+		if (this._apiObject) {
+			this._apiObject = undefined;
+		}
+	}
+
 	acceptTabOperation(operation: TabOperation): ExtHostEditorTab {
 		// In the open case we add the tab to the group
 		if (operation.kind === TabModelOperationKind.TAB_OPEN) {
@@ -288,16 +312,23 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 		const opened: vscode.TabGroup[] = [];
 		const changed: vscode.TabGroup[] = [];
 
+		const existingGroupsMap = new Map(this._extHostTabGroups.map(group => [group.groupId, group]));
+		const newGroups: ExtHostEditorTabGroup[] = [];
 
-		this._extHostTabGroups = tabGroups.map(tabGroup => {
-			const group = new ExtHostEditorTabGroup(tabGroup, () => this._activeGroupId);
-			if (diff.added.includes(group.groupId)) {
-				opened.push(group.apiObject);
+		for (const tabGroupDto of tabGroups) {
+			const existingGroup = existingGroupsMap.get(tabGroupDto.groupId);
+			if (existingGroup) {
+				existingGroup.acceptFullGroupDtoUpdate(tabGroupDto);
+				changed.push(existingGroup.apiObject);
+				newGroups.push(existingGroup);
 			} else {
-				changed.push(group.apiObject);
+				const group = new ExtHostEditorTabGroup(tabGroupDto, () => this._activeGroupId);
+				opened.push(group.apiObject);
+				newGroups.push(group);
 			}
-			return group;
-		});
+		}
+
+		this._extHostTabGroups = newGroups;
 
 		// Set the active tab group id
 		const activeTabGroupId = assertReturnsDefined(tabGroups.find(group => group.isActive === true)?.groupId);
