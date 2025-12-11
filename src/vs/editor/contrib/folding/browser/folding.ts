@@ -102,7 +102,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 	private foldingRegionPromise: CancelablePromise<FoldingRegions | null> | null;
 
 	private foldingModelPromise: Promise<FoldingModel | null> | null;
-	private updateScheduler: Delayer<FoldingModel | null> | null;
+	private updateScheduler: Delayer<void, Promise<FoldingModel | null>> | null;
 	private readonly updateDebounceInfo: IFeatureDebounceInformation;
 
 	private foldingEnabled: IContextKey<boolean>;
@@ -241,7 +241,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 		this.localToDispose.add(this.hiddenRangeModel);
 		this.localToDispose.add(this.hiddenRangeModel.onDidChange(hr => this.onHiddenRangesChanges(hr)));
 
-		this.updateScheduler = new Delayer<FoldingModel>(this.updateDebounceInfo.get(model));
+		this.updateScheduler = new Delayer<void, Promise<FoldingModel | null>>(this.updateDebounceInfo.get(model));
 		this.localToDispose.add(this.updateScheduler);
 
 		this.cursorChangedScheduler = new RunOnceScheduler(() => this.revealCursor(), 200);
@@ -302,50 +302,56 @@ export class FoldingController extends Disposable implements IEditorContribution
 	}
 
 
+	private async doTriggerFoldingModelUpdate() {
+		try {
+			const foldingModel = this.foldingModel;
+			if (!foldingModel) { // null if editor has been disposed, or folding turned off
+				return null;
+			}
+			const sw = new StopWatch();
+			const provider = this.getRangeProvider(foldingModel.textModel);
+			const foldingRegionPromise = this.foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
+			const foldingRanges = await foldingRegionPromise
+			if (foldingRanges && foldingRegionPromise === this.foldingRegionPromise) { // new request or cancelled in the meantime?
+				let scrollState: StableEditorScrollState | undefined;
+
+				if (this._foldingImportsByDefault && !this._currentModelHasFoldedImports) {
+					const hasChanges = foldingRanges.setCollapsedAllOfType(FoldingRangeKind.Imports.value, true);
+					if (hasChanges) {
+						scrollState = StableEditorScrollState.capture(this.editor);
+						this._currentModelHasFoldedImports = hasChanges;
+					}
+				}
+
+				// some cursors might have moved into hidden regions, make sure they are in expanded regions
+				const selections = this.editor.getSelections();
+				foldingModel.update(foldingRanges, toSelectedLines(selections));
+
+				scrollState?.restore(this.editor);
+
+				// update debounce info
+				const newValue = this.updateDebounceInfo.update(foldingModel.textModel, sw.elapsed());
+				if (this.updateScheduler) {
+					this.updateScheduler.defaultDelay = newValue;
+				}
+			}
+			return foldingModel;
+		} catch (err) {
+			onUnexpectedError(err)
+			return null
+		}
+	}
+
 	public triggerFoldingModelChanged() {
 		if (this.updateScheduler) {
 			if (this.foldingRegionPromise) {
 				this.foldingRegionPromise.cancel();
 				this.foldingRegionPromise = null;
 			}
-			this.foldingModelPromise = this.updateScheduler.trigger(() => {
-				const foldingModel = this.foldingModel;
-				if (!foldingModel) { // null if editor has been disposed, or folding turned off
-					return null;
-				}
-				const sw = new StopWatch();
-				const provider = this.getRangeProvider(foldingModel.textModel);
-				const foldingRegionPromise = this.foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
-				return foldingRegionPromise.then(foldingRanges => {
-					if (foldingRanges && foldingRegionPromise === this.foldingRegionPromise) { // new request or cancelled in the meantime?
-						let scrollState: StableEditorScrollState | undefined;
-
-						if (this._foldingImportsByDefault && !this._currentModelHasFoldedImports) {
-							const hasChanges = foldingRanges.setCollapsedAllOfType(FoldingRangeKind.Imports.value, true);
-							if (hasChanges) {
-								scrollState = StableEditorScrollState.capture(this.editor);
-								this._currentModelHasFoldedImports = hasChanges;
-							}
-						}
-
-						// some cursors might have moved into hidden regions, make sure they are in expanded regions
-						const selections = this.editor.getSelections();
-						foldingModel.update(foldingRanges, toSelectedLines(selections));
-
-						scrollState?.restore(this.editor);
-
-						// update debounce info
-						const newValue = this.updateDebounceInfo.update(foldingModel.textModel, sw.elapsed());
-						if (this.updateScheduler) {
-							this.updateScheduler.defaultDelay = newValue;
-						}
-					}
-					return foldingModel;
-				});
-			}).then(undefined, (err) => {
-				onUnexpectedError(err);
-				return null;
-			});
+			this.foldingModelPromise =
+				this.updateScheduler.trigger(() => {
+					this.doTriggerFoldingModelUpdate()
+				})
 		}
 	}
 

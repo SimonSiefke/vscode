@@ -379,15 +379,16 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
  * 			delayer.trigger(() => { return makeTheTrip(); });
  * 		}
  */
-export class Delayer<T> implements IDisposable {
+export class Delayer<T, R = Promise<void>> implements IDisposable {
 
 	private deferred: IScheduledLater | null;
 	private completionPromise: Promise<any> | null;
 	private doResolve: ((value?: any | Promise<any>) => void) | null;
 	private doReject: ((err: unknown) => void) | null;
 	private task: ITask<T | Promise<T>> | null;
+	isVoid: boolean | undefined;
 
-	constructor(public defaultDelay: number | typeof MicrotaskDelay) {
+	constructor(public defaultDelay: number | typeof MicrotaskDelay,) {
 		this.deferred = null;
 		this.completionPromise = null;
 		this.doResolve = null;
@@ -395,7 +396,7 @@ export class Delayer<T> implements IDisposable {
 		this.task = null;
 	}
 
-	trigger(task: ITask<T | Promise<T>>, delay = this.defaultDelay): Promise<T> {
+	trigger(task: ITask<T | Promise<T>>, delay = this.defaultDelay): R {
 		this.task = task;
 		this.cancelTimeout();
 
@@ -404,8 +405,7 @@ export class Delayer<T> implements IDisposable {
 				this.doResolve = resolve;
 				this.doReject = reject;
 			}).then(() => {
-				this.completionPromise = null;
-				this.doResolve = null;
+				this.cleanup();
 				if (this.task) {
 					const task = this.task;
 					this.task = null;
@@ -422,6 +422,7 @@ export class Delayer<T> implements IDisposable {
 
 		this.deferred = delay === MicrotaskDelay ? microtaskDeferred(fn) : timeoutDeferred(delay, fn);
 
+		// @ts-ignore
 		return this.completionPromise;
 	}
 
@@ -429,12 +430,20 @@ export class Delayer<T> implements IDisposable {
 		return !!this.deferred?.isTriggered();
 	}
 
+	cleanup() {
+		this.completionPromise = null
+		this.doReject = null
+		this.doResolve = null
+		this.deferred?.dispose()
+		this.deferred = null
+	}
+
 	cancel(): void {
 		this.cancelTimeout();
 
 		if (this.completionPromise) {
 			this.doReject?.(new CancellationError());
-			this.completionPromise = null;
+			this.cleanup();
 		}
 	}
 
@@ -457,17 +466,18 @@ export class Delayer<T> implements IDisposable {
  * and can only be delivered once he is back. Once he is back the mail man will
  * do one more trip to deliver the letters that have accumulated while he was out.
  */
-export class ThrottledDelayer<T> {
+export class ThrottledDelayer<T, R = Promise<void>> {
 
-	private delayer: Delayer<Promise<T>>;
+	private delayer: Delayer<T, R>;
 	private throttler: Throttler;
 
-	constructor(defaultDelay: number) {
-		this.delayer = new Delayer(defaultDelay);
+	constructor(defaultDelay: number, isVoid: boolean) {
+		this.delayer = new Delayer<T, R>(defaultDelay,);
 		this.throttler = new Throttler();
 	}
 
-	trigger(promiseFactory: ICancellableTask<Promise<T>>, delay?: number): Promise<T> {
+	trigger(promiseFactory: ICancellableTask<Promise<T>>, delay?: number): R {
+		// @ts-ignore
 		return this.delayer.trigger(() => this.throttler.queue(promiseFactory), delay) as unknown as Promise<T>;
 	}
 

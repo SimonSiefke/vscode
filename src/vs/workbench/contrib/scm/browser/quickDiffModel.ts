@@ -104,7 +104,7 @@ export class QuickDiffModel extends Disposable {
 	private _disposed = false;
 	private _quickDiffs: QuickDiff[] = [];
 	private _quickDiffsPromise?: Promise<QuickDiff[]>;
-	private _diffDelayer = this._register(new ThrottledDelayer<void>(200));
+	private _diffDelayer = this._register(new ThrottledDelayer<void, void>(200, true));
 
 	private readonly _onDidChange = this._register(new Emitter<{ changes: QuickDiffChange[]; diff: ISplice<QuickDiffChange>[] }>());
 	readonly onDidChange: Event<{ changes: QuickDiffChange[]; diff: ISplice<QuickDiffChange>[] }> = this._onDidChange.event;
@@ -213,23 +213,28 @@ export class QuickDiffModel extends Disposable {
 		this.triggerDiff();
 	}
 
+	private async doTriggerDiff() {
+		try {
+
+			const result: { allChanges: QuickDiffChange[]; changes: QuickDiffChange[]; mapChanges: Map<string, number[]> } | null = await this.diff();
+
+			const editorModels = Array.from(this._originalEditorModels.values());
+			if (!result || this._disposed || this._model.isDisposed() || editorModels.some(editorModel => editorModel.isDisposed())) {
+				return; // disposed
+			}
+
+			this.setChanges(result.allChanges, result.changes, result.mapChanges);
+		} catch (err) {
+			onUnexpectedError(err)
+		}
+	}
+
 	private triggerDiff(): void {
 		if (!this._diffDelayer) {
 			return;
 		}
 
-		this._diffDelayer
-			.trigger(async () => {
-				const result: { allChanges: QuickDiffChange[]; changes: QuickDiffChange[]; mapChanges: Map<string, number[]> } | null = await this.diff();
-
-				const editorModels = Array.from(this._originalEditorModels.values());
-				if (!result || this._disposed || this._model.isDisposed() || editorModels.some(editorModel => editorModel.isDisposed())) {
-					return; // disposed
-				}
-
-				this.setChanges(result.allChanges, result.changes, result.mapChanges);
-			})
-			.catch(err => onUnexpectedError(err));
+		this._diffDelayer.trigger(() => this.doTriggerDiff())
 	}
 
 	private setChanges(allChanges: QuickDiffChange[], changes: QuickDiffChange[], mapChanges: Map<string, number[]>): void {
