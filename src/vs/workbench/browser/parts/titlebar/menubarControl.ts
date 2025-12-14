@@ -586,6 +586,7 @@ export class CustomMenubarControl extends MenubarControl {
 			if (this.menubar) {
 				this.reinstallDisposables.clear();
 				this.compactMenuActionsDisposables.clear();
+				this.updateActionsDisposables.clear();
 			}
 
 			this.menubar = this.reinstallDisposables.add(new MenuBar(this.container, this.getMenuBarOptions(), defaultMenuStyles));
