@@ -574,6 +574,7 @@ export class CustomMenubarControl extends MenubarControl {
 
 	private readonly reinstallDisposables = this._register(new DisposableStore());
 	private readonly updateActionsDisposables = this._register(new DisposableStore());
+	private readonly compactMenuActionsDisposables = this._register(new DisposableStore());
 	private setupCustomMenubar(firstTime: boolean): void {
 		// If there is no container, we cannot setup the menubar
 		if (!this.container) {
@@ -584,6 +585,7 @@ export class CustomMenubarControl extends MenubarControl {
 			// Reset and create new menubar
 			if (this.menubar) {
 				this.reinstallDisposables.clear();
+				this.compactMenuActionsDisposables.clear();
 			}
 
 			this.menubar = this.reinstallDisposables.add(new MenuBar(this.container, this.getMenuBarOptions(), defaultMenuStyles));
@@ -666,7 +668,7 @@ export class CustomMenubarControl extends MenubarControl {
 
 			// Append web navigation menu items to the file menu when not compact
 			if (topLevelTitle === 'File' && this.currentCompactMenuMode === undefined) {
-				const webActions = this.getWebNavigationActions();
+				const webActions = this.getWebNavigationActions(store);
 				if (webActions.length) {
 					target.push(...webActions);
 				}
@@ -716,7 +718,7 @@ export class CustomMenubarControl extends MenubarControl {
 		}
 	}
 
-	private getWebNavigationActions(): IAction[] {
+	private getWebNavigationActions(store: DisposableStore): IAction[] {
 		if (!isWeb) {
 			return []; // only for web
 		}
@@ -729,11 +731,12 @@ export class CustomMenubarControl extends MenubarControl {
 					const title = typeof action.item.title === 'string'
 						? action.item.title
 						: action.item.title.mnemonicTitle ?? action.item.title.value;
-					webNavigationActions.push(toAction({
-						id: action.id, label: mnemonicMenuLabel(title), class: action.class, enabled: action.enabled, run: async (event?: unknown) => {
-							this.commandService.executeCommand(action.id, event);
-						}
+					const newAction = store.add(new Action(action.id, mnemonicMenuLabel(title), action.class, action.enabled, async (event?: unknown) => {
+						this.commandService.executeCommand(action.id, event);
 					}));
+					newAction.tooltip = action.tooltip;
+					newAction.checked = action.checked;
+					webNavigationActions.push(newAction);
 				}
 			}
 
@@ -761,7 +764,8 @@ export class CustomMenubarControl extends MenubarControl {
 					return []; // only for web
 				}
 
-				return this.getWebNavigationActions();
+				this.compactMenuActionsDisposables.clear();
+				return this.getWebNavigationActions(this.compactMenuActionsDisposables);
 			}
 		};
 	}
