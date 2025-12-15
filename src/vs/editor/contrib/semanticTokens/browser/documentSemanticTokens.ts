@@ -6,7 +6,7 @@
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import * as errors from '../../../../base/common/errors.js';
-import { Disposable, IDisposable, dispose } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, IDisposable, dispose } from '../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -26,7 +26,7 @@ import { SEMANTIC_HIGHLIGHTING_SETTING_ID, isSemanticColoringEnabled } from '../
 
 export class DocumentSemanticTokensFeature extends Disposable {
 
-	private readonly _watchers = new ResourceMap<ModelSemanticColoring>();
+	private readonly _watchers = this._register(new DisposableMap(new ResourceMap<ModelSemanticColoring>()));
 
 	constructor(
 		@ISemanticTokensStylingService semanticTokensStylingService: ISemanticTokensStylingService,
@@ -44,7 +44,7 @@ export class DocumentSemanticTokensFeature extends Disposable {
 		};
 		const deregister = (model: ITextModel, modelSemanticColoring: ModelSemanticColoring) => {
 			modelSemanticColoring.dispose();
-			this._watchers.delete(model.uri);
+			this._watchers.deleteAndDispose(model.uri);
 		};
 		const handleSettingOrThemeChange = () => {
 			for (const model of modelService.getModels()) {
@@ -82,13 +82,6 @@ export class DocumentSemanticTokensFeature extends Disposable {
 			}
 		}));
 		this._register(themeService.onDidColorThemeChange(handleSettingOrThemeChange));
-	}
-
-	override dispose(): void {
-		dispose(this._watchers.values());
-		this._watchers.clear();
-
-		super.dispose();
 	}
 }
 
