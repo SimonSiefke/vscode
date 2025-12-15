@@ -64,6 +64,10 @@ export class LanguageFeatureRegistry<T> {
 	constructor(private readonly _notebookInfoResolver?: NotebookInfoResolver) { }
 
 	register(selector: LanguageSelector, provider: T): IDisposable {
+		console.log(`entries`)
+		console.log([...this._entries])
+		// console.log(`register` + selector.toString() + `provider`)
+		// console.log(provider)
 
 		let entry: Entry<T> | undefined = {
 			selector,
