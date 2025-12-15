@@ -226,4 +226,3 @@ function isBuiltinSelector(selector: LanguageSelector): boolean {
 
 	return Boolean((selector as LanguageFilter).isBuiltin);
 }
-

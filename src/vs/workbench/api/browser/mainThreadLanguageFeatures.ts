@@ -534,12 +534,20 @@ export class MainThreadLanguageFeatures extends Disposable implements MainThread
 
 	$registerDocumentSemanticTokensProvider(handle: number, selector: IDocumentFilterDto[], legend: languages.SemanticTokensLegend, eventHandle: number | undefined): void {
 		let event: Event<void> | undefined = undefined;
+		let emitter: Emitter<void> | undefined = undefined;
 		if (typeof eventHandle === 'number') {
-			const emitter = new Emitter<void>();
+			emitter = new Emitter<void>();
 			this._registrations.set(eventHandle, emitter);
 			event = emitter.event;
 		}
-		this._registrations.set(handle, this._languageFeaturesService.documentSemanticTokensProvider.register(selector, new MainThreadDocumentSemanticTokensProvider(this._proxy, handle, legend, event)));
+		const registration = this._languageFeaturesService.documentSemanticTokensProvider.register(selector, new MainThreadDocumentSemanticTokensProvider(this._proxy, handle, legend, event));
+		if (emitter) {
+			this._registrations.set(handle, combinedDisposable(registration, toDisposable(() => {
+				this._registrations.deleteAndDispose(eventHandle!);
+			})));
+		} else {
+			this._registrations.set(handle, registration);
+		}
 	}
 
 	$emitDocumentSemanticTokensEvent(eventHandle: number): void {
@@ -558,12 +566,20 @@ export class MainThreadLanguageFeatures extends Disposable implements MainThread
 
 	$registerDocumentRangeSemanticTokensProvider(handle: number, selector: IDocumentFilterDto[], legend: languages.SemanticTokensLegend, eventHandle: number | undefined): void {
 		let event: Event<void> | undefined = undefined;
+		let emitter: Emitter<void> | undefined = undefined;
 		if (typeof eventHandle === 'number') {
-			const emitter = new Emitter<void>();
+			emitter = new Emitter<void>();
 			this._registrations.set(eventHandle, emitter);
 			event = emitter.event;
 		}
-		this._registrations.set(handle, this._languageFeaturesService.documentRangeSemanticTokensProvider.register(selector, new MainThreadDocumentRangeSemanticTokensProvider(this._proxy, handle, legend, event)));
+		const registration = this._languageFeaturesService.documentRangeSemanticTokensProvider.register(selector, new MainThreadDocumentRangeSemanticTokensProvider(this._proxy, handle, legend, event));
+		if (emitter) {
+			this._registrations.set(handle, combinedDisposable(registration, toDisposable(() => {
+				this._registrations.deleteAndDispose(eventHandle!);
+			})));
+		} else {
+			this._registrations.set(handle, registration);
+		}
 	}
 
 	// --- suggest

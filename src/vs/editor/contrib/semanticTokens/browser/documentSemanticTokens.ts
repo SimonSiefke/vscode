@@ -151,11 +151,17 @@ class ModelSemanticColoring extends Disposable {
 		}));
 
 		const bindDocumentChangeListeners = () => {
+			if (this._isDisposed) {
+				return;
+			}
 			dispose(this._documentProvidersChangeListeners);
 			this._documentProvidersChangeListeners = [];
 			for (const provider of this._provider.all(model)) {
 				if (typeof provider.onDidChange === 'function') {
 					this._documentProvidersChangeListeners.push(provider.onDidChange(() => {
+						if (this._isDisposed) {
+							return;
+						}
 						if (this._currentDocumentRequestCancellationTokenSource) {
 							// there is already a request running,
 							this._providersChangedDuringRequest = true;
@@ -168,6 +174,9 @@ class ModelSemanticColoring extends Disposable {
 		};
 		bindDocumentChangeListeners();
 		this._register(this._provider.onDidChange(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			bindDocumentChangeListeners();
 			this._fetchDocumentSemanticTokens.schedule(this._debounceInformation.get(this._model));
 		}));
