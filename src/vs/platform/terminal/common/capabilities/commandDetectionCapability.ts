@@ -198,7 +198,14 @@ export class CommandDetectionCapability extends Disposable implements ICommandDe
 		}
 		// Remove them
 		if (count > 0) {
-			this._onCommandInvalidated.fire(this._commands.splice(this._commands.length - count, count));
+			const removedCommands = this._commands.splice(this._commands.length - count, count);
+			this._onCommandInvalidated.fire(removedCommands);
+			for (const command of removedCommands) {
+				command.promptStartMarker?.dispose()
+				command.marker?.dispose()
+				command.endMarker?.dispose()
+				command.executedMarker?.dispose()
+			}
 		}
 	}
 

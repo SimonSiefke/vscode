@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, dispose } from '../../../../base/common/lifecycle.js';
 import { IPartialCommandDetectionCapability, TerminalCapability } from './capabilities.js';
 import type { IMarker, Terminal } from '@xterm/headless';
 
@@ -76,6 +76,9 @@ export class PartialCommandDetectionCapability extends DisposableStore implement
 			count++;
 		}
 		// Remove them
-		this._commands.splice(this._commands.length - count, count);
+		if (count > 0) {
+			const removedMarkers = this._commands.splice(this._commands.length - count, count);
+			dispose(removedMarkers);
+		}
 	}
 }
