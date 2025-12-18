@@ -194,6 +194,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 			dispose(disposable);
 		}
 		this.clearDecorations();
+		this._registeredMenuItems.clear();
 	}
 
 	private _clearPlaceholder(): void {
@@ -310,8 +311,15 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 			if (element.classList.contains(DecorationSelector.OverviewRuler)) {
 				return;
 			}
-			if (!this._decorations.get(decoration.marker.id)) {
-				decoration.onDispose(() => this._decorations.delete(decoration.marker.id));
+			const existingDecoration = this._decorations.get(decoration.marker.id);
+			if (!existingDecoration) {
+				decoration.onDispose(() => {
+					const decorationData = this._decorations.get(decoration.marker.id);
+					if (decorationData) {
+						dispose(decorationData.disposables);
+						this._decorations.delete(decoration.marker.id);
+					}
+				});
 				this._decorations.set(decoration.marker.id,
 					{
 						decoration,
