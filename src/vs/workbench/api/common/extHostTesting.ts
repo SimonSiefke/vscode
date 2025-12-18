@@ -12,7 +12,7 @@ import { CancellationToken, CancellationTokenSource } from '../../../base/common
 import { Emitter, Event } from '../../../base/common/event.js';
 import { createSingleCallFunction } from '../../../base/common/functional.js';
 import { hash } from '../../../base/common/hash.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../base/common/marshallingIds.js';
 import { isDefined } from '../../../base/common/types.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
@@ -602,10 +602,15 @@ const enum TestRunTrackerState {
 	Ended,
 }
 
+interface TaskRun extends IDisposable {
+	readonly cts: CancellationTokenSource;
+	readonly run: vscode.TestRun
+}
+
 class TestRunTracker extends Disposable {
 	private state = TestRunTrackerState.Running;
 	private running = 0;
-	private readonly tasks = new Map</* task ID */string, { cts: CancellationTokenSource; run: vscode.TestRun }>();
+	private readonly tasks = this._register(new DisposableMap</* task ID */string, TaskRun>());
 	private readonly sharedTestIds = new Set<string>();
 	private readonly cts: CancellationTokenSource;
 	private readonly endEmitter = this._register(new Emitter<void>());
@@ -667,7 +672,7 @@ class TestRunTracker extends Disposable {
 	/** Requests cancellation of the run. On the second call, forces cancellation. */
 	public cancel(taskId?: string) {
 		if (taskId) {
-			this.tasks.get(taskId)?.cts.cancel();
+			this.tasks.deleteAndDispose(taskId);
 		} else if (this.state === TestRunTrackerState.Running) {
 			this.cts.cancel();
 			this.state = TestRunTrackerState.Cancelling;
@@ -740,7 +745,7 @@ class TestRunTracker extends Disposable {
 
 		let ended = false;
 		// tasks are alive for as long as the tracker is alive, so simple this._register is fine:
-		const cts = this._register(new CancellationTokenSource(this.cts.token));
+		const cts = new CancellationTokenSource(this.cts.token);
 
 		// one-off map used to associate test items with incrementing IDs in `addCoverage`.
 		// There's no need to include their entire ID, we just want to make sure they're
@@ -824,7 +829,13 @@ class TestRunTracker extends Disposable {
 		};
 
 		this.running++;
-		this.tasks.set(taskId, { run, cts });
+		this.tasks.set(taskId, {
+			run,
+			cts,
+			dispose() {
+				cts.dispose(true)
+			}
+		});
 		this.proxy.$startedTestRunTask(runId, {
 			id: taskId,
 			ctrlId: this.dto.controllerId,
