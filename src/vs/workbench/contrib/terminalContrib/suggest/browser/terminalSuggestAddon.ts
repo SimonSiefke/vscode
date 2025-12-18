@@ -776,7 +776,6 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 		this._logService.trace('SuggestAddon#_showCompletions setCompletionModel');
 		suggestWidget.setCompletionModel(model);
 
-		this._register(suggestWidget.onDidFocus(() => this._terminal?.focus()));
 		if (!this._promptInputModel || !explicitlyInvoked && model.items.length === 0) {
 			return;
 		}
@@ -819,6 +818,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			this._register(this._suggestWidget.onDidSelect(async e => this.acceptSelectedSuggestion(e)));
 			this._register(this._suggestWidget.onDidHide(() => this._terminalSuggestWidgetVisibleContextKey.reset()));
 			this._register(this._suggestWidget.onDidShow(() => this._terminalSuggestWidgetVisibleContextKey.set(true)));
+			this._register(this._suggestWidget.onDidFocus(() => this._terminal?.focus()));
 			this._register(this._configurationService.onDidChangeConfiguration(e => {
 				if (e.affectsConfiguration(TerminalSettingId.FontFamily) || e.affectsConfiguration(TerminalSettingId.FontSize) || e.affectsConfiguration(TerminalSettingId.LineHeight) || e.affectsConfiguration(TerminalSettingId.FontFamily) || e.affectsConfiguration('editor.fontSize') || e.affectsConfiguration('editor.fontFamily')) {
 					this._onDidFontConfigurationChange.fire();
@@ -873,11 +873,12 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			}));
 
 			// eslint-disable-next-line no-restricted-syntax
-			const element = this._terminal?.element?.querySelector('.xterm-helper-textarea');
-			if (element) {
-				this._register(dom.addDisposableListener(dom.getActiveDocument(), 'click', (event) => {
+			const terminalElement = this._terminal?.element;
+			const element = terminalElement?.querySelector('.xterm-helper-textarea');
+			if (element && terminalElement) {
+				this._register(dom.addDisposableListener(terminalElement.ownerDocument, 'click', (event) => {
 					const target = event.target as HTMLElement;
-					if (this._terminal?.element?.contains(target)) {
+					if (terminalElement.contains(target)) {
 						this._suggestWidget?.hide();
 					}
 				}));
@@ -1039,7 +1040,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 	hideSuggestWidget(cancelAnyRequest: boolean): void {
 		this._discoverability?.resetTimer();
 		if (cancelAnyRequest) {
-			this._cancellationTokenSource?.cancel();
+			this._cancellationTokenSource?.dispose(true);
 			this._cancellationTokenSource = undefined;
 			// Also cancel any pending resolution requests
 			this._currentSuggestionDetails?.cancel();
