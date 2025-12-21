@@ -449,6 +449,55 @@ export class Delayer<T> implements IDisposable {
 }
 
 /**
+ * Same as delayer, but doesn't throw cancel errors
+ * and doesnt return promises for queueing data
+ */
+export class VoidDelayer implements IDisposable {
+
+	private deferred: IScheduledLater | null;
+	private task: ITask<void | Promise<void>> | null;
+
+	constructor(public defaultDelay: number | typeof MicrotaskDelay) {
+		this.deferred = null;
+		this.task = null;
+		this.handleTimeout = this.handleTimeout.bind(this);
+	}
+
+	trigger(task: ITask<void | Promise<void>>, delay = this.defaultDelay): void {
+		this.task = task;
+		this.cancelTimeout();
+		this.deferred = delay === MicrotaskDelay ? microtaskDeferred(this.handleTimeout) : timeoutDeferred(delay, this.handleTimeout);
+	}
+
+	handleTimeout() {
+		this.deferred = null;
+		const task = this.task
+		this.task = null
+		if (task) {
+			void task();
+		}
+	}
+
+
+	isTriggered(): boolean {
+		return !!this.deferred?.isTriggered();
+	}
+
+	cancel(): void {
+		this.cancelTimeout();
+	}
+
+	private cancelTimeout(): void {
+		this.deferred?.dispose();
+		this.deferred = null;
+	}
+
+	dispose(): void {
+		this.cancel();
+	}
+}
+
+/**
  * A helper to delay execution of a task that is being requested often, while
  * preventing accumulation of consecutive executions, while the task runs.
  *
