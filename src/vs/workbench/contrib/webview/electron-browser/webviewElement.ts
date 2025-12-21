@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { VSBuffer, VSBufferReadableStream } from '../../../../base/common/buffer.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { consumeStream } from '../../../../base/common/stream.js';
@@ -37,7 +37,7 @@ export class ElectronWebviewElement extends WebviewElement {
 	private _cachedHtmlContent: string | undefined;
 
 	private readonly _webviewMainService: IWebviewManagerService;
-	private readonly _iframeDelayer = this._register(new Delayer<void>(200));
+	private readonly _iframeDelayer = this._register(new VoidDelayer(200));
 
 	protected override get platform() { return 'electron'; }
 

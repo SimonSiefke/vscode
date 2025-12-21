@@ -5,7 +5,7 @@
 
 import { EventHelper, getDomNodePagePosition } from '../../../../base/browser/dom.js';
 import { IAction, SubmenuAction } from '../../../../base/common/actions.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -61,7 +61,7 @@ export class UserSettingsRenderer extends Disposable implements IPreferencesRend
 
 	private settingHighlighter: SettingHighlighter;
 	private editSettingActionRenderer: EditSettingRenderer;
-	private modelChangeDelayer: Delayer<void> = new Delayer<void>(200);
+	private modelChangeDelayer: VoidDelayer = new VoidDelayer(200);
 	private associatedPreferencesModel!: IPreferencesEditorModel<ISetting>;
 
 	private unsupportedSettingsRenderer: UnsupportedSettingsRenderer;
@@ -179,7 +179,7 @@ class EditSettingRenderer extends Disposable {
 
 	private settingsGroups: ISettingsGroup[] = [];
 	associatedPreferencesModel!: IPreferencesEditorModel<ISetting>;
-	private toggleEditPreferencesForMouseMoveDelayer: Delayer<void>;
+	private toggleEditPreferencesForMouseMoveDelayer: VoidDelayer;
 
 	private readonly _onUpdateSetting: Emitter<{ key: string; value: unknown; source: IIndexedSetting }> = this._register(new Emitter<{ key: string; value: unknown; source: IIndexedSetting }>());
 	readonly onUpdateSetting: Event<{ key: string; value: unknown; source: IIndexedSetting }> = this._onUpdateSetting.event;
@@ -194,7 +194,7 @@ class EditSettingRenderer extends Disposable {
 
 		this.editPreferenceWidgetForCursorPosition = this._register(this.instantiationService.createInstance(EditPreferenceWidget<IIndexedSetting>, editor));
 		this.editPreferenceWidgetForMouseMove = this._register(this.instantiationService.createInstance(EditPreferenceWidget<IIndexedSetting>, editor));
-		this.toggleEditPreferencesForMouseMoveDelayer = new Delayer<void>(75);
+		this.toggleEditPreferencesForMouseMoveDelayer = new VoidDelayer(75);
 
 		this._register(this.editPreferenceWidgetForCursorPosition.onClick(e => this.onEditSettingClicked(this.editPreferenceWidgetForCursorPosition, e)));
 		this._register(this.editPreferenceWidgetForMouseMove.onClick(e => this.onEditSettingClicked(this.editPreferenceWidgetForMouseMove, e)));
@@ -486,7 +486,7 @@ class SettingHighlighter extends Disposable {
 
 class UnsupportedSettingsRenderer extends Disposable implements languages.CodeActionProvider {
 
-	private renderingDelayer: Delayer<void> = new Delayer<void>(200);
+	private renderingDelayer: VoidDelayer = new VoidDelayer(200);
 
 	private readonly codeActions = new ResourceMap<[Range, languages.CodeAction[]][]>(uri => this.uriIdentityService.extUri.getComparisonKey(uri));
 
@@ -791,7 +791,7 @@ class UnsupportedSettingsRenderer extends Disposable implements languages.CodeAc
 
 class McpSettingsRenderer extends Disposable implements languages.CodeActionProvider {
 
-	private renderingDelayer: Delayer<void> = new Delayer<void>(200);
+	private renderingDelayer: VoidDelayer = new VoidDelayer(200);
 	private readonly codeActions = new ResourceMap<[Range, languages.CodeAction[]][]>(uri => this.uriIdentityService.extUri.getComparisonKey(uri));
 
 	constructor(

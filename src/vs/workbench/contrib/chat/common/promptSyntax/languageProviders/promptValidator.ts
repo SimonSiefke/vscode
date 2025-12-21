@@ -18,7 +18,7 @@ import { ILanguageModelToolsService, SpecedToolAliases } from '../../languageMod
 import { getPromptsTypeForLanguageId, PromptsType } from '../promptTypes.js';
 import { GithubPromptHeaderAttributes, IArrayValue, IHeaderAttribute, IStringValue, ParsedPromptFile, PromptHeaderAttributes, Target } from '../promptFileParser.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../../base/common/lifecycle.js';
-import { Delayer } from '../../../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../../../base/common/async.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
 import { IFileService } from '../../../../../../platform/files/common/files.js';
 import { IPromptsService } from '../service/promptsService.js';
@@ -611,7 +611,7 @@ class ModelTracker extends Disposable {
 		@IMarkerService private readonly markerService: IMarkerService,
 	) {
 		super();
-		this.delayer = this._register(new Delayer<void>(200));
+		this.delayer = this._register(new VoidDelayer(200));
 		this._register(textModel.onDidChangeContent(() => this.validate()));
 		this.validate();
 	}

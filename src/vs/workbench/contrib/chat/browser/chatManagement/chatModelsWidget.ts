@@ -25,7 +25,7 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { ChatModelsViewModel, IModelEntry, IModelItemEntry, IVendorItemEntry, IGroupItemEntry, SEARCH_SUGGESTIONS, isVendorEntry, isGroupEntry, ChatModelGroup } from './chatModelsViewModel.js';
 import { HighlightedLabel } from '../../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
 import { SuggestEnabledInput } from '../../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
-import { Delayer } from '../../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../../base/common/async.js';
 import { settingsTextInputBorder } from '../../../preferences/common/settingsEditorColorRegistry.js';
 import { IChatEntitlementService, ChatEntitlement } from '../../../../services/chat/common/chatEntitlementService.js';
 import { DropdownMenuActionViewItem } from '../../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
@@ -781,7 +781,7 @@ export class ChatModelsWidget extends Disposable {
 	private addButton!: Button;
 	private dropdownActions: IAction[] = [];
 	private viewModel: ChatModelsViewModel;
-	private delayedFiltering: Delayer<void>;
+	private delayedFiltering: VoidDelayer;
 
 	private readonly searchFocusContextKey: IContextKey<boolean>;
 
@@ -800,7 +800,7 @@ export class ChatModelsWidget extends Disposable {
 		super();
 
 		this.searchFocusContextKey = CONTEXT_MODELS_SEARCH_FOCUS.bindTo(contextKeyService);
-		this.delayedFiltering = new Delayer<void>(200);
+		this.delayedFiltering = new VoidDelayer(200);
 		this.viewModel = this._register(this.instantiationService.createInstance(ChatModelsViewModel));
 		this.element = DOM.$('.models-widget');
 		this.create(this.element);

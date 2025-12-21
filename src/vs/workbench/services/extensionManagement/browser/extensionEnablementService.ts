@@ -30,7 +30,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { isString } from '../../../../base/common/types.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { isWeb } from '../../../../base/common/platform.js';
 
@@ -50,7 +50,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	protected readonly extensionsManager: ExtensionsManager;
 	private readonly storageManager: StorageManager;
 	private extensionsDisabledExtensions: IExtension[] = [];
-	private readonly delayer = this._register(new Delayer<void>(0));
+	private readonly delayer = this._register(new VoidDelayer(0));
 
 	// Extension unification
 	private readonly _completionsExtensionId: string | undefined;

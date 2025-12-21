@@ -9,7 +9,7 @@ import * as aria from '../../../../base/browser/ui/aria/aria.js';
 import { MessageType } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { IIdentityProvider } from '../../../../base/browser/ui/list/list.js';
 import { IAsyncDataSource, ITreeContextMenuEvent, ObjectTreeElementCollapseState } from '../../../../base/browser/ui/tree/tree.js';
-import { Delayer, RunOnceScheduler, Throttler } from '../../../../base/common/async.js';
+import { Delayer, RunOnceScheduler, Throttler, VoidDelayer } from '../../../../base/common/async.js';
 import * as errors from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
@@ -174,17 +174,17 @@ export class SearchView extends ViewPane {
 
 	private currentSelectedFileMatch: ISearchTreeFileMatch | undefined;
 
-	private delayedRefresh: Delayer<void>;
+	private delayedRefresh: VoidDelayer;
 	private changedWhileHidden: boolean;
 
 	private searchWithoutFolderMessageElement: HTMLElement | undefined;
 
 	private currentSearchQ = Promise.resolve();
-	private addToSearchHistoryDelayer: Delayer<void>;
+	private addToSearchHistoryDelayer: VoidDelayer;
 
-	private toggleCollapseStateDelayer: Delayer<void>;
+	private toggleCollapseStateDelayer: VoidDelayer;
 
-	private triggerQueryDelayer: Delayer<void>;
+	private triggerQueryDelayer: VoidDelayer;
 	private pauseSearching = false;
 
 	private treeAccessibilityProvider: SearchAccessibilityProvider;
@@ -302,11 +302,11 @@ export class SearchView extends ViewPane {
 		this._register(this.searchHistoryService.onDidClearHistory(() => this.clearHistory()));
 		this._register(this.configurationService.onDidChangeConfiguration(e => this.onConfigurationUpdated(e)));
 
-		this.delayedRefresh = this._register(new Delayer<void>(250));
+		this.delayedRefresh = this._register(new VoidDelayer(250));
 
-		this.addToSearchHistoryDelayer = this._register(new Delayer<void>(2000));
-		this.toggleCollapseStateDelayer = this._register(new Delayer<void>(100));
-		this.triggerQueryDelayer = this._register(new Delayer<void>(0));
+		this.addToSearchHistoryDelayer = this._register(new VoidDelayer(2000));
+		this.toggleCollapseStateDelayer = this._register(new VoidDelayer(100));
+		this.triggerQueryDelayer = this._register(new VoidDelayer(0));
 
 		this.treeAccessibilityProvider = this.instantiationService.createInstance(SearchAccessibilityProvider, this);
 		this.isTreeLayoutViewVisible = this.viewletState.view?.treeLayout ?? (this.searchConfig.defaultViewMode === ViewMode.Tree);

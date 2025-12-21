@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import electron, { BrowserWindowConstructorOptions, Display, screen } from 'electron';
-import { DeferredPromise, RunOnceScheduler, timeout, Delayer } from '../../../base/common/async.js';
+import { DeferredPromise, RunOnceScheduler, timeout, Delayer, VoidDelayer } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
 import { Emitter, Event } from '../../../base/common/event.js';
@@ -621,7 +621,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 
 	private readonly jsCallStackMap: Map<string, number>;
 	private readonly jsCallStackEffectiveSampleCount: number;
-	private readonly jsCallStackCollector: Delayer<void>;
+	private readonly jsCallStackCollector: VoidDelayer;
 	private readonly jsCallStackCollectorStopScheduler: RunOnceScheduler;
 
 	constructor(
@@ -691,7 +691,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 
 		this.jsCallStackMap = new Map<string, number>();
 		this.jsCallStackEffectiveSampleCount = Math.round(samplePeriod / sampleInterval);
-		this.jsCallStackCollector = this._register(new Delayer<void>(sampleInterval));
+		this.jsCallStackCollector = this._register(new VoidDelayer(sampleInterval));
 		this.jsCallStackCollectorStopScheduler = this._register(new RunOnceScheduler(() => {
 			this.stopCollectingJScallStacks(); // Stop collecting after 15s max
 		}, samplePeriod));

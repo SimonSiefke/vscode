@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { IAction } from '../../../../base/common/actions.js';
 import { HistoryInputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
@@ -97,7 +97,7 @@ export class FilterWidget extends Widget {
 		@IKeybindingService private readonly keybindingService: IKeybindingService
 	) {
 		super();
-		this.delayedFilterUpdate = new Delayer<void>(300);
+		this.delayedFilterUpdate = new VoidDelayer(300);
 		this._register(toDisposable(() => this.delayedFilterUpdate.cancel()));
 
 		if (options.focusContextKey) {

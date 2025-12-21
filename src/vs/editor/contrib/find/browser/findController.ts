@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import * as strings from '../../../../base/common/strings.js';
@@ -96,7 +96,7 @@ export class CommonFindController extends Disposable implements IEditorContribut
 	protected _editor: ICodeEditor;
 	private readonly _findWidgetVisible: IContextKey<boolean>;
 	protected _state: FindReplaceState;
-	protected _updateHistoryDelayer: Delayer<void>;
+	protected _updateHistoryDelayer: VoidDelayer;
 	private _model: FindModelBoundToEditorModel | null;
 	protected readonly _storageService: IStorageService;
 	private readonly _clipboardService: IClipboardService;
@@ -129,7 +129,7 @@ export class CommonFindController extends Disposable implements IEditorContribut
 		this._notificationService = notificationService;
 		this._hoverService = hoverService;
 
-		this._updateHistoryDelayer = new Delayer<void>(500);
+		this._updateHistoryDelayer = new VoidDelayer(500);
 		this._state = this._register(new FindReplaceState());
 		this.loadQueryState();
 		this._register(this._state.onFindReplaceStateChange((e) => this._onStateChanged(e)));

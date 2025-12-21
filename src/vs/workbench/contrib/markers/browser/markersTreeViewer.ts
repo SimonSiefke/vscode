@@ -28,7 +28,7 @@ import { isUndefinedOrNull } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Action, IAction, toAction } from '../../../../base/common/actions.js';
 import { localize } from '../../../../nls.js';
-import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../base/common/async.js';
+import { CancelablePromise, createCancelablePromise, Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { Range } from '../../../../editor/common/core/range.js';
 import { applyCodeAction, ApplyCodeActionReason, getCodeActions } from '../../../../editor/contrib/codeAction/browser/codeAction.js';
@@ -711,7 +711,7 @@ export class MarkersViewModel extends Disposable {
 	private bulkUpdate: boolean = false;
 
 	private hoveredMarker: Marker | null = null;
-	private hoverDelayer: Delayer<void> = new Delayer<void>(300);
+	private hoverDelayer: Delayer<void> = new VoidDelayer(300);
 	private viewModeContextKey: IContextKey<MarkersViewMode>;
 
 	constructor(

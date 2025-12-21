@@ -108,7 +108,7 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 			toggleStyles: defaultToggleStyles
 		}, contextKeyService));
 		// Find History with update delayer
-		this._updateHistoryDelayer = this._register(new Delayer<void>(500));
+		this._updateHistoryDelayer = this._register(new VoidDelayer(500));
 
 		this._register(this._findInput.onInput(async (e) => {
 			if (!options.checkImeCompletionState || !this._findInput.isImeSessionInProgress) {

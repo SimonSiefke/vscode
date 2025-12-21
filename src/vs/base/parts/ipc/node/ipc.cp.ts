@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ChildProcess, fork, ForkOptions } from 'child_process';
-import { createCancelablePromise, Delayer } from '../../../common/async.js';
+import { createCancelablePromise, Delayer, VoidDelayer } from '../../../common/async.js';
 import { VSBuffer } from '../../../common/buffer.js';
 import { CancellationToken } from '../../../common/cancellation.js';
 import { isRemoteConsoleLog, log } from '../../../common/console.js';
@@ -83,7 +83,7 @@ export interface IIPCOptions {
 
 export class Client implements IChannelClient, IDisposable {
 
-	private disposeDelayer: Delayer<void> | undefined;
+	private disposeDelayer: VoidDelayer | undefined;
 	private activeRequests = new Set<IDisposable>();
 	private child: ChildProcess | null;
 	private _client: IPCClient | null;
@@ -94,7 +94,7 @@ export class Client implements IChannelClient, IDisposable {
 
 	constructor(private modulePath: string, private options: IIPCOptions) {
 		const timeout = options.timeout || 60000;
-		this.disposeDelayer = new Delayer<void>(timeout);
+		this.disposeDelayer = new VoidDelayer(timeout);
 		this.child = null;
 		this._client = null;
 	}

@@ -6,7 +6,7 @@ import { $, isHTMLInputElement, isHTMLTextAreaElement, reset } from '../../../..
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { Button, ButtonWithDropdown, unthemedButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
-import { Delayer, RunOnceScheduler } from '../../../../base/common/async.js';
+import { Delayer, RunOnceScheduler, VoidDelayer } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { groupBy } from '../../../../base/common/collections.js';
@@ -65,7 +65,7 @@ export class BaseIssueReporterService extends Disposable {
 	public openReporter = false;
 	public loadingExtensionData = false;
 	public selectedExtension = '';
-	public delayedSubmit = new Delayer<void>(300);
+	public delayedSubmit = new VoidDelayer(300);
 	public publicGithubButton!: Button | ButtonWithDropdown;
 	public internalGithubButton!: Button | ButtonWithDropdown;
 	public nonGitHubIssueUrl = false;

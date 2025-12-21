@@ -6,7 +6,7 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -86,11 +86,11 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	private toggleQueryDetailsButton!: HTMLElement;
 	private messageBox!: HTMLElement;
 
-	private runSearchDelayer = new Delayer(0);
+	private runSearchDelayer = new VoidDelayer(0);
 	private pauseSearching: boolean = false;
 	private showingIncludesExcludes: boolean = false;
 	private searchOperation: LongRunningOperation;
-	private searchHistoryDelayer: Delayer<void>;
+	private searchHistoryDelayer: VoidDelayer;
 	private readonly messageDisposables: DisposableStore;
 	private container: HTMLElement;
 	private searchModel: SearchModelImpl;
@@ -125,7 +125,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		this.searchOperation = this._register(new LongRunningOperation(progressService));
 		this._register(this.messageDisposables = new DisposableStore());
 
-		this.searchHistoryDelayer = new Delayer<void>(2000);
+		this.searchHistoryDelayer = new VoidDelayer(2000);
 
 		this.searchModel = this._register(this.instantiationService.createInstance(SearchModelImpl));
 	}

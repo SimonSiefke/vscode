@@ -18,7 +18,7 @@ import { ISashEvent, Orientation, Sash } from '../../../../../../base/browser/ui
 import { IToggleStyles, Toggle } from '../../../../../../base/browser/ui/toggle/toggle.js';
 import { Widget } from '../../../../../../base/browser/ui/widget.js';
 import { Action, ActionRunner, IAction, IActionRunner, Separator } from '../../../../../../base/common/actions.js';
-import { Delayer } from '../../../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../../../base/common/async.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../../base/common/keyCodes.js';
@@ -293,7 +293,7 @@ export abstract class SimpleFindReplaceWidget extends Widget {
 	private readonly _innerFindDomNode: HTMLElement;
 	private readonly _focusTracker: dom.IFocusTracker;
 	private readonly _findInputFocusTracker: dom.IFocusTracker;
-	private readonly _updateFindHistoryDelayer: Delayer<void>;
+	private readonly _updateFindHistoryDelayer: VoidDelayer;
 	protected readonly _matchesCount!: HTMLElement;
 	private readonly prevBtn: SimpleButton;
 	private readonly nextBtn: SimpleButton;
@@ -302,7 +302,7 @@ export abstract class SimpleFindReplaceWidget extends Widget {
 	private readonly _innerReplaceDomNode!: HTMLElement;
 	private _toggleReplaceBtn!: SimpleButton;
 	private readonly _replaceInputFocusTracker!: dom.IFocusTracker;
-	private readonly _updateReplaceHistoryDelayer: Delayer<void>;
+	private readonly _updateReplaceHistoryDelayer: VoidDelayer;
 	protected _replaceBtn!: SimpleButton;
 	protected _replaceAllBtn!: SimpleButton;
 
@@ -433,7 +433,7 @@ export abstract class SimpleFindReplaceWidget extends Widget {
 		));
 
 		// Find History with update delayer
-		this._updateFindHistoryDelayer = new Delayer<void>(500);
+		this._updateFindHistoryDelayer = new VoidDelayer(500);
 
 		this.oninput(this._findInput.domNode, (e) => {
 			this.foundMatch = this.onInputChanged();
@@ -597,7 +597,7 @@ export abstract class SimpleFindReplaceWidget extends Widget {
 		this._register(this._replaceInputFocusTracker.onDidBlur(this.onReplaceInputFocusTrackerBlur.bind(this)));
 
 		// Replace History with update delayer
-		this._updateReplaceHistoryDelayer = new Delayer<void>(500);
+		this._updateReplaceHistoryDelayer = new VoidDelayer(500);
 
 		this.oninput(this._replaceInput.domNode, (e) => {
 			this._delayedUpdateReplaceHistory();

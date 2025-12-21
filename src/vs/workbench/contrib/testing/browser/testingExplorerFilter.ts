@@ -9,7 +9,7 @@ import { BaseActionViewItem, IActionViewItemOptions, IBaseActionViewItemOptions 
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { DropdownMenuActionViewItem } from '../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { Action, IAction, IActionRunner, Separator } from '../../../../base/common/actions.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { localize } from '../../../../nls.js';
@@ -64,7 +64,7 @@ export class TestingExplorerFilter extends BaseActionViewItem {
 	public override render(container: HTMLElement) {
 		container.classList.add('testing-filter-action-item');
 
-		const updateDelayer = this._register(new Delayer<void>(400));
+		const updateDelayer = this._register(new VoidDelayer(400));
 		const wrapper = this.wrapper = dom.$('.testing-filter-wrapper');
 		container.appendChild(wrapper);
 

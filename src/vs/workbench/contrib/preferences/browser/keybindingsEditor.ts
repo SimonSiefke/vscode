@@ -6,7 +6,7 @@
 
 import './media/keybindingsEditor.css';
 import { localize } from '../../../../nls.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { isIOS, OS } from '../../../../base/common/platform.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -92,7 +92,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	private headerContainer!: HTMLElement;
 	private actionsContainer!: HTMLElement;
 	private searchWidget!: KeybindingsSearchWidget;
-	private searchHistoryDelayer: Delayer<void>;
+	private searchHistoryDelayer: VoidDelayer;
 
 	private overlayContainer!: HTMLElement;
 	private defineKeybindingWidget!: DefineKeybindingWidget;
@@ -103,7 +103,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	private keybindingsTable!: WorkbenchTable<IKeybindingItemEntry>;
 
 	private dimension: DOM.Dimension | null = null;
-	private delayedFiltering: Delayer<void>;
+	private delayedFiltering: VoidDelayer;
 	private latestEmptyFilters: string[] = [];
 	private keybindingsEditorContextKey: IContextKey<boolean>;
 	private keybindingFocusContextKey: IContextKey<boolean>;
@@ -133,14 +133,14 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService
 	) {
 		super(KeybindingsEditor.ID, group, telemetryService, themeService, storageService);
-		this.delayedFiltering = new Delayer<void>(300);
+		this.delayedFiltering = new VoidDelayer(300);
 		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get())));
 
 		this.keybindingsEditorContextKey = CONTEXT_KEYBINDINGS_EDITOR.bindTo(this.contextKeyService);
 		this.searchFocusContextKey = CONTEXT_KEYBINDINGS_SEARCH_FOCUS.bindTo(this.contextKeyService);
 		this.keybindingFocusContextKey = CONTEXT_KEYBINDING_FOCUS.bindTo(this.contextKeyService);
 		this.searchHasValueContextKey = CONTEXT_KEYBINDINGS_SEARCH_HAS_VALUE.bindTo(this.contextKeyService);
-		this.searchHistoryDelayer = new Delayer<void>(500);
+		this.searchHistoryDelayer = new VoidDelayer(500);
 
 		this.recordKeysAction = this._register(new Action(KEYBINDINGS_EDITOR_COMMAND_RECORD_SEARCH_KEYS, localize('recordKeysLabel', "Record Keys"), ThemeIcon.asClassName(keybindingsRecordKeysIcon)));
 		this.recordKeysAction.checked = false;

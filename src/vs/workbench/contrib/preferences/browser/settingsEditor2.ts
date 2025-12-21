@@ -13,7 +13,7 @@ import { ToggleActionViewItem } from '../../../../base/browser/ui/toggle/toggle.
 import { ITreeElement } from '../../../../base/browser/ui/tree/tree.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { Action } from '../../../../base/common/actions.js';
-import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout } from '../../../../base/common/async.js';
+import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout, VoidDelayer } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Color } from '../../../../base/common/color.js';
 import { fromNow } from '../../../../base/common/date.js';
@@ -191,7 +191,7 @@ export class SettingsEditor2 extends EditorPane {
 	private tocTreeContainer!: HTMLElement;
 	private tocTree!: TOCTree;
 
-	private searchDelayer: Delayer<void>;
+	private searchDelayer: VoidDelayer;
 	private searchInProgress: CancellationTokenSource | null = null;
 	private aiSearchPromise: CancelablePromise<void> | null = null;
 
@@ -199,11 +199,11 @@ export class SettingsEditor2 extends EditorPane {
 
 	private showAiResultsAction: Action | null = null;
 
-	private searchInputDelayer: Delayer<void>;
-	private updatedConfigSchemaDelayer: Delayer<void>;
+	private searchInputDelayer: VoidDelayer;
+	private updatedConfigSchemaDelayer: VoidDelayer;
 
-	private settingFastUpdateDelayer: Delayer<void>;
-	private settingSlowUpdateDelayer: Delayer<void>;
+	private settingFastUpdateDelayer: VoidDelayer;
+	private settingSlowUpdateDelayer: VoidDelayer;
 	private pendingSettingUpdate: { key: string; value: unknown; languageFilter: string | undefined } | null = null;
 
 	private readonly viewState: ISettingsEditorViewState;
@@ -270,14 +270,14 @@ export class SettingsEditor2 extends EditorPane {
 		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService
 	) {
 		super(SettingsEditor2.ID, group, telemetryService, themeService, storageService);
-		this.searchDelayer = new Delayer(200);
+		this.searchDelayer = new VoidDelayer(200);
 		this.viewState = { settingsTarget: ConfigurationTarget.USER_LOCAL };
 
-		this.settingFastUpdateDelayer = new Delayer<void>(SettingsEditor2.SETTING_UPDATE_FAST_DEBOUNCE);
-		this.settingSlowUpdateDelayer = new Delayer<void>(SettingsEditor2.SETTING_UPDATE_SLOW_DEBOUNCE);
+		this.settingFastUpdateDelayer = new VoidDelayer(SettingsEditor2.SETTING_UPDATE_FAST_DEBOUNCE);
+		this.settingSlowUpdateDelayer = new VoidDelayer(SettingsEditor2.SETTING_UPDATE_SLOW_DEBOUNCE);
 
-		this.searchInputDelayer = new Delayer<void>(SettingsEditor2.SEARCH_DEBOUNCE);
-		this.updatedConfigSchemaDelayer = new Delayer<void>(SettingsEditor2.CONFIG_SCHEMA_UPDATE_DELAYER);
+		this.searchInputDelayer = new VoidDelayer(SettingsEditor2.SEARCH_DEBOUNCE);
+		this.updatedConfigSchemaDelayer = new VoidDelayer(SettingsEditor2.CONFIG_SCHEMA_UPDATE_DELAYER);
 
 		this.inSettingsEditorContextKey = CONTEXT_SETTINGS_EDITOR.bindTo(contextKeyService);
 		this.searchFocusContextKey = CONTEXT_SETTINGS_SEARCH_FOCUS.bindTo(contextKeyService);

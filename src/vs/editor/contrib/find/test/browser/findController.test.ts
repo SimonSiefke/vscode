@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Delayer } from '../../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../../base/common/async.js';
 import * as platform from '../../../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICodeEditor } from '../../../../browser/editorBrowser.js';
@@ -41,7 +41,7 @@ class TestFindController extends CommonFindController {
 	) {
 		super(editor, contextKeyService, storageService, clipboardService, notificationService, hoverService);
 		this._findInputFocused = CONTEXT_FIND_INPUT_FOCUSED.bindTo(contextKeyService);
-		this._updateHistoryDelayer = new Delayer<void>(50);
+		this._updateHistoryDelayer = new VoidDelayer(50);
 		this.hasFocus = false;
 	}
 

@@ -33,7 +33,7 @@ import { PROMPT_LANGUAGE_ID, PromptsType, getPromptsTypeForLanguageId } from '..
 import { PromptFilesLocator } from '../utils/promptFilesLocator.js';
 import { PromptFileParser, ParsedPromptFile, PromptHeaderAttributes } from '../promptFileParser.js';
 import { IAgentInstructions, IAgentSource, IChatPromptSlashCommand, ICustomAgent, IExtensionPromptPath, ILocalPromptPath, IPromptPath, IPromptsService, IAgentSkill, IUserPromptPath, PromptsStorage, ICustomAgentQueryOptions, IExternalCustomAgent, ExtensionAgentSourceType, CUSTOM_AGENTS_PROVIDER_ACTIVATION_EVENT } from './promptsService.js';
-import { Delayer } from '../../../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../../../base/common/async.js';
 import { Schemas } from '../../../../../../base/common/network.js';
 
 /**
@@ -724,7 +724,7 @@ class CachedPromise<T> extends Disposable {
 	public get onDidChange(): Event<void> {
 		if (!this.onDidUpdatePromiseEmitter) {
 			const emitter = this.onDidUpdatePromiseEmitter = this._register(new Emitter<void>());
-			const delayer = this._register(new Delayer<void>(this.delay));
+			const delayer = this._register(new VoidDelayer(this.delay));
 			this._register(this.getEvent()(() => {
 				this.cachedPromise = undefined;
 				delayer.trigger(() => emitter.fire());
@@ -813,4 +813,3 @@ namespace IAgentSource {
 		}
 	}
 }
-

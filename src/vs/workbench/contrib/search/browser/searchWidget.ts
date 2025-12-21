@@ -13,7 +13,7 @@ import { ReplaceInput } from '../../../../base/browser/ui/findinput/replaceInput
 import { IInputBoxStyles, IMessage, InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Widget } from '../../../../base/browser/ui/widget.js';
 import { Action } from '../../../../base/common/actions.js';
-import { Delayer } from '../../../../base/common/async.js';
+import { Delayer, VoidDelayer } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { CONTEXT_FIND_WIDGET_NOT_VISIBLE } from '../../../../editor/contrib/find/browser/findModel.js';
@@ -223,7 +223,7 @@ export class SearchWidget extends Widget {
 			}
 		}));
 
-		this._replaceHistoryDelayer = new Delayer<void>(500);
+		this._replaceHistoryDelayer = new VoidDelayer(500);
 		this._toggleReplaceButtonListener = this._register(new MutableDisposable<IDisposable>());
 
 		this.render(container, options);

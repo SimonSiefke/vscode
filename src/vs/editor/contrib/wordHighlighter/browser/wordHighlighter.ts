@@ -5,7 +5,7 @@
 
 import * as nls from '../../../../nls.js';
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
-import { CancelablePromise, createCancelablePromise, Delayer, first } from '../../../../base/common/async.js';
+import { CancelablePromise, createCancelablePromise, Delayer, first, VoidDelayer } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
@@ -230,7 +230,7 @@ class WordHighlighter {
 	private readonly _hasWordHighlights: IContextKey<boolean>;
 	private _ignorePositionChangeEvent: boolean;
 
-	private readonly runDelayer: Delayer<void> = this.toUnhook.add(new Delayer<void>(50));
+	private readonly runDelayer: Delayer<void> = this.toUnhook.add(new VoidDelayer(50));
 
 	private static storedDecorationIDs: ResourceMap<string[]> = new ResourceMap();
 	private static query: IWordHighlighterQuery | null = null;
