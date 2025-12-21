@@ -126,6 +126,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 	private readonly _modelAccessList = new ExtensionIdentifierMap<ExtensionIdentifierSet>();
 	private readonly _pendingRequest = new Map<number, { languageModelId: string; res: LanguageModelResponse }>();
 	private readonly _ignoredFileProviders = new Map<number, vscode.LanguageModelIgnoredFileProvider>();
+	private readonly _apiObjectCache = new Map<string, vscode.LanguageModelChat>();
 	private _languageModelProxyProvider: vscode.LanguageModelProxyProvider | undefined;
 
 	constructor(
@@ -167,6 +168,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 		this._localModels.forEach((value, key) => {
 			if (value.metadata.vendor === vendor) {
 				this._localModels.delete(key);
+				this._apiObjectCache.delete(key);
 			}
 		});
 	}
@@ -361,7 +363,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 			await this._fakeAuthPopulate(model.metadata);
 		}
 
-		let apiObject: vscode.LanguageModelChat | undefined;
+		let apiObject = this._apiObjectCache.get(modelId);
 		if (!apiObject) {
 			const that = this;
 			apiObject = {
@@ -391,6 +393,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 			};
 
 			Object.freeze(apiObject);
+			this._apiObjectCache.set(modelId, apiObject);
 		}
 
 		return apiObject;
