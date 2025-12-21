@@ -13,6 +13,7 @@ import { ILogService } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
 import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
 
 export class ExtensionsScannerService extends NativeExtensionsScannerService implements IExtensionsScannerService {
 
@@ -25,13 +26,14 @@ export class ExtensionsScannerService extends NativeExtensionsScannerService imp
 		@IProductService productService: IProductService,
 		@IUriIdentityService uriIdentityService: IUriIdentityService,
 		@IInstantiationService instantiationService: IInstantiationService,
+		@IConfigurationService configurationService: IConfigurationService
 	) {
 		super(
 			URI.file(environmentService.builtinExtensionsPath),
 			URI.file(environmentService.extensionsPath),
 			environmentService.userHome,
 			userDataProfilesService.defaultProfile,
-			userDataProfilesService, extensionsProfileScannerService, fileService, logService, environmentService, productService, uriIdentityService, instantiationService);
+			userDataProfilesService, extensionsProfileScannerService, fileService, logService, environmentService, productService, uriIdentityService, instantiationService, configurationService);
 	}
 
 }
