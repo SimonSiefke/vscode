@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../base/common/event.js';
-import { DisposableStore } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { ICodeEditor } from '../../../editor/browser/editorBrowser.js';
 import { RenderLineNumbersType, TextEditorCursorStyle, cursorStyleToString, EditorOption } from '../../../editor/common/config/editorOptions.js';
 import { IRange, Range } from '../../../editor/common/core/range.js';
@@ -160,17 +160,17 @@ export class MainThreadTextEditorProperties {
  * Text Editor that is permanently bound to the same model.
  * It can be bound or not to a CodeEditor.
  */
-export class MainThreadTextEditor {
+export class MainThreadTextEditor extends Disposable {
 
 	private readonly _id: string;
 	private readonly _model: ITextModel;
 	private readonly _mainThreadDocuments: MainThreadDocuments;
 	private readonly _modelService: IModelService;
 	private readonly _clipboardService: IClipboardService;
-	private readonly _modelListeners = new DisposableStore();
+	private readonly _modelListeners = this._register(new DisposableStore());
 	private _codeEditor: ICodeEditor | null;
 	private readonly _focusTracker: IFocusTracker;
-	private readonly _codeEditorListeners = new DisposableStore();
+	private readonly _codeEditorListeners = this._register(new DisposableStore());
 
 	private _properties: MainThreadTextEditorProperties | null;
 	private readonly _onPropertiesChanged: Emitter<IEditorPropertiesChangeData>;
@@ -184,6 +184,7 @@ export class MainThreadTextEditor {
 		modelService: IModelService,
 		clipboardService: IClipboardService,
 	) {
+		super();
 		this._id = id;
 		this._model = model;
 		this._codeEditor = null;
@@ -193,7 +194,7 @@ export class MainThreadTextEditor {
 		this._modelService = modelService;
 		this._clipboardService = clipboardService;
 
-		this._onPropertiesChanged = new Emitter<IEditorPropertiesChangeData>();
+		this._onPropertiesChanged = this._register(new Emitter<IEditorPropertiesChangeData>());
 
 		this._modelListeners.add(this._model.onDidChangeOptions((e) => {
 			this._updatePropertiesNow(null);
@@ -203,10 +204,9 @@ export class MainThreadTextEditor {
 		this._updatePropertiesNow(null);
 	}
 
-	public dispose(): void {
-		this._modelListeners.dispose();
+	override  dispose(): void {
+		super.dispose();
 		this._codeEditor = null;
-		this._codeEditorListeners.dispose();
 	}
 
 	private _updatePropertiesNow(selectionChangeSource: string | null): void {
