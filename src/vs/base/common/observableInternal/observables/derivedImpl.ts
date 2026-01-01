@@ -94,6 +94,7 @@ export class Derived<T, TChangeSummary = any, TChange = void> extends BaseObserv
 			d.removeObserver(this);
 		}
 		this._dependencies.clear();
+		this._dependenciesToBeRemoved.clear();
 
 		if (this._store !== undefined) {
 			this._store.dispose();
@@ -103,6 +104,8 @@ export class Derived<T, TChangeSummary = any, TChange = void> extends BaseObserv
 			this._delayedStore.dispose();
 			this._delayedStore = undefined;
 		}
+
+		this._removedObserverToCallEndUpdateOn = null;
 
 		this._handleLastObserverRemoved?.();
 	}
