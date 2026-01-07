@@ -254,7 +254,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 			width: this._rootSizeObserver.width.map((w, reader) => w - (this._overviewRulerPart.read(reader)?.width ?? 0)),
 		};
 
-		this._sashLayout = new SashLayout(this._options, dimensions);
+		this._sashLayout = this._register(new SashLayout(this._options, dimensions));
 
 		this._sash = derivedDisposable(this, reader => {
 			const showSash = this._options.renderSideBySide.read(reader);
