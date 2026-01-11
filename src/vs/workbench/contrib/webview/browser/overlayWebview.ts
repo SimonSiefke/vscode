@@ -145,11 +145,11 @@ export class OverlayWebview extends Disposable implements IOverlayWebview {
 
 			const wasFindVisible = this._findWidgetVisible?.get();
 			this._findWidgetVisible?.reset();
-			this._findWidgetVisible = KEYBINDING_CONTEXT_WEBVIEW_FIND_WIDGET_VISIBLE.bindTo(contextKeyService);
+			this._findWidgetVisible = KEYBINDING_CONTEXT_WEBVIEW_FIND_WIDGET_VISIBLE.bindTo(this._scopedContextKeyService.value!);
 			this._findWidgetVisible.set(!!wasFindVisible);
 
 			this._findWidgetEnabled?.reset();
-			this._findWidgetEnabled = KEYBINDING_CONTEXT_WEBVIEW_FIND_WIDGET_ENABLED.bindTo(contextKeyService);
+			this._findWidgetEnabled = KEYBINDING_CONTEXT_WEBVIEW_FIND_WIDGET_ENABLED.bindTo(this._scopedContextKeyService.value!);
 			this._findWidgetEnabled.set(!!this.options.enableFindWidget);
 
 			this._webview.value?.setContextKeyService(this._scopedContextKeyService.value);
