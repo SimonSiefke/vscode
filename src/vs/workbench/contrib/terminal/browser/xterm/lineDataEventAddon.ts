@@ -19,7 +19,7 @@ export class LineDataEventAddon extends Disposable implements ITerminalAddon {
 	private readonly _onLineData = this._register(new Emitter<string>());
 	readonly onLineData = this._onLineData.event;
 
-	constructor(private readonly _initializationPromise?: Promise<void>) {
+	constructor(private _initializationPromise?: Promise<void>) {
 		super();
 	}
 
@@ -79,5 +79,10 @@ export class LineDataEventAddon extends Disposable implements ITerminalAddon {
 			lineData = line.translateToString(false) + lineData;
 		}
 		this._onLineData.fire(lineData);
+	}
+
+	override dispose() {
+		super.dispose();
+		this._initializationPromise = undefined
 	}
 }
