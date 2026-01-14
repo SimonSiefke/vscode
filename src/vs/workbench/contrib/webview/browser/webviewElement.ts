@@ -467,6 +467,9 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		});
 		this._registerMessageHandler(targetWindow);
 
+
+
+
 		if (this._webviewFindWidget) {
 			element.appendChild(this._webviewFindWidget.getDomNode());
 		}
@@ -517,6 +520,12 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					}
 					handlers?.forEach(handler => handler(e.data.data, e));
 				};
+
+				this._register(toDisposable(() => {
+					if (this._messagePort) {
+						this._messagePort.onmessage = null;
+					}
+				}));
 
 				this.element?.classList.add('ready');
 
