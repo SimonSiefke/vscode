@@ -467,9 +467,6 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		});
 		this._registerMessageHandler(targetWindow);
 
-
-
-
 		if (this._webviewFindWidget) {
 			element.appendChild(this._webviewFindWidget.getDomNode());
 		}
