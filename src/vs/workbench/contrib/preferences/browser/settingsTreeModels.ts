@@ -678,6 +678,11 @@ export class SettingsTreeModel implements IDisposable {
 	}
 
 	dispose() {
+		for (const elements of this._treeElementsBySettingName.values()) {
+			for (const element of elements) {
+				element.dispose();
+			}
+		}
 		this._treeElementsBySettingName.clear();
 		this.disposeChildAndRecurse(this._root);
 	}
