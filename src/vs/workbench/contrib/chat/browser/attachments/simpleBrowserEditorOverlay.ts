@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/simpleBrowserOverlay.css';
-import { combinedDisposable, Disposable, DisposableMap, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { combinedDisposable, DisposableMap, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, derivedOpts, observableFromEvent, observableSignalFromEvent } from '../../../../../base/common/observable.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -313,11 +313,11 @@ class SimpleBrowserOverlayWidget {
 	}
 }
 
-class SimpleBrowserOverlayController extends Disposable {
+class SimpleBrowserOverlayController {
 
+	private readonly _store = new DisposableStore();
 
 	private readonly _domNode = document.createElement('div');
-	private cts = this._register(new MutableDisposable<CancellationTokenSource>());
 
 	constructor(
 		container: HTMLElement,
@@ -326,7 +326,7 @@ class SimpleBrowserOverlayController extends Disposable {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IBrowserElementsService private readonly _browserElementsService: IBrowserElementsService,
 	) {
-		super();
+
 		if (!this.configurationService.getValue('chat.sendElementsToChat.enabled')) {
 			return;
 		}
@@ -339,13 +339,14 @@ class SimpleBrowserOverlayController extends Disposable {
 
 		const widget = instaService.createInstance(SimpleBrowserOverlayWidget, group, container);
 		this._domNode.appendChild(widget.getDomNode());
-		this._register(toDisposable(() => this._domNode.remove()));
-		this._register(widget);
+		this._store.add(toDisposable(() => this._domNode.remove()));
+		this._store.add(widget);
 
 		const connectingWebviewElement = document.createElement('div');
 		connectingWebviewElement.className = 'connecting-webview-element';
 
 
+		let cts = new CancellationTokenSource();
 		const show = async (locator: IBrowserTargetLocator) => {
 			widget.setActiveLocator(locator);
 
@@ -355,9 +356,9 @@ class SimpleBrowserOverlayController extends Disposable {
 				container.appendChild(connectingWebviewElement);
 			}
 
-			this.cts.value = new CancellationTokenSource();
+			cts = new CancellationTokenSource();
 			try {
-				await this._browserElementsService.startDebugSession(this.cts.value.token, locator);
+				await this._browserElementsService.startDebugSession(cts.token, locator);
 			} catch (error) {
 				connectingWebviewElement.textContent = localize('reopenErrorWebviewElement', 'Please reopen the preview.');
 				return;
@@ -371,9 +372,8 @@ class SimpleBrowserOverlayController extends Disposable {
 
 		const hide = () => {
 			widget.setActiveLocator(undefined);
-			this.cts.value?.dispose(true);
-			this.cts.value = undefined;
 			if (container.contains(this._domNode)) {
+				cts.cancel();
 				this._domNode.remove();
 			}
 			connectingWebviewElement.remove();
@@ -397,7 +397,7 @@ class SimpleBrowserOverlayController extends Disposable {
 			return undefined;
 		});
 
-		this._register(autorun(r => {
+		this._store.add(autorun(r => {
 
 			const webviewId = activeIdObs.read(r);
 
@@ -410,6 +410,9 @@ class SimpleBrowserOverlayController extends Disposable {
 		}));
 	}
 
+	dispose(): void {
+		this._store.dispose();
+	}
 }
 
 export class SimpleBrowserOverlay implements IWorkbenchContribution {
