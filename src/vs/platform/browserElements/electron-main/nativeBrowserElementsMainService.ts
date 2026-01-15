@@ -147,6 +147,10 @@ export class NativeBrowserElementsMainService extends Disposable implements INat
 			throw new Error('No target found');
 		}
 
+		if (token.isCancellationRequested) {
+			return;
+		}
+
 		window.win.webContents.on('ipc-message', async (event, channel, closedCancelAndDetachId) => {
 			if (channel === `vscode:cancelCurrentSession${cancelAndDetachId}`) {
 				if (cancelAndDetachId !== closedCancelAndDetachId) {
