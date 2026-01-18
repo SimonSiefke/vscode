@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from 'vs/base/test/common/utils';
-import { Position } from 'vs/editor/common/core/position';
-import { Range } from 'vs/editor/common/core/range';
-import { EndOfLineSequence, PositionAffinity } from 'vs/editor/common/model';
-import { ViewEventHandler } from 'vs/editor/common/viewEventHandler';
-import { ViewEvent } from 'vs/editor/common/viewEvents';
-import { testViewModel } from 'vs/editor/test/browser/viewModel/testViewModel';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { Position } from '../../../common/core/position.js';
+import { Range } from '../../../common/core/range.js';
+import { EndOfLineSequence, PositionAffinity } from '../../../common/model.js';
+import { ViewEventHandler } from '../../../common/viewEventHandler.js';
+import { ViewEvent } from '../../../common/viewEvents.js';
+import { testViewModel } from './testViewModel.js';
 
 suite('ViewModel', () => {
 
@@ -198,7 +198,27 @@ suite('ViewModel', () => {
 				new Range(3, 2, 3, 2),
 			],
 			true,
-			'line2\nline3\n'
+			[
+				'line2\n',
+				'line3\n'
+			]
+		);
+	});
+
+	test('issue #256039: getPlainTextToCopy with multiple cursors and empty selections should return array', () => {
+		// Bug: When copying with multiple cursors (empty selections) with emptySelectionClipboard enabled,
+		// the result should be an array so that pasting with "editor.multiCursorPaste": "full"
+		// correctly distributes each line to the corresponding cursor.
+		// Without the fix, this returns 'line2\nline3\n' (a single string).
+		// With the fix, this returns ['line2\n', 'line3\n'] (an array).
+		assertGetPlainTextToCopy(
+			USUAL_TEXT,
+			[
+				new Range(2, 1, 2, 1),
+				new Range(3, 1, 3, 1),
+			],
+			true,
+			['line2\n', 'line3\n']
 		);
 	});
 
@@ -222,7 +242,7 @@ suite('ViewModel', () => {
 				new Range(3, 2, 3, 2),
 			],
 			true,
-			['ine2', 'line3']
+			['ine2', 'line3\n']
 		);
 	});
 
@@ -259,7 +279,10 @@ suite('ViewModel', () => {
 				new Range(3, 2, 3, 2),
 			],
 			true,
-			'line2\nline3\n'
+			[
+				'line2\n',
+				'line3\n'
+			]
 		);
 	});
 

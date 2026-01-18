@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from 'vs/base/common/event';
-import { Range } from 'vs/editor/common/core/range';
-import { IModelDecoration } from 'vs/editor/common/model';
+import { Range } from '../core/range.js';
+import { IModelDecoration } from '../model.js';
 
 export interface DecorationProvider {
 	/**
@@ -25,5 +24,31 @@ export interface DecorationProvider {
 	 */
 	getAllDecorations(ownerId?: number, filterOutValidation?: boolean, onlyMinimapDecorations?: boolean): IModelDecoration[];
 
-	onDidChange: Event<void>;
+}
+
+export class LineHeightChangingDecoration {
+
+	public static toKey(obj: LineHeightChangingDecoration): string {
+		return `${obj.ownerId};${obj.decorationId};${obj.lineNumber}`;
+	}
+
+	constructor(
+		public readonly ownerId: number,
+		public readonly decorationId: string,
+		public readonly lineNumber: number,
+		public readonly lineHeight: number | null
+	) { }
+}
+
+export class LineFontChangingDecoration {
+
+	public static toKey(obj: LineFontChangingDecoration): string {
+		return `${obj.ownerId};${obj.decorationId};${obj.lineNumber}`;
+	}
+
+	constructor(
+		public readonly ownerId: number,
+		public readonly decorationId: string,
+		public readonly lineNumber: number
+	) { }
 }
