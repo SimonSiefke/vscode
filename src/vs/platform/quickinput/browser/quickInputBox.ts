@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dom from 'vs/base/browser/dom';
-import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
-import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
-import { FindInput } from 'vs/base/browser/ui/findinput/findInput';
-import { IInputBoxStyles, IRange, MessageType } from 'vs/base/browser/ui/inputbox/inputBox';
-import { IToggleStyles, Toggle } from 'vs/base/browser/ui/toggle/toggle';
-import { Disposable, IDisposable } from 'vs/base/common/lifecycle';
-import Severity from 'vs/base/common/severity';
-import 'vs/css!./media/quickInput';
+import * as dom from '../../../base/browser/dom.js';
+import { FindInput } from '../../../base/browser/ui/findinput/findInput.js';
+import { IInputBoxStyles, IRange, MessageType } from '../../../base/browser/ui/inputbox/inputBox.js';
+import { createToggleActionViewItemProvider, IToggleStyles, Toggle } from '../../../base/browser/ui/toggle/toggle.js';
+import { IAction } from '../../../base/common/actions.js';
+import { IActionViewItemProvider } from '../../../base/browser/ui/actionbar/actionbar.js';
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import Severity from '../../../base/common/severity.js';
+import './media/quickInput.css';
 
 const $ = dom.$;
 
@@ -27,21 +27,29 @@ export class QuickInputBox extends Disposable {
 	) {
 		super();
 		this.container = dom.append(this.parent, $('.quick-input-box'));
-		this.findInput = this._register(new FindInput(this.container, undefined, { label: '', inputBoxStyles, toggleStyles }));
+		this.findInput = this._register(new FindInput(
+			this.container,
+			undefined,
+			{
+				label: '',
+				inputBoxStyles,
+				toggleStyles,
+				actionViewItemProvider: createToggleActionViewItemProvider(toggleStyles),
+				hideHoverOnValueChange: true
+			}));
 		const input = this.findInput.inputBox.inputElement;
-		input.role = 'combobox';
+		input.role = 'textbox';
 		input.ariaHasPopup = 'menu';
 		input.ariaAutoComplete = 'list';
-		input.ariaExpanded = 'true';
 	}
 
-	onKeyDown = (handler: (event: StandardKeyboardEvent) => void): IDisposable => {
-		return dom.addStandardDisposableListener(this.findInput.inputBox.inputElement, dom.EventType.KEY_DOWN, handler);
-	};
+	get onKeyDown() {
+		return this.findInput.onKeyDown;
+	}
 
-	onMouseDown = (handler: (event: StandardMouseEvent) => void): IDisposable => {
-		return dom.addStandardDisposableListener(this.findInput.inputBox.inputElement, dom.EventType.MOUSE_DOWN, handler);
-	};
+	get onMouseDown() {
+		return this.findInput.onMouseDown;
+	}
 
 	onDidChange = (handler: (event: string) => void): IDisposable => {
 		return this.findInput.onDidChange(handler);
@@ -101,6 +109,22 @@ export class QuickInputBox extends Disposable {
 
 	set toggles(toggles: Toggle[] | undefined) {
 		this.findInput.setAdditionalToggles(toggles);
+	}
+
+	set actions(actions: ReadonlyArray<IAction> | undefined) {
+		this.setActions(actions);
+	}
+
+	setActions(actions: ReadonlyArray<IAction> | undefined, actionViewItemProvider?: IActionViewItemProvider): void {
+		this.findInput.setActions(actions, actionViewItemProvider);
+	}
+
+	get ariaLabel(): string {
+		return this.findInput.inputBox.inputElement.getAttribute('aria-label') || '';
+	}
+
+	set ariaLabel(ariaLabel: string) {
+		this.findInput.inputBox.inputElement.setAttribute('aria-label', ariaLabel);
 	}
 
 	hasFocus(): boolean {

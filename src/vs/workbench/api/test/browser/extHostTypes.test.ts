@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { URI } from 'vs/base/common/uri';
-import * as types from 'vs/workbench/api/common/extHostTypes';
-import { isWindows } from 'vs/base/common/platform';
-import { assertType } from 'vs/base/common/types';
-import { Mimes } from 'vs/base/common/mime';
-import { MarshalledId } from 'vs/base/common/marshallingIds';
-import { CancellationError } from 'vs/base/common/errors';
-import { ensureNoDisposablesAreLeakedInTestSuite } from 'vs/base/test/common/utils';
+import { CancellationError } from '../../../../base/common/errors.js';
+import { MarshalledId } from '../../../../base/common/marshallingIds.js';
+import { Mimes } from '../../../../base/common/mime.js';
+import { isWindows } from '../../../../base/common/platform.js';
+import { assertType } from '../../../../base/common/types.js';
+import { URI } from '../../../../base/common/uri.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import * as types from '../../common/extHostTypes.js';
 
 function assertToJSON(a: any, expected: any) {
 	const raw = JSON.stringify(a);
@@ -84,8 +84,11 @@ suite('ExtHostTypes', function () {
 		assert.throws(() => new types.Position(0, -1));
 
 		const pos = new types.Position(0, 0);
+		// eslint-disable-next-line local/code-no-any-casts
 		assert.throws(() => (pos as any).line = -1);
+		// eslint-disable-next-line local/code-no-any-casts
 		assert.throws(() => (pos as any).character = -1);
+		// eslint-disable-next-line local/code-no-any-casts
 		assert.throws(() => (pos as any).line = 12);
 
 		const { line, character } = pos.toJSON();
@@ -203,7 +206,9 @@ suite('ExtHostTypes', function () {
 		assert.throws(() => new types.Range(null!, new types.Position(0, 0)));
 
 		const range = new types.Range(1, 0, 0, 0);
+		// eslint-disable-next-line local/code-no-any-casts
 		assert.throws(() => { (range as any).start = null; });
+		// eslint-disable-next-line local/code-no-any-casts
 		assert.throws(() => { (range as any).start = new types.Position(0, 3); });
 	});
 
@@ -582,26 +587,26 @@ suite('ExtHostTypes', function () {
 	test('Snippet choices are incorrectly escaped/applied #180132', function () {
 		{
 			const s = new types.SnippetString();
-			s.appendChoice(["aaa$aaa"]);
-			s.appendText("bbb$bbb");
+			s.appendChoice(['aaa$aaa']);
+			s.appendText('bbb$bbb');
 			assert.strictEqual(s.value, '${1|aaa$aaa|}bbb\\$bbb');
 		}
 		{
 			const s = new types.SnippetString();
-			s.appendChoice(["aaa,aaa"]);
-			s.appendText("bbb$bbb");
+			s.appendChoice(['aaa,aaa']);
+			s.appendText('bbb$bbb');
 			assert.strictEqual(s.value, '${1|aaa\\,aaa|}bbb\\$bbb');
 		}
 		{
 			const s = new types.SnippetString();
-			s.appendChoice(["aaa|aaa"]);
-			s.appendText("bbb$bbb");
+			s.appendChoice(['aaa|aaa']);
+			s.appendText('bbb$bbb');
 			assert.strictEqual(s.value, '${1|aaa\\|aaa|}bbb\\$bbb');
 		}
 		{
 			const s = new types.SnippetString();
-			s.appendChoice(["aaa\\aaa"]);
-			s.appendText("bbb$bbb");
+			s.appendChoice(['aaa\\aaa']);
+			s.appendText('bbb$bbb');
 			assert.strictEqual(s.value, '${1|aaa\\\\aaa|}bbb\\$bbb');
 		}
 	});
@@ -774,5 +779,127 @@ suite('ExtHostTypes', function () {
 		assert.throws(() => types.FileDecoration.validate({ badge: '👋👋👋' }));
 		assert.throws(() => types.FileDecoration.validate({ badge: 'புன்சிரிப்போடு' }));
 		assert.throws(() => types.FileDecoration.validate({ badge: 'ããã' }));
+	});
+
+	test('runtime stable, type-def changed', function () {
+		// see https://github.com/microsoft/vscode/issues/231938
+		const m = new types.LanguageModelChatMessage(types.LanguageModelChatMessageRole.User, []);
+		assert.deepStrictEqual(m.content, []);
+		m.content = 'Hello';
+		assert.deepStrictEqual(m.content, [new types.LanguageModelTextPart('Hello')]);
+	});
+
+	test('CustomAgentChatResource - URI constructor', function () {
+		const uri = URI.file('/path/to/agent.md');
+		const resource = new types.CustomAgentChatResource(uri);
+
+		assert.ok(URI.isUri(resource.resource));
+		assert.strictEqual(resource.resource.toString(), uri.toString());
+	});
+
+	test('CustomAgentChatResource - URI constructor with options', function () {
+		const uri = URI.file('/path/to/agent.md');
+		const resource = new types.CustomAgentChatResource({ uri, isEditable: true });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { uri: URI; isEditable?: boolean };
+		assert.strictEqual(descriptor.uri.toString(), uri.toString());
+		assert.strictEqual(descriptor.isEditable, true);
+	});
+
+	test('CustomAgentChatResource - content constructor', function () {
+		const content = '# My Agent\nThis is agent content';
+		const resource = new types.CustomAgentChatResource({ id: 'my-agent-id', content });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { id: string; content: string };
+		assert.strictEqual(descriptor.id, 'my-agent-id');
+		assert.strictEqual(descriptor.content, content);
+	});
+
+
+
+	test('InstructionsChatResource - URI constructor', function () {
+		const uri = URI.file('/path/to/instructions.md');
+		const resource = new types.InstructionsChatResource(uri);
+
+		assert.ok(URI.isUri(resource.resource));
+		assert.strictEqual(resource.resource.toString(), uri.toString());
+	});
+
+	test('InstructionsChatResource - URI constructor with options', function () {
+		const uri = URI.file('/path/to/instructions.md');
+		const resource = new types.InstructionsChatResource({ uri, isEditable: true });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { uri: URI; isEditable?: boolean };
+		assert.strictEqual(descriptor.uri.toString(), uri.toString());
+		assert.strictEqual(descriptor.isEditable, true);
+	});
+
+	test('InstructionsChatResource - content constructor', function () {
+		const content = '# Instructions\nFollow these steps';
+		const resource = new types.InstructionsChatResource({ id: 'my-instructions-id', content });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { id: string; content: string };
+		assert.strictEqual(descriptor.id, 'my-instructions-id');
+		assert.strictEqual(descriptor.content, content);
+	});
+
+
+
+	test('PromptFileChatResource - URI constructor', function () {
+		const uri = URI.file('/path/to/prompt.md');
+		const resource = new types.PromptFileChatResource(uri);
+
+		assert.ok(URI.isUri(resource.resource));
+		assert.strictEqual(resource.resource.toString(), uri.toString());
+	});
+
+	test('PromptFileChatResource - URI constructor with options', function () {
+		const uri = URI.file('/path/to/prompt.md');
+		const resource = new types.PromptFileChatResource({ uri, isEditable: true });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { uri: URI; isEditable?: boolean };
+		assert.strictEqual(descriptor.uri.toString(), uri.toString());
+		assert.strictEqual(descriptor.isEditable, true);
+	});
+
+	test('PromptFileChatResource - content constructor', function () {
+		const content = '# Prompt\nThis is my prompt content';
+		const resource = new types.PromptFileChatResource({ id: 'my-prompt-id', content });
+
+		assert.ok(!URI.isUri(resource.resource));
+		const descriptor = resource.resource as { id: string; content: string };
+		assert.strictEqual(descriptor.id, 'my-prompt-id');
+		assert.strictEqual(descriptor.content, content);
+	});
+
+
+
+	test('Chat prompt resources store different descriptors for different IDs', function () {
+		const resource1 = new types.CustomAgentChatResource({ id: 'id-one', content: 'content1' });
+		const resource2 = new types.CustomAgentChatResource({ id: 'id-two', content: 'content2' });
+
+		const desc1 = resource1.resource as { id: string; content: string };
+		const desc2 = resource2.resource as { id: string; content: string };
+		assert.strictEqual(desc1.id, 'id-one');
+		assert.strictEqual(desc2.id, 'id-two');
+		assert.notStrictEqual(desc1.id, desc2.id);
+	});
+
+	test('Chat prompt resources store resource descriptors correctly', function () {
+		const agent = new types.CustomAgentChatResource({ id: 'test', content: 'content' });
+		const instructions = new types.InstructionsChatResource({ id: 'test', content: 'content' });
+		const prompt = new types.PromptFileChatResource({ id: 'test', content: 'content' });
+
+		assert.ok(!URI.isUri(agent.resource));
+		assert.ok(!URI.isUri(instructions.resource));
+		assert.ok(!URI.isUri(prompt.resource));
+		assert.strictEqual((agent.resource as { id: string; content: string }).id, 'test');
+		assert.strictEqual((instructions.resource as { id: string; content: string }).id, 'test');
+		assert.strictEqual((prompt.resource as { id: string; content: string }).id, 'test');
 	});
 });

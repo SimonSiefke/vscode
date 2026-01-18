@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-use std::{ffi::OsStr, fmt, path::Path};
+use std::{fmt, path::Path};
 
 use serde::{Deserialize, Serialize};
 
@@ -11,10 +11,11 @@ use crate::{
 	constants::VSCODE_CLI_UPDATE_ENDPOINT,
 	debug, log, options, spanf,
 	util::{
-		errors::{AnyError, CodeError, WrappedError},
+		errors::{wrap, AnyError, CodeError, WrappedError},
 		http::{BoxedHttp, SimpleResponse},
 		io::ReportCopyProgress,
-		tar, zipper,
+		tar::{self, has_gzip_header},
+		zipper,
 	},
 };
 
@@ -55,8 +56,15 @@ fn quality_download_segment(quality: options::Quality) -> &'static str {
 	}
 }
 
-fn get_update_endpoint() -> Result<&'static str, CodeError> {
-	VSCODE_CLI_UPDATE_ENDPOINT.ok_or_else(|| CodeError::UpdatesNotConfigured("no service url"))
+fn get_update_endpoint() -> Result<String, CodeError> {
+	if let Ok(url) = std::env::var("VSCODE_CLI_UPDATE_URL") {
+		if !url.is_empty() {
+			return Ok(url);
+		}
+	}
+	VSCODE_CLI_UPDATE_ENDPOINT
+		.map(|s| s.to_string())
+		.ok_or_else(|| CodeError::UpdatesNotConfigured("no service url"))
 }
 
 impl UpdateService {
@@ -77,7 +85,7 @@ impl UpdateService {
 			.ok_or_else(|| CodeError::UnsupportedPlatform(platform.to_string()))?;
 		let download_url = format!(
 			"{}/api/versions/{}/{}/{}",
-			update_endpoint,
+			&update_endpoint,
 			version,
 			download_segment,
 			quality_download_segment(quality),
@@ -118,7 +126,7 @@ impl UpdateService {
 			.ok_or_else(|| CodeError::UnsupportedPlatform(platform.to_string()))?;
 		let download_url = format!(
 			"{}/api/latest/{}/{}",
-			update_endpoint,
+			&update_endpoint,
 			download_segment,
 			quality_download_segment(quality),
 		);
@@ -155,7 +163,7 @@ impl UpdateService {
 
 		let download_url = format!(
 			"{}/commit:{}/{}/{}",
-			update_endpoint,
+			&update_endpoint,
 			release.commit,
 			download_segment,
 			quality_download_segment(release.quality),
@@ -178,10 +186,10 @@ pub fn unzip_downloaded_release<T>(
 where
 	T: ReportCopyProgress,
 {
-	if compressed_file.extension() == Some(OsStr::new("zip")) {
-		zipper::unzip_file(compressed_file, target_dir, reporter)
-	} else {
-		tar::decompress_tarball(compressed_file, target_dir, reporter)
+	match has_gzip_header(compressed_file) {
+		Ok((f, true)) => tar::decompress_tarball(f, target_dir, reporter),
+		Ok((f, false)) => zipper::unzip_file(f, target_dir, reporter),
+		Err(e) => Err(wrap(e, "error checking for gzip header")),
 	}
 }
 
@@ -249,7 +257,7 @@ impl Platform {
 			Platform::DarwinARM64 => "server-darwin-arm64",
 			Platform::WindowsX64 => "server-win32-x64",
 			Platform::WindowsX86 => "server-win32",
-			Platform::WindowsARM64 => "server-win32-x64", // we don't publish an arm64 server build yet
+			Platform::WindowsARM64 => "server-win32-arm64",
 		}
 		.to_owned()
 	}

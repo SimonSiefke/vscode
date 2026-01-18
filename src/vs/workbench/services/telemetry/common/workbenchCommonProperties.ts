@@ -3,26 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
-import { resolveCommonProperties } from 'vs/platform/telemetry/common/commonProperties';
-import { ICommonProperties, firstSessionDateStorageKey, lastSessionDateStorageKey } from 'vs/platform/telemetry/common/telemetry';
-import { cleanRemoteAuthority } from 'vs/platform/telemetry/common/telemetryUtils';
-import { INodeProcess } from 'vs/base/common/platform';
+import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
+import { resolveCommonProperties } from '../../../../platform/telemetry/common/commonProperties.js';
+import { ICommonProperties, firstSessionDateStorageKey, lastSessionDateStorageKey } from '../../../../platform/telemetry/common/telemetry.js';
+import { cleanRemoteAuthority } from '../../../../platform/telemetry/common/telemetryUtils.js';
+import { INodeProcess } from '../../../../base/common/platform.js';
+import { IProductService } from '../../../../platform/product/common/productService.js';
 
 export function resolveWorkbenchCommonProperties(
 	storageService: IStorageService,
+	productService: IProductService,
 	release: string,
 	hostname: string,
-	commit: string | undefined,
-	version: string | undefined,
 	machineId: string,
 	sqmId: string,
 	devDeviceId: string,
 	isInternalTelemetry: boolean,
 	process: INodeProcess,
-	remoteAuthority?: string
+	remoteAuthority?: string,
 ): ICommonProperties {
-	const result = resolveCommonProperties(release, hostname, process.arch, commit, version, machineId, sqmId, devDeviceId, isInternalTelemetry);
+	const { commit, version, date: releaseDate } = productService ?? {};
+	const result = resolveCommonProperties(release, hostname, process.arch, commit, version, machineId, sqmId, devDeviceId, isInternalTelemetry, releaseDate);
 	const firstSessionDate = storageService.get(firstSessionDateStorageKey, StorageScope.APPLICATION)!;
 	const lastSessionDate = storageService.get(lastSessionDateStorageKey, StorageScope.APPLICATION)!;
 
@@ -37,7 +38,7 @@ export function resolveWorkbenchCommonProperties(
 	// __GDPR__COMMON__ "common.isNewSession" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 	result['common.isNewSession'] = !lastSessionDate ? '1' : '0';
 	// __GDPR__COMMON__ "common.remoteAuthority" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.remoteAuthority'] = cleanRemoteAuthority(remoteAuthority);
+	result['common.remoteAuthority'] = cleanRemoteAuthority(remoteAuthority, productService);
 	// __GDPR__COMMON__ "common.cli" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 	result['common.cli'] = !!process.env['VSCODE_CLI'];
 
