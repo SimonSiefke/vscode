@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 import * as DOM from 'vs/base/browser/dom';
 import * as aria from 'vs/base/browser/ui/aria/aria';
 import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
@@ -69,7 +68,6 @@ import { IEditorProgressService } from 'vs/platform/progress/common/progress';
 import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
 import { CodeWindow } from 'vs/base/browser/window';
 
-=======
 import * as DOM from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
@@ -139,7 +137,6 @@ import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearch
 import { AbstractSettingRenderer, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
 import { createTOCIterator, TOCTree, TOCTreeModel } from './tocTree.js';
->>>>>>> origin/main
 
 export const enum SettingsFocusContext {
 	Search,
@@ -311,8 +308,6 @@ export class SettingsEditor2 extends EditorPane {
 
 	private searchInputActionBar: ActionBar | null = null;
 
-	private readonly inputChangeListener: MutableDisposable<IDisposable>;
-
 	constructor(
 		group: IEditorGroup,
 		@ITelemetryService telemetryService: ITelemetryService,
@@ -412,9 +407,7 @@ export class SettingsEditor2 extends EditorPane {
 		if (ENABLE_LANGUAGE_FILTER && !SettingsEditor2.SUGGESTIONS.includes(`@${LANGUAGE_SETTING_TAG}`)) {
 			SettingsEditor2.SUGGESTIONS.push(`@${LANGUAGE_SETTING_TAG}`);
 		}
-		this.inputChangeListener = this._register(new MutableDisposable());
-<<<<<<< HEAD
-=======
+		this.inputChangeListener.value = new MutableDisposable();
 	}
 
 	private async whenCurrentProfileChanged(): Promise<void> {
@@ -489,7 +482,6 @@ export class SettingsEditor2 extends EditorPane {
 			this.searchContainer.classList.remove('with-ai-toggle');
 			this.showAiResultsAction.checked = false;
 		}
->>>>>>> origin/main
 	}
 
 	override get minimumWidth(): number { return SettingsEditor2.EDITOR_MIN_WIDTH; }
