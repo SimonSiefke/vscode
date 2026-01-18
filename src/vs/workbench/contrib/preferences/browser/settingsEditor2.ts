@@ -3,71 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as DOM from 'vs/base/browser/dom';
-import * as aria from 'vs/base/browser/ui/aria/aria';
-import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
-import { ActionBar } from 'vs/base/browser/ui/actionbar/actionbar';
-import { Button } from 'vs/base/browser/ui/button/button';
-import { ITreeElement } from 'vs/base/browser/ui/tree/tree';
-import { Action } from 'vs/base/common/actions';
-import { Delayer, ThrottledDelayer } from 'vs/base/common/async';
-import { CancellationToken, CancellationTokenSource } from 'vs/base/common/cancellation';
-import { fromNow } from 'vs/base/common/date';
-import { isCancellationError } from 'vs/base/common/errors';
-import { Emitter, Event } from 'vs/base/common/event';
-import { Iterable } from 'vs/base/common/iterator';
-import { KeyCode } from 'vs/base/common/keyCodes';
-import { Disposable, DisposableStore, dispose, type IDisposable, MutableDisposable } from 'vs/base/common/lifecycle';
-import * as platform from 'vs/base/common/platform';
-import { URI } from 'vs/base/common/uri';
-import 'vs/css!./media/settingsEditor2';
-import { localize } from 'vs/nls';
-import { ICommandService } from 'vs/platform/commands/common/commands';
-import { ConfigurationTarget, IConfigurationUpdateOverrides } from 'vs/platform/configuration/common/configuration';
-import { IContextKey, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
-import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
-import { ILogService } from 'vs/platform/log/common/log';
-import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
-import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { asCssVariable, badgeBackground, badgeForeground, contrastBorder, editorForeground } from 'vs/platform/theme/common/colorRegistry';
-import { IThemeService } from 'vs/platform/theme/common/themeService';
-import { ThemeIcon } from 'vs/base/common/themables';
-import { IUserDataSyncEnablementService, IUserDataSyncService, SyncStatus } from 'vs/platform/userDataSync/common/userDataSync';
-import { EditorPane } from 'vs/workbench/browser/parts/editor/editorPane';
-import { IEditorMemento, IEditorOpenContext, IEditorPane } from 'vs/workbench/common/editor';
-import { SuggestEnabledInput } from 'vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/suggestEnabledInput';
-import { SettingsTarget, SettingsTargetsWidget } from 'vs/workbench/contrib/preferences/browser/preferencesWidgets';
-import { ITOCEntry, getCommonlyUsedData, tocData } from 'vs/workbench/contrib/preferences/browser/settingsLayout';
-import { AbstractSettingRenderer, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, createTocTreeForExtensionSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from 'vs/workbench/contrib/preferences/browser/settingsTree';
-import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from 'vs/workbench/contrib/preferences/browser/settingsTreeModels';
-import { createTOCIterator, TOCTree, TOCTreeModel } from 'vs/workbench/contrib/preferences/browser/tocTree';
-import { CONTEXT_SETTINGS_EDITOR, CONTEXT_SETTINGS_ROW_FOCUS, CONTEXT_SETTINGS_SEARCH_FOCUS, CONTEXT_TOC_ROW_FOCUS, ENABLE_LANGUAGE_FILTER, EXTENSION_SETTING_TAG, FEATURE_SETTING_TAG, ID_SETTING_TAG, IPreferencesSearchService, ISearchProvider, LANGUAGE_SETTING_TAG, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_CLEAR_SEARCH_RESULTS, SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS, WORKSPACE_TRUST_SETTING_TAG, getExperimentalExtensionToggleData } from 'vs/workbench/contrib/preferences/common/preferences';
-import { settingsHeaderBorder, settingsSashBorder, settingsTextInputBorder } from 'vs/workbench/contrib/preferences/common/settingsEditorColorRegistry';
-import { IEditorGroup, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
-import { IOpenSettingsOptions, IPreferencesService, ISearchResult, ISetting, ISettingsEditorModel, ISettingsEditorOptions, ISettingsGroup, SettingMatchType, SettingValueType, validateSettingsEditorOptions } from 'vs/workbench/services/preferences/common/preferences';
-import { SettingsEditor2Input } from 'vs/workbench/services/preferences/common/preferencesEditorInput';
-import { Settings2EditorModel, nullRange } from 'vs/workbench/services/preferences/common/preferencesModels';
-import { IUserDataSyncWorkbenchService } from 'vs/workbench/services/userDataSync/common/userDataSync';
-import { preferencesClearInputIcon, preferencesFilterIcon } from 'vs/workbench/contrib/preferences/browser/preferencesIcons';
-import { IWorkspaceTrustManagementService } from 'vs/platform/workspace/common/workspaceTrust';
-import { IWorkbenchConfigurationService } from 'vs/workbench/services/configuration/common/configuration';
-import { ITextResourceConfigurationService } from 'vs/editor/common/services/textResourceConfiguration';
-import { IExtensionService } from 'vs/workbench/services/extensions/common/extensions';
-import { Orientation, Sizing, SplitView } from 'vs/base/browser/ui/splitview/splitview';
-import { Color } from 'vs/base/common/color';
-import { ILanguageService } from 'vs/editor/common/languages/language';
-import { SettingsSearchFilterDropdownMenuActionViewItem } from 'vs/workbench/contrib/preferences/browser/settingsSearchMenu';
-import { IExtensionGalleryService, IExtensionManagementService, IGalleryExtension } from 'vs/platform/extensionManagement/common/extensionManagement';
-import { ISettingOverrideClickEvent } from 'vs/workbench/contrib/preferences/browser/settingsEditorSettingIndicators';
-import { ConfigurationScope, Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
-import { Registry } from 'vs/platform/registry/common/platform';
-import { defaultButtonStyles } from 'vs/platform/theme/browser/defaultStyles';
-import { IProductService } from 'vs/platform/product/common/productService';
-import { registerNavigableContainer } from 'vs/workbench/browser/actions/widgetNavigationCommands';
-import { IEditorProgressService } from 'vs/platform/progress/common/progress';
-import { IExtensionManifest } from 'vs/platform/extensions/common/extensions';
-import { CodeWindow } from 'vs/base/browser/window';
-
 import * as DOM from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
@@ -407,7 +342,7 @@ export class SettingsEditor2 extends EditorPane {
 		if (ENABLE_LANGUAGE_FILTER && !SettingsEditor2.SUGGESTIONS.includes(`@${LANGUAGE_SETTING_TAG}`)) {
 			SettingsEditor2.SUGGESTIONS.push(`@${LANGUAGE_SETTING_TAG}`);
 		}
-		this.inputChangeListener.value = new MutableDisposable();
+		this.inputChangeListener = this._register(new MutableDisposable());
 	}
 
 	private async whenCurrentProfileChanged(): Promise<void> {
@@ -575,10 +510,7 @@ export class SettingsEditor2 extends EditorPane {
 
 		// Don't block setInput on render (which can trigger an async search)
 		this.onConfigUpdate(undefined, true).then(() => {
-<<<<<<< HEAD
-=======
 			// This event runs when the editor closes.
->>>>>>> origin/main
 			this.inputChangeListener.value = input.onWillDispose(() => {
 				this.searchWidget.setValue('');
 			});
