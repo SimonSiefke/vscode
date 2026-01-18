@@ -3122,20 +3122,22 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 	}
 
 	private readonly _pendingOutputHeightAcks = new Map</* outputId */ string, IAckOutputHeight>();
+	private readonly _outputHeightAckDisposable = this._register(new MutableDisposable());
 
 	private _scheduleOutputHeightAck(cellInfo: ICommonCellInfo, outputId: string, height: number) {
 		const wasEmpty = this._pendingOutputHeightAcks.size === 0;
 		this._pendingOutputHeightAcks.set(outputId, { cellId: cellInfo.cellId, outputId, height });
 
 		if (wasEmpty) {
-			DOM.scheduleAtNextAnimationFrame(DOM.getWindow(this.getDomNode()), () => {
+			this._outputHeightAckDisposable.value = DOM.scheduleAtNextAnimationFrame(DOM.getWindow(this.getDomNode()), () => {
+				this._outputHeightAckDisposable.clear();
 				this._debug('ack height');
 				this._updateScrollHeight();
 
 				this._webview?.ackHeight([...this._pendingOutputHeightAcks.values()]);
 
 				this._pendingOutputHeightAcks.clear();
-			}, -1); // -1 priority because this depends on calls to layoutNotebookCell, and that may be called multiple times before this runs
+			}, -1);
 		}
 	}
 
