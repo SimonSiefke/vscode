@@ -10,7 +10,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { CancellationError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { MarkdownString, type IMarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
 import { basename, posix, win32 } from '../../../../../../base/common/path.js';
 import { OperatingSystem, OS } from '../../../../../../base/common/platform.js';
@@ -293,9 +293,10 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 	// Immutable window state
 	protected readonly _osBackend: Promise<OperatingSystem>;
 
-	private static readonly _backgroundExecutions = new Map<string, BackgroundTerminalExecution>();
-	public static getBackgroundOutput(id: string): string {
-		const backgroundExecution = RunInTerminalTool._backgroundExecutions.get(id);
+	private readonly _backgroundExecutions = this._register(new DisposableMap<string, BackgroundTerminalExecution>());
+
+	public getBackgroundOutput(id: string): string {
+		const backgroundExecution = this._backgroundExecutions.get(id);
 		if (!backgroundExecution) {
 			throw new Error('Invalid terminal ID');
 		}
@@ -684,7 +685,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			try {
 				this._logService.debug(`RunInTerminalTool: Starting background execution \`${command}\``);
 				const execution = BackgroundTerminalExecution.start(toolTerminal.instance, xterm, command, chatSessionId, commandId!);
-				RunInTerminalTool._backgroundExecutions.set(termId, execution);
+				this._backgroundExecutions.set(termId, execution);
 
 				outputMonitor = store.add(this._instantiationService.createInstance(OutputMonitor, execution, undefined, invocation.context!, token, command));
 				await Event.toPromise(outputMonitor.onDidFinishCommand);
@@ -723,8 +724,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 				};
 			} catch (e) {
 				if (termId) {
-					RunInTerminalTool._backgroundExecutions.get(termId)?.dispose();
-					RunInTerminalTool._backgroundExecutions.delete(termId);
+					this._backgroundExecutions.deleteAndDispose(termId);
 				}
 				error = e instanceof CancellationError ? 'canceled' : 'unexpectedException';
 				throw e;
@@ -883,7 +883,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 						this._logService.debug(`RunInTerminalTool: Start marker is disposed`);
 					}
 					const execution = BackgroundTerminalExecution.adopt(toolTerminal.instance, xterm, command, chatSessionId, startMarker);
-					RunInTerminalTool._backgroundExecutions.set(termId, execution);
+					this._backgroundExecutions.set(termId, execution);
 					const backgroundOutput = execution.getOutput();
 					outputLineCount = backgroundOutput ? count(backgroundOutput.trim(), '\n') + 1 : 0;
 					terminalResult = backgroundOutput ?? '';
@@ -1117,14 +1117,13 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 			// Clean up any background executions associated with this session
 			const terminalToRemove: string[] = [];
-			for (const [termId, execution] of RunInTerminalTool._backgroundExecutions.entries()) {
+			for (const [termId, execution] of this._backgroundExecutions.entries()) {
 				if (execution.instance === toolTerminal.instance) {
-					execution.dispose();
 					terminalToRemove.push(termId);
 				}
 			}
 			for (const termId of terminalToRemove) {
-				RunInTerminalTool._backgroundExecutions.delete(termId);
+				this._backgroundExecutions.deleteAndDispose(termId);
 			}
 		}
 	}
