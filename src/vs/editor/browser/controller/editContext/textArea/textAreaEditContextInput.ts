@@ -18,11 +18,7 @@ import { Position } from '../../../../common/core/position.js';
 import { Selection } from '../../../../common/core/selection.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
-<<<<<<< HEAD
-import { ClipboardEventUtils, ClipboardStoredMetadata, ensureClipboardGetsEditorSelection, InMemoryClipboardMetadataManager } from '../clipboardUtils.js';
-=======
 import { ClipboardStoredMetadata, CopyOptions, createClipboardCopyEvent, createClipboardPasteEvent, IClipboardCopyEvent, IClipboardPasteEvent, InMemoryClipboardMetadataManager } from '../clipboardUtils.js';
->>>>>>> origin/main
 import { _debugComposition, ITextAreaWrapper, ITypeData, TextAreaState } from './textAreaEditContextState.js';
 import { ViewContext } from '../../../../common/viewModel/viewContext.js';
 
@@ -427,25 +423,6 @@ export class TextAreaInput extends Disposable {
 
 			e.preventDefault();
 
-<<<<<<< HEAD
-			if (!e.clipboardData) {
-				return;
-			}
-
-			let [text, metadata] = ClipboardEventUtils.getTextData(e.clipboardData);
-			this._logService.trace(`TextAreaInput#onPaste with id : `, metadata?.id, ' with text.length: ', text.length);
-			if (!text) {
-				return;
-			}
-
-			// try the in-memory store
-			metadata = metadata || InMemoryClipboardMetadataManager.INSTANCE.get(text);
-
-			this._logService.trace(`TextAreaInput#onPaste (before onPaste)`);
-			this._onPaste.fire({
-				text: text,
-				metadata: metadata
-=======
 			this._logService.trace(`TextAreaInput#onPaste with id : `, pasteEvent.metadata?.id, ' with text.length: ', pasteEvent.text.length);
 			if (!pasteEvent.text) {
 				return;
@@ -455,7 +432,6 @@ export class TextAreaInput extends Disposable {
 			this._onPaste.fire({
 				text: pasteEvent.text,
 				metadata: pasteEvent.metadata
->>>>>>> origin/main
 			});
 		}));
 
