@@ -23,12 +23,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
-<<<<<<< HEAD
-import { ClipboardEventUtils, InMemoryClipboardMetadataManager } from '../../../browser/controller/editContext/clipboardUtils.js';
-import { toExternalVSDataTransfer, toVSDataTransfer } from '../../../browser/dataTransfer.js';
-=======
 import { IClipboardCopyEvent, IClipboardPasteEvent, IWritableClipboardData } from '../../../browser/controller/editContext/clipboardUtils.js';
->>>>>>> origin/main
 import { ICodeEditor, PastePayload } from '../../../browser/editorBrowser.js';
 import { IBulkEditService } from '../../../browser/services/bulkEditService.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
@@ -171,21 +166,8 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		await this._currentPasteOperation;
 	}
 
-<<<<<<< HEAD
-	private handleCopy(e: ClipboardEvent) {
-		let id: string | null = null;
-		if (e.clipboardData) {
-			const [text, metadata] = ClipboardEventUtils.getTextData(e.clipboardData);
-			const storedMetadata = metadata || InMemoryClipboardMetadataManager.INSTANCE.get(text);
-			id = storedMetadata?.id || null;
-			this._logService.trace('CopyPasteController#handleCopy for id : ', id, ' with text.length : ', text.length);
-		} else {
-			this._logService.trace('CopyPasteController#handleCopy');
-		}
-=======
 	private handleCopy(e: IClipboardCopyEvent) {
 		this._logService.trace('CopyPasteController#handleCopy');
->>>>>>> origin/main
 		if (!this._editor.hasTextFocus()) {
 			return;
 		}
@@ -195,43 +177,17 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		// This means the resources clipboard is not properly updated when copying from the editor.
 		this._clipboardService.clearInternalState?.();
 
-<<<<<<< HEAD
-		if (!e.clipboardData || !this.isPasteAsEnabled()) {
-=======
 		if (!this.isPasteAsEnabled()) {
->>>>>>> origin/main
 			return;
 		}
 
 		const model = this._editor.getModel();
 		const viewModel = this._editor._getViewModel();
 		const selections = this._editor.getSelections();
-<<<<<<< HEAD
-		if (!model || !selections?.length) {
-			return;
-		}
-
-		const enableEmptySelectionClipboard = this._editor.getOption(EditorOption.emptySelectionClipboard);
-
-		let ranges: readonly IRange[] = selections;
-		const wasFromEmptySelection = selections.length === 1 && selections[0].isEmpty();
-		if (wasFromEmptySelection) {
-			if (!enableEmptySelectionClipboard) {
-				return;
-			}
-
-			ranges = [new Range(ranges[0].startLineNumber, 1, ranges[0].startLineNumber, 1 + model.getLineLength(ranges[0].startLineNumber))];
-		}
-
-		const toCopy = this._editor._getViewModel()?.getPlainTextToCopy(selections, enableEmptySelectionClipboard, platform.isWindows);
-		const multicursorText = Array.isArray(toCopy) ? toCopy : null;
-
-=======
 		if (!model || !viewModel || !selections?.length) {
 			return;
 		}
 
->>>>>>> origin/main
 		const defaultPastePayload = {
 			multicursorText: e.dataToCopy.multicursorText ?? null,
 			pasteOnNewLine: e.dataToCopy.isFromEmptySelection,
@@ -273,22 +229,10 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		CopyPasteController._currentCopyOperation = { handle, operations };
 	}
 
-<<<<<<< HEAD
-	private async handlePaste(e: ClipboardEvent) {
-		if (e.clipboardData) {
-			const [text, metadata] = ClipboardEventUtils.getTextData(e.clipboardData);
-			const metadataComputed = metadata || InMemoryClipboardMetadataManager.INSTANCE.get(text);
-			this._logService.trace('CopyPasteController#handlePaste for id : ', metadataComputed?.id);
-		} else {
-			this._logService.trace('CopyPasteController#handlePaste');
-		}
-		if (!e.clipboardData || !this._editor.hasTextFocus()) {
-=======
 	private async handlePaste(e: IClipboardPasteEvent) {
 		this._logService.trace('CopyPasteController#handlePaste for id : ', e.metadata?.id);
 
 		if (!this._editor.hasTextFocus()) {
->>>>>>> origin/main
 			return;
 		}
 
