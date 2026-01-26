@@ -35,31 +35,19 @@ export class Server extends IPCServer {
 
 		return Event.map(onHello, webContents => {
 			const id = webContents.id;
-			const oldClient = Server.Clients.get(id);
+			const client = Server.Clients.get(id);
 
-			oldClient?.dispose();
+			client?.dispose();
 
 			const disposables = new DisposableStore();
 			const onDidClientReconnect = new Emitter<void>();
-			
-			const clientDisposable = combinedDisposable([
+			Server.Clients.set(id, combinedDisposable([
 				toDisposable(() => onDidClientReconnect.fire()),
 				disposables
-			]);
-			
-			Server.Clients.set(id, clientDisposable);
+			]));
 
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', disposables) as Event<VSBuffer>;
-			const disconnectEvent = createScopedOnMessageEvent(id, 'vscode:disconnect', disposables);
-			
-			const onDidClientDisconnect = Event.map(Event.any(Event.signal(disconnectEvent), onDidClientReconnect.event), () => {
-				const currentClient = Server.Clients.get(id);
-				if (currentClient === clientDisposable) {
-					Server.Clients.delete(id);
-					clientDisposable.dispose();
-				}
-			});
-			
+			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', disposables)), onDidClientReconnect.event);
 			const protocol = new ElectronProtocol(webContents, onMessage);
 
 			return { protocol, onDidClientDisconnect };
