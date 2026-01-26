@@ -413,7 +413,8 @@ export class CodeApplication extends Disposable {
 				this.auxiliaryWindowsMainService?.registerWindow(contents);
 			}
 
-			const willNavigateListener = (event: Electron.Event) => {
+			// Handle any in-page navigation
+			contents.on('will-navigate', (event: Electron.Event) => {
 				if (BrowserViewMainService.isBrowserViewWebContents(contents)) {
 					return; // Allow navigation in integrated browser views
 				}
@@ -421,11 +422,6 @@ export class CodeApplication extends Disposable {
 				this.logService.error('webContents#will-navigate: Prevented webcontent navigation');
 
 				event.preventDefault(); // Prevent any in-page navigation
-			};
-
-			contents.on('will-navigate', willNavigateListener);
-			contents.once('destroyed', () => {
-				contents.removeListener('will-navigate', willNavigateListener);
 			});
 
 			// All Windows: only allow about:blank auxiliary windows to open
