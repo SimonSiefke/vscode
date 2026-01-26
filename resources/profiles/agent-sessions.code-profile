@@ -1,12 +1,12 @@
 {
 	"name": "Agent Sessions",
-	"icon": "copilot",
+	"icon": "vscode",
 	"settings": {
 		"workbench.statusBar.visible": false,
 		"workbench.activityBar.location": "hidden",
 		"workbench.sideBar.location": "right",
 		"workbench.secondarySideBar.defaultVisibility": "maximized",
-		"workbench.secondarySideBar.restoreMaximized": true,
+		"workbench.secondarySideBar.forceMaximized": true,
 		"chat.restoreLastPanelSession": true,
 		"workbench.startupEditor": "none",
 		"workbench.editor.restoreEditors": false,
@@ -15,6 +15,17 @@
 		"files.autoSave": "afterDelay",
 		"window.title": "Agent Sessions",
 		"workbench.editor.showTabs": "single",
-		"workbench.colorTheme": "2026-dark-experimental"
+		"workbench.colorTheme": "2026-dark-experimental",
+		"chat.agentsControl.clickBehavior": "focus",
+		"workbench.tips.enabled": false,
+		"chat.agent.maxRequests": 1000,
+		"workbench.layoutControl.type": "toggles",
+		"inlineChat.affordance": "editor",
+		"inlineChat.renderMode": "hover",
+		"github.copilot.chat.claudeCode.enabled": true,
+		"github.copilot.chat.languageContext.typescript.enabled": true,
+		"diffEditor.renderSideBySide": false,
+		"diffEditor.hideUnchangedRegions.enabled": true,
+		"chat.viewSessions.showPendingOnly": false
 	}
 }
