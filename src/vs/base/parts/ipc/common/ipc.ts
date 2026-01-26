@@ -516,6 +516,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 			this.protocolListener = null;
 		}
 		dispose(this.activeRequests.values());
+		this.activeRequests.clear();
 	}
 }
 
