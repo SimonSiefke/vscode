@@ -53,4 +53,10 @@ export class Server extends IPCServer {
 	constructor() {
 		super(Server.getOnDidClientConnect());
 	}
+
+	override dispose(): void {
+		Server.Clients.forEach(disposable => disposable.dispose());
+		Server.Clients.clear();
+		super.dispose();
+	}
 }
