@@ -7,7 +7,7 @@ import { WebContents } from 'electron';
 import { validatedIpcMain } from './ipcMain.js';
 import { VSBuffer } from '../../../common/buffer.js';
 import { Emitter, Event } from '../../../common/event.js';
-import { DisposableStore, IDisposable, combinedDisposable, toDisposable } from '../../../common/lifecycle.js';
+import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { ClientConnectionEvent, IPCServer } from '../common/ipc.js';
 import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
 
@@ -16,11 +16,11 @@ interface IIPCEvent {
 	message: Buffer | null;
 }
 
-function createScopedOnMessageEvent(senderId: number, eventName: string, disposables: DisposableStore): Event<VSBuffer | null> {
+function createScopedOnMessageEvent(senderId: number, eventName: string): Event<VSBuffer | null> {
 	const onMessage = Event.fromNodeEventEmitter<IIPCEvent>(validatedIpcMain, eventName, (event, message) => ({ event, message }));
-	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId, disposables);
+	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId);
 
-	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message, disposables);
+	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message);
 }
 
 /**
@@ -39,15 +39,11 @@ export class Server extends IPCServer {
 
 			client?.dispose();
 
-			const disposables = new DisposableStore();
 			const onDidClientReconnect = new Emitter<void>();
-			Server.Clients.set(id, combinedDisposable(
-				toDisposable(() => onDidClientReconnect.fire()),
-				disposables
-			));
+			Server.Clients.set(id, toDisposable(() => onDidClientReconnect.fire()));
 
-			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', disposables) as Event<VSBuffer>;
-			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', disposables)), onDidClientReconnect.event);
+			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<VSBuffer>;
+			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event);
 			const protocol = new ElectronProtocol(webContents, onMessage);
 
 			return { protocol, onDidClientDisconnect };
