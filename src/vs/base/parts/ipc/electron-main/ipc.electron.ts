@@ -41,10 +41,10 @@ export class Server extends IPCServer {
 
 			const disposables = new DisposableStore();
 			const onDidClientReconnect = new Emitter<void>();
-			Server.Clients.set(id, combinedDisposable([
+			Server.Clients.set(id, combinedDisposable(
 				toDisposable(() => onDidClientReconnect.fire()),
 				disposables
-			]));
+			));
 
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', disposables) as Event<VSBuffer>;
 			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', disposables)), onDidClientReconnect.event);
