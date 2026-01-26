@@ -517,6 +517,12 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 		}
 		dispose(this.activeRequests.values());
 		this.activeRequests.clear();
+		for (const requests of this.pendingRequests.values()) {
+			for (const request of requests) {
+				clearTimeout(request.timeoutTimer);
+			}
+		}
+		this.pendingRequests.clear();
 	}
 }
 
