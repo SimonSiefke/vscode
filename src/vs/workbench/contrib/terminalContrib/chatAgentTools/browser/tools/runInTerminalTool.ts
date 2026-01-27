@@ -10,7 +10,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { CancellationError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { MarkdownString, type IMarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
 import { basename, posix, win32 } from '../../../../../../base/common/path.js';
 import { OperatingSystem, OS } from '../../../../../../base/common/platform.js';
@@ -324,9 +324,10 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 	// Immutable window state
 	protected readonly _osBackend: Promise<OperatingSystem>;
 
-	private static readonly _activeExecutions = new Map<string, ActiveTerminalExecution>();
-	public static getBackgroundOutput(id: string): string {
-		const execution = RunInTerminalTool._activeExecutions.get(id);
+	private readonly _activeExecutions = this._register(new DisposableMap<string, ActiveTerminalExecution>());
+
+	public getBackgroundOutput(id: string): string {
+		const execution = this._activeExecutions.get(id);
 		if (!execution) {
 			throw new Error('Invalid terminal ID');
 		}
@@ -337,21 +338,21 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 	 * Gets an active terminal execution by ID. Returns undefined if not found.
 	 * Can be used to await the completion of a background terminal command.
 	 */
-	public static getExecution(id: string): IActiveTerminalExecution | undefined {
-		return RunInTerminalTool._activeExecutions.get(id);
+	public getExecution(id: string): IActiveTerminalExecution | undefined {
+		return this._activeExecutions.get(id);
 	}
 
 	/**
 	 * Removes an active terminal execution by ID and disposes it.
 	 * @returns true if the execution was found and removed, false otherwise.
 	 */
-	public static removeExecution(id: string): boolean {
-		const execution = RunInTerminalTool._activeExecutions.get(id);
+	public removeExecution(id: string): boolean {
+		const execution = this._activeExecutions.get(id);
 		if (!execution) {
 			return false;
 		}
 		execution.dispose();
-		RunInTerminalTool._activeExecutions.delete(id);
+		this._activeExecutions.deleteAndDispose(id);
 		return true;
 	}
 
@@ -751,7 +752,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		if (terminalToolSessionId) {
 			store.add(this._terminalChatService.onDidContinueInBackground(sessionId => {
 				if (sessionId === terminalToolSessionId) {
-					const execution = RunInTerminalTool._activeExecutions.get(termId);
+					const execution = this._activeExecutions.get(termId);
 					if (execution) {
 						execution.setBackground();
 					}
@@ -779,7 +780,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			}
 			this._logService.debug(`RunInTerminalTool: Using \`${execution.strategy.type}\` execute strategy for command \`${command}\``);
 			store.add(execution);
-			RunInTerminalTool._activeExecutions.set(termId, execution);
+			this._activeExecutions.set(termId, execution);
 
 			// Set up OutputMonitor when start marker is created
 			store.add(execution.strategy.onDidCreateStartMarker(startMarker => {
@@ -924,8 +925,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 					await this._commandArtifactCollector.capture(toolSpecificData, toolTerminal.instance, commandId);
 				}
 				// Clean up the execution on error
-				RunInTerminalTool._activeExecutions.get(termId)?.dispose();
-				RunInTerminalTool._activeExecutions.delete(termId);
+				this._activeExecutions.deleteAndDispose(termId);
 				toolTerminal.instance.dispose();
 				error = e instanceof CancellationError ? 'canceled' : 'unexpectedException';
 				throw e;
@@ -941,8 +941,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 				});
 			} else {
 				// Foreground completed or error - clean up execution
-				RunInTerminalTool._activeExecutions.get(termId)?.dispose();
-				RunInTerminalTool._activeExecutions.delete(termId);
+				this._activeExecutions.deleteAndDispose(termId);
 			}
 			store.dispose();
 			const timingExecuteMs = Date.now() - timingStart;
@@ -1162,14 +1161,14 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 			// Clean up any active executions associated with this session
 			const terminalToRemove: string[] = [];
-			for (const [termId, execution] of RunInTerminalTool._activeExecutions.entries()) {
+			for (const [termId, execution] of this._activeExecutions.entries()) {
 				if (execution.instance === toolTerminal.instance) {
 					execution.dispose();
 					terminalToRemove.push(termId);
 				}
 			}
 			for (const termId of terminalToRemove) {
-				RunInTerminalTool._activeExecutions.delete(termId);
+				this._activeExecutions.deleteAndDispose(termId);
 			}
 		}
 	}
