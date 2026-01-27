@@ -9,6 +9,7 @@ import { Event } from '../../../base/common/event.js';
 import { refineServiceDecorator } from '../../instantiation/common/instantiation.js';
 import { DidChangeLoggersEvent, ILogger, ILoggerOptions, ILoggerResource, ILoggerService, LogLevel, isLogLevel } from '../common/log.js';
 import { LoggerService } from '../node/loggerService.js';
+import { DisposableMap, DisposableStore } from '../../../base/common/lifecycle.js';
 
 export const ILoggerMainService = refineServiceDecorator<ILoggerService, ILoggerMainService>(ILoggerService);
 
@@ -35,6 +36,7 @@ export interface ILoggerMainService extends ILoggerService {
 export class LoggerMainService extends LoggerService implements ILoggerMainService {
 
 	private readonly loggerResourcesByWindow = new ResourceMap<number>();
+	private readonly eventsByWindow = this._register(new DisposableMap<number, DisposableStore>());
 
 	override createLogger(idOrResource: URI | string, options?: ILoggerOptions, windowId?: number): ILogger {
 		if (windowId !== undefined) {
@@ -71,14 +73,29 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
 	}
 
 	getOnDidChangeLogLevelEvent(windowId: number): Event<LogLevel | [URI, LogLevel]> {
-		return Event.filter(this.onDidChangeLogLevel, arg => isLogLevel(arg) || this.isInterestedLoggerResource(arg[0], windowId));
+		let disposables = this.eventsByWindow.get(windowId);
+		if (!disposables) {
+			disposables = new DisposableStore();
+			this.eventsByWindow.set(windowId, disposables);
+		}
+		return Event.filter(this.onDidChangeLogLevel, arg => isLogLevel(arg) || this.isInterestedLoggerResource(arg[0], windowId), disposables);
 	}
 
 	getOnDidChangeVisibilityEvent(windowId: number): Event<[URI, boolean]> {
-		return Event.filter(this.onDidChangeVisibility, ([resource]) => this.isInterestedLoggerResource(resource, windowId));
+		let disposables = this.eventsByWindow.get(windowId);
+		if (!disposables) {
+			disposables = new DisposableStore();
+			this.eventsByWindow.set(windowId, disposables);
+		}
+		return Event.filter(this.onDidChangeVisibility, ([resource]) => this.isInterestedLoggerResource(resource, windowId), disposables);
 	}
 
 	getOnDidChangeLoggersEvent(windowId: number): Event<DidChangeLoggersEvent> {
+		let disposables = this.eventsByWindow.get(windowId);
+		if (!disposables) {
+			disposables = new DisposableStore();
+			this.eventsByWindow.set(windowId, disposables);
+		}
 		return Event.filter(
 			Event.map(this.onDidChangeLoggers, e => {
 				const r = {
@@ -86,10 +103,11 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
 					removed: [...e.removed].filter(loggerResource => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
 				};
 				return r;
-			}), e => e.added.length > 0 || e.removed.length > 0);
+			}, disposables), e => e.added.length > 0 || e.removed.length > 0, disposables);
 	}
 
 	deregisterLoggers(windowId: number): void {
+		this.eventsByWindow.deleteAndDispose(windowId);
 		const resourcesToDeregister: URI[] = [];
 		for (const [resource, resourceWindow] of this.loggerResourcesByWindow) {
 			if (resourceWindow === windowId) {
