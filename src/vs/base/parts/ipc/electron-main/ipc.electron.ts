@@ -47,7 +47,20 @@ export class Server extends IPCServer {
 			const store = new DisposableStore();
 			const onDidClientReconnect = store.add(new Emitter<void>());
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', store) as Event<VSBuffer>;
-			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', store)), onDidClientReconnect.event);
+			
+			const destroyedEmitter = new Emitter<void>({
+				onWillAddFirstListener: () => {
+					const destroyedHandler = () => destroyedEmitter.fire();
+					webContents.once('destroyed', destroyedHandler);
+				}
+			});
+			store.add(destroyedEmitter);
+			
+			const onDidClientDisconnect = Event.any(
+				Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', store)),
+				onDidClientReconnect.event,
+				destroyedEmitter.event
+			);
 
 			const disposable = toDisposable(() => {
 				onDidClientReconnect.fire();
