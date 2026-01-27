@@ -432,6 +432,11 @@ export class UtilityProcess extends Disposable {
 			UtilityProcess.all.delete(this.processPid);
 		}
 
+		if (this.process) {
+			this.process.stdout?.destroy();
+			this.process.stderr?.destroy();
+		}
+
 		this.process = undefined;
 	}
 

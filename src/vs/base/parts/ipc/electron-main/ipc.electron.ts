@@ -16,11 +16,25 @@ interface IIPCEvent {
 	message: Buffer | null;
 }
 
-function createScopedOnMessageEvent(senderId: number, eventName: string): Event<VSBuffer | null> {
-	const onMessage = Event.fromNodeEventEmitter<IIPCEvent>(validatedIpcMain, eventName, (event, message) => ({ event, message }));
-	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId);
+interface IScopedEventResult extends IDisposable {
+	readonly event: Event<VSBuffer | null>;
+}
 
-	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message);
+function createScopedOnMessageEvent(senderId: number, eventName: string): IScopedEventResult {
+	const emitter = new Emitter<IIPCEvent>({ onWillAddFirstListener: () => validatedIpcMain.on(eventName, fn), onDidRemoveLastListener: () => validatedIpcMain.removeListener(eventName, fn) });
+	const fn = (event: Electron.IpcMainEvent, message: Buffer | null) => {
+		if (event.sender.id === senderId) {
+			emitter.fire({ event: { sender: event.sender as WebContents }, message });
+		}
+	};
+
+	const onMessage = emitter.event;
+	const scopedEvent = Event.map(onMessage, ({ message }) => message ? VSBuffer.wrap(message) : message);
+
+	return {
+		event: scopedEvent,
+		dispose: () => emitter.dispose()
+	};
 }
 
 /**
@@ -40,10 +54,18 @@ export class Server extends IPCServer {
 			client?.dispose();
 
 			const onDidClientReconnect = new Emitter<void>();
-			Server.Clients.set(id, toDisposable(() => onDidClientReconnect.fire()));
+			const messageEvent = createScopedOnMessageEvent(id, 'vscode:message');
+			const disconnectEvent = createScopedOnMessageEvent(id, 'vscode:disconnect');
 
-			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<VSBuffer>;
-			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event);
+			Server.Clients.set(id, toDisposable(() => {
+				onDidClientReconnect.fire();
+				messageEvent.dispose();
+				disconnectEvent.dispose();
+				onDidClientReconnect.dispose();
+			}));
+
+			const onMessage = messageEvent.event as Event<VSBuffer>;
+			const onDidClientDisconnect = Event.any(Event.signal(disconnectEvent.event), onDidClientReconnect.event);
 			const protocol = new ElectronProtocol(webContents, onMessage);
 
 			return { protocol, onDidClientDisconnect };
