@@ -90,10 +90,14 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
 	}
 
 	deregisterLoggers(windowId: number): void {
+		const resourcesToDeregister: URI[] = [];
 		for (const [resource, resourceWindow] of this.loggerResourcesByWindow) {
 			if (resourceWindow === windowId) {
-				this.deregisterLogger(resource);
+				resourcesToDeregister.push(resource);
 			}
+		}
+		for (const resource of resourcesToDeregister) {
+			this.deregisterLogger(resource);
 		}
 	}
 
