@@ -6,7 +6,7 @@
 import { Promises } from '../../../base/common/async.js';
 import { canceled } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
 import { IExtensionHostProcessOptions, IExtensionHostStarter } from '../common/extensionHostStarter.js';
 import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
 import { ILogService } from '../../log/common/log.js';
@@ -21,7 +21,7 @@ export class ExtensionHostStarter extends Disposable implements IDisposable, IEx
 
 	private static _lastId: number = 0;
 
-	private readonly _extHosts = new Map<string, WindowUtilityProcess>();
+	private readonly _extHosts = this._register(new DisposableMap<string, WindowUtilityProcess>());
 	private _shutdown = false;
 
 	constructor(
@@ -80,8 +80,7 @@ export class ExtensionHostStarter extends Disposable implements IDisposable, IEx
 			disposable.dispose();
 			this._logService.info(`Extension host with pid ${pid} exited with code: ${code}, signal: ${signal}.`);
 			setTimeout(() => {
-				extHost.dispose();
-				this._extHosts.delete(id);
+				this._extHosts.deleteAndDispose(id);
 			});
 
 			// See https://github.com/microsoft/vscode/issues/194477
