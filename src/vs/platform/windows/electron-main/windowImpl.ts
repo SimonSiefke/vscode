@@ -1662,6 +1662,13 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	override dispose(): void {
 		super.dispose();
 
+		// Close workspace storage for this window
+		const workspace = this._config?.workspace;
+		if (workspace) {
+			const workspaceStorage = this.storageMainService.workspaceStorage(workspace);
+			workspaceStorage.close();
+		}
+
 		// Deregister the loggers for this window
 		this.loggerMainService.deregisterLoggers(this.id);
 	}
