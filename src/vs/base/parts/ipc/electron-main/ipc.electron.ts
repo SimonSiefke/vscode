@@ -18,12 +18,9 @@ interface IIPCEvent {
 
 function createScopedOnMessageEvent(senderId: number, eventName: string, store: DisposableStore): Event<VSBuffer | null> {
 	const onMessage = Event.fromNodeEventEmitter<IIPCEvent>(validatedIpcMain, eventName, (event, message) => ({ event, message }));
-	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId);
+	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId, store);
 
-	store.add(onMessage(() => { }));
-	store.add(onMessageFromSender(() => { }));
-
-	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message);
+	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message, store);
 }
 
 /**
