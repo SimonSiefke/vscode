@@ -329,6 +329,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				const connection: IDatabaseConnection = {
 					db: new ctor(path, (error: (Error & { code?: string }) | null) => {
 						if (error) {
+							if (connection.errorListener) {
+								connection.db.removeListener('error', connection.errorListener);
+							}
+							if (connection.traceListener) {
+								connection.db.removeListener('trace', connection.traceListener);
+							}
 							return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
 						}
 
@@ -341,6 +347,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						].join('')).then(() => {
 							return resolve(connection);
 						}, error => {
+							if (connection.errorListener) {
+								connection.db.removeListener('error', connection.errorListener);
+							}
+							if (connection.traceListener) {
+								connection.db.removeListener('trace', connection.traceListener);
+							}
 							return connection.db.close(() => reject(error));
 						});
 					}),
