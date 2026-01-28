@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import { top } from '../../../base/common/arrays.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { join } from '../../../base/common/path.js';
 import { StopWatch } from '../../../base/common/stopwatch.js';
 import { URI } from '../../../base/common/uri.js';
@@ -123,7 +123,8 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 	private readonly _onDidCloseStorage = this._register(new Emitter<void>());
 	readonly onDidCloseStorage = this._onDidCloseStorage.event;
 
-	private _storage = this._register(new Storage(new InMemoryStorageDatabase(), { hint: StorageHint.STORAGE_IN_MEMORY })); // storage is in-memory until initialized
+	private readonly _storageDisposable = this._register(new MutableDisposable<Storage>());
+	private _storage: Storage;
 	get storage(): IStorage { return this._storage; }
 
 	abstract get path(): string | undefined;
@@ -140,6 +141,8 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 		private readonly fileService: IFileService
 	) {
 		super();
+
+		this._storage = this._storageDisposable.value = new Storage(new InMemoryStorageDatabase(), { hint: StorageHint.STORAGE_IN_MEMORY });
 	}
 
 	isInMemory(): boolean {
@@ -156,16 +159,13 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 				try {
 
 					// Create storage via subclasses
-					const storage = this._register(await this.doCreate());
+				const storage = await this.doCreate();
 
-					// Replace our in-memory storage with the real
-					// once as soon as possible without awaiting
-					// the init call.
-					this._storage.dispose();
-					this._storage = storage;
-
-					// Re-emit storage changes via event
-					this._register(storage.onDidChangeStorage(e => this._onDidChangeStorage.fire(e)));
+				// Replace our in-memory storage with the real
+				// once as soon as possible without awaiting
+				// the init call.
+				this._storage = storage;
+				this._storageDisposable.value = storage;
 
 					// Await storage init
 					await this.doInit(storage);
