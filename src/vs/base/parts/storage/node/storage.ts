@@ -184,49 +184,55 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
 				}
 
+				// Return early if this storage was created only in-memory
+				// e.g. when running tests we do not need to backup.
 				if (this.path === SQLiteStorageDatabase.IN_MEMORY_PATH) {
-					this.logger.dispose();
 					return resolve();
 				}
 
+				// If the DB closed successfully and we are not running in-memory
+				// and the DB did not get errors during runtime, make a backup
+				// of the DB so that we can use it as fallback in case the actual
+				// DB becomes corrupt in the future.
 				if (!connection.isErroneous && !connection.isInMemory) {
-					return this.backup().then(() => {
-						this.logger.dispose();
-						resolve();
-					}, error => {
+					return this.backup().then(resolve, error => {
 						this.logger.error(`[storage ${this.name}] backup(): ${error}`);
-						this.logger.dispose();
 
-						return resolve();
+						return resolve(); // ignore failing backup
 					});
 				}
 
+				// Recovery: if we detected errors while using the DB or we are using
+				// an inmemory DB (as a fallback to not being able to open the DB initially)
+				// and we have a recovery function provided, we recreate the DB with this
+				// data to recover all known data without loss if possible.
 				if (typeof recovery === 'function') {
 
+					// Delete the existing DB. If the path does not exist or fails to
+					// be deleted, we do not try to recover anymore because we assume
+					// that the path is no longer writeable for us.
 					return fs.promises.unlink(this.path).then(() => {
 
+						// Re-open the DB fresh
 						return this.doConnect(this.path).then(recoveryConnection => {
 							const closeRecoveryConnection = () => {
-								return this.doClose(recoveryConnection, undefined);
+								return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
 							};
 
+							// Store items
 							return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
 
+								// In case of an error updating items, still ensure to close the connection
+								// to prevent SQLITE_BUSY errors when the connection is reestablished
 								closeRecoveryConnection();
 
 								return Promise.reject(error);
 							});
 						});
-					}).then(() => {
-						this.logger.dispose();
-						resolve();
-					}, error => {
-						this.logger.dispose();
-						reject(error);
-					});
+					}).then(resolve, reject);
 				}
 
-				this.logger.dispose();
+				// Finally without recovery we just reject
 				return reject(closeError || new Error('Database has errors or is in-memory without recovery option'));
 			});
 		});
@@ -439,10 +445,13 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 class SQLiteStorageDatabaseLogger {
 
+	// to reduce lots of output, require an environment variable to enable tracing
+	// this helps when running with --verbose normally where the storage tracing
+	// might hide useful output to look at
 	private static readonly VSCODE_TRACE_STORAGE = 'VSCODE_TRACE_STORAGE';
 
-	private logTrace: ((msg: string) => void) | undefined;
-	private logError: ((error: string | Error) => void) | undefined;
+	private readonly logTrace: ((msg: string) => void) | undefined;
+	private readonly logError: ((error: string | Error) => void) | undefined;
 
 	constructor(options?: ISQLiteStorageDatabaseLoggingOptions) {
 		if (options && typeof options.logTrace === 'function' && process.env[SQLiteStorageDatabaseLogger.VSCODE_TRACE_STORAGE]) {
@@ -464,10 +473,5 @@ class SQLiteStorageDatabaseLogger {
 
 	error(error: string | Error): void {
 		this.logError?.(error);
-	}
-
-	dispose(): void {
-		this.logTrace = undefined;
-		this.logError = undefined;
 	}
 }

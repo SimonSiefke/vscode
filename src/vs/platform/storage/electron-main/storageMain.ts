@@ -159,16 +159,13 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 				try {
 
 					// Create storage via subclasses
-				const storage = await this.doCreate();
+					const storage = await this.doCreate();
 
-				// Replace our in-memory storage with the real
-				// once as soon as possible without awaiting
-				// the init call.
-				this._storage = storage;
-				this._storageDisposable.value = storage;
-
-				// Re-emit storage changes via event
-				this._register(storage.onDidChangeStorage(e => this._onDidChangeStorage.fire(e)));
+					// Replace our in-memory storage with the real
+					// once as soon as possible without awaiting
+					// the init call.
+					this._storage = storage;
+					this._storageDisposable.value = storage;
 
 					// Await storage init
 					await this.doInit(storage);
@@ -198,8 +195,8 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 
 	protected createLoggingOptions(): ISQLiteStorageDatabaseLoggingOptions {
 		return {
-			logTrace: (this.logService.getLevel() === LogLevel.Trace) ? (msg: string) => this.logService.trace(msg) : undefined,
-			logError: (error: string | Error) => this.logService.error(error)
+			logTrace: (this.logService.getLevel() === LogLevel.Trace) ? msg => this.logService.trace(msg) : undefined,
+			logError: error => this.logService.error(error)
 		};
 	}
 
