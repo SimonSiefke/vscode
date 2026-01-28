@@ -136,6 +136,9 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 
 	private state = StorageState.None;
 
+	private readonly logTraceHandler = (msg: string) => this.logService.trace(msg);
+	private readonly logErrorHandler = (error: string | Error) => this.logService.error(error);
+
 	constructor(
 		protected readonly logService: ILogService,
 		private readonly fileService: IFileService
@@ -167,6 +170,9 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 				this._storage = storage;
 				this._storageDisposable.value = storage;
 
+				// Re-emit storage changes via event
+				this._register(storage.onDidChangeStorage(e => this._onDidChangeStorage.fire(e)));
+
 					// Await storage init
 					await this.doInit(storage);
 
@@ -195,8 +201,8 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 
 	protected createLoggingOptions(): ISQLiteStorageDatabaseLoggingOptions {
 		return {
-			logTrace: (this.logService.getLevel() === LogLevel.Trace) ? msg => this.logService.trace(msg) : undefined,
-			logError: error => this.logService.error(error)
+			logTrace: (this.logService.getLevel() === LogLevel.Trace) ? this.logTraceHandler : undefined,
+			logError: this.logErrorHandler
 		};
 	}
 
