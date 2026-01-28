@@ -1665,8 +1665,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 		// Close workspace storage for this window
 		const workspace = this._config?.workspace;
 		if (workspace) {
-			const workspaceStorage = this.storageMainService.workspaceStorage(workspace);
-			workspaceStorage.close().catch(error => this.logService.error('Error closing workspace storage:', error));
+			this.storageMainService.closeWorkspaceStorage(workspace);
 		}
 
 		// Deregister the loggers for this window
