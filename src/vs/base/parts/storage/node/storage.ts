@@ -18,6 +18,8 @@ interface IDatabaseConnection {
 
 	isErroneous?: boolean;
 	lastError?: string;
+	errorListener?: (error: Error) => void;
+	traceListener?: (sql: string) => void;
 }
 
 export interface ISQLiteStorageDatabaseOptions {
@@ -170,6 +172,13 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
 		return new Promise((resolve, reject) => {
+			if (connection.errorListener) {
+				connection.db.removeListener('error', connection.errorListener);
+			}
+			if (connection.traceListener) {
+				connection.db.removeListener('trace', connection.traceListener);
+			}
+
 			connection.db.close(closeError => {
 				if (closeError) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
@@ -339,11 +348,13 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				};
 
 				// Errors
-				connection.db.on('error', error => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`));
+				connection.errorListener = (error: Error) => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`);
+				connection.db.on('error', connection.errorListener);
 
 				// Tracing
 				if (this.logger.isTracing) {
-					connection.db.on('trace', sql => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`));
+					connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
+					connection.db.on('trace', connection.traceListener);
 				}
 			}, reject);
 		});
