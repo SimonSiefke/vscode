@@ -357,6 +357,7 @@ export class Storage extends Disposable implements IStorage {
 	}
 
 	override dispose(): void {
+		console.log('[Storage] dispose() called, closing database...');
 		this.close();
 		super.dispose();
 	}

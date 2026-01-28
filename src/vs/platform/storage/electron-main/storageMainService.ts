@@ -214,6 +214,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 				this.mapProfileToStorage.delete(profile.id);
 				listener.dispose();
+				profileStorage!.dispose();
 			}));
 		}
 
