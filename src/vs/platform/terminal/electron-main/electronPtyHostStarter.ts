@@ -12,7 +12,7 @@ import { IReconnectConstants, TerminalSettingId } from '../common/terminal.js';
 import { IPtyHostConnection, IPtyHostStarter } from '../node/ptyHost.js';
 import { UtilityProcess } from '../../utilityProcess/electron-main/utilityProcess.js';
 import { Client as MessagePortClient } from '../../../base/parts/ipc/electron-main/ipc.mp.js';
-import { IpcMainEvent } from 'electron';
+import electron, { IpcMainEvent } from 'electron';
 import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { Emitter } from '../../../base/common/event.js';
@@ -41,9 +41,10 @@ export class ElectronPtyHostStarter extends Disposable implements IPtyHostStarte
 
 		this._register(this._lifecycleMainService.onWillShutdown(() => this._onWillShutdown.fire()));
 		// Listen for new windows to establish connection directly to pty host
-		validatedIpcMain.on('vscode:createPtyHostMessageChannel', (e, nonce) => this._onWindowConnection(e, nonce));
+		const listener = (e: electron.IpcMainEvent, nonce: string) => this._onWindowConnection(e, nonce);
+		validatedIpcMain.on('vscode:createPtyHostMessageChannel', listener);
 		this._register(toDisposable(() => {
-			validatedIpcMain.removeHandler('vscode:createPtyHostMessageChannel');
+			validatedIpcMain.removeListener('vscode:createPtyHostMessageChannel', listener);
 		}));
 	}
 
