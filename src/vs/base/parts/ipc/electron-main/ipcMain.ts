@@ -43,11 +43,16 @@ class ValidatedIpcMain implements Event.NodeEventEmitter {
 	 * only the next time a message is sent to `channel`, after which it is removed.
 	 */
 	once(channel: string, listener: ipcMainListener): this {
-		electron.ipcMain.once(channel, (event: electron.IpcMainEvent, ...args: any[]) => {
+		const wrappedListener = (event: electron.IpcMainEvent, ...args: any[]) => {
+			this.mapListenerToWrapper.delete(listener);
 			if (this.validateEvent(channel, event)) {
 				listener(event, ...args);
 			}
-		});
+		};
+
+		this.mapListenerToWrapper.set(listener, wrappedListener);
+
+		electron.ipcMain.once(channel, wrappedListener);
 
 		return this;
 	}

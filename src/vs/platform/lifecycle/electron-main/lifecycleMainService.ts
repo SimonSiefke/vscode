@@ -583,13 +583,18 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			const okChannel = `vscode:ok${oneTimeEventToken}`;
 			const cancelChannel = `vscode:cancel${oneTimeEventToken}`;
 
-			validatedIpcMain.once(okChannel, () => {
-				resolve(false); // no veto
-			});
+			const okListener = () => {
+				validatedIpcMain.removeListener(cancelChannel, cancelListener);
+				resolve(false);
+			};
 
-			validatedIpcMain.once(cancelChannel, () => {
-				resolve(true); // veto
-			});
+			const cancelListener = () => {
+				validatedIpcMain.removeListener(okChannel, okListener);
+				resolve(true);
+			};
+
+			validatedIpcMain.once(okChannel, okListener);
+			validatedIpcMain.once(cancelChannel, cancelListener);
 
 			window.send('vscode:onBeforeUnload', { okChannel, cancelChannel, reason });
 		});

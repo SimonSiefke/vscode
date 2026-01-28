@@ -18,6 +18,8 @@ interface IDatabaseConnection {
 
 	isErroneous?: boolean;
 	lastError?: string;
+	errorListener?: (error: Error) => void;
+	traceListener?: (sql: string) => void;
 }
 
 export interface ISQLiteStorageDatabaseOptions {
@@ -165,11 +167,20 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 		const connection = await this.whenConnected;
 
-		return this.doClose(connection, recovery);
+		return this.doClose(connection, recovery).finally(() => {
+			this.logger.clear();
+		});
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
 		return new Promise((resolve, reject) => {
+			if (connection.errorListener) {
+				connection.db.removeListener('error', connection.errorListener);
+			}
+			if (connection.traceListener) {
+				connection.db.removeListener('trace', connection.traceListener);
+			}
+
 			connection.db.close(closeError => {
 				if (closeError) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
@@ -320,6 +331,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				const connection: IDatabaseConnection = {
 					db: new ctor(path, (error: (Error & { code?: string }) | null) => {
 						if (error) {
+							if (connection.errorListener) {
+								connection.db.removeListener('error', connection.errorListener);
+							}
+							if (connection.traceListener) {
+								connection.db.removeListener('trace', connection.traceListener);
+							}
 							return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
 						}
 
@@ -332,6 +349,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						].join('')).then(() => {
 							return resolve(connection);
 						}, error => {
+							if (connection.errorListener) {
+								connection.db.removeListener('error', connection.errorListener);
+							}
+							if (connection.traceListener) {
+								connection.db.removeListener('trace', connection.traceListener);
+							}
 							return connection.db.close(() => reject(error));
 						});
 					}),
@@ -339,13 +362,17 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				};
 
 				// Errors
-				connection.db.on('error', error => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`));
+				connection.errorListener = (error: Error) => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`);
+				connection.db.on('error', connection.errorListener);
 
 				// Tracing
 				if (this.logger.isTracing) {
-					connection.db.on('trace', sql => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`));
+					connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
+					connection.db.on('trace', connection.traceListener);
 				}
-			}, reject);
+			}, error => {
+				reject(error);
+			});
 		});
 	}
 
@@ -434,13 +461,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 class SQLiteStorageDatabaseLogger {
 
-	// to reduce lots of output, require an environment variable to enable tracing
-	// this helps when running with --verbose normally where the storage tracing
-	// might hide useful output to look at
 	private static readonly VSCODE_TRACE_STORAGE = 'VSCODE_TRACE_STORAGE';
 
-	private readonly logTrace: ((msg: string) => void) | undefined;
-	private readonly logError: ((error: string | Error) => void) | undefined;
+	private logTrace: ((msg: string) => void) | undefined;
+	private logError: ((error: string | Error) => void) | undefined;
 
 	constructor(options?: ISQLiteStorageDatabaseLoggingOptions) {
 		if (options && typeof options.logTrace === 'function' && process.env[SQLiteStorageDatabaseLogger.VSCODE_TRACE_STORAGE]) {
@@ -462,5 +486,10 @@ class SQLiteStorageDatabaseLogger {
 
 	error(error: string | Error): void {
 		this.logError?.(error);
+	}
+
+	clear(): void {
+		this.logTrace = undefined;
+		this.logError = undefined;
 	}
 }
