@@ -356,6 +356,11 @@ export class Storage extends Disposable implements IStorage {
 		await this.database.close(() => this.cache);
 	}
 
+	override dispose(): void {
+		this.close();
+		super.dispose();
+	}
+
 	private get hasPending() {
 		return this.pendingInserts.size > 0 || this.pendingDeletes.size > 0;
 	}
