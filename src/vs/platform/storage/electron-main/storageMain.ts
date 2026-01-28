@@ -278,6 +278,14 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 		// Propagate to storage lib
 		await this._storage.close();
 	}
+
+	override dispose(): void {
+		// Ensure the storage is closed before disposing to clean up the database connection
+		if (this.state !== StorageState.Closed) {
+			this.close().catch(error => this.logService.error('Error closing storage during disposal:', error));
+		}
+		super.dispose();
+	}
 }
 
 class BaseProfileAwareStorageMain extends BaseStorageMain {
