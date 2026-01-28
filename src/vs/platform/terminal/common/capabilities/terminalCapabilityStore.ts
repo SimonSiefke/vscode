@@ -73,6 +73,17 @@ export class TerminalCapabilityStore extends Disposable implements ITerminalCapa
 	has(capability: TerminalCapability) {
 		return this._map.has(capability);
 	}
+
+	override dispose(): void {
+		// Dispose all capabilities to prevent memory leaks
+		for (const capability of this._map.values()) {
+			if (capability && typeof capability.dispose === 'function') {
+				capability.dispose();
+			}
+		}
+		this._map.clear();
+		super.dispose();
+	}
 }
 
 export class TerminalCapabilityStoreMultiplexer extends Disposable implements ITerminalCapabilityStore {
@@ -154,6 +165,15 @@ export class TerminalCapabilityStoreMultiplexer extends Disposable implements IT
 		}
 		this._register(store.onDidAddCapability(e => this._onDidAddCapability.fire(e)));
 		this._register(store.onDidRemoveCapability(e => this._onDidRemoveCapability.fire(e)));
+	}
+
+	override dispose(): void {
+		// Dispose all stores to prevent memory leaks
+		for (const store of this._stores) {
+			store.dispose();
+		}
+		this._stores.length = 0;
+		super.dispose();
 	}
 }
 
