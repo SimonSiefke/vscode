@@ -832,7 +832,7 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 		this.disposables.add(onDidClientConnect(({ protocol, onDidClientDisconnect }) => {
 			const onFirstMessage = Event.once(protocol.onMessage);
 
-			let onDisconnectDisposable: IDisposable | undefined;
+			const connectionDisposables = new DisposableStore();
 
 			const onFirstMessageDisposable = onFirstMessage(msg => {
 				const reader = new BufferReader(msg);
@@ -847,29 +847,21 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 				this._connections.add(connection);
 				this._onDidAddConnection.fire(connection);
 
-				if (onDisconnectDisposable) {
-					onDisconnectDisposable.dispose();
-					onDisconnectDisposable = undefined;
-				}
-
-				this.disposables.add(onDidClientDisconnect(() => {
+				connectionDisposables.add(onDidClientDisconnect(() => {
 					channelServer.dispose();
 					channelClient.dispose();
 					this._connections.delete(connection);
 					this._onDidRemoveConnection.fire(connection);
+					connectionDisposables.dispose();
 				}));
 			});
 
-			onDisconnectDisposable = onDidClientDisconnect(() => {
-				onFirstMessageDisposable.dispose();
-				if (onDisconnectDisposable) {
-					onDisconnectDisposable.dispose();
-					onDisconnectDisposable = undefined;
-				}
-			});
+			connectionDisposables.add(onFirstMessageDisposable);
+			connectionDisposables.add(onDidClientDisconnect(() => {
+				connectionDisposables.dispose();
+			}));
 
-			this.disposables.add(onFirstMessageDisposable);
-			this.disposables.add(onDisconnectDisposable);
+			this.disposables.add(connectionDisposables);
 		}));
 	}
 

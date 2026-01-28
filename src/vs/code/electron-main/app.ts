@@ -424,10 +424,14 @@ export class CodeApplication extends Disposable {
 				event.preventDefault(); // Prevent any in-page navigation
 			};
 
-			contents.on('will-navigate', willNavigateListener);
-			contents.once('destroyed', () => {
-				contents.removeListener('will-navigate', willNavigateListener);
-			});
+			if (!contents.isDestroyed()) {
+				contents.on('will-navigate', willNavigateListener);
+				contents.once('destroyed', () => {
+					if (!contents.isDestroyed()) {
+						contents.removeListener('will-navigate', willNavigateListener);
+					}
+				});
+			}
 
 			// All Windows: only allow about:blank auxiliary windows to open
 			// For all other URLs, delegate to the OS.

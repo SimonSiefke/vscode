@@ -52,7 +52,7 @@ export class Server extends IPCServer {
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', store) as Event<VSBuffer>;
 
 			let destroyedHandler: (() => void) | undefined;
-			const destroyedEmitter = new Emitter<void>({
+			const destroyedEmitter = store.add(new Emitter<void>({
 				onWillAddFirstListener: () => {
 					destroyedHandler = () => destroyedEmitter.fire();
 					webContents.once('destroyed', destroyedHandler);
@@ -62,8 +62,7 @@ export class Server extends IPCServer {
 						webContents.removeListener('destroyed', destroyedHandler);
 					}
 				}
-			});
-			store.add(destroyedEmitter);
+			}));
 			const onDidClientDisconnect = Event.any(
 				Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', store)),
 				onDidClientReconnect.event,
