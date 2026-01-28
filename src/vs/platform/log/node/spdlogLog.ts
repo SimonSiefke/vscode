@@ -118,12 +118,17 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 	}
 
 	override dispose(): void {
+		// Ensure logger is fully created and disposed before calling super.dispose()
+		// to prevent leaking the logger instance
 		if (this._logger) {
 			this.disposeLogger();
+			super.dispose();
 		} else {
-			this._loggerCreationPromise.then(() => this.disposeLogger());
+			this._loggerCreationPromise.then(() => {
+				this.disposeLogger();
+				super.dispose();
+			});
 		}
-		super.dispose();
 	}
 
 	private flushLogger(): void {
