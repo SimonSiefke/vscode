@@ -74,10 +74,11 @@ export class Server extends IPCServer {
 
 			Server.Clients.set(id, disposable);
 
-			Event.once(onDidClientDisconnect)(() => {
+			const onceDisconnectDisposable = Event.once(onDidClientDisconnect)(() => {
 				Server.Clients.delete(id);
 				disposable.dispose();
 			});
+			store.add(onceDisconnectDisposable);
 
 			const protocol = new ElectronProtocol(webContents, onMessage);
 

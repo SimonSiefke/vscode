@@ -368,7 +368,9 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 					connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
 					connection.db.on('trace', connection.traceListener);
 				}
-			}, reject);
+			}, error => {
+				reject(error);
+			});
 		});
 	}
 
