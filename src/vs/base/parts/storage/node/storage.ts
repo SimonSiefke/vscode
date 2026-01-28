@@ -167,7 +167,9 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 		const connection = await this.whenConnected;
 
-		return this.doClose(connection, recovery);
+		return this.doClose(connection, recovery).finally(() => {
+			this.logger.clear();
+		});
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
@@ -459,13 +461,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 class SQLiteStorageDatabaseLogger {
 
-	// to reduce lots of output, require an environment variable to enable tracing
-	// this helps when running with --verbose normally where the storage tracing
-	// might hide useful output to look at
 	private static readonly VSCODE_TRACE_STORAGE = 'VSCODE_TRACE_STORAGE';
 
-	private readonly logTrace: ((msg: string) => void) | undefined;
-	private readonly logError: ((error: string | Error) => void) | undefined;
+	private logTrace: ((msg: string) => void) | undefined;
+	private logError: ((error: string | Error) => void) | undefined;
 
 	constructor(options?: ISQLiteStorageDatabaseLoggingOptions) {
 		if (options && typeof options.logTrace === 'function' && process.env[SQLiteStorageDatabaseLogger.VSCODE_TRACE_STORAGE]) {
@@ -487,5 +486,10 @@ class SQLiteStorageDatabaseLogger {
 
 	error(error: string | Error): void {
 		this.logError?.(error);
+	}
+
+	clear(): void {
+		this.logTrace = undefined;
+		this.logError = undefined;
 	}
 }
