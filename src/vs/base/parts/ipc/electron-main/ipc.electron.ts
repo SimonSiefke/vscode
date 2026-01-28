@@ -42,7 +42,10 @@ export class Server extends IPCServer {
 			const id = webContents.id;
 			const client = Server.Clients.get(id);
 
-			client?.dispose();
+			if (client) {
+				Server.Clients.delete(id);
+				client.dispose();
+			}
 
 			const store = new DisposableStore();
 			const onDidClientReconnect = store.add(new Emitter<void>());
