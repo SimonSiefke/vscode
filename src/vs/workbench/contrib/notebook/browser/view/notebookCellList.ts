@@ -137,6 +137,8 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 	}
 
 	private _isInLayout: boolean = false;
+	private readonly _contentHeightAnimationFrameDisposable = this._localDisposableStore.add(new MutableDisposable());
+	private readonly _scrollAnimationFrameDisposable = this._localDisposableStore.add(new MutableDisposable());
 
 	private _webviewElement: FastDomNode<HTMLElement> | null = null;
 
@@ -272,7 +274,8 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 
 		this._localDisposableStore.add(this.view.onDidChangeContentHeight(() => {
 			if (this._isInLayout) {
-				DOM.scheduleAtNextAnimationFrame(DOM.getWindow(container), () => {
+				this._contentHeightAnimationFrameDisposable.value = DOM.scheduleAtNextAnimationFrame(DOM.getWindow(container), () => {
+					this._contentHeightAnimationFrameDisposable.clear();
 					updateVisibleRanges();
 				});
 			}
@@ -280,7 +283,8 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		}));
 		this._localDisposableStore.add(this.view.onDidScroll(() => {
 			if (this._isInLayout) {
-				DOM.scheduleAtNextAnimationFrame(DOM.getWindow(container), () => {
+				this._scrollAnimationFrameDisposable.value = DOM.scheduleAtNextAnimationFrame(DOM.getWindow(container), () => {
+					this._scrollAnimationFrameDisposable.clear();
 					updateVisibleRanges();
 				});
 			}
