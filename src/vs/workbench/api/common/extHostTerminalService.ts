@@ -9,7 +9,7 @@ import { ExtHostTerminalServiceShape, MainContext, MainThreadTerminalServiceShap
 import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
 import { URI } from '../../../base/common/uri.js';
 import { IExtHostRpcService } from './extHostRpcService.js';
-import { IDisposable, DisposableStore, Disposable, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { IDisposable, DisposableStore, Disposable, MutableDisposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { Disposable as VSCodeDisposable, EnvironmentVariableMutatorType, TerminalExitReason, TerminalCompletionItem } from './extHostTypes.js';
 import { IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
 import { localize } from '../../../nls.js';
@@ -303,20 +303,22 @@ export class ExtHostTerminal extends Disposable {
 	}
 }
 
-class ExtHostPseudoterminal implements ITerminalChildProcess {
+class ExtHostPseudoterminal extends Disposable implements ITerminalChildProcess {
 	readonly id = 0;
 	readonly shouldPersist = false;
 
-	private readonly _onProcessData = new Emitter<string>();
+	private readonly _onProcessData = this._register(new Emitter<string>());
 	public readonly onProcessData: Event<string> = this._onProcessData.event;
-	private readonly _onProcessReady = new Emitter<IProcessReadyEvent>();
+	private readonly _onProcessReady = this._register(new Emitter<IProcessReadyEvent>());
 	public get onProcessReady(): Event<IProcessReadyEvent> { return this._onProcessReady.event; }
-	private readonly _onDidChangeProperty = new Emitter<IProcessProperty>();
+	private readonly _onDidChangeProperty = this._register(new Emitter<IProcessProperty>());
 	public readonly onDidChangeProperty = this._onDidChangeProperty.event;
-	private readonly _onProcessExit = new Emitter<number | undefined>();
+	private readonly _onProcessExit = this._register(new Emitter<number | undefined>());
 	public readonly onProcessExit: Event<number | undefined> = this._onProcessExit.event;
 
-	constructor(private readonly _pty: vscode.Pseudoterminal) { }
+	constructor(private readonly _pty: vscode.Pseudoterminal) {
+		super()
+	}
 
 	refreshProperty<T extends ProcessPropertyType>(property: ProcessPropertyType): Promise<IProcessPropertyMap[T]> {
 		throw new Error(`refreshProperty is not suppported in extension owned terminals. property: ${property}`);
@@ -374,18 +376,24 @@ class ExtHostPseudoterminal implements ITerminalChildProcess {
 
 	startSendingEvents(initialDimensions: ITerminalDimensionsDto | undefined): void {
 		// Attach the listeners
-		this._pty.onDidWrite(e => this._onProcessData.fire(e));
-		this._pty.onDidClose?.((e: number | void = undefined) => {
-			this._onProcessExit.fire(e === void 0 ? undefined : e);
-		});
-		this._pty.onDidOverrideDimensions?.(e => {
-			if (e) {
-				this._onDidChangeProperty.fire({ type: ProcessPropertyType.OverrideDimensions, value: { cols: e.columns, rows: e.rows } });
-			}
-		});
-		this._pty.onDidChangeName?.(title => {
-			this._onDidChangeProperty.fire({ type: ProcessPropertyType.Title, value: title });
-		});
+		this._register(this._pty.onDidWrite(e => this._onProcessData.fire(e)));
+		if (this._pty.onDidClose) {
+			this._register(this._pty.onDidClose((e: number | void = undefined) => {
+				this._onProcessExit.fire(e === void 0 ? undefined : e);
+			}));
+		}
+		if (this._pty.onDidOverrideDimensions) {
+			this._register(this._pty.onDidOverrideDimensions?.(e => {
+				if (e) {
+					this._onDidChangeProperty.fire({ type: ProcessPropertyType.OverrideDimensions, value: { cols: e.columns, rows: e.rows } });
+				}
+			}));
+		}
+		if (this._pty.onDidChangeName) {
+			this._register(this._pty.onDidChangeName?.(title => {
+				this._onDidChangeProperty.fire({ type: ProcessPropertyType.Title, value: title });
+			}));
+		}
 
 		this._pty.open(initialDimensions ? initialDimensions : undefined);
 
@@ -410,9 +418,9 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 
 	protected _proxy: MainThreadTerminalServiceShape;
 	protected _activeTerminal: ExtHostTerminal | undefined;
-	protected _terminals: ExtHostTerminal[] = [];
-	protected _terminalProcesses: Map<number, ITerminalChildProcess> = new Map();
-	protected _terminalProcessDisposables: { [id: number]: IDisposable } = {};
+	protected _terminals: DisposableMap<ExtHostTerminalIdentifier, ExtHostTerminal> = this._register(new DisposableMap());
+	protected _terminalProcesses: DisposableMap<number, ITerminalChildProcess> = this._register(new DisposableMap<number, ITerminalChildProcess>());
+	protected _terminalProcessDisposables: DisposableMap<number, IDisposable> = this._register(new DisposableMap());
 	protected _extensionTerminalAwaitingStart: { [id: number]: { initialDimensions: ITerminalDimensionsDto | undefined } | undefined } = {};
 	protected _getTerminalPromises: { [id: number]: Promise<ExtHostTerminal | undefined> } = {};
 	protected _environmentVariableCollections: Map<string, UnifiedEnvironmentVariableCollection> = new Map();
@@ -429,30 +437,30 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	private readonly _terminalLinkCancellationSource: Map<number, CancellationTokenSource> = new Map();
 
 	public get activeTerminal(): vscode.Terminal | undefined { return this._activeTerminal?.value; }
-	public get terminals(): vscode.Terminal[] { return this._terminals.map(term => term.value); }
+	public get terminals(): vscode.Terminal[] { return [...this._terminals.values()].map(term => term.value); }
 
-	protected readonly _onDidCloseTerminal = new Emitter<vscode.Terminal>();
+	protected readonly _onDidCloseTerminal = this._register(new Emitter<vscode.Terminal>());
 	readonly onDidCloseTerminal = this._onDidCloseTerminal.event;
-	protected readonly _onDidOpenTerminal = new Emitter<vscode.Terminal>();
+	protected readonly _onDidOpenTerminal = this._register(new Emitter<vscode.Terminal>());
 	readonly onDidOpenTerminal = this._onDidOpenTerminal.event;
-	protected readonly _onDidChangeActiveTerminal = new Emitter<vscode.Terminal | undefined>();
+	protected readonly _onDidChangeActiveTerminal = this._register(new Emitter<vscode.Terminal | undefined>());
 	readonly onDidChangeActiveTerminal = this._onDidChangeActiveTerminal.event;
-	protected readonly _onDidChangeTerminalDimensions = new Emitter<vscode.TerminalDimensionsChangeEvent>();
+	protected readonly _onDidChangeTerminalDimensions = this._register(new Emitter<vscode.TerminalDimensionsChangeEvent>());
 	readonly onDidChangeTerminalDimensions = this._onDidChangeTerminalDimensions.event;
-	protected readonly _onDidChangeTerminalState = new Emitter<vscode.Terminal>();
+	protected readonly _onDidChangeTerminalState = this._register(new Emitter<vscode.Terminal>());
 	readonly onDidChangeTerminalState = this._onDidChangeTerminalState.event;
-	protected readonly _onDidChangeShell = new Emitter<string>();
+	protected readonly _onDidChangeShell = this._register(new Emitter<string>());
 	readonly onDidChangeShell = this._onDidChangeShell.event;
 
-	protected readonly _onDidWriteTerminalData = new Emitter<vscode.TerminalDataWriteEvent>({
+	protected readonly _onDidWriteTerminalData = this._register(new Emitter<vscode.TerminalDataWriteEvent>({
 		onWillAddFirstListener: () => this._proxy.$startSendingDataEvents(),
 		onDidRemoveLastListener: () => this._proxy.$stopSendingDataEvents()
-	});
+	}));
 	readonly onDidWriteTerminalData = this._onDidWriteTerminalData.event;
-	protected readonly _onDidExecuteCommand = new Emitter<vscode.TerminalExecutedCommand>({
+	protected readonly _onDidExecuteCommand = this._register(new Emitter<vscode.TerminalExecutedCommand>({
 		onWillAddFirstListener: () => this._proxy.$startSendingCommandEvents(),
 		onDidRemoveLastListener: () => this._proxy.$stopSendingCommandEvents()
-	});
+	}));
 	readonly onDidExecuteTerminalCommand = this._onDidExecuteCommand.event;
 
 	constructor(
@@ -462,7 +470,7 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	) {
 		super();
 		this._proxy = extHostRpc.getProxy(MainContext.MainThreadTerminalService);
-		this._bufferer = new TerminalDataBufferer(this._proxy.$sendProcessData);
+		this._bufferer = this._register(new TerminalDataBufferer(this._proxy.$sendProcessData));
 		this._proxy.$registerProcessSupport(supportsProcesses);
 		this._extHostCommands.registerArgumentProcessor({
 			processArgument: arg => {
@@ -515,9 +523,9 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 		const p = new ExtHostPseudoterminal(options.pty);
 		terminal.createExtensionTerminal(options.location, internalOptions, this._serializeParentTerminal(options, internalOptions).resolvedExtHostIdentifier, asTerminalIcon(options.iconPath), asTerminalColor(options.color), options.shellIntegrationNonce).then(id => {
 			const disposable = this._setupExtHostProcessListeners(id, p);
-			this._terminalProcessDisposables[id] = disposable;
+			this._terminalProcessDisposables.set(id, disposable);
 		});
-		this._terminals.push(terminal);
+		this._terminals.set(terminal._id, terminal);
 		return terminal.value;
 	}
 
@@ -546,7 +554,7 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 		}
 		const p = new ExtHostPseudoterminal(pty);
 		const disposable = this._setupExtHostProcessListeners(id, p);
-		this._terminalProcessDisposables[id] = disposable;
+		this._terminalProcessDisposables.set(id, disposable);
 	}
 
 	public async $acceptActiveTerminalChanged(id: number | null): Promise<void> {
@@ -607,23 +615,24 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	}
 
 	public async $acceptTerminalClosed(id: number, exitCode: number | undefined, exitReason: TerminalExitReason): Promise<void> {
-		const index = this._getTerminalObjectIndexById(this._terminals, id);
-		if (index !== null) {
-			const terminal = this._terminals.splice(index, 1)[0];
-			terminal.setExitStatus(exitCode, exitReason);
-			this._onDidCloseTerminal.fire(terminal.value);
+		const terminal = this._terminals.get(id);
+		if (!terminal) {
+			return;
 		}
+		terminal.setExitStatus(exitCode, exitReason);
+		this._onDidCloseTerminal.fire(terminal.value);
+		terminal.dispose();
 	}
 
 	public $acceptTerminalOpened(id: number, extHostTerminalId: string | undefined, name: string, shellLaunchConfigDto: IShellLaunchConfigDto): void {
 		if (extHostTerminalId) {
 			// Resolve with the renderer generated id
-			const index = this._getTerminalObjectIndexById(this._terminals, extHostTerminalId);
-			if (index !== null) {
+			const terminal = this._terminals.get(extHostTerminalId);
+			if (terminal) {
 				// The terminal has already been created (via createTerminal*), only fire the event
-				this._terminals[index]._id = id;
-				this._onDidOpenTerminal.fire(this.terminals[index]);
-				this._terminals[index].isOpen = true;
+				terminal._id = id;
+				this._onDidOpenTerminal.fire(terminal.value);
+				terminal.isOpen = true;
 				return;
 			}
 		}
@@ -637,7 +646,7 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 			hideFromUser: shellLaunchConfigDto.hideFromUser
 		};
 		const terminal = new ExtHostTerminal(this._proxy, id, creationOptions, name);
-		this._terminals.push(terminal);
+		this._terminals.set(terminal._id, terminal);
 		this._onDidOpenTerminal.fire(terminal.value);
 		terminal.isOpen = true;
 	}
