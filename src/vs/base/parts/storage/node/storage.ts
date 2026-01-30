@@ -376,17 +376,17 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private exec(connection: IDatabaseConnection, sql: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			connection.db.exec(sql, error => {
-				if (error) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
+		const { resolve, reject, promise } = Promise.withResolvers<void>()
+		connection.db.exec(sql, error => {
+			if (error) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
 
-					return reject(error);
-				}
+				return reject(error);
+			}
 
-				return resolve();
-			});
+			return resolve();
 		});
+		return promise
 	}
 
 	private get(connection: IDatabaseConnection, sql: string): Promise<object> {
