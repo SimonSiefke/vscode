@@ -173,71 +173,72 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (connection.errorListener) {
-				connection.db.removeListener('error', connection.errorListener);
+		const { resolve, reject, promise } = Promise.withResolvers()
+		if (connection.errorListener) {
+			connection.db.removeListener('error', connection.errorListener);
+		}
+		if (connection.traceListener) {
+			connection.db.removeListener('trace', connection.traceListener);
+		}
+
+		connection.db.close(closeError => {
+			if (closeError) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
 			}
-			if (connection.traceListener) {
-				connection.db.removeListener('trace', connection.traceListener);
+
+			// Return early if this storage was created only in-memory
+			// e.g. when running tests we do not need to backup.
+			if (this.path === SQLiteStorageDatabase.IN_MEMORY_PATH) {
+				return resolve();
 			}
 
-			connection.db.close(closeError => {
-				if (closeError) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
-				}
+			// If the DB closed successfully and we are not running in-memory
+			// and the DB did not get errors during runtime, make a backup
+			// of the DB so that we can use it as fallback in case the actual
+			// DB becomes corrupt in the future.
+			if (!connection.isErroneous && !connection.isInMemory) {
+				return this.backup().then(resolve, error => {
+					this.logger.error(`[storage ${this.name}] backup(): ${error}`);
 
-				// Return early if this storage was created only in-memory
-				// e.g. when running tests we do not need to backup.
-				if (this.path === SQLiteStorageDatabase.IN_MEMORY_PATH) {
-					return resolve();
-				}
+					return resolve(); // ignore failing backup
+				});
+			}
 
-				// If the DB closed successfully and we are not running in-memory
-				// and the DB did not get errors during runtime, make a backup
-				// of the DB so that we can use it as fallback in case the actual
-				// DB becomes corrupt in the future.
-				if (!connection.isErroneous && !connection.isInMemory) {
-					return this.backup().then(resolve, error => {
-						this.logger.error(`[storage ${this.name}] backup(): ${error}`);
+			// Recovery: if we detected errors while using the DB or we are using
+			// an inmemory DB (as a fallback to not being able to open the DB initially)
+			// and we have a recovery function provided, we recreate the DB with this
+			// data to recover all known data without loss if possible.
+			if (typeof recovery === 'function') {
 
-						return resolve(); // ignore failing backup
-					});
-				}
+				// Delete the existing DB. If the path does not exist or fails to
+				// be deleted, we do not try to recover anymore because we assume
+				// that the path is no longer writeable for us.
+				return fs.promises.unlink(this.path).then(() => {
 
-				// Recovery: if we detected errors while using the DB or we are using
-				// an inmemory DB (as a fallback to not being able to open the DB initially)
-				// and we have a recovery function provided, we recreate the DB with this
-				// data to recover all known data without loss if possible.
-				if (typeof recovery === 'function') {
+					// Re-open the DB fresh
+					return this.doConnect(this.path).then(recoveryConnection => {
+						const closeRecoveryConnection = () => {
+							return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
+						};
 
-					// Delete the existing DB. If the path does not exist or fails to
-					// be deleted, we do not try to recover anymore because we assume
-					// that the path is no longer writeable for us.
-					return fs.promises.unlink(this.path).then(() => {
+						// Store items
+						return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
 
-						// Re-open the DB fresh
-						return this.doConnect(this.path).then(recoveryConnection => {
-							const closeRecoveryConnection = () => {
-								return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
-							};
+							// In case of an error updating items, still ensure to close the connection
+							// to prevent SQLITE_BUSY errors when the connection is reestablished
+							closeRecoveryConnection();
 
-							// Store items
-							return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
-
-								// In case of an error updating items, still ensure to close the connection
-								// to prevent SQLITE_BUSY errors when the connection is reestablished
-								closeRecoveryConnection();
-
-								return Promise.reject(error);
-							});
+							return Promise.reject(error);
 						});
-					}).then(resolve, reject);
-				}
+					});
+				}).then(resolve, reject);
+			}
 
-				// Finally without recovery we just reject
-				return reject(closeError || new Error('Database has errors or is in-memory without recovery option'));
-			});
+			// Finally without recovery we just reject
+			return reject(closeError || new Error('Database has errors or is in-memory without recovery option'));
 		});
+
+		return promise;
 	}
 
 	private backup(): Promise<void> {
