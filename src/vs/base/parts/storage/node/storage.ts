@@ -447,8 +447,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		};
 
 		stmt.on('error', statementErrorListener);
-
-		runCallback(stmt);
+		let runError: unknown;
+		try {
+			runCallback(stmt);
+		} catch (error) {
+			runError = error;
+		}
 
 		stmt.finalize(error => {
 			if (error) {
@@ -457,6 +461,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 			stmt.removeListener('error', statementErrorListener);
 		});
+
+		if (runError) {
+			throw runError;
+		}
 	}
 }
 

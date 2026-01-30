@@ -98,6 +98,8 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 				log(this._logger, level, message);
 			}
 			this.buffer = [];
+		} else {
+			this.buffer = [];
 		}
 	}
 
@@ -125,6 +127,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 			this._loggerCreationPromise.then(() => {
 				this.disposeLogger();
 			}).finally(() => {
+				this.buffer = [];
 				super.dispose();
 			});
 		}
