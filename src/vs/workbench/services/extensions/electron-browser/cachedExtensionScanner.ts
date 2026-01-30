@@ -53,7 +53,7 @@ export class CachedExtensionScanner {
 		try {
 			const language = platform.language;
 			const result = await Promise.allSettled([
-				this._extensionsScannerService.scanSystemExtensions({ language, checkControlFile: true }),
+				this._extensionsScannerService.scanSystemExtensions({ language, checkControlFile: false }),
 				this._extensionsScannerService.scanUserExtensions({ language, profileLocation: this._userDataProfileService.currentProfile.extensionsResource, useCache: true }),
 				this._environmentService.remoteAuthority ? [] : this._extensionManagementService.getInstalledWorkspaceExtensions(false)
 			]);
