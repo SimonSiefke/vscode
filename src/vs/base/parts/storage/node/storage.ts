@@ -390,17 +390,18 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private get(connection: IDatabaseConnection, sql: string): Promise<object> {
-		return new Promise((resolve, reject) => {
-			connection.db.get(sql, (error, row) => {
-				if (error) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
+		const { resolve, reject, promise } = Promise.withResolvers<object>()
 
-					return reject(error);
-				}
+		connection.db.get(sql, (error, row) => {
+			if (error) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
 
-				return resolve(row);
-			});
+				return reject(error);
+			}
+
+			return resolve(row);
 		});
+		return promise;
 	}
 
 	private all(connection: IDatabaseConnection, sql: string): Promise<{ key: string; value: string }[]> {
