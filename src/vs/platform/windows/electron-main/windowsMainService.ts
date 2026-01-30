@@ -1703,6 +1703,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 		// Clean up
 		disposables.dispose();
+		window.dispose();
 	}
 
 	private onWindowDestroyed(window: ICodeWindow): void {
