@@ -63,10 +63,6 @@
           "when": "webviewId == 'vscode.chat-mermaid-features.chatOutputItem'"
         },
         {
-          "command": "_mermaid-chat.openInEditor",
-          "when": "webviewId == 'vscode.chat-mermaid-features.chatOutputItem'"
-        },
-        {
           "command": "_mermaid-chat.copySource",
           "when": "webviewId == 'vscode.chat-mermaid-features.chatOutputItem' || webviewId == 'vscode.chat-mermaid-features.preview'"
         }
@@ -77,12 +73,9 @@
       "properties": {
         "mermaid-chat.enabled": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%config.enabled.description%",
-          "scope": "application",
-          "tags": [
-            "experimental"
-          ]
+          "scope": "application"
         }
       }
     },
@@ -109,6 +102,10 @@
             "markup": {
               "type": "string",
               "description": "The mermaid diagram markup to render as a Mermaid diagram. This should only be the markup of the diagram. Do not include a wrapping code block."
+            },
+            "title": {
+              "type": "string",
+              "description": "A short title that describes the diagram."
             }
           }
         }
