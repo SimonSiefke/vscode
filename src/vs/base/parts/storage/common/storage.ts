@@ -366,6 +366,7 @@ export class Storage extends Disposable implements IStorage {
 		} else {
 			super.dispose();
 		}
+		this.pendingClose = undefined;
 	}
 
 	private get hasPending() {
