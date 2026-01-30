@@ -433,7 +433,9 @@ export class UtilityProcess extends Disposable {
 		}
 
 		if (this.process) {
+			// @ts-ignore
 			this.process.stdout?.destroy();
+			// @ts-ignore
 			this.process.stderr?.destroy();
 		}
 
