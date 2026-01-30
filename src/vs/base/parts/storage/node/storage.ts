@@ -173,15 +173,15 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
-		if (connection.errorListener) {
-			connection.db.removeListener('error', connection.errorListener);
-		}
-		if (connection.traceListener) {
-			connection.db.removeListener('trace', connection.traceListener);
-		}
+		return new Promise((resolve, reject) => {
+			if (connection.errorListener) {
+				connection.db.removeListener('error', connection.errorListener);
+			}
+			if (connection.traceListener) {
+				connection.db.removeListener('trace', connection.traceListener);
+			}
 
-		connection.db.close(closeError => {
+			connection.db.close(closeError => {
 				if (closeError) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
 				}
@@ -324,105 +324,102 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		this.logger.error(msg);
 	}
 
-	private doConnect(path: string): Promise<IDatabaseConnection> {
-		const { promise, resolve, reject } = Promise.withResolvers<IDatabaseConnection>();
-		import('@vscode/sqlite3').then(sqlite3 => {
-				const ctor = (this.logger.isTracing ? sqlite3.default.verbose().Database : sqlite3.default.Database);
+	private async doConnect(path: string): Promise<IDatabaseConnection> {
+		const { resolve, reject, promise } = Promise.withResolvers<IDatabaseConnection>()
+		const sqlite3 = await import('@vscode/sqlite3');
+		const ctor = (this.logger.isTracing ? sqlite3.default.verbose().Database : sqlite3.default.Database);
 
-				const connection: IDatabaseConnection = {
-					db: new ctor(path, (error: (Error & { code?: string }) | null) => {
-						if (error) {
-							if (connection.errorListener) {
-								connection.db.removeListener('error', connection.errorListener);
-							}
-							if (connection.traceListener) {
-								connection.db.removeListener('trace', connection.traceListener);
-							}
-							return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
-						}
-
-						// The following exec() statement serves two purposes:
-						// - create the DB if it does not exist yet
-						// - validate that the DB is not corrupt (the open() call does not throw otherwise)
-						return this.exec(connection, [
-							'PRAGMA user_version = 1;',
-							'CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)'
-						].join('')).then(() => {
-							return resolve(connection);
-						}, error => {
-							if (connection.errorListener) {
-								connection.db.removeListener('error', connection.errorListener);
-							}
-							if (connection.traceListener) {
-								connection.db.removeListener('trace', connection.traceListener);
-							}
-							return connection.db.close(() => reject(error));
-						});
-					}),
-					isInMemory: path === SQLiteStorageDatabase.IN_MEMORY_PATH
-				};
-
-				// Errors
-				connection.errorListener = (error: Error) => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`);
-				connection.db.on('error', connection.errorListener);
-
-				// Tracing
-				if (this.logger.isTracing) {
-					connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
-					connection.db.on('trace', connection.traceListener);
+		const connection: IDatabaseConnection = {
+			db: new ctor(path, (error: (Error & { code?: string }) | null) => {
+				if (error) {
+					if (connection.errorListener) {
+						connection.db.removeListener('error', connection.errorListener);
+					}
+					if (connection.traceListener) {
+						connection.db.removeListener('trace', connection.traceListener);
+					}
+					return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
 				}
-			}, error => {
-				reject(error);
-			});
-		});
+
+				// The following exec() statement serves two purposes:
+				// - create the DB if it does not exist yet
+				// - validate that the DB is not corrupt (the open() call does not throw otherwise)
+				return this.exec(connection, [
+					'PRAGMA user_version = 1;',
+					'CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)'
+				].join('')).then(() => {
+					return resolve(connection);
+				}, error => {
+					if (connection.errorListener) {
+						connection.db.removeListener('error', connection.errorListener);
+					}
+					if (connection.traceListener) {
+						connection.db.removeListener('trace', connection.traceListener);
+					}
+					return connection.db.close(() => reject(error));
+				});
+			}),
+			isInMemory: path === SQLiteStorageDatabase.IN_MEMORY_PATH
+		};
+
+
+		// Errors
+		connection.errorListener = (error: Error) => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`);
+		connection.db.on('error', connection.errorListener);
+
+		// Tracing
+		if (this.logger.isTracing) {
+			connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
+			connection.db.on('trace', connection.traceListener);
+		}
 		return promise;
 	}
 
 	private exec(connection: IDatabaseConnection, sql: string): Promise<void> {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
-		connection.db.exec(sql, error => {
+		return new Promise((resolve, reject) => {
+			connection.db.exec(sql, error => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
 
 					return reject(error);
-			}
+				}
 
-			return resolve();
+				return resolve();
+			});
 		});
-		return promise;
 	}
 
 	private get(connection: IDatabaseConnection, sql: string): Promise<object> {
-		const { promise, resolve, reject } = Promise.withResolvers<object>();
-		connection.db.get(sql, (error, row) => {
+		return new Promise((resolve, reject) => {
+			connection.db.get(sql, (error, row) => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
 
 					return reject(error);
-			}
+				}
 
-			return resolve(row);
+				return resolve(row);
+			});
 		});
-		return promise;
 	}
 
 	private all(connection: IDatabaseConnection, sql: string): Promise<{ key: string; value: string }[]> {
-		const { promise, resolve, reject } = Promise.withResolvers<{ key: string; value: string }[]>();
-		connection.db.all(sql, (error, rows) => {
+		return new Promise((resolve, reject) => {
+			connection.db.all(sql, (error, rows) => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] all(): ${error}`);
 
 					return reject(error);
-			}
+				}
 
-			return resolve(rows);
+				return resolve(rows);
+			});
 		});
-		return promise;
 	}
 
 	private transaction(connection: IDatabaseConnection, transactions: () => void): Promise<void> {
-		const { promise, resolve, reject } = Promise.withResolvers<void>();
-		connection.db.serialize(() => {
+		return new Promise((resolve, reject) => {
+			connection.db.serialize(() => {
 				connection.db.run('BEGIN TRANSACTION');
 
 				transactions();
