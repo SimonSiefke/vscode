@@ -56,6 +56,7 @@ export class ExtHostDocumentData extends MirrorTextModel {
 		ok(!this._isDisposed);
 		this._isDisposed = true;
 		this._isDirty = false;
+		this._document = undefined;
 	}
 
 	equalLines(lines: readonly string[]): boolean {
