@@ -272,12 +272,18 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 	closeWorkspaceStorage(workspace: IAnyWorkspaceIdentifier): void {
 		const workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
 		if (workspaceStorage) {
-			// Close the storage asynchronously (fire and forget)
-			workspaceStorage.close().catch(error => this.logService.error('Error closing workspace storage:', error));
+			this.logService.trace(`StorageMainService: closing workspace storage (${workspace.id})`);
 
-			// Immediately remove and dispose the storage to free memory
-			this.mapWorkspaceToStorage.delete(workspace.id);
-			this.mapWorkspaceToDisposable.deleteAndDispose(workspace.id);
+			// Close the storage and wait for it to complete before cleaning up
+			workspaceStorage.close()
+				.catch(error => this.logService.error('Error closing workspace storage:', error))
+				.finally(() => {
+					// After close completes, remove from maps
+					this.mapWorkspaceToStorage.delete(workspace.id);
+					// Use deleteAndDispose to properly dispose the storage
+					// (dispose() will skip close if already closed, and dispose parent Disposable)
+					this.mapWorkspaceToDisposable.deleteAndDispose(workspace.id);
+				});
 		}
 	}
 
