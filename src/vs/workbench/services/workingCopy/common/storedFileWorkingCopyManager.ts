@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import { DisposableStore, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableMap, DisposableStore, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { StoredFileWorkingCopy, StoredFileWorkingCopyState, IStoredFileWorkingCopy, IStoredFileWorkingCopyModel, IStoredFileWorkingCopyModelFactory, IStoredFileWorkingCopyResolveOptions, IStoredFileWorkingCopySaveEvent as IBaseStoredFileWorkingCopySaveEvent } from './storedFileWorkingCopy.js';
 import { ResourceMap } from '../../../../base/common/map.js';
@@ -167,7 +167,7 @@ export class StoredFileWorkingCopyManager<M extends IStoredFileWorkingCopyModel>
 
 	//#endregion
 
-	private readonly mapResourceToWorkingCopyListeners = new ResourceMap<IDisposable>();
+	private readonly mapResourceToWorkingCopyListeners = this._register(new DisposableMap(new ResourceMap<IDisposable>()));
 	private readonly mapResourceToPendingWorkingCopyResolve = new ResourceMap<Promise<void>>();
 
 	private readonly workingCopyResolveQueue = this._register(new ResourceQueue());
@@ -639,11 +639,7 @@ export class StoredFileWorkingCopyManager<M extends IStoredFileWorkingCopyModel>
 		const removed = super.remove(resource);
 
 		// Dispose any existing working copy listeners
-		const workingCopyListener = this.mapResourceToWorkingCopyListeners.get(resource);
-		if (workingCopyListener) {
-			dispose(workingCopyListener);
-			this.mapResourceToWorkingCopyListeners.delete(resource);
-		}
+		this.mapResourceToWorkingCopyListeners.deleteAndDispose(resource);
 
 		if (removed) {
 			this._onDidRemove.fire(resource);
@@ -697,10 +693,6 @@ export class StoredFileWorkingCopyManager<M extends IStoredFileWorkingCopyModel>
 
 		// Clear pending working copy resolves
 		this.mapResourceToPendingWorkingCopyResolve.clear();
-
-		// Dispose the working copy change listeners
-		dispose(this.mapResourceToWorkingCopyListeners.values());
-		this.mapResourceToWorkingCopyListeners.clear();
 	}
 
 	//#endregion
