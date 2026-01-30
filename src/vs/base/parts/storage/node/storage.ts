@@ -173,7 +173,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
-		const { resolve, reject, promise } = Promise.withResolvers()
+		const { resolve, reject, promise } = Promise.withResolvers<void>()
 		if (connection.errorListener) {
 			connection.db.removeListener('error', connection.errorListener);
 		}
