@@ -852,12 +852,14 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 					channelClient.dispose();
 					this._connections.delete(connection);
 					this._onDidRemoveConnection.fire(connection);
+					this.disposables.delete(connectionDisposables)
 					connectionDisposables.dispose();
 				}));
 			});
 
 			connectionDisposables.add(onFirstMessageDisposable);
 			connectionDisposables.add(onDidClientDisconnect(() => {
+				this.disposables.delete(connectionDisposables)
 				connectionDisposables.dispose();
 			}));
 
