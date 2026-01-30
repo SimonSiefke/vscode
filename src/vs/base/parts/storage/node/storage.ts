@@ -173,15 +173,15 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (connection.errorListener) {
-				connection.db.removeListener('error', connection.errorListener);
-			}
-			if (connection.traceListener) {
-				connection.db.removeListener('trace', connection.traceListener);
-			}
+		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		if (connection.errorListener) {
+			connection.db.removeListener('error', connection.errorListener);
+		}
+		if (connection.traceListener) {
+			connection.db.removeListener('trace', connection.traceListener);
+		}
 
-			connection.db.close(closeError => {
+		connection.db.close(closeError => {
 				if (closeError) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
 				}
@@ -325,9 +325,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	}
 
 	private doConnect(path: string): Promise<IDatabaseConnection> {
-		return new Promise((resolve, reject) => {
-			import('@vscode/sqlite3').then(sqlite3 => {
+		const { promise, resolve, reject } = Promise.withResolvers<IDatabaseConnection>();
+		import('@vscode/sqlite3').then(sqlite3 => {
 				const ctor = (this.logger.isTracing ? sqlite3.default.verbose().Database : sqlite3.default.Database);
+
 				const connection: IDatabaseConnection = {
 					db: new ctor(path, (error: (Error & { code?: string }) | null) => {
 						if (error) {
@@ -374,53 +375,54 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				reject(error);
 			});
 		});
+		return promise;
 	}
 
 	private exec(connection: IDatabaseConnection, sql: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			connection.db.exec(sql, error => {
+		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		connection.db.exec(sql, error => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
 
 					return reject(error);
-				}
+			}
 
-				return resolve();
-			});
+			return resolve();
 		});
+		return promise;
 	}
 
 	private get(connection: IDatabaseConnection, sql: string): Promise<object> {
-		return new Promise((resolve, reject) => {
-			connection.db.get(sql, (error, row) => {
+		const { promise, resolve, reject } = Promise.withResolvers<object>();
+		connection.db.get(sql, (error, row) => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
 
 					return reject(error);
-				}
+			}
 
-				return resolve(row);
-			});
+			return resolve(row);
 		});
+		return promise;
 	}
 
 	private all(connection: IDatabaseConnection, sql: string): Promise<{ key: string; value: string }[]> {
-		return new Promise((resolve, reject) => {
-			connection.db.all(sql, (error, rows) => {
+		const { promise, resolve, reject } = Promise.withResolvers<{ key: string; value: string }[]>();
+		connection.db.all(sql, (error, rows) => {
 				if (error) {
 					this.handleSQLiteError(connection, `[storage ${this.name}] all(): ${error}`);
 
 					return reject(error);
-				}
+			}
 
-				return resolve(rows);
-			});
+			return resolve(rows);
 		});
+		return promise;
 	}
 
 	private transaction(connection: IDatabaseConnection, transactions: () => void): Promise<void> {
-		return new Promise((resolve, reject) => {
-			connection.db.serialize(() => {
+		const { promise, resolve, reject } = Promise.withResolvers<void>();
+		connection.db.serialize(() => {
 				connection.db.run('BEGIN TRANSACTION');
 
 				transactions();
