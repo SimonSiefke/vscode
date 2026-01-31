@@ -362,6 +362,7 @@ export abstract class ViewPane extends Pane implements IView {
 	protected twistiesContainer?: HTMLElement;
 	private viewWelcomeController?: ViewWelcomeController;
 
+	private readonly headerDisposables = this._register(new DisposableStore());
 	private readonly headerActionViewItems: DisposableMap<string, IActionViewItem> = this._register(new DisposableMap());
 
 	protected readonly scopedContextKeyService: IContextKeyService;
@@ -443,6 +444,13 @@ export abstract class ViewPane extends Pane implements IView {
 	}
 
 	protected renderHeader(container: HTMLElement): void {
+		this.headerDisposables.clear();
+		this.headerActionViewItems.clearAndDisposeAll();
+		this.toolbar = undefined;
+		this.titleContainerHover = undefined;
+		this.titleDescriptionContainerHover = undefined;
+		this.iconContainerHover = undefined;
+
 		this.headerContainer = container;
 
 		this.twistiesContainer = append(container, $(`.twisty-container${ThemeIcon.asCSSSelector(this.getTwistyIcon(this.isExpanded()))}`));
@@ -467,21 +475,19 @@ export abstract class ViewPane extends Pane implements IView {
 			actionRunner: this.getActionRunner(),
 			resetMenu: this.menuActions.menuId
 		});
-
-		this._register(this.toolbar);
+		this.headerDisposables.add(this.toolbar);
 		this.setActions();
-
-		this._register(addDisposableListener(actions, EventType.CLICK, e => e.preventDefault()));
+		this.headerDisposables.add(addDisposableListener(actions, EventType.CLICK, e => e.preventDefault()));
 
 		const viewContainerModel = this.viewDescriptorService.getViewContainerByViewId(this.id);
 		if (viewContainerModel) {
-			this._register(this.viewDescriptorService.getViewContainerModel(viewContainerModel).onDidChangeContainerInfo(({ title }) => this.updateTitle(this.title)));
+			this.headerDisposables.add(this.viewDescriptorService.getViewContainerModel(viewContainerModel).onDidChangeContainerInfo(({ title }) => this.updateTitle(this.title)));
 		} else {
 			console.error(`View container model not found for view ${this.id}`);
 		}
 
 		const onDidRelevantConfigurationChange = Event.filter(this.configurationService.onDidChangeConfiguration, e => e.affectsConfiguration(ViewPane.AlwaysShowActionsConfig));
-		this._register(onDidRelevantConfigurationChange(this.updateActionsVisibility, this));
+		this.headerDisposables.add(onDidRelevantConfigurationChange(this.updateActionsVisibility, this));
 		this.updateActionsVisibility();
 	}
 
@@ -548,13 +554,13 @@ export abstract class ViewPane extends Pane implements IView {
 
 		const calculatedTitle = this.calculateTitle(title);
 		this.titleContainer = append(container, $('h3.title', {}, calculatedTitle));
-		this.titleContainerHover = this._register(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.titleContainer, calculatedTitle));
+		this.titleContainerHover = this.headerDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.titleContainer, calculatedTitle));
 
 		if (this._titleDescription) {
 			this.setTitleDescription(this._titleDescription);
 		}
 
-		this.iconContainerHover = this._register(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.iconContainer, calculatedTitle));
+		this.iconContainerHover = this.headerDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.iconContainer, calculatedTitle));
 		this.iconContainer.setAttribute('aria-label', this._getAriaLabel(calculatedTitle, this._titleDescription));
 	}
 
@@ -601,7 +607,7 @@ export abstract class ViewPane extends Pane implements IView {
 		}
 		else if (description && this.titleContainer) {
 			this.titleDescriptionContainer = after(this.titleContainer, $('span.description', {}, description));
-			this.titleDescriptionContainerHover = this._register(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.titleDescriptionContainer, description));
+			this.titleDescriptionContainerHover = this.headerDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.titleDescriptionContainer, description));
 		}
 	}
 
