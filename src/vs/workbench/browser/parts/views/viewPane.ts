@@ -447,9 +447,13 @@ export abstract class ViewPane extends Pane implements IView {
 		this.headerDisposables.clear();
 		this.headerActionViewItems.clearAndDisposeAll();
 		this.toolbar = undefined;
+		this.titleContainer = undefined;
 		this.titleContainerHover = undefined;
+		this.titleDescriptionContainer = undefined;
 		this.titleDescriptionContainerHover = undefined;
+		this.iconContainer = undefined;
 		this.iconContainerHover = undefined;
+		this.twistiesContainer = undefined;
 
 		this.headerContainer = container;
 
