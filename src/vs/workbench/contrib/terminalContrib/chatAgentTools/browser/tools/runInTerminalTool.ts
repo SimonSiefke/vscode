@@ -11,8 +11,7 @@ import { CancellationError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { MarkdownString, type IMarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
-import { ResourceMap } from '../../../../../../base/common/map.js';
-import { basename, posix, win32 } from '../../../../../../base/common/path.js';
+import { basename } from '../../../../../../base/common/path.js';
 import { OperatingSystem, OS } from '../../../../../../base/common/platform.js';
 import { count } from '../../../../../../base/common/strings.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
@@ -320,7 +319,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 	private readonly _commandLineAnalyzers: ICommandLineAnalyzer[];
 	private readonly _commandLinePresenters: ICommandLinePresenter[];
 
-	protected readonly _sessionTerminalAssociations = new ResourceMap<IToolTerminal>();
+	protected readonly _sessionTerminalAssociations: Map<string, IToolTerminal> = new Map();
 
 	// Immutable window state
 	protected readonly _osBackend: Promise<OperatingSystem>;
@@ -1075,7 +1074,8 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 				toolTerminal.receivedUserInput = data.length > 0;
 			}
 		});
-		this._register(toolTerminal.instance.onDisposed(() => disposable.dispose()));
+		// Store the input listener in the disposal map so it gets cleaned up when the terminal is disposed
+		this._terminalDisposalListeners.set(toolTerminal.instance, disposable);
 	}
 
 
@@ -1105,8 +1105,9 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 						this._terminalChatService.registerTerminalInstanceWithChatSession(chatSessionResource, instance);
 
 						// Listen for terminal disposal to clean up storage
-						this._register(instance.onDisposed(() => {
+						this._terminalDisposalListeners.set(instance, instance.onDisposed(() => {
 							this._removeProcessIdAssociation(instance.processId!);
+							this._terminalDisposalListeners.deleteAndDispose(instance);
 						}));
 					}
 				}
@@ -1116,12 +1117,13 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		}
 	}
 
-	private async _setupProcessIdAssociation(toolTerminal: IToolTerminal, chatSessionResource: URI, termId: string, isBackground: boolean) {
-		await this._associateProcessIdWithSession(toolTerminal.instance, chatSessionResource, termId, toolTerminal.shellIntegrationQuality, isBackground);
+	private async _setupProcessIdAssociation(toolTerminal: IToolTerminal, chatSessionId: string, termId: string, isBackground: boolean) {
+		await this._associateProcessIdWithSession(toolTerminal.instance, chatSessionId, termId, toolTerminal.shellIntegrationQuality, isBackground);
 		this._register(toolTerminal.instance.onDisposed(() => {
 			if (toolTerminal!.instance.processId) {
 				this._removeProcessIdAssociation(toolTerminal!.instance.processId);
 			}
+			this._terminalDisposalListeners.deleteAndDispose(toolTerminal.instance);
 		}));
 	}
 

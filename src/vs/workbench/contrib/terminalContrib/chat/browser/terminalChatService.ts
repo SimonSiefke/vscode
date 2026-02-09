@@ -79,11 +79,13 @@ export class TerminalChatService extends Disposable implements ITerminalChatServ
 
 		this._restoreFromStorage();
 
-		// Clear session auto-approve rules when chat sessions end
+		// Clear session auto-approve rules and terminal instance mappings when chat sessions end
 		this._register(this._chatService.onDidDisposeSession(e => {
 			for (const resource of e.sessionResource) {
-				this._sessionAutoApproveRules.delete(resource);
-				this._sessionAutoApprovalEnabled.delete(resource);
+				const sessionId = LocalChatSessionUri.parseLocalSessionId(resource);
+				if (sessionId) {
+					this._sessionAutoApproveRules.delete(sessionId);
+				}
 			}
 		}));
 	}
@@ -111,7 +113,10 @@ export class TerminalChatService extends Disposable implements ITerminalChatServ
 					this._toolSessionIdByTerminalInstance.delete(instance);
 					this._terminalInstanceListenersByToolSessionId.deleteAndDispose(terminalToolSessionId);
 					// Clean up session auto approval state
-					this._sessionAutoApprovalEnabled.delete(resource);
+					const sessionId = LocalChatSessionUri.parseLocalSessionId(resource);
+					if (sessionId) {
+						this._sessionAutoApprovalEnabled.delete(sessionId);
+					}
 					this._persistToStorage();
 					this._updateHasToolTerminalContextKeys();
 				}
