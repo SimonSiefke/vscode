@@ -408,6 +408,12 @@ export class ToolBar extends Disposable {
 
 	private clear(): void {
 		this.submenuActionViewItems = [];
+		this.toggleMenuActionViewItem = undefined;
+		this.hiddenActions = [];
+		this.hasSecondaryActions = false;
+		this.originalPrimaryActions = [];
+		this.originalSecondaryActions = [];
+		this.toggleMenuAction.menuActions = [];
 		this.disposables.clear();
 		this.actionBar.clear();
 	}
