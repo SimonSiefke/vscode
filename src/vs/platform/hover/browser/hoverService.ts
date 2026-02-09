@@ -562,6 +562,7 @@ export class HoverService extends Disposable implements IHoverService {
 
 		let hoverPreparation: IDisposable | undefined;
 		let hoverWidget: ManagedHoverWidget | undefined;
+		let showTimer: TimeoutTimer | undefined;
 
 		const hideHover = (disposeWidget: boolean, disposePreparation: boolean) => {
 			const hadHover = hoverWidget !== undefined;
@@ -576,6 +577,10 @@ export class HoverService extends Disposable implements IHoverService {
 			if (hadHover) {
 				hoverDelegate.onDidHideHover?.();
 				hoverWidget = undefined;
+			}
+			if (showTimer) {
+				showTimer?.dispose();
+				showTimer = undefined;
 			}
 		};
 
@@ -663,8 +668,9 @@ export class HoverService extends Disposable implements IHoverService {
 
 		const hover: IManagedHover = {
 			show: focus => {
+				showTimer?.dispose();
 				hideHover(false, true); // terminate a ongoing mouse over preparation
-				triggerShowHover(0, focus, undefined, focus); // show hover immediately
+				showTimer = triggerShowHover(0, focus, undefined, focus); // show hover immediately
 			},
 			hide: () => {
 				hideHover(true, true);
@@ -674,6 +680,7 @@ export class HoverService extends Disposable implements IHoverService {
 				await hoverWidget?.update(content, undefined, hoverOptions);
 			},
 			dispose: () => {
+				showTimer?.dispose();
 				this._managedHovers.delete(targetElement);
 				store.dispose();
 				hideHover(true, true);
