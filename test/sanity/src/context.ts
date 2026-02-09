@@ -32,8 +32,6 @@ interface ITargetMetadata {
  */
 export class TestContext {
 	private static readonly authenticodeInclude = /^.+\.(exe|dll|sys|cab|cat|msi|jar|ocx|ps1|psm1|psd1|ps1xml|pssc1)$/i;
-	private static readonly codesignExclude = /node_modules\/(@parcel\/watcher\/build\/Release\/watcher\.node|@vscode\/deviceid\/build\/Release\/windows\.node|@vscode\/ripgrep\/bin\/rg|@vscode\/spdlog\/build\/Release\/spdlog.node|kerberos\/build\/Release\/kerberos.node|@vscode\/native-watchdog\/build\/Release\/watchdog\.node|node-pty\/build\/Release\/(pty\.node|spawn-helper)|vsda\/build\/Release\/vsda\.node|native-watchdog\/build\/Release\/watchdog\.node)$/;
-	private static readonly notarizeExclude = /extensions\/microsoft-authentication\/dist\/libmsalruntime\.dylib$/;
 
 	private readonly tempDirs = new Set<string>();
 	private readonly wslTempDirs = new Set<string>();
@@ -398,17 +396,15 @@ export class TestContext {
 			this.error(`Codesign signature is not valid for ${filePath}: ${result.stderr}`);
 		}
 
-		if (!TestContext.notarizeExclude.test(filePath)) {
-			this.log(`Validating notarization for ${filePath}`);
+		this.log(`Validating notarization for ${filePath}`);
 
-			const notaryResult = this.run('spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature', '--verbose=2', filePath);
-			if (notaryResult.error !== undefined) {
-				this.error(`Failed to run spctl: ${notaryResult.error.message}`);
-			}
+		const notaryResult = this.run('spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature', '--verbose=2', filePath);
+		if (notaryResult.error !== undefined) {
+			this.error(`Failed to run spctl: ${notaryResult.error.message}`);
+		}
 
-			if (notaryResult.status !== 0) {
-				this.error(`Notarization is not valid for ${filePath}: ${notaryResult.stderr}`);
-			}
+		if (notaryResult.status !== 0) {
+			this.error(`Notarization is not valid for ${filePath}: ${notaryResult.stderr}`);
 		}
 	}
 
@@ -425,9 +421,7 @@ export class TestContext {
 		const files = fs.readdirSync(dir, { withFileTypes: true });
 		for (const file of files) {
 			const filePath = path.join(dir, file.name);
-			if (TestContext.codesignExclude.test(filePath)) {
-				this.log(`Skipping codesign validation for excluded file: ${filePath}`);
-			} else if (file.isDirectory()) {
+			if (file.isDirectory()) {
 				// For .app bundles, validate the bundle itself, not its contents
 				if (file.name.endsWith('.app') || file.name.endsWith('.framework')) {
 					this.validateCodesignSignature(filePath);
@@ -785,18 +779,22 @@ export class TestContext {
 		switch (os.platform()) {
 			case 'darwin': {
 				let appName: string;
+				let binaryName: string;
 				switch (this.options.quality) {
 					case 'stable':
 						appName = 'Visual Studio Code.app';
+						binaryName = 'Code';
 						break;
 					case 'insider':
 						appName = 'Visual Studio Code - Insiders.app';
+						binaryName = 'Code - Insiders';
 						break;
 					case 'exploration':
 						appName = 'Visual Studio Code - Exploration.app';
+						binaryName = 'Code - Exploration';
 						break;
 				}
-				filePath = path.join(dir, appName, 'Contents/MacOS/Electron');
+				filePath = path.join(dir, appName, 'Contents/MacOS', binaryName);
 				break;
 			}
 			case 'linux': {

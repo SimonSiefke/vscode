@@ -9,7 +9,7 @@ import { splitLinesIncludeSeparators } from '../../../../../base/common/strings.
 import { URI } from '../../../../../base/common/uri.js';
 import { parse, YamlNode, YamlParseError, Position as YamlPosition } from '../../../../../base/common/yaml.js';
 import { Range } from '../../../../../editor/common/core/range.js';
-import { InferValue, parseInferValue } from './service/promptsService.js';
+import { Target } from './service/promptsService.js';
 
 export class PromptFileParser {
 	constructor() {
@@ -33,7 +33,7 @@ export class PromptFileParser {
 			}
 			// range starts on the line after the ---, and ends at the beginning of the line that has the closing ---
 			const range = new Range(2, 1, headerEndLine + 1, 1);
-			header = new PromptHeader(range, linesWithEOL);
+			header = new PromptHeader(range, uri, linesWithEOL);
 		}
 		if (bodyStartLine < linesWithEOL.length) {
 			// range starts  on the line after the ---, and ends at the beginning of line after the last line
@@ -80,21 +80,26 @@ export namespace PromptHeaderAttributes {
 	export const compatibility = 'compatibility';
 	export const metadata = 'metadata';
 	export const agents = 'agents';
+	export const userInvokable = 'user-invokable';
+	export const disableModelInvocation = 'disable-model-invocation';
 }
 
 export namespace GithubPromptHeaderAttributes {
 	export const mcpServers = 'mcp-servers';
 }
 
-export enum Target {
-	VSCode = 'vscode',
-	GitHubCopilot = 'github-copilot'
+export namespace ClaudeHeaderAttributes {
+	export const disallowedTools = 'disallowedTools';
+}
+
+export function isTarget(value: unknown): value is Target {
+	return value === Target.VSCode || value === Target.GitHubCopilot || value === Target.Claude || value === Target.Undefined;
 }
 
 export class PromptHeader {
 	private _parsed: ParsedHeader | undefined;
 
-	constructor(public readonly range: Range, private readonly linesWithEOL: string[]) {
+	constructor(public readonly range: Range, public readonly uri: URI, private readonly linesWithEOL: string[]) {
 	}
 
 	private get _parsedHeader(): ParsedHeader {
@@ -193,13 +198,10 @@ export class PromptHeader {
 		return this.getStringAttribute(PromptHeaderAttributes.target);
 	}
 
-	public get infer(): InferValue | undefined {
+	public get infer(): boolean | undefined {
 		const attribute = this._parsedHeader.attributes.find(attr => attr.key === PromptHeaderAttributes.infer);
 		if (attribute?.value.type === 'boolean') {
-			return attribute.value.value ? 'all' : 'user';
-		}
-		if (attribute?.value.type === 'string' && attribute.value.value) {
-			return parseInferValue(attribute.value.value);
+			return attribute.value.value;
 		}
 		return undefined;
 	}
@@ -209,24 +211,17 @@ export class PromptHeader {
 		if (!toolsAttribute) {
 			return undefined;
 		}
-		if (toolsAttribute.value.type === 'array') {
+		let value = toolsAttribute.value;
+		if (value.type === 'string') {
+			value = parseCommaSeparatedList(value);
+		}
+		if (value.type === 'array') {
 			const tools: string[] = [];
-			for (const item of toolsAttribute.value.items) {
+			for (const item of value.items) {
 				if (item.type === 'string' && item.value) {
 					tools.push(item.value);
 				}
 			}
-			return tools;
-		} else if (toolsAttribute.value.type === 'object') {
-			const tools: string[] = [];
-			const collectLeafs = ({ key, value }: { key: IStringValue; value: IValue }) => {
-				if (value.type === 'boolean') {
-					tools.push(key.value);
-				} else if (value.type === 'object') {
-					value.properties.forEach(collectLeafs);
-				}
-			};
-			toolsAttribute.value.properties.forEach(collectLeafs);
 			return tools;
 		}
 		return undefined;
@@ -320,6 +315,22 @@ export class PromptHeader {
 
 	public get agents(): string[] | undefined {
 		return this.getStringArrayAttribute(PromptHeaderAttributes.agents);
+	}
+
+	public get userInvokable(): boolean | undefined {
+		return this.getBooleanAttribute(PromptHeaderAttributes.userInvokable);
+	}
+
+	public get disableModelInvocation(): boolean | undefined {
+		return this.getBooleanAttribute(PromptHeaderAttributes.disableModelInvocation);
+	}
+
+	private getBooleanAttribute(key: string): boolean | undefined {
+		const attribute = this._parsedHeader.attributes.find(attr => attr.key === key);
+		if (attribute?.value.type === 'boolean') {
+			return attribute.value.value;
+		}
+		return undefined;
 	}
 }
 
@@ -463,3 +474,76 @@ export interface IBodyVariableReference {
 	readonly range: Range;
 	readonly offset: number;
 }
+
+/**
+ * Parses a comma-separated list of values into an array of strings.
+ * Values can be unquoted or quoted (single or double quotes).
+ *
+ * @param input A string containing comma-separated values
+ * @returns An IArrayValue containing the parsed values and their ranges
+ */
+export function parseCommaSeparatedList(stringValue: IStringValue): IArrayValue {
+	const result: IStringValue[] = [];
+	const input = stringValue.value;
+	const positionOffset = stringValue.range.getStartPosition();
+	let pos = 0;
+	const isWhitespace = (char: string): boolean => char === ' ' || char === '\t';
+
+	while (pos < input.length) {
+		// Skip leading whitespace
+		while (pos < input.length && isWhitespace(input[pos])) {
+			pos++;
+		}
+
+		if (pos >= input.length) {
+			break;
+		}
+
+		const startPos = pos;
+		let value = '';
+		let endPos: number;
+
+		const char = input[pos];
+		if (char === '"' || char === `'`) {
+			// Quoted string
+			const quote = char;
+			pos++; // Skip opening quote
+
+			while (pos < input.length && input[pos] !== quote) {
+				value += input[pos];
+				pos++;
+			}
+			endPos = pos + 1; // Include closing quote in the range
+
+			if (pos < input.length) {
+				pos++;
+			}
+
+		} else {
+			// Unquoted string - read until comma or end
+			const startPos = pos;
+			while (pos < input.length && input[pos] !== ',') {
+				value += input[pos];
+				pos++;
+			}
+			value = value.trimEnd();
+			endPos = startPos + value.length;
+		}
+
+		result.push({ type: 'string', value: value, range: new Range(positionOffset.lineNumber, positionOffset.column + startPos, positionOffset.lineNumber, positionOffset.column + endPos) });
+
+		// Skip whitespace after value
+		while (pos < input.length && isWhitespace(input[pos])) {
+			pos++;
+		}
+
+		// Skip comma if present
+		if (pos < input.length && input[pos] === ',') {
+			pos++;
+		}
+	}
+
+	return { type: 'array', items: result, range: stringValue.range };
+}
+
+

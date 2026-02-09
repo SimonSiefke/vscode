@@ -13,16 +13,17 @@ import { IChatAgentAttachmentCapabilities } from '../../common/participants/chat
 import { IChatModel } from '../../common/model/chatModel.js';
 import { IChatService } from '../../common/chatService/chatService.js';
 import { IChatSession, IChatSessionContentProvider, IChatSessionItem, IChatSessionItemProvider, IChatSessionOptionsWillNotifyExtensionEvent, IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, IChatSessionsExtensionPoint, IChatSessionsService } from '../../common/chatSessionsService.js';
+import { Target } from '../../common/promptSyntax/service/promptsService.js';
 
 export class MockChatSessionsService implements IChatSessionsService {
 	_serviceBrand: undefined;
 
 	private readonly _onDidChangeSessionOptions = new Emitter<URI>();
 	readonly onDidChangeSessionOptions = this._onDidChangeSessionOptions.event;
-	private readonly _onDidChangeItemsProviders = new Emitter<IChatSessionItemProvider>();
+	private readonly _onDidChangeItemsProviders = new Emitter<{ readonly chatSessionType: string }>();
 	readonly onDidChangeItemsProviders = this._onDidChangeItemsProviders.event;
 
-	private readonly _onDidChangeSessionItems = new Emitter<string>();
+	private readonly _onDidChangeSessionItems = new Emitter<{ readonly chatSessionType: string }>();
 	readonly onDidChangeSessionItems = this._onDidChangeSessionItems.event;
 
 	private readonly _onDidChangeAvailability = new Emitter<void>();
@@ -54,7 +55,7 @@ export class MockChatSessionsService implements IChatSessionsService {
 	}
 
 	fireDidChangeSessionItems(chatSessionType: string): void {
-		this._onDidChangeSessionItems.fire(chatSessionType);
+		this._onDidChangeSessionItems.fire({ chatSessionType });
 	}
 
 	fireDidChangeAvailability(): void {
@@ -86,8 +87,8 @@ export class MockChatSessionsService implements IChatSessionsService {
 		this.contributions = contributions;
 	}
 
-	async activateChatSessionItemProvider(chatSessionType: string): Promise<IChatSessionItemProvider | undefined> {
-		return this.sessionItemProviders.get(chatSessionType);
+	async activateChatSessionItemProvider(chatSessionType: string): Promise<void> {
+		// Noop, nothing to activate
 	}
 
 	getIconForSessionType(chatSessionType: string): ThemeIcon | URI | undefined {
@@ -167,10 +168,6 @@ export class MockChatSessionsService implements IChatSessionsService {
 		await this._onRequestNotifyExtension.fireAsync({ sessionResource, updates }, CancellationToken.None);
 	}
 
-	notifySessionItemsChanged(chatSessionType: string): void {
-		this._onDidChangeSessionItems.fire(chatSessionType);
-	}
-
 	getSessionOption(sessionResource: URI, optionId: string): string | undefined {
 		return this.sessionOptions.get(sessionResource)?.get(optionId);
 	}
@@ -191,8 +188,8 @@ export class MockChatSessionsService implements IChatSessionsService {
 		return this.contributions.find(c => c.type === chatSessionType)?.capabilities;
 	}
 
-	getCustomAgentTargetForSessionType(chatSessionType: string): string | undefined {
-		return this.contributions.find(c => c.type === chatSessionType)?.customAgentTarget;
+	getCustomAgentTargetForSessionType(chatSessionType: string): Target {
+		return this.contributions.find(c => c.type === chatSessionType)?.customAgentTarget ?? Target.Undefined;
 	}
 
 	getContentProviderSchemes(): string[] {

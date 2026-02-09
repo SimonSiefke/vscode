@@ -4,9 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../../../../base/common/uri.js';
-import { basename, dirname } from '../../../../../../base/common/path.js';
+import { posix } from '../../../../../../base/common/path.js';
 import { PromptsType } from '../promptTypes.js';
 import { PromptsStorage } from '../service/promptsService.js';
+
+const { basename, dirname } = posix;
 
 /**
  * File extension for the reusable prompt files.
@@ -32,6 +34,26 @@ export const AGENT_FILE_EXTENSION = '.agent.md';
  * Skill file name (case insensitive).
  */
 export const SKILL_FILENAME = 'SKILL.md';
+
+/**
+ * AGENT file name
+ */
+export const AGENT_MD_FILENAME = 'AGENTS.md';
+
+/**
+ * Claude file name.
+ */
+export const CLAUDE_MD_FILENAME = 'CLAUDE.md';
+
+/**
+ * Claude local file name.
+ */
+export const CLAUDE_LOCAL_MD_FILENAME = 'CLAUDE.local.md';
+
+/**
+ * Claude configuration folder name.
+ */
+export const CLAUDE_CONFIG_FOLDER = '.claude';
 
 /**
  * Copilot custom instructions file name.
@@ -60,6 +82,16 @@ export const LEGACY_MODE_DEFAULT_SOURCE_FOLDER = '.github/chatmodes';
 export const AGENTS_SOURCE_FOLDER = '.github/agents';
 
 /**
+ * Claude agents folder.
+ */
+export const CLAUDE_AGENTS_SOURCE_FOLDER = '.claude/agents';
+
+/**
+ * Hooks folder.
+ */
+export const HOOKS_SOURCE_FOLDER = '.github/hooks';
+
+/**
  * Tracks where prompt files originate from.
  */
 export enum PromptFileSource {
@@ -67,6 +99,9 @@ export enum PromptFileSource {
 	CopilotPersonal = 'copilot-personal',
 	ClaudePersonal = 'claude-personal',
 	ClaudeWorkspace = 'claude-workspace',
+	ClaudeWorkspaceLocal = 'claude-workspace-local',
+	AgentsWorkspace = 'agents-workspace',
+	AgentsPersonal = 'agents-personal',
 	ConfigWorkspace = 'config-workspace',
 	ConfigPersonal = 'config-personal',
 	ExtensionContribution = 'extension-contribution',
@@ -114,8 +149,10 @@ export interface IResolvedPromptFile {
  */
 export const DEFAULT_SKILL_SOURCE_FOLDERS: readonly IPromptSourceFolder[] = [
 	{ path: '.github/skills', source: PromptFileSource.GitHubWorkspace, storage: PromptsStorage.local },
+	{ path: '.agents/skills', source: PromptFileSource.AgentsWorkspace, storage: PromptsStorage.local },
 	{ path: '.claude/skills', source: PromptFileSource.ClaudeWorkspace, storage: PromptsStorage.local },
 	{ path: '~/.copilot/skills', source: PromptFileSource.CopilotPersonal, storage: PromptsStorage.user },
+	{ path: '~/.agents/skills', source: PromptFileSource.AgentsPersonal, storage: PromptsStorage.user },
 	{ path: '~/.claude/skills', source: PromptFileSource.ClaudePersonal, storage: PromptsStorage.user },
 ];
 
@@ -138,6 +175,18 @@ export const DEFAULT_PROMPT_SOURCE_FOLDERS: readonly IPromptSourceFolder[] = [
  */
 export const DEFAULT_AGENT_SOURCE_FOLDERS: readonly IPromptSourceFolder[] = [
 	{ path: AGENTS_SOURCE_FOLDER, source: PromptFileSource.GitHubWorkspace, storage: PromptsStorage.local },
+	{ path: CLAUDE_AGENTS_SOURCE_FOLDER, source: PromptFileSource.ClaudeWorkspace, storage: PromptsStorage.local },
+];
+
+/**
+ * Default hook file paths.
+ * Entries can be either a directory or a specific file path (.json)
+ */
+export const DEFAULT_HOOK_FILE_PATHS: readonly IPromptSourceFolder[] = [
+	{ path: '.github/hooks', source: PromptFileSource.GitHubWorkspace, storage: PromptsStorage.local },
+	{ path: '.claude/settings.local.json', source: PromptFileSource.ClaudeWorkspaceLocal, storage: PromptsStorage.local },
+	{ path: '.claude/settings.json', source: PromptFileSource.ClaudeWorkspace, storage: PromptsStorage.local },
+	{ path: '~/.claude/settings.json', source: PromptFileSource.ClaudePersonal, storage: PromptsStorage.user },
 ];
 
 /**
@@ -145,11 +194,16 @@ export const DEFAULT_AGENT_SOURCE_FOLDERS: readonly IPromptSourceFolder[] = [
  */
 function isInAgentsFolder(fileUri: URI): boolean {
 	const dir = dirname(fileUri.path);
-	return dir.endsWith('/' + AGENTS_SOURCE_FOLDER) || dir === AGENTS_SOURCE_FOLDER;
+	return dir.endsWith('/' + AGENTS_SOURCE_FOLDER) || dir.endsWith('/' + CLAUDE_AGENTS_SOURCE_FOLDER);
 }
 
 /**
  * Gets the prompt file type from the provided path.
+ *
+ * Note: This function assumes the URI is already known to be a prompt file
+ * (e.g., from a configured prompt source folder). It does not validate that
+ * arbitrary URIs are prompt files - for example, any .json file will return
+ * PromptsType.hook regardless of its location.
  */
 export function getPromptFileType(fileUri: URI): PromptsType | undefined {
 	const filename = basename(fileUri.path);
@@ -176,6 +230,12 @@ export function getPromptFileType(fileUri: URI): PromptsType | undefined {
 		return PromptsType.agent;
 	}
 
+	// Any .json file is treated as a hook file.
+	// The caller is responsible for only passing URIs from valid prompt source folders.
+	if (filename.toLowerCase().endsWith('.json')) {
+		return PromptsType.hook;
+	}
+
 	return undefined;
 }
 
@@ -196,6 +256,8 @@ export function getPromptFileExtension(type: PromptsType): string {
 			return AGENT_FILE_EXTENSION;
 		case PromptsType.skill:
 			return SKILL_FILENAME;
+		case PromptsType.hook:
+			return '.json';
 		default:
 			throw new Error('Unknown prompt type');
 	}
@@ -211,6 +273,8 @@ export function getPromptFileDefaultLocations(type: PromptsType): readonly IProm
 			return DEFAULT_AGENT_SOURCE_FOLDERS;
 		case PromptsType.skill:
 			return DEFAULT_SKILL_SOURCE_FOLDERS;
+		case PromptsType.hook:
+			return DEFAULT_HOOK_FILE_PATHS;
 		default:
 			throw new Error('Unknown prompt type');
 	}
