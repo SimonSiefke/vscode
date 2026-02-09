@@ -14,13 +14,13 @@ import { AbstractPolicyService, IPolicyService, PolicyDefinition, PolicyValue } 
 export class PolicyChannel implements IServerChannel {
 
 	private readonly _onDidChange: Event<object>;
-	private readonly _disposables = new DisposableStore();
+	private readonly disposables = new DisposableStore();
 
 	constructor(private service: IPolicyService) {
 		this._onDidChange = Event.map(
 			this.service.onDidChange,
 			names => names.reduce<object>((r, name) => ({ ...r, [name]: this.service.getPolicyValue(name) ?? null }), {}),
-			this._disposables
+			this.disposables
 		);
 	}
 
@@ -41,7 +41,7 @@ export class PolicyChannel implements IServerChannel {
 	}
 
 	dispose() {
-		this._disposables.dispose();
+		this.disposables.dispose();
 	}
 }
 
