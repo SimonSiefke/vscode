@@ -440,12 +440,12 @@ export class UtilityProcess extends Disposable {
 			UtilityProcess.all.delete(this.processPid);
 		}
 
-		if (this.process) {
-			// @ts-ignore
-			this.process.stdout?.destroy();
-			// @ts-ignore
-			this.process.stderr?.destroy();
-		}
+		// if (this.process) {
+		// 	// @ts-ignore
+		// 	// this.process.stdout?.destroy();
+		// 	// // @ts-ignore
+		// 	// this.process.stderr?.destroy();
+		// }
 
 		this.process = undefined;
 	}
