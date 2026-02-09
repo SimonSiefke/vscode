@@ -517,12 +517,6 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 		}
 		dispose(this.activeRequests.values());
 		this.activeRequests.clear();
-		// for (const requests of this.pendingRequests.values()) {
-		// 	for (const request of requests) {
-		// 		clearTimeout(request.timeoutTimer);
-		// 	}
-		// }
-		// this.pendingRequests.clear();
 	}
 }
 
@@ -786,8 +780,6 @@ export class ChannelClient implements IChannelClient, IDisposable {
 		}
 		dispose(this.activeRequests.values());
 		this.activeRequests.clear();
-		// this._onDidInitialize.dispose();
-		// this.handlers.clear();
 	}
 }
 
@@ -852,14 +844,14 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 					channelClient.dispose();
 					this._connections.delete(connection);
 					this._onDidRemoveConnection.fire(connection);
-					this.disposables.delete(connectionDisposables)
+					this.disposables.delete(connectionDisposables);
 					connectionDisposables.dispose();
 				}));
 			});
 
 			connectionDisposables.add(onFirstMessageDisposable);
 			connectionDisposables.add(onDidClientDisconnect(() => {
-				this.disposables.delete(connectionDisposables)
+				this.disposables.delete(connectionDisposables);
 				connectionDisposables.dispose();
 			}));
 
