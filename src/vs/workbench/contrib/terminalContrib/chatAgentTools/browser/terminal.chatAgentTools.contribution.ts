@@ -89,8 +89,6 @@ class ChatAgentToolsContribution extends Disposable implements IWorkbenchContrib
 
 		const confirmTerminalCommandTool = instantiationService.createInstance(ConfirmTerminalCommandTool);
 		this._register(toolsService.registerTool(ConfirmTerminalCommandToolData, confirmTerminalCommandTool));
-		const getTerminalOutputTool = instantiationService.createInstance(GetTerminalOutputTool);
-		this._register(toolsService.registerTool(GetTerminalOutputToolData, getTerminalOutputTool));
 		this._register(toolsService.executeToolSet.addTool(GetTerminalOutputToolData));
 
 		const awaitTerminalTool = instantiationService.createInstance(AwaitTerminalTool);
@@ -103,6 +101,8 @@ class ChatAgentToolsContribution extends Disposable implements IWorkbenchContrib
 
 		instantiationService.invokeFunction(createRunInTerminalToolData).then(runInTerminalToolData => {
 			const runInTerminalTool = instantiationService.createInstance(RunInTerminalTool);
+			const getTerminalOutputTool = instantiationService.createInstance(GetTerminalOutputTool, runInTerminalTool);
+			this._register(toolsService.registerTool(GetTerminalOutputToolData, getTerminalOutputTool));
 			this._register(toolsService.registerTool(runInTerminalToolData, runInTerminalTool));
 			this._register(toolsService.executeToolSet.addTool(runInTerminalToolData));
 		});
