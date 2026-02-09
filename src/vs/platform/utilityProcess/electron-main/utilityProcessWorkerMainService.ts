@@ -87,8 +87,7 @@ export class UtilityProcessWorkerMainService extends Disposable implements IUtil
 		}
 
 		this.logService.trace(`[UtilityProcessWorker]: disposeWorker(window: ${configuration.reply.windowId}, moduleId: ${configuration.process.moduleId})`);
-
-		this.workers.deleteAndDispose(workerId);
+		worker.kill();
 	}
 }
 
