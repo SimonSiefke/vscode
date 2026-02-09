@@ -18,6 +18,8 @@ interface IDatabaseConnection {
 
 	isErroneous?: boolean;
 	lastError?: string;
+	errorListener?: (error: Error) => void;
+	traceListener?: (sql: string) => void;
 }
 
 export interface ISQLiteStorageDatabaseOptions {
@@ -165,68 +167,78 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 		const connection = await this.whenConnected;
 
-		return this.doClose(connection, recovery);
+		return this.doClose(connection, recovery).finally(() => {
+			this.logger.clear();
+		});
 	}
 
 	private doClose(connection: IDatabaseConnection, recovery?: () => Map<string, string>): Promise<void> {
-		return new Promise((resolve, reject) => {
-			connection.db.close(closeError => {
-				if (closeError) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
-				}
+		const { resolve, reject, promise } = Promise.withResolvers<void>()
+		if (connection.errorListener) {
+			connection.db.removeListener('error', connection.errorListener);
+		}
+		if (connection.traceListener) {
+			connection.db.removeListener('trace', connection.traceListener);
+		}
 
-				// Return early if this storage was created only in-memory
-				// e.g. when running tests we do not need to backup.
-				if (this.path === SQLiteStorageDatabase.IN_MEMORY_PATH) {
-					return resolve();
-				}
+		connection.db.close(closeError => {
+			if (closeError) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] close(): ${closeError}`);
+			}
 
-				// If the DB closed successfully and we are not running in-memory
-				// and the DB did not get errors during runtime, make a backup
-				// of the DB so that we can use it as fallback in case the actual
-				// DB becomes corrupt in the future.
-				if (!connection.isErroneous && !connection.isInMemory) {
-					return this.backup().then(resolve, error => {
-						this.logger.error(`[storage ${this.name}] backup(): ${error}`);
+			// Return early if this storage was created only in-memory
+			// e.g. when running tests we do not need to backup.
+			if (this.path === SQLiteStorageDatabase.IN_MEMORY_PATH) {
+				return resolve();
+			}
 
-						return resolve(); // ignore failing backup
-					});
-				}
+			// If the DB closed successfully and we are not running in-memory
+			// and the DB did not get errors during runtime, make a backup
+			// of the DB so that we can use it as fallback in case the actual
+			// DB becomes corrupt in the future.
+			if (!connection.isErroneous && !connection.isInMemory) {
+				return this.backup().then(resolve, error => {
+					this.logger.error(`[storage ${this.name}] backup(): ${error}`);
 
-				// Recovery: if we detected errors while using the DB or we are using
-				// an inmemory DB (as a fallback to not being able to open the DB initially)
-				// and we have a recovery function provided, we recreate the DB with this
-				// data to recover all known data without loss if possible.
-				if (typeof recovery === 'function') {
+					return resolve(); // ignore failing backup
+				});
+			}
 
-					// Delete the existing DB. If the path does not exist or fails to
-					// be deleted, we do not try to recover anymore because we assume
-					// that the path is no longer writeable for us.
-					return fs.promises.unlink(this.path).then(() => {
+			// Recovery: if we detected errors while using the DB or we are using
+			// an inmemory DB (as a fallback to not being able to open the DB initially)
+			// and we have a recovery function provided, we recreate the DB with this
+			// data to recover all known data without loss if possible.
+			if (typeof recovery === 'function') {
 
-						// Re-open the DB fresh
-						return this.doConnect(this.path).then(recoveryConnection => {
-							const closeRecoveryConnection = () => {
-								return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
-							};
+				// Delete the existing DB. If the path does not exist or fails to
+				// be deleted, we do not try to recover anymore because we assume
+				// that the path is no longer writeable for us.
+				return fs.promises.unlink(this.path).then(() => {
 
-							// Store items
-							return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
+					// Re-open the DB fresh
+					return this.doConnect(this.path).then(recoveryConnection => {
+						const closeRecoveryConnection = () => {
+							return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
+						};
 
-								// In case of an error updating items, still ensure to close the connection
-								// to prevent SQLITE_BUSY errors when the connection is reestablished
-								closeRecoveryConnection();
+						// Store items
+						return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
 
-								return Promise.reject(error);
-							});
+							// In case of an error updating items, still ensure to close the connection
+							// to prevent SQLITE_BUSY errors when the connection is reestablished
+							closeRecoveryConnection();
+
+							return Promise.reject(error);
 						});
-					}).then(resolve, reject);
-				}
+					});
+				}).then(resolve, reject);
+			}
 
-				// Finally without recovery we just reject
-				return reject(closeError || new Error('Database has errors or is in-memory without recovery option'));
-			});
+			// Finally without recovery we just reject
+			return reject(closeError || new Error('Database has errors or is in-memory without recovery option'));
 		});
+
+		return promise;
 	}
 
 	private backup(): Promise<void> {
@@ -313,68 +325,84 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		this.logger.error(msg);
 	}
 
-	private doConnect(path: string): Promise<IDatabaseConnection> {
-		return new Promise((resolve, reject) => {
-			import('@vscode/sqlite3').then(sqlite3 => {
-				const ctor = (this.logger.isTracing ? sqlite3.default.verbose().Database : sqlite3.default.Database);
-				const connection: IDatabaseConnection = {
-					db: new ctor(path, (error: (Error & { code?: string }) | null) => {
-						if (error) {
-							return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
-						}
+	private async doConnect(path: string): Promise<IDatabaseConnection> {
+		const { resolve, reject, promise } = Promise.withResolvers<IDatabaseConnection>()
+		const sqlite3 = await import('@vscode/sqlite3');
+		const ctor = (this.logger.isTracing ? sqlite3.default.verbose().Database : sqlite3.default.Database);
 
-						// The following exec() statement serves two purposes:
-						// - create the DB if it does not exist yet
-						// - validate that the DB is not corrupt (the open() call does not throw otherwise)
-						return this.exec(connection, [
-							'PRAGMA user_version = 1;',
-							'CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)'
-						].join('')).then(() => {
-							return resolve(connection);
-						}, error => {
-							return connection.db.close(() => reject(error));
-						});
-					}),
-					isInMemory: path === SQLiteStorageDatabase.IN_MEMORY_PATH
-				};
-
-				// Errors
-				connection.db.on('error', error => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`));
-
-				// Tracing
-				if (this.logger.isTracing) {
-					connection.db.on('trace', sql => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`));
+		const connection: IDatabaseConnection = {
+			db: new ctor(path, (error: (Error & { code?: string }) | null) => {
+				if (error) {
+					if (connection.errorListener) {
+						connection.db.removeListener('error', connection.errorListener);
+					}
+					if (connection.traceListener) {
+						connection.db.removeListener('trace', connection.traceListener);
+					}
+					return (connection.db && error.code !== 'SQLITE_CANTOPEN' /* https://github.com/TryGhost/node-sqlite3/issues/1617 */) ? connection.db.close(() => reject(error)) : reject(error);
 				}
-			}, reject);
-		});
+
+				// The following exec() statement serves two purposes:
+				// - create the DB if it does not exist yet
+				// - validate that the DB is not corrupt (the open() call does not throw otherwise)
+				return this.exec(connection, [
+					'PRAGMA user_version = 1;',
+					'CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)'
+				].join('')).then(() => {
+					return resolve(connection);
+				}, error => {
+					if (connection.errorListener) {
+						connection.db.removeListener('error', connection.errorListener);
+					}
+					if (connection.traceListener) {
+						connection.db.removeListener('trace', connection.traceListener);
+					}
+					return connection.db.close(() => reject(error));
+				});
+			}),
+			isInMemory: path === SQLiteStorageDatabase.IN_MEMORY_PATH
+		};
+
+
+		// Errors
+		connection.errorListener = (error: Error) => this.handleSQLiteError(connection, `[storage ${this.name}] Error (event): ${error}`);
+		connection.db.on('error', connection.errorListener);
+
+		// Tracing
+		if (this.logger.isTracing) {
+			connection.traceListener = (sql: string) => this.logger.trace(`[storage ${this.name}] Trace (event): ${sql}`);
+			connection.db.on('trace', connection.traceListener);
+		}
+		return promise;
 	}
 
 	private exec(connection: IDatabaseConnection, sql: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			connection.db.exec(sql, error => {
-				if (error) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
+		const { resolve, reject, promise } = Promise.withResolvers<void>()
+		connection.db.exec(sql, error => {
+			if (error) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] exec(): ${error}`);
 
-					return reject(error);
-				}
+				return reject(error);
+			}
 
-				return resolve();
-			});
+			return resolve();
 		});
+		return promise
 	}
 
 	private get(connection: IDatabaseConnection, sql: string): Promise<object> {
-		return new Promise((resolve, reject) => {
-			connection.db.get(sql, (error, row) => {
-				if (error) {
-					this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
+		const { resolve, reject, promise } = Promise.withResolvers<object>()
 
-					return reject(error);
-				}
+		connection.db.get(sql, (error, row) => {
+			if (error) {
+				this.handleSQLiteError(connection, `[storage ${this.name}] get(): ${error}`);
 
-				return resolve(row);
-			});
+				return reject(error);
+			}
+
+			return resolve(row);
 		});
+		return promise;
 	}
 
 	private all(connection: IDatabaseConnection, sql: string): Promise<{ key: string; value: string }[]> {
@@ -419,8 +447,12 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		};
 
 		stmt.on('error', statementErrorListener);
-
-		runCallback(stmt);
+		let runError: unknown;
+		try {
+			runCallback(stmt);
+		} catch (error) {
+			runError = error;
+		}
 
 		stmt.finalize(error => {
 			if (error) {
@@ -429,18 +461,19 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 			stmt.removeListener('error', statementErrorListener);
 		});
+
+		if (runError) {
+			throw runError;
+		}
 	}
 }
 
 class SQLiteStorageDatabaseLogger {
 
-	// to reduce lots of output, require an environment variable to enable tracing
-	// this helps when running with --verbose normally where the storage tracing
-	// might hide useful output to look at
 	private static readonly VSCODE_TRACE_STORAGE = 'VSCODE_TRACE_STORAGE';
 
-	private readonly logTrace: ((msg: string) => void) | undefined;
-	private readonly logError: ((error: string | Error) => void) | undefined;
+	private logTrace: ((msg: string) => void) | undefined;
+	private logError: ((error: string | Error) => void) | undefined;
 
 	constructor(options?: ISQLiteStorageDatabaseLoggingOptions) {
 		if (options && typeof options.logTrace === 'function' && process.env[SQLiteStorageDatabaseLogger.VSCODE_TRACE_STORAGE]) {
@@ -462,5 +495,10 @@ class SQLiteStorageDatabaseLogger {
 
 	error(error: string | Error): void {
 		this.logError?.(error);
+	}
+
+	clear(): void {
+		this.logTrace = undefined;
+		this.logError = undefined;
 	}
 }

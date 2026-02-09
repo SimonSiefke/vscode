@@ -7,7 +7,7 @@ import { WebContents } from 'electron';
 import { validatedIpcMain } from './ipcMain.js';
 import { VSBuffer } from '../../../common/buffer.js';
 import { Emitter, Event } from '../../../common/event.js';
-import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { ClientConnectionEvent, IPCServer } from '../common/ipc.js';
 import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
 
@@ -16,11 +16,16 @@ interface IIPCEvent {
 	message: Buffer | null;
 }
 
-function createScopedOnMessageEvent(senderId: number, eventName: string): Event<VSBuffer | null> {
-	const onMessage = Event.fromNodeEventEmitter<IIPCEvent>(validatedIpcMain, eventName, (event, message) => ({ event, message }));
-	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId);
+function createScopedOnMessageEvent(senderId: number, eventName: string, store: DisposableStore): Event<VSBuffer | null> {
+	const fn = (event: { sender: WebContents }, message: Buffer | null) => messageEmitter.fire({ event, message });
+	const messageEmitter = store.add(new Emitter<IIPCEvent>({
+		onWillAddFirstListener: () => validatedIpcMain.on(eventName, fn),
+		onDidRemoveLastListener: () => validatedIpcMain.removeListener(eventName, fn)
+	}));
+	const onMessage = messageEmitter.event;
+	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId, store);
 
-	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message);
+	return Event.map(onMessageFromSender, ({ message }) => message ? VSBuffer.wrap(message) : message, store);
 }
 
 /**
@@ -37,13 +42,46 @@ export class Server extends IPCServer {
 			const id = webContents.id;
 			const client = Server.Clients.get(id);
 
-			client?.dispose();
+			if (client) {
+				Server.Clients.delete(id);
+				client.dispose();
+			}
 
-			const onDidClientReconnect = new Emitter<void>();
-			Server.Clients.set(id, toDisposable(() => onDidClientReconnect.fire()));
+			const store = new DisposableStore();
+			const onDidClientReconnect = store.add(new Emitter<void>());
+			const onMessage = createScopedOnMessageEvent(id, 'vscode:message', store) as Event<VSBuffer>;
 
-			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<VSBuffer>;
-			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event);
+			let destroyedHandler: (() => void) | undefined;
+			const destroyedEmitter = store.add(new Emitter<void>({
+				onWillAddFirstListener: () => {
+					destroyedHandler = () => destroyedEmitter.fire();
+					webContents.once('destroyed', destroyedHandler);
+				},
+				onDidRemoveLastListener: () => {
+					if (destroyedHandler && !webContents.isDestroyed()) {
+						webContents.removeListener('destroyed', destroyedHandler);
+					}
+				}
+			}));
+			const onDidClientDisconnect = Event.any(
+				Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect', store)),
+				onDidClientReconnect.event,
+				destroyedEmitter.event
+			);
+
+			const disposable = toDisposable(() => {
+				onDidClientReconnect.fire();
+				store.dispose();
+			});
+
+			Server.Clients.set(id, disposable);
+
+			const onceDisconnectDisposable = Event.once(onDidClientDisconnect)(() => {
+				Server.Clients.delete(id);
+				disposable.dispose();
+			});
+			store.add(onceDisconnectDisposable);
+
 			const protocol = new ElectronProtocol(webContents, onMessage);
 
 			return { protocol, onDidClientDisconnect };
@@ -52,5 +90,11 @@ export class Server extends IPCServer {
 
 	constructor() {
 		super(Server.getOnDidClientConnect());
+	}
+
+	override dispose(): void {
+		Server.Clients.forEach(disposable => disposable.dispose());
+		Server.Clients.clear();
+		super.dispose();
 	}
 }

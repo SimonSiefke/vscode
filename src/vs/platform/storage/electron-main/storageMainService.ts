@@ -5,7 +5,7 @@
 
 import { URI } from '../../../base/common/uri.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { IStorage } from '../../../base/parts/storage/common/storage.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
 import { IFileService } from '../../files/common/files.js';
@@ -63,6 +63,12 @@ export interface IStorageMainService {
 	 *       This is currently not supported.
 	 */
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain;
+
+	/**
+	 * Closes and disposes the workspace storage for the given workspace.
+	 * This should be called when a window is closed to free up resources.
+	 */
+	closeWorkspaceStorage(workspace: IAnyWorkspaceIdentifier): void;
 
 	/**
 	 * Checks if the provided path is currently in use for a storage database.
@@ -210,6 +216,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 				this.mapProfileToStorage.delete(profile.id);
 				listener.dispose();
+				profileStorage!.dispose();
 			});
 		}
 
@@ -235,21 +242,21 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 	//#region Workspace Storage
 
 	private readonly mapWorkspaceToStorage = new Map<string /* workspace ID */, IStorageMain>();
+	private readonly mapWorkspaceToDisposable = new DisposableMap<string /* workspace ID */>();
 
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
 		let workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
 		if (!workspaceStorage) {
 			this.logService.trace(`StorageMainService: creating workspace storage (${workspace.id})`);
 
-			workspaceStorage = this._register(this.createWorkspaceStorage(workspace));
+			workspaceStorage = this.createWorkspaceStorage(workspace);
 			this.mapWorkspaceToStorage.set(workspace.id, workspaceStorage);
 
-			// Don't use this._register() for Event.once as it auto-disposes
-			Event.once(workspaceStorage.onDidCloseStorage)(() => {
+			this._register(Event.once(workspaceStorage.onDidCloseStorage)(() => {
 				this.logService.trace(`StorageMainService: closed workspace storage (${workspace.id})`);
 
 				this.mapWorkspaceToStorage.delete(workspace.id);
-			});
+			}));
 		}
 
 		return workspaceStorage;
@@ -266,6 +273,24 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		}
 
 		return new WorkspaceStorageMain(workspace, this.getStorageOptions(), this.logService, this.environmentService, this.fileService);
+	}
+
+	closeWorkspaceStorage(workspace: IAnyWorkspaceIdentifier): void {
+		const workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
+		if (workspaceStorage) {
+			this.logService.trace(`StorageMainService: closing workspace storage (${workspace.id})`);
+
+			// Close the storage and wait for it to complete before cleaning up
+			workspaceStorage.close()
+				.catch(error => this.logService.error('Error closing workspace storage:', error))
+				.finally(() => {
+					// After close completes, remove from maps
+					this.mapWorkspaceToStorage.delete(workspace.id);
+					// Use deleteAndDispose to properly dispose the storage
+					// (dispose() will skip close if already closed, and dispose parent Disposable)
+					this.mapWorkspaceToDisposable.deleteAndDispose(workspace.id);
+				});
+		}
 	}
 
 	//#endregion
