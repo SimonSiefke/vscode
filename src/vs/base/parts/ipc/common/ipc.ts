@@ -850,11 +850,6 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 			});
 
 			connectionDisposables.add(onFirstMessageDisposable);
-			connectionDisposables.add(onDidClientDisconnect(() => {
-				this.disposables.delete(connectionDisposables);
-				connectionDisposables.dispose();
-			}));
-
 			this.disposables.add(connectionDisposables);
 		}));
 	}
