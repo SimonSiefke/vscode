@@ -42,16 +42,23 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 
 		entry.counter++;
 
+		const releaseReference = () => {
+			if (--entry.counter <= 0) {
+				entry.model.then(x => x.dispose());
+				this._references.delete(key);
+			}
+		};
+
 		return entry.model.then(model => {
 			return {
 				object: model,
 				dispose: createSingleCallFunction(() => {
-					if (--entry.counter <= 0) {
-						entry.model.then(x => x.dispose());
-						this._references.delete(key);
-					}
+					releaseReference();
 				}),
 			};
+		}, error => {
+			releaseReference();
+			throw error;
 		});
 	}
 
