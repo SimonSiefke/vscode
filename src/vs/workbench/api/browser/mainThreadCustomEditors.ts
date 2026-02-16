@@ -9,7 +9,7 @@ import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableMap, DisposableStore, IReference } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable, IReference } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
 import { basename } from '../../../base/common/path.js';
 import { isEqual, isEqualOrParent, toLocalResource } from '../../../base/common/resources.js';
@@ -160,7 +160,7 @@ export class MainThreadCustomEditors extends Disposable implements extHostProtoc
 					this._editorRenameBackups.delete(webviewInput.oldResource.toString());
 				}
 
-				let modelRef: IReference<ICustomEditorModel>;
+				let modelRef: IReference<ICustomEditorModel> | undefined;
 				try {
 					modelRef = await this.getOrCreateCustomEditorModel(modelType, resource, viewType, { backupId }, cancellation);
 				} catch (error) {
@@ -171,25 +171,41 @@ export class MainThreadCustomEditors extends Disposable implements extHostProtoc
 
 				if (cancellation.isCancellationRequested) {
 					modelRef.dispose();
+					modelRef = undefined;
 					return;
 				}
+
+				const disposeModelRef = () => {
+					if (modelRef) {
+						modelRef.dispose();
+						modelRef = undefined;
+					}
+				};
 
 				const disposeSub = webviewInput.webview.onDidDispose(() => {
 					disposeSub.dispose();
 					inputDisposeSub.dispose();
+					moveDisposeSub?.dispose();
+
+					const currentModelRef = modelRef;
+					if (!currentModelRef) {
+						return;
+					}
 
 					// If the model is still dirty, make sure we have time to save it
-					if (modelRef.object.isDirty()) {
-						const sub = modelRef.object.onDidChangeDirty(() => {
-							if (!modelRef.object.isDirty()) {
+					if (currentModelRef.object.isDirty()) {
+						const sub = currentModelRef.object.onDidChangeDirty(() => {
+							if (!currentModelRef.object.isDirty()) {
 								sub.dispose();
-								modelRef.dispose();
+								if (modelRef === currentModelRef) {
+									disposeModelRef();
+								}
 							}
 						});
 						return;
 					}
 
-					modelRef.dispose();
+					disposeModelRef();
 				});
 
 				// Also listen for when the input is disposed (e.g., during SaveAs when the webview is transferred to a new editor).
@@ -197,15 +213,18 @@ export class MainThreadCustomEditors extends Disposable implements extHostProtoc
 				const inputDisposeSub = webviewInput.onWillDispose(() => {
 					inputDisposeSub.dispose();
 					disposeSub.dispose();
-					modelRef.dispose();
+					moveDisposeSub?.dispose();
+					disposeModelRef();
 				});
 
+				let moveDisposeSub: IDisposable | undefined;
+
 				if (capabilities.supportsMove) {
-					webviewInput.onMove(async (newResource: URI) => {
+					moveDisposeSub = webviewInput.onMove(async (newResource: URI) => {
 						const oldModel = modelRef;
 						modelRef = await this.getOrCreateCustomEditorModel(modelType, newResource, viewType, {}, CancellationToken.None);
 						this._proxyCustomEditors.$onMoveCustomEditor(handle, newResource, viewType);
-						oldModel.dispose();
+						oldModel?.dispose();
 					});
 				}
 
@@ -220,7 +239,10 @@ export class MainThreadCustomEditors extends Disposable implements extHostProtoc
 				} catch (error) {
 					onUnexpectedError(error);
 					webviewInput.webview.setHtml(this.mainThreadWebview.getWebviewResolvedFailedContent(viewType));
-					modelRef.dispose();
+					disposeSub.dispose();
+					inputDisposeSub.dispose();
+					moveDisposeSub?.dispose();
+					disposeModelRef();
 					return;
 				}
 			}

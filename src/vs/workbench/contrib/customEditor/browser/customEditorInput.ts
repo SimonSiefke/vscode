@@ -8,7 +8,7 @@ import { CodeWindow } from '../../../../base/browser/window.js';
 import { toAction } from '../../../../base/common/actions.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
-import { IReference } from '../../../../base/common/lifecycle.js';
+import { IDisposable, IReference, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { basename } from '../../../../base/common/path.js';
 import { dirname, isEqual } from '../../../../base/common/resources.js';
@@ -376,9 +376,14 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 
 	private _moveHandler?: (newResource: URI) => void;
 
-	public onMove(handler: (newResource: URI) => void): void {
+	public onMove(handler: (newResource: URI) => void): IDisposable {
 		// TODO: Move this to the service
 		this._moveHandler = handler;
+		return toDisposable(() => {
+			if (this._moveHandler === handler) {
+				this._moveHandler = undefined;
+			}
+		});
 	}
 
 	protected override transfer(other: CustomEditorInput): CustomEditorInput | undefined {
@@ -456,5 +461,10 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 		}
 
 		return true;
+	}
+
+	override dispose(): void {
+		this._moveHandler = undefined;
+		super.dispose();
 	}
 }
