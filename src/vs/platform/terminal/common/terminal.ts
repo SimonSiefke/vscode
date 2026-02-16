@@ -761,7 +761,7 @@ export interface IProcessReadyWindowsPty {
  * An interface representing a raw terminal child process, this contains a subset of the
  * child_process.ChildProcess node.js interface.
  */
-export interface ITerminalChildProcess {
+export interface ITerminalChildProcess extends IDisposable {
 	/**
 	 * A unique identifier for the terminal process. Note that the uniqueness only applies to a
 	 * given pty service connection, IDs will be duplicated for remote and local terminals for
