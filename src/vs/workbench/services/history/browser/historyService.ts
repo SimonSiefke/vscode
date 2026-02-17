@@ -2135,11 +2135,8 @@ class EditorHelper {
 		if (!disposables) {
 			disposables = new DisposableStore();
 			mapEditorToDispose.set(editor, disposables);
-			disposables.add(Event.once(editor.onWillDispose)(() => {
-				mapEditorToDispose.deleteAndLeak(editor);
-			}));
+			disposables.add(Event.once(editor.onWillDispose)(() => { mapEditorToDispose.deleteAndDispose(editor); }));
 		}
-
 		disposables.add(toDispose);
 	}
 
