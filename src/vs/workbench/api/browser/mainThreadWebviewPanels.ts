@@ -32,6 +32,16 @@ class WebviewInputStore {
 	private readonly _inputsToHandles = new Map<WebviewInput, string>();
 
 	public add(handle: string, input: WebviewInput): void {
+		const existingInputForHandle = this._handlesToInputs.get(handle);
+		if (existingInputForHandle && existingInputForHandle !== input) {
+			this._inputsToHandles.delete(existingInputForHandle);
+		}
+
+		const existingHandleForInput = this._inputsToHandles.get(input);
+		if (existingHandleForInput && existingHandleForInput !== handle) {
+			this._handlesToInputs.delete(existingHandleForInput);
+		}
+
 		this._handlesToInputs.set(handle, input);
 		this._inputsToHandles.set(input, handle);
 	}
@@ -139,8 +149,16 @@ export class MainThreadWebviewPanels extends Disposable implements extHostProtoc
 		this._webviewInputs.add(handle, input);
 		this._mainThreadWebviews.addWebview(handle, input.webview, options);
 
+		const inputDisposeSub = input.onWillDispose(() => {
+			inputDisposeSub.dispose();
+			if (this._webviewInputs.getInputForHandle(handle) === input) {
+				this._webviewInputs.delete(handle);
+			}
+		});
+
 		const disposeSub = input.webview.onDidDispose(() => {
 			disposeSub.dispose();
+			inputDisposeSub.dispose();
 
 			this._proxy.$onDidDisposeWebviewPanel(handle).finally(() => {
 				this._webviewInputs.delete(handle);
