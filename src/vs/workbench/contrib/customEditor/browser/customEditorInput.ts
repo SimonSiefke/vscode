@@ -8,7 +8,7 @@ import { CodeWindow } from '../../../../base/browser/window.js';
 import { toAction } from '../../../../base/common/actions.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
-import { IReference } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { basename } from '../../../../base/common/path.js';
 import { dirname, isEqual } from '../../../../base/common/resources.js';
@@ -91,6 +91,7 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 	override get resource() { return this._editorResource; }
 
 	private _modelRef?: IReference<ICustomEditorModel>;
+	private readonly _modelRefDisposables = this._register(new MutableDisposable<DisposableStore>());
 
 	constructor(
 		init: CustomEditorInputInitInfo,
@@ -115,8 +116,14 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 		this._defaultDirtyState = options.startsDirty;
 		this._backupId = options.backupId;
 		this._untitledDocumentData = options.untitledDocumentData;
+		this._register(this.webview.onDidDispose(() => this.releaseModelRef()));
 
 		this.registerListeners();
+	}
+
+	private releaseModelRef(): void {
+		this._modelRefDisposables.clear();
+		this._modelRef = undefined;
 	}
 
 	private registerListeners(): void {
@@ -341,9 +348,11 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 
 		if (!this._modelRef) {
 			const oldCapabilities = this.capabilities;
-			this._modelRef = this._register(assertReturnsDefined(await this.customEditorService.models.tryRetain(this.resource, this.viewType)));
-			this._register(this._modelRef.object.onDidChangeDirty(() => this._onDidChangeDirty.fire()));
-			this._register(this._modelRef.object.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
+			const modelRefDisposables = new DisposableStore();
+			this._modelRefDisposables.value = modelRefDisposables;
+			this._modelRef = modelRefDisposables.add(assertReturnsDefined(await this.customEditorService.models.tryRetain(this.resource, this.viewType)));
+			modelRefDisposables.add(this._modelRef.object.onDidChangeDirty(() => this._onDidChangeDirty.fire()));
+			modelRefDisposables.add(this._modelRef.object.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
 			// If we're loading untitled file data we should ensure it's dirty
 			if (this._untitledDocumentData) {
 				this._defaultDirtyState = true;
@@ -456,5 +465,10 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 		}
 
 		return true;
+	}
+
+	override dispose(): void {
+		this.releaseModelRef();
+		super.dispose();
 	}
 }
