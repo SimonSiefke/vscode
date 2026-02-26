@@ -88,9 +88,17 @@ export async function getProxyAgent(rawRequestURL: string, env: typeof process.e
 
 	if (requestURL.protocol === 'http:') {
 		const { default: mod } = await import('http-proxy-agent');
-		return cacheProxyAgent(cacheKey, new mod.HttpProxyAgent(proxyURL, opts));
+		const agent = new mod.HttpProxyAgent(proxyURL, opts);
+		if (env['VSCODE_LOG_PROXY_AGENT_CREATION_STACK'] === 'true') {
+			console.warn(`[proxy-agent] create HttpProxyAgent request=${rawRequestURL} proxy=${proxyURL}\n${new Error().stack ?? ''}`);
+		}
+		return cacheProxyAgent(cacheKey, agent);
 	} else {
 		const { default: mod } = await import('https-proxy-agent');
-		return cacheProxyAgent(cacheKey, new mod.HttpsProxyAgent(proxyURL, opts));
+		const agent = new mod.HttpsProxyAgent(proxyURL, opts);
+		if (env['VSCODE_LOG_PROXY_AGENT_CREATION_STACK'] === 'true') {
+			console.warn(`[proxy-agent] create HttpsProxyAgent request=${rawRequestURL} proxy=${proxyURL}\n${new Error().stack ?? ''}`);
+		}
+		return cacheProxyAgent(cacheKey, agent);
 	}
 }
