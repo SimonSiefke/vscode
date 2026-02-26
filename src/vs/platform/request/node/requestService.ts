@@ -10,6 +10,7 @@ import { Promises, timeout } from '../../../base/common/async.js';
 import { streamToBufferReadableStream } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { CancellationError, getErrorMessage } from '../../../base/common/errors.js';
+import { toDisposable } from '../../../base/common/lifecycle.js';
 import * as streams from '../../../base/common/stream.js';
 import { isBoolean, isNumber } from '../../../base/common/types.js';
 import { IRequestContext, IRequestOptions } from '../../../base/parts/request/common/request.js';
@@ -18,7 +19,7 @@ import { INativeEnvironmentService } from '../../environment/common/environment.
 import { getResolvedShellEnv } from '../../shell/node/shellEnv.js';
 import { ILogService } from '../../log/common/log.js';
 import { AbstractRequestService, AuthInfo, Credentials, IRequestService, systemCertificatesNodeDefault } from '../common/request.js';
-import { Agent, getProxyAgent } from './proxy.js';
+import { Agent, disposeCachedProxyAgents, getProxyAgent } from './proxy.js';
 import { createGunzip } from 'zlib';
 
 const TRANSIENT_ERROR_CODES = new Set([
@@ -73,6 +74,7 @@ export class RequestService extends AbstractRequestService implements IRequestSe
 	) {
 		super(logService);
 		this.configure();
+		this._register(toDisposable(() => disposeCachedProxyAgents()));
 		this._register(configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('http')) {
 				this.configure();
@@ -81,9 +83,14 @@ export class RequestService extends AbstractRequestService implements IRequestSe
 	}
 
 	private configure() {
+		const previousProxyUrl = this.proxyUrl;
+		const previousStrictSSL = this.strictSSL;
 		this.proxyUrl = this.getConfigValue<string>('http.proxy');
 		this.strictSSL = !!this.getConfigValue<boolean>('http.proxyStrictSSL');
 		this.authorization = this.getConfigValue<string>('http.proxyAuthorization');
+		if (previousProxyUrl !== this.proxyUrl || previousStrictSSL !== this.strictSSL) {
+			disposeCachedProxyAgents();
+		}
 	}
 
 	async request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {

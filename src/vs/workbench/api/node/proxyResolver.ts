@@ -373,6 +373,7 @@ function certSettingV2(configProvider: ExtHostConfigProvider, isRemote: boolean)
 }
 
 const modulesCache = new Map<IExtensionDescription | undefined, { http?: typeof http; https?: typeof https; undici?: typeof undiciType }>();
+const undiciPatchedKey = Symbol.for('vscode.proxyResolver.undiciPatched');
 function configureModuleLoading(extensionService: ExtHostExtensionService, lookup: ReturnType<typeof createPatchedModules>): Promise<void> {
 	return extensionService.getExtensionPathIndex()
 		.then(extensionPaths => {
@@ -399,7 +400,10 @@ function configureModuleLoading(extensionService: ExtHostExtensionService, looku
 				if (!cache[request]) {
 					if (request === 'undici') {
 						const undici = original.apply(this, arguments);
-						proxyAgent.patchUndici(undici);
+						if (!(undici as Record<PropertyKey, unknown>)[undiciPatchedKey]) {
+							proxyAgent.patchUndici(undici);
+							Object.defineProperty(undici, undiciPatchedKey, { value: true, enumerable: false });
+						}
 						cache[request] = undici;
 					} else {
 						const mod = lookup[request];
