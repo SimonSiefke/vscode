@@ -1008,6 +1008,7 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 
 	protected renderSettingElement(node: ITreeNode<SettingsTreeSettingElement, never>, index: number, template: ISettingItemTemplate | ISettingBoolItemTemplate): void {
 		const element = node.element;
+		template.elementDisposables.clear();
 
 		// The element must inspect itself to get information for
 		// the modified indicator and the overridden Settings indicators.
