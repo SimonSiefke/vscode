@@ -9,7 +9,7 @@ import { ILabelRenderer } from '../../../base/browser/ui/dropdown/dropdown.js';
 import { getBaseLayerHoverDelegate } from '../../../base/browser/ui/hover/hoverDelegate2.js';
 import { getDefaultHoverDelegate } from '../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { IAction } from '../../../base/common/actions.js';
-import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { IActionWidgetService } from '../../actionWidget/browser/actionWidget.js';
 import { ActionWidgetDropdown, IActionWidgetDropdownOptions } from '../../actionWidget/browser/actionWidgetDropdown.js';
 import { IContextKeyService } from '../../contextkey/common/contextkey.js';
@@ -23,6 +23,7 @@ import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 export class ActionWidgetDropdownActionViewItem extends BaseActionViewItem {
 	private actionWidgetDropdown: ActionWidgetDropdown | undefined;
 	private actionItem: HTMLElement | null = null;
+	private readonly labelHover = this._register(new MutableDisposable<IDisposable>());
 	constructor(
 		action: IAction,
 		private readonly actionWidgetOptions: Omit<IActionWidgetDropdownOptions, 'label' | 'labelRenderer'>,
@@ -56,7 +57,9 @@ export class ActionWidgetDropdownActionViewItem extends BaseActionViewItem {
 		element.classList.add('codicon');
 
 		if (this._action.label) {
-			this._register(getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), element, this._action.label));
+			this.labelHover.value = getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), element, this._action.label);
+		} else {
+			this.labelHover.clear();
 		}
 
 		return null;

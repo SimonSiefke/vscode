@@ -9,7 +9,7 @@ import { Codicon } from '../../../common/codicons.js';
 import { Emitter } from '../../../common/event.js';
 import { ResolvedKeybinding } from '../../../common/keybindings.js';
 import { KeyCode } from '../../../common/keyCodes.js';
-import { IDisposable } from '../../../common/lifecycle.js';
+import { IDisposable, MutableDisposable } from '../../../common/lifecycle.js';
 import { ThemeIcon } from '../../../common/themables.js';
 import { IContextMenuProvider } from '../../contextmenu.js';
 import { $, addDisposableListener, append, EventType, h } from '../../dom.js';
@@ -45,6 +45,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 	private dropdownMenu: DropdownMenu | undefined;
 	private contextMenuProvider: IContextMenuProvider;
 	private actionItem: HTMLElement | null = null;
+	private readonly labelHover = this._register(new MutableDisposable<IDisposable>());
 
 	private _onDidChangeVisibility = this._register(new Emitter<boolean>());
 	get onDidChangeVisibility() { return this._onDidChangeVisibility.event; }
@@ -132,7 +133,9 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 		element.classList.add(...classNames);
 
 		if (this._action.label) {
-			this._register(getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), element, this._action.label));
+			this.labelHover.value = getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), element, this._action.label);
+		} else {
+			this.labelHover.clear();
 		}
 
 		return null;
