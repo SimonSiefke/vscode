@@ -704,8 +704,8 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				getActions: () => actions,
 				getActionsContext: () => provider,
 				onHide: () => {
-					for(const action of actions){
-						if(isDisposable(action)){
+					for (const action of actions) {
+						if (isDisposable(action)) {
 							action.dispose();
 						}
 					}
@@ -726,8 +726,8 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				getActions: () => actions,
 				getActionsContext: () => artifact,
 				onHide: () => {
-	        for(const action of actions){
-						if(isDisposable(action)){
+					for (const action of actions) {
+						if (isDisposable(action)) {
 							action.dispose();
 						}
 					}
