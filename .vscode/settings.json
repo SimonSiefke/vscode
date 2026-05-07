@@ -5,7 +5,7 @@
 		"scripts/test.bat": true,
 		"scripts/test.sh": true,
 		"scripts/test-integration.bat": true,
-		"scripts/test-integration.sh": true,
+		"scripts/test-integration.sh": true
 	},
 	"chat.tools.edits.autoApprove": {
 		".github/skills/azure-pipelines/azure-pipeline.ts": false
@@ -24,14 +24,14 @@
 		"files.insertFinalNewline": false
 	},
 	"[typescript]": {
-		"editor.formatOnSave": true
+		"editor.formatOnSave": false
 	},
 	"[javascript]": {
-		"editor.formatOnSave": true
+		"editor.formatOnSave": false
 	},
 	"[rust]": {
 		"editor.defaultFormatter": "rust-lang.rust-analyzer",
-		"editor.formatOnSave": true,
+		"editor.formatOnSave": false
 	},
 	"[github-issues]": {
 		"editor.wordWrap": "on"
@@ -50,7 +50,7 @@
 		"build/**/*.js.map": true,
 		"build/**/*.js": {
 			"when": "$(basename).ts"
-		},
+		}
 	},
 	"files.associations": {
 		"cglicenses.json": "jsonc",
@@ -71,7 +71,7 @@
 		"test/smoke/out/**": true,
 		"test/automation/out/**": true,
 		"src/vs/platform/agentHost/common/state/protocol/**": true,
-		"test/integration/browser/out/**": true,
+		"test/integration/browser/out/**": true
 		// "src/vs/sessions/**": true
 	},
 	// --- Search ---
@@ -94,7 +94,7 @@
 		"src/vs/base/test/node/uri.test.data.txt": true,
 		"src/vs/editor/test/node/diffing/fixtures/**": true,
 		"build/loader.min": true,
-		"**/*.snap": true,
+		"**/*.snap": true
 	},
 	// --- TypeScript ---
 	"js/ts.experimental.useTsgo": true,
@@ -112,27 +112,18 @@
 	// --- Languages ---
 	"json.schemas": [
 		{
-			"fileMatch": [
-				"cgmanifest.json"
-			],
-			"url": "https://www.schemastore.org/component-detection-manifest.json",
+			"fileMatch": ["cgmanifest.json"],
+			"url": "https://www.schemastore.org/component-detection-manifest.json"
 		},
 		{
-			"fileMatch": [
-				"cglicenses.json"
-			],
+			"fileMatch": ["cglicenses.json"],
 			"url": "./.vscode/cglicenses.schema.json"
 		}
 	],
 	"css.format.spaceAroundSelectorSeparator": true,
 	// --- Git ---
 	"git.ignoreLimitWarning": true,
-	"git.branchProtection": [
-		"main",
-		"main-*",
-		"distro",
-		"release/*"
-	],
+	"git.branchProtection": ["main", "main-*", "distro", "release/*"],
 	"git.branchProtectionPrompt": "alwaysCommitToNewBranch",
 	"git.branchRandomName.enable": true,
 	"git.pullBeforeCheckout": true,
@@ -143,16 +134,12 @@
 		"ts": "warning",
 		"eslint": "warning"
 	},
-	"git.worktreeIncludeFiles": [
-		"product.overrides.json"
-	],
+	"git.worktreeIncludeFiles": ["product.overrides.json"],
 	// --- GitHub ---
 	"githubPullRequests.experimental.createView": true,
 	"githubPullRequests.assignCreated": "${user}",
 	"githubPullRequests.defaultMergeMethod": "squash",
-	"githubPullRequests.ignoredPullRequestBranches": [
-		"main"
-	],
+	"githubPullRequests.ignoredPullRequestBranches": ["main"],
 	"githubPullRequests.codingAgent.enabled": true,
 	"githubPullRequests.codingAgent.uiIntegration": true,
 	// --- Testing & Debugging ---
@@ -164,9 +151,7 @@
 		]
 	},
 	"extension-test-runner.debugOptions": {
-		"outFiles": [
-			"${workspaceFolder}/extensions/*/out/**/*.js",
-		]
+		"outFiles": ["${workspaceFolder}/extensions/*/out/**/*.js"]
 	},
 	// --- Coverage ---
 	"lcov.path": [
@@ -187,9 +172,7 @@
 	"eslint.useFlatConfig": true,
 	"emmet.excludeLanguages": [],
 	"gulp.autoDetect": "off",
-	"rust-analyzer.linkedProjects": [
-		"cli/Cargo.toml"
-	],
+	"rust-analyzer.linkedProjects": ["cli/Cargo.toml"],
 	"conventionalCommits.scopes": [
 		"tree",
 		"scm",
@@ -211,6 +194,6 @@
 	"chat.agentSkillsLocations": {
 		".github/skills/.local": true,
 		".agents/skills/.local": true,
-		".claude/skills/.local": true,
+		".claude/skills/.local": true
 	}
 }
