@@ -181,6 +181,7 @@ export class SettingsEditor2 extends EditorPane {
 	private settingsTreeContainer!: HTMLElement;
 	private settingsTree!: SettingsTree;
 	private settingRenderers!: SettingTreeRenderers;
+	private readonly settingsTreeDisposables = this._register(new MutableDisposable<DisposableStore>());
 	private tocTreeModel!: TOCTreeModel;
 	private readonly settingsTreeModel = this._register(new MutableDisposable<SettingsTreeModel>());
 	private noResultsMessage!: HTMLElement;
@@ -188,6 +189,7 @@ export class SettingsEditor2 extends EditorPane {
 
 	private tocTreeContainer!: HTMLElement;
 	private tocTree!: TOCTree;
+	private readonly tocTreeDisposables = this._register(new MutableDisposable<DisposableStore>());
 
 	private searchDelayer: Delayer<void>;
 	private searchInProgress: CancellationTokenSource | null = null;
@@ -485,6 +487,8 @@ export class SettingsEditor2 extends EditorPane {
 			return;
 		}
 
+		this.ensureTrees();
+
 		const model = await this.input.resolve();
 		if (token.isCancellationRequested || !(model instanceof Settings2EditorModel)) {
 			return;
@@ -511,6 +515,13 @@ export class SettingsEditor2 extends EditorPane {
 		this.onConfigUpdate(undefined, true).then(() => {
 			// This event runs when the editor closes.
 			this.inputChangeListener.value = input.onWillDispose(() => {
+				this.resetTreeState();
+				this.disposeTrees();
+				this.disposeScheduledRefreshes();
+				this.searchInProgress?.dispose(true);
+				this.searchInProgress = null;
+				this.aiSearchPromise?.cancel();
+				this.aiSearchPromise = null;
 				this.searchWidget.setValue('');
 			});
 
@@ -551,7 +562,10 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	override getViewState(): object | undefined {
-		return this.viewState;
+		return {
+			...this.viewState,
+			categoryFilter: undefined,
+		};
 	}
 
 	override setOptions(options: ISettingsEditorOptions | undefined): void {
@@ -585,7 +599,45 @@ export class SettingsEditor2 extends EditorPane {
 
 	override clearInput(): void {
 		this.inSettingsEditorContextKey.set(false);
+		this.resetTreeState();
+		this.disposeTrees();
+		this.disposeScheduledRefreshes();
+		this.searchInProgress?.dispose(true);
+		this.searchInProgress = null;
+		this.aiSearchPromise?.cancel();
+		this.aiSearchPromise = null;
 		super.clearInput();
+	}
+
+	private resetTreeState(): void {
+		if (this.treeFocusedElement) {
+			this.treeFocusedElement.tabbable = false;
+		}
+
+		this.treeFocusedElement = null;
+		this.tocFocusedElement = null;
+		this.viewState.categoryFilter = undefined;
+		this.pendingSettingUpdate = null;
+		this.searchResultModel = null;
+		this.tocTreeModel?.clear();
+		this.settingsTreeModel.clear();
+
+		if (this.settingsTree) {
+			this.settingsTree.setSelection([]);
+			this.settingsTree.setFocus([]);
+			this.settingsTree.setChildren(null, Iterable.empty());
+		}
+
+		if (this.tocTree && !this.tocTreeDisposed) {
+			this.tocTree.setSelection([]);
+			this.tocTree.setFocus([]);
+			this.tocTree.setChildren(null, Iterable.empty());
+		}
+	}
+
+	override dispose(): void {
+		this.resetTreeState();
+		super.dispose();
 	}
 
 	layout(dimension: DOM.Dimension): void {
@@ -694,6 +746,11 @@ export class SettingsEditor2 extends EditorPane {
 		});
 
 		this.searchWidget.setValue(splitQuery.join(' '));
+	}
+
+	private disposeScheduledRefreshes(): void {
+		dispose(this.scheduledRefreshes.values());
+		this.scheduledRefreshes.clear();
 	}
 
 	private updateInputAriaLabel() {
@@ -1028,9 +1085,11 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private createTOC(container: HTMLElement): void {
+		const treeDisposables = new DisposableStore();
+		this.tocTreeDisposables.value = treeDisposables;
 		this.tocTreeModel = this.instantiationService.createInstance(TOCTreeModel, this.viewState);
 
-		this.tocTree = this._register(this.instantiationService.createInstance(TOCTree,
+		this.tocTree = treeDisposables.add(this.instantiationService.createInstance(TOCTree,
 			DOM.append(container, $('.settings-toc-wrapper', {
 				'role': 'navigation',
 				'aria-label': localize('settings', "Settings"),
@@ -1038,11 +1097,11 @@ export class SettingsEditor2 extends EditorPane {
 			this.viewState));
 		this.tocTreeDisposed = false;
 
-		this._register(this.tocTree.onDidFocus(() => {
+		treeDisposables.add(this.tocTree.onDidFocus(() => {
 			this._currentFocusContext = SettingsFocusContext.TableOfContents;
 		}));
 
-		this._register(this.tocTree.onDidChangeFocus(e => {
+		treeDisposables.add(this.tocTree.onDidChangeFocus(e => {
 			const element: SettingsTreeGroupElement | null = e.elements?.[0] ?? null;
 			if (this.tocFocusedElement === element) {
 				return;
@@ -1061,15 +1120,15 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}));
 
-		this._register(this.tocTree.onDidFocus(() => {
+		treeDisposables.add(this.tocTree.onDidFocus(() => {
 			this.tocRowFocused.set(true);
 		}));
 
-		this._register(this.tocTree.onDidBlur(() => {
+		treeDisposables.add(this.tocTree.onDidBlur(() => {
 			this.tocRowFocused.set(false);
 		}));
 
-		this._register(this.tocTree.onDidDispose(() => {
+		treeDisposables.add(this.tocTree.onDidDispose(() => {
 			this.tocTreeDisposed = true;
 		}));
 	}
@@ -1091,19 +1150,21 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private createSettingsTree(container: HTMLElement): void {
-		this.settingRenderers = this._register(this.instantiationService.createInstance(SettingTreeRenderers));
-		this._register(this.settingRenderers.onDidChangeSetting(e => this.onDidChangeSetting(e.key, e.value, e.type, e.manualReset, e.scope)));
-		this._register(this.settingRenderers.onDidDismissExtensionSetting((e) => this.onDidDismissExtensionSetting(e)));
-		this._register(this.settingRenderers.onDidOpenSettings(settingKey => {
+		const treeDisposables = new DisposableStore();
+		this.settingsTreeDisposables.value = treeDisposables;
+		this.settingRenderers = treeDisposables.add(this.instantiationService.createInstance(SettingTreeRenderers));
+		treeDisposables.add(this.settingRenderers.onDidChangeSetting(e => this.onDidChangeSetting(e.key, e.value, e.type, e.manualReset, e.scope)));
+		treeDisposables.add(this.settingRenderers.onDidDismissExtensionSetting((e) => this.onDidDismissExtensionSetting(e)));
+		treeDisposables.add(this.settingRenderers.onDidOpenSettings(settingKey => {
 			this.openSettingsFile({ revealSetting: { key: settingKey, edit: true } });
 		}));
-		this._register(this.settingRenderers.onDidClickSettingLink(settingName => this.onDidClickSetting(settingName)));
-		this._register(this.settingRenderers.onDidFocusSetting(element => {
+		treeDisposables.add(this.settingRenderers.onDidClickSettingLink(settingName => this.onDidClickSetting(settingName)));
+		treeDisposables.add(this.settingRenderers.onDidFocusSetting(element => {
 			this.settingsTree.setFocus([element]);
 			this._currentFocusContext = SettingsFocusContext.SettingControl;
 			this.settingRowFocused.set(false);
 		}));
-		this._register(this.settingRenderers.onDidChangeSettingHeight((params: HeightChangeParams) => {
+		treeDisposables.add(this.settingRenderers.onDidChangeSettingHeight((params: HeightChangeParams) => {
 			const { element, height } = params;
 			try {
 				this.settingsTree.updateElementHeight(element, height);
@@ -1111,8 +1172,8 @@ export class SettingsEditor2 extends EditorPane {
 				// the element was not found
 			}
 		}));
-		this._register(this.settingRenderers.onApplyFilter((filter) => this.applyFilter(filter)));
-		this._register(this.settingRenderers.onDidClickOverrideElement((element: ISettingOverrideClickEvent) => {
+		treeDisposables.add(this.settingRenderers.onApplyFilter((filter) => this.applyFilter(filter)));
+		treeDisposables.add(this.settingRenderers.onDidClickOverrideElement((element: ISettingOverrideClickEvent) => {
 			this.removeLanguageFilters();
 			if (element.language) {
 				this.applyFilter(`@${LANGUAGE_SETTING_TAG}${element.language}`);
@@ -1128,12 +1189,12 @@ export class SettingsEditor2 extends EditorPane {
 			this.applyFilter(`@${ID_SETTING_TAG}${element.settingKey}`);
 		}));
 
-		this.settingsTree = this._register(this.instantiationService.createInstance(SettingsTree,
+		this.settingsTree = treeDisposables.add(this.instantiationService.createInstance(SettingsTree,
 			container,
 			this.viewState,
 			this.settingRenderers.allRenderers));
 
-		this._register(this.settingsTree.onDidScroll(() => {
+		treeDisposables.add(this.settingsTree.onDidScroll(() => {
 			if (this.settingsTree.scrollTop === this.settingsTreeScrollTop) {
 				return;
 			}
@@ -1147,7 +1208,7 @@ export class SettingsEditor2 extends EditorPane {
 			}, 0);
 		}));
 
-		this._register(this.settingsTree.onDidFocus(() => {
+		treeDisposables.add(this.settingsTree.onDidFocus(() => {
 			const classList = container.ownerDocument.activeElement?.classList;
 			if (classList && classList.contains('monaco-list') && classList.contains('settings-editor-tree')) {
 				this._currentFocusContext = SettingsFocusContext.SettingTree;
@@ -1159,7 +1220,7 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}));
 
-		this._register(this.settingsTree.onDidBlur(() => {
+		treeDisposables.add(this.settingsTree.onDidBlur(() => {
 			this.settingRowFocused.set(false);
 			// Clear out the focused element, otherwise it could be
 			// out of date during the next onDidFocus event.
@@ -1167,7 +1228,7 @@ export class SettingsEditor2 extends EditorPane {
 		}));
 
 		// There is no different select state in the settings tree
-		this._register(this.settingsTree.onDidChangeFocus(e => {
+		treeDisposables.add(this.settingsTree.onDidChangeFocus(e => {
 			const element = e.elements[0];
 			if (this.treeFocusedElement === element) {
 				return;
@@ -1185,6 +1246,33 @@ export class SettingsEditor2 extends EditorPane {
 
 			this.settingsTree.setSelection(element ? [element] : []);
 		}));
+	}
+
+	private disposeTrees(): void {
+		this.settingsTreeDisposables.clear();
+		this.tocTreeDisposables.clear();
+		this.tocTreeDisposed = true;
+		this.treeFocusedElement = null;
+		this.tocFocusedElement = null;
+		if (this.settingsTreeContainer) {
+			DOM.clearNode(this.settingsTreeContainer);
+		}
+		if (this.tocTreeContainer) {
+			DOM.clearNode(this.tocTreeContainer);
+		}
+	}
+
+	private ensureTrees(): void {
+		if (this.settingsTreeDisposables.value && this.tocTreeDisposables.value) {
+			return;
+		}
+
+		this.createTOC(this.tocTreeContainer);
+		this.createSettingsTree(this.settingsTreeContainer);
+
+		if (this.dimension && this.isVisible()) {
+			this.layout(this.dimension);
+		}
 	}
 
 	private onDidChangeSetting(key: string, value: unknown, type: SettingValueType | SettingValueType[], manualReset: boolean, scope: ConfigurationScope | undefined): void {

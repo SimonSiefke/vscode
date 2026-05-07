@@ -59,6 +59,11 @@ export abstract class SettingsTreeElement extends Disposable {
 		this._tabbable = value;
 		this._onDidChangeTabbable.fire();
 	}
+
+	override dispose(): void {
+		this.parent = undefined;
+		super.dispose();
+	}
 }
 
 export type SettingsTreeGroupChild = (SettingsTreeGroupElement | SettingsTreeSettingElement | SettingsTreeNewExtensionsElement);
@@ -101,6 +106,12 @@ export class SettingsTreeGroupElement extends SettingsTreeElement {
 	 */
 	containsSetting(key: string): boolean {
 		return this._childSettingKeys.has(key);
+	}
+
+	override dispose(): void {
+		this._childSettingKeys.clear();
+		this._children = [];
+		super.dispose();
 	}
 }
 
@@ -718,7 +729,12 @@ export class SettingsTreeModel implements IDisposable {
 
 	dispose() {
 		this._treeElementsBySettingName.clear();
-		this.disposeChildAndRecurse(this._root);
+		if (this._root) {
+			this.disposeChildAndRecurse(this._root);
+			this._root = undefined!;
+		}
+
+		this._tocRoot = undefined!;
 	}
 }
 

@@ -1122,11 +1122,23 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 	protected abstract renderValue(dataElement: SettingsTreeSettingElement, template: ISettingItemTemplate, onChange: (value: unknown) => void): void;
 
 	disposeTemplate(template: IDisposableTemplate): void {
+		const settingTemplate = template as ISettingItemTemplate;
+		if (settingTemplate.toolbar) {
+			settingTemplate.toolbar.setActions([], []);
+			settingTemplate.toolbar.context = undefined;
+		}
+		settingTemplate.context = undefined;
 		template.toDispose.dispose();
 	}
 
 	disposeElement(_element: ITreeNode<SettingsTreeElement>, _index: number, template: IDisposableTemplate): void {
-		(template as ISettingItemTemplate).elementDisposables?.clear();
+		const settingTemplate = template as ISettingItemTemplate;
+		settingTemplate.elementDisposables?.clear();
+		if (settingTemplate.toolbar) {
+			settingTemplate.toolbar.setActions([], []);
+			settingTemplate.toolbar.context = undefined;
+		}
+		settingTemplate.context = undefined;
 	}
 }
 
