@@ -492,10 +492,13 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		this.onDidChangeBodyVisibility(async visible => {
 			if (!visible) {
 				this.visibilityDisposables.clear();
+				this.repositoryDisposables.clearAndDisposeAll();
 				return;
 			}
 
 			this.treeOperationSequencer.queue(async () => {
+				this.repositoryDisposables.clearAndDisposeAll();
+
 				// Initial rendering
 				await this.tree.setInput(this.scmViewService, viewState);
 

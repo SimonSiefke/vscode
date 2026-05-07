@@ -106,6 +106,7 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 
 	renderElement(arg: ISCMRepository | ITreeNode<ISCMRepository, FuzzyScore>, index: number, templateData: RepositoryTemplate): void {
 		templateData.elementDisposables.clear();
+			this.resetToolbar(templateData);
 
 		const repository = isSCMRepository(arg) ? arg : arg.element;
 
@@ -204,16 +205,23 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 		templateData.toolBar.context = repository.provider;
 	}
 
+	private resetToolbar(templateData: RepositoryTemplate): void {
+		templateData.toolBar.setActions([], []);
+		templateData.toolBar.context = undefined;
+	}
+
 	renderCompressedElements(): void {
 		throw new Error('Should never happen since node is incompressible');
 	}
 
 	disposeElement(group: ISCMRepository | ITreeNode<ISCMRepository, FuzzyScore>, index: number, template: RepositoryTemplate): void {
 		template.elementDisposables.clear();
+		this.resetToolbar(template);
 	}
 
 	disposeTemplate(templateData: RepositoryTemplate): void {
 		templateData.elementDisposables.dispose();
+		this.resetToolbar(templateData);
 		templateData.templateDisposable.dispose();
 		templateData.count.dispose();
 	}
