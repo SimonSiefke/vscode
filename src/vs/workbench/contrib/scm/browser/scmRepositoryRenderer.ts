@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/scm.css';
-import { IDisposable, DisposableStore, combinedDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, DisposableStore, MutableDisposable, combinedDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableSignalFromEvent } from '../../../../base/common/observable.js';
 import { append, $ } from '../../../../base/browser/dom.js';
 import { ISCMProvider, ISCMRepository, ISCMViewService } from '../common/scm.js';
@@ -61,6 +61,8 @@ interface RepositoryTemplate {
 	readonly countContainer: HTMLElement;
 	readonly count: CountBadge;
 	readonly toolBar: WorkbenchToolBar;
+	actionBarMenu: IDisposable | undefined;
+	readonly actionBarMenuListener: MutableDisposable<IDisposable>;
 	readonly elementDisposables: DisposableStore;
 	readonly templateDisposable: IDisposable;
 }
@@ -98,15 +100,16 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 		const countContainer = append(provider, $('.count'));
 		const count = new CountBadge(countContainer, {}, defaultCountBadgeStyles);
 		const visibilityDisposable = toolBar.onDidChangeDropdownVisibility(e => provider.classList.toggle('active', e));
+		const actionBarMenuListener = new MutableDisposable<IDisposable>();
 
-		const templateDisposable = combinedDisposable(label, visibilityDisposable, toolBar);
+		const templateDisposable = combinedDisposable(label, visibilityDisposable, toolBar, actionBarMenuListener);
 
-		return { icon, label, countContainer, count, toolBar, elementDisposables: new DisposableStore(), templateDisposable };
+		return { icon, label, countContainer, count, toolBar, actionBarMenu: undefined, actionBarMenuListener, elementDisposables: new DisposableStore(), templateDisposable };
 	}
 
 	renderElement(arg: ISCMRepository | ITreeNode<ISCMRepository, FuzzyScore>, index: number, templateData: RepositoryTemplate): void {
 		templateData.elementDisposables.clear();
-			this.resetToolbar(templateData);
+		this.resetToolbar(templateData);
 
 		const repository = isSCMRepository(arg) ? arg : arg.element;
 
@@ -195,17 +198,22 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 				? repositoryMenus.titleMenu.menu
 				: repositoryMenus.getRepositoryMenu(repository);
 
-			reader.store.add(connectPrimaryMenu(menu, (primary, secondary) => {
-				menuPrimaryActions = primary;
-				menuSecondaryActions = secondary;
-				updateToolbar();
-			}, this.toolbarMenuId === MenuId.SCMTitle ? 'navigation' : 'inline'));
+			if (templateData.actionBarMenu !== menu) {
+				templateData.actionBarMenu = menu;
+				templateData.actionBarMenuListener.value = connectPrimaryMenu(menu, (primary, secondary) => {
+					menuPrimaryActions = primary;
+					menuSecondaryActions = secondary;
+					updateToolbar();
+				}, this.toolbarMenuId === MenuId.SCMTitle ? 'navigation' : 'inline');
+			}
 		}));
 
 		templateData.toolBar.context = repository.provider;
 	}
 
 	private resetToolbar(templateData: RepositoryTemplate): void {
+		templateData.actionBarMenu = undefined;
+		templateData.actionBarMenuListener.clear();
 		templateData.toolBar.setActions([], []);
 		templateData.toolBar.context = undefined;
 	}

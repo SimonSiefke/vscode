@@ -639,6 +639,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 
 	private async onDidAddRepository(repository: ISCMRepository): Promise<void> {
 		const disposables = new DisposableStore();
+		this.repositoryDisposables.set(repository, disposables);
 
 		// Artifact group changed
 		disposables.add(autorun(async reader => {
@@ -666,12 +667,11 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		}));
 
 		await this.updateRepository(repository);
-		this.repositoryDisposables.set(repository, disposables);
 	}
 
 	private async onDidRemoveRepository(repository: ISCMRepository): Promise<void> {
-		await this.updateRepository(repository);
 		this.repositoryDisposables.deleteAndDispose(repository);
+		await this.updateRepository(repository);
 	}
 
 	private onTreeDidOpen(e: IOpenEvent<TreeElement | undefined>): void {
