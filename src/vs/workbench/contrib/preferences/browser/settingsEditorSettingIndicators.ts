@@ -11,7 +11,7 @@ import { SimpleIconLabel } from '../../../../base/browser/ui/iconLabel/simpleIco
 import { Emitter } from '../../../../base/common/event.js';
 import { IMarkdownString, MarkdownString, createMarkdownLink } from '../../../../base/common/htmlContent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
@@ -44,6 +44,7 @@ interface SettingIndicator {
 	focusElement?: HTMLElement;
 	label: SimpleIconLabel;
 	disposables: DisposableStore;
+	hover?: MutableDisposable<IDisposable>;
 }
 
 /**
@@ -183,11 +184,13 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 		const disposables = new DisposableStore();
 		const previewIndicator = $('span.setting-indicator.setting-item-preview');
 		const previewLabel = disposables.add(new SimpleIconLabel(previewIndicator));
+		const hover = disposables.add(new MutableDisposable<IDisposable>());
 
 		return {
 			element: previewIndicator,
 			label: previewLabel,
-			disposables
+			disposables,
+			hover
 		};
 	}
 
@@ -311,10 +314,10 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 			localize('experimentalLabel', "Experimental");
 
 		const content = isPreviewSetting ? PREVIEW_INDICATOR_DESCRIPTION : EXPERIMENTAL_INDICATOR_DESCRIPTION;
-		this.previewIndicator.disposables.add(this.hoverService.setupDelayedHover(this.previewIndicator.element, {
+		this.previewIndicator.hover!.value = this.hoverService.setupDelayedHover(this.previewIndicator.element, {
 			...this.defaultHoverOptions,
 			content,
-		}, { setupKeyboardEvents: true }));
+		}, { setupKeyboardEvents: true });
 
 		this.render();
 	}
