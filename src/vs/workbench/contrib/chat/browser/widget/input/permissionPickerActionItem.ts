@@ -66,16 +66,30 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 		@ITelemetryService telemetryService: ITelemetryService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IDialogService private readonly dialogService: IDialogService,
-		@IOpenerService private readonly openerService: IOpenerService,
+		@IOpenerService openerService: IOpenerService,
 		@IStorageService private readonly storageService: IStorageService,
 	) {
+		const learnMoreAction = {
+			id: 'chat.permissions.learnMore',
+			label: localize('permissions.learnMore', "Learn more about permissions"),
+			tooltip: localize('permissions.learnMore', "Learn more about permissions"),
+			class: undefined,
+			enabled: true,
+			run: async () => {
+				const ext = delegate.getExtensionPermissions?.();
+				const url = ext?.sessionType === SessionType.ClaudeCode
+					? 'https://code.claude.com/docs/en/permission-modes#available-modes'
+					: 'https://code.visualstudio.com/docs/copilot/agents/agent-tools#_permission-levels';
+				await openerService.open(URI.parse(url));
+			}
+		};
 		const actionProvider: IActionWidgetDropdownActionProvider = {
 			getActions: () => this.getActions(action)
 		};
 
 		super(action, {
 			actionProvider,
-			actionBarActions: [this.getLearnMoreAction()],
+			actionBarActions: [learnMoreAction],
 			reporter: { id: 'ChatPermissionPicker', name: 'ChatPermissionPicker', includeOptions: true },
 			listOptions: { minWidth: 255, detailItemHeight: 44 },
 		}, pickerOptions, actionWidgetService, keybindingService, contextKeyService, telemetryService);
@@ -177,23 +191,6 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 				this.refresh();
 			},
 		}));
-	}
-
-	private getLearnMoreAction() {
-		return {
-			id: 'chat.permissions.learnMore',
-			label: localize('permissions.learnMore', "Learn more about permissions"),
-			tooltip: localize('permissions.learnMore', "Learn more about permissions"),
-			class: undefined,
-			enabled: true,
-			run: async () => {
-				const ext = this.delegate.getExtensionPermissions?.();
-				const url = ext?.sessionType === SessionType.ClaudeCode
-					? 'https://code.claude.com/docs/en/permission-modes#available-modes'
-					: 'https://code.visualstudio.com/docs/copilot/agents/agent-tools#_permission-levels';
-				await this.openerService.open(URI.parse(url));
-			}
-		};
 	}
 
 	private isAutoApprovePolicyRestricted(): boolean {
