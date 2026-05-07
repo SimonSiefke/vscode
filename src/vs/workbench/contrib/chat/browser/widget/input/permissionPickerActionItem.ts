@@ -64,134 +64,144 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@ITelemetryService telemetryService: ITelemetryService,
-		@IConfigurationService configurationService: IConfigurationService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IDialogService private readonly dialogService: IDialogService,
-		@IOpenerService openerService: IOpenerService,
-		@IStorageService storageService: IStorageService,
+		@IOpenerService private readonly openerService: IOpenerService,
+		@IStorageService private readonly storageService: IStorageService,
 	) {
-		const isAutoApprovePolicyRestricted = () => configurationService.inspect<boolean>(ChatConfiguration.GlobalAutoApprove).policyValue === false;
-		const isAutopilotEnabled = () => configurationService.getValue<boolean>(ChatConfiguration.AutopilotEnabled) !== false;
 		const actionProvider: IActionWidgetDropdownActionProvider = {
-			getActions: () => {
-				// If the active session contributes its own permission items, surface those instead
-				// of the built-in Default/AutoApprove/Autopilot levels.
-				const ext = delegate.getExtensionPermissions?.();
-				if (ext && ext.items.length > 0) {
-					const sessionTypeSeg = sanitizeIdSegment(ext.sessionType);
-					const groupSeg = sanitizeIdSegment(ext.groupId);
-					return ext.items.map(item => ({
-						...action,
-						id: `chat.permissions.ext.${sessionTypeSeg}.${groupSeg}.${sanitizeIdSegment(item.id)}`,
-						label: item.name,
-						detail: item.description,
-						icon: item.icon,
-						checked: ext.selectedId === item.id,
-						enabled: !item.locked,
-						tooltip: item.locked ? localize('permissions.ext.locked', "This option is locked") : '',
-						hover: item.description ? { content: item.description } : undefined,
-						run: async () => {
-							delegate.setExtensionPermission?.(ext.groupId, item);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
-						},
-					} satisfies IActionWidgetDropdownAction));
-				}
-				const currentLevel = delegate.currentPermissionLevel.get();
-				const policyRestricted = isAutoApprovePolicyRestricted();
-				const actions: IActionWidgetDropdownAction[] = [
-					{
-						...action,
-						id: 'chat.permissions.default',
-						label: localize('permissions.default', "Default Approvals"),
-						detail: localize('permissions.default.subtext', "Copilot uses your configured settings"),
-						icon: ThemeIcon.fromId(Codicon.shield.id),
-						checked: currentLevel === ChatPermissionLevel.Default,
-						tooltip: '',
-						hover: {
-							content: localize('permissions.default.description', "Use configured approval settings"),
-						},
-						run: async () => {
-							delegate.setPermissionLevel(ChatPermissionLevel.Default);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
-						},
-					} satisfies IActionWidgetDropdownAction,
-					{
-						...action,
-						id: 'chat.permissions.autoApprove',
-						label: localize('permissions.autoApprove', "Bypass Approvals"),
-						detail: localize('permissions.autoApprove.subtext', "All tool calls are auto-approved"),
-						icon: ThemeIcon.fromId(Codicon.warning.id),
-						checked: currentLevel === ChatPermissionLevel.AutoApprove,
-						enabled: !policyRestricted,
-						tooltip: policyRestricted ? localize('permissions.autoApprove.policyDisabled', "Disabled by enterprise policy") : '',
-						hover: {
-							content: policyRestricted
-								? localize('permissions.autoApprove.policyDescription', "Disabled by enterprise policy")
-								: localize('permissions.autoApprove.description', "Auto-approve all tool calls and retry on errors"),
-						},
-						run: async () => {
-							if (!await maybeConfirmElevatedPermissionLevel(ChatPermissionLevel.AutoApprove, this.dialogService, storageService)) {
-								return;
-							}
-							delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
-						},
-					} satisfies IActionWidgetDropdownAction,
-				];
-				if (isAutopilotEnabled()) {
-					actions.push({
-						...action,
-						id: 'chat.permissions.autopilot',
-						label: localize('permissions.autopilot', "Autopilot (Preview)"),
-						detail: localize('permissions.autopilot.subtext', "Autonomously iterates from start to finish"),
-						icon: ThemeIcon.fromId(Codicon.rocket.id),
-						checked: currentLevel === ChatPermissionLevel.Autopilot,
-						enabled: !policyRestricted,
-						tooltip: policyRestricted ? localize('permissions.autopilot.policyDisabled', "Disabled by enterprise policy") : '',
-						hover: {
-							content: policyRestricted
-								? localize('permissions.autopilot.policyDescription', "Disabled by enterprise policy")
-								: localize('permissions.autopilot.description', "Auto-approve all tool calls and continue until the task is done"),
-						},
-						run: async () => {
-							if (!await maybeConfirmElevatedPermissionLevel(ChatPermissionLevel.Autopilot, this.dialogService, storageService)) {
-								return;
-							}
-							delegate.setPermissionLevel(ChatPermissionLevel.Autopilot);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
-						},
-					} satisfies IActionWidgetDropdownAction);
-				}
-				return actions;
-			}
+			getActions: () => this.getActions(action)
 		};
 
 		super(action, {
 			actionProvider,
-			actionBarActions: [{
-				id: 'chat.permissions.learnMore',
-				label: localize('permissions.learnMore', "Learn more about permissions"),
-				tooltip: localize('permissions.learnMore', "Learn more about permissions"),
-				class: undefined,
-				enabled: true,
-				run: async () => {
-					const ext = delegate.getExtensionPermissions?.();
-					const url = ext?.sessionType === SessionType.ClaudeCode
-						? 'https://code.claude.com/docs/en/permission-modes#available-modes'
-						: 'https://code.visualstudio.com/docs/copilot/agents/agent-tools#_permission-levels';
-					await openerService.open(URI.parse(url));
-				}
-			}],
+			actionBarActions: [this.getLearnMoreAction()],
 			reporter: { id: 'ChatPermissionPicker', name: 'ChatPermissionPicker', includeOptions: true },
 			listOptions: { minWidth: 255, detailItemHeight: 44 },
 		}, pickerOptions, actionWidgetService, keybindingService, contextKeyService, telemetryService);
+	}
+
+	private getActions(action: MenuItemAction): IActionWidgetDropdownAction[] {
+		const ext = this.delegate.getExtensionPermissions?.();
+		if (ext && ext.items.length > 0) {
+			return this.getExtensionActions(action, ext);
+		}
+
+		const currentLevel = this.delegate.currentPermissionLevel.get();
+		const policyRestricted = this.isAutoApprovePolicyRestricted();
+		const actions: IActionWidgetDropdownAction[] = [
+			{
+				...action,
+				id: 'chat.permissions.default',
+				label: localize('permissions.default', "Default Approvals"),
+				detail: localize('permissions.default.subtext', "Copilot uses your configured settings"),
+				icon: ThemeIcon.fromId(Codicon.shield.id),
+				checked: currentLevel === ChatPermissionLevel.Default,
+				tooltip: '',
+				hover: {
+					content: localize('permissions.default.description', "Use configured approval settings"),
+				},
+				run: async () => {
+					this.delegate.setPermissionLevel(ChatPermissionLevel.Default);
+					this.refresh();
+				},
+			},
+			{
+				...action,
+				id: 'chat.permissions.autoApprove',
+				label: localize('permissions.autoApprove', "Bypass Approvals"),
+				detail: localize('permissions.autoApprove.subtext', "All tool calls are auto-approved"),
+				icon: ThemeIcon.fromId(Codicon.warning.id),
+				checked: currentLevel === ChatPermissionLevel.AutoApprove,
+				enabled: !policyRestricted,
+				tooltip: policyRestricted ? localize('permissions.autoApprove.policyDisabled', "Disabled by enterprise policy") : '',
+				hover: {
+					content: policyRestricted
+						? localize('permissions.autoApprove.policyDescription', "Disabled by enterprise policy")
+						: localize('permissions.autoApprove.description', "Auto-approve all tool calls and retry on errors"),
+				},
+				run: async () => {
+					if (!await maybeConfirmElevatedPermissionLevel(ChatPermissionLevel.AutoApprove, this.dialogService, this.storageService)) {
+						return;
+					}
+					this.delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
+					this.refresh();
+				},
+			},
+		];
+
+		if (this.isAutopilotEnabled()) {
+			actions.push({
+				...action,
+				id: 'chat.permissions.autopilot',
+				label: localize('permissions.autopilot', "Autopilot (Preview)"),
+				detail: localize('permissions.autopilot.subtext', "Autonomously iterates from start to finish"),
+				icon: ThemeIcon.fromId(Codicon.rocket.id),
+				checked: currentLevel === ChatPermissionLevel.Autopilot,
+				enabled: !policyRestricted,
+				tooltip: policyRestricted ? localize('permissions.autopilot.policyDisabled', "Disabled by enterprise policy") : '',
+				hover: {
+					content: policyRestricted
+						? localize('permissions.autopilot.policyDescription', "Disabled by enterprise policy")
+						: localize('permissions.autopilot.description', "Auto-approve all tool calls and continue until the task is done"),
+				},
+				run: async () => {
+					if (!await maybeConfirmElevatedPermissionLevel(ChatPermissionLevel.Autopilot, this.dialogService, this.storageService)) {
+						return;
+					}
+					this.delegate.setPermissionLevel(ChatPermissionLevel.Autopilot);
+					this.refresh();
+				},
+			});
+		}
+
+		return actions;
+	}
+
+	private getExtensionActions(action: MenuItemAction, ext: IExtensionPermissionState): IActionWidgetDropdownAction[] {
+		const sessionTypeSeg = sanitizeIdSegment(ext.sessionType);
+		const groupSeg = sanitizeIdSegment(ext.groupId);
+
+		return ext.items.map(item => ({
+			...action,
+			id: `chat.permissions.ext.${sessionTypeSeg}.${groupSeg}.${sanitizeIdSegment(item.id)}`,
+			label: item.name,
+			detail: item.description,
+			icon: item.icon,
+			checked: ext.selectedId === item.id,
+			enabled: !item.locked,
+			tooltip: item.locked ? localize('permissions.ext.locked', "This option is locked") : '',
+			hover: item.description ? { content: item.description } : undefined,
+			run: async () => {
+				this.delegate.setExtensionPermission?.(ext.groupId, item);
+				this.refresh();
+			},
+		}));
+	}
+
+	private getLearnMoreAction() {
+		return {
+			id: 'chat.permissions.learnMore',
+			label: localize('permissions.learnMore', "Learn more about permissions"),
+			tooltip: localize('permissions.learnMore', "Learn more about permissions"),
+			class: undefined,
+			enabled: true,
+			run: async () => {
+				const ext = this.delegate.getExtensionPermissions?.();
+				const url = ext?.sessionType === SessionType.ClaudeCode
+					? 'https://code.claude.com/docs/en/permission-modes#available-modes'
+					: 'https://code.visualstudio.com/docs/copilot/agents/agent-tools#_permission-levels';
+				await this.openerService.open(URI.parse(url));
+			}
+		};
+	}
+
+	private isAutoApprovePolicyRestricted(): boolean {
+		return this.configurationService.inspect<boolean>(ChatConfiguration.GlobalAutoApprove).policyValue === false;
+	}
+
+	private isAutopilotEnabled(): boolean {
+		return this.configurationService.getValue<boolean>(ChatConfiguration.AutopilotEnabled) !== false;
 	}
 
 	protected override renderLabel(element: HTMLElement): IDisposable | null {
