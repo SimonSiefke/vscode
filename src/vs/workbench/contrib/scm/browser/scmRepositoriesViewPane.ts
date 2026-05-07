@@ -16,7 +16,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { combinedDisposable, Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { combinedDisposable, Disposable, DisposableMap, DisposableStore, dispose, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
@@ -105,6 +105,8 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 	}
 
 	renderElement(node: ITreeNode<SCMArtifactGroupTreeElement, FuzzyScore>, index: number, templateData: ArtifactGroupTemplate): void {
+		templateData.elementDisposables.clear();
+
 		const provider = node.element.repository.provider;
 		const artifactGroup = node.element.artifactGroup;
 
@@ -175,6 +177,8 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	}
 
 	renderElement(nodeOrElement: ITreeNode<SCMArtifactTreeElement | IResourceNode<SCMArtifactTreeElement, SCMArtifactGroupTreeElement>, FuzzyScore>, index: number, templateData: ArtifactTemplate): void {
+		templateData.elementDisposables.clear();
+
 		const artifactOrFolder = nodeOrElement.element;
 
 		// Label
@@ -211,6 +215,8 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	}
 
 	renderCompressedElements(node: ITreeNode<ICompressedTreeNode<SCMArtifactTreeElement | IResourceNode<SCMArtifactTreeElement, SCMArtifactGroupTreeElement>>, FuzzyScore>, index: number, templateData: ArtifactTemplate, details?: ITreeElementRenderDetails): void {
+		templateData.elementDisposables.clear();
+
 		const compressed = node.element;
 		const artifactOrFolder = compressed.elements[compressed.elements.length - 1];
 
@@ -697,7 +703,10 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				getAnchor: () => e.anchor,
 				getActions: () => actions,
 				getActionsContext: () => provider,
-				onHide: () => disposables.dispose()
+				onHide: () => {
+					dispose(actions);
+					disposables.dispose();
+				}
 			});
 		} else if (isSCMArtifactTreeElement(e.element)) {
 			// Artifact
@@ -711,7 +720,8 @@ export class SCMRepositoriesViewPane extends ViewPane {
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => e.anchor,
 				getActions: () => actions,
-				getActionsContext: () => artifact
+				getActionsContext: () => artifact,
+				onHide: () => dispose(actions)
 			});
 		}
 	}
