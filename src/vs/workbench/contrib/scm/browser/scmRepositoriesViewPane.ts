@@ -105,8 +105,6 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 	}
 
 	renderElement(node: ITreeNode<SCMArtifactGroupTreeElement, FuzzyScore>, index: number, templateData: ArtifactGroupTemplate): void {
-		templateData.elementDisposables.clear();
-
 		const provider = node.element.repository.provider;
 		const artifactGroup = node.element.artifactGroup;
 
@@ -177,8 +175,6 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	}
 
 	renderElement(nodeOrElement: ITreeNode<SCMArtifactTreeElement | IResourceNode<SCMArtifactTreeElement, SCMArtifactGroupTreeElement>, FuzzyScore>, index: number, templateData: ArtifactTemplate): void {
-		templateData.elementDisposables.clear();
-
 		const artifactOrFolder = nodeOrElement.element;
 
 		// Label
@@ -215,8 +211,6 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	}
 
 	renderCompressedElements(node: ITreeNode<ICompressedTreeNode<SCMArtifactTreeElement | IResourceNode<SCMArtifactTreeElement, SCMArtifactGroupTreeElement>>, FuzzyScore>, index: number, templateData: ArtifactTemplate, details?: ITreeElementRenderDetails): void {
-		templateData.elementDisposables.clear();
-
 		const compressed = node.element;
 		const artifactOrFolder = compressed.elements[compressed.elements.length - 1];
 
