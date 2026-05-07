@@ -11,7 +11,7 @@ import { IContextMenuService } from '../../contextview/browser/contextView.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { HoverWidget } from './hoverWidget.js';
 import { ContextView, ContextViewDOMPosition, IDelegate } from '../../../base/browser/ui/contextview/contextview.js';
-import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { addDisposableListener, EventType, getActiveElement, isAncestorOfActiveElement, isAncestor, getWindow, isHTMLElement, isEditableElement } from '../../../base/browser/dom.js';
 import { IKeybindingService } from '../../keybinding/common/keybinding.js';
 import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
@@ -561,7 +561,7 @@ export class HoverService extends Disposable implements IHoverService {
 			targetElement.title = '';
 		}
 
-		let hoverPreparation: IDisposable | undefined;
+		const hoverPreparation = new MutableDisposable<IDisposable>();
 		let hoverWidget: ManagedHoverWidget | undefined;
 
 		const hideHover = (disposeWidget: boolean, disposePreparation: boolean) => {
@@ -571,8 +571,7 @@ export class HoverService extends Disposable implements IHoverService {
 				hoverWidget = undefined;
 			}
 			if (disposePreparation) {
-				hoverPreparation?.dispose();
-				hoverPreparation = undefined;
+				hoverPreparation.clear();
 			}
 			if (hadHover) {
 				hoverDelegate.onDidHideHover?.();
@@ -590,6 +589,7 @@ export class HoverService extends Disposable implements IHoverService {
 		};
 
 		const store = new DisposableStore();
+		store.add(hoverPreparation);
 		let isMouseDown = false;
 		store.add(addDisposableListener(targetElement, EventType.MOUSE_DOWN, () => {
 			isMouseDown = true;
@@ -608,7 +608,7 @@ export class HoverService extends Disposable implements IHoverService {
 			hideHover(false, (e as MouseEventWithFrom).fromElement === targetElement);
 		}, true));
 		store.add(addDisposableListener(targetElement, EventType.MOUSE_OVER, (e: MouseEvent) => {
-			if (hoverPreparation) {
+			if (hoverPreparation.value) {
 				return;
 			}
 
@@ -629,7 +629,7 @@ export class HoverService extends Disposable implements IHoverService {
 				mouseOverStore.add(addDisposableListener(targetElement, EventType.MOUSE_MOVE, onMouseMove, true));
 			}
 
-			hoverPreparation = mouseOverStore;
+			hoverPreparation.value = mouseOverStore;
 
 			if (!eventIsRelatedToTarget(e, targetElement)) {
 				return; // Do not show hover when the mouse is over another hover target
@@ -639,7 +639,7 @@ export class HoverService extends Disposable implements IHoverService {
 		}, true));
 
 		const onFocus = (e: FocusEvent) => {
-			if (isMouseDown || hoverPreparation) {
+			if (isMouseDown || hoverPreparation.value) {
 				return;
 			}
 			// Clean up stale reference if the hover was dismissed externally
@@ -664,7 +664,7 @@ export class HoverService extends Disposable implements IHoverService {
 			const onBlur = () => hideHover(true, true);
 			toDispose.add(addDisposableListener(targetElement, EventType.BLUR, onBlur, true));
 			toDispose.add(triggerShowHover(typeof hoverDelegate.delay === 'function' ? hoverDelegate.delay(content) : hoverDelegate.delay, false, target));
-			hoverPreparation = toDispose;
+			hoverPreparation.value = toDispose;
 		};
 
 		// Do not show hover when focusing an input or textarea
