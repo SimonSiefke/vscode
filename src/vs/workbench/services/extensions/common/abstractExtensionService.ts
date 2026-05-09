@@ -214,9 +214,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 					// Otherwise, the local extension host might terminate the underlying tunnel before the
 					// management connection has a chance to send its disconnection message.
 					try {
-						await this._remoteAgentService.endConnection();
 						await this._doStopExtensionHosts();
-						this._remoteAgentService.getConnection()?.dispose();
 					} catch {
 						this._logService.warn('Error while disconnecting remote agent');
 					}
@@ -749,7 +747,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			}
 		}
 
-		await this._extensionHostManagers.stopAllInReverse();
+		await this._extensionHostManagers.stopAllInTheRightOrder();
 		for (const extensionStatus of this._extensionStatus.values()) {
 			extensionStatus.clearRuntimeStatus();
 		}
@@ -1330,14 +1328,34 @@ class ExtensionHostCollection extends Disposable {
 		this._extensionHostManagers.push(new ExtensionHostManagerData(extensionHostManager, disposableStore));
 	}
 
-	public async stopAllInReverse(): Promise<void> {
+
+
+	/**
+	 * Ensure remote extension managers are being shut down first.
+	 */
+	private sortExtensionManagersForShutdown(managers: ExtensionHostManagerData[]): ExtensionHostManagerData[] {
+		return managers.toSorted((a, b) => {
+			if (a.extensionHost.kind === b.extensionHost.kind) {
+				return 0;
+			}
+			if (a.extensionHost.kind === ExtensionHostKind.Remote) {
+				return -1;
+			}
+			if (b.extensionHost.kind === ExtensionHostKind.Remote) {
+				return 1;
+			}
+			return 0
+		});
+	}
+
+	public async stopAllInTheRightOrder(): Promise<void> {
 		// See https://github.com/microsoft/vscode/issues/152204
 		// Dispose extension hosts in reverse creation order because the local extension host
 		// might be critical in sustaining a connection to the remote extension host
-		for (let i = this._extensionHostManagers.length - 1; i >= 0; i--) {
-			const manager = this._extensionHostManagers[i];
-			await manager.extensionHost.disconnect();
-			manager.dispose();
+		const sorted = this.sortExtensionManagersForShutdown(this._extensionHostManagers)
+		for(const manager of sorted){
+			 await manager.extensionHost.disconnect();
+			 manager.dispose()
 		}
 		this._extensionHostManagers = [];
 	}
