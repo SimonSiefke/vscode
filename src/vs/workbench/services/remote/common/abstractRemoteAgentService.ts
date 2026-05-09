@@ -120,12 +120,7 @@ export abstract class AbstractRemoteAgentService extends Disposable implements I
 		);
 	}
 
-	async endConnection(): Promise<void> {
-		if (this._connection) {
-			await this._connection.end();
-			this._connection.dispose();
-		}
-	}
+
 
 	private _withChannel<R>(callback: (channel: IChannel, connection: IRemoteAgentConnection) => Promise<R>, fallback: R): Promise<R> {
 		const connection = this.getConnection();

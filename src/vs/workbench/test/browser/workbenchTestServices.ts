@@ -1979,7 +1979,6 @@ export class TestRemoteAgentService implements IRemoteAgentService {
 	async logTelemetry(eventName: string, data?: ITelemetryData): Promise<void> { }
 	async flushTelemetry(): Promise<void> { }
 	async getRoundTripTime(): Promise<number | undefined> { return undefined; }
-	async endConnection(): Promise<void> { }
 }
 
 export class TestRemoteExtensionsScannerService implements IRemoteExtensionsScannerService {

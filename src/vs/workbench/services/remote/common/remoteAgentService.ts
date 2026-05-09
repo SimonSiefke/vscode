@@ -37,11 +37,6 @@ export interface IRemoteAgentService {
 	 */
 	getRoundTripTime(): Promise<number | undefined>;
 
-	/**
-	 * Gracefully ends the current connection, if any.
-	 */
-	endConnection(): Promise<void>;
-
 	getDiagnosticInfo(options: IDiagnosticInfoOptions): Promise<IDiagnosticInfo | undefined>;
 	updateTelemetryLevel(telemetryLevel: TelemetryLevel): Promise<void>;
 	logTelemetry(eventName: string, data?: ITelemetryData): Promise<void>;
