@@ -214,9 +214,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 					// Otherwise, the local extension host might terminate the underlying tunnel before the
 					// management connection has a chance to send its disconnection message.
 					try {
-						await this._remoteAgentService.endConnection();
 						await this._doStopExtensionHosts();
-						this._remoteAgentService.getConnection()?.dispose();
 					} catch {
 						this._logService.warn('Error while disconnecting remote agent');
 					}
@@ -1330,12 +1328,31 @@ class ExtensionHostCollection extends Disposable {
 		this._extensionHostManagers.push(new ExtensionHostManagerData(extensionHostManager, disposableStore));
 	}
 
+
+
+	private getShutdownPriority(extensionHostManager: IExtensionHostManager): number {
+		switch (extensionHostManager.kind) {
+			case ExtensionHostKind.Remote:
+				return -1;
+			default:
+				return 1;
+		}
+	}
+	/**
+	 * Ensure remote extension managers are shut down first.
+	 */
+	private sortExtensionManagersForShutdown(managers: ExtensionHostManagerData[]): ExtensionHostManagerData[] {
+		return managers.toReversed().toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost));
+	}
+
 	public async stopAllInReverse(): Promise<void> {
 		// See https://github.com/microsoft/vscode/issues/152204
-		// Dispose extension hosts in reverse creation order because the local extension host
-		// might be critical in sustaining a connection to the remote extension host
-		for (let i = this._extensionHostManagers.length - 1; i >= 0; i--) {
-			const manager = this._extensionHostManagers[i];
+		// and https://github.com/microsoft/vscode/issues/211462
+		// Dispose remote extension hosts before local extension hosts
+		// because local extension hosts might be critical in sustaining
+		// a connection to the remote extension host
+		const sorted = this.sortExtensionManagersForShutdown(this._extensionHostManagers);
+		for (const manager of sorted) {
 			await manager.extensionHost.disconnect();
 			manager.dispose();
 		}

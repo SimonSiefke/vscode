@@ -276,24 +276,14 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 			this._protocol.sendDisconnect();
 			this._hasDisconnected = true;
 			await this._protocol.drain();
+			this._protocol.getSocket().end();
+			this._protocol.dispose();
+			this._protocol = null;
 		}
 	}
 
 	override dispose(): void {
 		super.dispose();
-
 		this._terminating = true;
-		this.disconnect();
-
-		if (this._protocol) {
-			// Send the extension host a request to terminate itself
-			// (graceful termination)
-			// setTimeout(() => {
-			// console.log(`SENDING TERMINATE TO REMOTE EXT HOST!`);
-			this._protocol.getSocket().end();
-			// this._protocol.drain();
-			this._protocol = null;
-			// }, 1000);
-		}
 	}
 }
