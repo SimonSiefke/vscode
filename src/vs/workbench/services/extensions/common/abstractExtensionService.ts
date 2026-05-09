@@ -1333,7 +1333,7 @@ class ExtensionHostCollection extends Disposable {
 	private getShutdownPriority(extensionHostManager: IExtensionHostManager): number {
 		switch (extensionHostManager.kind) {
 			case ExtensionHostKind.Remote:
-				return 0
+				return -1;
 			default:
 				return 1;
 		}
