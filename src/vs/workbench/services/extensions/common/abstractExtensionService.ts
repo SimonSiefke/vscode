@@ -1350,8 +1350,10 @@ class ExtensionHostCollection extends Disposable {
 
 	public async stopAllInTheRightOrder(): Promise<void> {
 		// See https://github.com/microsoft/vscode/issues/152204
-		// Dispose extension hosts in reverse creation order because the local extension host
-		// might be critical in sustaining a connection to the remote extension host
+		// and https://github.com/microsoft/vscode/issues/211462
+		// Dispose remote extension hosts before local extension hosts
+		// because local extension hosts might be critical in sustaining
+		// a connection to the remote extension host
 		const sorted = this.sortExtensionManagersForShutdown(this._extensionHostManagers)
 		for(const manager of sorted){
 			 await manager.extensionHost.disconnect();
