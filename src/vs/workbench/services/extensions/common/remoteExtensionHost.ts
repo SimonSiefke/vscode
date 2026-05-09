@@ -277,7 +277,6 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 			this._protocol.sendDisconnect();
 			this._hasDisconnected = true;
 			await this._protocol.drain();
-			this._protocol.end
 			this._protocol.getSocket().end();
 			this._protocol.dispose();
 			this._protocol = null;
