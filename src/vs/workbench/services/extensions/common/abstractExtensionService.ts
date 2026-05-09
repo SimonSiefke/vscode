@@ -1334,19 +1334,15 @@ class ExtensionHostCollection extends Disposable {
 		switch (extensionHostManager.kind) {
 			case ExtensionHostKind.Remote:
 				return 0
-			case ExtensionHostKind.LocalProcess:
-				return 1;
-			case ExtensionHostKind.LocalWebWorker:
-				return 2;
 			default:
-				return 3;
+				return 1;
 		}
 	}
 	/**
 	 * Ensure remote extension managers are being shut down first.
 	 */
 	private sortExtensionManagersForShutdown(managers: ExtensionHostManagerData[]): ExtensionHostManagerData[] {
-		return managers.toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost))
+		return managers.toReversed().toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost))
 	}
 
 	public async stopAllInTheRightOrder(): Promise<void> {
