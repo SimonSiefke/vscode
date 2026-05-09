@@ -1339,7 +1339,7 @@ class ExtensionHostCollection extends Disposable {
 		}
 	}
 	/**
-	 * Ensure remote extension managers are being shut down first.
+	 * Ensure remote extension managers are shut down first.
 	 */
 	private sortExtensionManagersForShutdown(managers: ExtensionHostManagerData[]): ExtensionHostManagerData[] {
 		return managers.toReversed().toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost))
