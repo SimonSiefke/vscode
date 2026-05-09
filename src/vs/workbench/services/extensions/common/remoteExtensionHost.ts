@@ -59,7 +59,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 	private _terminating: boolean;
 	private _hasDisconnected = false;
 	private readonly _isExtensionDevHost: boolean;
-	public readonly type= 'remote';
+	public readonly type = 'remote';
 
 	constructor(
 		public readonly runningLocation: RemoteRunningLocation,
@@ -278,9 +278,8 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 			this._hasDisconnected = true;
 			await this._protocol.drain();
 			this._protocol.getSocket().end();
-			this._protocol.getSocket().dispose();
 			this._protocol.dispose();
-			this._protocol=null;
+			this._protocol = null;
 		}
 	}
 
