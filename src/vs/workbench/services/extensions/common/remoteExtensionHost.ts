@@ -282,7 +282,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 		}
 	}
 
-	override  dispose(): void {
+	override dispose(): void {
 		super.dispose();
 		this._terminating = true;
 	}
