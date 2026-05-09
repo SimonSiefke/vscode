@@ -59,7 +59,6 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 	private _terminating: boolean;
 	private _hasDisconnected = false;
 	private readonly _isExtensionDevHost: boolean;
-	public readonly type = 'remote';
 
 	constructor(
 		public readonly runningLocation: RemoteRunningLocation,
