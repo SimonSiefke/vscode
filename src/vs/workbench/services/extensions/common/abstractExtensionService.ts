@@ -1330,22 +1330,23 @@ class ExtensionHostCollection extends Disposable {
 
 
 
+	private getShutdownPriority(extensionHostManager: IExtensionHostManager): number {
+		switch (extensionHostManager.kind) {
+			case ExtensionHostKind.Remote:
+				return 0
+			case ExtensionHostKind.LocalProcess:
+				return 1;
+			case ExtensionHostKind.LocalWebWorker:
+				return 2;
+			default:
+				return 3;
+		}
+	}
 	/**
 	 * Ensure remote extension managers are being shut down first.
 	 */
 	private sortExtensionManagersForShutdown(managers: ExtensionHostManagerData[]): ExtensionHostManagerData[] {
-		return managers.toSorted((a, b) => {
-			if (a.extensionHost.kind === b.extensionHost.kind) {
-				return 0;
-			}
-			if (a.extensionHost.kind === ExtensionHostKind.Remote) {
-				return -1;
-			}
-			if (b.extensionHost.kind === ExtensionHostKind.Remote) {
-				return 1;
-			}
-			return 0
-		});
+		return managers.toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost))
 	}
 
 	public async stopAllInTheRightOrder(): Promise<void> {
@@ -1355,9 +1356,9 @@ class ExtensionHostCollection extends Disposable {
 		// because local extension hosts might be critical in sustaining
 		// a connection to the remote extension host
 		const sorted = this.sortExtensionManagersForShutdown(this._extensionHostManagers)
-		for(const manager of sorted){
-			 await manager.extensionHost.disconnect();
-			 manager.dispose()
+		for (const manager of sorted) {
+			await manager.extensionHost.disconnect();
+			manager.dispose()
 		}
 		this._extensionHostManagers = [];
 	}
