@@ -747,7 +747,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			}
 		}
 
-		await this._extensionHostManagers.stopAllInTheRightOrder();
+		await this._extensionHostManagers.stopAllInReverse();
 		for (const extensionStatus of this._extensionStatus.values()) {
 			extensionStatus.clearRuntimeStatus();
 		}
@@ -1345,7 +1345,7 @@ class ExtensionHostCollection extends Disposable {
 		return managers.toReversed().toSorted((a, b) => this.getShutdownPriority(b.extensionHost) - this.getShutdownPriority(a.extensionHost))
 	}
 
-	public async stopAllInTheRightOrder(): Promise<void> {
+	public async stopAllInReverse(): Promise<void> {
 		// See https://github.com/microsoft/vscode/issues/152204
 		// and https://github.com/microsoft/vscode/issues/211462
 		// Dispose remote extension hosts before local extension hosts
@@ -1354,7 +1354,7 @@ class ExtensionHostCollection extends Disposable {
 		const sorted = this.sortExtensionManagersForShutdown(this._extensionHostManagers)
 		for (const manager of sorted) {
 			await manager.extensionHost.disconnect();
-			manager.dispose()
+			manager.dispose();
 		}
 		this._extensionHostManagers = [];
 	}
