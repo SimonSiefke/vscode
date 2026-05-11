@@ -6,8 +6,13 @@
 import { Promises } from '../../../base/common/async.js';
 import { canceled } from '../../../base/common/errors.js';
 import { Event } from '../../../base/common/event.js';
+<<<<<<< HEAD
 import { Disposable, DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
 import { IExtensionHostProcessOptions, IExtensionHostStarter } from '../common/extensionHostStarter.js';
+=======
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { extensionHostGraceTimeMs, IExtensionHostProcessOptions, IExtensionHostStarter } from '../common/extensionHostStarter.js';
+>>>>>>> origin/main
 import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
 import { ILogService } from '../../log/common/log.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
@@ -120,7 +125,7 @@ export class ExtensionHostStarter extends Disposable implements IDisposable, IEx
 			allowLoadingUnsignedLibraries: true,
 			respondToAuthRequestsFromMainProcess: true,
 			windowLifecycleBound: true,
-			windowLifecycleGraceTime: 6000,
+			windowLifecycleGraceTime: extensionHostGraceTimeMs,
 			correlationId: id
 		});
 		const pid = await Event.toPromise(extHost.onSpawn);
@@ -148,6 +153,17 @@ export class ExtensionHostStarter extends Disposable implements IDisposable, IEx
 			return;
 		}
 		extHostProcess.kill();
+	}
+
+	async waitForExit(id: string, maxWaitTimeMs: number): Promise<void> {
+		if (this._shutdown) {
+			throw canceled();
+		}
+		const extHostProcess = this._extHosts.get(id);
+		if (!extHostProcess) {
+			return;
+		}
+		await extHostProcess.waitForExit(maxWaitTimeMs);
 	}
 
 	async _killAllNow(): Promise<void> {

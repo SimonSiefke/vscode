@@ -65,8 +65,17 @@ export class UtilityProcessWorkerMainService extends Disposable implements IUtil
 				this.logService.error(`[UtilityProcessWorker]: terminated unexpectedly with code ${reason.code}, signal: ${reason.signal}`);
 			}
 
+<<<<<<< HEAD
 			this.workers.deleteAndDispose(workerId);
+=======
+>>>>>>> origin/main
 			onDidTerminate.complete({ reason });
+
+			// Only remove from map if this worker is still the one tracked.
+			if (this.workers.get(workerId) === worker) {
+				this.workers.deleteAndLeak(workerId);
+			}
+			worker.dispose();
 		});
 
 		return onDidTerminate.p;
@@ -87,8 +96,12 @@ export class UtilityProcessWorkerMainService extends Disposable implements IUtil
 		}
 
 		this.logService.trace(`[UtilityProcessWorker]: disposeWorker(window: ${configuration.reply.windowId}, moduleId: ${configuration.process.moduleId})`);
+<<<<<<< HEAD
 
 		this.workers.deleteAndDispose(workerId);
+=======
+		worker.kill();
+>>>>>>> origin/main
 	}
 }
 
