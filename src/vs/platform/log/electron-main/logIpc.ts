@@ -6,16 +6,18 @@
 import { Event } from '../../../base/common/event.js';
 import { ResourceMap } from '../../../base/common/map.js';
 import { URI } from '../../../base/common/uri.js';
-import { IDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { ILogger, ILoggerOptions, isLogLevel, log, LogLevel } from '../common/log.js';
 import { ILoggerMainService } from './loggerService.js';
 
-export class LoggerChannel implements IServerChannel, IDisposable {
+export class LoggerChannel extends Disposable implements IServerChannel {
 
-	private readonly loggers = new ResourceMap<ILogger>();
+	private readonly loggers = this._register(new DisposableMap(new ResourceMap<ILogger>()));
 
-	constructor(private readonly loggerService: ILoggerMainService) { }
+	constructor(private readonly loggerService: ILoggerMainService) {
+		super();
+	}
 
 	listen(_: unknown, event: string, windowId?: number): Event<any> {
 		switch (event) {
@@ -45,7 +47,7 @@ export class LoggerChannel implements IServerChannel, IDisposable {
 	}
 
 	private deregisterLogger(file: URI): void {
-		this.loggers.delete(file);
+		this.loggers.deleteAndDispose(file);
 		this.loggerService.deregisterLogger(file);
 	}
 
@@ -75,12 +77,5 @@ export class LoggerChannel implements IServerChannel, IDisposable {
 		for (const [level, message] of messages) {
 			log(logger, level, message);
 		}
-	}
-
-	dispose(): void {
-		for (const logger of this.loggers.values()) {
-			logger.dispose();
-		}
-		this.loggers.clear();
 	}
 }
