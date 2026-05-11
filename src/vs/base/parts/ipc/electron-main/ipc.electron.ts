@@ -7,6 +7,7 @@ import { WebContents } from 'electron';
 import { validatedIpcMain } from './ipcMain.js';
 import { VSBuffer } from '../../../common/buffer.js';
 import { Emitter, Event } from '../../../common/event.js';
+import { createSingleCallFunction } from '../../../common/functional.js';
 import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { ClientConnectionEvent, IPCServer } from '../common/ipc.js';
 import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
@@ -40,10 +41,16 @@ export class Server extends IPCServer {
 			client?.dispose();
 
 			const onDidClientReconnect = new Emitter<void>();
-			Server.Clients.set(id, toDisposable(() => onDidClientReconnect.fire()));
+			const disconnectClient = createSingleCallFunction(() => {
+				Server.Clients.delete(id);
+				onDidClientReconnect.fire();
+				onDidClientReconnect.dispose();
+			});
+			Server.Clients.set(id, toDisposable(disconnectClient));
 
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<VSBuffer>;
 			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event, Event.fromNodeEventEmitter(webContents, 'destroyed'));
+			Event.once(onDidClientDisconnect)(disconnectClient);
 			const protocol = new ElectronProtocol(webContents, onMessage);
 
 			return { protocol, onDidClientDisconnect };
