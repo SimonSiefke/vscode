@@ -17,6 +17,11 @@ export class LoggerChannel extends Disposable implements IServerChannel {
 
 	constructor(private readonly loggerService: ILoggerMainService) {
 		super();
+		this._register(this.loggerService.onDidChangeLoggers(({ removed }) => {
+			for (const loggerResource of removed) {
+				this.loggers.deleteAndDispose(loggerResource.resource);
+			}
+		}));
 	}
 
 	listen(_: unknown, event: string, windowId?: number): Event<any> {
@@ -47,7 +52,6 @@ export class LoggerChannel extends Disposable implements IServerChannel {
 	}
 
 	private deregisterLogger(file: URI): void {
-		this.loggers.deleteAndDispose(file);
 		this.loggerService.deregisterLogger(file);
 	}
 
