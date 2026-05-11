@@ -5,7 +5,7 @@
 
 import { URI } from '../../../base/common/uri.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
 import { join } from '../../../base/common/path.js';
 import { IStorage } from '../../../base/parts/storage/common/storage.js';
 import { INativeEnvironmentService } from '../../environment/common/environment.js';
@@ -219,7 +219,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 	//#region Profile Storage
 
-	private readonly mapProfileToStorage = new Map<string /* profile ID */, IStorageMain>();
+	private readonly mapProfileToStorage = this._register(new DisposableMap<string /* profile ID */, IStorageMain>());
 
 	profileStorage(profile: IUserDataProfile): IStorageMain {
 		if (isProfileUsingDefaultStorage(profile)) {
@@ -230,7 +230,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		if (!profileStorage) {
 			this.logService.trace(`StorageMainService: creating profile storage (${profile.name})`);
 
-			profileStorage = this._register(this.createProfileStorage(profile));
+			profileStorage = this.createProfileStorage(profile);
 			this.mapProfileToStorage.set(profile.id, profileStorage);
 
 			// Don't use this._register() for listeners that are disposed early
@@ -244,7 +244,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			Event.once(profileStorage.onDidCloseStorage)(() => {
 				this.logService.trace(`StorageMainService: closed profile storage (${profile.name})`);
 
-				this.mapProfileToStorage.delete(profile.id);
+				this.mapProfileToStorage.deleteAndDispose(profile.id);
 				listener.dispose();
 			});
 		}
@@ -270,21 +270,21 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 	//#region Workspace Storage
 
-	private readonly mapWorkspaceToStorage = new Map<string /* workspace ID */, IStorageMain>();
+	private readonly mapWorkspaceToStorage = this._register(new DisposableMap<string /* workspace ID */, IStorageMain>());
 
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
 		let workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
 		if (!workspaceStorage) {
 			this.logService.trace(`StorageMainService: creating workspace storage (${workspace.id})`);
 
-			workspaceStorage = this._register(this.createWorkspaceStorage(workspace));
+			workspaceStorage = this.createWorkspaceStorage(workspace);
 			this.mapWorkspaceToStorage.set(workspace.id, workspaceStorage);
 
 			// Don't use this._register() for Event.once as it auto-disposes
 			Event.once(workspaceStorage.onDidCloseStorage)(() => {
 				this.logService.trace(`StorageMainService: closed workspace storage (${workspace.id})`);
 
-				this.mapWorkspaceToStorage.delete(workspace.id);
+				this.mapWorkspaceToStorage.deleteAndDispose(workspace.id);
 			});
 		}
 
