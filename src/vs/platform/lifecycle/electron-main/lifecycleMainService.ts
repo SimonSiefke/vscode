@@ -7,7 +7,7 @@ import electron from 'electron';
 import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
 import { Barrier, Promises, timeout } from '../../../base/common/async.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { isMacintosh, isWindows } from '../../../base/common/platform.js';
 import { cwd } from '../../../base/common/process.js';
 import { assertReturnsDefined } from '../../../base/common/types.js';
@@ -582,14 +582,27 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			const oneTimeEventToken = this.oneTimeListenerTokenGenerator++;
 			const okChannel = `vscode:ok${oneTimeEventToken}`;
 			const cancelChannel = `vscode:cancel${oneTimeEventToken}`;
+			const disposables = new DisposableStore();
+			let didResolve = false;
+			const complete = (veto: boolean) => {
+				if (didResolve) {
+					return;
+				}
 
-			validatedIpcMain.once(okChannel, () => {
-				resolve(false); // no veto
-			});
+				didResolve = true;
+				disposables.dispose();
+				resolve(veto);
+			};
 
-			validatedIpcMain.once(cancelChannel, () => {
-				resolve(true); // veto
-			});
+			const okListener = () => complete(false);
+			validatedIpcMain.on(okChannel, okListener);
+			disposables.add(toDisposable(() => validatedIpcMain.removeListener(okChannel, okListener)));
+
+			const cancelListener = () => complete(true);
+			validatedIpcMain.on(cancelChannel, cancelListener);
+			disposables.add(toDisposable(() => validatedIpcMain.removeListener(cancelChannel, cancelListener)));
+
+			disposables.add(Event.once(Event.any(window.onDidClose, window.onDidDestroy))(() => complete(false)));
 
 			window.send('vscode:onBeforeUnload', { okChannel, cancelChannel, reason });
 		});
@@ -599,8 +612,23 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 		return new Promise<void>(resolve => {
 			const oneTimeEventToken = this.oneTimeListenerTokenGenerator++;
 			const replyChannel = `vscode:reply${oneTimeEventToken}`;
+			const disposables = new DisposableStore();
+			let didResolve = false;
+			const complete = () => {
+				if (didResolve) {
+					return;
+				}
 
-			validatedIpcMain.once(replyChannel, () => resolve());
+				didResolve = true;
+				disposables.dispose();
+				resolve();
+			};
+
+			const replyListener = () => complete();
+			validatedIpcMain.on(replyChannel, replyListener);
+			disposables.add(toDisposable(() => validatedIpcMain.removeListener(replyChannel, replyListener)));
+
+			disposables.add(Event.once(Event.any(window.onDidClose, window.onDidDestroy))(() => complete()));
 
 			window.send('vscode:onWillUnload', { replyChannel, reason });
 		});

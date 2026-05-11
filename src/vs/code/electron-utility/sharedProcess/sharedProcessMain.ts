@@ -226,7 +226,7 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		services.set(IMainProcessService, mainProcessService);
 
 		// Policies
-		const policyService = this.configuration.policiesData ? new PolicyChannelClient(this.configuration.policiesData, mainProcessService.getChannel('policy')) : new NullPolicyService();
+		const policyService = this.configuration.policiesData ? this._register(new PolicyChannelClient(this.configuration.policiesData, mainProcessService.getChannel('policy'))) : new NullPolicyService();
 		services.set(IPolicyService, policyService);
 
 		// Environment

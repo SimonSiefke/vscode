@@ -13,11 +13,12 @@ import { IFileService } from '../../files/common/files.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ILifecycleMainService, LifecycleMainPhase, ShutdownReason } from '../../lifecycle/electron-main/lifecycleMainService.js';
 import { ILogService } from '../../log/common/log.js';
+import { ICodeWindow, LoadReason } from '../../window/electron-main/window.js';
 import { AbstractStorageService, isProfileUsingDefaultStorage, IStorageService, StorageScope, StorageTarget } from '../common/storage.js';
 import { ApplicationStorageMain, ApplicationSharedStorageMain, ProfileStorageMain, InMemoryStorageMain, IStorageMain, IStorageMainOptions, WorkspaceStorageMain, IStorageChangeEvent } from './storageMain.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 import { IUserDataProfilesMainService } from '../../userDataProfile/electron-main/userDataProfile.js';
-import { IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
+import { IAnyWorkspaceIdentifier, toWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { Schemas } from '../../../base/common/network.js';
 
@@ -121,6 +122,13 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		})();
 
 		this._register(this.lifecycleMainService.onWillLoadWindow(e => {
+			if (e.reason === LoadReason.LOAD) {
+				this.releaseWindowWorkspaceStorage(e.window.id, this.getWindowWorkspace(e.window));
+			}
+
+			if (e.reason !== LoadReason.RELOAD && e.workspace) {
+				this.acquireWindowWorkspaceStorage(e.window.id, e.workspace);
+			}
 
 			// Profile Storage: Warmup when related window with profile loads
 			if (e.window.profile) {
@@ -131,6 +139,10 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			if (e.workspace) {
 				this.workspaceStorage(e.workspace).init();
 			}
+		}));
+
+		this._register(this.lifecycleMainService.onBeforeCloseWindow(window => {
+			this.releaseWindowWorkspaceStorage(window.id, this.getWindowWorkspace(window));
 		}));
 
 		// All Storage: Close when shutting down
@@ -230,7 +242,7 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		if (!profileStorage) {
 			this.logService.trace(`StorageMainService: creating profile storage (${profile.name})`);
 
-			profileStorage = this._register(this.createProfileStorage(profile));
+			profileStorage = this.createProfileStorage(profile);
 			this.mapProfileToStorage.set(profile.id, profileStorage);
 
 			// Don't use this._register() for listeners that are disposed early
@@ -271,13 +283,15 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 	//#region Workspace Storage
 
 	private readonly mapWorkspaceToStorage = new Map<string /* workspace ID */, IStorageMain>();
+	private readonly mapWindowToWorkspace = new Map<number /* window ID */, string /* workspace ID */>();
+	private readonly mapWorkspaceToWindowCount = new Map<string /* workspace ID */, number /* window count */>();
 
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
 		let workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
 		if (!workspaceStorage) {
 			this.logService.trace(`StorageMainService: creating workspace storage (${workspace.id})`);
 
-			workspaceStorage = this._register(this.createWorkspaceStorage(workspace));
+			workspaceStorage = this.createWorkspaceStorage(workspace);
 			this.mapWorkspaceToStorage.set(workspace.id, workspaceStorage);
 
 			// Don't use this._register() for Event.once as it auto-disposes
@@ -302,6 +316,49 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		}
 
 		return new WorkspaceStorageMain(workspace, this.getStorageOptions(), this.logService, this.environmentService, this.fileService);
+	}
+
+	private getWindowWorkspace(window: ICodeWindow): IAnyWorkspaceIdentifier {
+		return window.openedWorkspace ?? toWorkspaceIdentifier(window.backupPath, window.isExtensionDevelopmentHost);
+	}
+
+	private acquireWindowWorkspaceStorage(windowId: number, workspace: IAnyWorkspaceIdentifier): void {
+		const currentWorkspace = this.mapWindowToWorkspace.get(windowId);
+		if (currentWorkspace === workspace.id) {
+			return;
+		}
+
+		this.mapWindowToWorkspace.set(windowId, workspace.id);
+		this.mapWorkspaceToWindowCount.set(workspace.id, (this.mapWorkspaceToWindowCount.get(workspace.id) ?? 0) + 1);
+	}
+
+	private releaseWindowWorkspaceStorage(windowId: number, workspace: IAnyWorkspaceIdentifier): void {
+		const trackedWorkspace = this.mapWindowToWorkspace.get(windowId);
+		if (trackedWorkspace) {
+			this.mapWindowToWorkspace.delete(windowId);
+			this.releaseWorkspaceStorage(trackedWorkspace);
+
+			return;
+		}
+
+		this.releaseWorkspaceStorage(workspace.id);
+	}
+
+	private releaseWorkspaceStorage(workspaceId: string): void {
+		const currentWindowCount = this.mapWorkspaceToWindowCount.get(workspaceId);
+		if (typeof currentWindowCount === 'number') {
+			if (currentWindowCount > 1) {
+				this.mapWorkspaceToWindowCount.set(workspaceId, currentWindowCount - 1);
+				return;
+			}
+
+			this.mapWorkspaceToWindowCount.delete(workspaceId);
+		}
+
+		const workspaceStorage = this.mapWorkspaceToStorage.get(workspaceId);
+		if (workspaceStorage) {
+			workspaceStorage.close().then(undefined, error => this.logService.error(error));
+		}
 	}
 
 	//#endregion

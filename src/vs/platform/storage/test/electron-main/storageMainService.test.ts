@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { notStrictEqual, strictEqual } from 'assert';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -11,6 +13,7 @@ import { generateUuid } from '../../../../base/common/uuid.js';
 import { OPTIONS, parseArgs } from '../../../environment/node/argv.js';
 import { NativeEnvironmentService } from '../../../environment/node/environmentService.js';
 import { FileService } from '../../../files/common/fileService.js';
+import { FocusMode } from '../../../native/common/native.js';
 import { ILifecycleMainService } from '../../../lifecycle/electron-main/lifecycleMainService.js';
 import { NullLogService } from '../../../log/common/log.js';
 import product from '../../../product/common/product.js';
@@ -26,6 +29,8 @@ import { UserDataProfilesMainService } from '../../../userDataProfile/electron-m
 import { TestLifecycleMainService } from '../../../test/electron-main/workbenchTestServices.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ICodeWindow, ILoadEvent, IWindowState, LoadReason } from '../../../window/electron-main/window.js';
+import { IAnyWorkspaceIdentifier } from '../../../workspace/common/workspace.js';
 
 suite('StorageMainService', function () {
 
@@ -58,6 +63,83 @@ suite('StorageMainService', function () {
 				useInMemoryStorage: true
 			};
 		}
+	}
+
+	class TestWindowLifecycleMainService extends TestLifecycleMainService {
+
+		private readonly onWillLoadWindowEmitter = new Emitter<{ window: ICodeWindow; workspace: IAnyWorkspaceIdentifier | undefined; reason: LoadReason }>();
+		override readonly onWillLoadWindow = this.onWillLoadWindowEmitter.event;
+
+		private readonly onBeforeCloseWindowEmitter = new Emitter<ICodeWindow>();
+		override readonly onBeforeCloseWindow = this.onBeforeCloseWindowEmitter.event;
+
+		fireOnWillLoadWindow(window: ICodeWindow, workspace: IAnyWorkspaceIdentifier | undefined, reason: LoadReason): void {
+			this.onWillLoadWindowEmitter.fire({ window, workspace, reason });
+		}
+
+		fireOnBeforeCloseWindow(window: ICodeWindow): void {
+			this.onBeforeCloseWindowEmitter.fire(window);
+		}
+	}
+
+	class TestCodeWindow implements ICodeWindow {
+
+		readonly onDidMaximize = Event.None;
+		readonly onDidUnmaximize = Event.None;
+		readonly onDidTriggerSystemContextMenu = Event.None;
+		readonly onDidEnterFullScreen = Event.None;
+		readonly onDidLeaveFullScreen = Event.None;
+		readonly onDidClose = Event.None;
+		readonly onWillLoad = Event.None;
+		readonly onDidSignalReady = Event.None;
+		readonly onDidDestroy = Event.None;
+		readonly whenClosedOrLoaded = Promise.resolve();
+		readonly win = null;
+		readonly lastFocusTime = 0;
+		readonly isFullScreen = false;
+		readonly isExtensionDevelopmentHost = false;
+		readonly isExtensionTestHost = false;
+		readonly isReady = true;
+
+		constructor(
+			readonly id: number,
+			private workspace: IAnyWorkspaceIdentifier | undefined,
+			readonly backupPath: string | undefined = undefined,
+			readonly profile: IUserDataProfile | undefined = undefined,
+			readonly remoteAuthority: string | undefined = undefined,
+			readonly config = undefined
+		) {
+		}
+
+		get openedWorkspace(): IAnyWorkspaceIdentifier | undefined {
+			return this.workspace;
+		}
+
+		setWorkspace(workspace: IAnyWorkspaceIdentifier | undefined): void {
+			this.workspace = workspace;
+		}
+
+		focus(options?: { mode: FocusMode }): void { }
+		setRepresentedFilename(name: string): void { }
+		getRepresentedFilename(): string | undefined { return undefined; }
+		setDocumentEdited(edited: boolean): void { }
+		isDocumentEdited(): boolean { return false; }
+		toggleFullScreen(): void { }
+		updateWindowControls(options: { height?: number; backgroundColor?: string; foregroundColor?: string; dimmed?: boolean }): void { }
+		matches(webContents: Electron.WebContents): boolean { return false; }
+		ready(): Promise<ICodeWindow> { return Promise.resolve(this); }
+		setReady(): void { }
+		addTabbedWindow(window: ICodeWindow): void { }
+		load(config: NonNullable<ICodeWindow['config']>, options?: { isReload?: boolean }): void { }
+		reload(cli?: Parameters<ICodeWindow['reload']>[0]): void { }
+		close(): void { }
+		getBounds(): Electron.Rectangle { return { x: 0, y: 0, width: 0, height: 0 }; }
+		send(channel: string, ...args: unknown[]): void { }
+		sendWhenReady(channel: string, token: CancellationToken, ...args: unknown[]): void { }
+		updateTouchBar(items: Parameters<ICodeWindow['updateTouchBar']>[0]): void { }
+		notifyZoomLevel(zoomLevel: number | undefined): void { }
+		serializeWindowState(): IWindowState { return {}; }
+		dispose(): void { }
 	}
 
 	async function testStorage(storage: IStorageMain, scope: StorageScope): Promise<void> {
@@ -107,6 +189,15 @@ suite('StorageMainService', function () {
 		await storage.close();
 
 		strictEqual(storageDidClose, true);
+	}
+
+	function onceDidCloseStorage(storage: IStorageMain): Promise<void> {
+		return new Promise(resolve => {
+			const listener = storage.onDidCloseStorage(() => {
+				listener.dispose();
+				resolve();
+			});
+		});
 	}
 
 	teardown(() => {
@@ -281,6 +372,53 @@ suite('StorageMainService', function () {
 		await lifecycleMainService.fireOnWillShutdown();
 
 		strictEqual(didCloseApplicationSharedStorage, true);
+	});
+
+	test('workspace storage closed onBeforeCloseWindow for empty window workspace', async function () {
+		const lifecycleMainService = new TestWindowLifecycleMainService();
+		const storageMainService = createStorageService(lifecycleMainService);
+		const backupPath = '/backups/empty-window-workspace';
+		const workspace = { id: 'empty-window-workspace' };
+
+		const workspaceStorage = storageMainService.workspaceStorage(workspace);
+		let didCloseWorkspaceStorage = false;
+		disposables.add(workspaceStorage.onDidCloseStorage(() => {
+			didCloseWorkspaceStorage = true;
+		}));
+
+		await workspaceStorage.init();
+
+		const window = new TestCodeWindow(1, undefined, backupPath);
+		const didCloseWorkspaceStoragePromise = onceDidCloseStorage(workspaceStorage);
+		lifecycleMainService.fireOnBeforeCloseWindow(window);
+		await didCloseWorkspaceStoragePromise;
+
+		strictEqual(didCloseWorkspaceStorage, true);
+		notStrictEqual(workspaceStorage, storageMainService.workspaceStorage(workspace));
+	});
+
+	test('workspace storage closed onWillLoadWindow when window changes workspace', async function () {
+		const lifecycleMainService = new TestWindowLifecycleMainService();
+		const storageMainService = createStorageService(lifecycleMainService);
+		const workspace1 = { id: generateUuid() };
+		const workspace2 = { id: generateUuid() };
+
+		const workspaceStorage1 = storageMainService.workspaceStorage(workspace1);
+		let didCloseWorkspaceStorage1 = false;
+		disposables.add(workspaceStorage1.onDidCloseStorage(() => {
+			didCloseWorkspaceStorage1 = true;
+		}));
+
+		await workspaceStorage1.init();
+
+		const window = new TestCodeWindow(1, workspace1);
+		lifecycleMainService.fireOnWillLoadWindow(window, workspace1, LoadReason.INITIAL);
+		const didCloseWorkspaceStorage1Promise = onceDidCloseStorage(workspaceStorage1);
+		lifecycleMainService.fireOnWillLoadWindow(window, workspace2, LoadReason.LOAD);
+		await didCloseWorkspaceStorage1Promise;
+
+		strictEqual(didCloseWorkspaceStorage1, true);
+		notStrictEqual(workspaceStorage1, storageMainService.workspaceStorage(workspace1));
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
