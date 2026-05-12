@@ -6,7 +6,7 @@
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
-import { Disposable, dispose } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, dispose } from '../../../../../base/common/lifecycle.js';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
 import { IObservable } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -272,6 +272,7 @@ export class ChatViewModel extends Disposable implements IChatViewModel {
 	readonly onDidChange = this._onDidChange.event;
 
 	private readonly _items: (ChatRequestViewModel | ChatResponseViewModel)[] = [];
+	private readonly _responseListeners = this._register(new DisposableMap<string>());
 
 	private _inputPlaceholder: string | undefined = undefined;
 	get inputPlaceholder(): string | undefined {
@@ -335,6 +336,7 @@ export class ChatViewModel extends Disposable implements IChatViewModel {
 					const items = this._items.splice(responseIdx, 1);
 					const item = items[0];
 					if (item instanceof ChatResponseViewModel) {
+						this._responseListeners.deleteAndDispose(item.id);
 						item.dispose();
 					}
 				}
@@ -351,7 +353,7 @@ export class ChatViewModel extends Disposable implements IChatViewModel {
 
 	private onAddResponse(responseModel: IChatResponseModel) {
 		const response = this.instantiationService.createInstance(ChatResponseViewModel, responseModel, this);
-		this._register(response.onDidChange(() => {
+		this._responseListeners.set(response.id, response.onDidChange(() => {
 			return this._onDidChange.fire(null);
 		}));
 		this._items.push(response);
