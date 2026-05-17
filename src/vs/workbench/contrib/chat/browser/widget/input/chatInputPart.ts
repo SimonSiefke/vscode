@@ -238,6 +238,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	private readonly _planReviewResponseIds = new Map<string, string>();
 	private readonly _planReviewSessionResources = new Map<string, URI>();
 	private readonly _chatToolConfirmationCarousels = this._register(new DisposableMap<string, ChatToolConfirmationCarouselPart>());
+	private readonly _chatToolConfirmationCarouselListeners = this._register(new DisposableMap<string, IDisposable>());
 	private readonly _chatEditingTodosDisposables = this._register(new DisposableStore());
 	private _lastEditingSessionResource: URI | undefined;
 
@@ -3280,7 +3281,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		this.updateToolConfirmationCarouselMaxHeight();
 
 		const capturedKey = key;
-		this._register(Event.once(part.onDidEmpty)(() => {
+		this._chatToolConfirmationCarouselListeners.set(capturedKey, Event.once(part.onDidEmpty)(() => {
+			this._chatToolConfirmationCarouselListeners.deleteAndDispose(capturedKey);
 			this._chatToolConfirmationCarousels.deleteAndDispose(capturedKey);
 			if (this._currentSessionKey === capturedKey) {
 				dom.clearNode(this.chatToolConfirmationCarouselContainer);
@@ -3320,6 +3322,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	clearToolConfirmationCarousel(): void {
 		const key = this._currentSessionKey;
 		if (key) {
+			this._chatToolConfirmationCarouselListeners.deleteAndDispose(key);
 			this._chatToolConfirmationCarousels.deleteAndDispose(key);
 		}
 		dom.clearNode(this.chatToolConfirmationCarouselContainer);

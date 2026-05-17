@@ -97,6 +97,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 		this._register(this.chatService.onDidDisposeSession(e => {
 			for (const sessionResource of e.sessionResources) {
 				this._modelListeners.deleteAndDispose(sessionResource);
+				this._items.delete(sessionResource);
 			}
 
 			const removedSessionResources = e.sessionResources.filter(resource => getChatSessionType(resource) === this.chatSessionType);
