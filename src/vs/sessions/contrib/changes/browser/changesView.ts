@@ -1335,7 +1335,6 @@ class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem {
 				const selectedChangeset = viewModel.activeSessionChangesetObs.get();
 
 				return changesets.map(changeset => ({
-					...action,
 					id: `agents.changes.changeset.${changeset.id}`,
 					label: changeset.label,
 					detail: changeset.description,
@@ -1346,6 +1345,8 @@ class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem {
 						order: 0
 					},
 					enabled: changeset.isEnabled.get(),
+					class: undefined,
+					tooltip: changeset.description ?? changeset.label,
 					run: async () => {
 						viewModel.setChangesetId(changeset.id);
 						logChangesViewVersionModeChange(this.telemetryService, changeset.id);
@@ -1359,9 +1360,7 @@ class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem {
 		this._register(autorun(reader => {
 			viewModel.activeSessionChangesetObs.read(reader);
 
-			if (this.element) {
-				this.renderLabel(this.element);
-			}
+			this.refreshRenderedLabel();
 		}));
 	}
 

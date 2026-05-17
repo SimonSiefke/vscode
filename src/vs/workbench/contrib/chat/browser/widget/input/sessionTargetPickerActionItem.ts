@@ -61,19 +61,19 @@ export class SessionTypePickerActionItem extends ChatInputPickerActionViewItem {
 			getActions: () => {
 				const currentType = this._getSelectedSessionType();
 
-				const actions: IActionWidgetDropdownAction[] = [...this._getAdditionalActions().map(a => ({ ...action, ...a }))];
+				const actions: IActionWidgetDropdownAction[] = [...this._getAdditionalActions()];
 				for (const sessionTypeItem of this._sessionTypeItems) {
 					if (!this._isVisible(sessionTypeItem.type)) {
 						continue;
 					}
 
 					actions.push({
-						...action,
 						id: sessionTypeItem.commandId,
 						label: sessionTypeItem.label,
 						checked: currentType === sessionTypeItem.type,
 						icon: this._getSessionIcon(sessionTypeItem),
 						enabled: this._isSessionTypeEnabled(sessionTypeItem.type),
+						class: undefined,
 						category: this._getSessionCategory(sessionTypeItem),
 						description: this._getSessionDescription(sessionTypeItem),
 						tooltip: '',
@@ -118,9 +118,7 @@ export class SessionTypePickerActionItem extends ChatInputPickerActionViewItem {
 			// Execute command to create new session
 			this.commandService.executeCommand(sessionTypeItem.commandId, this.chatSessionPosition);
 		}
-		if (this.element) {
-			this.renderLabel(this.element);
-		}
+		this.refreshRenderedLabel();
 	}
 
 	protected _getSelectedSessionType(): AgentSessionTarget | undefined {

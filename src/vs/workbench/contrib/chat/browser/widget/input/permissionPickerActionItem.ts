@@ -80,20 +80,18 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 					const sessionTypeSeg = sanitizeIdSegment(ext.sessionType);
 					const groupSeg = sanitizeIdSegment(ext.groupId);
 					return ext.items.map(item => ({
-						...action,
 						id: `chat.permissions.ext.${sessionTypeSeg}.${groupSeg}.${sanitizeIdSegment(item.id)}`,
 						label: item.name,
 						detail: item.description,
 						icon: item.icon,
 						checked: ext.selectedId === item.id,
 						enabled: !item.locked,
+						class: undefined,
 						tooltip: item.locked ? localize('permissions.ext.locked', "This option is locked") : '',
 						hover: item.description ? { content: item.description } : undefined,
 						run: async () => {
 							delegate.setExtensionPermission?.(ext.groupId, item);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
+							this.refreshRenderedLabel();
 						},
 					} satisfies IActionWidgetDropdownAction));
 				}
@@ -101,31 +99,30 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 				const policyRestricted = isAutoApprovePolicyRestricted();
 				const actions: IActionWidgetDropdownAction[] = [
 					{
-						...action,
 						id: 'chat.permissions.default',
 						label: localize('permissions.default', "Default Approvals"),
 						detail: localize('permissions.default.subtext', "Copilot uses your configured settings"),
 						icon: ThemeIcon.fromId(Codicon.shield.id),
 						checked: currentLevel === ChatPermissionLevel.Default,
+						enabled: true,
+						class: undefined,
 						tooltip: '',
 						hover: {
 							content: localize('permissions.default.description', "Use configured approval settings"),
 						},
 						run: async () => {
 							delegate.setPermissionLevel(ChatPermissionLevel.Default);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
+							this.refreshRenderedLabel();
 						},
 					} satisfies IActionWidgetDropdownAction,
 					{
-						...action,
 						id: 'chat.permissions.autoApprove',
 						label: localize('permissions.autoApprove', "Bypass Approvals"),
 						detail: localize('permissions.autoApprove.subtext', "All tool calls are auto-approved"),
 						icon: ThemeIcon.fromId(Codicon.warning.id),
 						checked: currentLevel === ChatPermissionLevel.AutoApprove,
 						enabled: !policyRestricted,
+						class: undefined,
 						tooltip: policyRestricted ? localize('permissions.autoApprove.policyDisabled', "Disabled by enterprise policy") : '',
 						hover: {
 							content: policyRestricted
@@ -137,21 +134,19 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 								return;
 							}
 							delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
+							this.refreshRenderedLabel();
 						},
 					} satisfies IActionWidgetDropdownAction,
 				];
 				if (isAutopilotEnabled()) {
 					actions.push({
-						...action,
 						id: 'chat.permissions.autopilot',
 						label: localize('permissions.autopilot', "Autopilot (Preview)"),
 						detail: localize('permissions.autopilot.subtext', "Autonomously iterates from start to finish"),
 						icon: ThemeIcon.fromId(Codicon.rocket.id),
 						checked: currentLevel === ChatPermissionLevel.Autopilot,
 						enabled: !policyRestricted,
+						class: undefined,
 						tooltip: policyRestricted ? localize('permissions.autopilot.policyDisabled', "Disabled by enterprise policy") : '',
 						hover: {
 							content: policyRestricted
@@ -163,9 +158,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 								return;
 							}
 							delegate.setPermissionLevel(ChatPermissionLevel.Autopilot);
-							if (this.element) {
-								this.renderLabel(this.element);
-							}
+							this.refreshRenderedLabel();
 						},
 					} satisfies IActionWidgetDropdownAction);
 				}
@@ -238,9 +231,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 	}
 
 	public refresh(): void {
-		if (this.element) {
-			this.renderLabel(this.element);
-		}
+		this.refreshRenderedLabel();
 	}
 
 	override dispose(): void {

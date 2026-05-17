@@ -123,7 +123,6 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 			}
 
 			return {
-				...action,
 				id: getOpenChatActionIdForMode(mode),
 				label: mode.label.get(),
 				icon: isDisabledViaPolicy ? ThemeIcon.fromId(Codicon.lock.id) : mode.icon.get(),
@@ -141,9 +140,7 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 						ToggleAgentModeActionId,
 						{ modeId: mode.id, sessionResource: this.delegate.sessionResource() } satisfies IToggleChatModeArgs
 					);
-					if (this.element) {
-						this.renderLabel(this.element);
-					}
+					this.refreshRenderedLabel();
 					return result;
 				},
 				category: isDisabledViaPolicy ? policyDisabledCategory : builtInCategory
@@ -251,9 +248,7 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 		// Listen to changes in the current mode and its properties
 		this._register(autorun(reader => {
 			this.delegate.currentMode.read(reader).label.read(reader); // use the reader so autorun tracks it
-			if (this.element) {
-				this.renderLabel(this.element);
-			}
+			this.refreshRenderedLabel();
 		}));
 
 		assignmentService.getTreatment('chat.showOldAskMode').then(showOldAskMode => {
