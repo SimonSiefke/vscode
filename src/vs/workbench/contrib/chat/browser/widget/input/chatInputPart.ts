@@ -2175,6 +2175,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 				this.clearPlanReview();
 			}
 
+			this.pruneInactiveToolConfirmationCarousels(e.currentSessionResource);
+
 			// Swap the visible tool confirmation carousel for the new session
 			this._syncToolConfirmationCarouselForSession();
 
@@ -3265,6 +3267,15 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	private get _currentToolConfirmationCarousel(): ChatToolConfirmationCarouselPart | undefined {
 		const key = this._currentSessionKey;
 		return key ? this._chatToolConfirmationCarousels.get(key) : undefined;
+	}
+
+	private pruneInactiveToolConfirmationCarousels(currentSessionResource: URI | undefined): void {
+		const currentSessionKey = currentSessionResource?.toString();
+		for (const key of [...this._chatToolConfirmationCarousels.keys()]) {
+			if (key !== currentSessionKey) {
+				this.deleteToolConfirmationCarousel(key);
+			}
+		}
 	}
 
 	private deleteToolConfirmationCarousel(key: string): void {
