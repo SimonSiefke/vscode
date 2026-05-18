@@ -29,7 +29,7 @@ const $ = DOM.$;
 export class TOCTreeModel {
 
 	private _currentSearchModel: SearchResultModel | null = null;
-	private _settingsTreeRoot!: SettingsTreeGroupElement;
+	private _settingsTreeRoot: SettingsTreeGroupElement | null = null;
 
 	constructor(
 		private _viewState: ISettingsEditorViewState,
@@ -38,7 +38,7 @@ export class TOCTreeModel {
 	}
 
 	get settingsTreeRoot(): SettingsTreeGroupElement {
-		return this._settingsTreeRoot;
+		return this._settingsTreeRoot!;
 	}
 
 	set settingsTreeRoot(value: SettingsTreeGroupElement) {
@@ -56,7 +56,12 @@ export class TOCTreeModel {
 	}
 
 	get children(): SettingsTreeElement[] {
-		return this._settingsTreeRoot.children;
+		return this._settingsTreeRoot?.children ?? [];
+	}
+
+	clear(): void {
+		this._currentSearchModel = null;
+		this._settingsTreeRoot = null;
 	}
 
 	update(): void {

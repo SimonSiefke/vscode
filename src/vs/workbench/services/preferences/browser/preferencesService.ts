@@ -107,6 +107,12 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		}));
 
 		this._register(urlService.registerHandler(this));
+		this._register(this.editorService.onDidCloseEditor(e => {
+			if (e.editor === this._cachedSettingsEditor2Input) {
+				this._cachedSettingsEditor2Input.dispose();
+				this._cachedSettingsEditor2Input = undefined;
+			}
+		}));
 	}
 
 	readonly defaultKeybindingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'defaultsettings', path: '/keybindings.json' });
