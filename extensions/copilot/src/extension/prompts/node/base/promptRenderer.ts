@@ -64,17 +64,22 @@ export class PromptRenderer<P extends BasePromptElementProps> extends BasePrompt
 	) {
 		// TODO@Alex, TODO@Joh: instantiationService.createInstance doesn't work here
 		const hydratedInstaService = instantiationService.createChild(new ServiceCollection([IPromptEndpoint, endpoint]));
-		return hydratedInstaService.invokeFunction((accessor) => {
-			const tokenizerProvider = accessor.get(ITokenizerProvider);
-			let renderer = new PromptRenderer(hydratedInstaService, endpoint, ctor, props, tokenizerProvider, accessor.get(IRequestLogger), accessor.get(ILogService), accessor.get(IConfigurationService));
+		try {
+			return hydratedInstaService.invokeFunction((accessor) => {
+				const tokenizerProvider = accessor.get(ITokenizerProvider);
+				let renderer = new PromptRenderer(hydratedInstaService, endpoint, ctor, props, tokenizerProvider, accessor.get(IRequestLogger), accessor.get(ILogService), accessor.get(IConfigurationService));
 
-			const visualizations = RendererVisualizations.getIfVisualizationTestIsRunning();
-			if (visualizations) {
-				renderer = visualizations.decorateAndRegister(renderer, ctor.name);
-			}
+				const visualizations = RendererVisualizations.getIfVisualizationTestIsRunning();
+				if (visualizations) {
+					renderer = visualizations.decorateAndRegister(renderer, ctor.name);
+				}
 
-			return renderer;
-		});
+				return renderer;
+			});
+		} catch (error) {
+			hydratedInstaService.dispose();
+			throw error;
+		}
 	}
 
 	constructor(
@@ -101,37 +106,40 @@ export class PromptRenderer<P extends BasePromptElementProps> extends BasePrompt
 	}
 
 	override async render(progress?: Progress<ChatResponsePart> | undefined, token?: CancellationToken | undefined, opts?: Partial<{ trace: boolean }>): Promise<RenderPromptResult> {
-		const result = await super.render(progress, token);
-		const defaultOptions = { trace: true };
-		opts = { ...defaultOptions, ...opts };
-		if (this.tracer && !!opts.trace) {
-			this._requestLogger.addPromptTrace(this.ctorName!, this.endpoint, result, this.tracer as HTMLTracer);
-		}
-
-		// Collapse consecutive system messages because CAPI currently expects a single
-		// system message per prompt. Note: this may slightly reduce the actual
-		// token usage under the `RenderPromptResult.tokenCount`.
-		for (let i = 1; i < result.messages.length; i++) {
-			const current = result.messages[i];
-			const prev = result.messages[i - 1];
-			if (current.role === Raw.ChatRole.System && prev.role === Raw.ChatRole.System) {
-				const lastContent = prev.content.at(-1);
-				const nextContent = current.content.at(0);
-				if (lastContent && nextContent && lastContent.type === Raw.ChatCompletionContentPartKind.Text && nextContent.type === Raw.ChatCompletionContentPartKind.Text) {
-					lastContent.text = lastContent.text.trimEnd() + '\n' + nextContent.text;
-					prev.content = prev.content.concat(current.content.slice(1));
-				} else {
-					prev.content.push(toTextPart('\n'));
-					prev.content = prev.content.concat(current.content);
-				}
-				result.messages.splice(i, 1);
-				i--;
+		try {
+			const result = await super.render(progress, token);
+			const defaultOptions = { trace: true };
+			opts = { ...defaultOptions, ...opts };
+			if (this.tracer && !!opts.trace) {
+				this._requestLogger.addPromptTrace(this.ctorName!, this.endpoint, result, this.tracer as HTMLTracer);
 			}
-		}
 
-		const references = result.references.filter(ref => this.validateReference(ref));
-		this._instantiationService.dispose(); // Dispose the hydrated instantiation service
-		return { ...result, references: getUniqueReferences(references) };
+			// Collapse consecutive system messages because CAPI currently expects a single
+			// system message per prompt. Note: this may slightly reduce the actual
+			// token usage under the `RenderPromptResult.tokenCount`.
+			for (let i = 1; i < result.messages.length; i++) {
+				const current = result.messages[i];
+				const prev = result.messages[i - 1];
+				if (current.role === Raw.ChatRole.System && prev.role === Raw.ChatRole.System) {
+					const lastContent = prev.content.at(-1);
+					const nextContent = current.content.at(0);
+					if (lastContent && nextContent && lastContent.type === Raw.ChatCompletionContentPartKind.Text && nextContent.type === Raw.ChatCompletionContentPartKind.Text) {
+						lastContent.text = lastContent.text.trimEnd() + '\n' + nextContent.text;
+						prev.content = prev.content.concat(current.content.slice(1));
+					} else {
+						prev.content.push(toTextPart('\n'));
+						prev.content = prev.content.concat(current.content);
+					}
+					result.messages.splice(i, 1);
+					i--;
+				}
+			}
+
+			const references = result.references.filter(ref => this.validateReference(ref));
+			return { ...result, references: getUniqueReferences(references) };
+		} finally {
+			this._instantiationService.dispose();
+		}
 	}
 
 	private validateReference(reference: PromptReference) {
@@ -151,8 +159,12 @@ export class PromptRenderer<P extends BasePromptElementProps> extends BasePrompt
 	}
 
 	async countTokens(token?: CancellationToken): Promise<number> {
-		const result = await super.render(undefined, token);
-		return result.tokenCount;
+		try {
+			const result = await super.render(undefined, token);
+			return result.tokenCount;
+		} finally {
+			this._instantiationService.dispose();
+		}
 	}
 }
 
@@ -216,6 +228,10 @@ export async function renderPromptElementJSON<P extends BasePromptElementProps>(
 		return await endpointProvider.getChatEndpoint('copilot-utility');
 	});
 	const hydratedInstaService = instantiationService.createChild(new ServiceCollection([IPromptEndpoint, endpoint]));
-	const renderer = new PromptRendererForJSON(ctor as any, props, tokenOptions, endpoint, hydratedInstaService);
-	return await renderer.renderElementJSON(token);
+	try {
+		const renderer = new PromptRendererForJSON(ctor as any, props, tokenOptions, endpoint, hydratedInstaService);
+		return await renderer.renderElementJSON(token);
+	} finally {
+		hydratedInstaService.dispose();
+	}
 }
