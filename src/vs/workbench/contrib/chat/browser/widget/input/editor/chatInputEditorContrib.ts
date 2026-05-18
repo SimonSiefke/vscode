@@ -81,6 +81,12 @@ class InputEditorDecorations extends Disposable {
 
 
 	private readonly updateThrottle = this._register(new ThrottledDelayer<void>(InputEditorDecorations.UPDATE_DELAY));
+	private readonly updateAsyncInputEditorDecorationsThrottled = (token: CancellationToken) => this.updateAsyncInputEditorDecorations(token);
+	private readonly handleUpdateAsyncInputEditorDecorationsError = (err: unknown) => {
+		if (!isCancellationError(err)) {
+			throw err;
+		}
+	};
 
 	constructor(
 		private readonly widget: IChatWidget,
@@ -203,12 +209,7 @@ class InputEditorDecorations extends Disposable {
 		this.updateInputPlaceholderDecoration();
 
 		// with a delay, update the rest of the decorations
-		this.updateThrottle.trigger(token => this.updateAsyncInputEditorDecorations(token)).catch(err => {
-			// Throttled delayers reject with CancellationError when disposed mid-flight.
-			if (!isCancellationError(err)) {
-				throw err;
-			}
-		});
+		this.updateThrottle.trigger(this.updateAsyncInputEditorDecorationsThrottled).catch(this.handleUpdateAsyncInputEditorDecorationsError);
 	}
 
 	private updateInputPlaceholderDecoration(): void {

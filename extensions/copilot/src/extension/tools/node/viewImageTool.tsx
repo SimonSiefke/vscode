@@ -39,7 +39,7 @@ export class ViewImageTool implements ICopilotTool<IViewImageParams> {
 	) { }
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<IViewImageParams>, _token: vscode.CancellationToken): Promise<LanguageModelToolResult> {
-		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 		const imageMimeType = getImageMimeType(uri);
 		if (!imageMimeType) {
 			throw new Error(`Cannot view ${this.promptPathRepresentationService.getFilePath(uri)} with ${ToolName.ViewImage}. Use ${ToolName.ReadFile} for non-image files.`);
@@ -60,7 +60,7 @@ export class ViewImageTool implements ICopilotTool<IViewImageParams> {
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IViewImageParams>, _token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation | undefined> {
-		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 		this.assertImageFile(uri);
 
 		const isExternal = await this.instantiationService.invokeFunction(

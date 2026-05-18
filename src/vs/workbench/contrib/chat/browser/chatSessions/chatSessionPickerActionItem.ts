@@ -72,9 +72,7 @@ export class ChatSessionPickerActionItem extends ActionWidgetDropdownActionViewI
 
 		this._register(this.delegate.onDidChangeOption(newOption => {
 			this.currentOption = newOption;
-			if (this.element) {
-				this.renderLabel(this.element);
-			}
+			this.refreshRenderedLabel();
 			this.updateEnabled();
 		}));
 	}

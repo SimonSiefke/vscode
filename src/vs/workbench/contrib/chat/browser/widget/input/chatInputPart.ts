@@ -82,7 +82,7 @@ import { IChatViewTitleActionContext } from '../../../common/actions/chatActions
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatRequestVariableSet, getImageAttachmentLimit, IChatRequestVariableEntry, isBrowserViewVariableEntry, isElementVariableEntry, isImageVariableEntry, isNotebookOutputVariableEntry, isPasteVariableEntry, isPromptFileVariableEntry, isPromptTextVariableEntry, isSCMHistoryItemChangeRangeVariableEntry, isSCMHistoryItemChangeVariableEntry, isSCMHistoryItemVariableEntry, isStringVariableEntry, OmittedState } from '../../../common/attachments/chatVariableEntries.js';
 import { ChatMode, getModeNameForTelemetry, IChatMode, IChatModes, IChatModeService } from '../../../common/chatModes.js';
-import { IChatFollowup, IChatPlanReview, IChatQuestionCarousel, IChatToolInvocation } from '../../../common/chatService/chatService.js';
+import { IChatFollowup, IChatPlanReview, IChatQuestionCarousel, IChatService, IChatToolInvocation } from '../../../common/chatService/chatService.js';
 import { IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, IChatSessionsService, isIChatSessionFileChange2, localChatSessionType } from '../../../common/chatSessionsService.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel, isChatPermissionLevel } from '../../../common/constants.js';
 import { IChatEditingSession, IModifiedFileEntry, ModifiedFileEntryState } from '../../../common/editing/chatEditingService.js';
@@ -238,6 +238,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	private readonly _planReviewResponseIds = new Map<string, string>();
 	private readonly _planReviewSessionResources = new Map<string, URI>();
 	private readonly _chatToolConfirmationCarousels = this._register(new DisposableMap<string, ChatToolConfirmationCarouselPart>());
+	private readonly _chatToolConfirmationCarouselListeners = this._register(new DisposableMap<string, IDisposable>());
 	private readonly _chatEditingTodosDisposables = this._register(new DisposableStore());
 	private _lastEditingSessionResource: URI | undefined;
 
@@ -561,6 +562,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		@IChatEntitlementService private readonly entitlementService: IChatEntitlementService,
 		@IChatModeService private readonly chatModeService: IChatModeService,
 		@ILanguageModelToolsService private readonly toolService: ILanguageModelToolsService,
+		@IChatService private readonly chatService: IChatService,
 		@IChatSessionsService private readonly chatSessionsService: IChatSessionsService,
 		@IChatContextService private readonly chatContextService: IChatContextService,
 		@IAgentSessionsService private readonly agentSessionsService: IAgentSessionsService,
@@ -605,6 +607,12 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 				if (getChatSessionType(sessionResource) === chatSessionType || delegateSessionType === chatSessionType) {
 					this.refreshChatSessionPickers();
 				}
+			}
+		}));
+
+		this._register(this.chatService.onDidDisposeSession(e => {
+			for (const sessionResource of e.sessionResources) {
+				this.deleteToolConfirmationCarousel(sessionResource.toString());
 			}
 		}));
 
@@ -2167,6 +2175,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 				this.clearPlanReview();
 			}
 
+			this.pruneInactiveToolConfirmationCarousels(e.currentSessionResource);
+
 			// Swap the visible tool confirmation carousel for the new session
 			this._syncToolConfirmationCarouselForSession();
 
@@ -3259,6 +3269,24 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		return key ? this._chatToolConfirmationCarousels.get(key) : undefined;
 	}
 
+	private pruneInactiveToolConfirmationCarousels(currentSessionResource: URI | undefined): void {
+		const currentSessionKey = currentSessionResource?.toString();
+		for (const key of [...this._chatToolConfirmationCarousels.keys()]) {
+			if (key !== currentSessionKey) {
+				this.deleteToolConfirmationCarousel(key);
+			}
+		}
+	}
+
+	private deleteToolConfirmationCarousel(key: string): void {
+		this._chatToolConfirmationCarouselListeners.deleteAndDispose(key);
+		this._chatToolConfirmationCarousels.deleteAndDispose(key);
+		if (this._currentSessionKey === key) {
+			dom.clearNode(this.chatToolConfirmationCarouselContainer);
+			dom.hide(this.chatToolConfirmationCarouselContainer);
+		}
+	}
+
 	renderToolConfirmationCarousel(tool: IChatToolInvocation, factory: ToolInvocationPartFactory, subAgentInvocationId?: string, agentName?: string, scrollToSubagent?: ScrollToSubagentCallback, toolPart?: ChatToolInvocationPart): ChatToolConfirmationCarouselPart {
 		const existing = this._currentToolConfirmationCarousel;
 		if (existing) {
@@ -3280,12 +3308,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		this.updateToolConfirmationCarouselMaxHeight();
 
 		const capturedKey = key;
-		this._register(Event.once(part.onDidEmpty)(() => {
-			this._chatToolConfirmationCarousels.deleteAndDispose(capturedKey);
-			if (this._currentSessionKey === capturedKey) {
-				dom.clearNode(this.chatToolConfirmationCarouselContainer);
-				dom.hide(this.chatToolConfirmationCarouselContainer);
-			}
+		this._chatToolConfirmationCarouselListeners.set(capturedKey, Event.once(part.onDidEmpty)(() => {
+			this.deleteToolConfirmationCarousel(capturedKey);
 		}));
 
 		return part;
@@ -3320,7 +3344,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	clearToolConfirmationCarousel(): void {
 		const key = this._currentSessionKey;
 		if (key) {
-			this._chatToolConfirmationCarousels.deleteAndDispose(key);
+			this.deleteToolConfirmationCarousel(key);
 		}
 		dom.clearNode(this.chatToolConfirmationCarouselContainer);
 		dom.hide(this.chatToolConfirmationCarouselContainer);
@@ -3404,21 +3428,24 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			return entries;
 		});
 
-		const sessionFileChanges = observableFromEvent(
+		const currentSessionResource = observableFromEvent(
 			this,
-			this.agentSessionsService.model.onDidChangeSessions,
-			() => {
-				const sessionResource = this._widget?.viewModel?.model?.sessionResource;
-				if (!sessionResource) {
-					return Iterable.empty();
-				}
-				const model = this.agentSessionsService.getSession(sessionResource);
-				return model?.changes instanceof Array ? model.changes : Iterable.empty();
-			},
+			this._widget.onDidChangeViewModel,
+			() => this._widget?.viewModel?.model?.sessionResource,
 		);
 
-		const sessionFiles = derived(reader =>
-			sessionFileChanges.read(reader).map((entry): IChatCollapsibleListItem => ({
+		const sessionFiles = derived(reader => {
+			const sessionResource = currentSessionResource.read(reader);
+			if (!sessionResource || getChatSessionType(sessionResource) === localChatSessionType) {
+				return Iterable.empty<IChatCollapsibleListItem>();
+			}
+
+			const model = this.agentSessionsService.model.observeSession(sessionResource).read(reader);
+			if (!(model?.changes instanceof Array)) {
+				return Iterable.empty<IChatCollapsibleListItem>();
+			}
+
+			return model.changes.map((entry): IChatCollapsibleListItem => ({
 				reference: isIChatSessionFileChange2(entry)
 					? entry.modifiedUri ?? entry.uri
 					: entry.modifiedUri,
@@ -3430,8 +3457,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 					originalUri: entry.originalUri,
 					status: undefined
 				}
-			}))
-		);
+			}));
+		});
 
 		const shouldRender = derived(reader =>
 			editSessionEntries.read(reader).length > 0 || sessionFiles.read(reader).length > 0);

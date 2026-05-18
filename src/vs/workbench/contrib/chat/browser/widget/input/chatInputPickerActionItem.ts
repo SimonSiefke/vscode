@@ -53,7 +53,7 @@ export abstract class ChatInputPickerActionViewItem extends ActionWidgetDropdown
 			const hideChevrons = this.pickerOptions.hideChevrons.read(reader);
 			if (this.element) {
 				this.element.classList.toggle('hide-chevrons', hideChevrons);
-				this.renderLabel(this.element);
+				this.refreshRenderedLabel();
 			}
 		}));
 	}
@@ -77,7 +77,7 @@ export abstract class ChatInputPickerActionViewItem extends ActionWidgetDropdown
 		const hideChevrons = this.pickerOptions.hideChevrons.get();
 		if (this.element) {
 			this.element.classList.toggle('hide-chevrons', hideChevrons);
-			this.renderLabel(this.element);
+			this.refreshRenderedLabel();
 		}
 	}
 }

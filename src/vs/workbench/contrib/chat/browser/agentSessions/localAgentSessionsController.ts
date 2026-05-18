@@ -97,6 +97,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 		this._register(this.chatService.onDidDisposeSession(e => {
 			for (const sessionResource of e.sessionResources) {
 				this._modelListeners.deleteAndDispose(sessionResource);
+				this._items.delete(sessionResource);
 			}
 
 			const removedSessionResources = e.sessionResources.filter(resource => getChatSessionType(resource) === this.chatSessionType);
@@ -150,6 +151,34 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 			return coalesce(historyItems.map(history => this.toChatSessionItem(history)));
 		} catch (error) {
 			return [];
+		}
+	}
+
+	async resolveChatSessionItem(resource: URI, token: CancellationToken): Promise<IChatSessionItem | undefined> {
+		const existing = this._items.get(resource);
+		if (existing) {
+			return existing;
+		}
+
+		const model = this.chatService.getSession(resource);
+		if (model) {
+			if (!model.hasRequests) {
+				return undefined;
+			}
+
+			return new LocalChatSessionItem(await chatModelToChatDetail(model), model);
+		}
+
+		if (token.isCancellationRequested) {
+			return undefined;
+		}
+
+		try {
+			const historyItems = await this.chatService.getHistorySessionItems();
+			const historyItem = historyItems.find(item => isEqual(item.sessionResource, resource));
+			return historyItem ? this.toChatSessionItem(historyItem) : undefined;
+		} catch {
+			return undefined;
 		}
 	}
 

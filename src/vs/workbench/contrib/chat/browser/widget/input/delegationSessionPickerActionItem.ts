@@ -55,9 +55,7 @@ export class DelegationSessionPickerActionItem extends SessionTypePickerActionIt
 		if (this.delegate.setPendingDelegationTarget) {
 			this.delegate.setPendingDelegationTarget(sessionTypeItem.type);
 		}
-		if (this.element) {
-			this.renderLabel(this.element);
-		}
+		this.refreshRenderedLabel();
 	}
 
 	protected override _getSelectedSessionType(): AgentSessionTarget | undefined {
