@@ -3428,21 +3428,24 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			return entries;
 		});
 
-		const sessionFileChanges = observableFromEvent(
+		const currentSessionResource = observableFromEvent(
 			this,
-			this.agentSessionsService.model.onDidChangeSessions,
-			() => {
-				const sessionResource = this._widget?.viewModel?.model?.sessionResource;
-				if (!sessionResource) {
-					return Iterable.empty();
-				}
-				const model = this.agentSessionsService.getSession(sessionResource);
-				return model?.changes instanceof Array ? model.changes : Iterable.empty();
-			},
+			this._widget.onDidChangeViewModel,
+			() => this._widget?.viewModel?.model?.sessionResource,
 		);
 
-		const sessionFiles = derived(reader =>
-			sessionFileChanges.read(reader).map((entry): IChatCollapsibleListItem => ({
+		const sessionFiles = derived(reader => {
+			const sessionResource = currentSessionResource.read(reader);
+			if (!sessionResource || getChatSessionType(sessionResource) === localChatSessionType) {
+				return Iterable.empty<IChatCollapsibleListItem>();
+			}
+
+			const model = this.agentSessionsService.model.observeSession(sessionResource).read(reader);
+			if (!(model?.changes instanceof Array)) {
+				return Iterable.empty<IChatCollapsibleListItem>();
+			}
+
+			return model.changes.map((entry): IChatCollapsibleListItem => ({
 				reference: isIChatSessionFileChange2(entry)
 					? entry.modifiedUri ?? entry.uri
 					: entry.modifiedUri,
@@ -3454,8 +3457,8 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 					originalUri: entry.originalUri,
 					status: undefined
 				}
-			}))
-		);
+			}));
+		});
 
 		const shouldRender = derived(reader =>
 			editSessionEntries.read(reader).length > 0 || sessionFiles.read(reader).length > 0);

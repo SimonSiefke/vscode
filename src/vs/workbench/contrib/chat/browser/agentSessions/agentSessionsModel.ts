@@ -555,15 +555,6 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 			this._resolvedResources.add(resource);
 			const sessionType = getChatSessionType(resource);
 			this.chatSessionsService.resolveChatSessionItem(sessionType, resource, CancellationToken.None)
-				.then(session => {
-					if (!session || this._sessions.has(resource)) {
-						return;
-					}
-
-					const resolvedSession = this.toAgentSession(this.toInternalAgentSessionData(sessionType, session));
-					this._sessions.set(resource, resolvedSession);
-					this._onDidChangeSessions.fire();
-				})
 				.catch(error => this.logger.logIfTrace(`observeSession: resolve failed for ${resource.toString()}: ${error instanceof Error ? error.message : String(error)}`));
 		}
 

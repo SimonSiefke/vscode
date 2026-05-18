@@ -43,6 +43,8 @@ export class AgentSessionsQuickAccessProvider extends PickerQuickAccessProvider<
 	protected async _getPicks(filter: string): Promise<(IQuickPickSeparator | IPickerQuickAccessItem)[]> {
 		const picks: Array<IPickerQuickAccessItem | IQuickPickSeparator> = [];
 
+		await this.agentSessionsService.model.resolve(undefined);
+
 		const sessions = this.agentSessionsService.model.sessions
 			.filter(session => shouldShowSessionInPicker(session, this.filter))
 			.sort(this.sorter.compare.bind(this.sorter));

@@ -27,9 +27,8 @@ export class AgentSessionsService extends Disposable implements IAgentSessionsSe
 	readonly onDidChangeSessionArchivedState = this._onDidChangeSessionArchivedState.event;
 
 	private _model: IAgentSessionsModel | undefined;
-	private _didResolveAllProviders = false;
 
-	private getOrCreateModel(resolveAllProviders: boolean): IAgentSessionsModel {
+	private getOrCreateModel(): IAgentSessionsModel {
 		if (!this._model) {
 			this._model = this._register(this.instantiationService.createInstance(AgentSessionsModel));
 			this._register(this._model.onDidChangeSessionArchivedState(session => {
@@ -41,16 +40,11 @@ export class AgentSessionsService extends Disposable implements IAgentSessionsSe
 			}));
 		}
 
-		if (resolveAllProviders && !this._didResolveAllProviders) {
-			this._didResolveAllProviders = true;
-			this._model.resolve(undefined /* all providers */);
-		}
-
 		return this._model;
 	}
 
 	get model(): IAgentSessionsModel {
-		return this.getOrCreateModel(true);
+		return this.getOrCreateModel();
 	}
 
 	constructor(
@@ -61,9 +55,7 @@ export class AgentSessionsService extends Disposable implements IAgentSessionsSe
 	}
 
 	getSession(resource: URI): IAgentSession | undefined {
-		const model = this.getOrCreateModel(false);
-		model.observeSession(resource);
-		return model.getSession(resource);
+		return this.getOrCreateModel().getSession(resource);
 	}
 }
 
