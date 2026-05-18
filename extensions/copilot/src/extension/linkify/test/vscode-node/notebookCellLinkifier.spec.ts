@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import assert from 'assert';
 import { suite, test } from 'vitest';
-import type { NotebookCell, NotebookDocument, TextDocument } from 'vscode';
+import type { Event, NotebookCell, NotebookDocument, NotebookDocumentChangeEvent, TextDocument } from 'vscode';
 import { ILogger, ILogService } from '../../../../platform/log/common/logService';
 import { TestWorkspaceService } from '../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
@@ -139,5 +140,55 @@ suite('Notebook Cell Linkifier', () => {
 				`), nor markdown, language=Python`
 			]
 		);
+	});
+
+	test('Should only subscribe to notebook events once per instance', async () => {
+		const cellUri = Uri.parse('vscode-notebook-cell:/test/notebook.ipynb#cell1');
+		const cell = createMockNotebookCell(cellUri, 0);
+		const notebook = createMockNotebookDocument([cell]);
+		const cellId = generateCellId(cellUri);
+
+		const createCountingEvent = <T>() => {
+			let listenerCount = 0;
+			const event = ((listener: (e: T) => unknown) => {
+				listenerCount++;
+				return {
+					dispose: () => {
+						listenerCount--;
+					}
+				};
+			}) as Event<T>;
+			return {
+				event,
+				get listenerCount() {
+					return listenerCount;
+				}
+			};
+		};
+
+		const openNotebookEvent = createCountingEvent<NotebookDocument>();
+		const closeNotebookEvent = createCountingEvent<NotebookDocument>();
+		const changeNotebookEvent = createCountingEvent<NotebookDocumentChangeEvent>();
+
+		const workspaceService = {
+			notebookDocuments: [notebook],
+			onDidOpenNotebookDocument: openNotebookEvent.event,
+			onDidCloseNotebookDocument: closeNotebookEvent.event,
+			onDidChangeNotebookDocument: changeNotebookEvent.event,
+		} as unknown as IWorkspaceService;
+
+		const linkifier = new NotebookCellLinkifier(workspaceService, mockLogger);
+		await linkifier.linkify(`Cell Id ${cellId}`, { requestId: undefined, references: [] }, CancellationToken.None);
+		await linkifier.linkify(`Cell Id ${cellId}`, { requestId: undefined, references: [] }, CancellationToken.None);
+
+		assert.strictEqual(openNotebookEvent.listenerCount, 1);
+		assert.strictEqual(closeNotebookEvent.listenerCount, 1);
+		assert.strictEqual(changeNotebookEvent.listenerCount, 1);
+
+		linkifier.dispose();
+
+		assert.strictEqual(openNotebookEvent.listenerCount, 0);
+		assert.strictEqual(closeNotebookEvent.listenerCount, 0);
+		assert.strictEqual(changeNotebookEvent.listenerCount, 0);
 	});
 });
