@@ -227,6 +227,42 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 		this._onDidChangeChatSessionItems.fire({ addedOrUpdated: this._items });
 	}
 
+	async resolveChatSessionItem(resource: URI, _token: CancellationToken): Promise<IChatSessionItem | undefined> {
+		const existing = this._items.find(item => item.resource.path === resource.path);
+		if (existing) {
+			return existing;
+		}
+
+		try {
+			const sessions = await this._connection.listSessions();
+			const rawId = resource.path.substring(1);
+			const resolved = sessions.find(session => AgentSession.provider(session.session) === this._provider && AgentSession.id(session.session) === rawId);
+			if (!resolved) {
+				return undefined;
+			}
+
+			let status = resolved.status ?? SessionStatus.Idle;
+			if (resolved.isRead) {
+				status |= SessionStatus.IsRead;
+			}
+			if (resolved.isArchived) {
+				status |= SessionStatus.IsArchived;
+			}
+
+			return this._makeItem(rawId, {
+				title: resolved.summary,
+				status,
+				activity: resolved.activity,
+				workingDirectory: resolved.workingDirectory,
+				createdAt: resolved.startTime,
+				modifiedAt: resolved.modifiedTime,
+				diffs: resolved.diffs,
+			});
+		} catch {
+			return undefined;
+		}
+	}
+
 	private _makeItemFromSummary(rawId: string, summary: SessionSummary, diffs: readonly ISessionFileDiff[] | undefined): IChatSessionItem {
 		const workingDir = typeof summary.workingDirectory === 'string' ? URI.parse(summary.workingDirectory) : summary.workingDirectory;
 		return this._makeItem(rawId, {

@@ -555,6 +555,15 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 			this._resolvedResources.add(resource);
 			const sessionType = getChatSessionType(resource);
 			this.chatSessionsService.resolveChatSessionItem(sessionType, resource, CancellationToken.None)
+				.then(session => {
+					if (!session || this._sessions.has(resource)) {
+						return;
+					}
+
+					const resolvedSession = this.toAgentSession(this.toInternalAgentSessionData(sessionType, session));
+					this._sessions.set(resource, resolvedSession);
+					this._onDidChangeSessions.fire();
+				})
 				.catch(error => this.logger.logIfTrace(`observeSession: resolve failed for ${resource.toString()}: ${error instanceof Error ? error.message : String(error)}`));
 		}
 
@@ -642,37 +651,7 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 			}
 
 			for (const session of providerSessions) {
-				let icon: ThemeIcon;
-				let providerLabel: string;
-				const agentSessionProvider = getAgentSessionProvider(chatSessionType);
-				if (agentSessionProvider !== undefined) {
-					providerLabel = getAgentSessionProviderName(agentSessionProvider);
-					icon = getAgentSessionProviderIcon(agentSessionProvider);
-				} else {
-					providerLabel = mapSessionContributionToType.get(chatSessionType)?.name ?? chatSessionType;
-					icon = session.iconPath ?? Codicon.terminal;
-				}
-
-				const changes = session.changes;
-				const normalizedChanges = changes && !(changes instanceof Array)
-					? { files: changes.files, insertions: changes.insertions, deletions: changes.deletions }
-					: changes;
-
-				sessions.set(session.resource, this.toAgentSession({
-					providerType: chatSessionType,
-					providerLabel,
-					resource: session.resource,
-					label: session.label.split('\n')[0], // protect against weird multi-line labels that break our layout
-					description: session.description,
-					icon,
-					badge: session.badge,
-					tooltip: session.tooltip,
-					status: session.status ?? AgentSessionStatus.Completed,
-					archived: session.archived,
-					timing: session.timing,
-					changes: normalizedChanges,
-					metadata: session.metadata,
-				}));
+				sessions.set(session.resource, this.toAgentSession(this.toInternalAgentSessionData(chatSessionType, session, mapSessionContributionToType)));
 			}
 		}
 
@@ -702,6 +681,44 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		this.logger.logAllStatsIfTrace('Sessions resolved from providers');
 
 		this._onDidChangeSessions.fire();
+	}
+
+	private toInternalAgentSessionData(
+		chatSessionType: string,
+		session: IChatSessionItem,
+		contributions = new Map<string, ResolvedChatSessionsExtensionPoint>(),
+	): IInternalAgentSessionData {
+		let icon: ThemeIcon;
+		let providerLabel: string;
+		const agentSessionProvider = getAgentSessionProvider(chatSessionType);
+		if (agentSessionProvider !== undefined) {
+			providerLabel = getAgentSessionProviderName(agentSessionProvider);
+			icon = getAgentSessionProviderIcon(agentSessionProvider);
+		} else {
+			providerLabel = contributions.get(chatSessionType)?.name ?? chatSessionType;
+			icon = session.iconPath ?? Codicon.terminal;
+		}
+
+		const changes = session.changes;
+		const normalizedChanges = changes && !(changes instanceof Array)
+			? { files: changes.files, insertions: changes.insertions, deletions: changes.deletions }
+			: changes;
+
+		return {
+			providerType: chatSessionType,
+			providerLabel,
+			resource: session.resource,
+			label: session.label.split('\n')[0],
+			description: session.description,
+			icon,
+			badge: session.badge,
+			tooltip: session.tooltip,
+			status: session.status ?? AgentSessionStatus.Completed,
+			archived: session.archived,
+			timing: session.timing,
+			changes: normalizedChanges,
+			metadata: session.metadata,
+		};
 	}
 
 	private toAgentSession(data: IInternalAgentSessionData): IInternalAgentSession {

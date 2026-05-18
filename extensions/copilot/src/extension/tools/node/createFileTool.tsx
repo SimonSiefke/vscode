@@ -61,10 +61,7 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 	) { }
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<ICreateFileParams>, token: vscode.CancellationToken) {
-		const uri = this.promptPathRepresentationService.resolveFilePath(options.input.filePath);
-		if (!uri) {
-			throw new Error(`Invalid file path`);
-		}
+		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 
 		if (!this._promptContext?.stream) {
 			throw new Error('Invalid stream');
@@ -166,7 +163,7 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<ICreateFileParams>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
-		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 		const content = options.input.content || '';
 
 		const confirmation = await this.instantiationService.invokeFunction(

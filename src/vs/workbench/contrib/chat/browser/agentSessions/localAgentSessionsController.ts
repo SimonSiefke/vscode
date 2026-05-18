@@ -154,6 +154,34 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 		}
 	}
 
+	async resolveChatSessionItem(resource: URI, token: CancellationToken): Promise<IChatSessionItem | undefined> {
+		const existing = this._items.get(resource);
+		if (existing) {
+			return existing;
+		}
+
+		const model = this.chatService.getSession(resource);
+		if (model) {
+			if (!model.hasRequests) {
+				return undefined;
+			}
+
+			return new LocalChatSessionItem(await chatModelToChatDetail(model), model);
+		}
+
+		if (token.isCancellationRequested) {
+			return undefined;
+		}
+
+		try {
+			const historyItems = await this.chatService.getHistorySessionItems();
+			const historyItem = historyItems.find(item => isEqual(item.sessionResource, resource));
+			return historyItem ? this.toChatSessionItem(historyItem) : undefined;
+		} catch {
+			return undefined;
+		}
+	}
+
 	private toChatSessionItem(chat: IChatDetail): LocalChatSessionItem | undefined {
 		const model = this.chatService.getSession(chat.sessionResource);
 
