@@ -153,10 +153,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 		}));
 
-		this._register(this.lifecycleMainService.onBeforeCloseWindow(window => {
-			this.releaseWindowWorkspaceStorage(window.id, this.getWindowWorkspace(window));
-		}));
-
 		// All Storage: Close when shutting down
 		this._register(this.lifecycleMainService.onWillShutdown(e => {
 			this.logService.trace('storageMainService#onWillShutdown()');
@@ -327,38 +323,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		}
 
 		return new WorkspaceStorageMain(workspace, this.getStorageOptions(), this.logService, this.environmentService, this.fileService);
-	}
-
-	private getWindowWorkspace(window: ICodeWindow): IAnyWorkspaceIdentifier {
-		return window.openedWorkspace ?? toWorkspaceIdentifier(window.backupPath, window.isExtensionDevelopmentHost);
-	}
-
-	private acquireWindowWorkspaceStorage(windowId: number, workspace: IAnyWorkspaceIdentifier): void {
-		const currentWorkspace = this.mapWindowToWorkspace.get(windowId);
-		if (currentWorkspace === workspace.id) {
-			return;
-		}
-
-		this.mapWindowToWorkspace.set(windowId, workspace.id);
-	}
-
-	private releaseWindowWorkspaceStorage(windowId: number, workspace: IAnyWorkspaceIdentifier): void {
-		const trackedWorkspaceId = this.mapWindowToWorkspace.get(windowId);
-		if (trackedWorkspaceId) {
-			this.mapWindowToWorkspace.delete(windowId);
-			this.releaseWorkspaceStorage(trackedWorkspaceId);
-
-			return;
-		}
-
-		this.releaseWorkspaceStorage(workspace.id);
-	}
-
-	private releaseWorkspaceStorage(workspaceId: string): void {
-		const workspaceStorage = this.mapWorkspaceToStorage.get(workspaceId);
-		if (workspaceStorage) {
-			workspaceStorage.close().then(undefined, error => this.logService.error(error));
-		}
 	}
 
 	//#endregion
