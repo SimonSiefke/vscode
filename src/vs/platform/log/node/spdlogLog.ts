@@ -69,8 +69,6 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 	private buffer: ILog[] = [];
 	private readonly _loggerCreationPromise: Promise<void>;
 	private _logger: spdlog.Logger | undefined;
-	private didRequestFlush = false;
-	private didDispose = false;
 
 	constructor(
 		name: string,
@@ -94,23 +92,12 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		const filesize = (30 / filecount) * ByteSize.MB;
 		const logger = await createSpdLogLogger(name, filepath, filesize, filecount, donotUseFormatters);
 		if (logger) {
-			if (this.didDispose) {
-				logger.drop();
-				this.buffer = [];
-				return;
-			}
-
 			this._logger = logger;
 			setLogLevel(this._logger, this.getLevel());
 			for (const { level, message } of this.buffer) {
 				log(this._logger, level, message);
 			}
 			this.buffer = [];
-
-			if (this.didRequestFlush) {
-				this.didRequestFlush = false;
-				this.flushLogger();
-			}
 		}
 	}
 
@@ -126,15 +113,15 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		if (this._logger) {
 			this.flushLogger();
 		} else {
-			this.didRequestFlush = true;
+			this._loggerCreationPromise.then(() => this.flushLogger());
 		}
 	}
 
 	override dispose(): void {
-		this.didDispose = true;
-		this.buffer = [];
 		if (this._logger) {
 			this.disposeLogger();
+		} else {
+			this._loggerCreationPromise.then(() => this.disposeLogger());
 		}
 		super.dispose();
 	}
