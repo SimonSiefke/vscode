@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { notStrictEqual, strictEqual } from 'assert';
+import { Event, Emitter } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -26,6 +27,8 @@ import { UserDataProfilesMainService } from '../../../userDataProfile/electron-m
 import { TestLifecycleMainService } from '../../../test/electron-main/workbenchTestServices.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { IOpenConfiguration, IOpenEmptyConfiguration, IWindowsMainService } from '../../../windows/electron-main/windows.js';
+import { ICodeWindow } from '../../../window/electron-main/window.js';
 
 suite('StorageMainService', function () {
 
@@ -58,6 +61,100 @@ suite('StorageMainService', function () {
 				useInMemoryStorage: true
 			};
 		}
+	}
+
+	class TestWindowsMainService implements IWindowsMainService {
+
+		readonly _serviceBrand = undefined;
+
+		readonly onDidChangeWindowsCount = Event.None;
+		readonly onDidOpenWindow = Event.None;
+		readonly onDidSignalReadyWindow = Event.None;
+		readonly onDidMaximizeWindow = Event.None;
+		readonly onDidUnmaximizeWindow = Event.None;
+		readonly onDidChangeFullScreen = Event.None;
+		readonly onDidTriggerSystemContextMenu = Event.None;
+
+		private readonly onDidDestroyWindowEmitter = new Emitter<ICodeWindow>();
+		readonly onDidDestroyWindow = this.onDidDestroyWindowEmitter.event;
+
+		private readonly windows: ICodeWindow[] = [];
+
+		addWindow(window: ICodeWindow): void {
+			this.windows.push(window);
+		}
+
+		destroyWindow(window: ICodeWindow): void {
+			const index = this.windows.indexOf(window);
+			if (index >= 0) {
+				this.windows.splice(index, 1);
+			}
+
+			this.onDidDestroyWindowEmitter.fire(window);
+		}
+
+		open(openConfig: IOpenConfiguration): Promise<ICodeWindow[]> { throw new Error('Method not implemented.'); }
+		openEmptyWindow(openConfig: IOpenEmptyConfiguration): Promise<ICodeWindow[]> { throw new Error('Method not implemented.'); }
+		openExtensionDevelopmentHostWindow(extensionDevelopmentPath: string[], openConfig: IOpenConfiguration): Promise<ICodeWindow[]> { throw new Error('Method not implemented.'); }
+		openExistingWindow(window: ICodeWindow, openConfig: IOpenConfiguration): void { throw new Error('Method not implemented.'); }
+		openAgentsWindow(openConfig: IOpenConfiguration, folderUri?: URI): Promise<ICodeWindow[]> { throw new Error('Method not implemented.'); }
+		sendToFocused(channel: string, ...args: unknown[]): void { }
+		sendToOpeningWindow(channel: string, ...args: unknown[]): void { }
+		sendToAll(channel: string, payload?: unknown, windowIdsToIgnore?: number[]): void { }
+		getWindows(): ICodeWindow[] { return this.windows.slice(0); }
+		getWindowCount(): number { return this.windows.length; }
+		getFocusedWindow(): ICodeWindow | undefined { return undefined; }
+		getLastActiveWindow(): ICodeWindow | undefined { return undefined; }
+		getWindowById(windowId: number): ICodeWindow | undefined { return this.windows.find(window => window.id === windowId); }
+		getWindowByWebContents(): ICodeWindow | undefined { return undefined; }
+	}
+
+	function createCodeWindow(id: number, openedWorkspace?: { id: string }): ICodeWindow {
+		return {
+			onDidMaximize: Event.None,
+			onDidUnmaximize: Event.None,
+			onDidTriggerSystemContextMenu: Event.None,
+			onDidEnterFullScreen: Event.None,
+			onDidLeaveFullScreen: Event.None,
+			onDidClose: Event.None,
+			onWillLoad: Event.None,
+			onDidSignalReady: Event.None,
+			onDidDestroy: Event.None,
+			whenClosedOrLoaded: Promise.resolve(),
+			config: undefined,
+			openedWorkspace,
+			profile: undefined,
+			backupPath: undefined,
+			remoteAuthority: undefined,
+			isExtensionDevelopmentHost: false,
+			isExtensionTestHost: false,
+			isReady: true,
+			id,
+			win: null,
+			lastFocusTime: 0,
+			isFullScreen: false,
+			focus(): void { },
+			setRepresentedFilename(name: string): void { },
+			getRepresentedFilename(): string | undefined { return undefined; },
+			setDocumentEdited(edited: boolean): void { },
+			isDocumentEdited(): boolean { return false; },
+			toggleFullScreen(): void { },
+			updateWindowControls(): void { },
+			matches(): boolean { return false; },
+			dispose(): void { },
+			ready(): Promise<ICodeWindow> { return Promise.resolve(this); },
+			setReady(): void { },
+			addTabbedWindow(window: ICodeWindow): void { },
+			load(): void { },
+			reload(): void { },
+			close(): void { },
+			getBounds() { return { x: 0, y: 0, width: 0, height: 0 }; },
+			send(channel: string, ...args: unknown[]): void { },
+			sendWhenReady(channel: string, token, ...args: unknown[]): void { },
+			updateTouchBar(items): void { },
+			notifyZoomLevel(zoomLevel: number | undefined): void { },
+			serializeWindowState() { return {}; }
+		};
 	}
 
 	async function testStorage(storage: IStorageMain, scope: StorageScope): Promise<void> {
@@ -113,11 +210,11 @@ suite('StorageMainService', function () {
 		disposables.clear();
 	});
 
-	function createStorageService(lifecycleMainService: ILifecycleMainService = new TestLifecycleMainService()): TestStorageMainService {
+	function createStorageService(lifecycleMainService: ILifecycleMainService = new TestLifecycleMainService(), windowsMainService: IWindowsMainService = new TestWindowsMainService()): TestStorageMainService {
 		const environmentService = new NativeEnvironmentService(parseArgs(process.argv, OPTIONS), productService);
 		const fileService = disposables.add(new FileService(new NullLogService()));
 		const uriIdentityService = disposables.add(new UriIdentityService(fileService));
-		const testStorageService = disposables.add(new TestStorageMainService(new NullLogService(), environmentService, disposables.add(new UserDataProfilesMainService(disposables.add(new StateService(SaveStrategy.DELAYED, environmentService, new NullLogService(), fileService)), disposables.add(uriIdentityService), environmentService, fileService, new NullLogService(), productService)), lifecycleMainService, fileService, uriIdentityService));
+		const testStorageService = disposables.add(new TestStorageMainService(new NullLogService(), environmentService, disposables.add(new UserDataProfilesMainService(disposables.add(new StateService(SaveStrategy.DELAYED, environmentService, new NullLogService(), fileService)), disposables.add(uriIdentityService), environmentService, fileService, new NullLogService(), productService)), lifecycleMainService, windowsMainService, fileService, uriIdentityService));
 
 		disposables.add(testStorageService.applicationStorage);
 
@@ -281,6 +378,26 @@ suite('StorageMainService', function () {
 		await lifecycleMainService.fireOnWillShutdown();
 
 		strictEqual(didCloseApplicationSharedStorage, true);
+	});
+
+	test('workspace storage closed onDidDestroyWindow when last window closes', async function () {
+		const windowsMainService = new TestWindowsMainService();
+		const storageMainService = createStorageService(undefined, windowsMainService);
+		const workspace = { id: generateUuid() };
+		const window = createCodeWindow(1, workspace);
+		windowsMainService.addWindow(window);
+
+		const workspaceStorage = storageMainService.workspaceStorage(workspace);
+		await workspaceStorage.init();
+
+		const didCloseWorkspaceStorage = new Promise<void>(resolve => {
+			disposables.add(workspaceStorage.onDidCloseStorage(() => resolve()));
+		});
+
+		windowsMainService.destroyWindow(window);
+		await didCloseWorkspaceStorage;
+
+		notStrictEqual(workspaceStorage, storageMainService.workspaceStorage(workspace));
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
