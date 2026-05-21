@@ -284,7 +284,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 
 	private readonly mapWorkspaceToStorage = new Map<string /* workspace ID */, IStorageMain>();
 	private readonly mapWindowToWorkspace = new Map<number /* window ID */, string /* workspace ID */>();
-	private readonly mapWorkspaceToWindowCount = new Map<string /* workspace ID */, number /* window count */>();
 
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
 		let workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
@@ -329,14 +328,13 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		}
 
 		this.mapWindowToWorkspace.set(windowId, workspace.id);
-		this.mapWorkspaceToWindowCount.set(workspace.id, (this.mapWorkspaceToWindowCount.get(workspace.id) ?? 0) + 1);
 	}
 
 	private releaseWindowWorkspaceStorage(windowId: number, workspace: IAnyWorkspaceIdentifier): void {
-		const trackedWorkspace = this.mapWindowToWorkspace.get(windowId);
-		if (trackedWorkspace) {
+		const trackedWorkspaceId = this.mapWindowToWorkspace.get(windowId);
+		if (trackedWorkspaceId) {
 			this.mapWindowToWorkspace.delete(windowId);
-			this.releaseWorkspaceStorage(trackedWorkspace);
+			this.releaseWorkspaceStorage(trackedWorkspaceId);
 
 			return;
 		}
@@ -345,16 +343,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 	}
 
 	private releaseWorkspaceStorage(workspaceId: string): void {
-		const currentWindowCount = this.mapWorkspaceToWindowCount.get(workspaceId);
-		if (typeof currentWindowCount === 'number') {
-			if (currentWindowCount > 1) {
-				this.mapWorkspaceToWindowCount.set(workspaceId, currentWindowCount - 1);
-				return;
-			}
-
-			this.mapWorkspaceToWindowCount.delete(workspaceId);
-		}
-
 		const workspaceStorage = this.mapWorkspaceToStorage.get(workspaceId);
 		if (workspaceStorage) {
 			workspaceStorage.close().then(undefined, error => this.logService.error(error));
