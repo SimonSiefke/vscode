@@ -133,7 +133,10 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			}
 
 
-			Event.once(e.window.onDidClose)(async () => {
+			Event.once(Event.any(
+				Event.filter(this.lifecycleMainService.onBeforeCloseWindow, window => window.id === e.window.id),
+				e.window.onDidDestroy
+			))(async () => {
 				if (this.shutdownReason) {
 					return;
 				}
