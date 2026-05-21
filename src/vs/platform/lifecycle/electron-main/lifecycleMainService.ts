@@ -589,7 +589,6 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 					return;
 				}
 
-<<<<<<< HEAD
 				didResolve = true;
 				disposables.dispose();
 				resolve(veto);
@@ -604,24 +603,6 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			disposables.add(toDisposable(() => validatedIpcMain.removeListener(cancelChannel, cancelListener)));
 
 			disposables.add(Event.once(Event.any(window.onDidClose, window.onDidDestroy))(() => complete(false)));
-=======
-			const cleanup = (value: boolean) => {
-				validatedIpcMain.removeListener(okChannel, okListener);
-				validatedIpcMain.removeListener(cancelChannel, cancelListener);
-				resolve(value);
-			};
-
-			const okListener = () => {
-				cleanup(false); // no veto
-			};
-
-			const cancelListener = () => {
-				cleanup(true); // veto
-			};
-
-			validatedIpcMain.on(okChannel, okListener);
-			validatedIpcMain.on(cancelChannel, cancelListener);
->>>>>>> main
 
 			window.send('vscode:onBeforeUnload', { okChannel, cancelChannel, reason });
 		});

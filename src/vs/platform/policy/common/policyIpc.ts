@@ -5,6 +5,7 @@
 
 import { IStringDictionary } from '../../../base/common/collections.js';
 import { Event } from '../../../base/common/event.js';
+import { DisposableStore } from '../../../base/common/lifecycle.js';
 import { PolicyName } from '../../../base/common/policy.js';
 import { IChannel, IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { AbstractPolicyService, IPolicyService, PolicyDefinition, PolicyValue } from './policy.js';
@@ -12,16 +13,6 @@ import { AbstractPolicyService, IPolicyService, PolicyDefinition, PolicyValue } 
 
 export class PolicyChannel implements IServerChannel {
 
-<<<<<<< HEAD
-	constructor(private service: IPolicyService) { }
-
-	listen(_: unknown, event: string): Event<any> {
-		switch (event) {
-			case 'onDidChange': return Event.map(
-				this.service.onDidChange,
-				names => names.reduce<object>((r, name) => ({ ...r, [name]: this.service.getPolicyValue(name) ?? null }), {})
-			);
-=======
 	private readonly onDidChangeEvent: Event<IStringDictionary<PolicyValue | null>>;
 	private readonly disposables = new DisposableStore();
 
@@ -36,7 +27,6 @@ export class PolicyChannel implements IServerChannel {
 	listen(_: unknown, event: string): Event<any> {
 		switch (event) {
 			case 'onDidChange': return this.onDidChangeEvent;
->>>>>>> main
 		}
 
 		throw new Error(`Event not found: ${event}`);
@@ -50,7 +40,9 @@ export class PolicyChannel implements IServerChannel {
 		throw new Error(`Call not found: ${command}`);
 	}
 
-	dispose() { }
+	dispose(): void {
+		this.disposables.dispose();
+	}
 }
 
 export class PolicyChannelClient extends AbstractPolicyService implements IPolicyService {
