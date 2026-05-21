@@ -2711,18 +2711,10 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 					};
 					const widget = this.instantiationService.createInstance(PermissionPickerActionItem, action, delegate, secondaryPickerOptions);
 					this.permissionWidget = widget;
-<<<<<<< HEAD
 					Event.once(widget.onDidDispose)(() => {
 						if (this.permissionWidget === widget) {
 							this.permissionWidget = undefined;
 						}
-=======
-					this.permissionWidgetDisposeListener.value = widget.onDidDispose(() => {
-						if (this.permissionWidget === widget) {
-							this.permissionWidget = undefined;
-						}
-						this.permissionWidgetDisposeListener.clear();
->>>>>>> origin/main
 					});
 					return widget;
 				} else if (
