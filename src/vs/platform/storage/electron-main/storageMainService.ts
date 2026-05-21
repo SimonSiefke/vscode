@@ -17,7 +17,7 @@ import { AbstractStorageService, isProfileUsingDefaultStorage, IStorageService, 
 import { ApplicationStorageMain, ApplicationSharedStorageMain, ProfileStorageMain, InMemoryStorageMain, IStorageMain, IStorageMainOptions, WorkspaceStorageMain, IStorageChangeEvent } from './storageMain.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 import { IUserDataProfilesMainService } from '../../userDataProfile/electron-main/userDataProfile.js';
-import { IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
+import { IAnyWorkspaceIdentifier, toWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { Schemas } from '../../../base/common/network.js';
 
@@ -143,8 +143,9 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 				if (e.window.profile && this.mapProfileToStorage.has(e.window.profile.id)) {
 					await this.profileStorage(e.window.profile).close();
 				}
-				if (e.workspace && this.mapWorkspaceToStorage.has(e.workspace.id)) {
-					await this.workspaceStorage(e.workspace).close();
+				const windowWorkspace = e.workspace ?? e.window.openedWorkspace;
+				if (windowWorkspace && this.mapWorkspaceToStorage.has(windowWorkspace.id)) {
+					await this.workspaceStorage(windowWorkspace).close();
 				}
 			});
 		}));
