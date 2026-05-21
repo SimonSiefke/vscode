@@ -5,7 +5,7 @@
 
 import { URI } from '../../../base/common/uri.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { join } from '../../../base/common/path.js';
 import { IStorage } from '../../../base/parts/storage/common/storage.js';
 import { INativeEnvironmentService } from '../../environment/common/environment.js';
@@ -129,7 +129,9 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			if (e.window.profile) {
 				const profileStorage = this.profileStorage(e.window.profile);
 				profileStorage.init();
-				closeDisposables.add(profileStorage);
+				closeDisposables.add(toDisposable(async () => {
+					await profileStorage.close();
+				}));
 
 			}
 
@@ -137,15 +139,15 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			if (e.workspace) {
 				const workspaceStorage = this.workspaceStorage(e.workspace);
 				workspaceStorage.init();
-				closeDisposables.add(workspaceStorage);
-
+				closeDisposables.add(toDisposable(async () => {
+					await workspaceStorage.close();
+				}));
 			}
 
 
 
-			Event.once(e.window.onDidClose)(async () => {
-
-				if (this.lifecycleMainService.quitRequested) {
+			Event.once(e.window.onDidClose)(() => {
+				if (this.shutdownReason) {
 					return;
 				}
 				closeDisposables.dispose();
