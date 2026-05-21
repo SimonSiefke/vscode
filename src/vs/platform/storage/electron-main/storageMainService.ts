@@ -291,7 +291,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 	//#region Workspace Storage
 
 	private readonly mapWorkspaceToStorage = new Map<string /* workspace ID */, IStorageMain>();
-	private readonly mapWindowToWorkspace = new Map<number /* window ID */, string /* workspace ID */>();
 
 	workspaceStorage(workspace: IAnyWorkspaceIdentifier): IStorageMain {
 		let workspaceStorage = this.mapWorkspaceToStorage.get(workspace.id);
