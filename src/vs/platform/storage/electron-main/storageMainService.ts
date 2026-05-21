@@ -125,14 +125,11 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			// Profile Storage: Warmup when related window with profile loads
 			if (e.window.profile) {
 				this.profileStorage(e.window.profile).init();
-
-
 			}
 
 			// Workspace Storage: Warmup when related window with workspace loads
 			if (e.workspace) {
 				this.workspaceStorage(e.workspace).init();
-
 			}
 
 
