@@ -143,9 +143,9 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 				if (e.window.profile && this.mapProfileToStorage.has(e.window.profile.id)) {
 					await this.profileStorage(e.window.profile).close();
 				}
-				const windowWorkspace = e.workspace ?? e.window.openedWorkspace ?? toWorkspaceIdentifier(e.window.backupPath, e.window.isExtensionDevelopmentHost);
-				if (windowWorkspace && this.mapWorkspaceToStorage.has(windowWorkspace.id)) {
-					await this.workspaceStorage(windowWorkspace).close();
+				const actualWorkspace = e.workspace ?? e.window.openedWorkspace ?? toWorkspaceIdentifier(e.window.backupPath, e.window.isExtensionDevelopmentHost);
+				if (actualWorkspace && this.mapWorkspaceToStorage.has(actualWorkspace.id)) {
+					await this.workspaceStorage(actualWorkspace).close();
 				}
 			});
 		}));
