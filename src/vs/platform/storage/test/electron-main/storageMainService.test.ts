@@ -83,16 +83,18 @@ suite('StorageMainService', function () {
 	}
 
 	class TestCodeWindow implements ICodeWindow {
+		private readonly onDidCloseEmitter = new Emitter<void>();
+		private readonly onDidDestroyEmitter = new Emitter<void>();
 
 		readonly onDidMaximize = Event.None;
 		readonly onDidUnmaximize = Event.None;
 		readonly onDidTriggerSystemContextMenu = Event.None;
 		readonly onDidEnterFullScreen = Event.None;
 		readonly onDidLeaveFullScreen = Event.None;
-		readonly onDidClose = Event.None;
+		readonly onDidClose = this.onDidCloseEmitter.event;
 		readonly onWillLoad = Event.None;
 		readonly onDidSignalReady = Event.None;
-		readonly onDidDestroy = Event.None;
+		readonly onDidDestroy = this.onDidDestroyEmitter.event;
 		readonly whenClosedOrLoaded = Promise.resolve();
 		readonly win = null;
 		readonly lastFocusTime = 0;
@@ -113,6 +115,14 @@ suite('StorageMainService', function () {
 
 		get openedWorkspace(): IAnyWorkspaceIdentifier | undefined {
 			return this.workspace;
+		}
+
+		fireDidClose(): void {
+			this.onDidCloseEmitter.fire();
+		}
+
+		fireDidDestroy(): void {
+			this.onDidDestroyEmitter.fire();
 		}
 
 		setWorkspace(workspace: IAnyWorkspaceIdentifier | undefined): void {
@@ -419,6 +429,39 @@ suite('StorageMainService', function () {
 
 		strictEqual(didCloseWorkspaceStorage1, true);
 		notStrictEqual(workspaceStorage1, storageMainService.workspaceStorage(workspace1));
+	});
+
+	test('workspace storage closed onDidDestroy for current workspace only', async function () {
+		const lifecycleMainService = new TestWindowLifecycleMainService();
+		const storageMainService = createStorageService(lifecycleMainService);
+		const workspace1 = { id: generateUuid() };
+		const workspace2 = { id: generateUuid() };
+
+		const workspaceStorage1 = storageMainService.workspaceStorage(workspace1);
+		await workspaceStorage1.init();
+
+		const window = new TestCodeWindow(1, workspace1);
+		lifecycleMainService.fireOnWillLoadWindow(window, workspace1, LoadReason.INITIAL);
+
+		const didCloseWorkspaceStorage1Promise = onceDidCloseStorage(workspaceStorage1);
+		lifecycleMainService.fireOnWillLoadWindow(window, workspace2, LoadReason.LOAD);
+		window.setWorkspace(workspace2);
+		await didCloseWorkspaceStorage1Promise;
+
+		const reopenedWorkspaceStorage1 = storageMainService.workspaceStorage(workspace1);
+		let didCloseReopenedWorkspaceStorage1 = false;
+		disposables.add(reopenedWorkspaceStorage1.onDidCloseStorage(() => {
+			didCloseReopenedWorkspaceStorage1 = true;
+		}));
+		await reopenedWorkspaceStorage1.init();
+
+		const workspaceStorage2 = storageMainService.workspaceStorage(workspace2);
+		const didCloseWorkspaceStorage2Promise = onceDidCloseStorage(workspaceStorage2);
+		window.fireDidDestroy();
+		await didCloseWorkspaceStorage2Promise;
+
+		strictEqual(didCloseReopenedWorkspaceStorage1, false);
+		notStrictEqual(workspaceStorage2, storageMainService.workspaceStorage(workspace2));
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
