@@ -13,6 +13,7 @@ import { RenderIndentGuides, TreeFindMode } from '../../../../../base/browser/ui
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { HighlightedLabel } from '../../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
+import { createPixelSpinner } from '../../../../../base/browser/ui/pixelSpinner/pixelSpinner.js';
 import { createMatches, FuzzyScore, IMatch } from '../../../../../base/common/filters.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
@@ -33,7 +34,7 @@ import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listSe
 import { IStyleOverride, defaultButtonStyles, defaultFindWidgetStyles, defaultToggleStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { asCssVariable } from '../../../../../platform/theme/common/colorUtils.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { CopilotCLISessionType, GITHUB_REMOTE_FILE_SCHEME, ISession, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
+import { GITHUB_REMOTE_FILE_SCHEME, ISession, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { AgentSessionApprovalModel, IAgentSessionApprovalInfo } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionApprovalModel.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { IMarkdownRendererService } from '../../../../../platform/markdown/browser/markdownRenderer.js';
@@ -45,7 +46,7 @@ import { ISessionsManagementService } from '../../../../services/sessions/common
 import { IAgentSessionsService } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionsService.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { ISessionsListModelService } from './sessionsListModelService.js';
-import { IAgentHostFilterService } from '../../../remoteAgentHost/common/agentHostFilter.js';
+import { IAgentHostFilterService } from '../../../../services/agentHostFilter/common/agentHostFilter.js';
 
 const $ = DOM.$;
 
@@ -55,6 +56,7 @@ export const SessionSectionToolbarMenuId = new MenuId('SessionSectionToolbar');
 export const IsSessionPinnedContext = new RawContextKey<boolean>('sessionItem.isPinned', false);
 export const IsSessionArchivedContext = new RawContextKey<boolean>('sessionItem.isArchived', false);
 export const IsSessionReadContext = new RawContextKey<boolean>('sessionItem.isRead', true);
+export const SessionItemHasBranchNameContext = new RawContextKey<boolean>('sessionItem.hasBranchName', false);
 export const SessionSectionTypeContext = new RawContextKey<string>('sessionSection.type', '');
 
 //#region Types
@@ -77,6 +79,8 @@ export interface ISessionSection {
 
 export interface ISessionShowMore {
 	readonly showMore: true;
+	readonly kind: 'sessions' | 'folders';
+	readonly mode: 'more' | 'less';
 	readonly sectionLabel: string;
 	readonly remainingCount: number;
 }
@@ -90,6 +94,9 @@ function isSessionSection(item: SessionListItem): item is ISessionSection {
 function isSessionShowMore(item: SessionListItem): item is ISessionShowMore {
 	return 'showMore' in item && (item as ISessionShowMore).showMore === true;
 }
+
+const SHOW_MORE_FOLDERS_LABEL = '__more_folders__';
+const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000;
 
 //#endregion
 
@@ -259,6 +266,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 		IsSessionPinnedContext.bindTo(template.contextKeyService).set(isPinned);
 		IsSessionArchivedContext.bindTo(template.contextKeyService).set(element.isArchived.get());
 		IsSessionReadContext.bindTo(template.contextKeyService).set(this.options.isRead(element));
+		SessionItemHasBranchNameContext.bindTo(template.contextKeyService).set(!!element.workspace.get()?.folders[0]?.gitRepository?.branchName?.trim());
 
 		// Pinned & archived styling — reactive
 		template.elementDisposables.add(autorun(reader => {
@@ -279,21 +287,42 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			const sessionStatus = element.status.read(reader);
 			const isRead = this.options.isRead(element);
 			const isArchived = element.isArchived.read(reader);
-			const gitHubInfo = element.gitHubInfo.read(reader);
+			const gitHubInfo = element.workspace.read(reader)?.folders[0]?.gitRepository?.gitHubInfo.read(reader);
 			this._motionReducedSignal.read(reader);
-			const icon = this.getStatusIcon(sessionStatus, isRead, isArchived, gitHubInfo?.pullRequest?.icon);
-			const iconSelector = ThemeIcon.asCSSSelector(icon);
-			const iconColor = icon.color ? asCssVariable(icon.color.id) : '';
 
-			if (iconSelector !== template.currentIconSelector) {
-				template.currentIconSelector = iconSelector;
-				DOM.clearNode(template.iconContainer);
-				const iconSpan = DOM.append(template.iconContainer, $(`span${iconSelector}`));
-				iconSpan.style.color = iconColor;
+			// In-progress sessions get the shared pixel-art spinner (when motion is allowed)
+			// instead of the codicon `loading~spin`. Use a sentinel selector key so subsequent
+			// renders with the same state skip rebuilding the DOM and don't restart the animation.
+			const isPixelSpinner = sessionStatus === SessionStatus.InProgress && !this.accessibilityService.isMotionReduced();
+			if (isPixelSpinner) {
+				const pixelSpinnerKey = '__pixel_spinner__';
+				const iconColor = asCssVariable('textLink.foreground');
+				if (template.currentIconSelector !== pixelSpinnerKey) {
+					template.currentIconSelector = pixelSpinnerKey;
+					DOM.clearNode(template.iconContainer);
+					const spinner = createPixelSpinner(template.iconContainer);
+					spinner.style.color = iconColor;
+				} else {
+					const spinner = template.iconContainer.firstElementChild as HTMLElement | null;
+					if (spinner) {
+						spinner.style.color = iconColor;
+					}
+				}
 			} else {
-				const iconSpan = template.iconContainer.firstElementChild as HTMLElement | null;
-				if (iconSpan) {
+				const icon = this.getStatusIcon(sessionStatus, isRead, isArchived, gitHubInfo?.pullRequest?.icon);
+				const iconSelector = ThemeIcon.asCSSSelector(icon);
+				const iconColor = icon.color ? asCssVariable(icon.color.id) : '';
+
+				if (iconSelector !== template.currentIconSelector) {
+					template.currentIconSelector = iconSelector;
+					DOM.clearNode(template.iconContainer);
+					const iconSpan = DOM.append(template.iconContainer, $(`span${iconSelector}`));
 					iconSpan.style.color = iconColor;
+				} else {
+					const iconSpan = template.iconContainer.firstElementChild as HTMLElement | null;
+					if (iconSpan) {
+						iconSpan.style.color = iconColor;
+					}
 				}
 			}
 			template.iconContainer.classList.toggle('session-icon-pulse', sessionStatus === SessionStatus.NeedsInput);
@@ -326,21 +355,11 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			DOM.clearNode(template.detailsRow);
 			const parts: HTMLElement[] = [];
 
-			const isWorkspaceSession = workspace &&
-				workspace.repositories.length > 0 &&
-				workspace?.repositories[0].workingDirectory === undefined;
-
-			// Session type icon in details row
-			// Disabling background icon - hacky but couldn't figure out how to do it from the new provider
-			if (element.sessionType !== CopilotCLISessionType.id) {
-				const typeIconEl = DOM.append(template.detailsRow, $('span.session-details-icon'));
-				DOM.append(typeIconEl, $(`span${ThemeIcon.asCSSSelector(element.icon)}`));
-				parts.push(typeIconEl);
-			} else if (
-				element.sessionType === CopilotCLISessionType.id &&
-				sessionStatus !== SessionStatus.InProgress
-			) {
-				const icon = isWorkspaceSession ? Codicon.folder : Codicon.worktree;
+			if (sessionStatus !== SessionStatus.InProgress) {
+				const isWorkspaceSession = workspace &&
+					workspace.folders.length > 0 &&
+					workspace?.folders[0]?.gitRepository?.workTreeUri === undefined;
+				const icon = workspace?.isVirtualWorkspace ? Codicon.cloud : isWorkspaceSession ? Codicon.folder : Codicon.worktree;
 				const typeIconEl = DOM.append(template.detailsRow, $('span.session-details-icon'));
 				DOM.append(typeIconEl, $(`span${ThemeIcon.asCSSSelector(icon)}`));
 				parts.push(typeIconEl);
@@ -515,10 +534,9 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 	private getStatusIcon(status: SessionStatus, isRead: boolean, isArchived: boolean, pullRequestIcon?: ThemeIcon): ThemeIcon {
 		switch (status) {
 			case SessionStatus.InProgress:
-				if (this.accessibilityService.isMotionReduced()) {
-					return { ...Codicon.sessionInProgress, color: themeColorFromId('textLink.foreground') };
-				}
-				return { ...ThemeIcon.modify(Codicon.loading, 'spin'), color: themeColorFromId('textLink.foreground') };
+				// When motion is allowed, the pixel spinner is rendered directly in renderSession
+				// and this method is not consulted; here we only provide the reduced-motion fallback.
+				return { ...Codicon.sessionInProgress, color: themeColorFromId('textLink.foreground') };
 			case SessionStatus.NeedsInput: return { ...Codicon.circleFilled, color: themeColorFromId('list.warningForeground') };
 			case SessionStatus.Error: return { ...Codicon.error, color: themeColorFromId('errorForeground') };
 			default:
@@ -535,9 +553,9 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 
 	private getWorkspaceBadgeLabel(workspace: ISessionWorkspace): string | undefined {
 		// For GitHub remote sessions, extract owner/name from the repository URI path
-		const repo = workspace.repositories[0];
-		if (repo?.uri.scheme === GITHUB_REMOTE_FILE_SCHEME) {
-			const parts = repo.uri.path.split('/').filter(Boolean);
+		const folder = workspace.folders[0];
+		if (folder?.root.scheme === GITHUB_REMOTE_FILE_SCHEME) {
+			const parts = folder.root.path.split('/').filter(Boolean);
 			if (parts.length >= 2) {
 				return `${parts[0]}/${parts[1]}`;
 			}
@@ -640,7 +658,19 @@ class SessionShowMoreRenderer implements ITreeRenderer<SessionListItem, FuzzySco
 		if (!isSessionShowMore(element)) {
 			return;
 		}
-		template.textContent = localize('showMoreCompact', "+{0} more", element.remainingCount);
+		const container = template.parentElement;
+		container?.classList.toggle('session-show-more-folders', element.kind === 'folders');
+		if (element.mode === 'less') {
+			template.textContent = element.kind === 'folders'
+				? localize('showLessWorkspacesCompact', "Show fewer workspaces")
+				: localize('showLessCompact', "Show less");
+		} else {
+			template.textContent = element.kind === 'folders'
+				? element.remainingCount === 1
+					? localize('showMoreWorkspaceCompact', "+{0} workspace", element.remainingCount)
+					: localize('showMoreWorkspacesCompact', "+{0} workspaces", element.remainingCount)
+				: localize('showMoreCompact', "+{0} more", element.remainingCount);
+		}
 	}
 
 	disposeTemplate(_template: HTMLElement): void { }
@@ -658,7 +688,16 @@ class SessionsAccessibilityProvider {
 			return `${element.label}, ${element.sessions.length}`;
 		}
 		if (isSessionShowMore(element)) {
-			return localize('showMoreAria', "Show {0} more sessions", element.remainingCount);
+			if (element.mode === 'less') {
+				return element.kind === 'folders'
+					? localize('showLessWorkspacesAria', "Show fewer workspaces")
+					: localize('showLessAria', "Show fewer sessions");
+			}
+			return element.kind === 'folders'
+				? element.remainingCount === 1
+					? localize('showMoreWorkspaceAria', "Show {0} more workspace", element.remainingCount)
+					: localize('showMoreWorkspacesAria', "Show {0} more workspaces", element.remainingCount)
+				: localize('showMoreAria', "Show {0} more sessions", element.remainingCount);
 		}
 		const title = element.title.get();
 		const created = fromNow(element.createdAt, true);
@@ -717,6 +756,7 @@ export interface ISessionsList {
 	resetFilters(): void;
 	setWorkspaceGroupCapped(capped: boolean): void;
 	isWorkspaceGroupCapped(): boolean;
+	setOpenWindowSourceFolder(folder: URI | undefined): void;
 	collapseAllSections(): void;
 }
 
@@ -740,7 +780,9 @@ export class SessionsList extends Disposable implements ISessionsList {
 	private _excludeRead: boolean;
 	private workspaceGroupCapped: boolean;
 	private readonly expandedWorkspaceGroups = new Set<string>();
-	private findOpen = false;
+	private expandedMoreFolders = false;
+	private openWindowSourceFolder: URI | undefined;
+	private hasFindPattern = false;
 	private suspendCollapseStatePersistence = false;
 
 	private readonly _onDidUpdate = this._register(new Emitter<void>());
@@ -821,7 +863,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 							return `section:${element.id}`;
 						}
 						if (isSessionShowMore(element)) {
-							return `show-more:${element.sectionLabel}`;
+							return `show-more:${element.kind}:${element.mode}:${element.sectionLabel}`;
 						}
 						return element.resource.toString();
 					}
@@ -862,7 +904,15 @@ export class SessionsList extends Disposable implements ISessionsList {
 				return;
 			}
 			if (isSessionShowMore(element)) {
-				this.expandedWorkspaceGroups.add(element.sectionLabel);
+				if (element.kind === 'folders') {
+					this.expandedMoreFolders = element.mode === 'more';
+				} else {
+					if (element.mode === 'more') {
+						this.expandedWorkspaceGroups.add(element.sectionLabel);
+					} else {
+						this.expandedWorkspaceGroups.delete(element.sectionLabel);
+					}
+				}
 				this.update();
 				return;
 			}
@@ -909,10 +959,29 @@ export class SessionsList extends Disposable implements ISessionsList {
 			}
 		}));
 
+		let isFindOpen = false;
+		let findPattern = '';
+		const updateFindPatternState = () => {
+			const hasFindPattern = isFindOpen && findPattern.length > 0;
+			if (hasFindPattern !== this.hasFindPattern) {
+				this.hasFindPattern = hasFindPattern;
+				this.update();
+			}
+		};
+
 		this._register(this.tree.onDidChangeFindOpenState(open => {
-			this.findOpen = open;
+			isFindOpen = open;
 			this._onDidChangeFindOpenState.fire(open);
-			this.update();
+			updateFindPatternState();
+		}));
+
+		// Only treat the find as "active" for layout purposes (bypassing workspace
+		// capping and per-group limits) once the user has actually typed a pattern
+		// and the find widget is open. Opening the empty find widget should not
+		// reorder the list, and closing find should restore the capped layout.
+		this._register(this.tree.onDidChangeFindPattern(pattern => {
+			findPattern = pattern;
+			updateFindPatternState();
 		}));
 
 		this._register(this._sessionsManagementService.onDidChangeSessions(() => {
@@ -990,15 +1059,64 @@ export class SessionsList extends Disposable implements ISessionsList {
 
 		const hasTodaySessions = sections.some(s => s.id === 'today' && s.sessions.length > 0);
 
+		// Partition workspace sections into "primary" (meets criteria) and "more"
+		// when grouping by workspace. An active find pattern bypasses partitioning
+		// so all matching sessions are visible. When the user has chosen
+		// "Show All Sessions" (uncapped), show every workspace group inline instead
+		// of hiding some behind a "more workspaces" entry.
+		const partitionFolders = grouping === SessionsGrouping.Workspace && !this.hasFindPattern && this.workspaceGroupCapped;
+		const moreFolderSectionIds = new Set<string>();
+		if (partitionFolders) {
+			const workspaceSections = sections.filter(s => s.id.startsWith('workspace:'));
+			if (workspaceSections.length > 0) {
+				const now = Date.now();
+				const isRecent = (section: ISessionSection) =>
+					section.sessions.some(s => s.updatedAt.get().getTime() >= now - FOUR_DAYS_MS);
+				const isOpenWindow = (section: ISessionSection) =>
+					!!this.openWindowSourceFolder && section.sessions.some(s => sessionMatchesFolder(s, this.openWindowSourceFolder!));
+				const meetsCriteria = (section: ISessionSection) => isRecent(section) || isOpenWindow(section);
+
+				let anyMeets = false;
+				for (const section of workspaceSections) {
+					if (meetsCriteria(section)) {
+						anyMeets = true;
+						break;
+					}
+				}
+
+				let fallbackId: string | undefined;
+				if (!anyMeets) {
+					// Criterion 3: pick the folder with the most recently updated session.
+					let bestTime = -Infinity;
+					for (const section of workspaceSections) {
+						for (const s of section.sessions) {
+							const t = s.updatedAt.get().getTime();
+							if (t > bestTime) {
+								bestTime = t;
+								fallbackId = section.id;
+							}
+						}
+					}
+				}
+
+				for (const section of workspaceSections) {
+					if (!meetsCriteria(section) && section.id !== fallbackId) {
+						moreFolderSectionIds.add(section.id);
+					}
+				}
+			}
+		}
+
 		const children: IObjectTreeElement<SessionListItem>[] = [];
 
-		children.push(...sections.map(section => {
+		const renderSection = (section: ISessionSection): IObjectTreeElement<SessionListItem> => {
 			const isWorkspaceGroup = grouping === SessionsGrouping.Workspace
 				&& section.id.startsWith('workspace:');
-			const isCapped = isWorkspaceGroup && this.workspaceGroupCapped
-				&& !this.findOpen
-				&& !this.expandedWorkspaceGroups.has(section.label)
+			const exceedsLimit = isWorkspaceGroup
+				&& !this.hasFindPattern
 				&& section.sessions.length > SessionsList.WORKSPACE_GROUP_LIMIT;
+			const isExpanded = exceedsLimit && (this.expandedWorkspaceGroups.has(section.label) || !this.workspaceGroupCapped);
+			const isCapped = exceedsLimit && !isExpanded;
 
 			let sectionChildren: IObjectTreeElement<SessionListItem>[];
 			if (isCapped) {
@@ -1006,7 +1124,12 @@ export class SessionsList extends Disposable implements ISessionsList {
 				const remainingCount = section.sessions.length - SessionsList.WORKSPACE_GROUP_LIMIT;
 				sectionChildren = [
 					...visible.map(session => ({ element: session as SessionListItem })),
-					{ element: { showMore: true as const, sectionLabel: section.label, remainingCount } },
+					{ element: { showMore: true as const, kind: 'sessions' as const, mode: 'more' as const, sectionLabel: section.label, remainingCount } },
+				];
+			} else if (isExpanded && this.expandedWorkspaceGroups.has(section.label)) {
+				sectionChildren = [
+					...section.sessions.map(session => ({ element: session as SessionListItem })),
+					{ element: { showMore: true as const, kind: 'sessions' as const, mode: 'less' as const, sectionLabel: section.label, remainingCount: 0 } },
 				];
 			} else {
 				sectionChildren = section.sessions.map(session => ({ element: session as SessionListItem }));
@@ -1030,7 +1153,40 @@ export class SessionsList extends Disposable implements ISessionsList {
 				collapsed: this.getSavedCollapseState(section.id) ?? defaultCollapsed,
 				children: sectionChildren,
 			};
-		}));
+		};
+
+		const moreFolderSections: ISessionSection[] = [];
+		// The archived ("Done") section should always appear after the
+		// "more workspaces" toggle (both collapsed and expanded states)
+		// so it remains the very last group in the list.
+		let archivedSection: ISessionSection | undefined;
+		for (const section of sections) {
+			if (moreFolderSectionIds.has(section.id)) {
+				moreFolderSections.push(section);
+			} else if (partitionFolders && section.id === 'archived') {
+				archivedSection = section;
+			} else {
+				children.push(renderSection(section));
+			}
+		}
+
+		if (moreFolderSections.length > 0) {
+			if (this.expandedMoreFolders) {
+				for (const section of moreFolderSections) {
+					children.push(renderSection(section));
+				}
+				children.push({
+					element: { showMore: true as const, kind: 'folders' as const, mode: 'less' as const, sectionLabel: SHOW_MORE_FOLDERS_LABEL, remainingCount: 0 },
+				});
+			} else {
+				children.push({
+					element: { showMore: true as const, kind: 'folders' as const, mode: 'more' as const, sectionLabel: SHOW_MORE_FOLDERS_LABEL, remainingCount: moreFolderSections.length },
+				});
+			}
+		}
+		if (archivedSection) {
+			children.push(renderSection(archivedSection));
+		}
 
 		this.tree.setChildren(null, children);
 		this._onDidUpdate.fire();
@@ -1137,6 +1293,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 			[IsSessionPinnedContext.key, this.isSessionPinned(element)],
 			[IsSessionArchivedContext.key, element.isArchived.get()],
 			[IsSessionReadContext.key, this.isSessionRead(element)],
+			[SessionItemHasBranchNameContext.key, !!element.workspace.get()?.folders[0]?.gitRepository?.branchName?.trim()],
 			['chatSessionType', element.sessionType],
 			[ChatSessionProviderIdContext.key, element.providerId],
 		];
@@ -1296,6 +1453,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 		this.workspaceGroupCapped = true;
 		this.storageService.store(SessionsList.WORKSPACE_GROUP_CAPPED_KEY, true, StorageScope.PROFILE, StorageTarget.USER);
 		this.expandedWorkspaceGroups.clear();
+		this.expandedMoreFolders = false;
 		this.update();
 	}
 
@@ -1312,6 +1470,16 @@ export class SessionsList extends Disposable implements ISessionsList {
 
 	isWorkspaceGroupCapped(): boolean {
 		return this.workspaceGroupCapped;
+	}
+
+	setOpenWindowSourceFolder(folder: URI | undefined): void {
+		const before = this.openWindowSourceFolder?.toString();
+		const after = folder?.toString();
+		if (before === after) {
+			return;
+		}
+		this.openWindowSourceFolder = folder;
+		this.update();
 	}
 
 	collapseAllSections(): void {
@@ -1383,6 +1551,24 @@ function getFirstApprovalAcrossChats(approvalModel: AgentSessionApprovalModel, s
 		}
 	}
 	return oldest;
+}
+
+//#endregion
+
+//#region Folder Matching
+
+function sessionMatchesFolder(session: ISession, folder: URI): boolean {
+	const workspace = session.workspace.get();
+	if (!workspace) {
+		return false;
+	}
+	const folderStr = folder.toString();
+	for (const folder of workspace.folders) {
+		if (folder.workingDirectory?.toString() === folderStr || folder.root.toString() === folderStr) {
+			return true;
+		}
+	}
+	return false;
 }
 
 //#endregion

@@ -32,6 +32,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import * as aria from '../../../../base/browser/ui/aria/aria.js';
 import { ContextMenuController } from '../../../../editor/contrib/contextmenu/browser/contextmenu.js';
@@ -45,6 +46,7 @@ import { Menus } from '../../../browser/menus.js';
 import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
 import { SlashCommandHandler } from './slashCommands.js';
 import { VariableCompletionHandler } from './variableCompletions.js';
+import { AgentHostInputCompletionHandler } from './agentHostInputCompletions.js';
 import { IChatModelInputState } from '../../../../workbench/contrib/chat/common/model/chatModel.js';
 import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { ChatAgentLocation, ChatModeKind } from '../../../../workbench/contrib/chat/common/constants.js';
@@ -53,6 +55,7 @@ import { IHistoryNavigationWidget } from '../../../../base/browser/history.js';
 import { registerAndCreateHistoryNavigationContext, IHistoryNavigationContext } from '../../../../platform/history/browser/contextScopedHistoryWidget.js';
 import { autorun, IObservable } from '../../../../base/common/observable.js';
 import { ChatInputNotificationWidget } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNotificationWidget.js';
+import { INewChatModelPickerService, NewChatModelPickerService } from './newChatModelPicker.js';
 
 
 const STORAGE_KEY_DRAFT_STATE = 'sessions.draftState';
@@ -127,6 +130,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 
 	// Slash commands
 	private _slashCommandHandler: SlashCommandHandler | undefined;
+	private readonly _modelPickerInstantiationService: IInstantiationService;
 
 	// Input state
 	private _draftState: IDraftState | undefined = {
@@ -147,6 +151,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			loading: IObservable<boolean>;
 			minEditorHeight?: number;
 			placeholder?: string;
+			renderSessionTypePickerInControls?: boolean;
 		},
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IModelService private readonly modelService: IModelService,
@@ -159,6 +164,9 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
 		super();
+		this._modelPickerInstantiationService = this._register(this.instantiationService.createChild(new ServiceCollection(
+			[INewChatModelPickerService, new NewChatModelPickerService()],
+		)));
 		this._history = this._register(this.instantiationService.createInstance(ChatHistoryNavigator, ChatAgentLocation.Chat));
 		this._contextAttachments = this._register(this.instantiationService.createInstance(NewChatContextAttachments));
 		// Always use the mobile-aware picker. Its overrides bail to the
@@ -188,6 +196,9 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		// Overflow widget DOM node at the top level so the suggest widget
 		// is not clipped by any overflow:hidden ancestor.
 		const editorOverflowWidgetsDomNode = dom.append(root, dom.$('.sessions-chat-editor-overflow.monaco-editor'));
+		// Suppress the default `Text` kind icon in the suggest widget; chat slash/skill
+		// completions use that kind and rely on the chat module's CSS rule scoped to this class.
+		editorOverflowWidgetsDomNode.classList.add('hideSuggestTextIcons');
 		this._register({ dispose: () => editorOverflowWidgetsDomNode.remove() });
 
 		// Notification widget above the input area
@@ -210,7 +221,9 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 
 		const newChatBottomContainer = dom.append(parent, dom.$('.new-chat-bottom-container'));
 		const newChatControlsContainer = dom.append(newChatBottomContainer, dom.$('.new-chat-controls-container'));
-		this.sessionTypePicker.render(newChatControlsContainer);
+		if (this.options.renderSessionTypePickerInControls !== false) {
+			this.sessionTypePicker.render(newChatControlsContainer);
+		}
 		this._register(this.instantiationService.createInstance(MenuWorkbenchToolBar, dom.append(newChatControlsContainer, dom.$('')), Menus.NewSessionControl, {
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 		}));
@@ -389,11 +402,15 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		}));
 
 		// Slash commands
-		this._slashCommandHandler = this._register(this.instantiationService.createInstance(SlashCommandHandler, this._editor));
+		this._slashCommandHandler = this._register(this._modelPickerInstantiationService.createInstance(SlashCommandHandler, this._editor));
 
 		// Variable completions (#file, #folder)
 		this._register(this.instantiationService.createInstance(
 			VariableCompletionHandler, this._editor, this._contextAttachments, () => this.options.getContextFolderUri(),
+		));
+
+		this._register(this.instantiationService.createInstance(
+			AgentHostInputCompletionHandler, this._editor, this._contextAttachments,
 		));
 
 		this._register(this._editor.onDidChangeModelContent(() => {
@@ -427,13 +444,15 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		// Session config pickers (mode, model) — rendered via MenuWorkbenchToolBar
 		// Visibility controlled by context keys (isActiveSessionBackgroundProvider, isNewChatSession)
 		const configContainer = dom.append(toolbar, dom.$('.sessions-chat-config-toolbar'));
-		this._register(this.instantiationService.createInstance(MenuWorkbenchToolBar, configContainer, Menus.NewSessionConfig, {
+		this._register(this._modelPickerInstantiationService.createInstance(MenuWorkbenchToolBar, configContainer, Menus.NewSessionConfig, {
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 		}));
 
 		dom.append(toolbar, dom.$('.sessions-chat-toolbar-spacer'));
 
 		this._loadingSpinner = dom.append(toolbar, dom.$('.sessions-chat-loading-spinner'));
+		const loadingIcon = dom.append(this._loadingSpinner, renderIcon(ThemeIcon.modify(Codicon.loading, 'spin')));
+		loadingIcon.setAttribute('aria-hidden', 'true');
 		this._register(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this._loadingSpinner, localize('loading', "Loading...")));
 
 		const sendButtonContainer = dom.append(toolbar, dom.$('.sessions-chat-send-button'));

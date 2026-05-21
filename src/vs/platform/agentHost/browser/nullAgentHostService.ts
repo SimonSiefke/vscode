@@ -36,7 +36,7 @@ export class NullAgentHostService implements IAgentHostService {
 
 	getSubscription<T extends StateComponents>(_kind: T, _resource: URI): IReference<IAgentSubscription<ComponentToState[T]>> { return notSupported(); }
 	getSubscriptionUnmanaged<T extends StateComponents>(_kind: T, _resource: URI): IAgentSubscription<ComponentToState[T]> | undefined { return undefined; }
-	dispatch(_action: SessionAction | TerminalAction | IRootConfigChangedAction): void { notSupported(); }
+	dispatch(_channel: string, _action: SessionAction | TerminalAction | IRootConfigChangedAction): void { notSupported(); }
 
 	async restartAgentHost(): Promise<void> { notSupported(); }
 	async authenticate(_params: AuthenticateParams): Promise<AuthenticateResult> { return notSupported(); }
@@ -45,6 +45,7 @@ export class NullAgentHostService implements IAgentHostService {
 	async resolveSessionConfig(_params: IAgentResolveSessionConfigParams): Promise<ResolveSessionConfigResult> { return notSupported(); }
 	async sessionConfigCompletions(_params: IAgentSessionConfigCompletionsParams): Promise<SessionConfigCompletionsResult> { return notSupported(); }
 	async completions(_params: CompletionsParams): Promise<CompletionsResult> { return { items: [] }; }
+	async getCompletionTriggerCharacters(): Promise<readonly string[]> { return []; }
 	async startWebSocketServer(): Promise<IAgentHostSocketInfo> { return notSupported(); }
 	async getInspectInfo(_tryEnable: boolean): Promise<IAgentHostInspectInfo | undefined> { return undefined; }
 	async disposeSession(_session: URI): Promise<void> { }
