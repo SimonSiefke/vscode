@@ -40,7 +40,7 @@ export class PolicyChannel implements IServerChannel {
 		throw new Error(`Call not found: ${command}`);
 	}
 
-	dispose(): void {
+	dispose() {
 		this.disposables.dispose();
 	}
 }
@@ -56,7 +56,7 @@ export class PolicyChannelClient extends AbstractPolicyService implements IPolic
 				this.policies.set(name, value);
 			}
 		}
-		this._register(this.channel.listen<object>('onDidChange')(policies => {
+		this.channel.listen<object>('onDidChange')(policies => {
 			for (const name in policies) {
 				const value = policies[name as keyof typeof policies];
 
@@ -68,7 +68,7 @@ export class PolicyChannelClient extends AbstractPolicyService implements IPolic
 			}
 
 			this._onDidChange.fire(Object.keys(policies));
-		}));
+		});
 	}
 
 	protected async _updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {
