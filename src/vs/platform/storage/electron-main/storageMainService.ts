@@ -5,7 +5,7 @@
 
 import { URI } from '../../../base/common/uri.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
 import { join } from '../../../base/common/path.js';
 import { IStorage } from '../../../base/parts/storage/common/storage.js';
 import { INativeEnvironmentService } from '../../environment/common/environment.js';
@@ -121,37 +121,32 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		})();
 
 		this._register(this.lifecycleMainService.onWillLoadWindow(e => {
-			// TODO is this code good?
-			const closeDisposables = new DisposableStore();
 
 			// Profile Storage: Warmup when related window with profile loads
 			if (e.window.profile) {
-				const profileStorage = this.profileStorage(e.window.profile);
-				profileStorage.init();
-				closeDisposables.add(toDisposable(async () => {
-					await profileStorage.close();
-				}));
+				this.profileStorage(e.window.profile).init();
+
 
 			}
 
 			// Workspace Storage: Warmup when related window with workspace loads
 			if (e.workspace) {
-				const workspaceStorage = this.workspaceStorage(e.workspace);
-				workspaceStorage.init();
-				closeDisposables.add(toDisposable(async () => {
-					await workspaceStorage.close();
-				}));
+				this.workspaceStorage(e.workspace).init();
+
 			}
 
 
-
-			Event.once(e.window.onDidClose)(() => {
+			Event.once(e.window.onDidClose)(async () => {
 				if (this.shutdownReason) {
 					return;
 				}
-				closeDisposables.dispose();
+				if (e.window.profile && this.mapProfileToStorage.has(e.window.profile.id)) {
+					await this.profileStorage(e.window.profile).close();
+				}
+				if (e.workspace && this.mapWorkspaceToStorage.has(e.workspace.id)) {
+					await this.workspaceStorage(e.workspace).close();
+				}
 			});
-
 		}));
 
 		// All Storage: Close when shutting down
