@@ -20,7 +20,6 @@ import { IUserDataProfilesMainService } from '../../userDataProfile/electron-mai
 import { IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { Schemas } from '../../../base/common/network.js';
-import { IWindowsMainService } from '../../windows/electron-main/windows.js';
 
 //#region Storage Main Service (intent: make application, profile and workspace storage accessible to windows from main process)
 
@@ -94,7 +93,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 		@INativeEnvironmentService private readonly environmentService: INativeEnvironmentService,
 		@IUserDataProfilesMainService private readonly userDataProfilesService: IUserDataProfilesMainService,
 		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
-		@IWindowsMainService private readonly windowsMainService: IWindowsMainService,
 		@IFileService private readonly fileService: IFileService,
 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
 	) {
@@ -133,19 +131,17 @@ export class StorageMainService extends Disposable implements IStorageMainServic
 			if (e.workspace) {
 				this.workspaceStorage(e.workspace).init();
 			}
+			e.workspace?.id;
 		}));
 
-		this._register(this.windowsMainService.onDidDestroyWindow(window => {
-			const workspace = window.openedWorkspace;
-			if (!workspace) {
+		this.lifecycleMainService.onBeforeCloseWindow(async e => {
+			if (!e.openedWorkspace) {
 				return;
 			}
-
-			const hasRemainingWindow = this.windowsMainService.getWindows().some(candidate => candidate !== window && candidate.openedWorkspace?.id === workspace.id);
-			if (!hasRemainingWindow) {
-				void this.workspaceStorage(workspace).close();
-			}
-		}));
+			const s = this.workspaceStorage(e.openedWorkspace);
+			await s.close();
+			s.dispose();
+		});
 
 		// All Storage: Close when shutting down
 		this._register(this.lifecycleMainService.onWillShutdown(e => {

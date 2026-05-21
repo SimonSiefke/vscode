@@ -228,6 +228,9 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 	private readonly _onBeforeCloseWindow = this._register(new Emitter<ICodeWindow>());
 	readonly onBeforeCloseWindow = this._onBeforeCloseWindow.event;
 
+	private readonly _onAfterCloseWindow = this._register(new Emitter<ICodeWindow>());
+	readonly onAfterCloseWindow = this._onAfterCloseWindow.event;
+
 	private _quitRequested = false;
 	get quitRequested(): boolean { return this._quitRequested; }
 
