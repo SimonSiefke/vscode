@@ -100,6 +100,10 @@ export class ViewsService extends Disposable implements IViewsService {
 	private onViewsRemoved(removed: IView[]): void {
 		for (const view of removed) {
 			this.onViewsVisibilityChanged(view, false);
+			if (this.focusedViewContextKey.get() === view.id) {
+				this.focusedViewContextKey.reset();
+				this._onDidChangeFocusedView.fire();
+			}
 		}
 	}
 
