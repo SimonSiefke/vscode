@@ -194,7 +194,7 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 					this._register(that.onDidCompositeClose.event(e => this.onScopeClosed(e.getId())));
 				}
 			}()));
-			const compositeInstantiationService = this._register(this.instantiationService.createChild(new ServiceCollection(
+			const compositeInstantiationService = this.instantiationService.createChild(new ServiceCollection(
 				[IEditorProgressService, compositeProgressIndicator] // provide the editor progress service for any editors instantiated within the composite
 			)));
 
