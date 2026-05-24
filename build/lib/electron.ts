@@ -6,11 +6,10 @@
 import fs from 'fs';
 import path from 'path';
 import vfs from 'vinyl-fs';
-import filter from 'gulp-filter';
+import { filter, jsonEditor } from './gulp/facade.ts';
 import * as util from './util.ts';
 import { getVersion } from './getVersion.ts';
 import electron from '@vscode/gulp-electron';
-import json from 'gulp-json-editor';
 
 type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
 type DarwinDocumentType = {
@@ -109,6 +108,7 @@ export const config = {
 	productAppName: product.nameLong,
 	companyName: 'Microsoft Corporation',
 	copyright: 'Copyright (C) 2026 Microsoft. All rights reserved',
+	darwinExecutable: product.nameShort,
 	darwinIcon: 'resources/darwin/code.icns',
 	darwinBundleIdentifier: product.darwinBundleIdentifier,
 	darwinApplicationCategoryType: 'public.app-category.developer-tools',
@@ -220,7 +220,7 @@ function getElectron(arch: string): () => NodeJS.ReadWriteStream {
 		};
 
 		return vfs.src('package.json')
-			.pipe(json({ name: product.nameShort }))
+			.pipe(jsonEditor({ name: product.nameShort }))
 			.pipe(electron(electronOpts))
 			.pipe(filter(['**', '!**/app/package.json']))
 			.pipe(vfs.dest('.build/electron'));
@@ -228,15 +228,9 @@ function getElectron(arch: string): () => NodeJS.ReadWriteStream {
 }
 
 async function main(arch: string = process.arch): Promise<void> {
-	const version = electronVersion;
 	const electronPath = path.join(root, '.build', 'electron');
-	const versionFile = path.join(electronPath, versionedResourcesFolder, 'version');
-	const isUpToDate = fs.existsSync(versionFile) && fs.readFileSync(versionFile, 'utf8') === `${version}`;
-
-	if (!isUpToDate) {
-		await util.rimraf(electronPath)();
-		await util.streamToPromise(getElectron(arch)());
-	}
+	await util.rimraf(electronPath)();
+	await util.streamToPromise(getElectron(arch)());
 }
 
 if (import.meta.main) {

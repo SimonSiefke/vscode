@@ -10,6 +10,7 @@ import { Disposable, IDisposable } from '../../../../../../base/common/lifecycle
 import { constObservable, IObservable, IReader } from '../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { URI } from '../../../../../../base/common/uri.js';
+import { MockContextKeyService } from '../../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IProgressStep } from '../../../../../../platform/progress/common/progress.js';
 import { ChatRequestToolReferenceEntry } from '../../../common/attachments/chatVariableEntries.js';
 import { IVariableReference } from '../../../common/chatModes.js';
@@ -19,12 +20,16 @@ import { CountTokensCallback, IBeginToolCallOptions, ILanguageModelToolsService,
 
 export class MockLanguageModelToolsService extends Disposable implements ILanguageModelToolsService {
 	_serviceBrand: undefined;
-	vscodeToolSet: ToolSet = new ToolSet('vscode', 'vscode', ThemeIcon.fromId(Codicon.code.id), ToolDataSource.Internal);
-	executeToolSet: ToolSet = new ToolSet('execute', 'execute', ThemeIcon.fromId(Codicon.terminal.id), ToolDataSource.Internal);
-	readToolSet: ToolSet = new ToolSet('read', 'read', ThemeIcon.fromId(Codicon.book.id), ToolDataSource.Internal);
-	agentToolSet: ToolSet = new ToolSet('agent', 'agent', ThemeIcon.fromId(Codicon.agent.id), ToolDataSource.Internal);
+	vscodeToolSet: ToolSet = new ToolSet('vscode', 'vscode', ThemeIcon.fromId(Codicon.code.id), ToolDataSource.Internal, undefined, undefined, new MockContextKeyService());
+	executeToolSet: ToolSet = new ToolSet('execute', 'execute', ThemeIcon.fromId(Codicon.terminal.id), ToolDataSource.Internal, undefined, undefined, new MockContextKeyService());
+	readToolSet: ToolSet = new ToolSet('read', 'read', ThemeIcon.fromId(Codicon.book.id), ToolDataSource.Internal, undefined, undefined, new MockContextKeyService());
+	agentToolSet: ToolSet = new ToolSet('agent', 'agent', ThemeIcon.fromId(Codicon.agent.id), ToolDataSource.Internal, undefined, undefined, new MockContextKeyService());
 
 	private readonly _onDidInvokeTool = this._register(new Emitter<IToolInvokedEvent>());
+
+	private readonly _registeredToolIds = new Set<string>();
+	private readonly _registeredToolSetNames = new Set<string>();
+	private readonly _toolSetTools = new Map<string, IToolData[]>();
 
 	constructor() {
 		super();
@@ -87,7 +92,14 @@ export class MockLanguageModelToolsService extends Disposable implements ILangua
 		return [];
 	}
 
+	addRegisteredToolId(id: string): void {
+		this._registeredToolIds.add(id);
+	}
+
 	getTool(id: string): IToolData | undefined {
+		if (this._registeredToolIds.has(id)) {
+			return { id, source: ToolDataSource.Internal, displayName: id, modelDescription: id };
+		}
 		return undefined;
 	}
 
@@ -124,7 +136,18 @@ export class MockLanguageModelToolsService extends Disposable implements ILangua
 		return [];
 	}
 
+	addRegisteredToolSetName(name: string, tools?: IToolData[]): void {
+		this._registeredToolSetNames.add(name);
+		if (tools) {
+			this._toolSetTools.set(name, tools);
+		}
+	}
+
 	getToolSetByName(name: string): IToolSet | undefined {
+		if (this._registeredToolSetNames.has(name)) {
+			const tools = this._toolSetTools.get(name) ?? [];
+			return { id: name, referenceName: name, icon: ThemeIcon.fromId(Codicon.tools.id), source: ToolDataSource.Internal, getTools: () => tools };
+		}
 		return undefined;
 	}
 
@@ -136,7 +159,7 @@ export class MockLanguageModelToolsService extends Disposable implements ILangua
 		throw new Error('Method not implemented.');
 	}
 
-	toToolAndToolSetEnablementMap(toolOrToolSetNames: readonly string[], target: string | undefined): IToolAndToolSetEnablementMap {
+	toToolAndToolSetEnablementMap(toolOrToolSetNames: readonly string[]): IToolAndToolSetEnablementMap {
 		throw new Error('Method not implemented.');
 	}
 
