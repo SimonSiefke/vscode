@@ -89,7 +89,7 @@ export class GlobalCompositeBar extends Disposable {
 						contextMenuAlignmentOptions,
 						(actions: IAction[]) => {
 							actions.unshift(...[
-								toAction({ id: 'hideAccounts', label: localize('hideAccounts', "Hide Accounts"), run: () => setAccountsActionVisible(storageService, false) }),
+								new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
 								new Separator()
 							]);
 						});
