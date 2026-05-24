@@ -57,6 +57,24 @@ class ActivityBarPositionAction implements IAction {
 	}
 }
 
+class ToggleMenuBarVisibilityAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly newVisibility: 'toggle' | 'compact',
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(MenuSettings.MenuBarVisibility, this.newVisibility);
+	}
+}
+
 export class ActivitybarPart extends Part {
 
 	static readonly ACTION_HEIGHT = 48;
@@ -314,12 +332,24 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 		// Menu
 		const menuBarVisibility = getMenuBarVisibility(this.configurationService);
 		if (menuBarVisibility === 'compact' || menuBarVisibility === 'hidden' || menuBarVisibility === 'toggle') {
-			actions.unshift(...[toAction({ id: 'toggleMenuVisibility', label: localize('menu', "Menu"), checked: menuBarVisibility === 'compact', run: () => this.configurationService.updateValue(MenuSettings.MenuBarVisibility, menuBarVisibility === 'compact' ? 'toggle' : 'compact') }), new Separator()]);
+			actions.unshift(...[
+				new ToggleMenuBarVisibilityAction(
+					'toggleMenuVisibility',
+					localize('menu', "Menu"),
+					menuBarVisibility === 'compact',
+					this.configurationService,
+					menuBarVisibility === 'compact' ? 'toggle' : 'compact'
+				),
+				new Separator()
+			]);
 		}
 
 		if (menuBarVisibility === 'compact' && this.menuBarContainer && e?.target) {
 			if (isAncestor(e.target as Node, this.menuBarContainer)) {
-				actions.unshift(...[toAction({ id: 'hideCompactMenu', label: localize('hideMenu', "Hide Menu"), run: () => this.configurationService.updateValue(MenuSettings.MenuBarVisibility, 'toggle') }), new Separator()]);
+				actions.unshift(...[
+					new ToggleMenuBarVisibilityAction('hideCompactMenu', localize('hideMenu', "Hide Menu"), false, this.configurationService, 'toggle'),
+					new Separator()
+				]);
 			}
 		}
 

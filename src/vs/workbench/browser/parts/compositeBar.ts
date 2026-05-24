@@ -23,6 +23,27 @@ import { CompositeDragAndDropData, CompositeDragAndDropObserver, IDraggedComposi
 import { Gesture, EventType as TouchEventType, GestureEvent } from '../../../base/browser/touch.js';
 import { MutableDisposable } from '../../../base/common/lifecycle.js';
 
+class ToggleCompositePinnedContextMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		readonly enabled: boolean,
+		private readonly compositeBar: CompositeBar,
+	) { }
+
+	run(): void {
+		if (this.compositeBar.isPinned(this.id)) {
+			this.compositeBar.unpin(this.id);
+		} else {
+			this.compositeBar.pin(this.id, true);
+		}
+	}
+}
+
 export interface ICompositeBarItem {
 
 	readonly id: string;
@@ -665,19 +686,13 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		const actions: IAction[] = this.model.visibleItems
 			.map(({ id, name, activityAction }) => {
 				const isPinned = this.isPinned(id);
-				return toAction({
+				return new ToggleCompositePinnedContextMenuAction(
 					id,
-					label: this.getAction(id).label || name || id,
-					checked: isPinned,
-					enabled: activityAction.enabled && (!isPinned || this.getPinnedCompositeIds().length > 1),
-					run: () => {
-						if (this.isPinned(id)) {
-							this.unpin(id);
-						} else {
-							this.pin(id, true);
-						}
-					}
-				});
+					this.getAction(id).label || name || id,
+					isPinned,
+					activityAction.enabled && (!isPinned || this.getPinnedCompositeIds().length > 1),
+					this,
+				);
 			});
 
 		this.options.fillExtraContextMenuActions(actions, e);
