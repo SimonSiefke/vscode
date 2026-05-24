@@ -25,7 +25,7 @@ import { IWorkbenchEnvironmentService } from '../../services/environment/common/
 import { isNative } from '../../../base/common/platform.js';
 import { Before2D, ICompositeDragAndDrop } from '../dnd.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
-import { IAction, Separator, SubmenuAction, toAction } from '../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction } from '../../../base/common/actions.js';
 import { StringSHA1 } from '../../../base/common/hash.js';
 import { GestureEvent } from '../../../base/browser/touch.js';
 import { IPaneCompositePart } from './paneCompositePart.js';
@@ -83,6 +83,53 @@ export interface IPaneCompositeBarOptions {
 	readonly activityHoverOptions: IActivityHoverOptions;
 	readonly fillExtraContextMenuActions: (actions: IAction[], e?: MouseEvent | GestureEvent) => void;
 	readonly colors: (theme: IColorTheme) => ICompositeBarColors;
+}
+
+class ResetViewContainerLocationAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly viewDescriptorService: IViewDescriptorService,
+		private readonly viewService: IViewsService,
+		private readonly viewContainerId: string,
+		private readonly reset: () => void,
+	) { }
+
+	run(): void {
+		this.reset();
+		this.viewService.openViewContainer(this.viewContainerId, true);
+	}
+}
+
+class MoveViewContainerAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly viewDescriptorService: IViewDescriptorService,
+		private readonly viewService: IViewsService,
+		private readonly viewContainer: ViewContainer,
+		private readonly newLocation: ViewContainerLocation,
+		private readonly defaultLocation: ViewContainerLocation,
+	) { }
+
+	run(): void {
+		let index: number | undefined;
+		if (this.newLocation !== this.defaultLocation) {
+			index = this.viewDescriptorService.getViewContainersByLocation(this.newLocation).length;
+		} else {
+			index = undefined;
+		}
+		this.viewDescriptorService.moveViewContainerToLocation(this.viewContainer, this.newLocation, index);
+		this.viewService.openViewContainer(this.viewContainer.id, true);
+	}
 }
 
 export class PaneCompositeBar extends Disposable {
@@ -173,24 +220,28 @@ export class PaneCompositeBar extends Disposable {
 
 		// Reset Location
 		if (defaultLocation !== currentLocation) {
-			actions.push(toAction({
-				id: 'resetLocationAction', label: localize('resetLocation', "Reset Location"), run: () => {
-					this.viewDescriptorService.moveViewContainerToLocation(viewContainer, defaultLocation, undefined, 'resetLocationAction');
-					this.viewService.openViewContainer(viewContainer.id, true);
-				}
-			}));
+			actions.push(new ResetViewContainerLocationAction(
+				'resetLocationAction',
+				localize('resetLocation', "Reset Location"),
+				this.viewDescriptorService,
+				this.viewService,
+				viewContainer.id,
+				() => this.viewDescriptorService.moveViewContainerToLocation(viewContainer, defaultLocation, undefined, 'resetLocationAction')
+			));
 		} else {
 			const viewContainerModel = this.viewDescriptorService.getViewContainerModel(viewContainer);
 			if (viewContainerModel.allViewDescriptors.length === 1) {
 				const viewToReset = viewContainerModel.allViewDescriptors[0];
 				const defaultContainer = this.viewDescriptorService.getDefaultContainerById(viewToReset.id)!;
 				if (defaultContainer !== viewContainer) {
-					actions.push(toAction({
-						id: 'resetLocationAction', label: localize('resetLocation', "Reset Location"), run: () => {
-							this.viewDescriptorService.moveViewsToContainer([viewToReset], defaultContainer, undefined, 'resetLocationAction');
-							this.viewService.openViewContainer(viewContainer.id, true);
-						}
-					}));
+					actions.push(new ResetViewContainerLocationAction(
+						'resetLocationAction',
+						localize('resetLocation', "Reset Location"),
+						this.viewDescriptorService,
+						this.viewService,
+						viewContainer.id,
+						() => this.viewDescriptorService.moveViewsToContainer([viewToReset], defaultContainer, undefined, 'resetLocationAction')
+					));
 				}
 			}
 		}
@@ -199,20 +250,15 @@ export class PaneCompositeBar extends Disposable {
 	}
 
 	private createMoveAction(viewContainer: ViewContainer, newLocation: ViewContainerLocation, defaultLocation: ViewContainerLocation): IAction {
-		return toAction({
-			id: `moveViewContainerTo${newLocation}`,
-			label: newLocation === ViewContainerLocation.Panel ? localize('panel', "Panel") : newLocation === ViewContainerLocation.Sidebar ? localize('sidebar', "Primary Side Bar") : localize('auxiliarybar', "Secondary Side Bar"),
-			run: () => {
-				let index: number | undefined;
-				if (newLocation !== defaultLocation) {
-					index = this.viewDescriptorService.getViewContainersByLocation(newLocation).length; // move to the end of the location
-				} else {
-					index = undefined; // restore default location
-				}
-				this.viewDescriptorService.moveViewContainerToLocation(viewContainer, newLocation, index);
-				this.viewService.openViewContainer(viewContainer.id, true);
-			}
-		});
+		return new MoveViewContainerAction(
+			`moveViewContainerTo${newLocation}`,
+			newLocation === ViewContainerLocation.Panel ? localize('panel', "Panel") : newLocation === ViewContainerLocation.Sidebar ? localize('sidebar', "Primary Side Bar") : localize('auxiliarybar', "Secondary Side Bar"),
+			this.viewDescriptorService,
+			this.viewService,
+			viewContainer,
+			newLocation,
+			defaultLocation,
+		);
 	}
 
 	private registerListeners(): void {
