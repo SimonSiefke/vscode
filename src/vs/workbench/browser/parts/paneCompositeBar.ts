@@ -93,7 +93,6 @@ class ResetViewContainerLocationAction implements IAction {
 	constructor(
 		readonly id: string,
 		public label: string,
-		private readonly viewDescriptorService: IViewDescriptorService,
 		private readonly viewService: IViewsService,
 		private readonly viewContainerId: string,
 		private readonly reset: () => void,
@@ -223,7 +222,6 @@ export class PaneCompositeBar extends Disposable {
 			actions.push(new ResetViewContainerLocationAction(
 				'resetLocationAction',
 				localize('resetLocation', "Reset Location"),
-				this.viewDescriptorService,
 				this.viewService,
 				viewContainer.id,
 				() => this.viewDescriptorService.moveViewContainerToLocation(viewContainer, defaultLocation, undefined, 'resetLocationAction')
@@ -237,7 +235,6 @@ export class PaneCompositeBar extends Disposable {
 					actions.push(new ResetViewContainerLocationAction(
 						'resetLocationAction',
 						localize('resetLocation', "Reset Location"),
-						this.viewDescriptorService,
 						this.viewService,
 						viewContainer.id,
 						() => this.viewDescriptorService.moveViewsToContainer([viewToReset], defaultContainer, undefined, 'resetLocationAction')
