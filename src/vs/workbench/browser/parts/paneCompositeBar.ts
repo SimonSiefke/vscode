@@ -512,6 +512,7 @@ export class PaneCompositeBar extends Disposable {
 		if (compositeActions) {
 			compositeActions.activityAction.dispose();
 			compositeActions.pinnedAction.dispose();
+			compositeActions.badgeAction.dispose();
 			this.compositeActions.delete(compositeId);
 		}
 	}
@@ -523,6 +524,7 @@ export class PaneCompositeBar extends Disposable {
 		if (compositeActions) {
 			compositeActions.activityAction.dispose();
 			compositeActions.pinnedAction.dispose();
+			compositeActions.badgeAction.dispose();
 			this.compositeActions.delete(compositeId);
 		}
 	}
