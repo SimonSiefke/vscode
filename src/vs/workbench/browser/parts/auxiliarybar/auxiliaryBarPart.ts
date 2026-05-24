@@ -19,7 +19,7 @@ import { IViewDescriptorService, ViewContainerLocation } from '../../../common/v
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ActivityBarPosition, IWorkbenchLayoutService, LayoutSettings, Parts, Position } from '../../../services/layout/browser/layoutService.js';
 import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js';
-import { IAction, Separator, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction } from '../../../../base/common/actions.js';
 import { ToggleAuxiliaryBarAction } from './auxiliaryBarActions.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
@@ -49,6 +49,40 @@ class ActivityBarPositionAction implements IAction {
 
 	run(): void {
 		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	}
+}
+
+class AuxiliaryBarConfigurationAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly enabled: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly key: string,
+		private readonly value: boolean,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(this.key, this.value);
+	}
+}
+
+class AuxiliaryBarCommandAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly commandService: ICommandService,
+	) { }
+
+	run(): void {
+		this.commandService.executeCommand(this.id);
 	}
 }
 
@@ -265,19 +299,21 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 			new ActivityBarPositionAction('workbench.action.activityBarLocation.hide', localize('hide', "Hidden"), activityBarPosition === ActivityBarPosition.HIDDEN, this.configurationService, ActivityBarPosition.HIDDEN)
 		];
 
-		const toggleShowLabelsAction = toAction({
-			id: 'workbench.action.auxiliarybar.toggleShowLabels',
-			label: this.configuration.showLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
-			enabled: this.configuration.canShowLabels,
-			run: () => this.configurationService.updateValue('workbench.secondarySideBar.showLabels', !this.configuration.showLabels)
-		});
+		const toggleShowLabelsAction = new AuxiliaryBarConfigurationAction(
+			'workbench.action.auxiliarybar.toggleShowLabels',
+			this.configuration.showLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
+			this.configuration.canShowLabels,
+			this.configurationService,
+			'workbench.secondarySideBar.showLabels',
+			!this.configuration.showLabels,
+		);
 
 		actions.push(...[
 			new Separator(),
 			new SubmenuAction('workbench.action.panel.position', localize('activity bar position', "Activity Bar Position"), positionActions),
-			toAction({ id: ToggleSidebarPositionAction.ID, label: currentPositionRight ? localize('move second side bar left', "Move Secondary Side Bar Left") : localize('move second side bar right', "Move Secondary Side Bar Right"), run: () => this.commandService.executeCommand(ToggleSidebarPositionAction.ID) }),
+			new AuxiliaryBarCommandAction(ToggleSidebarPositionAction.ID, currentPositionRight ? localize('move second side bar left', "Move Secondary Side Bar Left") : localize('move second side bar right', "Move Secondary Side Bar Right"), this.commandService),
 			toggleShowLabelsAction,
-			toAction({ id: ToggleAuxiliaryBarAction.ID, label: localize('hide second side bar', "Hide Secondary Side Bar"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
+			new AuxiliaryBarCommandAction(ToggleAuxiliaryBarAction.ID, localize('hide second side bar', "Hide Secondary Side Bar"), this.commandService)
 		]);
 	}
 
