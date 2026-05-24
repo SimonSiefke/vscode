@@ -204,6 +204,24 @@ class DisabledManageVisibilityAction implements IAction {
 	}
 }
 
+class CommandMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly enabled: boolean,
+		private readonly commandService: ICommandService,
+		private readonly commandId: string,
+		private readonly args: unknown[] = [],
+	) { }
+
+	run(): Promise<unknown> {
+		return this.commandService.executeCommand(this.commandId, ...this.args);
+	}
+}
+
 abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionViewItem {
 
 	constructor(
@@ -437,31 +455,37 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 
 				const canUseMcp = !!provider.authorizationServers?.length;
 				for (const account of accounts) {
-					const manageExtensionsAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedExtensions', "Manage Trusted Extensions"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel: account.label })
-					});
+					const manageExtensionsAction = new CommandMenuAction(
+						`configureSessions${account.label}`,
+						localize('manageTrustedExtensions', "Manage Trusted Extensions"),
+						true,
+						this.commandService,
+						'_manageTrustedExtensionsForAccount',
+						[{ providerId, accountLabel: account.label }]
+					);
 
 
 					const providerSubMenuActions: IAction[] = [manageExtensionsAction];
 					if (canUseMcp) {
-						const manageMCPAction = toAction({
-							id: `configureSessions${account.label}`,
-							label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-						});
+						const manageMCPAction = new CommandMenuAction(
+							`configureSessions${account.label}`,
+							localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
+							true,
+							this.commandService,
+							'_manageTrustedMCPServersForAccount',
+							[{ providerId, accountLabel: account.label }]
+						);
 						providerSubMenuActions.push(manageMCPAction);
 					}
 					if (account.canSignOut) {
-						providerSubMenuActions.push(toAction({
-							id: 'signOut',
-							label: localize('signOut', "Sign Out"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel: account.label })
-						}));
+						providerSubMenuActions.push(new CommandMenuAction(
+							'signOut',
+							localize('signOut', "Sign Out"),
+							true,
+							this.commandService,
+							'_signOutOfAccount',
+							[{ providerId, accountLabel: account.label }]
+						));
 					}
 
 					const providerSubMenu = new SubmenuAction('activitybar.submenu', `${account.label} (${provider.label})`, providerSubMenuActions);
@@ -479,12 +503,13 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 				// Provide _some_ discoverable way to manage dynamic authentication providers.
 				// This will either show up inside the account submenu or as a top-level menu item if there
 				// are no accounts.
-				const manageDynamicAuthProvidersAction = toAction({
-					id: 'manageDynamicAuthProviders',
-					label: localize('manageDynamicAuthProviders', "Manage Dynamic Authentication Providers..."),
-					enabled: true,
-					run: () => this.commandService.executeCommand('workbench.action.removeDynamicAuthenticationProviders')
-				});
+				const manageDynamicAuthProvidersAction = new CommandMenuAction(
+					'manageDynamicAuthProviders',
+					localize('manageDynamicAuthProviders', "Manage Dynamic Authentication Providers..."),
+					true,
+					this.commandService,
+					'workbench.action.removeDynamicAuthenticationProviders'
+				);
 				if (!accounts) {
 					if (this.problematicProviders.has(providerId)) {
 						const providerUnavailableAction = disposables.add(new Action('providerUnavailable', localize('authProviderUnavailable', '{0} is currently unavailable', provider.label), undefined, false));
@@ -510,21 +535,25 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					// });
 
 					const providerSubMenuActions: IAction[] = [];
-					const manageMCPAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-					});
+					const manageMCPAction = new CommandMenuAction(
+						`configureSessions${account.label}`,
+						localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
+						true,
+						this.commandService,
+						'_manageTrustedMCPServersForAccount',
+						[{ providerId, accountLabel: account.label }]
+					);
 					providerSubMenuActions.push(manageMCPAction);
 					providerSubMenuActions.push(manageDynamicAuthProvidersAction);
 					if (account.canSignOut) {
-						providerSubMenuActions.push(toAction({
-							id: 'signOut',
-							label: localize('signOut', "Sign Out"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel: account.label })
-						}));
+						providerSubMenuActions.push(new CommandMenuAction(
+							'signOut',
+							localize('signOut', "Sign Out"),
+							true,
+							this.commandService,
+							'_signOutOfAccount',
+							[{ providerId, accountLabel: account.label }]
+						));
 					}
 
 					const providerSubMenu = new SubmenuAction('activitybar.submenu', `${account.label} (${provider.label})`, providerSubMenuActions);
