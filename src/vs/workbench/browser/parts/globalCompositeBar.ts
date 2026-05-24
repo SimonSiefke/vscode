@@ -173,6 +173,37 @@ class ToggleAccountsVisibilityAction implements IAction {
 	}
 }
 
+class SetAccountsVisibilityAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly storageService: IStorageService,
+		private readonly visible: boolean,
+	) { }
+
+	run(): void {
+		setAccountsActionVisible(this.storageService, this.visible);
+	}
+}
+
+class DisabledManageVisibilityAction implements IAction {
+	readonly id = 'toggle.hideManage';
+	readonly label = localize('manage', "Manage");
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = false;
+	readonly checked = true;
+
+	run(): never {
+		throw new Error('"Manage" can not be hidden');
+	}
+}
+
 abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionViewItem {
 
 	constructor(
@@ -748,14 +779,14 @@ function simpleActivityContextMenuActions(storageService: IStorageService, isAcc
 	const currentElementContextMenuActions: IAction[] = [];
 	if (isAccount) {
 		currentElementContextMenuActions.push(
-			toAction({ id: 'hideAccounts', label: localize('hideAccounts', "Hide Accounts"), run: () => setAccountsActionVisible(storageService, false) }),
+			new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
 			new Separator()
 		);
 	}
 	return [
 		...currentElementContextMenuActions,
-		toAction({ id: 'toggle.hideAccounts', label: localize('accounts', "Accounts"), checked: isAccountsActionVisible(storageService), run: () => setAccountsActionVisible(storageService, !isAccountsActionVisible(storageService)) }),
-		toAction({ id: 'toggle.hideManage', label: localize('manage', "Manage"), checked: true, enabled: false, run: () => { throw new Error('"Manage" can not be hidden'); } })
+		new SetAccountsVisibilityAction('toggle.hideAccounts', localize('accounts', "Accounts"), isAccountsActionVisible(storageService), storageService, !isAccountsActionVisible(storageService)),
+		new DisabledManageVisibilityAction()
 	];
 }
 

@@ -5,7 +5,7 @@
 
 import './media/panelpart.css';
 import { localize } from '../../../../nls.js';
-import { IAction, Separator, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction } from '../../../../base/common/actions.js';
 import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { ActivePanelContext, PanelFocusContext } from '../../../common/contextkeys.js';
 import { IWorkbenchLayoutService, Parts, Position } from '../../../services/layout/browser/layoutService.js';
@@ -32,6 +32,39 @@ import { IPaneCompositeBarOptions } from '../paneCompositeBar.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { Extensions } from '../../panecomposite.js';
+
+class PanelConfigurationAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly configurationService: IConfigurationService,
+		private readonly value: boolean,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue('workbench.panel.showLabels', this.value);
+	}
+}
+
+class PanelCommandAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly commandService: ICommandService,
+	) { }
+
+	run(): void {
+		this.commandService.executeCommand(this.id);
+	}
+}
 
 export class PanelPart extends AbstractPaneCompositePart {
 
@@ -177,18 +210,19 @@ export class PanelPart extends AbstractPaneCompositePart {
 		const alignActions = getContextMenuActions(panelAlignMenu).secondary;
 
 		const panelShowLabels = this.configurationService.getValue<boolean | undefined>('workbench.panel.showLabels');
-		const toggleShowLabelsAction = toAction({
-			id: 'workbench.action.panel.toggleShowLabels',
-			label: panelShowLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
-			run: () => this.configurationService.updateValue('workbench.panel.showLabels', !panelShowLabels)
-		});
+		const toggleShowLabelsAction = new PanelConfigurationAction(
+			'workbench.action.panel.toggleShowLabels',
+			panelShowLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
+			this.configurationService,
+			!panelShowLabels,
+		);
 
 		actions.push(...[
 			new Separator(),
 			new SubmenuAction('workbench.action.panel.position', localize('panel position', "Panel Position"), positionActions),
 			new SubmenuAction('workbench.action.panel.align', localize('align panel', "Align Panel"), alignActions),
 			toggleShowLabelsAction,
-			toAction({ id: TogglePanelAction.ID, label: localize('hidePanel', "Hide Panel"), run: () => this.commandService.executeCommand(TogglePanelAction.ID) }),
+			new PanelCommandAction(TogglePanelAction.ID, localize('hidePanel', "Hide Panel"), this.commandService),
 		]);
 	}
 
