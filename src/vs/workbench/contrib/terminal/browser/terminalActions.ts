@@ -509,7 +509,7 @@ export function registerTerminalActions() {
 				return;
 			}
 			c.service.setActiveInstance(instance);
-			focusActiveTerminal(instance, c);
+			await focusActiveTerminal(instance, c);
 		}
 	});
 
@@ -1671,7 +1671,7 @@ async function pickTerminalCwd(accessor: ServicesAccessor, cancel?: Cancellation
 	const folderPicks: Item[] = shrinkedPairs.map(pair => {
 		const label = pair.folder.name;
 		const description = pair.isOverridden
-			? localize('workbench.action.terminal.overriddenCwdDescription', "(Overriden) {0}", labelService.getUriLabel(pair.cwd, { relative: !pair.isAbsolute }))
+			? localize('workbench.action.terminal.overriddenCwdDescription', "(Overridden) {0}", labelService.getUriLabel(pair.cwd, { relative: !pair.isAbsolute }))
 			: labelService.getUriLabel(dirname(pair.cwd), { relative: true });
 
 		return {
@@ -1722,13 +1722,17 @@ export function shrinkWorkspaceFolderCwdPairs(pairs: WorkspaceFolderCwdPair[]): 
 }
 
 async function focusActiveTerminal(instance: ITerminalInstance | undefined, c: ITerminalServicesCollection): Promise<void> {
-	// TODO@meganrogge: Is this the right logic for when instance is undefined?
-	if (instance?.target === TerminalLocation.Editor) {
-		await c.editorService.revealActiveEditor();
-		await instance.focusWhenReady(true);
-	} else {
-		await c.groupService.showPanel(true);
+	const target = instance
+		?? c.service.activeInstance
+		?? c.editorService.activeInstance
+		?? c.groupService.activeInstance;
+	if (!target) {
+		if (c.groupService.instances.length > 0) {
+			await c.groupService.showPanel(true);
+		}
+		return;
 	}
+	await c.service.focusInstance(target);
 }
 
 async function renameWithQuickPick(c: ITerminalServicesCollection, accessor: ServicesAccessor, resource?: unknown) {

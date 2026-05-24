@@ -10,7 +10,7 @@ import { ExtHostCommands } from './extHostCommands.js';
 import { IExtHostWorkspaceProvider } from './extHostWorkspace.js';
 import { InputBox, InputBoxOptions, InputBoxValidationMessage, QuickInput, QuickInputButton, QuickPick, QuickPickItem, QuickPickItemButtonEvent, QuickPickOptions, WorkspaceFolder, WorkspaceFolderPickOptions } from 'vscode';
 import { ExtHostQuickOpenShape, IMainContext, MainContext, TransferQuickInput, TransferQuickInputButton, TransferQuickPickItemOrSeparator } from './extHost.protocol.js';
-import { QuickInputButtons, QuickPickItemKind, InputBoxValidationSeverity, QuickInputButtonLocation } from './extHostTypes.js';
+import { QuickInputButtons, QuickPickItemKind, InputBoxValidationSeverity } from './extHostTypes.js';
 import { isCancellationError } from '../../../base/common/errors.js';
 import { IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
 import { coalesce } from '../../../base/common/arrays.js';
@@ -252,10 +252,10 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 			session?._fireDidTriggerButton(handle, checked);
 		}
 
-		$onDidTriggerItemButton(sessionId: number, itemHandle: number, buttonHandle: number): void {
+		$onDidTriggerItemButton(sessionId: number, itemHandle: number, buttonHandle: number, checked?: boolean): void {
 			const session = this._sessions.get(sessionId);
 			if (session instanceof ExtHostQuickPick) {
-				session._fireDidTriggerItemButton(itemHandle, buttonHandle);
+				session._fireDidTriggerItemButton(itemHandle, buttonHandle, checked);
 			}
 		}
 
@@ -391,20 +391,6 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 		}
 
 		set buttons(buttons: QuickInputButton[]) {
-			if (buttons.some(button =>
-				typeof button.location === 'number' ||
-				typeof button.toggle === 'object' && typeof button.toggle.checked === 'boolean')) {
-				checkProposedApiEnabled(this._extension, 'quickInputButtonLocation');
-			}
-
-			if (buttons.some(button =>
-				typeof button.location === 'number' &&
-				button.location !== QuickInputButtonLocation.Input &&
-				typeof button.toggle === 'object' &&
-				typeof button.toggle.checked === 'boolean')) {
-				throw new Error('QuickInputButtons with toggle set are only supported in the Input location.');
-			}
-
 			this._buttons = buttons.slice();
 			this._handlesToButtons.clear();
 			buttons.forEach((button, i) => {
@@ -418,7 +404,7 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 						tooltip: button.tooltip,
 						handle: button === QuickInputButtons.Back ? -1 : i,
 						location: typeof button.location === 'number' ? button.location : undefined,
-						checked: typeof button.toggle === 'object' && typeof button.toggle.checked === 'boolean' ? button.toggle.checked : undefined
+						toggle: typeof button.toggle === 'object' && typeof button.toggle.checked === 'boolean' ? { checked: button.toggle.checked } : undefined,
 					};
 				})
 			});
@@ -582,7 +568,11 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 							return {
 								iconPathDto: IconPath.from(button.iconPath),
 								tooltip: button.tooltip,
-								handle: i
+								handle: i,
+								toggle:
+									typeof button.toggle === 'object' && typeof button.toggle.checked === 'boolean'
+										? { checked: button.toggle.checked }
+										: undefined,
 							};
 						}),
 					});
@@ -684,13 +674,16 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 
 		onDidTriggerItemButton = this._onDidTriggerItemButtonEmitter.event;
 
-		_fireDidTriggerItemButton(itemHandle: number, buttonHandle: number) {
+		_fireDidTriggerItemButton(itemHandle: number, buttonHandle: number, checked?: boolean) {
 			const item = this._handlesToItems.get(itemHandle)!;
 			if (!item || !item.buttons || !item.buttons.length) {
 				return;
 			}
 			const button = item.buttons[buttonHandle];
 			if (button) {
+				if (checked !== undefined && button.toggle) {
+					button.toggle.checked = checked;
+				}
 				this._onDidTriggerItemButtonEmitter.fire({
 					button,
 					item
