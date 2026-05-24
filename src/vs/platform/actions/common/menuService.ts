@@ -10,7 +10,7 @@ import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuI
 import { ICommandAction, ILocalizedString } from '../../action/common/action.js';
 import { ICommandService } from '../../commands/common/commands.js';
 import { ContextKeyExpression, IContextKeyService } from '../../contextkey/common/contextkey.js';
-import { IAction, Separator, toAction } from '../../../base/common/actions.js';
+import { IAction, Separator } from '../../../base/common/actions.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { removeFastWithoutKeepingOrder } from '../../../base/common/arrays.js';
 import { localize } from '../../../nls.js';
@@ -160,6 +160,67 @@ class PersistedMenuHideState implements IDisposable {
 		} finally {
 			this._ignoreChangeEvent = false;
 		}
+	}
+}
+
+class HideMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly menu: MenuId,
+		private readonly commandId: string,
+		private readonly states: PersistedMenuHideState,
+	) { }
+
+	run(): void {
+		this.states.updateHidden(this.menu, this.commandId, true);
+	}
+}
+
+class ToggleMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly menu: MenuId,
+		private readonly commandId: string,
+		private readonly states: PersistedMenuHideState,
+	) { }
+
+	get checked(): boolean {
+		return !this.states.isHidden(this.menu, this.commandId);
+	}
+
+	run(): void {
+		this.states.updateHidden(this.menu, this.commandId, this.checked);
+	}
+}
+
+class ConfigureKeybindingAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly enabled: boolean,
+		private readonly commandService: ICommandService,
+		private readonly keybindingService: IKeybindingService,
+		private readonly commandId: string,
+		private readonly when: ContextKeyExpression | undefined,
+	) { }
+
+	run(): void {
+		const hasKeybinding = !!this.keybindingService.lookupKeybinding(this.commandId);
+		const whenValue = !hasKeybinding && this.when ? this.when.serialize() : undefined;
+		this.commandService.executeCommand('workbench.action.openGlobalKeybindings', `@command:${this.commandId}` + (whenValue ? ` +when:${whenValue}` : ''));
 	}
 }
 
@@ -465,18 +526,8 @@ function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, st
 	const id = isISubmenuItem(command) ? command.submenu.id : command.id;
 	const title = typeof command.title === 'string' ? command.title : command.title.value;
 
-	const hide = toAction({
-		id: `hide/${menu.id}/${id}`,
-		label: localize('hide.label', 'Hide \'{0}\'', title),
-		run() { states.updateHidden(menu, id, true); }
-	});
-
-	const toggle = toAction({
-		id: `toggle/${menu.id}/${id}`,
-		label: title,
-		get checked() { return !states.isHidden(menu, id); },
-		run() { states.updateHidden(menu, id, !!this.checked); }
-	});
+	const hide = new HideMenuAction(`hide/${menu.id}/${id}`, localize('hide.label', 'Hide \'{0}\'', title), menu, id, states);
+	const toggle = new ToggleMenuAction(`toggle/${menu.id}/${id}`, title, menu, id, states);
 
 	return {
 		hide,
@@ -486,16 +537,13 @@ function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, st
 }
 
 export function createConfigureKeybindingAction(commandService: ICommandService, keybindingService: IKeybindingService, commandId: string, when: ContextKeyExpression | undefined = undefined, enabled = true): IAction {
-	return toAction({
-		id: `configureKeybinding/${commandId}`,
-		label: localize('configure keybinding', "Configure Keybinding"),
+	return new ConfigureKeybindingAction(
+		`configureKeybinding/${commandId}`,
+		localize('configure keybinding', "Configure Keybinding"),
 		enabled,
-		run() {
-			// Only set the when clause when there is no keybinding
-			// It is possible that the action and the keybinding have different when clauses
-			const hasKeybinding = !!keybindingService.lookupKeybinding(commandId); // This may only be called inside the `run()` method as it can be expensive on startup. #210529
-			const whenValue = !hasKeybinding && when ? when.serialize() : undefined;
-			commandService.executeCommand('workbench.action.openGlobalKeybindings', `@command:${commandId}` + (whenValue ? ` +when:${whenValue}` : ''));
-		}
-	});
+		commandService,
+		keybindingService,
+		commandId,
+		when,
+	);
 }

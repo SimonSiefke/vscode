@@ -30,10 +30,27 @@ import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/action
 import { IPaneCompositeBarOptions } from '../paneCompositeBar.js';
 import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { getContextMenuActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { VisibleViewContainersTracker } from '../visibleViewContainersTracker.js';
 import { Extensions } from '../../panecomposite.js';
+
+class ActivityBarPositionAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly position: ActivityBarPosition,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	}
+}
 
 interface IAuxiliaryBarPartConfiguration {
 	position: ActivityBarPosition;
@@ -240,8 +257,13 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 			}
 		}
 
-		const activityBarPositionMenu = this.menuService.getMenuActions(MenuId.ActivityBarPositionMenu, this.contextKeyService, { shouldForwardArgs: true, renderShortTitle: true });
-		const positionActions = getContextMenuActions(activityBarPositionMenu).secondary;
+		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
+		const positionActions = [
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.default', localize('default', "Default"), activityBarPosition === ActivityBarPosition.DEFAULT, this.configurationService, ActivityBarPosition.DEFAULT),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.top', localize('top', "Top"), activityBarPosition === ActivityBarPosition.TOP, this.configurationService, ActivityBarPosition.TOP),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.bottom', localize('bottom', "Bottom"), activityBarPosition === ActivityBarPosition.BOTTOM, this.configurationService, ActivityBarPosition.BOTTOM),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.hide', localize('hide', "Hidden"), activityBarPosition === ActivityBarPosition.HIDDEN, this.configurationService, ActivityBarPosition.HIDDEN)
+		];
 
 		const toggleShowLabelsAction = toAction({
 			id: 'workbench.action.auxiliarybar.toggleShowLabels',

@@ -33,12 +33,29 @@ import { Action2, IMenuService, MenuId, MenuRegistry, registerAction2 } from '..
 import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
-import { getContextMenuActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { IViewDescriptorService, ViewContainerLocation, ViewContainerLocationToString } from '../../../common/views.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
+
+class ActivityBarPositionAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly position: ActivityBarPosition,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	}
+}
 
 export class ActivitybarPart extends Part {
 
@@ -420,14 +437,18 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 	}
 
 	getActivityBarContextMenuActions(): IAction[] {
-		const activityBarPositionMenu = this.menuService.getMenuActions(MenuId.ActivityBarPositionMenu, this.contextKeyService, { shouldForwardArgs: true, renderShortTitle: true });
-		const positionActions = getContextMenuActions(activityBarPositionMenu).secondary;
+		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
+		const positionActions = [
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.default', localize('default', "Default"), activityBarPosition === ActivityBarPosition.DEFAULT, this.configurationService, ActivityBarPosition.DEFAULT),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.top', localize('top', "Top"), activityBarPosition === ActivityBarPosition.TOP, this.configurationService, ActivityBarPosition.TOP),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.bottom', localize('bottom', "Bottom"), activityBarPosition === ActivityBarPosition.BOTTOM, this.configurationService, ActivityBarPosition.BOTTOM),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.hide', localize('hide', "Hidden"), activityBarPosition === ActivityBarPosition.HIDDEN, this.configurationService, ActivityBarPosition.HIDDEN)
+		];
 		const actions: IAction[] = [
 			new SubmenuAction('workbench.action.activityBar.position', localize('activity bar position', "Activity Bar Position"), positionActions),
 		];
 
 		// Show size submenu only when activity bar is in default position
-		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
 		if (activityBarPosition === ActivityBarPosition.DEFAULT) {
 			const isCompact = this.configurationService.getValue<boolean>(LayoutSettings.ACTIVITY_BAR_COMPACT) ?? false;
 			const sizeActions = [
