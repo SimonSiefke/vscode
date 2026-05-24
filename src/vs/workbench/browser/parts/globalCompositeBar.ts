@@ -132,7 +132,7 @@ export class GlobalCompositeBar extends Disposable {
 	}
 
 	getContextMenuActions(): IAction[] {
-		return [toAction({ id: 'toggleAccountsVisibility', label: localize('accounts', "Accounts"), checked: this.accountsVisibilityPreference, run: () => this.accountsVisibilityPreference = !this.accountsVisibilityPreference })];
+		return [new ToggleAccountsVisibilityAction(this.storageService)];
 	}
 
 	private toggleAccountsActivity() {
@@ -152,6 +152,24 @@ export class GlobalCompositeBar extends Disposable {
 
 	private set accountsVisibilityPreference(value: boolean) {
 		setAccountsActionVisible(this.storageService, value);
+	}
+}
+
+class ToggleAccountsVisibilityAction implements IAction {
+	readonly id = 'toggleAccountsVisibility';
+	readonly label = localize('accounts', "Accounts");
+	readonly tooltip = this.label;
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(private readonly storageService: IStorageService) { }
+
+	get checked(): boolean {
+		return isAccountsActionVisible(this.storageService);
+	}
+
+	run(): void {
+		setAccountsActionVisible(this.storageService, !this.checked);
 	}
 }
 

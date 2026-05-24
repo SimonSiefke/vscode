@@ -224,6 +224,17 @@ class ConfigureKeybindingAction implements IAction {
 	}
 }
 
+class MenuItemHideActions implements IMenuItemHide {
+	constructor(
+		readonly hide: IAction,
+		readonly toggle: IAction,
+	) { }
+
+	get isHidden(): boolean {
+		return !this.toggle.checked;
+	}
+}
+
 type MenuItemGroup = [string, Array<IMenuItem | ISubmenuItem>];
 
 class MenuInfoSnapshot {
@@ -529,11 +540,7 @@ function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, st
 	const hide = new HideMenuAction(`hide/${menu.id}/${id}`, localize('hide.label', 'Hide \'{0}\'', title), menu, id, states);
 	const toggle = new ToggleMenuAction(`toggle/${menu.id}/${id}`, title, menu, id, states);
 
-	return {
-		hide,
-		toggle,
-		get isHidden() { return !toggle.checked; },
-	};
+	return new MenuItemHideActions(hide, toggle);
 }
 
 export function createConfigureKeybindingAction(commandService: ICommandService, keybindingService: IKeybindingService, commandId: string, when: ContextKeyExpression | undefined = undefined, enabled = true): IAction {
