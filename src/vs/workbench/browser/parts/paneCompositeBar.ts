@@ -137,7 +137,7 @@ export class PaneCompositeBar extends Disposable {
 
 	private readonly compositeBar: CompositeBar;
 	readonly dndHandler: ICompositeDragAndDrop;
-	private readonly compositeActions = new Map<string, { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction }>();
+	private readonly compositeActions = new Map<string, { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction; disposable: DisposableStore }>();
 
 	private hasExtensionsRegistered: boolean = false;
 
@@ -349,23 +349,26 @@ export class PaneCompositeBar extends Disposable {
 		return this.compositeBar.create(parent);
 	}
 
-	private getCompositeActions(compositeId: string): { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction } {
+	private getCompositeActions(compositeId: string): { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction; disposable: DisposableStore } {
 		let compositeActions = this.compositeActions.get(compositeId);
 		if (!compositeActions) {
+			const disposable = new DisposableStore();
 			const viewContainer = this.getViewContainer(compositeId);
 			if (viewContainer) {
 				const viewContainerModel = this.viewDescriptorService.getViewContainerModel(viewContainer);
 				compositeActions = {
-					activityAction: this._register(this.instantiationService.createInstance(ViewContainerActivityAction, this.toCompositeBarActionItemFrom(viewContainerModel), this.part, this.paneCompositePart)),
-					pinnedAction: this._register(new ToggleCompositePinnedAction(this.toCompositeBarActionItemFrom(viewContainerModel), this.compositeBar)),
-					badgeAction: this._register(new ToggleCompositeBadgeAction(this.toCompositeBarActionItemFrom(viewContainerModel), this.compositeBar))
+					activityAction: disposable.add(this.instantiationService.createInstance(ViewContainerActivityAction, this.toCompositeBarActionItemFrom(viewContainerModel), this.part, this.paneCompositePart)),
+					pinnedAction: disposable.add(new ToggleCompositePinnedAction(this.toCompositeBarActionItemFrom(viewContainerModel), this.compositeBar)),
+					badgeAction: disposable.add(new ToggleCompositeBadgeAction(this.toCompositeBarActionItemFrom(viewContainerModel), this.compositeBar)),
+					disposable,
 				};
 			} else {
 				const cachedComposite = this.cachedViewContainers.filter(c => c.id === compositeId)[0];
 				compositeActions = {
-					activityAction: this._register(this.instantiationService.createInstance(PlaceHolderViewContainerActivityAction, this.toCompositeBarActionItem(compositeId, cachedComposite?.name ?? compositeId, cachedComposite?.icon, undefined), this.part, this.paneCompositePart)),
-					pinnedAction: this._register(new PlaceHolderToggleCompositePinnedAction(compositeId, this.compositeBar)),
-					badgeAction: this._register(new PlaceHolderToggleCompositeBadgeAction(compositeId, this.compositeBar))
+					activityAction: disposable.add(this.instantiationService.createInstance(PlaceHolderViewContainerActivityAction, this.toCompositeBarActionItem(compositeId, cachedComposite?.name ?? compositeId, cachedComposite?.icon, undefined), this.part, this.paneCompositePart)),
+					pinnedAction: disposable.add(new PlaceHolderToggleCompositePinnedAction(compositeId, this.compositeBar)),
+					badgeAction: disposable.add(new PlaceHolderToggleCompositeBadgeAction(compositeId, this.compositeBar)),
+					disposable,
 				};
 			}
 
@@ -510,9 +513,7 @@ export class PaneCompositeBar extends Disposable {
 
 		const compositeActions = this.compositeActions.get(compositeId);
 		if (compositeActions) {
-			compositeActions.activityAction.dispose();
-			compositeActions.pinnedAction.dispose();
-			compositeActions.badgeAction.dispose();
+			compositeActions.disposable.dispose();
 			this.compositeActions.delete(compositeId);
 		}
 	}
@@ -522,9 +523,7 @@ export class PaneCompositeBar extends Disposable {
 
 		const compositeActions = this.compositeActions.get(compositeId);
 		if (compositeActions) {
-			compositeActions.activityAction.dispose();
-			compositeActions.pinnedAction.dispose();
-			compositeActions.badgeAction.dispose();
+			compositeActions.disposable.dispose();
 			this.compositeActions.delete(compositeId);
 		}
 	}
