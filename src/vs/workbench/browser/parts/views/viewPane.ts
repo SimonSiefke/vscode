@@ -25,7 +25,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { assertReturnsDefined, PartialExcept } from '../../../../base/common/types.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { MenuId, Action2, IAction2Options, SubmenuItemAction } from '../../../../platform/actions/common/actions.js';
+import { IMenuActionOptions, MenuId, Action2, IAction2Options, SubmenuItemAction } from '../../../../platform/actions/common/actions.js';
 import { createActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { parseLinkedText } from '../../../../base/common/linkedText.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
@@ -345,7 +345,12 @@ export abstract class ViewPane extends Pane implements IView {
 		return this._singleViewPaneContainerTitle;
 	}
 
-	readonly menuActions: ViewMenuActions;
+	private readonly titleMenuId: MenuId;
+	private readonly titleMenuActionOptions: IMenuActionOptions;
+	private _menuActions: ViewMenuActions | undefined;
+	get menuActions(): ViewMenuActions {
+		return assertReturnsDefined(this._menuActions);
+	}
 
 	/**
 	 * Additional menu groups (beyond `navigation`) whose actions should be
@@ -403,9 +408,8 @@ export abstract class ViewPane extends Pane implements IView {
 		const viewLocationKey = this.scopedContextKeyService.createKey('viewLocation', ViewContainerLocationToString(viewDescriptorService.getViewLocationById(this.id)!));
 		this._register(Event.filter(viewDescriptorService.onDidChangeLocation, e => e.views.some(view => view.id === this.id))(() => viewLocationKey.set(ViewContainerLocationToString(viewDescriptorService.getViewLocationById(this.id)!))));
 
-		const childInstantiationService = this._register(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this.scopedContextKeyService])));
-		this.menuActions = this._register(childInstantiationService.createInstance(ViewMenuActions, options.titleMenuId ?? MenuId.ViewTitle, MenuId.ViewTitleContext, { shouldForwardArgs: !options.donotForwardArgs, renderShortTitle: true }, { primaryActionGroups: this.primaryActionGroups }));
-		this._register(this.menuActions.onDidChange(() => this.updateActions()));
+		this.titleMenuId = options.titleMenuId ?? MenuId.ViewTitle;
+		this.titleMenuActionOptions = { shouldForwardArgs: !options.donotForwardArgs, renderShortTitle: true };
 	}
 
 	override get headerVisible(): boolean {
@@ -456,6 +460,7 @@ export abstract class ViewPane extends Pane implements IView {
 	protected renderHeader(container: HTMLElement): void {
 		this.headerDisposables.clear();
 		this.headerActionViewItems.clearAndDisposeAll();
+		this._menuActions = undefined;
 		this.toolbar = undefined;
 		this.titleContainer = undefined;
 		this.titleContainerHover = undefined;
@@ -466,6 +471,10 @@ export abstract class ViewPane extends Pane implements IView {
 		this.twistiesContainer = undefined;
 
 		this.headerContainer = container;
+
+		const childInstantiationService = this.headerDisposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this.scopedContextKeyService])));
+		this._menuActions = this.headerDisposables.add(childInstantiationService.createInstance(ViewMenuActions, this.titleMenuId, MenuId.ViewTitleContext, this.titleMenuActionOptions, { primaryActionGroups: this.primaryActionGroups }));
+		this.headerDisposables.add(this.menuActions.onDidChange(() => this.updateActions()));
 
 		this.twistiesContainer = append(container, $(`.twisty-container${ThemeIcon.asCSSSelector(this.getTwistyIcon(this.isExpanded()))}`));
 
