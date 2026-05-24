@@ -18,11 +18,14 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions, IExtensionFeaturesRegistry, IExtensionFeatureTableRenderer, IRenderedData, IRowData, ITableData } from '../../../../services/extensionManagement/common/extensionFeatures.js';
+import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 
 interface IRawChatFileContribution {
 	readonly path: string;
 	readonly name?: string;
 	readonly description?: string;
+	readonly when?: string;
+	readonly sessionTypes?: readonly string[];
 }
 
 enum ChatContributionPoint {
@@ -65,6 +68,15 @@ function registerChatFilesExtensionPoint(point: ChatContributionPoint) {
 						description: localize('chatContribution.property.description', '(Optional) Description of the entry.'),
 						deprecationMessage: localize('chatContribution.property.description.deprecated', 'Specify "description" in the prompt file itself instead.'),
 						type: 'string'
+					},
+					when: {
+						description: localize('chatContribution.property.when', '(Optional) A condition which must be true to enable this entry.'),
+						type: 'string'
+					},
+					sessionTypes: {
+						description: localize('chatContribution.property.sessionTypes', '(Optional) The chat session types where this entry should be offered.'),
+						type: 'array',
+						items: { type: 'string' }
 					}
 				}
 			}
@@ -122,8 +134,12 @@ export class ChatPromptFilesExtensionPointHandler implements IWorkbenchContribut
 						ext.collector.error(localize('extension.invalid.path', "Extension '{0}' {1} entry '{2}' resolves outside the extension.", ext.description.identifier.value, contributionPoint, raw.path));
 						continue;
 					}
+					if (raw.when && !ContextKeyExpr.deserialize(raw.when)) {
+						ext.collector.error(localize('extension.invalid.when', "Extension '{0}' {1} entry '{2}' has an invalid when clause: '{3}'.", ext.description.identifier.value, contributionPoint, raw.path, raw.when));
+						continue;
+					}
 					try {
-						const d = this.promptsService.registerContributedFile(type, fileUri, ext.description, raw.name, raw.description);
+						const d = this.promptsService.registerContributedFile(type, fileUri, ext.description, raw.name, raw.description, raw.when, raw.sessionTypes);
 						this.registrations.set(key(ext.description.identifier, type, raw.path), d);
 					} catch (e) {
 						const msg = e instanceof Error ? e.message : String(e);
@@ -147,6 +163,7 @@ export class ChatPromptFilesExtensionPointHandler implements IWorkbenchContribut
 export interface IExtensionPromptFileResult {
 	readonly uri: UriComponents;
 	readonly type: PromptsType;
+	readonly extensionId: string;
 }
 
 /**
@@ -168,7 +185,7 @@ CommandsRegistry.registerCommand('_listExtensionPromptFiles', async (accessor): 
 	const result: IExtensionPromptFileResult[] = [];
 	for (const file of [...agents, ...instructions, ...prompts, ...skills, ...hooks]) {
 		if (file.storage === PromptsStorage.extension) {
-			result.push({ uri: file.uri.toJSON(), type: file.type });
+			result.push({ uri: file.uri.toJSON(), type: file.type, extensionId: file.extension.identifier.value });
 		}
 	}
 
