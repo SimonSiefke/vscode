@@ -182,7 +182,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 		this._register(this.onDidPaneCompositeOpen(composite => this.onDidOpen(composite)));
 		this._register(this.onDidPaneCompositeClose(this.onDidClose, this));
 
-		this._register(this.registry.onDidDeregister((viewletDescriptor: PaneCompositeDescriptor) => {
+		this._register(this.registry.onDidDeregister(async (viewletDescriptor: PaneCompositeDescriptor) => {
 			const isDeregisteredCompositeActive = this.getActiveComposite()?.getId() === viewletDescriptor.id;
 
 			const activeContainers = this.viewDescriptorService.getViewContainersByLocation(this.location)
@@ -192,7 +192,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 				if (isDeregisteredCompositeActive) {
 					const defaultViewletId = this.viewDescriptorService.getDefaultViewContainer(this.location)?.id;
 					const containerToOpen = activeContainers.filter(c => c.id === defaultViewletId)[0] || activeContainers[0];
-					this.doOpenPaneComposite(containerToOpen.id);
+					await this.doOpenPaneComposite(containerToOpen.id);
 				}
 			} else {
 				if (isDeregisteredCompositeActive) {

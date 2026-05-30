@@ -16,7 +16,7 @@ import { CompositeBarActionViewItem, CompositeBarAction, IActivityHoverOptions, 
 import { Codicon } from '../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { registerIcon } from '../../../platform/theme/common/iconRegistry.js';
-import { Action, IAction, Separator, SubmenuAction, toAction } from '../../../base/common/actions.js';
+import { Action, IAction, Separator, SubmenuAction } from '../../../base/common/actions.js';
 import { IMenu, IMenuService, MenuId } from '../../../platform/actions/common/actions.js';
 import { addDisposableListener, EventType, append, clearNode, hide, show, EventHelper, $, runWhenWindowIdle, getWindow } from '../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';

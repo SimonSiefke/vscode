@@ -6,10 +6,10 @@
 import { RunOnceScheduler } from '../../../base/common/async.js';
 import { DebounceEmitter, Emitter, Event } from '../../../base/common/event.js';
 import { DisposableStore, Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuItem, IMenuItemHide, IMenuService, isIMenuItem, isISubmenuItem, ISubmenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
+import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuItem, IMenuItemHide, IMenuRegistryChangeEvent, IMenuService, isIMenuItem, isISubmenuItem, ISubmenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
 import { ICommandAction, ILocalizedString } from '../../action/common/action.js';
 import { ICommandService } from '../../commands/common/commands.js';
-import { ContextKeyExpression, IContextKeyService } from '../../contextkey/common/contextkey.js';
+import { ContextKeyExpression, IContextKeyChangeEvent, IContextKeyService } from '../../contextkey/common/contextkey.js';
 import { IAction, Separator } from '../../../base/common/actions.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { removeFastWithoutKeepingOrder } from '../../../base/common/arrays.js';

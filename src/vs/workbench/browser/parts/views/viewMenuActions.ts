@@ -25,11 +25,11 @@ export class ViewMenuActions extends Disposable {
 
 	constructor(
 		readonly menuId: MenuId,
-		private readonly contextMenuId: MenuId | undefined,
+		contextMenuId: MenuId | undefined,
 		private readonly options: IMenuActionOptions | undefined,
 		private readonly menuActionsOptions: IViewMenuActionsOptions | undefined,
-		@IContextKeyService private readonly contextKeyService: IContextKeyService,
-		@IMenuService private readonly menuService: IMenuService,
+		@IContextKeyService contextKeyService: IContextKeyService,
+		@IMenuService menuService: IMenuService,
 	) {
 		super();
 		this.menu = this._register(menuService.createMenu(menuId, contextKeyService, { emitEventsForSubmenuChanges: true }));
@@ -38,10 +38,12 @@ export class ViewMenuActions extends Disposable {
 			this._onDidChange.fire();
 		}));
 		this.contextMenu = contextMenuId ? this._register(menuService.createMenu(contextMenuId, contextKeyService, { emitEventsForSubmenuChanges: true })) : undefined;
-		this._register(this.contextMenu?.onDidChange(() => {
-			this.contextMenuActions = undefined;
-			this._onDidChange.fire();
-		}));
+		if (this.contextMenu) {
+			this._register(this.contextMenu.onDidChange(() => {
+				this.contextMenuActions = undefined;
+				this._onDidChange.fire();
+			}));
+		}
 	}
 
 	private actions: PrimaryAndSecondaryActions | undefined;
