@@ -529,6 +529,10 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 
 	protected removeComposite(compositeId: string): boolean {
 		if (this.activeComposite?.getId() === compositeId) {
+			this.hideActiveComposite();
+		}
+
+		if (this.activeComposite?.getId() === compositeId) {
 			return false; // do not remove active composite
 		}
 
