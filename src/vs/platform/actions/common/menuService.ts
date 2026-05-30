@@ -335,6 +335,10 @@ class MenuInfoSnapshot {
 
 class MenuInfo extends MenuInfoSnapshot {
 
+	private readonly _menuHideCache = new Map<string, IMenuItemHide>();
+	private readonly _menuKeybindingCache = new Map<string, IAction>();
+	private readonly _submenuInfoCache = new Map<string, MenuInfo>();
+
 	constructor(
 		_id: MenuId,
 		private readonly _hiddenStates: PersistedMenuHideState,
@@ -345,6 +349,13 @@ class MenuInfo extends MenuInfoSnapshot {
 	) {
 		super(_id, _collectContextKeysForSubmenus);
 		this.refresh();
+	}
+
+	override refresh(): void {
+		this._menuHideCache.clear();
+		this._menuKeybindingCache.clear();
+		this._submenuInfoCache.clear();
+		super.refresh();
 	}
 
 	createActionGroups(options: IMenuActionOptions | undefined): [string, Array<MenuItemAction | SubmenuItemAction>][] {
@@ -361,14 +372,14 @@ class MenuInfo extends MenuInfoSnapshot {
 						this._hiddenStates.setDefaultState(this._id, item.command.id, !!item.isHiddenByDefault);
 					}
 
-					const menuHide = createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
+					const menuHide = this.getOrCreateMenuHide(isMenuItem ? item.command : item);
 					if (isMenuItem) {
 						// MenuItemAction
-						const menuKeybinding = createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
+						const menuKeybinding = this.getOrCreateConfigureKeybindingAction(item.command.id, item.when);
 						(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, this._contextKeyService, this._commandService));
 					} else {
 						// SubmenuItemAction
-						const groups = new MenuInfo(item.submenu, this._hiddenStates, this._collectContextKeysForSubmenus, this._commandService, this._keybindingService, this._contextKeyService).createActionGroups(options);
+						const groups = this.getOrCreateSubmenuInfo(item.submenu).createActionGroups(options);
 						const submenuActions = Separator.join(...groups.map(g => g[1]));
 						if (submenuActions.length > 0) {
 							(activeActions ??= []).push(new SubmenuItemAction(item, menuHide, submenuActions));
@@ -381,6 +392,35 @@ class MenuInfo extends MenuInfoSnapshot {
 			}
 		}
 		return result;
+	}
+
+	private getOrCreateMenuHide(command: ICommandAction | ISubmenuItem): IMenuItemHide {
+		const id = isISubmenuItem(command) ? command.submenu.id : command.id;
+		let menuHide = this._menuHideCache.get(id);
+		if (!menuHide) {
+			menuHide = createMenuHide(this._id, command, this._hiddenStates);
+			this._menuHideCache.set(id, menuHide);
+		}
+		return menuHide;
+	}
+
+	private getOrCreateConfigureKeybindingAction(commandId: string, when: ContextKeyExpression | undefined): IAction {
+		const key = `${commandId}/${when?.serialize() ?? ''}`;
+		let action = this._menuKeybindingCache.get(key);
+		if (!action) {
+			action = createConfigureKeybindingAction(this._commandService, this._keybindingService, commandId, when);
+			this._menuKeybindingCache.set(key, action);
+		}
+		return action;
+	}
+
+	private getOrCreateSubmenuInfo(submenu: MenuId): MenuInfo {
+		let submenuInfo = this._submenuInfoCache.get(submenu.id);
+		if (!submenuInfo) {
+			submenuInfo = new MenuInfo(submenu, this._hiddenStates, this._collectContextKeysForSubmenus, this._commandService, this._keybindingService, this._contextKeyService);
+			this._submenuInfoCache.set(submenu.id, submenuInfo);
+		}
+		return submenuInfo;
 	}
 
 	protected override _sort(menuItems: (IMenuItem | ISubmenuItem)[]): (IMenuItem | ISubmenuItem)[] {
