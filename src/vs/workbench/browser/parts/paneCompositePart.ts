@@ -188,6 +188,12 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 			const activeContainers = this.viewDescriptorService.getViewContainersByLocation(this.location)
 				.filter(container => this.viewDescriptorService.getViewContainerModel(container).activeViewDescriptors.length > 0);
 
+			if (isDeregisteredCompositeActive) {
+				this.hideActiveComposite();
+			}
+
+			this.removeComposite(viewletDescriptor.id);
+
 			if (activeContainers.length) {
 				if (isDeregisteredCompositeActive) {
 					const defaultViewletId = this.viewDescriptorService.getDefaultViewContainer(this.location)?.id;
@@ -195,17 +201,8 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 					await this.doOpenPaneComposite(containerToOpen.id);
 				}
 			} else {
-				if (isDeregisteredCompositeActive) {
-					this.hideActiveComposite();
-				}
 				this.layoutService.setPartHidden(true, this.partId);
 			}
-
-			if (this.getActiveComposite()?.getId() === viewletDescriptor.id) {
-				this.hideActiveComposite();
-			}
-
-			this.removeComposite(viewletDescriptor.id);
 		}));
 
 		this._register(this.extensionService.onDidRegisterExtensions(() => {
