@@ -93,14 +93,21 @@ class ResetViewContainerLocationAction implements IAction {
 	constructor(
 		readonly id: string,
 		public label: string,
+		private readonly viewDescriptorService: IViewDescriptorService,
 		private readonly viewService: IViewsService,
-		private readonly viewContainerId: string,
-		private readonly reset: () => void,
+		private readonly viewContainer: ViewContainer,
+		private readonly defaultLocation: ViewContainerLocation | undefined,
+		private readonly viewToReset: IViewDescriptor | undefined,
+		private readonly defaultContainer: ViewContainer | undefined,
 	) { }
 
 	run(): void {
-		this.reset();
-		this.viewService.openViewContainer(this.viewContainerId, true);
+		if (this.viewToReset && this.defaultContainer) {
+			this.viewDescriptorService.moveViewsToContainer([this.viewToReset], this.defaultContainer, undefined, this.id);
+		} else if (this.defaultLocation !== undefined) {
+			this.viewDescriptorService.moveViewContainerToLocation(this.viewContainer, this.defaultLocation, undefined, this.id);
+		}
+		this.viewService.openViewContainer(this.viewContainer.id, true);
 	}
 }
 
@@ -222,9 +229,12 @@ export class PaneCompositeBar extends Disposable {
 			actions.push(new ResetViewContainerLocationAction(
 				'resetLocationAction',
 				localize('resetLocation', "Reset Location"),
+				this.viewDescriptorService,
 				this.viewService,
-				viewContainer.id,
-				() => this.viewDescriptorService.moveViewContainerToLocation(viewContainer, defaultLocation, undefined, 'resetLocationAction')
+				viewContainer,
+				defaultLocation,
+				undefined,
+				undefined
 			));
 		} else {
 			const viewContainerModel = this.viewDescriptorService.getViewContainerModel(viewContainer);
@@ -235,9 +245,12 @@ export class PaneCompositeBar extends Disposable {
 					actions.push(new ResetViewContainerLocationAction(
 						'resetLocationAction',
 						localize('resetLocation', "Reset Location"),
+						this.viewDescriptorService,
 						this.viewService,
-						viewContainer.id,
-						() => this.viewDescriptorService.moveViewsToContainer([viewToReset], defaultContainer, undefined, 'resetLocationAction')
+						viewContainer,
+						undefined,
+						viewToReset,
+						defaultContainer
 					));
 				}
 			}
