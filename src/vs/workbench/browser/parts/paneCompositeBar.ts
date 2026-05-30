@@ -101,13 +101,13 @@ class ResetViewContainerLocationAction implements IAction {
 		private readonly defaultContainer: ViewContainer | undefined,
 	) { }
 
-	run(): void {
+	async run(): Promise<void> {
 		if (this.viewToReset && this.defaultContainer) {
 			this.viewDescriptorService.moveViewsToContainer([this.viewToReset], this.defaultContainer, undefined, this.id);
 		} else if (this.defaultLocation !== undefined) {
 			this.viewDescriptorService.moveViewContainerToLocation(this.viewContainer, this.defaultLocation, undefined, this.id);
 		}
-		this.viewService.openViewContainer(this.viewContainer.id, true);
+		await this.viewService.openViewContainer(this.viewContainer.id, true);
 	}
 }
 
@@ -126,7 +126,7 @@ class MoveViewContainerAction implements IAction {
 		private readonly defaultLocation: ViewContainerLocation,
 	) { }
 
-	run(): void {
+	async run(): Promise<void> {
 		let index: number | undefined;
 		if (this.newLocation !== this.defaultLocation) {
 			index = this.viewDescriptorService.getViewContainersByLocation(this.newLocation).length;
@@ -134,7 +134,7 @@ class MoveViewContainerAction implements IAction {
 			index = undefined;
 		}
 		this.viewDescriptorService.moveViewContainerToLocation(this.viewContainer, this.newLocation, index);
-		this.viewService.openViewContainer(this.viewContainer.id, true);
+		await this.viewService.openViewContainer(this.viewContainer.id, true);
 	}
 }
 
