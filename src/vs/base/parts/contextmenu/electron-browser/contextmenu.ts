@@ -13,11 +13,25 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 
 	const contextMenuId = contextMenuIdPool++;
 	const onClickChannel = `vscode:onContextMenu${contextMenuId}`;
+	let didDispose = false;
+	function cleanup(): void {
+		if (didDispose) {
+			return;
+		}
+
+		didDispose = true;
+		ipcRenderer.removeListener(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
+		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
+		processedItems.length = 0;
+	}
+
 	const onClickChannelHandler = (_event: unknown, ...args: unknown[]) => {
 		const itemId = args[0] as number;
 		const context = args[1] as IContextMenuEvent;
 		const item = processedItems[itemId];
-		item.click?.(context);
+		const click = item.click;
+		cleanup();
+		click?.(context);
 	};
 
 	ipcRenderer.once(onClickChannel, onClickChannelHandler);
@@ -27,9 +41,7 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 			return;
 		}
 
-		ipcRenderer.removeListener(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
-		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
-		processedItems.length = 0;
+		cleanup();
 
 		onHide?.();
 	};
