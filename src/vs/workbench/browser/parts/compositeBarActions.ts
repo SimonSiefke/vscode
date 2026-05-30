@@ -161,6 +161,7 @@ export class CompositeBarActionViewItem extends BaseActionViewItem {
 
 	private badgeContent: HTMLElement | undefined;
 	private readonly badgeDisposable = this._register(new MutableDisposable<DisposableStore>());
+	private readonly configureKeybindingAction = this.compositeBarActionItem.keybindingId ? createConfigureKeybindingAction(this.commandService, this.keybindingService, this.compositeBarActionItem.keybindingId) : undefined;
 	private mouseUpTimeout: Timeout | undefined;
 	private keybindingLabel: string | undefined | null;
 
@@ -637,8 +638,8 @@ export class CompositeActionViewItem extends CompositeBarActionViewItem {
 	private showContextMenu(container: HTMLElement): void {
 		const actions: IAction[] = [];
 
-		if (this.compositeBarActionItem.keybindingId) {
-			actions.push(createConfigureKeybindingAction(this.commandService, this.keybindingService, this.compositeBarActionItem.keybindingId));
+		if (this.configureKeybindingAction) {
+			actions.push(this.configureKeybindingAction);
 		}
 
 		actions.push(this.toggleCompositePinnedAction, this.toggleCompositeBadgeAction);
