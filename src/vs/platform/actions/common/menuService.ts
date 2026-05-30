@@ -248,7 +248,7 @@ class MenuInfoSnapshot {
 		protected readonly _id: MenuId,
 		protected readonly _collectContextKeysForSubmenus: boolean,
 	) {
-		this.refresh();
+		MenuInfoSnapshot.prototype.refresh.call(this);
 	}
 
 	get allMenuIds(): ReadonlySet<MenuId> {
