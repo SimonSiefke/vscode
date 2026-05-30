@@ -7,8 +7,11 @@ import { CONTEXT_MENU_CHANNEL, CONTEXT_MENU_CLOSE_CHANNEL, IContextMenuEvent, IC
 import { ipcRenderer } from '../../sandbox/electron-browser/globals.js';
 
 let contextMenuIdPool = 0;
+let activeCleanup: (() => void) | undefined;
 
 export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide?: () => void): void {
+	activeCleanup?.();
+
 	const processedItems: IContextMenuItem[] = [];
 
 	const contextMenuId = contextMenuIdPool++;
@@ -20,10 +23,18 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 		}
 
 		didDispose = true;
+		if (activeCleanup === cleanupActive) {
+			activeCleanup = undefined;
+		}
 		ipcRenderer.removeListener(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
 		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
 		processedItems.length = 0;
 	}
+	function cleanupActive(): void {
+		cleanup();
+		onHide?.();
+	}
+	activeCleanup = cleanupActive;
 
 	const onClickChannelHandler = (_event: unknown, ...args: unknown[]) => {
 		const itemId = args[0] as number;
