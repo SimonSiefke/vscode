@@ -201,6 +201,10 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 				this.layoutService.setPartHidden(true, this.partId);
 			}
 
+			if (this.getActiveComposite()?.getId() === viewletDescriptor.id) {
+				this.hideActiveComposite();
+			}
+
 			this.removeComposite(viewletDescriptor.id);
 		}));
 
