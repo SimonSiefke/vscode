@@ -541,9 +541,12 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 		this.mapActionsBindingToComposite.delete(compositeId);
 		const compositeItem = this.instantiatedCompositeItems.get(compositeId);
 		if (compositeItem) {
-			compositeItem.composite.dispose();
-			dispose(compositeItem.disposable);
-			this.instantiatedCompositeItems.delete(compositeId);
+			try {
+				compositeItem.composite.dispose();
+			} finally {
+				dispose(compositeItem.disposable);
+				this.instantiatedCompositeItems.delete(compositeId);
+			}
 		}
 
 		return true;
@@ -554,8 +557,11 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 		this.mapActionsBindingToComposite.clear();
 
 		this.instantiatedCompositeItems.forEach(compositeItem => {
-			compositeItem.composite.dispose();
-			dispose(compositeItem.disposable);
+			try {
+				compositeItem.composite.dispose();
+			} finally {
+				dispose(compositeItem.disposable);
+			}
 		});
 
 		this.instantiatedCompositeItems.clear();
