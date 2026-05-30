@@ -21,16 +21,19 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 	};
 
 	ipcRenderer.once(onClickChannel, onClickChannelHandler);
-	ipcRenderer.once(CONTEXT_MENU_CLOSE_CHANNEL, (_event: unknown, ...args: unknown[]) => {
+	const onCloseChannelHandler = (_event: unknown, ...args: unknown[]) => {
 		const closedContextMenuId = args[0] as number;
 		if (closedContextMenuId !== contextMenuId) {
 			return;
 		}
 
+		ipcRenderer.removeListener(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
 		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
+		processedItems.length = 0;
 
 		onHide?.();
-	});
+	};
+	ipcRenderer.on(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
 
 	ipcRenderer.send(CONTEXT_MENU_CHANNEL, contextMenuId, items.map(item => createItem(item, processedItems)), onClickChannel, options);
 }
