@@ -219,19 +219,6 @@ export class HoverWidget extends Widget implements IHoverWidget {
 			options.actions.forEach(action => {
 				const keybinding = this._keybindingService.lookupKeybinding(action.commandId);
 				const keybindingLabel = keybinding ? keybinding.getLabel() : null;
-<<<<<<< HEAD:src/vs/workbench/services/hover/browser/hoverWidget.ts
-				this._register(
-					HoverAction.render(actionsElement, {
-						label: action.label,
-						commandId: action.commandId,
-						run: e => {
-							action.run(e);
-							this.dispose();
-						},
-						iconClass: action.iconClass
-					}, keybindingLabel)
-				)
-=======
 				this._register(HoverAction.render(actionsElement, {
 					label: action.label,
 					commandId: action.commandId,
@@ -241,7 +228,6 @@ export class HoverWidget extends Widget implements IHoverWidget {
 					},
 					iconClass: action.iconClass
 				}, keybindingLabel));
->>>>>>> origin/main:src/vs/platform/hover/browser/hoverWidget.ts
 			});
 			statusBarElement.appendChild(actionsElement);
 			this._hover.containerDomNode.appendChild(statusBarElement);
