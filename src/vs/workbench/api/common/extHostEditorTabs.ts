@@ -106,6 +106,11 @@ class ExtHostEditorTab {
 				return undefined;
 		}
 	}
+
+	dispose(): void {
+		this._apiObject = undefined;
+		this._input = undefined;
+	}
 }
 
 class ExtHostEditorTabGroup {
@@ -182,6 +187,7 @@ class ExtHostEditorTabGroup {
 			if (tab.tabId === this._activeTabId) {
 				this._activeTabId = '';
 			}
+			tab.dispose();
 			return tab;
 		} else if (operation.kind === TabModelOperationKind.TAB_MOVE) {
 			if (operation.oldIndex === undefined) {
@@ -214,6 +220,14 @@ class ExtHostEditorTabGroup {
 	// Not a getter since it must be a function to be used as a callback for the tabs
 	activeTabId(): string {
 		return this._activeTabId;
+	}
+
+	dispose(): void {
+		this._apiObject = undefined;
+		for (const tab of this._tabs) {
+			tab.dispose();
+		}
+		this._tabs = [];
 	}
 }
 
@@ -288,7 +302,7 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 		const opened: vscode.TabGroup[] = [];
 		const changed: vscode.TabGroup[] = [];
 
-
+		const oldGroups = this._extHostTabGroups;
 		this._extHostTabGroups = tabGroups.map(tabGroup => {
 			const group = new ExtHostEditorTabGroup(tabGroup, () => this._activeGroupId);
 			if (diff.added.includes(group.groupId)) {
@@ -298,6 +312,12 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 			}
 			return group;
 		});
+
+		for (const oldGroup of oldGroups) {
+			if (!this._extHostTabGroups.find(g => g.groupId === oldGroup.groupId)) {
+				oldGroup.dispose();
+			}
+		}
 
 		// Set the active tab group id
 		const activeTabGroupId = assertReturnsDefined(tabGroups.find(group => group.isActive === true)?.groupId);
