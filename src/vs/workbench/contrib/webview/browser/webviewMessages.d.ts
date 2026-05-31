@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { IMouseWheelEvent } from 'vs/base/browser/mouseEvent';
-import type { WebviewStyles } from 'vs/workbench/contrib/webview/browser/webview';
+import type { IMouseWheelEvent } from '../../../../base/browser/mouseEvent.js';
+import type { WebviewStyles } from './webview.js';
 
 type KeyEvent = {
 	key: string;
@@ -17,6 +17,10 @@ type KeyEvent = {
 	repeat: boolean;
 }
 
+type WebViewDragEvent = {
+	shiftKey: boolean;
+}
+
 export type FromWebviewMessage = {
 	'onmessage': { message: any; transfer?: ArrayBuffer[] };
 	'did-click-link': { uri: string };
@@ -27,7 +31,7 @@ export type FromWebviewMessage = {
 	'did-find': { didFind: boolean };
 	'do-update-state': string;
 	'do-reload': void;
-	'load-resource': { id: number; path: string; query: string; scheme: string; authority: string; ifNoneMatch?: string };
+	'load-resource': { id: number; path: string; query: string; scheme: string; authority: string; ifNoneMatch?: string; range?: { readonly start: number; readonly end?: number } };
 	'load-localhost': { id: string; origin: string };
 	'did-scroll-wheel': IMouseWheelEvent;
 	'fatal-error': { message: string };
@@ -36,6 +40,8 @@ export type FromWebviewMessage = {
 	'did-keyup': KeyEvent;
 	'did-context-menu': { clientX: number; clientY: number; context: { [key: string]: unknown } };
 	'drag-start': void;
+	'drag': WebViewDragEvent;
+	'updated-intrinsic-content-size': { width: number; height: number };
 };
 
 interface UpdateContentEvent {
@@ -58,8 +64,11 @@ export type ToWebviewMessage = {
 	'did-load-resource':
 	| { id: number; status: 401 | 404; path: string }
 	| { id: number; status: 304; path: string; mime: string; mtime: number | undefined }
-	| { id: number; status: 200; path: string; mime: string; data: any; etag: string | undefined; mtime: number | undefined }
+	| { id: number; status: 200 | 206; path: string; mime: string; etag: string | undefined; mtime: number | undefined; range?: string; stream?: ReadableStream<Uint8Array> }
 	;
+	// Safari fallback: transferable streams not supported
+	'did-load-resource-chunk': { id: number; data: Uint8Array };
+	'did-load-resource-end': { id: number; error?: boolean };
 	'did-load-localhost': {
 		id: string;
 		origin: string;

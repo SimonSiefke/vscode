@@ -3,25 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { PixelRatio } from 'vs/base/browser/browser';
-import * as dom from 'vs/base/browser/dom';
-import { GlobalPointerMoveMonitor } from 'vs/base/browser/globalPointerMoveMonitor';
-import { Widget } from 'vs/base/browser/ui/widget';
-import { Codicon } from 'vs/base/common/codicons';
-import { Color, HSVA, RGBA } from 'vs/base/common/color';
-import { Emitter, Event } from 'vs/base/common/event';
-import { Disposable } from 'vs/base/common/lifecycle';
-import { ThemeIcon } from 'vs/base/common/themables';
-import 'vs/css!./colorPicker';
-import { ColorPickerModel } from 'vs/editor/contrib/colorPicker/browser/colorPickerModel';
-import { IEditorHoverColorPickerWidget } from 'vs/editor/contrib/hover/browser/hoverTypes';
-import { localize } from 'vs/nls';
-import { editorHoverBackground } from 'vs/platform/theme/common/colorRegistry';
-import { registerIcon } from 'vs/platform/theme/common/iconRegistry';
-import { IThemeService } from 'vs/platform/theme/common/themeService';
+import './colorPicker.css';
+import { PixelRatio } from '../../../../base/browser/pixelRatio.js';
+import * as dom from '../../../../base/browser/dom.js';
+import { Widget } from '../../../../base/browser/ui/widget.js';
+import { ColorPickerModel } from './colorPickerModel.js';
+import { IEditorHoverColorPickerWidget } from '../../hover/browser/hoverTypes.js';
+import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { ColorPickerBody } from './colorPickerParts/colorPickerBody.js';
+import { ColorPickerHeader } from './colorPickerParts/colorPickerHeader.js';
+import { ColorPickerWidgetType } from './colorPickerParticipantUtils.js';
 
 const $ = dom.$;
 
+<<<<<<< HEAD
 export class ColorPickerHeader extends Disposable {
 
 	private readonly _domNode: HTMLElement;
@@ -465,23 +460,26 @@ export class InsertButton extends Disposable {
 	}
 }
 
+=======
+>>>>>>> origin/main
 export class ColorPickerWidget extends Widget implements IEditorHoverColorPickerWidget {
 
 	private static readonly ID = 'editor.contrib.colorPickerWidget';
+	private readonly _domNode: HTMLElement;
 
 	body: ColorPickerBody;
 	header: ColorPickerHeader;
 
-	constructor(container: Node, readonly model: ColorPickerModel, private pixelRatio: number, themeService: IThemeService, standaloneColorPicker: boolean = false) {
+	constructor(container: Node, readonly model: ColorPickerModel, private pixelRatio: number, themeService: IThemeService, type: ColorPickerWidgetType) {
 		super();
 
-		this._register(PixelRatio.onDidChange(() => this.layout()));
+		this._register(PixelRatio.getInstance(dom.getWindow(container)).onDidChange(() => this.layout()));
 
-		const element = $('.colorpicker-widget');
-		container.appendChild(element);
+		this._domNode = $('.colorpicker-widget');
+		container.appendChild(this._domNode);
 
-		this.header = this._register(new ColorPickerHeader(element, this.model, themeService, standaloneColorPicker));
-		this.body = this._register(new ColorPickerBody(element, this.model, this.pixelRatio, standaloneColorPicker));
+		this.header = this._register(new ColorPickerHeader(this._domNode, this.model, themeService, type));
+		this.body = this._register(new ColorPickerBody(this._domNode, this.model, this.pixelRatio, type));
 	}
 
 	getId(): string {
@@ -490,5 +488,9 @@ export class ColorPickerWidget extends Widget implements IEditorHoverColorPicker
 
 	layout(): void {
 		this.body.layout();
+	}
+
+	get domNode(): HTMLElement {
+		return this._domNode;
 	}
 }

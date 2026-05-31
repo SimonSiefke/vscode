@@ -3,22 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { GroupIdentifier, IWorkbenchEditorConfiguration, IEditorIdentifier, IEditorCloseEvent, IEditorPartOptions, IEditorPartOptionsChangeEvent, SideBySideEditor, EditorCloseContext, IEditorPane, IEditorPartLimitOptions, IEditorPartDecorationOptions } from 'vs/workbench/common/editor';
-import { EditorInput } from 'vs/workbench/common/editor/editorInput';
-import { IEditorGroup, GroupDirection, IMergeGroupOptions, GroupsOrder, GroupsArrangement, IAuxiliaryEditorPart, IEditorPart } from 'vs/workbench/services/editor/common/editorGroupsService';
-import { IDisposable } from 'vs/base/common/lifecycle';
-import { Dimension } from 'vs/base/browser/dom';
-import { Event } from 'vs/base/common/event';
-import { IConfigurationChangeEvent, IConfigurationService } from 'vs/platform/configuration/common/configuration';
-import { IThemeService } from 'vs/platform/theme/common/themeService';
-import { ISerializableView } from 'vs/base/browser/ui/grid/grid';
-import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
-import { isObject } from 'vs/base/common/types';
-import { IEditorOptions } from 'vs/platform/editor/common/editor';
-import { IWindowsConfiguration } from 'vs/platform/window/common/window';
-import { BooleanVerifier, EnumVerifier, NumberVerifier, ObjectVerifier, SetVerifier, verifyObject } from 'vs/base/common/verifier';
-import product from 'vs/platform/product/common/product';
-import { IAuxiliaryWindowOpenOptions } from 'vs/workbench/services/auxiliaryWindow/browser/auxiliaryWindowService';
+import { GroupIdentifier, IWorkbenchEditorConfiguration, IEditorIdentifier, IEditorCloseEvent, IEditorPartOptions, IEditorPartOptionsChangeEvent, SideBySideEditor, EditorCloseContext, IEditorPane, IEditorPartLimitOptions, IEditorPartDecorationOptions, IEditorWillOpenEvent, EditorInputWithOptions } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { IEditorGroup, GroupDirection, IMergeGroupOptions, GroupsOrder, GroupsArrangement, IAuxiliaryEditorPart, IEditorPart, IModalEditorPart, GroupActivationReason } from '../../../services/editor/common/editorGroupsService.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { Dimension } from '../../../../base/browser/dom.js';
+import { Event } from '../../../../base/common/event.js';
+import { IConfigurationChangeEvent, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { ISerializableView } from '../../../../base/browser/ui/grid/grid.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { isObject } from '../../../../base/common/types.js';
+import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { IWindowsConfiguration } from '../../../../platform/window/common/window.js';
+import { BooleanVerifier, EnumVerifier, NumberVerifier, ObjectVerifier, SetVerifier, verifyObject } from '../../../../base/common/verifier.js';
+import { IAuxiliaryWindowOpenOptions } from '../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
+import { ContextKeyValue, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+import { coalesce } from '../../../../base/common/arrays.js';
 
 export interface IEditorPartCreationOptions {
 	readonly restorePreviousState: boolean;
@@ -33,6 +34,8 @@ export const DEFAULT_EDITOR_PART_OPTIONS: IEditorPartOptions = {
 	tabActionLocation: 'right',
 	tabActionCloseVisibility: true,
 	tabActionUnpinVisibility: true,
+	showTabIndex: false,
+	alwaysShowEditorActions: false,
 	tabSizing: 'fit',
 	tabSizingFixedMinWidth: 50,
 	tabSizingFixedMaxWidth: 160,
@@ -41,6 +44,7 @@ export const DEFAULT_EDITOR_PART_OPTIONS: IEditorPartOptions = {
 	tabHeight: 'default',
 	preventPinnedEditorClose: 'keyboardAndMouse',
 	titleScrollbarSizing: 'default',
+	titleScrollbarVisibility: 'auto',
 	focusRecentEditorAfterClose: true,
 	showIcons: true,
 	hasIcons: true, // 'vs-seti' is our default icon theme
@@ -51,7 +55,8 @@ export const DEFAULT_EDITOR_PART_OPTIONS: IEditorPartOptions = {
 	labelFormat: 'default',
 	splitSizing: 'auto',
 	splitOnDragAndDrop: true,
-	dragToOpenWindow: product.quality !== 'stable',
+	allowDropIntoGroup: true,
+	dragToOpenWindow: true,
 	centeredLayoutFixedWidth: false,
 	doubleClickTabToToggleEditorGroupSizes: 'expand',
 	editorActionsLocation: 'default',
@@ -60,6 +65,7 @@ export const DEFAULT_EDITOR_PART_OPTIONS: IEditorPartOptions = {
 	scrollToSwitchTabs: false,
 	enablePreviewFromCodeNavigation: false,
 	closeOnFileDelete: false,
+	swipeToNavigate: false,
 	mouseBackForwardToNavigate: true,
 	restoreViewState: true,
 	splitInGroupLayout: 'horizontal',
@@ -122,6 +128,8 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		'highlightModifiedTabs': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['highlightModifiedTabs']),
 		'tabActionCloseVisibility': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['tabActionCloseVisibility']),
 		'tabActionUnpinVisibility': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['tabActionUnpinVisibility']),
+		'showTabIndex': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['showTabIndex']),
+		'alwaysShowEditorActions': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['alwaysShowEditorActions']),
 		'pinnedTabsOnSeparateRow': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['pinnedTabsOnSeparateRow']),
 		'focusRecentEditorAfterClose': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['focusRecentEditorAfterClose']),
 		'showIcons': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['showIcons']),
@@ -131,9 +139,11 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		'closeOnFileDelete': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['closeOnFileDelete']),
 		'closeEmptyGroups': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['closeEmptyGroups']),
 		'revealIfOpen': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['revealIfOpen']),
+		'swipeToNavigate': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['swipeToNavigate']),
 		'mouseBackForwardToNavigate': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['mouseBackForwardToNavigate']),
 		'restoreViewState': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['restoreViewState']),
 		'splitOnDragAndDrop': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['splitOnDragAndDrop']),
+		'allowDropIntoGroup': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['allowDropIntoGroup']),
 		'dragToOpenWindow': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['dragToOpenWindow']),
 		'centeredLayoutFixedWidth': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['centeredLayoutFixedWidth']),
 		'hasIcons': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['hasIcons']),
@@ -148,6 +158,7 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		'tabHeight': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['tabHeight'], ['default', 'compact']),
 		'preventPinnedEditorClose': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['preventPinnedEditorClose'], ['keyboardAndMouse', 'keyboard', 'mouse', 'never']),
 		'titleScrollbarSizing': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['titleScrollbarSizing'], ['default', 'large']),
+		'titleScrollbarVisibility': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['titleScrollbarVisibility'], ['auto', 'visible', 'hidden']),
 		'openPositioning': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['openPositioning'], ['left', 'right', 'first', 'last']),
 		'openSideBySideDirection': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['openSideBySideDirection'], ['right', 'down']),
 		'labelFormat': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['labelFormat'], ['default', 'short', 'medium', 'long']),
@@ -181,10 +192,14 @@ export interface IEditorPartsView {
 	readonly activeGroup: IEditorGroupView;
 	readonly groups: IEditorGroupView[];
 	getGroup(identifier: GroupIdentifier): IEditorGroupView | undefined;
+	getGroups(order?: GroupsOrder): IEditorGroupView[];
 
 	readonly count: number;
 
 	createAuxiliaryEditorPart(options?: IAuxiliaryWindowOpenOptions): Promise<IAuxiliaryEditorPart>;
+	createModalEditorPart(): Promise<IModalEditorPart>;
+
+	bind<T extends ContextKeyValue>(contextKey: RawContextKey<T>, group: IEditorGroupView): IContextKey<T>;
 }
 
 /**
@@ -192,7 +207,7 @@ export interface IEditorPartsView {
  */
 export interface IEditorGroupsView {
 
-	readonly isAuxiliary: boolean;
+	readonly windowId: number;
 
 	readonly groups: IEditorGroupView[];
 	readonly activeGroup: IEditorGroupView;
@@ -205,11 +220,11 @@ export interface IEditorGroupsView {
 	getGroup(identifier: GroupIdentifier): IEditorGroupView | undefined;
 	getGroups(order: GroupsOrder): IEditorGroupView[];
 
-	activateGroup(identifier: IEditorGroupView | GroupIdentifier, preserveWindowOrder?: boolean): IEditorGroupView;
+	activateGroup(identifier: IEditorGroupView | GroupIdentifier, preserveWindowOrder?: boolean, reason?: GroupActivationReason): IEditorGroupView;
 	restoreGroup(identifier: IEditorGroupView | GroupIdentifier): IEditorGroupView;
 
 	addGroup(location: IEditorGroupView | GroupIdentifier, direction: GroupDirection, groupToCopy?: IEditorGroupView): IEditorGroupView;
-	mergeGroup(group: IEditorGroupView | GroupIdentifier, target: IEditorGroupView | GroupIdentifier, options?: IMergeGroupOptions): IEditorGroupView;
+	mergeGroup(group: IEditorGroupView | GroupIdentifier, target: IEditorGroupView | GroupIdentifier, options?: IMergeGroupOptions): boolean;
 
 	moveGroup(group: IEditorGroupView | GroupIdentifier, location: IEditorGroupView | GroupIdentifier, direction: GroupDirection): IEditorGroupView;
 	copyGroup(group: IEditorGroupView | GroupIdentifier, location: IEditorGroupView | GroupIdentifier, direction: GroupDirection): IEditorGroupView;
@@ -237,6 +252,15 @@ export interface IEditorGroupTitleHeight {
 	readonly offset: number;
 }
 
+export interface IEditorGroupViewOptions {
+
+	/**
+	 * Whether the editor group should receive keyboard focus
+	 * after creation or not.
+	 */
+	readonly preserveFocus?: boolean;
+}
+
 /**
  * A helper to access and mutate an editor group within an editor part.
  */
@@ -244,7 +268,9 @@ export interface IEditorGroupView extends IDisposable, ISerializableView, IEdito
 
 	readonly onDidFocus: Event<void>;
 
+	readonly onWillOpenEditor: Event<IEditorWillOpenEvent>;
 	readonly onDidOpenEditorFail: Event<EditorInput>;
+
 	readonly onDidCloseEditor: Event<IEditorCloseEvent>;
 
 	readonly groupsView: IEditorGroupsView;
@@ -282,6 +308,50 @@ export function fillActiveEditorViewState(group: IEditorGroup, expectedActiveEdi
 	}
 
 	return presetOptions || Object.create(null);
+}
+
+export function prepareMoveCopyEditors(sourceGroup: IEditorGroup, editors: EditorInput[], preserveFocus?: boolean): EditorInputWithOptions[] {
+	if (editors.length === 0) {
+		return [];
+	}
+
+	const editorsWithOptions: EditorInputWithOptions[] = [];
+
+	let activeEditor: EditorInput | undefined;
+	const inactiveEditors: EditorInput[] = [];
+	for (const editor of editors) {
+		if (!activeEditor && sourceGroup.isActive(editor)) {
+			activeEditor = editor;
+		} else {
+			inactiveEditors.push(editor);
+		}
+	}
+
+	if (!activeEditor) {
+		activeEditor = inactiveEditors.shift(); // just take the first editor as active if none is active
+	}
+
+	// ensure inactive editors are then sorted by inverse visual order
+	// so that we can preserve the order in the target group. we inverse
+	// because editors will open to the side of the active editor as
+	// inactive editors, and the active editor is always the reference
+	inactiveEditors.sort((a, b) => sourceGroup.getIndexOfEditor(b) - sourceGroup.getIndexOfEditor(a));
+
+	const sortedEditors = coalesce([activeEditor, ...inactiveEditors]);
+	for (let i = 0; i < sortedEditors.length; i++) {
+		const editor = sortedEditors[i];
+		editorsWithOptions.push({
+			editor,
+			options: {
+				pinned: true,
+				sticky: sourceGroup.isSticky(editor),
+				inactive: i > 0,
+				preserveFocus
+			}
+		});
+	}
+
+	return editorsWithOptions;
 }
 
 /**
@@ -331,6 +401,11 @@ export interface IInternalEditorOpenOptions extends IInternalEditorTitleControlO
 	 * the top that the editor opens in.
 	 */
 	readonly preserveWindowOrder?: boolean;
+
+	/**
+	 * Inactive editors to select after opening the active selected editor.
+	 */
+	readonly inactiveSelection?: EditorInput[];
 }
 
 export interface IInternalEditorCloseOptions extends IInternalEditorTitleControlOptions {
