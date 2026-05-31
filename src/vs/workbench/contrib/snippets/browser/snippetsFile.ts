@@ -103,6 +103,7 @@ class SnippetBodyInsights {
 export class Snippet implements IDisposable {
 
 	private readonly _bodyInsights: WindowIdleValue<SnippetBodyInsights>;
+	private _usesSelectionVariable: boolean | undefined;
 
 	readonly prefixLow: string;
 
@@ -141,7 +142,8 @@ export class Snippet implements IDisposable {
 	}
 
 	get usesSelection(): boolean {
-		return this._bodyInsights.value.usesSelectionVariable;
+		this._usesSelectionVariable ??= snippetUsesSelectionVariable(this.body);
+		return this._usesSelectionVariable;
 	}
 
 	isFileIncluded(resourceUri: URI): boolean {
@@ -175,6 +177,24 @@ export class Snippet implements IDisposable {
 	dispose(): void {
 		this._bodyInsights.dispose();
 	}
+}
+
+function snippetUsesSelectionVariable(body: string): boolean {
+	const textmateSnippet = new SnippetParser().parse(body, false);
+	const stack = [...textmateSnippet.children];
+	while (stack.length > 0) {
+		const marker = stack.shift()!;
+		if (marker instanceof Variable) {
+			switch (marker.name) {
+				case 'SELECTION':
+				case 'TM_SELECTED_TEXT':
+					return true;
+			}
+		} else {
+			stack.push(...marker.children);
+		}
+	}
+	return false;
 }
 
 
