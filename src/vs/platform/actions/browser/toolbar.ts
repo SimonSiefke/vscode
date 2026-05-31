@@ -6,7 +6,7 @@
 import { addDisposableListener, getWindow } from '../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IToolBarOptions, ToggleMenuAction, ToolBar } from '../../../base/browser/ui/toolbar/toolbar.js';
-import { IAction, Separator, SubmenuAction, toAction, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../base/common/actions.js';
 import { coalesceInPlace } from '../../../base/common/arrays.js';
 import { intersection } from '../../../base/common/collections.js';
 import { BugIndicatingError } from '../../../base/common/errors.js';
@@ -75,6 +75,38 @@ export type IWorkbenchToolBarOptions = IToolBarOptions & {
 	 */
 	overflowBehavior?: { maxItems: number; exempted?: string[] };
 };
+
+class DisabledMenuAction implements IAction {
+	readonly tooltip: string = '';
+	readonly class: string | undefined;
+	readonly enabled: boolean = false;
+
+	constructor(
+		readonly id: string,
+		readonly label: string,
+		readonly checked?: boolean
+	) { }
+
+	async run(): Promise<void> { }
+}
+
+class ResetMenuAction implements IAction {
+	readonly id = 'resetThisMenu';
+	readonly label = localize('resetThisMenu', "Reset Menu");
+	readonly tooltip = this.label;
+	readonly class: string | undefined;
+	readonly enabled: boolean = true;
+	readonly checked: undefined = undefined;
+
+	constructor(
+		private readonly menuService: IMenuService,
+		private readonly menuIds: readonly MenuId[]
+	) { }
+
+	async run(): Promise<void> {
+		this.menuService.resetHiddenStates(this.menuIds);
+	}
+}
 
 /**
  * The `WorkbenchToolBar` does
@@ -219,13 +251,7 @@ export class WorkbenchToolBar extends ToolBar {
 						noHide = true;
 						for (let i = 0; i < toggleActions.length; i++) {
 							if (toggleActions[i].checked) {
-								toggleActions[i] = toAction({
-									id: action.id,
-									label: action.label,
-									checked: true,
-									enabled: false,
-									run() { }
-								});
+								toggleActions[i] = new DisabledMenuAction(action.id, action.label, true);
 								break; // there is only one
 							}
 						}
@@ -241,12 +267,7 @@ export class WorkbenchToolBar extends ToolBar {
 						primaryActions.push(action.hideActions.hide);
 
 					} else {
-						primaryActions.push(toAction({
-							id: 'label',
-							label: localize('hide', "Hide"),
-							enabled: false,
-							run() { }
-						}));
+						primaryActions.push(new DisabledMenuAction('label', localize('hide', "Hide")));
 					}
 				}
 
@@ -258,11 +279,7 @@ export class WorkbenchToolBar extends ToolBar {
 				}
 				if (someAreHidden && menuIds) {
 					actions.push(new Separator());
-					actions.push(toAction({
-						id: 'resetThisMenu',
-						label: localize('resetThisMenu', "Reset Menu"),
-						run: () => this._menuService.resetHiddenStates(menuIds)
-					}));
+					actions.push(new ResetMenuAction(this._menuService, menuIds));
 				}
 
 				if (actions.length === 0) {

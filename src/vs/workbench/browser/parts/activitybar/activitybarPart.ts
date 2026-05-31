@@ -20,7 +20,7 @@ import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { CustomMenubarControl } from '../titlebar/menubarControl.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { getMenuBarVisibility, MenuSettings } from '../../../../platform/window/common/window.js';
-import { IAction, Separator, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction } from '../../../../base/common/actions.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js';
@@ -29,16 +29,86 @@ import { IPaneCompositePart } from '../paneCompositePart.js';
 import { IPaneCompositeBarOptions, PaneCompositeBar } from '../paneCompositeBar.js';
 import { GlobalCompositeBar } from '../globalCompositeBar.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
-import { Action2, IMenuService, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
-import { getContextMenuActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { IViewDescriptorService, ViewContainerLocation, ViewContainerLocationToString } from '../../../common/views.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
+
+class ActivityBarPositionAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly position: ActivityBarPosition,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	}
+}
+
+class ToggleMenuBarVisibilityAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly newVisibility: 'toggle' | 'compact',
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(MenuSettings.MenuBarVisibility, this.newVisibility);
+	}
+}
+
+class ActivityBarSizeAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly compact: boolean,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_COMPACT, this.compact);
+	}
+}
+
+class SidebarLayoutAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly instantiationService: IInstantiationService,
+		private readonly actionFactory: () => { run(accessor: ServicesAccessor): unknown },
+	) { }
+
+	run(): void {
+		this.instantiationService.invokeFunction(accessor => this.actionFactory().run(accessor));
+	}
+}
 
 export class ActivitybarPart extends Part {
 
@@ -266,7 +336,6 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IMenuService private readonly menuService: IMenuService,
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
 	) {
 		super(location,
@@ -298,12 +367,24 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 		// Menu
 		const menuBarVisibility = getMenuBarVisibility(this.configurationService);
 		if (menuBarVisibility === 'compact' || menuBarVisibility === 'hidden' || menuBarVisibility === 'toggle') {
-			actions.unshift(...[toAction({ id: 'toggleMenuVisibility', label: localize('menu', "Menu"), checked: menuBarVisibility === 'compact', run: () => this.configurationService.updateValue(MenuSettings.MenuBarVisibility, menuBarVisibility === 'compact' ? 'toggle' : 'compact') }), new Separator()]);
+			actions.unshift(...[
+				new ToggleMenuBarVisibilityAction(
+					'toggleMenuVisibility',
+					localize('menu', "Menu"),
+					menuBarVisibility === 'compact',
+					this.configurationService,
+					menuBarVisibility === 'compact' ? 'toggle' : 'compact'
+				),
+				new Separator()
+			]);
 		}
 
 		if (menuBarVisibility === 'compact' && this.menuBarContainer && e?.target) {
 			if (isAncestor(e.target as Node, this.menuBarContainer)) {
-				actions.unshift(...[toAction({ id: 'hideCompactMenu', label: localize('hideMenu', "Hide Menu"), run: () => this.configurationService.updateValue(MenuSettings.MenuBarVisibility, 'toggle') }), new Separator()]);
+				actions.unshift(...[
+					new ToggleMenuBarVisibilityAction('hideCompactMenu', localize('hideMenu', "Hide Menu"), false, this.configurationService, 'toggle'),
+					new Separator()
+				]);
 			}
 		}
 
@@ -420,27 +501,31 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 	}
 
 	getActivityBarContextMenuActions(): IAction[] {
-		const activityBarPositionMenu = this.menuService.getMenuActions(MenuId.ActivityBarPositionMenu, this.contextKeyService, { shouldForwardArgs: true, renderShortTitle: true });
-		const positionActions = getContextMenuActions(activityBarPositionMenu).secondary;
+		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
+		const positionActions = [
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.default', localize('default', "Default"), activityBarPosition === ActivityBarPosition.DEFAULT, this.configurationService, ActivityBarPosition.DEFAULT),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.top', localize('top', "Top"), activityBarPosition === ActivityBarPosition.TOP, this.configurationService, ActivityBarPosition.TOP),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.bottom', localize('bottom', "Bottom"), activityBarPosition === ActivityBarPosition.BOTTOM, this.configurationService, ActivityBarPosition.BOTTOM),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.hide', localize('hide', "Hidden"), activityBarPosition === ActivityBarPosition.HIDDEN, this.configurationService, ActivityBarPosition.HIDDEN)
+		];
 		const actions: IAction[] = [
 			new SubmenuAction('workbench.action.activityBar.position', localize('activity bar position', "Activity Bar Position"), positionActions),
 		];
 
 		// Show size submenu only when activity bar is in default position
-		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
 		if (activityBarPosition === ActivityBarPosition.DEFAULT) {
 			const isCompact = this.configurationService.getValue<boolean>(LayoutSettings.ACTIVITY_BAR_COMPACT) ?? false;
 			const sizeActions = [
-				toAction({ id: 'workbench.action.activityBar.size.default', label: localize('activityBarSizeDefault', "Default"), checked: !isCompact, run: () => this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_COMPACT, false) }),
-				toAction({ id: 'workbench.action.activityBar.size.compact', label: localize('activityBarSizeCompact', "Compact"), checked: isCompact, run: () => this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_COMPACT, true) }),
+				new ActivityBarSizeAction('workbench.action.activityBar.size.default', localize('activityBarSizeDefault', "Default"), !isCompact, this.configurationService, false),
+				new ActivityBarSizeAction('workbench.action.activityBar.size.compact', localize('activityBarSizeCompact', "Compact"), isCompact, this.configurationService, true),
 			];
 			actions.push(new SubmenuAction('workbench.action.activityBar.size', localize('activity bar size', "Activity Bar Size"), sizeActions));
 		}
 
-		actions.push(toAction({ id: ToggleSidebarPositionAction.ID, label: ToggleSidebarPositionAction.getLabel(this.layoutService), run: () => this.instantiationService.invokeFunction(accessor => new ToggleSidebarPositionAction().run(accessor)) }));
+		actions.push(new SidebarLayoutAction(ToggleSidebarPositionAction.ID, ToggleSidebarPositionAction.getLabel(this.layoutService), this.instantiationService, () => new ToggleSidebarPositionAction()));
 
 		if (this.part === Parts.SIDEBAR_PART) {
-			actions.push(toAction({ id: ToggleSidebarVisibilityAction.ID, label: ToggleSidebarVisibilityAction.LABEL, run: () => this.instantiationService.invokeFunction(accessor => new ToggleSidebarVisibilityAction().run(accessor)) }));
+			actions.push(new SidebarLayoutAction(ToggleSidebarVisibilityAction.ID, ToggleSidebarVisibilityAction.LABEL, this.instantiationService, () => new ToggleSidebarVisibilityAction()));
 		}
 
 		return actions;

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../nls.js';
-import { IAction, toAction } from '../../../base/common/actions.js';
+import { IAction } from '../../../base/common/actions.js';
 import { IActivity } from '../../services/activity/common/activity.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { ActionBar, ActionsOrientation } from '../../../base/browser/ui/actionbar/actionbar.js';
@@ -22,6 +22,27 @@ import { IComposite } from '../../common/composite.js';
 import { CompositeDragAndDropData, CompositeDragAndDropObserver, IDraggedCompositeData, ICompositeDragAndDrop, Before2D, toggleDropEffect, ICompositeDragAndDropObserverCallbacks } from '../dnd.js';
 import { Gesture, EventType as TouchEventType, GestureEvent } from '../../../base/browser/touch.js';
 import { MutableDisposable } from '../../../base/common/lifecycle.js';
+
+class ToggleCompositePinnedContextMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		readonly enabled: boolean,
+		private readonly compositeBar: CompositeBar,
+	) { }
+
+	run(): void {
+		if (this.compositeBar.isPinned(this.id)) {
+			this.compositeBar.unpin(this.id);
+		} else {
+			this.compositeBar.pin(this.id, true);
+		}
+	}
+}
 
 export interface ICompositeBarItem {
 
@@ -665,19 +686,13 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		const actions: IAction[] = this.model.visibleItems
 			.map(({ id, name, activityAction }) => {
 				const isPinned = this.isPinned(id);
-				return toAction({
+				return new ToggleCompositePinnedContextMenuAction(
 					id,
-					label: this.getAction(id).label || name || id,
-					checked: isPinned,
-					enabled: activityAction.enabled && (!isPinned || this.getPinnedCompositeIds().length > 1),
-					run: () => {
-						if (this.isPinned(id)) {
-							this.unpin(id);
-						} else {
-							this.pin(id, true);
-						}
-					}
-				});
+					this.getAction(id).label || name || id,
+					isPinned,
+					activityAction.enabled && (!isPinned || this.getPinnedCompositeIds().length > 1),
+					this,
+				);
 			});
 
 		this.options.fillExtraContextMenuActions(actions, e);

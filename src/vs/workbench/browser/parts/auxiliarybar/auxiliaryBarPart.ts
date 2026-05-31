@@ -19,7 +19,7 @@ import { IViewDescriptorService, ViewContainerLocation } from '../../../common/v
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ActivityBarPosition, IWorkbenchLayoutService, LayoutSettings, Parts, Position } from '../../../services/layout/browser/layoutService.js';
 import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js';
-import { IAction, Separator, SubmenuAction, toAction } from '../../../../base/common/actions.js';
+import { IAction, Separator, SubmenuAction } from '../../../../base/common/actions.js';
 import { ToggleAuxiliaryBarAction } from './auxiliaryBarActions.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { LayoutPriority } from '../../../../base/browser/ui/splitview/splitview.js';
@@ -30,10 +30,61 @@ import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/action
 import { IPaneCompositeBarOptions } from '../paneCompositeBar.js';
 import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { getContextMenuActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { VisibleViewContainersTracker } from '../visibleViewContainersTracker.js';
 import { Extensions } from '../../panecomposite.js';
+
+class ActivityBarPositionAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly position: ActivityBarPosition,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	}
+}
+
+class AuxiliaryBarConfigurationAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly enabled: boolean,
+		private readonly configurationService: IConfigurationService,
+		private readonly key: string,
+		private readonly value: boolean,
+	) { }
+
+	run(): void {
+		this.configurationService.updateValue(this.key, this.value);
+	}
+}
+
+class AuxiliaryBarCommandAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		private readonly commandService: ICommandService,
+	) { }
+
+	run(): void {
+		this.commandService.executeCommand(this.id);
+	}
+}
 
 interface IAuxiliaryBarPartConfiguration {
 	position: ActivityBarPosition;
@@ -240,22 +291,29 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 			}
 		}
 
-		const activityBarPositionMenu = this.menuService.getMenuActions(MenuId.ActivityBarPositionMenu, this.contextKeyService, { shouldForwardArgs: true, renderShortTitle: true });
-		const positionActions = getContextMenuActions(activityBarPositionMenu).secondary;
+		const activityBarPosition = this.configurationService.getValue<string>(LayoutSettings.ACTIVITY_BAR_LOCATION);
+		const positionActions = [
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.default', localize('default', "Default"), activityBarPosition === ActivityBarPosition.DEFAULT, this.configurationService, ActivityBarPosition.DEFAULT),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.top', localize('top', "Top"), activityBarPosition === ActivityBarPosition.TOP, this.configurationService, ActivityBarPosition.TOP),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.bottom', localize('bottom', "Bottom"), activityBarPosition === ActivityBarPosition.BOTTOM, this.configurationService, ActivityBarPosition.BOTTOM),
+			new ActivityBarPositionAction('workbench.action.activityBarLocation.hide', localize('hide', "Hidden"), activityBarPosition === ActivityBarPosition.HIDDEN, this.configurationService, ActivityBarPosition.HIDDEN)
+		];
 
-		const toggleShowLabelsAction = toAction({
-			id: 'workbench.action.auxiliarybar.toggleShowLabels',
-			label: this.configuration.showLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
-			enabled: this.configuration.canShowLabels,
-			run: () => this.configurationService.updateValue('workbench.secondarySideBar.showLabels', !this.configuration.showLabels)
-		});
+		const toggleShowLabelsAction = new AuxiliaryBarConfigurationAction(
+			'workbench.action.auxiliarybar.toggleShowLabels',
+			this.configuration.showLabels ? localize('showIcons', "Show Icons") : localize('showLabels', "Show Labels"),
+			this.configuration.canShowLabels,
+			this.configurationService,
+			'workbench.secondarySideBar.showLabels',
+			!this.configuration.showLabels,
+		);
 
 		actions.push(...[
 			new Separator(),
 			new SubmenuAction('workbench.action.panel.position', localize('activity bar position', "Activity Bar Position"), positionActions),
-			toAction({ id: ToggleSidebarPositionAction.ID, label: currentPositionRight ? localize('move second side bar left', "Move Secondary Side Bar Left") : localize('move second side bar right', "Move Secondary Side Bar Right"), run: () => this.commandService.executeCommand(ToggleSidebarPositionAction.ID) }),
+			new AuxiliaryBarCommandAction(ToggleSidebarPositionAction.ID, currentPositionRight ? localize('move second side bar left', "Move Secondary Side Bar Left") : localize('move second side bar right', "Move Secondary Side Bar Right"), this.commandService),
 			toggleShowLabelsAction,
-			toAction({ id: ToggleAuxiliaryBarAction.ID, label: localize('hide second side bar', "Hide Secondary Side Bar"), run: () => this.commandService.executeCommand(ToggleAuxiliaryBarAction.ID) })
+			new AuxiliaryBarCommandAction(ToggleAuxiliaryBarAction.ID, localize('hide second side bar', "Hide Secondary Side Bar"), this.commandService)
 		]);
 	}
 

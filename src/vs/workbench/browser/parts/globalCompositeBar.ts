@@ -16,7 +16,7 @@ import { CompositeBarActionViewItem, CompositeBarAction, IActivityHoverOptions, 
 import { Codicon } from '../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { registerIcon } from '../../../platform/theme/common/iconRegistry.js';
-import { Action, IAction, Separator, SubmenuAction, toAction } from '../../../base/common/actions.js';
+import { Action, IAction, Separator, SubmenuAction } from '../../../base/common/actions.js';
 import { IMenu, IMenuService, MenuId } from '../../../platform/actions/common/actions.js';
 import { addDisposableListener, EventType, append, clearNode, hide, show, EventHelper, $, runWhenWindowIdle, getWindow } from '../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
@@ -89,7 +89,7 @@ export class GlobalCompositeBar extends Disposable {
 						contextMenuAlignmentOptions,
 						(actions: IAction[]) => {
 							actions.unshift(...[
-								toAction({ id: 'hideAccounts', label: localize('hideAccounts', "Hide Accounts"), run: () => setAccountsActionVisible(storageService, false) }),
+								new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
 								new Separator()
 							]);
 						});
@@ -132,7 +132,7 @@ export class GlobalCompositeBar extends Disposable {
 	}
 
 	getContextMenuActions(): IAction[] {
-		return [toAction({ id: 'toggleAccountsVisibility', label: localize('accounts', "Accounts"), checked: this.accountsVisibilityPreference, run: () => this.accountsVisibilityPreference = !this.accountsVisibilityPreference })];
+		return [new ToggleAccountsVisibilityAction(this.storageService)];
 	}
 
 	private toggleAccountsActivity() {
@@ -152,6 +152,73 @@ export class GlobalCompositeBar extends Disposable {
 
 	private set accountsVisibilityPreference(value: boolean) {
 		setAccountsActionVisible(this.storageService, value);
+	}
+}
+
+class ToggleAccountsVisibilityAction implements IAction {
+	readonly id = 'toggleAccountsVisibility';
+	readonly label = localize('accounts', "Accounts");
+	readonly tooltip = this.label;
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(private readonly storageService: IStorageService) { }
+
+	get checked(): boolean {
+		return isAccountsActionVisible(this.storageService);
+	}
+
+	run(): void {
+		setAccountsActionVisible(this.storageService, !this.checked);
+	}
+}
+
+class SetAccountsVisibilityAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = true;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly checked: boolean,
+		private readonly storageService: IStorageService,
+		private readonly visible: boolean,
+	) { }
+
+	run(): void {
+		setAccountsActionVisible(this.storageService, this.visible);
+	}
+}
+
+class DisabledManageVisibilityAction implements IAction {
+	readonly id = 'toggle.hideManage';
+	readonly label = localize('manage', "Manage");
+	readonly tooltip = '';
+	readonly class = undefined;
+	readonly enabled = false;
+	readonly checked = true;
+
+	run(): never {
+		throw new Error('"Manage" can not be hidden');
+	}
+}
+
+class CommandMenuAction implements IAction {
+	readonly tooltip = '';
+	readonly class = undefined;
+
+	constructor(
+		readonly id: string,
+		public label: string,
+		readonly enabled: boolean,
+		private readonly commandService: ICommandService,
+		private readonly commandId: string,
+		private readonly args: unknown[] = [],
+	) { }
+
+	run(): Promise<unknown> {
+		return this.commandService.executeCommand(this.commandId, ...this.args);
 	}
 }
 
@@ -388,31 +455,37 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 
 				const canUseMcp = !!provider.authorizationServers?.length;
 				for (const account of accounts) {
-					const manageExtensionsAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedExtensions', "Manage Trusted Extensions"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel: account.label })
-					});
+					const manageExtensionsAction = new CommandMenuAction(
+						`configureSessions${account.label}`,
+						localize('manageTrustedExtensions', "Manage Trusted Extensions"),
+						true,
+						this.commandService,
+						'_manageTrustedExtensionsForAccount',
+						[{ providerId, accountLabel: account.label }]
+					);
 
 
 					const providerSubMenuActions: IAction[] = [manageExtensionsAction];
 					if (canUseMcp) {
-						const manageMCPAction = toAction({
-							id: `configureSessions${account.label}`,
-							label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-						});
+						const manageMCPAction = new CommandMenuAction(
+							`configureSessions${account.label}`,
+							localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
+							true,
+							this.commandService,
+							'_manageTrustedMCPServersForAccount',
+							[{ providerId, accountLabel: account.label }]
+						);
 						providerSubMenuActions.push(manageMCPAction);
 					}
 					if (account.canSignOut) {
-						providerSubMenuActions.push(toAction({
-							id: 'signOut',
-							label: localize('signOut', "Sign Out"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel: account.label })
-						}));
+						providerSubMenuActions.push(new CommandMenuAction(
+							'signOut',
+							localize('signOut', "Sign Out"),
+							true,
+							this.commandService,
+							'_signOutOfAccount',
+							[{ providerId, accountLabel: account.label }]
+						));
 					}
 
 					const providerSubMenu = new SubmenuAction('activitybar.submenu', `${account.label} (${provider.label})`, providerSubMenuActions);
@@ -430,12 +503,13 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 				// Provide _some_ discoverable way to manage dynamic authentication providers.
 				// This will either show up inside the account submenu or as a top-level menu item if there
 				// are no accounts.
-				const manageDynamicAuthProvidersAction = toAction({
-					id: 'manageDynamicAuthProviders',
-					label: localize('manageDynamicAuthProviders', "Manage Dynamic Authentication Providers..."),
-					enabled: true,
-					run: () => this.commandService.executeCommand('workbench.action.removeDynamicAuthenticationProviders')
-				});
+				const manageDynamicAuthProvidersAction = new CommandMenuAction(
+					'manageDynamicAuthProviders',
+					localize('manageDynamicAuthProviders', "Manage Dynamic Authentication Providers..."),
+					true,
+					this.commandService,
+					'workbench.action.removeDynamicAuthenticationProviders'
+				);
 				if (!accounts) {
 					if (this.problematicProviders.has(providerId)) {
 						const providerUnavailableAction = disposables.add(new Action('providerUnavailable', localize('authProviderUnavailable', '{0} is currently unavailable', provider.label), undefined, false));
@@ -461,21 +535,25 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 					// });
 
 					const providerSubMenuActions: IAction[] = [];
-					const manageMCPAction = toAction({
-						id: `configureSessions${account.label}`,
-						label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-						enabled: true,
-						run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
-					});
+					const manageMCPAction = new CommandMenuAction(
+						`configureSessions${account.label}`,
+						localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
+						true,
+						this.commandService,
+						'_manageTrustedMCPServersForAccount',
+						[{ providerId, accountLabel: account.label }]
+					);
 					providerSubMenuActions.push(manageMCPAction);
 					providerSubMenuActions.push(manageDynamicAuthProvidersAction);
 					if (account.canSignOut) {
-						providerSubMenuActions.push(toAction({
-							id: 'signOut',
-							label: localize('signOut', "Sign Out"),
-							enabled: true,
-							run: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel: account.label })
-						}));
+						providerSubMenuActions.push(new CommandMenuAction(
+							'signOut',
+							localize('signOut', "Sign Out"),
+							true,
+							this.commandService,
+							'_signOutOfAccount',
+							[{ providerId, accountLabel: account.label }]
+						));
 					}
 
 					const providerSubMenu = new SubmenuAction('activitybar.submenu', `${account.label} (${provider.label})`, providerSubMenuActions);
@@ -730,14 +808,14 @@ function simpleActivityContextMenuActions(storageService: IStorageService, isAcc
 	const currentElementContextMenuActions: IAction[] = [];
 	if (isAccount) {
 		currentElementContextMenuActions.push(
-			toAction({ id: 'hideAccounts', label: localize('hideAccounts', "Hide Accounts"), run: () => setAccountsActionVisible(storageService, false) }),
+			new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
 			new Separator()
 		);
 	}
 	return [
 		...currentElementContextMenuActions,
-		toAction({ id: 'toggle.hideAccounts', label: localize('accounts', "Accounts"), checked: isAccountsActionVisible(storageService), run: () => setAccountsActionVisible(storageService, !isAccountsActionVisible(storageService)) }),
-		toAction({ id: 'toggle.hideManage', label: localize('manage', "Manage"), checked: true, enabled: false, run: () => { throw new Error('"Manage" can not be hidden'); } })
+		new SetAccountsVisibilityAction('toggle.hideAccounts', localize('accounts', "Accounts"), isAccountsActionVisible(storageService), storageService, !isAccountsActionVisible(storageService)),
+		new DisabledManageVisibilityAction()
 	];
 }
 
