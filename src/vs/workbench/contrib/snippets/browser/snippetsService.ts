@@ -240,6 +240,10 @@ export class SnippetsService implements ISnippetsService {
 
 	dispose(): void {
 		this._disposables.dispose();
+		for (const file of this._files.values()) {
+			file.dispose();
+		}
+		this._files.clear();
 	}
 
 	isEnabled(snippet: Snippet): boolean {
@@ -369,6 +373,7 @@ export class SnippetsService implements ISnippetsService {
 
 			for (const [key, value] of this._files) {
 				if (value.source === SnippetSource.Extension) {
+					value.dispose();
 					this._files.delete(key);
 				}
 			}
@@ -492,6 +497,7 @@ export class SnippetsService implements ISnippetsService {
 
 	private _addSnippetFile(uri: URI, source: SnippetSource): IDisposable {
 		const ext = resources.extname(uri);
+		this._files.get(uri)?.dispose();
 		if (source === SnippetSource.User && ext === '.json') {
 			const langName = resources.basename(uri).replace(/\.json/, '');
 			this._files.set(uri, new SnippetFile(source, uri, [langName], undefined, this._fileService, this._extensionResourceLoaderService));
@@ -499,7 +505,10 @@ export class SnippetsService implements ISnippetsService {
 			this._files.set(uri, new SnippetFile(source, uri, undefined, undefined, this._fileService, this._extensionResourceLoaderService));
 		}
 		return {
-			dispose: () => this._files.delete(uri)
+			dispose: () => {
+				this._files.get(uri)?.dispose();
+				this._files.delete(uri);
+			}
 		};
 	}
 }
