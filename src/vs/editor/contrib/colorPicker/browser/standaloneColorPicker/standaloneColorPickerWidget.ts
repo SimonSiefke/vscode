@@ -200,37 +200,20 @@ export class StandaloneColorPickerWidget extends Disposable implements IContentW
 		const colorPickerBody = colorPicker.body;
 		const saturationBoxWidth = colorPickerBody.saturationBox.domNode.clientWidth;
 		const widthOfOriginalColorBox = colorPickerBody.domNode.clientWidth - saturationBoxWidth - CLOSE_BUTTON_WIDTH - PADDING;
-<<<<<<< HEAD:src/vs/editor/contrib/colorPicker/browser/standaloneColorPickerWidget.ts
-		const enterButton: InsertButton | null = colorPickerWidget.body.enterButton;
-
-		// enterButton?.onClicked(() => {
-		// 	this.updateEditor();
-		// 	this.hide();
-		// }, null, this._store);
-		const colorPickerHeader = colorPickerWidget.header;
-=======
 		const enterButton: InsertButton | null = colorPicker.body.enterButton;
 		enterButton?.onClicked(() => {
 			this.updateEditor();
 			this.hide();
 		});
 		const colorPickerHeader = colorPicker.header;
->>>>>>> origin/main:src/vs/editor/contrib/colorPicker/browser/standaloneColorPicker/standaloneColorPickerWidget.ts
 		const pickedColorNode = colorPickerHeader.pickedColorNode;
 		pickedColorNode.style.width = saturationBoxWidth + PADDING + 'px';
 		const originalColorNode = colorPickerHeader.originalColorNode;
 		originalColorNode.style.width = widthOfOriginalColorBox + 'px';
-<<<<<<< HEAD:src/vs/editor/contrib/colorPicker/browser/standaloneColorPickerWidget.ts
-		const closeButton = colorPickerWidget.header.closeButton;
-		// closeButton?.onClicked(() => {
-		// 	this.hide();
-		// }, null, this._store);
-=======
 		const closeButton = colorPicker.header.closeButton;
 		closeButton?.onClicked(() => {
 			this.hide();
 		});
->>>>>>> origin/main:src/vs/editor/contrib/colorPicker/browser/standaloneColorPicker/standaloneColorPickerWidget.ts
 		// When found in the editor, highlight the selection in the editor
 		if (foundInEditor) {
 			if (enterButton) {
