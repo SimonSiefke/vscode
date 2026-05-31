@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { raceTimeout } from '../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IChannel, IServerChannel, getDelayedChannel, IPCLogger } from '../../../../base/parts/ipc/common/ipc.js';
 import { Client } from '../../../../base/parts/ipc/common/ipc.net.js';
@@ -13,7 +15,6 @@ import { IRemoteAuthorityResolverService } from '../../../../platform/remote/com
 import { RemoteAgentConnectionContext, IRemoteAgentEnvironment } from '../../../../platform/remote/common/remoteAgentEnvironment.js';
 import { RemoteExtensionEnvironmentChannelClient } from './remoteAgentEnvironmentChannel.js';
 import { IDiagnosticInfoOptions, IDiagnosticInfo } from '../../../../platform/diagnostics/common/diagnostics.js';
-import { Emitter } from '../../../../base/common/event.js';
 import { ISignService } from '../../../../platform/sign/common/sign.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { ITelemetryData, TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
@@ -249,9 +250,15 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 		this._register(connection.protocol.onDidDispose(() => {
 			connection.dispose();
 		}));
-		this.end = () => {
+		this.end = async () => {
+			const didDispose = Event.toPromise(connection.protocol.onDidDispose);
 			connection.protocol.sendDisconnect();
-			return connection.protocol.drain();
+			await connection.protocol.drain();
+			try {
+				await raceTimeout(didDispose, 1000);
+			} finally {
+				didDispose.cancel();
+			}
 		};
 		this._register(connection.onDidStateChange(e => this._onDidStateChange.fire(e)));
 		return connection.client;

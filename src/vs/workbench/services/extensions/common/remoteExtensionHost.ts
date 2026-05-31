@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { raceTimeout } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -272,10 +273,19 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 
 	async disconnect() {
 		if (this._protocol && !this._hasDisconnected) {
-			this._protocol.send(createMessageOfType(MessageType.Terminate));
-			this._protocol.sendDisconnect();
+			const protocol = this._protocol;
+			const didDispose = Event.toPromise(protocol.onDidDispose);
+			const didCloseSocket = Event.toPromise(protocol.onSocketClose);
+			protocol.send(createMessageOfType(MessageType.Terminate));
+			protocol.sendDisconnect();
 			this._hasDisconnected = true;
-			await this._protocol.drain();
+			await protocol.drain();
+			try {
+				await raceTimeout(Promise.race([didDispose, didCloseSocket]), 1000);
+			} finally {
+				didDispose.cancel();
+				didCloseSocket.cancel();
+			}
 		}
 	}
 
