@@ -296,6 +296,7 @@ export class ClaudeChatSessionItemController extends Disposable {
 	private readonly _controller: vscode.ChatSessionItemController;
 	private readonly _optionBuilder: ClaudeSessionOptionBuilder;
 	private readonly _inProgressItems = new Map<string, vscode.ChatSessionItem>();
+	private readonly _inputStateReactivePipelines = new WeakMap<vscode.ChatSessionInputState, DisposableStore>();
 	private _showBadge: boolean;
 
 	// #region Shared Observable State
@@ -374,14 +375,18 @@ export class ClaudeChatSessionItemController extends Disposable {
 			item.timing = { created: Date.now() };
 
 			// Set workspace metadata for correct session grouping
-			const selectedFolderUri = getSelectedFolderUri(context.inputState);
-			const folderInfo = await this.getFolderInfoForSession(newSessionId, selectedFolderUri);
-			if (folderInfo.cwd) {
-				item.metadata = await this._buildSessionMetadata(folderInfo.cwd);
-			}
+			try {
+				const selectedFolderUri = getSelectedFolderUri(context.inputState);
+				const folderInfo = await this.getFolderInfoForSession(newSessionId, selectedFolderUri);
+				if (folderInfo.cwd) {
+					item.metadata = await this._buildSessionMetadata(folderInfo.cwd);
+				}
 
-			this._inProgressItems.set(newSessionId, item);
-			return item;
+				this._inProgressItems.set(newSessionId, item);
+				return item;
+			} finally {
+				this._disposeInputStateReactivePipeline(context.inputState);
+			}
 		};
 
 		this._controller.forkHandler = async (sessionResource: vscode.Uri, request: vscode.ChatRequestTurn2 | undefined, token: CancellationToken): Promise<vscode.ChatSessionItem> => {
@@ -564,7 +569,16 @@ export class ClaudeChatSessionItemController extends Disposable {
 			state.groups = allGroups.read(reader);
 		}));
 
+		this._inputStateReactivePipelines.set(state, store);
 		return { permissionMode, folderUri, folderItems, isSessionStarted, store };
+	}
+
+	private _disposeInputStateReactivePipeline(state: vscode.ChatSessionInputState): void {
+		const store = this._inputStateReactivePipelines.get(state);
+		if (store) {
+			this._inputStateReactivePipelines.delete(state);
+			store.dispose();
+		}
 	}
 
 	private _setupInputState(): void {
@@ -604,7 +618,7 @@ export class ClaudeChatSessionItemController extends Disposable {
 				}));
 			}
 
-			pipeline.store.add(state.onDidDispose(() => pipeline.store.dispose()));
+			pipeline.store.add(state.onDidDispose(() => this._disposeInputStateReactivePipeline(state)));
 			return state;
 		};
 	}
