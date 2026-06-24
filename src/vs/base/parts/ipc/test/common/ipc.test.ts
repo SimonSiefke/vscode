@@ -95,6 +95,22 @@ class TestIPCServer extends IPCServer<string> {
 
 		return client;
 	}
+
+	createPendingConnection(): { protocol: IMessagePassingProtocol; disconnect(): void; dispose(): void } {
+		const [pc, ps] = createProtocolPair();
+		const onDidDisconnect = new Emitter<void>();
+
+		this.onDidClientConnect.fire({
+			protocol: ps,
+			onDidClientDisconnect: onDidDisconnect.event
+		});
+
+		return {
+			protocol: pc,
+			disconnect: () => onDidDisconnect.fire(),
+			dispose: () => onDidDisconnect.dispose()
+		};
+	}
 }
 
 const TestChannelId = 'testchannel';
@@ -237,6 +253,38 @@ suite('Base IPC', function () {
 
 		assert.strictEqual(b1, b2);
 		assert.strictEqual(b3, b4);
+	});
+
+	test('client disconnect removes connection', function () {
+		const server = store.add(new TestIPCServer());
+		const client = server.createConnection('client1');
+
+		assert.strictEqual(server.connections.length, 1);
+
+		client.dispose();
+
+		assert.strictEqual(server.connections.length, 0);
+	});
+
+	test('client disconnect before first message removes pending connection listener', async function () {
+		const server = store.add(new TestIPCServer());
+		const pendingConnection = store.add(server.createPendingConnection());
+
+		assert.strictEqual(server.connections.length, 0);
+
+		pendingConnection.disconnect();
+
+		const writer = new BufferWriter();
+		try {
+			serialize(writer, 'client1');
+			pendingConnection.protocol.send(writer.buffer);
+		} finally {
+			writer.dispose();
+		}
+
+		await timeout(0);
+
+		assert.strictEqual(server.connections.length, 0);
 	});
 
 	suite('one to one', function () {
