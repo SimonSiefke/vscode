@@ -22,7 +22,7 @@ import { CustomAgent } from './promptSyntax/service/promptsServiceImpl.js';
 import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
 import { getCanonicalPluginCommandId } from './plugins/agentPluginService.js';
 import { getChatSessionType, LocalChatSessionUri } from './model/chatUri.js';
-import { fromAgentHostUri } from '../../../../platform/agentHost/common/agentHostUri.js';
+
 
 export const ICustomizationHarnessService = createDecorator<ICustomizationHarnessService>('customizationHarnessService');
 
@@ -171,6 +171,8 @@ export interface ICustomizationItem {
 	readonly extensionId: string | undefined;
 	/** The URI of the plugin that contributed this customization, if any. */
 	readonly pluginUri: URI | undefined;
+	/** Human-readable name of the plugin that contributed this customization, if any. */
+	readonly pluginLabel?: string;
 	/** Server-reported loading status for this customization. */
 	readonly status?: 'loading' | 'loaded' | 'degraded' | 'error';
 	/** Human-readable status detail (e.g. error message or warning). */
@@ -193,6 +195,8 @@ export interface ICustomizationItem {
 }
 
 export interface ICustomizationAgentRef {
+	readonly id: string;
+
 	readonly uri: URI;
 	/** Agent name (from frontmatter `name`, or file-derived) */
 	readonly name: string;
@@ -231,7 +235,27 @@ export interface ICustomizationItemProvider {
 	 *   session-scoped state (e.g. an agent host) should read from
 	 *   this session.
 	 */
-	provideCustomAgents?(sessionResource: URI, token: CancellationToken): Promise<readonly ICustomizationAgentRef[] | undefined>;
+	provideCustomAgents?(sessionResource: URI, token: CancellationToken): Promise<readonly ICustomAgent[]>;
+
+	/**
+	 * Provide the directories where new customization files of the given
+	 * type can be created for this session. The result includes both
+	 * workspace-scoped and user-scoped folders; the caller is responsible
+	 * for partitioning them by storage target.
+	 *
+	 * @param sessionResource URI of the chat session whose
+	 *   creation locations should be returned.
+	 */
+	provideSourceFolders?(sessionResource: URI, type: PromptsType, token: CancellationToken): Promise<readonly ICustomizationSourceFolder[] | undefined>;
+}
+
+/**
+ * A directory where new customization files of a given type can be created.
+ */
+export interface ICustomizationSourceFolder {
+	readonly uri: URI;
+	/** Display label for the picker when multiple folders are offered. */
+	readonly label: string;
 }
 
 /**
@@ -434,6 +458,7 @@ export function createVSCodeHarnessDescriptor(sources: readonly AICustomizationS
 		label: localize('harness.local', "Local"),
 		icon: ThemeIcon.fromId(Codicon.vm.id),
 		supportsTroubleshoot: true,
+		hiddenSections: [AICustomizationManagementSection.Tools],
 		sectionOverrides: new Map([
 			[AICustomizationManagementSection.Instructions, {
 				rootFileShortcuts: [AGENT_MD_FILENAME],
@@ -503,6 +528,9 @@ export function createCliHarnessDescriptor(cliUserRoots: readonly URI[], extras:
 		{
 			hideGenerateButton: true,
 			requiredAgentId: 'copilotcli',
+			// The Tools section manages tool sets pushed to an agent host; the extension-host
+			// Copilot CLI harness is not an agent host, so it is hidden here.
+			hiddenSections: [AICustomizationManagementSection.Tools],
 			workspaceSubpaths: ['.github', '.copilot', '.agents', '.claude'],
 			sectionOverrides: new Map([
 				[AICustomizationManagementSection.Instructions, {
@@ -695,7 +723,7 @@ export class CustomizationHarnessServiceBase implements ICustomizationHarnessSer
 				result.push({
 					uri: item.uri,
 					type: item.type as PromptsType.prompt | PromptsType.skill,
-					name: item.pluginUri ? getCanonicalPluginCommandId({ uri: item.pluginUri }, item.name) : item.name,
+					name: item.pluginUri ? getCanonicalPluginCommandId({ uri: item.pluginUri, label: item.pluginLabel }, item.name) : item.name,
 					description: item.description,
 					userInvocable: item.userInvocable ?? true,
 					storage: narrowStorage,
@@ -715,36 +743,12 @@ export class CustomizationHarnessServiceBase implements ICustomizationHarnessSer
 		}
 
 		if (harness.itemProvider.provideCustomAgents) {
-			const items = await harness.itemProvider.provideCustomAgents(sessionResource, token);
-			if (items) {
-				const result: ICustomAgent[] = [];
-				for (const item of items) {
-					const promptFile = await this.promptsService.parseNew(item.uri, token);
-					const extra = {
-						name: item.name,
-						description: item.description,
-						sessionTypes: [sessionType],
-						hooks: undefined,
-						source: { storage: PromptsStorage.local } satisfies IAgentSource,
-						type: PromptsType.agent,
-						enabled: true,
-					};
-					const agent = {
-						...CustomAgent.fromParsedPromptFile(promptFile, extra),
-						// In the case of Agent Host Agents, preserve the original provider URI for later resolution,
-						// since the promptFile parsing may resolve to a different URI.
-						// The Agent host must get the original URI, provideCustomAgents will translate this to AgentHost URIs
-						uri: fromAgentHostUri(item.uri),
-					};
-					result.push(agent);
-				}
-				return result;
-			}
+			return harness.itemProvider.provideCustomAgents(sessionResource, token);
 		}
 
 
 		const items = await harness.itemProvider.provideChatSessionCustomizations(sessionResource, token);
-		if (!items) {
+		if (!items || token.isCancellationRequested) {
 			return [];
 		}
 
