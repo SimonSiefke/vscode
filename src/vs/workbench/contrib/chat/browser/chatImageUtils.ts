@@ -5,6 +5,7 @@
 
 import { raceTimeout } from '../../../../base/common/async.js';
 import { decodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
+import { numberHash } from '../../../../base/common/hash.js';
 import { LRUCache } from '../../../../base/common/map.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -167,7 +168,7 @@ const THUMBNAIL_DECODE_TIMEOUT_MS = 10_000;
 export function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, maxSize: number): Promise<Blob | undefined> {
 	// Include the size and byte length so a reused id with different content or a
 	// different target size doesn't return a stale thumbnail.
-	const key = `${cacheKey}:${maxSize}:${data.byteLength}`;
+	const key = `${cacheKey}:${maxSize}:${data.byteLength}:${hashImageBytes(data)}`;
 	const cached = thumbnailCache.get(key);
 	if (cached) {
 		return cached;
@@ -183,6 +184,14 @@ export function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, ma
 	});
 	thumbnailCache.set(key, thumbnail);
 	return thumbnail;
+}
+
+function hashImageBytes(data: Uint8Array): number {
+	let result = 0;
+	for (const value of data) {
+		result = numberHash(value, result);
+	}
+	return result;
 }
 
 export function convertStringToUInt8Array(data: string): Uint8Array {
