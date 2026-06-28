@@ -253,9 +253,7 @@ class MenuInfoSnapshot {
 
 	private static _fillInKbExprKeys(exp: ContextKeyExpression | undefined, set: Set<string>): void {
 		if (exp) {
-			for (const key of exp.keys()) {
-				set.add(key);
-			}
+			exp.collectKeys(set);
 		}
 	}
 
@@ -289,11 +287,11 @@ class MenuInfo extends MenuInfoSnapshot {
 						this._hiddenStates.setDefaultState(this._id, item.command.id, !!item.isHiddenByDefault);
 					}
 
-					const menuHide = createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
-					if (isMenuItem) {
-						// MenuItemAction
-						const menuKeybinding = createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
-						(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, this._contextKeyService, this._commandService));
+						const menuHide = options?.skipMenuHideActions ? undefined : createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
+						if (isMenuItem) {
+							// MenuItemAction
+							const menuKeybinding = options?.skipConfigureKeybindingAction ? undefined : createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
+							(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, this._contextKeyService, this._commandService));
 					} else {
 						// SubmenuItemAction
 						const groups = new MenuInfo(item.submenu, this._hiddenStates, this._collectContextKeysForSubmenus, this._commandService, this._keybindingService, this._contextKeyService).createActionGroups(options);

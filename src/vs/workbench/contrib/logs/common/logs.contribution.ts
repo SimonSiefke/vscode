@@ -93,9 +93,7 @@ class LogOutputChannels extends Disposable implements IWorkbenchContribution {
 			if (logger.when) {
 				const contextKeyExpr = ContextKeyExpr.deserialize(logger.when);
 				if (contextKeyExpr) {
-					for (const key of contextKeyExpr.keys()) {
-						this.contextKeys.add(key);
-					}
+					contextKeyExpr.collectKeys(this.contextKeys);
 					if (!this.contextKeyService.contextMatchesRules(contextKeyExpr)) {
 						continue;
 					}
@@ -125,7 +123,9 @@ class LogOutputChannels extends Disposable implements IWorkbenchContribution {
 			if (logger.when) {
 				const contextKeyExpr = ContextKeyExpr.deserialize(logger.when);
 				if (contextKeyExpr) {
-					for (const key of contextKeyExpr.keys()) {
+					const keys = new Set<string>();
+					contextKeyExpr.collectKeys(keys);
+					for (const key of keys) {
 						this.contextKeys.delete(key);
 					}
 				}

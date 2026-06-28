@@ -117,7 +117,8 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 		// Send the full per-window configuration as a single unit, and resend it
 		// whenever any of its inputs change.
 		this._updateWindowConfiguration();
-		const chatEnabledKeys = new Set(ChatContextKeys.enabled.keys());
+		const chatEnabledKeys = new Set<string>();
+		ChatContextKeys.enabled.collectKeys(chatEnabledKeys);
 		this._register(this.keybindingService.onDidUpdateKeybindings(() => this._updateWindowConfiguration()));
 		this._register(this.themeService.onDidColorThemeChange(() => this._updateWindowConfiguration()));
 		this._register(this.workspaceTrustManagementService.onDidChangeTrustedFolders(() => this._updateWindowConfiguration()));
@@ -136,7 +137,8 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 
 		// Track sharing availability from context keys
 		this._isSharingAvailable = this.contextKeyService.contextMatchesRules(BrowserViewWorkbenchService._sharingAvailableContext);
-		const sharingKeys = new Set(BrowserViewWorkbenchService._sharingAvailableContext.keys());
+		const sharingKeys = new Set<string>();
+		BrowserViewWorkbenchService._sharingAvailableContext.collectKeys(sharingKeys);
 		this._register(this.contextKeyService.onDidChangeContext(e => {
 			if (e.affectsSome(sharingKeys)) {
 				const was = this._isSharingAvailable;

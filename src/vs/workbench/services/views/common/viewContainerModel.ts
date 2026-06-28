@@ -497,9 +497,7 @@ export class ViewContainerModel extends Disposable implements IViewContainerMode
 			const viewDescriptor = addedViewDescriptorState.viewDescriptor;
 
 			if (viewDescriptor.when) {
-				for (const key of viewDescriptor.when.keys()) {
-					this.contextKeys.add(key);
-				}
+				viewDescriptor.when.collectKeys(this.contextKeys);
 			}
 
 			let state = this.viewDescriptorsState.get(viewDescriptor.id);
@@ -559,7 +557,9 @@ export class ViewContainerModel extends Disposable implements IViewContainerMode
 
 		for (const viewDescriptor of viewDescriptors) {
 			if (viewDescriptor.when) {
-				for (const key of viewDescriptor.when.keys()) {
+				const keys = new Set<string>();
+				viewDescriptor.when.collectKeys(keys);
+				for (const key of keys) {
 					this.contextKeys.delete(key);
 				}
 			}

@@ -313,7 +313,7 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 			this._onDidChangeToolsScheduler.schedule();
 		}
 
-		toolData.when?.keys().forEach(key => this._toolContextKeys.add(key));
+		toolData.when?.collectKeys(this._toolContextKeys);
 
 		let store: DisposableStore | undefined;
 		if (toolData.inputSchema) {
@@ -341,7 +341,7 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 	private _refreshAllToolContextKeys() {
 		this._toolContextKeys.clear();
 		for (const tool of this._tools.values()) {
-			tool.data.when?.keys().forEach(key => this._toolContextKeys.add(key));
+			tool.data.when?.collectKeys(this._toolContextKeys);
 		}
 	}
 

@@ -75,6 +75,7 @@ export interface IContextKeyExpression {
 	evaluate(context: IContext): boolean;
 	serialize(): string;
 	keys(): string[];
+	collectKeys(target: Set<string>): void;
 	map(mapFnc: IContextKeyExprMapper): ContextKeyExpression;
 	negate(): ContextKeyExpression;
 
@@ -712,6 +713,10 @@ export class ContextKeyFalseExpr implements IContextKeyExpression {
 		return [];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		void target;
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return this;
 	}
@@ -751,6 +756,10 @@ export class ContextKeyTrueExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		void target;
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -811,6 +820,10 @@ export class ContextKeyDefinedExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [this.key];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -883,6 +896,10 @@ export class ContextKeyEqualsExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [this.key];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -972,6 +989,11 @@ export class ContextKeyInExpr implements IContextKeyExpression {
 		return [this.key, this.valueKey];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
+		target.add(this.valueKey);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyInExpr {
 		return mapFnc.mapIn(this.key, this.valueKey);
 	}
@@ -1029,6 +1051,10 @@ export class ContextKeyNotInExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return this._negated.keys();
+	}
+
+	public collectKeys(target: Set<string>): void {
+		this._negated.collectKeys(target);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1103,6 +1129,10 @@ export class ContextKeyNotEqualsExpr implements IContextKeyExpression {
 		return [this.key];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return mapFnc.mapNotEquals(this.key, this.value);
 	}
@@ -1165,6 +1195,10 @@ export class ContextKeyNotExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [this.key];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1239,6 +1273,10 @@ export class ContextKeyGreaterExpr implements IContextKeyExpression {
 		return [this.key];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return mapFnc.mapGreater(this.key, this.value);
 	}
@@ -1296,6 +1334,10 @@ export class ContextKeyGreaterEqualsExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [this.key];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1358,6 +1400,10 @@ export class ContextKeySmallerExpr implements IContextKeyExpression {
 		return [this.key];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return mapFnc.mapSmaller(this.key, this.value);
 	}
@@ -1416,6 +1462,10 @@ export class ContextKeySmallerEqualsExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return [this.key];
+	}
+
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1496,6 +1546,10 @@ export class ContextKeyRegexExpr implements IContextKeyExpression {
 		return [this.key];
 	}
 
+	public collectKeys(target: Set<string>): void {
+		target.add(this.key);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyRegexExpr {
 		return mapFnc.mapRegex(this.key, this.regexp);
 	}
@@ -1548,6 +1602,10 @@ export class ContextKeyNotRegexExpr implements IContextKeyExpression {
 
 	public keys(): string[] {
 		return this._actual.keys();
+	}
+
+	public collectKeys(target: Set<string>): void {
+		this._actual.collectKeys(target);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1774,6 +1832,12 @@ export class ContextKeyAndExpr implements IContextKeyExpression {
 		return result;
 	}
 
+	public collectKeys(target: Set<string>): void {
+		for (const expr of this.expr) {
+			expr.collectKeys(target);
+		}
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return new ContextKeyAndExpr(this.expr.map(expr => expr.map(mapFnc)), null);
 	}
@@ -1942,6 +2006,12 @@ export class ContextKeyOrExpr implements IContextKeyExpression {
 			result.push(...expr.keys());
 		}
 		return result;
+	}
+
+	public collectKeys(target: Set<string>): void {
+		for (const expr of this.expr) {
+			expr.collectKeys(target);
+		}
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
