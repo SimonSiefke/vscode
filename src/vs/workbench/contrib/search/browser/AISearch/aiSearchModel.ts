@@ -5,7 +5,7 @@
 
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Lazy } from '../../../../../base/common/lazy.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { IPosition } from '../../../../../editor/common/core/position.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
@@ -102,9 +102,9 @@ export class AIFolderMatchWorkspaceRootImpl extends Disposable implements ISearc
 	readonly onDispose: Event<void> = this._onDispose.event;
 	private readonly _id: string;
 	private _name: Lazy<string>;
-	protected _unDisposedFileMatches: Map<string, ISearchTreeFileMatch>; // id to fileMatch
+	protected _unDisposedFileMatches: DisposableMap<string, ISearchTreeFileMatch>; // id to fileMatch
 
-	protected _fileMatches: Map<string, ISearchTreeFileMatch>; // id to fileMatch
+	protected _fileMatches: DisposableMap<string, ISearchTreeFileMatch>; // id to fileMatch
 
 	constructor(private _resource: URI,
 		_id: string,
@@ -115,11 +115,11 @@ export class AIFolderMatchWorkspaceRootImpl extends Disposable implements ISearc
 		@ILabelService labelService: ILabelService,
 	) {
 		super();
-		this._fileMatches = new Map<string, ISearchTreeFileMatch>();
+		this._fileMatches = this._register(new DisposableMap<string, ISearchTreeFileMatch>());
 
 		this._id = FOLDER_MATCH_PREFIX + _id;
 		this._name = new Lazy(() => this.resource ? labelService.getUriBasenameLabel(this.resource) : '');
-		this._unDisposedFileMatches = new Map<string, ISearchTreeFileMatch>();
+		this._unDisposedFileMatches = this._register(new DisposableMap<string, ISearchTreeFileMatch>());
 	}
 	get resource(): URI {
 		return this._resource;
@@ -268,7 +268,7 @@ export class AIFolderMatchWorkspaceRootImpl extends Disposable implements ISearc
 				if (keepReadonly && match.hasReadonlyMatches()) {
 					continue;
 				}
-				this._fileMatches.delete(match.id());
+				this._fileMatches.deleteAndLeak(match.id());
 				if (dispose) {
 					match.dispose();
 				} else {
@@ -313,13 +313,11 @@ export class AIFolderMatchWorkspaceRootImpl extends Disposable implements ISearc
 	}
 
 	private disposeMatches(): void {
-		[...this._fileMatches.values()].forEach((fileMatch: ISearchTreeFileMatch) => fileMatch.dispose());
-		[...this._unDisposedFileMatches.values()].forEach((fileMatch: ISearchTreeFileMatch) => fileMatch.dispose());
-		this._fileMatches.clear();
+		this._fileMatches.clearAndDisposeAll();
+		this._unDisposedFileMatches.clearAndDisposeAll();
 	}
 
 	override dispose(): void {
-		this.disposeMatches();
 		this._onDispose.fire();
 		super.dispose();
 	}
