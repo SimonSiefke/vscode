@@ -396,6 +396,9 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
 	};
 };
 
+
+const cancelValue = {}
+
 /**
  * A helper to delay (debounce) execution of a task that is being requested often.
  *
@@ -424,14 +427,12 @@ export class Delayer<T> implements IDisposable {
 	private deferred: IScheduledLater | null;
 	private completionPromise: Promise<any> | null;
 	private doResolve: ((value?: any | Promise<any>) => void) | null;
-	private doReject: ((err: unknown) => void) | null;
 	private task: ITask<T | Promise<T>> | null;
 
 	constructor(public defaultDelay: number | typeof MicrotaskDelay) {
 		this.deferred = null;
 		this.completionPromise = null;
 		this.doResolve = null;
-		this.doReject = null;
 		this.task = null;
 	}
 
@@ -440,19 +441,24 @@ export class Delayer<T> implements IDisposable {
 		this.cancelTimeout();
 
 		if (!this.completionPromise) {
-			this.completionPromise = new Promise((resolve, reject) => {
-				this.doResolve = resolve;
-				this.doReject = reject;
-			}).then(() => {
+			const { resolve, promise } = promiseWithResolvers();
+			this.doResolve = resolve
+
+			this.completionPromise = promise.then((value) => {
 				this.completionPromise = null;
 				this.doResolve = null;
-				if (this.task) {
-					const task = this.task;
-					this.task = null;
+				const task = this.task;
+				this.task = null;
+				if (value === cancelValue) {
+					this.deferred?.dispose()
+					this.deferred = null
+					throw new CancellationError()
+				}
+				if (task) {
 					return task();
 				}
 				return undefined;
-			});
+			})
 		}
 
 		const fn = () => {
@@ -473,7 +479,7 @@ export class Delayer<T> implements IDisposable {
 		this.cancelTimeout();
 
 		if (this.completionPromise) {
-			this.doReject?.(new CancellationError());
+			this.doResolve?.(cancelValue);
 			this.completionPromise = null;
 		}
 	}
