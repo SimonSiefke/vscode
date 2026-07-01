@@ -59,7 +59,7 @@ export abstract class Strip extends Disposable {
 		if (!e.target || !(e.target instanceof Element)) {
 			return;
 		}
-		const monitor = this._register(new GlobalPointerMoveMonitor());
+		const monitor = new GlobalPointerMoveMonitor();
 		const origin = dom.getDomNodePagePosition(this.domNode);
 		this.domNode.classList.add('grabbing');
 
