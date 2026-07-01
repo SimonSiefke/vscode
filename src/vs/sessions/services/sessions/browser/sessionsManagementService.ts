@@ -8,10 +8,16 @@ import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../.
 import { IObservable, observableValue } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { agentHostAuthority } from '../../../../platform/agentHost/common/agentHostUri.js';
+import { IRemoteAgentHostService } from '../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { IChatService } from '../../../../workbench/contrib/chat/common/chatService/chatService.js';
 import { ChatAgentLocation } from '../../../../workbench/contrib/chat/common/constants.js';
 import { IChatWidgetHistoryService } from '../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
+import { buildHostLocalEventsPath, getCopilotCliSessionRawId } from '../../../../workbench/contrib/chat/browser/copilotCliEventsUri.js';
+import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
+import { IPathService } from '../../../../workbench/services/path/common/pathService.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
+import { getSessionReferenceResource } from './sessionReference.js';
 import { ICreateNewChatInSessionOptions, ICreateNewSessionOptions, IProviderSessionType, ISendRequestOptions, ISendRequestSentEvent, ISessionsChangeEvent, ISessionsManagementService } from '../common/sessionsManagement.js';
 import { ISessionsProvidersChangeEvent, ISessionsProvidersService } from './sessionsProvidersService.js';
 import { IDeleteChatOptions, ISessionChangeEvent, ISessionsProvider } from '../common/sessionsProvider.js';
@@ -77,6 +83,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
 		@IChatService private readonly chatService: IChatService,
 		@IChatWidgetHistoryService private readonly chatWidgetHistoryService: IChatWidgetHistoryService,
+		@IPathService private readonly pathService: IPathService,
+		@IRemoteAgentHostService private readonly remoteAgentHostService: IRemoteAgentHostService,
 	) {
 		super();
 
@@ -345,10 +353,67 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		if (!provider) {
 			throw new Error(`Provider '${session.providerId}' not found for session '${session.sessionId}'`);
 		}
-		if (!session.capabilities.supportsMultipleChats) {
+		if (!session.capabilities.get().supportsMultipleChats) {
 			throw new Error(`Session '${session.sessionId}' does not support forking into a chat`);
 		}
 		return provider.forkChat(session.sessionId, sourceChat, turnId);
+	}
+
+	/**
+	 * For a `/troubleshoot` request, strip any `#session` marker attachments and
+	 * append a `Session log:` line with the resolved host-local `events.jsonl`
+	 * path(s) — the referenced sessions if present, otherwise the current one.
+	 * Returns `options` unchanged when there is nothing to do.
+	 */
+	private _augmentOptionsForTroubleshoot(session: ISession, options: ISendRequestOptions): ISendRequestOptions {
+		// Separate any `#session` reference attachments from the real context.
+		const referencedResources: URI[] = [];
+		let remainingAttachments: IChatRequestVariableEntry[] | undefined;
+		if (options.attachedContext?.length) {
+			const remaining: IChatRequestVariableEntry[] = [];
+			for (const entry of options.attachedContext) {
+				const referenced = getSessionReferenceResource(entry);
+				if (referenced) {
+					referencedResources.push(referenced);
+				} else {
+					remaining.push(entry);
+				}
+			}
+			if (referencedResources.length) {
+				remainingAttachments = remaining;
+			}
+		}
+
+		const isTroubleshoot = /^\s*\/troubleshoot\b/.test(options.query);
+		if (!isTroubleshoot && referencedResources.length === 0) {
+			return options;
+		}
+
+		// Drop the reference attachments (only meaningful to us, not the model).
+		let result = options;
+		if (remainingAttachments) {
+			result = { ...result, attachedContext: remainingAttachments.length ? remainingAttachments : undefined };
+		}
+		if (!isTroubleshoot) {
+			return result;
+		}
+
+		// Resolve the target session(s): referenced ones if present, else the
+		// current session.
+		const targets = referencedResources.length
+			? referencedResources
+			: (getCopilotCliSessionRawId(session.resource) ? [session.resource] : []);
+		const userHome = this.pathService.userHome({ preferLocal: true });
+		const getConnection = (authority: string) => this.remoteAgentHostService.connections.find(c => agentHostAuthority(c.address) === authority);
+		const eventPaths = Array.from(new Set(
+			targets
+				.map(resource => buildHostLocalEventsPath(resource, userHome, getConnection))
+				.filter((path): path is string => !!path)
+		));
+		if (eventPaths.length === 0) {
+			return result;
+		}
+		return { ...result, query: `${result.query}\n\nSession log: ${eventPaths.join(', ')}` };
 	}
 
 	async sendNewChatRequest(session: ISession, options: ISendRequestOptions): Promise<void> {
@@ -385,11 +450,12 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		// Ask the provider to create the new chat, then send the request.
 		const chat = await provider.createNewChat(session.sessionId, options.query);
 
+		const sendOptions = this._augmentOptionsForTroubleshoot(session, options);
 		const chatResourceKey = chat.resource.toString();
 		this._pendingSendChatResources.add(chatResourceKey);
 		let updatedSession: ISession;
 		try {
-			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, options);
+			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, sendOptions);
 		} finally {
 			this._pendingSendChatResources.delete(chatResourceKey);
 		}
@@ -404,22 +470,39 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	 * Create a new session for the given folder and send a chat request to it,
 	 * without navigating into the started session. The started session appears
 	 * in the sessions list once the provider commits it, while the user's
-	 * current view is left untouched.
+	 * current view is left untouched. Returns the committed session,
+	 * or `undefined` if the service was disposed during the send.
 	 *
 	 * Unlike {@link sendNewChatRequest} with `background`, this does not go
 	 * through the new-session composer: it creates a fresh session purely for
 	 * this request and never sets it as pending/active. Intended for callers
 	 * outside the composer that want to kick off a session programmatically.
 	 *
-	 * If the send fails, the stranded draft is disposed through its provider and
-	 * the error is rethrown so the caller can react.
+	 * If the send or any configuration setter fails, the stranded draft is
+	 * disposed through its provider and the error is rethrown.
 	 */
-	async createAndSendNewChatRequest(folderUri: URI, options: ISendRequestOptions, createOptions?: ICreateNewSessionOptions): Promise<void> {
+	async createAndSendNewChatRequest(folderUri: URI, options: ISendRequestOptions, createOptions?: ICreateNewSessionOptions): Promise<ISession | undefined> {
 		const { provider, sessionTypeId } = this._resolveProviderForNewSession(folderUri, createOptions);
 		const session = provider.createNewSession(folderUri, sessionTypeId);
 
 		try {
-			await this._sendNewChatRequestInBackground(provider, session, options);
+			if (createOptions?.modelId) {
+				provider.setModel(session.sessionId, createOptions.modelId);
+			}
+			if (createOptions?.modeId) {
+				provider.setMode?.(session.sessionId, createOptions.modeId);
+			}
+			if (createOptions?.permissionLevel) {
+				provider.setPermissionLevel?.(session.sessionId, createOptions.permissionLevel);
+			}
+			if (createOptions?.isolationMode) {
+				provider.setIsolationMode?.(session.sessionId, createOptions.isolationMode);
+			}
+			if (createOptions?.branch) {
+				provider.setBranch?.(session.sessionId, createOptions.branch);
+			}
+
+			return await this._sendNewChatRequestInBackground(provider, session, options);
 		} catch (e) {
 			// The send never committed, so the draft is stranded. Dispose it
 			// through its provider to release the eager backend session before
@@ -445,7 +528,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	 * Providers are multi-new-session aware, so the graduating session and a
 	 * concurrently reseeded composer draft coexist without conflict.
 	 */
-	private async _sendNewChatRequestInBackground(provider: ISessionsProvider, session: ISession, options: ISendRequestOptions): Promise<void> {
+	private async _sendNewChatRequestInBackground(provider: ISessionsProvider, session: ISession, options: ISendRequestOptions): Promise<ISession | undefined> {
 		// Notify listeners (e.g., telemetry) that a send is starting so they can
 		// prewarm caches whose result is consumed when `onDidSendRequest` fires.
 		this._onWillSendRequest.fire(session);
@@ -454,19 +537,21 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		// Suppress the `chatService.onDidSubmitRequest` mirror for this send so
 		// `_onDidSendRequest` is not fired twice for providers that dispatch
 		// through `chatService.sendRequest` (see the mirror in the constructor).
+		const sendOptions = this._augmentOptionsForTroubleshoot(session, options);
 		const chatResourceKey = chat.resource.toString();
 		this._pendingSendChatResources.add(chatResourceKey);
 		let updatedSession: ISession;
 		try {
-			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, options);
+			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, sendOptions);
 		} finally {
 			this._pendingSendChatResources.delete(chatResourceKey);
 		}
 		if (this._store.isDisposed) {
-			return;
+			return undefined;
 		}
 		this._onDidStartSession.fire(updatedSession);
 		this._onDidSendRequest.fire({ session: updatedSession, chat, isNewSession: true, isNewChat: true, options });
+		return updatedSession;
 	}
 
 	async sendRequest(session: ISession, chat: IChat, options: ISendRequestOptions): Promise<void> {
@@ -495,11 +580,12 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		// send pair to keep the sent chat active in the visible slot.
 		this._onWillSendRequest.fire(session);
 
+		const sendOptions = this._augmentOptionsForTroubleshoot(session, options);
 		const chatResourceKey = chat.resource.toString();
 		this._pendingSendChatResources.add(chatResourceKey);
 		let updatedSession: ISession;
 		try {
-			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, options);
+			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, sendOptions);
 		} finally {
 			this._pendingSendChatResources.delete(chatResourceKey);
 		}
@@ -518,11 +604,12 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	 * visible slot into the sent chat. Errors are propagated to the caller.
 	 */
 	private async _sendRequestInBackground(provider: ISessionsProvider, session: ISession, chat: IChat, options: ISendRequestOptions): Promise<void> {
+		const sendOptions = this._augmentOptionsForTroubleshoot(session, options);
 		const chatResourceKey = chat.resource.toString();
 		this._pendingSendChatResources.add(chatResourceKey);
 		let updatedSession: ISession;
 		try {
-			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, options);
+			updatedSession = await provider.sendRequest(session.sessionId, chat.resource, sendOptions);
 		} finally {
 			this._pendingSendChatResources.delete(chatResourceKey);
 		}
