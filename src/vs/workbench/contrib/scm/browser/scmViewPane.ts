@@ -288,6 +288,8 @@ class InputRenderer implements ICompressibleTreeRenderer<ISCMInput, FuzzyScore, 
 	}
 
 	renderElement(node: ITreeNode<ISCMInput, FuzzyScore>, index: number, templateData: InputTemplate): void {
+		templateData.elementDisposables.clear();
+
 		const input = node.element;
 		templateData.inputWidget.input = input;
 
@@ -420,6 +422,8 @@ class ResourceGroupRenderer implements ICompressibleTreeRenderer<ISCMResourceGro
 	}
 
 	renderElement(node: ITreeNode<ISCMResourceGroup, FuzzyScore>, index: number, template: ResourceGroupTemplate): void {
+		template.elementDisposables.clear();
+
 		const group = node.element;
 		template.name.textContent = group.label;
 		template.count.setCount(group.resources.length);
@@ -529,6 +533,8 @@ class ResourceRenderer implements ICompressibleTreeRenderer<ISCMResource | IReso
 	}
 
 	renderElement(node: ITreeNode<ISCMResource, FuzzyScore | LabelFuzzyScore> | ITreeNode<ISCMResource | IResourceNode<ISCMResource, ISCMResourceGroup>, FuzzyScore | LabelFuzzyScore>, index: number, template: ResourceTemplate): void {
+		template.elementDisposables.clear();
+
 		const resourceOrFolder = node.element;
 		const iconResource = ResourceTree.isResourceNode(resourceOrFolder) ? resourceOrFolder.element : resourceOrFolder;
 		const uri = ResourceTree.isResourceNode(resourceOrFolder) ? resourceOrFolder.uri : resourceOrFolder.sourceUri;
@@ -580,6 +586,8 @@ class ResourceRenderer implements ICompressibleTreeRenderer<ISCMResource | IReso
 	}
 
 	renderCompressedElements(node: ITreeNode<ICompressedTreeNode<ISCMResource> | ICompressedTreeNode<IResourceNode<ISCMResource, ISCMResourceGroup>>, FuzzyScore | LabelFuzzyScore>, index: number, template: ResourceTemplate): void {
+		template.elementDisposables.clear();
+
 		const compressed = node.element as ICompressedTreeNode<IResourceNode<ISCMResource, ISCMResourceGroup>>;
 		const folder = compressed.elements[compressed.elements.length - 1];
 
