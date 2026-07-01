@@ -114,8 +114,7 @@ export class GettingStartedIndexList<T extends { id: string; when?: ContextKeyEx
 
 		this.contextKeysToWatch.clear();
 		entryList.forEach(e => {
-			const keys = e.when?.keys();
-			keys?.forEach(key => this.contextKeysToWatch.add(key));
+			e.when?.collectKeys(this.contextKeysToWatch);
 		});
 
 		this.lastRendered = toRender;

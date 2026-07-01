@@ -450,9 +450,7 @@ export class ChatSessionsService extends Disposable implements IChatSessionsServ
 		if (contribution.when) {
 			const whenExpr = ContextKeyExpr.deserialize(contribution.when);
 			if (whenExpr) {
-				for (const key of whenExpr.keys()) {
-					this._contextKeys.add(key);
-				}
+				whenExpr.collectKeys(this._contextKeys);
 			}
 		}
 

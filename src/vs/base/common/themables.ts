@@ -51,11 +51,18 @@ export namespace ThemeIcon {
 	}
 
 	export function asClassName(icon: ThemeIcon): string {
-		return asClassNameArray(icon).join(' ');
+		const match = ThemeIconIdRegex.exec(icon.id);
+		if (!match) {
+			return asClassName(Codicon.error);
+		}
+		const [, id, modifier] = match;
+		return modifier
+			? `codicon codicon-${id} codicon-modifier-${modifier.substring(1)}`
+			: `codicon codicon-${id}`;
 	}
 
 	export function asCSSSelector(icon: ThemeIcon): string {
-		return '.' + asClassNameArray(icon).join('.');
+		return '.' + asClassName(icon).replaceAll(' ', '.');
 	}
 
 	export function isThemeIcon(obj: unknown): obj is ThemeIcon {

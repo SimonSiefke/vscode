@@ -86,7 +86,10 @@ export class ChatViewWelcomeController extends Disposable {
 		if (descriptors.length) {
 			this.render(descriptors);
 
-			const descriptorKeys: Set<string> = new Set(descriptors.flatMap(d => d.when.keys()));
+			const descriptorKeys = new Set<string>();
+			for (const descriptor of descriptors) {
+				descriptor.when.collectKeys(descriptorKeys);
+			}
 			this.enabledDisposables.add(this.contextKeyService.onDidChangeContext(e => {
 				if (e.affectsSome(descriptorKeys)) {
 					this.render(descriptors);

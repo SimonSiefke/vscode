@@ -353,6 +353,8 @@ export interface IMenuActionOptions {
 	args?: unknown[];
 	shouldForwardArgs?: boolean;
 	renderShortTitle?: boolean;
+	skipMenuHideActions?: boolean;
+	skipConfigureKeybindingAction?: boolean;
 }
 
 export interface IMenuChangeEvent {
