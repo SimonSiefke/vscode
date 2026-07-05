@@ -23,7 +23,7 @@ import { IChatService } from '../../../../../workbench/contrib/chat/common/chatS
 import { IChatEditorOptions } from '../../../../../workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.js';
 import { IChatWidgetHistoryService } from '../../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
 import { PreferredGroup } from '../../../../../workbench/services/editor/common/editorService.js';
-import { IChat, ISession, ISessionType, ISessionWorkspace, SessionStatus } from '../../common/session.js';
+import { ChatInteractivity, IChat, ISession, ISessionType, ISessionWorkspace, SessionStatus } from '../../common/session.js';
 import { ILanguageModelChatMetadataAndIdentifier } from '../../../../../workbench/contrib/chat/common/languageModels.js';
 import { ISessionChangeEvent, ISendRequestOptions, ISessionModelPickerOptions, ISessionsProvider } from '../../common/sessionsProvider.js';
 import { SessionsManagementService } from '../../browser/sessionsManagementService.js';
@@ -45,6 +45,7 @@ const stubChat = {
 	mode: constObservable(undefined),
 	isArchived: constObservable(false),
 	isRead: constObservable(true),
+	interactivity: constObservable(ChatInteractivity.Full),
 	description: constObservable(undefined),
 	lastTurnEnd: constObservable(undefined),
 } satisfies IChat;
@@ -1359,6 +1360,211 @@ suite('SessionsManagementService', () => {
 			await view.openSession(sessionA.resource);
 
 			assert.deepStrictEqual(closedTitles(view), []);
+		});
+
+		test('a closed chat stays closed across a restart', async () => {
+			const mainA = chat('mainA');
+			const chatB = chat('b');
+			const sessionA = stubSession({
+				sessionId: 'A', providerId: 'test',
+				status: constObservable(SessionStatus.Completed),
+				chats: constObservable([mainA, chatB]),
+				mainChat: constObservable(mainA),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			});
+			const storage = disposables.add(new InMemoryStorageService());
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(sessionA); }
+				override getSessions(): ISession[] { return [sessionA]; }
+			};
+			const makeView = () => {
+				const instantiationService = disposables.add(new TestInstantiationService());
+				instantiationService.stub(IStorageService, storage);
+				instantiationService.stub(ILogService, new NullLogService());
+				instantiationService.stub(IContextKeyService, disposables.add(new MockContextKeyService()));
+				instantiationService.stub(ISessionsProvidersService, new TestSessionsProvidersService([provider]));
+				instantiationService.stub(IUriIdentityService, { extUri: extUriBiasedIgnorePathCase });
+				instantiationService.stub(IChatWidgetService, new TestChatWidgetService());
+				instantiationService.stub(IProgressService, new TestProgressService());
+				instantiationService.stub(IChatService, new class extends mock<IChatService>() {
+					override readonly onDidSubmitRequest = Event.None;
+				});
+				const service = disposables.add(instantiationService.createInstance(SessionsManagementService));
+				return createView(instantiationService, service, disposables);
+			};
+
+			// First window: close chat B, then simulate shutdown (flush storage).
+			const first = makeView();
+			await first.openSession(sessionA.resource);
+			await first.closeChat(first.activeSession.get()!, chatB);
+			await storage.flush();
+
+			// Second window: restore and confirm B is still closed.
+			const second = makeView();
+			await second.restoreVisibleSessions();
+			assert.deepStrictEqual((second.activeSession.get()?.closedChats.get() ?? []).map(c => c.title.get()), ['b']);
+		});
+	});
+
+	suite('createQuickChat', () => {
+
+		/**
+		 * Provider that supports quick chats and mints a fresh draft session on
+		 * each `createQuickChat`, recording the requested type and call count.
+		 */
+		class QuickChatProvider extends TestSessionsProvider {
+			lastQuickChatType: string | undefined;
+			createQuickChatCalls = 0;
+			override readonly supportsQuickChats = true;
+
+			constructor(
+				seed: ISession,
+				override readonly id: string = 'quick-provider',
+				override readonly order: number = 0,
+				override readonly sessionTypes: readonly ISessionType[] = [{ id: 'quick', label: 'Quick', icon: Codicon.vm }],
+			) {
+				super(seed);
+			}
+
+			override createQuickChat(sessionTypeId: string): ISession {
+				this.createQuickChatCalls++;
+				this.lastQuickChatType = sessionTypeId;
+				return stubSession({ sessionId: `q${this.createQuickChatCalls}`, providerId: this.id });
+			}
+		}
+
+		function setupQuickChat(providers: readonly ISessionsProvider[]): ISessionsManagementService {
+			const instantiationService = disposables.add(new TestInstantiationService());
+			instantiationService.stub(IStorageService, disposables.add(new InMemoryStorageService()));
+			instantiationService.stub(ILogService, new NullLogService());
+			instantiationService.stub(IContextKeyService, disposables.add(new MockContextKeyService()));
+			instantiationService.stub(ISessionsProvidersService, new TestSessionsProvidersService(providers));
+			instantiationService.stub(IUriIdentityService, { extUri: extUriBiasedIgnorePathCase });
+			instantiationService.stub(IChatWidgetService, new TestChatWidgetService());
+			instantiationService.stub(IProgressService, new TestProgressService());
+			instantiationService.stub(IChatService, new class extends mock<IChatService>() {
+				override readonly onDidSubmitRequest = Event.None;
+			});
+			return disposables.add(instantiationService.createInstance(SessionsManagementService));
+		}
+
+		test('creates a session via the first capable provider (by order) and defaults the type', () => {
+			const plain = new class extends TestSessionsProvider {
+				override readonly id = 'plain';
+				override readonly order = 0;
+			}(stubSession({ sessionId: 'p1', providerId: 'plain' }));
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }), 'quick-provider', 1);
+
+			const service = setupQuickChat([plain, quick]);
+			const session = service.createQuickChat();
+
+			assert.deepStrictEqual({
+				createdSessionId: session.sessionId,
+				requestedType: quick.lastQuickChatType,
+				draft: service.newSession.get()?.sessionId,
+			}, {
+				createdSessionId: 'q1',
+				requestedType: 'quick',
+				draft: 'q1',
+			});
+		});
+
+		test('mints a new quick-chat session on each call', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }));
+
+			const service = setupQuickChat([quick]);
+			const first = service.createQuickChat();
+			const second = service.createQuickChat();
+
+			assert.deepStrictEqual({
+				first: first.sessionId,
+				second: second.sessionId,
+				createQuickChatCalls: quick.createQuickChatCalls,
+				draft: service.newSession.get()?.sessionId,
+			}, {
+				first: 'q1',
+				second: 'q2',
+				createQuickChatCalls: 2,
+				draft: 'q2',
+			});
+		});
+
+		test('throws when no provider supports quick chats', () => {
+			const plain = new TestSessionsProvider(stubSession({ sessionId: 'p1', providerId: 'test' }));
+			const service = setupQuickChat([plain]);
+			assert.throws(() => service.createQuickChat(), /No sessions provider supports quick chats/);
+		});
+
+		test('honours options.providerId and the requested session type', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }), 'quick-provider', 0, [
+				{ id: 'quick', label: 'Quick', icon: Codicon.vm },
+				{ id: 'other', label: 'Other', icon: Codicon.vm },
+			]);
+
+			const service = setupQuickChat([quick]);
+			service.createQuickChat({ providerId: 'quick-provider', sessionTypeId: 'other' });
+
+			assert.strictEqual(quick.lastQuickChatType, 'other');
+		});
+
+		test('honours an explicit sessionTypeId without a providerId', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }), 'quick-provider', 0, [
+				{ id: 'quick', label: 'Quick', icon: Codicon.vm },
+				{ id: 'other', label: 'Other', icon: Codicon.vm },
+			]);
+
+			const service = setupQuickChat([quick]);
+			service.createQuickChat({ sessionTypeId: 'other' });
+
+			assert.strictEqual(quick.lastQuickChatType, 'other');
+		});
+
+		test('defaults to the last-used session type on the next call', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }), 'quick-provider', 0, [
+				{ id: 'quick', label: 'Quick', icon: Codicon.vm },
+				{ id: 'other', label: 'Other', icon: Codicon.vm },
+			]);
+
+			const service = setupQuickChat([quick]);
+			service.createQuickChat({ sessionTypeId: 'other' });
+			service.createQuickChat();
+
+			assert.strictEqual(quick.lastQuickChatType, 'other');
+		});
+
+		test('throws when the requested provider does not advertise the session type', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }));
+			const service = setupQuickChat([quick]);
+			assert.throws(() => service.createQuickChat({ providerId: 'quick-provider', sessionTypeId: 'missing' }), /does not advertise session type/);
+		});
+
+		test('throws when the requested provider does not support quick chats', () => {
+			const plain = new class extends TestSessionsProvider {
+				override readonly id = 'plain';
+			}(stubSession({ sessionId: 'p1', providerId: 'plain' }));
+			const service = setupQuickChat([plain]);
+			assert.throws(() => service.createQuickChat({ providerId: 'plain' }), /does not support quick chats/);
+		});
+
+		test('getQuickChatSessionTypes returns every advertised type from quick-chat-capable providers only', () => {
+			const plain = new class extends TestSessionsProvider {
+				override readonly id = 'plain';
+				override readonly order = 0;
+			}(stubSession({ sessionId: 'p1', providerId: 'plain' }));
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }), 'quick-provider', 1, [
+				{ id: 'quick', label: 'Quick', icon: Codicon.vm },
+				{ id: 'other', label: 'Other', icon: Codicon.vm },
+			]);
+
+			const service = setupQuickChat([plain, quick]);
+
+			assert.deepStrictEqual(
+				service.getQuickChatSessionTypes().map(t => ({ providerId: t.providerId, sessionTypeId: t.sessionType.id })),
+				[
+					{ providerId: 'quick-provider', sessionTypeId: 'quick' },
+					{ providerId: 'quick-provider', sessionTypeId: 'other' },
+				],
+			);
 		});
 	});
 });

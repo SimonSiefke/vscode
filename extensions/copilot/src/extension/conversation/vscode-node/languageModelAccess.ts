@@ -376,6 +376,7 @@ export class LanguageModelAccess extends Disposable implements IExtensionContrib
 					[ApiChatLocation.Editor]: endpoint instanceof AutoChatEndpoint, // inline chat gets 'Auto' by default
 				},
 				isUserSelectable: endpoint.showInModelPicker,
+				warningText: endpoint instanceof AutoChatEndpoint ? undefined : endpoint.warningText,
 				capabilities: {
 					imageInput: endpoint instanceof AutoChatEndpoint ? true : endpoint.supportsVision,
 					toolCalling: endpoint.supportsToolCalls,
@@ -787,6 +788,15 @@ export class CopilotLanguageModelWrapper extends Disposable {
 				: makeRequest();
 
 		const result = await wrappedRequest();
+
+		if (result.type === ChatFetchResponseType.Length) {
+			// The model stopped generating because it hit the length/context-window limit
+			// (finish_reason "length"). The partial text has already been streamed to the
+			// consumer via the finished callback, so treat this as a successful (truncated)
+			// response instead of throwing "Response too long." and discarding the output.
+			this._logService.warn(`[LanguageModelAccess] Response from model '${_endpoint.model}' was truncated because it hit the length limit; returning the partial response.`);
+			return undefined;
+		}
 
 		if (result.type !== ChatFetchResponseType.Success) {
 			if (result.type === ChatFetchResponseType.ExtensionBlocked) {

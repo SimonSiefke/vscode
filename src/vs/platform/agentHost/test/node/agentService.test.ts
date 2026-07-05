@@ -79,6 +79,8 @@ class TestCopilotApiService implements ICopilotApiService {
 	async countTokens(): Promise<Anthropic.MessageTokensCount> { throw new Error('not used'); }
 	async models(): Promise<CCAModel[]> { return []; }
 	async responses(): Promise<Response> { throw new Error('not used'); }
+	async resolveRestrictedTelemetryContext() { return { restrictedTelemetryEnabled: false, trackingId: undefined, telemetryEndpoint: undefined }; }
+	async resolveApiEndpoint() { return undefined; }
 	async utilityChatCompletion(githubToken: string, request: ICopilotUtilityChatCompletionRequest, options?: ICopilotApiServiceRequestOptions): Promise<string> {
 		this.utilityCalls.push({ token: githubToken, request, options });
 		if (this.error) {
@@ -798,6 +800,48 @@ suite('AgentService (node dispatcher)', () => {
 			assert.strictEqual(sessions[0].summary, 'My Custom Title');
 		});
 
+		test('listSessions overlays the AH-owned workspaceless marker for any agent', async () => {
+			// The AH service owns `agentHost.workspaceless` in the central session
+			// database and overlays it onto every agent's summary `_meta` — so an
+			// agent that persists/re-emits nothing itself still restores as a quick
+			// chat. Pre-seed the AH key with no agent-side re-emit.
+			const db = disposables.add(await SessionDatabase.open(':memory:'));
+			await db.setMetadata('agentHost.workspaceless', 'true');
+
+			const sessionId = 'test-session-workspaceless';
+			const sessionUri = AgentSession.uri('copilot', sessionId);
+
+			const sessionDataService: ISessionDataService = {
+				_serviceBrand: undefined,
+				getSessionDataDir: () => URI.parse('inmemory:/session-data'),
+				getSessionDataDirById: () => URI.parse('inmemory:/session-data'),
+				openDatabase: (): IReference<ISessionDatabase> => ({
+					object: db,
+					dispose: () => { },
+				}),
+				tryOpenDatabase: async (): Promise<IReference<ISessionDatabase> | undefined> => ({
+					object: db,
+					dispose: () => { },
+				}),
+				deleteSessionData: async () => { },
+				onWillDeleteSessionData: Event.None,
+				cleanupOrphanedData: async () => { },
+				whenIdle: async () => { },
+			};
+
+			// The agent returns the session with NO `_meta.workspaceless` of its own.
+			const agent = new MockAgent('copilot');
+			disposables.add(toDisposable(() => agent.dispose()));
+			(agent as unknown as { _sessions: Map<string, URI> })._sessions.set(sessionId, sessionUri);
+
+			const svc = disposables.add(new AgentService(new NullLogService(), fileService, sessionDataService, { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			svc.registerProvider(agent);
+
+			const sessions = await svc.listSessions();
+			assert.strictEqual(sessions.length, 1);
+			assert.deepStrictEqual(sessions[0]._meta, { workspaceless: true });
+		});
+
 		test('listSessions uses SDK title when no custom title exists', async () => {
 			service.registerProvider(copilotAgent);
 			copilotAgent.sessionMetadataOverrides = { summary: 'Auto-generated Title' };
@@ -910,6 +954,50 @@ suite('AgentService (node dispatcher)', () => {
 				completedListed.some(s => s.session.toString() === session.toString()),
 				'provisional session with a completed turn should still appear in listSessions',
 			);
+		});
+
+		test('listSessions overlays live workspace metadata over a stale provider snapshot', async () => {
+			class DelayedListAgent extends MockAgent {
+				readonly listStarted = new DeferredPromise<void>();
+				readonly releaseList = new DeferredPromise<void>();
+				override async listSessions() {
+					const snapshot = await super.listSessions();
+					this.listStarted.complete();
+					await this.releaseList.p;
+					return snapshot;
+				}
+			}
+
+			const agent = new DelayedListAgent('copilot');
+			disposables.add(toDisposable(() => agent.dispose()));
+			agent.resolvedWorkingDirectory = URI.file('/original');
+			service.registerProvider(agent);
+			const { session } = await agent.createSession();
+
+			const listing = service.listSessions();
+			await agent.listStarted.p;
+			service.stateManager.restoreSession({
+				resource: session.toString(),
+				provider: 'copilot',
+				title: 'Materialized',
+				status: SessionStatus.Idle,
+				createdAt: new Date(1000).toISOString(),
+				modifiedAt: new Date(2000).toISOString(),
+				project: { uri: URI.file('/project').toString(), displayName: 'project' },
+				workingDirectory: URI.file('/worktree').toString(),
+			}, []);
+			agent.releaseList.complete();
+
+			const listed = (await listing).find(item => item.session.toString() === session.toString());
+			assert.deepStrictEqual({
+				modifiedTime: listed?.modifiedTime,
+				project: listed?.project && { uri: listed.project.uri.path, displayName: listed.project.displayName },
+				workingDirectory: listed?.workingDirectory?.path,
+			}, {
+				modifiedTime: 2000,
+				project: { uri: '/project', displayName: 'project' },
+				workingDirectory: '/worktree',
+			});
 		});
 
 		test.skip('listSessions synthesizes the session changeset catalogue from persisted diffs for unopened sessions', async () => {
@@ -1271,6 +1359,9 @@ suite('AgentService (node dispatcher)', () => {
 				updateRef: async () => { },
 				deleteRefs: async () => { },
 				revParse: async () => undefined,
+				resolveBranchBaselineCommit: async () => undefined,
+				overlayPathIntoTree: async () => undefined,
+				diffTreePaths: async () => undefined,
 				computeFileDiffsBetweenRefs: async () => undefined,
 			};
 			const localService = disposables.add(new AgentService(new NullLogService(), fileService, nullSessionDataService, { _serviceBrand: undefined } as IProductService, gitService));
@@ -1280,7 +1371,9 @@ suite('AgentService (node dispatcher)', () => {
 			agent.sessionMetadataOverrides = { workingDirectory };
 			localService.registerProvider(agent);
 
-			const session = await localService.createSession({ provider: 'copilot' });
+			// A normal session passes an input workingDirectory, so it is not
+			// inferred workspace-less; `_meta` carries only the git overlay.
+			const session = await localService.createSession({ provider: 'copilot', workingDirectory });
 
 			// _attachGitState is fire-and-forget; drain microtasks until the
 			// git service's promise has resolved and setSessionMeta has run.
@@ -1339,7 +1432,7 @@ suite('AgentService (node dispatcher)', () => {
 			);
 		});
 
-		test('createSession skips git overlay when no working directory or no git state', async () => {
+		test('createSession infers workspace-less (and skips git overlay) when no working directory', async () => {
 			const gitService = {
 				_serviceBrand: undefined,
 				getCurrentBranch: async () => undefined,
@@ -1365,6 +1458,9 @@ suite('AgentService (node dispatcher)', () => {
 				updateRef: async () => { },
 				deleteRefs: async () => { },
 				revParse: async () => undefined,
+				resolveBranchBaselineCommit: async () => undefined,
+				overlayPathIntoTree: async () => undefined,
+				diffTreePaths: async () => undefined,
 				computeFileDiffsBetweenRefs: async () => undefined,
 			};
 			const localService = disposables.add(new AgentService(new NullLogService(), fileService, nullSessionDataService, { _serviceBrand: undefined } as IProductService, gitService));
@@ -1380,7 +1476,9 @@ suite('AgentService (node dispatcher)', () => {
 			const sessions = await localService.listSessions();
 
 			assert.strictEqual(sessions.length, 1);
-			assert.strictEqual(localService.stateManager.getSessionState(session.toString())?._meta, undefined);
+			// No input workingDirectory → inferred workspace-less (tagged), and no
+			// git overlay because there is no working directory to probe.
+			assert.deepStrictEqual(localService.stateManager.getSessionState(session.toString())?._meta, { workspaceless: true });
 		});
 
 		test.skip('createSession strips git-only catalogue entries for non-git working directory', async () => {
@@ -1760,6 +1858,23 @@ suite('AgentService (node dispatcher)', () => {
 			assert.deepStrictEqual(await db.getChatDraft(chat), expected);
 		}
 
+		test('restores the AH-owned workspaceless marker onto the summary _meta for any agent', async () => {
+			// The workspace-less marker is owned by the AH service and overlaid on
+			// restore from the central session DB — the agent (MockAgent) re-emits
+			// nothing itself, yet the restored session still carries the tag.
+			const db = new TestSessionDatabase();
+			const localService = disposables.add(new AgentService(new NullLogService(), fileService, createSessionDataService(db), { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			localService.registerProvider(copilotAgent);
+			await copilotAgent.createSession();
+			const sessionResource = (await copilotAgent.listSessions())[0].session;
+			copilotAgent.sessionMessages = [];
+			await db.setMetadata('agentHost.workspaceless', 'true');
+
+			await localService.restoreSession(sessionResource);
+
+			assert.deepStrictEqual(localService.stateManager.getSessionState(sessionResource.toString())?._meta, { workspaceless: true });
+		});
+
 		test('restores a session with message history', async () => {
 			service.registerProvider(copilotAgent);
 			const { session } = await copilotAgent.createSession();
@@ -1783,6 +1898,37 @@ suite('AgentService (node dispatcher)', () => {
 			assert.strictEqual(mdPart.content, 'Hi there!');
 			assert.strictEqual(state!.turns[0].state, TurnState.Complete);
 		});
+
+		test('interleaves persisted host-injected local turns after their anchor on restore', async () => {
+			const db = new TestSessionDatabase();
+			const localService = disposables.add(new AgentService(new NullLogService(), fileService, createSessionDataService(db), { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			localService.registerProvider(copilotAgent);
+			const { session } = await copilotAgent.createSession();
+			const sessionResource = (await copilotAgent.listSessions())[0].session;
+			const defaultChatUri = buildDefaultChatUri(sessionResource.toString());
+
+			// SDK transcript reconstructs a single real turn keyed by the user
+			// envelope id (`msg-real`, per mapSessionEvents).
+			copilotAgent.sessionMessages = [
+				{ type: 'message', session, role: 'user', messageId: 'msg-real', content: 'Hello', toolRequests: [] },
+				{ type: 'message', session, role: 'assistant', messageId: 'msg-real-a', content: 'Hi there!', toolRequests: [] },
+			];
+
+			// A host-injected local turn anchored after the real turn, plus one
+			// with no anchor (precedes any real turn), plus an orphan whose
+			// anchor is absent from the SDK transcript (should be dropped).
+			const localTurn = (id: string, text: string) => ({ id, message: { text, origin: { kind: MessageKind.User } }, responseParts: [], usage: undefined, state: TurnState.Complete });
+			await db.insertLocalTurn({ turnId: 'local-head', chatUri: defaultChatUri, anchorTurnId: undefined, seq: 1, payload: JSON.stringify(localTurn('local-head', '!pwd')) });
+			await db.insertLocalTurn({ turnId: 'local-after', chatUri: defaultChatUri, anchorTurnId: 'msg-real', seq: 2, payload: JSON.stringify(localTurn('local-after', '!ls')) });
+			await db.insertLocalTurn({ turnId: 'local-orphan', chatUri: defaultChatUri, anchorTurnId: 'gone', seq: 3, payload: JSON.stringify(localTurn('local-orphan', '!echo')) });
+
+			await localService.restoreSession(sessionResource);
+
+			const state = localService.stateManager.getSessionState(sessionResource.toString());
+			// head (no anchor) first, then the real turn, then its anchored local; orphan dropped.
+			assert.deepStrictEqual(state!.turns.map(t => t.id), ['local-head', 'msg-real', 'local-after']);
+		});
+
 
 		test('restores the default chat\'s independently-renamed title', async () => {
 			const db = new TestSessionDatabase();
@@ -2586,6 +2732,60 @@ suite('AgentService (node dispatcher)', () => {
 			});
 		});
 
+		test('fork at a host-injected local turn redirects the SDK boundary to the concrete anchor and carries the local turn into the new chat', async () => {
+			let receivedFork: IAgentCreateChatForkSource | undefined;
+			class MultiChatAgent extends MockAgent {
+				override async createChat(_session: URI, _chat: URI, options?: IAgentCreateChatOptions): Promise<void> {
+					receivedFork = options?.fork;
+				}
+			}
+			const db = new TestSessionDatabase();
+			const agent = disposables.add(new MultiChatAgent('copilot'));
+			const localService = disposables.add(new AgentService(new NullLogService(), fileService, createSessionDataService(db), { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			localService.registerProvider(agent);
+			const { session } = await agent.createSession();
+			const sessionResource = (await agent.listSessions())[0].session;
+			const defaultChatUri = buildDefaultChatUri(sessionResource.toString());
+
+			// SDK transcript reconstructs a single real turn keyed by the user
+			// message id; a host-injected local turn is persisted after it.
+			agent.sessionMessages = [
+				{ type: 'message', session, role: 'user', messageId: 'real-1', content: 'Hello', toolRequests: [] },
+				{ type: 'message', session, role: 'assistant', messageId: 'real-1-a', content: 'Hi', toolRequests: [] },
+			];
+			const localTurn: Turn = { id: 'local-1', state: TurnState.Complete, message: { text: '!echo hi', origin: { kind: MessageKind.User } }, responseParts: [], usage: undefined };
+			await db.insertLocalTurn({ turnId: 'local-1', chatUri: defaultChatUri, anchorTurnId: 'real-1', seq: 1, payload: JSON.stringify(localTurn) });
+
+			// Restore so the source chat interleaves [real-1, local-1] and the
+			// in-memory local index knows local-1 is a local turn.
+			await localService.restoreSession(sessionResource);
+			assert.deepStrictEqual(localService.stateManager.getSessionState(sessionResource.toString())?.turns.map(t => t.id), ['real-1', 'local-1']);
+
+			// Fork the default chat AT the local turn into a new peer chat.
+			const peerUri = URI.parse(buildChatUri(sessionResource, 'peer-1'));
+			await localService.createChat(sessionResource, peerUri, { fork: { source: URI.parse(defaultChatUri), turnId: 'local-1' } });
+
+			const peerTurns = localService.stateManager.getChatState(peerUri.toString())?.turns ?? [];
+			const forkedLocals = (await db.getLocalTurns()).filter(r => r.chatUri === peerUri.toString());
+			assert.deepStrictEqual({
+				// SDK fork boundary redirected from the local turn to its concrete anchor.
+				sdkForkTurnId: receivedFork?.turnId,
+				// New chat seeded with remapped copies of both turns.
+				peerTurnCount: peerTurns.length,
+				// The forked local turn is persisted under the new chat, anchored to
+				// the forked copy of the real turn.
+				forkedLocalCount: forkedLocals.length,
+				forkedLocalAnchor: forkedLocals[0]?.anchorTurnId,
+				anchorIsPeerFirstTurn: forkedLocals[0]?.anchorTurnId === peerTurns[0]?.id,
+			}, {
+				sdkForkTurnId: 'real-1',
+				peerTurnCount: 2,
+				forkedLocalCount: 1,
+				forkedLocalAnchor: peerTurns[0]?.id,
+				anchorIsPeerFirstTurn: true,
+			});
+		});
+
 		test('a peer chat backing session is filtered out of listSessions and stays filtered across a restart', async () => {
 			// Per-session databases so the backing SDK session's marker is
 			// isolated from the parent session's own database.
@@ -2680,12 +2880,14 @@ suite('AgentService (node dispatcher)', () => {
 			}
 
 			override readonly chats: IAgentChats = {
-				createChat: async (session: URI, chat: URI, options?: IAgentCreateChatOptions) => {
-					this.chatCalls.push({ op: 'createChat', args: [session.toString(), chat.toString(), options?.title ?? ''] });
+				createChat: async (chat: URI, options?: IAgentCreateChatOptions) => {
+					const session = parseChatUri(chat)!.session;
+					this.chatCalls.push({ op: 'createChat', args: [session, chat.toString(), options?.title ?? ''] });
 					return { providerData: 'pd' };
 				},
-				fork: async (session: URI, chat: URI, source: IAgentCreateChatForkSource) => {
-					this.chatCalls.push({ op: 'fork', args: [session.toString(), chat.toString(), source.source.toString(), source.turnId] });
+				fork: async (chat: URI, source: IAgentCreateChatForkSource) => {
+					const session = parseChatUri(chat)!.session;
+					this.chatCalls.push({ op: 'fork', args: [session, chat.toString(), source.source.toString(), source.turnId] });
 					return { providerData: 'pd-fork' };
 				},
 				disposeChat: async (chat: URI) => {
@@ -2746,7 +2948,7 @@ suite('AgentService (node dispatcher)', () => {
 			assert.deepStrictEqual(forkCall?.args, [session.toString(), chatUri.toString(), session.toString(), 't1']);
 		});
 
-		test('restore reads the default chat via chats.getMessages on the scope URI', async () => {
+		test('restore reads the default chat via chats.getMessages on the default chat URI', async () => {
 			const agent = disposables.add(new ChatSurfaceAgent('copilot'));
 			service.registerProvider(agent);
 			const { session } = await agent.createSession();
@@ -2755,7 +2957,7 @@ suite('AgentService (node dispatcher)', () => {
 			await service.restoreSession(session);
 
 			const getMessages = agent.chatCalls.filter(c => c.op === 'getMessages').map(c => c.args[0]);
-			assert.deepStrictEqual(getMessages, [session.toString()]);
+			assert.deepStrictEqual(getMessages, [buildDefaultChatUri(session)]);
 		});
 	});
 
@@ -2764,27 +2966,19 @@ suite('AgentService (node dispatcher)', () => {
 	suite('spawn channel routing', () => {
 
 		/**
-		 * An agent that exposes the first-class spawn/end membership channel,
-		 * with test hooks to fire {@link IAgent.onDidSpawnChat} and
-		 * {@link IAgent.onDidEndChat}.
+		 * An agent that exposes the first-class spawn membership channel,
+		 * with a test hook to fire {@link IAgent.onDidSpawnChat}.
 		 */
 		class SpawnChannelAgent extends MockAgent {
 			private readonly _onDidSpawnChat = new Emitter<IAgentSpawnChatEvent>();
 			readonly onDidSpawnChat = this._onDidSpawnChat.event;
-			private readonly _onDidEndChat = new Emitter<URI>();
-			readonly onDidEndChat = this._onDidEndChat.event;
 
 			fireSpawn(e: IAgentSpawnChatEvent): void {
 				this._onDidSpawnChat.fire(e);
 			}
 
-			fireEnd(chat: URI): void {
-				this._onDidEndChat.fire(chat);
-			}
-
 			override dispose(): void {
 				this._onDidSpawnChat.dispose();
-				this._onDidEndChat.dispose();
 				super.dispose();
 			}
 		}
@@ -2833,28 +3027,6 @@ suite('AgentService (node dispatcher)', () => {
 				inCatalog: true,
 			});
 		});
-
-		test('onDidEndChat removes the spawned chat from the catalog', async () => {
-			const agent = disposables.add(new SpawnChannelAgent('copilot'));
-			service.registerProvider(agent);
-			const session = await service.createSession({ provider: 'copilot' });
-
-			const parentChat = URI.parse(buildDefaultChatUri(session.toString()));
-			const spawned = URI.parse(buildChatUri(session, 'spawned-3'));
-			agent.fireSpawn({ session, chat: spawned, parent: { chat: parentChat, toolCallId: 'tc-1' } });
-			assert.ok(service.stateManager.getChatState(spawned.toString()), 'precondition: chat present after spawn');
-
-			agent.fireEnd(spawned);
-
-			const sessionChats = (service.stateManager.getSessionState(session.toString())?.chats ?? []).map(c => c.resource);
-			assert.deepStrictEqual({
-				chatState: service.stateManager.getChatState(spawned.toString()),
-				inCatalog: sessionChats.includes(spawned.toString()),
-			}, {
-				chatState: undefined,
-				inCatalog: false,
-			});
-		});
 	});
 
 	// ---- subagent membership sequencing (DR1: unified spawn channel) ----
@@ -2879,6 +3051,7 @@ suite('AgentService (node dispatcher)', () => {
 			copilotAgent.fireProgress({
 				kind: 'subagent_started', chat: URI.parse(parentChat), toolCallId: 'tc-sub',
 				agentName: 'explore', agentDisplayName: 'Explore', agentDescription: 'Explores',
+				taskDescription: 'Review package.json structure',
 			});
 
 			const subagentUri = buildSubagentChatUri(session.toString(), 'tc-sub');
@@ -2888,13 +3061,65 @@ suite('AgentService (node dispatcher)', () => {
 				catalogEntries: matching.length,
 				title: chatState?.title,
 				origin: chatState?.origin,
+				interactivity: chatState?.interactivity,
 				hasStartedTurn: service.stateManager.getActiveTurnId(subagentUri) !== undefined,
 			}, {
 				catalogEntries: 1,
-				title: 'Explore',
+				// The concise per-task description names the tab (distinct even for
+				// two subagents of the same type), not the agent-type display name.
+				title: 'Review package.json structure',
 				origin: { kind: ChatOriginKind.Tool, chat: parentChat, toolCallId: 'tc-sub' },
+				interactivity: 'read-only',
 				hasStartedTurn: true,
 			});
+		});
+
+		test('the spawned catalog chat is resolvable from the inline pill resource via parseChatUri (the Open-Subagent contract)', async () => {
+			// The inline subagent pill (`ToolResultSubagentContent.resource`) and
+			// the catalog chat are both built from `buildSubagentChatUri`, and the
+			// Agents window resolves the pill to its tab by matching
+			// `parseChatUri(pillResource).chatId` against the catalog chat's
+			// parsed chatId (see `findSubagentChat`/`matchesResource` in
+			// `openSubagentChat.ts`). If the two ever desync, the pill shows the
+			// fallback "Open Subagent" label and clicking it no-ops. Guard the
+			// round-trip so the pill stays resolvable.
+			service.registerProvider(copilotAgent);
+			const session = await service.createSession({ provider: 'copilot' });
+			const parentChat = buildDefaultChatUri(session.toString());
+			startParentTurn(session, 'turn-1');
+
+			copilotAgent.fireProgress({
+				kind: 'subagent_started', chat: URI.parse(parentChat), toolCallId: 'tc-sub',
+				agentName: 'explore', agentDisplayName: 'Explore', agentDescription: 'Explores',
+			});
+
+			// The resource the inline pill carries for this subagent.
+			const pillResource = buildSubagentChatUri(session.toString(), 'tc-sub');
+			const pillChatId = parseChatUri(pillResource)?.chatId;
+			const catalog = service.stateManager.getSessionState(session.toString())?.chats ?? [];
+			const resolvedByPill = catalog.filter(c => parseChatUri(c.resource)?.chatId === pillChatId);
+			assert.deepStrictEqual({
+				pillChatId,
+				resolvedCatalogEntries: resolvedByPill.length,
+			}, {
+				pillChatId: 'subagent/tc-sub',
+				resolvedCatalogEntries: 1,
+			});
+		});
+
+		test('a subagent_started signal without a taskDescription falls back to the agent display name for the tab title', async () => {
+			service.registerProvider(copilotAgent);
+			const session = await service.createSession({ provider: 'copilot' });
+			const parentChat = buildDefaultChatUri(session.toString());
+			startParentTurn(session, 'turn-1');
+
+			copilotAgent.fireProgress({
+				kind: 'subagent_started', chat: URI.parse(parentChat), toolCallId: 'tc-sub',
+				agentName: 'explore', agentDisplayName: 'Explore', agentDescription: 'Explores',
+			});
+
+			const subagentUri = buildSubagentChatUri(session.toString(), 'tc-sub');
+			assert.strictEqual(service.stateManager.getChatState(subagentUri)?.title, 'Explore');
 		});
 
 		test('membership stays a single entry when the agent also mirrors the subagent onto onDidSpawnChat, regardless of order', async () => {
@@ -3055,8 +3280,9 @@ suite('AgentService (node dispatcher)', () => {
 				restoredProviderData: localService.stateManager.getChatProviderData(peerUri.toString()),
 				peerTurnIds: peerChatState?.turns.map(t => t.id) ?? [],
 			}, {
-				// materialize must precede the history read on restore.
-				order: ['materialize', 'getMessages'],
+				// The default chat is read first; peer materialize must precede
+				// the peer history read on restore.
+				order: ['getMessages', 'materialize', 'getMessages'],
 				materializedWith: 'blob-1',
 				inCatalog: true,
 				restoredProviderData: 'blob-1',

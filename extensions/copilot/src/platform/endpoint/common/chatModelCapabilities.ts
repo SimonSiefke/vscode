@@ -38,6 +38,8 @@ const VSC_MODEL_HASHES_D = [
 	'e82ff0e2d4e4bae1f012dc599d520f8d61becfc4762f3717577b270be199db92',
 ];
 
+const VSC_MODEL_HASHES_E: string[] = [];
+
 
 // subset to allow replace string instead of apply patch.
 const VSC_MODEL_HASHES_EDIT_TOOL_SET = [
@@ -215,6 +217,13 @@ export function isVSCModelD(model: LanguageModelChat | IChatEndpoint) {
 	return VSC_MODEL_HASHES_D.includes(ID_hash) || VSC_MODEL_HASHES_D.includes(family_hash);
 }
 
+export function isVSCModelE(model: LanguageModelChat | IChatEndpoint) {
+	const modelId = getModelId(model);
+	const ID_hash = getCachedSha256Hash(modelId);
+	const family_hash = getCachedSha256Hash(model.family);
+	return model.name.startsWith('vscModelE') || model.family.startsWith('vscModelE') || modelId.startsWith('vscModelE') || VSC_MODEL_HASHES_E.includes(ID_hash) || VSC_MODEL_HASHES_E.includes(family_hash);
+}
+
 export function isGpt52CodexFamily(model: LanguageModelChat | IChatEndpoint | string): boolean {
 	const family = typeof model === 'string' ? model : model.family;
 	return family === 'gpt-5.2-codex';
@@ -324,6 +333,15 @@ export function modelCanUseImageURL(model: LanguageModelChat | IChatEndpoint): b
  */
 export function modelSupportsPDFDocuments(model: LanguageModelChat | IChatEndpoint): boolean {
 	return isAnthropicFamily(model) || isGpt5PlusFamily(model) || isGpt56(model);
+}
+
+/**
+ * The model supports explicit prompt cache breakpoints via the OpenAI
+ * Responses API (`prompt_cache_breakpoint`). Scoped to OpenAI (GPT) models
+ * only, since this is an OpenAI-specific Responses API feature.
+ */
+export function modelSupportCacheBreakPoints(model: LanguageModelChat | IChatEndpoint): boolean {
+	return isGpt56(model);
 }
 
 /**
