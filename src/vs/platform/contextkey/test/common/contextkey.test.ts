@@ -78,6 +78,24 @@ suite('ContextKeyExpr', () => {
 		}
 	});
 
+	test('keys are cached and remain consistent across expression operations', () => {
+		const expression = 'a && b || c && d';
+		const expr = ContextKeyExpr.deserialize(expression)!;
+		const firstKeys = expr.keys();
+		const secondKeys = expr.keys();
+		const collectedKeys = new Set<string>();
+
+		expr.collectKeys(collectedKeys);
+
+		assert.strictEqual(firstKeys, secondKeys, 'keys should be cached per expression instance');
+		assert.deepStrictEqual([...firstKeys].sort(), [...collectedKeys].sort());
+		assert.strictEqual(expr.serialize(), 'a && b || c && d');
+		assert.strictEqual(expr.negate().serialize(), '!a && !c || !a && !d || !b && !c || !b && !d');
+		assert.strictEqual(expr.substituteConstants(), expr);
+		assert.ok(expr.equals(ContextKeyExpr.deserialize(expression)!));
+		assert.strictEqual(expr.keys(), firstKeys, 'negate/substitute/equals should not invalidate cached keys');
+	});
+
 	test('issue #134942: Equals in comparator expressions', () => {
 		function testEquals(expr: ContextKeyExpression | undefined, str: string): void {
 			const deserialized = ContextKeyExpr.deserialize(str);
