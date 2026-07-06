@@ -1832,7 +1832,8 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 
 	private _collectVariables(variables: Set<string>, value: string | CommandString): void {
 		const string: string = Types.isString(value) ? value : value.value;
-		const r = new RegExp(regexp1.source, regexp1.flags);
+		const r = regexp1;
+		r.lastIndex = 0;
 		let matches: RegExpExecArray | null;
 		do {
 			matches = r.exec(string);

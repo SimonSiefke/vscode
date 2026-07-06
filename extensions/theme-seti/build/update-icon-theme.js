@@ -349,14 +349,16 @@ exports.update = function () {
 	let match;
 
 	return download(fontMappingsFile).then(function (content) {
-		const regex = new RegExp(regexp9A.source, regexp9A.flags);
+		const regex = regexp9A;
+		regex.lastIndex = 0;
 		const contents = {};
 		while ((match = regex.exec(content)) !== null) {
 			contents[match[1]] = match[2];
 		}
 
 		return download(fileAssociationFile).then(function (content) {
-			const regex2 = new RegExp(regexpIconSetPartial.source, regexpIconSetPartial.flags);
+			const regex2 = regexpIconSetPartial;
+			regex2.lastIndex = 0;
 			while ((match = regex2.exec(content)) !== null) {
 				const pattern = match[1];
 				let def = '_' + match[2];
@@ -447,7 +449,8 @@ exports.update = function () {
 
 
 			return download(colorsFile).then(function (content) {
-				const regex3 = new RegExp(regexp9a.source, regexp9a.flags);
+				const regex3 = regexp9a;
+				regex3.lastIndex = 0;
 				while ((match = regex3.exec(content)) !== null) {
 					colorId2Value[match[1]] = match[2];
 				}

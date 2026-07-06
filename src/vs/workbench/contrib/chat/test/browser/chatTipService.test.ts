@@ -153,7 +153,9 @@ suite('ChatTipService', () => {
 				experimentalTipMessages: new Map(),
 			}).value;
 
-			const commandLinkRegex = new RegExp(regexpCommand.source, regexpCommand.flags);
+			const commandLinkRegex = regexpCommand;
+
+			commandLinkRegex.lastIndex = 0;
 			let match: RegExpExecArray | null;
 			while ((match = commandLinkRegex.exec(markdown)) !== null) {
 				assert.ok(regexp2.test(match[1]), `Expected command link in ${tip.id} to include a descriptive title: ${match[0]}`);

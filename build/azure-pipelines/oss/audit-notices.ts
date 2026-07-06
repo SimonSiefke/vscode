@@ -164,7 +164,8 @@ function collectCargoLockDeps(filePath: string): ManifestPackage[] {
 	const results: ManifestPackage[] = [];
 	try {
 		const content = fs.readFileSync(filePath, 'utf8');
-		const blockRe = new RegExp(regexpPackage.source, regexpPackage.flags);
+		const blockRe = regexpPackage;
+		blockRe.lastIndex = 0;
 		let m: RegExpExecArray | null;
 		while ((m = blockRe.exec(content)) !== null) {
 			const block = m[1];

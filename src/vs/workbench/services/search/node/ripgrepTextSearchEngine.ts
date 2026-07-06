@@ -394,7 +394,8 @@ function bytesOrTextToString(obj: any): string {
 }
 
 function getNumLinesAndLastNewlineLength(text: string): { numLines: number; lastLineLength: number } {
-	const re = new RegExp(regexp4.source, regexp4.flags);
+	const re = regexp4;
+	re.lastIndex = 0;
 	let numLines = 0;
 	let lastNewlineIdx = -1;
 	let match: ReturnType<typeof re.exec>;
@@ -556,7 +557,8 @@ function spreadGlobComponents(globComponent: string): string[] {
 
 export function unicodeEscapesToPCRE2(pattern: string): string {
 	// Match \u1234
-	const unicodePattern = new RegExp(regexpZ0.source, regexpZ0.flags);
+	const unicodePattern = regexpZ0;
+	unicodePattern.lastIndex = 0;
 
 	while (pattern.match(unicodePattern)) {
 		pattern = pattern.replace(unicodePattern, `$1\\x{$2}`);
@@ -564,7 +566,8 @@ export function unicodeEscapesToPCRE2(pattern: string): string {
 
 	// Match \u{1234}
 	// \u with 5-6 characters will be left alone because \x only takes 4 characters.
-	const unicodePatternWithBraces = new RegExp(regexpZ01.source, regexpZ01.flags);
+	const unicodePatternWithBraces = regexpZ01;
+	unicodePatternWithBraces.lastIndex = 0;
 	while (pattern.match(unicodePatternWithBraces)) {
 		pattern = pattern.replace(unicodePatternWithBraces, `$1\\x{$2}`);
 	}

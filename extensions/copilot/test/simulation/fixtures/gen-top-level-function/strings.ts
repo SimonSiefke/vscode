@@ -531,7 +531,9 @@ export function lcut(text: string, n: number) {
 		return text;
 	}
 
-	const re = new RegExp(regexp10.source, regexp10.flags);
+	const re = regexp10;
+
+	re.lastIndex = 0;
 	let i = 0;
 	while (re.test(text)) {
 		if (text.length - re.lastIndex < n) {

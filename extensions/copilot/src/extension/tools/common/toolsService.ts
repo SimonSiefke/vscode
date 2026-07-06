@@ -158,7 +158,8 @@ const MAX_FLATTENED_ARRAY_INDEX = 1000;
  */
 function parseFlattenedPath(key: string): (string | number)[] | undefined {
 	const segments: (string | number)[] = [];
-	const re = new RegExp(regexp1.source, regexp1.flags);
+	const re = regexp1;
+	re.lastIndex = 0;
 	let lastIndex = 0;
 	let match: RegExpExecArray | null;
 	while ((match = re.exec(key)) !== null) {

@@ -106,7 +106,7 @@ function testLineStarts(str: string, pieceTable: PieceTreeBase) {
 	const lineStarts = [0];
 
 	// Reset regex to search from the beginning
-	const _regex = new RegExp(new RegExp(regexp1.source, regexp1.flags));
+	const _regex = regexp1;
 	_regex.lastIndex = 0;
 	let prevMatchStartIndex = -1;
 	let prevMatchLength = 0;

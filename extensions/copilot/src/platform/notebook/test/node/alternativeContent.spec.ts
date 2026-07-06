@@ -1098,9 +1098,9 @@ function assertDocumentsAreEqual(notebook: NotebookDocument, data: NotebookData,
  */
 function normatlizeContent(content: string) {
 	return content.
-		replace(new RegExp(regexpId1.source, regexpId1.flags), 'id=""'). // xml id
-		replace(new RegExp(regexpId3.source, regexpId3.flags), 'id='). // jupytext id
-		replace(new RegExp(regexpId2.source, regexpId2.flags), '"id": ""'). // json id
-		replace(new RegExp(regexp5.source, regexp5.flags), '\n'). // windows/unix newlines
+		replace(regexpId1, 'id=""'). // xml id
+		replace(regexpId3, 'id='). // jupytext id
+		replace(regexpId2, '"id": ""'). // json id
+		replace(regexp5, '\n'). // windows/unix newlines
 		trim();
 }

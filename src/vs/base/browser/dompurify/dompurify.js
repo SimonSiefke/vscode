@@ -1208,7 +1208,7 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
     /* Detect mXSS attempts abusing namespace confusion */
-    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(new RegExp(regexp3.source, regexp3.flags), currentNode.innerHTML) && regExpTest(new RegExp(regexp3.source, regexp3.flags), currentNode.textContent)) {
+    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(regexp3, currentNode.innerHTML) && regExpTest(regexp3, currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1223,7 +1223,7 @@ function createDOMPurify() {
       return true;
     }
     /* Remove any kind of possibly harmful comments */
-    if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(new RegExp(regexp4.source, regexp4.flags), currentNode.data)) {
+    if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(regexp4, currentNode.data)) {
       _forceRemove(currentNode);
       return true;
     }

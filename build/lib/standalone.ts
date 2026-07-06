@@ -75,7 +75,7 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 			let fileContents = result[fileName];
 			// Replace .ts? with .js? in new URL() patterns
 			fileContents = fileContents.replace(
-				new RegExp(regexpNewURLTs.source, regexpNewURLTs.flags),
+				regexpNewURLTs,
 				'$1.js$2'
 			);
 			const relativePath = path.relative(options.sourcesRoot, fileName);

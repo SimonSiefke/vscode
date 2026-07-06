@@ -301,7 +301,8 @@ export class StringEdit extends BaseStringEdit<StringReplacement, StringEdit> {
 	*/
 	public static parse(toStringValue: string): StringEdit {
 		const replacements: StringReplacement[] = [];
-		const regex = new RegExp(regexp2.source, regexp2.flags);
+		const regex = regexp2;
+		regex.lastIndex = 0;
 		let match;
 
 		while ((match = regex.exec(toStringValue)) !== null) {

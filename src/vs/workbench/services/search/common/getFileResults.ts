@@ -50,7 +50,8 @@ export const getFileResults = (
 
 		let prevLineEnd = 0;
 		let lineEndingMatch: RegExpExecArray | null = null;
-		const lineEndRegex = new RegExp(regexp1.source, regexp1.flags);
+		const lineEndRegex = regexp1;
+		lineEndRegex.lastIndex = 0;
 		while ((lineEndingMatch = lineEndRegex.exec(text))) {
 			lineRanges.push({ start: prevLineEnd, end: lineEndingMatch.index });
 			prevLineEnd = lineEndingMatch.index + lineEndingMatch[0].length;

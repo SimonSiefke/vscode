@@ -2598,7 +2598,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		// extension. Each atom uses [^\s/\\]* so it cannot consume separators,
 		// which keeps the [/\\] tokens unambiguous and prevents catastrophic
 		// backtracking on long strings.
-		const pathPattern = new RegExp(regexpPngJpeGif.source, regexpPngJpeGif.flags);
+		const pathPattern = regexpPngJpeGif;
 
 		const matches = new Set<string>();
 		for (const line of output.split(regexp4)) {

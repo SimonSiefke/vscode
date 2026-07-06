@@ -353,7 +353,8 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 
 	private static _parseReplyAsList(reply: string) {
 		// try extracting from an ordered or unordered list
-		const listLineRe = new RegExp(regexp2.source, regexp2.flags);
+		const listLineRe = regexp2;
+		listLineRe.lastIndex = 0;
 		const matches = reply.matchAll(listLineRe);
 
 		const symbolNames: string[] = [];

@@ -161,7 +161,8 @@ class FolderDetector {
 					if (line.length === 0) {
 						continue;
 					}
-					const regExp = new RegExp(regexpJake.source, regexpJake.flags);
+					const regExp = regexpJake;
+					regExp.lastIndex = 0;
 					const matches = regExp.exec(line);
 					if (matches && matches.length === 2) {
 						const taskName = matches[1];

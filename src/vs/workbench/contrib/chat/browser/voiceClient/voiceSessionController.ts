@@ -1844,7 +1844,8 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			return '';
 		}
 		const sentences: string[] = [];
-		const re = new RegExp(regexp3.source, regexp3.flags);
+		const re = regexp3;
+		re.lastIndex = 0;
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(collapsed)) !== null && sentences.length < n) {
 			sentences.push(m[0].trim());

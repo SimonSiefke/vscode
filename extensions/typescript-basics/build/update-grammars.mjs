@@ -5,18 +5,18 @@
 // @ts-check
 
 import { update } from 'vscode-grammar-updater';
-const regexpHTMLElementATTRIBUTENODE = /\b(HTMLElement|ATTRIBUTE_NODE|stopImmediatePropagation)\b/g;
-const regexpBJSON = /\bJSON\b/g;
-const regexpBMath = /\bMath\b/g;
+const regexpHTMLElementATTRIBUTENODE = /\b(HTMLElement|ATTRIBUTE_NODE|stopImmediatePropagation)\b/;
+const regexpBJSON = /\bJSON\b/;
+const regexpBMath = /\bMath\b/;
 const regexpTsx = /\.tsx/g;
 
 
 function removeDom(grammar) {
 	grammar.repository['support-objects'].patterns = grammar.repository['support-objects'].patterns.filter(pattern => {
 		if (pattern.match && (
-			new RegExp(regexpHTMLElementATTRIBUTENODE.source, regexpHTMLElementATTRIBUTENODE.flags).test(pattern.match)
-			|| new RegExp(regexpBJSON.source, regexpBJSON.flags).test(pattern.match)
-			|| new RegExp(regexpBMath.source, regexpBMath.flags).test(pattern.match)
+				regexpHTMLElementATTRIBUTENODE.test(pattern.match)
+				|| regexpBJSON.test(pattern.match)
+				|| regexpBMath.test(pattern.match)
 		)) {
 			return false;
 		}

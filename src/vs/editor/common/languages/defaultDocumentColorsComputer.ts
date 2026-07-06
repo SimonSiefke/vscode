@@ -108,7 +108,8 @@ function _findMatches(model: IDocumentColorComputerTarget | string, regex: RegEx
 function computeColors(model: IDocumentColorComputerTarget): IColorInformation[] {
 	const result: IColorInformation[] = [];
 	// Early validation for RGB and HSL (including CSS Level 4 syntax with / separator)
-	const initialValidationRegex = new RegExp(regexpRgbRgbaHsl.source, regexpRgbRgbaHsl.flags);
+	const initialValidationRegex = regexpRgbRgbaHsl;
+	initialValidationRegex.lastIndex = 0;
 	const initialValidationMatches = _findMatches(model, initialValidationRegex);
 
 	// Potential colors have been found, validate the parameters
@@ -123,18 +124,22 @@ function computeColors(model: IDocumentColorComputerTarget): IColorInformation[]
 			let colorInformation;
 			if (colorScheme === 'rgb') {
 				// Supports both comma-separated (rgb(255, 0, 0)) and CSS Level 4 space-separated syntax (rgb(255 0 0))
-				const regexParameters = new RegExp(regexp6.source, regexp6.flags);
+				const regexParameters = regexp6;
+				regexParameters.lastIndex = 0;
 				colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
 			} else if (colorScheme === 'rgba') {
 				// Supports both comma-separated (rgba(255, 0, 0, 0.5)) and CSS Level 4 syntax (rgba(255 0 0 / 0.5))
-				const regexParameters = new RegExp(regexp5.source, regexp5.flags);
+				const regexParameters = regexp5;
+				regexParameters.lastIndex = 0;
 				colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
 			} else if (colorScheme === 'hsl') {
-				const regexParameters = new RegExp(regexp4.source, regexp4.flags);
+				const regexParameters = regexp4;
+				regexParameters.lastIndex = 0;
 				colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
 			} else if (colorScheme === 'hsla') {
 				// Supports both comma-separated (hsla(253, 100%, 50%, 0.5)) and CSS Level 4 syntax (hsla(253 100% 50% / 0.5))
-				const regexParameters = new RegExp(regexp3.source, regexp3.flags);
+				const regexParameters = regexp3;
+				regexParameters.lastIndex = 0;
 				colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
 			} else if (colorScheme === '#') {
 				colorInformation = _findHexColorInformation(_findRange(model, initialMatch), colorScheme + colorParameters);

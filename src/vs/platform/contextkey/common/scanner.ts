@@ -301,7 +301,7 @@ export class Scanner {
 	}
 
 	// u - unicode, y - sticky // TODO@ulugbekna: we accept double quotes as part of the string rather than as a delimiter (to preserve old parser's behavior)
-	private stringRe = new RegExp(regexpZAZ0.source, regexpZAZ0.flags);
+	private stringRe = regexpZAZ0;
 	private _string() {
 		this.stringRe.lastIndex = this._start;
 		const match = this.stringRe.exec(this._input);

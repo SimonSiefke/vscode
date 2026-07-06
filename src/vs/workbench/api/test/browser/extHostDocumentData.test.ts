@@ -354,7 +354,9 @@ suite('ExtHostDocumentData', () => {
 
 	test('Rename popup sometimes populates with text on the left side omitted #96013', function () {
 
-		const regex = new RegExp(regexp7.source, regexp7.flags);
+		const regex = regexp7;
+
+		regex.lastIndex = 0;
 		const line = 'int abcdefhijklmnopqwvrstxyz;';
 
 		data = new ExtHostDocumentData(undefined!, URI.file(''), [

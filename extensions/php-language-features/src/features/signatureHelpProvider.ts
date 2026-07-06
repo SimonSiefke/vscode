@@ -95,7 +95,9 @@ export default class PHPSignatureHelpProvider implements SignatureHelpProvider {
 		const paramsString = entry.signature.substring(0, entry.signature.lastIndexOf(')') + 1);
 		const signatureInfo = new SignatureInformation(ident + paramsString, entry.description);
 
-		const re = new RegExp(regexpVoid.source, regexpVoid.flags);
+		const re = regexpVoid;
+
+		re.lastIndex = 0;
 		let match: RegExpExecArray | null = null;
 		while ((match = re.exec(paramsString)) !== null) {
 			signatureInfo.parameters.push({ label: match[0], documentation: '' });

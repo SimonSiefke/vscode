@@ -328,7 +328,8 @@ function replaceInOutput(
 	const pending: PendingEdit[] = [];
 
 	if (preserveEnglish) {
-		const re = new RegExp(regexpNLS21.source, regexpNLS21.flags);
+		const re = regexpNLS21;
+		re.lastIndex = 0;
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(content)) !== null) {
 			const inner = m[1];
@@ -344,7 +345,8 @@ function replaceInOutput(
 		}
 	} else {
 		// NLS (localize): replace placeholder with index AND replace message with null
-		const reNLS = new RegExp(regexpNLS.source, regexpNLS.flags);
+		const reNLS = regexpNLS;
+		reNLS.lastIndex = 0;
 		let m: RegExpExecArray | null;
 		while ((m = reNLS.exec(content)) !== null) {
 			const inner = m[1];
@@ -357,7 +359,8 @@ function replaceInOutput(
 		}
 
 		// NLS2 (localize2): replace only key, keep message
-		const reNLS2 = new RegExp(regexpNLS2.source, regexpNLS2.flags);
+		const reNLS2 = regexpNLS2;
+		reNLS2.lastIndex = 0;
 		while ((m = reNLS2.exec(content)) !== null) {
 			const inner = m[1];
 			const placeholder = `%%NLS2:${inner}%%`;

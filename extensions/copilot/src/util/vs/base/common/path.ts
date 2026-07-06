@@ -1141,7 +1141,8 @@ const posixCwd = (() => {
 	if (platformIsWin32) {
 		// Converts Windows' backslash path separators to POSIX forward slashes
 		// and truncates any drive indicator
-		const regexp = new RegExp(regexp2.source, regexp2.flags);
+		const regexp = regexp2;
+		regexp.lastIndex = 0;
 		return () => {
 			const cwd = process.cwd().replace(regexp, '/');
 			return cwd.slice(cwd.indexOf('/'));

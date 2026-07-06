@@ -300,7 +300,7 @@ export class Parser {
 				// ------------------------------------------------------------------
 				const canonLocal = (s: string): string =>
 					s.normalize('NFC').replace(
-						new RegExp(regexp1.source, regexp1.flags),
+						regexp1,
 						(c) =>
 							(
 								({

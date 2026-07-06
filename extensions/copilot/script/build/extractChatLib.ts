@@ -223,7 +223,8 @@ class ChatLibExtractor {
 		// - export ... from './path'
 		// - export { ... } from './path'
 		// Updated regex to match all relative imports (including multiple ../ segments)
-		const relativeImportRegex = new RegExp(regexpImportTypeExport.source, regexpImportTypeExport.flags);
+		const relativeImportRegex = regexpImportTypeExport;
+		relativeImportRegex.lastIndex = 0;
 		let match;
 
 		while ((match = relativeImportRegex.exec(activeContent)) !== null) {
@@ -237,7 +238,8 @@ class ChatLibExtractor {
 
 		// Also match path alias imports like: import ... from '#lib/...' or '#types'
 		// We need to resolve these to follow their dependencies
-		const aliasImportRegex = new RegExp(regexpImportTypeExport1.source, regexpImportTypeExport1.flags);
+		const aliasImportRegex = regexpImportTypeExport1;
+		aliasImportRegex.lastIndex = 0;
 
 		while ((match = aliasImportRegex.exec(activeContent)) !== null) {
 			const importPath = match[1];
@@ -250,7 +252,8 @@ class ChatLibExtractor {
 
 		// For tsx files process JSX imports as well
 		if (filePath.endsWith('.tsx')) {
-			const jsxRelativeImportRegex = new RegExp(regexpJsxImportSource1.source, regexpJsxImportSource1.flags);
+			const jsxRelativeImportRegex = regexpJsxImportSource1;
+			jsxRelativeImportRegex.lastIndex = 0;
 
 			while ((match = jsxRelativeImportRegex.exec(activeContent)) !== null) {
 				const importPath = match[1];
@@ -433,7 +436,7 @@ class ChatLibExtractor {
 		// Rewrite imports in test files: '../../node/chatLibMain' -> '../../../../main'
 		if (normalizedFilePath.startsWith('src/lib/vscode-node/test/')) {
 			transformed = transformed.replace(
-				new RegExp(regexpFromNodeChatLibMain.source, regexpFromNodeChatLibMain.flags),
+				regexpFromNodeChatLibMain,
 				'$1../../../../main$2'
 			);
 		}
@@ -441,7 +444,7 @@ class ChatLibExtractor {
 		// Only rewrite relative imports for main.ts (chatLibMain.ts)
 		if (normalizedFilePath === 'src/lib/node/chatLibMain.ts') {
 			transformed = transformed.replace(
-				new RegExp(regexpImportFrom.source, regexpImportFrom.flags),
+				regexpImportFrom,
 				(match, importClause, importPath) => {
 					const rewrittenPath = this.rewriteImportPath(filePath, importPath);
 					return `import ${importClause} from '${rewrittenPath}'`;
@@ -466,7 +469,8 @@ class ChatLibExtractor {
 		// But NOT type-only imports like:
 		// - import type { Uri } from 'vscode'
 		// - import type * as vscode from 'vscode'
-		const vscodeImportRegex = new RegExp(regexpImportTypeFrom.source, regexpImportTypeFrom.flags);
+		const vscodeImportRegex = regexpImportTypeFrom;
+		vscodeImportRegex.lastIndex = 0;
 
 		return content.replace(vscodeImportRegex, (match, importPrefix, importClause) => {
 			// Calculate the relative path to vscodeTypesShim based on the current file location
@@ -492,7 +496,8 @@ class ChatLibExtractor {
 		// - import * as vscodeTypes from '../../../vscodeTypes'
 		// But NOT type-only imports like:
 		// - import type { ChatErrorLevel } from '../../../vscodeTypes'
-		const vscodeTypesImportRegex = new RegExp(regexpImportTypeFrom1.source, regexpImportTypeFrom1.flags);
+		const vscodeTypesImportRegex = regexpImportTypeFrom1;
+		vscodeTypesImportRegex.lastIndex = 0;
 
 		return content.replace(vscodeTypesImportRegex, (match, importPrefix, importClause, importPath) => {
 			// Calculate the relative path to vscodeTypesShim based on the current file location
@@ -667,7 +672,8 @@ class ChatLibExtractor {
 		const content = await fs.promises.readFile(vscodeApiSrcPath, 'utf-8');
 
 		// Parse all /// <reference path="..." /> directives
-		const refRegex = new RegExp(regexpReferencePath.source, regexpReferencePath.flags);
+		const refRegex = regexpReferencePath;
+		refRegex.lastIndex = 0;
 		let match;
 		const referencedFiles: { refPath: string; fileName: string }[] = [];
 
@@ -695,7 +701,7 @@ class ChatLibExtractor {
 
 		// Copy vscode-api.d.ts itself, updating reference paths
 		const updatedContent = content.replace(
-			new RegExp(regexpReferencePath.source, regexpReferencePath.flags),
+			regexpReferencePath,
 			(_match, refPath: string) => {
 				const fileName = path.basename(refPath);
 				return `/// <reference path="./vscode-dts/${fileName}" />`;

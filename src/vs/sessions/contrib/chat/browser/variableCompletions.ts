@@ -350,7 +350,8 @@ export class VariableCompletionHandler extends Disposable {
 		const value = model?.getValue() ?? '';
 
 		const decos: IModelDeltaDecoration[] = [];
-		const regex = new RegExp(regexpFile.source, regexpFile.flags);
+		const regex = regexpFile;
+		regex.lastIndex = 0;
 		let match: RegExpExecArray | null;
 
 		while ((match = regex.exec(value)) !== null) {

@@ -249,7 +249,8 @@ export function parseReviewComments(request: ReviewRequest, input: CurrentChange
 }
 
 export function parseFeedbackResponse(response: string, dropPartial = false) {
-	const regex = new RegExp(regexpNumLineFrom.source, regexpNumLineFrom.flags);
+	const regex = regexpNumLineFrom;
+	regex.lastIndex = 0;
 	return coalesce(Array.from(response.matchAll(regex), match => {
 		const groups = match.groups!;
 		if (dropPartial && typeof groups.earlyEnd === 'string') {

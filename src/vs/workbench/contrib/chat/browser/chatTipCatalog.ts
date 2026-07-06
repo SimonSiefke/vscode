@@ -84,7 +84,8 @@ function formatKeybinding(ctx: ITipBuildContext, commandId: string): string {
  * Used to automatically populate enabledCommands for trusted markdown.
  */
 export function extractCommandIds(markdown: string): string[] {
-	const commandPattern = new RegExp(regexpCommand.source, regexpCommand.flags);
+	const commandPattern = regexpCommand;
+	commandPattern.lastIndex = 0;
 	const commands = new Set<string>();
 	let match;
 	while ((match = commandPattern.exec(markdown)) !== null) {

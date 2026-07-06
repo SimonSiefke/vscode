@@ -1227,7 +1227,8 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 		}
 		const value = typeof message === 'string' ? message : message.value;
 		// Match empty-text markdown links: [](uri) or [ ](uri), capturing the uri
-		const linkPattern = new RegExp(regexpUri.source, regexpUri.flags);
+		const linkPattern = regexpUri;
+		linkPattern.lastIndex = 0;
 		let match: RegExpExecArray | null;
 		while ((match = linkPattern.exec(value)) !== null) {
 			try {

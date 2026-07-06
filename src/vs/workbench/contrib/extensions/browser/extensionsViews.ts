@@ -76,9 +76,9 @@ const regexpDeprecated1 = /@deprecated/g;
 const regexpRecentlyUpdated1 = /@recentlyUpdated/g;
 const regexpRestartrequired1 = /@restartrequired/gi;
 const regexpContribute1 = /@contribute:/g;
-const regexpBext = /\bext:([^\s]+)\b/g;
-const regexpCategoryTag = /\b(category|tag):([^\s]+)\b/gi;
-const regexpBfeatured = /\bfeatured(\s+|\b|$)/gi;
+const regexpBext = /\bext:([^\s]+)\b/;
+const regexpCategoryTag = /\b(category|tag):([^\s]+)\b/i;
+const regexpBfeatured = /\bfeatured(\s+|\b|$)/i;
 const regexpRecommendedAll = /@recommended:all/i;
 const regexpRecommendedKeymaps = /@recommended:keymaps/g;
 const regexpRecommendedLanguages = /@recommended:languages/g;
@@ -343,7 +343,8 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async query(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IQueryResult> {
-		const idRegex = new RegExp(regexpIdZ09A.source, regexpIdZ09A.flags);
+		const idRegex = regexpIdZ09A;
+		idRegex.lastIndex = 0;
 		const ids: string[] = [];
 		let idMatch;
 		while ((idMatch = idRegex.exec(query.value)) !== null) {
@@ -807,7 +808,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}
 
-		if (new RegExp(regexpBext.source, regexpBext.flags).test(text)) {
+		if (regexpBext.test(text)) {
 			options.text = text;
 			options.source = 'file-extension-tags';
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
@@ -817,7 +818,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		options.text = text.substring(0, 350);
 		options.source = 'searchText';
 
-		if (hasUserDefinedSortOrder || new RegExp(regexpCategoryTag.source, regexpCategoryTag.flags).test(text) || new RegExp(regexpBfeatured.source, regexpBfeatured.flags).test(text)) {
+		if (hasUserDefinedSortOrder || regexpCategoryTag.test(text) || regexpBfeatured.test(text)) {
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}

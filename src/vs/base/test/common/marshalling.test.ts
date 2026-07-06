@@ -14,7 +14,8 @@ suite('Marshalling', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('RegExp', () => {
-		const value = new RegExp(regexpFoo.source, regexpFoo.flags);
+		const value = regexpFoo;
+		value.lastIndex = 0;
 		const raw = stringify(value);
 		const clone = <RegExp>parse(raw);
 

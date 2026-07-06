@@ -51,7 +51,9 @@ export function getVersion(repo: string): string | undefined {
 		return undefined;
 	}
 
-	const refsRegex = new RegExp(regexp9a1.source, regexp9a1.flags);
+	const refsRegex = regexp9a1;
+
+	refsRegex.lastIndex = 0;
 	let refsMatch: RegExpExecArray | null;
 	const refs: { [ref: string]: string } = {};
 

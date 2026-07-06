@@ -23,7 +23,8 @@ export function cleanupText(text: string): string {
 
 	// Remove backspace sequences (like a\bb which tries to print a, move back, print b)
 	// This regex looks for a character followed by a backspace and another character
-	const backspaceRegex = new RegExp(regexp2.source, regexp2.flags);
+	const backspaceRegex = regexp2;
+	backspaceRegex.lastIndex = 0;
 	while (backspaceRegex.test(cleanedText)) {
 		cleanedText = cleanedText.replace(backspaceRegex, match => match.charAt(2));
 	}

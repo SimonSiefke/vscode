@@ -981,7 +981,8 @@ function sanitizeData(data: string): string {
 
 	// Strip escape sequences so conpty doesn't cause flakiness, do for all platforms for
 	// consistency
-	const CSI_SEQUENCE = new RegExp(regexpZA.source, regexpZA.flags);
+	const CSI_SEQUENCE = regexpZA;
+	CSI_SEQUENCE.lastIndex = 0;
 	data = data.replace(CSI_SEQUENCE, '');
 
 	return data;

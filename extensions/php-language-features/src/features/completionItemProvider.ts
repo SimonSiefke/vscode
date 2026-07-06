@@ -93,7 +93,8 @@ export default class PHPCompletionItemProvider implements CompletionItemProvider
 
 		const text = document.getText();
 		if (prefix[0] === '$') {
-			const variableMatch = new RegExp(regexpZAZAZ0.source, regexpZAZAZ0.flags);
+			const variableMatch = regexpZAZAZ0;
+			variableMatch.lastIndex = 0;
 			let match: RegExpExecArray | null = null;
 			while (match = variableMatch.exec(text)) {
 				const word = match[0];
@@ -103,7 +104,8 @@ export default class PHPCompletionItemProvider implements CompletionItemProvider
 				}
 			}
 		}
-		const functionMatch = new RegExp(regexpFunctionZAZA.source, regexpFunctionZAZA.flags);
+		const functionMatch = regexpFunctionZAZA;
+		functionMatch.lastIndex = 0;
 		let match2: RegExpExecArray | null = null;
 		while (match2 = functionMatch.exec(text)) {
 			const word2 = match2[1];

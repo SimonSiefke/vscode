@@ -83,7 +83,7 @@ function deserializeOscMessage(message: string): string {
 		return message;
 	}
 	return message.replaceAll(
-		new RegExp(regexp9a.source, regexp9a.flags),
+		regexp9a,
 		(_match: string, op: string, hex?: string) => hex ? String.fromCharCode(parseInt(hex, 16)) : op,
 	);
 }

@@ -247,7 +247,8 @@ async function parseTextContentTokens(
 	let accountedTokens = 0;
 
 	// Find all XML tags in the text
-	const allTagsRegex = new RegExp(regexpZA.source, regexpZA.flags);
+	const allTagsRegex = regexpZA;
+	allTagsRegex.lastIndex = 0;
 	let tagMatch;
 	const processedRanges: Array<{ start: number; end: number }> = [];
 

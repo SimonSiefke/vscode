@@ -27,7 +27,7 @@ import { isEqual } from '../../../../base/common/resources.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { DEFINE_KEYBINDING_EDITOR_CONTRIB_ID, IDefineKeybindingEditorContribution } from '../../../services/preferences/common/preferences.js';
 import { IEditorDecorationsCollection } from '../../../../editor/common/editorCommon.js';
-const regexp1 = /\\/g;
+const regexp1 = /\\/;
 const regexpAbntOem = /abnt_|oem_/;
 
 
@@ -67,8 +67,7 @@ class DefineKeybindingEditorContribution extends Disposable implements IDefineKe
 	private _onAccepted(keybinding: string | null): void {
 		this._editor.focus();
 		if (keybinding && this._editor.hasModel()) {
-			const regexp = new RegExp(new RegExp(regexp1.source, regexp1.flags));
-			const backslash = regexp.test(keybinding);
+			const backslash = regexp1.test(keybinding);
 			if (backslash) {
 				keybinding = keybinding.slice(0, -1) + '\\\\';
 			}

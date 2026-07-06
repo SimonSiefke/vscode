@@ -750,7 +750,9 @@ export function lcut(text: string, n: number, prefix = '') {
 		return trimmed;
 	}
 
-	const re = new RegExp(regexp10.source, regexp10.flags);
+	const re = regexp10;
+
+	re.lastIndex = 0;
 	let i = 0;
 	while (re.test(trimmed)) {
 		if (trimmed.length - re.lastIndex < n) {

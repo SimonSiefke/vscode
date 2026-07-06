@@ -9,7 +9,7 @@ import type * as Proto from '../tsServer/protocol/protocol';
 import * as typeConverters from '../typeConverters';
 import { ITypeScriptServiceClient } from '../typescriptService';
 import { coalesce } from '../utils/arrays';
-const regexpEndregion = /\/\/\s*#endregion/gi;
+const regexpEndregion = /\/\/\s*#endregion/i;
 
 
 class TypeScriptFoldingProvider implements vscode.FoldingRangeProvider {
@@ -47,7 +47,7 @@ class TypeScriptFoldingProvider implements vscode.FoldingRangeProvider {
 		// Workaround for #49904
 		if (span.kind === 'comment') {
 			const line = document.lineAt(range.start.line).text;
-			if (new RegExp(regexpEndregion.source, regexpEndregion.flags).test(line)) {
+			if (regexpEndregion.test(line)) {
 				return undefined;
 			}
 		}

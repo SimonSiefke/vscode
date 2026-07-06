@@ -90,7 +90,8 @@ export class TypeScriptServerError extends Error {
 		if (!message) {
 			return '';
 		}
-		const regex = new RegExp(regexpBtsserverTsTsx.source, regexpBtsserverTsTsx.flags);
+		const regex = regexpBtsserverTsTsx;
+		regex.lastIndex = 0;
 		let serverStack = '';
 		while (true) {
 			const match = regex.exec(message);

@@ -157,7 +157,8 @@ async function runInExtensionHost() {
 	// Hook for the js-debug bootloader, which is not automatically executed in the extension host
 	if (nodeOptions) {
 		// NODE_OPTIONS is a CLI argument fragment that we need to parse here
-		const regex = new RegExp(regexp1.source, regexp1.flags);
+		const regex = regexp1;
+		regex.lastIndex = 0;
 		const parsed = minimist(Array.from(nodeOptions.matchAll(regex), match => {
 			let arg = match[0];
 			// Remove surrounding quotes and unescape internal quotes if necessary

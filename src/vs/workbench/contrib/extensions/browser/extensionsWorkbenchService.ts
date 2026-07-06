@@ -1654,7 +1654,9 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	private resolveQueryText(text: string): string {
 		text = text.replace(regexpWeb, `tag:"${WEB_EXTENSION_TAG}"`);
 
-		const extensionRegex = new RegExp(regexpBext.source, regexpBext.flags);
+		const extensionRegex = regexpBext;
+
+		extensionRegex.lastIndex = 0;
 		if (extensionRegex.test(text)) {
 			text = text.replace(extensionRegex, (m, ext) => {
 

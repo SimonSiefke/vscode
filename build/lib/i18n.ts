@@ -322,7 +322,8 @@ function stripComments(content: string): string {
 	// Third group matches a multi line comment
 	// Forth group matches a single line comment
 	// Fifth group matches a trailing comma
-	const regexp = new RegExp(regexp2.source, regexp2.flags);
+	const regexp = regexp2;
+	regexp.lastIndex = 0;
 	const result = content.replace(regexp, (match, _m1: string, _m2: string, m3: string, m4: string, m5: string) => {
 		// Only one of m1, m2, m3, m4, m5 matches
 		if (m3) {

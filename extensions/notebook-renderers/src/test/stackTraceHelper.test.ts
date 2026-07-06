@@ -25,7 +25,9 @@ suite('StackTraceHelper', () => {
 		assert.equal(formatStackTrace(stack, true).formattedStack, stack);
 	});
 
-	const formatSequence = new RegExp(regexp1.source, regexp1.flags);
+	const formatSequence = regexp1;
+
+	formatSequence.lastIndex = 0;
 	function stripAsciiFormatting(text: string) {
 		return text.replace(formatSequence, '');
 	}

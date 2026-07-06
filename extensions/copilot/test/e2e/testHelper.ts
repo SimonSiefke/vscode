@@ -62,7 +62,8 @@ export function createWorkingSetFileVariable(uri: Uri) {
 }
 
 export function parseQueryForTest(accessor: ITestingServicesAccessor, query: string, simulationWorkspace: SimulationWorkspace): IParsedQuery {
-	const variableReg = new RegExp(regexp1.source, regexp1.flags);
+	const variableReg = regexp1;
+	variableReg.lastIndex = 0;
 
 	const toolsService = accessor.get(IToolsService);
 

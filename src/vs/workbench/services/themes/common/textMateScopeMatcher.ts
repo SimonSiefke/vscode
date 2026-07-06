@@ -122,7 +122,8 @@ function isIdentifier(token: string | null): token is string {
 }
 
 function newTokenizer(input: string): { next: () => string | null } {
-	const regex = new RegExp(regexpLR.source, regexpLR.flags);
+	const regex = regexpLR;
+	regex.lastIndex = 0;
 	let match = regex.exec(input);
 	return {
 		next: () => {

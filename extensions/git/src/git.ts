@@ -1307,7 +1307,8 @@ export interface BlameInformation {
 
 function parseGitBlame(data: string): BlameInformation[] {
 	const lineSeparator = regexp32;
-	const commitRegex = new RegExp(regexp9a.source, regexp9a.flags);
+	const commitRegex = regexp9a;
+	commitRegex.lastIndex = 0;
 
 	const blameInformation = new Map<string, BlameInformation>();
 
@@ -1367,7 +1368,8 @@ const REFS_FORMAT = '%(refname)%00%(objectname)%00%(*objectname)';
 const REFS_WITH_DETAILS_FORMAT = `${REFS_FORMAT}%00%(parent)%00%(*parent)%00%(authorname)%00%(*authorname)%00%(committerdate:unix)%00%(*committerdate:unix)%00%(subject)%00%(*subject)`;
 
 function parseRefs(data: string): (Ref | Branch)[] {
-	const refRegex = new RegExp(regexpRefs9a9a.source, regexpRefs9a9a.flags);
+	const refRegex = regexpRefs9a9a;
+	refRegex.lastIndex = 0;
 
 	const headRegex = regexpRefsHeads;
 	const remoteHeadRegex = regexpRefsRemotes;

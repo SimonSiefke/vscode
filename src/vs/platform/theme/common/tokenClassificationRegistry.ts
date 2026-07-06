@@ -112,7 +112,8 @@ export namespace TokenStyle {
 		}
 		if (fontStyle !== undefined) {
 			bold = italic = underline = strikethrough = false;
-			const expression = new RegExp(regexpItalicBoldUnderline.source, regexpItalicBoldUnderline.flags);
+			const expression = regexpItalicBoldUnderline;
+			expression.lastIndex = 0;
 			let match;
 			while ((match = expression.exec(fontStyle))) {
 				switch (match[0]) {

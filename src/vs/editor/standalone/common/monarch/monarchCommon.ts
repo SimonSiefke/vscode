@@ -156,7 +156,8 @@ export function createError(lexer: ILexerMin, msg: string): Error {
  * See documentation for more info
  */
 export function substituteMatches(lexer: ILexerMin, str: string, id: string, matches: string[], state: string): string {
-	const re = new RegExp(regexpSS.source, regexpSS.flags);
+	const re = regexpSS;
+	re.lastIndex = 0;
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, sub?, dollar?, hash?, n?, s?, attr?, ofs?, total?) {
 		if (!empty(dollar)) {
@@ -188,7 +189,8 @@ export function substituteMatches(lexer: ILexerMin, str: string, id: string, mat
  *
  */
 export function substituteMatchesRe(lexer: ILexerMin, str: string, state: string): string {
-	const re = new RegExp(regexpSS1.source, regexpSS1.flags);
+	const re = regexpSS1;
+	re.lastIndex = 0;
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, s) {
 		if (stateMatches === null) { // split state on demand

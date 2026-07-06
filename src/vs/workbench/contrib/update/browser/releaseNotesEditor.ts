@@ -646,7 +646,7 @@ export class ReleaseNotesManager extends Disposable {
  */
 export function processConditionalBlocks(text: string, activeConditions: ReadonlySet<string>): string {
 	return text.replace(
-		new RegExp(regexpIFENDIF.source, regexpIFENDIF.flags),
+		regexpIFENDIF,
 		(_match, condition: string, content: string) => {
 			if (activeConditions.has(condition.toUpperCase())) {
 				// Strip comment markers, reveal content
