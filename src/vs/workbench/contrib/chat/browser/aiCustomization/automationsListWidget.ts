@@ -34,7 +34,12 @@ import { IAutomationService } from '../../common/automations/automationService.j
 import { IAutomationDialogService } from '../../common/automations/automationDialogService.js';
 import { CHAT_AUTOMATIONS_ENABLED_SETTING } from '../../common/automations/automationsEnabled.js';
 import { DAYS_OF_WEEK } from '../../common/automations/schedule.js';
+import { IAgentSessionsService } from '../agentSessions/agentSessionsService.js';
+import { openSession as openSessionFromOpener } from '../agentSessions/agentSessionsOpener.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 
+const regexp1 = /\s+/g;
 const $ = DOM.$;
 
 const AUTOMATION_ROW_HEIGHT = 72;
