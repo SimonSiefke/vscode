@@ -167,7 +167,7 @@ const _nls = (() => {
 			}
 
 			source = rsm.sourceRoot ? path.relative(rsm.sourceRoot, m.source) : m.source;
-			source = source.replace(new RegExp(regexp1), '/');
+			source = source.replace(regexp1, '/');
 			smg.addMapping({ source, name: m.name, original, generated });
 		}, null, sm.SourceMapConsumer.GENERATED_ORDER);
 
@@ -241,7 +241,7 @@ const _nls = (() => {
 		// hack?
 		const moduleId = javascriptFile.relative
 			.replace(regexpJs, '')
-			.replace(new RegExp(regexp1), '/');
+			.replace(regexp1, '/');
 
 		const { javascript, sourcemap, nlsKeys, nlsMessages } = patch(
 			typescript,

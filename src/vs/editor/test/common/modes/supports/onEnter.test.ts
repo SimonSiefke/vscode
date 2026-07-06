@@ -61,7 +61,7 @@ suite('OnEnter', () => {
 						appendText: '/// ',
 						indentAction: IndentAction.Outdent
 					},
-					beforeText: new RegExp(regexp1)
+					beforeText: new RegExp(regexp1.source, regexp1.flags)
 				}
 			]
 		});

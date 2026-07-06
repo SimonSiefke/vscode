@@ -14,8 +14,8 @@ const regexp4 = /\r\n/g;
 
 export const cleanOutput = (output: string) =>
 	output
-		.replace(new RegExp(regexp4), '\n') // Replace carriage returns with just a normal return
-		.replace(new RegExp(regexp25h), '') // removes cursor character if present
+		.replace(regexp4, '\n') // Replace carriage returns with just a normal return
+		.replace(regexp25h, '') // removes cursor character if present
 		.replace(regexp2, '') // strips new lines from start of output
 		.replace(regexp1, ''); // strips new lines from end of output
 

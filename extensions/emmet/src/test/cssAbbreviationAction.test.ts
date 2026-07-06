@@ -67,7 +67,7 @@ suite('Tests for Expand Abbreviations (CSS)', () => {
 		return withRandomFileEditor(cssContents, 'css', (editor, _) => {
 			editor.selections = [new Selection(3, 1, 3, 6), new Selection(5, 1, 5, 6)];
 			return expandEmmetAbbreviation(null).then(() => {
-				assert.strictEqual(editor.document.getText(), cssContents.replace(new RegExp(regexpPos), 'position: fixed;'));
+				assert.strictEqual(editor.document.getText(), cssContents.replace(regexpPos, 'position: fixed;'));
 				return Promise.resolve();
 			});
 		});
@@ -184,7 +184,7 @@ nav#
 				}
 				const emmetCompletionItem = completionList.items[0];
 				assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(new RegExp(regexp2), ''), expandedText, `Docs of completion item doesnt match.`);
+				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(regexp2, ''), expandedText, `Docs of completion item doesnt match.`);
 			};
 
 			return Promise.all([completionPromise1, completionPromise2]).then(([result1, result2]) => {
@@ -247,7 +247,7 @@ nav#
 				}
 				const emmetCompletionItem = completionList.items[0];
 				assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(new RegExp(regexp2), ''), expandedText, `Docs of completion item doesnt match.`);
+				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(regexp2, ''), expandedText, `Docs of completion item doesnt match.`);
 			};
 
 			return Promise.all([completionPromise1, completionPromise2]).then(([result1, result2]) => {
@@ -308,7 +308,7 @@ nav#
 				}
 				const emmetCompletionItem = completionList.items[0];
 				assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(new RegExp(regexp2), ''), expandedText, `Docs of completion item doesnt match.`);
+				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(regexp2, ''), expandedText, `Docs of completion item doesnt match.`);
 			};
 
 			return Promise.all([completionPromise1, completionPromise2]).then(([result1, result2]) => {
@@ -367,7 +367,7 @@ nav#
 				}
 				const emmetCompletionItem = completionList.items[0];
 				assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(new RegExp(regexp2), ''), expandedText, `Docs of completion item doesnt match.`);
+				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(regexp2, ''), expandedText, `Docs of completion item doesnt match.`);
 				assert.strictEqual(emmetCompletionItem.filterText, abbreviation, `FilterText of completion item doesnt match.`);
 			};
 
@@ -390,7 +390,7 @@ nav#
 				new Selection(14, 5, 14, 5)
 			];
 			return expandEmmetAbbreviation(null).then(() => {
-				assert.strictEqual(editor.document.getText(), scssContents.replace(new RegExp(regexp3), 'padding: $1px;'));
+				assert.strictEqual(editor.document.getText(), scssContents.replace(regexp3, 'padding: $1px;'));
 				return Promise.resolve();
 			});
 		});
@@ -429,7 +429,7 @@ nav#
 				}
 				const emmetCompletionItem = completionList.items[0];
 				assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(new RegExp(regexp2), ''), expandedText, `Docs of completion item doesnt match.`);
+				assert.strictEqual((<string>emmetCompletionItem.documentation || '').replace(regexp2, ''), expandedText, `Docs of completion item doesnt match.`);
 				assert.strictEqual(emmetCompletionItem.filterText, abbreviation, `FilterText of completion item doesnt match.`);
 			};
 

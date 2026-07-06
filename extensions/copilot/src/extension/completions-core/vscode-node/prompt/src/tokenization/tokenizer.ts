@@ -382,7 +382,7 @@ export class ApproximateTokenizer implements Tokenizer {
 
 	tokenizeStrings(text: string): string[] {
 		// Mock tokenize by defaultETL
-		return text.match(new RegExp(regexp2)) ?? [];
+		return text.match(regexp2) ?? [];
 	}
 
 	private getEffectiveTokenLength(): number {

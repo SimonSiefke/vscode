@@ -1558,7 +1558,7 @@ suite('Editor Controller', () => {
 
 				function advance(): void {
 					if (state instanceof BaseState) {
-						const m1 = line.match(new RegExp(regexp11));
+						const m1 = line.match(regexp11);
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.Other);
 						}
@@ -1579,7 +1579,7 @@ suite('Editor Controller', () => {
 						}
 						return generateToken(1, StandardTokenType.Other, state);
 					} else if (state instanceof StringState) {
-						const m1 = line.match(new RegExp(regexp8));
+						const m1 = line.match(regexp8);
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.String);
 						}
@@ -1594,7 +1594,7 @@ suite('Editor Controller', () => {
 						}
 						return generateToken(1, StandardTokenType.Other, state);
 					} else if (state instanceof BlockCommentState) {
-						const m1 = line.match(new RegExp(regexp6));
+						const m1 = line.match(regexp6);
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.String);
 						}
@@ -4648,8 +4648,8 @@ suite('Editor Controller', () => {
 
 	test('issue #57197: indent rules regex should be stateless', () => {
 		const languageId = setupIndentRulesLanguage('lang', {
-			decreaseIndentPattern: new RegExp(regexp19),
-			increaseIndentPattern: new RegExp(regexpXXXX),
+			decreaseIndentPattern: new RegExp(regexp19.source, regexp19.flags),
+			increaseIndentPattern: new RegExp(regexpXXXX.source, regexpXXXX.flags),
 		});
 		usingCursor({
 			text: [

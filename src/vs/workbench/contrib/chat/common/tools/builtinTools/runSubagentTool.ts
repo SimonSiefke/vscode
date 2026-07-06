@@ -401,7 +401,7 @@ export class RunSubagentTool extends Disposable implements IToolImpl {
 
 			// This is a hack due to the fact that edits are represented as empty codeblocks with URIs. That needs to be cleaned up,
 			// in the meantime, just strip an empty codeblock left behind.
-			const resultText = markdownParts.join('').replace(new RegExp(regexp1), '').trim() || 'Agent completed with no output';
+			const resultText = markdownParts.join('').replace(regexp1, '').trim() || 'Agent completed with no output';
 
 			// Store result in toolSpecificData for serialization
 			if (invocation.toolSpecificData?.kind === 'subagent') {

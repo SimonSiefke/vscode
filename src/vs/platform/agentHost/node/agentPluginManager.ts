@@ -154,7 +154,7 @@ export class AgentPluginManager implements IAgentPluginManager {
 	}
 
 	private _sanitize(value: string): string {
-		return value.replace(new RegExp(regexpZAZ0), '-').replace(new RegExp(regexp2), '-').replace(new RegExp(regexp1), '').substring(0, 128);
+		return value.replace(regexpZAZ0, '-').replace(regexp2, '-').replace(regexp1, '').substring(0, 128);
 	}
 
 	/** Directory in which a specific `(uri, nonce)` revision is materialized. */

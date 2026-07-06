@@ -23,7 +23,7 @@ suite('outputHelpers', () => {
 				}
 				return {
 					isWrapped: !!line.isWrapped,
-					translateToString: (trimRight?: boolean) => trimRight ? line.text.replace(new RegExp(regexp1), '') : line.text
+					translateToString: (trimRight?: boolean) => trimRight ? line.text.replace(regexp1, '') : line.text
 				};
 			}
 		};

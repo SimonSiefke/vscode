@@ -19,7 +19,7 @@ export function getStructureUsingIndentation(
 	languageId: string,
 	formattingOptions: vscode.FormattingOptions | undefined
 ): OverlayNode {
-	const lines = document.getText().split(new RegExp(regexp1));
+	const lines = document.getText().split(regexp1);
 	const opts = formattingOptions || { tabSize: 4 };
 	const simpleModel = {
 		getLineCount: () => lines.length,

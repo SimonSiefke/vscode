@@ -142,7 +142,7 @@ describe('Configurations', () => {
 		const nlsKeys = Object.keys(packageNls);
 
 		// Find all %key% references in package.json
-		const nlsReferences = Array.from(packageJsonFileContents.matchAll(new RegExp(regexp2))).map(match => match[1]);
+		const nlsReferences = Array.from(packageJsonFileContents.matchAll(regexp2)).map(match => match[1]);
 
 		// Validate all references exist in package.nls.json
 		const missingKeys = nlsReferences.filter(key => !nlsKeys.includes(key));

@@ -522,7 +522,7 @@ const ErrorMessageBar = mobxlite.observer(({ error }: { error: string }) => {
 });
 
 function stripAnsiiColors(str: string) {
-	return str.replace(new RegExp(regexp1), '');
+	return str.replace(regexp1, '');
 }
 
 type ExpectedDiffProps = {

@@ -591,7 +591,7 @@ export abstract class ToolCallingLoop<TOptions extends IToolCallingLoopOptions =
 			const verdict = match[1].toUpperCase();
 			const done = verdict === 'YES';
 			const impossible = verdict === 'IMPOSSIBLE';
-			const reason = match[2].trim().replace(new RegExp(regexp2), ' ') ||
+			const reason = match[2].trim().replace(regexp2, ' ') ||
 				(done ? 'Task complete' : impossible ? 'Task cannot be completed' : 'Task not yet complete');
 			return { done, impossible, reason };
 		} catch (e) {

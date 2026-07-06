@@ -32,7 +32,7 @@ export abstract class CachingDiagnosticsProvider extends DiagnosticsProvider {
 
 	override async getDiagnostics(accessor: ITestingServicesAccessor, files: IFile[]): Promise<ITestDiagnostic[]> {
 		// Always use / as separators in file names to avoid cache misses on Windows
-		files = files.map(f => ({ ...f, fileName: f.fileName.replace(new RegExp(regexp1), '/') }));
+		files = files.map(f => ({ ...f, fileName: f.fileName.replace(regexp1, '/') }));
 
 		// Keep files stable and maximize cache hits by sorting them by file name
 		files.sort((a, b) => a.fileName.localeCompare(b.fileName));

@@ -37,7 +37,7 @@ function isNullRange(range: IRange): boolean { return range.startLineNumber === 
  * remains as inline code (e.g. `` `settingId` ``). Useful for contexts that don't render markdown links.
  */
 export function fixSettingLinks(text: string): string {
-	return text.replace(new RegExp(regexp1), (_, settingName) => `\`${settingName}\``);
+	return text.replace(regexp1, (_, settingName) => `\`${settingName}\``);
 }
 
 abstract class AbstractSettingsModel extends EditorModel {
@@ -1086,7 +1086,7 @@ class SettingsContentBuilder {
 	private pushSettingDescription(setting: ISetting, indent: string): void {
 		setting.descriptionRanges = [];
 		const descriptionPreValue = indent + '// ';
-		const deprecationMessageLines = setting.deprecationMessage?.split(new RegExp(regexp2)) ?? [];
+		const deprecationMessageLines = setting.deprecationMessage?.split(regexp2) ?? [];
 		for (let line of [...deprecationMessageLines, ...setting.description]) {
 			line = fixSettingLinks(line);
 
@@ -1101,7 +1101,7 @@ class SettingsContentBuilder {
 					`${displayEnum}: ${fixSettingLinks(desc)}` :
 					displayEnum;
 
-				const lines = line.split(new RegExp(regexp2));
+				const lines = line.split(regexp2);
 				lines[0] = ' - ' + lines[0];
 				this._contentByLines.push(...lines.map(l => `${indent}// ${l}`));
 
@@ -1185,8 +1185,8 @@ export class DefaultRawSettingsEditorModel extends Disposable {
 
 function escapeInvisibleChars(enumValue: string): string {
 	return enumValue && enumValue
-		.replace(new RegExp(regexp2), '\\n')
-		.replace(new RegExp(regexp3), '\\r');
+		.replace(regexp2, '\\n')
+		.replace(regexp3, '\\r');
 }
 
 export function defaultKeybindingsContents(keybindingService: IKeybindingService): string {

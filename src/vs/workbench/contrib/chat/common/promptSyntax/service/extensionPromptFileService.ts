@@ -373,7 +373,7 @@ export class ExtensionPromptFileService extends Disposable {
 
 	private _sanitizeAgentSkillText(text: string): string {
 		// Remove XML tags
-		return text.replace(new RegExp(regexp1), '');
+		return text.replace(regexp1, '');
 	}
 
 	private _truncateAgentSkillName(name: string, uri: URI): string {

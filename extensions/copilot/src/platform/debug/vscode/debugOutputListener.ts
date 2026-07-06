@@ -53,7 +53,7 @@ class DebugSessionTracker implements DebugAdapterTracker {
 
 // taken from https://github.com/microsoft/vscode/blob/499fb52ae8c985485e6503669f3711ee0d6f31dc/src/vs/base/common/strings.ts#L731
 function removeAnsiEscapeCodes(str: string): string {
-	const CSI_SEQUENCE = new RegExp(regexpZA);
+	const CSI_SEQUENCE = new RegExp(regexpZA.source, regexpZA.flags);
 	if (str) {
 		str = str.replace(CSI_SEQUENCE, '');
 	}

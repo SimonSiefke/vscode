@@ -60,7 +60,7 @@ export class Highlighter {
 }
 
 function escapeHtml(text: string): string {
-	return text.replace(new RegExp(regexp1), char => {
+	return text.replace(regexp1, char => {
 		switch (char) {
 			case '&': return '&amp;';
 			case '<': return '&lt;';

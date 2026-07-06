@@ -651,7 +651,7 @@ export function detectsSensitiveInputPrompt(cursorLine: string): boolean {
 }
 
 export function matchTerminalPromptOption(options: readonly string[], suggestedOption: string): { option: string | undefined; index: number } {
-	const normalize = (value: string) => value.replace(new RegExp(regexp6), '').trim().replace(regexp5, '');
+	const normalize = (value: string) => value.replace(regexp6, '').trim().replace(regexp5, '');
 
 	const normalizedSuggestion = normalize(suggestedOption);
 	if (!normalizedSuggestion) {
@@ -822,7 +822,7 @@ const taskFinishMessages = [
 ];
 
 const normalizedTaskFinishMessages = taskFinishMessages.map(msg =>
-	msg.replace(new RegExp(regexp29), '').toLowerCase()
+	msg.replace(regexp29, '').toLowerCase()
 );
 
 /**
@@ -835,7 +835,7 @@ const normalizedTaskFinishMessages = taskFinishMessages.map(msg =>
  */
 export function detectsVSCodeTaskFinishMessage(cursorLine: string): boolean {
 	// Be tolerant to whitespace, punctuation, and line wrapping that can split words mid-word.
-	const compact = cursorLine.replace(new RegExp(regexp29), '').toLowerCase();
+	const compact = cursorLine.replace(regexp29, '').toLowerCase();
 	return normalizedTaskFinishMessages.some(msg => compact.includes(msg));
 }
 

@@ -515,7 +515,7 @@ export class RemoteAgentHostSessionsProvider extends BaseAgentHostSessionsProvid
 		let listingAgentHostUri = rootAgentHostUri;
 		let filter = trimmed;
 		if (lastSlash >= 0) {
-			const subPath = trimmed.slice(0, lastSlash).replace(new RegExp(regexp1), '');
+			const subPath = trimmed.slice(0, lastSlash).replace(regexp1, '');
 			filter = trimmed.slice(lastSlash + 1);
 			if (subPath) {
 				listingAgentHostUri = URI.joinPath(rootAgentHostUri, subPath);

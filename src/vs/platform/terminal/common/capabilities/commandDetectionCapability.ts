@@ -974,7 +974,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Custom prompts like starship end in the common \u276f character
-		const customPrompt = lineText.match(new RegExp(regexp2))?.[0];
+		const customPrompt = lineText.match(regexp2)?.[0];
 		if (customPrompt) {
 			const adjustedPrompt = this._adjustPrompt(customPrompt, lineText, '\u276f');
 			if (adjustedPrompt) {
@@ -992,7 +992,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Python Prompt
-		const pythonPrompt = lineText.match(new RegExp(regexpPrompt1))?.groups?.prompt;
+		const pythonPrompt = lineText.match(regexpPrompt1)?.groups?.prompt;
 		if (pythonPrompt) {
 			return {
 				prompt: pythonPrompt,

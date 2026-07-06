@@ -211,7 +211,7 @@ function buildChildId(uri: URI, disambiguator?: string): string {
 	if (!disambiguator) {
 		return base;
 	}
-	return `${base.replace(new RegExp(regexp1), '%23')}#${disambiguator}`;
+	return `${base.replace(regexp1, '%23')}#${disambiguator}`;
 }
 
 function makeAgentCustomization(resource: INamedPluginResource): AgentCustomization {
@@ -442,7 +442,7 @@ export function shellQuotePluginRootInCommand(command: string, fsPath: string, t
 		if (leadingQuote) {
 			return leadingQuote + fullPath;
 		}
-		return '"' + fullPath.replace(new RegExp(regexp2), '\\"') + '"';
+		return '"' + fullPath.replace(regexp2, '\\"') + '"';
 	});
 }
 

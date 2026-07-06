@@ -220,11 +220,11 @@ export function renderBackgroundTodoRound(round: BGToolCallRound): string {
  * `<previous-turn-todos>`).
  */
 function escapeForPromptTag(text: string): string {
-	return text.replace(new RegExp(regexp2), '\u2039').replace(new RegExp(regexp1), '\u203A');
+	return text.replace(regexp2, '\u2039').replace(regexp1, '\u203A');
 }
 
 function escapeInlineForPromptTag(text: string): string {
-	return escapeForPromptTag(text.replace(new RegExp(regexp3), ' ').trim());
+	return escapeForPromptTag(text.replace(regexp3, ' ').trim());
 }
 
 /**

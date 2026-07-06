@@ -493,7 +493,7 @@ export class NesFeedbackSubmitter {
 	 * @returns The URL to the pull request, or undefined on failure.
 	 */
 	private async _uploadToPrivateRepo(files: FeedbackFile[], token: string): Promise<string | undefined> {
-		const timestamp = new Date().toISOString().replace(new RegExp(regexp1), '-').slice(0, -5);
+		const timestamp = new Date().toISOString().replace(regexp1, '-').slice(0, -5);
 		const folderPath = `feedback/${timestamp}`;
 
 		// Get the current user for commit attribution

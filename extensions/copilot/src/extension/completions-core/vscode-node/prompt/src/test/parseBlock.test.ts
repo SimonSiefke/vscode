@@ -1649,7 +1649,7 @@ suite('parseBlock Tests', function () {
         }`;
 
 	function mkTestCase(src: string, stripTypes: boolean) {
-		if (stripTypes) { src = src.replace(new RegExp(regexp1), ''); }
+		if (stripTypes) { src = src.replace(regexp1, ''); }
 		const bodyStart = src.indexOf('⦃');
 		const bodyEnd = src.indexOf('⦄');
 		return {

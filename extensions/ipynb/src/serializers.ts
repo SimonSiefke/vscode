@@ -137,7 +137,7 @@ function createRawCellFromNotebookCell(cell: NotebookCellData): nbformat.IRawCel
  * Same is done in deserializer as well.
  */
 function splitCellSourceIntoMultilineString(source: string): string[] {
-	return splitMultilineString(source.replace(new RegExp(regexp1), '\n'));
+	return splitMultilineString(source.replace(regexp1, '\n'));
 }
 
 function splitMultilineString(source: nbformat.MultilineString): string[] {

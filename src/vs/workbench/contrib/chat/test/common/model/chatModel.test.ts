@@ -549,7 +549,7 @@ suite('Response', () => {
 
 		// Should have single "Made changes." at the end instead of multiple entries
 		const responseString = response.toString();
-		const madeChangesCount = (responseString.match(new RegExp(regexpMadeChanges)) || []).length;
+		const madeChangesCount = (responseString.match(regexpMadeChanges) || []).length;
 		assert.strictEqual(madeChangesCount, 1, 'Should have exactly one "Made changes." message');
 		assert.ok(responseString.includes('Some content before edits'), 'Should include content before edits');
 		assert.ok(responseString.includes('Some content after edits'), 'Should include content after edits');
@@ -577,7 +577,7 @@ suite('Response', () => {
 
 		// Should only show "Made changes." for edits after the clear operation
 		const responseString = response.toString();
-		const madeChangesCount = (responseString.match(new RegExp(regexpMadeChanges)) || []).length;
+		const madeChangesCount = (responseString.match(regexpMadeChanges) || []).length;
 		assert.strictEqual(madeChangesCount, 1, 'Should have exactly one "Made changes." message after clear');
 		assert.ok(responseString.includes('Content after clear'), 'Should include content after clear');
 		assert.ok(!responseString.includes('Initial content'), 'Should not include content before clear');

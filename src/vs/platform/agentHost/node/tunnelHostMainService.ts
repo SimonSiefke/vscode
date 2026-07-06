@@ -176,7 +176,7 @@ export class TunnelHostMainService extends Disposable implements ITunnelAgentHos
 	 */
 	private _getTunnelName(): string {
 		let name = this._configurationService.getValue<string>(CONFIGURATION_KEY_HOST_NAME) || hostname();
-		name = name.replace(new RegExp(regexp2), '').replace(new RegExp(regexp1), '').substring(0, 20);
+		name = name.replace(regexp2, '').replace(regexp1, '').substring(0, 20);
 		return name || 'vscode';
 	}
 

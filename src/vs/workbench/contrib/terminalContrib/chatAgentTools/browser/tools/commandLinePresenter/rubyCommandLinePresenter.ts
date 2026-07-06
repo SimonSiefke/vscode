@@ -54,10 +54,10 @@ export function extractRubyCommand(commandLine: string, shell: string, os: Opera
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			rubyCode = rubyCode.replace(new RegExp(regexp3), '"');
+			rubyCode = rubyCode.replace(regexp3, '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			rubyCode = rubyCode.replace(new RegExp(regexp2), '"');
+			rubyCode = rubyCode.replace(regexp2, '"');
 		}
 
 		return rubyCode;

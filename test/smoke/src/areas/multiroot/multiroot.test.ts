@@ -13,7 +13,7 @@ const regexpSmoketestWorkspace = /smoketest \(Workspace\)/i;
 
 function toUri(path: string): string {
 	if (process.platform === 'win32') {
-		return `${path.replace(new RegExp(regexp1), '/')}`;
+		return `${path.replace(regexp1, '/')}`;
 	}
 
 	return `${path}`;

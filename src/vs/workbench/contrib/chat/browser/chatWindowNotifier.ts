@@ -190,7 +190,7 @@ export class ChatWindowNotifier extends Disposable implements IWorkbenchContribu
 	}
 
 	private _sanitizeOSToastText(text: string): string {
-		return text.replace(new RegExp(regexp1), '\''); // convert backticks to single quotes
+		return text.replace(regexp1, '\''); // convert backticks to single quotes
 	}
 
 	private _clearNotification(sessionResource: URI): void {

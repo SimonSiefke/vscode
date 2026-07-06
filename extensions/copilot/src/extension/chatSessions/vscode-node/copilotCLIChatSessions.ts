@@ -83,11 +83,11 @@ export { resolveBranchLockState, resolveBranchSelection, resolveIsolationSelecti
  */
 function escapeXml(text: string): string {
 	return text
-		.replace(new RegExp(regexp5), '&amp;')
-		.replace(new RegExp(regexp4), '&lt;')
-		.replace(new RegExp(regexp3), '&gt;')
-		.replace(new RegExp(regexp2), '&quot;')
-		.replace(new RegExp(regexp1), '&apos;');
+		.replace(regexp5, '&amp;')
+		.replace(regexp4, '&lt;')
+		.replace(regexp3, '&gt;')
+		.replace(regexp2, '&quot;')
+		.replace(regexp1, '&apos;');
 }
 
 function getIssueRuntimeInfo(): { readonly platform: string; readonly vscodeInfo: string; readonly extensionVersion: string } {

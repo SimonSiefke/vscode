@@ -920,7 +920,7 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 
 		const stripMarkdown = (text: string) => {
 			return text
-				.replace(new RegExp(regexp4), '$1').replace(new RegExp(regexp3), '$1').replace(new RegExp(regexp2), '$1').trim();
+				.replace(regexp4, '$1').replace(regexp3, '$1').replace(regexp2, '$1').trim();
 		};
 
 		const strippedContent = stripMarkdown(contentWithoutTitle);

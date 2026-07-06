@@ -350,7 +350,7 @@ export function removeVeryShortMatchingLinesBetweenDiffs(sequence1: LineSequence
 				const unchangedRange = new OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
 
 				const unchangedText = sequence1.getText(unchangedRange);
-				const unchangedTextWithoutWs = unchangedText.replace(new RegExp(regexp1), '');
+				const unchangedTextWithoutWs = unchangedText.replace(regexp1, '');
 				if (unchangedTextWithoutWs.length <= 4
 					&& (before.seq1Range.length + before.seq2Range.length > 5 || after.seq1Range.length + after.seq2Range.length > 5)) {
 					return true;

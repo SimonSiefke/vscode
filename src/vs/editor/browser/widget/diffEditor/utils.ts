@@ -313,7 +313,7 @@ export function applyStyle(domNode: HTMLElement, style: Partial<{ [TKey in keyof
 			if (typeof val === 'number') {
 				val = `${val}px`;
 			}
-			key = key.replace(new RegExp(regexp1), m => '-' + m.toLowerCase());
+			key = key.replace(regexp1, m => '-' + m.toLowerCase());
 			// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
 			domNode.style[key as any] = val as any;
 		}

@@ -748,7 +748,7 @@ export function getModeNameForTelemetry(mode: IChatMode): string {
  * ```
  */
 export function getHandoffId(handoff: IHandOff): string {
-	const slug = handoff.label.toLowerCase().replace(new RegExp(regexpZ0), '-').replace(new RegExp(regexp1), '');
+	const slug = handoff.label.toLowerCase().replace(regexpZ0, '-').replace(regexp1, '');
 	return `${handoff.agent}:${slug}`;
 }
 

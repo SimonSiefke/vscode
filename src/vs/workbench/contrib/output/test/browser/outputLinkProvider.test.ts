@@ -16,7 +16,7 @@ suite('OutputLinkProvider', () => {
 
 	function toOSPath(p: string): string {
 		if (isMacintosh || isLinux) {
-			return p.replace(new RegExp(regexp1), '/');
+			return p.replace(regexp1, '/');
 		}
 
 		return p;

@@ -98,13 +98,13 @@ export class TelemetryService implements ITelemetryService {
 		this._meteredConnectionService = config.meteredConnectionService;
 
 		// static cleanup pattern for: `vscode-file:///DANGEROUS/PATH/resources/app/Useful/Information`
-		this._cleanupPatterns = [new RegExp(regexpVscodeFileResources)];
+		this._cleanupPatterns = [new RegExp(regexpVscodeFileResources.source, regexpVscodeFileResources.flags)];
 
 		for (const piiPath of this._piiPaths) {
 			this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath), 'gi'));
 
 			if (piiPath.indexOf('\\') >= 0) {
-				this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath.replace(new RegExp(regexp2), '/')), 'gi'));
+				this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath.replace(regexp2, '/')), 'gi'));
 			}
 		}
 

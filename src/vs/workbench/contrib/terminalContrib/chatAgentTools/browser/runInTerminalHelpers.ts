@@ -84,7 +84,7 @@ export function truncateOutputKeepingTail(output: string, maxLength: number): st
  * escaping artifacts (for example: \" \' \/) commonly produced in streamed tool-call JSON.
  */
 export function normalizeTerminalCommandForDisplay(commandLine: string): string {
-	return commandLine.replace(new RegExp(regexp10), '$1');
+	return commandLine.replace(regexp10, '$1');
 }
 
 /**
@@ -92,7 +92,7 @@ export function normalizeTerminalCommandForDisplay(commandLine: string): string 
  * Normalizes escape artifacts, collapses newlines to spaces, and truncates to 80 characters.
  */
 export function buildCommandDisplayText(command: string): string {
-	const normalized = normalizeTerminalCommandForDisplay(command).replace(new RegExp(regexp11), ' ');
+	const normalized = normalizeTerminalCommandForDisplay(command).replace(regexp11, ' ');
 	return normalized.length > 80 ? normalized.substring(0, 77) + '...' : normalized;
 }
 
@@ -101,7 +101,7 @@ export function buildCommandDisplayText(command: string): string {
  * This prevents multi-line input from being sent as multiple commands via sendText.
  */
 export function normalizeCommandForExecution(command: string): string {
-	return command.replace(new RegExp(regexp11), ' ').trim();
+	return command.replace(regexp11, ' ').trim();
 }
 
 /**
@@ -117,7 +117,7 @@ export function normalizeCommandForExecution(command: string): string {
 export function isMultilineCommand(command: string): boolean {
 	// Normalize all line-ending variants to \n, then check for a newline
 	// that is not preceded by a backslash (i.e. not a line continuation).
-	const normalized = command.replace(new RegExp(regexp12), '\n');
+	const normalized = command.replace(regexp12, '\n');
 	return regexp13.test(normalized);
 }
 

@@ -390,7 +390,7 @@ export class ExplorerItem {
 				.map(([parentPattern, childrenPatterns]) =>
 					[
 						this.getPlatformAwareName(parentPattern.trim()),
-						childrenPatterns.split(',').map(p => this.getPlatformAwareName(p.trim().replace(new RegExp(regexp1), '').trim()))
+						childrenPatterns.split(',').map(p => this.getPlatformAwareName(p.trim().replace(regexp1, '').trim()))
 							.filter(p => p !== '')
 					] as [string, string[]]);
 

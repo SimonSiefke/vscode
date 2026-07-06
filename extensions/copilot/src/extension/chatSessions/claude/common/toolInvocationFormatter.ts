@@ -98,7 +98,7 @@ function completeBashInvocation(
 	}
 
 	// Convert \n to \r\n for proper terminal display
-	text = text.replace(new RegExp(regexp3), '\r\n');
+	text = text.replace(regexp3, '\r\n');
 
 	const toolSpecificData: ChatTerminalToolInvocationData = {
 		commandLine: {

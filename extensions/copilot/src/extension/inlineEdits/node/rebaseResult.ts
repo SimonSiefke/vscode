@@ -142,6 +142,6 @@ export class RebaseFailureInfo implements MarkdownLoggable {
 }
 
 function toBacktickLiteral(value: string): string {
-	const escaped = value.replace(new RegExp(regexp3), '\\\\').replace(new RegExp(regexp2), '\\`').replace(new RegExp(regexp1), '\\${');
+	const escaped = value.replace(regexp3, '\\\\').replace(regexp2, '\\`').replace(regexp1, '\\${');
 	return '`' + escaped + '`';
 }

@@ -1456,7 +1456,7 @@ function _$<T extends Element>(namespace: Namespace, description: string, attrs?
 		result.id = match[3];
 	}
 	if (match[4]) {
-		result.className = match[4].replace(new RegExp(regexp1), ' ').trim();
+		result.className = match[4].replace(regexp1, ' ').trim();
 	}
 
 	if (attrs) {
@@ -2413,7 +2413,7 @@ export function svgElem(tag: string, ...args: [] | [attributes: { $: string } & 
 }
 
 function camelCaseToHyphenCase(str: string) {
-	return str.replace(new RegExp(regexp3), '$1-$2').toLowerCase();
+	return str.replace(regexp3, '$1-$2').toLowerCase();
 }
 
 export function copyAttributes(from: Element, to: Element, filter?: string[]): void {

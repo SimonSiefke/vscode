@@ -1237,7 +1237,7 @@ async function streamResponsesApiToolCalls(
 		const call = toolCalls[i];
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
+			toolName = call.toolNamePattern.source.replace(regexp3, '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 
@@ -1662,7 +1662,7 @@ async function streamAnthropicToolCalls(
 		const call = toolCalls[i];
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
+			toolName = call.toolNamePattern.source.replace(regexp3, '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 
@@ -1755,7 +1755,7 @@ async function streamToolCalls(
 		// Find the matching tool name from the request's tools array
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
+			toolName = call.toolNamePattern.source.replace(regexp3, '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 

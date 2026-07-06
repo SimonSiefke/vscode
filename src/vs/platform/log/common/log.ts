@@ -755,7 +755,7 @@ export abstract class AbstractLoggerService extends Disposable implements ILogge
 	}
 
 	protected toResource(idOrResource: string | URI): URI {
-		return isString(idOrResource) ? joinPath(this.logsHome, `${idOrResource.replace(new RegExp(regexp1), '')}.log`) : idOrResource;
+		return isString(idOrResource) ? joinPath(this.logsHome, `${idOrResource.replace(regexp1, '')}.log`) : idOrResource;
 	}
 
 	setLogLevel(logLevel: LogLevel): void;

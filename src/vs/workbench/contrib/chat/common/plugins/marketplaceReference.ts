@@ -241,7 +241,7 @@ function parseUriMarketplaceReference(rawValue: string): IMarketplaceReference |
 	const ref = uri.fragment || undefined;
 	const cloneUri = uri.fragment ? uri.with({ fragment: '' }) : uri;
 	const sanitizedAuthority = sanitizePathSegment(uri.authority.toLowerCase());
-	const trimmedPath = uri.path.replace(new RegExp(regexp5), '/').replace(new RegExp(regexp4), '').replace(regexp3, '');
+	const trimmedPath = uri.path.replace(regexp5, '/').replace(regexp4, '').replace(regexp3, '');
 
 	// Host-only marketplace endpoint (e.g. `https://plugins.internal.example.com`).
 	// The ADR allows any string for `git.url`, so a URL without a repo path is
@@ -355,5 +355,5 @@ function getRefCacheSegments(ref: string | undefined): string[] {
 }
 
 function sanitizePathSegment(value: string): string {
-	return value.replace(new RegExp(regexp7), '_');
+	return value.replace(regexp7, '_');
 }

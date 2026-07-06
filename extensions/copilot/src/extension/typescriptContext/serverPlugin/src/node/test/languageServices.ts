@@ -20,7 +20,7 @@ import { LanguageServiceProxy } from './languageServerProxy';
 const isWindows = process.platform === 'win32';
 function _normalizePath(value: string): string {
 	if (isWindows) {
-		value = value.replace(new RegExp(regexp1), '/');
+		value = value.replace(regexp1, '/');
 		if (regexp2.test(value)) {
 			value = value.charAt(0).toUpperCase() + value.substring(1);
 		}

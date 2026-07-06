@@ -185,12 +185,12 @@ export class TerminalNotificationHandler extends Disposable {
 		if (!rawId) {
 			return undefined;
 		}
-		const sanitized = rawId.replace(new RegExp(regexpZAZ0), '');
+		const sanitized = rawId.replace(regexpZAZ0, '');
 		return sanitized.length > 0 ? sanitized : undefined;
 	}
 
 	private _sanitizeOsc99MessageText(text: string): string {
-		return text.replace(new RegExp(regexp2), '$1');
+		return text.replace(regexp2, '$1');
 	}
 
 	private _getOrCreateOsc99State(id: string | undefined): IOsc99NotificationState {

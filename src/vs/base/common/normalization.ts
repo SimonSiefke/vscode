@@ -50,7 +50,7 @@ function normalize(str: string, form: string, normalizedCache: LRUCache<string, 
  */
 export const tryNormalizeToBase: (str: string) => string = function () {
 	const cache = new LRUCache<string, string>(10000); // bounded to 10000 elements
-	const accentsRegex = new RegExp(regexp1);
+	const accentsRegex = new RegExp(regexp1.source, regexp1.flags);
 	return function (str: string): string {
 		const cached = cache.get(str);
 		if (cached) {

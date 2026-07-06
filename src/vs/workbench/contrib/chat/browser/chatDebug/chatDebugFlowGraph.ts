@@ -612,7 +612,7 @@ export function mergeToolCallNodes(
  */
 function getEffectiveKind(event: IChatDebugEvent): IChatDebugEvent['kind'] {
 	if (event.kind === 'generic') {
-		const name = event.name.toLowerCase().replace(new RegExp(regexp3), '');
+		const name = event.name.toLowerCase().replace(regexp3, '');
 		if (name === 'usermessage' || name === 'userprompt' || name === 'user' || name.startsWith('usermessage')) {
 			return 'userMessage';
 		}
@@ -710,7 +710,7 @@ function getEventSublabel(event: IChatDebugEvent, effectiveKind?: IChatDebugEven
 			}
 			if (!firstLine) {
 				// Fall back to the full text collapsed to a single line
-				firstLine = text.replace(new RegExp(regexp4), ' ').trim();
+				firstLine = text.replace(regexp4, ' ').trim();
 			}
 			if (!firstLine) {
 				return undefined;

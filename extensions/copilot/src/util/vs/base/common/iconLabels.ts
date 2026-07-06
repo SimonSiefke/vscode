@@ -48,7 +48,7 @@ export function getCodiconAriaLabel(text: string | undefined) {
 		return '';
 	}
 
-	return text.replace(new RegExp(regexp1), (_match, codiconName) => ` ${codiconName} `).trim();
+	return text.replace(regexp1, (_match, codiconName) => ` ${codiconName} `).trim();
 }
 
 

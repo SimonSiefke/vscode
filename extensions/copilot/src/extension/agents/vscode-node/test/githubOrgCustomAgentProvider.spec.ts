@@ -1483,7 +1483,7 @@ suite('yamlString round-trip with custom YAML parser', () => {
 				yamlStr = `'${value}'`;
 			} else {
 				// Double quotes - need to escape internal double quotes
-				yamlStr = `"${value.replace(new RegExp(regexp1), '\\"')}"`;
+				yamlStr = `"${value.replace(regexp1, '\\"')}"`;
 			}
 		} else {
 			yamlStr = value;

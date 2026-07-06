@@ -333,7 +333,7 @@ export class ChatDebugFileLoggerService extends Disposable implements IChatDebug
 			// live under a different storage root than the current write root when
 			// the parent was resumed from history.
 			sessionDir = this._resolveParentSessionDir(childInfo.parentSessionId, dir);
-			const safeLabel = childInfo.label.replace(new RegExp(regexp2), '_').replace(new RegExp(regexp1), '_');
+			const safeLabel = childInfo.label.replace(regexp2, '_').replace(regexp1, '_');
 			const fileName = `${safeLabel}-${sessionId}.jsonl`;
 			fileUri = URI.joinPath(sessionDir, fileName);
 

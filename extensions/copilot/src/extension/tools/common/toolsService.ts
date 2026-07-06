@@ -158,7 +158,7 @@ const MAX_FLATTENED_ARRAY_INDEX = 1000;
  */
 function parseFlattenedPath(key: string): (string | number)[] | undefined {
 	const segments: (string | number)[] = [];
-	const re = new RegExp(regexp1);
+	const re = new RegExp(regexp1.source, regexp1.flags);
 	let lastIndex = 0;
 	let match: RegExpExecArray | null;
 	while ((match = re.exec(key)) !== null) {
@@ -366,7 +366,7 @@ export abstract class BaseToolsService extends Disposable implements IToolsServi
 	validateToolName(name: string): string | undefined {
 		const tool = this.tools.find(tool => tool.name === name);
 		if (!tool) {
-			return name.replace(new RegExp(regexp3), '_');
+			return name.replace(regexp3, '_');
 		}
 	}
 }

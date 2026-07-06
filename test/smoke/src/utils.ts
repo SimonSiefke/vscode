@@ -76,7 +76,7 @@ export function installDiagnosticsHandler(logger: Logger, appFn?: () => Applicat
 		logger.log('');
 
 		const app: Application = appFn?.() ?? this.app;
-		await app?.stopTracing(testTitle.replace(new RegExp(regexpZ0), '_'), failed);
+		await app?.stopTracing(testTitle.replace(regexpZ0, '_'), failed);
 	});
 }
 
@@ -84,11 +84,11 @@ let logsCounter = 1;
 let crashCounter = 1;
 
 export function suiteLogsPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
+	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(regexpZ0, '_')}`);
 }
 
 export function suiteCrashPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
+	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(regexpZ0, '_')}`);
 }
 
 function installAppBeforeHandler(optionsTransform?: (opts: ApplicationOptions) => ApplicationOptions, beforeStart?: (app: Application) => Promise<void> | void) {

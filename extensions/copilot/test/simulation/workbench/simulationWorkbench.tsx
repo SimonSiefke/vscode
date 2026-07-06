@@ -99,7 +99,7 @@ function doLoadMonaco(): Promise<typeof import('monaco-editor')> {
 		const amdRequire = amdLoader.require;
 
 		function uriFromPath(_path: string) {
-			let pathName = path.resolve(_path).replace(new RegExp(regexp1), '/');
+			let pathName = path.resolve(_path).replace(regexp1, '/');
 			if (pathName.length > 0 && pathName.charAt(0) !== '/') {
 				pathName = '/' + pathName;
 			}

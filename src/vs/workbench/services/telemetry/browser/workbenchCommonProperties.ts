@@ -21,7 +21,7 @@ const regexp1 = /(\d+\.\d+)(\.\d+)+/g;
  * @returns A simplified user agent with less detail
  */
 function cleanUserAgent(userAgent: string): string {
-	return userAgent.replace(new RegExp(regexp1), '$1');
+	return userAgent.replace(regexp1, '$1');
 }
 
 export function resolveWorkbenchCommonProperties(

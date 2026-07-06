@@ -272,7 +272,7 @@ export function setup(logger: Logger) {
 					// selection (e.g. "High 200K").
 					const configLabel = await chat.getModelConfigLabel();
 					assert.strictEqual(
-						configLabel.replace(new RegExp(regexp1), ' ').trim(),
+						configLabel.replace(regexp1, ' ').trim(),
 						testCase.expectedConfigLabel,
 						`Expected model-config button label '${testCase.expectedConfigLabel}' for '${testCase.name}', got '${configLabel}'.`
 					);

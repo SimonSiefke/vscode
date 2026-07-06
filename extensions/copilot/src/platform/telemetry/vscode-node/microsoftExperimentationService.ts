@@ -82,7 +82,7 @@ class RelatedExtensionsFilterProvider implements IExperimentationFilterProvider 
 		const filters = new Map<string, string>();
 
 		for (const extension of this._getRelatedExtensions()) {
-			const filterName = CopilotRelatedPluginVersionPrefix + extension.name.replace(new RegExp(regexpZa), '').toLowerCase();
+			const filterName = CopilotRelatedPluginVersionPrefix + extension.name.replace(regexpZa, '').toLowerCase();
 			if (!Object.values<string>(RelatedExtensionsFilter).includes(filterName)) {
 				this._logService.warn(`[RelatedExtensionsFilterProvider]::getFilters A filter could not be registered for the unrecognized related plugin "${extension.name}".`);
 				continue;

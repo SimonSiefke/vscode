@@ -120,7 +120,7 @@ export function getUncommittedFilePaths(repository: RepoContext): string[] {
 		.map(uri => relativePath(repository.rootUri, uri)));
 
 	// Git expects forward slashes even on Windows
-	return relativePaths.map(p => p.replace(new RegExp(regexp1), '/'));
+	return relativePaths.map(p => p.replace(regexp1, '/'));
 }
 
 export function buildTempIndexEnv(repository: RepoContext, indexFile: string): Record<string, string> {

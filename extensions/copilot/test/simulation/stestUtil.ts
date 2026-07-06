@@ -159,8 +159,8 @@ export function assertWorkspaceEdit(outcome: IOutcome): asserts outcome is IWork
  * returns null if the files are identical
  */
 export function extractInlineReplaceEdits(outcome: IInlineEditOutcome): IInlineReplaceEdit | null {
-	const originalLines = outcome.originalFileContents.split(new RegExp(regexp1));
-	const modifiedLines = outcome.fileContents.split(new RegExp(regexp1));
+	const originalLines = outcome.originalFileContents.split(regexp1);
+	const modifiedLines = outcome.fileContents.split(regexp1);
 
 	let ostart = 0;
 	let mstart = 0;
@@ -212,7 +212,7 @@ export function assertInlineEditShape(outcome: IOutcome, _expected: IInlineEditS
 		originalLength: actual.originalEndLine - actual.originalStartLine + 1,
 		modifiedLength: actual.modifiedEndLine - actual.modifiedStartLine + 1,
 	};
-	const originalLineCount = outcome.originalFileContents.split(new RegExp(regexp1)).length;
+	const originalLineCount = outcome.originalFileContents.split(regexp1).length;
 	const _expectedArr = Array.isArray(_expected) ? _expected : [_expected];
 	const expectedArr = _expectedArr.map((expected) => {
 		const line = (

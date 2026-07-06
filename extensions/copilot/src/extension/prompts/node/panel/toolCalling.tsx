@@ -718,7 +718,7 @@ class McpLinkedResourceToolResult extends PromptElement<{ resourceUri: URI; mime
 				{message}
 			</Tag>;
 		}
-		const lines = new TextDecoder().decode(contents).split(new RegExp(regexp1));
+		const lines = new TextDecoder().decode(contents).split(regexp1);
 		const maxLines = McpLinkedResourceToolResult.MAX_PREVIEW_LINES;
 
 		return <>

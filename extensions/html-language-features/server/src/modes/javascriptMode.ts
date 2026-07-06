@@ -474,7 +474,7 @@ function tagToMarkdown(tag: ts.JSDocTagInfo): string {
 				if (!doc) {
 					return label;
 				}
-				return label + (doc.match(new RegExp(regexp3)) ? '  \n' + doc : ` — ${doc}`);
+				return label + (doc.match(regexp3) ? '  \n' + doc : ` — ${doc}`);
 			}
 			break;
 		}
@@ -484,7 +484,7 @@ function tagToMarkdown(tag: ts.JSDocTagInfo): string {
 	if (!text) {
 		return label;
 	}
-	return label + (text.match(new RegExp(regexp3)) ? '  \n' + text : ` — ${text}`);
+	return label + (text.match(regexp3) ? '  \n' + text : ` — ${text}`);
 }
 
 function tagsToMarkdown(tags: ts.JSDocTagInfo[] | undefined): string {

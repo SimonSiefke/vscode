@@ -29,7 +29,7 @@ export async function parseSettingsAndCommands(workbenchService: IWorkbenchServi
 
 		let parsed: ParsedItem[] = [];
 		try {
-			const removeTrailingCommas = block.code.replace(new RegExp(regexp1), '$1');
+			const removeTrailingCommas = block.code.replace(regexp1, '$1');
 			parsed = JSON.parse(removeTrailingCommas);
 		} catch (error) {
 			return [];

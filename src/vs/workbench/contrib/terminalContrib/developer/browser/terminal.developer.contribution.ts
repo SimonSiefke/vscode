@@ -86,8 +86,8 @@ registerTerminalAction({
 			return;
 		}
 		let escapedData = data
-			.replace(new RegExp(regexp2), '\n')
-			.replace(new RegExp(regexp1), '\r');
+			.replace(regexp2, '\n')
+			.replace(regexp1, '\r');
 		while (true) {
 			const match = escapedData.match(regexp9aFA);
 			if (match === null || match.index === undefined || match.length < 2) {

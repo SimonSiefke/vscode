@@ -43,7 +43,7 @@ export class ReplacePattern {
 			this._regExp = strings.createRegExp(this._regExp.source, true, { matchCase: !this._regExp.ignoreCase, wholeWord: false, multiline: this._regExp.multiline, global: false });
 		}
 
-		this._caseOpsRegExp = new RegExp(new RegExp(regexpUUlL));
+		this._caseOpsRegExp = new RegExp(new RegExp(regexpUUlL.source, regexpUUlL.flags));
 	}
 
 	get hasParameters(): boolean {
@@ -123,7 +123,7 @@ export class ReplacePattern {
 			const replacementLen = replacement.length;
 
 			newReplaceString += patMatch[1]; // prefix
-			caseOps = caseOps.replace(new RegExp(regexp3), '');
+			caseOps = caseOps.replace(regexp3, '');
 			let i = 0;
 			for (; i < caseOps.length; i++) {
 				switch (caseOps[i]) {

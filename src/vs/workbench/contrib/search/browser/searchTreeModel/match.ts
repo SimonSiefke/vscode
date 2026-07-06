@@ -95,7 +95,7 @@ export class MatchImpl implements ISearchTreeMatch {
 		}
 
 		// Search/find normalize line endings - check whether \r prevents regex from matching
-		const fullMatchTextWithoutCR = fullMatchText.replace(new RegExp(regexp1), '\n');
+		const fullMatchTextWithoutCR = fullMatchText.replace(regexp1, '\n');
 		if (fullMatchTextWithoutCR !== fullMatchText) {
 			replaceString = searchModel.replacePattern.getReplaceString(fullMatchTextWithoutCR, searchModel.preserveCase);
 			if (replaceString !== null) {
@@ -111,7 +111,7 @@ export class MatchImpl implements ISearchTreeMatch {
 		}
 
 		// Search/find normalize line endings, this time in full context
-		const contextMatchTextWithoutCR = contextMatchTextWithSurroundingContent.replace(new RegExp(regexp1), '\n');
+		const contextMatchTextWithoutCR = contextMatchTextWithSurroundingContent.replace(regexp1, '\n');
 		if (contextMatchTextWithoutCR !== contextMatchTextWithSurroundingContent) {
 			replaceString = searchModel.replacePattern.getReplaceString(contextMatchTextWithoutCR, searchModel.preserveCase);
 			if (replaceString !== null) {

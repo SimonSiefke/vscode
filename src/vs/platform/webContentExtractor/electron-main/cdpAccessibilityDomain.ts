@@ -281,7 +281,7 @@ function processNode(uri: URI, node: AXNodeTree, buffer: string[], depth: number
 			return;
 
 		case 'blockquote':
-			buffer.push('> ' + getNodeText(node.node, allowWrap).replace(new RegExp(regexp1), '\n> ') + '\n\n');
+			buffer.push('> ' + getNodeText(node.node, allowWrap).replace(regexp1, '\n> ') + '\n\n');
 			break;
 
 		// TODO: Is this the correct way to handle the generic role?

@@ -22,7 +22,7 @@ namespace Nodes {
 		const textStartPosition = node.getStart(sourceFile, includeJSDocComment);
 		const startRange = sourceFile.getLineAndCharacterOfPosition(textStartPosition);
 		const text = sourceFile.text.substring(textStartPosition, node.getEnd());
-		const lines = text.split(new RegExp(regexp1));
+		const lines = text.split(regexp1);
 		// We have an indentation on the start line
 		if (startRange.character > 0) {
 			const lineStartPosition = sourceFile.getPositionOfLineAndCharacter(startRange.line, 0);

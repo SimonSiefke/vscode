@@ -67,7 +67,7 @@ class DefineKeybindingEditorContribution extends Disposable implements IDefineKe
 	private _onAccepted(keybinding: string | null): void {
 		this._editor.focus();
 		if (keybinding && this._editor.hasModel()) {
-			const regexp = new RegExp(new RegExp(regexp1));
+			const regexp = new RegExp(new RegExp(regexp1.source, regexp1.flags));
 			const backslash = regexp.test(keybinding);
 			if (backslash) {
 				keybinding = keybinding.slice(0, -1) + '\\\\';

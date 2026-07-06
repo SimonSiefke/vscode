@@ -93,7 +93,7 @@ export function prefixForHistorySuppression(shellType: ShellType): string {
 }
 
 export function isMultilineCommand(command: string): boolean {
-	const normalized = command.replace(new RegExp(regexp2), '\n');
+	const normalized = command.replace(regexp2, '\n');
 	return regexp3.test(normalized);
 }
 
@@ -102,7 +102,7 @@ function shouldUseBracketedPasteMode(command: string): boolean {
 }
 
 function makeSentinelId(): string {
-	return generateUuid().replace(new RegExp(regexp4), '');
+	return generateUuid().replace(regexp4, '');
 }
 
 function buildSentinelCommand(sentinelId: string, shellType: ShellType): string {

@@ -107,7 +107,7 @@ function doesCodeActionFixDiagnostics(action: CodeActionData, diagnostic: Diagno
 }
 
 function getSanitizedCodeActionTitle(action: CodeActionData): string {
-	return action.title.replace(new RegExp(regexp1), '$1...$1');
+	return action.title.replace(regexp1, '$1...$1');
 }
 
 function filterCodeActions(codeActionsWithEdit: CodeActionData[]): CodeActionData[] {

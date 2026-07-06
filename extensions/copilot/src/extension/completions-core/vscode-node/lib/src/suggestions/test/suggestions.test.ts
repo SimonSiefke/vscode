@@ -227,7 +227,7 @@ class LicenseStore {
 class StaticLines implements ILines {
 	private readonly lines: string[];
 	constructor(text: string) {
-		this.lines = text.split(new RegExp(regexp1));
+		this.lines = text.split(regexp1);
 	}
 
 	getLineText(lineIdx: number): string {

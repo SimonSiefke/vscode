@@ -341,8 +341,8 @@ async function startAgentHost(): Promise<void> {
 			}
 
 			const socketPath = isWindows
-				? `\\\\.\\pipe\\vscode-agent-host-${generateUuid().replace(new RegExp(regexp1), '')}`
-				: join(os.tmpdir(), `vscode-agent-host-${generateUuid().replace(new RegExp(regexp1), '')}.sock`);
+				? `\\\\.\\pipe\\vscode-agent-host-${generateUuid().replace(regexp1, '')}`
+				: join(os.tmpdir(), `vscode-agent-host-${generateUuid().replace(regexp1, '')}.sock`);
 
 			const wsServer = disposables.add(await WebSocketProtocolServer.create(
 				{ socketPath },

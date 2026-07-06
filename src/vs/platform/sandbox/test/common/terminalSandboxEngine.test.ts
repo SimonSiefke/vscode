@@ -58,7 +58,7 @@ suite('TerminalSandboxEngine', () => {
 			createdFiles.set(uri.path, contentString);
 			createdFiles.set(uri.fsPath, contentString);
 			if (regexpZA.test(uri.path)) {
-				createdFiles.set(uri.path.slice(1).replace(new RegExp(regexp1), '\\'), contentString);
+				createdFiles.set(uri.path.slice(1).replace(regexp1, '\\'), contentString);
 			}
 			return {};
 		}
@@ -164,7 +164,7 @@ suite('TerminalSandboxEngine', () => {
 	}
 
 	function normalizeWindowsPathForAssert(path: string): string {
-		return path.replace(new RegExp(regexp3), '/').toLowerCase();
+		return path.replace(regexp3, '/').toLowerCase();
 	}
 
 	function enableWindowsSandbox(): void {

@@ -93,7 +93,7 @@ function computeNesRenameTestCases(filePath: string): NesRenameTestCase[] {
 	const text = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest);
 	const result: NesRenameTestCase[] = [];
-	const regex = new RegExp(regexp1);
+	const regex = new RegExp(regexp1.source, regexp1.flags);
 	let match: RegExpExecArray | null;
 	while ((match = regex.exec(text)) !== null) {
 		try {
@@ -122,7 +122,7 @@ function computePostRenameTestCases(filePath: string): PostRenameTestCase[] {
 	const text = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest);
 	const result: PostRenameTestCase[] = [];
-	const regex = new RegExp(regexp1);
+	const regex = new RegExp(regexp1.source, regexp1.flags);
 
 	type ParsedAnnotation = {
 		annotation: TrackedRenameAnnotation | TestAnnotation;

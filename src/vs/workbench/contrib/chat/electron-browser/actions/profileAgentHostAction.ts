@@ -218,7 +218,7 @@ class AgentHostProfileService extends Disposable implements IAgentHostProfileSer
 		let profileUri = await this.fileDialogService.showSaveDialog({
 			title: localize('profileAgentHost.saveDialogTitle', "Save Agent Host Profile"),
 			availableFileSystems: [Schemas.file],
-			defaultUri: joinPath(await this.fileDialogService.defaultFilePath(), `AgentHost-CPU-${new Date().toISOString().replace(new RegExp(regexp1), '')}.cpuprofile`),
+			defaultUri: joinPath(await this.fileDialogService.defaultFilePath(), `AgentHost-CPU-${new Date().toISOString().replace(regexp1, '')}.cpuprofile`),
 			filters: [{
 				name: localize('profileAgentHost.cpuProfiles', "CPU Profiles"),
 				extensions: ['cpuprofile', 'txt'],

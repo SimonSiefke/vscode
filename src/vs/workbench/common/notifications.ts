@@ -525,7 +525,7 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		// Remove newlines from messages as we do not support that and it makes link parsing hard
-		message = message.replace(new RegExp(regexp1), ' ').trim();
+		message = message.replace(regexp1, ' ').trim();
 
 		// Parse Links
 		const linkedText = parseLinkedText(message);

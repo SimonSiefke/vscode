@@ -77,5 +77,5 @@ function _describeFn(fn: () => unknown): string {
 }
 
 function _collapseWhitespace(s: string): string {
-	return s.replace(new RegExp(regexp3), ' ').trim();
+	return s.replace(regexp3, ' ').trim();
 }

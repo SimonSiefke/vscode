@@ -129,7 +129,7 @@ function getPermissionLevelMeta(level: ChatPermissionLevel): IPermissionLevelMet
 
 /** Sanitize a free-form id segment so it is safe to embed in a stable action identifier. */
 function sanitizeIdSegment(value: string): string {
-	return value.replace(new RegExp(regexpZAZ0), '_');
+	return value.replace(regexpZAZ0, '_');
 }
 
 function getSandboxEnabledSettingId(): AgentSandboxSettingId.AgentSandboxEnabled | AgentSandboxSettingId.AgentSandboxWindowsEnabled {

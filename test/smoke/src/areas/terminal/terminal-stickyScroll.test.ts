@@ -45,7 +45,7 @@ export function setup(options?: { skipSuite: boolean }) {
 			if (
 				element &&
 				// New lines don't come through in textContent
-				element.textContent.indexOf(`${prompt.replace(new RegExp(regexp1), '')}${command}`) >= 0
+				element.textContent.indexOf(`${prompt.replace(regexp1, '')}${command}`) >= 0
 			) {
 				return;
 			}

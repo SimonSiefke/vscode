@@ -34,7 +34,7 @@ export function asCssValueWithDefault(cssPropertyValue: string | undefined, dflt
 }
 
 export function sizeValue(value: string): CssFragment {
-	const out = value.replaceAll(new RegExp(regexp2), '');
+	const out = value.replaceAll(regexp2, '');
 	if (out !== value) {
 		console.warn(`CSS size ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -42,7 +42,7 @@ export function sizeValue(value: string): CssFragment {
 }
 
 export function hexColorValue(value: string): CssFragment {
-	const out = value.replaceAll(new RegExp(regexp9aFA), '');
+	const out = value.replaceAll(regexp9aFA, '');
 	if (out !== value) {
 		console.warn(`CSS hex color ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -50,7 +50,7 @@ export function hexColorValue(value: string): CssFragment {
 }
 
 export function identValue(value: string): CssFragment {
-	const out = value.replaceAll(new RegExp(regexpZ0), '');
+	const out = value.replaceAll(regexpZ0, '');
 	if (out !== value) {
 		console.warn(`CSS ident value ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -58,7 +58,7 @@ export function identValue(value: string): CssFragment {
 }
 
 export function stringValue(value: string): CssFragment {
-	return asFragment(`'${value.replaceAll(new RegExp(regexp5), '\\000027')}'`);
+	return asFragment(`'${value.replaceAll(regexp5, '\\000027')}'`);
 }
 
 /**

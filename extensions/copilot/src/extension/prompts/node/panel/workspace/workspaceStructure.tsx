@@ -81,7 +81,7 @@ export class MultirootWorkspaceStructure extends PromptElement<WorkspaceStructur
 		const labels = folders.map(f => workspaceService.getWorkspaceFolderName(f));
 		const result: { file: URI; workspaceFolder: URI; relativePath: string }[] = [];
 		for (let relativePath of files) {
-			const segments = relativePath.split(new RegExp(regexp1));
+			const segments = relativePath.split(regexp1);
 
 			let workspaceFolder = folders[0];
 			if (folders.length > 1) {

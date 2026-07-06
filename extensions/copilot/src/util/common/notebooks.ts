@@ -136,8 +136,8 @@ export function serializeNotebookDocument(document: vscode.NotebookDocument, fea
 
 export function extractNotebookOutline(response: string): INotebookOutline | undefined {
 	try {
-		const trimmedResponse = response.replace(new RegExp(regexp2), '');
-		const regex = new RegExp(regexpJson);
+		const trimmedResponse = response.replace(regexp2, '');
+		const regex = new RegExp(regexpJson.source, regexpJson.flags);
 		const match = regex.exec(trimmedResponse);
 		if (match) {
 			const prefixTrimed = match[1];

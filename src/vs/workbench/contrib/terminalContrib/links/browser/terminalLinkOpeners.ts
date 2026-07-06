@@ -201,7 +201,7 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 		if (absolutePath) {
 			let normalizedAbsolutePath: string = absolutePath;
 			if (os === OperatingSystem.Windows) {
-				normalizedAbsolutePath = absolutePath.replace(new RegExp(regexp6), '/');
+				normalizedAbsolutePath = absolutePath.replace(regexp6, '/');
 				if (normalizedAbsolutePath.match(regexp7)) {
 					normalizedAbsolutePath = `/${normalizedAbsolutePath}`;
 				}

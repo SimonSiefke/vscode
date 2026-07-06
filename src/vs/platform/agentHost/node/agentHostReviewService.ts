@@ -227,6 +227,6 @@ export class AgentHostReviewService extends Disposable implements IAgentHostRevi
 	}
 
 	private _sanitizedSessionId(session: ProtocolURI): string {
-		return AgentSession.id(session).replace(new RegExp(regexpZAZ0), '-');
+		return AgentSession.id(session).replace(regexpZAZ0, '-');
 	}
 }

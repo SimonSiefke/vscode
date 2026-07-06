@@ -186,7 +186,7 @@ function clearInheritedNpmrcConfig(dir: string, env: NodeJS.ProcessEnv): void {
 	}
 
 	for (const key of rootNpmrcConfigKeys) {
-		const envKey = `npm_config_${key.replace(new RegExp(regexp3), '_')}`;
+		const envKey = `npm_config_${key.replace(regexp3, '_')}`;
 		delete env[envKey];
 	}
 }
@@ -347,7 +347,7 @@ async function main() {
 		const sessionFile = path.join(root, dir, 'node_modules', '@github', 'copilot-sdk', 'dist', 'session.js');
 		if (fs.existsSync(sessionFile)) {
 			const content = fs.readFileSync(sessionFile, 'utf8');
-			const patched = content.replace(new RegExp(regexpFromVscodeJsonrpc), 'from "vscode-jsonrpc/node.js"');
+			const patched = content.replace(regexpFromVscodeJsonrpc, 'from "vscode-jsonrpc/node.js"');
 			if (content !== patched) {
 				fs.writeFileSync(sessionFile, patched);
 				log(dir || '.', 'Patched @github/copilot-sdk session.js (vscode-jsonrpc ESM import fix)');

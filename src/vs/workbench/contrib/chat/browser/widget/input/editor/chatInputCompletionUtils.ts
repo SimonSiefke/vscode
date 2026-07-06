@@ -13,7 +13,7 @@ const regexp3 = /\s\S*$/;
 
 
 export function escapeForCharClass(text: string): string {
-	return text.replace(new RegExp(regexp1), '\\$&');
+	return text.replace(regexp1, '\\$&');
 }
 
 export interface IChatCompletionRangeResult {

@@ -221,7 +221,7 @@ function tail(contents: string, maxLength: number): string {
 
 function extractLatestSessionId(log: string): string | undefined {
 	let sessionId: string | undefined;
-	for (const match of log.matchAll(new RegExp(regexpUsingCopilotCLI1))) {
+	for (const match of log.matchAll(regexpUsingCopilotCLI1)) {
 		sessionId = match[1];
 	}
 	return sessionId;

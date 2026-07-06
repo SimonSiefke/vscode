@@ -446,7 +446,7 @@ export type ToolCall = ToolInfo & {
 export type UnknownToolCall = { toolName: string; arguments: unknown; toolCallId: string };
 
 function isInstructionAttachmentPath(path: string): boolean {
-	const normalizedPath = path.replace(new RegExp(regexp1), '/');
+	const normalizedPath = path.replace(regexp1, '/');
 	return normalizedPath.endsWith('/.github/copilot-instructions.md')
 		|| (normalizedPath.includes('/.github/instructions/') && normalizedPath.endsWith('.md'));
 }
@@ -497,13 +497,13 @@ export function stripReminders(text: string): string {
 	// Also remove <current_datetime> ... </current_datetime> blocks
 	// Also remove <pr_metadata .../> tags
 	return text
-		.replace(new RegExp(regexpReminderReminder), '')
-		.replace(new RegExp(regexpAttachmentsAttachments), '')
-		.replace(new RegExp(regexpUserRequestUserRequest), '')
-		.replace(new RegExp(regexpUserQueryUser), '')
-		.replace(new RegExp(regexpContextContext), '')
-		.replace(new RegExp(regexpCurrentDatetimeCurrent), '')
-		.replace(new RegExp(regexpPrMetadata), '')
+		.replace(regexpReminderReminder, '')
+		.replace(regexpAttachmentsAttachments, '')
+		.replace(regexpUserRequestUserRequest, '')
+		.replace(regexpUserQueryUser, '')
+		.replace(regexpContextContext, '')
+		.replace(regexpCurrentDatetimeCurrent, '')
+		.replace(regexpPrMetadata, '')
 		.trim();
 }
 
@@ -1244,7 +1244,7 @@ function formatShellInvocationCompleted(invocation: ChatToolInvocationPart, tool
 	const exitCodeStr = resultContent ? regexpExitedWithExit.exec(resultContent)?.[1] : undefined;
 	const exitCode = exitCodeStr ? parseInt(exitCodeStr, 10) : undefined;
 	// Lets remove the last line containing the exit code from the output.
-	const text = (exitCode !== undefined ? resultContent.replace(regexpExitedWithExit1, '').trimEnd() : resultContent).replace(new RegExp(regexp12), '\r\n');
+	const text = (exitCode !== undefined ? resultContent.replace(regexpExitedWithExit1, '').trimEnd() : resultContent).replace(regexp12, '\r\n');
 	const isPowershell = toolCall.toolName === 'powershell';
 	const presentationOverrides = getCdPresentationOverrides(toolCall.arguments.command, isPowershell, workingDirectory);
 	const toolSpecificData: ChatTerminalToolInvocationData = {
@@ -1559,7 +1559,7 @@ function formatUpdateTodoInvocationCompleted(invocation: ChatToolInvocationPart,
  * Pure reads (SELECT) are ignored to avoid unnecessary widget refreshes.
  */
 export function isTodoRelatedSqlQuery(query: string): boolean {
-	const normalized = query.replace(new RegExp(regexp19), ' ').toLowerCase();
+	const normalized = query.replace(regexp19, ' ').toLowerCase();
 	const targetsTodoTable = regexpBtodos.test(normalized) || regexpBtodoDeps.test(normalized);
 	if (!targetsTodoTable) {
 		return false;

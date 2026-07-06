@@ -300,7 +300,7 @@ export class ConversationFeature implements IExtensionContribution {
 				const commitMessage = await this.gitCommitMessageService.generateCommitMessage(repository, CancellationToken.None);
 				if (commitMessage) {
 					// Sanitize the message by escaping double quotes, backslashes, and $ characters
-					const sanitizedMessage = commitMessage.replace(new RegExp(regexp3), '\\"').replace(new RegExp(regexp2), '\\\\').replace(new RegExp(regexp1), '\\$'); // CodeQL [SM02383] Backslashes are escaped as part of the second replace.
+					const sanitizedMessage = commitMessage.replace(regexp3, '\\"').replace(regexp2, '\\\\').replace(regexp1, '\\$'); // CodeQL [SM02383] Backslashes are escaped as part of the second replace.
 					const message = `git commit -m "${sanitizedMessage}"`;
 					vscode.window.activeTerminal?.sendText(message, false);
 				}

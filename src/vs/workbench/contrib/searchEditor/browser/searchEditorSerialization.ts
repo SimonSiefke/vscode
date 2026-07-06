@@ -147,7 +147,7 @@ const contentPatternToSearchConfiguration = (pattern: ITextQuery, includes: stri
 export const serializeSearchConfiguration = (config: Partial<SearchConfiguration>): string => {
 	const removeNullFalseAndUndefined = <T>(a: (T | null | false | undefined)[]) => a.filter(a => a !== false && a !== null && a !== undefined) as T[];
 
-	const escapeNewlines = (str: string) => str.replace(new RegExp(regexp3), '\\\\').replace(new RegExp(regexp2), '\\n');
+	const escapeNewlines = (str: string) => str.replace(regexp3, '\\\\').replace(regexp2, '\\n');
 
 	return removeNullFalseAndUndefined([
 		`# Query: ${escapeNewlines(config.query ?? '')}`,
@@ -299,7 +299,7 @@ export const parseSerializedSearchEditor = (text: string) => {
 	const bodylines = [];
 
 	let inHeader = true;
-	for (const line of text.split(new RegExp(regexp5))) {
+	for (const line of text.split(regexp5)) {
 		if (inHeader) {
 			headerlines.push(line);
 			if (line === '') {

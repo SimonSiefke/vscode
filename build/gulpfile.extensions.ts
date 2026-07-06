@@ -121,7 +121,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 	const overrideOptions: { sourceMap?: boolean; inlineSources?: boolean; base?: string } = {};
 	overrideOptions.sourceMap = true;
 
-	const name = relativeDirname.replace(new RegExp(regexp2), '-');
+	const name = relativeDirname.replace(regexp2, '-');
 
 	const srcRoot = path.dirname(tsconfigFile);
 	const srcBase = path.join(srcRoot, 'src');

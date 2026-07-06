@@ -101,7 +101,7 @@ export class UserDataSyncLocalStoreService extends Disposable implements IUserDa
 
 	async writeResource(resourceKey: SyncResource, content: string, cTime: Date, collection?: string, root?: URI): Promise<void> {
 		const folder = this.getResourceBackupHome(resourceKey, collection, root);
-		const resource = joinPath(folder, `${toLocalISOString(cTime).replace(new RegExp(regexp1), '')}.json`);
+		const resource = joinPath(folder, `${toLocalISOString(cTime).replace(regexp1, '')}.json`);
 		try {
 			await this.fileService.writeFile(resource, VSBuffer.fromString(content));
 		} catch (e) {

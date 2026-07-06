@@ -360,7 +360,7 @@ export class XtabNextCursorPredictor {
  * (which can happen when generation hits the max tokens limit).
  */
 function stripThinkTags(text: string): string {
-	let result = text.replace(new RegExp(regexpThinkThink), '');
+	let result = text.replace(regexpThinkThink, '');
 	if (result.trimStart().startsWith('<think>')) {
 		result = '';
 	}

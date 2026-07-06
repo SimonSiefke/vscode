@@ -146,13 +146,13 @@ export function extendMarkdownItWithMermaid(md: MarkdownIt, config: { languageId
 
 function preProcess(source: string): string {
 	return source
-		.replace(new RegExp(regexp4), '&amp;')
-		.replace(new RegExp(regexp3), '&lt;')
-		.replace(new RegExp(regexp2), '&gt;')
+		.replace(regexp4, '&amp;')
+		.replace(regexp3, '&lt;')
+		.replace(regexp2, '&gt;')
 		.replace(regexp1, '')
 		.trimStart();
 }
 
 function escapeRegExp(string: string): string {
-	return string.replace(new RegExp(regexp5), '\\$&');
+	return string.replace(regexp5, '\\$&');
 }

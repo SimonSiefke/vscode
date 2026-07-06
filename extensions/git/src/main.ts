@@ -108,7 +108,7 @@ async function createModel(context: ExtensionContext, logger: LogOutputChannel, 
 	onRepository();
 
 	const onOutput = (str: string) => {
-		const lines = str.split(new RegExp(regexp2));
+		const lines = str.split(regexp2);
 
 		while (regexp3.test(lines[lines.length - 1])) {
 			lines.pop();

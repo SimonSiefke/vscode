@@ -166,11 +166,11 @@ function convertIndentation(content: string): string {
 function mergeDuplicateImports(content: string): string {
 	// Normalize line endings so the `$`-anchored import regexes below match
 	// regardless of whether the source was checked out with CRLF or LF.
-	content = content.replace(new RegExp(regexp3), '\n');
+	content = content.replace(regexp3, '\n');
 
 	// Collapse multi-line imports into single lines first
-	content = content.replace(new RegExp(regexpImportTypeFrom), (_match, typeKeyword, names, mod) => {
-		const collapsed = names.replace(new RegExp(regexp5), ' ').trim();
+	content = content.replace(regexpImportTypeFrom, (_match, typeKeyword, names, mod) => {
+		const collapsed = names.replace(regexp5, ' ').trim();
 		return typeKeyword ? `import type { ${collapsed} } from '${mod}';` : `import { ${collapsed} } from '${mod}';`;
 	});
 

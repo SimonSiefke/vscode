@@ -582,7 +582,7 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 
 function createSettingMatchRegExp(pattern: string): RegExp {
 	pattern = escapeRegExpCharacters(pattern)
-		.replace(new RegExp(regexp1), '.*');
+		.replace(regexp1, '.*');
 
 	return new RegExp(`^${pattern}$`, 'i');
 }
@@ -782,7 +782,7 @@ export function inspectSetting(key: string, target: SettingsTarget, languageFilt
 }
 
 export function sanitizeId(id: string): string {
-	return id.replace(new RegExp(regexp2), '_');
+	return id.replace(regexp2, '_');
 }
 
 export function settingKeyToDisplayFormat(key: string, groupId: string = '', isLanguageTagSetting: boolean = false): { category: string; label: string } {
@@ -793,7 +793,7 @@ export function settingKeyToDisplayFormat(key: string, groupId: string = '', isL
 		key = key.substring(lastDotIdx + 1);
 	}
 
-	groupId = groupId.replace(new RegExp(regexp3), '.');
+	groupId = groupId.replace(regexp3, '.');
 	category = trimCategoryForGroup(category, groupId);
 	category = wordifyKey(category);
 
@@ -823,8 +823,8 @@ function trimCategoryForGroup(category: string, groupId: string): string {
 		const parts = groupId.split('.')
 			.map(part => {
 				// Remove hyphens, but only if that results in a match with the category.
-				if (part.replace(new RegExp(regexp6), '').toLowerCase() === category.toLowerCase()) {
-					return part.replace(new RegExp(regexp6), '');
+				if (part.replace(regexp6, '').toLowerCase() === category.toLowerCase()) {
+					return part.replace(regexp6, '');
 				} else {
 					return part;
 				}
@@ -1253,7 +1253,7 @@ export function parseQuery(query: string): IParsedQuery {
 	});
 
 	// Handle @stable by excluding preview and experimental tags
-	query = query.replace(new RegExp(regexpStable), () => {
+	query = query.replace(regexpStable, () => {
 		tags.push('stable');
 		return '';
 	});

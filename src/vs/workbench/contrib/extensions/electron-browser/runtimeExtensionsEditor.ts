@@ -273,7 +273,7 @@ export class SaveExtensionHostProfileAction extends Action2 {
 		const picked = await fileDialogService.showSaveDialog({
 			title: nls.localize('saveprofile.dialogTitle', "Save Extension Host Profile"),
 			availableFileSystems: [Schemas.file],
-			defaultUri: joinPath(await fileDialogService.defaultFilePath(), `CPU-${new Date().toISOString().replace(new RegExp(regexp1), '')}.cpuprofile`),
+			defaultUri: joinPath(await fileDialogService.defaultFilePath(), `CPU-${new Date().toISOString().replace(regexp1, '')}.cpuprofile`),
 			filters: [{
 				name: 'CPU Profiles',
 				extensions: ['cpuprofile', 'txt']

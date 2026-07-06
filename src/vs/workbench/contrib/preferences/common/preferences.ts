@@ -249,11 +249,11 @@ knownTermMappings.set('resharper', 'ReSharper');
 
 export function wordifyKey(key: string): string {
 	key = key
-		.replace(new RegExp(regexpZ01), (_, p1) => ` \u203A ${p1.toUpperCase()}`) // Replace dot with spaced '>'
-		.replace(new RegExp(regexpZ0), '$1 $2') // Camel case to spacing, fooBar => foo Bar
-		.replace(new RegExp(regexp3), '$1 $2') // Split consecutive capitals letters, AISearch => AI Search
-		.replace(new RegExp(regexp2), match => match.toUpperCase()) // Upper casing all first letters, foo => Foo
-		.replace(new RegExp(regexp1), match => { // Upper casing known acronyms
+		.replace(regexpZ01, (_, p1) => ` \u203A ${p1.toUpperCase()}`) // Replace dot with spaced '>'
+		.replace(regexpZ0, '$1 $2') // Camel case to spacing, fooBar => foo Bar
+		.replace(regexp3, '$1 $2') // Split consecutive capitals letters, AISearch => AI Search
+		.replace(regexp2, match => match.toUpperCase()) // Upper casing all first letters, foo => Foo
+		.replace(regexp1, match => { // Upper casing known acronyms
 			return knownAcronyms.has(match.toLowerCase()) ?
 				match.toUpperCase() :
 				match;

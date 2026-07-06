@@ -33,7 +33,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 	if (args.length === 0) {
 		result = message;
 	} else {
-		result = message.replace(new RegExp(regexp1), (match, rest) => {
+		result = message.replace(regexp1, (match, rest) => {
 			const index = rest[0];
 			const arg = args[index];
 			let result = match;
@@ -48,7 +48,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 
 	if (isPseudo) {
 		// FF3B and FF3D is the Unicode zenkaku representation for [ and ]
-		result = '\uFF3B' + result.replace(new RegExp(regexpAouei), '$&$&') + '\uFF3D';
+		result = '\uFF3B' + result.replace(regexpAouei, '$&$&') + '\uFF3D';
 	}
 
 	return result;

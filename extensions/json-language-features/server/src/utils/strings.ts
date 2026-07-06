@@ -21,5 +21,5 @@ export function endsWith(haystack: string, needle: string): boolean {
 }
 
 export function convertSimple2RegExpPattern(pattern: string): string {
-	return pattern.replace(new RegExp(regexp2), '\\$&').replace(new RegExp(regexp1), '.*');
+	return pattern.replace(regexp2, '\\$&').replace(regexp1, '.*');
 }

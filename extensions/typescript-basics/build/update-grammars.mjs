@@ -14,9 +14,9 @@ const regexpTsx = /\.tsx/g;
 function removeDom(grammar) {
 	grammar.repository['support-objects'].patterns = grammar.repository['support-objects'].patterns.filter(pattern => {
 		if (pattern.match && (
-			new RegExp(regexpHTMLElementATTRIBUTENODE).test(pattern.match)
-			|| new RegExp(regexpBJSON).test(pattern.match)
-			|| new RegExp(regexpBMath).test(pattern.match)
+			new RegExp(regexpHTMLElementATTRIBUTENODE.source, regexpHTMLElementATTRIBUTENODE.flags).test(pattern.match)
+			|| new RegExp(regexpBJSON.source, regexpBJSON.flags).test(pattern.match)
+			|| new RegExp(regexpBMath.source, regexpBMath.flags).test(pattern.match)
 		)) {
 			return false;
 		}
@@ -74,10 +74,10 @@ function adaptToJavaScript(grammar, replacementScope) {
 
 	var fixScopeNames = function (rule) {
 		if (typeof rule.name === 'string') {
-			rule.name = rule.name.replace(new RegExp(regexpTsx), replacementScope);
+			rule.name = rule.name.replace(regexpTsx, replacementScope);
 		}
 		if (typeof rule.contentName === 'string') {
-			rule.contentName = rule.contentName.replace(new RegExp(regexpTsx), replacementScope);
+			rule.contentName = rule.contentName.replace(regexpTsx, replacementScope);
 		}
 		for (var property in rule) {
 			var value = rule[property];

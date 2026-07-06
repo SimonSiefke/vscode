@@ -302,7 +302,7 @@ export class SearchEditorInput extends EditorInput {
 
 	private async suggestFileName(): Promise<URI> {
 		const query = (await this.resolveModels()).configurationModel.config.query;
-		const searchFileName = (query.replace(new RegExp(regexp1), '_') || 'Search') + SEARCH_EDITOR_EXT;
+		const searchFileName = (query.replace(regexp1, '_') || 'Search') + SEARCH_EDITOR_EXT;
 		return joinPath(await this.fileDialogService.defaultFilePath(this.pathService.defaultUriScheme), searchFileName);
 	}
 

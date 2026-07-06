@@ -1021,7 +1021,7 @@ export function defineSharedRealSdkTests(config: IRealSdkProviderConfig): void {
 			// intermediate assistant message, so replay can detect whether
 			// subagent assistant text leaks upward without depending on the
 			// parent agent's final summary behavior.
-			const sentinel = `subagent replay note ${generateUuid().replace(new RegExp(regexp5), '').slice(0, 10)}`;
+			const sentinel = `subagent replay note ${generateUuid().replace(regexp5, '').slice(0, 10)}`;
 
 			let approvalsActive = true;
 			let approvalSeq = 2000;

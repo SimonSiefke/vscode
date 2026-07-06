@@ -411,9 +411,9 @@ function slugify(text: string): string {
 	const slugifiedHeading = encodeURI(
 		text.trim()
 			.toLowerCase()
-			.replace(new RegExp(regexp4), '-') // Replace whitespace with -
+			.replace(regexp4, '-') // Replace whitespace with -
 			// allow-any-unicode-next-line
-			.replace(new RegExp(regexp3), '') // Remove known punctuators
+			.replace(regexp3, '') // Remove known punctuators
 			.replace(regexp2, '') // Remove leading -
 			.replace(regexp1, '') // Remove trailing -
 	);

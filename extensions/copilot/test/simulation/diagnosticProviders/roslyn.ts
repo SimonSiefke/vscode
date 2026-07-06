@@ -59,7 +59,7 @@ export class RoslynDiagnosticsProvider extends CachingDiagnosticsProvider {
 
 	override isInstalled(): boolean {
 		if (this._isInstalled === undefined) {
-			if (findIfInstalled({ command: 'dotnet', arguments: ['--version'] }, new RegExp(regexp2))) {
+			if (findIfInstalled({ command: 'dotnet', arguments: ['--version'] }, new RegExp(regexp2.source, regexp2.flags))) {
 				this._isInstalled = 'local';
 			} else if (findIfInstalled({ command: 'docker', arguments: ['--version'] }, regexp1)) {
 				this._isInstalled = 'docker';

@@ -284,7 +284,7 @@ export class PieceTreeTextBuffer extends Disposable implements ITextBuffer {
 				if (strEOL === StringEOL.Unknown || strEOL === expectedStrEOL) {
 					validText = op.text;
 				} else {
-					validText = op.text.replace(new RegExp(regexp1), bufferEOL);
+					validText = op.text.replace(regexp1, bufferEOL);
 				}
 			}
 

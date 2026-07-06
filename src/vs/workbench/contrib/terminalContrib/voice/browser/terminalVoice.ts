@@ -161,7 +161,7 @@ export class TerminalVoiceSession extends Disposable {
 
 	private _updateInput(e: ISpeechToTextEvent): void {
 		if (e.text) {
-			let input = e.text.replaceAll(new RegExp(regexp1), '');
+			let input = e.text.replaceAll(regexp1, '');
 			for (const symbol of Object.entries(symbolMap)) {
 				input = input.replace(new RegExp('\\b' + symbol[0] + '\\b'), symbol[1]);
 			}

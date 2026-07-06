@@ -419,19 +419,19 @@ export function collectSingleLineErrorMessage(e: any, includeDetails = false): s
  */
 export function sanitizeNetworkErrorForTelemetry(message: string): string {
 	// Strip credentials and host from proxy result strings (e.g., "PROXY user:pass@host" → "PROXY <credentials>@<host>")
-	message = message.replace(new RegExp(regexpPROXYHTTPSSOCKS), '$1<credentials>@<host>');
+	message = message.replace(regexpPROXYHTTPSSOCKS, '$1<credentials>@<host>');
 	// Strip host from proxy result strings without credentials (e.g., "PROXY host:8080" → "PROXY <host>:8080")
-	message = message.replace(new RegExp(regexpPROXYHTTPSSOCKS1), '$1<host>');
+	message = message.replace(regexpPROXYHTTPSSOCKS1, '$1<host>');
 	// Strip credentials and host from URLs (e.g., "://user:pass@host" → "://<credentials>@<host>")
-	message = message.replace(new RegExp(regexp3), '$1<credentials>@<host>');
+	message = message.replace(regexp3, '$1<credentials>@<host>');
 	// Replace IPv4 addresses, preserving the port if present
-	message = message.replace(new RegExp(regexp4), '<ip>');
+	message = message.replace(regexp4, '<ip>');
 	// Replace IPv6 addresses (full form, e.g., "2001:db8:85a3:0:0:8a2e:370:7334")
-	message = message.replace(new RegExp(regexpZA9aFA), '<ip>');
+	message = message.replace(regexpZA9aFA, '<ip>');
 	// Replace IPv6 addresses (compressed form with ::, e.g., "2001:db8::1" or "::1")
-	message = message.replace(new RegExp(regexpZA9aFA1), '<ip>');
+	message = message.replace(regexpZA9aFA1, '<ip>');
 	// Replace FQDNs (at least one dot, TLD of 2+ alpha chars), preserving the port if present
-	message = message.replace(new RegExp(regexpZAZ0ZA), '<host>');
+	message = message.replace(regexpZAZ0ZA, '<host>');
 	return message;
 }
 
@@ -495,7 +495,7 @@ function extractChromiumDetails(details: ElectronFetchErrorChromiumDetails): any
 
 	if (details.proxy) {
 		const proxyString = String(details.proxy);
-		const proxySchemes = [...proxyString.matchAll(new RegExp(regexpZ0))].map(match => match[1]);
+		const proxySchemes = [...proxyString.matchAll(regexpZ0)].map(match => match[1]);
 		if (proxySchemes.length > 0) {
 			extracted.proxy_schemes = proxySchemes;
 		}

@@ -205,7 +205,7 @@ function updateContent(c: EmbeddedRegion, content: string): string {
 		return content.replace(`<!--`, `/* `).replace(`-->`, ` */`);
 	}
 	if (c.languageId === 'css') {
-		const quoteEscape = new RegExp(regexpQuot);
+		const quoteEscape = new RegExp(regexpQuot.source, regexpQuot.flags);
 		return content.replace(quoteEscape, (match, _, offset) => {
 			const spaces = ' '.repeat(match.length - 1);
 			const afterChar = content[offset + match.length];

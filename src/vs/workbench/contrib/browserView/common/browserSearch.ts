@@ -72,7 +72,7 @@ export interface IBrowserSearchEngine {
  * used by popular browsers: `encodeURIComponent` then replace `%20` with `+`.
  */
 function encodeQuery(query: string): string {
-	return encodeURIComponent(query).replace(new RegExp(regexp1), '+');
+	return encodeURIComponent(query).replace(regexp1, '+');
 }
 
 /**
@@ -434,7 +434,7 @@ export function buildSearchUrl(
 	const engine =
 		BROWSER_SEARCH_ENGINES.find((e) => e.id === engineId) ??
 		BROWSER_SEARCH_ENGINES[0];
-	return engine.buildSearchUrl(query.trim().replace(new RegExp(regexp8), ' '));
+	return engine.buildSearchUrl(query.trim().replace(regexp8, ' '));
 }
 
 /**

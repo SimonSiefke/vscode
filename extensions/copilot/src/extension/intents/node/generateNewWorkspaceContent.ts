@@ -91,7 +91,7 @@ export class FileContentsGenerator extends NewWorkspaceContentGenerator {
 			}
 			return fromCodeblock;
 		} else {
-			return safeParse(chatResponse, new RegExp(regexp1));
+			return safeParse(chatResponse, new RegExp(regexp1.source, regexp1.flags));
 		}
 	}
 }

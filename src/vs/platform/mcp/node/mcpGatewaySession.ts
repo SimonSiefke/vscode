@@ -126,7 +126,7 @@ export class McpGatewaySession extends Disposable {
 		const payload = JSON.stringify(message);
 		const eventId = String(++this._lastEventId);
 		this._logService.debug(`[McpGateway][session ${this.id}] Broadcasting SSE event id=${eventId} to ${this._sseClients.size}`);
-		const lines = payload.split(new RegExp(regexp1));
+		const lines = payload.split(regexp1);
 		const data = [
 			`id: ${eventId}`,
 			'event: message',

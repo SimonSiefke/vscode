@@ -573,7 +573,7 @@ suite('SnippetsService', function () {
 	test('issue #61296: VS code freezes when editing CSS fi`le with emoji', async function () {
 		const languageConfigurationService = disposables.add(new TestLanguageConfigurationService());
 		disposables.add(languageConfigurationService.register('fooLang', {
-			wordPattern: new RegExp(regexp1)
+			wordPattern: new RegExp(regexp1.source, regexp1.flags)
 		}));
 
 		snippetService = new SimpleSnippetService([new Snippet(

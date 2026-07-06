@@ -2224,7 +2224,7 @@ export class ExtHostLanguageFeatures extends CoreDisposable implements extHostPr
 
 		const t1: number = Date.now();
 		if (!doNotLog) {
-			this._logService.trace(`[${data.extension.identifier.value}] INVOKE provider '${callback.toString().replace(new RegExp(regexp1), '')}'`);
+			this._logService.trace(`[${data.extension.identifier.value}] INVOKE provider '${callback.toString().replace(regexp1, '')}'`);
 		}
 
 		const result = callback(data.adapter, data.extension);

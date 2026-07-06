@@ -599,7 +599,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 			// not a fancy approach, but this is the same approach used by the split2
 			// module which is well-optimized (https://github.com/mcollina/split2)
 			last += chunk;
-			const lines = last.split(new RegExp(regexp3));
+			const lines = last.split(regexp3);
 			last = lines.pop()!;
 
 			// protected against an extension spamming and leaking memory if no new line is written.

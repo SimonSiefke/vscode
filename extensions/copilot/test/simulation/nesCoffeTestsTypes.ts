@@ -40,7 +40,7 @@ export namespace CompletionStests {
 					const converted: Record<string, any> = {};
 					for (const prop in value) {
 						if (Object.prototype.hasOwnProperty.call(value, prop)) {
-							const camelKey = prop.replace(new RegExp(regexp1), (_, letter) => letter.toUpperCase());
+							const camelKey = prop.replace(regexp1, (_, letter) => letter.toUpperCase());
 							converted[camelKey] = (value as Record<string, any>)[prop];
 						}
 					}

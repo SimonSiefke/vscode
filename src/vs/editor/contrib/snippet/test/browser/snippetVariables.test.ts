@@ -108,7 +108,7 @@ suite('Snippet Variables Resolver', function () {
 
 		const labelService = new class extends mock<ILabelService>() {
 			override getUriLabel(uri: URI) {
-				return uri.fsPath.replace(new RegExp(regexp1), '|');
+				return uri.fsPath.replace(regexp1, '|');
 			}
 		};
 

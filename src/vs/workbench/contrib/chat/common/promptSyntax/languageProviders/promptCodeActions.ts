@@ -115,7 +115,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 				));
 			} else if (markerCode === PromptValidatorMarkerCode.UnknownExtensionReference) {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
-				const extensionId = reference.split('/')[0].replace(new RegExp(regexp1), '');
+				const extensionId = reference.split('/')[0].replace(regexp1, '');
 				if (extensionId) {
 					result.push(this.createCodeAction(
 						model,
@@ -127,7 +127,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 				}
 			} else if (markerCode === PromptValidatorMarkerCode.UnknownMcpServerReference) {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
-				const serverId = reference.replace(new RegExp(regexp1), '');
+				const serverId = reference.replace(regexp1, '');
 				if (serverId) {
 					result.push(this.createCodeAction(
 						model,
@@ -140,7 +140,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 			} else {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
 				if (reference) {
-					const extensionId = reference.split('/')[0].replace(new RegExp(regexp1), '');
+					const extensionId = reference.split('/')[0].replace(regexp1, '');
 					result.push(this.createCodeAction(
 						model,
 						range,
@@ -148,7 +148,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 						undefined,
 						{ id: 'workbench.extensions.search', title: '', arguments: [`@id:${extensionId}`] }
 					));
-					const serverId = reference.replace(new RegExp(regexp1), '');
+					const serverId = reference.replace(regexp1, '');
 					result.push(this.createCodeAction(
 						model,
 						range,

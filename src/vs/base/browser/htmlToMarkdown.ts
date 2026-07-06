@@ -27,7 +27,7 @@ const ttPolicy = createTrustedTypesPolicy('htmlToMarkdown', { createHTML: value 
 export function convertHtmlToMarkdown(html: string): string {
 	// Bail out on very large inputs to limit DOM parsing cost
 	if (html.length > maxInputLength) {
-		return html.replace(new RegExp(regexp1), '');
+		return html.replace(regexp1, '');
 	}
 
 	const trustedHtml = ttPolicy?.createHTML(html) ?? html;
@@ -35,10 +35,10 @@ export function convertHtmlToMarkdown(html: string): string {
 	let result = convertChildren(doc.body);
 
 	// Convert non-breaking spaces to regular spaces
-	result = result.replace(new RegExp(regexp2), ' ');
+	result = result.replace(regexp2, ' ');
 
 	// Collapse runs of 3+ newlines into 2
-	result = result.replace(new RegExp(regexp3), '\n\n');
+	result = result.replace(regexp3, '\n\n');
 
 	return result.trim();
 }
@@ -67,7 +67,7 @@ function convertNode(node: Node): string {
 			// eslint-disable-next-line no-restricted-syntax -- querying a detached DOMParser document, not the live DOM
 			const codeEl = el.querySelector('code');
 			const text = (codeEl ?? el).textContent ?? '';
-			return `\n\`\`\`\n${text.replace(new RegExp(regexp4), '')}\n\`\`\`\n`;
+			return `\n\`\`\`\n${text.replace(regexp4, '')}\n\`\`\`\n`;
 		}
 
 		case 'code':

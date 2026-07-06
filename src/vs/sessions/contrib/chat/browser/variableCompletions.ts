@@ -112,7 +112,7 @@ function computeRange(model: ITextModel, position: Position, reg: RegExp): IComp
  */
 export class VariableCompletionHandler extends Disposable {
 
-	private static readonly _wordPattern = new RegExp(regexp1); // MUST use g-flag
+	private static readonly _wordPattern = new RegExp(regexp1.source, regexp1.flags); // MUST use g-flag
 	private static readonly _className = 'sessions-variable-reference';
 
 	private readonly _decorations: IEditorDecorationsCollection;
@@ -350,7 +350,7 @@ export class VariableCompletionHandler extends Disposable {
 		const value = model?.getValue() ?? '';
 
 		const decos: IModelDeltaDecoration[] = [];
-		const regex = new RegExp(regexpFile);
+		const regex = new RegExp(regexpFile.source, regexpFile.flags);
 		let match: RegExpExecArray | null;
 
 		while ((match = regex.exec(value)) !== null) {

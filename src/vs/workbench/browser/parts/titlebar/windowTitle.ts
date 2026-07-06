@@ -230,7 +230,7 @@ export class WindowTitle extends Disposable {
 		}
 
 		// Replace non-space whitespace
-		return title.replace(new RegExp(regexp1), ' ');
+		return title.replace(regexp1, ' ');
 	}
 
 	getTitleDecorations() {

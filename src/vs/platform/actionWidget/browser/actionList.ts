@@ -2175,5 +2175,5 @@ export class ActionList<T> extends Disposable {
 }
 
 function stripNewlines(str: string): string {
-	return str.replace(new RegExp(regexp2), ' ');
+	return str.replace(regexp2, ' ');
 }

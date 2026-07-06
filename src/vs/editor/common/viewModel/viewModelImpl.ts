@@ -1083,7 +1083,7 @@ export class ViewModel extends Disposable implements IViewModel {
 			fontFamily = EDITOR_FONT_DEFAULTS.fontFamily;
 		} else {
 			fontFamily = fontInfo.fontFamily;
-			fontFamily = fontFamily.replace(new RegExp(regexp2), '\'');
+			fontFamily = fontFamily.replace(regexp2, '\'');
 			const hasQuotesOrIsList = regexp3.test(fontFamily);
 			if (!hasQuotesOrIsList) {
 				const needsQuotes = regexp4.test(fontFamily);

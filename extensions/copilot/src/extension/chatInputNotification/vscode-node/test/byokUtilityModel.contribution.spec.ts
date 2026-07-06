@@ -37,7 +37,7 @@ vi.mock('vscode', () => ({
 		get onDidChangeChatModels() { return onDidChangeChatModelsEmitter.event; },
 		selectChatModels: (...args: unknown[]) => selectChatModelsMock(...args),
 	},
-	l10n: { t: (str: string, ...args: unknown[]) => str.replace(new RegExp(regexp1), (_, i) => String(args[Number(i)])) },
+	l10n: { t: (str: string, ...args: unknown[]) => str.replace(regexp1, (_, i) => String(args[Number(i)])) },
 }));
 
 import { ByokUtilityModelNotificationContribution } from '../byokUtilityModel.contribution';

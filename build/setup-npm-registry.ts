@@ -31,7 +31,7 @@ async function* getPackageLockFiles(dir: string): AsyncGenerator<string> {
  */
 async function setup(url: string, file: string): Promise<void> {
 	let contents = await fs.readFile(file, 'utf8');
-	contents = contents.replace(new RegExp(regexpHttpsRegistryOrg), url);
+	contents = contents.replace(regexpHttpsRegistryOrg, url);
 	await fs.writeFile(file, contents);
 }
 

@@ -199,7 +199,7 @@ class RegexBasedBlockParser extends BaseBlockParser {
 			// block.startIndex and offset, all the way up to block.endIndex.
 			if (block.startIndex < offset) { offset = block.startIndex; }
 			const blockText = text.substring(offset, block.endIndex).trim();
-			if (blockText === '' || blockText.replace(new RegExp(regexp1), '') === this.blockEmptyMatch) {
+			if (blockText === '' || blockText.replace(regexp1, '') === this.blockEmptyMatch) {
 				// block is empty
 				return true;
 			}

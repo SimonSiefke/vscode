@@ -354,7 +354,7 @@ abstract class KernelPickerStrategyBase implements IKernelPickerStrategy {
 			return;
 		}
 
-		const pascalCased = viewType.split(new RegExp(regexpZ0)).map(uppercaseFirstLetter).join('');
+		const pascalCased = viewType.split(regexpZ0).map(uppercaseFirstLetter).join('');
 		await extensionWorkbenchService.openSearch(`@tag:notebookKernel${pascalCased}`);
 	}
 

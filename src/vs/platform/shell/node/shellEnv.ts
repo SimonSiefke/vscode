@@ -109,7 +109,7 @@ async function doResolveUnixShellEnv(logService: ILogService, token: Cancellatio
 	const noAttach = process.env['ELECTRON_NO_ATTACH_CONSOLE'];
 	logService.trace('getUnixShellEnvironment#noAttach', noAttach);
 
-	const mark = generateUuid().replace(new RegExp(regexp1), '').substr(0, 12);
+	const mark = generateUuid().replace(regexp1, '').substr(0, 12);
 	const regex = new RegExp(mark + '({.*})' + mark);
 
 	const env = {

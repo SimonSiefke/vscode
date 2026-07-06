@@ -132,7 +132,7 @@ export class IssueReporter extends BaseIssueReporterService {
 				issueBody = issueBody.replace(extensionData, '');
 				const date = new Date();
 				const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-				const formattedTime = date.toTimeString().split(' ')[0].replace(new RegExp(regexp1), '-'); // HH-MM-SS
+				const formattedTime = date.toTimeString().split(' ')[0].replace(regexp1, '-'); // HH-MM-SS
 				const fileName = `extensionData_${formattedDate}_${formattedTime}.md`;
 				try {
 					const downloadPath = await this.fileDialogService.showSaveDialog({

@@ -209,16 +209,16 @@ function getMassagedTopLevelDeclarationText(ts: typeof import('typescript'), sou
 			}
 		});
 	}
-	result = result.replace(new RegExp(regexpExportDefault), 'export ');
-	result = result.replace(new RegExp(regexpExportDeclare), 'export ');
-	result = result.replace(new RegExp(regexpDeclare), '');
+	result = result.replace(regexpExportDefault, 'export ');
+	result = result.replace(regexpExportDeclare, 'export ');
+	result = result.replace(regexpDeclare, '');
 	const lines = result.split(regexp4);
 	for (let i = 0; i < lines.length; i++) {
 		if (regexp5.test(lines[i])) {
 			// very likely a comment
 			continue;
 		}
-		lines[i] = lines[i].replace(new RegExp(regexp6), '\'');
+		lines[i] = lines[i].replace(regexp6, '\'');
 	}
 	result = lines.join('\n');
 
@@ -396,7 +396,7 @@ function createReplacer(data: string): (str: string) => string {
 		let findStr = pieces[0];
 		const replaceStr = pieces[1];
 
-		findStr = findStr.replace(new RegExp(regexp14), '\\$&');
+		findStr = findStr.replace(regexp14, '\\$&');
 		findStr = '\\b' + findStr + '\\b';
 		directives.push([new RegExp(findStr, 'g'), replaceStr]);
 	});
@@ -546,8 +546,8 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 	}
 
 	let resultTxt = result.join(endl);
-	resultTxt = resultTxt.replace(new RegExp(regexpBURI), 'Uri');
-	resultTxt = resultTxt.replace(new RegExp(regexpBEvent), 'IEvent<');
+	resultTxt = resultTxt.replace(regexpBURI, 'Uri');
+	resultTxt = resultTxt.replace(regexpBEvent, 'IEvent<');
 	resultTxt = resultTxt.split(regexp22).join(endl);
 	resultTxt = format(ts, resultTxt, endl);
 	resultTxt = resultTxt.split(regexp22).join(endl);
@@ -602,8 +602,8 @@ function _run(ts: Typescript, sourceFileGetter: SourceFileGetter): IMonacoDeclar
 	const enums = t.enums;
 
 	const currentContent = fs.readFileSync(DECLARATION_PATH).toString();
-	const one = currentContent.replace(new RegExp(regexp23), '\n');
-	const other = result.replace(new RegExp(regexp23), '\n');
+	const one = currentContent.replace(regexp23, '\n');
+	const other = result.replace(regexp23, '\n');
 	const isTheSame = (one === other);
 
 	return {

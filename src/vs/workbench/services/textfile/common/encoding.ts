@@ -366,7 +366,7 @@ const JSCHARDET_TO_ICONV_ENCODINGS: { [name: string]: string } = {
 };
 
 function normalizeEncoding(encodingName: string): string {
-	return encodingName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
+	return encodingName.replace(regexpZAZ0, '').toLowerCase();
 }
 
 function toIconvLiteEncoding(encodingName: string): string {

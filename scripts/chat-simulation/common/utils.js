@@ -30,7 +30,7 @@ const DATA_DIR = path.join(ROOT, '.chat-simulation-data');
 // -- Config loading ----------------------------------------------------------
 
 /** @param {string} text */
-function stripJsoncComments(text) { return text.replace(new RegExp(regexp2), '').replace(new RegExp(regexp1), ''); }
+function stripJsoncComments(text) { return text.replace(regexp2, '').replace(regexp1, ''); }
 
 /**
  * Load a namespaced section from config.jsonc.

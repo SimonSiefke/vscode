@@ -138,7 +138,7 @@ class DebugEditorGpuRendererAction extends EditorAction {
 					const ctx = ensureNonNullable(canvas.getContext('2d'));
 					ctx.putImageData(imageData, 0, 0);
 					const blob = await canvas.convertToBlob({ type: 'image/png' });
-					const resource = URI.joinPath(folders[0].uri, `glyph_${chars}_${tokenMetadata}_${fontSize}px_${fontFamily.replaceAll(new RegExp(regexp2), '_')}.png`);
+					const resource = URI.joinPath(folders[0].uri, `glyph_${chars}_${tokenMetadata}_${fontSize}px_${fontFamily.replaceAll(regexp2, '_')}.png`);
 					await fileService.writeFile(resource, VSBuffer.wrap(new Uint8Array(await blob.arrayBuffer())));
 				});
 				break;

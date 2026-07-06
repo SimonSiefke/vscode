@@ -44,7 +44,7 @@ suite('FindTextInFilesResult', () => {
 		return r.messages
 			.map(m => m.content
 				.map(c => c.type === Raw.ChatCompletionContentPartKind.Text ? c.text : JSON.stringify(c)).join('')
-			).join('\n').replace(new RegExp(regexp1), '/');
+			).join('\n').replace(regexp1, '/');
 	}
 
 	test('returns simple single line matches', async () => {
@@ -189,7 +189,7 @@ suite('FindTextInFilesGrepResult', () => {
 		return r.messages
 			.map(m => m.content
 				.map(c => c.type === Raw.ChatCompletionContentPartKind.Text ? c.text : JSON.stringify(c)).join('')
-			).join('\n').replace(new RegExp(regexp1), '/');
+			).join('\n').replace(regexp1, '/');
 	}
 
 	function lineMatch(uri: URI, line: number, text: string) {

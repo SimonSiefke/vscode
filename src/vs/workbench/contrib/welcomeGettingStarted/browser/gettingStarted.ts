@@ -687,9 +687,9 @@ export class GettingStartedPage extends EditorPane {
 			const rawHTML = await this.detailsRenderer.renderMarkdown(media.path, media.base);
 			this.webview.setHtml(rawHTML);
 
-			const serializedContextKeyExprs = rawHTML.match(new RegExp(regexpCheckedOn))?.map(attr => attr.slice('checked-on="'.length, -1)
-				.replace(new RegExp(regexp2), '\'')
-				.replace(new RegExp(regexpAmp), '&'));
+			const serializedContextKeyExprs = rawHTML.match(regexpCheckedOn)?.map(attr => attr.slice('checked-on="'.length, -1)
+				.replace(regexp2, '\'')
+				.replace(regexpAmp, '&'));
 
 			const postTrueKeysMessage = () => {
 				const enabledContextKeys = serializedContextKeyExprs?.filter(expr => this.contextService.contextMatchesRules(ContextKeyExpr.deserialize(expr)));
@@ -872,7 +872,7 @@ export class GettingStartedPage extends EditorPane {
 
 	private updateMediaSourceForColorMode(element: HTMLImageElement, sources: { hcDark: URI; hcLight: URI; dark: URI; light: URI }) {
 		const themeType = this.themeService.getColorTheme().type;
-		const src = sources[themeType].toString(true).replace(new RegExp(regexp4), '%20');
+		const src = sources[themeType].toString(true).replace(regexp4, '%20');
 		element.srcset = src.toLowerCase().endsWith('.svg') ? src : (src + ' 1.5x');
 	}
 

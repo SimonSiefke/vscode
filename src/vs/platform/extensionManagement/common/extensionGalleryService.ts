@@ -1108,19 +1108,19 @@ export abstract class AbstractExtensionGalleryService implements IExtensionGalle
 
 		if (text) {
 			// Use category filter instead of "category:themes"
-			text = text.replace(new RegExp(regexpBcategory), (_, quotedCategory, category) => {
+			text = text.replace(regexpBcategory, (_, quotedCategory, category) => {
 				query = query.withFilter(FilterType.Category, category || quotedCategory);
 				return '';
 			});
 
 			// Use tag filter instead of "tag:debuggers"
-			text = text.replace(new RegExp(regexpBtag), (_, quotedTag, tag) => {
+			text = text.replace(regexpBtag, (_, quotedTag, tag) => {
 				query = query.withFilter(FilterType.Tag, tag || quotedTag);
 				return '';
 			});
 
 			// Use featured filter
-			text = text.replace(new RegExp(regexpBfeatured), () => {
+			text = text.replace(regexpBfeatured, () => {
 				query = query.withFilter(FilterType.Featured);
 				return '';
 			});

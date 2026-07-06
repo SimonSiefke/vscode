@@ -315,7 +315,7 @@ export async function fetchZshHistory(accessor: ServicesAccessor): Promise<IShel
 	const fileLines = resolvedFile.content.split(isExtendedHistory ? regexp4 : regexp3);
 	const result: Set<string> = new Set();
 	for (let i = 0; i < fileLines.length; i++) {
-		const sanitized = fileLines[i].replace(new RegExp(regexp5), '\n').trim();
+		const sanitized = fileLines[i].replace(regexp5, '\n').trim();
 		if (sanitized.length > 0) {
 			result.add(sanitized);
 		}
@@ -516,7 +516,7 @@ export function sanitizeFishHistoryCmd(cmd: string): string {
 	 * But since not all browsers support look aheads we opted to a simple
 	 * pattern and repeatedly calling replace method.
 	 */
-	return repeatedReplace(new RegExp(regexp8), cmd, '$1$2\n');
+	return repeatedReplace(new RegExp(regexp8.source, regexp8.flags), cmd, '$1$2\n');
 }
 
 function repeatedReplace(pattern: RegExp, value: string, replaceValue: string): string {

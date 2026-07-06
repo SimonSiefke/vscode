@@ -76,7 +76,7 @@ function parseOtlpEndpoint(raw: string | undefined, protocol: 'grpc' | 'http'): 
 	if (!raw) {
 		return undefined;
 	}
-	const trimmed = raw.replace(new RegExp(regexp1), '');
+	const trimmed = raw.replace(regexp1, '');
 	try {
 		const url = new URL(trimmed);
 		return protocol === 'grpc' ? url.origin : url.href;

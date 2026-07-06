@@ -61,7 +61,7 @@ export function createResponsesStreamDumper(requestId: string, logService: ILogS
 		const repoRoot = path.resolve(__dirname, '..', '..', '..');
 		const dumpDir = path.join(repoRoot, '.responses-stream-dumps');
 		fs.mkdirSync(dumpDir, { recursive: true });
-		const ts = new Date().toISOString().replace(new RegExp(regexp1), '-');
+		const ts = new Date().toISOString().replace(regexp1, '-');
 		const filePath = path.join(dumpDir, `responses-stream-${ts}-${requestId.slice(0, 4)}.log`);
 		fs.writeFileSync(filePath, `# Responses API SSE stream dump\n# requestId=${requestId}\n# started=${new Date().toISOString()}\n\n`);
 		logService.info(`[responsesAPI] Dumping SSE stream to ${filePath}`);

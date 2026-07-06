@@ -374,8 +374,8 @@ export class TextOnlyMenuEntryActionViewItem extends MenuEntryActionViewItem<ITe
 
 	private static _symbolPrintEnter(kb: ResolvedKeybinding) {
 		return kb.getLabel()
-			?.replace(new RegExp(regexpBenter), '\u23CE')
-			.replace(new RegExp(regexpBEscape), 'Esc');
+			?.replace(regexpBenter, '\u23CE')
+			.replace(regexpBEscape, 'Esc');
 	}
 }
 

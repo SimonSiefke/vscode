@@ -41,7 +41,7 @@ export namespace Lines {
 		if (code.length === 0) {
 			return [];
 		}
-		return code.split(new RegExp(regexp1));
+		return code.split(regexp1);
 	}
 	export function fromDocument(doc: vscode.TextDocument): Lines {
 		if (doc.lineCount === 0) {
@@ -82,6 +82,6 @@ export const enum EditStrategy {
 }
 
 export function trimLeadingWhitespace(str: string): string {
-	return str.replace(new RegExp(regexp2), '');
+	return str.replace(regexp2, '');
 }
 

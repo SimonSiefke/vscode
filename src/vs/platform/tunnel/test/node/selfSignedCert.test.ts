@@ -40,7 +40,7 @@ suite('selfSignedCert', () => {
 	});
 
 	test('fingerprint matches the certificate DER', () => {
-		const derB64 = cert.cert.replace(new RegExp(regexp2), '').replace(new RegExp(regexp1), '');
+		const derB64 = cert.cert.replace(regexp2, '').replace(regexp1, '');
 		const der = Buffer.from(derB64, 'base64');
 		const expected = 'sha256/' + crypto.createHash('sha256').update(der).digest('base64');
 		assert.strictEqual(cert.fingerprint, expected);

@@ -55,7 +55,7 @@ CommandsRegistry.registerCommand(ADD_SESSION_REFERENCE_COMMAND, (_accessor, arg:
  */
 export class SessionReferenceCompletionHandler extends Disposable {
 
-	private static readonly _wordPattern = new RegExp(regexp1); // MUST use g-flag
+	private static readonly _wordPattern = new RegExp(regexp1.source, regexp1.flags); // MUST use g-flag
 	private static readonly _className = 'sessions-variable-reference';
 
 	private readonly _decorations: IEditorDecorationsCollection;
@@ -142,7 +142,7 @@ export class SessionReferenceCompletionHandler extends Disposable {
 			const title = session.title.get() || localize('untitledSession', "Untitled session");
 			// Collapse whitespace so the inline `#session:<title>` reference (and its
 			// decoration) stays on one line even if the title contains newlines.
-			const referenceTitle = title.replace(new RegExp(regexp2), ' ').trim() || localize('untitledSession', "Untitled session");
+			const referenceTitle = title.replace(regexp2, ' ').trim() || localize('untitledSession', "Untitled session");
 			const isActive = activeResourceStr === session.resource.toString();
 			const date = session.updatedAt.get().toLocaleString();
 			const description = isActive ? localize('currentSessionLabel', "{0} (current)", date) : date;

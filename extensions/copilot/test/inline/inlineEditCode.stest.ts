@@ -755,10 +755,10 @@ forInlineChatIntent((strategy, location, variant, nonExtensionConfigurations) =>
 							assertInlineEdit(outcome);
 
 							assertOccursOnce(outcome.fileContents, 'public class BasketService');
-							const fileContentsWithoutComments = outcome.fileContents.replace(new RegExp(regexp1), '');
+							const fileContentsWithoutComments = outcome.fileContents.replace(regexp1, '');
 							assertNoOccurrence(fileContentsWithoutComments, 'using Ardalis.GuardClauses;');
 							assertNoOccurrence(fileContentsWithoutComments, 'using Ardalis.Result;');
-							assert.ok(outcome.fileContents.split(new RegExp(regexp2)).length < 95, 'file stays under 95 lines');
+							assert.ok(outcome.fileContents.split(regexp2).length < 95, 'file stays under 95 lines');
 							assertNoElidedCodeComments(outcome.fileContents);
 						}
 					}

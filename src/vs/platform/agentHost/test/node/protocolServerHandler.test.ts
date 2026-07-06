@@ -317,7 +317,7 @@ suite('ProtocolServerHandler', () => {
 		assert.ok(resp, 'should have sent error response');
 		assert.strictEqual(resp.error?.code, AHP_UNSUPPORTED_PROTOCOL_VERSION);
 		assert.match(resp.error!.message, regexp1);
-		assert.match(resp.error!.message, new RegExp(PROTOCOL_VERSION.replace(new RegExp(regexp2), '\\.')));
+		assert.match(resp.error!.message, new RegExp(PROTOCOL_VERSION.replace(regexp2, '\\.')));
 		// Without the upgrade-socket env var, no _meta should be advertised.
 		const data = resp.error!.data as { _meta?: { vscodeUpgradeMethod?: string } } | undefined;
 		assert.strictEqual(data?._meta?.vscodeUpgradeMethod, undefined);

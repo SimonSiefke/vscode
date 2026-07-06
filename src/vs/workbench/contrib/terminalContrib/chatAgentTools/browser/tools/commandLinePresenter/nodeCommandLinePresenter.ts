@@ -49,10 +49,10 @@ export function extractNodeCommand(commandLine: string, shell: string, os: Opera
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			jsCode = jsCode.replace(new RegExp(regexp3), '"');
+			jsCode = jsCode.replace(regexp3, '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			jsCode = jsCode.replace(new RegExp(regexp2), '"');
+			jsCode = jsCode.replace(regexp2, '"');
 		}
 
 		return jsCode;

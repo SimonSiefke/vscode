@@ -271,7 +271,7 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 			return false;
 		}
 
-		if (workingCopy.resource.authority !== editor.viewType.replace(new RegExp(regexpZ0), '-').toLowerCase()) {
+		if (workingCopy.resource.authority !== editor.viewType.replace(regexpZ0, '-').toLowerCase()) {
 			return false;
 		}
 

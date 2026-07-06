@@ -142,9 +142,9 @@ function globExprsToRgGlobs(patterns: glob.IExpression, folder?: string, exclude
 			// glob.ts requires forward slashes, but a UNC path still must start with \\
 			// #38165 and #38151
 			if (key.startsWith('\\\\')) {
-				key = '\\\\' + key.substr(2).replace(new RegExp(regexp1), '/');
+				key = '\\\\' + key.substr(2).replace(regexp1, '/');
 			} else {
-				key = key.replace(new RegExp(regexp1), '/');
+				key = key.replace(regexp1, '/');
 			}
 
 			if (typeof value === 'boolean' && value) {

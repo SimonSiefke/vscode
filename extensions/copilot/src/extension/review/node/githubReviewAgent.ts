@@ -53,7 +53,7 @@ interface FileChange {
  * Normalizes a file path to use forward slashes on all platforms.
  */
 export function normalizePath(relativePath: string): string {
-	return process.platform === 'win32' ? relativePath.replace(new RegExp(regexp1), '/') : relativePath;
+	return process.platform === 'win32' ? relativePath.replace(regexp1, '/') : relativePath;
 }
 
 /**

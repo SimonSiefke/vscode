@@ -149,11 +149,11 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 			if (isFish(options.shell, options.os)) {
 				// Fish does not support the POSIX '\'' escape inside single-quoted strings.
 				// Use a double-quoted string and escape backslash and double-quote instead.
-				const escaped = innerCommand.replace(new RegExp(regexp18), '\\\\').replace(new RegExp(regexp17), '\\"');
+				const escaped = innerCommand.replace(regexp18, '\\\\').replace(regexp17, '\\"');
 				commandToWrap = `${options.shell} -c "${escaped}"`;
 			} else {
 				// bash/zsh: escape single quotes for use inside a single-quoted shell -c '...' string.
-				const escaped = innerCommand.replace(new RegExp(regexp16), `'\\''`);
+				const escaped = innerCommand.replace(regexp16, `'\\''`);
 				commandToWrap = `${options.shell} -c '${escaped}'`;
 			}
 		}
@@ -219,7 +219,7 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		}
 
 		// Escape double quotes for PowerShell string
-		const escapedCommand = options.commandLine.replace(new RegExp(regexp17), '\\"');
+		const escapedCommand = options.commandLine.replace(regexp17, '\\"');
 
 		return {
 			rewritten: `Start-Process -WindowStyle Hidden -FilePath "${options.shell}" -ArgumentList "-NoProfile", "-Command", "${escapedCommand}"`,

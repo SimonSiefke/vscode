@@ -710,7 +710,7 @@ const MULTI_TURN_SCENARIOS = {
 					b.emit('```typescript\n');
 					for (let j = 0; j < 8; j++) {
 						b.stream([
-							`export class ${topic.heading.replace(new RegExp(regexp3), '')}Part${j} extends Disposable {\n`,
+							`export class ${topic.heading.replace(regexp3, '')}Part${j} extends Disposable {\n`,
 							`  private readonly _state = new Map<string, unknown>();\n\n`,
 							`  process(input: string): string {\n`,
 							`    const cached = this._state.get(input);\n`,
@@ -728,7 +728,7 @@ const MULTI_TURN_SCENARIOS = {
 					b.emit('Key points to remember:\n\n');
 					for (let j = 0; j < 6; j++) {
 						b.stream([
-							`${j + 1}. **Point ${j + 1}**: The \`${topic.heading.replace(new RegExp(regexp3), '')}${j}\` `,
+							`${j + 1}. **Point ${j + 1}**: The \`${topic.heading.replace(regexp3, '')}${j}\` `,
 							`component uses the standard pattern with \`_register()\` for lifecycle. `,
 							`It handles edge cases like ${['empty input', 'null references', 'concurrent access', 'circular deps', 'timeout expiry', 'disposal races'][j]}.\n`,
 						], 10);

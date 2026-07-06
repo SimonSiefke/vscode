@@ -336,7 +336,7 @@ export function customizationId(uri: string, range?: TextRange): string {
 	if (!range) {
 		return uri;
 	}
-	const safeUri = uri.replace(new RegExp(regexp2), '%23');
+	const safeUri = uri.replace(regexp2, '%23');
 	return `${safeUri}#range=${range.start.line}:${range.start.character}-${range.end.line}:${range.end.character}`;
 }
 

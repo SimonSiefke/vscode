@@ -213,7 +213,7 @@ export class GhostTextView extends Disposable {
 		if (!data) { return undefined; }
 		const ghostText = data.ghostText;
 		const allText = ghostText.parts.map(p => p.lines.map(l => l.line).join('')).join('');
-		return allText.replace(new RegExp(regexp1), '').length;
+		return allText.replace(regexp1, '').length;
 	});
 
 	private readonly _extraClassNames = derived(this, reader => {

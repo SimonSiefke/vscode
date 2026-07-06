@@ -212,7 +212,7 @@ async function assertfindFixRangeOfInterestAsync(accessor: ITestingServicesAcces
 	}
 	const document = await workspace.openTextDocument({
 		language: _document.languageId,
-		content: _document.getText().replace(new RegExp(regexp1), ''),
+		content: _document.getText().replace(regexp1, ''),
 	});
 	const treeSitterAST = accessor.get(IParserService).getTreeSitterAST(document);
 	assert(treeSitterAST);

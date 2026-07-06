@@ -76,7 +76,7 @@ export class Askpass implements IIPCHandler, ITerminalEnvironmentProvider {
 		// Username for 'https://github.com':
 		// Password for 'https://github.com':
 		const request = argv[2];
-		const host = argv[4].replace(new RegExp(regexp1), '');
+		const host = argv[4].replace(regexp1, '');
 
 		this.logger.trace(`[Askpass][handleAskpass] request: ${request}, host: ${host}`);
 
@@ -149,7 +149,7 @@ export class Askpass implements IIPCHandler, ITerminalEnvironmentProvider {
 		}
 
 		// authenticity
-		const host = argv[6].replace(new RegExp(regexp1), '');
+		const host = argv[6].replace(regexp1, '');
 		const fingerprint = argv[15];
 
 		this.logger.trace(`[Askpass][handleSSHAskpass] request: ${request}, host: ${host}, fingerprint: ${fingerprint}`);

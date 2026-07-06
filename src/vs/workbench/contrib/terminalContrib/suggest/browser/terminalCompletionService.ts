@@ -266,7 +266,7 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 		const useWindowsStylePath = resourceOptions.pathSeparator === '\\';
 		if (useWindowsStylePath) {
 			// for tests, make sure the right path separator is used
-			promptValue = promptValue.replaceAll(new RegExp(regexp1), resourceOptions.pathSeparator);
+			promptValue = promptValue.replaceAll(regexp1, resourceOptions.pathSeparator);
 		}
 
 		// Files requested implies folders requested since the file could be in any folder. We could
@@ -698,7 +698,7 @@ export function escapeTerminalCompletionLabel(label: string, shellType: Terminal
 	if (shellType === undefined || shellType === GeneralShellType.PowerShell || shellType === WindowsShellType.CommandPrompt) {
 		return label;
 	}
-	return label.replace(new RegExp(regexp10), '\\$&');
+	return label.replace(regexp10, '\\$&');
 }
 
 function getIsAbsolutePath(shellType: TerminalShellType | undefined, pathSeparator: string, lastWord: string, useWindowsStylePath: boolean): boolean {

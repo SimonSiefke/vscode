@@ -173,7 +173,7 @@ function fromLocalEsbuild(extensionPath: string, esbuildConfigFileName: string):
 				return reject(error);
 			}
 
-			const matches = (stderr || '').match(new RegExp(regexpError));
+			const matches = (stderr || '').match(regexpError);
 			fancyLog(`Bundled extension: ${ansiColors.yellow(path.join(path.basename(extensionPath), esbuildConfigFileName))} with ${matches ? matches.length : 0} errors.`);
 			for (const match of matches || []) {
 				fancyLog.error(match);
@@ -588,7 +588,7 @@ const extensionsPath = path.join(root, 'extensions');
 
 export async function esbuildExtensions(taskName: string, isWatch: boolean, scripts: { script: string; outputRoot?: string }[]): Promise<void> {
 	function reporter(stdError: string, script: string) {
-		const matches = (stdError || '').match(new RegExp(regexpError));
+		const matches = (stdError || '').match(regexpError);
 		fancyLog(`Finished ${ansiColors.green(taskName)} ${script} with ${matches ? matches.length : 0} errors.`);
 		for (const match of matches || []) {
 			fancyLog.error(match);

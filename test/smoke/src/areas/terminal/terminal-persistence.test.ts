@@ -81,7 +81,7 @@ export function setup(options?: { skipSuite: boolean }) {
 					[{ name }]
 				]);
 				// There can be line wrapping, so remove newlines and carriage returns #216464
-				await terminal.waitForTerminalText(buffer => buffer.some(e => e.replaceAll(new RegExp(regexp1), '').includes('terminal_test_content')));
+				await terminal.waitForTerminalText(buffer => buffer.some(e => e.replaceAll(regexp1, '').includes('terminal_test_content')));
 			});
 		});
 	});

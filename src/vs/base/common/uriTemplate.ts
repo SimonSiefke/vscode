@@ -43,7 +43,7 @@ export class UriTemplate {
 	 */
 	public static parse(template: string): UriTemplate {
 		const components: Array<IUriTemplateComponent | string> = [];
-		const regex = new RegExp(regexp1);
+		const regex = new RegExp(regexp1.source, regexp1.flags);
 		let match: RegExpExecArray | null;
 		let lastPos = 0;
 		while ((match = regex.exec(template))) {

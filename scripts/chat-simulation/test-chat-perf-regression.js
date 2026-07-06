@@ -1514,7 +1514,7 @@ async function main() {
 	const isMismatchedBuildMode = baselineBuildMode !== undefined && testBuildMode !== baselineBuildMode;
 
 	// Create a timestamped run directory for all output
-	const runTimestamp = new Date().toISOString().replace(new RegExp(regexp8), '-').slice(0, 19);
+	const runTimestamp = new Date().toISOString().replace(regexp8, '-').slice(0, 19);
 	const runDir = path.join(DATA_DIR, runTimestamp);
 	fs.mkdirSync(runDir, { recursive: true });
 	console.log(`[chat-simulation] Output: ${runDir}`);

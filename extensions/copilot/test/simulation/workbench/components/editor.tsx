@@ -36,7 +36,7 @@ export const Editor = (({ contents, languageId, lineNumbers, range, selection, d
 	const [altPressed, setAltPressed] = React.useState(false);
 
 	const rangeLineCount = range ? range.end.line - range.start.line + 3 : 0;
-	const fileLineCount = contents.split(new RegExp(regexp1)).length;
+	const fileLineCount = contents.split(regexp1).length;
 	const lineCount = Math.max(
 		Math.min(MAX_LINES_DUE_TO_RANGE, rangeLineCount),
 		Math.min(MAX_LINES_DUE_TO_CONTENT, fileLineCount)

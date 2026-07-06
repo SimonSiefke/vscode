@@ -772,7 +772,7 @@ function isInAmbientContext(node: ts.Node): boolean {
 }
 
 function normalize(path: string): string {
-	return path.replace(new RegExp(regexp2), '/');
+	return path.replace(regexp2, '/');
 }
 
 async function _run() {

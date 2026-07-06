@@ -298,7 +298,7 @@ export class SuggestEnabledInput extends Widget {
 	}
 
 	public setValue(val: string) {
-		val = val.replace(new RegExp(regexp1), ' ');
+		val = val.replace(regexp1, ' ');
 		const fullRange = this.inputModel.getFullModelRange();
 		this.inputWidget.executeEdits('suggestEnabledInput.setValue', [EditOperation.replace(fullRange, val)]);
 		this.inputWidget.setScrollTop(0);

@@ -49,10 +49,10 @@ export function extractPythonCommand(commandLine: string, shell: string, os: Ope
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			pythonCode = pythonCode.replace(new RegExp(regexp3), '"');
+			pythonCode = pythonCode.replace(regexp3, '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			pythonCode = pythonCode.replace(new RegExp(regexp2), '"');
+			pythonCode = pythonCode.replace(regexp2, '"');
 		}
 
 		return pythonCode;

@@ -291,7 +291,7 @@ export class BrowserMain extends Disposable {
 		serviceCollection.set(IProductService, productService);
 
 		// Environment
-		const logsPath = URI.file(toLocalISOString(new Date()).replace(new RegExp(regexp1), '')).with({ scheme: 'vscode-log' });
+		const logsPath = URI.file(toLocalISOString(new Date()).replace(regexp1, '')).with({ scheme: 'vscode-log' });
 		const environmentService = new BrowserWorkbenchEnvironmentService(workspace.id, logsPath, this.configuration, productService);
 		serviceCollection.set(IBrowserWorkbenchEnvironmentService, environmentService);
 

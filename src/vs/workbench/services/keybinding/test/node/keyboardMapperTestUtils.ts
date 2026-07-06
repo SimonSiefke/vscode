@@ -65,8 +65,8 @@ export function assertMapping(writeFileIfDifferent: boolean, mapper: IKeyboardMa
 	const filePath = path.normalize(FileAccess.asFileUri(`vs/workbench/services/keybinding/test/node/${file}`).fsPath);
 
 	return fs.promises.readFile(filePath).then((buff) => {
-		const expected = buff.toString().replace(new RegExp(regexp1), '\n');
-		const actual = mapper.dumpDebugInfo().replace(new RegExp(regexp1), '\n');
+		const expected = buff.toString().replace(regexp1, '\n');
+		const actual = mapper.dumpDebugInfo().replace(regexp1, '\n');
 		if (actual !== expected && writeFileIfDifferent) {
 			const destPath = filePath.replace(regexpOutVsWorkbench, '/src/vs/workbench');
 			Promises.writeFile(destPath, actual);

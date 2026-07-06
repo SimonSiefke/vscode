@@ -123,7 +123,7 @@ function isSystemReminderBlock(text: string): boolean {
  * sessions with concatenated system-reminders are no longer common.
  */
 function stripSystemReminders(text: string): string {
-	return text.replace(new RegExp(regexpSystemReminderSystem), '');
+	return text.replace(regexpSystemReminderSystem, '');
 }
 
 /**

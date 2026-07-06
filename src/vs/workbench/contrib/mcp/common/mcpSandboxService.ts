@@ -411,7 +411,7 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 	};
 
 	private _quoteShellArgument(value: string): string {
-		return `'${value.replace(new RegExp(regexp1), `'\\''`)}'`;
+		return `'${value.replace(regexp1, `'\\''`)}'`;
 	}
 
 }

@@ -71,7 +71,7 @@ export class GitEditor implements IIPCHandler, ITerminalEnvironmentProvider {
 }
 
 export class GitEditorDocumentLinkProvider implements DocumentLinkProvider {
-	private readonly _regex = new RegExp(regexpModifiedNewFile);
+	private readonly _regex = new RegExp(regexpModifiedNewFile.source, regexpModifiedNewFile.flags);
 
 	constructor(private readonly _model: Model) { }
 

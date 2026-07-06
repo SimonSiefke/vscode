@@ -186,7 +186,7 @@ export class CachingChatMLFetcher extends AbstractChatMLFetcher {
 
 				console.log(JSON.stringify(opts.messages, (key, value) => {
 					if (typeof value === 'string') {
-						const split = value.split(new RegExp(regexp1));
+						const split = value.split(regexp1);
 						return split.length > 1 ? split : value;
 					}
 					return value;
@@ -239,7 +239,7 @@ export class CachingChatMLFetcher extends AbstractChatMLFetcher {
 						if (regexpKeyAlreadyExists.test(err.message)) {
 							console.log(JSON.stringify(opts.messages, (key, value) => {
 								if (typeof value === 'string') {
-									const split = value.split(new RegExp(regexp1));
+									const split = value.split(regexp1);
 									return split.length > 1 ? split : value;
 								}
 								return value;

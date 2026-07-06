@@ -182,7 +182,7 @@ export class ChatSessionWorktreeService extends Disposable implements IChatSessi
 		const randomBranchName = await this.gitService.generateRandomBranchName(repository.rootUri);
 
 		const branch = randomBranchName ? `${branchPrefixConfig}${branchPrefix}/${randomBranchName.substring(branchPrefixConfig.length)}`
-			: `${branchPrefixConfig}${branchPrefix}/worktree-${new Date().toISOString().replace(new RegExp(regexp1), '-').slice(0, 19)}`;
+			: `${branchPrefixConfig}${branchPrefix}/worktree-${new Date().toISOString().replace(regexp1, '-').slice(0, 19)}`;
 
 		return branch;
 	}

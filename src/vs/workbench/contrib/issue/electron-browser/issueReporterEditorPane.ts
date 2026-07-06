@@ -404,7 +404,7 @@ export class IssueReporterEditorPane extends EditorPane {
 					{},
 					CancellationToken.None,
 				);
-				const title = (await getTextResponseFromStream(response)).trim().replace(new RegExp(regexp1), '');
+				const title = (await getTextResponseFromStream(response)).trim().replace(regexp1, '');
 				if (title && this.wizard) {
 					this.wizard.setGeneratedTitle(title);
 				} else {
@@ -558,7 +558,7 @@ export class IssueReporterEditorPane extends EditorPane {
 	private async saveRecordingAndAdd(data: IRecordingData): Promise<void> {
 		try {
 			const extension = data.mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
-			const fileName = `vscode-recording-${new Date().toISOString().replace(new RegExp(regexp2), '-')}.${extension}`;
+			const fileName = `vscode-recording-${new Date().toISOString().replace(regexp2, '-')}.${extension}`;
 			// Write to the OS temp folder so artifacts are cleaned up automatically.
 			const folder = URI.joinPath(this.environmentService.tmpDir, 'issue-recordings');
 			const target = URI.joinPath(folder, fileName);

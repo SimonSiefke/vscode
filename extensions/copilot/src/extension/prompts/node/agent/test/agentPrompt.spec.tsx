@@ -140,8 +140,8 @@ testFamilies.forEach(family => {
 			return r.messages
 				.map(m => messageToMarkdown(m))
 				.join('\n\n')
-				.replace(new RegExp(regexp2), '/')
-				.replace(new RegExp(regexpTheCurrentDate), '(Date removed from snapshot)');
+				.replace(regexp2, '/')
+				.replace(regexpTheCurrentDate, '(Date removed from snapshot)');
 		}
 
 		function createEditFileToolCall(idx: number): IToolCall {

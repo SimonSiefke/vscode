@@ -265,7 +265,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 
 	private remoteUriFrom(path: string, hintUri?: URI): URI {
 		if (!path.startsWith('\\\\')) {
-			path = path.replace(new RegExp(regexp1), '/');
+			path = path.replace(regexp1, '/');
 		}
 		// When scoped to a specific authority (e.g. agenthost://host/...),
 		// construct the URI directly with the authority to avoid
@@ -1052,14 +1052,14 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 		// of fsPath, which would prepend the authority as a UNC prefix.
 		let result: string;
 		if (this.scopedAuthority) {
-			result = uri.path.replace(new RegExp(regexp3), '');
+			result = uri.path.replace(regexp3, '');
 		} else {
-			result = normalizeDriveLetter(uri.fsPath, this.isWindows).replace(new RegExp(regexp3), '');
+			result = normalizeDriveLetter(uri.fsPath, this.isWindows).replace(regexp3, '');
 		}
 		if (this.separator === '/') {
-			result = result.replace(new RegExp(regexp1), this.separator);
+			result = result.replace(regexp1, this.separator);
 		} else {
-			result = result.replace(new RegExp(regexp4), this.separator);
+			result = result.replace(regexp4, this.separator);
 		}
 		if (endWithSeparator && !this.endsWithSlash(result)) {
 			result = result + this.separator;

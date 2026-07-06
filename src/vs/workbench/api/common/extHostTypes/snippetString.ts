@@ -23,7 +23,7 @@ export class SnippetString {
 	}
 
 	private static _escape(value: string): string {
-		return value.replace(new RegExp(regexp1), '\\$&');
+		return value.replace(regexp1, '\\$&');
 	}
 
 	private _tabstop: number = 1;
@@ -67,7 +67,7 @@ export class SnippetString {
 	}
 
 	appendChoice(values: string[], number: number = this._tabstop++): SnippetString {
-		const value = values.map(s => s.replaceAll(new RegExp(regexp2), '\\$&')).join(',');
+		const value = values.map(s => s.replaceAll(regexp2, '\\$&')).join(',');
 
 		this.value += '${';
 		this.value += number;
@@ -88,7 +88,7 @@ export class SnippetString {
 			defaultValue = nested.value;
 
 		} else if (typeof defaultValue === 'string') {
-			defaultValue = defaultValue.replace(new RegExp(regexp3), '\\$&'); // CodeQL [SM02383] I do not want to escape backslashes here
+			defaultValue = defaultValue.replace(regexp3, '\\$&'); // CodeQL [SM02383] I do not want to escape backslashes here
 		}
 
 		this.value += '${';

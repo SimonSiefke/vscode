@@ -70,7 +70,7 @@ export function telemetryLevelEnabled(service: ITelemetryService, level: Telemet
  * telemetry pipeline from redacting them as file paths.
  */
 export function escapeModelIdForTelemetry(modelId: string | undefined): string | undefined {
-	return modelId?.replace(new RegExp(regexp1), '|');
+	return modelId?.replace(regexp1, '|');
 }
 
 export interface ITelemetryEndpoint {

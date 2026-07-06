@@ -78,7 +78,7 @@ export interface ITestExplorerFilterState {
 export const ITestExplorerFilterState = createDecorator<ITestExplorerFilterState>('testingFilterState');
 
 const tagRe = /!?@([^ ,:]+)/g;
-const trimExtraWhitespace = (str: string) => str.replace(new RegExp(regexp1), ' ').trim();
+const trimExtraWhitespace = (str: string) => str.replace(regexp1, ' ').trim();
 
 export class TestExplorerFilterState extends Disposable implements ITestExplorerFilterState {
 	declare _serviceBrand: undefined;

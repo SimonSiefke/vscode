@@ -123,7 +123,7 @@ export class WindowsMxcTerminalSandboxRuntime implements IWindowsMxcTerminalSand
 	}
 
 	private _normalizeWindowsPath(path: string): string {
-		return path.replace(new RegExp(regexp2), '\\');
+		return path.replace(regexp2, '\\');
 	}
 
 	private _createNetworkPolicy(allowNetwork: boolean): NonNullable<IWindowsMxcSandboxPolicy['network']> {
@@ -133,10 +133,10 @@ export class WindowsMxcTerminalSandboxRuntime implements IWindowsMxcTerminalSand
 	}
 
 	private _quotePowerShellArgument(value: string): string {
-		return `'${value.replace(new RegExp(regexp3), `''`)}'`;
+		return `'${value.replace(regexp3, `''`)}'`;
 	}
 
 	private _quoteWindowsCommandLineArgument(value: string): string {
-		return `"${value.replace(new RegExp(regexp5), '$1$1\\"').replace(new RegExp(regexp4), '$&$&')}"`;
+		return `"${value.replace(regexp5, '$1$1\\"').replace(regexp4, '$&$&')}"`;
 	}
 }

@@ -85,9 +85,9 @@ export class MarkdownString implements IMarkdownString {
 
 	appendText(value: string, newlineStyle: MarkdownStringTextNewlineStyle = MarkdownStringTextNewlineStyle.Paragraph): MarkdownString {
 		this.value += escapeMarkdownSyntaxTokens(this.supportThemeIcons ? escapeIcons(value) : value) // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
-			.replace(new RegExp(regexp3), (_match, g1) => '&nbsp;'.repeat(g1.length)) // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
-			.replace(new RegExp(regexp2), '\\>') // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
-			.replace(new RegExp(regexp1), newlineStyle === MarkdownStringTextNewlineStyle.Break ? '\\\n' : '\n\n'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+			.replace(regexp3, (_match, g1) => '&nbsp;'.repeat(g1.length)) // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+			.replace(regexp2, '\\>') // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+			.replace(regexp1, newlineStyle === MarkdownStringTextNewlineStyle.Break ? '\\\n' : '\n\n'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
 
 		return this;
 	}
@@ -166,8 +166,8 @@ export function markdownStringEqual(a: IMarkdownString, b: IMarkdownString): boo
 export function escapeMarkdownSyntaxTokens(text: string): string {
 	// escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
 	return text
-		.replace(new RegExp(regexp5), '\\$&') // CodeQL [SM02383] Backslash is escaped in the character class
-		.replace(new RegExp(regexp4), '$1\\-'); // CodeQL [SM02383] Backslash is escaped in the character class
+		.replace(regexp5, '\\$&') // CodeQL [SM02383] Backslash is escaped in the character class
+		.replace(regexp4, '$1\\-'); // CodeQL [SM02383] Backslash is escaped in the character class
 }
 
 /**
@@ -179,7 +179,7 @@ export function escapeMarkdownSyntaxTokens(text: string): string {
  * (`\-`, `\.`, ...) verbatim.
  */
 export function escapeMarkdownLinkLabel(text: string): string {
-	return text.replace(new RegExp(regexp6), '\\$&');
+	return text.replace(regexp6, '\\$&');
 }
 
 /**
@@ -187,7 +187,7 @@ export function escapeMarkdownLinkLabel(text: string): string {
  */
 export function appendEscapedMarkdownCodeBlockFence(code: string, langId: string) {
 	const longestFenceLength =
-		code.match(new RegExp(regexp7))?.reduce((a, b) => (a.length > b.length ? a : b)).length ??
+		code.match(regexp7)?.reduce((a, b) => (a.length > b.length ? a : b)).length ??
 		0;
 	const desiredFenceLength =
 		longestFenceLength >= 3 ? longestFenceLength + 1 : 3;
@@ -210,7 +210,7 @@ export function appendEscapedMarkdownCodeBlockFence(code: string, langId: string
  * content begins or ends with a backtick).
  */
 export function appendEscapedMarkdownInlineCode(text: string): string {
-	const longestBacktickRun = Math.max(0, ...(text.match(new RegExp(regexp8)) ?? []).map(m => m.length));
+	const longestBacktickRun = Math.max(0, ...(text.match(regexp8) ?? []).map(m => m.length));
 	const fence = '`'.repeat(longestBacktickRun + 1);
 	const needsSpace = text.startsWith('`') || text.endsWith('`');
 	const content = needsSpace ? ` ${text} ` : text;
@@ -218,14 +218,14 @@ export function appendEscapedMarkdownInlineCode(text: string): string {
 }
 
 export function escapeDoubleQuotes(input: string) {
-	return input.replace(new RegExp(regexp9), '&quot;');
+	return input.replace(regexp9, '&quot;');
 }
 
 export function removeMarkdownEscapes(text: string): string {
 	if (!text) {
 		return text;
 	}
-	return text.replace(new RegExp(regexp10), '$1');
+	return text.replace(regexp10, '$1');
 }
 
 export function parseHrefAndDimensions(href: string): { href: string; dimensions: string[] } {

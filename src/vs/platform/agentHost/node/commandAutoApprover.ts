@@ -437,9 +437,9 @@ function convertAutoApproveEntryToRegex(value: string): RegExp {
 
 	// Match both path separators if it looks like a path
 	if (value.includes('/') || value.includes('\\')) {
-		let pattern = value.replace(new RegExp(regexp4), '%%PATH_SEP%%');
+		let pattern = value.replace(regexp4, '%%PATH_SEP%%');
 		pattern = escapeRegExpCharacters(pattern);
-		pattern = pattern.replace(new RegExp(regexpPATHSEP), '[/\\\\]');
+		pattern = pattern.replace(regexpPATHSEP, '[/\\\\]');
 		sanitizedValue = `^(?:\\.[/\\\\])?${pattern}`;
 	} else {
 		sanitizedValue = escapeRegExpCharacters(value);

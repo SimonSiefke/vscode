@@ -108,7 +108,7 @@ function resolveSemanticCommand(cmd, snapshotText) {
 	if (!match) { return cmd; }
 
 	const [, action, role, label] = match;
-	const needle = label.replace(new RegExp(regexp2), '').trim().toLowerCase();
+	const needle = label.replace(regexp2, '').trim().toLowerCase();
 
 	for (const line of snapshotText.split('\n')) {
 		const refMatch = line.match(regexpRef);
@@ -116,7 +116,7 @@ function resolveSemanticCommand(cmd, snapshotText) {
 		if (!line.includes(role)) { continue; }
 		const labelMatch = line.match(regexp4);
 		if (!labelMatch) { continue; }
-		const lineLabel = labelMatch[1].replace(new RegExp(regexp2), '').trim().toLowerCase();
+		const lineLabel = labelMatch[1].replace(regexp2, '').trim().toLowerCase();
 		if (lineLabel.includes(needle) || needle.includes(lineLabel)) {
 			return `${action} ${refMatch[1]}`;
 		}

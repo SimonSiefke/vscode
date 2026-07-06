@@ -339,7 +339,7 @@ export class PieceTreeBase {
 			}
 
 			// flush anyways
-			const text = tempChunk.replace(new RegExp(regexp1), eol);
+			const text = tempChunk.replace(regexp1, eol);
 			chunks.push(new StringBuffer(text, createLineStartsFast(text)));
 			tempChunk = str;
 			tempChunkLen = len;
@@ -347,7 +347,7 @@ export class PieceTreeBase {
 		});
 
 		if (tempChunkLen > 0) {
-			const text = tempChunk.replace(new RegExp(regexp1), eol);
+			const text = tempChunk.replace(regexp1, eol);
 			chunks.push(new StringBuffer(text, createLineStartsFast(text)));
 		}
 
@@ -470,7 +470,7 @@ export class PieceTreeBase {
 		const value = this.getValueInRange2(startPosition, endPosition);
 		if (eol) {
 			if (eol !== this._EOL || !this._EOLNormalized) {
-				return value.replace(new RegExp(regexp1), eol);
+				return value.replace(regexp1, eol);
 			}
 
 			if (eol === this.getEOL() && this._EOLNormalized) {
@@ -479,7 +479,7 @@ export class PieceTreeBase {
 				}
 				return value;
 			}
-			return value.replace(new RegExp(regexp1), eol);
+			return value.replace(regexp1, eol);
 		}
 		return value;
 	}

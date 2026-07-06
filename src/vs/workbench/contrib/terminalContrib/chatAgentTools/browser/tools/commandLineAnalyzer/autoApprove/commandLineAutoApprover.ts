@@ -385,9 +385,9 @@ export class CommandLineAutoApprover extends Disposable {
 		if (value.includes('/') || value.includes('\\')) {
 			// Replace path separators with placeholders first, apply standard sanitization, then
 			// apply special path handling
-			let pattern = value.replace(new RegExp(regexp2), '%%PATH_SEP%%');
+			let pattern = value.replace(regexp2, '%%PATH_SEP%%');
 			pattern = escapeRegExpCharacters(pattern);
-			pattern = pattern.replace(new RegExp(regexpPATHSEP), '[/\\\\]');
+			pattern = pattern.replace(regexpPATHSEP, '[/\\\\]');
 			sanitizedValue = `^(?:\\.[/\\\\])?${pattern}`;
 		}
 

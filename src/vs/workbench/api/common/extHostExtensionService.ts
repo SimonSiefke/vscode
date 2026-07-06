@@ -880,7 +880,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 			return { resolver, authorityPrefix, remoteAuthority };
 		};
 
-		const chain = remoteAuthorityChain.split(new RegExp(regexp1)).reverse();
+		const chain = remoteAuthorityChain.split(regexp1).reverse();
 		logInfo(`activating remote resolvers ${chain.join(' -> ')}`);
 
 		let resolvers;

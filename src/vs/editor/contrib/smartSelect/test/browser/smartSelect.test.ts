@@ -59,7 +59,7 @@ suite('SmartSelect', () => {
 				['[', ']']
 			],
 			onEnterRules: javascriptOnEnterRules,
-			wordPattern: new RegExp(regexp1)
+			wordPattern: new RegExp(regexp1.source, regexp1.flags)
 		}));
 	});
 

@@ -974,7 +974,7 @@ Respond ONLY with the JSON object, no markdown code blocks or other text.`;
 		await createDirectoryIfNotExists(this.fileSystemService, dir);
 
 		// Build the file content
-		let content = `---\nname: ${config.name}\ndescription: "${config.description.replace(new RegExp(regexp9), '\\"')}"\nmodel: ${config.model}\n`;
+		let content = `---\nname: ${config.name}\ndescription: "${config.description.replace(regexp9, '\\"')}"\nmodel: ${config.model}\n`;
 
 		if (config.allowedTools && config.allowedTools.length > 0) {
 			content += 'allowedTools:\n';

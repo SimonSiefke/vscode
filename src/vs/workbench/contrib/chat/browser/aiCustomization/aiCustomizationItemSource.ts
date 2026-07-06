@@ -118,8 +118,8 @@ export function getFriendlyName(filename: string): string {
 		.replace(regexpMd, '');
 
 	name = name
-		.replace(new RegExp(regexp6), ' ')
-		.replace(new RegExp(regexp5), c => c.toUpperCase());
+		.replace(regexp6, ' ')
+		.replace(regexp5, c => c.toUpperCase());
 
 	return name || filename;
 }

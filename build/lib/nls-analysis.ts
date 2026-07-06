@@ -242,7 +242,7 @@ export class TextModel {
 	private lineEndings: string[];
 
 	constructor(contents: string) {
-		const regex = new RegExp(regexp1);
+		const regex = new RegExp(regexp1.source, regexp1.flags);
 		let index = 0;
 		let match: RegExpExecArray | null;
 

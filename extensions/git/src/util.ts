@@ -827,7 +827,7 @@ export function extractFilePathFromArgs(argv: string[], startIndex: number): str
 	// Argument doesn't start with a quote
 	const firstArg = argv[startIndex];
 	if (!firstArg.match(regexp3)) {
-		return firstArg.replace(new RegExp(regexp2), '');
+		return firstArg.replace(regexp2, '');
 	}
 
 	// If it starts with a quote, we need to find the matching closing

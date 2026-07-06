@@ -69,7 +69,7 @@ export function getHTMLMode(htmlLanguageService: HTMLLanguageService, workspace:
 					return htmlLanguageService.doQuoteComplete(document, position, htmlDocuments.get(document), options);
 				}
 			} else if (kind === 'autoClose') {
-				if (offset > 0 && text.charAt(offset - 1).match(new RegExp(regexp1))) {
+				if (offset > 0 && text.charAt(offset - 1).match(regexp1)) {
 					return htmlLanguageService.doTagComplete(document, position, htmlDocuments.get(document));
 				}
 			}

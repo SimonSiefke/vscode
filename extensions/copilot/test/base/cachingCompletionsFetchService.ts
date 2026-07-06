@@ -294,7 +294,7 @@ function prettyPrintJsonEncodedObject(obj: string) {
 		JSON.stringify(
 			JSON.parse(obj, (key, value) => {
 				if (typeof value === 'string') {
-					const split = value.split(new RegExp(regexp2));
+					const split = value.split(regexp2);
 					return split.length > 1 ? split : value;
 				}
 				return value;

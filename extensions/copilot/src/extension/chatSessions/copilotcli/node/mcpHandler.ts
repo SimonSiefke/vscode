@@ -122,7 +122,7 @@ export class CopilotCLIMCPHandler implements ICopilotCLIMCPHandler {
 		let normalized = originalName.toLowerCase().replace(toolInvalidCharRe, '_');
 
 		// Trim leading and trailing underscores
-		normalized = normalized.replace(new RegExp(regexp1), '');
+		normalized = normalized.replace(regexp1, '');
 
 		// Return undefined if normalization results in empty string
 		if (!normalized) {

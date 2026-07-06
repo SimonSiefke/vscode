@@ -157,13 +157,13 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 			switch (logEntry.kind) {
 				case LoggedInfoKind.Request: {
 					const requestEntry = logEntry as ILoggedRequestInfo;
-					const debugName = requestEntry.entry.debugName.replace(new RegExp(regexp1), '_');
+					const debugName = requestEntry.entry.debugName.replace(regexp1, '_');
 					defaultFilename = `${debugName}_${logEntry.id}.copilotmd`;
 					break;
 				}
 				case LoggedInfoKind.ToolCall: {
 					const toolEntry = logEntry as ILoggedToolCall;
-					const toolName = toolEntry.name.replace(new RegExp(regexp1), '_');
+					const toolName = toolEntry.name.replace(regexp1, '_');
 					defaultFilename = `tool_${toolName}_${logEntry.id}.copilotmd`;
 					break;
 				}
@@ -286,7 +286,7 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 			}
 
 			// Generate a default filename based on the prompt
-			const promptText = treeItem.token.label.replace(new RegExp(regexp1), '_').substring(0, 50);
+			const promptText = treeItem.token.label.replace(regexp1, '_').substring(0, 50);
 			const defaultFilename = `${promptText}_exports.tar.gz`;
 
 			// Show save dialog
@@ -317,13 +317,13 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 					switch (logEntry.kind) {
 						case LoggedInfoKind.Request: {
 							const requestEntry = logEntry as ILoggedRequestInfo;
-							const debugName = requestEntry.entry.debugName.replace(new RegExp(regexp1), '_');
+							const debugName = requestEntry.entry.debugName.replace(regexp1, '_');
 							filename = `${debugName}_${logEntry.id}.copilotmd`;
 							break;
 						}
 						case LoggedInfoKind.ToolCall: {
 							const toolEntry = logEntry as ILoggedToolCall;
-							const toolName = toolEntry.name.replace(new RegExp(regexp1), '_');
+							const toolName = toolEntry.name.replace(regexp1, '_');
 							filename = `tool_${toolName}_${logEntry.id}.copilotmd`;
 							break;
 						}
@@ -384,7 +384,7 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 			}
 
 			// Generate a default filename based on the prompt
-			const promptText = treeItem.token.label.replace(new RegExp(regexp1), '_').substring(0, 50);
+			const promptText = treeItem.token.label.replace(regexp1, '_').substring(0, 50);
 			const defaultFilename = `${promptText}_logs.json`;
 
 			// Show save dialog
@@ -453,7 +453,7 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 				saveUri = vscode.Uri.file(savePath);
 			} else {
 				// Generate a default filename based on current timestamp
-				const timestamp = new Date().toISOString().replace(new RegExp(regexp2), '-').substring(0, 19);
+				const timestamp = new Date().toISOString().replace(regexp2, '-').substring(0, 19);
 				const defaultFilename = `copilot_all_prompts_${timestamp}.json`;
 
 				// Show save dialog

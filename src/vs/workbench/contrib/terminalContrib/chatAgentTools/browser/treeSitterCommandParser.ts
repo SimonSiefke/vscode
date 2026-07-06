@@ -158,7 +158,7 @@ export class TreeSitterCommandParser extends Disposable {
 	 * rules by stripping quotes, path segments, and common executable suffixes.
 	 */
 	private _normalizeCommandKeyword(token: string): string | undefined {
-		const unquoted = token.replace(new RegExp(regexp1), '');
+		const unquoted = token.replace(regexp1, '');
 		if (!unquoted) {
 			return undefined;
 		}

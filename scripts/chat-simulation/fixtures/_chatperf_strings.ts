@@ -15,14 +15,14 @@ const regexp3 = /\r\n|\r|\n/;
  */
 
 export function format(value: string, ...args: any[]): string {
-	return value.replace(new RegExp(regexp1), (match, index) => {
+	return value.replace(regexp1, (match, index) => {
 		const i = parseInt(index, 10);
 		return i >= 0 && i < args.length ? `${args[i]}` : match;
 	});
 }
 
 export function escape(value: string): string {
-	return value.replace(new RegExp(regexp2), ch => {
+	return value.replace(regexp2, ch => {
 		switch (ch) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';

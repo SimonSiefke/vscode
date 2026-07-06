@@ -167,7 +167,7 @@ async function getDroppedImageData(
 
 	if (urlList) {
 		const uris: vscode.Uri[] = [];
-		for (const resource of urlList.split(new RegExp(regexp2))) {
+		for (const resource of urlList.split(regexp2)) {
 			try {
 				uris.push(vscode.Uri.parse(resource));
 			} catch {

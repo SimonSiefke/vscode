@@ -442,7 +442,7 @@ export class ClaudeCodeSession extends Disposable {
 			this._gateway ??= await this.mcpService.startMcpGateway(ClaudeSessionUri.forSessionId(this.sessionId)) ?? undefined;
 			if (this._gateway) {
 				for (const server of this._gateway.servers) {
-					const serverId = server.label.toLowerCase().replace(new RegExp(regexpZ0), '_').replace(new RegExp(regexp1), '') || `vscode-mcp-server-${Object.keys(mcpServers).length}`;
+					const serverId = server.label.toLowerCase().replace(regexpZ0, '_').replace(regexp1, '') || `vscode-mcp-server-${Object.keys(mcpServers).length}`;
 					mcpServers[serverId] = {
 						type: 'http',
 						url: server.address.toString(),

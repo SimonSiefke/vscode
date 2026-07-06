@@ -179,7 +179,7 @@ export const expandCommand = (
 		!usedAliases.has(name.text)
 	) {
 		// Remove quotes
-		const aliasValue = aliases[name.text].replace(new RegExp(regexp1), '$1');
+		const aliasValue = aliases[name.text].replace(regexp1, '$1');
 		try {
 			expanded = substituteAlias(expanded, name, aliasValue);
 		} catch (_err) {

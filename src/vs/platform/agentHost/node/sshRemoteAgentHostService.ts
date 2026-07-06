@@ -271,7 +271,7 @@ function isEncryptedPrivateKey(key: Buffer): boolean {
 	if (!openSSHKey) {
 		return false;
 	}
-	const data = Buffer.from(openSSHKey[1].replace(new RegExp(regexp4), ''), 'base64');
+	const data = Buffer.from(openSSHKey[1].replace(regexp4, ''), 'base64');
 	const magic = Buffer.from('openssh-key-v1\0', 'utf8');
 	if (data.length < magic.length || !data.subarray(0, magic.length).equals(magic)) {
 		return false;
@@ -1023,7 +1023,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 						try {
 							const files = await fsp.readdir(dir);
 							for (const file of files) {
-								const regex = new RegExp('^' + base.replace(new RegExp(regexp9), '.*') + '$');
+								const regex = new RegExp('^' + base.replace(regexp9, '.*') + '$');
 								if (regex.test(file)) {
 									try {
 										const sub = await fsp.readFile(join(dir, file), 'utf-8');

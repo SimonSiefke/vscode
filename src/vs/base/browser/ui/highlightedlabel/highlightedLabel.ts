@@ -143,7 +143,7 @@ export class HighlightedLabel extends Disposable {
 		let total = 0;
 		let extra = 0;
 
-		return text.replace(new RegExp(regexp1), (match, offset) => {
+		return text.replace(regexp1, (match, offset) => {
 			extra = match === '\r\n' ? -1 : 0;
 			offset += total;
 

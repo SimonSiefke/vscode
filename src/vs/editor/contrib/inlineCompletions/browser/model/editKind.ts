@@ -67,7 +67,7 @@ function analyzeTextShape(text: string): TextShape {
 	}
 
 	// Analyze whitespace patterns
-	const whitespaceMatches = text.match(new RegExp(regexp3)) || [];
+	const whitespaceMatches = text.match(regexp3) || [];
 	const isMultipleWhitespace = whitespaceMatches.some(ws => ws.length > 1);
 	const hasDuplicatedWhitespace = whitespaceMatches.some(ws =>
 		(ws.includes('  ') || ws.includes('\t\t'))

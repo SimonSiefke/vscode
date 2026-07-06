@@ -796,7 +796,7 @@ function readLineByLine(source: AsyncIterable<string>, token: CancellationToken)
 			if (token.isCancellationRequested) {
 				break;
 			}
-			const line = (await reader.readLine()).replace(new RegExp(regexp1), '');
+			const line = (await reader.readLine()).replace(regexp1, '');
 
 			if (previousLineWasEmpty) {
 				// Emit the previous held back empty line

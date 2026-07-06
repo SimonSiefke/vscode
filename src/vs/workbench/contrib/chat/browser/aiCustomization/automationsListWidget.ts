@@ -760,7 +760,7 @@ function formatRelativeTimeOrIso(iso: string): string {
 }
 
 function truncate(s: string, max: number): string {
-	const single = s.replace(new RegExp(regexp1), ' ').trim();
+	const single = s.replace(regexp1, ' ').trim();
 	if (single.length <= max) {
 		return single;
 	}

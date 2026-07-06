@@ -428,5 +428,5 @@ class RefCountedCssRule {
 
 function camelToDashes(str: string): string {
 	return str.replace(regexp2, ([first]) => first.toLowerCase())
-		.replace(new RegExp(regexp1), ([letter]) => `-${letter.toLowerCase()}`);
+		.replace(regexp1, ([letter]) => `-${letter.toLowerCase()}`);
 }

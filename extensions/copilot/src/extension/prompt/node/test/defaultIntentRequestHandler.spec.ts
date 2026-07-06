@@ -76,7 +76,7 @@ suite('defaultIntentRequestHandler', () => {
 		accessor.dispose();
 	});
 
-	const uuidRegex = new RegExp(regexp9a9a9a);
+	const uuidRegex = new RegExp(regexp9a9a9a.source, regexp9a9a9a.flags);
 
 	function getDerandomizedTelemetry() {
 		const evts = telemetry.getEvents();

@@ -91,5 +91,5 @@ export function findBestSymbolByPath(
 export function extractSymbolNamesInCode(inlineCode: string): string[] {
 	// TODO: this assumes the language is JS like.
 	// It won't handle symbol parts that include spaces or special characters
-	return Array.from(inlineCode.matchAll(new RegExp(regexp1)), x => x[0]);
+	return Array.from(inlineCode.matchAll(regexp1), x => x[0]);
 }

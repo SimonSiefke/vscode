@@ -1957,8 +1957,8 @@ export class Repository implements Disposable {
 			// Create worktree path based on the branch name
 			if (worktreePath === undefined && branch !== undefined) {
 				worktreeName = branch.startsWith(branchPrefix)
-					? branch.substring(branchPrefix.length).replace(new RegExp(regexp5), '-')
-					: branch.replace(new RegExp(regexp5), '-');
+					? branch.substring(branchPrefix.length).replace(regexp5, '-')
+					: branch.replace(regexp5, '-');
 
 				worktreePath = defaultWorktreeRoot
 					? path.join(defaultWorktreeRoot, worktreeName)
@@ -2585,7 +2585,7 @@ export class Repository implements Disposable {
 			const ignoreFile = `${this.repository.root}${path.sep}.gitignore`;
 			const textToAppend = files
 				.map(uri => relativePath(this.repository.root, uri.fsPath)
-					.replace(new RegExp(regexp9), match => match === '\\' ? '/' : `\\${match}`))
+					.replace(regexp9, match => match === '\\' ? '/' : `\\${match}`))
 				.join('\n');
 
 			const document = await new Promise(c => fs.exists(ignoreFile, c))
@@ -3338,7 +3338,7 @@ export class Repository implements Disposable {
 
 		// Extract tag names from message
 		const tags: string[] = [];
-		for (const match of raw.matchAll(new RegExp(regexpRejectedWouldClobber))) {
+		for (const match of raw.matchAll(regexpRejectedWouldClobber)) {
 			if (match.length === 3) {
 				tags.push(match[1]);
 			}

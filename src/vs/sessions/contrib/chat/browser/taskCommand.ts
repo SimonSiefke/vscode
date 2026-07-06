@@ -68,15 +68,15 @@ function expandVariables(value: string, ctx: ITaskResolutionContext): Promise<st
 const POSIX_NEEDS_QUOTING = /[^A-Za-z0-9_\-.,:/=@%+]/;
 
 function posixStrong(value: string): string {
-	return `'${value.replace(new RegExp(regexp1), `'\\''`)}'`;
+	return `'${value.replace(regexp1, `'\\''`)}'`;
 }
 
 function posixWeak(value: string): string {
-	return `"${value.replace(new RegExp(regexp2), '\\$1')}"`;
+	return `"${value.replace(regexp2, '\\$1')}"`;
 }
 
 function posixEscape(value: string): string {
-	return value.replace(new RegExp(regexp3), '\\$1');
+	return value.replace(regexp3, '\\$1');
 }
 
 async function renderArg(arg: CommandString, ctx: ITaskResolutionContext): Promise<string> {

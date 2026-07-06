@@ -55,7 +55,7 @@ function discoverCommandFiles(filter) {
 // ---------------------------------------------------------------------------
 
 function normalizeLabel(text) {
-	return text.replace(new RegExp(regexp1), '').trim().toLowerCase();
+	return text.replace(regexp1, '').trim().toLowerCase();
 }
 
 // ---------------------------------------------------------------------------

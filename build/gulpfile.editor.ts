@@ -133,7 +133,7 @@ function toExternalDTS(contents: string) {
 			lines[i] = `declare global {\n    var MonacoEnvironment: Environment | undefined;\n}`;
 		}
 	}
-	return lines.join('\n').replace(new RegExp(regexp3), '\n\n');
+	return lines.join('\n').replace(regexp3, '\n\n');
 }
 
 const finalEditorResourcesTask = task.define('final-editor-resources', () => {
@@ -255,7 +255,7 @@ function createTscCompileTask(watch: boolean) {
 			const reporter = createReporter('monaco');
 
 			let report: NodeJS.ReadWriteStream | undefined;
-			const magic = new RegExp(regexp9AORZcfNqry); // https://stackoverflow.com/questions/25245716/remove-all-ansi-colors-styles-from-strings
+			const magic = new RegExp(regexp9AORZcfNqry.source, regexp9AORZcfNqry.flags); // https://stackoverflow.com/questions/25245716/remove-all-ansi-colors-styles-from-strings
 
 			child.stdout.on('data', data => {
 				let str = String(data);

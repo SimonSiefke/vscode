@@ -14,7 +14,7 @@ const invalidMacAddresses = new Set([
 ]);
 
 function validateMacAddress(candidate: string): boolean {
-	const tempCandidate = candidate.replace(new RegExp(regexp1), ':').toLowerCase();
+	const tempCandidate = candidate.replace(regexp1, ':').toLowerCase();
 	return !invalidMacAddresses.has(tempCandidate);
 }
 

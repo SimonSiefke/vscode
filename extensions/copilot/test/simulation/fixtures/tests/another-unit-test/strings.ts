@@ -60,7 +60,7 @@ export function format2(template: string, values: Record<string, unknown>): stri
  * being used e.g. in HTMLElement.innerHTML.
  */
 export function escape(html: string): string {
-	return html.replace(new RegExp(regexp1), function (match) {
+	return html.replace(regexp1, function (match) {
 		switch (match) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -74,7 +74,7 @@ export function escape(html: string): string {
  * Escapes regular expression characters in a given string
  */
 export function escapeRegExpCharacters(value: string): string {
-	return value.replace(new RegExp(regexp2), '\\$&');
+	return value.replace(regexp2, '\\$&');
 }
 
 /**
@@ -167,11 +167,11 @@ export function rtrim(haystack: string, needle: string): string {
 }
 
 export function convertSimple2RegExpPattern(pattern: string): string {
-	return pattern.replace(new RegExp(regexp4), '\\$&').replace(new RegExp(regexp3), '.*');
+	return pattern.replace(regexp4, '\\$&').replace(regexp3, '.*');
 }
 
 export function stripWildcards(pattern: string): string {
-	return pattern.replace(new RegExp(regexp5), '');
+	return pattern.replace(regexp5, '');
 }
 
 export interface RegExpOptions {
@@ -602,7 +602,7 @@ export function lcut(text: string, n: number) {
 		return text;
 	}
 
-	const re = new RegExp(regexp10);
+	const re = new RegExp(regexp10.source, regexp10.flags);
 	let i = 0;
 	while (re.test(text)) {
 		if (text.length - re.lastIndex < n) {
@@ -677,7 +677,7 @@ export function containsUppercaseCharacter(target: string, ignoreEscapedChars = 
 	}
 
 	if (ignoreEscapedChars) {
-		target = target.replace(new RegExp(regexp12), '');
+		target = target.replace(regexp12, '');
 	}
 
 	return target.toLowerCase() !== target;

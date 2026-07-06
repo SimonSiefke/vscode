@@ -107,7 +107,7 @@ export function getWindowsReleaseSync(): string {
  * This is used as a fallback when registry reading is not available.
  */
 function getWindowsBuildNumberFromOsRelease(): number {
-	const osVersion = (new RegExp(regexp1)).exec(os.release());
+	const osVersion = (new RegExp(regexp1.source, regexp1.flags)).exec(os.release());
 	if (osVersion && osVersion.length === 4) {
 		return parseInt(osVersion[3], 10);
 	}

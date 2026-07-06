@@ -47,7 +47,7 @@ vi.mock('vscode', () => ({
 		showQuickPick: mockShowQuickPick,
 	},
 	l10n: {
-		t: (message: string, ...args: string[]) => message.replace(new RegExp(regexp1), (_, i) => args[Number(i)]),
+		t: (message: string, ...args: string[]) => message.replace(regexp1, (_, i) => args[Number(i)]),
 	},
 	FileType: {
 		Unknown: 0,

@@ -62,7 +62,7 @@ export const githubSlugifier: ISlugifier = new class implements ISlugifier {
 		const slugifiedHeading = heading.trim()
 			.toLowerCase()
 			.replace(githubSlugReplaceRegex, '')
-			.replace(new RegExp(regexp1), '-'); // Replace whitespace with -
+			.replace(regexp1, '-'); // Replace whitespace with -
 
 		return new GithubSlug(slugifiedHeading);
 	}

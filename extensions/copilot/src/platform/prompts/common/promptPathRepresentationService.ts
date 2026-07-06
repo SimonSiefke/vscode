@@ -85,7 +85,7 @@ export class PromptPathRepresentationService implements IPromptPathRepresentatio
 			// Remove repeated backslashes from windows path (but preserve UNC paths)
 			if (isWindowsPath) {
 				const isUncPath = filepath.startsWith('\\\\');
-				filepath = filepath.replace(new RegExp(regexp1), '\\');
+				filepath = filepath.replace(regexp1, '\\');
 				if (isUncPath) { filepath = '\\' + filepath; }
 			}
 

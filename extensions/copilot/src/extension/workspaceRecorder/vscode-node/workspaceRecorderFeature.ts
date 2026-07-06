@@ -272,7 +272,7 @@ class InitializedWorkspaceRecorderFeature extends Disposable {
 }
 
 function sanitizeFolderName(str: string): string {
-	return str.replaceAll(new RegExp(regexpZAZ0), '');
+	return str.replaceAll(regexpZAZ0, '');
 }
 
 function documentUriFromTextDocument(textDocument: vscode.TextDocument): SerializedDocumentId {

@@ -202,7 +202,7 @@ export class GitBlameController {
 			authorDateAgo: fromNow(blameInformation.authorDate ?? new Date(), true, true)
 		} satisfies BlameInformationTemplateTokens;
 
-		return template.replace(new RegExp(regexp1), (_, token) => {
+		return template.replace(regexp1, (_, token) => {
 			return templateTokens.hasOwnProperty(token)
 				? templateTokens[token as keyof BlameInformationTemplateTokens]
 				: `\${${token}}`;

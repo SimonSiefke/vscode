@@ -92,7 +92,7 @@ export function computeUpdateInfoVersion(currentVersion: string, targetVersion: 
  * Follows the release notes URL pattern but with `_update` suffix.
  */
 export function getUpdateInfoUrl(version: string): string {
-	const versionLabel = version.replace(new RegExp(regexp2), '_').replace(regexp1, '');
+	const versionLabel = version.replace(regexp2, '_').replace(regexp1, '');
 	return `https://code.visualstudio.com/raw/v${versionLabel}_update.md`;
 }
 

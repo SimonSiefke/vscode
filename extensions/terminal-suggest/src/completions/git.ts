@@ -41,7 +41,7 @@ const postProcessTrackedFiles: Fig.Generator["postProcess"] = (
 
 	return [
 		...files.map((item) => {
-			const file = item.file.replace(new RegExp(regexp1), "");
+			const file = item.file.replace(regexp1, "");
 			let ext = "";
 
 			try {
@@ -89,7 +89,7 @@ const postProcessBranches =
 					if (parts.length < 5) {
 						// Fallback to old parsing if format doesn't match
 						let name = branch.trim();
-						const oldParts = branch.match(new RegExp(regexp2));
+						const oldParts = branch.match(regexp2);
 						if (oldParts && oldParts.length > 1) {
 							if (oldParts[0] === "*") {
 								if (branch.includes("HEAD detached")) {
@@ -441,7 +441,7 @@ export const gitGenerators = {
 
 			// Filter out the files that the user has already input in the current edit buffer
 			files = files.filter((item) => {
-				const file = item.file.replace(new RegExp(regexp1), "");
+				const file = item.file.replace(regexp1, "");
 				return !context.some((ctx) => {
 					return (
 						ctx === file ||
@@ -461,7 +461,7 @@ export const gitGenerators = {
 					};
 				}),
 				...files.map((item) => {
-					const file = item.file.replace(new RegExp(regexp1), "");
+					const file = item.file.replace(regexp1, "");
 					let ext = "";
 					try {
 						ext = file.split(".").slice(-1)[0];

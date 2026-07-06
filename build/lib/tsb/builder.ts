@@ -42,7 +42,7 @@ export interface ITypeScriptBuilder {
 }
 
 function normalize(path: string): string {
-	return path.replace(new RegExp(regexp1), '/');
+	return path.replace(regexp1, '/');
 }
 
 export function createTypeScriptBuilder(config: IConfiguration, projectFile: string, cmd: ts.ParsedCommandLine): ITypeScriptBuilder {
@@ -176,7 +176,7 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 								const tsname = (dirname === '.' ? '' : dirname + '/') + basename + '.ts';
 
 								let sourceMap = JSON.parse(sourcemapFile.text) as RawSourceMap;
-								sourceMap.sources[0] = tsname.replace(new RegExp(regexp1), '/');
+								sourceMap.sources[0] = tsname.replace(regexp1, '/');
 
 								// check for an "input source" map and combine them
 								// in step 1 we extract all line edit from the input source map, and
@@ -617,7 +617,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
 		return result;
 	}
 
-	private static _declareModule = new RegExp(regexpDeclareModule1);
+	private static _declareModule = new RegExp(regexpDeclareModule1.source, regexpDeclareModule1.flags);
 
 	addScriptSnapshot(filename: string, snapshot: ScriptSnapshot): ScriptSnapshot {
 		this._projectVersion++;

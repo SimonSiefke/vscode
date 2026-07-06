@@ -184,11 +184,11 @@ suite('Find Provider - ExplorerView', () => {
 		});
 		instantiationService.stub(ISearchService, {
 			fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete> {
-				const filePattern = query.filePattern?.replace(new RegExp(regexp5), '')
-					.replace(new RegExp(regexp4), '')
-					.replace(new RegExp(regexp3), '')
-					.replace(new RegExp(regexp2), '')
-					.replace(new RegExp(regexp1), '') ?? '';
+				const filePattern = query.filePattern?.replace(regexp5, '')
+					.replace(regexp4, '')
+					.replace(regexp3, '')
+					.replace(regexp2, '')
+					.replace(regexp1, '') ?? '';
 				const fileMatches: IFileMatch[] = (searchMappings.get(filePattern) ?? []).map(u => ({ resource: u }));
 				return Promise.resolve({ results: fileMatches, messages: [] });
 			},

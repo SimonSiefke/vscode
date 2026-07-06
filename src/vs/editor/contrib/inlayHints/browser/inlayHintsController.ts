@@ -795,7 +795,7 @@ export class InlayHintsController implements IEditorContribution {
 // Prevents the view from potentially visible whitespace
 function fixSpace(str: string): string {
 	const noBreakWhitespace = '\xa0';
-	return str.replace(new RegExp(regexp1), noBreakWhitespace);
+	return str.replace(regexp1, noBreakWhitespace);
 }
 
 CommandsRegistry.registerCommand('_executeInlayHintProvider', async (accessor, ...args: [URI, IRange]): Promise<languages.InlayHint[]> => {

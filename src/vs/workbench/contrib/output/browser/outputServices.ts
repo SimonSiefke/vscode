@@ -349,7 +349,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		this.activeOutputChannelLevelContext = CONTEXT_ACTIVE_OUTPUT_LEVEL.bindTo(contextKeyService);
 		this.activeOutputChannelLevelIsDefaultContext = CONTEXT_ACTIVE_OUTPUT_LEVEL_IS_DEFAULT.bindTo(contextKeyService);
 
-		this.outputLocation = joinPath(environmentService.windowLogsPath, `output_${toLocalISOString(new Date()).replace(new RegExp(regexp1), '')}`);
+		this.outputLocation = joinPath(environmentService.windowLogsPath, `output_${toLocalISOString(new Date()).replace(regexp1, '')}`);
 
 		// Register as text model content provider for output
 		this._register(textModelService.registerTextModelContentProvider(Schemas.outputChannel, this));

@@ -31,7 +31,7 @@ async function getSpecificNLS(resourceUrlTemplate: string, languageId: string, v
 		path: 'extension/translations/main.i18n.json'
 	};
 
-	const url = resourceUrlTemplate.replace(new RegExp(regexp1), (_, key) => resource[key as keyof typeof resource]);
+	const url = resourceUrlTemplate.replace(regexp1, (_, key) => resource[key as keyof typeof resource]);
 	const res = await fetch(url);
 
 	if (res.status !== 200) {
@@ -178,12 +178,12 @@ async function windowsMain(policies: Policy[], translations: Translations) {
 	await fs.promises.rm(root, { recursive: true, force: true });
 	await fs.promises.mkdir(root, { recursive: true });
 
-	await fs.promises.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(new RegExp(regexp3), '\n'));
+	await fs.promises.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(regexp3, '\n'));
 
 	for (const { languageId, contents } of adml) {
 		const languagePath = path.join(root, languageId === 'en-us' ? 'en-us' : Languages[languageId as keyof typeof Languages]);
 		await fs.promises.mkdir(languagePath, { recursive: true });
-		await fs.promises.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(new RegExp(regexp3), '\n'));
+		await fs.promises.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(regexp3, '\n'));
 	}
 }
 
@@ -197,12 +197,12 @@ async function darwinMain(policies: Policy[], translations: Translations) {
 
 	await fs.promises.rm(root, { recursive: true, force: true });
 	await fs.promises.mkdir(root, { recursive: true });
-	await fs.promises.writeFile(path.join(root, `${bundleIdentifier}.mobileconfig`), profile.replace(new RegExp(regexp3), '\n'));
+	await fs.promises.writeFile(path.join(root, `${bundleIdentifier}.mobileconfig`), profile.replace(regexp3, '\n'));
 
 	for (const { languageId, contents } of manifests) {
 		const languagePath = path.join(root, languageId === 'en-us' ? 'en-us' : Languages[languageId as keyof typeof Languages]);
 		await fs.promises.mkdir(languagePath, { recursive: true });
-		await fs.promises.writeFile(path.join(languagePath, `${bundleIdentifier}.plist`), contents.replace(new RegExp(regexp3), '\n'));
+		await fs.promises.writeFile(path.join(languagePath, `${bundleIdentifier}.plist`), contents.replace(regexp3, '\n'));
 	}
 }
 
@@ -214,7 +214,7 @@ async function linuxMain(policies: Policy[]) {
 	await fs.promises.mkdir(root, { recursive: true });
 
 	const jsonPath = path.join(root, `policy.json`);
-	await fs.promises.writeFile(jsonPath, policyFileContents.replace(new RegExp(regexp3), '\n'));
+	await fs.promises.writeFile(jsonPath, policyFileContents.replace(regexp3, '\n'));
 }
 
 async function main() {

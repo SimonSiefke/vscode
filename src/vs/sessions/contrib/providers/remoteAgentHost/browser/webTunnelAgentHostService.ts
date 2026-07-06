@@ -385,8 +385,8 @@ async function deriveConnectionToken(tunnelId: string): Promise<string> {
 
 	// Base64url encode (matches Node's createHash('sha256').digest('base64url'))
 	let result = btoa(String.fromCharCode(...hashArray))
-		.replace(new RegExp(regexp3), '-')
-		.replace(new RegExp(regexp2), '_')
+		.replace(regexp3, '-')
+		.replace(regexp2, '_')
 		.replace(regexp1, '');
 
 	if (result.startsWith('-')) {

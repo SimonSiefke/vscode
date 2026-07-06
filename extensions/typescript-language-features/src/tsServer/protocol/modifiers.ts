@@ -6,5 +6,5 @@
 const regexp1 = /,|\s+/g;
 
 export function parseKindModifier(kindModifiers: string): Set<string> {
-	return new Set(kindModifiers.split(new RegExp(regexp1)));
+	return new Set(kindModifiers.split(regexp1));
 }

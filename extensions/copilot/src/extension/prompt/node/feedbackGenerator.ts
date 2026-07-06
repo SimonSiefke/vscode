@@ -249,7 +249,7 @@ export function parseReviewComments(request: ReviewRequest, input: CurrentChange
 }
 
 export function parseFeedbackResponse(response: string, dropPartial = false) {
-	const regex = new RegExp(regexpNumLineFrom);
+	const regex = new RegExp(regexpNumLineFrom.source, regexpNumLineFrom.flags);
 	return coalesce(Array.from(response.matchAll(regex), match => {
 		const groups = match.groups!;
 		if (dropPartial && typeof groups.earlyEnd === 'string') {
@@ -270,7 +270,7 @@ export function parseFeedbackResponse(response: string, dropPartial = false) {
 			}
 		}
 		// Remove broken block.
-		const blockBorders = [...content.matchAll(new RegExp(regexp2))];
+		const blockBorders = [...content.matchAll(regexp2)];
 		if (blockBorders.length % 2) {
 			const odd = blockBorders[blockBorders.length - 1];
 			content = content.substring(0, odd.index)

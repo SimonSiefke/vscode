@@ -12,7 +12,7 @@ const regexpFile1 = /([\s|(]|file:\/\/)(\/[^\s]+)/g;
  */
 export function redactPaths(input: string): string {
 	return input
-		.replace(new RegExp(regexpFile1), '$1[redacted]') // unix path
-		.replace(new RegExp(regexpFileZA), '$1[redacted]') // windows path
-		.replace(new RegExp(regexpFile), '$1[redacted]'); // unc path
+		.replace(regexpFile1, '$1[redacted]') // unix path
+		.replace(regexpFileZA, '$1[redacted]') // windows path
+		.replace(regexpFile, '$1[redacted]'); // unc path
 }

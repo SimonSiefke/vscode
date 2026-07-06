@@ -51,7 +51,7 @@ export class TextModelEditSource {
 				return filterVal;
 			}
 
-			const prefixCount = (key.match(new RegExp(regexp1)) || []).length;
+			const prefixCount = (key.match(regexp1) || []).length;
 			return prefixCount <= level && value !== undefined && value !== null && value !== '';
 		}).map(([key, value]) => `${key}:${value}`);
 		return keys.join('-');

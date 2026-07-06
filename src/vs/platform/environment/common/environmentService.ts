@@ -75,7 +75,7 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 
 	get logsHome(): URI {
 		if (!this.args.logsPath) {
-			const key = toLocalISOString(new Date()).replace(new RegExp(regexp1), '');
+			const key = toLocalISOString(new Date()).replace(regexp1, '');
 			this.args.logsPath = join(this.userDataPath, 'logs', key);
 		}
 

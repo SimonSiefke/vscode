@@ -193,7 +193,7 @@ function writeMermaidToolOutput(sourceCode: string, title: string | undefined): 
 }
 
 function getFenceForContent(content: string): string {
-	const backtickMatch = content.matchAll(new RegExp(regexp1));
+	const backtickMatch = content.matchAll(regexp1);
 	if (!backtickMatch) {
 		return '```';
 	}

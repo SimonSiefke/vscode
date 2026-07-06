@@ -18,11 +18,11 @@ export function parseVersion(version: string): { major: number; minor: number; p
 }
 
 export function suiteLogsPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
+	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(regexpZ0, '_')}`);
 }
 
 export function suiteCrashPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
+	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(regexpZ0, '_')}`);
 }
 
 export function getRandomUserDataDir(baseUserDataDir: string): string {

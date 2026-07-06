@@ -406,9 +406,9 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 	}
 
 	private _describeCandidate(uri: Uri, sessionDirs: readonly Uri[]): string {
-		const normalizedCandidatePath = uri.fsPath.replace(new RegExp(regexp4), '/');
+		const normalizedCandidatePath = uri.fsPath.replace(regexp4, '/');
 		for (const sessionDir of sessionDirs) {
-			const normalizedSessionPath = sessionDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
+			const normalizedSessionPath = sessionDir.fsPath.replace(regexp4, '/').replace(regexp5, '');
 			if (normalizedCandidatePath.startsWith(`${normalizedSessionPath}/`)) {
 				const sessionId = normalizedSessionPath.split('/').pop();
 				return `session-state/${sessionId}`;
@@ -428,9 +428,9 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 	 * normalized separators.
 	 */
 	private _relativeTo(uri: Uri, baseDirs: readonly Uri[]): string | undefined {
-		const normalizedCandidatePath = uri.fsPath.replace(new RegExp(regexp4), '/');
+		const normalizedCandidatePath = uri.fsPath.replace(regexp4, '/');
 		for (const baseDir of baseDirs) {
-			const normalizedBasePath = baseDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
+			const normalizedBasePath = baseDir.fsPath.replace(regexp4, '/').replace(regexp5, '');
 			const prefix = `${normalizedBasePath}/`;
 			if (normalizedCandidatePath.startsWith(prefix)) {
 				return normalizedCandidatePath.slice(prefix.length);
@@ -452,7 +452,7 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			}
 
 			const dir = queue[i];
-			const normalizedDir = dir.fsPath.replace(new RegExp(regexp4), '/');
+			const normalizedDir = dir.fsPath.replace(regexp4, '/');
 			if (visited.has(normalizedDir)) {
 				continue;
 			}
@@ -488,11 +488,11 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			return undefined;
 		}
 
-		const normalizedSessionPath = sessionDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
+		const normalizedSessionPath = sessionDir.fsPath.replace(regexp4, '/').replace(regexp5, '');
 		const sessionPathPrefix = `${normalizedSessionPath}/`;
 		matches.sort((a, b) => {
-			const pathA = a.fsPath.replace(new RegExp(regexp4), '/');
-			const pathB = b.fsPath.replace(new RegExp(regexp4), '/');
+			const pathA = a.fsPath.replace(regexp4, '/');
+			const pathB = b.fsPath.replace(regexp4, '/');
 			const relA = pathA.startsWith(sessionPathPrefix) ? pathA.slice(sessionPathPrefix.length) : pathA;
 			const relB = pathB.startsWith(sessionPathPrefix) ? pathB.slice(sessionPathPrefix.length) : pathB;
 

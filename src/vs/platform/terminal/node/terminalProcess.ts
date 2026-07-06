@@ -444,7 +444,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 		this._currentTitle = (ptyProcess.process ?? '');
 		this._onDidChangeProperty.fire({ type: ProcessPropertyType.Title, value: this._currentTitle });
 		// If fig is installed it may change the title of the process
-		let sanitizedTitle = this.currentTitle.replace(new RegExp(regexpFigterm), '');
+		let sanitizedTitle = this.currentTitle.replace(regexpFigterm, '');
 		// Ensure any prefixed path is removed so that the executable name since we use this to
 		// detect the shell type
 		if (!isWindows) {

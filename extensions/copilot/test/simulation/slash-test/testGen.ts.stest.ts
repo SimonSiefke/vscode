@@ -42,9 +42,9 @@ forInline((strategy, nonExtensionConfigurations, suffix) => {
 
 							const changedFile = outcome.files.at(0);
 							assert.ok(changedFile);
-							assert([...getFileContent(changedFile).matchAll(new RegExp(regexpTit))].length > 1);
+							assert([...getFileContent(changedFile).matchAll(regexpTit)].length > 1);
 
-							const sixthLine = getFileContent(changedFile).split(new RegExp(regexp2)).at(6);
+							const sixthLine = getFileContent(changedFile).split(regexp2).at(6);
 
 							assert(sixthLine !== '});', `new tests are inserted within the existing suite: expected NOT '});'`);
 						},
@@ -68,7 +68,7 @@ forInline((strategy, nonExtensionConfigurations, suffix) => {
 						validate: async (outcome, workspace, accessor) => {
 							assertWorkspaceEdit(outcome);
 							assertType(outcome.files[0]);
-							assert([...getFileContent(outcome.files[0]).matchAll(new RegExp(regexpTit))].length > 1);
+							assert([...getFileContent(outcome.files[0]).matchAll(regexpTit)].length > 1);
 						},
 					},
 				],
@@ -227,7 +227,7 @@ forInline((strategy, nonExtensionConfigurations) => {
 						expectedIntent: Intent.Tests,
 						validate: async (outcome, workspace, accessor) => {
 							assert.strictEqual(outcome.type, 'inlineEdit');
-							const lines = outcome.fileContents.split(new RegExp(regexp2));
+							const lines = outcome.fileContents.split(regexp2);
 							assert.ok(lines.length >= 132 + 276);
 							// remove first 132 lines
 							lines.splice(0, 132);

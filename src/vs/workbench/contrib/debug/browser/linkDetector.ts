@@ -245,7 +245,7 @@ export class LinkDetector implements ILinkDetector {
 				// Just using fsPath here is unsafe: https://github.com/microsoft/vscode/issues/109076
 				const fsPath = uri.fsPath;
 				const path = await this.pathService.path;
-				const fileUrl = osPath.normalize(((path.sep === osPath.posix.sep) && platform.isWindows) ? fsPath.replace(new RegExp(regexp1), osPath.posix.sep) : fsPath);
+				const fileUrl = osPath.normalize(((path.sep === osPath.posix.sep) && platform.isWindows) ? fsPath.replace(regexp1, osPath.posix.sep) : fsPath);
 
 				const fileUri = URI.parse(fileUrl);
 				const exists = await this.fileService.exists(fileUri);

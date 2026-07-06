@@ -361,7 +361,7 @@ async function fetchGitHubBlob(
 		throw new Error(`GitHub blob response for '${entry.path}' has unsupported encoding '${body.encoding}'`);
 	}
 	// GitHub wraps base64 at 60 columns; strip whitespace before decoding.
-	return decodeBase64(body.content.replace(new RegExp(regexp4), ''));
+	return decodeBase64(body.content.replace(regexp4, ''));
 }
 
 /** Response shape from `GET /repos/{owner}/{repo}/git/blobs/{sha}`. */

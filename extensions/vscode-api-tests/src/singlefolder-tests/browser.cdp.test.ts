@@ -123,13 +123,13 @@ const CAPTURED_DOMAINS = ['Browser', 'Target'];
 			}
 			if (typeof obj === 'string') {
 				// Replace file:// URIs with <omitted>/basename (must run before workspace root replacement)
-				let result = obj.replace(new RegExp(regexpFile), (match) => {
+				let result = obj.replace(regexpFile, (match) => {
 					const basename = decodeURIComponent(match.split('/').pop() || match);
 					return `<omitted>/${basename}`;
 				});
 				// Replace workspace root in remaining paths (handles both raw and URI-encoded forms)
-				const normalizedRoot = workspaceRoot.replace(new RegExp(regexp2), '/');
-				const encodedRoot = encodeURI(normalizedRoot).replace(new RegExp(regexp5C), '/');
+				const normalizedRoot = workspaceRoot.replace(regexp2, '/');
+				const encodedRoot = encodeURI(normalizedRoot).replace(regexp5C, '/');
 				result = result.split(encodedRoot).join('<workspace>');
 				result = result.split(normalizedRoot).join('<workspace>');
 				result = result.split(workspaceRoot).join('<workspace>');

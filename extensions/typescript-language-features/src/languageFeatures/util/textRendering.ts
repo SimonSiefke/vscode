@@ -90,7 +90,7 @@ function getTagDocumentation(
 				if (!doc) {
 					return label;
 				}
-				return label + (doc.match(new RegExp(regexp4)) ? '  \n' + doc : ` \u2014 ${doc}`);
+				return label + (doc.match(regexp4) ? '  \n' + doc : ` \u2014 ${doc}`);
 			}
 			break;
 		}
@@ -112,7 +112,7 @@ function getTagDocumentation(
 	if (!text) {
 		return label;
 	}
-	return label + (text.match(new RegExp(regexp4)) ? '  \n' + text : ` \u2014 ${text}`);
+	return label + (text.match(regexp4) ? '  \n' + text : ` \u2014 ${text}`);
 }
 
 function getTagBody(tag: Proto.JSDocTagInfo, filePathConverter: IFilePathToResourceConverter): Array<string> | undefined {
@@ -219,7 +219,7 @@ function convertLinkTags(
 }
 
 function escapeMarkdownSyntaxTokensForCode(text: string): string {
-	return text.replace(new RegExp(regexp8), '\\$&'); // CodeQL [SM02383] This is only meant to escape backticks. The Markdown is fully sanitized after being rendered.
+	return text.replace(regexp8, '\\$&'); // CodeQL [SM02383] This is only meant to escape backticks. The Markdown is fully sanitized after being rendered.
 }
 
 export function tagsToMarkdown(

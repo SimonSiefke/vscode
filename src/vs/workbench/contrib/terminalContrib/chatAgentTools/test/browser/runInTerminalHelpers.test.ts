@@ -313,7 +313,7 @@ suite('generateAutoApproveActions', () => {
 
 	function createMockRule(sourceText: string): IAutoApproveRule {
 		// Escape special regex characters for test purposes to prevent regex errors
-		const escapedText = sourceText.replace(new RegExp(regexp1), '\\$&');
+		const escapedText = sourceText.replace(regexp1, '\\$&');
 		return {
 			regex: new RegExp(escapedText),
 			regexCaseInsensitive: new RegExp(escapedText, 'i'),

@@ -65,7 +65,7 @@ export class BuiltInToolGroupHandler {
 			}
 
 			return new VirtualTool(
-				VIRTUAL_TOOL_NAME_PREFIX + category.toLowerCase().replace(new RegExp(regexp1), '_'),
+				VIRTUAL_TOOL_NAME_PREFIX + category.toLowerCase().replace(regexp1, '_'),
 				SUMMARY_PREFIX + getCategorySummary(category as ToolCategory) + SUMMARY_SUFFIX,
 				0,
 				{

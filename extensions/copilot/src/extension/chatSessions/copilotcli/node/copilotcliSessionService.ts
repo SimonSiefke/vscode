@@ -694,7 +694,7 @@ export class CopilotCLISessionService extends Disposable implements ICopilotCLIS
 			return false;
 		}
 		// Must mirror `SessionDataService._sanitizedSessionKey`.
-		const sanitized = sessionId.replace(new RegExp(regexpZAZ0), '-');
+		const sanitized = sessionId.replace(regexpZAZ0, '-');
 		const dbPath = joinPath(dataDir, sanitized, 'session.db');
 		return this.fileSystem.stat(dbPath).then(() => true, () => false);
 	}

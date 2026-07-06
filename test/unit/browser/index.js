@@ -102,7 +102,7 @@ const withReporter = (function () {
 				new MochaJUnitReporter(runner, {
 					reporterOptions: {
 						testsuitesTitle: `${args.tfs} ${process.platform}`,
-						mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${browserType}-${args.tfs.toLowerCase().replace(new RegExp(regexp1), '-')}-results.xml`) : undefined
+						mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${browserType}-${args.tfs.toLowerCase().replace(regexp1, '-')}-results.xml`) : undefined
 					}
 				});
 			};
@@ -215,7 +215,7 @@ async function createServer() {
 		function massagePath(p) {
 			// TODO@jrieken FISHY but it enables snapshot
 			// in ESM browser tests
-			p = String(p).replace(new RegExp(regexp5), '/').replace(prefix, rootDir);
+			p = String(p).replace(regexp5, '/').replace(prefix, rootDir);
 			return p;
 		}
 

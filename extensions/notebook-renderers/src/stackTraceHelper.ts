@@ -16,16 +16,16 @@ export function formatStackTrace(stack: string, trustHtml: boolean): { formatted
 
 	// Remove background colors. The ones from IPython don't work well with
 	// themes 40-49 sets background color
-	cleaned = stack.replace(new RegExp(regexpDm), '');
-	cleaned = cleaned.replace(new RegExp(regexp2), '');
+	cleaned = stack.replace(regexpDm, '');
+	cleaned = cleaned.replace(regexp2, '');
 
 	// Also remove specific foreground colors (38 is the ascii code for picking one) (they don't translate either)
 	// Turn them into default foreground
-	cleaned = cleaned.replace(new RegExp(regexp3), '\u001b[39m');
+	cleaned = cleaned.replace(regexp3, '\u001b[39m');
 
 	// Turn all foreground colors after the --> to default foreground
-	cleaned = cleaned.replace(new RegExp(regexp32m), (_s, prefix, num, suffix) => {
-		suffix = suffix.replace(new RegExp(regexp5), '\u001b[39m');
+	cleaned = cleaned.replace(regexp32m, (_s, prefix, num, suffix) => {
+		suffix = suffix.replace(regexp5, '\u001b[39m');
 		return `${prefix}${num}${suffix}\n`;
 	});
 

@@ -229,7 +229,7 @@ const SENSITIVE_FILE_PATTERNS = {
  */
 function isSensitiveFile(relativePath: string): boolean {
 	// Normalize path separators for consistent handling across platforms
-	const normalizedPath = relativePath.replace(new RegExp(regexp1), '/');
+	const normalizedPath = relativePath.replace(regexp1, '/');
 	const pathParts = normalizedPath.split('/');
 
 	// Use basename/extname on normalized path for robust filename extraction

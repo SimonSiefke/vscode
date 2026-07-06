@@ -149,9 +149,9 @@ export function cleanGoalSummary(raw: string): string | undefined {
 		return undefined;
 	}
 	// Strip surrounding quotes and any leading "Goal:" the model may have added.
-	s = s.replace(new RegExp(regexp1), '');
+	s = s.replace(regexp1, '');
 	s = s.replace(regexpGoal, '');
-	s = s.replace(new RegExp(regexp3), ' ').trim();
+	s = s.replace(regexp3, ' ').trim();
 	// The summary model occasionally declines to summarize (e.g. content
 	// filtering) and replies with a refusal like "Sorry, I can't assist with
 	// that.". That is a refusal, not a goal, so suppress the banner entirely

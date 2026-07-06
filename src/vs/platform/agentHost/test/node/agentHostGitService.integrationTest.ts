@@ -347,7 +347,7 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 		assert.ok(tree, 'expected tree object');
 		const treePaths = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: dir, encoding: 'utf8' })
 			.trim()
-			.split(new RegExp(regexp1))
+			.split(regexp1)
 			.filter(Boolean)
 			.sort();
 
@@ -446,7 +446,7 @@ suite('AgentHostGitService - worktree helpers (real git)', () => {
 
 		const status = cp.execFileSync('git', ['status', '--porcelain'], { cwd: dir, env, encoding: 'utf8' }).trim();
 		const lastMessage = cp.execFileSync('git', ['log', '-1', '--format=%s'], { cwd: dir, env, encoding: 'utf8' }).trim();
-		const committedFiles = cp.execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'], { cwd: dir, env, encoding: 'utf8' }).trim().split(new RegExp(regexp1)).sort();
+		const committedFiles = cp.execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'], { cwd: dir, env, encoding: 'utf8' }).trim().split(regexp1).sort();
 
 		assert.deepStrictEqual({ status, lastMessage, committedFiles }, {
 			status: '',

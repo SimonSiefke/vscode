@@ -583,7 +583,7 @@ export class MenuBar extends Disposable {
 				escMatch = MENU_ESCAPED_MNEMONIC_REGEX.exec(cleanLabel);
 			}
 
-			const replaceDoubleEscapes = (str: string) => str.replace(new RegExp(regexpAmpAmp), '&amp;');
+			const replaceDoubleEscapes = (str: string) => str.replace(regexpAmpAmp, '&amp;');
 
 			if (escMatch) {
 				titleElement.textContent = '';
@@ -596,7 +596,7 @@ export class MenuBar extends Disposable {
 				titleElement.textContent = replaceDoubleEscapes(cleanLabel).trim();
 			}
 		} else {
-			titleElement.textContent = cleanMenuLabel.replace(new RegExp(regexp1), '&');
+			titleElement.textContent = cleanMenuLabel.replace(regexp1, '&');
 		}
 
 		const mnemonicMatches = MENU_MNEMONIC_REGEX.exec(label);

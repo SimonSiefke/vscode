@@ -184,7 +184,7 @@ export function getOutcomeFileName(testName: string): string {
 		suffix = '-gpt-3.5-turbo';
 	}
 	const result = toDirname(testName);
-	return `${result.substring(0, 60)}${suffix}.json`.replace(new RegExp(regexp1), '-');
+	return `${result.substring(0, 60)}${suffix}.json`.replace(regexp1, '-');
 }
 
 export interface ISimulationSuiteOptions {
@@ -379,7 +379,7 @@ class SimulationTestsRegistryClass {
 		}
 
 		// remove newlines, carriage returns, bad whitespace, etc
-		testDescriptor = { ...testDescriptor, description: testDescriptor.description.replace(new RegExp(regexp3), ' ') };
+		testDescriptor = { ...testDescriptor, description: testDescriptor.description.replace(regexp3, ' ') };
 
 		// force a length of 100 chars for a stest name
 		if (testDescriptor.description.length > 100) {
@@ -641,7 +641,7 @@ export class SimulationTestRuntime implements ISimulationTestRuntime {
 const FILENAME_LIMIT = 125;
 
 export function toDirname(testName: string): string {
-	const filename = testName.replace(new RegExp(regexpZAZ0), '-').replace(new RegExp(regexp1), '-').toLowerCase();
+	const filename = testName.replace(regexpZAZ0, '-').replace(regexp1, '-').toLowerCase();
 	if (filename.length > FILENAME_LIMIT) { // windows file names can not exceed 255 chars and path length limits, so keep it short
 		return `${filename.substring(0, FILENAME_LIMIT)}-${computeSHA256(filename).substring(0, 8)}`;
 	}

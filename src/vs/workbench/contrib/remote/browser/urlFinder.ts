@@ -33,7 +33,7 @@ export class UrlFinder extends Disposable {
 	 * http://:8080 - Beego Golang
 	 * http://0.0.0.0:4000 - Elixir Phoenix
 	 */
-	private static readonly localUrlRegex = new RegExp(regexpLocalhost);
+	private static readonly localUrlRegex = new RegExp(regexpLocalhost.source, regexpLocalhost.flags);
 	private static readonly extractPortRegex = regexpLocalhost1;
 	/**
 	 * https://github.com/microsoft/vscode-remote-release/issues/3949

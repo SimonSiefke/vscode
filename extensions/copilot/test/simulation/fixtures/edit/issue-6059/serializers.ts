@@ -129,7 +129,7 @@ function createCodeCellFromNotebookCell(cell: NotebookCellData, preferredLanguag
 		// In diff view we display execution_count as part of metadata, hence when execution count changes in metadata,
 		// We need to change that here as well, i.e. give preference to any execution_count value in metadata.
 		execution_count: cellMetadata.execution_count ?? cell.executionSummary?.executionOrder ?? null,
-		source: splitMultilineString(cell.value.replace(new RegExp(regexp1), '\n')),
+		source: splitMultilineString(cell.value.replace(regexp1, '\n')),
 		outputs: (cell.outputs || []).map(translateCellDisplayOutput),
 		metadata: cellMetadata.metadata
 	};
@@ -143,7 +143,7 @@ function createRawCellFromNotebookCell(cell: NotebookCellData): nbformat.IRawCel
 	const cellMetadata = getCellMetadata({ cell });
 	const rawCell: any = {
 		cell_type: 'raw',
-		source: splitMultilineString(cell.value.replace(new RegExp(regexp1), '\n')),
+		source: splitMultilineString(cell.value.replace(regexp1, '\n')),
 		metadata: cellMetadata?.metadata || {} // This cannot be empty.
 	};
 	if (cellMetadata?.attachments) {
@@ -394,7 +394,7 @@ export function createMarkdownCellFromNotebookCell(cell: NotebookCellData): nbfo
 	const cellMetadata = getCellMetadata({ cell });
 	const markdownCell: any = {
 		cell_type: 'markdown',
-		source: splitMultilineString(cell.value.replace(new RegExp(regexp1), '\n')),
+		source: splitMultilineString(cell.value.replace(regexp1, '\n')),
 		metadata: cellMetadata?.metadata || {} // This cannot be empty.
 	};
 	if (cellMetadata?.attachments) {

@@ -152,7 +152,7 @@ export class ExtHostWebview implements vscode.Webview {
 		const isRemote = this.#extension.extensionLocation?.scheme === Schemas.vscodeRemote;
 		const remoteAuthority = this.#extension.extensionLocation.scheme === Schemas.vscodeRemote ? this.#extension.extensionLocation.authority : undefined;
 		return value
-			.replace(new RegExp(regexpVscodeResource1), (_match, startQuote, _1, scheme, path, endQuote) => {
+			.replace(regexpVscodeResource1, (_match, startQuote, _1, scheme, path, endQuote) => {
 				const uri = URI.from({
 					scheme: scheme || 'file',
 					path: decodeURIComponent(path),
@@ -160,7 +160,7 @@ export class ExtHostWebview implements vscode.Webview {
 				const webviewUri = asWebviewUri(uri, { isRemote, authority: remoteAuthority }).toString();
 				return `${startQuote}${webviewUri}${endQuote}`;
 			})
-			.replace(new RegExp(regexpVscodeWebviewResource), (_match, startQuote, _1, scheme, path, endQuote) => {
+			.replace(regexpVscodeWebviewResource, (_match, startQuote, _1, scheme, path, endQuote) => {
 				const uri = URI.from({
 					scheme: scheme || 'file',
 					path: decodeURIComponent(path),

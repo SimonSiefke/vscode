@@ -170,7 +170,7 @@ export async function collectAgentHostDebugLogs(
 		}
 		const modelRef = await textModelService.createModelReference(channel.uri);
 		try {
-			const filename = `${descriptor.label.replace(new RegExp(regexp1), '-')}.log`;
+			const filename = `${descriptor.label.replace(regexp1, '-')}.log`;
 			files.push({ path: filename, contents: modelRef.object.textEditorModel.getValue() });
 		} finally {
 			modelRef.dispose();
@@ -235,7 +235,7 @@ export async function collectAgentHostDebugLogs(
 	}
 
 	const titleSlug = activeSession?.title
-		? `-${activeSession.title.replace(new RegExp(regexp3), '-').replace(new RegExp(regexp2), '').slice(0, 40)}`
+		? `-${activeSession.title.replace(regexp3, '-').replace(regexp2, '').slice(0, 40)}`
 		: '';
 	return { files, exportName: `ah-logs${titleSlug}` };
 }
@@ -415,7 +415,7 @@ function getRemoteConnectionForSession(sessionResource: URI, connections: readon
 }
 
 function sanitizeFilePart(value: string): string {
-	return value.replace(new RegExp(regexp4), '-').replace(new RegExp(regexp2), '') || 'connection';
+	return value.replace(regexp4, '-').replace(regexp2, '') || 'connection';
 }
 
 async function exportFilesToLocalFolder(
@@ -457,12 +457,12 @@ async function exportFilesToLocalFolder(
 
 function toSafeRelativePathSegments(path: string): string[] {
 	return path
-		.replace(new RegExp(regexp5), '/')
+		.replace(regexp5, '/')
 		.split('/')
 		.filter(segment => {
 			return segment.length > 0 && segment !== '.' && segment !== '..';
 		})
-		.map(segment => segment.replace(new RegExp(regexp1), '-'));
+		.map(segment => segment.replace(regexp1, '-'));
 }
 
 /**

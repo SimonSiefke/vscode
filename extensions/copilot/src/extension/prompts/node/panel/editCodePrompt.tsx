@@ -233,7 +233,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 	}
 
 	private _renderAssistantMessageWithoutFileTags(message: string): AssistantMessage {
-		message = message.replace(new RegExp(regexpFile), '');
+		message = message.replace(regexpFile, '');
 		return (
 			<AssistantMessage>{message}</AssistantMessage>
 		);
@@ -271,7 +271,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 
 	private _removePromptInstructionsFromPastUserMessage(userMessage: string, shouldRemove: Uri[]) {
 		const interestingFilePaths = shouldRemove.map(uri => this._promptPathRepresentationService.getFilePath(uri));
-		return userMessage.replace(new RegExp(regexpInstructionsInstructions), (match) => {
+		return userMessage.replace(regexpInstructionsInstructions, (match) => {
 			if (interestingFilePaths.some(path => match.includes(path))) {
 				return '';
 			}
@@ -281,7 +281,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 
 	private _removeFilesFromPastUserMessage(userMessage: string, shouldRemove: Uri[]) {
 		const interestingFilePaths = shouldRemove.map(uri => `${filepathCodeBlockMarker} ${this._promptPathRepresentationService.getFilePath(uri)}`);
-		return userMessage.replace(new RegExp(regexpFileSelectionFile), (match) => {
+		return userMessage.replace(regexpFileSelectionFile, (match) => {
 			if (interestingFilePaths.some(path => match.includes(path))) {
 				return '';
 			}
@@ -290,7 +290,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 	}
 
 	private _removeReminders(userMessage: string) {
-		return userMessage.replace(new RegExp(regexpReminderReminder), (match) => {
+		return userMessage.replace(regexpReminderReminder, (match) => {
 			return '';
 		});
 	}

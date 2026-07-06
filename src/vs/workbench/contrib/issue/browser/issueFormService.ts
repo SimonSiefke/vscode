@@ -297,10 +297,10 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 	private extractIssueData(issueBody: string): ExtractedIssueData | undefined {
 		const detailsBlocks: string[] = [];
-		const body = issueBody.replace(new RegExp(regexpDetailsDetails), match => {
+		const body = issueBody.replace(regexpDetailsDetails, match => {
 			detailsBlocks.push(match.trim());
 			return '\n\n';
-		}).replace(new RegExp(regexp1), '\n\n').trimEnd();
+		}).replace(regexp1, '\n\n').trimEnd();
 
 		if (!detailsBlocks.length) {
 			return undefined;

@@ -57,7 +57,7 @@ export class WorkspaceFolderIdMap {
 
 	private _generateUniqueId(folderRoot: URI): string {
 		const name = basenameOrAuthority(folderRoot);
-		const sanitized = name.replace(new RegExp(regexpZAZ0), '').toLowerCase();
+		const sanitized = name.replace(regexpZAZ0, '').toLowerCase();
 		const base = sanitized.slice(0, maxPrefixLength) || 'ws';
 
 		if (base.length <= maxPrefixLength && !this._usedIds.has(base)) {

@@ -86,7 +86,7 @@ describe('Alternative Content Edit Generator', () => {
 				expect(notebookEdits.length).toBe(1);
 				expect(notebookEdits[0].newCells.length).toBe(1);
 				expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Code);
-				expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual([`# Cell 1: Print a simple number`, `print(1234)`]);
+				expect(notebookEdits[0].newCells[0].value.split(regexp2)).toEqual([`# Cell 1: Print a simple number`, `print(1234)`]);
 				expect(notebookEdits[0].range.start).toBe(0);
 				expect(notebookEdits[0].range.end).toBe(0);
 			});

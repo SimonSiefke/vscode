@@ -2280,7 +2280,7 @@ export class ChatMLFetcherImpl extends AbstractChatMLFetcher {
 			const regex = new RegExp(escapeRegExpCharacters(usernameToScrub), 'ig');
 			errorDetail = errorDetail.replaceAll(regex, '<login>');
 		}
-		return errorDetail.replaceAll(new RegExp(regexpLoggedInAs), '!<login>!'); // marking fallback with !
+		return errorDetail.replaceAll(regexpLoggedInAs, '!<login>!'); // marking fallback with !
 	}
 }
 

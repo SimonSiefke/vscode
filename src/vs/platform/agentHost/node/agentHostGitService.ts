@@ -82,7 +82,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 		if (!output) {
 			return [];
 		}
-		const branches = output.split(new RegExp(regexp1)).map(line => line.trim()).filter(branch => branch.length > 0);
+		const branches = output.split(regexp1).map(line => line.trim()).filter(branch => branch.length > 0);
 		return getBranchCompletions(branches, options);
 	}
 
@@ -114,7 +114,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 		if (!output) {
 			return [];
 		}
-		return output.split(new RegExp(regexp1))
+		return output.split(regexp1)
 			.filter(line => line.startsWith('worktree '))
 			.map(line => URI.file(line.substring('worktree '.length)));
 	}
@@ -636,7 +636,7 @@ export function summarizeStderrForError(stderr: string): string {
 	if (!stderr) {
 		return '';
 	}
-	const lines = stderr.split(new RegExp(regexp2)).map(line => line.trim()).filter(line => line.length > 0);
+	const lines = stderr.split(regexp2).map(line => line.trim()).filter(line => line.length > 0);
 	if (lines.length === 0) {
 		return '';
 	}
@@ -874,7 +874,7 @@ export function parseGitStatusV2(output: string | undefined): {
 	let outgoingChanges: number | undefined;
 	let incomingChanges: number | undefined;
 	let uncommittedChanges = 0;
-	for (const rawLine of output.split(new RegExp(regexp1))) {
+	for (const rawLine of output.split(regexp1)) {
 		const line = rawLine.trimEnd();
 		if (!line) { continue; }
 		if (line.startsWith('# branch.head ')) {

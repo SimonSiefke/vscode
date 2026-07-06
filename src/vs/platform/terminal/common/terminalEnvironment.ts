@@ -21,7 +21,7 @@ const regexp6 = /^['"].*['"]$/;
 export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType): string {
 	let newPath = path;
 	if (newPath.includes('\\')) {
-		newPath = newPath.replace(new RegExp(regexp1), '\\\\');
+		newPath = newPath.replace(regexp1, '\\\\');
 	}
 
 	// Define shell-specific escaping rules
@@ -41,15 +41,15 @@ export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType
 		case PosixShellType.Zsh:
 		case WindowsShellType.GitBash:
 			escapeConfig = {
-				bothQuotes: (path) => `$'${path.replace(new RegExp(regexp2), '\\\'')}'`,
-				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
+				bothQuotes: (path) => `$'${path.replace(regexp2, '\\\'')}'`,
+				singleQuotes: (path) => `'${path.replace(regexp2, '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 		case PosixShellType.Fish:
 			escapeConfig = {
-				bothQuotes: (path) => `"${path.replace(new RegExp(regexp3), '\\"')}"`,
-				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
+				bothQuotes: (path) => `"${path.replace(regexp3, '\\"')}"`,
+				singleQuotes: (path) => `'${path.replace(regexp2, '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
@@ -57,23 +57,23 @@ export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType
 			// PowerShell should be handled separately in preparePathForShell
 			// but if we get here, use PowerShell escaping
 			escapeConfig = {
-				bothQuotes: (path) => `"${path.replace(new RegExp(regexp3), '`"')}"`,
-				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\'\'')}'`,
+				bothQuotes: (path) => `"${path.replace(regexp3, '`"')}"`,
+				singleQuotes: (path) => `'${path.replace(regexp2, '\'\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 		default:
 			// Default to POSIX shell escaping for unknown shells
 			escapeConfig = {
-				bothQuotes: (path) => `$'${path.replace(new RegExp(regexp2), '\\\'')}'`,
-				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
+				bothQuotes: (path) => `$'${path.replace(regexp2, '\\\'')}'`,
+				singleQuotes: (path) => `'${path.replace(regexp2, '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 	}
 
 	// Remove dangerous characters except single and double quotes, which we'll escape properly
-	const bannedChars = new RegExp(regexp4);
+	const bannedChars = new RegExp(regexp4.source, regexp4.flags);
 	newPath = newPath.replace(bannedChars, '');
 
 	// Apply shell-specific escaping based on quote content
@@ -101,8 +101,8 @@ export function collapseTildePath(path: string | undefined, userHome: string | u
 	if (userHome.match(regexp5)) {
 		userHome = userHome.slice(0, userHome.length - 1);
 	}
-	const normalizedPath = path.replace(new RegExp(regexp1), '/').toLowerCase();
-	const normalizedUserHome = userHome.replace(new RegExp(regexp1), '/').toLowerCase();
+	const normalizedPath = path.replace(regexp1, '/').toLowerCase();
+	const normalizedUserHome = userHome.replace(regexp1, '/').toLowerCase();
 	if (!normalizedPath.includes(normalizedUserHome)) {
 		return path;
 	}

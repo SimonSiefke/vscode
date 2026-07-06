@@ -556,7 +556,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 				if (connectionInfo) {
 					const linkToOpen = that.getLinkToOpen(connectionInfo);
 					const remoteExtension = that.serverConfiguration.extension;
-					const linkToOpenForMarkdown = linkToOpen.toString(false).replace(new RegExp(regexp1), '%29');
+					const linkToOpenForMarkdown = linkToOpen.toString(false).replace(regexp1, '%29');
 					notificationService.notify({
 						severity: Severity.Info,
 						message:

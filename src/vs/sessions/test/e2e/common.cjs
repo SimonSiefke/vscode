@@ -60,7 +60,7 @@ function discoverScenarios() {
 function runPlaywrightCli(args) {
 	const argList = Array.isArray(args)
 		? args
-		: (args.match(new RegExp(regexp4)) || []).map(s => s.replace(new RegExp(regexp3), ''));
+		: (args.match(regexp4) || []).map(s => s.replace(regexp3, ''));
 	const result = cp.spawnSync('playwright-cli', argList, {
 		cwd: APP_ROOT,
 		stdio: ['ignore', 'pipe', 'pipe'],

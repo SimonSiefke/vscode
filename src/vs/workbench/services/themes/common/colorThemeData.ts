@@ -737,7 +737,7 @@ function toCSSSelector(extensionId: string, path: string) {
 	let str = `${extensionId}-${path}`;
 
 	//remove all characters that are not allowed in css
-	str = str.replace(new RegExp(regexpZAZ0), '-');
+	str = str.replace(regexpZAZ0, '-');
 	if (str.charAt(0).match(regexp2)) {
 		str = '_' + str;
 	}

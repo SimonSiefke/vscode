@@ -191,7 +191,7 @@ class McpHTTPHandleNode extends McpHTTPHandle {
 
 const windowsShellScriptRe = /\.(bat|cmd)$/i;
 
-export const escapeCmdArg = (s: string): string => `"${s.replace(new RegExp(regexp1), '""')}"`;
+export const escapeCmdArg = (s: string): string => `"${s.replace(regexp1, '""')}"`;
 
 /**
  * Formats arguments to avoid issues on Windows for CVE-2024-27980.

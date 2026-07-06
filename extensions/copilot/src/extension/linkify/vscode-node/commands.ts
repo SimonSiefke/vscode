@@ -161,7 +161,7 @@ export async function resolveSymbolFromReferences(locations: ReadonlyArray<{ uri
 	} | undefined;
 
 	// Extract the rightmost part from qualified symbol like "TextModel.undo()"
-	const symbolParts = symbolText ? Array.from(symbolText.matchAll(new RegExp(regexp1)), x => x[0]) : [];
+	const symbolParts = symbolText ? Array.from(symbolText.matchAll(regexp1), x => x[0]) : [];
 	const targetSymbolName = symbolParts.length >= 2 ? symbolParts[symbolParts.length - 1] : undefined;
 
 	// TODO: These locations may no longer be valid if the user has edited the file since the references were found.

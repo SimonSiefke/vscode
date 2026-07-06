@@ -314,7 +314,7 @@ export class VoiceTranscriptStore extends Disposable implements IVoiceTranscript
 	private fileFor(userId: string): URI {
 		// Sanitize userId to prevent path traversal — strip anything that isn't
 		// alphanumeric or hyphen (GitHub logins are [A-Za-z0-9-], max 39 chars).
-		const safe = userId.replace(new RegExp(regexpZaZ0), '_');
+		const safe = userId.replace(regexpZaZ0, '_');
 		if (!safe) {
 			throw new Error('Invalid userId for transcript storage');
 		}

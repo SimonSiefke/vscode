@@ -952,8 +952,8 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 }
 
 function normalizeMarketplacePath(value: string): string {
-	let normalized = value.trim().replace(new RegExp(regexp1), '/');
-	normalized = normalized.replace(regexp3, '').replace(new RegExp(regexp2), '');
+	let normalized = value.trim().replace(regexp1, '/');
+	normalized = normalized.replace(regexp3, '').replace(regexp2, '');
 	return normalized;
 }
 
@@ -1173,12 +1173,12 @@ export function hasSourceChanged(installed: IPluginSourceDescriptor, marketplace
 }
 
 function getMarketplaceReadmeUri(repo: string, source: string): URI {
-	const normalizedSource = source.trim().replace(new RegExp(regexp6), '');
+	const normalizedSource = source.trim().replace(regexp6, '');
 	const readmePath = normalizedSource ? `${normalizedSource}/README.md` : 'README.md';
 	return URI.parse(`https://github.com/${repo}/blob/main/${readmePath}`);
 }
 
 function getMarketplaceReadmeFileUri(repoDir: URI, source: string): URI {
-	const normalizedSource = source.trim().replace(new RegExp(regexp6), '');
+	const normalizedSource = source.trim().replace(regexp6, '');
 	return normalizedSource ? joinPath(repoDir, normalizedSource, 'README.md') : joinPath(repoDir, 'README.md');
 }

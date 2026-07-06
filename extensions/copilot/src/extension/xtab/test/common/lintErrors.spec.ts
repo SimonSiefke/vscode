@@ -383,7 +383,7 @@ describe('LintErrors', () => {
 			const result = lintErrors.getFormattedLintErrors(optionsMaxLints);
 			// Should include Error 3 (closest to cursor at line 2) and one other
 			// but not all three
-			const errorCount = (result.match(new RegExp(regexpError)) || []).length;
+			const errorCount = (result.match(regexpError) || []).length;
 			expect(errorCount).toBe(2);
 		});
 
@@ -1097,7 +1097,7 @@ describe('LintErrors', () => {
 
 			const result = lintErrors.getFormattedLintErrors({ ...defaultLintOptions, nRecentFiles: 1 });
 			// Should only contain the error once (from current file processing, not from recent files)
-			const errorCount = (result.match(new RegExp(regexpCurrentFileError)) || []).length;
+			const errorCount = (result.match(regexpCurrentFileError) || []).length;
 			expect(errorCount).toBe(1);
 		});
 
@@ -1221,7 +1221,7 @@ describe('LintErrors', () => {
 
 			const result = lintErrors.getFormattedLintErrors({ ...defaultLintOptions, nRecentFiles: 2 });
 			// Should only include the diagnostic once
-			const errorCount = (result.match(new RegExp(regexpOtherError)) || []).length;
+			const errorCount = (result.match(regexpOtherError) || []).length;
 			expect(errorCount).toBe(1);
 		});
 
@@ -1259,7 +1259,7 @@ describe('LintErrors', () => {
 			// Recent file diagnostic should NOT show current file lines as code context
 			expect(result).toContain('Other error');
 			// Only one occurrence of current file content (from the current file diagnostic, not from recent)
-			const currentLineCount = (result.match(new RegExp(regexpCurrentLine)) || []).length;
+			const currentLineCount = (result.match(regexpCurrentLine) || []).length;
 			expect(currentLineCount).toBe(1);
 		});
 	});

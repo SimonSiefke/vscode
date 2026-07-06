@@ -192,5 +192,5 @@ That's all for now,
 
 Happy Coding! 🎉
 
-`.replace(new RegExp(regexp1), '`');
+`.replace(regexp1, '`');
 }

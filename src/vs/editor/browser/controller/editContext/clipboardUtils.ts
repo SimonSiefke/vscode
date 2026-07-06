@@ -25,7 +25,7 @@ function storeMetadataInMemory(textToCopy: string, metadata: ClipboardStoredMeta
 	InMemoryClipboardMetadataManager.INSTANCE.set(
 		// When writing "LINE\r\n" to the clipboard and then pasting,
 		// Firefox pastes "LINE\n", so let's work around this quirk
-		(isFirefox ? textToCopy.replace(new RegExp(regexp1), '\n') : textToCopy),
+		(isFirefox ? textToCopy.replace(regexp1, '\n') : textToCopy),
 		metadata
 	);
 }

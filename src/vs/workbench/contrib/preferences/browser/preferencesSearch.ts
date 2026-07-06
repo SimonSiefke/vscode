@@ -79,8 +79,8 @@ function cleanFilter(filter: string): string {
 	// Remove " and : which are likely to be copypasted as part of a setting name.
 	// Leave other special characters which the user might want to search for.
 	return filter
-		.replace(new RegExp(regexp2), ' ')
-		.replace(new RegExp(regexp1), ' ')
+		.replace(regexp2, ' ')
+		.replace(regexp1, ' ')
 		.trim();
 }
 
@@ -166,16 +166,16 @@ export class SettingMatches {
 
 	private _keyToLabel(settingId: string): string {
 		const label = settingId
-			.replace(new RegExp(regexp6), ' ')
-			.replace(new RegExp(regexp5), '$1 $2')
-			.replace(new RegExp(regexpZa1), '$1 $2')
-			.replace(new RegExp(regexpZa), '$1 $2')
+			.replace(regexp6, ' ')
+			.replace(regexp5, '$1 $2')
+			.replace(regexpZa1, '$1 $2')
+			.replace(regexpZa, '$1 $2')
 			.toLowerCase();
 		return label;
 	}
 
 	private _toAlphaNumeric(s: string): string {
-		return s.replace(new RegExp(regexp7), '');
+		return s.replace(regexp7, '');
 	}
 
 	private _doFindMatchesInSetting(searchString: string, setting: ISetting): IRange[] {
@@ -473,10 +473,10 @@ class TfIdfSearchProvider implements IRemoteSearchProvider {
 
 	keyToLabel(settingId: string): string {
 		const label = settingId
-			.replace(new RegExp(regexp6), ' ')
-			.replace(new RegExp(regexp5), '$1 $2')
-			.replace(new RegExp(regexpZa1), '$1 $2')
-			.replace(new RegExp(regexpZa), '$1 $2')
+			.replace(regexp6, ' ')
+			.replace(regexp5, '$1 $2')
+			.replace(regexpZa1, '$1 $2')
+			.replace(regexpZa, '$1 $2')
 			.toLowerCase();
 		return label;
 	}

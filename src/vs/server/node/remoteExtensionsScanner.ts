@@ -224,7 +224,7 @@ export class RemoteExtensionsScannerService implements IRemoteExtensionsScannerS
 
 		const _mapResourceSchemeValue = (value: string, isRegex: boolean): string => {
 			// console.log(`_mapResourceSchemeValue: ${value}, ${isRegex}`);
-			return value.replace(new RegExp(regexpFile), 'vscode-remote');
+			return value.replace(regexpFile, 'vscode-remote');
 		};
 
 		const _mapResourceRegExpValue = (value: RegExp): RegExp => {

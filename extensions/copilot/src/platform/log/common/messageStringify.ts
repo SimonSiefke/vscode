@@ -60,8 +60,8 @@ export function messageToMarkdown(message: Raw.ChatMessage, ignoreStatefulMarker
 			try {
 				const parsedArgs = JSON.parse(c.function.arguments);
 				argsStr = JSON.stringify(parsedArgs, undefined, 2)
-					.replace(new RegExp(regexp2), '\n')
-					.replace(new RegExp(regexp1), '\t');
+					.replace(regexp2, '\n')
+					.replace(regexp1, '\t');
 			} catch (e) { }
 			return `🛠️ ${c.function.name} (${c.id}) ${argsStr}`;
 		}).join('\n');

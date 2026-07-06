@@ -268,7 +268,7 @@ export class InlineCompletionItem extends InlineSuggestionItemBase {
 		const identity = new InlineSuggestionIdentity();
 		const transformer = textModel.getTransformer();
 
-		const insertText = action.insertText.replace(new RegExp(regexp1), textModel.getEOL());
+		const insertText = action.insertText.replace(regexp1, textModel.getEOL());
 
 		const edit = reshapeInlineCompletion(new StringReplacement(transformer.getOffsetRange(action.range), insertText), textModel);
 		const trimmedEdit = edit.removeCommonSuffixAndPrefix(textModel.getValue());
@@ -602,7 +602,7 @@ export class InlineEditItem extends InlineSuggestionItemBase {
 function getDiffedStringEdit(textModel: TextModelValueReference, editRange: Range, replaceText: string): StringEdit {
 	const eol = textModel.getEOL();
 	const editOriginalText = textModel.getValueOfRange(editRange);
-	const editReplaceText = replaceText.replace(new RegExp(regexp1), eol);
+	const editReplaceText = replaceText.replace(regexp1, eol);
 
 	const diffAlgorithm = linesDiffComputers.getDefault();
 	const lineDiffs = diffAlgorithm.computeDiff(

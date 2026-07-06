@@ -92,7 +92,7 @@ export class SnippyService implements ISnippyService {
 			const matchLocation = `[Ln ${sourceToCheck.startPosition.lineNumber}, Col ${sourceToCheck.startPosition.column}]`;
 			const shortenedMatchText = `${citation.match.matched_source
 				.slice(0, 100)
-				.replace(new RegExp(regexp1), ' ')
+				.replace(regexp1, ' ')
 				.trim()}...`;
 
 			this.logService.info([

@@ -6,5 +6,5 @@
 const regexp1 = /[-[\]{}()*+?.,\\^$|#\s]/g;
 
 export function escapeRegExp(text: string) {
-	return text.replace(new RegExp(regexp1), '\\$&');
+	return text.replace(regexp1, '\\$&');
 }

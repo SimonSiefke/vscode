@@ -39,7 +39,7 @@ suite('ExtHostTypes', function () {
 			$mid: MarshalledId.Uri,
 			scheme: 'file',
 			path: '/path/test.file',
-			fsPath: '/path/test.file'.replace(new RegExp(regexp1), isWindows ? '\\' : '/'),
+			fsPath: '/path/test.file'.replace(regexp1, isWindows ? '\\' : '/'),
 			_sep: isWindows ? 1 : undefined,
 		});
 
@@ -48,7 +48,7 @@ suite('ExtHostTypes', function () {
 			$mid: MarshalledId.Uri,
 			scheme: 'file',
 			path: '/path/test.file',
-			fsPath: '/path/test.file'.replace(new RegExp(regexp1), isWindows ? '\\' : '/'),
+			fsPath: '/path/test.file'.replace(regexp1, isWindows ? '\\' : '/'),
 			_sep: isWindows ? 1 : undefined,
 			external: 'file:///path/test.file'
 		});

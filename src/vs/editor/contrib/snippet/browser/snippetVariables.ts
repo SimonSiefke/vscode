@@ -129,7 +129,7 @@ export class SelectionBasedVariableResolver implements VariableResolver {
 				const whitespaceCommonLength = commonPrefixLength(varLeadingWhitespace, lineLeadingWhitespace);
 
 				value = value.replace(
-					new RegExp(regexp1),
+					new RegExp(regexp1.source, regexp1.flags),
 					(m, newline, rest) => `${newline}${varLeadingWhitespace.substr(whitespaceCommonLength)}${rest}`
 				);
 			}

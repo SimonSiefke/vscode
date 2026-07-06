@@ -22,7 +22,7 @@ suite('XLF Parser Tests', () => {
 		xlf.addFile(name, keys, messages);
 		const xlfString = xlf.toString();
 
-		assert.strictEqual(xlfString.replace(new RegExp(regexp1), ''), sampleXlf);
+		assert.strictEqual(xlfString.replace(regexp1, ''), sampleXlf);
 	});
 
 	test('XLF to keys & messages conversion', () => {

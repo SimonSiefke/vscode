@@ -246,7 +246,7 @@ function getIndentationEditOperations(model: ITextModel, tabSize: number, tabsTo
 		const originalIndentation = model.getValueInRange(originalIndentationRange);
 		const newIndentation = (
 			tabsToSpaces
-				? originalIndentation.replace(new RegExp(regexp1), spaces)
+				? originalIndentation.replace(regexp1, spaces)
 				: originalIndentation.replace(spacesRegExp, '\t')
 		);
 		edits.push(new ResourceTextEdit(model.uri, { range: originalIndentationRange, text: newIndentation }));

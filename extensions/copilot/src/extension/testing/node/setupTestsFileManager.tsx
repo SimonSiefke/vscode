@@ -198,7 +198,7 @@ class WorkspaceMutation implements IWorkspaceMutation {
 		}
 
 		const out: { file: string; description: string }[] = [];
-		for (const [, file, description] of fetchResult.value.matchAll(new RegExp(regexp2))) {
+		for (const [, file, description] of fetchResult.value.matchAll(regexp2)) {
 			out.push({ file, description });
 		}
 		return { perFile: out, response: fetchResult.value };

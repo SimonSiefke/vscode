@@ -750,7 +750,7 @@ async function transpileFile(srcPath: string, destPath: string): Promise<void> {
  * +  esmModuleLocationBundler: () => new URL("../../../api/worker/extensionHostWorkerMain.js?esm", import.meta.url)
  */
 function adjustEsmUrl(code: string): string {
-	const fixedCode = code.replace(new RegExp(regexpTsEsm), '.js$1');
+	const fixedCode = code.replace(regexpTsEsm, '.js$1');
 	return fixedCode;
 }
 

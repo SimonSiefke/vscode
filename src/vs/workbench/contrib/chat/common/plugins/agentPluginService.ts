@@ -98,10 +98,10 @@ function normalizePluginToken(value: string): string {
 	return value
 		.trim()
 		.toLowerCase()
-		.replace(new RegExp(regexp4), '-')
-		.replace(new RegExp(regexpZ0), '-')
-		.replace(new RegExp(regexp2), '-')
-		.replace(new RegExp(regexp1), '');
+		.replace(regexp4, '-')
+		.replace(regexpZ0, '-')
+		.replace(regexp2, '-')
+		.replace(regexp1, '');
 }
 
 class AgentPluginDiscoveryRegistry {

@@ -460,7 +460,7 @@ forEditsAndAgent((variant, model, configurations) => {
 				],
 				validate: async (outcome, workspace, accessor) => {
 					assert.ok(outcome.appliedEdits.length, 'has edits');
-					assert.equal(numRegexOccurrences(outcome.editedFile, new RegExp(regexpConstActivatorCreateActivator)), 9);
+					assert.equal(numRegexOccurrences(outcome.editedFile, new RegExp(regexpConstActivatorCreateActivator.source, regexpConstActivatorCreateActivator.flags)), 9);
 					assert.equal(numOccurrences(outcome.editedFile, 'activator.dispose();'), 1);
 					assertNoElidedCodeComments(outcome.editedFile);
 					validateConsistentIndentation(outcome.editedFile, false, outcome.annotations);

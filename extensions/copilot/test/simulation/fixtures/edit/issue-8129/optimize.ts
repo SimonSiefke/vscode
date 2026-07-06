@@ -152,9 +152,9 @@ function toConcatStream(src: string, bundledFileHeader: string, sources: bundle.
 	}
 
 	const treatedSources = sources.map(function (source) {
-		const root = source.path ? REPO_ROOT_PATH.replace(new RegExp(regexp5), '/') : '';
+		const root = source.path ? REPO_ROOT_PATH.replace(regexp5, '/') : '';
 		const base = source.path ? root + `/${src}` : '.';
-		const path = source.path ? root + '/' + source.path.replace(new RegExp(regexp5), '/') : 'fake';
+		const path = source.path ? root + '/' + source.path.replace(regexp5, '/') : 'fake';
 		const contents = source.path ? fileContentMapper(source.contents, path) : source.contents;
 
 		return new VinylFile({
@@ -566,7 +566,7 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 					const sourceMapFile = res.outputFiles.find(f => regexpJsMap.test(f.path))!;
 
 					const contents = Buffer.from(jsFile.contents);
-					const unicodeMatch = contents.toString().match(new RegExp(regexp8));
+					const unicodeMatch = contents.toString().match(regexp8);
 					if (unicodeMatch) {
 						cb(new Error(`Found non-ascii character ${unicodeMatch[0]} in the minified output of ${f.path}. Non-ASCII characters in the output can cause performance problems when loading. Please review if you have introduced a regular expression that esbuild is not automatically converting and convert it to using unicode escape sequences.`));
 					} else {

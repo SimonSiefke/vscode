@@ -604,7 +604,7 @@ export class ChatSessionContentBuilder {
 	 * Parse diff content and extract file information
 	 */
 	private parseDiff(content: string): { content: string; fileA: string | undefined; fileB: string | undefined } | undefined {
-		const lines = content.split(new RegExp(regexp5));
+		const lines = content.split(regexp5);
 		let fileA: string | undefined;
 		let fileB: string | undefined;
 

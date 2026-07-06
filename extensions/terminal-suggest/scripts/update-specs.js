@@ -222,7 +222,7 @@ for (const spec of upstreamSpecs) {
 
 // Generate upstreamSpecs.ts with re-exports
 function specToExportName(spec) {
-	return spec.replace(new RegExp(regexp1), (_, c) => c.toUpperCase());
+	return spec.replace(regexp1, (_, c) => c.toUpperCase());
 }
 
 function specToReExport(spec) {

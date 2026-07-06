@@ -343,7 +343,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async query(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IQueryResult> {
-		const idRegex = new RegExp(regexpIdZ09A);
+		const idRegex = new RegExp(regexpIdZ09A.source, regexpIdZ09A.flags);
 		const ids: string[] = [];
 		let idMatch;
 		while ((idMatch = idRegex.exec(query.value)) !== null) {
@@ -472,7 +472,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 	private filterBuiltinExtensions(local: IExtension[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
-		value = value.replaceAll(new RegExp(regexpBuiltin1), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replaceAll(regexpBuiltin1, '').replaceAll(regexpSort, '').trim().toLowerCase();
 
 		const result = local
 			.filter(e => e.isBuiltin && (e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -498,7 +498,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private parseCategories(value: string): { value: string; includedCategories: string[]; excludedCategories: string[] } {
 		const includedCategories: string[] = [];
 		const excludedCategories: string[] = [];
-		value = value.replace(new RegExp(regexpBcategory), (_, quotedCategory, category) => {
+		value = value.replace(regexpBcategory, (_, quotedCategory, category) => {
 			const entry = (category || quotedCategory || '').toLowerCase();
 			if (entry.startsWith('-')) {
 				if (excludedCategories.indexOf(entry) === -1) {
@@ -517,7 +517,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterInstalledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replace(new RegExp(regexpInstalled1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replace(regexpInstalled1, '').replace(regexpSort, '').trim().toLowerCase();
 
 		const matchingText = (e: IExtension) => (e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1 || e.description.toLowerCase().indexOf(value) > -1)
 			&& this.filterExtensionByCategory(e, includedCategories, excludedCategories);
@@ -593,7 +593,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterOutdatedExtensions(local: IExtension[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replace(new RegExp(regexpOutdated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replace(regexpOutdated1, '').replace(regexpSort, '').trim().toLowerCase();
 
 		const result = local
 			.sort((e1, e2) => e1.displayName.localeCompare(e2.displayName))
@@ -607,7 +607,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterDisabledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions, includeBuiltin: boolean): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replaceAll(new RegExp(regexpDisabledBuiltin), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replaceAll(regexpDisabledBuiltin, '').replaceAll(regexpSort, '').trim().toLowerCase();
 
 		if (includeBuiltin) {
 			local = local.filter(e => e.isBuiltin);
@@ -624,7 +624,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterEnabledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions, includeBuiltin: boolean): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value ? value.replaceAll(new RegExp(regexpEnabledBuiltin), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase() : '';
+		value = value ? value.replaceAll(regexpEnabledBuiltin, '').replaceAll(regexpSort, '').trim().toLowerCase() : '';
 
 		local = local.filter(e => e.isBuiltin === includeBuiltin);
 		const result = local
@@ -697,7 +697,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async filterDeprecatedExtensions(local: IExtension[], query: Query, options: IQueryOptions): Promise<IExtension[]> {
-		const value = query.value.replace(new RegExp(regexpDeprecated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
+		const value = query.value.replace(regexpDeprecated1, '').replace(regexpSort, '').trim().toLowerCase();
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const deprecatedExtensionIds = Object.keys(extensionsControlManifest.deprecated);
 		local = local.filter(e => deprecatedExtensionIds.includes(e.identifier.id) && (!value || e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1));
@@ -709,7 +709,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		const currentTime = Date.now();
 		local = local.filter(e => !e.isBuiltin && !e.outdated && e.local?.updated && e.local?.installedTimestamp !== undefined && currentTime - e.local.installedTimestamp < ExtensionsListView.RECENT_UPDATE_DURATION);
 
-		value = value.replace(new RegExp(regexpRecentlyUpdated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replace(regexpRecentlyUpdated1, '').replace(regexpSort, '').trim().toLowerCase();
 
 		const result = local.filter(e =>
 			(e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -724,7 +724,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 		local = local.filter(e => e.runtimeState !== undefined);
 
-		value = value.replace(new RegExp(regexpRestartrequired1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
+		value = value.replace(regexpRestartrequired1, '').replace(regexpSort, '').trim().toLowerCase();
 
 		const result = local.filter(e =>
 			(e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -734,7 +734,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private filterExtensionsByFeature(local: IExtension[], query: Query): IExtension[] {
-		const value = query.value.replace(new RegExp(regexpContribute1), '').trim();
+		const value = query.value.replace(regexpContribute1, '').trim();
 		const featureId = value.split(' ')[0];
 		const feature = Registry.as<IExtensionFeaturesRegistry>(Extensions.ExtensionFeaturesRegistry).getExtensionFeature(featureId);
 		if (!feature) {
@@ -807,7 +807,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}
 
-		if (new RegExp(regexpBext).test(text)) {
+		if (new RegExp(regexpBext.source, regexpBext.flags).test(text)) {
 			options.text = text;
 			options.source = 'file-extension-tags';
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
@@ -817,7 +817,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		options.text = text.substring(0, 350);
 		options.source = 'searchText';
 
-		if (hasUserDefinedSortOrder || new RegExp(regexpCategoryTag).test(text) || new RegExp(regexpBfeatured).test(text)) {
+		if (hasUserDefinedSortOrder || new RegExp(regexpCategoryTag.source, regexpCategoryTag.flags).test(text) || new RegExp(regexpBfeatured.source, regexpBfeatured.flags).test(text)) {
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}
@@ -1034,7 +1034,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getKeymapRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(new RegExp(regexpRecommendedKeymaps), '').trim().toLowerCase();
+		const value = query.value.replace(regexpRecommendedKeymaps, '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getKeymapRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-keymaps' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1042,7 +1042,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getLanguageRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(new RegExp(regexpRecommendedLanguages), '').trim().toLowerCase();
+		const value = query.value.replace(regexpRecommendedLanguages, '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getLanguageRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-languages' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1050,7 +1050,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getRemoteRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(new RegExp(regexpRecommendedRemotes), '').trim().toLowerCase();
+		const value = query.value.replace(regexpRecommendedRemotes, '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getRemoteRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-remotes' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1058,7 +1058,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getExeRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const exe = query.value.replace(new RegExp(regexpExe), '').trim().toLowerCase();
+		const exe = query.value.replace(regexpExe, '').trim().toLowerCase();
 		const { important, others } = await this.extensionRecommendationsService.getExeBasedRecommendations(exe.startsWith('"') ? exe.substring(1, exe.length - 1) : exe);
 		const installableRecommendations = await this.getInstallableRecommendations([...important, ...others], { ...options, source: 'recommendations-exe' }, token);
 		return new PagedModel(installableRecommendations);
@@ -1128,7 +1128,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async searchRecommendations(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(new RegExp(regexpRecommended), '').trim().toLowerCase();
+		const value = query.value.replace(regexpRecommended, '').trim().toLowerCase();
 		const recommendations = distinct([...await this.getWorkspaceRecommendations(), ...await this.getOtherRecommendations()]);
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations', sortBy: undefined }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1471,7 +1471,7 @@ function toSpecificWorkspaceUnsupportedQuery(query: string, qualifier: string): 
 	const match = query.match(new RegExp(`@workspaceUnsupported(:${qualifier})?(\\s|$)`, 'i'));
 	if (match) {
 		if (!match[1]) {
-			return query.replace(new RegExp(regexpWorkspaceUnsupported1), '@workspaceUnsupported:' + qualifier);
+			return query.replace(regexpWorkspaceUnsupported1, '@workspaceUnsupported:' + qualifier);
 		}
 		return query;
 	}

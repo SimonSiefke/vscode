@@ -241,7 +241,7 @@ function subscriptionKindLabel(kind: StateComponents): string {
 
 /** Escape a value so it is safe to embed in a markdown table cell. */
 function escapeMarkdownTableCell(value: string): string {
-	return value.replace(new RegExp(regexp2), '<br>').replace(new RegExp(regexp1), '\\|');
+	return value.replace(regexp2, '<br>').replace(regexp1, '\\|');
 }
 
 function formatConnectionSubscriptions(label: string, details: string, connection: IAgentConnection | undefined): string {

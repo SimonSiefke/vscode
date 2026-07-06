@@ -114,7 +114,7 @@ export function getRemoteCLIBin(serverDataFolderName: string, quality: string, c
 /** Escape a string for use as a single shell argument (single-quote wrapping). */
 export function shellEscape(s: string): string {
 	// Wrap in single quotes; escape embedded single quotes as: '\''
-	const escaped = s.replace(new RegExp(regexp3), '\'\\\'\'');
+	const escaped = s.replace(regexp3, '\'\\\'\'');
 	return `'${escaped}'`;
 }
 
@@ -268,7 +268,7 @@ export function isValidFallbackCLIPath(candidate: string, serverDataFolderName: 
 
 /** Redact connection tokens from log output. */
 export function redactToken(text: string): string {
-	return text.replace(new RegExp(regexpTkn), '?tkn=***');
+	return text.replace(regexpTkn, '?tkn=***');
 }
 
 /**

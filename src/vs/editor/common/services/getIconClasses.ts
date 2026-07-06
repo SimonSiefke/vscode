@@ -125,5 +125,5 @@ function detectLanguageId(modelService: IModelService, languageService: ILanguag
 }
 
 export function fileIconSelectorEscape(str: string): string {
-	return str.replace(new RegExp(regexp1), '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
+	return str.replace(regexp1, '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
 }

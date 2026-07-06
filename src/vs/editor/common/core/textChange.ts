@@ -12,8 +12,8 @@ const regexp2 = /\n/g;
 function escapeNewLine(str: string): string {
 	return (
 		str
-			.replace(new RegExp(regexp2), '\\n')
-			.replace(new RegExp(regexp1), '\\r')
+			.replace(regexp2, '\\n')
+			.replace(regexp1, '\\r')
 	);
 }
 

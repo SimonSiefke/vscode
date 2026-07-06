@@ -391,7 +391,7 @@ function getHoverMessage(link: Link, useMetaKey: boolean): MarkdownString {
 			}
 		}
 		const hoverMessage = new MarkdownString('', true)
-			.appendLink(link.url.toString(true).replace(new RegExp(regexp3), '%20'), label, nativeLabel)
+			.appendLink(link.url.toString(true).replace(regexp3, '%20'), label, nativeLabel)
 			.appendMarkdown(` (${kb})`);
 		return hoverMessage;
 	} else {

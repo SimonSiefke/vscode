@@ -294,5 +294,5 @@ function computeComponentStatistics(elidedBlocks: ElidedBlock[]) {
 }
 
 export function normalizeLineEndings(text: string) {
-	return text.replace(new RegExp(regexp1), '\n');
+	return text.replace(regexp1, '\n');
 }

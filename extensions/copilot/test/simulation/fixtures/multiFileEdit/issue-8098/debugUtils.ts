@@ -87,7 +87,7 @@ export function getExactExpressionStartAndEnd(lineContent: string, looseStart: n
 
 	// Some example supported expressions: myVar.prop, a.b.c.d, myVar?.prop, myVar->prop, MyClass::StaticProp, *myVar
 	// Match any character except a set of characters which often break interesting sub-expressions
-	const expression: RegExp = new RegExp(regexp1);
+	const expression: RegExp = new RegExp(regexp1.source, regexp1.flags);
 	let result: RegExpExecArray | null = null;
 
 	// First find the full expression under the cursor
@@ -105,7 +105,7 @@ export function getExactExpressionStartAndEnd(lineContent: string, looseStart: n
 	// If there are non-word characters after the cursor, we want to truncate the expression then.
 	// For example in expression 'a.b.c.d', if the focus was under 'b', 'a.b' would be evaluated.
 	if (matchingExpression) {
-		const subExpression: RegExp = new RegExp(regexp2);
+		const subExpression: RegExp = new RegExp(regexp2.source, regexp2.flags);
 		let subExpressionResult: RegExpExecArray | null = null;
 		while (subExpressionResult = subExpression.exec(matchingExpression)) {
 			const subEnd = subExpressionResult.index + 1 + startOffset + subExpressionResult[0].length;

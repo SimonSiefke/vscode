@@ -165,7 +165,7 @@ function buildSanExtension(): Buffer {
 // #region ASN.1 DER helpers
 
 function pemToDer(pem: string): Buffer {
-	const b64 = pem.replace(new RegExp(regexp2), '').replace(new RegExp(regexp1), '');
+	const b64 = pem.replace(regexp2, '').replace(regexp1, '');
 	return Buffer.from(b64, 'base64');
 }
 
@@ -239,7 +239,7 @@ function derTime(date: Date): Buffer {
 	// (YY...) and times from 2050 onward as GeneralizedTime (YYYY...).
 	// UTCTime two-digit years 50-99 are interpreted as 1950-1999 and
 	// 00-49 as 2000-2049, so a UTCTime for 2050 would be misread as 1950.
-	const iso = date.toISOString().replace(new RegExp(regexp3), '');
+	const iso = date.toISOString().replace(regexp3, '');
 	const year = date.getUTCFullYear();
 	if (year >= 1950 && year < 2050) {
 		// UTCTime: YYMMDDHHMMSSZ

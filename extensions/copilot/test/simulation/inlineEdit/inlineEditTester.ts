@@ -272,7 +272,7 @@ async function getScoredEditsFilePath(test: ITestInformation, recordingFilePath:
 }
 
 function sanitizeFileName(name: string) {
-	return name.replace(new RegExp(regexpZ0), '_');
+	return name.replace(regexpZ0, '_');
 }
 
 /** This's used to make sure different flavors of a single test reuse the same scoring file. */

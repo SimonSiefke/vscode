@@ -12,17 +12,17 @@ const regexp5 = /</g;
 
 export function escapeAttribute(value: string | vscode.Uri): string {
 	return value.toString()
-		.replace(new RegExp(regexp3), '&amp;')
-		.replace(new RegExp(regexp2), '&quot;')
-		.replace(new RegExp(regexp1), '&#39;');
+		.replace(regexp3, '&amp;')
+		.replace(regexp2, '&quot;')
+		.replace(regexp1, '&#39;');
 }
 
 export function escapeHtml(text: string): string {
 	return text
-		.replace(new RegExp(regexp3), '&amp;')
-		.replace(new RegExp(regexp5), '&lt;')
-		.replace(new RegExp(regexp4), '&gt;')
-		.replace(new RegExp(regexp2), '&quot;')
-		.replace(new RegExp(regexp1), '&#39;');
+		.replace(regexp3, '&amp;')
+		.replace(regexp5, '&lt;')
+		.replace(regexp4, '&gt;')
+		.replace(regexp2, '&quot;')
+		.replace(regexp1, '&#39;');
 }
 

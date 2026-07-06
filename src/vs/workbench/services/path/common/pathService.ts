@@ -190,7 +190,7 @@ export abstract class AbstractPathService implements IPathService {
 		// filename character, eg /f\oo/ba\r.txt
 		const os = await this.resolveOS;
 		if (os === OperatingSystem.Windows) {
-			_path = _path.replace(new RegExp(regexp1), '/');
+			_path = _path.replace(regexp1, '/');
 		}
 
 		// check for authority as used in UNC shares

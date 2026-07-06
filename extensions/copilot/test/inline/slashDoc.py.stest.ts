@@ -48,6 +48,6 @@ export function validateDocstringFormat(fileContents: string, targetLineString: 
 
 	// The docstring should have the expected indentation
 	if (docstringIndentation !== expectedIndentation) {
-		throw new Error(`Incorrect docstring indentation. Expected: '${expectedIndentation.replace(new RegExp(regexp3), '·')}', but got: '${docstringIndentation.replace(new RegExp(regexp3), '·')}'`);
+		throw new Error(`Incorrect docstring indentation. Expected: '${expectedIndentation.replace(regexp3, '·')}', but got: '${docstringIndentation.replace(regexp3, '·')}'`);
 	}
 }

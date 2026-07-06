@@ -624,25 +624,25 @@ suite('TextModelSearch', () => {
 	});
 
 	test('parseSearchRequest non regex', () => {
-		assertParseSearchResult('foo', false, false, null, new SearchData(new RegExp(regexpFoo), null, null));
-		assertParseSearchResult('foo', false, false, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo), usualWordSeparators, null));
-		assertParseSearchResult('foo', false, true, null, new SearchData(new RegExp(regexpFoo1), null, 'foo'));
-		assertParseSearchResult('foo', false, true, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo1), usualWordSeparators, 'foo'));
-		assertParseSearchResult('foo\\n', false, false, null, new SearchData(new RegExp(regexpFoo2), null, null));
-		assertParseSearchResult('foo\\\\n', false, false, null, new SearchData(new RegExp(regexpFoo3), null, null));
-		assertParseSearchResult('foo\\r', false, false, null, new SearchData(new RegExp(regexpFoo4), null, null));
-		assertParseSearchResult('foo\\\\r', false, false, null, new SearchData(new RegExp(regexpFoo5), null, null));
+		assertParseSearchResult('foo', false, false, null, new SearchData(new RegExp(regexpFoo.source, regexpFoo.flags), null, null));
+		assertParseSearchResult('foo', false, false, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo.source, regexpFoo.flags), usualWordSeparators, null));
+		assertParseSearchResult('foo', false, true, null, new SearchData(new RegExp(regexpFoo1.source, regexpFoo1.flags), null, 'foo'));
+		assertParseSearchResult('foo', false, true, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo1.source, regexpFoo1.flags), usualWordSeparators, 'foo'));
+		assertParseSearchResult('foo\\n', false, false, null, new SearchData(new RegExp(regexpFoo2.source, regexpFoo2.flags), null, null));
+		assertParseSearchResult('foo\\\\n', false, false, null, new SearchData(new RegExp(regexpFoo3.source, regexpFoo3.flags), null, null));
+		assertParseSearchResult('foo\\r', false, false, null, new SearchData(new RegExp(regexpFoo4.source, regexpFoo4.flags), null, null));
+		assertParseSearchResult('foo\\\\r', false, false, null, new SearchData(new RegExp(regexpFoo5.source, regexpFoo5.flags), null, null));
 	});
 
 	test('parseSearchRequest regex', () => {
-		assertParseSearchResult('foo', true, false, null, new SearchData(new RegExp(regexpFoo), null, null));
-		assertParseSearchResult('foo', true, false, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo), usualWordSeparators, null));
-		assertParseSearchResult('foo', true, true, null, new SearchData(new RegExp(regexpFoo1), null, null));
-		assertParseSearchResult('foo', true, true, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo1), usualWordSeparators, null));
-		assertParseSearchResult('foo\\n', true, false, null, new SearchData(new RegExp(regexpFoo6), null, null));
-		assertParseSearchResult('foo\\\\n', true, false, null, new SearchData(new RegExp(regexpFoo2), null, null));
-		assertParseSearchResult('foo\\r', true, false, null, new SearchData(new RegExp(regexpFoo7), null, null));
-		assertParseSearchResult('foo\\\\r', true, false, null, new SearchData(new RegExp(regexpFoo4), null, null));
+		assertParseSearchResult('foo', true, false, null, new SearchData(new RegExp(regexpFoo.source, regexpFoo.flags), null, null));
+		assertParseSearchResult('foo', true, false, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo.source, regexpFoo.flags), usualWordSeparators, null));
+		assertParseSearchResult('foo', true, true, null, new SearchData(new RegExp(regexpFoo1.source, regexpFoo1.flags), null, null));
+		assertParseSearchResult('foo', true, true, USUAL_WORD_SEPARATORS, new SearchData(new RegExp(regexpFoo1.source, regexpFoo1.flags), usualWordSeparators, null));
+		assertParseSearchResult('foo\\n', true, false, null, new SearchData(new RegExp(regexpFoo6.source, regexpFoo6.flags), null, null));
+		assertParseSearchResult('foo\\\\n', true, false, null, new SearchData(new RegExp(regexpFoo2.source, regexpFoo2.flags), null, null));
+		assertParseSearchResult('foo\\r', true, false, null, new SearchData(new RegExp(regexpFoo7.source, regexpFoo7.flags), null, null));
+		assertParseSearchResult('foo\\\\r', true, false, null, new SearchData(new RegExp(regexpFoo4.source, regexpFoo4.flags), null, null));
 	});
 
 	test('issue #53415. \W should match line break.', () => {

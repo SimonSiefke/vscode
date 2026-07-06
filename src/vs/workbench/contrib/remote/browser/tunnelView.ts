@@ -661,7 +661,7 @@ class TunnelItem implements ITunnelItem {
 				// This is a known process. Give it a friendly name.
 				description = this.remoteExplorerService.namedProcesses.get(this.pid)!;
 			} else {
-				description = this.runningProcess.replace(new RegExp(regexp1), ' ').trim();
+				description = this.runningProcess.replace(regexp1, ' ').trim();
 			}
 			if (this.pid) {
 				description += ` (${this.pid})`;

@@ -134,7 +134,7 @@ function generateLinkSuffixRegex(eolOnly: boolean) {
 		// Join all clauses together
 		.join('|')
 		// Convert spaces to allow the non-breaking space char (ascii 160)
-		.replace(new RegExp(regexp1), `[${'\u00A0'} ]`);
+		.replace(regexp1, `[${'\u00A0'} ]`);
 
 	return new RegExp(`(${suffixClause})`, eolOnly ? undefined : 'g');
 }
@@ -322,7 +322,7 @@ function detectLinksViaSuffix(line: string): IParsedLink[] {
 
 			// If the path contains an opening bracket, provide the path starting immediately after
 			// the opening bracket as an additional result
-			const openingBracketMatch = path.matchAll(new RegExp(regexpBracket));
+			const openingBracketMatch = path.matchAll(regexpBracket);
 			for (const match of openingBracketMatch) {
 				const bracket = match.groups?.bracket;
 				if (bracket) {

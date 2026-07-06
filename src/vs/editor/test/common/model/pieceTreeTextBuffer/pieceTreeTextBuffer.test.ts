@@ -106,7 +106,7 @@ function testLineStarts(str: string, pieceTable: PieceTreeBase) {
 	const lineStarts = [0];
 
 	// Reset regex to search from the beginning
-	const _regex = new RegExp(new RegExp(regexp1));
+	const _regex = new RegExp(new RegExp(regexp1.source, regexp1.flags));
 	_regex.lastIndex = 0;
 	let prevMatchStartIndex = -1;
 	let prevMatchLength = 0;
@@ -2099,7 +2099,7 @@ suite('chunk based search', () => {
 		pieceTable.delete(16, 1);
 
 		pieceTable.insert(16, ' ');
-		const ret = pieceTable.findMatchesLineByLine(new Range(1, 1, 4, 13), new SearchData(new RegExp(regexp3), new WordCharacterClassifier(',./', []), '['), true, 1000);
+		const ret = pieceTable.findMatchesLineByLine(new Range(1, 1, 4, 13), new SearchData(new RegExp(regexp3.source, regexp3.flags), new WordCharacterClassifier(',./', []), '['), true, 1000);
 		assert.strictEqual(ret.length, 3);
 
 		assert.deepStrictEqual(ret[0].range, new Range(2, 3, 2, 4));
@@ -2118,12 +2118,12 @@ suite('chunk based search', () => {
 		const pieceTable = pieceTree.getPieceTree();
 
 		pieceTable.delete(4, 1);
-		let ret = pieceTable.findMatchesLineByLine(new Range(2, 3, 2, 6), new SearchData(new RegExp(regexp4), null, 'a'), true, 1000);
+		let ret = pieceTable.findMatchesLineByLine(new Range(2, 3, 2, 6), new SearchData(new RegExp(regexp4.source, regexp4.flags), null, 'a'), true, 1000);
 		assert.strictEqual(ret.length, 1);
 		assert.deepStrictEqual(ret[0].range, new Range(2, 3, 2, 4));
 
 		pieceTable.delete(4, 1);
-		ret = pieceTable.findMatchesLineByLine(new Range(2, 2, 2, 5), new SearchData(new RegExp(regexp4), null, 'a'), true, 1000);
+		ret = pieceTable.findMatchesLineByLine(new Range(2, 2, 2, 5), new SearchData(new RegExp(regexp4.source, regexp4.flags), null, 'a'), true, 1000);
 		assert.strictEqual(ret.length, 1);
 		assert.deepStrictEqual(ret[0].range, new Range(2, 2, 2, 3));
 	});

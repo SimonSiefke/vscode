@@ -280,7 +280,7 @@ export function isSpdxStub(body: string): boolean {
 	// expression from prose like "Permission is granted...". Parens are stripped
 	// first (mirroring gate 5) so compound expressions with INTERNAL parens like
 	// "(MIT OR Apache-2.0) AND BSD-3-Clause" (e.g. encoding_rs) are still detected.
-	const deparen = trimmed.replace(new RegExp(regexp10), ' ').replace(new RegExp(regexp9), ' ').trim();
+	const deparen = trimmed.replace(regexp10, ' ').replace(regexp9, ' ').trim();
 	const spdxShape = regexpZaZ0OR;
 	if (!spdxShape.test(deparen)) {
 		return false;
@@ -288,7 +288,7 @@ export function isSpdxStub(body: string): boolean {
 	// Gate 5: token sanity -- every non-operator/non-separator token must contain
 	// a letter (guards against a punctuation-only body sneaking through).
 	const tokens = trimmed
-		.replace(new RegExp(regexp10), ' ')
+		.replace(regexp10, ' ')
 		.split(regexpORANDWITH)
 		.map(t => t.trim())
 		.filter(t => t.length > 0);
@@ -410,7 +410,7 @@ const SPDX_LICENSE_FILENAMES: { [id: string]: string[] } = {
 export function spdxLicenseIds(expr: string): string[] {
 	const ids: string[] = [];
 	for (const raw of (expr || '').split(regexpORANDWITH)) {
-		const id = raw.replace(new RegExp(regexp10), '').trim();
+		const id = raw.replace(regexp10, '').trim();
 		if (id.length > 0 && regexpZa.test(id) && ids.indexOf(id) === -1) {
 			ids.push(id);
 		}

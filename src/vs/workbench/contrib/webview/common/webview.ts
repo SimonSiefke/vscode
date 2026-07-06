@@ -63,7 +63,7 @@ export function asWebviewUri(resource: URI, remoteInfo?: WebviewRemoteInfo): URI
 }
 
 function encodeAuthority(authority: string): string {
-	return authority.replace(new RegExp(regexp1), char => {
+	return authority.replace(regexp1, char => {
 		const code = char.charCodeAt(0);
 		if (
 			(code >= CharCode.a && code <= CharCode.z)
@@ -77,5 +77,5 @@ function encodeAuthority(authority: string): string {
 }
 
 export function decodeAuthority(authority: string) {
-	return authority.replace(new RegExp(regexp9a), (_, code) => String.fromCharCode(parseInt(code, 16)));
+	return authority.replace(regexp9a, (_, code) => String.fromCharCode(parseInt(code, 16)));
 }

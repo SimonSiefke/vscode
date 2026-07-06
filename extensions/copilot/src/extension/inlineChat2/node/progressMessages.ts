@@ -146,7 +146,7 @@ export class InlineChatProgressMessages {
 	private _parseContextualMessage(responseText: string): string | undefined {
 		const trimmed = responseText.trim();
 		// Remove any surrounding quotes if present
-		const unquoted = trimmed.replace(new RegExp(regexp1), '');
+		const unquoted = trimmed.replace(regexp1, '');
 		// Validate the message is reasonable length
 		if (unquoted.length > 0 && unquoted.length < 60) {
 			return unquoted;

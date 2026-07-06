@@ -704,7 +704,7 @@ export class DetachedTerminalSnapshotMirror extends Disposable {
 		if (!text) {
 			return 0;
 		}
-		const sanitized = text.replace(new RegExp(regexp1), '');
+		const sanitized = text.replace(regexp1, '');
 		const segments = sanitized.split('\n');
 		const count = sanitized.endsWith('\n') ? segments.length - 1 : segments.length;
 		return Math.max(count, 1);

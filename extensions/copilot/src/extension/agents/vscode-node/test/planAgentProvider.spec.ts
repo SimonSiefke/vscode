@@ -125,7 +125,7 @@ suite('PlanAgentProvider', () => {
 		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
 		const toolsSection = toolsMatch[1];
-		const agentCount = (toolsSection.match(new RegExp(regexpAgent)) || []).length;
+		const agentCount = (toolsSection.match(regexpAgent) || []).length;
 		assert.equal(agentCount, 1, 'agent tool should appear only once after deduplication');
 
 		// Should contain new tool
@@ -262,7 +262,7 @@ suite('PlanAgentProvider', () => {
 
 		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
-		const actualTools = (toolsMatch[1].match(new RegExp(regexp3)) || []).map(tool => tool.slice(1, -1)).sort();
+		const actualTools = (toolsMatch[1].match(regexp3) || []).map(tool => tool.slice(1, -1)).sort();
 		const expectedTools = [...DEFAULT_READ_TOOLS, 'agent', 'vscode/askQuestions'].sort();
 
 		assert.deepStrictEqual(actualTools, expectedTools);

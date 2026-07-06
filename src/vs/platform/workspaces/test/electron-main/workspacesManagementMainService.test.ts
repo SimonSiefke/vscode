@@ -304,7 +304,7 @@ flakySuite('WorkspacesManagementMainService', () => {
 		const workspaceConfigPath = URI.file(path.join(tmpDir, `myworkspace.${Date.now()}.${WORKSPACE_EXTENSION}`));
 
 		let origContent = fs.readFileSync(workspace.configPath.fsPath).toString();
-		origContent = origContent.replace(new RegExp(regexp1), '/'); // convert backslash to slash
+		origContent = origContent.replace(regexp1, '/'); // convert backslash to slash
 
 		const newContent = rewriteWorkspaceFileForNewLocation(origContent, workspace.configPath, false, workspaceConfigPath, extUriBiasedIgnorePathCase);
 		const ws = (JSON.parse(newContent) as IStoredWorkspace);

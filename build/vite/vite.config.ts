@@ -49,7 +49,7 @@ function injectBuiltinExtensionsPlugin(): Plugin {
 			}
 		};
 
-		return str.replace(new RegExp(regexp1), escapeCharacter);
+		return str.replace(regexp1, escapeCharacter);
 	}
 
 	const prebuiltExtensionsLocation = '.build/builtInExtensions';
@@ -119,7 +119,7 @@ function createHotClassSupport(): Plugin {
 					}
 
 					if (hasDomWidget) {
-						const matches = code.matchAll(new RegExp(regexpClassZAZ0));
+						const matches = code.matchAll(regexpClassZAZ0);
 						/// @ts-ignore
 						for (const match of matches) {
 							const className = match[1];

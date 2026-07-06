@@ -1401,7 +1401,7 @@ class TestErrorContentWidget extends Disposable implements IContentWidget {
 
 		let text: string;
 		if (message.expected !== undefined && message.actual !== undefined) {
-			text = `${truncateMiddle(message.actual.replace(new RegExp(regexp1), ' '), 30)} != ${truncateMiddle(message.expected.replace(new RegExp(regexp1), ' '), 30)}`;
+			text = `${truncateMiddle(message.actual.replace(regexp1, ' '), 30)} != ${truncateMiddle(message.expected.replace(regexp1, ' '), 30)}`;
 		} else {
 			const msg = renderAsPlaintext(message.message);
 			const lf = msg.indexOf('\n');

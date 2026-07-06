@@ -1790,7 +1790,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			].join('\n') + JSON.stringify(value, null, '\t').substr(1);
 			const editorConfig = this._configurationService.getValue<{ editor: { insertSpaces: boolean; tabSize: number } }>();
 			if (editorConfig.editor.insertSpaces) {
-				content = content.replace(new RegExp(regexp2), (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
+				content = content.replace(regexp2, (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
 			}
 			await this._textFileService.create([{ resource: workspaceFolder.toResource('.vscode/tasks.json'), value: content }]);
 		} else {
@@ -3584,7 +3584,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 				content = pickTemplateResult.content;
 				const editorConfig = this._configurationService.getValue() as { editor: { insertSpaces: boolean; tabSize: number } };
 				if (editorConfig.editor.insertSpaces) {
-					content = content.replace(new RegExp(regexp2), (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
+					content = content.replace(regexp2, (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
 				}
 				configFileCreated = true;
 			}

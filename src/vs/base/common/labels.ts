@@ -73,9 +73,9 @@ export function getPathLabel(resource: URI, formatting: IPathLabelFormatting): s
 	// OS differs from actual OS we are running in
 	let absolutePath = resource.fsPath;
 	if (os === OperatingSystem.Windows && !isWindows) {
-		absolutePath = absolutePath.replace(new RegExp(regexp2), '\\');
+		absolutePath = absolutePath.replace(regexp2, '\\');
 	} else if (os !== OperatingSystem.Windows && isWindows) {
-		absolutePath = absolutePath.replace(new RegExp(regexp1), '/');
+		absolutePath = absolutePath.replace(regexp1, '/');
 	}
 
 	// macOS/Linux: tildify with provided user home directory
@@ -425,10 +425,10 @@ export function template(template: string, values: { [key: string]: string | ISe
  */
 export function mnemonicMenuLabel(label: string, forceDisableMnemonics?: boolean): string {
 	if (isMacintosh || forceDisableMnemonics) {
-		return label.replace(new RegExp(regexp5), '').replace(new RegExp(regexp4), isMacintosh ? '&' : '&&');
+		return label.replace(regexp5, '').replace(regexp4, isMacintosh ? '&' : '&&');
 	}
 
-	return label.replace(new RegExp(regexp6), m => m === '&' ? '&&' : '&');
+	return label.replace(regexp6, m => m === '&' ? '&&' : '&');
 }
 
 /**
@@ -441,7 +441,7 @@ export function mnemonicMenuLabel(label: string, forceDisableMnemonics?: boolean
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics: true): string;
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: false): { readonly withMnemonic: string; readonly withoutMnemonic: string };
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: boolean): { readonly withMnemonic: string; readonly withoutMnemonic: string } | string {
-	const withoutMnemonic = label.replace(new RegExp(regexp5), '');
+	const withoutMnemonic = label.replace(regexp5, '');
 
 	if (forceDisableMnemonics) {
 		return withoutMnemonic;
@@ -452,15 +452,15 @@ export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: boole
 
 	let withMnemonic: string;
 	if (isWindows) {
-		withMnemonic = label.replace(new RegExp(regexp6), m => m === '&' ? '&&' : '&');
+		withMnemonic = label.replace(regexp6, m => m === '&' ? '&&' : '&');
 	} else {
-		withMnemonic = label.replace(new RegExp(regexp7), '_');
+		withMnemonic = label.replace(regexp7, '_');
 	}
 	return { withMnemonic, withoutMnemonic };
 }
 
 export function unmnemonicLabel(label: string): string {
-	return label.replace(new RegExp(regexp4), '&&');
+	return label.replace(regexp4, '&&');
 }
 
 /**

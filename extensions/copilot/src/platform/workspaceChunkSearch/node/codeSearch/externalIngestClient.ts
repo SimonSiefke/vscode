@@ -139,7 +139,7 @@ export class ExternalIngestClient extends Disposable implements IExternalIngestC
 	}
 
 	private async makeRequest(authToken: string, method: 'GET' | 'POST' | 'DELETE', path: string, body: unknown | undefined, options: { retriesOn500?: number; retriesOnRateLimiting?: number }, callTracker: CallTracker, token: CancellationToken): Promise<Response> {
-		const pathId = path.replace(regexp2, '').replace(new RegExp(regexp1), '-');
+		const pathId = path.replace(regexp2, '').replace(regexp1, '-');
 		const url = `${ExternalIngestClient.baseUrl}${path}`;
 
 		const retriesOn500 = options.retriesOn500 ?? (method === 'GET' ? 3 : 0);

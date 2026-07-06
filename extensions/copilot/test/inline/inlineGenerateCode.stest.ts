@@ -698,7 +698,7 @@ forInlineChatIntent((strategy, variant, nonExtensionConfigurations) => {
 						validate: async (outcome, workspace, accessor) => {
 							assertInlineEdit(outcome);
 							await assertNoSyntacticDiagnosticsAsync(accessor, outcome, workspace, 'tsc');
-							const firstLine = outcome.fileContents.split(new RegExp(regexp1))[0];
+							const firstLine = outcome.fileContents.split(regexp1)[0];
 							assertSomeStrings(firstLine, ['import', 'require'], 1);
 						}
 					}

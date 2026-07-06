@@ -78,7 +78,7 @@ export class SingleLanguageServiceSession extends ComputeContextSession {
 }
 
 function normalize(value: string): string {
-	return value.trim().replace(new RegExp(regexp4), ' ').replace(new RegExp(regexp3), ' ').replace(new RegExp(regexp2), ' ').replace(new RegExp(regexp1), ' ');
+	return value.trim().replace(regexp4, ' ').replace(regexp3, ' ').replace(regexp2, ' ').replace(regexp1, ' ');
 }
 
 export type ExpectedCodeSnippet = {

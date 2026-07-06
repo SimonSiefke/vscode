@@ -611,7 +611,7 @@ const PY_KEYWORDS = new Set([
 ]);
 
 function escapeHtml(s: string): string {
-	return s.replace(new RegExp(regexp4), '&amp;').replace(new RegExp(regexp3), '&lt;').replace(new RegExp(regexp2), '&gt;');
+	return s.replace(regexp4, '&amp;').replace(regexp3, '&lt;').replace(regexp2, '&gt;');
 }
 
 function buildSpan(kind: RegexTokenKind, text: string): string {

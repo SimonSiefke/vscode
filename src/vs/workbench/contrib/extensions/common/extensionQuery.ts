@@ -75,7 +75,7 @@ export class Query {
 
 	static parse(value: string): Query {
 		let sortBy = '';
-		value = value.replace(new RegExp(regexpSort), (match, by: string, order: string) => {
+		value = value.replace(regexpSort, (match, by: string, order: string) => {
 			sortBy = by;
 
 			return '';

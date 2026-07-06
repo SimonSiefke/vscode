@@ -95,7 +95,7 @@ export class AgentHostPermissionUiContribution extends Disposable implements IWo
 		// Wrap the path in a markdown code span so it stands out from the
 		// surrounding sentence. Use the longest run of backticks in `path`
 		// + 1 as the fence so embedded backticks don't break the span.
-		const fence = '`'.repeat((path.match(new RegExp(regexp1))?.reduce((m, s) => Math.max(m, s.length), 0) ?? 0) + 1);
+		const fence = '`'.repeat((path.match(regexp1)?.reduce((m, s) => Math.max(m, s.length), 0) ?? 0) + 1);
 		const codePath = `${fence}${path}${fence}`;
 
 		const message = new MarkdownString(

@@ -272,7 +272,7 @@ declare module '*'  {
 }
 
 function addIdentifiersToSet(content: string, result: Set<string>): void {
-	const regex = new RegExp(regexpZAZAZ0);
+	const regex = new RegExp(regexpZAZAZ0.source, regexpZAZAZ0.flags);
 	let match: RegExpExecArray | null;
 	while ((match = regex.exec(content)) !== null) {
 		result.add(match[0]);

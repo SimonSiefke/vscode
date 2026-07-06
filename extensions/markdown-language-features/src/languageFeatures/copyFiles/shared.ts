@@ -306,7 +306,7 @@ function escapeMarkdownLinkPath(mdPath: string): string {
 }
 
 function escapeBrackets(value: string): string {
-	value = value.replace(new RegExp(regexp1), '\\$&'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+	value = value.replace(regexp1, '\\$&'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
 	return value;
 }
 

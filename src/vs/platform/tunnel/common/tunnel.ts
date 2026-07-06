@@ -197,7 +197,7 @@ export function isPortPrivileged(port: number, host: string, os: OperatingSystem
 	}
 	if (os === OperatingSystem.Macintosh) {
 		if (isAllInterfaces(host)) {
-			const osVersion = (new RegExp(regexp3)).exec(osRelease);
+			const osVersion = (new RegExp(regexp3.source, regexp3.flags)).exec(osRelease);
 			if (osVersion?.length === 4) {
 				const major = parseInt(osVersion[1]);
 				if (major >= 18 /* since macOS Mojave, darwin version 18.0.0 */) {

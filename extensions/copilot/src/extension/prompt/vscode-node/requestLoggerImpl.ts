@@ -55,8 +55,8 @@ function processDeltasToMessage(deltas: IResponseDelta[]): string {
 				try {
 					const parsedArgs = JSON.parse(c.arguments);
 					argsStr = JSON.stringify(parsedArgs, undefined, 2)
-						.replace(new RegExp(regexp2), '\n')
-						.replace(new RegExp(regexp1), '\t');
+						.replace(regexp2, '\n')
+						.replace(regexp1, '\t');
 				} catch (e) { }
 				return `🛠️ ${c.name} (${c.id}) ${argsStr}`;
 			}).join('\n');
@@ -556,8 +556,8 @@ export class RequestLogger extends AbstractRequestLogger {
 		if (typeof entry.args === 'string') {
 			try {
 				args = JSON.stringify(JSON.parse(entry.args), undefined, 2)
-					.replace(new RegExp(regexp4), '\n')
-					.replace(new RegExp(regexp3), '\t');
+					.replace(regexp4, '\n')
+					.replace(regexp3, '\t');
 			} catch {
 				args = entry.args;
 			}

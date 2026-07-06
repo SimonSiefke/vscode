@@ -106,7 +106,7 @@ function isUSStandard(_kbInfo: IKeyboardLayoutInfo | null): boolean {
 
 	if (OS === OperatingSystem.Linux) {
 		const kbInfo = <ILinuxKeyboardLayoutInfo>_kbInfo;
-		const layouts = kbInfo.layout.split(new RegExp(regexp1));
+		const layouts = kbInfo.layout.split(regexp1);
 		return (layouts[kbInfo.group] === 'us');
 	}
 

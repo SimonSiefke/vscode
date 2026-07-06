@@ -104,7 +104,7 @@ export function format(fileName: string, text: string) {
 
 export function verifyFormatting(fileName: string, text: string): boolean {
 	const formatted = format(fileName, text);
-	return text.replace(new RegExp(regexp1), '\n') === formatted.replace(new RegExp(regexp1), '\n');
+	return text.replace(regexp1, '\n') === formatted.replace(regexp1, '\n');
 }
 
 if (import.meta.main) {

@@ -184,7 +184,7 @@ class SlashCommandCompletions extends Disposable {
 					return null;
 				}
 
-				const range = computeCompletionRanges(model, position, new RegExp(regexp1));
+				const range = computeCompletionRanges(model, position, new RegExp(regexp1.source, regexp1.flags));
 				if (!range) {
 					return null;
 				}
@@ -276,7 +276,7 @@ class SlashCommandCompletions extends Disposable {
 					suggestions: userInvocableCommands.map((c, i): CompletionItem => {
 						const colonLabel = `/${c.name}`;
 						const hasSubcommand = c.name.includes(':');
-						const displayLabel = hasSubcommand ? `/${c.name.replace(new RegExp(regexp2), ' ')}` : colonLabel;
+						const displayLabel = hasSubcommand ? `/${c.name.replace(regexp2, ' ')}` : colonLabel;
 						const description = c.description;
 						return {
 							label: { label: displayLabel, description },
@@ -308,7 +308,7 @@ class SlashCommandCompletions extends Disposable {
 				}
 
 				// regex is the opposite of `mcpPromptReplaceSpecialChars` found in `mcpTypes.ts`
-				const range = computeCompletionRanges(model, position, new RegExp(regexp3));
+				const range = computeCompletionRanges(model, position, new RegExp(regexp3.source, regexp3.flags));
 				if (!range) {
 					return null;
 				}

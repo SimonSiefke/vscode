@@ -400,7 +400,7 @@ function quoteArgsForShell(shellScript: string, args: string[]): string {
 	const escapeArg = (arg: string): string => {
 		// If argument contains spaces, quotes, or special characters, wrap in quotes and escape internal quotes
 		if (regexp2.test(arg)) {
-			return `"${arg.replace(new RegExp(regexp1), '\\$&')}"`;
+			return `"${arg.replace(regexp1, '\\$&')}"`;
 		}
 		return arg;
 	};

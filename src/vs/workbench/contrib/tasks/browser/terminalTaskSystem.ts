@@ -88,7 +88,7 @@ export interface IReconnectionTaskData {
 const TaskTerminalType = 'Task';
 
 class VariableResolver {
-	private static _regex = new RegExp(regexp1);
+	private static _regex = new RegExp(regexp1.source, regexp1.flags);
 	constructor(public workspaceFolder: IWorkspaceFolder | undefined, public taskSystemInfo: ITaskSystemInfo | undefined, public readonly values: Map<string, string>, private _service: IConfigurationResolverService | undefined) {
 	}
 	async resolve(value: string): Promise<string> {
@@ -1665,7 +1665,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 				return [shellQuoteOptions.weak + value + shellQuoteOptions.weak, true];
 			} else if (kind === ShellQuoting.Escape && shellQuoteOptions.escape) {
 				if (Types.isString(shellQuoteOptions.escape)) {
-					return [value.replace(new RegExp(regexp2), shellQuoteOptions.escape + ' '), true];
+					return [value.replace(regexp2, shellQuoteOptions.escape + ' '), true];
 				} else {
 					const buffer: string[] = [];
 					for (const ch of shellQuoteOptions.escape.charsToEscape) {
@@ -1832,7 +1832,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 
 	private _collectVariables(variables: Set<string>, value: string | CommandString): void {
 		const string: string = Types.isString(value) ? value : value.value;
-		const r = new RegExp(regexp1);
+		const r = new RegExp(regexp1.source, regexp1.flags);
 		let matches: RegExpExecArray | null;
 		do {
 			matches = r.exec(string);

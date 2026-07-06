@@ -310,7 +310,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		}
 
 		if (data.encoding === 'base64') {
-			const binaryString = atob(data.content.replace(new RegExp(regexp1), ''));
+			const binaryString = atob(data.content.replace(regexp1, ''));
 			const bytes = new Uint8Array(binaryString.length);
 			for (let i = 0; i < binaryString.length; i++) {
 				bytes[i] = binaryString.charCodeAt(i);

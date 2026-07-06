@@ -360,14 +360,14 @@ export class HooksSlashCommand implements IClaudeSlashCommandHandler {
 			const text = document.getText();
 
 			// Find the line containing the command
-			const commandEscaped = command.replace(new RegExp(regexp1), '\\$&');
+			const commandEscaped = command.replace(regexp1, '\\$&');
 			const regex = new RegExp(`"command"\\s*:\\s*"${commandEscaped}"`);
 			const match = regex.exec(text);
 
 			let position = new vscode.Position(0, 0);
 			if (match) {
 				const beforeMatch = text.substring(0, match.index);
-				const lineNumber = (beforeMatch.match(new RegExp(regexp2)) || []).length;
+				const lineNumber = (beforeMatch.match(regexp2) || []).length;
 				const lastNewline = beforeMatch.lastIndexOf('\n');
 				const column = match.index - lastNewline - 1 + match[0].indexOf(command);
 				position = new vscode.Position(lineNumber, column);

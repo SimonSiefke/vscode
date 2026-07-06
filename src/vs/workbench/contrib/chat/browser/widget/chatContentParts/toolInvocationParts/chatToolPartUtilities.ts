@@ -31,7 +31,7 @@ export function shouldShimmerForTool(toolInvocation: IChatToolInvocation | IChat
 function getMarkdownValue(content: string | IMarkdownString | undefined): string | undefined {
 	return (typeof content === 'string' ? content : content?.value)
 		?.replaceAll('&nbsp;', ' ')
-		.replace(new RegExp(regexp1), escaped => escaped.slice(1));
+		.replace(regexp1, escaped => escaped.slice(1));
 }
 
 /**

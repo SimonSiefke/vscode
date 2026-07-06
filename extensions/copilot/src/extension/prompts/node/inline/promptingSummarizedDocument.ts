@@ -249,7 +249,7 @@ export class InlineReplyInterpreter implements ReplyInterpreter {
 			return [];
 		}
 
-		const documentLines = this._workingCopySummarizedDoc.originalText.split(new RegExp(regexp1));
+		const documentLines = this._workingCopySummarizedDoc.originalText.split(regexp1);
 		const lastImportStatementLineIdx = findLastIdx(documentLines, l => isImportStatement(l, this._workingCopySummarizedDoc.languageId));
 		if (lastImportStatementLineIdx === -1) {
 			// no existing import statements, we insert it on line 0

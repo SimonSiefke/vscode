@@ -14,7 +14,7 @@ const regexpZ0 = /[^a-z0-9_.]/ig;
 
 
 function sanitizeRepositoryName(value: string): string {
-	return value.trim().replace(new RegExp(regexpZ0), '-');
+	return value.trim().replace(regexpZ0, '-');
 }
 
 function getPick<T extends vscode.QuickPickItem>(quickpick: vscode.QuickPick<T>): Promise<T | undefined> {

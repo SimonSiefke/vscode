@@ -186,7 +186,7 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 							|| outcome.fileContents.includes('plt.gcf')
 						);
 						// check if 'plt.figure' only shows up once
-						const matches = outcome.fileContents.match(new RegExp(regexpPltFigurePlt));
+						const matches = outcome.fileContents.match(regexpPltFigurePlt);
 						assert.strictEqual(matches?.length, 1);
 					}
 				}
@@ -207,8 +207,8 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('.set_index'));
-						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpSetIndex))?.length, 1);
-						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpDataFrame))?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(regexpSetIndex)?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(regexpDataFrame)?.length, 1);
 					}
 				}
 			]
@@ -228,8 +228,8 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('regiment.groupby'));
-						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpGroupby))?.length, 1);
-						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpDataFrame))?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(regexpGroupby)?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(regexpDataFrame)?.length, 1);
 					}
 				}
 			]
@@ -283,7 +283,7 @@ ssuite({ title: 'notebook', subtitle: 'generate', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('```'));
-						const matches = outcome.fileContents.match(new RegExp(regexp6));
+						const matches = outcome.fileContents.match(regexp6);
 						assert.ok(matches && matches.length > 0 && matches.length % 2 === 0);
 					}
 				}

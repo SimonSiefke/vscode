@@ -333,9 +333,9 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		originalPath = resource.fsPath;
 		// Apply backend OS-specific formatting to the path since URI.fsPath uses the frontend's OS
 		if (isWindowsFrontend && os !== OperatingSystem.Windows) {
-			originalPath = originalPath.replace(new RegExp(regexp5), '\/');
+			originalPath = originalPath.replace(regexp5, '\/');
 		} else if (!isWindowsFrontend && os === OperatingSystem.Windows) {
-			originalPath = originalPath.replace(new RegExp(regexp4), '\\');
+			originalPath = originalPath.replace(regexp4, '\\');
 		}
 	}
 
@@ -353,7 +353,7 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		title === 'powershell';
 
 	if (isPowerShell && (hasSpace || originalPath.includes('\''))) {
-		return `& '${originalPath.replace(new RegExp(regexp6), '\'\'')}'`;
+		return `& '${originalPath.replace(regexp6, '\'\'')}'`;
 	}
 
 	if (hasParens && isPowerShell) {
@@ -365,7 +365,7 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		// Update Windows uriPath to be executed in WSL.
 		if (shellType !== undefined) {
 			if (shellType === WindowsShellType.GitBash) {
-				return escapeNonWindowsPath(originalPath.replace(new RegExp(regexp5), '/'), shellType);
+				return escapeNonWindowsPath(originalPath.replace(regexp5, '/'), shellType);
 			}
 			else if (shellType === WindowsShellType.Wsl) {
 				return backend?.getWslPath(originalPath, 'win-to-unix') || originalPath;

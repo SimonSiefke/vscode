@@ -583,7 +583,7 @@ export class PromptsService extends Disposable implements IPromptsService {
 
 	private asChatPromptSlashCommand(argumentHint: string | undefined, userInvocable: boolean | undefined, promptPath: IPromptPath): IChatPromptSlashCommand {
 		let name = promptPath.name ?? getCleanPromptName(promptPath.uri);
-		name = name.replace(new RegExp(regexp2), '-'); // replace spaces with dashes
+		name = name.replace(regexp2, '-'); // replace spaces with dashes
 		return {
 			uri: promptPath.uri,
 			name: name,
@@ -857,7 +857,7 @@ export class PromptsService extends Disposable implements IPromptsService {
 
 	private sanitizeAgentSkillText(text: string): string {
 		// Remove XML tags
-		return text.replace(new RegExp(regexp3), '');
+		return text.replace(regexp3, '');
 	}
 
 	private truncateAgentSkillName(name: string, uri: URI): string {

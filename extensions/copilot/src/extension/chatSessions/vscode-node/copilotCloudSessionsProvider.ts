@@ -1504,7 +1504,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 					prompt = split[0].trim();
 				}
 			}
-			return prompt.replace(new RegExp(regexpCopilot), '').trim();
+			return prompt.replace(regexpCopilot, '').trim();
 		};
 		if (!pr) {
 			this.logService.error(`Session not found for ID: ${resource}`);
@@ -1897,7 +1897,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		const maxBodyLength = 200;
 		let body = this.plainTextRenderer.render(pr.body || '');
 		// Convert plain text newlines to markdown line breaks (two spaces + newline)
-		body = body.replace(new RegExp(regexp6), '  \n');
+		body = body.replace(regexp6, '  \n');
 		body = body.length > maxBodyLength ? body.substring(0, maxBodyLength) + '...' : body;
 		markdown.appendMarkdown(body + '  \n');
 

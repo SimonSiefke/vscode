@@ -471,7 +471,7 @@ export class PromptBody {
 
 				// Collect inline code spans (backtick-delimited) to exclude from matching
 				const inlineCodeRanges: { start: number; end: number }[] = [];
-				for (const inlineMatch of line.matchAll(new RegExp(regexp4))) {
+				for (const inlineMatch of line.matchAll(regexp4)) {
 					inlineCodeRanges.push({ start: inlineMatch.index, end: inlineMatch.index + inlineMatch[0].length });
 				}
 
@@ -480,7 +480,7 @@ export class PromptBody {
 				};
 
 				// Match markdown links: [text](link)
-				const linkMatch = line.matchAll(new RegExp(regexp5));
+				const linkMatch = line.matchAll(regexp5);
 				for (const match of linkMatch) {
 					if (match.index > 0 && line[match.index - 1] === '!') {
 						continue; // skip image links
@@ -496,7 +496,7 @@ export class PromptBody {
 				}
 				// Match #file:<filePath> and #tool:<toolName>
 				// Regarding the <toolName> pattern below, see also the variableReg regex in chatRequestParser.ts.
-				const reg = new RegExp(regexpFileFilePathTool);
+				const reg = new RegExp(regexpFileFilePathTool.source, regexpFileFilePathTool.flags);
 				const matches = line.matchAll(reg);
 				for (const match of matches) {
 					const fullMatch = match[0];

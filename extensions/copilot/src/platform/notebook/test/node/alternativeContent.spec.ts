@@ -111,7 +111,7 @@ describe('Alternative Content for Notebooks', () => {
 					expect(notebookEdits.length).toBe(1);
 					expect(notebookEdits[0].newCells.length).toBe(1);
 					expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Markup);
-					expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual([`# DataFrame Details`, ``, `This DataFrame contains two columns: 'Name' and 'Gender'. The 'Name' column has three entries: 'Hello', 'World', and 'Baz'. The 'Gender' column has three entries: 'F', 'M', and 'F'.`]);
+					expect(notebookEdits[0].newCells[0].value.split(regexp2)).toEqual([`# DataFrame Details`, ``, `This DataFrame contains two columns: 'Name' and 'Gender'. The 'Name' column has three entries: 'Hello', 'World', and 'Baz'. The 'Gender' column has three entries: 'F', 'M', and 'F'.`]);
 					expect(notebookEdits[0].range.start).toBe(1);
 					expect(notebookEdits[0].range.end).toBe(1);
 
@@ -145,7 +145,7 @@ describe('Alternative Content for Notebooks', () => {
 					expect(notebookEdits.length).toBe(1);
 					expect(notebookEdits[0].newCells.length).toBe(1);
 					expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Code);
-					expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual(alternativeContents.split(regexp1));
+					expect(notebookEdits[0].newCells[0].value.split(regexp2)).toEqual(alternativeContents.split(regexp1));
 				});
 
 				[
@@ -335,9 +335,9 @@ describe('Alternative Content for Notebooks', () => {
 
 						// Strip cell IDs to simulate LLM-generated content without IDs
 						if (provider.kind === 'xml') {
-							text = text.replace(new RegExp(regexpId1), 'id=""');
+							text = text.replace(regexpId1, 'id=""');
 						} else if (provider.kind === 'text') {
-							text = text.replace(new RegExp(regexpId), '');
+							text = text.replace(regexpId, '');
 						}
 
 						// Rebuild from text without IDs
@@ -1083,7 +1083,7 @@ function assertDocumentsAreEqual(notebook: NotebookDocument, data: NotebookData,
 				"    return math.pi * radius**2"
 			]
 			 */
-			expect(normatlizeContent(cell.document.getText().split(new RegExp(regexp2)).map(l => l.trim()).join('\n'))).toBe(normatlizeContent(cellData.value.split(new RegExp(regexp2)).map(l => l.trim()).join('\n')));
+			expect(normatlizeContent(cell.document.getText().split(regexp2).map(l => l.trim()).join('\n'))).toBe(normatlizeContent(cellData.value.split(regexp2).map(l => l.trim()).join('\n')));
 		} else {
 			expect(normatlizeContent(cell.document.getText())).toBe(normatlizeContent(cellData.value));
 		}
@@ -1098,9 +1098,9 @@ function assertDocumentsAreEqual(notebook: NotebookDocument, data: NotebookData,
  */
 function normatlizeContent(content: string) {
 	return content.
-		replace(new RegExp(regexpId1), 'id=""'). // xml id
-		replace(new RegExp(regexpId3), 'id='). // jupytext id
-		replace(new RegExp(regexpId2), '"id": ""'). // json id
-		replace(new RegExp(regexp5), '\n'). // windows/unix newlines
+		replace(new RegExp(regexpId1.source, regexpId1.flags), 'id=""'). // xml id
+		replace(new RegExp(regexpId3.source, regexpId3.flags), 'id='). // jupytext id
+		replace(new RegExp(regexpId2.source, regexpId2.flags), '"id": ""'). // json id
+		replace(new RegExp(regexp5.source, regexp5.flags), '\n'). // windows/unix newlines
 		trim();
 }

@@ -83,7 +83,7 @@ Here is the output of the command:\n`;
  * by terminal wrapping, so we strip them before testing.
  */
 export function outputLooksSandboxBlocked(output: string): boolean {
-	const normalized = output.replace(new RegExp(regexp1), ' ');
+	const normalized = output.replace(regexp1, ' ');
 	return regexpOperationNotPermitted.test(normalized);
 }
 
@@ -92,6 +92,6 @@ export function outputLooksSandboxBlocked(output: string): boolean {
  * to select automatic allow-network retries and prevent automatic unsandboxing.
  */
 export function outputLooksSandboxNetworkBlocked(output: string): boolean {
-	const normalized = output.replace(new RegExp(regexp1), ' ');
+	const normalized = output.replace(regexp1, ' ');
 	return regexpCouldNotResolve.test(normalized);
 }

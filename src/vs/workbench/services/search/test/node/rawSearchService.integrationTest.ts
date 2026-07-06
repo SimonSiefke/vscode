@@ -163,7 +163,7 @@ flakySuite('RawSearchService', () => {
 
 		const result = await collectResultsFromEvent(fileSearch(rawSearch, 10));
 		result.files.forEach(f => {
-			assert.strictEqual(f.path.replace(new RegExp(regexp1), '/'), uriPath);
+			assert.strictEqual(f.path.replace(regexp1, '/'), uriPath);
 		});
 		assert.strictEqual(result.files.length, 25, 'Result');
 	});

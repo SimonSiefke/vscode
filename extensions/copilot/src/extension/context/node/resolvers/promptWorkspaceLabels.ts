@@ -204,13 +204,13 @@ class BasicPromptWorkspaceLabels implements IPromptWorkspaceLabelsStrategy {
 
 		const tags: string[] = [];
 		const cppLangStdVer = parseStandardVersion(contents,
-			new RegExp(regexpSetCMAKECXX), [98, 11, 14, 17, 20, 23, 26]);
+			new RegExp(regexpSetCMAKECXX.source, regexpSetCMAKECXX.flags), [98, 11, 14, 17, 20, 23, 26]);
 		if (cppLangStdVer) {
 			tags.push(`C++${cppLangStdVer}`);
 		}
 
 		const cLangStdVer = parseStandardVersion(contents,
-			new RegExp(regexpSetCMAKESTANDARD), [90, 99, 11, 17, 23]);
+			new RegExp(regexpSetCMAKESTANDARD.source, regexpSetCMAKESTANDARD.flags), [90, 99, 11, 17, 23]);
 		if (cLangStdVer) {
 			tags.push(`C${cLangStdVer}`);
 		}
@@ -269,7 +269,7 @@ class ExpandedPromptWorkspaceLabels extends BasicPromptWorkspaceLabels {
 
 		const extractMajorMinorVersion = (version: string): string => {
 			const [major, minor] = version.split('.');
-			return `${major.replace(new RegExp(regexp3), '')}.${minor.replace(new RegExp(regexp3), '')}`;
+			return `${major.replace(regexp3, '')}.${minor.replace(regexp3, '')}`;
 		};
 
 		const checkDependencies = (dependencies: Record<string, string> | undefined, list: { dependency: string; prefix?: string }[]) => {
@@ -506,7 +506,7 @@ class ExpandedPromptWorkspaceLabels extends BasicPromptWorkspaceLabels {
 			} else if (line.startsWith('[') && line.endsWith(']')) {
 				inDependenciesSection = false;
 			} else if (inDependenciesSection && line) {
-				const [pkg, version] = line.split('=').map(s => s.trim().replace(new RegExp(regexp4), ''));
+				const [pkg, version] = line.split('=').map(s => s.trim().replace(regexp4, ''));
 				if (this.popularPackages.includes(pkg)) {
 					tags.push(`${pkg}-${version || 'latest'}`);
 				}

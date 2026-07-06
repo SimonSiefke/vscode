@@ -25,7 +25,7 @@ export function isPathSeparator(code: number) {
  * Using it on a Linux or MaxOS path might change it.
  */
 export function toSlashes(osPath: string) {
-	return osPath.replace(new RegExp(regexp1), posix.sep);
+	return osPath.replace(regexp1, posix.sep);
 }
 
 /**
@@ -74,7 +74,7 @@ export function getRoot(path: string, sep: string = posix.sep): string {
 					for (; pos < len; pos++) {
 						if (isPathSeparator(path.charCodeAt(pos))) {
 							return path.slice(0, pos + 1) // consume this separator
-								.replace(new RegExp(regexp1), sep);
+								.replace(regexp1, sep);
 						}
 					}
 				}

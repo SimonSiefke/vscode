@@ -28,7 +28,7 @@ const searchBranches: Fig.Generator = {
 
 		return output.split('\n').map((elm) => {
 			let name = elm.trim();
-			const parts = elm.match(new RegExp(regexp1));
+			const parts = elm.match(regexp1);
 			if (parts && parts.length > 1) {
 				if (parts[0] === '*') {
 					// Current branch.

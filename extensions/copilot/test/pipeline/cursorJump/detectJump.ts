@@ -222,10 +222,10 @@ function resolveCrossFileLine(
  * prompt presents.
  */
 export function normalizeRelativePathForModel(relPath: string): string {
-	let p = relPath.replace(new RegExp(regexp1), '/');
+	let p = relPath.replace(regexp1, '/');
 	while (p.startsWith('./')) {
 		p = p.slice(2);
 	}
-	p = p.replace(new RegExp(regexp2), '/');
+	p = p.replace(regexp2, '/');
 	return p;
 }

@@ -232,7 +232,7 @@ function internalNodeFeedPackageName(assetName: string): string {
 	return assetName
 		.replace(regexp7, '')
 		.toLowerCase()
-		.replace(new RegExp(regexpZ0), '-')
+		.replace(regexpZ0, '-')
 		.replace(regexp5, '')
 		.replace(regexp4, '');
 }

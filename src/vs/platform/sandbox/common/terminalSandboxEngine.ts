@@ -128,9 +128,9 @@ export interface ITerminalSandboxEngineHost {
  * (chat elicitation, lifecycle hooks, …) on top.
  */
 export class TerminalSandboxEngine extends Disposable {
-	private static readonly _urlRegex = new RegExp(regexpHttpsWss);
-	private static readonly _sshRemoteRegex = new RegExp(regexpZAZ0ZA);
-	private static readonly _hostRegex = new RegExp(regexpZAZ0ZA1);
+	private static readonly _urlRegex = new RegExp(regexpHttpsWss.source, regexpHttpsWss.flags);
+	private static readonly _sshRemoteRegex = new RegExp(regexpZAZ0ZA.source, regexpZAZ0ZA.flags);
+	private static readonly _hostRegex = new RegExp(regexpZAZ0ZA1.source, regexpZAZ0ZA1.flags);
 
 	private readonly _sandboxSettingsId: string = generateUuid();
 	private _runtimeResolved = false;
@@ -461,7 +461,7 @@ export class TerminalSandboxEngine extends Disposable {
 	}
 
 	private _quoteShellArgument(value: string): string {
-		return `'${value.replace(new RegExp(regexp4), `'\\''`)}'`;
+		return `'${value.replace(regexp4, `'\\''`)}'`;
 	}
 
 	private _getSandboxCommandWithPreservedCwd(command: string, cwd: URI | undefined): string {
@@ -821,7 +821,7 @@ export class TerminalSandboxEngine extends Disposable {
 	 *   pattern intact for `globMatch`.
 	 */
 	private _normalizeFileSystemAccessPath(path: string, preserveGlob: boolean = false): string {
-		let normalizedPath = this._os === OperatingSystem.Windows ? path.replace(new RegExp(regexp5), '/') : path;
+		let normalizedPath = this._os === OperatingSystem.Windows ? path.replace(regexp5, '/') : path;
 		if (this._os === OperatingSystem.Windows && regexpZA.test(normalizedPath)) {
 			normalizedPath = normalizedPath.slice(1);
 		}
@@ -947,7 +947,7 @@ export class TerminalSandboxEngine extends Disposable {
 	}
 
 	private _getFileSystemPathComparisonKey(path: string): string {
-		return this._os === OperatingSystem.Windows ? path.replace(new RegExp(regexp10), '\\').toLowerCase() : path;
+		return this._os === OperatingSystem.Windows ? path.replace(regexp10, '\\').toLowerCase() : path;
 	}
 
 	private async _resolveFileSystemPath(path: string): Promise<string[]> {
@@ -980,7 +980,7 @@ export class TerminalSandboxEngine extends Disposable {
 
 	private _toWindowsFileSystemResource(path: string): URI {
 		// Normalize Windows separators for URI parsing, e.g. `C:\Users\me` becomes `C:/Users/me`.
-		const normalizedPath = path.replace(new RegExp(regexp5), '/');
+		const normalizedPath = path.replace(regexp5, '/');
 		// Match UNC paths, e.g. `//server/share/folder` becomes `file://server/share/folder`.
 		if (regexp11.test(normalizedPath)) {
 			const firstPathSeparator = normalizedPath.indexOf('/', 2);

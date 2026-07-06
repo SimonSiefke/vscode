@@ -63,5 +63,5 @@ function validatePredicate(answer: string, predicate: KeywordPredicate): string 
  * Escapes regular expression characters in a given string
  */
 function escapeRegExpCharacters(value: string): string {
-	return value.replace(new RegExp(regexp3), '\\$&');
+	return value.replace(regexp3, '\\$&');
 }

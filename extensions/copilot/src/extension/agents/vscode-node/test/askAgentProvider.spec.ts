@@ -124,7 +124,7 @@ suite('AskAgentProvider', () => {
 		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
 		const toolsSection = toolsMatch[1];
-		const searchCount = (toolsSection.match(new RegExp(regexpSearch)) || []).length;
+		const searchCount = (toolsSection.match(regexpSearch) || []).length;
 		assert.equal(searchCount, 1, 'search tool should appear only once after deduplication');
 
 		// Should contain new tool

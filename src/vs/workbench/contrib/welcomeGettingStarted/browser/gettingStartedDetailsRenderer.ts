@@ -322,11 +322,11 @@ const transformUri = (src: string, base: URI) => {
 };
 
 const transformUris = (content: string, base: URI): string => content
-	.replace(new RegExp(regexpSrc), (_, src: string) => {
+	.replace(regexpSrc, (_, src: string) => {
 		if (src.startsWith('https://')) { return `src="${src}"`; }
 		return `src="${transformUri(src, base)}"`;
 	})
-	.replace(new RegExp(regexp3), (_, title: string, src: string) => {
+	.replace(regexp3, (_, title: string, src: string) => {
 		if (src.startsWith('https://')) { return `![${title}](${src})`; }
 		return `![${title}](${transformUri(src, base)})`;
 	});

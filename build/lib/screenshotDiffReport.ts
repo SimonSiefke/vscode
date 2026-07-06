@@ -494,7 +494,7 @@ function generateMarkdown(
 }
 
 function escapeMarkdown(text: string): string {
-	return text.replace(new RegExp(regexp3), ' ').replace(new RegExp(regexp2), c => c === '<' ? '&lt;' : '&gt;');
+	return text.replace(regexp3, ' ').replace(regexp2, c => c === '<' ? '&lt;' : '&gt;');
 }
 
 async function main(): Promise<void> {

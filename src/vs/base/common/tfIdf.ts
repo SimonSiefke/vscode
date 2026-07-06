@@ -6,7 +6,7 @@
 import { CancellationToken } from './cancellation.js';
 const regexp1 = /\s+/g;
 const regexp2 = /([a-z])([A-Z])/g;
-const regexp3 = /\p{Letter}{3,}/gu;
+const regexp3 = /\p{Letter}{3,}/u;
 const regexp4 = /\b\p{Letter}[\p{Letter}\d]{2,}\b/gu;
 
 
@@ -90,14 +90,14 @@ export class TfIdfCalculator {
 		const normalize = (word: string) => word.toLowerCase();
 
 		// Only match on words that are at least 3 characters long and start with a letter
-		for (const [word] of input.matchAll(new RegExp(regexp4))) {
+		for (const [word] of input.matchAll(regexp4)) {
 			yield normalize(word);
 
-			const camelParts = word.replace(new RegExp(regexp2), '$1 $2').split(new RegExp(regexp1));
+			const camelParts = word.replace(regexp2, '$1 $2').split(regexp1);
 			if (camelParts.length > 1) {
 				for (const part of camelParts) {
 					// Require at least 3 letters in the parts of a camel case word
-					if (part.length > 2 && new RegExp(regexp3).test(part)) {
+					if (part.length > 2 && regexp3.test(part)) {
 						yield normalize(part);
 					}
 				}

@@ -41,8 +41,8 @@ export function getPreviewChunks(doc: vscode.TextDocument, range: vscode.Range, 
 	const previewEnd = range.end.translate(0, 331);
 	let after = doc.getText(new vscode.Range(range.end, previewEnd));
 	if (trim) {
-		before = before.replace(new RegExp(regexp2), '');
-		after = after.replace(new RegExp(regexp3), '');
+		before = before.replace(regexp2, '');
+		after = after.replace(regexp3, '');
 	}
 	return { before, inside, after };
 }

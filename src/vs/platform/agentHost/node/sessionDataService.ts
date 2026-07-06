@@ -77,12 +77,12 @@ export class SessionDataService implements ISessionDataService {
 	}
 
 	getSessionDataDirById(sessionId: string): URI {
-		const sanitized = sessionId.replace(new RegExp(regexpZAZ0), '-');
+		const sanitized = sessionId.replace(regexpZAZ0, '-');
 		return URI.joinPath(this._basePath, sanitized);
 	}
 
 	private _sanitizedSessionKey(session: URI): string {
-		return this._dataKey(session).replace(new RegExp(regexpZAZ0), '-');
+		return this._dataKey(session).replace(regexpZAZ0, '-');
 	}
 
 	/**

@@ -604,7 +604,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 					}
 					case 'Prompt': {
 						// Remove escape sequences from the user's prompt
-						const sanitizedValue = value.replace(new RegExp(regexp1), '');
+						const sanitizedValue = value.replace(regexp1, '');
 						this._updatePromptTerminator(sanitizedValue);
 						return true;
 					}
@@ -817,7 +817,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 export function deserializeVSCodeOscMessage(message: string): string {
 	return message.replaceAll(
 		// Backslash ('\') followed by an escape operator: either another '\', or 'x' and two hex chars.
-		new RegExp(regexp9a),
+		new RegExp(regexp9a.source, regexp9a.flags),
 		// If it's a hex value, parse it to a character.
 		// Otherwise the operator is '\', which we return literally, now unescaped.
 		(_match: string, op: string, hex?: string) => hex ? String.fromCharCode(parseInt(hex, 16)) : op);
@@ -826,7 +826,7 @@ export function deserializeVSCodeOscMessage(message: string): string {
 export function serializeVSCodeOscMessage(message: string): string {
 	return message.replace(
 		// Match backslash ('\'), semicolon (';'), or characters 0x20 and below
-		new RegExp(regexp4),
+		new RegExp(regexp4.source, regexp4.flags),
 		(char: string) => {
 			// Escape backslash as '\\'
 			if (char === '\\') {

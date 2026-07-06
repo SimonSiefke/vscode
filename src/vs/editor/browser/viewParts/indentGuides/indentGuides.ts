@@ -323,7 +323,7 @@ registerThemingParticipant((theme, collector) => {
 	if (colorValues.length > 0) {
 		for (let level = 0; level < 30; level++) {
 			const colors = colorValues[level % colorValues.length];
-			collector.addRule(`.monaco-editor .${colorProvider.getInlineClassNameOfLevel(level).replace(new RegExp(regexp1), '.')} { --guide-color: ${colors.guideColor}; --guide-color-active: ${colors.guideColorActive}; }`);
+			collector.addRule(`.monaco-editor .${colorProvider.getInlineClassNameOfLevel(level).replace(regexp1, '.')} { --guide-color: ${colors.guideColor}; --guide-color-active: ${colors.guideColorActive}; }`);
 		}
 
 		collector.addRule(`.monaco-editor .vertical { box-shadow: 1px 0 0 0 var(--guide-color) inset; }`);

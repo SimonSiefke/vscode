@@ -327,7 +327,7 @@ class Snapper {
 				} else {
 					const capture = tokenizationModel.captureAtRangeTree(range);
 					tokens.push({
-						c: currentCursor.currentNode.text.replace(new RegExp(regexp1), ''),
+						c: currentCursor.currentNode.text.replace(regexp1, ''),
 						t: capture?.map(cap => cap.name).join(' ') ?? '',
 						r: {
 							dark_plus: undefined,

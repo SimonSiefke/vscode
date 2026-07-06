@@ -171,11 +171,11 @@ const defaultMarkedRenderers = Object.freeze({
 		const isCommandUri = href.startsWith(`${Schemas.command}:`);
 
 		// HTML Encode href
-		href = href.replace(new RegExp(regexp5), '&amp;')
-			.replace(new RegExp(regexp4), '&lt;')
-			.replace(new RegExp(regexp3), '&gt;')
-			.replace(new RegExp(regexp2), '&quot;')
-			.replace(new RegExp(regexp1), '&#39;');
+		href = href.replace(regexp5, '&amp;')
+			.replace(regexp4, '&lt;')
+			.replace(regexp3, '&gt;')
+			.replace(regexp2, '&quot;')
+			.replace(regexp1, '&#39;');
 
 		const effectiveTitle = title || (isCommandUri ? '' : href);
 		return `<a href="${href}" title="${effectiveTitle}" draggable="false">${text}</a>`;
@@ -745,7 +745,7 @@ export function renderAsPlaintext(str: IMarkdownString | string, options?: {
 	const html = marked.parse(value, { async: false, renderer });
 	return sanitizeRenderedMarkdown(html, { isTrusted: false }, {})
 		.toString()
-		.replace(new RegExp(regexpZA), m => unescapeInfo.get(m) ?? m)
+		.replace(regexpZA, m => unescapeInfo.get(m) ?? m)
 		.trim();
 }
 
@@ -1138,7 +1138,7 @@ function completeTable(tokens: marked.Token[]): marked.Token[] | undefined {
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i].trim();
 		if (typeof numCols === 'undefined' && line.match(regexp28)) {
-			const line1Matches = line.match(new RegExp(regexp29));
+			const line1Matches = line.match(regexp29);
 			if (line1Matches) {
 				numCols = line1Matches.length;
 			}

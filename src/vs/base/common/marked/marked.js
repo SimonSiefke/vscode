@@ -124,7 +124,7 @@ function edit(regex, opt) {
 }
 function cleanUrl(href) {
     try {
-        href = encodeURI(href).replace(new RegExp(regexp1), '%');
+        href = encodeURI(href).replace(regexp1, '%');
     }
     catch {
         return null;
@@ -135,7 +135,7 @@ const noopTest = { exec: () => null };
 function splitCells(tableRow, count) {
     // ensure that every cell-delimiting pipe has a space
     // before it to distinguish it from an escaped pipe
-    const row = tableRow.replace(new RegExp(regexp2), (match, offset, str) => {
+    const row = tableRow.replace(regexp2, (match, offset, str) => {
         let escaped = false;
         let curr = offset;
         while (--curr >= 0 && str[curr] === '\\')
@@ -169,7 +169,7 @@ function splitCells(tableRow, count) {
     }
     for (; i < cells.length; i++) {
         // leading or trailing whitespace is ignored per the gfm spec
-        cells[i] = cells[i].trim().replace(new RegExp(regexp4), '|');
+        cells[i] = cells[i].trim().replace(regexp4, '|');
     }
     return cells;
 }
@@ -228,7 +228,7 @@ function findClosingBracket(str, b) {
 function outputLink(cap, link, raw, lexer) {
     const href = link.href;
     const title = link.title ? escape$1(link.title) : null;
-    const text = cap[1].replace(new RegExp(regexp5), '$1');
+    const text = cap[1].replace(regexp5, '$1');
     if (cap[0].charAt(0) !== '!') {
         lexer.state.inLink = true;
         const token = {
@@ -293,7 +293,7 @@ class _Tokenizer {
     code(src) {
         const cap = this.rules.block.code.exec(src);
         if (cap) {
-            const text = cap[0].replace(new RegExp(regexp8), '');
+            const text = cap[0].replace(regexp8, '');
             return {
                 type: 'code',
                 raw: cap[0],
@@ -378,8 +378,8 @@ class _Tokenizer {
                 const currentRaw = currentLines.join('\n');
                 const currentText = currentRaw
                     // precede setext continuation with 4 spaces so it isn't a setext
-                    .replace(new RegExp(regexp13), '\n    $1')
-                    .replace(new RegExp(regexp12), '');
+                    .replace(regexp13, '\n    $1')
+                    .replace(regexp12, '');
                 raw = raw ? `${raw}\n${currentRaw}` : currentRaw;
                 text = text ? `${text}\n${currentText}` : currentText;
                 // parse blockquote lines as top level tokens
@@ -493,7 +493,7 @@ class _Tokenizer {
                         nextLine = rawLine;
                         // Re-align to follow commonmark nesting rules
                         if (this.options.pedantic) {
-                            nextLine = nextLine.replace(new RegExp(regexp17), '  ');
+                            nextLine = nextLine.replace(regexp17, '  ');
                         }
                         // End list item if found code fences
                         if (fencesBeginRegex.test(nextLine)) {
@@ -612,7 +612,7 @@ class _Tokenizer {
     def(src) {
         const cap = this.rules.block.def.exec(src);
         if (cap) {
-            const tag = cap[1].toLowerCase().replace(new RegExp(regexp22), ' ');
+            const tag = cap[1].toLowerCase().replace(regexp22, ' ');
             const href = cap[2] ? cap[2].replace(regexp23, '$1').replace(this.rules.inline.anyPunctuation, '$1') : '';
             const title = cap[3] ? cap[3].substring(1, cap[3].length - 1).replace(this.rules.inline.anyPunctuation, '$1') : cap[3];
             return {
@@ -634,7 +634,7 @@ class _Tokenizer {
             return;
         }
         const headers = splitCells(cap[1]);
-        const aligns = cap[2].replace(new RegExp(regexp25), '').split('|');
+        const aligns = cap[2].replace(regexp25, '').split('|');
         const rows = cap[3] && cap[3].trim() ? cap[3].replace(regexp26, '').split('\n') : [];
         const item = {
             type: 'table',
@@ -812,7 +812,7 @@ class _Tokenizer {
         let cap;
         if ((cap = this.rules.inline.reflink.exec(src))
             || (cap = this.rules.inline.nolink.exec(src))) {
-            const linkString = (cap[2] || cap[1]).replace(new RegExp(regexp22), ' ');
+            const linkString = (cap[2] || cap[1]).replace(regexp22, ' ');
             const link = links[linkString.toLowerCase()];
             if (!link) {
                 const text = cap[0].charAt(0);
@@ -888,7 +888,7 @@ class _Tokenizer {
     codespan(src) {
         const cap = this.rules.inline.code.exec(src);
         if (cap) {
-            let text = cap[2].replace(new RegExp(regexp38), ' ');
+            let text = cap[2].replace(regexp38, ' ');
             const hasNonSpaceChars = regexp15.test(text);
             const hasSpaceCharsOnBothEnds = regexp39.test(text) && regexp9.test(text);
             if (hasNonSpaceChars && hasSpaceCharsOnBothEnds) {
@@ -1362,7 +1362,7 @@ class _Lexer {
      */
     lex(src) {
         src = src
-            .replace(new RegExp(regexp40), '\n');
+            .replace(regexp40, '\n');
         this.blockTokens(src, this.tokens);
         for (let i = 0; i < this.inlineQueue.length; i++) {
             const next = this.inlineQueue[i];
@@ -1373,10 +1373,10 @@ class _Lexer {
     }
     blockTokens(src, tokens = [], lastParagraphClipped = false) {
         if (this.options.pedantic) {
-            src = src.replace(new RegExp(regexp43), '    ').replace(new RegExp(regexp42), '');
+            src = src.replace(regexp43, '    ').replace(regexp42, '');
         }
         else {
-            src = src.replace(new RegExp(regexp41), (_, leading, tabs) => {
+            src = src.replace(regexp41, (_, leading, tabs) => {
                 return leading + '    '.repeat(tabs.length);
             });
         }

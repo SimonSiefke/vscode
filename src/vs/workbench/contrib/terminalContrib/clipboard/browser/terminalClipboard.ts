@@ -106,7 +106,7 @@ export async function shouldPasteTerminalText(accessor: ServicesAccessor, text: 
 	}
 
 	if (result.singleLine) {
-		return { modifiedText: text.replace(new RegExp(regexp2), '') };
+		return { modifiedText: text.replace(regexp2, '') };
 	}
 
 	return result.confirmed;

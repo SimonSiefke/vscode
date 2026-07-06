@@ -343,8 +343,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#endregion',
 		], [r(1, 3, -1, true)], false, {
-			start: new RegExp(regexpRegion),
-			end: new RegExp(regexpEndregion)
+			start: new RegExp(regexpRegion.source, regexpRegion.flags),
+			end: new RegExp(regexpEndregion.source, regexpEndregion.flags)
 		});
 
 		assertRanges([
@@ -352,8 +352,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#endregion',
 		], [r(1, 3, -1, true)], false, {
-			start: new RegExp(regexpRegion1),
-			end: new RegExp(regexpEndregion)
+			start: new RegExp(regexpRegion1.source, regexpRegion1.flags),
+			end: new RegExp(regexpEndregion.source, regexpEndregion.flags)
 		});
 
 		assertRanges([
@@ -361,8 +361,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#ENDREGION',
 		], [], false, {
-			start: new RegExp(regexpRegion1),
-			end: new RegExp(regexpEndregion)
+			start: new RegExp(regexpRegion1.source, regexpRegion1.flags),
+			end: new RegExp(regexpEndregion.source, regexpEndregion.flags)
 		});
 
 		assertRanges([
@@ -370,8 +370,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#ENDREGION',
 		], [], false, {
-			start: new RegExp(regexpRegion),
-			end: new RegExp(regexpEndregion1)
+			start: new RegExp(regexpRegion.source, regexpRegion.flags),
+			end: new RegExp(regexpEndregion1.source, regexpEndregion1.flags)
 		});
 	});
 });

@@ -19,20 +19,20 @@ export const execAsync = promisify(exec);
  */
 export function cleanupText(text: string): string {
 	// Remove ANSI escape codes
-	let cleanedText = text.replace(new RegExp(regexp1), '');
+	let cleanedText = text.replace(regexp1, '');
 
 	// Remove backspace sequences (like a\bb which tries to print a, move back, print b)
 	// This regex looks for a character followed by a backspace and another character
-	const backspaceRegex = new RegExp(regexp2);
+	const backspaceRegex = new RegExp(regexp2.source, regexp2.flags);
 	while (backspaceRegex.test(cleanedText)) {
 		cleanedText = cleanedText.replace(backspaceRegex, match => match.charAt(2));
 	}
 
 	// Remove any remaining backspaces and their preceding characters
-	cleanedText = cleanedText.replace(new RegExp(regexp3), '');
+	cleanedText = cleanedText.replace(regexp3, '');
 
 	// Remove underscores that are used for formatting in some fish help output
-	cleanedText = cleanedText.replace(new RegExp(regexp4), '');
+	cleanedText = cleanedText.replace(regexp4, '');
 
 	return cleanedText;
 }

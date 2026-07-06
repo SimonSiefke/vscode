@@ -84,10 +84,10 @@ export async function showRunRecentQuickPick(
 		function formatLabel(label: string) {
 			return label
 				// Replace new lines with "enter" symbol
-				.replace(new RegExp(regexp2), '\u23CE')
+				.replace(regexp2, '\u23CE')
 				// Replace 3 or more spaces with midline horizontal ellipsis which looks similar
 				// to whitespace in the editor
-				.replace(new RegExp(regexp1), '\u22EF');
+				.replace(regexp1, '\u22EF');
 		}
 		if (commands && commands.length > 0) {
 			for (let i = commands.length - 1; i >= 0; i--) {

@@ -247,12 +247,12 @@ export class McpAddConfigurationCommand {
 		});
 
 		// Split command into command and args, handling quotes
-		const parts = command.match(new RegExp(regexp1))!;
+		const parts = command.match(regexp1)!;
 		return {
 			type: McpServerType.LOCAL,
-			command: parts[0].replace(new RegExp(regexp2), ''),
+			command: parts[0].replace(regexp2, ''),
 
-			args: parts.slice(1).map(arg => arg.replace(new RegExp(regexp2), ''))
+			args: parts.slice(1).map(arg => arg.replace(regexp2, ''))
 		};
 	}
 

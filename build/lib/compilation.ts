@@ -391,7 +391,7 @@ function generateExtensionPointNames() {
 			const filePath = 'vs/workbench/services/extensions/common/extensionPoints.json';
 			try {
 				const existing = fs.readFileSync(path.join('src', filePath), 'utf-8');
-				if (existing.replace(new RegExp(regexp7), '\n') === content) {
+				if (existing.replace(regexp7, '\n') === content) {
 					this.emit('end');
 					return;
 				}

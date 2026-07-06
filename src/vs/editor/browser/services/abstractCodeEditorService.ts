@@ -797,7 +797,7 @@ class DecorationCSSRules {
 			}
 			if (typeof opts.contentText === 'string') {
 				const truncated = opts.contentText.match(regexp1)![0]; // only take first line
-				const escaped = truncated.replace(new RegExp(regexp2), '\\$&');
+				const escaped = truncated.replace(regexp2, '\\$&');
 
 				cssTextArr.push(strings.format(_CSS_MAP.contentText, escaped));
 			}

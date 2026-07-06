@@ -717,7 +717,7 @@ export class ChatAgentNameService implements IChatAgentNameService {
 
 		// TODO would like to use observables here but nothing uses it downstream and I'm not sure how to combine these two
 		const nameAllowed = this.checkAgentNameRestriction(chatAgentData.name, chatAgentData).get();
-		const fullNameAllowed = !chatAgentData.fullName || this.checkAgentNameRestriction(chatAgentData.fullName.replace(new RegExp(regexp1), ''), chatAgentData).get();
+		const fullNameAllowed = !chatAgentData.fullName || this.checkAgentNameRestriction(chatAgentData.fullName.replace(regexp1, ''), chatAgentData).get();
 		return nameAllowed && fullNameAllowed;
 	}
 

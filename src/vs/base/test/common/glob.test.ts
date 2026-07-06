@@ -1021,7 +1021,7 @@ suite('Glob', () => {
 	}
 
 	function nativeSep(slashPath: string): string {
-		return slashPath.replace(new RegExp(regexp1), sep);
+		return slashPath.replace(regexp1, sep);
 	}
 
 	test('relative pattern - glob star', function () {

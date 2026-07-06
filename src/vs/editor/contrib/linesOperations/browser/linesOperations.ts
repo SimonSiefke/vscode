@@ -1003,7 +1003,7 @@ export class JoinLinesAction extends EditorAction {
 					if (insertSpace && (trimmedLinesContent.charAt(trimmedLinesContent.length - 1) === ' ' ||
 						trimmedLinesContent.charAt(trimmedLinesContent.length - 1) === '\t')) {
 						insertSpace = false;
-						trimmedLinesContent = trimmedLinesContent.replace(new RegExp(regexp1), ' ');
+						trimmedLinesContent = trimmedLinesContent.replace(regexp1, ' ');
 					}
 
 					const lineTextWithoutIndent = lineText.substr(firstNonWhitespaceIdx - 1);

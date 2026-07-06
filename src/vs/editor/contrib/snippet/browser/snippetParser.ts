@@ -215,7 +215,7 @@ export abstract class Marker {
 export class Text extends Marker {
 
 	static escape(value: string): string {
-		return value.replace(new RegExp(regexp1), '\\$&');
+		return value.replace(regexp1, '\\$&');
 	}
 
 	constructor(public value: string) {
@@ -314,7 +314,7 @@ export class Choice extends Marker {
 
 	toTextmateString(): string {
 		return this.options
-			.map(option => option.value.replace(new RegExp(regexp2), '\\$&'))
+			.map(option => option.value.replace(regexp2, '\\$&'))
 			.join(',');
 	}
 
@@ -417,7 +417,7 @@ export class FormatString extends Marker {
 	// Note: word-based case transforms rely on uppercase/lowercase distinctions.
 	// For scripts without case, transforms are effectively no-ops.
 	private _toKebabCase(value: string): string {
-		const match = value.match(new RegExp(regexp3));
+		const match = value.match(regexp3);
 		if (!match) {
 			return value;
 		}
@@ -426,13 +426,13 @@ export class FormatString extends Marker {
 			return value
 				.trim()
 				.toLowerCase()
-				.replace(new RegExp(regexp5), '')
-				.replace(new RegExp(regexp4), '-');
+				.replace(regexp5, '')
+				.replace(regexp4, '-');
 		}
 
-		const cleaned = value.trim().replace(new RegExp(regexp5), '');
+		const cleaned = value.trim().replace(regexp5, '');
 
-		const match2 = cleaned.match(new RegExp(regexp7));
+		const match2 = cleaned.match(regexp7);
 
 		if (!match2) {
 			return cleaned
@@ -448,7 +448,7 @@ export class FormatString extends Marker {
 	}
 
 	private _toPascalCase(value: string): string {
-		const match = value.match(new RegExp(regexp3));
+		const match = value.match(regexp3);
 		if (!match) {
 			return value;
 		}
@@ -459,7 +459,7 @@ export class FormatString extends Marker {
 	}
 
 	private _toCamelCase(value: string): string {
-		const match = value.match(new RegExp(regexp3));
+		const match = value.match(regexp3);
 		if (!match) {
 			return value;
 		}
@@ -473,8 +473,8 @@ export class FormatString extends Marker {
 	}
 
 	private _toSnakeCase(value: string): string {
-		return value.replace(new RegExp(regexp10), '$1_$2')
-			.replace(new RegExp(regexp9), '_')
+		return value.replace(regexp10, '$1_$2')
+			.replace(regexp9, '_')
 			.toLowerCase();
 	}
 
@@ -662,7 +662,7 @@ export class TextmateSnippet extends Marker {
 export class SnippetParser {
 
 	static escape(value: string): string {
-		return value.replace(new RegExp(regexp1), '\\$&');
+		return value.replace(regexp1, '\\$&');
 	}
 
 	/**
@@ -787,7 +787,7 @@ export class SnippetParser {
 			}
 			this._token = this._scanner.next();
 		}
-		const value = this._scanner.value.substring(start.pos, this._token.pos).replace(new RegExp(regexp12), '$1');
+		const value = this._scanner.value.substring(start.pos, this._token.pos).replace(regexp12, '$1');
 		this._token = this._scanner.next();
 		return value;
 	}

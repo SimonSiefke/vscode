@@ -474,7 +474,7 @@ export interface IMcpPrompt {
 	resolve(args: Record<string, string | undefined>, token?: CancellationToken): Promise<IMcpPromptMessage[]>;
 }
 
-export const mcpPromptReplaceSpecialChars = (s: string) => s.replace(new RegExp(regexpZ0), '_');
+export const mcpPromptReplaceSpecialChars = (s: string) => s.replace(regexpZ0, '_');
 
 export const mcpPromptPrefix = (definition: McpDefinitionReference) =>
 	`/mcp.` + mcpPromptReplaceSpecialChars(definition.label);

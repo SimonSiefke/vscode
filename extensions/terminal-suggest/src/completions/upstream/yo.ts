@@ -4,7 +4,7 @@ function toTitleCase(str: string): string {
 	return str
 		.trim()
 		.replace(
-			new RegExp(regexp1),
+			new RegExp(regexp1.source, regexp1.flags),
 			(txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
 		);
 }

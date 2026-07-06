@@ -37,7 +37,7 @@ describe('NesXtabHistoryTracker', () => {
 
 	/** Strip trailing whitespace from each line to avoid fragile snapshots. */
 	function stripTrailingWhitespace(s: string): string {
-		return s.replace(new RegExp(regexp1), '');
+		return s.replace(regexp1, '');
 	}
 
 	it('1 line, 1 edit', () => {

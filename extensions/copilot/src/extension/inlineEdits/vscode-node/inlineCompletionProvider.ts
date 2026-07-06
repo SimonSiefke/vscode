@@ -779,7 +779,7 @@ function addNotebookTelemetry(document: TextDocument, position: Position, newTex
 	if (!cell || !notebook || !documents.length) {
 		return;
 	}
-	const cellMarkerCount = newText.match(new RegExp(regexpVscodeCellId))?.length || 0;
+	const cellMarkerCount = newText.match(regexpVscodeCellId)?.length || 0;
 	const cellMarkerIndex = newText.indexOf('#%% vscode.cell [id=');
 	const isMultiline = newText.includes('\n');
 	const targetEol = documents[0][0].eol === EndOfLine.CRLF ? '\r\n' : '\n';

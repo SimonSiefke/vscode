@@ -667,12 +667,12 @@ function compareRepositoryLabel(repositoryRoot1: string, repositoryRoot2: string
 }
 
 function sanitizeBranchName(name: string, whitespaceChar: string): string {
-	return name ? name.trim().replace(regexp3, '').replace(new RegExp(regexpLockLock), whitespaceChar) : name;
+	return name ? name.trim().replace(regexp3, '').replace(regexpLockLock, whitespaceChar) : name;
 }
 
 function sanitizeRemoteName(name: string) {
 	name = name.trim();
-	return name && name.replace(new RegExp(regexpLockLock), '-');
+	return name && name.replace(regexpLockLock, '-');
 }
 
 enum PushType {
@@ -3554,8 +3554,8 @@ export class CommandCenter {
 
 		const { commitish, branch } = worktreeDetails;
 		const worktreeName = ((branch ?? commitish).startsWith(branchPrefix)
-			? (branch ?? commitish).substring(branchPrefix.length).replace(new RegExp(regexp6), '-')
-			: (branch ?? commitish).replace(new RegExp(regexp6), '-'));
+			? (branch ?? commitish).substring(branchPrefix.length).replace(regexp6, '-')
+			: (branch ?? commitish).replace(regexp6, '-'));
 
 		// Get path for the new worktree
 		const worktreePath = await this.getWorktreePath(repository, worktreeName);
@@ -5305,7 +5305,7 @@ export class CommandCenter {
 			ignoreFocusOut: true
 		});
 
-		const name = inputTagName.replace(new RegExp(regexpLockLock1), '-');
+		const name = inputTagName.replace(regexpLockLock1, '-');
 		await repository.tag({ name, message: inputMessage, ref });
 	}
 

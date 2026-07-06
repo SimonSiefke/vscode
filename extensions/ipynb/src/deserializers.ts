@@ -98,7 +98,7 @@ function sortOutputItemsBasedOnDisplayOrder(outputItems: NotebookCellOutputItem[
  * Same is done in serializer as well.
  */
 function concatMultilineCellSource(source: string | string[]): string {
-	return concatMultilineString(source).replace(new RegExp(regexp1), '\n');
+	return concatMultilineString(source).replace(regexp1, '\n');
 }
 
 function concatMultilineString(str: string | string[]): string {

@@ -466,5 +466,5 @@ function sanitizeFontFamilyForClassName(fontFamily: string): string {
 }
 
 function cleanClassName(className: string): string {
-	return className.replace(new RegExp(regexpZ0), '-');
+	return className.replace(regexpZ0, '-');
 }

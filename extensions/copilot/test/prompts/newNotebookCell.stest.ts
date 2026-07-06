@@ -164,7 +164,7 @@ ssuite({ title: 'newNotebook', subtitle: 'prompt', location: 'panel' }, () => {
 // }
 
 async function validatePythonCode(accessor: ITestingServicesAccessor, pythonCode: string): Promise<boolean> {
-	const escapedPythonCode = pythonCode.replace(new RegExp(regexp1), 'BACKTICK_PLACEHOLDER');
+	const escapedPythonCode = pythonCode.replace(regexp1, 'BACKTICK_PLACEHOLDER');
 	const validateCode = `
 import codeop
 import re

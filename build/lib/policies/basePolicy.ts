@@ -38,9 +38,9 @@ export abstract class BasePolicy implements Policy {
 
 	renderADMX(regKey: string) {
 		return [
-			`<policy name="${this.name}" class="Both" displayName="$(string.${this.name})" explainText="$(string.${this.name}_${this.description.nlsKey.replace(new RegExp(regexp1), '_')})" key="Software\\Policies\\Microsoft\\${regKey}" presentation="$(presentation.${this.name})">`,
+			`<policy name="${this.name}" class="Both" displayName="$(string.${this.name})" explainText="$(string.${this.name}_${this.description.nlsKey.replace(regexp1, '_')})" key="Software\\Policies\\Microsoft\\${regKey}" presentation="$(presentation.${this.name})">`,
 			`	<parentCategory ref="${this.category.name.nlsKey}" />`,
-			`	<supportedOn ref="Supported_${this.minimumVersion.replace(new RegExp(regexp1), '_')}" />`,
+			`	<supportedOn ref="Supported_${this.minimumVersion.replace(regexp1, '_')}" />`,
 			`	<elements>`,
 			...this.renderADMXElements(),
 			`	</elements>`,

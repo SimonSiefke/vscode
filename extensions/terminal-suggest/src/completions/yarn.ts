@@ -126,7 +126,7 @@ const configList: Fig.Generator = {
 			// TODO: fix hacky code
 			// reason: JSON parse was not working without double quotes
 			output = output
-				.replace(new RegExp(regexp1), '\'')
+				.replace(regexp1, '\'')
 				.replace('lastUpdateCheck', '\'lastUpdateCheck\'')
 				.replace('registry', '\'lastUpdateCheck\'');
 			const configObject = JSON.parse(output);

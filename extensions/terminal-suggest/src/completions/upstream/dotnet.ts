@@ -210,7 +210,7 @@ const completionSpec: Fig.Spec = {
 	],
 	subcommands: commands,
 	async generateSpec(_, executeShellCommand) {
-		const argRegex = new RegExp(regexpZA);
+		const argRegex = new RegExp(regexpZA.source, regexpZA.flags);
 
 		const subcommands: Fig.Subcommand[] = [];
 		const { stdout } = await executeShellCommand({

@@ -429,8 +429,8 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 		const model = this.modelObjectForTelemetry(options);
 		const filePath = this.promptPathRepresentationService.getFilePath(document.uri);
 		const eol = document instanceof TextDocumentSnapshot && document.eol === EndOfLine.CRLF ? '\r\n' : '\n';
-		const oldString = removeLeadingFilepathComment(input.oldString, document.languageId, filePath).replace(new RegExp(regexp2), eol);
-		const newString = removeLeadingFilepathComment(input.newString, document.languageId, filePath).replace(new RegExp(regexp2), eol);
+		const oldString = removeLeadingFilepathComment(input.oldString, document.languageId, filePath).replace(regexp2, eol);
+		const newString = removeLeadingFilepathComment(input.newString, document.languageId, filePath).replace(regexp2, eol);
 
 		// Apply the edit using the improved applyEdit function that uses VS Code APIs
 		let updatedFile: string;

@@ -183,7 +183,7 @@ function isLoopbackUrl(url: string): boolean {
 		return false;
 	}
 	// Strip IPv6 brackets if present (e.g. `[::1]`).
-	const host = hostname.replace(new RegExp(regexp1), '').toLowerCase();
+	const host = hostname.replace(regexp1, '').toLowerCase();
 	return host === 'localhost' || host === '::1' || regexp2.test(host);
 }
 

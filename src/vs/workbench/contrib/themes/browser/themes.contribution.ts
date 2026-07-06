@@ -778,7 +778,7 @@ registerAction2(class extends Action2 {
 			colors: resultingColors,
 			tokenColors: theme.tokenColors.filter(t => !!t.scope)
 		}, null, '\t');
-		contents = contents.replace(new RegExp(regexp1), '//"');
+		contents = contents.replace(regexp1, '//"');
 
 		const editorService = accessor.get(IEditorService);
 		return editorService.openEditor({ resource: undefined, contents, languageId: 'jsonc', options: { pinned: true } });

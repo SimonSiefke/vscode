@@ -327,7 +327,7 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 	/** try extracting from JSON string array */
 	private static _parseReplyAsJSONStringArray(reply: string) {
 
-		const jsonArrayRe = new RegExp(regexp1); // `s` regex flag allows matching newlines using `.`
+		const jsonArrayRe = new RegExp(regexp1.source, regexp1.flags); // `s` regex flag allows matching newlines using `.`
 
 		const matches = [...reply.matchAll(jsonArrayRe)];
 
@@ -353,7 +353,7 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 
 	private static _parseReplyAsList(reply: string) {
 		// try extracting from an ordered or unordered list
-		const listLineRe = new RegExp(regexp2);
+		const listLineRe = new RegExp(regexp2.source, regexp2.flags);
 		const matches = reply.matchAll(listLineRe);
 
 		const symbolNames: string[] = [];

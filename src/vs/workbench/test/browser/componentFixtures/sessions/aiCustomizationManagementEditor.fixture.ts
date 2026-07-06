@@ -527,7 +527,7 @@ function renderFixtureMarkdown(markdown: string): HTMLElement {
 		}
 
 		const paragraph = DOM.append(container, DOM.$('p'));
-		paragraph.textContent = line.replace(new RegExp(regexp2), '');
+		paragraph.textContent = line.replace(regexp2, '');
 		index++;
 	}
 

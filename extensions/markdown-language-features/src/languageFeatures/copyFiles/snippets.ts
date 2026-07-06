@@ -10,7 +10,7 @@ const regexp2 = /\\\//g;
  * Resolves variables in a VS Code snippet style string
  */
 export function resolveSnippet(snippetString: string, vars: ReadonlyMap<string, string>): string {
-	return snippetString.replaceAll(new RegExp(regexpEscapeNamePattern), (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
+	return snippetString.replaceAll(regexpEscapeNamePattern, (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
 		if (groups?.['escape']) {
 			return '$';
 		}
@@ -30,6 +30,6 @@ export function resolveSnippet(snippetString: string, vars: ReadonlyMap<string, 
 
 
 function replaceTransformEscapes(str: string): string {
-	return str.replaceAll(new RegExp(regexp2), '/');
+	return str.replaceAll(regexp2, '/');
 }
 

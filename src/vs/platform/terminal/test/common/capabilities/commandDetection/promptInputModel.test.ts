@@ -62,7 +62,7 @@ suite('PromptInputModel', () => {
 		);
 
 		// This is required to ensure the cursor index is correctly resolved for non-ascii characters
-		const value = valueWithCursor.replace(new RegExp(regexp1), '');
+		const value = valueWithCursor.replace(regexp1, '');
 		const cursorIndex = valueWithCursor.indexOf('|');
 		strictEqual(promptInputModel.value, value);
 		strictEqual(promptInputModel.cursorIndex, cursorIndex, `value=${promptInputModel.value}`);

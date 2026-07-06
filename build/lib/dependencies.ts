@@ -20,7 +20,7 @@ function getNpmProductionDependencies(folder: string): string[] {
 	try {
 		raw = cp.execSync('npm ls --all --omit=dev --parseable', { cwd: folder, encoding: 'utf8', env: { ...process.env, NODE_ENV: 'production' }, stdio: [null, null, null] });
 	} catch (err) {
-		const regex = new RegExp(regexpNpmERR);
+		const regex = new RegExp(regexpNpmERR.source, regexpNpmERR.flags);
 		let match: RegExpExecArray | null;
 
 		while (match = regex.exec(err.message)) {

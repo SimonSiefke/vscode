@@ -254,5 +254,5 @@ export = new class implements eslint.Rule.RuleModule {
  */
 function getRelativeFilename(context: eslint.Rule.RuleContext): string {
 	const filename = path.normalize(context.getFilename());
-	return filename.substring(REPO_ROOT.length).replace(new RegExp(regexp3), '/');
+	return filename.substring(REPO_ROOT.length).replace(regexp3, '/');
 }

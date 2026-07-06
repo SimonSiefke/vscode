@@ -92,7 +92,7 @@ export function getOutputText(mimeType: string, buffer: IOutputItemDto, shortErr
 	if (buffer.data.byteLength > charLimit) {
 		text = text + '...(truncated)';
 	} else if (mimeType === 'application/vnd.code.notebook.error') {
-		text = text.replace(new RegExp(regexp1), '');
+		text = text.replace(regexp1, '');
 		try {
 			const error = JSON.parse(text) as Error;
 			if (!error.stack || shortError) {

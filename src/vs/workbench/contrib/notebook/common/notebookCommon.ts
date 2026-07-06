@@ -686,7 +686,7 @@ export namespace CellUri {
 	}
 }
 
-const normalizeSlashes = (str: string) => isWindows ? str.replace(new RegExp(regexp1), '\\') : str;
+const normalizeSlashes = (str: string) => isWindows ? str.replace(regexp1, '\\') : str;
 
 interface IMimeTypeWithMatcher {
 	pattern: string;
@@ -1168,7 +1168,7 @@ function fixBackspace(txt: string) {
 	do {
 		txt = tmp;
 		// Cancel out anything-but-newline followed by backspace
-		tmp = txt.replace(new RegExp(regexp2), '');
+		tmp = txt.replace(regexp2, '');
 	} while (tmp.length < txt.length);
 	return txt;
 }
@@ -1178,8 +1178,8 @@ function fixBackspace(txt: string) {
  * From https://github.com/jupyter/notebook/blob/master/notebook/static/base/js/utils.js
  */
 function fixCarriageReturn(txt: string) {
-	txt = txt.replace(new RegExp(regexp3), '\n'); // \r followed by \n --> newline
-	while (txt.search(new RegExp(regexp8)) > -1) {
+	txt = txt.replace(regexp3, '\n'); // \r followed by \n --> newline
+	while (txt.search(regexp8) > -1) {
 		const base = txt.match(regexp4)![1];
 		let insert = txt.match(regexp5)![1];
 		insert = insert + base.slice(insert.length, base.length);

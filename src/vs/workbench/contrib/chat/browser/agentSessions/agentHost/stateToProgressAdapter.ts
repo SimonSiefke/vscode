@@ -726,7 +726,7 @@ function getTerminalOutput(tc: ToolCallState) {
 	// so a lone `\n` only advances the row without resetting the column (producing a
 	// staircase). SDK terminal tools return plain text with `\n` line endings, so
 	// normalize to `\r\n` here. The replace is idempotent on already-CRLF input.
-	return { text: text.replace(new RegExp(regexp1), '\r\n') };
+	return { text: text.replace(regexp1, '\r\n') };
 }
 
 function isToolResultTextContent(content: ToolResultContent): content is Extract<ToolResultContent, { type: ToolResultContentType.Text }> {
@@ -1389,7 +1389,7 @@ const ADD_COMMENT_PREVIEW_LENGTH = 40;
  * {@link ADD_COMMENT_PREVIEW_LENGTH} characters with a trailing ellipsis.
  */
 function addCommentPreview(text: string): string {
-	const singleLine = text.replace(new RegExp(regexp3), ' ').trim();
+	const singleLine = text.replace(regexp3, ' ').trim();
 	return singleLine.length > ADD_COMMENT_PREVIEW_LENGTH
 		? `${singleLine.slice(0, ADD_COMMENT_PREVIEW_LENGTH)}…`
 		: singleLine;

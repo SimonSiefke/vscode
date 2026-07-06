@@ -253,5 +253,5 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 }
 
 function stripNewLines(str: string): string {
-	return str.replace(new RegExp(regexp2), '');
+	return str.replace(regexp2, '');
 }

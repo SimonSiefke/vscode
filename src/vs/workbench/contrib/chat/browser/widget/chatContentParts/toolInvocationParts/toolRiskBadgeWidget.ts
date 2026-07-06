@@ -144,7 +144,7 @@ export class ToolRiskBadgeWidget extends Disposable {
 	private _refreshDetailsHover(): void {
 		this._detailsHoverStore.clear();
 		const md = this._buildDetailsMarkdown();
-		const fallback = md.value.replace(new RegExp(regexp1), '');
+		const fallback = md.value.replace(regexp1, '');
 		this._detailsHoverStore.add(this._hoverService.setupManagedHover(
 			getDefaultHoverDelegate('element'),
 			this._detailsIconEl,

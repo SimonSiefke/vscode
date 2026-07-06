@@ -26,7 +26,7 @@ const regexp2 = /^\/([a-z]):/i;
 export function computeFolderSlug(folderUri: URI): string {
 	return folderUri.path
 		.replace(regexp2, (_, driveLetter: string) => driveLetter.toUpperCase() + '-')
-		.replace(new RegExp(regexp1), '-');
+		.replace(regexp1, '-');
 }
 
 // #endregion

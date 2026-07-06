@@ -106,7 +106,7 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 		let line = 1;
 		const content: string[] = [];
 		for (const e of elements) {
-			content.push(e.toString().replace(new RegExp(regexp1), ''));
+			content.push(e.toString().replace(regexp1, ''));
 			this._elementPositionMap.set(e.getId(), new Position(line, 1));
 			line++;
 			if (dataSource.hasChildren(e)) {

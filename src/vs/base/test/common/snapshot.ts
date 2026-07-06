@@ -19,8 +19,8 @@ declare const __mkdirPInTests: (path: string) => Promise<void>;
 
 // setup on import so assertSnapshot has the current context without explicit passing
 let context: Lazy<SnapshotContext> | undefined;
-const sanitizeName = (name: string) => name.replace(new RegExp(regexpZ0), '_');
-const normalizeCrlf = (str: string) => str.replace(new RegExp(regexp2), '\n');
+const sanitizeName = (name: string) => name.replace(regexpZ0, '_');
+const normalizeCrlf = (str: string) => str.replace(regexp2, '\n');
 
 export interface ISnapshotOptions {
 	/** Name for snapshot file, rather than an incremented number */
@@ -49,7 +49,7 @@ export class SnapshotContext {
 		}
 
 		const src = URI.joinPath(FileAccess.asFileUri(''), '../src');
-		const parts = test.file.split(new RegExp(regexp3));
+		const parts = test.file.split(regexp3);
 
 		this.namePrefix = sanitizeName(test.fullTitle()) + '.';
 		this.snapshotsDir = URI.joinPath(src, ...[...parts.slice(0, -1), '__snapshots__']);

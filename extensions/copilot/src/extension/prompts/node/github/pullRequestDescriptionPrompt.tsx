@@ -99,11 +99,11 @@ interface GitHubPullRequestUserMessageProps extends BasePromptElementProps {
 
 class GitHubPullRequestUserMessage extends PromptElement<GitHubPullRequestUserMessageProps> {
 	render() {
-		const formattedCommitMessages = this.props.commitMessages.map(commit => `"${commit.replace(new RegExp(regexp1), '. ')}"`).join(', ');
+		const formattedCommitMessages = this.props.commitMessages.map(commit => `"${commit.replace(regexp1, '. ')}"`).join(', ');
 		const formattedPatches = this.props.patches.map(patch => <>```diff<br />{patch}<br />```<br /></>);
 		const normalizedCompareBranch = this.props.compareBranch
-			?.replace(new RegExp(regexp3), ' ')
-			.replace(new RegExp(regexp2), ' ')
+			?.replace(regexp3, ' ')
+			.replace(regexp2, ' ')
 			.trim();
 		const escapedCompareBranch = normalizedCompareBranch ? JSON.stringify(normalizedCompareBranch) : undefined;
 		return (

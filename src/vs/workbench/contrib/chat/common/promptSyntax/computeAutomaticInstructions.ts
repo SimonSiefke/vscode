@@ -651,9 +651,9 @@ export function getFilePath(uri: URI, remoteOS: OperatingSystem | undefined, isR
 		// to match the remote OS (idempotent when local and remote match).
 		if (remoteOS !== undefined) {
 			if (remoteOS === OperatingSystem.Windows) {
-				return fsPath.replace(new RegExp(regexp1), '\\');
+				return fsPath.replace(regexp1, '\\');
 			}
-			return fsPath.replace(new RegExp(regexp2), '/');
+			return fsPath.replace(regexp2, '/');
 		}
 		return fsPath;
 	}

@@ -1073,7 +1073,7 @@ export function parseWWWAuthenticateHeader(wwwAuthenticateHeaderValue: string): 
 					const equalIndex = afterSpace.indexOf('=');
 					if (equalIndex > 0) {
 						const key = afterSpace.substring(0, equalIndex).trim();
-						const value = afterSpace.substring(equalIndex + 1).trim().replace(new RegExp(regexp1), '');
+						const value = afterSpace.substring(equalIndex + 1).trim().replace(regexp1, '');
 						if (key && value !== undefined) {
 							currentChallenge.params[key] = value;
 						}
@@ -1087,7 +1087,7 @@ export function parseWWWAuthenticateHeader(wwwAuthenticateHeaderValue: string): 
 				const equalIndex = token.indexOf('=');
 				if (equalIndex > 0) {
 					const key = token.substring(0, equalIndex).trim();
-					const value = token.substring(equalIndex + 1).trim().replace(new RegExp(regexp1), '');
+					const value = token.substring(equalIndex + 1).trim().replace(regexp1, '');
 					if (key && value !== undefined) {
 						currentChallenge.params[key] = value;
 					}

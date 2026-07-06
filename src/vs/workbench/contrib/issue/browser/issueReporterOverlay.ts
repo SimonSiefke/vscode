@@ -2357,7 +2357,7 @@ ${rows.map(row => row.map(value => this.escapeMarkdownTableCell(value ?? '')).jo
 	}
 
 	private escapeMarkdownTableCell(value: string): string {
-		return value.replace(new RegExp(regexp6), '<br>').replace(new RegExp(regexp5), '\\|');
+		return value.replace(regexp6, '<br>').replace(regexp5, '\\|');
 	}
 
 	setUpdateAvailable(showUpdateBanner: boolean): void {

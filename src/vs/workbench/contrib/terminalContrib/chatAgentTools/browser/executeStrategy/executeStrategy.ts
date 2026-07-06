@@ -300,7 +300,7 @@ export async function trackIdleOnPrompt(
 		initialFallbackScheduler.cancel();
 		// Update state
 		// p10k fires C as `133;C;`
-		const matches = e.matchAll(new RegExp(regexpTypeACD));
+		const matches = e.matchAll(regexpTypeACD);
 		for (const match of matches) {
 			if (match.groups?.type === 'A') {
 				if (state === TerminalState.Initial) {

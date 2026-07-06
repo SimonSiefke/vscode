@@ -62,8 +62,8 @@ export const terminalSendSequenceCommand = async (accessor: ServicesAccessor, ar
 			}
 			// Process escape sequences
 			let processedText = text
-				.replace(new RegExp(regexp2), '\n')
-				.replace(new RegExp(regexp1), '\r');
+				.replace(regexp2, '\n')
+				.replace(regexp1, '\r');
 
 			// Process hex escape sequences (\xNN)
 			while (true) {

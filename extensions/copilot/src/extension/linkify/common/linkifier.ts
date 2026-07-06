@@ -274,7 +274,7 @@ export class Linkifier implements ILinkifier {
 		if (!options.skipUnlikify) {
 			parts = parts.map(part => {
 				if (typeof part === 'string') {
-					return part.replaceAll(new RegExp(regexp14), (matched, text, path) => {
+					return part.replaceAll(regexp14, (matched, text, path) => {
 						// Always preserve product URI scheme links
 						if (path.startsWith(this.productUriScheme + ':')) {
 							return matched;

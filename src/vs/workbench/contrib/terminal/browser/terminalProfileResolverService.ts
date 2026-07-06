@@ -321,7 +321,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 			const isWoW64 = !!env.hasOwnProperty('PROCESSOR_ARCHITEW6432');
 			const windir = env.windir;
 			if (!isWoW64 && windir) {
-				const sysnativePath = path.join(windir, 'Sysnative').replace(new RegExp(regexp2), '\\').toLowerCase();
+				const sysnativePath = path.join(windir, 'Sysnative').replace(regexp2, '\\').toLowerCase();
 				if (profile.path && profile.path.toLowerCase().indexOf(sysnativePath) === 0) {
 					profile.path = path.join(windir, 'System32', profile.path.substr(sysnativePath.length + 1));
 				}
@@ -329,7 +329,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 
 			// Convert / to \ on Windows for convenience
 			if (profile.path) {
-				profile.path = profile.path.replace(new RegExp(regexp2), '\\');
+				profile.path = profile.path.replace(regexp2, '\\');
 			}
 		}
 

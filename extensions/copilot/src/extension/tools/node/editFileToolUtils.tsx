@@ -103,7 +103,7 @@ export class ContentFormatError extends EditError {
  * Escapes special regex characters in a string.
  */
 function escapeRegex(str: string): string {
-	return str.replace(new RegExp(regexp1), '\\$&');
+	return str.replace(regexp1, '\\$&');
 }
 
 /**
@@ -531,9 +531,9 @@ function getPatch({ fileContents, oldStr, newStr }: { fileContents: string; oldS
 	// Simplified patch generation - in a real implementation this would generate proper diff hunks
 	return [{
 		oldStart: 1,
-		oldLines: (oldStr.match(new RegExp(regexp2)) || []).length + 1,
+		oldLines: (oldStr.match(regexp2) || []).length + 1,
 		newStart: 1,
-		newLines: (newStr.match(new RegExp(regexp2)) || []).length + 1,
+		newLines: (newStr.match(regexp2) || []).length + 1,
 		lines: []
 	}];
 }
@@ -595,8 +595,8 @@ export async function applyEdit(
 		originalFile = document.getText();
 
 		const eol = document instanceof TextDocumentSnapshot && document.eol === EndOfLine.CRLF ? '\r\n' : '\n';
-		old_string = old_string.replace(new RegExp(regexp3), eol);
-		new_string = new_string.replace(new RegExp(regexp3), eol);
+		old_string = old_string.replace(regexp3, eol);
+		new_string = new_string.replace(regexp3, eol);
 
 		if (isFalsyOrWhitespace(originalFile) && isFalsyOrWhitespace(old_string)) {
 			updatedFile = new_string;

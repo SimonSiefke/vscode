@@ -7,5 +7,5 @@ const regexp1 = /"/g;
 
 
 export function escapeAttribute(value: string | vscode.Uri): string {
-	return value.toString().replace(new RegExp(regexp1), '&quot;');
+	return value.toString().replace(regexp1, '&quot;');
 }

@@ -76,7 +76,7 @@ export abstract class AlternativeNotebookDocument {
 
 	get lines(): string[] {
 		if (!this._lines) {
-			this._lines = this._text.split(new RegExp(regexp1));
+			this._lines = this._text.split(regexp1);
 		}
 		return this._lines;
 	}

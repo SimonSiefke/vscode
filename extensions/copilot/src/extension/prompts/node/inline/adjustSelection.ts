@@ -232,7 +232,7 @@ function moveToEndOfLineOverWhitespace(root: LinkedOverlayNode, end: number): nu
 }
 
 function debugstr(str: string) {
-	return str.replace(new RegExp(regexp4), '\\r').replace(new RegExp(regexp3), '\\n').replace(new RegExp(regexp2), '\\t');
+	return str.replace(regexp4, '\\r').replace(regexp3, '\\n').replace(regexp2, '\\t');
 }
 
 /**

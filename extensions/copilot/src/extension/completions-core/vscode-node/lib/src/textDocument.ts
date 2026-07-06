@@ -281,7 +281,7 @@ export class CopilotTextDocument implements ITextDocument {
 			throw new RangeError('Illegal value for lineNumber');
 		}
 		const rangeWithNewline = Range.create(lineNumber, 0, lineNumber + 1, 0);
-		const text = this.getText(rangeWithNewline).replace(new RegExp(regexp1), '');
+		const text = this.getText(rangeWithNewline).replace(regexp1, '');
 		const range = Range.create(Position.create(lineNumber, 0), Position.create(lineNumber, text.length));
 
 		const isEmptyOrWhitespace = text.trim().length === 0;

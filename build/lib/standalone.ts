@@ -75,7 +75,7 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 			let fileContents = result[fileName];
 			// Replace .ts? with .js? in new URL() patterns
 			fileContents = fileContents.replace(
-				new RegExp(regexpNewURLTs),
+				new RegExp(regexpNewURLTs.source, regexpNewURLTs.flags),
 				'$1.js$2'
 			);
 			const relativePath = path.relative(options.sourcesRoot, fileName);
@@ -170,12 +170,12 @@ function transportCSS(module: string, enqueue: (module: string) => void, write: 
 			if (!forceBase64 && regexpSvg.test(url)) {
 				// .svg => url encode as explained at https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
 				const newText = fileContents.toString()
-					.replace(new RegExp(regexp13), '\'')
-					.replace(new RegExp(regexp12), '%3C')
-					.replace(new RegExp(regexp11), '%3E')
-					.replace(new RegExp(regexp10), '%26')
-					.replace(new RegExp(regexp9), '%23')
-					.replace(new RegExp(regexp8), ' ');
+					.replace(regexp13, '\'')
+					.replace(regexp12, '%3C')
+					.replace(regexp11, '%3E')
+					.replace(regexp10, '%26')
+					.replace(regexp9, '%23')
+					.replace(regexp8, ' ');
 				const encodedData = ',' + newText;
 				if (encodedData.length < DATA.length) {
 					DATA = encodedData;
@@ -187,7 +187,7 @@ function transportCSS(module: string, enqueue: (module: string) => void, write: 
 
 	function _replaceURL(contents: string, replacer: (url: string) => string): string {
 		// Use ")" as the terminator as quotes are oftentimes not used at all
-		return contents.replace(new RegExp(regexpUrl), (_: string, ...matches: string[]) => {
+		return contents.replace(regexpUrl, (_: string, ...matches: string[]) => {
 			let url = matches[0];
 			// Eliminate starting quotes (the initial whitespace is not captured)
 			if (url.charAt(0) === '"' || url.charAt(0) === '\'') {

@@ -1091,7 +1091,7 @@ suite('stateToProgressAdapter', () => {
 			});
 
 			assert.strictEqual(fileEdits.length, 1);
-			assert.strictEqual(fileEdits[0].resource.fsPath.replace(new RegExp(regexp1), '/'), '/home/user/file.ts');
+			assert.strictEqual(fileEdits[0].resource.fsPath.replace(regexp1, '/'), '/home/user/file.ts');
 			assert.strictEqual(fileEdits[0].beforeContentUri?.toString(), URI.parse('agenthost-content:///session/snap/before').toString());
 			assert.strictEqual(fileEdits[0].afterContentUri?.toString(), URI.parse('agenthost-content:///session/snap/after').toString());
 			assert.ok(fileEdits[0].undoStopId);
@@ -1233,7 +1233,7 @@ suite('stateToProgressAdapter', () => {
 
 			assert.strictEqual(fileEdits.length, 1);
 			assert.strictEqual(fileEdits[0].kind, 'create');
-			assert.strictEqual(fileEdits[0].resource.fsPath.replace(new RegExp(regexp1), '/'), '/home/user/new-file.ts');
+			assert.strictEqual(fileEdits[0].resource.fsPath.replace(regexp1, '/'), '/home/user/new-file.ts');
 			assert.strictEqual(fileEdits[0].beforeContentUri, undefined);
 			assert.ok(fileEdits[0].afterContentUri);
 		});

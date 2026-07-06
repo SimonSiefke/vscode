@@ -357,6 +357,6 @@ export function merge(base: IStringDictionary<unknown>, add: IStringDictionary<u
 export function getLanguageTagSettingPlainKey(settingKey: string) {
 	return settingKey
 		.replace(regexp3, '')
-		.replace(new RegExp(regexp2), '')
-		.replace(new RegExp(regexp1), ', ');
+		.replace(regexp2, '')
+		.replace(regexp1, ', ');
 }

@@ -164,7 +164,7 @@ function collectCargoLockDeps(filePath: string): ManifestPackage[] {
 	const results: ManifestPackage[] = [];
 	try {
 		const content = fs.readFileSync(filePath, 'utf8');
-		const blockRe = new RegExp(regexpPackage);
+		const blockRe = new RegExp(regexpPackage.source, regexpPackage.flags);
 		let m: RegExpExecArray | null;
 		while ((m = blockRe.exec(content)) !== null) {
 			const block = m[1];
@@ -508,7 +508,7 @@ function main(): void {
 	const lockfileBreakdown = new Map<string, number>();
 	for (const f of packageLockFiles) {
 		const deps = collectPackageLockDeps(f);
-		const relPath = path.relative(repoRoot, f).replace(new RegExp(regexp9), '/');
+		const relPath = path.relative(repoRoot, f).replace(regexp9, '/');
 		lockfileBreakdown.set(relPath, deps.length);
 		allManifestPkgs.push(...deps);
 	}

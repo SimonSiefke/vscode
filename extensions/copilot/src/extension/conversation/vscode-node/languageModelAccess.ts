@@ -314,7 +314,7 @@ export class LanguageModelAccess extends Disposable implements IExtensionContrib
 			seenFamilies.add(endpoint.family);
 
 			const sanitizedModelName = endpoint.name
-				.replace(new RegExp(regexpBcontext), '')
+				.replace(regexpBcontext, '')
 				.trim();
 			let modelTooltip: string | undefined;
 			if (endpoint.degradationReason) {

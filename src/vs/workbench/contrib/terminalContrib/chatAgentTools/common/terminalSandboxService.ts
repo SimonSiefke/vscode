@@ -201,7 +201,7 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 		} else {
 			value = uri.fsPath;
 		}
-		return value.replace(new RegExp(regexp2), '\\');
+		return value.replace(regexp2, '\\');
 	}
 
 	private async _resolveUserHome(): Promise<URI | undefined> {

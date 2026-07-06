@@ -88,7 +88,7 @@ function convertLineEditToEdit(nextLineEdit: LineEdit, document: StringText): St
 	// line endings and the resulting content matches what VS Code reports.
 	if (document.value.includes('\r\n')) {
 		return new StringEdit(suggestedEdit.replacements.map(
-			r => new StringReplacement(r.replaceRange, r.newText.replace(new RegExp(regexp1), '\r\n'))
+			r => new StringReplacement(r.replaceRange, r.newText.replace(regexp1, '\r\n'))
 		));
 	}
 	return suggestedEdit;

@@ -23,7 +23,7 @@ export interface NotebookCellExecutionSummary {
 declare type OutputType = 'execute_result' | 'display_data' | 'stream' | 'error' | 'update_display_data';
 
 function concatMultilineString(str: string | string[], trim?: boolean): string {
-	const nonLineFeedWhiteSpaceTrim = new RegExp(regexp1);
+	const nonLineFeedWhiteSpaceTrim = new RegExp(regexp1.source, regexp1.flags);
 	if (Array.isArray(str)) {
 		let result = '';
 		for (let i = 0; i < str.length; i += 1) {

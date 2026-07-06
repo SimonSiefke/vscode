@@ -308,13 +308,13 @@ class MyCompletionItem extends vscode.CompletionItem {
 		// https://github.com/microsoft/vscode/issues/18131
 
 		const after = line.text.slice(position.character);
-		if (after.match(new RegExp(regexp1))) {
+		if (after.match(regexp1)) {
 			return false;
 		}
 
 		// Don't complete function call if it looks like a jsx tag.
 		const before = line.text.slice(0, position.character);
-		if (before.match(new RegExp(regexp2))) {
+		if (before.match(regexp2)) {
 			return false;
 		}
 

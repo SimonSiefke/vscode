@@ -990,7 +990,7 @@ export class MobileMultiDiffView extends Disposable {
 	}
 
 	private escapeHtml(value: string): string {
-		return value.replace(new RegExp(regexp2), char => {
+		return value.replace(regexp2, char => {
 			switch (char) {
 				case '&': return '&amp;';
 				case '<': return '&lt;';

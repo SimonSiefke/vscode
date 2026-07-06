@@ -603,7 +603,7 @@ function tidyLocation(location: Range | Position): Range {
 }
 
 function wrapInBackticks(str: string) {
-	return '`' + str.replace(new RegExp(regexp1), '') + '`';
+	return '`' + str.replace(regexp1, '') + '`';
 }
 
 function wrapName(functionNameOrCode: string) {

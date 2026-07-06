@@ -149,7 +149,7 @@ export function registerChatOpenAgentDebugPanelAction() {
 
 			const localSessionId = LocalChatSessionUri.parseLocalSessionId(sessionResource);
 			const rawIdentifier = localSessionId ?? (sessionResource.path.replace(regexp1, '') || sessionResource.authority);
-			const sessionIdentifier = rawIdentifier?.replace(new RegExp(regexp3), '_').replace(new RegExp(regexp2), '');
+			const sessionIdentifier = rawIdentifier?.replace(regexp3, '_').replace(regexp2, '');
 			const exportFileName = sessionIdentifier ? `agent-debug-log-${sessionIdentifier}.json` : defaultDebugLogFileName;
 			const defaultUri = joinPath(await fileDialogService.defaultFilePath(), exportFileName);
 			const outputPath = await fileDialogService.showSaveDialog({ defaultUri, filters: debugLogFilters });

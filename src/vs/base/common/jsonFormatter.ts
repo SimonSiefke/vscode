@@ -212,7 +212,7 @@ export function format(documentText: string, range: Range | undefined, options: 
 export function toFormattedString(obj: unknown, options: FormattingOptions) {
 	const content = JSON.stringify(obj, undefined, options.insertSpaces ? options.tabSize || 4 : '\t');
 	if (options.eol !== undefined) {
-		return content.replace(new RegExp(regexp1), options.eol);
+		return content.replace(regexp1, options.eol);
 	}
 	return content;
 }

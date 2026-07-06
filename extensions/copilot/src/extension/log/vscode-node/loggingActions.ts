@@ -576,7 +576,7 @@ function collectFetcherTelemetry(accessor: ServicesAccessor): void {
 		const probeResults: Record<string, string> = {};
 		for (const fetcher of fetchers) {
 			const library = fetcher.getUserAgentLibrary();
-			const key = library.replace(new RegExp(regexp1), '');
+			const key = library.replace(regexp1, '');
 			const requestStartTime = Date.now();
 			try {
 				const response = await sendRawTelemetry(fetcher, envService, oneCollectorTelemetryUrl, extensionContext, 'GitHub.copilot-chat/fetcherTelemetryProbe', {});
@@ -737,7 +737,7 @@ function maskByClass(s: string): string {
 	if (regexpNet.test(s) || ['dev-container', 'attached-container', 'k8s-container', 'ssh-remote'].includes(s)) {
 		return s;
 	}
-	return s.replace(new RegExp(regexp3), (ch) => {
+	return s.replace(regexp3, (ch) => {
 		if (regexp4.test(ch)) {
 			return 'A';
 		}

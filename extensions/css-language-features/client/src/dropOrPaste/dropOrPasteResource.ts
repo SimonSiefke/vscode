@@ -107,7 +107,7 @@ class DropOrPasteResourceProvider implements vscode.DocumentDropEditProvider, vs
 	}
 
 	private pasteAsCssUrlByDefault(document: vscode.TextDocument, position: vscode.Position): boolean {
-		const regex = new RegExp(regexpUrl);
+		const regex = new RegExp(regexpUrl.source, regexpUrl.flags);
 		for (const match of Array.from(document.lineAt(position.line).text.matchAll(regex))) {
 			if (position.character > match.index && position.character < match.index + match[0].length) {
 				return false;

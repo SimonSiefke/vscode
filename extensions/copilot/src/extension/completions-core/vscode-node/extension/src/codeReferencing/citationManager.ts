@@ -59,7 +59,7 @@ export class LoggingCitationManager extends Disposable implements ICompletionsCi
 		const matchLocation = start ? `[Ln ${start.line + 1}, Col ${start.character + 1}]` : 'Location not available';
 		const shortenedMatchText = `${citation.matchingText
 			?.slice(0, 100)
-			.replace(new RegExp(regexp1), ' ')
+			.replace(regexp1, ' ')
 			.trim()}...`;
 
 		this.logger.info(citation.inDocumentUri, `Similar code at `, matchLocation, shortenedMatchText);

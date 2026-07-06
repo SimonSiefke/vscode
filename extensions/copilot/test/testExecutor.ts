@@ -334,7 +334,7 @@ function printVerbose(
 		console.log(`    ${i + 1} - ${result.kind === 'pass' ? green(result.kind) : red(result.kind)}`);
 		if (result.kind === 'fail' && result.message && opts.verbose !== 0) {
 			// indent the message and print
-			console.error(result.message.split(new RegExp(regexp1)).map(line => `      ${line}`).join('\n'));
+			console.error(result.message.split(regexp1).map(line => `      ${line}`).join('\n'));
 		}
 	}
 }

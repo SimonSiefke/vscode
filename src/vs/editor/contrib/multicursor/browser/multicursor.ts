@@ -322,7 +322,7 @@ export class MultiCursorSession {
 			searchText = word.word;
 			currentMatch = new Selection(s.startLineNumber, word.startColumn, s.startLineNumber, word.endColumn);
 		} else {
-			searchText = editor.getModel().getValueInRange(s).replace(new RegExp(regexp1), '\n');
+			searchText = editor.getModel().getValueInRange(s).replace(regexp1, '\n');
 		}
 
 		return new MultiCursorSession(editor, findController, isDisconnectedFromFindController, searchText, wholeWord, matchCase, currentMatch);

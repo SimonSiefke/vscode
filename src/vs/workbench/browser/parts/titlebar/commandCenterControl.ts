@@ -233,7 +233,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 								label = localize('label2', "{0} {1}", label, suffix);
 							}
 
-							return label.replaceAll(new RegExp(regexp1), '\u23CE');
+							return label.replaceAll(regexp1, '\u23CE');
 						}
 					});
 				}

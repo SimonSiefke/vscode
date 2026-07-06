@@ -182,7 +182,7 @@ class FolderDetector {
 						if (line.indexOf('Tasks run in the order specified') === 0) {
 							tasksEnd = true;
 						} else {
-							const regExp = new RegExp(regexp2);
+							const regExp = new RegExp(regexp2.source, regexp2.flags);
 							const matches = regExp.exec(line);
 							if (matches && matches.length === 2) {
 								const name = matches[1];

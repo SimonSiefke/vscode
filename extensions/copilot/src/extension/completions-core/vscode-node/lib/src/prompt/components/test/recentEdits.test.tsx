@@ -150,7 +150,7 @@ File: relative/main.ts
 +++ b/file:///root/relative/main.ts
 @@ -2,1 +2,1 @@
 +  return "hello";
-End of recent edits\n`.replace(new RegExp(regexp1), '\n')
+End of recent edits\n`.replace(regexp1, '\n')
 		);
 	});
 
@@ -204,7 +204,7 @@ File: file-3
 +++ b/file:///root/file-3
 @@ -1,0 +1,1 @@
 +edit-3
-End of recent edits\n`.replace(new RegExp(regexp1), '\n')
+End of recent edits\n`.replace(regexp1, '\n')
 		);
 	});
 
@@ -262,7 +262,7 @@ File: file-3
 +++ b/file:///root/file-3
 @@ -1,0 +1,1 @@
 +edit-3
-End of recent edits\n`.replace(new RegExp(regexp1), '\n')
+End of recent edits\n`.replace(regexp1, '\n')
 		);
 	});
 

@@ -262,7 +262,7 @@ export class GitHubOrgChatResourcesService extends Disposable implements IGitHub
 	}
 
 	private sanitizeFilename(name: string): string {
-		return name.replace(new RegExp(regexpZ0), '_').toLowerCase();
+		return name.replace(regexpZ0, '_').toLowerCase();
 	}
 
 	private async ensureCacheDir(orgName: string, type: PromptsType): Promise<void> {

@@ -26,14 +26,14 @@ const wslPathBackend = {
 			if (!groups) {
 				return original;
 			}
-			return `${groups.drive}:\\${groups.path.replace(new RegExp(regexp2), '\\')}`;
+			return `${groups.drive}:\\${groups.path.replace(regexp2, '\\')}`;
 		}
 		const match = original.match(regexpDriveZAPath);
 		const groups = match?.groups;
 		if (!groups) {
 			return original;
 		}
-		return `/mnt/${groups.drive.toLowerCase()}/${groups.path.replace(new RegExp(regexp4), '/')}`;
+		return `/mnt/${groups.drive.toLowerCase()}/${groups.path.replace(regexp4, '/')}`;
 	}
 };
 

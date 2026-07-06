@@ -238,12 +238,12 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 
 		if (range.isEmpty) {
 			const textAtLine = doc.lineAt(range.start.line).text;
-			if (range.end.character === textAtLine.length && new RegExp(regexp1).test(textAtLine)) {
+			if (range.end.character === textAtLine.length && new RegExp(regexp1.source, regexp1.flags).test(textAtLine)) {
 				codeActionTitle = vscode.l10n.t('Generate');
 			}
 		} else {
 			const textInSelection = doc.getText(range);
-			if (!new RegExp(regexp1).test(textInSelection)) {
+			if (!new RegExp(regexp1.source, regexp1.flags).test(textInSelection)) {
 				codeActionTitle = vscode.l10n.t('Modify');
 			}
 		}

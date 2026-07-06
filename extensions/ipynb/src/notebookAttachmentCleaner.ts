@@ -368,7 +368,7 @@ export class AttachmentCleaner implements vscode.CodeActionProvider {
 	private getAttachmentNames(document: vscode.TextDocument) {
 		const source = document.getText();
 		const filenames: Map<string, { valid: boolean; ranges: vscode.Range[] }> = new Map();
-		const re = new RegExp(regexpAttachmentFilename);
+		const re = new RegExp(regexpAttachmentFilename.source, regexpAttachmentFilename.flags);
 
 		let match;
 		while ((match = re.exec(source))) {

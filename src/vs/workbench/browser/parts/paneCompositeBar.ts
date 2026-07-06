@@ -399,7 +399,7 @@ export class PaneCompositeBar extends Disposable {
 				const cssUrl = asCSSUrl(icon);
 				const hash = new StringSHA1();
 				hash.update(cssUrl);
-				const iconId = `activity-${id.replace(new RegExp(regexp1), '-')}-${hash.digest()}`;
+				const iconId = `activity-${id.replace(regexp1, '-')}-${hash.digest()}`;
 				const iconClass = `.monaco-workbench .${this.options.partContainerClass} .monaco-action-bar .action-label.${iconId}`;
 				classNames = [iconId, 'uri-icon'];
 				createCSSRule(iconClass, `

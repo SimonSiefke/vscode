@@ -85,7 +85,7 @@ export class Graph {
 // --- Dependency scanning & cycle detection ---
 
 export function normalize(p: string): string {
-	return p.replace(new RegExp(regexp1), '/');
+	return p.replace(regexp1, '/');
 }
 
 export function collectJsFiles(dir: string): string[] {

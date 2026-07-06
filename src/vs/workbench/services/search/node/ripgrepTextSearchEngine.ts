@@ -394,7 +394,7 @@ function bytesOrTextToString(obj: any): string {
 }
 
 function getNumLinesAndLastNewlineLength(text: string): { numLines: number; lastLineLength: number } {
-	const re = new RegExp(regexp4);
+	const re = new RegExp(regexp4.source, regexp4.flags);
 	let numLines = 0;
 	let lastNewlineIdx = -1;
 	let match: ReturnType<typeof re.exec>;
@@ -501,7 +501,7 @@ export function getRgArgs(query: TextSearchQuery2, options: RipgrepTextSearchOpt
 	let searchPatternAfterDoubleDashes: Maybe<string>;
 	if (query.isWordMatch) {
 		const regexp = createRegExp(query.pattern, !!query.isRegExp, { wholeWord: query.isWordMatch });
-		const regexpStr = regexp.source.replace(new RegExp(regexp5), '/'); // RegExp.source arbitrarily returns escaped slashes. Search and destroy.
+		const regexpStr = regexp.source.replace(regexp5, '/'); // RegExp.source arbitrarily returns escaped slashes. Search and destroy.
 		args.push('--regexp', regexpStr);
 	} else if (query.isRegExp) {
 		let fixedRegexpQuery = fixRegexNewline(query.pattern);
@@ -556,7 +556,7 @@ function spreadGlobComponents(globComponent: string): string[] {
 
 export function unicodeEscapesToPCRE2(pattern: string): string {
 	// Match \u1234
-	const unicodePattern = new RegExp(regexpZ0);
+	const unicodePattern = new RegExp(regexpZ0.source, regexpZ0.flags);
 
 	while (pattern.match(unicodePattern)) {
 		pattern = pattern.replace(unicodePattern, `$1\\x{$2}`);
@@ -564,7 +564,7 @@ export function unicodeEscapesToPCRE2(pattern: string): string {
 
 	// Match \u{1234}
 	// \u with 5-6 characters will be left alone because \x only takes 4 characters.
-	const unicodePatternWithBraces = new RegExp(regexpZ01);
+	const unicodePatternWithBraces = new RegExp(regexpZ01.source, regexpZ01.flags);
 	while (pattern.match(unicodePatternWithBraces)) {
 		pattern = pattern.replace(unicodePatternWithBraces, `$1\\x{$2}`);
 	}
@@ -681,7 +681,7 @@ export function fixRegexNewline(pattern: string): string {
 }
 
 export function fixNewline(pattern: string): string {
-	return pattern.replace(new RegExp(regexp4), '\\r?\\n');
+	return pattern.replace(regexp4, '\\r?\\n');
 }
 
 // brace expansion for ripgrep

@@ -504,7 +504,7 @@ suite('Strings', () => {
 
 	test('replaceAsync', async () => {
 		let i = 0;
-		assert.strictEqual(await strings.replaceAsync('abcabcabcabc', new RegExp(regexp1), async (match, after) => {
+		assert.strictEqual(await strings.replaceAsync('abcabcabcabc', new RegExp(regexp1.source, regexp1.flags), async (match, after) => {
 			assert.strictEqual(match, 'bc');
 			assert.strictEqual(after, 'c');
 			return `${i++}${after}`;

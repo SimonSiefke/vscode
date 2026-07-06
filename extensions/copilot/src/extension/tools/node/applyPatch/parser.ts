@@ -300,7 +300,7 @@ export class Parser {
 				// ------------------------------------------------------------------
 				const canonLocal = (s: string): string =>
 					s.normalize('NFC').replace(
-						new RegExp(regexp1),
+						new RegExp(regexp1.source, regexp1.flags),
 						(c) =>
 							(
 								({
@@ -473,7 +473,7 @@ export class Parser {
 }
 
 export function replace_explicit_tabs(s: string) {
-	return s.replace(new RegExp(regexp4), r => r.replaceAll('\\t', '\t'));
+	return s.replace(regexp4, r => r.replaceAll('\\t', '\t'));
 }
 
 export function replace_explicit_nl(s: string) {
@@ -536,7 +536,7 @@ function find_context_core(
 			// Canonical Unicode composition first
 			.normalize('NFC')
 			// Replace punctuation look-alikes
-			.replace(new RegExp(regexp1), (c) => PUNCT_EQUIV[c] ?? c);
+			.replace(regexp1, (c) => PUNCT_EQUIV[c] ?? c);
 	if (context.length === 0) {
 		return { line: start, fuzz: Fuzz.None };
 	}

@@ -282,7 +282,7 @@ interface ReleaseRequestMessage {
 }
 
 function getCertificateBuffer(input: string) {
-	return Buffer.from(input.replace(new RegExp(regexpBEGINCERTIFICATEEND), ''), 'base64');
+	return Buffer.from(input.replace(regexpBEGINCERTIFICATEEND, ''), 'base64');
 }
 
 function getThumbprint(input: string, algorithm: string): Buffer {
@@ -299,7 +299,7 @@ function getKeyFromPFX(pfx: string): string {
 		fs.writeFileSync(pfxCertificatePath, pfxCertificate);
 		cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nocerts -nodes -out "${pemKeyPath}" -passin pass:`);
 		const raw = fs.readFileSync(pemKeyPath, 'utf-8');
-		const result = raw.match(new RegExp(regexpBEGINPRIVATEKEY))![0];
+		const result = raw.match(regexpBEGINPRIVATEKEY)![0];
 		return result;
 	} finally {
 		fs.rmSync(pfxCertificatePath, { force: true });
@@ -316,7 +316,7 @@ function getCertificatesFromPFX(pfx: string): string[] {
 		fs.writeFileSync(pfxCertificatePath, pfxCertificate);
 		cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nokeys -out "${pemCertificatePath}" -passin pass:`);
 		const raw = fs.readFileSync(pemCertificatePath, 'utf-8');
-		const matches = raw.match(new RegExp(regexpBEGINCERTIFICATEEND1));
+		const matches = raw.match(regexpBEGINCERTIFICATEEND1);
 		return matches ? matches.reverse() : [];
 	} finally {
 		fs.rmSync(pfxCertificatePath, { force: true });

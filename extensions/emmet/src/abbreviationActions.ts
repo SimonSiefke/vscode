@@ -130,7 +130,7 @@ export async function wrapWithAbbreviation(args: any): Promise<boolean> {
 			textToReplace.split('\n' + baseIndent).map(x => x.trimEnd());
 
 		// escape $ characters, fixes #52640
-		textToWrapInPreview = textToWrapInPreview.map(e => e.replace(new RegExp(regexp2), '\\$1'));
+		textToWrapInPreview = textToWrapInPreview.map(e => e.replace(regexp2, '\\$1'));
 
 		return {
 			previewRange: rangeToReplace,
@@ -171,9 +171,9 @@ export async function wrapWithAbbreviation(args: any): Promise<boolean> {
 				// the text in the preview range with that new text
 				const oldPreviewRange = rangesToReplace[i].previewRange;
 				const newText = expandedText
-					.replace(new RegExp(regexp5), '|') // Removing Tabstops
-					.replace(new RegExp(regexp4), (_, placeholder) => placeholder) // Replacing Placeholders
-					.replace(new RegExp(regexp3), '$'); // Remove backslashes before $
+					.replace(regexp5, '|') // Removing Tabstops
+					.replace(regexp4, (_, placeholder) => placeholder) // Replacing Placeholders
+					.replace(regexp3, '$'); // Remove backslashes before $
 				builder.replace(oldPreviewRange, newText);
 
 				// calculate the new preview range to use for future previews
@@ -673,7 +673,7 @@ function expandAbbr(input: ExpandAbbreviationInput): string | undefined {
 
 	if (input.textToWrap) {
 		// escape ${ sections, fixes #122231
-		input.textToWrap = input.textToWrap.map(e => e.replace(new RegExp(regexp8), '\\\$\{'));
+		input.textToWrap = input.textToWrap.map(e => e.replace(regexp8, '\\\$\{'));
 		if (input.filter && input.filter.includes('t')) {
 			input.textToWrap = input.textToWrap.map(line => {
 				return line.replace(trimRegex, '').trim();

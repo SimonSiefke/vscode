@@ -710,7 +710,7 @@ export class ChatMcpAppModel extends Disposable {
 						name: basename(uri),
 					});
 				} else if (block.type === 'text') {
-					const preview = block.text.replaceAll(new RegExp(regexp3), ' ').trim();
+					const preview = block.text.replaceAll(regexp3, ' ').trim();
 					const truncateTo = 20;
 					entries.push({
 						kind: 'generic',

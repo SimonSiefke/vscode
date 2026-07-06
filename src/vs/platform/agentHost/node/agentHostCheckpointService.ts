@@ -269,6 +269,6 @@ export class AgentHostCheckpointService extends Disposable implements IAgentHost
 	}
 
 	private _sanitizedSessionId(sessionUri: URI): string {
-		return AgentSession.id(sessionUri).replace(new RegExp(regexpZAZ0), '-');
+		return AgentSession.id(sessionUri).replace(regexpZAZ0, '-');
 	}
 }

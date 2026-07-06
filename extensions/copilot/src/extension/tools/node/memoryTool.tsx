@@ -115,7 +115,7 @@ export function extractSessionId(sessionResource: string): string {
 	const segments = parsed.path.replace(regexp1, '').split('/');
 	const raw = segments[segments.length - 1] || parsed.authority || 'unknown';
 	// Sanitize to only safe characters for a directory name
-	return raw.replace(new RegExp(regexpZAZ0), '_');
+	return raw.replace(regexpZAZ0, '_');
 }
 
 function formatLineNumber(line: number): string {

@@ -55,7 +55,7 @@ export class SymbolLinkifier implements IContributedLinkifier {
 			return;
 		}
 
-		const matches = [...text.matchAll(new RegExp(regexp1))];
+		const matches = [...text.matchAll(regexp1)];
 		const resolvedMatches = await this.resolveMatches(matches, workspaceFolders, token);
 
 		const out: LinkifiedPart[] = [];

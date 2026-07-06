@@ -602,7 +602,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 					label = cleanLabel;
 				}
 
-				this.label.setAttribute('aria-label', cleanLabel.replace(new RegExp(regexp1), '&'));
+				this.label.setAttribute('aria-label', cleanLabel.replace(regexp1, '&'));
 
 				const matches = MENU_MNEMONIC_REGEX.exec(label);
 
@@ -618,7 +618,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 						escMatch = MENU_ESCAPED_MNEMONIC_REGEX.exec(label);
 					}
 
-					const replaceDoubleEscapes = (str: string) => str.replace(new RegExp(regexpAmpAmp), '&amp;');
+					const replaceDoubleEscapes = (str: string) => str.replace(regexpAmpAmp, '&amp;');
 
 					if (escMatch) {
 						this.label.append(
@@ -632,7 +632,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 
 					this.item?.setAttribute('aria-keyshortcuts', (!!matches[1] ? matches[1] : matches[3]).toLocaleLowerCase());
 				} else {
-					this.label.textContent = label.replace(new RegExp(regexp1), '&').trim();
+					this.label.textContent = label.replace(regexp1, '&').trim();
 				}
 			}
 		}

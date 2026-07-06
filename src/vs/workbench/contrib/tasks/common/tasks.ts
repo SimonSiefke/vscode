@@ -1348,7 +1348,7 @@ export namespace KeyedTaskIdentifier {
 			if (stringified instanceof Object) {
 				stringified = sortedStringify(stringified as Record<string, unknown>);
 			} else if (typeof stringified === 'string') {
-				stringified = stringified.replace(new RegExp(regexp1), ',,');
+				stringified = stringified.replace(regexp1, ',,');
 			}
 			result += key + ',' + stringified + ',';
 		}

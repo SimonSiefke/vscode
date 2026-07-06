@@ -24,7 +24,7 @@ function _parseCaptureGroups(captureGroups: IterableIterator<string>) {
 	const values = [];
 	for (const captureGroup of captureGroups) {
 		const parsedNumber = Number(captureGroup);
-		if (parsedNumber || parsedNumber === 0 && captureGroup.replace(new RegExp(regexp1), '') !== '') {
+		if (parsedNumber || parsedNumber === 0 && captureGroup.replace(regexp1, '') !== '') {
 			values.push(parsedNumber);
 		}
 	}
@@ -108,7 +108,7 @@ function _findMatches(model: IDocumentColorComputerTarget | string, regex: RegEx
 function computeColors(model: IDocumentColorComputerTarget): IColorInformation[] {
 	const result: IColorInformation[] = [];
 	// Early validation for RGB and HSL (including CSS Level 4 syntax with / separator)
-	const initialValidationRegex = new RegExp(regexpRgbRgbaHsl);
+	const initialValidationRegex = new RegExp(regexpRgbRgbaHsl.source, regexpRgbRgbaHsl.flags);
 	const initialValidationMatches = _findMatches(model, initialValidationRegex);
 
 	// Potential colors have been found, validate the parameters
@@ -123,18 +123,18 @@ function computeColors(model: IDocumentColorComputerTarget): IColorInformation[]
 			let colorInformation;
 			if (colorScheme === 'rgb') {
 				// Supports both comma-separated (rgb(255, 0, 0)) and CSS Level 4 space-separated syntax (rgb(255 0 0))
-				const regexParameters = new RegExp(regexp6);
+				const regexParameters = new RegExp(regexp6.source, regexp6.flags);
 				colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
 			} else if (colorScheme === 'rgba') {
 				// Supports both comma-separated (rgba(255, 0, 0, 0.5)) and CSS Level 4 syntax (rgba(255 0 0 / 0.5))
-				const regexParameters = new RegExp(regexp5);
+				const regexParameters = new RegExp(regexp5.source, regexp5.flags);
 				colorInformation = _findRGBColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
 			} else if (colorScheme === 'hsl') {
-				const regexParameters = new RegExp(regexp4);
+				const regexParameters = new RegExp(regexp4.source, regexp4.flags);
 				colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), false);
 			} else if (colorScheme === 'hsla') {
 				// Supports both comma-separated (hsla(253, 100%, 50%, 0.5)) and CSS Level 4 syntax (hsla(253 100% 50% / 0.5))
-				const regexParameters = new RegExp(regexp3);
+				const regexParameters = new RegExp(regexp3.source, regexp3.flags);
 				colorInformation = _findHSLColorInformation(_findRange(model, initialMatch), _findMatches(colorParameters, regexParameters), true);
 			} else if (colorScheme === '#') {
 				colorInformation = _findHexColorInformation(_findRange(model, initialMatch), colorScheme + colorParameters);

@@ -977,11 +977,11 @@ const regexpZA = /(:?(:?\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~])|(:?\
 
 function sanitizeData(data: string): string {
 	// Strip NL/CR so terminal dimensions don't impact tests
-	data = data.replace(new RegExp(regexp1), '');
+	data = data.replace(regexp1, '');
 
 	// Strip escape sequences so conpty doesn't cause flakiness, do for all platforms for
 	// consistency
-	const CSI_SEQUENCE = new RegExp(regexpZA);
+	const CSI_SEQUENCE = new RegExp(regexpZA.source, regexpZA.flags);
 	data = data.replace(CSI_SEQUENCE, '');
 
 	return data;

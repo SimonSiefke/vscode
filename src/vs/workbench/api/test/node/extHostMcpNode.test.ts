@@ -69,7 +69,7 @@ suite('extHostMcpNode - escapeCmdArg', () => {
 		// outside a quoted region.
 		for (const input of ['"', '""', 'a"b', '"&calc"', 'a"&calc']) {
 			const out = escapeCmdArg(input);
-			const quoteCount = (out.match(new RegExp(regexp1)) || []).length;
+			const quoteCount = (out.match(regexp1) || []).length;
 			assert.strictEqual(quoteCount % 2, 0, `quote count must be even for ${JSON.stringify(input)} -> ${out}`);
 		}
 	});

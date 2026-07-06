@@ -80,7 +80,7 @@ export class ChatRequestScheme {
 	}
 
 	public static findAllUris(text: string): { uri: string; range: OffsetRange }[] {
-		const linkRE = new RegExp(regexpCcreqCopilotmdJson);
+		const linkRE = new RegExp(regexpCcreqCopilotmdJson.source, regexpCcreqCopilotmdJson.flags);
 		return [...text.matchAll(linkRE)].map(
 			(m) => {
 				const identifier = m[1];

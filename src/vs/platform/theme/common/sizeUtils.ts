@@ -45,7 +45,7 @@ export interface SizeContribution {
  * @sample `editor.fontSize` is `--vscode-editor-fontSize`.
  */
 export function asCssVariableName(sizeIdent: SizeIdentifier): string {
-	return `--vscode-${sizeIdent.replace(new RegExp(regexp1), '-')}`;
+	return `--vscode-${sizeIdent.replace(regexp1, '-')}`;
 }
 
 export function asCssVariable(size: SizeIdentifier): string {

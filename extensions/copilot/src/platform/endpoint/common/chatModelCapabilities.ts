@@ -469,7 +469,7 @@ export function modelSupportsToolSearch(model: LanguageModelChat | IChatEndpoint
 	const family = typeof model === 'string' ? model : model.family;
 	const isGpt56Model: boolean = isGpt56(model);
 	const matches = (s: string) => {
-		const n = s.toLowerCase().replace(new RegExp(regexp1), '-');
+		const n = s.toLowerCase().replace(regexp1, '-');
 		// OpenAI models with client-side tool search.
 		if (n === 'gpt-5-4' || n === 'gpt-5-5' || isGpt56Model) {
 			return true;
@@ -515,7 +515,7 @@ export function modelSupportsToolSearch(model: LanguageModelChat | IChatEndpoint
 export function modelSupportsContextEditing(model: LanguageModelChat | IChatEndpoint | string): boolean {
 	const id = typeof model === 'string' ? model : getModelId(model);
 	const family = typeof model === 'string' ? model : model.family;
-	const normalize = (s: string) => s.toLowerCase().replace(new RegExp(regexp1), '-');
+	const normalize = (s: string) => s.toLowerCase().replace(regexp1, '-');
 	const normalizedId = normalize(id);
 	const normalizedFamily = normalize(family);
 	// The 1M context variant doesn't need context editing. Check id and family

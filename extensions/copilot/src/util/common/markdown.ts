@@ -20,7 +20,7 @@ const regexp3 = /\n$/;
  * @returns A fence with the required number of backticks to avoid prematurely terminating the code block
  */
 export function getFenceForCodeBlock(code: string, minNumberOfBackticks = 3) {
-	const backticks = code.matchAll(new RegExp(regexp1));
+	const backticks = code.matchAll(regexp1);
 	const backticksNeeded = Math.max(minNumberOfBackticks, ...Array.from(backticks, d => d[1].length + 1));
 	return '`'.repeat(backticksNeeded);
 }

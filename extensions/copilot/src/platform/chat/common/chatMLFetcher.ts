@@ -90,7 +90,7 @@ export class FetchStreamSource {
 
 		if (delta.codeVulnAnnotations) {
 			// We can only display vulnerabilities inside codeblocks, and it's ok to discard annotations that fell outside of them
-			const numTripleBackticks = text.match(new RegExp(regexp1))?.length ?? 0;
+			const numTripleBackticks = text.match(regexp1)?.length ?? 0;
 			const insideCodeblock = numTripleBackticks % 2 === 1;
 			if (!insideCodeblock || text.match(regexp2)) { // Not inside a codeblock, or right on the start triple-backtick of a codeblock
 				delta.codeVulnAnnotations = undefined;

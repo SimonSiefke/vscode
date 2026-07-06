@@ -219,7 +219,7 @@ export class SimpleSuggestWidgetItemRenderer implements IListRenderer<SimpleComp
 }
 
 function stripNewLines(str: string): string {
-	return str.replace(new RegExp(regexp1), '');
+	return str.replace(regexp1, '');
 }
 
 const LEADING_PUNCTUATION_OR_SPACE = /^[\s()[\]{}<>"'`~!@#$%^&*+=,.:;?/\\|-]/;

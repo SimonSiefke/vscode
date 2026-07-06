@@ -1398,7 +1398,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		}
 
 		// Normalize line endings to 'enter' press.
-		text = text.replace(new RegExp(regexp1), '\r');
+		text = text.replace(regexp1, '\r');
 		if (shouldExecute && !text.endsWith('\r')) {
 			text += '\r';
 		}
@@ -1668,7 +1668,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		// a listener for when individual data events are parsed, only `onWriteParsed` which fires
 		// when the write buffer is flushed.
 		const leadingSegmentedData: string[] = [];
-		const matches = ev.data.matchAll(new RegExp(regexpSeq));
+		const matches = ev.data.matchAll(regexpSeq);
 		let i = 0;
 		for (const match of matches) {
 			if (match.groups?.seq === undefined) {
@@ -2790,7 +2790,7 @@ export class TerminalLabelComputer extends Disposable {
 			return labelType === TerminalLabelType.Title ? (instance.processName || '') : '';
 		}
 		if (!reset && instance.staticTitle && labelType === TerminalLabelType.Title) {
-			return instance.staticTitle.replace(new RegExp(regexp5), '') || templateProperties.process?.replace(new RegExp(regexp5), '') || '';
+			return instance.staticTitle.replace(regexp5, '') || templateProperties.process?.replace(regexp5, '') || '';
 		}
 		const detection = instance.capabilities.has(TerminalCapability.CwdDetection) || instance.capabilities.has(TerminalCapability.NaiveCwdDetection);
 		const folders = this._workspaceContextService.getWorkspace().folders;
@@ -2817,7 +2817,7 @@ export class TerminalLabelComputer extends Disposable {
 		}
 
 		// Remove special characters that could mess with rendering
-		const label = template(labelTemplate, (templateProperties as unknown) as { [key: string]: string | ISeparator | undefined | null }).replace(new RegExp(regexp5), '').trim();
+		const label = template(labelTemplate, (templateProperties as unknown) as { [key: string]: string | ISeparator | undefined | null }).replace(regexp5, '').trim();
 		return label === '' && labelType === TerminalLabelType.Title ? (instance.processName || '') : label;
 	}
 

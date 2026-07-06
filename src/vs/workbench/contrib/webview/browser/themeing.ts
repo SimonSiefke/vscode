@@ -75,7 +75,7 @@ export class WebviewThemeDataProvider extends Disposable {
 			const exportedSizes = sizeRegistry.getSizes().reduce<Record<string, string>>((sizes, entry) => {
 				const sizeValue = sizeRegistry.resolveDefaultSize(entry.id, theme);
 				if (sizeValue) {
-					sizes['vscode-' + entry.id.replace(new RegExp(regexp1), '-')] = sizeValueToCss(sizeValue);
+					sizes['vscode-' + entry.id.replace(regexp1, '-')] = sizeValueToCss(sizeValue);
 				}
 				return sizes;
 			}, {});

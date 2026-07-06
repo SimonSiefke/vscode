@@ -310,7 +310,7 @@ suite('EditorWebWorker', () => {
 			'and now we are done'
 		]);
 
-		const words: string[] = [...model.words(new RegExp(regexp1))];
+		const words: string[] = [...model.words(new RegExp(regexp1.source, regexp1.flags))];
 
 		assert.deepStrictEqual(words, ['one', 'line', 'two', 'line', 'past', 'empty', 'single', 'and', 'now', 'we', 'are', 'done']);
 	});

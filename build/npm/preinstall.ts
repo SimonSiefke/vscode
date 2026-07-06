@@ -186,7 +186,7 @@ function getLocalHeaderPath(target: string): string | undefined {
 }
 
 function getHeaderInfo(rcFile: string): { disturl: string; target: string } | undefined {
-	const lines = fs.readFileSync(rcFile, 'utf8').split(new RegExp(regexp1));
+	const lines = fs.readFileSync(rcFile, 'utf8').split(regexp1);
 	let disturl: string | undefined;
 	let target: string | undefined;
 	for (const line of lines) {

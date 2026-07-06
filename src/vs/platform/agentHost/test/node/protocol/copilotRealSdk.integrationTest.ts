@@ -203,7 +203,7 @@ defineSharedRealSdkTests(COPILOT_CONFIG);
 		const toolReadyAction = toolReadyEnvelope.action as { toolCallId: string; toolInput?: string; confirmed?: string };
 		const toolInput = toolReadyAction.toolInput!;
 
-		const escapedWorkingDirPath = expectedWorkingDirPath.replace(new RegExp(regexp3), '\\$&');
+		const escapedWorkingDirPath = expectedWorkingDirPath.replace(regexp3, '\\$&');
 		const redundantWorkingDirCdPrefix = new RegExp(
 			`^\\s*cd\\s+(?:"${escapedWorkingDirPath}"|'${escapedWorkingDirPath}'|${escapedWorkingDirPath})\\s*(?:&&|;)\\s*`,
 		);

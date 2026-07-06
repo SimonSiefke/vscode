@@ -228,7 +228,7 @@ function formatLineAsMarkdown(text: string): string {
 	// them to standard markdown `code` (backtick, backtick). This doesn't attempt to remove
 	// formatting inside the code blocks. We probably need to use the original .troff format to do
 	// this
-	const formattedText = text.replace(new RegExp(regexp3), '`$1`');
+	const formattedText = text.replace(regexp3, '`$1`');
 	return formattedText;
 }
 

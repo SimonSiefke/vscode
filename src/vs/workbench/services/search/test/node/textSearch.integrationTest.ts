@@ -418,7 +418,7 @@ flakySuite('TextSearch-integration', function () {
 function makeExpression(...patterns: string[]): glob.IExpression {
 	return patterns.reduce((glob, pattern) => {
 		// glob.ts needs forward slashes
-		pattern = pattern.replace(new RegExp(regexp1), '/');
+		pattern = pattern.replace(regexp1, '/');
 		glob[pattern] = true;
 		return glob;
 	}, Object.create(null));

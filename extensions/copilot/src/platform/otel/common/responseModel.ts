@@ -27,7 +27,7 @@ export function normalizeResponseModel(requestModel: string | undefined, respons
 	if (!requestModel) {
 		return responseModel;
 	}
-	const canonical = (s: string) => s.replace(new RegExp(regexp1), '-').toLowerCase();
+	const canonical = (s: string) => s.replace(regexp1, '-').toLowerCase();
 	const cReq = canonical(requestModel);
 	const cRes = canonical(responseModel);
 	if (cReq === cRes) {

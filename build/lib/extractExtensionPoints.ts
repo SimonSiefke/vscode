@@ -215,7 +215,7 @@ function scanDirectory(dir: string): string[] {
 }
 
 function normalize(s: string): string {
-	return s.replace(new RegExp(regexp2), '\n');
+	return s.replace(regexp2, '\n');
 }
 
 function main(): void {

@@ -164,7 +164,7 @@ class NotebookSelectionHighlighter extends Disposable implements INotebookEditor
 	}
 
 	private getSearchText(selection: Selection, model: ITextModel): string {
-		return model.getValueInRange(selection).replace(new RegExp(regexp1), '\n');
+		return model.getValueInRange(selection).replace(regexp1, '\n');
 	}
 
 	override dispose(): void {

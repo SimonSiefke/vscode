@@ -805,13 +805,13 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 	) {
 		super();
 		this.outputChannelModel = this.createOutputChannelModel(id, modelUri, language, outputDir, outputDirCreationPromise);
-		const resource = resources.joinPath(outputDir, `${id.replace(new RegExp(regexp1), '')}.log`);
+		const resource = resources.joinPath(outputDir, `${id.replace(regexp1, '')}.log`);
 		this.source = { resource };
 	}
 
 	private async createOutputChannelModel(id: string, modelUri: URI, language: ILanguageSelection, outputDir: URI, outputDirPromise: Promise<void>): Promise<IOutputChannelModel> {
 		await outputDirPromise;
-		const file = resources.joinPath(outputDir, `${id.replace(new RegExp(regexp1), '')}.log`);
+		const file = resources.joinPath(outputDir, `${id.replace(regexp1, '')}.log`);
 		await this.fileService.createFile(file);
 		const outputChannelModel = this._register(this.instantiationService.createInstance(OutputChannelBackedByFile, id, modelUri, language, file));
 		this._register(outputChannelModel.onDispose(() => this._onDispose.fire()));

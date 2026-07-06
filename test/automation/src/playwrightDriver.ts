@@ -380,7 +380,7 @@ export class PlaywrightDriver {
 		try {
 			let persistPath: string | undefined = undefined;
 			if (persist) {
-				const nameSuffix = name ? `-${name.replace(new RegExp(regexp1), '-')}` : '';
+				const nameSuffix = name ? `-${name.replace(regexp1, '-')}` : '';
 				persistPath = join(this.options.logsPath, `playwright-trace-${PlaywrightDriver.traceCounter++}${nameSuffix}.zip`);
 			}
 
@@ -480,7 +480,7 @@ export class PlaywrightDriver {
 
 	private async takeScreenshot(name?: string): Promise<void> {
 		try {
-			const nameSuffix = name ? `-${name.replace(new RegExp(regexp1), '-')}` : '';
+			const nameSuffix = name ? `-${name.replace(regexp1, '-')}` : '';
 			const persistPath = join(this.options.logsPath, `playwright-screenshot-${PlaywrightDriver.screenShotCounter++}${nameSuffix}.png`);
 
 			await measureAndLog(() => this.page.screenshot({ path: persistPath, type: 'png' }), 'takeScreenshot', this.options.logger);

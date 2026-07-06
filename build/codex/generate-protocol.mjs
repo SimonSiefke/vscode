@@ -92,7 +92,7 @@ function formatGeneratedTypes(files) {
 			throw new Error(`formatting generated protocol files failed:\n${r.stderr || r.stdout}`);
 		}
 		for (const file of batch) {
-			const formatted = readFileSync(file, 'utf8').replace(new RegExp(regexp3), '\n');
+			const formatted = readFileSync(file, 'utf8').replace(regexp3, '\n');
 			writeFileSync(file, formatted);
 		}
 	}
@@ -135,7 +135,7 @@ function generate(bin, outDir, codexVersion) {
 					.replace(regexp5, '')
 					// Rewrite relative imports to use .js extension (VS Code uses node16 module resolution).
 					// Directory specifiers (no trailing file part) become `<dir>/index.js`.
-					.replace(new RegExp(regexpFrom), (_m, p, spec, q) => {
+					.replace(regexpFrom, (_m, p, spec, q) => {
 						// If the spec resolves to a directory in our generated tree, point at its index.
 						const abs = path.resolve(path.dirname(src), spec);
 						let suffix = '.js';

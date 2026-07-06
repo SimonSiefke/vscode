@@ -719,7 +719,7 @@ function matchesAttachedFiles(attachedFiles: ResourceSet, applyToPattern: string
 
 function formatDiffLine(line: string): string {
 	const MAX_LINE_LENGTH = 200;
-	const normalized = line.replace(new RegExp(regexp2), '\\r').replace(new RegExp(regexp1), '\\t');
+	const normalized = line.replace(regexp2, '\\r').replace(regexp1, '\\t');
 	if (normalized.length <= MAX_LINE_LENGTH) {
 		return normalized;
 	}

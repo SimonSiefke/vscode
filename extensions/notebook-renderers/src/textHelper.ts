@@ -123,7 +123,7 @@ function appendScrollableOutput(element: HTMLElement, id: string, appended: stri
 		outputLengths[id] = 0;
 	}
 
-	const buffer = appended.split(new RegExp(regexp1));
+	const buffer = appended.split(regexp1);
 	const appendedLength = buffer.length + outputLengths[id];
 	// Only append outputs up to the hard limit of lines, then replace it with the last softLimit number of lines
 	if (appendedLength > hardScrollableLineLimit) {
@@ -139,7 +139,7 @@ function appendScrollableOutput(element: HTMLElement, id: string, appended: stri
 export function createOutputContent(id: string, outputText: string, options: OutputElementOptions): HTMLElement {
 	const { linesLimit, error, scrollable, trustHtml, linkifyFilePaths } = options;
 	const linkOptions: LinkOptions = { linkifyFilePaths, trustHtml };
-	const buffer = outputText.split(new RegExp(regexp1));
+	const buffer = outputText.split(regexp1);
 	outputLengths[id] = outputLengths[id] = Math.min(buffer.length, softScrollableLineLimit);
 
 	let outputElement: HTMLElement;

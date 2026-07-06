@@ -455,7 +455,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 
 	private stripCodicons(content: string | IMarkdownString): string | IMarkdownString {
 		const raw = typeof content === 'string' ? content : content.value;
-		const stripped = raw.replace(new RegExp(regexpZ0), '').trim();
+		const stripped = raw.replace(regexpZ0, '').trim();
 		if (typeof content === 'string') {
 			return stripped;
 		}

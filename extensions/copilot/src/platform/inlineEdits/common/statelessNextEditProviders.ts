@@ -55,8 +55,8 @@ export class IgnoreWhitespaceOnlyChanges {
 	 * @remarks public only for testing
 	 */
 	public static _isFormattingOnlyChange(baseLines: string[], singleEdit: LineReplacement): boolean {
-		const originalLines = singleEdit.lineRange.toOffsetRange().slice(baseLines).join('').replace(new RegExp(regexp1), '');
-		const newLines = singleEdit.newLines.join('').replace(new RegExp(regexp1), '');
+		const originalLines = singleEdit.lineRange.toOffsetRange().slice(baseLines).join('').replace(regexp1, '');
+		const newLines = singleEdit.newLines.join('').replace(regexp1, '');
 		return originalLines === newLines;
 	}
 }

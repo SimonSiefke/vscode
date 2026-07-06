@@ -1103,7 +1103,7 @@ export class TaskGroup implements vscode.TaskGroup {
 function computeTaskExecutionId(values: string[]): string {
 	let id: string = '';
 	for (let i = 0; i < values.length; i++) {
-		id += values[i].replace(new RegExp(regexp2), ',,') + ',';
+		id += values[i].replace(regexp2, ',,') + ',';
 	}
 	return id;
 }

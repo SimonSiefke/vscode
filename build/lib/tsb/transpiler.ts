@@ -396,6 +396,6 @@ function _isDefaultEmpty(src: string): boolean {
 	return src
 		.replace('"use strict";', '')
 		.replace(regexpSourceMappingURL, '')
-		.replace(new RegExp(regexp2), '$1')
+		.replace(regexp2, '$1')
 		.trim().length === 0;
 }

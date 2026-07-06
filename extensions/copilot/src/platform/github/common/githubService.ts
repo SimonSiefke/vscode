@@ -648,7 +648,7 @@ export class BaseOctoKitService {
 		const typedResponse = response as GitHubContentResponse;
 
 		if (typedResponse.content && typedResponse.encoding === 'base64') {
-			return decodeBase64(typedResponse.content.replace(new RegExp(regexp1), '')).toString();
+			return decodeBase64(typedResponse.content.replace(regexp1, '')).toString();
 		}
 
 		if (typedResponse.sha) {
@@ -826,7 +826,7 @@ export class BaseOctoKitService {
 
 		const typedBlob = blobResponse as GitHubBlobResponse;
 		if (typedBlob.content && typedBlob.encoding === 'base64') {
-			return decodeBase64(typedBlob.content.replace(new RegExp(regexp1), '')).toString();
+			return decodeBase64(typedBlob.content.replace(regexp1, '')).toString();
 		}
 
 		return undefined;

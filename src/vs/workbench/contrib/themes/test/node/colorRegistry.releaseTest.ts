@@ -126,7 +126,7 @@ suite('Color Registry', function () {
 		const reqContext = await new RequestService('local', new TestConfigurationService(), environmentService, new NullLogService()).request({ url: docUrl, callSite: 'colorRegistry.releaseTest' }, CancellationToken.None);
 		const content = (await asTextOrError(reqContext))!;
 
-		const expression = new RegExp(regexp1);
+		const expression = new RegExp(regexp1.source, regexp1.flags);
 
 		let m: RegExpExecArray | null;
 		const colorsInDoc: { [id: string]: ColorInfo } = Object.create(null);

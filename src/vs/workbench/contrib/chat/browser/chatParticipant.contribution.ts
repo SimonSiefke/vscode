@@ -242,7 +242,7 @@ export class ChatExtensionPointHandler implements IWorkbenchContribution {
 					}
 
 					// Spaces are allowed but considered "invisible"
-					if (providerDescriptor.fullName && strings.InvisibleCharacters.containsInvisibleCharacter(providerDescriptor.fullName.replace(new RegExp(regexp2), ''))) {
+					if (providerDescriptor.fullName && strings.InvisibleCharacters.containsInvisibleCharacter(providerDescriptor.fullName.replace(regexp2, ''))) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register participant with fullName that contains invisible characters: ${providerDescriptor.fullName}.`);
 						continue;
 					}

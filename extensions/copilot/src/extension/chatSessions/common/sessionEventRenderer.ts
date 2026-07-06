@@ -139,11 +139,11 @@ function extractPRMetadata(content: string): { cleanedContent: string; prPart?: 
 	if (match?.groups) {
 		const { title, description, author, linkTag } = match.groups;
 		const unescapeXml = (text: string) => text
-			.replace(new RegExp(regexpApos), `'`)
-			.replace(new RegExp(regexpQuot), '"')
-			.replace(new RegExp(regexpGt), '>')
-			.replace(new RegExp(regexpLt), '<')
-			.replace(new RegExp(regexpAmp), '&');
+			.replace(regexpApos, `'`)
+			.replace(regexpQuot, '"')
+			.replace(regexpGt, '>')
+			.replace(regexpLt, '<')
+			.replace(regexpAmp, '&');
 
 		const prPart = new ChatResponsePullRequestPart(
 			{ command: 'github.copilot.chat.openPullRequestReroute', title: l10n.t('View Pull Request {0}', linkTag), arguments: [Number(linkTag.substring(1))] },

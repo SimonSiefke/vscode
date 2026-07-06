@@ -33,7 +33,7 @@ const LAST_INPUT_CACHE_SIZE = 5;
 
 export abstract class BaseConfigurationResolverService extends AbstractVariableResolverService {
 
-	static readonly INPUT_OR_COMMAND_VARIABLES_PATTERN = new RegExp(regexpInputCommand);
+	static readonly INPUT_OR_COMMAND_VARIABLES_PATTERN = new RegExp(regexpInputCommand.source, regexpInputCommand.flags);
 
 	private userInputAccessQueue = new Queue<string | IQuickPickItem | undefined>();
 

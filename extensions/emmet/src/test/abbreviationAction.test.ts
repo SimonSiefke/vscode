@@ -81,7 +81,7 @@ suite('Tests for Expand Abbreviations (HTML)', () => {
 			assert.strictEqual(completionList && completionList.items && completionList.items.length > 0, true);
 			if (completionList) {
 				assert.strictEqual(completionList.items[0].label, 'img');
-				assert.strictEqual(((<string>completionList.items[0].documentation) || '').replace(new RegExp(regexp1), ''), '<img src=\"\" alt=\"\">');
+				assert.strictEqual(((<string>completionList.items[0].documentation) || '').replace(regexp1, ''), '<img src=\"\" alt=\"\">');
 			}
 			return Promise.resolve();
 		});
@@ -251,7 +251,7 @@ suite('Tests for Expand Abbreviations (HTML)', () => {
 			}
 			const emmetCompletionItem = completionList.items[0];
 			assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(new RegExp(regexp1), ''), expandedText, `Docs of completion item doesnt match.`);
+			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(regexp1, ''), expandedText, `Docs of completion item doesnt match.`);
 			assert.strictEqual(emmetCompletionItem.filterText, abbreviation, `FilterText of completion item doesnt match.`);
 			return Promise.resolve();
 		});
@@ -300,7 +300,7 @@ suite('Tests for Expand Abbreviations (HTML)', () => {
 			}
 			const emmetCompletionItem = completionList.items[0];
 			assert.strictEqual(emmetCompletionItem.label, expandedText, `Label of completion item doesnt match.`);
-			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(new RegExp(regexp1), ''), expandedText, `Docs of completion item doesnt match.`);
+			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(regexp1, ''), expandedText, `Docs of completion item doesnt match.`);
 			assert.strictEqual(emmetCompletionItem.filterText, abbreviation, `FilterText of completion item doesnt match.`);
 			return Promise.resolve();
 		});
@@ -339,7 +339,7 @@ suite('Tests for Expand Abbreviations (HTML)', () => {
 			}
 			const emmetCompletionItem = completionList.items[0];
 			assert.strictEqual(emmetCompletionItem.label, abbreviation, `Label of completion item doesnt match.`);
-			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(new RegExp(regexp1), ''), expandedText, `Docs of completion item doesnt match.`);
+			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(regexp1, ''), expandedText, `Docs of completion item doesnt match.`);
 			return Promise.resolve();
 		});
 	});
@@ -398,7 +398,7 @@ suite('Tests for Expand Abbreviations (HTML)', () => {
 			}
 			const emmetCompletionItem = completionList.items[0];
 			assert.strictEqual(emmetCompletionItem.label, abbreviation, `Label of completion item (${emmetCompletionItem.label}) doesnt match.`);
-			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(new RegExp(regexp1), ''), expandedText, `Docs of completion item doesnt match.`);
+			assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(regexp1, ''), expandedText, `Docs of completion item doesnt match.`);
 			return Promise.resolve();
 		});
 		await workspace.getConfiguration('emmet').update('includeLanguages', oldConfig, ConfigurationTarget.Global);
@@ -544,7 +544,7 @@ function testHtmlCompletionProvider(selection: Selection, abbreviation: string, 
 		}
 		const emmetCompletionItem = completionList.items[0];
 		assert.strictEqual(emmetCompletionItem.label, abbreviation, `Label of completion item doesnt match.`);
-		assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(new RegExp(regexp1), ''), expandedText, `Docs of completion item doesnt match.`);
+		assert.strictEqual(((<string>emmetCompletionItem.documentation) || '').replace(regexp1, ''), expandedText, `Docs of completion item doesnt match.`);
 		return Promise.resolve();
 	});
 }

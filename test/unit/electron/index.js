@@ -404,7 +404,7 @@ app.on('ready', () => {
 			new MochaJUnitReporter(runner, {
 				reporterOptions: {
 					testsuitesTitle: `${args.tfs} ${process.platform}`,
-					mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${args.tfs.toLowerCase().replace(new RegExp(regexp1), '-')}-results.xml`) : undefined
+					mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${args.tfs.toLowerCase().replace(regexp1, '-')}-results.xml`) : undefined
 				}
 			}),
 		);

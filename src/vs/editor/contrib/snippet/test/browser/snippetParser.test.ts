@@ -762,7 +762,7 @@ suite('SnippetParser', () => {
 		const transform = new Transform();
 		transform.appendChild(new FormatString(1, 'upcase'));
 		transform.appendChild(new FormatString(2, 'upcase'));
-		transform.regexp = new RegExp(regexp2);
+		transform.regexp = new RegExp(regexp2.source, regexp2.flags);
 
 		assert.strictEqual(transform.resolve('my-file-name'), 'MyFileName');
 

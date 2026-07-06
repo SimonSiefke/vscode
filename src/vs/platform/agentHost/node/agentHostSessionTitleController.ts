@@ -54,7 +54,7 @@ export class AgentHostSessionTitleController extends Disposable {
 	}
 
 	seedTitleFromFirstMessage(channel: ProtocolURI, userPrompt: string, chatChannel?: ProtocolURI): void {
-		const fallbackTitle = userPrompt.trim().replace(new RegExp(regexp1), ' ').slice(0, MAX_TITLE_LENGTH);
+		const fallbackTitle = userPrompt.trim().replace(regexp1, ' ').slice(0, MAX_TITLE_LENGTH);
 		if (fallbackTitle.length === 0) {
 			return;
 		}

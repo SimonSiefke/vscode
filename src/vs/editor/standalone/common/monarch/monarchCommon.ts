@@ -126,7 +126,7 @@ export function fixCase(lexer: ILexerMin, str: string): string {
  * Ensures there are no bad characters in a CSS token class.
  */
 export function sanitize(s: string) {
-	return s.replace(new RegExp(regexp1), '-'); // used on all output token CSS classes
+	return s.replace(regexp1, '-'); // used on all output token CSS classes
 }
 
 // Logging
@@ -156,7 +156,7 @@ export function createError(lexer: ILexerMin, msg: string): Error {
  * See documentation for more info
  */
 export function substituteMatches(lexer: ILexerMin, str: string, id: string, matches: string[], state: string): string {
-	const re = new RegExp(regexpSS);
+	const re = new RegExp(regexpSS.source, regexpSS.flags);
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, sub?, dollar?, hash?, n?, s?, attr?, ofs?, total?) {
 		if (!empty(dollar)) {
@@ -188,7 +188,7 @@ export function substituteMatches(lexer: ILexerMin, str: string, id: string, mat
  *
  */
 export function substituteMatchesRe(lexer: ILexerMin, str: string, state: string): string {
-	const re = new RegExp(regexpSS1);
+	const re = new RegExp(regexpSS1.source, regexpSS1.flags);
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, s) {
 		if (stateMatches === null) { // split state on demand

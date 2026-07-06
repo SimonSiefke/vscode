@@ -91,7 +91,7 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 		case ShellType.powershell:
 
 			quote = (s: string) => {
-				s = s.replace(new RegExp(regexp1), '\'\'');
+				s = s.replace(regexp1, '\'\'');
 				if (s.length > 0 && s.charAt(s.length - 1) === '\\') {
 					return `'${s}\\'`;
 				}
@@ -133,8 +133,8 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 				// cmd /C "node -e "console.log(process.argv)" """A^>0"""" # prints "A>0"
 				// cmd /C "node -e "console.log(process.argv)" "foo^> bar"" # prints foo> bar
 				// Outside of the cmd /C, it could be a simple quoting, but here, the ^ is needed too
-				s = s.replace(new RegExp(regexp2), '""');
-				s = s.replace(new RegExp(regexp3), '^$1');
+				s = s.replace(regexp2, '""');
+				s = s.replace(regexp3, '^$1');
 				return (' "'.split('').some(char => s.includes(char)) || s.length === 0) ? `"${s}"` : s;
 			};
 
@@ -152,7 +152,7 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 					if (value === null) {
 						command += `set "${key}=" && `;
 					} else {
-						value = value.replace(new RegExp(regexp4), s => `^${s}`);
+						value = value.replace(regexp4, s => `^${s}`);
 						command += `set "${key}=${value}" && `;
 					}
 				}
@@ -169,12 +169,12 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 		case ShellType.bash: {
 
 			quote = (s: string) => {
-				s = s.replace(new RegExp(regexp5), '\\$1');
+				s = s.replace(regexp5, '\\$1');
 				return s.length === 0 ? `""` : s;
 			};
 
 			const hardQuote = (s: string) => {
-				return regexp7.test(s) ? `'${s.replace(new RegExp(regexp6), '\'\\\'\'')}'` : s;
+				return regexp7.test(s) ? `'${s.replace(regexp6, '\'\\\'\'')}'` : s;
 			};
 
 			if (cwd) {

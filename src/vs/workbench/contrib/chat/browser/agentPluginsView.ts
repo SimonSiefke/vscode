@@ -418,7 +418,7 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 		const stripped = query.replace(regexpAgentPlugins, '').trim();
 		const isRecommended = regexpRecommended.test(stripped);
 		const isInstalled = regexpInstalled.test(stripped);
-		const text = isRecommended ? '' : stripped.replace(new RegExp(regexpInstalled1), ' ').trim().toLowerCase();
+		const text = isRecommended ? '' : stripped.replace(regexpInstalled1, ' ').trim().toLowerCase();
 
 		let installed = this.queryInstalled();
 		if (text) {

@@ -17,7 +17,7 @@ const regexpZAZ0 = /[^a-zA-Z0-9_]/g;
 
 
 function normalizeGroupName(name: string): string {
-	return name.replace(new RegExp(regexpZAZ0), '_').toLowerCase();
+	return name.replace(regexpZAZ0, '_').toLowerCase();
 }
 
 /**

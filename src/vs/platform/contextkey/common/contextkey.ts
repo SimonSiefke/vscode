@@ -523,7 +523,7 @@ export class Parser {
 		}
 	}
 
-	private _flagsGYRe = new RegExp(regexp1);
+	private _flagsGYRe = new RegExp(regexp1.source, regexp1.flags);
 	private _removeFlagsGY(flags: string): string {
 		return flags.replaceAll(this._flagsGYRe, '');
 	}

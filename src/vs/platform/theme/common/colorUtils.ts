@@ -35,7 +35,7 @@ export interface ColorContribution {
  * @sample `editorSuggestWidget.background` is `--vscode-editorSuggestWidget-background`.
  */
 export function asCssVariableName(colorIdent: ColorIdentifier): string {
-	return `--vscode-${colorIdent.replace(new RegExp(regexp1), '-')}`;
+	return `--vscode-${colorIdent.replace(regexp1, '-')}`;
 }
 
 export function asCssVariable(color: ColorIdentifier): string {

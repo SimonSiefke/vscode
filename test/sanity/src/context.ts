@@ -239,7 +239,7 @@ export class TestContext {
 	 */
 	public getDefaultWslDistro(): string {
 		const result = this.runNoErrors('wsl', '--list', '--quiet');
-		const distro = result.stdout.trim().split('\n')[0].replace(new RegExp(regexp8), '').trim();
+		const distro = result.stdout.trim().split('\n')[0].replace(regexp8, '').trim();
 		if (!distro) {
 			this.error('No WSL distribution found');
 		}
@@ -1260,7 +1260,7 @@ export class TestContext {
 		if (!this.options.crashDumpsDir || !this.currentTestName) {
 			return undefined;
 		}
-		const sanitizedName = this.currentTestName.replace(new RegExp(regexpZAZ0), '_');
+		const sanitizedName = this.currentTestName.replace(regexpZAZ0, '_');
 		return path.join(this.options.crashDumpsDir, sanitizedName);
 	}
 
@@ -1275,7 +1275,7 @@ export class TestContext {
 		try {
 			const screenshotDir = this.options.screenshotsDir ?? path.join(this.osTempDir, 'vscode-sanity-screenshots');
 			fs.mkdirSync(screenshotDir, { recursive: true });
-			const sanitizedName = this.currentTestName.replace(new RegExp(regexpZAZ0), '_');
+			const sanitizedName = this.currentTestName.replace(regexpZAZ0, '_');
 			const screenshotPath = path.join(screenshotDir, `${sanitizedName}-${++this.screenshotCounter}.png`);
 			await page.screenshot({ path: screenshotPath, fullPage: true });
 			this.log(`Screenshot saved to: ${screenshotPath}`);

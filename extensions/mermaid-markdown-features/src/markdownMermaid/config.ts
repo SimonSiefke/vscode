@@ -64,8 +64,8 @@ export function renderMermaidConfigSpan(): string {
 
 function escapeHtmlAttribute(str: string): string {
 	return str
-		.replace(new RegExp(regexp4), '&amp;')
-		.replace(new RegExp(regexp3), '&quot;')
-		.replace(new RegExp(regexp2), '&lt;')
-		.replace(new RegExp(regexp1), '&gt;');
+		.replace(regexp4, '&amp;')
+		.replace(regexp3, '&quot;')
+		.replace(regexp2, '&lt;')
+		.replace(regexp1, '&gt;');
 }

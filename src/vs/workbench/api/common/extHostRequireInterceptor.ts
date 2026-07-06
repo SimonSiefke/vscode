@@ -139,7 +139,7 @@ class NodeModuleAliasingModuleFactory implements IAlternativeModuleProvider {
 	}
 
 	private forceForwardSlashes(str: string) {
-		return str.replace(new RegExp(regexp1), '/');
+		return str.replace(regexp1, '/');
 	}
 }
 

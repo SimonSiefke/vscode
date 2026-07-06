@@ -144,8 +144,8 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 	// Base64url encode the digest
 	const base64String = btoa(String.fromCharCode(...new Uint8Array(digest)));
 	return base64String
-		.replace(new RegExp(regexp3), '-')
-		.replace(new RegExp(regexp2), '_')
+		.replace(regexp3, '-')
+		.replace(regexp2, '_')
 		.replace(regexp1, '');
 }
 

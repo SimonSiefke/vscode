@@ -99,13 +99,13 @@ function createKeywordMatcher(arr: string[], caseInsensitive: boolean = false): 
 function compileRegExp<S extends true | false>(lexer: monarchCommon.ILexerMin, str: string, handleSn: S): S extends true ? RegExp | DynamicRegExp : RegExp;
 function compileRegExp(lexer: monarchCommon.ILexerMin, str: string, handleSn: true | false): RegExp | DynamicRegExp {
 	// @@ must be interpreted as a literal @, so we replace all occurences of @@ with a placeholder character
-	str = str.replace(new RegExp(regexp1), `\x01`);
+	str = str.replace(regexp1, `\x01`);
 
 	let n = 0;
 	let hadExpansion: boolean;
 	do {
 		hadExpansion = false;
-		str = str.replace(new RegExp(regexp2), function (s, attr?) {
+		str = str.replace(regexp2, function (s, attr?) {
 			hadExpansion = true;
 			let sub = '';
 			if (typeof (lexer[attr]) === 'string') {
@@ -125,13 +125,13 @@ function compileRegExp(lexer: monarchCommon.ILexerMin, str: string, handleSn: tr
 	} while (hadExpansion && n < 5);
 
 	// handle escaped @@
-	str = str.replace(new RegExp(regexp3), '@');
+	str = str.replace(regexp3, '@');
 
 	const flags = (lexer.ignoreCase ? 'i' : '') + (lexer.unicode ? 'u' : '');
 
 	// handle $Sn
 	if (handleSn) {
-		const match = str.match(new RegExp(regexpSS));
+		const match = str.match(regexpSS);
 		if (match) {
 			let lastState: string | null = null;
 			let lastRegEx: RegExp | null = null;

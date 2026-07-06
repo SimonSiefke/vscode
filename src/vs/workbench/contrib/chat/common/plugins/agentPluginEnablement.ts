@@ -200,10 +200,10 @@ function normalizePluginIdentitySegment(value: string): string {
 	return value
 		.trim()
 		.toLowerCase()
-		.replace(new RegExp(regexp5), '-')
-		.replace(new RegExp(regexpZ0), '-')
-		.replace(new RegExp(regexp3), '-')
-		.replace(new RegExp(regexp2), '');
+		.replace(regexp5, '-')
+		.replace(regexpZ0, '-')
+		.replace(regexp3, '-')
+		.replace(regexp2, '');
 }
 
 interface IPolicyIdentity {

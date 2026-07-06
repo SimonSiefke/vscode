@@ -193,7 +193,7 @@ export class AgentHostCommitOperationHandler implements IChangesetOperationHandl
 	}
 
 	private _cleanCommitMessage(raw: string): string {
-		let text = raw.trim().replace(new RegExp(regexp1), '\n');
+		let text = raw.trim().replace(regexp1, '\n');
 		const fenced = regexpTextGitcommit.exec(text);
 		if (fenced) {
 			text = fenced[1].trim();

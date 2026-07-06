@@ -54,7 +54,7 @@ export async function getOSReleaseInfo(errorLogger: (error: string | Error) => v
 			}
 			const key = line.split('=')[0].toUpperCase().trim();
 			if (osReleaseKeys.has(key)) {
-				const value = line.split('=')[1].replace(new RegExp(regexp1), '').toLowerCase().trim();
+				const value = line.split('=')[1].replace(regexp1, '').toLowerCase().trim();
 				if (key === 'ID' || key === 'DISTRIB_ID') {
 					releaseInfo.id = value;
 				} else if (key === 'ID_LIKE') {

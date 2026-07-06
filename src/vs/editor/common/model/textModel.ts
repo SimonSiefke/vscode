@@ -2355,7 +2355,7 @@ class DecorationsTrees {
 }
 
 function cleanClassName(className: string): string {
-	return className.replace(new RegExp(regexpZ0), ' ');
+	return className.replace(regexpZ0, ' ');
 }
 
 class DecorationOptions implements model.IDecorationOptions {

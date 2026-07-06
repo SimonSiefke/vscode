@@ -1839,12 +1839,12 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 	 * shows up in the first 600 chars.
 	 */
 	private _firstSentences(text: string, n: number): string {
-		const collapsed = text.replace(new RegExp(regexp2), ' ').trim();
+		const collapsed = text.replace(regexp2, ' ').trim();
 		if (!collapsed) {
 			return '';
 		}
 		const sentences: string[] = [];
-		const re = new RegExp(regexp3);
+		const re = new RegExp(regexp3.source, regexp3.flags);
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(collapsed)) !== null && sentences.length < n) {
 			sentences.push(m[0].trim());

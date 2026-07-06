@@ -484,7 +484,7 @@ suite('Editor Model - Words', () => {
 
 		disposables.add(languageService.registerLanguage({ id: MODE_ID }));
 		disposables.add(languageConfigurationService.register(MODE_ID, {
-			wordPattern: new RegExp(regexp1)
+			wordPattern: new RegExp(regexp1.source, regexp1.flags)
 		}));
 
 		const thisModel = disposables.add(instantiateTextModel(instantiationService, '.🐷-a-b', MODE_ID));

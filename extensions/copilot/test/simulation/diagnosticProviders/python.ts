@@ -141,7 +141,7 @@ export class PylintDiagnosticsProvider extends LintingDiagnosticsProvider {
 export async function isValidPythonFile(accessor: ITestingServicesAccessor, text: string): Promise<boolean> {
 	// Remove lines that start with `%xyz` as they can be cell magics in Jupyter Notebooks
 	// & that doesn't work in a standalone Python file
-	text = text.split(new RegExp(regexp1)).filter(line => !line.startsWith('%')).join('\n');
+	text = text.split(regexp1).filter(line => !line.startsWith('%')).join('\n');
 	const cacheKey = computeSHA256(`python-v2${PYTHON_VALID_SYNTAX_CACHE_SALT}-${text}`);
 	return accessor.get(ICachingResourceFetcher).invokeWithCache(
 		CacheScope.Python,
@@ -176,7 +176,7 @@ async function doIsValidPythonFile(text: string): Promise<boolean> {
 export async function canExecutePythonCodeWithoutErrors(accessor: ITestingServicesAccessor, text: string): Promise<boolean> {
 	// Remove lines that start with `%xyz` as they can be cell magics in Jupyter Notebooks
 	// & that doesn't work in a standalone Python file
-	text = text.split(new RegExp(regexp1)).filter(line => !line.startsWith('%')).join('\n');
+	text = text.split(regexp1).filter(line => !line.startsWith('%')).join('\n');
 	const cacheKey = computeSHA256(`python-verify-execution_${PYTHON_EXECUTES_WITHOUT_ERRORS}-${text}`);
 	return accessor.get(ICachingResourceFetcher).invokeWithCache(
 		CacheScope.Python,

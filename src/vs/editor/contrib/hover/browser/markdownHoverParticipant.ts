@@ -418,7 +418,7 @@ class MarkdownRenderedHoverParts implements IRenderedHoverParts<MarkdownHover> {
 			return undefined;
 		}
 		const hoverElementInnerText = renderedHoverPart.hoverElement.innerText;
-		const accessibleContent = hoverElementInnerText.replace(new RegExp(regexp1), ' ');
+		const accessibleContent = hoverElementInnerText.replace(regexp1, ' ');
 		return accessibleContent;
 	}
 

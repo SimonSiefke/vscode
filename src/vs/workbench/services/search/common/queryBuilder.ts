@@ -182,7 +182,7 @@ export class QueryBuilder {
 		const searchConfig = this.configurationService.getValue<ISearchConfiguration>();
 
 		if (inputPattern.isRegExp) {
-			inputPattern.pattern = inputPattern.pattern.replace(new RegExp(regexp1), '\\n');
+			inputPattern.pattern = inputPattern.pattern.replace(regexp1, '\\n');
 		}
 
 		const newPattern = {
@@ -336,7 +336,7 @@ export class QueryBuilder {
 				}
 
 				const relPath = path.relative(searchRoot.fsPath, file.fsPath);
-				assertReturnsDefined(folderQuery.includePattern)[escapeGlobPattern(relPath.replace(new RegExp(regexp2), '/'))] = true;
+				assertReturnsDefined(folderQuery.includePattern)[escapeGlobPattern(relPath.replace(regexp2, '/'))] = true;
 			} else {
 				if (file.fsPath) {
 					hasIncludedFile = true;
@@ -691,11 +691,11 @@ function expandGlobalGlob(pattern: string): string[] {
 		`**/${pattern}`
 	];
 
-	return patterns.map(p => p.replace(new RegExp(regexp9), '**'));
+	return patterns.map(p => p.replace(regexp9, '**'));
 }
 
 function normalizeSlashes(pattern: string): string {
-	return pattern.replace(new RegExp(regexp2), '/');
+	return pattern.replace(regexp2, '/');
 }
 
 /**
@@ -704,7 +704,7 @@ function normalizeSlashes(pattern: string): string {
 function normalizeGlobPattern(pattern: string): string {
 	return normalizeSlashes(pattern)
 		.replace(regexp11, '')
-		.replace(new RegExp(regexp10), '');
+		.replace(regexp10, '');
 }
 
 /**
@@ -716,7 +716,7 @@ function normalizeGlobPattern(pattern: string): string {
  * which may not be desirable in some cases. Use with caution if UNC paths could be expected.
  */
 export function escapeGlobPattern(path: string): string {
-	return path.replace(new RegExp(regexp12), '[$1]');
+	return path.replace(regexp12, '[$1]');
 }
 
 /**

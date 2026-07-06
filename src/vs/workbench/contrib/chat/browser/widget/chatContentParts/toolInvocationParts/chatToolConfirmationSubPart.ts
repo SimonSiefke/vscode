@@ -205,7 +205,7 @@ export class ToolConfirmationSubPart extends AbstractToolConfirmationSubPart {
 				const rawJsonInput = JSON.stringify(inputData.rawInput ?? {}, null, 1);
 				const canSeeMore = count(rawJsonInput, '\n') > 2; // if more than one key:value
 				// View a single JSON line by default until they 'see more'
-				const initialText = rawJsonInput.replace(new RegExp(regexp1), ' ');
+				const initialText = rawJsonInput.replace(regexp1, ' ');
 
 				const key = CodeBlockPart.poolKey(this.context.element.id, this.codeBlockStartIndex);
 				const editor = this._register(this.editorPool.get(key));

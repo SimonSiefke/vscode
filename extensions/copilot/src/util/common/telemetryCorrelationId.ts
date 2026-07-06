@@ -26,7 +26,7 @@ export class CallTracker {
 	}
 
 	public toAscii(): string {
-		return this.value.replace(new RegExp(regexp1), '');
+		return this.value.replace(regexp1, '');
 	}
 
 	public add(...parts: string[]): CallTracker {

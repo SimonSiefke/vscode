@@ -91,13 +91,13 @@ suite('Replace Pattern test', () => {
 		assert.deepStrictEqual(actual, expected);
 
 		expected = regexpAbc;
-		actual = new ReplacePattern('hello', false, new RegExp(regexpAbc1)).regExp;
+		actual = new ReplacePattern('hello', false, new RegExp(regexpAbc1.source, regexpAbc1.flags)).regExp;
 		assert.deepStrictEqual(actual, expected);
 
-		let testObject = new ReplacePattern('hello$0', false, new RegExp(regexpAbc1));
+		let testObject = new ReplacePattern('hello$0', false, new RegExp(regexpAbc1.source, regexpAbc1.flags));
 		assert.strictEqual(testObject.hasParameters, false);
 
-		testObject = new ReplacePattern('hello$0', true, new RegExp(regexpAbc1));
+		testObject = new ReplacePattern('hello$0', true, new RegExp(regexpAbc1.source, regexpAbc1.flags));
 		assert.strictEqual(testObject.hasParameters, true);
 	});
 

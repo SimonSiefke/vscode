@@ -48,7 +48,7 @@ class StreamingCompletion {
 	 * terminator. Returns -1 if a suitable line ending was not found.
 	 */
 	get firstNewlineOffset(): number {
-		const matches = [...this.text.matchAll(new RegExp(regexp1))];
+		const matches = [...this.text.matchAll(regexp1)];
 		if (matches.length > 0 && matches[0].index === 0) {
 			matches.shift();
 		}

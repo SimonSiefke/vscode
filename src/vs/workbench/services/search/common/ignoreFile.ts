@@ -105,7 +105,7 @@ export class IgnoreFile {
 		const isFileIgnored = this.gitignoreLinesToExpression(fileIgnoreLines, dirPath, true);
 
 		// TODO: Slight hack... this naive approach may reintroduce too many files in cases of weirdly complex .gitignores
-		const fileIncludeLines = fileLines.filter(line => line.includes('!')).map(line => line.replace(new RegExp(regexp1), ''));
+		const fileIncludeLines = fileLines.filter(line => line.includes('!')).map(line => line.replace(regexp1, ''));
 		const isFileIncluded = this.gitignoreLinesToExpression(fileIncludeLines, dirPath, false);
 
 		// When checking if a dir is ignored we can use all lines
@@ -113,7 +113,7 @@ export class IgnoreFile {
 		const isDirIgnored = this.gitignoreLinesToExpression(dirIgnoreLines, dirPath, true);
 
 		// Same hack.
-		const dirIncludeLines = contentLines.filter(line => line.includes('!')).map(line => line.replace(new RegExp(regexp1), ''));
+		const dirIncludeLines = contentLines.filter(line => line.includes('!')).map(line => line.replace(regexp1, ''));
 		const isDirIncluded = this.gitignoreLinesToExpression(dirIncludeLines, dirPath, false);
 
 		const isPathIgnored = (path: string, isDir: boolean) => {

@@ -416,7 +416,7 @@ Then if you want to include those files you can call the tool again by setting "
 	 * and pads with a space when the content begins or ends with a backtick as per CommonMark.
 	 */
 	private formatCodeSpan(text: string): string {
-		const matches = text.match(new RegExp(regexp1));
+		const matches = text.match(regexp1);
 		const maxRun = matches ? matches.reduce((m, s) => Math.max(m, s.length), 0) : 0;
 		const fence = '`'.repeat(maxRun + 1);
 		const needsPadding = text.startsWith('`') || text.endsWith('`');
@@ -685,12 +685,12 @@ export class FindTextInFilesGrepResult extends PromptElement<FindTextInFilesGrep
 
 	/** Collapses any newlines so a value always renders on a single physical line. */
 	private static collapseToSingleLine(text: string): string {
-		return text.replace(new RegExp(regexp3), ' ');
+		return text.replace(regexp3, ' ');
 	}
 
 	/** Formats a number with thousands separators, e.g. `48210` becomes `48,210`. */
 	private static formatCharCount(count: number): string {
-		return count.toString().replace(new RegExp(regexp4), ',');
+		return count.toString().replace(regexp4, ',');
 	}
 }
 

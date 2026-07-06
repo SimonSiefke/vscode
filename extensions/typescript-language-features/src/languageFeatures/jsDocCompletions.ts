@@ -114,10 +114,10 @@ class JsDocCompletionProvider implements vscode.CompletionItemProvider {
 export function templateToSnippet(template: string): vscode.SnippetString {
 	// TODO: use append placeholder
 	let snippetIndex = 1;
-	template = template.replace(new RegExp(regexp5), '\\$'); // CodeQL [SM02383] This is only used for text which is put into the editor. It is not for rendered html
-	template = template.replace(new RegExp(regexp6), '');
+	template = template.replace(regexp5, '\\$'); // CodeQL [SM02383] This is only used for text which is put into the editor. It is not for rendered html
+	template = template.replace(regexp6, '');
 	template = template.replace(regexp7, (x) => x + `\$0`);
-	template = template.replace(new RegExp(regexpParam), (_param, type, post) => {
+	template = template.replace(regexpParam, (_param, type, post) => {
 		let out = '* @param ';
 		if (type === ' {any}' || type === ' {*}') {
 			out += `{\$\{${snippetIndex++}:*\}} `;
@@ -128,7 +128,7 @@ export function templateToSnippet(template: string): vscode.SnippetString {
 		return out;
 	});
 
-	template = template.replace(new RegExp(regexpReturns), `* @returns \${${snippetIndex++}}`);
+	template = template.replace(regexpReturns, `* @returns \${${snippetIndex++}}`);
 
 	return new vscode.SnippetString(template);
 }

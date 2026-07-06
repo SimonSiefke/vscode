@@ -228,7 +228,7 @@ export function shouldAlwaysIgnoreFile(resource: URI): boolean {
 	}
 
 	// Ignore some common folders like node_modules
-	const parts = resource.fsPath.toLowerCase().split(new RegExp(regexp1));
+	const parts = resource.fsPath.toLowerCase().split(regexp1);
 	if (parts.some(part => EXCLUDED_FOLDERS.includes(part))) {
 		return true;
 	}

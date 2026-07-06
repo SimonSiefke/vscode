@@ -508,7 +508,7 @@ export class StreamingWorkingCopyDocument implements IStreamingWorkingCopyDocume
 		// console.info(`---------\nNEW StreamingWorkingCopyDocument`);
 		this.indentStyle = IndentUtils.getDocumentIndentStyle(sourceCode, fileIndentInfo);
 
-		this._originalLines = sourceCode.split(new RegExp(regexp2));
+		this._originalLines = sourceCode.split(regexp2);
 		for (let i = 0; i < this._originalLines.length; i++) {
 			this.lines[i] = new DocumentLine(this._originalLines[i], this.indentStyle);
 		}

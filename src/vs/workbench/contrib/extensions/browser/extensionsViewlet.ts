@@ -882,11 +882,11 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		return this.searchBox
 			? this.searchBox.getValue()
 				.trim()
-				.replace(new RegExp(regexpCategory), 'category')
-				.replace(new RegExp(regexpTag1), 'tag:')
-				.replace(new RegExp(regexpExt1), 'ext:')
-				.replace(new RegExp(regexpFeatured), 'featured')
-				.replace(new RegExp(regexpPopular), this.extensionManagementServerService.webExtensionManagementServer && !this.extensionManagementServerService.localExtensionManagementServer && !this.extensionManagementServerService.remoteExtensionManagementServer ? '@web' : '@popular')
+				.replace(regexpCategory, 'category')
+				.replace(regexpTag1, 'tag:')
+				.replace(regexpExt1, 'ext:')
+				.replace(regexpFeatured, 'featured')
+				.replace(regexpPopular, this.extensionManagementServerService.webExtensionManagementServer && !this.extensionManagementServerService.localExtensionManagementServer && !this.extensionManagementServerService.remoteExtensionManagementServer ? '@web' : '@popular')
 			: '';
 	}
 

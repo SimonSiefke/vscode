@@ -19,7 +19,7 @@ function uninstallSubcommand(named: string | string[]): Fig.Subcommand {
 	};
 }
 
-const atsInStr = (s: string) => (s.match(new RegExp(regexp1)) || []).length;
+const atsInStr = (s: string) => (s.match(regexp1) || []).length;
 
 export const createNpmSearchHandler =
 	(keywords?: string[]) =>

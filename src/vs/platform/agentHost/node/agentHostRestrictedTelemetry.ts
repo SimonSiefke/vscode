@@ -171,7 +171,7 @@ export class AgentHostRestrictedTelemetrySender implements IAgentHostRestrictedT
 		const name = eventName.includes('/') ? eventName : `${NAMESPACE}/${eventName}`;
 		const envelope = {
 			ver: 1,
-			name: `Microsoft.ApplicationInsights.${iKey.replace(new RegExp(regexp1), '')}.Event`,
+			name: `Microsoft.ApplicationInsights.${iKey.replace(regexp1, '')}.Event`,
 			time: new Date().toISOString(),
 			sampleRate: 100,
 			seq: '',

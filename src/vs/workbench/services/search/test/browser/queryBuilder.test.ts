@@ -1321,7 +1321,7 @@ export function normalizeExpression(expression: IExpression | undefined): IExpre
 
 	const normalized: IExpression = {};
 	Object.keys(expression).forEach(key => {
-		normalized[key.replace(new RegExp(regexp2), '/')] = expression[key];
+		normalized[key.replace(regexp2, '/')] = expression[key];
 	});
 
 	return normalized;

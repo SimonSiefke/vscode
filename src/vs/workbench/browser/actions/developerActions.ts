@@ -704,7 +704,7 @@ function managedValueCell(value: ManagedSettingValue | undefined): string {
 	if (value === undefined) {
 		return '—';
 	}
-	return `\`${JSON.stringify(value).replace(new RegExp(regexp2), '\\|')}\``;
+	return `\`${JSON.stringify(value).replace(regexp2, '\\|')}\``;
 }
 
 /** Header row + separator for the report's two-column `Property | Value` tables. */
@@ -972,7 +972,7 @@ class PolicyDiagnosticsAction extends Action2 {
 				content += '| Stage | Message |\n';
 				content += '|-------|---------|\n';
 				for (const { stage, message } of parseErrors) {
-					content += `| ${stage} | ${message.replace(new RegExp(regexp2), '\\|')} |\n`;
+					content += `| ${stage} | ${message.replace(regexp2, '\\|')} |\n`;
 				}
 				content += '\n';
 			}

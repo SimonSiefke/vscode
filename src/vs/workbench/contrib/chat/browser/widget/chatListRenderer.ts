@@ -178,7 +178,7 @@ export interface IChatListItemTemplate {
 }
 
 function escapeMarkdownLinkLabel(label: string): string {
-	return label.replace(new RegExp(regexp2), '\\\\').replace(new RegExp(regexp1), '\\]');
+	return label.replace(regexp2, '\\\\').replace(regexp1, '\\]');
 }
 
 export function buildPlanReviewProgressContent(review: IChatPlanReview, message: string): MarkdownString {
@@ -194,7 +194,7 @@ export function buildPlanReviewProgressContent(review: IChatPlanReview, message:
 
 	const content = new MarkdownString(undefined, { supportThemeIcons: true });
 	if (overall) {
-		content.appendText(localize('chat.planReview.feedbackInline', "{0}: {1}", message, overall.replace(new RegExp(regexp3), ' ')));
+		content.appendText(localize('chat.planReview.feedbackInline', "{0}: {1}", message, overall.replace(regexp3, ' ')));
 	} else {
 		content.appendText(message);
 	}

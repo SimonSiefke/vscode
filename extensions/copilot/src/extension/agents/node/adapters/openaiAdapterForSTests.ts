@@ -261,7 +261,7 @@ class OpenAIAdapterForSTests implements IProtocolAdapter {
 	}
 
 	private formatEventData(data: unknown): string {
-		return JSON.stringify(data).replace(new RegExp(regexp1), '\\n');
+		return JSON.stringify(data).replace(regexp1, '\\n');
 	}
 }
 function responseApiInputToRawMessages(messages: ChatCompletionMessageParam[]): Raw.ChatMessage[] {

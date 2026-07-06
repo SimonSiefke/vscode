@@ -262,7 +262,7 @@ export class EditorWorker implements IDisposable, IWorkerTextModelSyncChannelSer
 			}
 
 			const original = model.getValueInRange(range);
-			text = text.replace(new RegExp(regexp1), model.eol);
+			text = text.replace(regexp1, model.eol);
 
 			if (original === text) {
 				// noop
@@ -331,7 +331,7 @@ export class EditorWorker implements IDisposable, IWorkerTextModelSyncChannelSer
 			}
 
 			const original = model.getValueInRange(range);
-			text = text.replace(new RegExp(regexp1), model.eol);
+			text = text.replace(regexp1, model.eol);
 
 			if (original === text) {
 				// noop

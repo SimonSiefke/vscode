@@ -627,7 +627,7 @@ suite('recentEditsReducer', function () {
  L53
  L54
 		`
-				.replace(new RegExp(regexp1), '\n')
+				.replace(regexp1, '\n')
 				.trim() + '\n'
 		);
 	});

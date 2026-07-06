@@ -257,9 +257,9 @@ function _ahpReplacer(this: unknown, _key: string, value: unknown): unknown {
 }
 
 function toFileTimestamp(date: Date): string {
-	return date.toISOString().replace(new RegExp(regexp1), '-');
+	return date.toISOString().replace(regexp1, '-');
 }
 
 function sanitizeFilePart(value: string): string {
-	return value.replace(new RegExp(regexp3), '-').replace(new RegExp(regexp2), '') || 'connection';
+	return value.replace(regexp3, '-').replace(regexp2, '') || 'connection';
 }

@@ -245,7 +245,7 @@ export abstract class BaseStringReplacement<T extends BaseStringReplacement<T> =
 	}
 
 	normalizeEOL(eol: '\r\n' | '\n'): StringReplacement {
-		const newText = this.newText.replace(new RegExp(regexp1), eol);
+		const newText = this.newText.replace(regexp1, eol);
 		return new StringReplacement(this.replaceRange, newText);
 	}
 
@@ -299,13 +299,13 @@ export class StringEdit extends BaseStringEdit<StringReplacement, StringEdit> {
 	*/
 	public static parse(toStringValue: string): StringEdit {
 		const replacements: StringReplacement[] = [];
-		const regex = new RegExp(regexp2);
+		const regex = new RegExp(regexp2.source, regexp2.flags);
 		let match;
 
 		while ((match = regex.exec(toStringValue)) !== null) {
 			const start = parseInt(match[1], 10);
 			const endEx = parseInt(match[2], 10);
-			const text = match[3].replace(new RegExp(regexp5), '\n').replace(new RegExp(regexp4), '\r').replace(new RegExp(regexp3), '\\');
+			const text = match[3].replace(regexp5, '\n').replace(regexp4, '\r').replace(regexp3, '\\');
 			replacements.push(new StringReplacement(new OffsetRange(start, endEx), text));
 		}
 

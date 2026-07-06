@@ -143,7 +143,7 @@ suite('snapshot', () => {
 			new Map([['hello', 1], ['goodbye', 2]]),
 			new Set([1, 2, 3]),
 			function helloWorld() { },
-			new RegExp(regexpHello),
+			new RegExp(regexpHello.source, regexpHello.flags),
 			new Array(10).fill('long string'.repeat(10)),
 			{ [Symbol.for('debug.description')]() { return `Range [1 -> 5]`; } },
 		]);

@@ -105,7 +105,7 @@ export async function generateSolutionsStream(
 }
 
 export function normalizeCompletionText(text: string): string {
-	return text.replace(new RegExp(regexp1), '');
+	return text.replace(regexp1, '');
 }
 
 /**

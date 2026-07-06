@@ -807,11 +807,11 @@ function createWorkspaceInfo(workspaceType: 'emptyWorkspace' | 'workspace' | 'wo
 function fixFilePathsForTestComparison(attachments: Attachment[]): Attachment[] {
 	attachments.forEach(attachment => {
 		if (attachment.type === 'file') {
-			attachment.path = attachment.path.replace(new RegExp(regexp1), '/');
+			attachment.path = attachment.path.replace(regexp1, '/');
 		} else if (attachment.type === 'directory') {
-			attachment.path = attachment.path.replace(new RegExp(regexp1), '/');
+			attachment.path = attachment.path.replace(regexp1, '/');
 		} else if (attachment.type === 'selection') {
-			attachment.filePath = attachment.filePath.replace(new RegExp(regexp1), '/');
+			attachment.filePath = attachment.filePath.replace(regexp1, '/');
 		}
 	});
 	return attachments;

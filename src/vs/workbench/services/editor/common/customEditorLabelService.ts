@@ -159,7 +159,7 @@ export class CustomEditorLabelService extends Disposable implements ICustomEdito
 		return undefined;
 	}
 
-	private readonly _parsedTemplateExpression = new RegExp(regexpDirnameFilenameExtname);
+	private readonly _parsedTemplateExpression = new RegExp(regexpDirnameFilenameExtname.source, regexpDirnameFilenameExtname.flags);
 	private readonly _filenameCaptureExpression = regexpFilename;
 	private applyTemplate(template: string, resource: URI, relevantPath: string): string {
 		let parsedPath: undefined | ParsedPath;

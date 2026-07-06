@@ -251,7 +251,7 @@ export async function getResource(filename: string, matcher: ProblemMatcher, fil
 		throw new Error('FileLocationKind is not actionable. Does the matcher have a filePrefix? This should never happen.');
 	}
 	fullPath = normalize(fullPath);
-	fullPath = fullPath.replace(new RegExp(regexp1), '/');
+	fullPath = fullPath.replace(regexp1, '/');
 	if (fullPath[0] !== '/') {
 		fullPath = '/' + fullPath;
 	}

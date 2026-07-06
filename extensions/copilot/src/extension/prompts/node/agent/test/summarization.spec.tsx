@@ -146,8 +146,8 @@ suite('Agent Summarization', () => {
 			.filter(message => message.role !== Raw.ChatRole.System)
 			.map(m => messageToMarkdown(m))
 			.join('\n\n')
-			.replace(new RegExp(regexp2), '/')
-			.replace(new RegExp(regexpTheCurrentDate), '(Date removed from snapshot)');
+			.replace(regexp2, '/')
+			.replace(regexpTheCurrentDate, '(Date removed from snapshot)');
 	}
 
 	function createEditFileToolCall(idx: number): IToolCall {

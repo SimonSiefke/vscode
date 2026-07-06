@@ -810,7 +810,7 @@ export function createModelConfigurationActions(
 		}
 		const currentValue = currentConfig[key] ?? propSchema.default;
 		const label = (typeof propSchema.title === 'string' ? propSchema.title : undefined)
-			?? key.replace(new RegExp(regexp2), '$1 $2')
+			?? key.replace(regexp2, '$1 $2')
 				.replace(regexp1, s => s.toUpperCase());
 		const defaultValue = propSchema.default;
 		const enumItemLabels = propSchema.enumItemLabels;
@@ -1676,7 +1676,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 				if (propSchema.defaultSnippets?.[0]) {
 					const snippet = propSchema.defaultSnippets[0];
 					let bodyText = snippet.bodyText ?? JSON.stringify(snippet.body, null, '\t\t\t');
-					bodyText = bodyText.replace(new RegExp(regexp4), (_, value) => value.substring(1));
+					bodyText = bodyText.replace(regexp4, (_, value) => value.substring(1));
 					properties.push(`\t\t\t"${key}": ${bodyText}`);
 				} else if (propSchema.default !== undefined) {
 					properties.push(`\t\t\t"${key}": ${JSON.stringify(propSchema.default)}`);
@@ -1771,7 +1771,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 			return undefined;
 		}
 
-		return bodyText.replace(new RegExp(regexp4), (_, value) => value.substring(1));
+		return bodyText.replace(regexp4, (_, value) => value.substring(1));
 	}
 
 	private async promptForName(languageModelProviderGroups: readonly ILanguageModelsProviderGroup[], vendor: IUserFriendlyLanguageModel, existing: ILanguageModelsProviderGroup | undefined): Promise<string | undefined> {
@@ -1897,10 +1897,10 @@ export class LanguageModelsService implements ILanguageModelsService {
 		// Quick input renders plain text only. Strip the inline markdown features used by
 		// our schemas (inline code, bold/italic, links) so users see readable help.
 		return md
-			.replace(new RegExp(regexp8), '$1')
-			.replace(new RegExp(regexp7), '$1')
-			.replace(new RegExp(regexp6), '$1')
-			.replace(new RegExp(regexp5), '$1');
+			.replace(regexp8, '$1')
+			.replace(regexp7, '$1')
+			.replace(regexp6, '$1')
+			.replace(regexp5, '$1');
 	}
 
 	private async promptForArray(groupName: string, property: string, propertySchema: IJSONSchema): Promise<string[] | undefined> {

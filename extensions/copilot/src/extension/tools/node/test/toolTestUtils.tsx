@@ -30,5 +30,5 @@ export async function renderElementToString(accessor: ServicesAccessor, element:
 	const renderer = PromptRenderer.create(accessor.get(IInstantiationService), endpoint, clz, {});
 
 	const r = await renderer.render();
-	return r.messages.map(m => getTextPart(m.content)).join('\n').replace(new RegExp(regexp1), '/');
+	return r.messages.map(m => getTextPart(m.content)).join('\n').replace(regexp1, '/');
 }

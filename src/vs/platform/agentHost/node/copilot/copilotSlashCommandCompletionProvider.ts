@@ -199,7 +199,7 @@ export class CopilotSlashCommandCompletionProvider implements IAgentHostCompleti
 				// do nothing, skills do not have options
 				skillHint = command.input?.hint ? `  \n(Prompt: ${command.input.hint})` : '';
 			} else {
-				options.push(...(command.input?.hint ?? '').replace(new RegExp(regexp2), '').split('|'));
+				options.push(...(command.input?.hint ?? '').replace(regexp2, '').split('|'));
 				if (options.length && !command.input?.required) {
 					// If we have options but they are optional,
 					// then make sure we add an empty option so that the user can select just the command without any options.

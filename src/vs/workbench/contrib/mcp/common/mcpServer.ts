@@ -229,7 +229,7 @@ export class McpPrefixGenerator {
 	private readonly _buckets = new Map<string, { usedIndexes: Set<number>; size: number }>();
 
 	take(name: string): IReference<string> {
-		const safeName = name.toLowerCase().replace(new RegExp(regexpZ0), '_').slice(0, McpToolName.MaxPrefixLen - McpToolName.Prefix.length - 1);
+		const safeName = name.toLowerCase().replace(regexpZ0, '_').slice(0, McpToolName.MaxPrefixLen - McpToolName.Prefix.length - 1);
 		let bucket = this._buckets.get(safeName);
 		if (!bucket) {
 			bucket = { usedIndexes: new Set(), size: 0 };

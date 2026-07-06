@@ -44,7 +44,7 @@ suite('RunSubagentTool', () => {
 			];
 
 			for (const { input, expected } of testCases) {
-				const result = input.replace(new RegExp(regexp1), '').trim();
+				const result = input.replace(regexp1, '').trim();
 				assert.strictEqual(result, expected, `Failed for input: ${JSON.stringify(input)}`);
 			}
 		});
@@ -340,7 +340,7 @@ suite('RunSubagentTool', () => {
 			return {
 				extension: new ExtensionIdentifier('test.extension'),
 				name,
-				id: name.toLowerCase().replace(new RegExp(regexp2), '-'),
+				id: name.toLowerCase().replace(regexp2, '-'),
 				vendor,
 				version: '1.0',
 				family: 'test',
@@ -785,7 +785,7 @@ suite('RunSubagentTool', () => {
 			return {
 				extension: new ExtensionIdentifier('test.extension'),
 				name,
-				id: name.toLowerCase().replace(new RegExp(regexp2), '-'),
+				id: name.toLowerCase().replace(regexp2, '-'),
 				vendor: 'TestVendor',
 				version: '1.0',
 				family: 'test',

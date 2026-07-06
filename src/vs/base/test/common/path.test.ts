@@ -41,7 +41,7 @@ suite('Paths (Node Implementation)', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 	test('join', () => {
 		const failures = [] as string[];
-		const backslashRE = new RegExp(regexp1);
+		const backslashRE = new RegExp(regexp1.source, regexp1.flags);
 
 		const joinTests: any = [
 			[[path.posix.join, path.win32.join],
@@ -263,7 +263,7 @@ suite('Paths (Node Implementation)', () => {
 
 	test('extname', () => {
 		const failures = [] as string[];
-		const slashRE = new RegExp(regexp2);
+		const slashRE = new RegExp(regexp2.source, regexp2.flags);
 
 		[
 			[__filename, '.js'],
@@ -367,8 +367,8 @@ suite('Paths (Node Implementation)', () => {
 
 	test('resolve', () => {
 		const failures = [] as string[];
-		const slashRE = new RegExp(regexp2);
-		const backslashRE = new RegExp(regexp1);
+		const slashRE = new RegExp(regexp2.source, regexp2.flags);
+		const backslashRE = new RegExp(regexp1.source, regexp1.flags);
 
 		const resolveTests = [
 			[path.win32.resolve,

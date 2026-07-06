@@ -180,7 +180,7 @@ export class SimpleSuggestDetailsWidget {
 			this._type.textContent = cappedDetail;
 			this._type.title = cappedDetail;
 			dom.show(this._type);
-			this._type.classList.toggle('auto-wrap', !new RegExp(regexp1).test(cappedDetail));
+			this._type.classList.toggle('auto-wrap', !new RegExp(regexp1.source, regexp1.flags).test(cappedDetail));
 		} else {
 			dom.clearNode(this._type);
 			this._type.title = '';

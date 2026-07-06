@@ -159,7 +159,7 @@ function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptRef
 	// Self-closing attachment
 	if (regexpAttachment2.test(tagText.trim())) {
 		const attrs: Record<string, string> = {};
-		for (const attrMatch of tagText.matchAll(new RegExp(regexp6))) {
+		for (const attrMatch of tagText.matchAll(regexp6)) {
 			attrs[attrMatch[1]] = attrMatch[2];
 		}
 		const isFolder = attrs['folderPath'] !== undefined && attrs['folderPath'] !== '' && attrs['filePath'] === undefined;
@@ -227,7 +227,7 @@ function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptRef
 		// Possible this is an SCM item
 		try {
 			const attrs: Record<string, string> = {};
-			for (const attrMatch of tagText.matchAll(new RegExp(regexp6))) {
+			for (const attrMatch of tagText.matchAll(regexp6)) {
 				attrs[attrMatch[1]] = attrMatch[2];
 			}
 			if (typeof attrs['filePath'] === 'string') {
@@ -296,8 +296,8 @@ function extractDiagnosticsFromTag(tagText: string): ChatPromptReference | undef
 	const attrText = m[1];
 	const message = m[2].trim();
 	const attrs: Record<string, string> = {};
-	for (const attrMatch of attrText.matchAll(new RegExp(regexp19))) { attrs[attrMatch[1]] = attrMatch[2]; }
-	for (const attrMatch of attrText.matchAll(new RegExp(regexp20))) { if (!attrs[attrMatch[1]]) { attrs[attrMatch[1]] = attrMatch[2]; } }
+	for (const attrMatch of attrText.matchAll(regexp19)) { attrs[attrMatch[1]] = attrMatch[2]; }
+	for (const attrMatch of attrText.matchAll(regexp20)) { if (!attrs[attrMatch[1]]) { attrs[attrMatch[1]] = attrMatch[2]; } }
 	const filePath = attrs['path'];
 	const lineStr = attrs['line'];
 	if (!filePath || !lineStr) { return undefined; }

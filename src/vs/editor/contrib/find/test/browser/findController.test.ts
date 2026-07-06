@@ -516,7 +516,7 @@ suite('FindController', () => {
 			await editor.runAction(startFindWithSelectionAction);
 			const findState = findController.getState();
 
-			assert.deepStrictEqual(findState.searchString.split(new RegExp(regexp1)), ['ABC', 'ABC']);
+			assert.deepStrictEqual(findState.searchString.split(regexp1), ['ABC', 'ABC']);
 
 			editor.setSelection(new Selection(3, 1, 3, 1));
 			await editor.runAction(startFindWithSelectionAction);

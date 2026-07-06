@@ -168,7 +168,7 @@ export function filterSupportedContextItems(
  * be problematic when used as prompt components keys.
  */
 function validateContextItemId(id: string): boolean {
-	return id.length > 0 && id.replaceAll(new RegExp(regexpZAZ0), '').length === id.length;
+	return id.length > 0 && id.replaceAll(regexpZAZ0, '').length === id.length;
 }
 
 /**

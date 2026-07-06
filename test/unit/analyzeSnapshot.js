@@ -19,7 +19,7 @@ if (!workerData) {
 	const { tmpdir } = require('os');
 
 	exports.takeSnapshotAndCountClasses = async (/** @type string */currentTest, /** @type string[] */ classes) => {
-		const cleanTitle = currentTest.replace(new RegExp(regexp1), '-');
+		const cleanTitle = currentTest.replace(regexp1, '-');
 		const file = join(tmpdir(), `vscode-test-snap-${cleanTitle}.heapsnapshot`);
 
 		if (typeof process.takeHeapSnapshot !== 'function') {

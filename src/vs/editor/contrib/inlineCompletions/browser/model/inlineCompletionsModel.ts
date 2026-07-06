@@ -1035,7 +1035,7 @@ export class InlineCompletionsModel extends Disposable {
 				acceptUntilIndexExclusive = text.length;
 			}
 
-			const wsRegExp = new RegExp(regexp1);
+			const wsRegExp = new RegExp(regexp1.source, regexp1.flags);
 			const m2 = wsRegExp.exec(text);
 			if (m2 && m2.index !== undefined) {
 				if (m2.index + m2[0].length < acceptUntilIndexExclusive) {

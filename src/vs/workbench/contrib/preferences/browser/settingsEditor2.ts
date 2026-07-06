@@ -819,7 +819,7 @@ export class SettingsEditor2 extends EditorPane {
 				provideResults: (query: string) => {
 					// Based on testing, the trigger character is always at the end of the query.
 					// for the ':' trigger, only return suggestions if there was a '@' before it in the same word.
-					const queryParts = query.split(new RegExp(regexp1));
+					const queryParts = query.split(regexp1);
 					if (queryParts[queryParts.length - 1].startsWith(`@${LANGUAGE_SETTING_TAG}`)) {
 						const sortedLanguages = this.languageService.getRegisteredLanguageIds().map(languageId => {
 							return `@${LANGUAGE_SETTING_TAG}${languageId} `;
@@ -1822,7 +1822,7 @@ export class SettingsEditor2 extends EditorPane {
 			this.updateSearchPlaceholder();
 			this.saveSearchHistory();
 		}
-		await this.triggerSearch(query.replace(new RegExp(regexp2), ' '), expandResults);
+		await this.triggerSearch(query.replace(regexp2, ' '), expandResults);
 	}
 
 	private loadSearchHistory(): string[] {

@@ -516,7 +516,7 @@ export class PtyService extends Disposable implements IPtyService {
 				return original;
 			}
 			if (await getWindowsBuildNumberAsync() < 17063) {
-				return original.replace(new RegExp(regexp3), '/');
+				return original.replace(regexp3, '/');
 			}
 			const wslExecutable = await this._getWSLExecutablePath();
 			if (!wslExecutable) {

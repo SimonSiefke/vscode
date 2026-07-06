@@ -165,13 +165,13 @@ export class ReleaseNotesManager extends Disposable {
 			throw new Error('not found');
 		}
 
-		const versionLabel = match[1].replace(new RegExp(regexp2), '_');
+		const versionLabel = match[1].replace(regexp2, '_');
 		const baseUrl = 'https://code.visualstudio.com/raw';
 		const url = `${baseUrl}/v${versionLabel}.md`;
 		const unassigned = nls.localize('unassigned', "unassigned");
 
 		const escapeMdHtml = (text: string): string => {
-			return escape(text).replace(new RegExp(regexp3), '\\\\');
+			return escape(text).replace(regexp3, '\\\\');
 		};
 
 		const patchKeybindings = (text: string): string => {
@@ -212,10 +212,10 @@ export class ReleaseNotesManager extends Disposable {
 			};
 
 			return text
-				.replace(new RegExp(regexpKb1), kbCode)
-				.replace(new RegExp(regexpKbstyle1), kbstyleCode)
-				.replace(new RegExp(regexpKb), (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
-				.replace(new RegExp(regexpKbstyle), (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
+				.replace(regexpKb1, kbCode)
+				.replace(regexpKbstyle1, kbstyleCode)
+				.replace(regexpKb, (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
+				.replace(regexpKbstyle, (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
 		};
 
 		const fetchReleaseNotes = async () => {
@@ -646,7 +646,7 @@ export class ReleaseNotesManager extends Disposable {
  */
 export function processConditionalBlocks(text: string, activeConditions: ReadonlySet<string>): string {
 	return text.replace(
-		new RegExp(regexpIFENDIF),
+		new RegExp(regexpIFENDIF.source, regexpIFENDIF.flags),
 		(_match, condition: string, content: string) => {
 			if (activeConditions.has(condition.toUpperCase())) {
 				// Strip comment markers, reveal content
@@ -668,8 +668,8 @@ export async function renderReleaseNotesMarkdown(
 	// Remove HTML comment markers around table of contents navigation
 	text = text
 		.toString()
-		.replace(new RegExp(regexpTOC), '')
-		.replace(new RegExp(regexpNavigationEnd), '');
+		.replace(regexpTOC, '')
+		.replace(regexpNavigationEnd, '');
 
 	// Process conditional blocks based on active conditions
 	const activeConditions = new Set<string>(['IN_PRODUCT']);

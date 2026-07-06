@@ -10,7 +10,7 @@ const regexp1 = /\#\#\s+(.*)\n/g;
 
 
 function getFiles(answer: string): string[] {
-	const regex = new RegExp(regexp1);
+	const regex = new RegExp(regexp1.source, regexp1.flags);
 	let match;
 	const titles = [];
 	while ((match = regex.exec(answer)) !== null) {

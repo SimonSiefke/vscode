@@ -330,11 +330,11 @@ function _parse(content: string, filename: string | null, locationKeyName: strin
 	}
 
 	function escapeVal(str: string): string {
-		return str.replace(new RegExp(regexp3), function (_: string, m0: string) {
+		return str.replace(regexp3, function (_: string, m0: string) {
 			return String.fromCodePoint(parseInt(m0, 10));
-		}).replace(new RegExp(regexp9a), function (_: string, m0: string) {
+		}).replace(regexp9a, function (_: string, m0: string) {
 			return String.fromCodePoint(parseInt(m0, 16));
-		}).replace(new RegExp(regexpAmpLtGt), function (_: string) {
+		}).replace(regexpAmpLtGt, function (_: string) {
 			switch (_) {
 				case '&amp;': return '&';
 				case '&lt;': return '<';

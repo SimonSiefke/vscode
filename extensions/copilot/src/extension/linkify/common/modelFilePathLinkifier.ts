@@ -117,13 +117,13 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 
 	private normalizeSlashes(value: string): string {
 		// Collapse one or more backslashes into a single forward slash so mixed separators normalize consistently.
-		return value.replace(new RegExp(regexp1), '/');
+		return value.replace(regexp1, '/');
 	}
 
 	private normalizeLinkText(rawText: string): string {
 		let text = this.normalizeSlashes(rawText);
 		// Remove a leading or trailing backtick that sometimes wraps the visible link label.
-		text = text.replace(new RegExp(regexp2), '');
+		text = text.replace(regexp2, '');
 
 		// Look for a trailing #L anchor segment so it can be stripped before we compare names.
 		const anchorMatch = regexp3.exec(text);
@@ -167,7 +167,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 			// Choose URI construction strategy based on workspace folder schemes.
 			// For local (file:) workspaces we keep using Uri.file; for remote schemes we attempt
 			// to project the absolute path into the remote scheme preserving the folder URI's authority.
-			const normalizedAbs = targetPath.replace(new RegExp(regexp5), '/');
+			const normalizedAbs = targetPath.replace(regexp5, '/');
 
 			// Build candidate URIs for all workspace folders, then stat them in parallel.
 			const candidates: Uri[] = [];
@@ -179,7 +179,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 					}
 				} else {
 					// Remote / virtual workspace: attempt to map the absolute path into the same scheme.
-					const folderPath = folderUri.path.replace(new RegExp(regexp5), '/');
+					const folderPath = folderUri.path.replace(regexp5, '/');
 					const prefix = folderPath.endsWith('/') ? folderPath : folderPath + '/';
 					if (normalizedAbs.startsWith(prefix)) {
 						candidates.push(folderUri.with({ path: normalizedAbs }));

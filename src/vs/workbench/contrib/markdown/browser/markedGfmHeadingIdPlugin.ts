@@ -15,7 +15,7 @@ function slugify(heading: string): string {
 	const slugifiedHeading = heading.trim()
 		.toLowerCase()
 		.replace(githubSlugReplaceRegex, '')
-		.replace(new RegExp(regexp1), '-'); // Replace whitespace with -
+		.replace(regexp1, '-'); // Replace whitespace with -
 
 	return slugifiedHeading;
 }
@@ -54,7 +54,7 @@ export function markedGfmHeadingIdPlugin({ prefix = '', globalSlugs = false } = 
 				const text = this.parser.parseInline(tokens);
 				const raw = unescape(this.parser.parseInline(tokens, this.parser.textRenderer))
 					.trim()
-					.replace(new RegExp(regexp2), '');
+					.replace(regexp2, '');
 				const level = depth;
 				const id = `${prefix}${slugify(raw)}`;
 				// const heading = { level, text, id, raw };

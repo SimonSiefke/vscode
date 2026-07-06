@@ -920,7 +920,7 @@ suite('Editor Contrib - Line Operations', () => {
 				`function helloWorld() {
 				return someGlobalObject.printHelloWorld("en", "utf-8");
 				}
-				helloWorld();`.replace(new RegExp(regexp1), ''),
+				helloWorld();`.replace(regexp1, ''),
 				`'JavaScript'`,
 				'parseHTML4String',
 				'_accessor: ServicesAccessor'
@@ -1031,7 +1031,7 @@ suite('Editor Contrib - Line Operations', () => {
 				assert.strictEqual(model.getValueInRange(new Selection(14, 1, 17, 15)), `function hello_world() {
 					return some_global_object.print_hello_world("en", "utf-8");
 				}
-				hello_world();`.replace(new RegExp(regexp1), ''));
+				hello_world();`.replace(regexp1, ''));
 				assertSelection(editor, new Selection(14, 1, 17, 15));
 
 				editor.setSelection(new Selection(18, 1, 18, 13));

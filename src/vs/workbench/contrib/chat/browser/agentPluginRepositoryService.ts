@@ -115,7 +115,7 @@ export class AgentPluginRepositoryService implements IAgentPluginRepositoryServi
 			return this.getPluginSourceInstallUri(plugin.sourceDescriptor);
 		}
 		const repoDir = this.getRepositoryUri(plugin.marketplaceReference, plugin.marketplaceType);
-		const normalizedSource = plugin.source.trim().replace(new RegExp(regexp1), '');
+		const normalizedSource = plugin.source.trim().replace(regexp1, '');
 		const pluginDir = normalizedSource ? joinPath(repoDir, normalizedSource) : repoDir;
 		if (!isEqualOrParent(pluginDir, repoDir)) {
 			throw new Error(`Invalid plugin source path '${plugin.source}'`);

@@ -688,7 +688,7 @@ const settingPatternCache = new Map<string, RegExp>();
 
 export function createSettingMatchRegExp(pattern: string): RegExp {
 	pattern = escapeRegExpCharacters(pattern)
-		.replace(new RegExp(regexp1), '.*');
+		.replace(regexp1, '.*');
 
 	return new RegExp(`^${pattern}$`, 'i');
 }
@@ -2419,7 +2419,7 @@ function cleanRenderedMarkdown(element: Node): void {
 }
 
 function fixSettingLinks(text: string, linkify = true): string {
-	return text.replace(new RegExp(regexp2), (match, backticksGroup, quotesGroup) => {
+	return text.replace(regexp2, (match, backticksGroup, quotesGroup) => {
 		const settingKey: string = backticksGroup ?? quotesGroup;
 		const targetDisplayFormat = settingKeyToDisplayFormat(settingKey);
 		const targetName = `${targetDisplayFormat.category}: ${targetDisplayFormat.label}`;
@@ -2431,8 +2431,8 @@ function fixSettingLinks(text: string, linkify = true): string {
 
 function escapeInvisibleChars(enumValue: string): string {
 	return enumValue && enumValue
-		.replace(new RegExp(regexp4), '\\n')
-		.replace(new RegExp(regexp3), '\\r');
+		.replace(regexp4, '\\n')
+		.replace(regexp3, '\\r');
 }
 
 

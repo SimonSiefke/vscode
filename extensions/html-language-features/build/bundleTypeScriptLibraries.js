@@ -34,7 +34,7 @@ function importLibs(startLib) {
 		return (name === '' ? 'lib.d.ts' : `lib.${name}.d.ts`);
 	}
 	function getVariableName(name) {
-		return (name === '' ? 'lib_dts' : `lib_${name.replace(new RegExp(regexp1), '_')}_dts`);
+		return (name === '' ? 'lib_dts' : `lib_${name.replace(regexp1, '_')}_dts`);
 	}
 	function readLibFile(name) {
 		var srcPath = path.join(TYPESCRIPT_LIB_SOURCE, getFileName(name));

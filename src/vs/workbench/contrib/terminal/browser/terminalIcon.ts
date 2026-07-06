@@ -30,12 +30,12 @@ export function getColorClass(terminalOrColorKey: ITerminalInstance | IExtension
 	if (isString(terminalOrColorKey)) {
 		color = terminalOrColorKey;
 	} else if (terminalOrColorKey.color) {
-		color = terminalOrColorKey.color.replace(new RegExp(regexp1), '_');
+		color = terminalOrColorKey.color.replace(regexp1, '_');
 	} else if (ThemeIcon.isThemeIcon(terminalOrColorKey.icon) && terminalOrColorKey.icon.color) {
-		color = terminalOrColorKey.icon.color.id.replace(new RegExp(regexp1), '_');
+		color = terminalOrColorKey.icon.color.id.replace(regexp1, '_');
 	}
 	if (color) {
-		return `terminal-icon-${color.replace(new RegExp(regexp1), '_')}`;
+		return `terminal-icon-${color.replace(regexp1, '_')}`;
 	}
 	return undefined;
 }

@@ -193,7 +193,7 @@ function main() {
 		const modulesToLoad = tests.map(function(test) {
 			test = test.replace(regexpSrc, 'out');
 			test = test.replace(regexpTs, '.js');
-			return path.relative(src, path.resolve(test)).replace(regexpJsJsMap, '').replace(new RegExp(regexp4), '/');
+			return path.relative(src, path.resolve(test)).replace(regexpJsJsMap, '').replace(regexp4, '/');
 		});
 		loadFunc = (cb) => {
 			loadModules(modulesToLoad).then(() => cb(null), cb);

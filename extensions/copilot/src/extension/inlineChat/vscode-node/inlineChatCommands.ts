@@ -408,6 +408,6 @@ function formatSelection(selection: {
 	fileName?: string;
 }): string {
 	const fileContext = selection.fileName ? `From the file: ${path.basename(selection.fileName)}\n` : '';
-	const { trimmedLines } = trimCommonLeadingWhitespace(selection.selectedText.split(new RegExp(regexp1)));
+	const { trimmedLines } = trimCommonLeadingWhitespace(selection.selectedText.split(regexp1));
 	return `\n\n${fileContext}${createFencedCodeBlock(selection.languageId, coalesce(trimmedLines).join('\n'))}\n\n`;
 }

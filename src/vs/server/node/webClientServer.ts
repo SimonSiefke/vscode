@@ -323,7 +323,7 @@ export class WebClientServer {
 		}
 
 		function asJSON(value: unknown): string {
-			return JSON.stringify(value).replace(new RegExp(regexp1), '&quot;');
+			return JSON.stringify(value).replace(regexp1, '&quot;');
 		}
 
 		let _wrapWebWorkerExtHostInIframe: undefined | false = undefined;
@@ -430,7 +430,7 @@ export class WebClientServer {
 		let data;
 		try {
 			const workbenchTemplate = (await promises.readFile(filePath)).toString();
-			data = workbenchTemplate.replace(new RegExp(regexp2), (_, key) => values[key] ?? 'undefined');
+			data = workbenchTemplate.replace(regexp2, (_, key) => values[key] ?? 'undefined');
 		} catch (e) {
 			res.writeHead(404, { 'Content-Type': 'text/plain' });
 			return void res.end('Not found');
@@ -477,13 +477,13 @@ export class WebClientServer {
 	private _getScriptCspHashes(content: string): string[] {
 		// Compute the CSP hashes for line scripts. Uses regex
 		// which means it isn't 100% good.
-		const regex = new RegExp(regexpScriptScript);
+		const regex = new RegExp(regexpScriptScript.source, regexpScriptScript.flags);
 		const result: string[] = [];
 		let match: RegExpExecArray | null;
 		while (match = regex.exec(content)) {
 			const hasher = crypto.createHash('sha256');
 			// This only works on Windows if we strip `\r` from `\r\n`.
-			const script = match[1].replace(new RegExp(regexp4), '\n');
+			const script = match[1].replace(regexp4, '\n');
 			const hash = hasher
 				.update(Buffer.from(script))
 				.digest().toString('base64');

@@ -220,7 +220,7 @@ export class SlashCommandHandler extends Disposable {
 			_debugDisplayName: 'sessionsSlashCommands',
 			triggerCharacters: ['/'],
 			provideCompletionItems: (model: ITextModel, position: Position, _context: CompletionContext, _token: CancellationToken) => {
-				const range = this._computeCompletionRanges(model, position, new RegExp(regexp3));
+				const range = this._computeCompletionRanges(model, position, new RegExp(regexp3.source, regexp3.flags));
 				if (!range) {
 					return null;
 				}
@@ -261,7 +261,7 @@ export class SlashCommandHandler extends Disposable {
 					return null;
 				}
 
-				const range = this._computeCompletionRanges(model, position, new RegExp(regexp4));
+				const range = this._computeCompletionRanges(model, position, new RegExp(regexp4.source, regexp4.flags));
 				if (!range) {
 					return null;
 				}

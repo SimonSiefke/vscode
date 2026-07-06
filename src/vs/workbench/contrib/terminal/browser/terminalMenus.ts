@@ -893,7 +893,7 @@ function addProfileActions(
 	const isDefault = profile.profileName === defaultProfileName;
 	const options: ICreateTerminalOptions = { config: profile, location };
 	const splitOptions: ICreateTerminalOptions = { config: profile, location: splitLocation };
-	const sanitizedProfileName = profile.profileName.replace(new RegExp(regexp1), '');
+	const sanitizedProfileName = profile.profileName.replace(regexp1, '');
 	dropdownActions.push(disposableStore.add(new Action(TerminalCommandId.NewWithProfile, isDefault ? localize('defaultTerminalProfile', "{0} (Default)", sanitizedProfileName) : sanitizedProfileName, undefined, true, async () => {
 		await terminalService.createAndFocusTerminal(options);
 	})));
@@ -913,7 +913,7 @@ function addContributedProfileActions(
 	disposableStore: DisposableStore
 ): void {
 	const isDefault = contributed.title === defaultProfileName;
-	const title = isDefault ? localize('defaultTerminalProfile', "{0} (Default)", contributed.title.replace(new RegExp(regexp1), '')) : contributed.title.replace(new RegExp(regexp1), '');
+	const title = isDefault ? localize('defaultTerminalProfile', "{0} (Default)", contributed.title.replace(regexp1, '')) : contributed.title.replace(regexp1, '');
 	dropdownActions.push(disposableStore.add(new Action('contributed', title, undefined, true, () => terminalService.createAndFocusTerminal({
 		config: {
 			extensionIdentifier: contributed.extensionIdentifier,

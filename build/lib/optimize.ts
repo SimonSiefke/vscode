@@ -121,7 +121,7 @@ function bundleESMTask(opts: IBundleESMTaskOpts): NodeJS.ReadWriteStream {
 						}
 
 						// File Content Mapper
-						const mapper = opts.fileContentMapper?.(path.replace(new RegExp(regexp3), '/'));
+						const mapper = opts.fileContentMapper?.(path.replace(regexp3, '/'));
 						if (mapper) {
 							newContents = await mapper(newContents);
 						}
@@ -259,7 +259,7 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 					const sourceMapFile = res.outputFiles.find(f => regexpJsCssMap.test(f.path))!;
 
 					const contents = Buffer.from(jsOrCSSFile.contents);
-					const unicodeMatch = contents.toString().match(new RegExp(regexp7));
+					const unicodeMatch = contents.toString().match(regexp7);
 					if (unicodeMatch) {
 						cb(new Error(`Found non-ascii character ${unicodeMatch[0]} in the minified output of ${f.path}. Non-ASCII characters in the output can cause performance problems when loading. Please review if you have introduced a regular expression that esbuild is not automatically converting and convert it to using unicode escape sequences.`));
 					} else {

@@ -52,7 +52,7 @@ class PieceTreeTextBufferFactory implements ITextBufferFactory {
 		) {
 			// Normalize pieces
 			for (let i = 0, len = chunks.length; i < len; i++) {
-				const str = chunks[i].buffer.replace(new RegExp(regexp1), eol);
+				const str = chunks[i].buffer.replace(regexp1, eol);
 				const newLineStart = createLineStartsFast(str);
 				chunks[i] = new StringBuffer(str, newLineStart);
 			}

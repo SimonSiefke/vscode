@@ -323,7 +323,7 @@ export class AgentHostOctoKitService implements IAgentHostOctoKitService {
 	}
 
 	private _formatErrorResponseBody(errorText: string | undefined): string | undefined {
-		const normalized = errorText?.replace(new RegExp(regexp1), ' ').trim();
+		const normalized = errorText?.replace(regexp1, ' ').trim();
 		if (!normalized) {
 			return undefined;
 		}

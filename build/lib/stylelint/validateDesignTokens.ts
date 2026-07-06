@@ -45,7 +45,7 @@ function formatCodiconMessage(px: string, nearMiss: boolean): string {
  * line numbers stay accurate.
  */
 function blankComments(text: string): string {
-	return text.replace(new RegExp(regexp1), match => match.replace(new RegExp(regexp2), ' '));
+	return text.replace(regexp1, match => match.replace(regexp2, ' '));
 }
 
 /**

@@ -318,7 +318,7 @@ export class WalkThroughPart extends EditorPane {
 					}
 					const id = `snippet-${model.uri.fragment}`;
 					// eslint-disable-next-line no-restricted-syntax
-					const div = innerContent.querySelector(`#${id.replace(new RegExp(regexp1), '\\$&')}`) as HTMLElement;
+					const div = innerContent.querySelector(`#${id.replace(regexp1, '\\$&')}`) as HTMLElement;
 
 					const options = this.getEditorOptions(model.getLanguageId());
 					const telemetryData = {
@@ -422,7 +422,7 @@ export class WalkThroughPart extends EditorPane {
 	}
 
 	private expandMacros(input: string) {
-		return input.replace(new RegExp(regexpKb), (match: string, kb: string) => {
+		return input.replace(regexpKb, (match: string, kb: string) => {
 			const keybinding = this.keybindingService.lookupKeybinding(kb);
 			const shortcut = keybinding ? keybinding.getLabel() || '' : UNBOUND_COMMAND;
 			return `<span class="shortcut">${strings.escape(shortcut)}</span>`;

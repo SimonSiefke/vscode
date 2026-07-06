@@ -84,7 +84,7 @@ function formatKeybinding(ctx: ITipBuildContext, commandId: string): string {
  * Used to automatically populate enabledCommands for trusted markdown.
  */
 export function extractCommandIds(markdown: string): string[] {
-	const commandPattern = new RegExp(regexpCommand);
+	const commandPattern = new RegExp(regexpCommand.source, regexpCommand.flags);
 	const commands = new Set<string>();
 	let match;
 	while ((match = commandPattern.exec(markdown)) !== null) {
@@ -419,7 +419,7 @@ export const TIP_CATALOG: readonly ITipDefinition[] = [
 			);
 			const experimentalTemplate = ctx.experimentalTipMessages.get(ChatTipExperiment.OpenAgentsWindowTip);
 			const message = experimentalTemplate
-				? experimentalTemplate.replace(new RegExp(regexp2), OPEN_AGENTS_WINDOW_COMMAND_ID)
+				? experimentalTemplate.replace(regexp2, OPEN_AGENTS_WINDOW_COMMAND_ID)
 				: defaultMessage;
 			return new MarkdownString(message);
 		},

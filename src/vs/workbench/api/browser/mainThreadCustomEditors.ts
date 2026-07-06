@@ -607,7 +607,7 @@ class MainThreadCustomEditorModel extends ResourceWorkingCopy implements ICustom
 
 	// Make sure each custom editor has a unique resource for backup and edits
 	private static toWorkingCopyResource(viewType: string, resource: URI) {
-		const authority = viewType.replace(new RegExp(regexpZ0), '-');
+		const authority = viewType.replace(regexpZ0, '-');
 		const path = `/${multibyteAwareBtoa(resource.with({ query: null, fragment: null }).toString(true))}`;
 		return URI.from({
 			scheme: Schemas.vscodeCustomEditor,

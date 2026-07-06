@@ -23,7 +23,7 @@ export class ImageServiceImpl implements IImageService {
 			throw new Error('Missing required mimeType or token for image upload');
 		}
 
-		const sanitizedName = name.replace(new RegExp(regexpZAZ0), '');
+		const sanitizedName = name.replace(regexpZAZ0, '');
 		let uploadName = sanitizedName;
 
 		// can catch unexpected types like "IMAGE/JPEG", "image/svg+xml", or "image/png; charset=UTF-8"

@@ -137,13 +137,13 @@ export function parseKeyboardLayoutDescription(layout: IKeyboardLayoutInfo | nul
 
 		if (regexpComAppleKeylayout.test(macLayout.id)) {
 			return {
-				label: macLayout.id.replace(regexpComAppleKeylayout, '').replace(new RegExp(regexp1), ' '),
+				label: macLayout.id.replace(regexpComAppleKeylayout, '').replace(regexp1, ' '),
 				description: ''
 			};
 		}
 		if (regexpInputmethod.test(macLayout.id)) {
 			return {
-				label: macLayout.id.replace(regexpInputmethod, '').replace(new RegExp(regexp3), ' '),
+				label: macLayout.id.replace(regexpInputmethod, '').replace(regexp3, ' '),
 				description: `Input Method (${macLayout.lang})`
 			};
 		}

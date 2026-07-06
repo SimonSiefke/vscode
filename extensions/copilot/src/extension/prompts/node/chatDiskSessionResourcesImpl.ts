@@ -34,7 +34,7 @@ const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
  * This prevents path injection attacks.
  */
 function sanitizePathComponent(str: string): string {
-	return str.replace(new RegExp(regexpZAZ0), '_');
+	return str.replace(regexpZAZ0, '_');
 }
 
 export class ChatDiskSessionResources extends Disposable implements IChatDiskSessionResources {

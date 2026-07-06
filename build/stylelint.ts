@@ -168,7 +168,7 @@ function resolveSources(argv: string[]): { sources: string[]; explicit: boolean 
 		return { sources: Array.from(stylelintFilter), explicit: false };
 	}
 	// Normalise separators and trim any trailing slash.
-	const normalized = target.replace(new RegExp(regexp7), '/').replace(regexp6, '');
+	const normalized = target.replace(regexp7, '/').replace(regexp6, '');
 	if (regexp8.test(normalized) || regexpCss.test(normalized)) {
 		return { sources: [normalized], explicit: true };
 	}

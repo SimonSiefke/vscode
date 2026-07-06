@@ -322,7 +322,7 @@ function stripComments(content: string): string {
 	// Third group matches a multi line comment
 	// Forth group matches a single line comment
 	// Fifth group matches a trailing comma
-	const regexp = new RegExp(regexp2);
+	const regexp = new RegExp(regexp2.source, regexp2.flags);
 	const result = content.replace(regexp, (match, _m1: string, _m2: string, m3: string, m4: string, m5: string) => {
 		// Only one of m1, m2, m3, m4, m5 matches
 		if (m3) {
@@ -475,7 +475,7 @@ export function createXlfFilesForCoreBundle(): eventStream.ThroughStream {
 				}
 				for (const resource in xlfs) {
 					const xlf = xlfs[resource];
-					const filePath = `${xlf.project}/${resource.replace(new RegExp(regexp14), '_')}.xlf`;
+					const filePath = `${xlf.project}/${resource.replace(regexp14, '_')}.xlf`;
 					const xlfFile = new File({
 						path: filePath,
 						contents: Buffer.from(xlf.toString(), 'utf8')
@@ -694,7 +694,7 @@ export function createXlfFilesForIsl(): eventStream.ThroughStream {
 			}
 		});
 
-		const originalPath = file.path.substring(file.cwd.length + 1, file.path.split('.')[0].length).replace(new RegExp(regexp15), '/');
+		const originalPath = file.path.substring(file.cwd.length + 1, file.path.split('.')[0].length).replace(regexp15, '/');
 		xlf.addFile(originalPath, keys, messages);
 
 		// Emit only upon all ISL files combined into single XLF instance
@@ -719,7 +719,7 @@ function createI18nFile(name: string, messages: any): File {
 
 	let content = JSON.stringify(result, null, '\t');
 	if (process.platform === 'win32') {
-		content = content.replace(new RegExp(regexp16), '\r\n');
+		content = content.replace(regexp16, '\r\n');
 	}
 	return new File({
 		path: path.join(name + '.i18n.json'),
@@ -906,5 +906,5 @@ function encodeEntities(value: string): string {
 }
 
 function decodeEntities(value: string): string {
-	return value.replace(new RegExp(regexpLt), '<').replace(new RegExp(regexpGt), '>').replace(new RegExp(regexpAmp), '&');
+	return value.replace(regexpLt, '<').replace(regexpGt, '>').replace(regexpAmp, '&');
 }

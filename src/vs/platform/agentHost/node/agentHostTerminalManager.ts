@@ -99,7 +99,7 @@ export function formatTerminalText(data: string, options: IFormatTerminalTextOpt
 	if (options.forceBracketedPasteMode) {
 		data = `\x1b[200~${data}\x1b[201~`;
 	}
-	data = data.replace(new RegExp(regexp1), '\r');
+	data = data.replace(regexp1, '\r');
 	if (options.shouldExecute && !data.endsWith('\r')) {
 		data += '\r';
 	}

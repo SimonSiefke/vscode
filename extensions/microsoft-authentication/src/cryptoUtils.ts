@@ -36,8 +36,8 @@ function base64urlencode(a: ArrayBuffer) {
 		str += String.fromCharCode(bytes[i]);
 	}
 	return base64Encode(str)
-		.replace(new RegExp(regexp3), '-')
-		.replace(new RegExp(regexp2), '_')
+		.replace(regexp3, '-')
+		.replace(regexp2, '_')
 		.replace(regexp1, '');
 }
 

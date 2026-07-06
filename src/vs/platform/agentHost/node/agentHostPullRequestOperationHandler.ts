@@ -320,10 +320,10 @@ export class AgentHostPullRequestOperationHandler implements IChangesetOperation
 		const idx = branchName.indexOf('/');
 		if (idx > 0 && idx < branchName.length - 1) {
 			const prefix = branchName.substring(0, idx);
-			const rest = branchName.substring(idx + 1).replace(new RegExp(regexp1), ' ');
+			const rest = branchName.substring(idx + 1).replace(regexp1, ' ');
 			return `${prefix}: ${rest}`;
 		}
-		return branchName.replace(new RegExp(regexp1), ' ');
+		return branchName.replace(regexp1, ' ');
 	}
 
 	private _formatCommitMessage(branchName: string): string {
@@ -447,7 +447,7 @@ export class AgentHostPullRequestOperationHandler implements IChangesetOperation
 	}
 
 	private _parseTitleAndDescription(raw: string): { title: string; description: string } | undefined {
-		let text = raw.trim().replace(new RegExp(regexp2), '\n');
+		let text = raw.trim().replace(regexp2, '\n');
 		const fenced = regexpMarkdownMdText.exec(text);
 		if (fenced) {
 			text = fenced[1].trim();

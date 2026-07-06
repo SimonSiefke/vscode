@@ -470,7 +470,7 @@ function encodeBase64(bytes: Uint8Array): string {
 }
 
 function escapeForRegExp(value: string): string {
-	return value.replace(new RegExp(regexp10), '\\$&');
+	return value.replace(regexp10, '\\$&');
 }
 
 interface IStubAuthenticationServiceOptions {

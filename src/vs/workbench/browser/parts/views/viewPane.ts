@@ -541,7 +541,7 @@ export abstract class ViewPane extends Pane implements IView {
 
 		let cssClass: string | undefined = undefined;
 		if (URI.isUri(icon)) {
-			cssClass = `view-${this.id.replace(new RegExp(regexp1), '-')}`;
+			cssClass = `view-${this.id.replace(regexp1, '-')}`;
 			const iconClass = `.pane-header .icon.${cssClass}`;
 
 			createCSSRule(iconClass, `

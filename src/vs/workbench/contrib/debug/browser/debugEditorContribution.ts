@@ -175,7 +175,7 @@ export function createInlineValueDecoration(lineNumber: number, contentText: str
 }
 
 function replaceWsWithNoBreakWs(str: string): string {
-	return str.replace(new RegExp(regexp2), strings.noBreakWhitespace);
+	return str.replace(regexp2, strings.noBreakWhitespace);
 }
 
 function createInlineValueDecorationsInsideRange(expressions: ReadonlyArray<IExpression>, ranges: Range[], model: ITextModel, wordToLineNumbersMap: Map<string, number[]>) {

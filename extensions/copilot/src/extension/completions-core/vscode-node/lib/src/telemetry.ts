@@ -229,7 +229,7 @@ export class TelemetryData {
 		const returnValue: { [key: string]: V } = {};
 		// Iterate over all keys in the map and replace dots with underscores
 		for (const key in map) {
-			const newKey = TelemetryData.keysExemptedFromSanitization.includes(key) ? key : key.replace(new RegExp(regexp1), '_');
+			const newKey = TelemetryData.keysExemptedFromSanitization.includes(key) ? key : key.replace(regexp1, '_');
 			returnValue[newKey] = map[key];
 		}
 		return returnValue;

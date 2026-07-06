@@ -28,7 +28,7 @@ const windowsTerminalEncodings = {
 };
 
 function toIconvLiteEncoding(encodingName: string): string {
-	const normalizedEncodingName = encodingName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
+	const normalizedEncodingName = encodingName.replace(regexpZAZ0, '').toLowerCase();
 	const mapped = JSCHARDET_TO_ICONV_ENCODINGS[normalizedEncodingName];
 
 	return mapped || normalizedEncodingName;

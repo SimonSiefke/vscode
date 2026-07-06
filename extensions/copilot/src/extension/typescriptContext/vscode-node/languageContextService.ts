@@ -900,7 +900,7 @@ class RunnableResultManager implements vscode.Disposable {
 		const eventText = event.text;
 
 		// Calculate how many lines the new text adds or removes
-		const linesDelta = (eventText.match(new RegExp(regexp1)) || []).length - (eventRange.end.line - eventRange.start.line);
+		const linesDelta = (eventText.match(regexp1) || []).length - (eventRange.end.line - eventRange.start.line);
 
 		// Calculate the new end position
 		const endLine = range.end.line + linesDelta;
@@ -930,7 +930,7 @@ class RunnableResultManager implements vscode.Disposable {
 			return ranges;
 		}
 		// Calculate how many lines the new text adds or removes
-		const linesDelta = (eventText.match(new RegExp(regexp1)) || []).length - (changeRange.end.line - changeRange.start.line);
+		const linesDelta = (eventText.match(regexp1) || []).length - (changeRange.end.line - changeRange.start.line);
 		const adjustedRanges: vscode.Range[] = [];
 
 		for (const range of ranges) {

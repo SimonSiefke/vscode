@@ -244,7 +244,7 @@ export function getCopilotWorktreeName(branchName: string): string {
 	const withoutPrefix = branchName.startsWith(COPILOT_BRANCH_PREFIX)
 		? branchName.substring(COPILOT_BRANCH_PREFIX.length)
 		: branchName;
-	return withoutPrefix.replace(new RegExp(regexp1), '-');
+	return withoutPrefix.replace(regexp1, '-');
 }
 
 /**

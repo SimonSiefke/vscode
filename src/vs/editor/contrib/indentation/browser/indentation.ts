@@ -605,7 +605,7 @@ function getIndentationEditOperations(model: ITextModel, builder: IEditOperation
 		const originalIndentation = model.getValueInRange(originalIndentationRange);
 		const newIndentation = (
 			tabsToSpaces
-				? originalIndentation.replace(new RegExp(regexp2), spaces)
+				? originalIndentation.replace(regexp2, spaces)
 				: originalIndentation.replace(spacesRegExp, '\t')
 		);
 

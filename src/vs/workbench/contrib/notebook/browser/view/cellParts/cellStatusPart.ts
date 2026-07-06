@@ -310,7 +310,7 @@ class CellStatusBarItem extends Disposable {
 		this._itemDisposables.clear();
 
 		if (!this._currentItem || this._currentItem.text !== item.text) {
-			this._itemDisposables.add(new SimpleIconLabel(this.container)).text = item.text.replace(new RegExp(regexp1), ' ');
+			this._itemDisposables.add(new SimpleIconLabel(this.container)).text = item.text.replace(regexp1, ' ');
 		}
 
 		const resolveColor = (color: ThemeColor | string) => {

@@ -734,8 +734,8 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 
 		// Base64url encode the digest
 		return encodeBase64(VSBuffer.wrap(new Uint8Array(digest)), false, false)
-			.replace(new RegExp(regexp3), '-')
-			.replace(new RegExp(regexp2), '_')
+			.replace(regexp3, '-')
+			.replace(regexp2, '_')
 			.replace(regexp1, '');
 	}
 

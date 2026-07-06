@@ -129,7 +129,7 @@ export class WorkspaceRecorderImpl extends Disposable {
 			const date = new Date();
 
 			function formatDateFileNameSafe(date: Date): string {
-				return date.toISOString().replace(new RegExp(regexp1), '-');
+				return date.toISOString().replace(regexp1, '-');
 			}
 
 			await rename(logFilePath, path.join(recordingDirPath, `${state.value.logCount}.${formatDateFileNameSafe(date)}.workspaceRecording.jsonl`));

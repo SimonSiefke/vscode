@@ -28,11 +28,11 @@ export function gitBashToWindowsPath(path: string, driveLetter?: string): string
 	const match = path.match(regexpZA);
 	if (match) {
 		const drive = match[1].toUpperCase();
-		const rest = match[2] ? match[2].replace(new RegExp(regexp2), '\\') : '\\';
+		const rest = match[2] ? match[2].replace(regexp2, '\\') : '\\';
 		return `${drive}:${rest}`;
 	}
 	// Fallback: just replace slashes
-	return path.replace(new RegExp(regexp2), '\\');
+	return path.replace(regexp2, '\\');
 }
 
 /**
@@ -45,5 +45,5 @@ export function windowsToGitBashPath(path: string): string {
 	// Convert Windows path (e.g. C:\Users\foo) to Git Bash path (e.g. /c/Users/foo)
 	return path
 		.replace(regexpZA1, match => `/${match[0].toLowerCase()}/`)
-		.replace(new RegExp(regexp3), '/');
+		.replace(regexp3, '/');
 }

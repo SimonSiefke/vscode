@@ -459,7 +459,7 @@ function sanitizePath(path: string): string {
 }
 
 function sanitizeRelativePath(path: string): string {
-	return path.replace(new RegExp(regexp20), '/');
+	return path.replace(regexp20, '/');
 }
 
 const COMMIT_FORMAT = '%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B';
@@ -1307,7 +1307,7 @@ export interface BlameInformation {
 
 function parseGitBlame(data: string): BlameInformation[] {
 	const lineSeparator = regexp32;
-	const commitRegex = new RegExp(regexp9a);
+	const commitRegex = new RegExp(regexp9a.source, regexp9a.flags);
 
 	const blameInformation = new Map<string, BlameInformation>();
 
@@ -1367,7 +1367,7 @@ const REFS_FORMAT = '%(refname)%00%(objectname)%00%(*objectname)';
 const REFS_WITH_DETAILS_FORMAT = `${REFS_FORMAT}%00%(parent)%00%(*parent)%00%(authorname)%00%(*authorname)%00%(committerdate:unix)%00%(*committerdate:unix)%00%(subject)%00%(*subject)`;
 
 function parseRefs(data: string): (Ref | Branch)[] {
-	const refRegex = new RegExp(regexpRefs9a9a);
+	const refRegex = new RegExp(regexpRefs9a9a.source, regexpRefs9a9a.flags);
 
 	const headRegex = regexpRefsHeads;
 	const remoteHeadRegex = regexpRefsRemotes;
@@ -3342,7 +3342,7 @@ export class Repository {
 
 	// TODO: Support core.commentChar
 	stripCommitMessageComments(message: string): string {
-		return message.replace(new RegExp(regexp86), '').trim();
+		return message.replace(regexp86, '').trim();
 	}
 
 	async getSquashMessage(): Promise<string | undefined> {

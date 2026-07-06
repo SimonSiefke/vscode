@@ -1786,7 +1786,7 @@ export class AgentService extends Disposable implements IAgentService {
 	 * downstream consumers can detect the right type from the path alone.
 	 */
 	private _attachmentBasename(label: string, contentType: string | undefined): string {
-		const safeLabel = (label || 'attachment').replace(new RegExp(regexp1), '_');
+		const safeLabel = (label || 'attachment').replace(regexp1, '_');
 		if (resourcesExtname(URI.file(safeLabel))) {
 			return safeLabel;
 		}

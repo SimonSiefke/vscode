@@ -67,7 +67,7 @@ export function format2(template: string, values: Record<string, unknown>): stri
  * This prevents XSS injection.
  */
 export function htmlAttributeEncodeValue(value: string): string {
-	return value.replace(new RegExp(regexp1), ch => {
+	return value.replace(regexp1, ch => {
 		switch (ch) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -84,7 +84,7 @@ export function htmlAttributeEncodeValue(value: string): string {
  * being used e.g. in HTMLElement.innerHTML.
  */
 export function escape(html: string): string {
-	return html.replace(new RegExp(regexp2), function (match) {
+	return html.replace(regexp2, function (match) {
 		switch (match) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -98,7 +98,7 @@ export function escape(html: string): string {
  * Escapes regular expression characters in a given string
  */
 export function escapeRegExpCharacters(value: string): string {
-	return value.replace(new RegExp(regexp3), '\\$&');
+	return value.replace(regexp3, '\\$&');
 }
 
 /**
@@ -202,11 +202,11 @@ export function rtrim(haystack: string, needle: string): string {
 }
 
 export function convertSimple2RegExpPattern(pattern: string): string {
-	return pattern.replace(new RegExp(regexp5), '\\$&').replace(new RegExp(regexp4), '.*');
+	return pattern.replace(regexp5, '\\$&').replace(regexp4, '.*');
 }
 
 export function stripWildcards(pattern: string): string {
-	return pattern.replace(new RegExp(regexp6), '');
+	return pattern.replace(regexp6, '');
 }
 
 export interface RegExpOptions {
@@ -750,7 +750,7 @@ export function lcut(text: string, n: number, prefix = '') {
 		return trimmed;
 	}
 
-	const re = new RegExp(regexp10);
+	const re = new RegExp(regexp10.source, regexp10.flags);
 	let i = 0;
 	while (re.test(trimmed)) {
 		if (trimmed.length - re.lastIndex < n) {
@@ -832,7 +832,7 @@ export function containsUppercaseCharacter(target: string, ignoreEscapedChars = 
 	}
 
 	if (ignoreEscapedChars) {
-		target = target.replace(new RegExp(regexp11), '');
+		target = target.replace(regexp11, '');
 	}
 
 	return target.toLowerCase() !== target;

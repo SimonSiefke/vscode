@@ -1139,7 +1139,7 @@ export class BaseIssueReporterService extends Disposable {
 			show(downloadExtensionDataLink);
 			const date = new Date();
 			const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-			const formattedTime = date.toTimeString().split(' ')[0].replace(new RegExp(regexp2), '-'); // HH-MM-SS
+			const formattedTime = date.toTimeString().split(' ')[0].replace(regexp2, '-'); // HH-MM-SS
 			const fileName = `extensionData_${formattedDate}_${formattedTime}.md`;
 			const handleLinkClick = async () => {
 				const downloadPath = await this.fileDialogService.showSaveDialog({

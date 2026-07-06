@@ -19,7 +19,7 @@ export function parseEnvFile(src: string) {
 	const result = new Map<string, string>();
 
 	// Normalize line breaks
-	const normalizedSrc = src.replace(new RegExp(regexp1), '\n');
+	const normalizedSrc = src.replace(regexp1, '\n');
 	const lines = normalizedSrc.split('\n');
 
 	for (let line of lines) {
@@ -72,7 +72,7 @@ export function parseEnvFile(src: string) {
 
 				// Handle escaped characters in double quotes
 				if (firstChar === '"') {
-					value = value.replace(new RegExp(regexp3), '\n').replace(new RegExp(regexp2), '\r');
+					value = value.replace(regexp3, '\n').replace(regexp2, '\r');
 				}
 			}
 		}

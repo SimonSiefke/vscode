@@ -321,7 +321,7 @@ function anonymizeFilePaths(stack: string, cleanupPatterns: RegExp[]): string {
 	// 2. Built-in extensions: resources/app/extensions/
 	// Capture everything from the vscode folder or resources/app/extensions onwards
 	const vscodeExtensionsPathRegex = regexpVscodeResourcesApp;
-	const fileRegex = new RegExp(regexpFileZA);
+	const fileRegex = new RegExp(regexpFileZA.source, regexpFileZA.flags);
 	let lastIndex = 0;
 	updatedStack = '';
 

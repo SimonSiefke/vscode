@@ -170,7 +170,7 @@ export function toFileUri(filePath: string): string {
 		filePath = '/' + match[1].toUpperCase() + ':' + match[2];
 	}
 
-	return 'file://' + filePath.replace(new RegExp(regexp3), '/');
+	return 'file://' + filePath.replace(regexp3, '/');
 }
 
 export function skipDirectories(): NodeJS.ReadWriteStream {
@@ -183,7 +183,7 @@ export function skipDirectories(): NodeJS.ReadWriteStream {
 
 export function cleanNodeModules(rulePath: string): NodeJS.ReadWriteStream {
 	const rules = fs.readFileSync(rulePath, 'utf8')
-		.split(new RegExp(regexp5))
+		.split(regexp5)
 		.map(line => line.trim())
 		.filter(line => line && !regexp4.test(line));
 
@@ -217,7 +217,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 			}
 
 			const contents = (f.contents as Buffer).toString('utf8');
-			const reg = new RegExp(regexpSourceMappingURL);
+			const reg = new RegExp(regexpSourceMappingURL.source, regexpSourceMappingURL.flags);
 			let lastMatch: RegExpExecArray | null = null;
 			let match: RegExpExecArray | null = null;
 
@@ -230,7 +230,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 					version: '3',
 					names: [],
 					mappings: '',
-					sources: [f.relative.replace(new RegExp(regexp3), '/')],
+					sources: [f.relative.replace(regexp3, '/')],
 					sourcesContent: [contents]
 				};
 
@@ -238,7 +238,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 				return;
 			}
 
-			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL), ''), 'utf8');
+			f.contents = Buffer.from(contents.replace(regexpSourceMappingURL, ''), 'utf8');
 
 			fs.readFile(path.join(path.dirname(f.path), lastMatch[1]), 'utf8', (err, contents) => {
 				if (err) { return cb(err); }
@@ -257,7 +257,7 @@ export function stripSourceMappingURL(): NodeJS.ReadWriteStream {
 	const output = input
 		.pipe(es.mapSync<VinylFile, VinylFile>(f => {
 			const contents = (f.contents as Buffer).toString('utf8');
-			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL1), ''), 'utf8');
+			f.contents = Buffer.from(contents.replace(regexpSourceMappingURL1, ''), 'utf8');
 			return f;
 		}));
 
@@ -296,8 +296,8 @@ export function rewriteSourceMappingURL(sourceMappingURLBase: string): NodeJS.Re
 	const output = input
 		.pipe(es.mapSync<VinylFile, VinylFile>(f => {
 			const contents = (f.contents as Buffer).toString('utf8');
-			const str = `//# sourceMappingURL=${sourceMappingURLBase}/${path.dirname(f.relative).replace(new RegExp(regexp3), '/')}/$1`;
-			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL1), str));
+			const str = `//# sourceMappingURL=${sourceMappingURLBase}/${path.dirname(f.relative).replace(regexp3, '/')}/$1`;
+			f.contents = Buffer.from(contents.replace(regexpSourceMappingURL1, str));
 			return f;
 		}));
 

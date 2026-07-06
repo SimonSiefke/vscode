@@ -38,7 +38,7 @@ const versionedResourcesFolder = useVersionedUpdate ? commit!.substring(0, 10) :
 
 function createTemplate(input: string): (params: Record<string, string>) => string {
 	return (params: Record<string, string>) => {
-		return input.replace(new RegExp(regexp1), (match, key) => {
+		return input.replace(regexp1, (match, key) => {
 			return params[key] || match;
 		});
 	};

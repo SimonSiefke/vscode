@@ -556,7 +556,7 @@ export class ChatToolConfirmationCarouselPart extends Disposable {
 	}
 
 	private truncateTitle(text: string): string {
-		text = text.replace(new RegExp(regexp1), ' ').trim();
+		text = text.replace(regexp1, ' ').trim();
 		const maxLength = 100;
 		return text.length > maxLength ? `${text.substring(0, maxLength)}\u2026` : text;
 	}
@@ -564,11 +564,11 @@ export class ChatToolConfirmationCarouselPart extends Disposable {
 	private toPlainText(message: string | IMarkdownString): string {
 		const markdown = typeof message === 'string' ? message : message.value;
 		return markdown
-			.replace(new RegExp(regexp6), (_match, text, url) => text || this.basename(url))
-			.replace(new RegExp(regexp5), '$1')
-			.replace(new RegExp(regexp4), '$1')
-			.replace(new RegExp(regexp3), '$1')
-			.replace(new RegExp(regexp2), '');
+			.replace(regexp6, (_match, text, url) => text || this.basename(url))
+			.replace(regexp5, '$1')
+			.replace(regexp4, '$1')
+			.replace(regexp3, '$1')
+			.replace(regexp2, '');
 	}
 
 	private basename(url: string): string {
