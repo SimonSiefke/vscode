@@ -21,6 +21,9 @@ import * as protocol from '../common/serverProtocol';
 import { InspectorDataProvider } from './inspector';
 import { ThrottledDebouncer } from './throttledDebounce';
 import { ContextItemResultBuilder, ContextItemSummary, ResolvedRunnableResult, type OnCachePopulatedEvent, type OnContextComputedEvent, type OnContextComputedOnTimeoutEvent } from './types';
+const regexp1 = /\n/g;
+const regexpInspectDebugBrk = /^--(?:inspect|debug)(?:-brk)?(?:=\d+)?$/i;
+
 
 const currentTokenBudget: number = 8 * 1024;
 
@@ -897,7 +900,7 @@ class RunnableResultManager implements vscode.Disposable {
 		const eventText = event.text;
 
 		// Calculate how many lines the new text adds or removes
-		const linesDelta = (eventText.match(/\n/g) || []).length - (eventRange.end.line - eventRange.start.line);
+		const linesDelta = (eventText.match(new RegExp(regexp1)) || []).length - (eventRange.end.line - eventRange.start.line);
 
 		// Calculate the new end position
 		const endLine = range.end.line + linesDelta;
@@ -927,7 +930,7 @@ class RunnableResultManager implements vscode.Disposable {
 			return ranges;
 		}
 		// Calculate how many lines the new text adds or removes
-		const linesDelta = (eventText.match(/\n/g) || []).length - (changeRange.end.line - changeRange.start.line);
+		const linesDelta = (eventText.match(new RegExp(regexp1)) || []).length - (changeRange.end.line - changeRange.start.line);
 		const adjustedRanges: vscode.Range[] = [];
 
 		for (const range of ranges) {
@@ -1249,7 +1252,7 @@ export class LanguageContextServiceImpl implements ILanguageContextService, vsco
 		@IExperimentationService private readonly experimentationService: IExperimentationService,
 		@ILogService private readonly logService: ILogService
 	) {
-		this.isDebugging = process.execArgv.some((arg) => /^--(?:inspect|debug)(?:-brk)?(?:=\d+)?$/i.test(arg));
+		this.isDebugging = process.execArgv.some((arg) => regexpInspectDebugBrk.test(arg));
 		this.telemetrySender = new TelemetrySender(telemetryService, logService);
 		this.runnableResultManager = new RunnableResultManager();
 		this.neighborFileModel = new NeighborFileModel();

@@ -14,6 +14,8 @@ import { OutputPaneShowCommand } from '../../../lib/src/snippy/constants';
 import { copilotOutputLogTelemetry } from '../../../lib/src/snippy/telemetryHandlers';
 import { notify } from './matchNotifier';
 import { GitHubCopilotLogger } from './outputChannel';
+const regexp1 = /[\r\n\t]+|^[ \t]+/gm;
+
 
 /**
  * Citation manager that logs citations to the VS Code log. On the first citation encountered,
@@ -57,7 +59,7 @@ export class LoggingCitationManager extends Disposable implements ICompletionsCi
 		const matchLocation = start ? `[Ln ${start.line + 1}, Col ${start.character + 1}]` : 'Location not available';
 		const shortenedMatchText = `${citation.matchingText
 			?.slice(0, 100)
-			.replace(/[\r\n\t]+|^[ \t]+/gm, ' ')
+			.replace(new RegExp(regexp1), ' ')
 			.trim()}...`;
 
 		this.logger.info(citation.inDocumentUri, `Similar code at `, matchLocation, shortenedMatchText);

@@ -6,6 +6,8 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
+const regexp1 = /^\d+$/;
+
 
 // Edit tool names we're tracking
 const EDIT_TOOL_NAMES = ['insert_edit_into_file', 'replace_string_in_file', 'multi_replace_string_in_file', 'apply_patch'];
@@ -65,7 +67,7 @@ async function listRuns(amlOutPath: string): Promise<string[]> {
 	const entries = await fs.readdir(amlOutPath, { withFileTypes: true });
 	// Filter directories that are numeric run IDs
 	const runs = entries
-		.filter(e => e.isDirectory() && /^\d+$/.test(e.name))
+		.filter(e => e.isDirectory() && regexp1.test(e.name))
 		.map(e => e.name)
 		.sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending (newest first)
 	return runs;

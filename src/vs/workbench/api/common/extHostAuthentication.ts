@@ -28,6 +28,11 @@ import { IProgressStep } from '../../../platform/progress/common/progress.js';
 import { CancellationError, isCancellationError } from '../../../base/common/errors.js';
 import { raceCancellationError, SequencerByKey } from '../../../base/common/async.js';
 import { XaaifyAuthProvider } from './extHostXaaAuthProvider.js';
+const regexp1 = /=+$/;
+const regexp2 = /\//g;
+const regexp3 = /\+/g;
+const regexpCode = /[?&]code=([^&]+)/;
+
 
 export interface IExtHostAuthentication extends ExtHostAuthentication { }
 export const IExtHostAuthentication = createDecorator<IExtHostAuthentication>('IExtHostAuthentication');
@@ -729,16 +734,16 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 
 		// Base64url encode the digest
 		return encodeBase64(VSBuffer.wrap(new Uint8Array(digest)), false, false)
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=+$/, '');
+			.replace(new RegExp(regexp3), '-')
+			.replace(new RegExp(regexp2), '_')
+			.replace(regexp1, '');
 	}
 
 	private async waitForAuthorizationCode(expectedState: URI): Promise<{ code: string }> {
 		const result = await this._proxy.$waitForUriHandler(expectedState);
 		// Extract the code parameter directly from the query string. NOTE, URLSearchParams does not work here because
 		// it will decode the query string and we need to keep it encoded.
-		const codeMatch = /[?&]code=([^&]+)/.exec(result.query || '');
+		const codeMatch = regexpCode.exec(result.query || '');
 		if (!codeMatch || codeMatch.length < 2) {
 			// No code parameter found in the query string
 			throw new Error('Authentication failed: No authorization code received');

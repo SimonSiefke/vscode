@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import type { IDebugLogEntry } from '../../../platform/chat/common/chatDebugFileLoggerService';
 import { CopilotChatAttr, CopilotCliSdkAttr, GenAiAttr, GenAiOperationName } from '../../../platform/otel/common/index';
 import { type ICompletedSpanData, type ISpanEventData, SpanStatusCode } from '../../../platform/otel/common/otelService';
+const regexpInvokeAgent = /^invoke_agent\s*/;
+
 
 // ── Event ID conventions ──
 // {spanId} → direct span mapping (tool calls, model turns, subagent invocations)
@@ -42,7 +44,7 @@ export function completedSpanToDebugEvent(span: ICompletedSpanData): vscode.Chat
 			// whose children should appear under their grandparent.
 			if (span.parentSpanId) {
 				const hasAgentName = !!asString(span.attributes[GenAiAttr.AGENT_NAME])
-					|| span.name.replace(/^invoke_agent\s*/, '').trim().length > 0;
+					|| span.name.replace(regexpInvokeAgent, '').trim().length > 0;
 				if (hasAgentName) {
 					return spanToSubagentEvent(span);
 				}
@@ -367,7 +369,7 @@ function spanToModelTurnEvent(span: ICompletedSpanData): vscode.ChatDebugModelTu
 function spanToSubagentEvent(span: ICompletedSpanData): vscode.ChatDebugSubagentInvocationEvent {
 	// Use agent name from attributes, falling back to parsing from span name (e.g., "invoke_agent task" → "task")
 	const agentName = asString(span.attributes[GenAiAttr.AGENT_NAME])
-		?? (span.name.replace(/^invoke_agent\s*/, '').trim() || 'agent');
+		?? (span.name.replace(regexpInvokeAgent, '').trim() || 'agent');
 	// Use span name (e.g., "invoke_agent task") for display, matching Grafana
 	const displayName = span.name || `invoke_agent ${agentName}`;
 	const evt = new vscode.ChatDebugSubagentInvocationEvent(displayName, new Date(span.startTime));

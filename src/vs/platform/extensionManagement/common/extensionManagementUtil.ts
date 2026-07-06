@@ -14,6 +14,8 @@ import { ILogService } from '../../log/common/log.js';
 import { arch } from '../../../base/common/process.js';
 import { TelemetryTrustedValue } from '../../telemetry/common/telemetryUtils.js';
 import { isString } from '../../../base/common/types.js';
+const regexpID = /^ID=([^\u001b\r\n]*)/m;
+
 
 export function areSameExtensions(a: IExtensionIdentifier, b: IExtensionIdentifier): boolean {
 	if (a.uuid && b.uuid) {
@@ -188,7 +190,7 @@ async function isAlpineLinux(fileService: IFileService, logService: ILogService)
 			logService.debug(`Error while getting the os-release file.`, getErrorMessage(error));
 		}
 	}
-	return !!content && (content.match(/^ID=([^\u001b\r\n]*)/m) || [])[1] === 'alpine';
+	return !!content && (content.match(regexpID) || [])[1] === 'alpine';
 }
 
 export async function computeTargetPlatform(fileService: IFileService, logService: ILogService): Promise<TargetPlatform> {

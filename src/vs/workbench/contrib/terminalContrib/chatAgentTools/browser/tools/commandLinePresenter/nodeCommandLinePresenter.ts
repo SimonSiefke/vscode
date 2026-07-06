@@ -6,6 +6,11 @@
 import { OperatingSystem } from '../../../../../../../base/common/platform.js';
 import { isPowerShell } from '../../runInTerminalHelpers.js';
 import type { ICommandLinePresenter, ICommandLinePresenterOptions, ICommandLinePresenterResult } from './commandLinePresenter.js';
+const regexpNodeJsEval = /^node(?:js)?\s+(?:-e|--eval)\s+"(?<code>.+)"$/s;
+const regexp2 = /\\"/g;
+const regexp3 = /`"/g;
+const regexpNodeJsEval1 = /^node(?:js)?\s+(?:-e|--eval)\s+'(?<code>.+)'$/s;
+
 
 /**
  * Command line presenter for Node.js inline commands (`node -e "..."`).
@@ -37,17 +42,17 @@ export class NodeCommandLinePresenter implements ICommandLinePresenter {
  */
 export function extractNodeCommand(commandLine: string, shell: string, os: OperatingSystem): string | undefined {
 	// Match node/nodejs -e/--eval "..." pattern (double quotes)
-	const doubleQuoteMatch = commandLine.match(/^node(?:js)?\s+(?:-e|--eval)\s+"(?<code>.+)"$/s);
+	const doubleQuoteMatch = commandLine.match(regexpNodeJsEval);
 	if (doubleQuoteMatch?.groups?.code) {
 		let jsCode = doubleQuoteMatch.groups.code.trim();
 
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			jsCode = jsCode.replace(/`"/g, '"');
+			jsCode = jsCode.replace(new RegExp(regexp3), '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			jsCode = jsCode.replace(/\\"/g, '"');
+			jsCode = jsCode.replace(new RegExp(regexp2), '"');
 		}
 
 		return jsCode;
@@ -56,7 +61,7 @@ export function extractNodeCommand(commandLine: string, shell: string, os: Opera
 	// Match node/nodejs -e/--eval '...' pattern (single quotes)
 	// Single quotes in bash/sh/zsh are literal - no escaping inside
 	// Single quotes in PowerShell are also literal
-	const singleQuoteMatch = commandLine.match(/^node(?:js)?\s+(?:-e|--eval)\s+'(?<code>.+)'$/s);
+	const singleQuoteMatch = commandLine.match(regexpNodeJsEval1);
 	if (singleQuoteMatch?.groups?.code) {
 		return singleQuoteMatch.groups.code.trim();
 	}

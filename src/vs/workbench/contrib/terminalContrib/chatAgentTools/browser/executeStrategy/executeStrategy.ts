@@ -10,6 +10,15 @@ import { DisposableStore, type IDisposable } from '../../../../../../base/common
 import type { ITerminalLogService } from '../../../../../../platform/terminal/common/terminal.js';
 import type { ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import type { IMarker as IXtermMarker } from '@xterm/xterm';
+const regexpPS = /PS\s+[A-Z]:\\.*>\s*$/;
+const regexp2 = /^[A-Z]:\\.*>\s*$/;
+const regexp3 = /\$\s*$/;
+const regexp4 = /#\s*$/;
+const regexp5 = /^>>>\s*$/;
+const regexp6 = /\u276f\s*$/;
+const regexp7 = /[>%]\s*$/;
+const regexpTypeACD = /(?:\x1b\]|\x9d)[16]33;(?<type>[ACD])(?:;.*)?(?:\x1b\\|\x07|\x9c)/g;
+
 
 export interface ITerminalExecuteStrategy extends IDisposable {
 	readonly type: 'rich' | 'basic' | 'none';
@@ -67,37 +76,37 @@ export function detectsCommonPromptPattern(cursorLine: string): IPromptDetection
 	}
 
 	// PowerShell prompt: PS C:\> or similar patterns
-	if (/PS\s+[A-Z]:\\.*>\s*$/.test(cursorLine)) {
+	if (regexpPS.test(cursorLine)) {
 		return { detected: true, reason: `PowerShell prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Command Prompt: C:\path>
-	if (/^[A-Z]:\\.*>\s*$/.test(cursorLine)) {
+	if (regexp2.test(cursorLine)) {
 		return { detected: true, reason: `Command Prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Bash-style prompts ending with $
-	if (/\$\s*$/.test(cursorLine)) {
+	if (regexp3.test(cursorLine)) {
 		return { detected: true, reason: `Bash-style prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Root prompts ending with #
-	if (/#\s*$/.test(cursorLine)) {
+	if (regexp4.test(cursorLine)) {
 		return { detected: true, reason: `Root prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Python REPL prompt
-	if (/^>>>\s*$/.test(cursorLine)) {
+	if (regexp5.test(cursorLine)) {
 		return { detected: true, reason: `Python REPL prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Custom prompts ending with the starship character (\u276f)
-	if (/\u276f\s*$/.test(cursorLine)) {
+	if (regexp6.test(cursorLine)) {
 		return { detected: true, reason: `Starship prompt pattern detected: "${cursorLine}"` };
 	}
 
 	// Generic prompts ending with common prompt characters
-	if (/[>%]\s*$/.test(cursorLine)) {
+	if (regexp7.test(cursorLine)) {
 		return { detected: true, reason: `Generic prompt pattern detected: "${cursorLine}"` };
 	}
 
@@ -291,7 +300,7 @@ export async function trackIdleOnPrompt(
 		initialFallbackScheduler.cancel();
 		// Update state
 		// p10k fires C as `133;C;`
-		const matches = e.matchAll(/(?:\x1b\]|\x9d)[16]33;(?<type>[ACD])(?:;.*)?(?:\x1b\\|\x07|\x9c)/g);
+		const matches = e.matchAll(new RegExp(regexpTypeACD));
 		for (const match of matches) {
 			if (match.groups?.type === 'A') {
 				if (state === TerminalState.Initial) {

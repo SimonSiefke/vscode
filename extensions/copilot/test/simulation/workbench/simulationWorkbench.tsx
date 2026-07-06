@@ -22,6 +22,8 @@ import { SimulationTestsProvider } from './stores/simulationTestsProvider';
 import { TestSource, TestSourceValue } from './stores/testSource';
 import { WorkbenchMode, WorkbenchModeValue } from './stores/workbenchMode';
 import { REPO_ROOT, monacoModule } from './utils/utils';
+const regexp1 = /\\/g;
+
 
 
 class SimulationWorkbench extends Disposable {
@@ -97,7 +99,7 @@ function doLoadMonaco(): Promise<typeof import('monaco-editor')> {
 		const amdRequire = amdLoader.require;
 
 		function uriFromPath(_path: string) {
-			let pathName = path.resolve(_path).replace(/\\/g, '/');
+			let pathName = path.resolve(_path).replace(new RegExp(regexp1), '/');
 			if (pathName.length > 0 && pathName.charAt(0) !== '/') {
 				pathName = '/' + pathName;
 			}

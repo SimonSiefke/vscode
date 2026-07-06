@@ -1,3 +1,5 @@
+const regexp1 = /^\d+$/;
+
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
@@ -187,7 +189,7 @@ export class SSEParser {
 
 			case 'retry':
 				// If the field value consists only of ASCII digits, set the reconnection time
-				if (/^\d+$/.test(value)) {
+				if (regexp1.test(value)) {
 					this.reconnectionTime = parseInt(value, 10);
 				}
 				break;

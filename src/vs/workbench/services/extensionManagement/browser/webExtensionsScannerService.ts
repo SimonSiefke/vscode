@@ -43,6 +43,8 @@ import { IStringDictionary } from '../../../../base/common/collections.js';
 import { IUserDataProfileService } from '../../userDataProfile/common/userDataProfile.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
+const regexpPackageNlsJson = /package\.nls\.([\w-]+)\.json/;
+
 
 type GalleryExtensionInfo = { readonly id: string; preRelease?: boolean; migrateStorageFrom?: string };
 type ExtensionInfo = { readonly id: string; preRelease: boolean };
@@ -689,7 +691,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 		const packageNLSResources = new Map<string, URI>();
 		extensionResources.forEach(e => {
 			// Grab all package.nls.{language}.json files
-			const regexResult = /package\.nls\.([\w-]+)\.json/.exec(basename(e));
+			const regexResult = regexpPackageNlsJson.exec(basename(e));
 			if (regexResult?.[1]) {
 				packageNLSResources.set(regexResult[1], URI.parse(e));
 			}

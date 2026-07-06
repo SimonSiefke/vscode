@@ -21,6 +21,9 @@ import { IEnvironmentService } from '../../../../../platform/environment/common/
 import { Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { extUriBiasedIgnorePathCase } from '../../../../../base/common/resources.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexp1 = /^c:/i;
+const regexp2 = /\\/g;
+
 
 const DEFAULT_EDITOR_CONFIG = {};
 const DEFAULT_USER_CONFIG = { useRipgrep: true, useIgnoreFiles: true, useGlobalIgnoreFiles: true, useParentIgnoreFiles: true };
@@ -1304,7 +1307,7 @@ export function getUri(...slashPathParts: string[]): uri {
 }
 
 export function fixPath(...slashPathParts: string[]): string {
-	if (isWindows && slashPathParts.length && !slashPathParts[0].match(/^c:/i)) {
+	if (isWindows && slashPathParts.length && !slashPathParts[0].match(regexp1)) {
 		slashPathParts.unshift('c:');
 	}
 
@@ -1318,7 +1321,7 @@ export function normalizeExpression(expression: IExpression | undefined): IExpre
 
 	const normalized: IExpression = {};
 	Object.keys(expression).forEach(key => {
-		normalized[key.replace(/\\/g, '/')] = expression[key];
+		normalized[key.replace(new RegExp(regexp2), '/')] = expression[key];
 	});
 
 	return normalized;

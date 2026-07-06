@@ -23,6 +23,9 @@ import * as strings from '../../../common/strings.js';
 import './menubar.css';
 import * as nls from '../../../../nls.js';
 import { mainWindow } from '../../window.js';
+const regexp1 = /&&/g;
+const regexpAmpAmp = /&amp;&amp;/g;
+
 
 const $ = DOM.$;
 
@@ -580,7 +583,7 @@ export class MenuBar extends Disposable {
 				escMatch = MENU_ESCAPED_MNEMONIC_REGEX.exec(cleanLabel);
 			}
 
-			const replaceDoubleEscapes = (str: string) => str.replace(/&amp;&amp;/g, '&amp;');
+			const replaceDoubleEscapes = (str: string) => str.replace(new RegExp(regexpAmpAmp), '&amp;');
 
 			if (escMatch) {
 				titleElement.textContent = '';
@@ -593,7 +596,7 @@ export class MenuBar extends Disposable {
 				titleElement.textContent = replaceDoubleEscapes(cleanLabel).trim();
 			}
 		} else {
-			titleElement.textContent = cleanMenuLabel.replace(/&&/g, '&');
+			titleElement.textContent = cleanMenuLabel.replace(new RegExp(regexp1), '&');
 		}
 
 		const mnemonicMatches = MENU_MNEMONIC_REGEX.exec(label);

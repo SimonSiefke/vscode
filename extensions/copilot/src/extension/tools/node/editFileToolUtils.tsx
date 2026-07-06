@@ -37,6 +37,13 @@ import { ServicesAccessor } from '../../../util/vs/platform/instantiation/common
 import { EndOfLine, Position, Range, TextEdit } from '../../../vscodeTypes';
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { formatUriForFileWidget } from '../common/toolUtils';
+const regexp1 = /[.*+?^${}()|[\]\\]/g;
+const regexp2 = /\n/g;
+const regexp3 = /\r?\n/g;
+const regexp4 = /[<>"|?*]/;
+const regexpCONPRNAUX = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)/i;
+const regexp6 = /^\d/;
+
 
 // Simplified Hunk type for the patch
 interface Hunk {
@@ -96,7 +103,7 @@ export class ContentFormatError extends EditError {
  * Escapes special regex characters in a string.
  */
 function escapeRegex(str: string): string {
-	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	return str.replace(new RegExp(regexp1), '\\$&');
 }
 
 /**
@@ -524,9 +531,9 @@ function getPatch({ fileContents, oldStr, newStr }: { fileContents: string; oldS
 	// Simplified patch generation - in a real implementation this would generate proper diff hunks
 	return [{
 		oldStart: 1,
-		oldLines: (oldStr.match(/\n/g) || []).length + 1,
+		oldLines: (oldStr.match(new RegExp(regexp2)) || []).length + 1,
 		newStart: 1,
-		newLines: (newStr.match(/\n/g) || []).length + 1,
+		newLines: (newStr.match(new RegExp(regexp2)) || []).length + 1,
 		lines: []
 	}];
 }
@@ -588,8 +595,8 @@ export async function applyEdit(
 		originalFile = document.getText();
 
 		const eol = document instanceof TextDocumentSnapshot && document.eol === EndOfLine.CRLF ? '\r\n' : '\n';
-		old_string = old_string.replace(/\r?\n/g, eol);
-		new_string = new_string.replace(/\r?\n/g, eol);
+		old_string = old_string.replace(new RegExp(regexp3), eol);
+		new_string = new_string.replace(new RegExp(regexp3), eol);
 
 		if (isFalsyOrWhitespace(originalFile) && isFalsyOrWhitespace(old_string)) {
 			updatedFile = new_string;
@@ -749,7 +756,7 @@ export function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 	}
 
 	// Check for invalid Windows filename characters
-	const invalidChars = /[<>"|?*]/;
+	const invalidChars = regexp4;
 	const pathAfterDrive = fsPath.length > 2 ? fsPath.substring(2) : fsPath;
 	if (invalidChars.test(pathAfterDrive)) {
 		throw new Error(`Path contains invalid characters: ${fsPath}`);
@@ -760,7 +767,7 @@ export function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 		throw new Error(`Path is a reserved device path: ${fsPath}`);
 	}
 
-	const reserved = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)/i;
+	const reserved = regexpCONPRNAUX;
 
 	// Check for trailing dots and spaces on path components (Windows quirk)
 	const parts = fsPath.split('\\');
@@ -783,7 +790,7 @@ export function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 		const tildeIndex = part.indexOf('~');
 		if (tildeIndex !== -1) {
 			const afterTilde = part.substring(tildeIndex + 1);
-			if (afterTilde.length > 0 && /^\d/.test(afterTilde)) {
+			if (afterTilde.length > 0 && regexp6.test(afterTilde)) {
 				throw new Error(`Path appears to use short filename format (8.3 names): ${fsPath}. Please use the full path.`);
 			}
 		}

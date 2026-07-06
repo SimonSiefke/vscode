@@ -7,6 +7,9 @@ import { decodeBase64, encodeBase64, VSBuffer } from '../../../base/common/buffe
 import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
 import type { ResourceLabelFormatter } from '../../label/common/label.js';
+const regexpZAZ0 = /^[a-zA-Z0-9]+$/;
+const regexpZAZ01 = /^[a-zA-Z0-9.:\-]+$/;
+
 
 /**
  * The URI scheme for accessing files on a remote agent host.
@@ -141,10 +144,10 @@ export function normalizeRemoteAgentHostAddress(address: string): string {
  */
 export function agentHostAuthority(address: string): string {
 	const normalized = normalizeRemoteAgentHostAddress(address);
-	if (/^[a-zA-Z0-9]+$/.test(normalized)) {
+	if (regexpZAZ0.test(normalized)) {
 		return normalized;
 	}
-	if (/^[a-zA-Z0-9.:\-]+$/.test(normalized)) {
+	if (regexpZAZ01.test(normalized)) {
 		return normalized.replaceAll(':', '__');
 	}
 	return `b64-${encodeBase64(VSBuffer.fromString(normalized), false, true)}`;

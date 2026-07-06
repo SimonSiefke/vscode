@@ -14,6 +14,8 @@ import { ChatConfiguration } from '../../../common/constants.js';
 import { LanguageModelPartAudience } from '../../../common/languageModels.js';
 import { IToolResult, IToolResultDataPart, IToolResultTextPart } from '../../../common/tools/languageModelToolsService.js';
 import { IToolResultFilter, MIN_COMPRESSIBLE_LENGTH } from '../../../common/tools/toolResultCompressor.js';
+const regexpOutputCompressedBy = /^\[Output compressed by test\.replaceWithFoo /;
+
 
 const TOOL = 'run_in_terminal';
 
@@ -94,7 +96,7 @@ suite('ToolResultCompressorService', () => {
 		for (const part of out!.content) {
 			strictEqual(part.kind, 'text');
 			const value = (part as { value: string }).value;
-			ok(/^\[Output compressed by test\.replaceWithFoo /.test(value));
+			ok(regexpOutputCompressedBy.test(value));
 			ok(value.endsWith('\nfoo'));
 		}
 	});
@@ -109,7 +111,7 @@ suite('ToolResultCompressorService', () => {
 		strictEqual(out!.content[0], dataPart);
 		strictEqual(out!.content[1].kind, 'text');
 		const value = (out!.content[1] as IToolResultTextPart).value;
-		ok(/^\[Output compressed by test\.replaceWithFoo /.test(value));
+		ok(regexpOutputCompressedBy.test(value));
 		ok(value.endsWith('\nfoo'));
 	});
 
@@ -122,7 +124,7 @@ suite('ToolResultCompressorService', () => {
 		ok(out);
 		strictEqual(out!.content[0].kind, 'text');
 		const part = out!.content[0] as IToolResultTextPart;
-		ok(/^\[Output compressed by test\.replaceWithFoo /.test(part.value));
+		ok(regexpOutputCompressedBy.test(part.value));
 		ok(part.value.endsWith('\nfoo'));
 		strictEqual(part.audience, audience);
 	});

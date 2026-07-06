@@ -54,6 +54,8 @@ import * as coverUtils from './codeCoverageDisplayUtils.js';
 import { testingCoverageMissingBranch, testingCoverageReport, testingFilterIcon, testingRerunIcon } from './icons.js';
 import { ManagedTestCoverageBars } from './testCoverageBars.js';
 import { testingCoveredMinimapBackground, testingUncoveredMinimapBackground } from './theme.js';
+const regexp1 = /[\n\r`]/g;
+
 
 const CLASS_HIT = 'coverage-deco-hit';
 const CLASS_MISS = 'coverage-deco-miss';
@@ -601,7 +603,7 @@ function tidyLocation(location: Range | Position): Range {
 }
 
 function wrapInBackticks(str: string) {
-	return '`' + str.replace(/[\n\r`]/g, '') + '`';
+	return '`' + str.replace(new RegExp(regexp1), '') + '`';
 }
 
 function wrapName(functionNameOrCode: string) {

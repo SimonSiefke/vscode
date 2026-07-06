@@ -21,6 +21,8 @@ import { FetchStreamError } from '../common/fetchStreamError';
 import { toUniquePath } from '../common/promptCraftingUtils';
 import { ResponseTags } from '../common/tags';
 import { CurrentDocument } from '../common/xtabCurrentDocument';
+const regexp1 = /^(.+):(\d+)$/;
+
 
 class Patch {
 	public removedLines: string[] = [];
@@ -41,7 +43,7 @@ class Patch {
 	) { }
 
 	public static ofLine(line: string, patchIndex: number): Patch | null {
-		const match = line.match(/^(.+):(\d+)$/);
+		const match = line.match(regexp1);
 		if (!match) {
 			return null;
 		}

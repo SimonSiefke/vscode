@@ -26,6 +26,8 @@ import { Registry } from '../../registry/common/platform.js';
 import { StorageScope } from '../../storage/common/storage.js';
 import { IUserDataProfile, UseDefaultProfileFlags } from '../../userDataProfile/common/userDataProfile.js';
 import { IUserDataSyncMachine } from './userDataSyncMachines.js';
+const regexpUserDataSyncErrorSyncResourceOperationId = /^(.+) \(UserDataSyncError\) syncResource:(.+) operationId:(.+)$/;
+
 
 export function getDisallowedIgnoredSettings(): string[] {
 	const allSettings = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).getConfigurationProperties();
@@ -374,7 +376,7 @@ export namespace UserDataSyncError {
 		if (error instanceof UserDataSyncError) {
 			return error;
 		}
-		const match = /^(.+) \(UserDataSyncError\) syncResource:(.+) operationId:(.+)$/.exec(error.name);
+		const match = regexpUserDataSyncErrorSyncResourceOperationId.exec(error.name);
 		if (match && match[1]) {
 			const syncResource = match[2] === 'unknown' ? undefined : match[2] as SyncResource;
 			const operationId = match[3] === 'unknown' ? undefined : match[3];

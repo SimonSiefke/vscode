@@ -7,6 +7,8 @@ import * as assert from 'assert';
 import 'mocha';
 import * as vscode from 'vscode';
 import { asPromise, assertNoRpc, disposeAll, delay, DeferredPromise } from '../utils';
+const regexpCannotResolveTree = /Cannot resolve tree item/;
+
 
 suite('vscode API - tree', () => {
 
@@ -102,7 +104,7 @@ suite('vscode API - tree', () => {
 		// its reveal fails with "Cannot resolve". The other succeeds.
 		const errors = [firstResult.error, secondResult.error].filter((e): e is Error => !!e);
 		assert.strictEqual(errors.length, 1, 'Exactly one reveal should fail from the stale fetch');
-		assert.ok(/Cannot resolve tree item/.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
+		assert.ok(regexpCannotResolveTree.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
 	});
 
 	test('TreeView - element already registered after rapid root refresh', async function () {
@@ -209,7 +211,7 @@ suite('vscode API - tree', () => {
 		const [firstResult, secondResult] = await Promise.all([firstReveal, secondReveal]);
 		const errors = [firstResult.error, secondResult.error].filter((e): e is Error => !!e);
 		assert.strictEqual(errors.length, 1, 'Exactly one reveal should fail from the stale fetch');
-		assert.ok(/Cannot resolve tree item/.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
+		assert.ok(regexpCannotResolveTree.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
 	});
 
 	test('TreeView - element already registered during switch and update', async function () {
@@ -313,7 +315,7 @@ suite('vscode API - tree', () => {
 		const [firstResult, secondResult] = await Promise.all([revealFirst, revealSecond]);
 		const errors = [firstResult.error, secondResult.error].filter((e): e is Error => !!e);
 		assert.strictEqual(errors.length, 1, 'Exactly one reveal should fail from the stale fetch');
-		assert.ok(/Cannot resolve tree item/.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
+		assert.ok(regexpCannotResolveTree.test(errors[0].message), `Expected "Cannot resolve" error but got: ${errors[0].message}`);
 	});
 
 	test('TreeView - element already registered after refresh', async function () {

@@ -18,6 +18,9 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IConfig, IDebugService, IDebugSessionOptions } from '../../debug/common/debug.js';
 import { IMcpRegistry } from './mcpRegistryTypes.js';
 import { IMcpServer, McpServerDefinition, McpServerLaunch, McpServerTransportType } from './mcpTypes.js';
+const regexpNode = /node[0-9]*$/;
+const regexpPython = /python[0-9.]*$/;
+
 
 export class McpDevModeServerAttache extends Disposable {
 	constructor(
@@ -138,7 +141,7 @@ export class McpDevModeDebugging implements IMcpDevModeDebugging {
 
 		switch (definition.devMode.debug.type) {
 			case 'node': {
-				if (!/node[0-9]*$/.test(launch.command)) {
+				if (!regexpNode.test(launch.command)) {
 					throw new Error(localize('mcp.debug.nodeBinReq', 'MCP server must be launched with the "node" executable to enable debugging, but was launched with "{0}"', launch.command));
 				}
 
@@ -157,7 +160,7 @@ export class McpDevModeDebugging implements IMcpDevModeDebugging {
 				return { ...launch, args: [`--inspect-brk=${DEBUG_HOST}:${port}`, ...launch.args] };
 			}
 			case 'debugpy': {
-				if (!/python[0-9.]*$/.test(launch.command)) {
+				if (!regexpPython.test(launch.command)) {
 					throw new Error(localize('mcp.debug.pythonBinReq', 'MCP server must be launched with the "python" executable to enable debugging, but was launched with "{0}"', launch.command));
 				}
 

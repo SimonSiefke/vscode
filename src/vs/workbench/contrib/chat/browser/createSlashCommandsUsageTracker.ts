@@ -9,6 +9,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import { IChatService } from '../common/chatService/chatService.js';
 import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
 import { ChatRequestSlashCommandPart } from '../common/requestParser/chatParserTypes.js';
+const regexpCreateInstructionsPrompt = /^\/(create-(?:instructions|prompt|agent|skill))(?:\s|$)/;
+
 
 export class CreateSlashCommandsUsageTracker extends Disposable {
 	private static readonly _USED_CREATE_SLASH_COMMANDS_KEY = 'chat.tips.usedCreateSlashCommands';
@@ -38,7 +40,7 @@ export class CreateSlashCommandsUsageTracker extends Disposable {
 
 			// Fallback when parsing doesn't produce a slash command part.
 			const trimmed = message.text.trimStart();
-			const match = /^\/(create-(?:instructions|prompt|agent|skill))(?:\s|$)/.exec(trimmed);
+			const match = regexpCreateInstructionsPrompt.exec(trimmed);
 			if (match && CreateSlashCommandsUsageTracker._isCreateSlashCommand(match[1])) {
 				this._markUsed();
 			}

@@ -22,6 +22,8 @@ import {
 	type JsonRpcSuccessResponse,
 	type ProtocolMessage,
 } from '../../../common/state/sessionProtocol.js';
+const regexpREADY = /READY:(\d+)/;
+
 
 // ---- JSON-RPC test client ---------------------------------------------------
 
@@ -277,7 +279,7 @@ export async function startServer(options?: { readonly quiet?: boolean; readonly
 
 		child.stdout!.on('data', (data: Buffer) => {
 			const text = data.toString();
-			const match = text.match(/READY:(\d+)/);
+			const match = text.match(regexpREADY);
 			if (match) {
 				clearTimeout(timer);
 				resolve({ process: child, port: parseInt(match[1], 10) });
@@ -378,7 +380,7 @@ export async function startRealServer(options?: { readonly claudeSdkRoot?: strin
 
 		child.stdout!.on('data', (data: Buffer) => {
 			const text = data.toString();
-			const match = text.match(/READY:(\d+)/);
+			const match = text.match(regexpREADY);
 			if (match) {
 				clearTimeout(timer);
 				resolve({ process: child, port: parseInt(match[1], 10), mockLlm: mockLlmServer });

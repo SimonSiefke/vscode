@@ -41,6 +41,8 @@ import { ChatMarkdownContentPart } from '../chatMarkdownContentPart.js';
 import { CodeBlockPart, ICodeBlockRenderOptions } from '../codeBlockPart.js';
 import { BaseChatToolInvocationSubPart } from './chatToolInvocationSubPart.js';
 import { createToolRiskBadge } from './toolRiskBadgeHelper.js';
+const regexp1 = /^\s*\$\([^)]+\)\s*/;
+
 
 export const enum TerminalToolConfirmationStorageKeys {
 	TerminalAutoApproveWarningAccepted = 'chat.tools.terminal.autoApprove.warningAccepted'
@@ -246,7 +248,7 @@ export class ChatTerminalToolConfirmationSubPart extends BaseChatToolInvocationS
 			// For the hover, drop the leading `$(info) ` icon prefix that the
 			// disclaimer carries for inline rendering — the labelled prefix
 			// already conveys the same role.
-			const hoverBody = inline.value.replace(/^\s*\$\([^)]+\)\s*/, '');
+			const hoverBody = inline.value.replace(regexp1, '');
 			detailParts.push({
 				inline,
 				hoverLabel: localize('chat.terminal.detail.approvalNeeded', "Approval needed:"),

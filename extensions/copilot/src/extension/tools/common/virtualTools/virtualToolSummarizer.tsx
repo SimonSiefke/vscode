@@ -13,9 +13,11 @@ import { extractCodeBlocks } from '../../../../util/common/markdown';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { ISummarizedToolCategory } from './virtualToolTypes';
 import { MAX_GROUPS_PER_CHUNK } from './virtualToolsConstants';
+const regexpZAZ0 = /[^a-zA-Z0-9_]/g;
+
 
 function normalizeGroupName(name: string): string {
-	return name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+	return name.replace(new RegExp(regexpZAZ0), '_').toLowerCase();
 }
 
 /**

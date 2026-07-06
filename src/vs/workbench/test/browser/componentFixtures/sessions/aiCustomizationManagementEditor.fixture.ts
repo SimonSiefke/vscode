@@ -79,6 +79,9 @@ import { ComponentFixtureContext, createEditorServices, defineComponentFixture, 
 import '../../../../../platform/theme/common/colors/inputColors.js';
 import '../../../../../platform/theme/common/colors/listColors.js';
 import '../../../../contrib/chat/browser/aiCustomization/media/aiCustomizationManagement.css';
+const regexp1 = /\r?\n/;
+const regexp2 = /\*\*/g;
+
 
 // ============================================================================
 // Mock helpers
@@ -484,7 +487,7 @@ interface IRenderEditorOptions {
 
 function renderFixtureMarkdown(markdown: string): HTMLElement {
 	const container = DOM.$('div.fixture-rendered-markdown');
-	const lines = markdown.split(/\r?\n/);
+	const lines = markdown.split(regexp1);
 	let index = 0;
 
 	while (index < lines.length) {
@@ -524,7 +527,7 @@ function renderFixtureMarkdown(markdown: string): HTMLElement {
 		}
 
 		const paragraph = DOM.append(container, DOM.$('p'));
-		paragraph.textContent = line.replace(/\*\*/g, '');
+		paragraph.textContent = line.replace(new RegExp(regexp2), '');
 		index++;
 	}
 

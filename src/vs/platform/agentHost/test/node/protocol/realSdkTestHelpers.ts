@@ -43,6 +43,12 @@ import { AgentHostConfigKey } from '../../../common/agentHostCustomizationConfig
 import {
 	getActionEnvelope, isActionNotification, fetchSessionWithChat, IServerHandle, startRealServer, TestProtocolClient,
 } from './testHelpers.js';
+const regexpExitOnly = /exit_only/i;
+const regexpInteractive = /interactive/i;
+const regexpTimeout = /timeout/i;
+const regexpHelloWorld = /hello world/i;
+const regexp5 = /-/g;
+
 
 // #region Token
 
@@ -237,8 +243,8 @@ export function getAcceptedAnswers(request: ChatInputRequest): Record<string, Ch
 				// tool-call confirmations the planning test asserts against.
 				// Fall back to an `interactive` option, then the recommended
 				// option, then the first.
-				const preferredOption = question.options.find(option => /exit_only/i.test(option.id))
-					?? question.options.find(option => /interactive/i.test(option.id) || /interactive/i.test(option.label))
+				const preferredOption = question.options.find(option => regexpExitOnly.test(option.id))
+					?? question.options.find(option => regexpInteractive.test(option.id) || regexpInteractive.test(option.label))
 					?? question.options.find(option => option.recommended)
 					?? question.options[0];
 				return [question.id, {
@@ -469,7 +475,7 @@ export function startBackgroundApprovalLoop(c: TestProtocolClient, options: IBac
 				// Anything else (e.g. 'Client closed', exception from
 				// `matchingRule.inspect`) is a real failure — record it so the
 				// test fails deterministically.
-				if (!/timeout/i.test(msg)) {
+				if (!regexpTimeout.test(msg)) {
 					errors.push(`approval loop error: ${msg}`);
 					active = false;
 				}
@@ -716,7 +722,7 @@ export function defineSharedRealSdkTests(config: IRealSdkProviderConfig): void {
 			const followupTurn = await driveTurnToCompletion(client, sessionUri, 'turn-followup',
 				'What did the plan I just approved say to print? Reply with exactly "hello world".', 100);
 			assert.strictEqual(followupTurn.sawPendingConfirmation, false, 'follow-up turn should not surface new pending confirmations');
-			assert.match(followupTurn.responseText, /hello world/i, 'follow-up turn should retain the original plan context');
+			assert.match(followupTurn.responseText, regexpHelloWorld, 'follow-up turn should retain the original plan context');
 
 			const extraSessionNotificationsAfterFollowup = client.receivedNotifications(n =>
 				n.method === NotificationType.SessionAdded &&
@@ -1015,7 +1021,7 @@ export function defineSharedRealSdkTests(config: IRealSdkProviderConfig): void {
 			// intermediate assistant message, so replay can detect whether
 			// subagent assistant text leaks upward without depending on the
 			// parent agent's final summary behavior.
-			const sentinel = `subagent replay note ${generateUuid().replace(/-/g, '').slice(0, 10)}`;
+			const sentinel = `subagent replay note ${generateUuid().replace(new RegExp(regexp5), '').slice(0, 10)}`;
 
 			let approvalsActive = true;
 			let approvalSeq = 2000;

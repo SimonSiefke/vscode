@@ -16,6 +16,9 @@ import { provideSourceControlHistoryItemAvatar, provideSourceControlHistoryItemH
 import type { AvatarQuery, AvatarQueryCommit } from './api/git';
 import { LRUCache } from './cache';
 import { AVATAR_SIZE, getCommitHover, getHoverCommitHashCommands, processHoverRemoteCommands } from './hover';
+const regexp1 = /\$\{(.+?)\}/g;
+const regexp9a = /^[0-9a-f]{40}$/i;
+
 
 function lineRangesContainLine(changes: readonly TextEditorChange[], lineNumber: number): boolean {
 	return changes.some(c => c.modified.startLineNumber <= lineNumber && lineNumber < c.modified.endLineNumberExclusive);
@@ -199,7 +202,7 @@ export class GitBlameController {
 			authorDateAgo: fromNow(blameInformation.authorDate ?? new Date(), true, true)
 		} satisfies BlameInformationTemplateTokens;
 
-		return template.replace(/\$\{(.+?)\}/g, (_, token) => {
+		return template.replace(new RegExp(regexp1), (_, token) => {
 			return templateTokens.hasOwnProperty(token)
 				? templateTokens[token as keyof BlameInformationTemplateTokens]
 				: `\${${token}}`;
@@ -419,7 +422,7 @@ export class GitBlameController {
 			// 1) Commit - Resource in the multi-file diff editor when viewing the details of a commit.
 			// 2) HEAD   - Resource on the left-hand side of the diff editor when viewing a resource from the index.
 			// 3) ~      - Resource on the left-hand side of the diff editor when viewing a resource from the working tree.
-			if (/^[0-9a-f]{40}$/i.test(ref) || ref === 'HEAD' || ref === '~') {
+			if (regexp9a.test(ref) || ref === 'HEAD' || ref === '~') {
 				workingTreeChanges = allChanges = [];
 				workingTreeAndIndexChanges = undefined;
 			} else if (ref === '') {
@@ -478,7 +481,7 @@ export class GitBlameController {
 		} else {
 			// Resource with the `git` scheme
 			const { ref } = fromGitUri(textEditor.document.uri);
-			commit = /^[0-9a-f]{40}$/i.test(ref) ? ref : repository.HEAD.commit;
+			commit = regexp9a.test(ref) ? ref : repository.HEAD.commit;
 		}
 
 		// Git blame information

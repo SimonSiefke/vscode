@@ -12,6 +12,9 @@ import { ILogService } from '../../../log/common/log.js';
 import { IProductService } from '../../../product/common/productService.js';
 import { COPILOT_LICENSE_AGREEMENT } from '../../../endpoint/common/licenseAgreement.js';
 import { parseCopilotTokenFields } from '../copilot/copilotTokenFields.js';
+const regexp1 = /^\[|\]$/g;
+const regexp2 = /^127(?:\.\d{1,3}){3}$/;
+
 
 // #region Types
 
@@ -180,8 +183,8 @@ function isLoopbackUrl(url: string): boolean {
 		return false;
 	}
 	// Strip IPv6 brackets if present (e.g. `[::1]`).
-	const host = hostname.replace(/^\[|\]$/g, '').toLowerCase();
-	return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host);
+	const host = hostname.replace(new RegExp(regexp1), '').toLowerCase();
+	return host === 'localhost' || host === '::1' || regexp2.test(host);
 }
 
 /**

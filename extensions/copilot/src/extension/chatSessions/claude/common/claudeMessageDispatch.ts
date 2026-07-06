@@ -25,6 +25,8 @@ import { ClaudeToolNames, claudeEditTools, getAffectedUrisForEditTool } from './
 import { IClaudePlanFileTracker } from './claudePlanFileTracker';
 import { IClaudeSessionStateService } from './claudeSessionStateService';
 import { completeToolInvocation, createFormattedToolInvocation } from './toolInvocationFormatter';
+const regexp1 = /[\s"']/;
+
 
 // #region Types
 
@@ -761,7 +763,7 @@ function tryParseProxyError(errorText: string | undefined): ChatFetchError | und
 
 	// Extract the base64 payload after the prefix, stopping at whitespace or quotes.
 	const start = idx + PROXY_ERROR_PREFIX.length;
-	const end = errorText.slice(start).search(/[\s"']/);
+	const end = errorText.slice(start).search(regexp1);
 	const b64 = end === -1 ? errorText.slice(start) : errorText.slice(start, start + end);
 
 	try {

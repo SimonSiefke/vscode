@@ -11,6 +11,8 @@ import {
 } from './languages';
 import { basename } from '../util/uri';
 import * as path from 'node:path';
+const regexp1 = /\.[^.]*$/;
+
 
 export class Language {
 	constructor(
@@ -85,7 +87,7 @@ class FilenameAndExensionLanguageDetection extends LanguageDetection {
 			return { languageId: extensionCandidates[0], isGuess: extensionCandidates.length > 1 };
 		}
 		while (filename.includes('.')) {
-			filename = filename.replace(/\.[^.]*$/, '');
+			filename = filename.replace(regexp1, '');
 			if (knownFilenames.has(filename)) {
 				return { languageId: knownFilenames.get(filename)![0], isGuess: false };
 			}

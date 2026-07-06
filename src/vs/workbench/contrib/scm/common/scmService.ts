@@ -18,6 +18,9 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { Schemas } from '../../../../base/common/network.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { runOnChange } from '../../../../base/common/observable.js';
+const regexpScmInput = /^scm\/input:([^:]+):(.+)$/;
+const regexp2 = /^\.\./;
+
 
 class SCMInput extends Disposable implements ISCMInput {
 
@@ -321,7 +324,7 @@ class SCMInputHistory {
 		for (const key of machineKeys) {
 			try {
 				const legacyHistory = JSON.parse(this.storageService.get(key, StorageScope.APPLICATION, ''));
-				const match = /^scm\/input:([^:]+):(.+)$/.exec(key);
+				const match = regexpScmInput.exec(key);
 
 				if (!match || !Array.isArray(legacyHistory?.history) || !Number.isInteger(legacyHistory?.timestamp)) {
 					this.storageService.remove(key, StorageScope.APPLICATION);
@@ -451,7 +454,7 @@ export class SCMService implements ISCMService {
 
 			const path = this.uriIdentityService.extUri.relativePath(root, idOrResource);
 
-			if (path && !/^\.\./.test(path) && path.length < bestMatchLength) {
+			if (path && !regexp2.test(path) && path.length < bestMatchLength) {
 				bestRepository = repository;
 				bestMatchLength = path.length;
 			}

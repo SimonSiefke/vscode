@@ -38,6 +38,9 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { extensionDefaultIcon } from '../../../services/extensionManagement/common/extensionsIcons.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { GettingStartedInput } from './gettingStartedInput.js';
+const regexp1 = /^([^:]*):?(.*)$/;
+const regexpToSide = /^toSide:/;
+
 
 export const HasMultipleNewFileEntries = new RawContextKey<boolean>('hasMultipleNewFileEntries', false);
 
@@ -627,7 +630,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		}
 
 		for (let event of step.completionEvents) {
-			const [_, eventType, argument] = /^([^:]*):?(.*)$/.exec(event) ?? [];
+			const [_, eventType, argument] = regexp1.exec(event) ?? [];
 
 			if (!eventType) {
 				console.error(`Unknown completionEvent ${event} when registering step ${step.id}`);
@@ -655,7 +658,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 					event = 'stepSelected:' + step.id;
 					break;
 				case 'onCommand':
-					event = eventType + ':' + argument.replace(/^toSide:/, '');
+					event = eventType + ':' + argument.replace(regexpToSide, '');
 					break;
 				case 'onExtensionInstalled': case 'extensionInstalled':
 					event = 'extensionInstalled:' + argument.toLowerCase();

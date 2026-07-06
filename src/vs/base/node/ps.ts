@@ -8,6 +8,12 @@ import { totalmem } from 'os';
 import { FileAccess } from '../common/network.js';
 import { ProcessItem } from '../common/processes.js';
 import { isWindows } from '../common/platform.js';
+const regexpUtilitySubType = /--utility-sub-type=network/i;
+const regexpCrashesDirectory = /--crashes-directory/i;
+const regexpConhostExeHeadless = /conhost\.exe.+--headless/i;
+const regexpTypeZA = /--type=([a-zA-Z-]+)/;
+const regexp5 = /^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\s+(.+)$/;
+
 
 export const JS_FILENAME_PATTERN = /[a-zA-Z-]+\.js\b/g;
 
@@ -47,10 +53,10 @@ export function listProcesses(rootPid: number): Promise<ProcessItem> {
 		}
 
 		function findName(cmd: string): string {
-			const UTILITY_NETWORK_HINT = /--utility-sub-type=network/i;
-			const WINDOWS_CRASH_REPORTER = /--crashes-directory/i;
-			const CONPTY = /conhost\.exe.+--headless/i;
-			const TYPE = /--type=([a-zA-Z-]+)/;
+			const UTILITY_NETWORK_HINT = regexpUtilitySubType;
+			const WINDOWS_CRASH_REPORTER = regexpCrashesDirectory;
+			const CONPTY = regexpConhostExeHeadless;
+			const TYPE = regexpTypeZA;
 
 			// find windows crash reporter
 			if (WINDOWS_CRASH_REPORTER.exec(cmd)) {
@@ -245,7 +251,7 @@ export function listProcesses(rootPid: number): Promise<ProcessItem> {
 }
 
 function parsePsOutput(stdout: string, addToTree: (pid: number, ppid: number, cmd: string, load: number, mem: number) => void): void {
-	const PID_CMD = /^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+\.[0-9]+)\s+([0-9]+\.[0-9]+)\s+(.+)$/;
+	const PID_CMD = regexp5;
 	const lines = stdout.toString().split('\n');
 	for (const line of lines) {
 		const matches = PID_CMD.exec(line.trim());

@@ -10,6 +10,8 @@ import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ILogService, LogLevel } from '../../../../log/common/log.js';
 import { PosixShellType, TerminalShellType } from '../../terminal.js';
 import type { ITerminalCommand } from '../capabilities.js';
+const regexp1 = /^ {6,}/;
+
 
 export const enum PromptInputState {
 	Unknown = 0,
@@ -340,7 +342,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 						value += `${lineText.trim()}`;
 						cursorIndex += lineText.trim().length - 1;
 					} else {
-						if (/^ {6,}/.test(lineText)) {
+						if (regexp1.test(lineText)) {
 							// Was likely a new line
 							value += `\n${lineText.trim()}`;
 							cursorIndex += lineText.trim().length + 1;

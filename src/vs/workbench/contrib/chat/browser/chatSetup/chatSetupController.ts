@@ -31,6 +31,9 @@ import { ChatSetupAnonymous, ChatSetupStep, ChatSetupResultValue, InstallChatEve
 import { IDefaultAccount } from '../../../../../base/common/defaultAccount.js';
 import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
+const regexpZA = /^[a-zA-Z\-_]+$/;
+const regexpHttpsZAZ0 = /^(https:\/\/)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.ghe\.com\/?$/;
+
 
 const defaultChat = {
 	chatExtensionId: product.defaultChatAgent?.chatExtensionId ?? '',
@@ -318,8 +321,8 @@ export class ChatSetupController extends Disposable {
 	}
 
 	private async handleEnterpriseInstance(): Promise<ChatSetupResultValue> {
-		const domainRegEx = /^[a-zA-Z\-_]+$/;
-		const fullUriRegEx = /^(https:\/\/)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.ghe\.com\/?$/;
+		const domainRegEx = regexpZA;
+		const fullUriRegEx = regexpHttpsZAZ0;
 
 		const uri = this.configurationService.getValue<string>(defaultChat.providerUriSetting);
 		if (typeof uri === 'string' && fullUriRegEx.test(uri)) {

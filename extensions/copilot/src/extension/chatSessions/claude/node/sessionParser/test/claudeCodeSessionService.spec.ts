@@ -20,6 +20,8 @@ import { createExtensionUnitTestingServices } from '../../../../../test/node/ser
 import { IClaudeCodeSdkService } from '../../claudeCodeSdkService';
 import { MockClaudeCodeSdkService } from '../../test/mockClaudeCodeSdkService';
 import { ClaudeCodeSessionService } from '../claudeCodeSessionService';
+const regexp1 = /^A{50}\u2026$/;
+
 
 // #region Test Data Factories
 
@@ -238,7 +240,7 @@ describe('ClaudeCodeSessionService', () => {
 			const sessions = await service.getAllSessions(CancellationToken.None);
 
 			expect(sessions[0].label.length).toBeLessThanOrEqual(51); // 50 + ellipsis char
-			expect(sessions[0].label).toMatch(/^A{50}\u2026$/);
+			expect(sessions[0].label).toMatch(regexp1);
 		});
 
 		it('sets folderName from the workspace folder basename', async () => {

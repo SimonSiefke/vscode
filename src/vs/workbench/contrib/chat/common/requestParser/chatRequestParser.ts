@@ -15,6 +15,9 @@ import { IChatSlashCommandService } from '../participants/chatSlashCommands.js';
 import { IPromptsService, matchesSessionType } from '../promptSyntax/service/promptsService.js';
 import { ToolAndToolSetEnablementMap, IToolData, IToolSet, isToolSet } from '../tools/languageModelToolsService.js';
 import { ChatRequestAgentPart, ChatRequestAgentSubcommandPart, ChatRequestDynamicVariablePart, ChatRequestSlashCommandPart, ChatRequestSlashPromptPart, ChatRequestTextPart, ChatRequestToolPart, ChatRequestToolSetPart, IParsedChatRequest, IParsedChatRequestPart, chatAgentLeader, chatSubcommandLeader, chatVariableLeader } from './chatParserTypes.js';
+const regexp1 = /\s/;
+const regexp2 = /^[ \t]+([\p{L}\d_\-\.]+)/u;
+
 
 export const agentReg = /^@([\w_\-\.]+)(?=(\s|$|\b))/i; // An @-agent
 export const variableReg = /^#([\w_\-]+)(:\d+)?(?=(\s|$|\b))/i; // A #-variable with an optional numeric : arg (@response:2)
@@ -67,7 +70,7 @@ export class ChatRequestParser {
 			const previousChar = message.charAt(i - 1);
 			const char = message.charAt(i);
 			let newPart: IParsedChatRequestPart | undefined;
-			if (previousChar.match(/\s/) || i === 0) {
+			if (previousChar.match(regexp1) || i === 0) {
 				if (char === chatVariableLeader) {
 					newPart = this.tryToParseVariable(message.slice(i), i, new Position(lineNumber, column), parts, toolsByName, toolSetsByName);
 				} else if (char === chatAgentLeader) {
@@ -256,7 +259,7 @@ export class ChatRequestParser {
 			// syntactic only — bare `<cmd>` always passes, so we must commit to the longer
 			// match here when the discovered prompt list contains it.
 			const afterSlash = remainingMessage.slice(full.length);
-			const subMatch = afterSlash.match(/^[ \t]+([\p{L}\d_\-\.]+)/u);
+			const subMatch = afterSlash.match(regexp2);
 			if (subMatch) {
 				const candidate = `${command}:${subMatch[1]}`;
 				if (this.promptsService.hasPromptSlashCommand(candidate)) {

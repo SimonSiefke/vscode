@@ -8,6 +8,8 @@ import { deepStrictEqual, strictEqual } from 'node:assert';
 import type { MarkdownString } from 'vscode';
 import { PathExecutableCache } from '../../env/pathExecutableCache';
 import { WindowsExecutableExtensionsCache, windowsDefaultExecutableExtensions } from '../../helpers/executable';
+const regexpOut = /out[\/].*$/;
+
 
 suite('PathExecutableCache', () => {
 	test('cache should return empty for empty PATH', async () => {
@@ -38,7 +40,7 @@ suite('PathExecutableCache', () => {
 		test('cache should include executables found via symbolic links', async () => {
 			const path = require('path');
 			// Always use the source fixture directory to ensure symlinks are present
-			const fixtureDir = path.resolve(__dirname.replace(/out[\/].*$/, 'src/test/env'), '../fixtures/symlink-test');
+			const fixtureDir = path.resolve(__dirname.replace(regexpOut, 'src/test/env'), '../fixtures/symlink-test');
 			const env = { PATH: fixtureDir };
 			const cache = new PathExecutableCache();
 			const result = await cache.getExecutablesInPath(env);

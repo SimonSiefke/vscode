@@ -27,6 +27,9 @@ import { ITextModel } from '../../../common/model.js';
 import { CopyLinesCommand } from './copyLinesCommand.js';
 import { MoveLinesCommand } from './moveLinesCommand.js';
 import { SortLinesCommand } from './sortLinesCommand.js';
+const regexp1 = /[\s\uFEFF\xA0]+$/g;
+const regexp2 = /\r\n|\r|\n/;
+
 
 // copy lines
 
@@ -1000,7 +1003,7 @@ export class JoinLinesAction extends EditorAction {
 					if (insertSpace && (trimmedLinesContent.charAt(trimmedLinesContent.length - 1) === ' ' ||
 						trimmedLinesContent.charAt(trimmedLinesContent.length - 1) === '\t')) {
 						insertSpace = false;
-						trimmedLinesContent = trimmedLinesContent.replace(/[\s\uFEFF\xA0]+$/g, ' ');
+						trimmedLinesContent = trimmedLinesContent.replace(new RegExp(regexp1), ' ');
 					}
 
 					const lineTextWithoutIndent = lineText.substr(firstNonWhitespaceIdx - 1);
@@ -1282,7 +1285,7 @@ export class CamelCaseAction extends AbstractCaseAction {
 	}
 
 	protected _modifyText(text: string, wordSeparators: string): string {
-		const wordBoundary = /\r\n|\r|\n/.test(text) ? CamelCaseAction.multiLineWordBoundary.get() : CamelCaseAction.singleLineWordBoundary.get();
+		const wordBoundary = regexp2.test(text) ? CamelCaseAction.multiLineWordBoundary.get() : CamelCaseAction.singleLineWordBoundary.get();
 		const validWordStart = CamelCaseAction.validWordStart.get();
 		if (!wordBoundary || !validWordStart) {
 			// cannot support this

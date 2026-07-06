@@ -22,6 +22,8 @@ import { ScrollbarVisibility } from '../../../common/scrollable.js';
 import './inputBox.css';
 import * as nls from '../../../../nls.js';
 import { MutableDisposable, type IDisposable } from '../../../common/lifecycle.js';
+const regexp1 = /\u000c/g;
+
 
 
 const $ = dom.$;
@@ -589,7 +591,7 @@ export class InputBox extends Widget {
 		const lastCharCode = value.charCodeAt(value.length - 1);
 		const suffix = lastCharCode === 10 ? ' ' : '';
 		const mirrorTextContent = (value + suffix)
-			.replace(/\u000c/g, ''); // Don't measure with the form feed character, which messes up sizing
+			.replace(new RegExp(regexp1), ''); // Don't measure with the form feed character, which messes up sizing
 
 		if (mirrorTextContent) {
 			this.mirror.textContent = value + suffix;

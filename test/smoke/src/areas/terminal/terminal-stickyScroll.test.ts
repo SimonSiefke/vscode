@@ -5,6 +5,8 @@
 
 import { Application, Terminal, SettingsEditor, TerminalCommandIdWithValue } from '../../../../automation';
 import { setTerminalTestSettings } from './terminal-helpers';
+const regexp1 = /\\r\\n/g;
+
 
 export function setup(options?: { skipSuite: boolean }) {
 	(options?.skipSuite ? describe.skip : describe)('Terminal stickyScroll', () => {
@@ -43,7 +45,7 @@ export function setup(options?: { skipSuite: boolean }) {
 			if (
 				element &&
 				// New lines don't come through in textContent
-				element.textContent.indexOf(`${prompt.replace(/\\r\\n/g, '')}${command}`) >= 0
+				element.textContent.indexOf(`${prompt.replace(new RegExp(regexp1), '')}${command}`) >= 0
 			) {
 				return;
 			}

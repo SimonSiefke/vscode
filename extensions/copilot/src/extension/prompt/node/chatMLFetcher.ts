@@ -49,6 +49,10 @@ import { isBYOKModel } from '../../byok/node/openAIEndpoint';
 import { EXTENSION_ID } from '../../common/constants';
 import { IPowerService } from '../../power/common/powerService';
 import { ChatMLFetcherTelemetrySender as Telemetry } from './chatMLFetcherTelemetry';
+const regexp1 = /\s+/;
+const regexpLoggedInAs = /(?<=logged in as )(?!<login>)[^\s]+/ig;
+const regexpZAZ0 = /^[a-zA-Z0-9_-]+$/;
+
 
 export interface IMadeChatRequestEvent {
 	readonly messages: Raw.ChatMessage[];
@@ -2005,7 +2009,7 @@ export class ChatMLFetcherImpl extends AbstractChatMLFetcher {
 		// For cancelled requests, we don't have the actual token array (only available in ChatCompletion),
 		// so we approximate by splitting text content on whitespace. This is less precise than actual
 		// tokenization but sufficient for detecting obvious repetition patterns.
-		const tokens = textContent.split(/\s+/).filter(t => t.length > 0);
+		const tokens = textContent.split(regexp1).filter(t => t.length > 0);
 
 		// Check for line repetition
 		const lineRepetitionStats = calculateLineRepetitionStats(textContent);
@@ -2276,7 +2280,7 @@ export class ChatMLFetcherImpl extends AbstractChatMLFetcher {
 			const regex = new RegExp(escapeRegExpCharacters(usernameToScrub), 'ig');
 			errorDetail = errorDetail.replaceAll(regex, '<login>');
 		}
-		return errorDetail.replaceAll(/(?<=logged in as )(?!<login>)[^\s]+/ig, '!<login>!'); // marking fallback with !
+		return errorDetail.replaceAll(new RegExp(regexpLoggedInAs), '!<login>!'); // marking fallback with !
 	}
 }
 
@@ -2293,7 +2297,7 @@ function isValidChatPayload(messages: Raw.ChatMessage[], postOptions: OptionalCh
 		return { isValid: false, reason: asUnexpected('Invalid response token parameter') };
 	}
 
-	const functionNamePattern = /^[a-zA-Z0-9_-]+$/;
+	const functionNamePattern = regexpZAZ0;
 	if (
 		postOptions?.functions?.some(f => !f.name.match(functionNamePattern)) ||
 		postOptions?.function_call?.name && !postOptions.function_call.name.match(functionNamePattern)

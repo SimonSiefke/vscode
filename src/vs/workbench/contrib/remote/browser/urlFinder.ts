@@ -9,6 +9,10 @@ import { Disposable, DisposableMap, IDisposable } from '../../../../base/common/
 import { IDebugService, IDebugSession, IReplElement } from '../../debug/common/debug.js';
 import { removeAnsiEscapeCodes } from '../../../../base/common/strings.js';
 import { RunOnceWorker } from '../../../../base/common/async.js';
+const regexpLocalhost = /\b\w{0,20}(?::\/\/)?(?:localhost|127\.0\.0\.1|0\.0\.0\.0|:\d{2,5})[\w\-\.\~:\/\?\#[\]\@!\$&\(\)\*\+\,\;\=]*/gim;
+const regexpLocalhost1 = /(localhost|127\.0\.0\.1|0\.0\.0\.0):(\d{1,5})/;
+const regexpHTTPSonSport = /HTTP\son\s(127\.0\.0\.1|0\.0\.0\.0)\sport\s(\d+)/;
+
 
 export class UrlFinder extends Disposable {
 	/**
@@ -29,12 +33,12 @@ export class UrlFinder extends Disposable {
 	 * http://:8080 - Beego Golang
 	 * http://0.0.0.0:4000 - Elixir Phoenix
 	 */
-	private static readonly localUrlRegex = /\b\w{0,20}(?::\/\/)?(?:localhost|127\.0\.0\.1|0\.0\.0\.0|:\d{2,5})[\w\-\.\~:\/\?\#[\]\@!\$&\(\)\*\+\,\;\=]*/gim;
-	private static readonly extractPortRegex = /(localhost|127\.0\.0\.1|0\.0\.0\.0):(\d{1,5})/;
+	private static readonly localUrlRegex = new RegExp(regexpLocalhost);
+	private static readonly extractPortRegex = regexpLocalhost1;
 	/**
 	 * https://github.com/microsoft/vscode-remote-release/issues/3949
 	 */
-	private static readonly localPythonServerRegex = /HTTP\son\s(127\.0\.0\.1|0\.0\.0\.0)\sport\s(\d+)/;
+	private static readonly localPythonServerRegex = regexpHTTPSonSport;
 
 	private static readonly excludeTerminals = ['Dev Containers'];
 

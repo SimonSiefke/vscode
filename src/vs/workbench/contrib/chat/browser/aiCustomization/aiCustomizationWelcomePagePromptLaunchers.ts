@@ -19,6 +19,8 @@ import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
 import type { IAICustomizationWelcomePageImplementation, IWelcomePageCallbacks } from './aiCustomizationWelcomePage.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
+const regexp1 = /s$/;
+
 
 const $ = DOM.$;
 
@@ -262,7 +264,7 @@ export class PromptLaunchersAICustomizationWelcomePage extends Disposable implem
 					e.stopPropagation();
 					this.callbacks.closeEditor();
 					if (this.workspaceService.isSessionsWindow) {
-						const typeLabel = category.label.toLowerCase().replace(/s$/, '');
+						const typeLabel = category.label.toLowerCase().replace(regexp1, '');
 						this.callbacks.prefillChat(`Create me a custom ${typeLabel} that `, { isPartialQuery: true, newChat: true });
 					} else {
 						this.workspaceService.generateCustomization(category.promptType!);

@@ -16,6 +16,10 @@ import type { ICommandLineAnalyzer, ICommandLineAnalyzerOptions, ICommandLineAna
 import { OperatingSystem } from '../../../../../../../base/common/platform.js';
 import { isString } from '../../../../../../../base/common/types.js';
 import { ILabelService } from '../../../../../../../platform/label/common/label.js';
+const regexp1 = /^['"].*['"]$/;
+const regexp2 = /[$\(\){}`~%]/;
+const regexpTeMp = /[\\/]te?mp[\\/].+/i;
+
 
 const nullDevice = Symbol('null device');
 
@@ -70,7 +74,7 @@ export class CommandLineFileWriteAnalyzer extends Disposable implements ICommand
 
 					// Surrounding quotes where it's difficult to determine whether this is absolute
 					// or relative
-					if (/^['"].*['"]$/.test(e)) {
+					if (regexp1.test(e)) {
 						// Strip surrounding quotes to get a more reasonable view of the path. Note
 						// that this may not get the real file in the case of inner quotes, but the
 						// important thing here is the resolving whether it's absolute or not.
@@ -153,7 +157,7 @@ export class CommandLineFileWriteAnalyzer extends Disposable implements ICommand
 							// recognized as absolute by `posix.isAbsolute` / `win32.isAbsolute`, so
 							// without this guard they would be joined onto cwd and incorrectly classified
 							// as inside the workspace while expanding at runtime to a location outside it.
-							if (fileUri.fsPath.match(/[$\(\){}`~%]/)) {
+							if (fileUri.fsPath.match(regexp2)) {
 								isAutoApproveAllowed = false;
 								this._log('File write blocked due to likely containing a variable, sub-command, or tilde/environment-variable expansion', fileUri.toString());
 								break;
@@ -218,7 +222,7 @@ export class CommandLineFileWriteAnalyzer extends Disposable implements ICommand
 			// Windows paths from URI.with({path}) keep their original backslashes,
 			// so accept either separator. Require content after the segment so the
 			// directory itself is not matched.
-			return /[\\/]te?mp[\\/].+/i.test(uriPath);
+			return regexpTeMp.test(uriPath);
 		}
 		return uriPath.startsWith('/tmp/');
 	}

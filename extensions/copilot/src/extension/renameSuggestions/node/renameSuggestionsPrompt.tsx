@@ -15,6 +15,8 @@ import { DefinitionAroundCursor, State as DefinitionAroundCursorState } from '..
 import { IDocumentContext } from '../../prompt/node/documentContext';
 import { LegacySafetyRules } from '../../prompts/node/base/safetyRules';
 import { DefinitionAtPosition, State as DefinitionAtPositionState } from '../../prompts/node/panel/definitionAtPosition';
+const regexp1 = /^([\\.\\$\\_]+)/;
+
 
 type Props = PromptElementProps<{
 
@@ -115,6 +117,6 @@ export class RenameSuggestionsPrompt extends PromptElement<Props, State> {
  * @returns The prefix of the identifier, or undefined if no prefix is found.
  */
 function extractIdentifierPrefix(identifier: string): string | undefined {
-	const prefix = identifier.match(/^([\\.\\$\\_]+)/)?.[0];
+	const prefix = identifier.match(regexp1)?.[0];
 	return prefix;
 }

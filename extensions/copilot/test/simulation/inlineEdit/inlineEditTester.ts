@@ -45,6 +45,9 @@ import { ISerializedFileEdit, ISerializedNesUserEditsHistory, NES_LOG_CONTEXT_TA
 import { ITestInformation } from '../testInformation';
 import { IInlineEditBaseFile, ILoadedFile } from './fileLoading';
 import { inlineEditScoringService } from './inlineEditScoringService';
+const regexpZ0 = /[^a-z0-9 \[\]-]/gi;
+const regexpZAZ0 = / \(\[([a-zA-Z0-9\-])+\]\)/;
+
 
 export interface IInlineEditTest {
 	recentEdit: IInlineEditTestDocument | IInlineEditTestDocument[];
@@ -269,10 +272,10 @@ async function getScoredEditsFilePath(test: ITestInformation, recordingFilePath:
 }
 
 function sanitizeFileName(name: string) {
-	return name.replace(/[^a-z0-9 \[\]-]/gi, '_');
+	return name.replace(new RegExp(regexpZ0), '_');
 }
 
 /** This's used to make sure different flavors of a single test reuse the same scoring file. */
 function stripTestFlavor(name: string) {
-	return name.replace(/ \(\[([a-zA-Z0-9\-])+\]\)/, '');
+	return name.replace(regexpZAZ0, '');
 }

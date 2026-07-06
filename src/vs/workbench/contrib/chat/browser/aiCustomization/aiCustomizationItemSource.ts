@@ -29,6 +29,13 @@ import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
 import { IPromptsService, PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
 import { sourceToIcon } from './aiCustomizationIcons.js';
 import { type AICustomizationSource, BUILTIN_STORAGE } from './aiCustomizationManagement.js';
+const regexpMd = /\.md$/i;
+const regexpAgentMd = /\.agent\.md$/i;
+const regexpPromptMd = /\.prompt\.md$/i;
+const regexpInstructionsMd = /\.instructions\.md$/i;
+const regexp5 = /\b\w/g;
+const regexp6 = /[-_]/g;
+
 
 // #region Interfaces
 
@@ -105,14 +112,14 @@ export function isChatExtensionItem(extensionId: ExtensionIdentifier, productSer
  */
 export function getFriendlyName(filename: string): string {
 	let name = filename
-		.replace(/\.instructions\.md$/i, '')
-		.replace(/\.prompt\.md$/i, '')
-		.replace(/\.agent\.md$/i, '')
-		.replace(/\.md$/i, '');
+		.replace(regexpInstructionsMd, '')
+		.replace(regexpPromptMd, '')
+		.replace(regexpAgentMd, '')
+		.replace(regexpMd, '');
 
 	name = name
-		.replace(/[-_]/g, ' ')
-		.replace(/\b\w/g, c => c.toUpperCase());
+		.replace(new RegExp(regexp6), ' ')
+		.replace(new RegExp(regexp5), c => c.toUpperCase());
 
 	return name || filename;
 }

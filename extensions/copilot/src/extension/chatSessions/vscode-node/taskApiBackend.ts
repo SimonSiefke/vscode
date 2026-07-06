@@ -43,6 +43,8 @@ import {
 	TaskContent,
 } from '../vscode/cloudAgentBackend';
 import { extractTitle, SessionIdForPr, SessionIdForTask } from '../vscode/copilotCodingAgentUtils';
+const regexp1 = /^\/([^/]+)\/([^/]+)\//;
+
 
 const TASK_SESSION_POLL_INTERVAL_MS = 2_000;
 const TASK_SESSION_POLL_TIMEOUT_MS = 60_000;
@@ -151,7 +153,7 @@ export function parseRepoFromTaskUrl(htmlUrl: string | undefined): { owner: stri
 	}
 	try {
 		const { pathname } = new URL(htmlUrl);
-		const match = pathname.match(/^\/([^/]+)\/([^/]+)\//);
+		const match = pathname.match(regexp1);
 		if (match) {
 			return { owner: match[1], name: match[2] };
 		}

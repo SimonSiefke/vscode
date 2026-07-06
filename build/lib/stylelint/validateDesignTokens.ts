@@ -3,6 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\/\*[\s\S]*?\*\//g;
+const regexp2 = /[^\n]/g;
+const regexpVarCalc = /var\(|calc\(/i;
+const regexp4 = /^(\d{3})$/;
+const regexpVarCalcAuto = /var\(|calc\(|auto|%|\b\d+(?:\.\d+)?(?:r?em|vh|vw|ch|fr)\b/i;
+const regexp6 = /\s+/;
+const regexpPx = /^(\d+(?:\.\d+)?)px$/i;
+
 // Design-token validators that need block (selector + declaration) awareness,
 // which the line-based variable-name validator cannot provide.
 
@@ -37,7 +45,7 @@ function formatCodiconMessage(px: string, nearMiss: boolean): string {
  * line numbers stay accurate.
  */
 function blankComments(text: string): string {
-	return text.replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\n]/g, ' '));
+	return text.replace(new RegExp(regexp1), match => match.replace(new RegExp(regexp2), ' '));
 }
 
 /**
@@ -228,7 +236,7 @@ export function validateCornerRadiusTokens(text: string): IDesignTokenViolation[
 			return;
 		}
 		const value = decl[1];
-		if (/var\(|calc\(/i.test(value)) {
+		if (regexpVarCalc.test(value)) {
 			return;
 		}
 		const pxMatch = RE_FIRST_PX.exec(value);
@@ -283,7 +291,7 @@ function parseFontWeight(value: string): number | undefined {
 	if (trimmed === 'bold') {
 		return 700;
 	}
-	const numeric = /^(\d{3})$/.exec(trimmed);
+	const numeric = regexp4.exec(trimmed);
 	return numeric ? parseInt(numeric[1], 10) : undefined;
 }
 
@@ -319,7 +327,7 @@ export function validateFontWeightTokens(text: string): IDesignTokenViolation[] 
 			return;
 		}
 		const value = decl[1];
-		if (/var\(|calc\(/i.test(value)) {
+		if (regexpVarCalc.test(value)) {
 			return;
 		}
 		const weight = parseFontWeight(value);
@@ -391,10 +399,10 @@ export function validateSpacingTokens(text: string): IDesignTokenViolation[] {
 			return;
 		}
 		const value = decl[2].trim();
-		if (/var\(|calc\(|auto|%|\b\d+(?:\.\d+)?(?:r?em|vh|vw|ch|fr)\b/i.test(value)) {
+		if (regexpVarCalcAuto.test(value)) {
 			return;
 		}
-		const parts = value.split(/\s+/);
+		const parts = value.split(regexp6);
 		const snapped: string[] = [];
 		const vars: string[] = [];
 		let hasOffScale = false;
@@ -405,7 +413,7 @@ export function validateSpacingTokens(text: string): IDesignTokenViolation[] {
 				vars.push(spacingVar(0));
 				continue;
 			}
-			const pxMatch = /^(\d+(?:\.\d+)?)px$/i.exec(part);
+			const pxMatch = regexpPx.exec(part);
 			if (!pxMatch) {
 				ok = false;
 				break;
@@ -460,7 +468,7 @@ export function validateStrokeTokens(text: string): IDesignTokenViolation[] {
 		}
 		const value = decl[2];
 		// Skip when the width is already tokenised or computed.
-		if (/var\(|calc\(/i.test(value)) {
+		if (regexpVarCalc.test(value)) {
 			return;
 		}
 		const pxMatch = RE_FIRST_PX.exec(value);

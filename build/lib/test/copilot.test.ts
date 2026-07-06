@@ -10,6 +10,8 @@ import * as path from 'path';
 import { suite, test } from 'node:test';
 import { create } from 'tar';
 import { copilotPlatforms, ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, prepareBuiltInCopilotRipgrepShim } from '../copilot.ts';
+const regexp1 = /[\\^$.*+?()[\]{}|]/g;
+
 
 suite('copilot', () => {
 	test('keeps the public copilot platform package include list scoped to the selected package', () => {
@@ -281,5 +283,5 @@ function matchesPattern(file: string, pattern: string): boolean {
 }
 
 function escapeRegExp(value: string): string {
-	return value.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+	return value.replace(new RegExp(regexp1), '\\$&');
 }

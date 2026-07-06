@@ -24,13 +24,21 @@ import { IEnsureRepositoryOptions, IPullRepositoryOptions } from '../common/plug
 import { IGitHubPluginSource, IGitUrlPluginSource, IMarketplacePlugin, INpmPluginSource, IPipPluginSource, IPluginSourceDescriptor, PluginSourceKind } from '../common/plugins/pluginMarketplaceService.js';
 import { IPluginSource } from '../common/plugins/pluginSource.js';
 import { IPluginGitService } from '../common/plugins/pluginGitService.js';
+const regexp1 = /[\\/:*?"<>|]/g;
+const regexp2 = /[`$"]/g;
+const regexp3 = /'/g;
+const regexp4 = /^\.?\/+|\/+$/g;
+const regexp5 = /\/+$/g;
+const regexpGit = /\.git$/i;
+const regexp7 = /^\/+/;
+
 
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
 
 function sanitizeCacheSegment(name: string): string {
-	return name.replace(/[\\/:*?"<>|]/g, '_');
+	return name.replace(new RegExp(regexp1), '_');
 }
 
 function gitRevisionCacheSuffix(ref?: string, sha?: string): string[] {
@@ -45,9 +53,9 @@ function gitRevisionCacheSuffix(ref?: string, sha?: string): string[] {
 
 function shellEscapeArg(value: string): string {
 	if (isWindows) {
-		return `"${value.replace(/[`$"]/g, '`$&')}"`;
+		return `"${value.replace(new RegExp(regexp2), '`$&')}"`;
 	}
-	return `'${value.replace(/'/g, `'\\''`)}'`;
+	return `'${value.replace(new RegExp(regexp3), `'\\''`)}'`;
 }
 
 function formatShellCommand(args: readonly string[]): string {
@@ -260,7 +268,7 @@ export class GitHubPluginSource extends AbstractGitPluginSource {
 		const repoDir = this._getRepoDir(cacheRoot, descriptor);
 		const gh = descriptor as IGitHubPluginSource;
 		if (gh.path) {
-			const normalizedPath = gh.path.trim().replace(/^\.?\/+|\/+$/g, '');
+			const normalizedPath = gh.path.trim().replace(new RegExp(regexp4), '');
 			if (normalizedPath) {
 				const target = joinPath(repoDir, normalizedPath);
 				if (isEqualOrParent(target, repoDir)) {
@@ -304,7 +312,7 @@ export class GitUrlPluginSource extends AbstractGitPluginSource {
 		const repoDir = this._getRepoDir(cacheRoot, descriptor);
 		const git = descriptor as IGitUrlPluginSource;
 		if (git.path) {
-			const normalizedPath = git.path.trim().replace(/^\.?\/+|\/+$/g, '');
+			const normalizedPath = git.path.trim().replace(new RegExp(regexp4), '');
 			if (normalizedPath) {
 				const target = joinPath(repoDir, normalizedPath);
 				if (isEqualOrParent(target, repoDir)) {
@@ -338,12 +346,12 @@ export class GitUrlPluginSource extends AbstractGitPluginSource {
 	private _gitUrlCacheSegments(url: string, ref?: string, sha?: string): string[] {
 		try {
 			const parsed = URI.parse(url);
-			const authority = (parsed.authority || 'unknown').replace(/[\\/:*?"<>|]/g, '_').toLowerCase();
-			const pathPart = parsed.path.replace(/^\/+/, '').replace(/\.git$/i, '').replace(/\/+$/g, '');
-			const segments = pathPart.split('/').map(s => s.replace(/[\\/:*?"<>|]/g, '_'));
+			const authority = (parsed.authority || 'unknown').replace(new RegExp(regexp1), '_').toLowerCase();
+			const pathPart = parsed.path.replace(regexp7, '').replace(regexpGit, '').replace(new RegExp(regexp5), '');
+			const segments = pathPart.split('/').map(s => s.replace(new RegExp(regexp1), '_'));
 			return [authority, ...segments, ...gitRevisionCacheSuffix(ref, sha)];
 		} catch {
-			return ['git', url.replace(/[\\/:*?"<>|]/g, '_'), ...gitRevisionCacheSuffix(ref, sha)];
+			return ['git', url.replace(new RegExp(regexp1), '_'), ...gitRevisionCacheSuffix(ref, sha)];
 		}
 	}
 }

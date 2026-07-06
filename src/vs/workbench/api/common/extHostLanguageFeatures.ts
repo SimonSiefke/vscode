@@ -39,6 +39,8 @@ import * as typeConvert from './extHostTypeConverters.js';
 import { CodeAction, CodeActionKind, CompletionList, DataTransfer, Disposable, DocumentDropOrPasteEditKind, DocumentSymbol, InlineCompletionsDisposeReasonKind, InlineCompletionTriggerKind, InternalDataTransferItem, Location, NewSymbolNameTriggerKind, Range, SemanticTokens, SemanticTokensEdit, SemanticTokensEdits, SnippetString, SymbolInformation, SyntaxTokenType } from './extHostTypes.js';
 import { Emitter } from '../../../base/common/event.js';
 import { IInlineCompletionsUnificationState } from '../../services/inlineCompletions/common/inlineCompletionsUnification.js';
+const regexp1 = /[\r\n]/g;
+
 
 // --- adapter
 
@@ -2222,7 +2224,7 @@ export class ExtHostLanguageFeatures extends CoreDisposable implements extHostPr
 
 		const t1: number = Date.now();
 		if (!doNotLog) {
-			this._logService.trace(`[${data.extension.identifier.value}] INVOKE provider '${callback.toString().replace(/[\r\n]/g, '')}'`);
+			this._logService.trace(`[${data.extension.identifier.value}] INVOKE provider '${callback.toString().replace(new RegExp(regexp1), '')}'`);
 		}
 
 		const result = callback(data.adapter, data.extension);

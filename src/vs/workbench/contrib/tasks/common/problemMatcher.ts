@@ -25,6 +25,22 @@ import { ExtensionsRegistry, ExtensionMessageCollector } from '../../../services
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { FileType, IFileService, IFileStatWithPartialMetadata, IFileSystemProvider } from '../../../../platform/files/common/files.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+const regexp1 = /\\/g;
+const regexp2 = /(\d+|\d+,\d+|\d+,\d+,\d+,\d+)/;
+const regexpFatalErrorWarning = /^\s*(?:\s*\d+>)?(\S.*?)(?:\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\))?\s*:\s+(?:(\S+)\s+)?((?:fatal +)?error|warning|info)\s+(\w+\d+)?\s*:\s*(.*)$/;
+const regexp4 = /^([^\s].*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(\d+)\s+(.*)$/;
+const regexpErrorWarningInfo = /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(C\d+)\s*:\s*(.*)$/;
+const regexpErrorWarningInfo1 = /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(CS\d+)\s*:\s*(.*)$/;
+const regexpErrorWarningInfo2 = /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(BC\d+)\s*:\s*(.*)$/;
+const regexpInFileLine = /^\s*(.*) in file (.*) line no. (\d+)$/;
+const regexpLineCol = /^(.*):\s+line\s+(\d+),\s+col\s+(\d+),\s(.+?)(?:\s+\((\w)(\d+)\))?$/;
+const regexp10 = /^(.+)$/;
+const regexpLineCol1 = /^\s+line\s+(\d+)\s+col\s+(\d+)\s+(.+?)(?:\s+\((\w)(\d+)\))?$/;
+const regexpSlineScolError = /^(.+):\sline\s(\d+),\scol\s(\d+),\s(Error|Warning|Info)\s-\s(.+)\s\((.+)\)$/;
+const regexpZA = /^((?:[a-zA-Z]:)*[./\\]+.*?)$/;
+const regexpErrorWarningInfo3 = /^\s+(\d+):(\d+)\s+(error|warning|info)\s+(.+?)(?:\s\s+(.*))?$/;
+const regexp15 = /^([^:]*: )?((.:)?[^:]*):(\d+)(:(\d+))?: (.*)$/;
+
 
 export enum FileLocationKind {
 	Default,
@@ -235,7 +251,7 @@ export async function getResource(filename: string, matcher: ProblemMatcher, fil
 		throw new Error('FileLocationKind is not actionable. Does the matcher have a filePrefix? This should never happen.');
 	}
 	fullPath = normalize(fullPath);
-	fullPath = fullPath.replace(/\\/g, '/');
+	fullPath = fullPath.replace(new RegExp(regexp1), '/');
 	if (fullPath[0] !== '/') {
 		fullPath = '/' + fullPath;
 	}
@@ -440,7 +456,7 @@ abstract class AbstractLineMatcher implements ILineMatcher {
 	}
 
 	private parseLocationInfo(value: string): ILocation | null {
-		if (!value || !value.match(/(\d+|\d+,\d+|\d+,\d+,\d+,\d+)/)) {
+		if (!value || !value.match(regexp2)) {
 			return null;
 		}
 		const parts = value.split(',');
@@ -1514,7 +1530,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 
 	private fillDefaults(): void {
 		this.add('msCompile', {
-			regexp: /^\s*(?:\s*\d+>)?(\S.*?)(?:\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\))?\s*:\s+(?:(\S+)\s+)?((?:fatal +)?error|warning|info)\s+(\w+\d+)?\s*:\s*(.*)$/,
+			regexp: regexpFatalErrorWarning,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			location: 2,
@@ -1523,7 +1539,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			message: 6
 		});
 		this.add('gulp-tsc', {
-			regexp: /^([^\s].*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(\d+)\s+(.*)$/,
+			regexp: regexp4,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			location: 2,
@@ -1531,7 +1547,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			message: 4
 		});
 		this.add('cpp', {
-			regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(C\d+)\s*:\s*(.*)$/,
+			regexp: regexpErrorWarningInfo,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			location: 2,
@@ -1540,7 +1556,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			message: 5
 		});
 		this.add('csc', {
-			regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(CS\d+)\s*:\s*(.*)$/,
+			regexp: regexpErrorWarningInfo1,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			location: 2,
@@ -1549,7 +1565,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			message: 5
 		});
 		this.add('vb', {
-			regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(BC\d+)\s*:\s*(.*)$/,
+			regexp: regexpErrorWarningInfo2,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			location: 2,
@@ -1558,14 +1574,14 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			message: 5
 		});
 		this.add('lessCompile', {
-			regexp: /^\s*(.*) in file (.*) line no. (\d+)$/,
+			regexp: regexpInFileLine,
 			kind: ProblemLocationKind.Location,
 			message: 1,
 			file: 2,
 			line: 3
 		});
 		this.add('jshint', {
-			regexp: /^(.*):\s+line\s+(\d+),\s+col\s+(\d+),\s(.+?)(?:\s+\((\w)(\d+)\))?$/,
+			regexp: regexpLineCol,
 			kind: ProblemLocationKind.Location,
 			file: 1,
 			line: 2,
@@ -1576,12 +1592,12 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 		});
 		this.add('jshint-stylish', [
 			{
-				regexp: /^(.+)$/,
+				regexp: regexp10,
 				kind: ProblemLocationKind.Location,
 				file: 1
 			},
 			{
-				regexp: /^\s+line\s+(\d+)\s+col\s+(\d+)\s+(.+?)(?:\s+\((\w)(\d+)\))?$/,
+				regexp: regexpLineCol1,
 				line: 1,
 				character: 2,
 				message: 3,
@@ -1591,7 +1607,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			}
 		]);
 		this.add('eslint-compact', {
-			regexp: /^(.+):\sline\s(\d+),\scol\s(\d+),\s(Error|Warning|Info)\s-\s(.+)\s\((.+)\)$/,
+			regexp: regexpSlineScolError,
 			file: 1,
 			kind: ProblemLocationKind.Location,
 			line: 2,
@@ -1602,12 +1618,12 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 		});
 		this.add('eslint-stylish', [
 			{
-				regexp: /^((?:[a-zA-Z]:)*[./\\]+.*?)$/,
+				regexp: regexpZA,
 				kind: ProblemLocationKind.Location,
 				file: 1
 			},
 			{
-				regexp: /^\s+(\d+):(\d+)\s+(error|warning|info)\s+(.+?)(?:\s\s+(.*))?$/,
+				regexp: regexpErrorWarningInfo3,
 				line: 1,
 				character: 2,
 				severity: 3,
@@ -1617,7 +1633,7 @@ class ProblemPatternRegistryImpl implements IProblemPatternRegistry {
 			}
 		]);
 		this.add('go', {
-			regexp: /^([^:]*: )?((.:)?[^:]*):(\d+)(:(\d+))?: (.*)$/,
+			regexp: regexp15,
 			kind: ProblemLocationKind.Location,
 			file: 2,
 			line: 4,

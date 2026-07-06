@@ -19,6 +19,9 @@ import { ExternalEditTracker } from '../../../common/externalEditTracker';
 import { IWorkspaceInfo } from '../../../common/workspaceInfo';
 import { ICopilotCLIImageSupport } from '../copilotCLIImageSupport';
 import { buildMcpConfirmationParams, buildShellConfirmationParams, handleReadPermission, handleWritePermission, isFileFromSessionWorkspace, PermissionRequest, requiresFileEditconfirmation, showInteractivePermissionPrompt } from '../permissionHelpers';
+const regexp1 = /^\n\n```/;
+const regexpJson = /```json/;
+
 
 
 describe('CopilotCLI permissionHelpers', () => {
@@ -56,7 +59,7 @@ describe('CopilotCLI permissionHelpers', () => {
 			const result = buildShellConfirmationParams(req, undefined);
 			expect(result.tool).toBe(ToolName.CoreTerminalConfirmationTool);
 			// codeBlock starts with two newlines then ```
-			expect(result.input.message).toMatch(/^\n\n```/);
+			expect(result.input.message).toMatch(regexp1);
 		});
 
 		it('shell: strips cd prefix from command when matching workingDirectory on bash', () => {
@@ -178,7 +181,7 @@ describe('CopilotCLI permissionHelpers', () => {
 			const req = { kind: 'mcp', toolName: 'info', args: { detail: true } } as any;
 			const result = buildMcpConfirmationParams(req as Extract<PermissionRequest, { kind: 'mcp' }>);
 			expect(result.input.title).toBe('MCP Tool: info');
-			expect(result.input.message).toMatch(/```json/);
+			expect(result.input.message).toMatch(regexpJson);
 			expect(result.input.message).toContain('"detail": true');
 		});
 

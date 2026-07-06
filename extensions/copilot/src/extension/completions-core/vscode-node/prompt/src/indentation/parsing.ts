@@ -18,6 +18,8 @@ import {
 	VirtualNode,
 } from './classes';
 import { clearLabelsIf, Rebuilder, rebuildTree, visitTree } from './manipulation';
+const regexp1 = /^\s*/;
+
 
 /**
  * Perform a raw indentation-tree parse of a string. This is completely
@@ -38,7 +40,7 @@ import { clearLabelsIf, Rebuilder, rebuildTree, visitTree } from './manipulation
 export function parseRaw(source: string): IndentationTree<never> {
 	const rawLines = source.split('\n');
 	// TODO: How to handle mix of tabs and spaces?
-	const indentations = rawLines.map(line => line.match(/^\s*/)![0].length);
+	const indentations = rawLines.map(line => line.match(regexp1)![0].length);
 	const lines = rawLines.map(line => line.trimLeft());
 	function parseNode(line: number): [LineNode<never>, number] {
 		const [subs, nextLine] = parseSubs(line + 1, indentations[line]);

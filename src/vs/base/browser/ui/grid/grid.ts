@@ -10,6 +10,8 @@ import { Disposable } from '../../../common/lifecycle.js';
 import './gridview.css';
 import { Box, GridView, IGridViewOptions, IGridViewStyles, IView as IGridViewView, IViewSize, orthogonal, Sizing as GridViewSizing, GridLocation } from './gridview.js';
 import type { SplitView, AutoSizing as SplitViewAutoSizing } from '../splitview/splitview.js';
+const regexpBmonacoGridView = /\bmonaco-grid-view\b/;
+
 
 export type { IViewSize };
 export { LayoutPriority, Orientation, orthogonal } from './gridview.js';
@@ -187,7 +189,7 @@ function getGridLocation(element: HTMLElement): GridLocation {
 		throw new Error('Invalid grid element');
 	}
 
-	if (/\bmonaco-grid-view\b/.test(parentElement.className)) {
+	if (regexpBmonacoGridView.test(parentElement.className)) {
 		return [];
 	}
 

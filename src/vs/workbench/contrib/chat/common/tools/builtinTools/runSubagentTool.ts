@@ -45,6 +45,8 @@ import {
 } from '../languageModelToolsService.js';
 import { ManageTodoListToolToolId } from './manageTodoListTool.js';
 import { createToolSimpleTextResult } from './toolHelpers.js';
+const regexp1 = /^\n*```\n+```\n*/g;
+
 
 const BaseModelDescription = `Launch a new agent to handle complex, multi-step tasks autonomously. This tool is good at researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries, use this agent to perform the search for you.
 
@@ -399,7 +401,7 @@ export class RunSubagentTool extends Disposable implements IToolImpl {
 
 			// This is a hack due to the fact that edits are represented as empty codeblocks with URIs. That needs to be cleaned up,
 			// in the meantime, just strip an empty codeblock left behind.
-			const resultText = markdownParts.join('').replace(/^\n*```\n+```\n*/g, '').trim() || 'Agent completed with no output';
+			const resultText = markdownParts.join('').replace(new RegExp(regexp1), '').trim() || 'Agent completed with no output';
 
 			// Store result in toolSpecificData for serialization
 			if (invocation.toolSpecificData?.kind === 'subagent') {

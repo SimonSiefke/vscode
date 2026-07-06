@@ -10,6 +10,8 @@ import { BaseStringEdit } from './core/edits/stringEdit.js';
 import { StringText } from './core/text/abstractText.js';
 import { TextLength } from './core/text/textLength.js';
 import { ProviderId, VersionedExtensionId } from './languages.js';
+const regexp1 = /\$/g;
+
 
 const privateSymbol = Symbol('TextModelEditSource');
 
@@ -49,7 +51,7 @@ export class TextModelEditSource {
 				return filterVal;
 			}
 
-			const prefixCount = (key.match(/\$/g) || []).length;
+			const prefixCount = (key.match(new RegExp(regexp1)) || []).length;
 			return prefixCount <= level && value !== undefined && value !== null && value !== '';
 		}).map(([key, value]) => `${key}:${value}`);
 		return keys.join('-');

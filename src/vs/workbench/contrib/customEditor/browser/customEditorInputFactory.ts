@@ -22,6 +22,8 @@ import { IWorkingCopyBackupMeta, IWorkingCopyIdentifier } from '../../../service
 import { IWorkingCopyBackupService } from '../../../services/workingCopy/common/workingCopyBackup.js';
 import { IWorkingCopyEditorHandler, IWorkingCopyEditorService } from '../../../services/workingCopy/common/workingCopyEditorService.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
+const regexpZ0 = /[^a-z0-9\-_]/gi;
+
 
 export interface CustomDocumentBackupData extends IWorkingCopyBackupMeta {
 	readonly viewType: string;
@@ -269,7 +271,7 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 			return false;
 		}
 
-		if (workingCopy.resource.authority !== editor.viewType.replace(/[^a-z0-9\-_]/gi, '-').toLowerCase()) {
+		if (workingCopy.resource.authority !== editor.viewType.replace(new RegExp(regexpZ0), '-').toLowerCase()) {
 			return false;
 		}
 

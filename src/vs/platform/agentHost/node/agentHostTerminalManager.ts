@@ -27,6 +27,9 @@ import { AgentHostHeadlessTerminal } from './agentHostHeadlessTerminal.js';
 import { isZsh } from './agentHostShellUtils.js';
 import type { AgentHostStateManager } from './agentHostStateManager.js';
 import { Osc633Event, Osc633EventType, Osc633Parser } from './osc633Parser.js';
+const regexp1 = /\r?\n/g;
+const regexpZshBash = /(zsh|bash)/;
+
 
 const WAIT_FOR_PROMPT_TIMEOUT = 10_000;
 const HEADLESS_TERMINAL_SCROLLBACK = 0;
@@ -96,7 +99,7 @@ export function formatTerminalText(data: string, options: IFormatTerminalTextOpt
 	if (options.forceBracketedPasteMode) {
 		data = `\x1b[200~${data}\x1b[201~`;
 	}
-	data = data.replace(/\r?\n/g, '\r');
+	data = data.replace(new RegExp(regexp1), '\r');
 	if (options.shouldExecute && !data.endsWith('\r')) {
 		data += '\r';
 	}
@@ -294,7 +297,7 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 		let shellArgs: string[] = [];
 		if (platform.isMacintosh) {
 			const shellName = pathParse(shell).name;
-			if (shellName.match(/(zsh|bash)/)) {
+			if (shellName.match(regexpZshBash)) {
 				shellArgs = ['--login'];
 			}
 		}

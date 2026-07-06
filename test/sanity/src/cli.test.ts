@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { TestContext } from './context.js';
+const regexpCommitF0 = /\(commit ([a-f0-9]+)\)/;
+
 
 export function setup(context: TestContext) {
 	context.test('cli-alpine-arm64', ['alpine', 'arm64'], async () => {
@@ -73,7 +75,7 @@ export function setup(context: TestContext) {
 		}
 
 		const result = context.runNoErrors(entryPoint, '--version');
-		const version = result.stdout.trim().match(/\(commit ([a-f0-9]+)\)/)?.[1];
+		const version = result.stdout.trim().match(regexpCommitF0)?.[1];
 		assert.strictEqual(version, context.options.commit, `Expected commit ${context.options.commit} but got ${version}`);
 	}
 }

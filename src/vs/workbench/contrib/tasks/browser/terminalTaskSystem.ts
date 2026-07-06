@@ -54,6 +54,9 @@ import { IContextKey, IContextKeyService } from '../../../../platform/contextkey
 import { TaskProblemMonitor } from './taskProblemMonitor.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { serializeVSCodeOscMessage } from '../../../../platform/terminal/common/xterm/shellIntegrationAddon.js';
+const regexp1 = /\$\{(.*?)\}/g;
+const regexp2 = / /g;
+
 
 interface ITerminalData {
 	terminal: ITerminalInstance;
@@ -85,7 +88,7 @@ export interface IReconnectionTaskData {
 const TaskTerminalType = 'Task';
 
 class VariableResolver {
-	private static _regex = /\$\{(.*?)\}/g;
+	private static _regex = new RegExp(regexp1);
 	constructor(public workspaceFolder: IWorkspaceFolder | undefined, public taskSystemInfo: ITaskSystemInfo | undefined, public readonly values: Map<string, string>, private _service: IConfigurationResolverService | undefined) {
 	}
 	async resolve(value: string): Promise<string> {
@@ -1662,7 +1665,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 				return [shellQuoteOptions.weak + value + shellQuoteOptions.weak, true];
 			} else if (kind === ShellQuoting.Escape && shellQuoteOptions.escape) {
 				if (Types.isString(shellQuoteOptions.escape)) {
-					return [value.replace(/ /g, shellQuoteOptions.escape + ' '), true];
+					return [value.replace(new RegExp(regexp2), shellQuoteOptions.escape + ' '), true];
 				} else {
 					const buffer: string[] = [];
 					for (const ch of shellQuoteOptions.escape.charsToEscape) {
@@ -1829,7 +1832,7 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 
 	private _collectVariables(variables: Set<string>, value: string | CommandString): void {
 		const string: string = Types.isString(value) ? value : value.value;
-		const r = /\$\{(.*?)\}/g;
+		const r = new RegExp(regexp1);
 		let matches: RegExpExecArray | null;
 		do {
 			matches = r.exec(string);

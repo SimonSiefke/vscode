@@ -32,6 +32,9 @@ import { defaultListStyles } from '../../theme/browser/defaultStyles.js';
 import { asCssVariable } from '../../theme/common/colorRegistry.js';
 import { ILayoutService } from '../../layout/browser/layoutService.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
+const regexp1 = /\s+/;
+const regexp2 = /\r\n|\r|\n/g;
+
 
 export const acceptSelectedActionCommand = 'acceptSelectedCodeAction';
 export const previewSelectedActionCommand = 'previewSelectedCodeAction';
@@ -686,7 +689,7 @@ export class ActionListWidget<T> extends Disposable {
 			this.domNode.classList.add('inline-description');
 		}
 		if (this._options?.className) {
-			const classNames = this._options.className.split(/\s+/).filter(className => className.length > 0);
+			const classNames = this._options.className.split(regexp1).filter(className => className.length > 0);
 			if (classNames.length > 0) {
 				this.domNode.classList.add(...classNames);
 			}
@@ -2172,5 +2175,5 @@ export class ActionList<T> extends Disposable {
 }
 
 function stripNewlines(str: string): string {
-	return str.replace(/\r\n|\r|\n/g, ' ');
+	return str.replace(new RegExp(regexp2), ' ');
 }

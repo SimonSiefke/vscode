@@ -43,6 +43,8 @@ import { IToolsService } from '../../../tools/common/toolsService';
 import { IChatDiskSessionResources } from '../../common/chatDiskSessionResources';
 import { IPromptEndpoint, PromptRenderer } from '../base/promptRenderer';
 import { Tag } from '../base/tag';
+const regexp1 = /\r?\n/g;
+
 
 export interface ChatToolCallsProps extends BasePromptElementProps {
 	readonly promptContext: IBuildPromptContext;
@@ -716,7 +718,7 @@ class McpLinkedResourceToolResult extends PromptElement<{ resourceUri: URI; mime
 				{message}
 			</Tag>;
 		}
-		const lines = new TextDecoder().decode(contents).split(/\r?\n/g);
+		const lines = new TextDecoder().decode(contents).split(new RegExp(regexp1));
 		const maxLines = McpLinkedResourceToolResult.MAX_PREVIEW_LINES;
 
 		return <>

@@ -24,6 +24,9 @@ import { createScopedLineTokens } from '../languages/supports.js';
 import { getIndentActionForType, getIndentForEnter, getInheritIndentForLine } from '../languages/autoIndent.js';
 import { getEnterAction } from '../languages/enterAction.js';
 import { CompositionOutcome } from './cursorTypeOperations.js';
+const regexp1 = /[^ \t]/;
+const regexp2 = /^\s*$/;
+
 
 export class AutoIndentOperation {
 
@@ -407,7 +410,7 @@ export class SurroundSelectionOperation {
 				const startIndex = (lineNumber === selection.startLineNumber ? selection.startColumn - 1 : 0);
 				const endIndex = (lineNumber === selection.endLineNumber ? selection.endColumn - 1 : lineText.length);
 				const selectedText = lineText.substring(startIndex, endIndex);
-				if (/[^ \t]/.test(selectedText)) {
+				if (regexp1.test(selectedText)) {
 					// this selected text contains something other than whitespace
 					selectionContainsOnlyWhitespace = false;
 					break;
@@ -780,7 +783,7 @@ export class TabOperation {
 			const selection = selections[i];
 			if (selection.isEmpty()) {
 				const lineText = model.getLineContent(selection.startLineNumber);
-				if (/^\s*$/.test(lineText) && model.tokenization.isCheapToTokenize(selection.startLineNumber)) {
+				if (regexp2.test(lineText) && model.tokenization.isCheapToTokenize(selection.startLineNumber)) {
 					let goodIndent = this._goodIndentForLine(config, model, selection.startLineNumber);
 					goodIndent = goodIndent || '\t';
 					const possibleTypeText = config.normalizeIndentation(goodIndent);

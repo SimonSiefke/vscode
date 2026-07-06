@@ -29,6 +29,14 @@ import {
 	writeAgentHostState,
 	type ISshExec,
 } from '../../node/sshRemoteAgentHostHelpers.js';
+const regexpUnsafeQuality = /Unsafe quality/;
+const regexpUnsafeCommit = /Unsafe commit/;
+const regexpUnsafeServerData = /Unsafe server data folder name/;
+const regexp9a = /(\[0-9a-f\]){40}/;
+const regexpLs1t = /ls -1t/;
+const regexpAwkNR = /awk\s+'NR>5'/;
+const regexpXargsRm = /xargs\s+-I\{\}\s+rm\s+-f\s+--/;
+
 
 suite('SSH Remote Agent Host Helpers', () => {
 
@@ -60,17 +68,17 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects strings with spaces', () => {
-			assert.throws(() => validateShellToken('foo bar', 'quality'), /Unsafe quality/);
+			assert.throws(() => validateShellToken('foo bar', 'quality'), regexpUnsafeQuality);
 		});
 
 		test('rejects strings with shell metacharacters', () => {
-			assert.throws(() => validateShellToken('foo;rm -rf /', 'quality'), /Unsafe quality/);
-			assert.throws(() => validateShellToken('$(whoami)', 'quality'), /Unsafe quality/);
-			assert.throws(() => validateShellToken('foo\'bar', 'quality'), /Unsafe quality/);
+			assert.throws(() => validateShellToken('foo;rm -rf /', 'quality'), regexpUnsafeQuality);
+			assert.throws(() => validateShellToken('$(whoami)', 'quality'), regexpUnsafeQuality);
+			assert.throws(() => validateShellToken('foo\'bar', 'quality'), regexpUnsafeQuality);
 		});
 
 		test('rejects empty string', () => {
-			assert.throws(() => validateShellToken('', 'quality'), /Unsafe quality/);
+			assert.throws(() => validateShellToken('', 'quality'), regexpUnsafeQuality);
 		});
 	});
 
@@ -88,19 +96,19 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects non-hex characters', () => {
-			assert.throws(() => validateCommit('g'.repeat(40)), /Unsafe commit/);
-			assert.throws(() => validateCommit('abcdef0123456789abcdef0123456789abcdef0z'), /Unsafe commit/);
+			assert.throws(() => validateCommit('g'.repeat(40)), regexpUnsafeCommit);
+			assert.throws(() => validateCommit('abcdef0123456789abcdef0123456789abcdef0z'), regexpUnsafeCommit);
 		});
 
 		test('rejects wrong-length values', () => {
-			assert.throws(() => validateCommit('abc'), /Unsafe commit/);
-			assert.throws(() => validateCommit('a'.repeat(41)), /Unsafe commit/);
-			assert.throws(() => validateCommit(''), /Unsafe commit/);
+			assert.throws(() => validateCommit('abc'), regexpUnsafeCommit);
+			assert.throws(() => validateCommit('a'.repeat(41)), regexpUnsafeCommit);
+			assert.throws(() => validateCommit(''), regexpUnsafeCommit);
 		});
 
 		test('rejects shell metacharacters', () => {
-			assert.throws(() => validateCommit('foo;rm'), /Unsafe commit/);
-			assert.throws(() => validateCommit('a'.repeat(39) + '$'), /Unsafe commit/);
+			assert.throws(() => validateCommit('foo;rm'), regexpUnsafeCommit);
+			assert.throws(() => validateCommit('a'.repeat(39) + '$'), regexpUnsafeCommit);
 		});
 	});
 
@@ -125,7 +133,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe quality strings', () => {
-			assert.throws(() => getRemoteCLIArchiveName('foo bar'), /Unsafe quality/);
+			assert.throws(() => getRemoteCLIArchiveName('foo bar'), regexpUnsafeQuality);
 		});
 	});
 
@@ -135,9 +143,9 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe server data folder names', () => {
-			assert.throws(() => getRemoteCLIInstallRoot('foo bar'), /Unsafe server data folder name/);
-			assert.throws(() => getRemoteCLIInstallRoot('foo/bar'), /Unsafe server data folder name/);
-			assert.throws(() => getRemoteCLIInstallRoot('$(whoami)'), /Unsafe server data folder name/);
+			assert.throws(() => getRemoteCLIInstallRoot('foo bar'), regexpUnsafeServerData);
+			assert.throws(() => getRemoteCLIInstallRoot('foo/bar'), regexpUnsafeServerData);
+			assert.throws(() => getRemoteCLIInstallRoot('$(whoami)'), regexpUnsafeServerData);
 		});
 	});
 
@@ -148,7 +156,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe server data folder names', () => {
-			assert.throws(() => getRemoteCLIDataDir('foo;rm'), /Unsafe server data folder name/);
+			assert.throws(() => getRemoteCLIDataDir('foo;rm'), regexpUnsafeServerData);
 		});
 	});
 
@@ -195,7 +203,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe commit values', () => {
-			assert.throws(() => getRemoteCLIBin('.vscode-server', 'stable', 'foo;rm'), /Unsafe commit/);
+			assert.throws(() => getRemoteCLIBin('.vscode-server', 'stable', 'foo;rm'), regexpUnsafeCommit);
 		});
 
 		test('normalizes uppercase hex commits to lowercase', () => {
@@ -207,7 +215,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe server data folder names', () => {
-			assert.throws(() => getRemoteCLIBin('foo bar', 'stable', commit), /Unsafe server data folder name/);
+			assert.throws(() => getRemoteCLIBin('foo bar', 'stable', commit), regexpUnsafeServerData);
 		});
 	});
 
@@ -307,7 +315,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe commit values', () => {
-			assert.throws(() => buildCLIDownloadUrl('linux', 'x64', 'insider', 'foo;rm'), /Unsafe commit/);
+			assert.throws(() => buildCLIDownloadUrl('linux', 'x64', 'insider', 'foo;rm'), regexpUnsafeCommit);
 		});
 
 		test('normalizes uppercase hex commits to lowercase', () => {
@@ -324,11 +332,11 @@ suite('SSH Remote Agent Host Helpers', () => {
 			const cmd = buildCleanupOldCLIsCommand('.vscode-server-insiders', 'insider');
 			// Target the commit-keyed pattern (with 40 chars), under the shared install root.
 			assert.ok(cmd.includes('~/.vscode-server-insiders/code-insiders-'), `cmd missing install path: ${cmd}`);
-			assert.ok(/(\[0-9a-f\]){40}/.test(cmd), 'cmd should match exactly 40 hex chars');
+			assert.ok(regexp9a.test(cmd), 'cmd should match exactly 40 hex chars');
 			// Retention via sort + awk drop-first-N + xargs rm.
-			assert.ok(/ls -1t/.test(cmd), `cmd should sort by mtime: ${cmd}`);
-			assert.ok(/awk\s+'NR>5'/.test(cmd), `cmd should keep 5: ${cmd}`);
-			assert.ok(/xargs\s+-I\{\}\s+rm\s+-f\s+--/.test(cmd), `cmd should rm safely: ${cmd}`);
+			assert.ok(regexpLs1t.test(cmd), `cmd should sort by mtime: ${cmd}`);
+			assert.ok(regexpAwkNR.test(cmd), `cmd should keep 5: ${cmd}`);
+			assert.ok(regexpXargsRm.test(cmd), `cmd should rm safely: ${cmd}`);
 		});
 
 		test('uses `code-` archive name for stable', () => {
@@ -338,8 +346,8 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe inputs', () => {
-			assert.throws(() => buildCleanupOldCLIsCommand('foo bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => buildCleanupOldCLIsCommand('.vscode-server', 'foo bar'), /Unsafe quality/);
+			assert.throws(() => buildCleanupOldCLIsCommand('foo bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => buildCleanupOldCLIsCommand('.vscode-server', 'foo bar'), regexpUnsafeQuality);
 		});
 	});
 
@@ -348,7 +356,7 @@ suite('SSH Remote Agent Host Helpers', () => {
 			const cmd = buildFindFallbackCLICommand('.vscode-server-insiders', 'insider');
 			// New commit-keyed candidates in shared install root, sorted newest-first.
 			assert.ok(cmd.includes('~/.vscode-server-insiders/code-insiders-'), `cmd missing new path: ${cmd}`);
-			assert.ok(/ls -1t/.test(cmd), 'should sort commit-keyed candidates by mtime');
+			assert.ok(regexpLs1t.test(cmd), 'should sort commit-keyed candidates by mtime');
 			// Legacy single-binary path (insider has the `-insider` dir suffix).
 			assert.ok(cmd.includes('~/.vscode-cli-insider/code-insiders'), `cmd missing legacy path: ${cmd}`);
 		});
@@ -360,8 +368,8 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe inputs', () => {
-			assert.throws(() => buildFindFallbackCLICommand('foo bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => buildFindFallbackCLICommand('.vscode-server', 'foo bar'), /Unsafe quality/);
+			assert.throws(() => buildFindFallbackCLICommand('foo bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => buildFindFallbackCLICommand('.vscode-server', 'foo bar'), regexpUnsafeQuality);
 		});
 	});
 
@@ -449,13 +457,13 @@ suite('SSH Remote Agent Host Helpers', () => {
 		});
 
 		test('rejects unsafe server data folder names', () => {
-			assert.throws(() => getAgentHostLockfile('foo bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => getAgentHostLockfile('foo/bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => getAgentHostLockfile('$(whoami)', 'stable'), /Unsafe server data folder name/);
+			assert.throws(() => getAgentHostLockfile('foo bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => getAgentHostLockfile('foo/bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => getAgentHostLockfile('$(whoami)', 'stable'), regexpUnsafeServerData);
 		});
 
 		test('rejects unsafe quality strings', () => {
-			assert.throws(() => getAgentHostLockfile('.vscode-server-oss', 'foo bar'), /Unsafe quality/);
+			assert.throws(() => getAgentHostLockfile('.vscode-server-oss', 'foo bar'), regexpUnsafeQuality);
 		});
 	});
 

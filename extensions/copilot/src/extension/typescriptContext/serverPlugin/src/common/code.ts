@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 import type tt from 'typescript/lib/tsserverlibrary';
 import TS from './typescript';
+const regexp1 = /\r?\n/g;
+const regexp2 = /\r?\n/;
+const regexp3 = /^\s+/;
+
 const ts = TS();
 
 import type { RequestContext } from './contextProvider';
@@ -18,7 +22,7 @@ namespace Nodes {
 		const textStartPosition = node.getStart(sourceFile, includeJSDocComment);
 		const startRange = sourceFile.getLineAndCharacterOfPosition(textStartPosition);
 		const text = sourceFile.text.substring(textStartPosition, node.getEnd());
-		const lines = text.split(/\r?\n/g);
+		const lines = text.split(new RegExp(regexp1));
 		// We have an indentation on the start line
 		if (startRange.character > 0) {
 			const lineStartPosition = sourceFile.getPositionOfLineAndCharacter(startRange.line, 0);
@@ -36,11 +40,11 @@ namespace Nodes {
 			const start = ranges.at(-1)!.pos;
 			const end = ranges.at(-1)!.end;
 			const text = fullText.substring(start, end).trim();
-			const lines = text.split(/\r?\n/);
+			const lines = text.split(regexp2);
 			trimLines(lines);
 			if (lines.length > 1) {
 				const line = lines[1];
-				const match = line.match(/^\s+/);
+				const match = line.match(regexp3);
 				if (match !== null) {
 					stripIndent(lines, match[0]);
 				}

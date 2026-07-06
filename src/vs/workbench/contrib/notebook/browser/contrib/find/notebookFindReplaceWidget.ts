@@ -50,6 +50,8 @@ import { ICellModelDecorations, ICellModelDeltaDecorations, ICellViewModel, INot
 import { NotebookFindScopeType, NotebookSetting } from '../../../common/notebookCommon.js';
 import { ICellRange } from '../../../common/notebookRange.js';
 import type { IHoverLifecycleOptions } from '../../../../../../base/browser/ui/hover/hover.js';
+const regexpInline = /^inline/;
+
 
 
 const NLS_FIND_INPUT_LABEL = nls.localize('label.find', "Find");
@@ -289,7 +291,7 @@ export class NotebookFindInput extends FindInput {
 	}
 
 	getCellToolbarActions(menu: IMenu): { primary: IAction[]; secondary: IAction[] } {
-		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => /^inline/.test(g));
+		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => regexpInline.test(g));
 	}
 }
 
@@ -693,7 +695,7 @@ export abstract class SimpleFindReplaceWidget extends Widget {
 	}
 
 	getCellToolbarActions(menu: IMenu): { primary: IAction[]; secondary: IAction[] } {
-		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => /^inline/.test(g));
+		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => regexpInline.test(g));
 	}
 
 	protected abstract onInputChanged(): boolean;

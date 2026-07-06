@@ -55,6 +55,12 @@ import { CancellationTokenSource } from '../../../../../base/common/cancellation
 import { IChatSessionsService } from '../../common/chatSessionsService.js';
 import { createPixelSpinner } from '../../../../../base/browser/ui/pixelSpinner/pixelSpinner.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
+const regexp1 = /\r?\n/;
+const regexpRepoFolderWorktree = /^\$\((?:repo|folder|worktree)\)\s*(.+)/;
+const regexpZ0 = /\$\([a-z0-9\-]+\)\s*/gi;
+const regexpRepoFolderWorktree1 = /\$\((?:repo|folder|worktree)\)\s*(.+)/;
+const regexp5 = /[/\\]/;
+
 
 export type AgentSessionListItem = IAgentSession | IAgentSessionSection | IAgentSessionShowMore | IAgentSessionShowLess;
 
@@ -190,7 +196,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 	private static readonly _APPROVAL_ROW_OVERHEAD = 14; // 4px margin-top + 4px padding-top + 4px padding-bottom + 2px border
 
 	static getApprovalRowHeight(label: string): number {
-		const lineCount = Math.min(label.split(/\r?\n/).length, AgentSessionRenderer.APPROVAL_ROW_MAX_LINES);
+		const lineCount = Math.min(label.split(regexp1).length, AgentSessionRenderer.APPROVAL_ROW_MAX_LINES);
 		return lineCount * AgentSessionRenderer._APPROVAL_ROW_LINE_HEIGHT + AgentSessionRenderer._APPROVAL_ROW_OVERHEAD;
 	}
 
@@ -426,7 +432,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 			!session.element.isPinned()
 		) {
 			const raw = typeof badge === 'string' ? badge : badge.value;
-			const match = raw.match(/^\$\((?:repo|folder|worktree)\)\s*(.+)/);
+			const match = raw.match(regexpRepoFolderWorktree);
 			if (match) {
 				const badgeName = match[1].trim();
 				const repoName = getRepositoryName(session.element);
@@ -449,7 +455,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 
 	private stripCodicons(content: string | IMarkdownString): string | IMarkdownString {
 		const raw = typeof content === 'string' ? content : content.value;
-		const stripped = raw.replace(/\$\([a-z0-9\-]+\)\s*/gi, '').trim();
+		const stripped = raw.replace(new RegExp(regexpZ0), '').trim();
 		if (typeof content === 'string') {
 			return stripped;
 		}
@@ -1421,7 +1427,7 @@ export function getRepositoryName(session: IAgentSession): string | undefined {
 	const badge = session.badge;
 	if (badge) {
 		const raw = typeof badge === 'string' ? badge : badge.value;
-		const badgeMatch = raw.match(/\$\((?:repo|folder|worktree)\)\s*(.+)/);
+		const badgeMatch = raw.match(regexpRepoFolderWorktree1);
 		if (badgeMatch) {
 			return badgeMatch[1].trim();
 		}
@@ -1480,7 +1486,7 @@ function parseRepositoryName(value: string): string | undefined {
  * conventions where paths follow `<repo>.worktrees/<worktree-name>`.
  */
 function extractRepoNameFromPath(dirPath: string): string | undefined {
-	const segments = dirPath.split(/[/\\]/).filter(Boolean);
+	const segments = dirPath.split(regexp5).filter(Boolean);
 	if (segments.length < 2) {
 		return segments[0];
 	}

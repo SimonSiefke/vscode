@@ -5,6 +5,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Choice, FormatString, Marker, Placeholder, Scanner, SnippetParser, Text, TextmateSnippet, TokenType, Transform, Variable, VariableResolver } from '../../browser/snippetParser.js';
+const regexp1 = /\s:=(.*)/;
+const regexp2 = /^(.)|-(.)/g;
+
 
 suite('SnippetParser', () => {
 
@@ -422,7 +425,7 @@ suite('SnippetParser', () => {
 		assert.strictEqual(children[3].children.length, 0);
 		assert.notStrictEqual((<Placeholder>children[3]).transform, undefined);
 		const transform = (<Placeholder>children[3]).transform!;
-		assert.deepStrictEqual(transform.regexp, /\s:=(.*)/);
+		assert.deepStrictEqual(transform.regexp, regexp1);
 		assert.strictEqual(transform.children.length, 2);
 		assert.ok(transform.children[0] instanceof FormatString);
 		assert.strictEqual((<FormatString>transform.children[0]).index, 1);
@@ -759,7 +762,7 @@ suite('SnippetParser', () => {
 		const transform = new Transform();
 		transform.appendChild(new FormatString(1, 'upcase'));
 		transform.appendChild(new FormatString(2, 'upcase'));
-		transform.regexp = /^(.)|-(.)/g;
+		transform.regexp = new RegExp(regexp2);
 
 		assert.strictEqual(transform.resolve('my-file-name'), 'MyFileName');
 

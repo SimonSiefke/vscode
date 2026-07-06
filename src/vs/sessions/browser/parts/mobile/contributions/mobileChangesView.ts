@@ -20,6 +20,8 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ISessionFileChange } from '../../../../services/sessions/common/session.js';
 import { IFileDiffViewData } from './mobileDiffView.js';
+const regexpFile = /^\/file\/-/;
+
 
 const $ = DOM.$;
 
@@ -252,7 +254,7 @@ export class MobileChangesView extends Disposable {
 		// Show only the directory portion relative to the tunnel root — strip
 		// the scheme-specific `/file/-` prefix if present so the user sees a
 		// clean path like `/Users/osvaldortega/project` rather than noise.
-		const rawDir = dirname(row.displayUri).path.replace(/^\/file\/-/, '');
+		const rawDir = dirname(row.displayUri).path.replace(regexpFile, '');
 		if (rawDir && rawDir !== '/') {
 			DOM.append(textHost, $('span.mobile-changes-row-dir')).textContent = rawDir;
 		}

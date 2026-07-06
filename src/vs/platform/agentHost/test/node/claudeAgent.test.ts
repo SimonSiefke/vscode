@@ -66,6 +66,17 @@ import { resolvePromptToContentBlocks } from '../../node/claude/claudePromptReso
 import { ICopilotApiService, type ICopilotApiServiceRequestOptions } from '../../node/shared/copilotApiService.js';
 import { AgentService } from '../../node/agentService.js';
 import { createNoopGitService, createNullSessionDataService, createSessionDataService, TestSessionDatabase } from '../common/sessionTestHelpers.js';
+const regexpProxyBindFailed = /proxy bind failed/;
+const regexpSessionIsNot = /session is not materialized/i;
+const regexpTurnNoSuch = /turn no-such-turn not found/;
+const regexpNotFoundIn = /not found in transcript/;
+const regexpNoWorkingDirectory = /no working directory/;
+const regexpSubagent = /subagent/;
+const regexpProvisional = /provisional/;
+const regexpToolUse = /tool_use/;
+const regexpUnknownSession = /unknown session/i;
+const regexpSimulatedSDKLoad = /simulated SDK load failure/;
+
 
 // #region Test fakes
 
@@ -1314,7 +1325,7 @@ suite('ClaudeAgent', () => {
 		const instantiationService: IInstantiationService = disposables.add(new InstantiationService(services));
 		const agent = disposables.add(instantiationService.createInstance(ClaudeAgent));
 
-		await assert.rejects(agent.authenticate('https://api.github.com', 'tok'), /proxy bind failed/);
+		await assert.rejects(agent.authenticate('https://api.github.com', 'tok'), regexpProxyBindFailed);
 
 		// Models still empty (proxy never started, refresh never ran).
 		assert.deepStrictEqual(agent.models.get(), []);
@@ -1577,7 +1588,7 @@ suite('ClaudeAgent', () => {
 				session_id: 'test-session',
 				parent_tool_use_id: null,
 			}, 'turn-1'),
-			/session is not materialized/i,
+			regexpSessionIsNot,
 		);
 	});
 
@@ -1793,7 +1804,7 @@ suite('ClaudeAgent', () => {
 		sdk.nextQueryMessages = [makeSystemInitMessage(sessionId), makeResultSuccess(sessionId)];
 		await agent.chats.sendMessage(defaultChatUri(created.session), 'first', undefined, 'turn-1');
 
-		await assert.rejects(() => agent.truncateSession(created.session, 'no-such-turn'), /turn no-such-turn not found/);
+		await assert.rejects(() => agent.truncateSession(created.session, 'no-such-turn'), regexpTurnNoSuch);
 	});
 
 	test('truncateSession on a provisional session is a no-op', async () => {
@@ -1978,7 +1989,7 @@ suite('ClaudeAgent', () => {
 
 		await assert.rejects(
 			agent.createSession({ fork: { session: AgentSession.uri('claude', sourceId), turnIndex: 9, turnId: 'no-such-turn' } }),
-			/not found in transcript/,
+			regexpNotFoundIn,
 		);
 		assert.strictEqual(sdk.forkSessionCalls.length, 0, 'no fork when the anchor cannot be resolved');
 	});
@@ -1995,7 +2006,7 @@ suite('ClaudeAgent', () => {
 		// Fail fast here rather than at the first `sendMessage`.
 		await assert.rejects(
 			agent.createSession({ fork: { session: AgentSession.uri('claude', sourceId), turnIndex: 0, turnId: 'u1' } }),
-			/no working directory/,
+			regexpNoWorkingDirectory,
 		);
 	});
 
@@ -2007,7 +2018,7 @@ suite('ClaudeAgent', () => {
 
 		await assert.rejects(
 			agent.createSession({ fork: { session: subagentUri, turnIndex: 0, turnId: 'u1' } }),
-			/subagent/,
+			regexpSubagent,
 		);
 		assert.deepStrictEqual({
 			getMessages: sdk.getSessionMessagesCalls.length,
@@ -2024,7 +2035,7 @@ suite('ClaudeAgent', () => {
 
 		await assert.rejects(
 			agent.createSession({ fork: { session: provisional.session, turnIndex: 0, turnId: 'u1' } }),
-			/provisional/,
+			regexpProvisional,
 		);
 		assert.strictEqual(sdk.forkSessionCalls.length, 0);
 	});
@@ -2643,7 +2654,7 @@ suite('ClaudeAgent', () => {
 
 		assert.deepStrictEqual({
 			responsePartCount,
-			warnedAboutToolUse: logService.warns.some(m => /tool_use/.test(m)),
+			warnedAboutToolUse: logService.warns.some(m => regexpToolUse.test(m)),
 		}, {
 			responsePartCount: 0,
 			warnedAboutToolUse: false,
@@ -2983,7 +2994,7 @@ suite('ClaudeAgent', () => {
 		assert.deepStrictEqual({
 			startupCallCount: sdk.startupCallCount,
 			warmQueriesLength: sdk.warmQueries.length,
-			sendThrewUnknown: sendErr instanceof Error && /unknown session/i.test(sendErr.message),
+			sendThrewUnknown: sendErr instanceof Error && regexpUnknownSession.test(sendErr.message),
 			materializedAbsent: agent.getSessionForTesting(created.session) === undefined,
 		}, {
 			startupCallCount: 0,
@@ -3071,7 +3082,7 @@ suite('ClaudeAgent', () => {
 
 		assert.deepStrictEqual({
 			startupCallCount: sdk.startupCallCount,
-			sendThrewUnknown: sendErr instanceof Error && /unknown session/i.test(sendErr.message),
+			sendThrewUnknown: sendErr instanceof Error && regexpUnknownSession.test(sendErr.message),
 			sessionAbsent: agent.getSessionForTesting(sessionUri) === undefined,
 		}, {
 			startupCallCount: 0,
@@ -3189,10 +3200,10 @@ suite('ClaudeAgent', () => {
 			// A post-shutdown sendMessage to the provisional URI must
 			// fail because the provisional record was cleared.
 			provDropped: await agent.chats.sendMessage(defaultChatUri(provCreated.session), 'late', undefined, 'turn-late')
-				.then(() => false, err => err instanceof Error && /unknown session/i.test(err.message)),
+				.then(() => false, err => err instanceof Error && regexpUnknownSession.test(err.message)),
 			// Same for the materialized URI.
 			matDropped: await agent.chats.sendMessage(defaultChatUri(matCreated.session), 'late', undefined, 'turn-late')
-				.then(() => false, err => err instanceof Error && /unknown session/i.test(err.message)),
+				.then(() => false, err => err instanceof Error && regexpUnknownSession.test(err.message)),
 		}, {
 			memoized: true,
 			matRemoved: true,
@@ -3824,8 +3835,8 @@ suite('ClaudeAgent', () => {
 		const svc = inst.createInstance(TestableClaudeAgentSdkService);
 
 		// First two calls fault → exactly one log entry; both retry the import.
-		await assert.rejects(() => svc.listSessions(), /simulated SDK load failure/);
-		await assert.rejects(() => svc.listSessions(), /simulated SDK load failure/);
+		await assert.rejects(() => svc.listSessions(), regexpSimulatedSDKLoad);
+		await assert.rejects(() => svc.listSessions(), regexpSimulatedSDKLoad);
 		const failuresLogged = errorCalls.length;
 		const importInvocationsAfterFailures = importInvocations;
 

@@ -7,6 +7,21 @@ import fs from 'fs';
 import path from 'path';
 import * as tss from './treeshaking.ts';
 import ts from 'typescript';
+const regexpTs = /\.d\.ts$/;
+const regexpNewURLTs = /(new\s+URL\s*\(\s*['"`][^'"`]*?)\.ts(\?[^'"`]*['"`])/g;
+const regexp3 = /(^\.\/)|(^\.\.\/)/;
+const regexpCss = /\.css$/;
+const regexpCss1 = /\.css/;
+const regexpTtf = /^(.*)\.ttf(\?.*)?$/;
+const regexpSvg = /\.svg$/;
+const regexp8 = /\s+/g;
+const regexp9 = /#/g;
+const regexp10 = /&/g;
+const regexp11 = />/g;
+const regexp12 = /</g;
+const regexp13 = /"/g;
+const regexpUrl = /url\(\s*([^\)]+)\s*\)?/g;
+
 
 const dirCache: { [dir: string]: boolean } = {};
 
@@ -52,7 +67,7 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 	console.log(`Running tree shaker with shakeLevel ${tss.toStringShakeLevel(options.shakeLevel)}`);
 
 	// Take the extra included .d.ts files from `tsconfig.monaco.json`
-	options.typings = (tsConfig.include as string[]).filter(includedFile => /\.d\.ts$/.test(includedFile));
+	options.typings = (tsConfig.include as string[]).filter(includedFile => regexpTs.test(includedFile));
 
 	const result = tss.shake(options);
 	for (const fileName in result) {
@@ -60,7 +75,7 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 			let fileContents = result[fileName];
 			// Replace .ts? with .js? in new URL() patterns
 			fileContents = fileContents.replace(
-				/(new\s+URL\s*\(\s*['"`][^'"`]*?)\.ts(\?[^'"`]*['"`])/g,
+				new RegExp(regexpNewURLTs),
 				'$1.js$2'
 			);
 			const relativePath = path.relative(options.sourcesRoot, fileName);
@@ -97,11 +112,11 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 				const importedFileName = info.importedFiles[i].fileName;
 
 				let importedFilePath = importedFileName;
-				if (/(^\.\/)|(^\.\.\/)/.test(importedFilePath)) {
+				if (regexp3.test(importedFilePath)) {
 					importedFilePath = path.join(path.dirname(fileName), importedFilePath);
 				}
 
-				if (/\.css$/.test(importedFilePath)) {
+				if (regexpCss.test(importedFilePath)) {
 					transportCSS(importedFilePath, copyFile, writeOutputFile);
 				} else {
 					const pathToCopy = path.join(options.sourcesRoot, importedFilePath);
@@ -126,7 +141,7 @@ export function extractEditor(options: tss.ITreeShakingOptions & { destRoot: str
 
 function transportCSS(module: string, enqueue: (module: string) => void, write: (path: string, contents: string | Buffer) => void): boolean {
 
-	if (!/\.css/.test(module)) {
+	if (!regexpCss1.test(module)) {
 		return false;
 	}
 
@@ -139,7 +154,7 @@ function transportCSS(module: string, enqueue: (module: string) => void, write: 
 
 	function _rewriteOrInlineUrls(contents: string, forceBase64: boolean): string {
 		return _replaceURL(contents, (url) => {
-			const fontMatch = url.match(/^(.*)\.ttf(\?.*)?$/);
+			const fontMatch = url.match(regexpTtf);
 			if (fontMatch) {
 				const relativeFontPath = `${fontMatch[1]}.ttf`; // trim the optional query parameter
 				const fontPath = path.join(path.dirname(module), relativeFontPath);
@@ -149,18 +164,18 @@ function transportCSS(module: string, enqueue: (module: string) => void, write: 
 
 			const imagePath = path.join(path.dirname(module), url);
 			const fileContents = fs.readFileSync(imagePath);
-			const MIME = /\.svg$/.test(url) ? 'image/svg+xml' : 'image/png';
+			const MIME = regexpSvg.test(url) ? 'image/svg+xml' : 'image/png';
 			let DATA = ';base64,' + fileContents.toString('base64');
 
-			if (!forceBase64 && /\.svg$/.test(url)) {
+			if (!forceBase64 && regexpSvg.test(url)) {
 				// .svg => url encode as explained at https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
 				const newText = fileContents.toString()
-					.replace(/"/g, '\'')
-					.replace(/</g, '%3C')
-					.replace(/>/g, '%3E')
-					.replace(/&/g, '%26')
-					.replace(/#/g, '%23')
-					.replace(/\s+/g, ' ');
+					.replace(new RegExp(regexp13), '\'')
+					.replace(new RegExp(regexp12), '%3C')
+					.replace(new RegExp(regexp11), '%3E')
+					.replace(new RegExp(regexp10), '%26')
+					.replace(new RegExp(regexp9), '%23')
+					.replace(new RegExp(regexp8), ' ');
 				const encodedData = ',' + newText;
 				if (encodedData.length < DATA.length) {
 					DATA = encodedData;
@@ -172,7 +187,7 @@ function transportCSS(module: string, enqueue: (module: string) => void, write: 
 
 	function _replaceURL(contents: string, replacer: (url: string) => string): string {
 		// Use ")" as the terminator as quotes are oftentimes not used at all
-		return contents.replace(/url\(\s*([^\)]+)\s*\)?/g, (_: string, ...matches: string[]) => {
+		return contents.replace(new RegExp(regexpUrl), (_: string, ...matches: string[]) => {
 			let url = matches[0];
 			// Eliminate starting quotes (the initial whitespace is not captured)
 			if (url.charAt(0) === '"' || url.charAt(0) === '\'') {

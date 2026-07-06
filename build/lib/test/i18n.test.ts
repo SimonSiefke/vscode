@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { suite, test } from 'node:test';
 import * as i18n from '../i18n.ts';
+const regexp1 = /\s{2,}/g;
+
 
 suite('XLF Parser Tests', () => {
 	const sampleXlf = '<?xml version="1.0" encoding="utf-8"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2"><file original="vs/base/common/keybinding" source-language="en" datatype="plaintext"><body><trans-unit id="key1"><source xml:lang="en">Key #1</source></trans-unit><trans-unit id="key2"><source xml:lang="en">Key #2 &amp;</source></trans-unit></body></file></xliff>';
@@ -20,7 +22,7 @@ suite('XLF Parser Tests', () => {
 		xlf.addFile(name, keys, messages);
 		const xlfString = xlf.toString();
 
-		assert.strictEqual(xlfString.replace(/\s{2,}/g, ''), sampleXlf);
+		assert.strictEqual(xlfString.replace(new RegExp(regexp1), ''), sampleXlf);
 	});
 
 	test('XLF to keys & messages conversion', () => {

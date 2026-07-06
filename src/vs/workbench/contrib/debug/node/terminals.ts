@@ -6,6 +6,14 @@
 import * as cp from 'child_process';
 import { getDriveLetter } from '../../../../base/common/extpath.js';
 import * as platform from '../../../../base/common/platform.js';
+const regexp1 = /\'/g;
+const regexp2 = /\"/g;
+const regexp3 = /([><!^&|])/g;
+const regexp4 = /[&^|<>]/g;
+const regexp5 = /(["'\\\$!><#()\[\]*&^| ;{}?`])/g;
+const regexp6 = /'/g;
+const regexp7 = /[^\w@%\/+=,.:^-]/;
+
 
 function spawnAsPromised(command: string, args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -83,7 +91,7 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 		case ShellType.powershell:
 
 			quote = (s: string) => {
-				s = s.replace(/\'/g, '\'\'');
+				s = s.replace(new RegExp(regexp1), '\'\'');
 				if (s.length > 0 && s.charAt(s.length - 1) === '\\') {
 					return `'${s}\\'`;
 				}
@@ -125,8 +133,8 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 				// cmd /C "node -e "console.log(process.argv)" """A^>0"""" # prints "A>0"
 				// cmd /C "node -e "console.log(process.argv)" "foo^> bar"" # prints foo> bar
 				// Outside of the cmd /C, it could be a simple quoting, but here, the ^ is needed too
-				s = s.replace(/\"/g, '""');
-				s = s.replace(/([><!^&|])/g, '^$1');
+				s = s.replace(new RegExp(regexp2), '""');
+				s = s.replace(new RegExp(regexp3), '^$1');
 				return (' "'.split('').some(char => s.includes(char)) || s.length === 0) ? `"${s}"` : s;
 			};
 
@@ -144,7 +152,7 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 					if (value === null) {
 						command += `set "${key}=" && `;
 					} else {
-						value = value.replace(/[&^|<>]/g, s => `^${s}`);
+						value = value.replace(new RegExp(regexp4), s => `^${s}`);
 						command += `set "${key}=${value}" && `;
 					}
 				}
@@ -161,12 +169,12 @@ export function prepareCommand(shell: string, args: string[], argsCanBeInterpret
 		case ShellType.bash: {
 
 			quote = (s: string) => {
-				s = s.replace(/(["'\\\$!><#()\[\]*&^| ;{}?`])/g, '\\$1');
+				s = s.replace(new RegExp(regexp5), '\\$1');
 				return s.length === 0 ? `""` : s;
 			};
 
 			const hardQuote = (s: string) => {
-				return /[^\w@%\/+=,.:^-]/.test(s) ? `'${s.replace(/'/g, '\'\\\'\'')}'` : s;
+				return regexp7.test(s) ? `'${s.replace(new RegExp(regexp6), '\'\\\'\'')}'` : s;
 			};
 
 			if (cwd) {

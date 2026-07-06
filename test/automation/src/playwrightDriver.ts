@@ -13,6 +13,9 @@ import { LaunchOptions } from './code';
 import { teardown } from './processes';
 import { ChildProcess } from 'child_process';
 import type { AxeResults, RunOptions } from 'axe-core';
+const regexp1 = /\s+/g;
+const regexpClass = /class="([^"]+)"/;
+
 
 // Load axe-core source for injection into pages (works with Electron)
 let axeSource = '';
@@ -377,7 +380,7 @@ export class PlaywrightDriver {
 		try {
 			let persistPath: string | undefined = undefined;
 			if (persist) {
-				const nameSuffix = name ? `-${name.replace(/\s+/g, '-')}` : '';
+				const nameSuffix = name ? `-${name.replace(new RegExp(regexp1), '-')}` : '';
 				persistPath = join(this.options.logsPath, `playwright-trace-${PlaywrightDriver.traceCounter++}${nameSuffix}.zip`);
 			}
 
@@ -477,7 +480,7 @@ export class PlaywrightDriver {
 
 	private async takeScreenshot(name?: string): Promise<void> {
 		try {
-			const nameSuffix = name ? `-${name.replace(/\s+/g, '-')}` : '';
+			const nameSuffix = name ? `-${name.replace(new RegExp(regexp1), '-')}` : '';
 			const persistPath = join(this.options.logsPath, `playwright-screenshot-${PlaywrightDriver.screenShotCounter++}${nameSuffix}.png`);
 
 			await measureAndLog(() => this.page.screenshot({ path: persistPath, type: 'png' }), 'takeScreenshot', this.options.logger);
@@ -802,7 +805,7 @@ export class PlaywrightDriver {
 					const target = node.target.join(' > ');
 					const html = node.html || 'N/A';
 					// Extract class from HTML for easier identification
-					const classMatch = html.match(/class="([^"]+)"/);
+					const classMatch = html.match(regexpClass);
 					const className = classMatch ? classMatch[1] : 'no class';
 					return [
 						`  Element: ${target}`,

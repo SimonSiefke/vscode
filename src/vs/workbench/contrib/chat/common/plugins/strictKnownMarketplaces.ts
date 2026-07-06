@@ -7,6 +7,8 @@ import { IStrictMarketplaceSource } from '../../../../../base/common/managedSett
 import { isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { IMarketplaceReference, MarketplaceReferenceKind, parseMarketplaceReference } from './marketplaceReference.js';
+const regexp1 = /^[\w._-]+@([\w.-]+):/;
+
 
 /**
  * The allowlist entry type for `chat.plugins.strictMarketplaces`. Re-exported
@@ -130,7 +132,7 @@ function extractHost(ref: IMarketplaceReference): string | undefined {
 		return undefined;
 	}
 	// scp-style git URLs: `git@host:path`.
-	const scpMatch = /^[\w._-]+@([\w.-]+):/.exec(ref.cloneUrl);
+	const scpMatch = regexp1.exec(ref.cloneUrl);
 	if (scpMatch) {
 		return scpMatch[1].toLowerCase();
 	}

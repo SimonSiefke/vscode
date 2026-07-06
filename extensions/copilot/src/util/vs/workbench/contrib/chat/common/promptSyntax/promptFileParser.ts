@@ -12,6 +12,14 @@ import { URI } from '../../../../../base/common/uri';
 import { parse, YamlNode, YamlParseError } from '../../../../../base/common/yaml';
 import { Range } from '../../../../../editor/common/core/range';
 import { PositionOffsetTransformer } from '../../../../../editor/common/core/text/positionToOffsetImpl';
+const regexp1 = /^---[\s\r\n]*$/;
+const regexpFence = /^(?<fence>(`{3,}|~{3,}))/u;
+const regexp3 = /^\s*$/;
+const regexp4 = /`[^`]+`/g;
+const regexp5 = /\[(.*?)\]\((.+?)\)/g;
+const regexpFileFilePathTool = /#file:(?<filePath>[^\s#]+)|#tool:(?<toolName>[\w_\-\.\/]+)/gi;
+const regexpZA = /^[a-zA-Z]+:\//;
+
 
 export class PromptFileParser {
 	constructor() {
@@ -25,8 +33,8 @@ export class PromptFileParser {
 		let header: PromptHeader | undefined = undefined;
 		let body: PromptBody | undefined = undefined;
 		let bodyStartLine = 0;
-		if (linesWithEOL[0].match(/^---[\s\r\n]*$/)) {
-			let headerEndLine = linesWithEOL.findIndex((line, index) => index > 0 && line.match(/^---[\s\r\n]*$/));
+		if (linesWithEOL[0].match(regexp1)) {
+			let headerEndLine = linesWithEOL.findIndex((line, index) => index > 0 && line.match(regexp1));
 			if (headerEndLine === -1) {
 				headerEndLine = linesWithEOL.length;
 				bodyStartLine = linesWithEOL.length;
@@ -430,7 +438,7 @@ export class PromptBody {
 				const trimmedLine = line.trimStart();
 
 				// Detect fenced code block lines (``` or ~~~, 3 or more chars)
-				const fenceMatch = /^(?<fence>(`{3,}|~{3,}))/u.exec(trimmedLine);
+				const fenceMatch = regexpFence.exec(trimmedLine);
 				if (fenceMatch) {
 					const fence = fenceMatch.groups!.fence;
 					const fenceChar = fence[0];
@@ -448,7 +456,7 @@ export class PromptBody {
 
 					// Potential closing fence: must match fence char and have at least the same length,
 					// and only whitespace is allowed after the fence.
-					if (fencedCodeBlockFenceChar === fenceChar && fenceLength >= fencedCodeBlockFenceLength && /^\s*$/.test(restOfLine)) {
+					if (fencedCodeBlockFenceChar === fenceChar && fenceLength >= fencedCodeBlockFenceLength && regexp3.test(restOfLine)) {
 						inFencedCodeBlock = false;
 						fencedCodeBlockFenceChar = undefined;
 						fencedCodeBlockFenceLength = 0;
@@ -465,7 +473,7 @@ export class PromptBody {
 
 				// Collect inline code spans (backtick-delimited) to exclude from matching
 				const inlineCodeRanges: { start: number; end: number }[] = [];
-				for (const inlineMatch of line.matchAll(/`[^`]+`/g)) {
+				for (const inlineMatch of line.matchAll(new RegExp(regexp4))) {
 					inlineCodeRanges.push({ start: inlineMatch.index, end: inlineMatch.index + inlineMatch[0].length });
 				}
 
@@ -474,7 +482,7 @@ export class PromptBody {
 				};
 
 				// Match markdown links: [text](link)
-				const linkMatch = line.matchAll(/\[(.*?)\]\((.+?)\)/g);
+				const linkMatch = line.matchAll(new RegExp(regexp5));
 				for (const match of linkMatch) {
 					if (match.index > 0 && line[match.index - 1] === '!') {
 						continue; // skip image links
@@ -490,7 +498,7 @@ export class PromptBody {
 				}
 				// Match #file:<filePath> and #tool:<toolName>
 				// Regarding the <toolName> pattern below, see also the variableReg regex in chatRequestParser.ts.
-				const reg = /#file:(?<filePath>[^\s#]+)|#tool:(?<toolName>[\w_\-\.\/]+)/gi;
+				const reg = new RegExp(regexpFileFilePathTool);
 				const matches = line.matchAll(reg);
 				for (const match of matches) {
 					const fullMatch = match[0];
@@ -529,7 +537,7 @@ export class PromptBody {
 		try {
 			if (path.startsWith('/')) {
 				return this.uri.with({ path });
-			} else if (path.match(/^[a-zA-Z]+:\//)) {
+			} else if (path.match(regexpZA)) {
 				return URI.parse(path);
 			} else {
 				const dirName = dirname(this.uri);

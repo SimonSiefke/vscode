@@ -22,6 +22,8 @@ import { IPosition, ITextDocument, LocationFactory, TextDocumentContents } from 
 import { isSupportedLanguageId } from '../../../../prompt/src/parse';
 import { Position } from '../../../../types/src';
 import { ISolutionHandler, SolutionsStream, UnformattedSolution } from './panelTypes';
+const regexp1 = /\s+/g;
+
 
 export const solutionCountTarget = 10;
 
@@ -103,7 +105,7 @@ export async function generateSolutionsStream(
 }
 
 export function normalizeCompletionText(text: string): string {
-	return text.replace(/\s+/g, '');
+	return text.replace(new RegExp(regexp1), '');
 }
 
 /**

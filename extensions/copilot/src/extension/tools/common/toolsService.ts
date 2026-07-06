@@ -14,6 +14,10 @@ import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { IObservable, ObservableMap } from '../../../util/vs/base/common/observable';
 import { ToolName } from './toolNames';
 import { ICopilotModelSpecificTool, ICopilotTool } from './toolsRegistry';
+const regexp1 = /\.?([^.[\]]+)|\[(\d+)\]/g;
+const regexp2 = /\.|\[\d+\]/;
+const regexp3 = /[^\w-]/g;
+
 
 export const IToolsService = createServiceIdentifier<IToolsService>('IToolsService');
 
@@ -154,7 +158,7 @@ const MAX_FLATTENED_ARRAY_INDEX = 1000;
  */
 function parseFlattenedPath(key: string): (string | number)[] | undefined {
 	const segments: (string | number)[] = [];
-	const re = /\.?([^.[\]]+)|\[(\d+)\]/g;
+	const re = new RegExp(regexp1);
 	let lastIndex = 0;
 	let match: RegExpExecArray | null;
 	while ((match = re.exec(key)) !== null) {
@@ -194,7 +198,7 @@ function parseFlattenedPath(key: string): (string | number)[] | undefined {
  */
 function tryUnflattenObject(obj: Record<string, unknown>): Record<string, unknown> | undefined {
 	const keys = Object.keys(obj);
-	if (!keys.some(key => /\.|\[\d+\]/.test(key))) {
+	if (!keys.some(key => regexp2.test(key))) {
 		return undefined;
 	}
 
@@ -362,7 +366,7 @@ export abstract class BaseToolsService extends Disposable implements IToolsServi
 	validateToolName(name: string): string | undefined {
 		const tool = this.tools.find(tool => tool.name === name);
 		if (!tool) {
-			return name.replace(/[^\w-]/g, '_');
+			return name.replace(new RegExp(regexp3), '_');
 		}
 	}
 }

@@ -15,6 +15,8 @@ import { ChatAgentLocation, ChatModeKind, ChatPermissionLevel } from '../constan
 import { ILanguageModelsService } from '../languageModels.js';
 import { chatSessionResourceToId, getChatSessionType } from '../model/chatUri.js';
 import { isRemoteAgentHostSessionType, parseRemoteAgentHostHarness } from '../../../../../platform/agentHost/common/agentHostSessionType.js';
+const regexp1 = /^(\s*)(`{3,}|~{3,})(\w*)/;
+
 
 type ChatVoteEvent = {
 	direction: 'up' | 'down';
@@ -263,7 +265,7 @@ function getCodeBlocks(text: string): string[] {
 				codeBlockState = undefined;
 			}
 		} else {
-			const match = line.match(/^(\s*)(`{3,}|~{3,})(\w*)/);
+			const match = line.match(regexp1);
 			if (match) {
 				codeBlockState = { delimiter: match[2], languageId: match[3] };
 			}

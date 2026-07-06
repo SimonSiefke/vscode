@@ -10,6 +10,8 @@ import ansiColors from 'ansi-colors';
 import crypto from 'crypto';
 import through2 from 'through2';
 import { Stream } from 'stream';
+const regexp1 = /^\/|\/$/g;
+
 
 export interface IFetchOptions {
 	base?: string;
@@ -130,7 +132,7 @@ export interface IGitHubAssetOptions {
  * @returns a stream with the asset as file
  */
 export function fetchGithub(repo: string, options: IGitHubAssetOptions): Stream {
-	return fetchUrls(`/repos/${repo.replace(/^\/|\/$/g, '')}/releases/tags/v${options.version}`, {
+	return fetchUrls(`/repos/${repo.replace(new RegExp(regexp1), '')}/releases/tags/v${options.version}`, {
 		base: 'https://api.github.com',
 		verbose: options.verbose,
 		nodeFetchOptions: { headers: ghApiHeaders }

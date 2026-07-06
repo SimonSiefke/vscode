@@ -103,6 +103,8 @@ import { IMcpGalleryManifestService } from '../../platform/mcp/common/mcpGallery
 import { McpGalleryManifestIPCService } from '../../platform/mcp/common/mcpGalleryManifestServiceIpc.js';
 import { SANDBOX_HELPER_CHANNEL_NAME, SandboxHelperChannel } from '../../platform/sandbox/common/sandboxHelperIpc.js';
 import { SandboxHelperService } from '../../platform/sandbox/node/sandboxHelper.js';
+const regexp1 = /^\d{8}T\d{6}$/;
+
 
 const eventPrefix = 'monacoworkbench';
 
@@ -469,7 +471,7 @@ async function cleanupOlderLogs(logsPath: string): Promise<void> {
 	}
 
 	const children = await Promises.readdir(logsRoot);
-	const allSessions = children.filter(name => /^\d{8}T\d{6}$/.test(name));
+	const allSessions = children.filter(name => regexp1.test(name));
 	const oldSessions = allSessions.sort().filter((d) => d !== currentLog);
 	const toDelete = oldSessions.slice(0, Math.max(0, oldSessions.length - 9));
 

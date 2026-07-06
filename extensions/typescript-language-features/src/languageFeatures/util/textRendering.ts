@@ -7,6 +7,15 @@ import * as vscode from 'vscode';
 import { OpenJsDocLinkCommand, OpenJsDocLinkCommand_Args } from '../../commands/openJsDocLink';
 import type * as Proto from '../../tsServer/protocol/protocol';
 import * as typeConverters from '../../typeConverters';
+const regexp1 = /^\s*[~`]{3}/m;
+const regexpCaptionCaption = /<caption>(.*?)<\/caption>\s*(\r\n|\n)/;
+const regexp3 = /(.+)\s<([-.\w]+@[-.\w]+)>/;
+const regexp4 = /\r\n|\n/g;
+const regexp5 = /^\s*-?\s*/;
+const regexp6 = /^(\S+)\s*-?\s*/;
+const regexpHttps = /^https?:/;
+const regexp8 = /`/g;
+
 
 export interface IFilePathToResourceConverter {
 	/**
@@ -25,7 +34,7 @@ function getTagBodyText(
 
 	// Convert to markdown code block if it does not already contain one
 	function makeCodeblock(text: string): string {
-		if (/^\s*[~`]{3}/m.test(text)) {
+		if (regexp1.test(text)) {
 			return text;
 		}
 		return '```tsx\n' + text + '\n```';
@@ -39,7 +48,7 @@ function getTagBodyText(
 			text = asPlainText(tag.text);
 
 			// check for caption tags, fix for #79704
-			const captionTagMatches = text.match(/<caption>(.*?)<\/caption>\s*(\r\n|\n)/);
+			const captionTagMatches = text.match(regexpCaptionCaption);
 			if (captionTagMatches && captionTagMatches.index === 0) {
 				return captionTagMatches[1] + '\n' + makeCodeblock(text.substr(captionTagMatches[0].length));
 			} else {
@@ -48,7 +57,7 @@ function getTagBodyText(
 		}
 		case 'author': {
 			// fix obsucated email address, #80898
-			const emailMatch = text.match(/(.+)\s<([-.\w]+@[-.\w]+)>/);
+			const emailMatch = text.match(regexp3);
 			if (emailMatch === null) {
 				return text;
 			} else {
@@ -81,7 +90,7 @@ function getTagDocumentation(
 				if (!doc) {
 					return label;
 				}
-				return label + (doc.match(/\r\n|\n/g) ? '  \n' + doc : ` \u2014 ${doc}`);
+				return label + (doc.match(new RegExp(regexp4)) ? '  \n' + doc : ` \u2014 ${doc}`);
 			}
 			break;
 		}
@@ -103,7 +112,7 @@ function getTagDocumentation(
 	if (!text) {
 		return label;
 	}
-	return label + (text.match(/\r\n|\n/g) ? '  \n' + text : ` \u2014 ${text}`);
+	return label + (text.match(new RegExp(regexp4)) ? '  \n' + text : ` \u2014 ${text}`);
 }
 
 function getTagBody(tag: Proto.JSDocTagInfo, filePathConverter: IFilePathToResourceConverter): Array<string> | undefined {
@@ -111,11 +120,11 @@ function getTagBody(tag: Proto.JSDocTagInfo, filePathConverter: IFilePathToResou
 		const parts = tag.text;
 		if (parts && typeof (parts) !== 'string') {
 			const params = parts.filter(p => p.kind === 'typeParameterName').map(p => p.text).join(', ');
-			const docs = parts.filter(p => p.kind === 'text').map(p => convertLinkTags(p.text.replace(/^\s*-?\s*/, ''), filePathConverter)).join(' ');
+			const docs = parts.filter(p => p.kind === 'text').map(p => convertLinkTags(p.text.replace(regexp5, ''), filePathConverter)).join(' ');
 			return params ? ['', params, docs] : undefined;
 		}
 	}
-	return (convertLinkTags(tag.text, filePathConverter)).split(/^(\S+)\s*-?\s*/);
+	return (convertLinkTags(tag.text, filePathConverter)).split(regexp6);
 }
 
 function asPlainText(parts: readonly Proto.SymbolDisplayPart[] | string): string {
@@ -167,7 +176,7 @@ function convertLinkTags(
 					} else {
 						const text = currentLink.text ?? currentLink.name;
 						if (text) {
-							if (/^https?:/.test(text)) {
+							if (regexpHttps.test(text)) {
 								const parts = text.split(' ');
 								if (parts.length === 1 && !currentLink.linkcode) {
 									out.push(`<${parts[0]}>`);
@@ -210,7 +219,7 @@ function convertLinkTags(
 }
 
 function escapeMarkdownSyntaxTokensForCode(text: string): string {
-	return text.replace(/`/g, '\\$&'); // CodeQL [SM02383] This is only meant to escape backticks. The Markdown is fully sanitized after being rendered.
+	return text.replace(new RegExp(regexp8), '\\$&'); // CodeQL [SM02383] This is only meant to escape backticks. The Markdown is fully sanitized after being rendered.
 }
 
 export function tagsToMarkdown(

@@ -23,6 +23,9 @@ import * as nls from '../../../../nls.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { Range } from '../../../common/core/range.js';
+const regexp1 = /^\s*$|^\s+/;
+const regexp2 = /^\S\s*$/;
+
 
 const GUTTER_LIGHTBULB_ICON = registerIcon('gutter-lightbulb', Codicon.lightBulb, nls.localize('gutterLightbulbWidget', 'Icon which spawns code actions menu from the gutter when there is no space in the editor.'));
 const GUTTER_LIGHTBULB_AUTO_FIX_ICON = registerIcon('gutter-lightbulb-auto-fix', Codicon.lightbulbAutofix, nls.localize('gutterLightbulbAutoFixWidget', 'Icon which spawns code actions menu from the gutter when there is no space in the editor and a quick fix is available.'));
@@ -351,7 +354,7 @@ export class LightBulbWidget extends Disposable implements IContentWidget {
 			// Checks if line is empty or starts with any amount of whitespace
 			const isLineEmptyOrIndented = (lineNumber: number): boolean => {
 				const lineContent = model.getLineContent(lineNumber);
-				return /^\s*$|^\s+/.test(lineContent) || lineContent.length <= effectiveColumnNumber;
+				return regexp1.test(lineContent) || lineContent.length <= effectiveColumnNumber;
 			};
 
 			if (lineNumber > 1 && !isFolded(lineNumber - 1)) {
@@ -395,7 +398,7 @@ export class LightBulbWidget extends Disposable implements IContentWidget {
 				// it inline would overlay the cursor...
 				return this.hide();
 			}
-			effectiveColumnNumber = /^\S\s*$/.test(model.getLineContent(effectiveLineNumber)) ? 2 : 1;
+			effectiveColumnNumber = regexp2.test(model.getLineContent(effectiveLineNumber)) ? 2 : 1;
 		}
 
 		this._state.set(new LightBulbState.Showing(actions, trigger, atPosition, {

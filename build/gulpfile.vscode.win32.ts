@@ -16,6 +16,8 @@ import * as task from './lib/gulp/task.ts';
 import * as util from './lib/util.ts';
 
 import { createRequire } from 'module';
+const regexp1 = /-\w+$/;
+
 const require = createRequire(import.meta.url);
 
 const repoPath = path.dirname(import.meta.dirname);
@@ -85,7 +87,7 @@ function buildWin32Setup(arch: string, target: string): task.CallbackTask {
 			NameShort: product.nameShort,
 			DirName: product.win32DirName,
 			Version: pkg.version,
-			RawVersion: pkg.version.replace(/-\w+$/, ''),
+			RawVersion: pkg.version.replace(regexp1, ''),
 			Commit: commit,
 			NameVersion: product.win32NameVersion + (target === 'user' ? ' (User)' : ''),
 			ExeBasename: product.nameShort,

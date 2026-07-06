@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 // Load env
 import * as dotenv from 'dotenv';
+const regexp1 = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g;
+
 dotenv.config();
 
 // Needed for better stack traces as captureLocation parses the stack trace to find stests
@@ -155,7 +157,7 @@ async function runInExtensionHost() {
 	// Hook for the js-debug bootloader, which is not automatically executed in the extension host
 	if (nodeOptions) {
 		// NODE_OPTIONS is a CLI argument fragment that we need to parse here
-		const regex = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\S+/g;
+		const regex = new RegExp(regexp1);
 		const parsed = minimist(Array.from(nodeOptions.matchAll(regex), match => {
 			let arg = match[0];
 			// Remove surrounding quotes and unescape internal quotes if necessary

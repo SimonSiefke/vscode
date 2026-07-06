@@ -16,6 +16,8 @@ import { URI } from '../../../../util/vs/base/common/uri';
 import type { LanguageModelToolInformation } from '../../../../vscodeTypes';
 import { GitHubMcpDefinitionProvider } from '../../../githubMcp/common/githubMcpDefinitionProvider';
 import { Session } from '../common/utils';
+const regexp1 = /^_+|_+$/g;
+
 
 const toolInvalidCharRe = /[^a-z0-9_-]/gi;
 
@@ -120,7 +122,7 @@ export class CopilotCLIMCPHandler implements ICopilotCLIMCPHandler {
 		let normalized = originalName.toLowerCase().replace(toolInvalidCharRe, '_');
 
 		// Trim leading and trailing underscores
-		normalized = normalized.replace(/^_+|_+$/g, '');
+		normalized = normalized.replace(new RegExp(regexp1), '');
 
 		// Return undefined if normalization results in empty string
 		if (!normalized) {

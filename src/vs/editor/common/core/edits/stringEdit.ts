@@ -7,6 +7,12 @@ import { commonPrefixLength, commonSuffixLength } from '../../../../base/common/
 import { OffsetRange } from '../ranges/offsetRange.js';
 import { StringText } from '../text/abstractText.js';
 import { BaseEdit, BaseReplacement } from './edit.js';
+const regexp1 = /\r\n|\n/g;
+const regexp2 = /\[(\d+),\s*(\d+)\)\s*->\s*"([^"]*)"/g;
+const regexp3 = /\\\\/g;
+const regexp4 = /\\r/g;
+const regexp5 = /\\n/g;
+
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -239,7 +245,7 @@ export abstract class BaseStringReplacement<T extends BaseStringReplacement<T> =
 	}
 
 	normalizeEOL(eol: '\r\n' | '\n'): StringReplacement {
-		const newText = this.newText.replace(/\r\n|\n/g, eol);
+		const newText = this.newText.replace(new RegExp(regexp1), eol);
 		return new StringReplacement(this.replaceRange, newText);
 	}
 
@@ -293,13 +299,13 @@ export class StringEdit extends BaseStringEdit<StringReplacement, StringEdit> {
 	*/
 	public static parse(toStringValue: string): StringEdit {
 		const replacements: StringReplacement[] = [];
-		const regex = /\[(\d+),\s*(\d+)\)\s*->\s*"([^"]*)"/g;
+		const regex = new RegExp(regexp2);
 		let match;
 
 		while ((match = regex.exec(toStringValue)) !== null) {
 			const start = parseInt(match[1], 10);
 			const endEx = parseInt(match[2], 10);
-			const text = match[3].replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\\\/g, '\\');
+			const text = match[3].replace(new RegExp(regexp5), '\n').replace(new RegExp(regexp4), '\r').replace(new RegExp(regexp3), '\\');
 			replacements.push(new StringReplacement(new OffsetRange(start, endEx), text));
 		}
 

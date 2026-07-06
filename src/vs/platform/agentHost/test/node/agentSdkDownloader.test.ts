@@ -24,6 +24,10 @@ import { ClaudeSdkPackage } from '../../node/claude/claudeAgentSdkService.js';
 import { AgentHostClaudeSdkRootEnvVar } from '../../common/agentService.js';
 import type { INativeEnvironmentService } from '../../../environment/common/environment.js';
 import type { IProductService } from '../../../product/common/productService.js';
+const regexpNoProductAgentSdks = /no `product\.agentSdks\.claude` configured/;
+const regexpUnknownPlaceholderSdkTaret = /unknown placeholder \{sdkTaret\}/;
+const regexpCancelCancelFailed = /Cancel|cancel|Failed to download/;
+
 
 interface ITestSdkDownloadFixture {
 	tarballPath: string;
@@ -329,7 +333,7 @@ suite('AgentSdkDownloader', () => {
 	test('loadSdkRoot: missing product config and no env override throws actionable error', async () => {
 		await assert.rejects(
 			() => makeDownloader(null).loadSdkRoot(ClaudeSdkPackage, newToken()),
-			/no `product\.agentSdks\.claude` configured/,
+			regexpNoProductAgentSdks,
 		);
 	});
 
@@ -342,7 +346,7 @@ suite('AgentSdkDownloader', () => {
 		});
 		await assert.rejects(
 			() => downloader.loadSdkRoot(ClaudeSdkPackage, newToken()),
-			/unknown placeholder \{sdkTaret\}/,
+			regexpUnknownPlaceholderSdkTaret,
 		);
 		assert.strictEqual(server.requestCount, 0, 'should fail before any HTTP call');
 	});
@@ -369,7 +373,7 @@ suite('AgentSdkDownloader', () => {
 			// Give the request a moment to start.
 			await new Promise(r => setTimeout(r, 50));
 			cts.cancel();
-			await assert.rejects(() => promise, /Cancel|cancel|Failed to download/);
+			await assert.rejects(() => promise, regexpCancelCancelFailed);
 			// No half-extracted dir left around. The scratch dir lands at
 			// <userDataPath>/agent-host/sdk-cache/claude/1.0.0/<target>.tmp.<pid>
 			// — a sibling of the resolved target dir under the version dir.

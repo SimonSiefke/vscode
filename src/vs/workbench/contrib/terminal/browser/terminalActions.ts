@@ -64,6 +64,8 @@ import { ITerminalQuickPickItem } from './terminalProfileQuickpick.js';
 import { TerminalTabList } from './terminalTabsList.js';
 import { ResourceContextKey } from '../../../common/contextkeys.js';
 import { SeparatorSelectOption } from '../../../../base/browser/ui/selectBox/selectBox.js';
+const regexp1 = /^([0-9]+): /;
+
 
 export const switchTerminalShowTabsTitle = localize('showTerminalTabs', "Show Tabs");
 
@@ -1418,7 +1420,7 @@ export function registerTerminalActions() {
 				return;
 			}
 
-			const terminalIndexRe = /^([0-9]+): /;
+			const terminalIndexRe = regexp1;
 			const indexMatches = terminalIndexRe.exec(item);
 			if (indexMatches) {
 				c.groupService.setActiveGroupByIndex(Number(indexMatches[1]) - 1);

@@ -27,6 +27,9 @@ import { isEqual } from '../../../../base/common/resources.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { DEFINE_KEYBINDING_EDITOR_CONTRIB_ID, IDefineKeybindingEditorContribution } from '../../../services/preferences/common/preferences.js';
 import { IEditorDecorationsCollection } from '../../../../editor/common/editorCommon.js';
+const regexp1 = /\\/g;
+const regexpAbntOem = /abnt_|oem_/;
+
 
 const NLS_KB_LAYOUT_ERROR_MESSAGE = nls.localize('defineKeybinding.kbLayoutErrorMessage', "You won't be able to produce this key combination under your current keyboard layout.");
 
@@ -64,7 +67,7 @@ class DefineKeybindingEditorContribution extends Disposable implements IDefineKe
 	private _onAccepted(keybinding: string | null): void {
 		this._editor.focus();
 		if (keybinding && this._editor.hasModel()) {
-			const regexp = new RegExp(/\\/g);
+			const regexp = new RegExp(new RegExp(regexp1));
 			const backslash = regexp.test(keybinding);
 			if (backslash) {
 				keybinding = keybinding.slice(0, -1) + '\\\\';
@@ -169,7 +172,7 @@ export class KeybindingEditorDecorationsRenderer extends Disposable {
 				}
 				return this._createDecoration(false, resolvedKeybinding.getLabel(), usLabel, model, value);
 			}
-			if (/abnt_|oem_/.test(value.value)) {
+			if (regexpAbntOem.test(value.value)) {
 				return this._createDecoration(false, resolvedKeybinding.getLabel(), usLabel, model, value);
 			}
 			const expectedUserSettingsLabel = resolvedKeybinding.getUserSettingsLabel();

@@ -75,6 +75,8 @@ import { IAuthenticationUsageService } from '../../../services/authentication/br
 import { IExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { IWorkbenchIssueService } from '../../issue/common/issue.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
+const regexp1 = /^\./;
+
 
 export class PromptExtensionInstallFailureAction extends Action {
 
@@ -3411,7 +3413,7 @@ export class InstallRemoteExtensionsInLocalAction extends AbstractInstallExtensi
 
 CommandsRegistry.registerCommand('workbench.extensions.action.showExtensionsForLanguage', function (accessor: ServicesAccessor, fileExtension: string) {
 	const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
-	return extensionsWorkbenchService.openSearch(`ext:${fileExtension.replace(/^\./, '')}`);
+	return extensionsWorkbenchService.openSearch(`ext:${fileExtension.replace(regexp1, '')}`);
 });
 
 export const showExtensionsWithIdsCommandId = 'workbench.extensions.action.showExtensionsWithIds';

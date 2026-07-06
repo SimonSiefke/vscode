@@ -5,6 +5,8 @@
 
 import { Page } from 'playwright';
 import { TestContext } from './context.js';
+const regexp1 = /-/g;
+
 
 /**
  * Handles GitHub authentication flows in the browser.
@@ -38,7 +40,7 @@ export class GitHubAuth {
 			await page.getByRole('button', { name: 'Continue' }).click();
 
 			this.context.log('Entering device code');
-			const codeChars = code.replace(/-/g, '');
+			const codeChars = code.replace(new RegExp(regexp1), '');
 			for (let i = 0; i < codeChars.length; i++) {
 				await page.getByRole('textbox').nth(i).fill(codeChars[i]);
 			}

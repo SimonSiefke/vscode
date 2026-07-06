@@ -4,12 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { NlsString, LanguageTranslations, Category, Policy, Translations, ProductJson } from './types.ts';
+const regexp1 = />/g;
+const regexp2 = /</g;
+const regexp3 = /&/g;
+const regexp4 = /\./g;
+const regexp5 = /\.\d+Z$/;
+
 
 export function escapeXml(value: string): string {
 	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;');
+		.replace(new RegExp(regexp3), '&amp;')
+		.replace(new RegExp(regexp2), '&lt;')
+		.replace(new RegExp(regexp1), '&gt;');
 }
 
 export function renderADMLString(prefix: string, moduleName: string, nlsString: NlsString, translations?: LanguageTranslations): string {
@@ -27,7 +33,7 @@ export function renderADMLString(prefix: string, moduleName: string, nlsString: 
 		value = nlsString.value;
 	}
 
-	return `<string id="${prefix}_${nlsString.nlsKey.replace(/\./g, '_')}">${escapeXml(value)}</string>`;
+	return `<string id="${prefix}_${nlsString.nlsKey.replace(new RegExp(regexp4), '_')}">${escapeXml(value)}</string>`;
 }
 
 export function renderProfileString(_prefix: string, moduleName: string, nlsString: NlsString, translations?: LanguageTranslations): string {
@@ -49,7 +55,7 @@ export function renderProfileString(_prefix: string, moduleName: string, nlsStri
 }
 
 export function renderADMX(regKey: string, versions: string[], categories: Category[], policies: Policy[]) {
-	versions = versions.map(v => v.replace(/\./g, '_'));
+	versions = versions.map(v => v.replace(new RegExp(regexp4), '_'));
 
 	return `<?xml version="1.0" encoding="utf-8"?>
 <policyDefinitions revision="1.1" schemaVersion="1.0">
@@ -81,7 +87,7 @@ export function renderADML(appName: string, versions: string[], categories: Cate
 	<resources>
 		<stringTable>
 			<string id="Application">${appName}</string>
-			${versions.map(v => `<string id="Supported_${v.replace(/\./g, '_')}">${appName} &gt;= ${v}</string>`).join(`\n			`)}
+			${versions.map(v => `<string id="Supported_${v.replace(new RegExp(regexp4), '_')}">${appName} &gt;= ${v}</string>`).join(`\n			`)}
 			${categories.map(c => renderADMLString('Category', c.moduleName, c.name, translations)).join(`\n			`)}
 			${policies.map(p => p.renderADMLStrings(translations)).flat().join(`\n			`)}
 		</stringTable>
@@ -202,7 +208,7 @@ export function renderProfileManifest(appName: string, bundleIdentifier: string,
     <key>pfm_interaction</key>
     <string>combined</string>
     <key>pfm_last_modified</key>
-    <date>${new Date().toISOString().replace(/\.\d+Z$/, 'Z')}</date>
+    <date>${new Date().toISOString().replace(regexp5, 'Z')}</date>
     <key>pfm_platforms</key>
     <array>
         <string>macOS</string>

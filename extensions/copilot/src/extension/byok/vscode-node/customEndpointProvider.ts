@@ -18,6 +18,8 @@ import { OpenAIEndpoint } from '../node/openAIEndpoint';
 import { AbstractOpenAICompatibleLMProvider, LanguageModelChatConfiguration, OpenAICompatibleLanguageModelChatInformation } from './abstractLanguageModelChatProvider';
 import { byokKnownModelToAPIInfoWithEffort } from './byokModelInfo';
 import { IBYOKStorageService } from './byokStorageService';
+const regexp1 = /\/v\d+$/;
+
 
 export type CustomEndpointApiType = 'chat-completions' | 'responses' | 'messages';
 
@@ -35,7 +37,7 @@ export function resolveCustomEndpointUrl(modelId: string, url: string, apiType?:
 	const defaultApiPath = apiTypeToPath(apiType);
 
 	// Check if URL already contains any version pattern like /v1, /v2, etc
-	const versionPattern = /\/v\d+$/;
+	const versionPattern = regexp1;
 	if (versionPattern.test(url)) {
 		return `${url}${defaultApiPath}`;
 	}

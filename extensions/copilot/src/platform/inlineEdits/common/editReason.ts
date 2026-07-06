@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 
+const regexp1 = /\$/g;
+
 export class EditReason {
 	public static create(metadata: ITextModelEditReasonMetadata | undefined): EditReason {
 		if (!metadata) {
@@ -58,7 +60,7 @@ export class TextModelEditReason {
 	public toKey(level: number): string {
 		const metadata = this.metadata;
 		const keys = Object.entries(metadata).filter(([key, value]) => {
-			const prefixCount = (key.match(/\$/g) || []).length;
+			const prefixCount = (key.match(new RegExp(regexp1)) || []).length;
 			return prefixCount <= level && value !== undefined && value !== null && value !== '';
 		}).map(([key, value]) => `${key}:${value}`);
 		return keys.join('-');

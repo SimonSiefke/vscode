@@ -6,6 +6,8 @@
 import * as browser from './browser.js';
 import { IframeUtils } from './iframe.js';
 import * as platform from '../common/platform.js';
+const regexpChrome = /Chrome\/(\d+)/;
+
 
 export interface IMouseEvent {
 	readonly browserEvent: MouseEvent;
@@ -139,7 +141,7 @@ export class StandardWheelEvent {
 		if (browser.isChrome) {
 			// Chrome version >= 123 contains the fix to factor devicePixelRatio into the wheel event.
 			// See https://chromium.googlesource.com/chromium/src.git/+/be51b448441ff0c9d1f17e0f25c4bf1ab3f11f61
-			const chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\d+)/);
+			const chromeVersionMatch = navigator.userAgent.match(regexpChrome);
 			const chromeMajorVersion = chromeVersionMatch ? parseInt(chromeVersionMatch[1]) : 123;
 			shouldFactorDPR = chromeMajorVersion <= 122;
 		}

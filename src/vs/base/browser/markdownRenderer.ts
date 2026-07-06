@@ -23,6 +23,37 @@ import { convertTagToPlaintext } from './domSanitize.js';
 import { StandardKeyboardEvent } from './keyboardEvent.js';
 import { StandardMouseEvent } from './mouseEvent.js';
 import { renderIcon, renderLabelWithIcons } from './ui/iconLabel/iconLabels.js';
+const regexp1 = /'/g;
+const regexp2 = /"/g;
+const regexp3 = />/g;
+const regexp4 = /</g;
+const regexp5 = /&/g;
+const regexpNOTETIPIMPORTANT = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*?\n*/i;
+const regexpDataJavascript = /^data:|javascript:/i;
+const regexpCommand = /^command:/i;
+const regexpCommandWorkbenchDownloadResource = /^command:(\/\/\/)?_workbench\.downloadResource/i;
+const regexpSpanSpan = /^(<span[^>]+>)|(<\/\s*span>)$/;
+const regexp11 = /[\s+|:|,|\{|\?]/;
+const regexp12 = /^\w[\w\d+.-]*:/;
+const regexpColor9aFA = /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(border-radius:[0-9]+px;)?$/;
+const regexpCodiconCodiconCodicon = /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/;
+const regexpZA = /&(#\d+|[a-zA-Z]+);/g;
+const regexp16 = /(^|\s)\[\w*[^\]]*$/;
+const regexp17 = /(^|\s)_\w/;
+const regexp18 = /(^|\s)__\w/;
+const regexp19 = /\*\w/;
+const regexp20 = /^ *"[^"]*$/;
+const regexp21 = /^[^"]* +"[^"]*$/;
+const regexp22 = /\[[^\]]*$/;
+const regexp23 = /(^|\s|\*|_|~)\[.*\]\(\w*/;
+const regexp24 = /^[^\[]*\]\([^\)]*$/;
+const regexp25 = /^(\s*(-|\d+\.|\*) +)/;
+const regexp26 = /-\s*$/;
+const regexp27 = /(\n|^)\|/;
+const regexp28 = /^\s*\|/;
+const regexp29 = /(\|[^\|]+)(?=\||$)/g;
+const regexp30 = /\|\s*$/;
+
 
 export type MarkdownActionHandler = (linkContent: string, mdStr: IMarkdownString) => void;
 
@@ -140,11 +171,11 @@ const defaultMarkedRenderers = Object.freeze({
 		const isCommandUri = href.startsWith(`${Schemas.command}:`);
 
 		// HTML Encode href
-		href = href.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;');
+		href = href.replace(new RegExp(regexp5), '&amp;')
+			.replace(new RegExp(regexp4), '&lt;')
+			.replace(new RegExp(regexp3), '&gt;')
+			.replace(new RegExp(regexp2), '&quot;')
+			.replace(new RegExp(regexp1), '&#39;');
 
 		const effectiveTitle = title || (isCommandUri ? '' : href);
 		return `<a href="${href}" title="${effectiveTitle}" draggable="false">${text}</a>`;
@@ -176,7 +207,7 @@ function createAlertBlockquoteRenderer(fallbackRenderer: (this: marked.Renderer,
 			return fallbackRenderer.call(this, token);
 		}
 
-		const pattern = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*?\n*/i;
+		const pattern = regexpNOTETIPIMPORTANT;
 		const match = firstTextToken.raw.match(pattern);
 		if (!match) {
 			return fallbackRenderer.call(this, token);
@@ -377,9 +408,9 @@ function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRender
 		const href = el.getAttribute('href'); // Get the raw 'href' attribute value as text, not the resolved 'href'
 		el.setAttribute('href', ''); // Clear out href. We use the `data-href` for handling clicks instead
 		if (!href
-			|| /^data:|javascript:/i.test(href)
-			|| (/^command:/i.test(href) && !markdown.isTrusted)
-			|| /^command:(\/\/\/)?_workbench\.downloadResource/i.test(href)) {
+			|| regexpDataJavascript.test(href)
+			|| (regexpCommand.test(href) && !markdown.isTrusted)
+			|| regexpCommandWorkbenchDownloadResource.test(href)) {
 			// drop the link
 			el.replaceWith(...el.childNodes);
 		} else {
@@ -433,7 +464,7 @@ function createMarkdownRenderer(marked: marked.Marked, options: MarkdownRenderOp
 				return escape(text);
 			}
 
-			const match = markdown.isTrusted ? text.match(/^(<span[^>]+>)|(<\/\s*span>)$/) : undefined;
+			const match = markdown.isTrusted ? text.match(regexpSpanSpan) : undefined;
 			return match ? text : '';
 		};
 	}
@@ -531,7 +562,7 @@ function postProcessCodeBlockLanguageId(lang: string | undefined): string {
 		return '';
 	}
 
-	const parts = lang.split(/[\s+|:|,|\{|\?]/, 1);
+	const parts = lang.split(regexp11, 1);
 	if (parts.length) {
 		return parts[0];
 	}
@@ -539,7 +570,7 @@ function postProcessCodeBlockLanguageId(lang: string | undefined): string {
 }
 
 function resolveWithBaseUri(baseUri: URI, href: string): string {
-	const hasScheme = /^\w[\w\d+.-]*:/.test(href);
+	const hasScheme = regexp12.test(href);
 	if (hasScheme) {
 		return href;
 	}
@@ -607,7 +638,7 @@ export const allowedMarkdownHtmlAttributes = Object.freeze<Array<string | domSan
 		shouldKeep: (element, data) => {
 			if (element.tagName === 'SPAN') {
 				if (data.attrName === 'style') {
-					return /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(border-radius:[0-9]+px;)?$/.test(data.attrValue);
+					return regexpColor9aFA.test(data.attrValue);
 				}
 			}
 			return false;
@@ -620,7 +651,7 @@ export const allowedMarkdownHtmlAttributes = Object.freeze<Array<string | domSan
 		shouldKeep: (element, data) => {
 			if (element.tagName === 'SPAN') {
 				if (data.attrName === 'class') {
-					return /^codicon codicon-[a-z\-]+( codicon-modifier-[a-z\-]+)?$/.test(data.attrValue);
+					return regexpCodiconCodiconCodicon.test(data.attrValue);
 				}
 			}
 			return false;
@@ -714,7 +745,7 @@ export function renderAsPlaintext(str: IMarkdownString | string, options?: {
 	const html = marked.parse(value, { async: false, renderer });
 	return sanitizeRenderedMarkdown(html, { isTrusted: false }, {})
 		.toString()
-		.replace(/&(#\d+|[a-zA-Z]+);/g, m => unescapeInfo.get(m) ?? m)
+		.replace(new RegExp(regexpZA), m => unescapeInfo.get(m) ?? m)
 		.trim();
 }
 
@@ -833,7 +864,7 @@ function completeSingleLinePattern(token: marked.Tokens.Text | marked.Tokens.Par
 				hasLinkTextAndStartOfLinkTarget(lastLine) ||
 				// This token doesn't have the link text, eg if it contains other markdown constructs that are in other subtokens.
 				// But some preceding token does have an unbalanced [ at least
-				hasStartOfLinkTargetAndNoLinkText(lastLine) && token.tokens.slice(0, i).some(t => t.type === 'text' && t.raw.match(/\[[^\]]*$/))
+				hasStartOfLinkTargetAndNoLinkText(lastLine) && token.tokens.slice(0, i).some(t => t.type === 'text' && t.raw.match(regexp22))
 			) {
 				const nextTwoSubTokens = token.tokens.slice(i + 1);
 
@@ -842,9 +873,9 @@ function completeSingleLinePattern(token: marked.Tokens.Text | marked.Tokens.Par
 				// Where "more text" is a title for the link or an argument to a vscode command link
 				if (
 					// If the link was parsed as a link, then look for a link token and a text token with a quote
-					nextTwoSubTokens[0]?.type === 'link' && nextTwoSubTokens[1]?.type === 'text' && nextTwoSubTokens[1].raw.match(/^ *"[^"]*$/) ||
+					nextTwoSubTokens[0]?.type === 'link' && nextTwoSubTokens[1]?.type === 'text' && nextTwoSubTokens[1].raw.match(regexp20) ||
 					// And if the link was not parsed as a link (eg command link), just look for a single quote in this token
-					lastLine.match(/^[^"]* +"[^"]*$/)
+					lastLine.match(regexp21)
 				) {
 
 					return completeLinkTargetArg(token);
@@ -860,20 +891,20 @@ function completeSingleLinePattern(token: marked.Tokens.Text | marked.Tokens.Par
 				return completeDoublestar(token);
 			}
 
-			else if (lastLine.match(/\*\w/)) {
+			else if (lastLine.match(regexp19)) {
 				return completeStar(token);
 			}
 
-			else if (lastLine.match(/(^|\s)__\w/)) {
+			else if (lastLine.match(regexp18)) {
 				return completeDoubleUnderscore(token);
 			}
 
-			else if (lastLine.match(/(^|\s)_\w/)) {
+			else if (lastLine.match(regexp17)) {
 				return completeUnderscore(token);
 			}
 
 			// Contains the start of link text, and no following tokens contain the link target
-			else if (lastLine.match(/(^|\s)\[\w*[^\]]*$/)) {
+			else if (lastLine.match(regexp16)) {
 				return completeLinkText(token);
 			}
 		}
@@ -885,11 +916,11 @@ function completeSingleLinePattern(token: marked.Tokens.Text | marked.Tokens.Par
 function hasLinkTextAndStartOfLinkTarget(str: string): boolean {
 	// The `[` may be preceded by start-of-line, whitespace, or an emphasis/strikethrough marker
 	// (e.g. `**[text](htt`) so that links nested inside bold/italic/strikethrough are detected.
-	return !!str.match(/(^|\s|\*|_|~)\[.*\]\(\w*/);
+	return !!str.match(regexp23);
 }
 
 function hasStartOfLinkTargetAndNoLinkText(str: string): boolean {
-	return !!str.match(/^[^\[]*\]\([^\)]*$/);
+	return !!str.match(regexp24);
 }
 
 function completeListItemPattern(list: marked.Tokens.List): marked.Tokens.List | undefined {
@@ -956,7 +987,7 @@ function completeListItemPattern(list: marked.Tokens.List): marked.Tokens.List |
 	const previousListItemsText = mergeRawTokenText(list.items.slice(0, -1));
 
 	// Grabbing the `- ` or `1. ` or `* ` off the list item because I can't find a better way to do this
-	const lastListItemLead = lastListItem.raw.match(/^(\s*(-|\d+\.|\*) +)/)?.[0];
+	const lastListItemLead = lastListItem.raw.match(regexp25)?.[0];
 	if (!lastListItemLead) {
 		// Is badly formatted
 		return;
@@ -976,7 +1007,7 @@ function completeListItemPattern(list: marked.Tokens.List): marked.Tokens.List |
 }
 
 function completeHeading(token: marked.Tokens.Heading, fullRawText: string): marked.TokensList | void {
-	if (token.raw.match(/-\s*$/)) {
+	if (token.raw.match(regexp26)) {
 		return marked.lexer(fullRawText + ' &nbsp;');
 	}
 }
@@ -1001,7 +1032,7 @@ function fillInIncompleteTokensOnce(tokens: marked.TokensList): marked.TokensLis
 	for (i = 0; i < tokens.length; i++) {
 		const token = tokens[i];
 
-		if (token.type === 'paragraph' && token.raw.match(/(\n|^)\|/)) {
+		if (token.type === 'paragraph' && token.raw.match(regexp27)) {
 			newTokens = completeTable(tokens.slice(i));
 			break;
 		}
@@ -1106,13 +1137,13 @@ function completeTable(tokens: marked.Token[]): marked.Token[] | undefined {
 	let hasSeparatorRow = false;
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i].trim();
-		if (typeof numCols === 'undefined' && line.match(/^\s*\|/)) {
-			const line1Matches = line.match(/(\|[^\|]+)(?=\||$)/g);
+		if (typeof numCols === 'undefined' && line.match(regexp28)) {
+			const line1Matches = line.match(new RegExp(regexp29));
 			if (line1Matches) {
 				numCols = line1Matches.length;
 			}
 		} else if (typeof numCols === 'number') {
-			if (line.match(/^\s*\|/)) {
+			if (line.match(regexp28)) {
 				if (i !== lines.length - 1) {
 					// We got the line1 header row, and the line2 separator row, but there are more lines, and it wasn't parsed as a table!
 					// That's strange and means that the table is probably malformed in the source, so I won't try to patch it up.
@@ -1130,7 +1161,7 @@ function completeTable(tokens: marked.Token[]): marked.Token[] | undefined {
 
 	if (typeof numCols === 'number' && numCols > 0) {
 		const prefixText = hasSeparatorRow ? lines.slice(0, -1).join('\n') : mergedRawText;
-		const line1EndsInPipe = !!prefixText.match(/\|\s*$/);
+		const line1EndsInPipe = !!prefixText.match(regexp30);
 		const newRawText = prefixText + (line1EndsInPipe ? '' : '|') + `\n|${' --- |'.repeat(numCols)}`;
 		return marked.lexer(newRawText);
 	}

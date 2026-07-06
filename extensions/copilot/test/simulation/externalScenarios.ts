@@ -24,6 +24,8 @@ import { simulatePanelCodeMapper } from './panelCodeMapperSimulator';
 import { INLINE_CHANGED_DOC_TAG, SIDEBAR_RAW_RESPONSE_TAG } from './shared/sharedTypes';
 import { SimulationTestProvider } from './simulationTestProvider';
 import { EditTestStrategy, IDeserializedWorkspaceStateBasedScenario } from './types';
+const regexpConversationJson = /.conversation\.json$/;
+
 
 export interface ITestDiscoveryOptions {
 	chatKind: 'inline' | 'panel';
@@ -70,13 +72,13 @@ function createSimulationSuite(folderWithScenarios: string, options: ITestDiscov
 		if (chatKind === 'inline') {
 			for (const conversation of scenario) {
 				const runner = generateInlineScenarioTestRunner(conversation);
-				const testName = conversation.name.replace(/.conversation\.json$/, '');
+				const testName = conversation.name.replace(regexpConversationJson, '');
 				const conversationPath = path.join(conversation.scenarioFolderPath, conversation.name);
 				suite.tests.push(new SimulationTest({ description: testName }, { conversationPath, scenarioFolderPath: conversation.scenarioFolderPath, stateFile: conversation.stateFile }, suite, runner));
 			}
 		} else {
 			const isSlashEdit = scenario[0].question.startsWith(`/${Intent.Edit}`) || scenario[0].question.startsWith(`/${Intent.Agent}`);
-			const testName = scenario[0].name.replace(/.conversation\.json$/, '');
+			const testName = scenario[0].name.replace(regexpConversationJson, '');
 			const conversationPath = path.join(scenario[0].scenarioFolderPath, scenario[0].name);
 			let runner: SimulationTestFunction;
 

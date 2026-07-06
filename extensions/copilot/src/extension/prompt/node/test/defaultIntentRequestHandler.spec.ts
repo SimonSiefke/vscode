@@ -34,6 +34,8 @@ import { ToolCallRound } from '../../common/toolCallRound';
 import { ChatTelemetryBuilder } from '../chatParticipantTelemetry';
 import { DefaultIntentRequestHandler } from '../defaultIntentRequestHandler';
 import { IIntent, IIntentInvocation, nullRenderPromptResult, promptResultMetadata } from '../intents';
+const regexp9a9a9a = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
+
 
 suite('defaultIntentRequestHandler', () => {
 	let accessor: ITestingServicesAccessor;
@@ -74,7 +76,7 @@ suite('defaultIntentRequestHandler', () => {
 		accessor.dispose();
 	});
 
-	const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
+	const uuidRegex = new RegExp(regexp9a9a9a);
 
 	function getDerandomizedTelemetry() {
 		const evts = telemetry.getEvents();

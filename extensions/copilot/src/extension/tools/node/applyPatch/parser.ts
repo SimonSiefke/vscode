@@ -34,6 +34,12 @@ import {
 	PATCH_SUFFIX,
 	UPDATE_FILE_PREFIX,
 } from './parseApplyPatch';
+const regexp1 = /./gu;
+const regexp2 = /^\\\t/;
+const regexp3 = /^\\t/;
+const regexp4 = /^(?:\s|\\t|\/|#)*/gm;
+const regexp5 = /\S/;
+
 
 const CHUNK_DELIMITER = '@@';
 
@@ -294,7 +300,7 @@ export class Parser {
 				// ------------------------------------------------------------------
 				const canonLocal = (s: string): string =>
 					s.normalize('NFC').replace(
-						/./gu,
+						new RegExp(regexp1),
 						(c) =>
 							(
 								({
@@ -392,9 +398,9 @@ export class Parser {
 				if (nextSection.eof) {
 					throw new InvalidContextError(`Invalid EOF context at character ${index}:\n${ctxText}`, text, 'invalidContext-eof');
 				} else {
-					const kindForTelemetry = ctxText.match(/^\\t/) ?
+					const kindForTelemetry = ctxText.match(regexp3) ?
 						'invalidContext-maybeInvalidTab' :
-						ctxText.match(/^\\\t/) ?
+						ctxText.match(regexp2) ?
 							'invalidContext-maybeEscapedTab' :
 							'invalidContext';
 					throw new InvalidContextError(`Invalid context at character ${index}:\n${ctxText}`, text, kindForTelemetry);
@@ -467,7 +473,7 @@ export class Parser {
 }
 
 export function replace_explicit_tabs(s: string) {
-	return s.replace(/^(?:\s|\\t|\/|#)*/gm, r => r.replaceAll('\\t', '\t'));
+	return s.replace(new RegExp(regexp4), r => r.replaceAll('\\t', '\t'));
 }
 
 export function replace_explicit_nl(s: string) {
@@ -530,7 +536,7 @@ function find_context_core(
 			// Canonical Unicode composition first
 			.normalize('NFC')
 			// Replace punctuation look-alikes
-			.replace(/./gu, (c) => PUNCT_EQUIV[c] ?? c);
+			.replace(new RegExp(regexp1), (c) => PUNCT_EQUIV[c] ?? c);
 	if (context.length === 0) {
 		return { line: start, fuzz: Fuzz.None };
 	}
@@ -684,7 +690,7 @@ function peek_next_section(
 				END_OF_FILE_PREFIX,
 			].some((p) => s.startsWith(p.trim()))
 		) {
-			if (mode === Mode.Keep && old.length && !/\S/.test(old[old.length - 1])) {
+			if (mode === Mode.Keep && old.length && !regexp5.test(old[old.length - 1])) {
 				// @connor4312: If the last line is context and empty, remove it. Example
 				// input adds an extra newline between `@@`-delimited sections which
 				// cause matching to fail if preserved.

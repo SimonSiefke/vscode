@@ -24,6 +24,19 @@ import { IEditorGroupsService } from '../../editor/common/editorGroupsService.js
 import { IPathService } from '../../path/common/pathService.js';
 import { ExcludeGlobPattern, getExcludes, IAITextQuery, ICommonQueryProps, IFileQuery, IFolderQuery, IPatternInfo, ISearchConfiguration, ITextQuery, ITextSearchPreviewOptions, pathIncludedInQuery, QueryType } from './search.js';
 import { GlobPattern } from './searchExtTypes.js';
+const regexp1 = /\r?\n/g;
+const regexp2 = /\\/g;
+const regexp3 = /^\.\.?([\/\\]|$)/;
+const regexp4 = /^\.[\/\\]/;
+const regexp5 = /\.[\/\\](.+)[\/\\]?/;
+const regexp6 = /[\*\{\}\(\)\[\]\?]/;
+const regexp7 = /[/|\\][^/\\]*$/;
+const regexp8 = /[/\\]/;
+const regexp9 = /\*\*\/\*\*/g;
+const regexp10 = /\/+$/g;
+const regexp11 = /^\.\//;
+const regexp12 = /([?*[\]])/g;
+
 
 /**
  * One folder to search and a glob expression that should be applied.
@@ -169,7 +182,7 @@ export class QueryBuilder {
 		const searchConfig = this.configurationService.getValue<ISearchConfiguration>();
 
 		if (inputPattern.isRegExp) {
-			inputPattern.pattern = inputPattern.pattern.replace(/\r?\n/g, '\\n');
+			inputPattern.pattern = inputPattern.pattern.replace(new RegExp(regexp1), '\\n');
 		}
 
 		const newPattern = {
@@ -323,7 +336,7 @@ export class QueryBuilder {
 				}
 
 				const relPath = path.relative(searchRoot.fsPath, file.fsPath);
-				assertReturnsDefined(folderQuery.includePattern)[escapeGlobPattern(relPath.replace(/\\/g, '/'))] = true;
+				assertReturnsDefined(folderQuery.includePattern)[escapeGlobPattern(relPath.replace(new RegExp(regexp2), '/'))] = true;
 			} else {
 				if (file.fsPath) {
 					hasIncludedFile = true;
@@ -383,7 +396,7 @@ export class QueryBuilder {
 	parseSearchPaths(pattern: string | string[]): ISearchPathsInfo {
 		const isSearchPath = (segment: string) => {
 			// A segment is a search path if it is an absolute path or starts with ./, ../, .\, or ..\
-			return path.isAbsolute(segment) || /^\.\.?([\/\\]|$)/.test(segment);
+			return path.isAbsolute(segment) || regexp3.test(segment);
 		};
 
 		const patterns = Array.isArray(pattern) ? pattern : splitGlobPattern(pattern);
@@ -513,7 +526,7 @@ export class QueryBuilder {
 		} else if (searchPath === './' || searchPath === '.\\') {
 			return []; // ./ or ./**/foo makes sense for single-folder but not multi-folder workspaces
 		} else {
-			const searchPathWithoutDotSlash = searchPath.replace(/^\.[\/\\]/, '');
+			const searchPathWithoutDotSlash = searchPath.replace(regexp4, '');
 			const folders = this.workspaceContextService.getWorkspace().folders;
 			const folderMatches = folders.map(folder => {
 				const match = searchPathWithoutDotSlash.match(new RegExp(`^${strings.escapeRegExpCharacters(folder.name)}(?:/(.*)|$)`));
@@ -532,7 +545,7 @@ export class QueryBuilder {
 					};
 				});
 			} else {
-				const probableWorkspaceFolderNameMatch = searchPath.match(/\.[\/\\](.+)[\/\\]?/);
+				const probableWorkspaceFolderNameMatch = searchPath.match(regexp5);
 				const probableWorkspaceFolderName = probableWorkspaceFolderNameMatch ? probableWorkspaceFolderNameMatch[1] : searchPath;
 
 				// No root folder with name
@@ -633,13 +646,13 @@ export class QueryBuilder {
 }
 
 function splitGlobFromPath(searchPath: string): { pathPortion: string; globPortion?: string } {
-	const globCharMatch = searchPath.match(/[\*\{\}\(\)\[\]\?]/);
+	const globCharMatch = searchPath.match(regexp6);
 	if (globCharMatch) {
 		const globCharIdx = globCharMatch.index;
-		const lastSlashMatch = searchPath.substr(0, globCharIdx).match(/[/|\\][^/\\]*$/);
+		const lastSlashMatch = searchPath.substr(0, globCharIdx).match(regexp7);
 		if (lastSlashMatch) {
 			let pathPortion = searchPath.substr(0, lastSlashMatch.index);
-			if (!pathPortion.match(/[/\\]/)) {
+			if (!pathPortion.match(regexp8)) {
 				// If the last slash was the only slash, then we now have '' or 'C:' or '.'. Append a slash.
 				pathPortion += '/';
 			}
@@ -678,11 +691,11 @@ function expandGlobalGlob(pattern: string): string[] {
 		`**/${pattern}`
 	];
 
-	return patterns.map(p => p.replace(/\*\*\/\*\*/g, '**'));
+	return patterns.map(p => p.replace(new RegExp(regexp9), '**'));
 }
 
 function normalizeSlashes(pattern: string): string {
-	return pattern.replace(/\\/g, '/');
+	return pattern.replace(new RegExp(regexp2), '/');
 }
 
 /**
@@ -690,8 +703,8 @@ function normalizeSlashes(pattern: string): string {
  */
 function normalizeGlobPattern(pattern: string): string {
 	return normalizeSlashes(pattern)
-		.replace(/^\.\//, '')
-		.replace(/\/+$/g, '');
+		.replace(regexp11, '')
+		.replace(new RegExp(regexp10), '');
 }
 
 /**
@@ -703,7 +716,7 @@ function normalizeGlobPattern(pattern: string): string {
  * which may not be desirable in some cases. Use with caution if UNC paths could be expected.
  */
 export function escapeGlobPattern(path: string): string {
-	return path.replace(/([?*[\]])/g, '[$1]');
+	return path.replace(new RegExp(regexp12), '[$1]');
 }
 
 /**

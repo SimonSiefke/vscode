@@ -28,6 +28,11 @@ import { isString, Mutable } from '../../base/common/types.js';
 import { CharCode } from '../../base/common/charCode.js';
 import { IExtensionManifest } from '../../platform/extensions/common/extensions.js';
 import { ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
+const regexp1 = /"/g;
+const regexp2 = /\{\{([^}]+)\}\}/g;
+const regexpScriptScript = /<script>([\s\S]+?)<\/script>/img;
+const regexp4 = /\r\n/g;
+
 
 const textMimeType: { [ext: string]: string | undefined } = {
 	'.html': 'text/html',
@@ -318,7 +323,7 @@ export class WebClientServer {
 		}
 
 		function asJSON(value: unknown): string {
-			return JSON.stringify(value).replace(/"/g, '&quot;');
+			return JSON.stringify(value).replace(new RegExp(regexp1), '&quot;');
 		}
 
 		let _wrapWebWorkerExtHostInIframe: undefined | false = undefined;
@@ -425,7 +430,7 @@ export class WebClientServer {
 		let data;
 		try {
 			const workbenchTemplate = (await promises.readFile(filePath)).toString();
-			data = workbenchTemplate.replace(/\{\{([^}]+)\}\}/g, (_, key) => values[key] ?? 'undefined');
+			data = workbenchTemplate.replace(new RegExp(regexp2), (_, key) => values[key] ?? 'undefined');
 		} catch (e) {
 			res.writeHead(404, { 'Content-Type': 'text/plain' });
 			return void res.end('Not found');
@@ -472,13 +477,13 @@ export class WebClientServer {
 	private _getScriptCspHashes(content: string): string[] {
 		// Compute the CSP hashes for line scripts. Uses regex
 		// which means it isn't 100% good.
-		const regex = /<script>([\s\S]+?)<\/script>/img;
+		const regex = new RegExp(regexpScriptScript);
 		const result: string[] = [];
 		let match: RegExpExecArray | null;
 		while (match = regex.exec(content)) {
 			const hasher = crypto.createHash('sha256');
 			// This only works on Windows if we strip `\r` from `\r\n`.
-			const script = match[1].replace(/\r\n/g, '\n');
+			const script = match[1].replace(new RegExp(regexp4), '\n');
 			const hash = hasher
 				.update(Buffer.from(script))
 				.digest().toString('base64');

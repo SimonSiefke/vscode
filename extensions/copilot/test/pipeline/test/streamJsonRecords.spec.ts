@@ -7,6 +7,11 @@ import * as os from 'os';
 import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { inferJsonRecordFormat, streamJsonRecords } from '../streamJsonRecords';
+const regexpNotClosedUnexpected = /not closed|Unexpected end/i;
+const regexpAfterEndOf = /after end of JSON array/i;
+const regexpMissingElement = /missing element/i;
+const regexpTrailingComma = /trailing comma/i;
+
 
 describe('streamJsonRecords', () => {
 	let tmpDir: string;
@@ -71,31 +76,31 @@ describe('streamJsonRecords', () => {
 		});
 
 		test('throws on truncated input (no closing bracket)', async () => {
-			await expect(collect('[1, 2, 3')).rejects.toThrow(/not closed|Unexpected end/i);
+			await expect(collect('[1, 2, 3')).rejects.toThrow(regexpNotClosedUnexpected);
 		});
 
 		test('throws on truncated input mid-element', async () => {
-			await expect(collect('[1, 2, {"a":1')).rejects.toThrow(/not closed|Unexpected end/i);
+			await expect(collect('[1, 2, {"a":1')).rejects.toThrow(regexpNotClosedUnexpected);
 		});
 
 		test('throws on truncated input with unclosed string', async () => {
-			await expect(collect('["abc]')).rejects.toThrow(/not closed|Unexpected end/i);
+			await expect(collect('["abc]')).rejects.toThrow(regexpNotClosedUnexpected);
 		});
 
 		test('throws on trailing data after the array', async () => {
-			await expect(collect('[1, 2, 3]garbage')).rejects.toThrow(/after end of JSON array/i);
+			await expect(collect('[1, 2, 3]garbage')).rejects.toThrow(regexpAfterEndOf);
 		});
 
 		test('throws on extra top-level values', async () => {
-			await expect(collect('[1][2]')).rejects.toThrow(/after end of JSON array/i);
+			await expect(collect('[1][2]')).rejects.toThrow(regexpAfterEndOf);
 		});
 
 		test('throws on missing element between commas', async () => {
-			await expect(collect('[1,,2]')).rejects.toThrow(/missing element/i);
+			await expect(collect('[1,,2]')).rejects.toThrow(regexpMissingElement);
 		});
 
 		test('throws on trailing comma', async () => {
-			await expect(collect('[1, 2,]')).rejects.toThrow(/trailing comma/i);
+			await expect(collect('[1, 2,]')).rejects.toThrow(regexpTrailingComma);
 		});
 
 		test('accepts trailing whitespace after the array', async () => {

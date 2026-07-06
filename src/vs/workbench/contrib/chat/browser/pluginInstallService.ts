@@ -24,6 +24,8 @@ import { IAgentPluginRepositoryService } from '../common/plugins/agentPluginRepo
 import { ChatConfiguration } from '../common/constants.js';
 import { IPluginInstallService, IInstallPluginFromSourceOptions, IInstallPluginFromSourceResult, IUpdateAllPluginsOptions, IUpdateAllPluginsResult } from '../common/plugins/pluginInstallService.js';
 import { IMarketplacePlugin, IMarketplaceReference, IPluginMarketplaceService, MarketplaceReferenceKind, MarketplaceType, hasSourceChanged, parseMarketplaceReference, parseMarketplaceReferences, PluginSourceKind, readConfiguredMarketplaces } from '../common/plugins/pluginMarketplaceService.js';
+const regexpFile = /^file:\/\//i;
+
 
 export class PluginInstallService implements IPluginInstallService {
 	declare readonly _serviceBrand: undefined;
@@ -305,7 +307,7 @@ export class PluginInstallService implements IPluginInstallService {
 		if (!trimmed) {
 			return false;
 		}
-		if (/^file:\/\//i.test(trimmed)) {
+		if (regexpFile.test(trimmed)) {
 			return true;
 		}
 		if (trimmed === '~' || trimmed.startsWith('~/') || trimmed.startsWith('~\\')) {

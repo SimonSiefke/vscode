@@ -17,6 +17,8 @@ import { TerminalLocation, type IShellLaunchConfig, type ShellIntegrationInjecti
 import type { IWorkbenchContribution } from '../../../../common/contributions.js';
 import { ILifecycleService } from '../../../../services/lifecycle/common/lifecycle.js';
 import { ITerminalEditorService, ITerminalService, type ITerminalInstance } from '../../../terminal/browser/terminal.js';
+const regexp1 = /\.[^\.]+$/;
+
 
 export class TerminalTelemetryContribution extends Disposable implements IWorkbenchContribution {
 	static ID = 'terminalTelemetry';
@@ -319,7 +321,7 @@ function getSanitizedShellType(slc: IShellLaunchConfig): AllowedShellType {
 		return AllowedShellType.Unknown;
 	}
 	const executableFile = basename(slc.executable);
-	const executableFileWithoutExt = executableFile.replace(/\.[^\.]+$/, '');
+	const executableFileWithoutExt = executableFile.replace(regexp1, '');
 	for (const entry of shellTypePathRegexAllowList) {
 		if (entry.regex.test(slc.executable)) {
 			return entry.type;

@@ -5,6 +5,9 @@
 
 import { IRemoteConsoleLog, parse } from '../../../../base/common/console.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+const regexp1 = /^\[/;
+const regexp2 = / $/;
+
 
 export function logRemoteEntry(logService: ILogService, entry: IRemoteConsoleLog, label: string | null = null): void {
 	const args = parse(entry).args;
@@ -18,10 +21,10 @@ export function logRemoteEntry(logService: ILogService, entry: IRemoteConsoleLog
 	}
 
 	if (label) {
-		if (!/^\[/.test(label)) {
+		if (!regexp1.test(label)) {
 			label = `[${label}]`;
 		}
-		if (!/ $/.test(label)) {
+		if (!regexp2.test(label)) {
 			label = `${label} `;
 		}
 		firstArg = label + firstArg;
@@ -48,10 +51,10 @@ export function logRemoteEntryIfError(logService: ILogService, entry: IRemoteCon
 		return;
 	}
 
-	if (!/^\[/.test(label)) {
+	if (!regexp1.test(label)) {
 		label = `[${label}]`;
 	}
-	if (!/ $/.test(label)) {
+	if (!regexp2.test(label)) {
 		label = `${label} `;
 	}
 

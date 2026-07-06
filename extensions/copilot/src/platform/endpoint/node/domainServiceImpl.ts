@@ -11,6 +11,8 @@ import { ICopilotTokenStore } from '../../authentication/common/copilotTokenStor
 import { AuthProviderId, ConfigKey, CopilotConfigPrefix, IConfigurationService } from '../../configuration/common/configurationService';
 import { ICAPIClientService } from '../common/capiClient';
 import { IDomainChangeEvent, IDomainService } from '../common/domainService';
+const regexp1 = /\/$/;
+
 
 const EnterpriseURLConfig = 'github-enterprise.uri';
 
@@ -49,7 +51,7 @@ export class DomainService extends Disposable implements IDomainService {
 		}
 		let proxyConfigUrl = this._configurationService.getConfig(ConfigKey.Shared.DebugOverrideProxyUrl);
 		if (proxyConfigUrl) {
-			proxyConfigUrl = proxyConfigUrl.replace(/\/$/, '');
+			proxyConfigUrl = proxyConfigUrl.replace(regexp1, '');
 		}
 		const enterpriseValue = this._configurationService.getConfig(ConfigKey.Shared.AuthProvider) === AuthProviderId.GitHubEnterprise ? this._configurationService.getNonExtensionConfig<string>(EnterpriseURLConfig) : undefined;
 		const moduleToken = {

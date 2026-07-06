@@ -32,6 +32,12 @@ import { IIssueFormService, IssueReporterData, IssueReporterExtensionData, Issue
 import { normalizeGitHubUrl } from '../common/issueReporterUtil.js';
 import { IssueReporterModel, IssueReporterData as IssueReporterModelData } from './issueReporterModel.js';
 import { IAuthenticationService } from '../../../services/authentication/common/authentication.js';
+const regexpHttpsGithubCom = /^https?:\/\/github\.com\/(.*)/;
+const regexp2 = /:/g;
+const regexpHttpsGithubCom1 = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*).*/;
+const regexpHttpsGithubCom2 = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)$/;
+const regexpHttpsGithubCom3 = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?(\/issues)?$/;
+
 
 const MAX_URL_LENGTH = 7500;
 
@@ -875,7 +881,7 @@ export class BaseIssueReporterService extends Disposable {
 	private searchExtensionIssues(title: string): void {
 		const url = this.getExtensionGitHubUrl();
 		if (title) {
-			const matches = /^https?:\/\/github\.com\/(.*)/.exec(url);
+			const matches = regexpHttpsGithubCom.exec(url);
 			if (matches && matches.length) {
 				const repo = matches[1];
 				return this.searchGitHub(repo, title);
@@ -1133,7 +1139,7 @@ export class BaseIssueReporterService extends Disposable {
 			show(downloadExtensionDataLink);
 			const date = new Date();
 			const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-			const formattedTime = date.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+			const formattedTime = date.toTimeString().split(' ')[0].replace(new RegExp(regexp2), '-'); // HH-MM-SS
 			const fileName = `extensionData_${formattedDate}_${formattedTime}.md`;
 			const handleLinkClick = async () => {
 				const downloadPath = await this.fileDialogService.showSaveDialog({
@@ -1412,7 +1418,7 @@ export class BaseIssueReporterService extends Disposable {
 	public parseGitHubUrl(url: string): undefined | { repositoryName: string; owner: string } {
 		// Assumes a GitHub url to a particular repo, https://github.com/repositoryName/owner.
 		// Repository name and owner cannot contain '/'
-		const match = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*).*/.exec(url);
+		const match = regexpHttpsGithubCom1.exec(url);
 		if (match && match.length) {
 			return {
 				owner: match[1],
@@ -1430,10 +1436,10 @@ export class BaseIssueReporterService extends Disposable {
 		const bugsUrl = this.getExtensionBugsUrl();
 		const extensionUrl = this.getExtensionRepositoryUrl();
 		// If given, try to match the extension's bug url
-		if (bugsUrl && bugsUrl.match(/^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?(\/issues)?$/)) {
+		if (bugsUrl && bugsUrl.match(regexpHttpsGithubCom3)) {
 			// matches exactly: https://github.com/owner/repo/issues
 			repositoryUrl = normalizeGitHubUrl(bugsUrl);
-		} else if (extensionUrl && extensionUrl.match(/^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)$/)) {
+		} else if (extensionUrl && extensionUrl.match(regexpHttpsGithubCom2)) {
 			// matches exactly: https://github.com/owner/repo
 			repositoryUrl = normalizeGitHubUrl(extensionUrl);
 		} else {

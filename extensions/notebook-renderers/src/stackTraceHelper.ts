@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpDm = /\u001b\[4\dm/g;
+const regexp2 = /(?<=\u001b\[[\d;]*?);4\d(?=m)/g;
+const regexp3 = /\u001b\[38;.*?\d+m/g;
+const regexp32m = /(;32m[ ->]*?)(\d+)(.*)\n/g;
+const regexp5 = /\u001b\[3\d+m/g;
+
 export function formatStackTrace(stack: string, trustHtml: boolean): { formattedStack: string; errorLocation?: string } {
 	let cleaned: string;
 	// Ansi colors are described here:
@@ -10,16 +16,16 @@ export function formatStackTrace(stack: string, trustHtml: boolean): { formatted
 
 	// Remove background colors. The ones from IPython don't work well with
 	// themes 40-49 sets background color
-	cleaned = stack.replace(/\u001b\[4\dm/g, '');
-	cleaned = cleaned.replace(/(?<=\u001b\[[\d;]*?);4\d(?=m)/g, '');
+	cleaned = stack.replace(new RegExp(regexpDm), '');
+	cleaned = cleaned.replace(new RegExp(regexp2), '');
 
 	// Also remove specific foreground colors (38 is the ascii code for picking one) (they don't translate either)
 	// Turn them into default foreground
-	cleaned = cleaned.replace(/\u001b\[38;.*?\d+m/g, '\u001b[39m');
+	cleaned = cleaned.replace(new RegExp(regexp3), '\u001b[39m');
 
 	// Turn all foreground colors after the --> to default foreground
-	cleaned = cleaned.replace(/(;32m[ ->]*?)(\d+)(.*)\n/g, (_s, prefix, num, suffix) => {
-		suffix = suffix.replace(/\u001b\[3\d+m/g, '\u001b[39m');
+	cleaned = cleaned.replace(new RegExp(regexp32m), (_s, prefix, num, suffix) => {
+		suffix = suffix.replace(new RegExp(regexp5), '\u001b[39m');
 		return `${prefix}${num}${suffix}\n`;
 	});
 

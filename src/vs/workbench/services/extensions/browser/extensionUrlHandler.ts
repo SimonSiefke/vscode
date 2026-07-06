@@ -27,6 +27,8 @@ import { isCancellationError } from '../../../../base/common/errors.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { equalsIgnoreCase } from '../../../../base/common/strings.js';
+const regexpZ0Z0Z0 = /^[a-z0-9][a-z0-9\-]*\.[a-z0-9][a-z0-9\-]*$/i;
+
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const THIRTY_SECONDS = 30 * 1000;
@@ -35,7 +37,7 @@ const USER_TRUSTED_EXTENSIONS_CONFIGURATION_KEY = 'extensions.confirmedUriHandle
 const USER_TRUSTED_EXTENSIONS_STORAGE_KEY = 'extensionUrlHandler.confirmedExtensions';
 
 function isExtensionId(value: string): boolean {
-	return /^[a-z0-9][a-z0-9\-]*\.[a-z0-9][a-z0-9\-]*$/i.test(value);
+	return regexpZ0Z0Z0.test(value);
 }
 
 class UserTrustedExtensionIdStorage {

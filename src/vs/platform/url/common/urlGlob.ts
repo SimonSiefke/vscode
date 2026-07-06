@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../base/common/uri.js';
+const regexp1 = /\/+$/;
+const regexp2 = /^[^./:]*:\/\//;
+const regexp3 = /[0-9]/;
+
 
 /**
  * Normalizes a URL by removing trailing slashes and query/fragment components.
@@ -14,7 +18,7 @@ function normalizeURL(url: string | URI): URI {
 	const uri = typeof url === 'string' ? URI.parse(url) : url;
 	return uri.with({
 		// Remove trailing slashes
-		path: uri.path.replace(/\/+$/, ''),
+		path: uri.path.replace(regexp1, ''),
 		// Remove query and fragment
 		query: null,
 		fragment: null,
@@ -32,7 +36,7 @@ export function testUrlMatchesGlob(uri: string | URI, globUrl: string): boolean 
 	const normalizedUrl = normalizeURL(uri);
 	let normalizedGlobUrl: URI;
 
-	const globHasScheme = /^[^./:]*:\/\//.test(globUrl);
+	const globHasScheme = regexp2.test(globUrl);
 	// if the glob does not have a scheme we assume the scheme is http or https
 	// so if the url doesn't have a scheme of http or https we return false
 	if (!globHasScheme) {
@@ -152,7 +156,7 @@ function doUrlPartMatch(
 		// any port match. Consume a port if it exists otherwise nothing. Always consume the base.
 		if (urlPart[urlOffset] === ':') {
 			let endPortIndex = urlOffset + 1;
-			do { endPortIndex++; } while (/[0-9]/.test(urlPart[endPortIndex]));
+			do { endPortIndex++; } while (regexp3.test(urlPart[endPortIndex]));
 			options.push(doUrlPartMatch(memo, includePortLogic, urlPart, globUrlPart, endPortIndex, globUrlOffset + 2));
 		} else {
 			options.push(doUrlPartMatch(memo, includePortLogic, urlPart, globUrlPart, urlOffset, globUrlOffset + 2));

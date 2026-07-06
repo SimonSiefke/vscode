@@ -15,6 +15,31 @@ import { MonarchTokenizer } from '../../common/monarch/monarchLexer.js';
 import { IMonarchLanguage } from '../../common/monarch/monarchTypes.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
+const regexp1 = /./;
+const regexp2 = /(""")$/;
+const regexp3 = /(.*)/;
+const regexp4 = /"""/;
+const regexp5 = /\/\/$/;
+const regexp6 = /\/\//;
+const regexp7 = /(?:[^\\]|(?:\\.))+$/;
+const regexp8 = /.+$/;
+const regexp9 = /$/;
+const regexp10 = /^\*/;
+const regexp11 = /\:\*/;
+const regexp12 = /[^*:]+/;
+const regexp13 = /[*:]/;
+const regexp14 = /\n/;
+const regexp15 = /\d+/;
+const regexp16 = /[^\d]+/;
+const regexp17 = /@\w+/;
+const regexpHam = /@@ham/;
+const regexp19 = /@@@@/;
+const regexpHam1 = /ham/;
+const regexpU8 = /u|u8|U|L/;
+const regexpEncoding = /@encoding?R\"(?:([^ ()\\\t]*))\(/;
+const regexpS2 = /.*\)$S2\"/;
+const regexp24 = /.*/;
+
 
 suite('Monarch', () => {
 
@@ -43,7 +68,7 @@ suite('Monarch', () => {
 		disposables.add(TokenizationRegistry.register('sql', disposables.add(createMonarchTokenizer(languageService, 'sql', {
 			tokenizer: {
 				root: [
-					[/./, 'token']
+					[regexp1, 'token']
 				]
 			}
 		}, configurationService))));
@@ -52,10 +77,10 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					[`(\"\"\")${SQL_QUERY_START}`, [{ 'token': 'string.quote', }, { token: '@rematch', next: '@endStringWithSQL', nextEmbedded: 'sql', },]],
-					[/(""")$/, [{ token: 'string.quote', next: '@maybeStringIsSQL', },]],
+					[regexp2, [{ token: 'string.quote', next: '@maybeStringIsSQL', },]],
 				],
 				maybeStringIsSQL: [
-					[/(.*)/, {
+					[regexp3, {
 						cases: {
 							[`${SQL_QUERY_START}\\b.*`]: { token: '@rematch', next: '@endStringWithSQL', nextEmbedded: 'sql', },
 							'@default': { token: '@rematch', switchTo: '@endDblDocString', },
@@ -68,7 +93,7 @@ suite('Monarch', () => {
 					['\'\'\'', 'string', '@popall'],
 					['\'', 'string']
 				],
-				endStringWithSQL: [[/"""/, { token: 'string.quote', next: '@popall', nextEmbedded: '@pop', },]],
+				endStringWithSQL: [[regexp4, { token: 'string.quote', next: '@popall', nextEmbedded: '@pop', },]],
 			}
 		}, configurationService));
 
@@ -120,7 +145,7 @@ suite('Monarch', () => {
 		disposables.add(TokenizationRegistry.register('sql', disposables.add(createMonarchTokenizer(languageService, 'sql', {
 			tokenizer: {
 				root: [
-					[/./, 'token']
+					[regexp1, 'token']
 				]
 			}
 		}, configurationService))));
@@ -129,10 +154,10 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					[`(\"\"\")${SQL_QUERY_START}`, [{ 'token': 'string.quote', }, { token: '@rematch', next: '@endStringWithSQL', nextEmbedded: 'sql', },]],
-					[/(""")$/, [{ token: 'string.quote', next: '@maybeStringIsSQL', },]],
+					[regexp2, [{ token: 'string.quote', next: '@maybeStringIsSQL', },]],
 				],
 				maybeStringIsSQL: [
-					[/(.*)/, {
+					[regexp3, {
 						cases: {
 							[`${SQL_QUERY_START}\\b.*`]: { token: '@rematch', next: '@endStringWithSQL', nextEmbedded: 'sql', },
 							'@default': { token: '@rematch', switchTo: '@endDblDocString', },
@@ -145,7 +170,7 @@ suite('Monarch', () => {
 					['\'\'\'', 'string', '@popall'],
 					['\'', 'string']
 				],
-				endStringWithSQL: [[/"""/, {
+				endStringWithSQL: [[regexp4, {
 					cases: {
 						'"""': {
 							cases: {
@@ -210,14 +235,14 @@ suite('Monarch', () => {
 				],
 
 				comments: [
-					[/\/\/$/, 'comment'], // empty single-line comment
-					[/\/\//, 'comment', '@comment_cpp'],
+					[regexp5, 'comment'], // empty single-line comment
+					[regexp6, 'comment', '@comment_cpp'],
 				],
 
 				comment_cpp: [
-					[/(?:[^\\]|(?:\\.))+$/, 'comment', '@pop'],
-					[/.+$/, 'comment'],
-					[/$/, 'comment', '@pop']
+					[regexp7, 'comment', '@pop'],
+					[regexp8, 'comment'],
+					[regexp9, 'comment', '@pop']
 					// No possible rule to detect an empty line and @pop?
 				],
 			},
@@ -266,15 +291,15 @@ suite('Monarch', () => {
 			includeLF: true,
 			tokenizer: {
 				root: [
-					[/^\*/, '', '@inner'],
-					[/\:\*/, '', '@inner'],
-					[/[^*:]+/, 'string'],
-					[/[*:]/, 'string']
+					[regexp10, '', '@inner'],
+					[regexp11, '', '@inner'],
+					[regexp12, 'string'],
+					[regexp13, 'string']
 				],
 				inner: [
-					[/\n/, '', '@pop'],
-					[/\d+/, 'number'],
-					[/[^\d]+/, '']
+					[regexp14, '', '@pop'],
+					[regexp15, 'number'],
+					[regexp16, '']
 				]
 			}
 		}, configurationService));
@@ -324,7 +349,7 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					{
-						regex: /@\w+/.test('@ham')
+						regex: regexp17.test('@ham')
 							? new RegExp(`^${'@uselessReplaceKey1'}$`)
 							: new RegExp(`^${'@ham'}$`),
 						action: { token: 'ham' }
@@ -338,7 +363,7 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					{
-						regex: /@@ham/,
+						regex: regexpHam,
 						action: { token: 'ham' }
 					},
 				],
@@ -376,7 +401,7 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					{
-						regex: /@@@@/,
+						regex: regexp19,
 						action: { token: 'ham' }
 					},
 				],
@@ -410,7 +435,7 @@ suite('Monarch', () => {
 			tokenizer: {
 				root: [
 					{
-						regex: /ham/,
+						regex: regexpHam1,
 						action: { token: 'ham' }
 					},
 				],
@@ -441,16 +466,16 @@ suite('Monarch', () => {
 
 		const tokenizer = disposables.add(createMonarchTokenizer(languageService, 'test', {
 			ignoreCase: false,
-			encoding: /u|u8|U|L/,
+			encoding: regexpU8,
 			tokenizer: {
 				root: [
 					// C++ 11 Raw String
-					[/@encoding?R\"(?:([^ ()\\\t]*))\(/, { token: 'string.raw.begin', next: '@raw.$1' }],
+					[regexpEncoding, { token: 'string.raw.begin', next: '@raw.$1' }],
 				],
 
 				raw: [
-					[/.*\)$S2\"/, 'string.raw', '@pop'],
-					[/.*/, 'string.raw']
+					[regexpS2, 'string.raw', '@pop'],
+					[regexp24, 'string.raw']
 				],
 			},
 		}, configurationService));
@@ -490,16 +515,16 @@ suite('Monarch', () => {
 
 		const tokenizer = disposables.add(createMonarchTokenizer(languageService, 'test', {
 			ignoreCase: false,
-			encoding: /u|u8|U|L/,
+			encoding: regexpU8,
 			tokenizer: {
 				root: [
 					// C++ 11 Raw String
-					[/@encoding?R\"(?:([^ ()\\\t]*))\(/, { token: 'string.raw.begin', next: '@raw.$1' }],
+					[regexpEncoding, { token: 'string.raw.begin', next: '@raw.$1' }],
 				],
 
 				raw: [
-					[/.*\)$S2\"/, 'string.raw', '@pop'],
-					[/.*/, 'string.raw']
+					[regexpS2, 'string.raw', '@pop'],
+					[regexp24, 'string.raw']
 				],
 			},
 		}, configurationService));

@@ -20,6 +20,10 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { EndpointDef } from './endpoints';
+const regexpHttps = /^https?:\/\//i;
+const regexp2 = /^\/+/;
+const regexpJs = /\.js$/;
+
 
 const http = require('node:http') as typeof import('node:http');
 const fs = require('node:fs') as typeof import('node:fs');
@@ -175,7 +179,7 @@ function endpointUrl(endpoint: EndpointDef): string {
 async function loadSchema(sourceOverride?: string): Promise<{ source: string; resolved: string; ok: boolean; schema?: unknown; error?: string }> {
 	const source = sourceOverride || SCHEMA_SOURCE;
 	try {
-		if (/^https?:\/\//i.test(source)) {
+		if (regexpHttps.test(source)) {
 			const res = await fetch(source);
 			if (!res.ok) {
 				return { source, resolved: source, ok: false, error: `HTTP ${res.status} ${res.statusText}` };
@@ -361,11 +365,11 @@ function serveStatic(pathname: string, res: ServerResponse): void {
 		return serveTypeStripped(path.join(__dirname, 'endpoints.ts'), res);
 	}
 
-	const rel = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+	const rel = pathname === '/' ? 'index.html' : pathname.replace(regexp2, '');
 
 	// Serve .ts sources as type-stripped JS when the browser requests .js.
 	if (rel.endsWith('.js')) {
-		const tsPath = path.normalize(path.join(PUBLIC_DIR, rel.replace(/\.js$/, '.ts')));
+		const tsPath = path.normalize(path.join(PUBLIC_DIR, rel.replace(regexpJs, '.ts')));
 		if (tsPath.startsWith(PUBLIC_DIR + path.sep) && fs.existsSync(tsPath)) {
 			return serveTypeStripped(tsPath, res);
 		}

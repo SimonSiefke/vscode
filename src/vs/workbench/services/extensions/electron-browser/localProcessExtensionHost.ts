@@ -39,6 +39,10 @@ import { IHostService } from '../../host/browser/host.js';
 import { ILifecycleService, WillShutdownEvent } from '../../lifecycle/common/lifecycle.js';
 import { parseExtensionDevOptions } from '../common/extensionDevOptions.js';
 import { IDefaultLogLevelsService } from '../../log/common/defaultLogLevels.js';
+const regexp1 = /\r?\n$/;
+const regexpWs = /ws:\/\/([^\s]+):(\d+)\/([^\s]+)/;
+const regexp3 = /\r?\n/g;
+
 
 export interface ILocalProcessExtensionHostInitData {
 	readonly extensions: ExtensionHostExtensions;
@@ -303,8 +307,8 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		// crashes diagnosable from the logs. Gated to smoke tests
 		// (`--enable-smoke-test-driver`) so it does not affect regular sessions.
 		if (this._environmentService.args['enable-smoke-test-driver']) {
-			this._register(onStdout.event(line => this._logService.info(`[Extension Host (stdout)] ${line.replace(/\r?\n$/, '')}`)));
-			this._register(onStderr.event(line => this._logService.error(`[Extension Host (stderr)] ${line.replace(/\r?\n$/, '')}`)));
+			this._register(onStdout.event(line => this._logService.info(`[Extension Host (stdout)] ${line.replace(regexp1, '')}`)));
+			this._register(onStderr.event(line => this._logService.error(`[Extension Host (stderr)] ${line.replace(regexp1, '')}`)));
 		}
 
 		// Debounce all output, so we can render it in the Chrome console as a group
@@ -316,7 +320,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 		// Print out extension host output
 		this._register(onDebouncedOutput(output => {
-			const inspectorUrlMatch = output.data && output.data.match(/ws:\/\/([^\s]+):(\d+)\/([^\s]+)/);
+			const inspectorUrlMatch = output.data && output.data.match(regexpWs);
 			if (inspectorUrlMatch) {
 				const [, host, port, auth] = inspectorUrlMatch;
 				const devtoolsUrl = `devtools://devtools/bundled/js_app.html?v8only=true&ws=${host}:${port}/${auth}`;
@@ -595,7 +599,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 			// not a fancy approach, but this is the same approach used by the split2
 			// module which is well-optimized (https://github.com/mcollina/split2)
 			last += chunk;
-			const lines = last.split(/\r?\n/g);
+			const lines = last.split(new RegExp(regexp3));
 			last = lines.pop()!;
 
 			// protected against an extension spamming and leaking memory if no new line is written.

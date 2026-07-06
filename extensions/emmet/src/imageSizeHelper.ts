@@ -11,6 +11,10 @@ import * as https from 'https';
 import { URL } from 'url';
 import { imageSize } from 'image-size';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+const regexpFile = /^file:\/\//;
+const regexpDataBase64 = /^data:.+?;base64,/;
+const regexp3 = /@(\d+)x\./;
+
 
 const reUrl = /^https?:/;
 export type ImageInfoWithScale = {
@@ -25,7 +29,7 @@ export type ImageInfoWithScale = {
  * as well as URLs
  */
 export function getImageSize(file: string): Promise<ImageInfoWithScale | undefined> {
-	file = file.replace(/^file:\/\//, '');
+	file = file.replace(regexpFile, '');
 	return reUrl.test(file) ? getImageSizeFromURL(file) : getImageSizeFromFile(file);
 }
 
@@ -34,7 +38,7 @@ export function getImageSize(file: string): Promise<ImageInfoWithScale | undefin
  */
 function getImageSizeFromFile(file: string): Promise<ImageInfoWithScale | undefined> {
 	return new Promise((resolve, reject) => {
-		const isDataUrl = file.match(/^data:.+?;base64,/);
+		const isDataUrl = file.match(regexpDataBase64);
 
 		if (isDataUrl) {
 			// NB should use sync version of `sizeOf()` for buffers
@@ -106,7 +110,7 @@ function getImageSizeFromURL(urlStr: string): Promise<ImageInfoWithScale | undef
  * the final dimentions will be downscaled by N
  */
 function sizeForFileName(fileName: string, size?: ISizeCalculationResult): ImageInfoWithScale | undefined {
-	const m = fileName.match(/@(\d+)x\./);
+	const m = fileName.match(regexp3);
 	const scale = m ? +m[1] : 1;
 
 	if (!size || !size.width || !size.height) {

@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentDir, Mimes, Schemes } from './shared';
 import { UriList } from './uriList';
+const regexpUrl = /url\(.+?\)/gi;
+
 
 class DropOrPasteResourceProvider implements vscode.DocumentDropEditProvider, vscode.DocumentPasteEditProvider {
 
@@ -105,7 +107,7 @@ class DropOrPasteResourceProvider implements vscode.DocumentDropEditProvider, vs
 	}
 
 	private pasteAsCssUrlByDefault(document: vscode.TextDocument, position: vscode.Position): boolean {
-		const regex = /url\(.+?\)/gi;
+		const regex = new RegExp(regexpUrl);
 		for (const match of Array.from(document.lineAt(position.line).text.matchAll(regex))) {
 			if (position.character > match.index && position.character < match.index + match[0].length) {
 				return false;

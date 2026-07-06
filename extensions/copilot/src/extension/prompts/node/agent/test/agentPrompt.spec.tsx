@@ -30,6 +30,9 @@ import { IToolsService } from '../../../../tools/common/toolsService';
 import { PromptRenderer } from '../../base/promptRenderer';
 import { AgentPrompt, AgentPromptProps } from '../agentPrompt';
 import { PromptRegistry } from '../promptRegistry';
+const regexpTheCurrentDate = /The current date is.*/g;
+const regexp2 = /\\+/g;
+
 
 const testFamilies = [
 	'default',
@@ -137,8 +140,8 @@ testFamilies.forEach(family => {
 			return r.messages
 				.map(m => messageToMarkdown(m))
 				.join('\n\n')
-				.replace(/\\+/g, '/')
-				.replace(/The current date is.*/g, '(Date removed from snapshot)');
+				.replace(new RegExp(regexp2), '/')
+				.replace(new RegExp(regexpTheCurrentDate), '(Date removed from snapshot)');
 		}
 
 		function createEditFileToolCall(idx: number): IToolCall {

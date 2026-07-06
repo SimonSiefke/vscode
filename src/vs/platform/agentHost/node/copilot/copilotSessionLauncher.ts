@@ -29,6 +29,8 @@ import { agentHostPromptRegistry, type IAgentHostPromptContext } from './prompts
 import { describeSystemMessageConfig } from './prompts/systemMessage.js';
 import './prompts/allPrompts.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
+const regexpCorruptCorruptedInvalid = /\b(corrupt|corrupted|invalid|validation|schema|must be|parse|malformed|unexpected token)\b/i;
+
 
 export const ThinkingLevelConfigKey = 'thinkingLevel';
 /**
@@ -212,7 +214,7 @@ function shouldCreateEmptySessionAfterResumeError(err: unknown): boolean {
 	}
 
 	const message = getErrorMessage(err);
-	return !/\b(corrupt|corrupted|invalid|validation|schema|must be|parse|malformed|unexpected token)\b/i.test(message);
+	return !regexpCorruptCorruptedInvalid.test(message);
 }
 
 export function getCopilotReasoningEffort(model: ModelSelection | undefined): SessionConfig['reasoningEffort'] {

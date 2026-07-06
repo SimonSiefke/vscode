@@ -26,6 +26,10 @@ import * as https from 'https';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as zlib from 'zlib';
+const regexp1 = /\/$/;
+const regexp2 = /[<>]/g;
+const regexp3 = /[\r\n]+/g;
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -340,7 +344,7 @@ function diffManifests(local: LocalManifest, base: BaseCommitResponse | null): D
 }
 
 function loadImageUrl(serviceUrl: string, hash: string): string {
-	return `${serviceUrl.replace(/\/$/, '')}/images/${hash}`;
+	return `${serviceUrl.replace(regexp1, '')}/images/${hash}`;
 }
 
 function generateMarkdown(
@@ -490,7 +494,7 @@ function generateMarkdown(
 }
 
 function escapeMarkdown(text: string): string {
-	return text.replace(/[\r\n]+/g, ' ').replace(/[<>]/g, c => c === '<' ? '&lt;' : '&gt;');
+	return text.replace(new RegExp(regexp3), ' ').replace(new RegExp(regexp2), c => c === '<' ? '&lt;' : '&gt;');
 }
 
 async function main(): Promise<void> {

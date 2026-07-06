@@ -33,6 +33,13 @@ import { IssueReporterData, IssueReporterExtensionData, IssueSource, IssueType }
 import { IssueReporterModel } from './issueReporterModel.js';
 import { RecordingState } from './recordingService.js';
 import { IAnnotationEditorState, ScreenshotAnnotationEditor } from './screenshotAnnotation.js';
+const regexpHttpsGithubCom = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?(\/issues)?\/?$/;
+const regexpHttpsGithubCom1 = /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?$/;
+const regexpHttpsGithubCom2 = /^https?:\/\/github\.com\//i;
+const regexpHttpsGithubCom3 = /^https?:\/\/github\.com\/([^\/?#]+)\/([^\/?#]+).*/i;
+const regexp5 = /\|/g;
+const regexp6 = /\r?\n/g;
+
 
 const MAX_ATTACHMENTS = 5;
 const MAX_SIMILAR_ISSUES = 5;
@@ -1047,10 +1054,10 @@ export class IssueReporterOverlay {
 		if (extension.uri) {
 			return URI.revive(extension.uri).toString();
 		}
-		if (extension.bugsUrl && /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?(\/issues)?\/?$/.test(extension.bugsUrl)) {
+		if (extension.bugsUrl && regexpHttpsGithubCom.test(extension.bugsUrl)) {
 			return `${normalizeGitHubUrl(extension.bugsUrl)}/issues/new`;
 		}
-		if (extension.repositoryUrl && /^https?:\/\/github\.com\/([^\/]*)\/([^\/]*)\/?$/.test(extension.repositoryUrl)) {
+		if (extension.repositoryUrl && regexpHttpsGithubCom1.test(extension.repositoryUrl)) {
 			return `${normalizeGitHubUrl(extension.repositoryUrl)}/issues/new`;
 		}
 		return extension.bugsUrl || extension.repositoryUrl;
@@ -1090,11 +1097,11 @@ export class IssueReporterOverlay {
 	}
 
 	private isGitHubUrl(url: string): boolean {
-		return /^https?:\/\/github\.com\//i.test(url);
+		return regexpHttpsGithubCom2.test(url);
 	}
 
 	private parseGitHubUrl(url: string): { owner: string; repositoryName: string } | undefined {
-		const match = /^https?:\/\/github\.com\/([^\/?#]+)\/([^\/?#]+).*/i.exec(url);
+		const match = regexpHttpsGithubCom3.exec(url);
 		if (!match) {
 			return undefined;
 		}
@@ -2350,7 +2357,7 @@ ${rows.map(row => row.map(value => this.escapeMarkdownTableCell(value ?? '')).jo
 	}
 
 	private escapeMarkdownTableCell(value: string): string {
-		return value.replace(/\r?\n/g, '<br>').replace(/\|/g, '\\|');
+		return value.replace(new RegExp(regexp6), '<br>').replace(new RegExp(regexp5), '\\|');
 	}
 
 	setUpdateAvailable(showUpdateBanner: boolean): void {

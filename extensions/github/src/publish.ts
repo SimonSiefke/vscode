@@ -10,9 +10,11 @@ import { TextEncoder } from 'util';
 import { basename } from 'path';
 import { Octokit } from '@octokit/rest';
 import { isInCodespaces } from './pushErrorHandler.js';
+const regexpZ0 = /[^a-z0-9_.]/ig;
+
 
 function sanitizeRepositoryName(value: string): string {
-	return value.trim().replace(/[^a-z0-9_.]/ig, '-');
+	return value.trim().replace(new RegExp(regexpZ0), '-');
 }
 
 function getPick<T extends vscode.QuickPickItem>(quickpick: vscode.QuickPick<T>): Promise<T | undefined> {

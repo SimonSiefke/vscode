@@ -12,6 +12,8 @@ import { Schemas } from '../../../base/common/network.js';
 import { IntervalTimer, timeout } from '../../../base/common/async.js';
 import { ILogService } from '../../../platform/log/common/log.js';
 import { Promises } from '../../../base/node/pfs.js';
+const regexp1 = /[/\\]$/;
+
 
 export class ExtensionStoragePaths extends CommonExtensionStoragePaths {
 
@@ -36,7 +38,7 @@ export class ExtensionStoragePaths extends CommonExtensionStoragePaths {
 				workspaceStoragePath = workspaceStorageBase;
 			} else {
 				workspaceStoragePath = (
-					/[/\\]$/.test(workspaceStorageBase)
+					regexp1.test(workspaceStorageBase)
 						? `${workspaceStorageBase.substr(0, workspaceStorageBase.length - 1)}-${attempt}`
 						: `${workspaceStorageBase}-${attempt}`
 				);

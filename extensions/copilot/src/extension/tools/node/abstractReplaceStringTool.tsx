@@ -45,6 +45,9 @@ import { EditFileResult, IEditedFile } from './editFileToolResult';
 import { applyEdit, canExistingFileBeEdited, createEditConfirmation, EditError, formatDiffAsUnified, getDisallowedEditUriError, logEditToolResult, NoChangeError, NoMatchError, openDocumentAndSnapshot } from './editFileToolUtils';
 import { sendEditNotebookTelemetry } from './editNotebookTool';
 import { assertFileNotContentExcluded, resolveToolInputPath } from './toolUtils';
+const regexpLinesOmitted = /Lines \d+-\d+ omitted/;
+const regexp2 = /\r?\n/g;
+
 
 export interface IAbstractReplaceStringInput {
 	filePath: string;
@@ -236,7 +239,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 			let outcome: string;
 
 			if (error instanceof NoMatchError) {
-				outcome = input.oldString.match(/Lines \d+-\d+ omitted/) ?
+				outcome = input.oldString.match(regexpLinesOmitted) ?
 					'oldStringHasOmittedLines' :
 					input.oldString.includes('{…}') ?
 						'oldStringHasSummarizationMarker' :
@@ -426,8 +429,8 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 		const model = this.modelObjectForTelemetry(options);
 		const filePath = this.promptPathRepresentationService.getFilePath(document.uri);
 		const eol = document instanceof TextDocumentSnapshot && document.eol === EndOfLine.CRLF ? '\r\n' : '\n';
-		const oldString = removeLeadingFilepathComment(input.oldString, document.languageId, filePath).replace(/\r?\n/g, eol);
-		const newString = removeLeadingFilepathComment(input.newString, document.languageId, filePath).replace(/\r?\n/g, eol);
+		const oldString = removeLeadingFilepathComment(input.oldString, document.languageId, filePath).replace(new RegExp(regexp2), eol);
+		const newString = removeLeadingFilepathComment(input.newString, document.languageId, filePath).replace(new RegExp(regexp2), eol);
 
 		// Apply the edit using the improved applyEdit function that uses VS Code APIs
 		let updatedFile: string;

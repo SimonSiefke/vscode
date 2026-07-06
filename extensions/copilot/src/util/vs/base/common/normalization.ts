@@ -6,6 +6,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LRUCache } from './map';
+const regexp1 = /[\u0300-\u036f]/g;
+
 
 const nfcCache = new LRUCache<string, string>(10000); // bounded to 10000 elements
 export function normalizeNFC(str: string): string {
@@ -50,7 +52,7 @@ function normalize(str: string, form: string, normalizedCache: LRUCache<string, 
  */
 export const tryNormalizeToBase: (str: string) => string = function () {
 	const cache = new LRUCache<string, string>(10000); // bounded to 10000 elements
-	const accentsRegex = /[\u0300-\u036f]/g;
+	const accentsRegex = new RegExp(regexp1);
 	return function (str: string): string {
 		const cached = cache.get(str);
 		if (cached) {

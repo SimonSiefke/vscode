@@ -15,6 +15,13 @@ import { IMcpHostDelegate, IMcpMessageTransport } from './mcpRegistryTypes.js';
 import { McpServerRequestHandler } from './mcpServerRequestHandler.js';
 import { McpTaskManager } from './mcpTaskManager.js';
 import { IMcpClientMethods, IMcpPotentialSandboxBlock, IMcpServerConnection, McpCollectionDefinition, McpConnectionState, McpServerDefinition, McpServerLaunch } from './mcpTypes.js';
+const regexpNoMatchingConfig = /No matching config rule, denying:/i;
+const regexpEACCESEPERMENOENT = /(?:\b(?:EACCES|EPERM|ENOENT|EROFS|fail(?:ed|ure)?)\b|not accessible|read[- ]only)/i;
+const regexp3 = /\[(\/[^\]\r\n]+)\]/;
+const regexp4 = /["'`](\/[^"'`]+)["'`]/;
+const regexp5 = /(\/[\w.\-~/ ]+)$/;
+const regexpNoMatchingConfig1 = /No matching config rule, denying:\s+(?<host>[^:\s]+):\d+\.?$/i;
+
 
 export class McpServerConnection extends Disposable implements IMcpServerConnection {
 	private readonly _launch = this._register(new MutableDisposable<IReference<IMcpMessageTransport>>());
@@ -154,7 +161,7 @@ export class McpServerConnection extends Disposable implements IMcpServerConnect
 			return undefined;
 		}
 
-		if (/No matching config rule, denying:/i.test(message)) {
+		if (regexpNoMatchingConfig.test(message)) {
 			return {
 				kind: 'network',
 				message,
@@ -162,7 +169,7 @@ export class McpServerConnection extends Disposable implements IMcpServerConnect
 			};
 		}
 
-		if (/(?:\b(?:EACCES|EPERM|ENOENT|EROFS|fail(?:ed|ure)?)\b|not accessible|read[- ]only)/i.test(message)) {
+		if (regexpEACCESEPERMENOENT.test(message)) {
 			return {
 				kind: 'filesystem',
 				message,
@@ -174,22 +181,22 @@ export class McpServerConnection extends Disposable implements IMcpServerConnect
 	}
 
 	private _extractSandboxPath(line: string): string | undefined {
-		const bracketedPath = line.match(/\[(\/[^\]\r\n]+)\]/);
+		const bracketedPath = line.match(regexp3);
 		if (bracketedPath?.[1]) {
 			return bracketedPath[1].trim();
 		}
 
-		const quotedPath = line.match(/["'`](\/[^"'`]+)["'`]/);
+		const quotedPath = line.match(regexp4);
 		if (quotedPath?.[1]) {
 			return quotedPath[1];
 		}
 
-		const trailingPath = line.match(/(\/[\w.\-~/ ]+)$/);
+		const trailingPath = line.match(regexp5);
 		return trailingPath?.[1]?.trim();
 	}
 
 	private _extractSandboxHost(value: string): string | undefined {
-		const match = value.match(/No matching config rule, denying:\s+(?<host>[^:\s]+):\d+\.?$/i);
+		const match = value.match(regexpNoMatchingConfig1);
 		return match?.groups?.host;
 	}
 }

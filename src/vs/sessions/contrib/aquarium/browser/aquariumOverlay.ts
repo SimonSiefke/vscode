@@ -20,6 +20,8 @@ import { IWorkbenchLayoutService, Parts } from '../../../../workbench/services/l
 import { SessionsAquariumActiveContext } from '../../../common/contextkeys.js';
 import { disposeSharedFishDefs, Fish, pickRandomSpecies } from './fish.js';
 import { FishFeedingStreak } from './fishFeedingStreak.js';
+const regexp1 = /\s+/;
+
 
 export const SESSIONS_DEVELOPER_JOY_ENABLED_SETTING = 'sessions.developerJoy.enabled';
 
@@ -256,12 +258,12 @@ export class AquariumService extends Disposable implements IAquariumService {
 		// The icon is purely decorative; the button already has an aria-label.
 		iconSpan.setAttribute('aria-hidden', 'true');
 		if (active) {
-			const iconClasses = ThemeIcon.asClassName(Codicon.close).split(/\s+/).filter(Boolean);
+			const iconClasses = ThemeIcon.asClassName(Codicon.close).split(regexp1).filter(Boolean);
 			for (const cls of iconClasses) {
 				iconSpan.classList.add(cls);
 			}
 		} else {
-			const iconClasses = ThemeIcon.asClassName(Codicon.smiley).split(/\s+/).filter(Boolean);
+			const iconClasses = ThemeIcon.asClassName(Codicon.smiley).split(regexp1).filter(Boolean);
 			for (const cls of iconClasses) {
 				iconSpan.classList.add(cls);
 			}

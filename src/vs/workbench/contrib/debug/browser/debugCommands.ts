@@ -42,6 +42,8 @@ import { saveAllBeforeDebugStart, resolveChildSession } from '../common/debugUti
 import { showLoadedScriptMenu } from '../common/loadedScriptsPicker.js';
 import { openBreakpointSource } from './breakpointsView.js';
 import { showDebugSessionMenu } from './debugSessionPicker.js';
+const regexpVscodeLaunchJson = /\.vscode[/\\]launch\.json$/;
+
 
 export const ADD_CONFIGURATION_ID = 'debug.addConfiguration';
 export const COPY_ADDRESS_ID = 'editor.debug.action.copyAddress';
@@ -994,7 +996,7 @@ registerAction2(class AddConfigurationAction extends Action2 {
 			menu: {
 				id: MenuId.EditorContent,
 				when: ContextKeyExpr.and(
-					ContextKeyExpr.regex(ResourceContextKey.Path.key, /\.vscode[/\\]launch\.json$/),
+					ContextKeyExpr.regex(ResourceContextKey.Path.key, regexpVscodeLaunchJson),
 					ActiveEditorContext.isEqualTo(TEXT_FILE_EDITOR_ID))
 			}
 		});

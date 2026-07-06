@@ -7,6 +7,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { join } from 'path';
 import * as ts from 'typescript';
+const regexpTs = /\.ts$/;
+const regexpJs = /\.js$/;
+
 const VS_ROOT = join(__dirname, '../../../../src');
 const TARGET = join(__dirname, '../../src/util/vs');
 
@@ -32,7 +35,7 @@ function determineTargetPath(absoluteVSCodeFilePath: string): string {
 function createRelativeImportPath(currentFilePath: string, importedFilePath: string): string {
 	const relativePath = path.relative(path.dirname(currentFilePath), importedFilePath).replaceAll('\\', '/');
 	const result = relativePath.startsWith('.') ? relativePath : './' + relativePath;
-	return result.replace(/\.ts$/, '');
+	return result.replace(regexpTs, '');
 }
 
 async function doIt(filepaths: string[]) {
@@ -73,7 +76,7 @@ async function doIt(filepaths: string[]) {
 		} catch (e) {
 			try {
 				// .ts doesn't exist, try, .d.ts
-				filepath = filepath.replace(/\.ts$/, '.d.ts');
+				filepath = filepath.replace(regexpTs, '.d.ts');
 				source = String(await fs.promises.readFile(filepath));
 			} catch (e) {
 				console.error(`❌ Error reading file ${filepath}. Trajectory:\n${stackElement.importTrajectory.reverse().map(el => `- ${el}`).join('\n')}:`);
@@ -87,9 +90,9 @@ async function doIt(filepaths: string[]) {
 
 			let absolutePath: string | undefined;
 			if (importedFile.fileName.startsWith('.')) {
-				absolutePath = join(filepath, '..', importedFile.fileName.replace(/\.js$/, '.ts'));
+				absolutePath = join(filepath, '..', importedFile.fileName.replace(regexpJs, '.ts'));
 			} else if (importedFile.fileName.includes('/')) {
-				absolutePath = join(VS_ROOT, importedFile.fileName.replace(/\.js$/, '.ts'));
+				absolutePath = join(VS_ROOT, importedFile.fileName.replace(regexpJs, '.ts'));
 			}
 
 			if (absolutePath) {

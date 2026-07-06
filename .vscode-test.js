@@ -9,6 +9,8 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'url';
 import * as path from 'path';
 import * as os from 'os';
+const regexp1 = /[^\w]/g;
+
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -123,7 +125,7 @@ const config = defineConfig(extensions.map(extension => {
 				testsuitesTitle: `${suite} ${process.platform}`,
 				mochaFile: path.join(
 					process.env.BUILD_ARTIFACTSTAGINGDIRECTORY || process.env.GITHUB_WORKSPACE || __dirname,
-					`test-results/${process.platform}-${process.arch}-${suite.toLowerCase().replace(/[^\w]/g, '-')}-results.xml`
+					`test-results/${process.platform}-${process.arch}-${suite.toLowerCase().replace(new RegExp(regexp1), '-')}-results.xml`
 				)
 			}
 		};

@@ -19,6 +19,9 @@ import { product } from './bootstrap-meta.js';
 import * as perf from './vs/base/common/performance.js';
 import { INLSConfiguration } from './vs/nls.js';
 import { IServerAPI } from './vs/server/node/remoteExtensionHostAgentServer.js';
+const regexp1 = /^\d+$/;
+const regexp2 = /^(\d+)-(\d+)$/;
+
 
 perf.mark('code/server/start');
 (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
@@ -293,7 +296,7 @@ function installServerProcessExitDiagnostics(): void {
 async function parsePort(host: string | undefined, strPort: string | undefined): Promise<number> {
 	if (strPort) {
 		let range: { start: number; end: number } | undefined;
-		if (strPort.match(/^\d+$/)) {
+		if (strPort.match(regexp1)) {
 			return parseInt(strPort, 10);
 		} else if (range = parseRange(strPort)) {
 			const port = await findFreePort(host, range.start, range.end);
@@ -313,7 +316,7 @@ async function parsePort(host: string | undefined, strPort: string | undefined):
 }
 
 function parseRange(strRange: string): { start: number; end: number } | undefined {
-	const match = strRange.match(/^(\d+)-(\d+)$/);
+	const match = strRange.match(regexp2);
 	if (match) {
 		const start = parseInt(match[1], 10), end = parseInt(match[2], 10);
 		if (start > 0 && start <= end && end <= 65535) {

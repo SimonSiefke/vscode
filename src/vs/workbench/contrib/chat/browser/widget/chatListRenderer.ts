@@ -118,6 +118,10 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { AccessibilityWorkbenchSettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
 import { isMcpToolInvocation } from './chatContentParts/toolInvocationParts/chatToolPartUtilities.js';
 import { AgentSessionProviders, isAgentHostTarget } from '../agentSessions/agentSessions.js';
+const regexp1 = /\]/g;
+const regexp2 = /\\/g;
+const regexp3 = /\s+/g;
+
 
 const $ = dom.$;
 
@@ -172,7 +176,7 @@ export interface IChatListItemTemplate {
 }
 
 function escapeMarkdownLinkLabel(label: string): string {
-	return label.replace(/\\/g, '\\\\').replace(/\]/g, '\\]');
+	return label.replace(new RegExp(regexp2), '\\\\').replace(new RegExp(regexp1), '\\]');
 }
 
 export function buildPlanReviewProgressContent(review: IChatPlanReview, message: string): MarkdownString {
@@ -188,7 +192,7 @@ export function buildPlanReviewProgressContent(review: IChatPlanReview, message:
 
 	const content = new MarkdownString(undefined, { supportThemeIcons: true });
 	if (overall) {
-		content.appendText(localize('chat.planReview.feedbackInline', "{0}: {1}", message, overall.replace(/\s+/g, ' ')));
+		content.appendText(localize('chat.planReview.feedbackInline', "{0}: {1}", message, overall.replace(new RegExp(regexp3), ' ')));
 	} else {
 		content.appendText(message);
 	}

@@ -16,6 +16,8 @@ import { ISocket, SocketCloseEvent, SocketCloseEventType } from '../../../../bas
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+const regexpECONNREFUSED = /ECONNREFUSED/;
+
 
 /**
  * Wrap a raw `net.Socket` in the protocol-like shape that `TunnelProxy`
@@ -536,7 +538,7 @@ suite('TunnelProxy', () => {
 		// Connection should be refused after dispose
 		await assert.rejects(
 			() => proxyRequest(info, { path: `http://127.0.0.1:${targetPort}/`, auth: true }),
-			/ECONNREFUSED/,
+			regexpECONNREFUSED,
 		);
 	});
 

@@ -40,6 +40,8 @@ import { Range } from '../../../../../editor/common/core/range.js';
 import { getCodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { OperatingSystem, OS } from '../../../../../base/common/platform.js';
+const regexp1 = /[/\\:*?"<>|]/;
+
 
 /**
  * Action ID for the `Configure Hooks` action.
@@ -720,7 +722,7 @@ export async function showConfigureHooksQuickPick(
 								return;
 							}
 							const name = value.trim();
-							if (/[/\\:*?"<>|]/.test(name)) {
+							if (regexp1.test(name)) {
 								inputBox.validationMessage = localize('commands.hook.filename.invalidChars', "File name contains invalid characters");
 								return;
 							}

@@ -24,12 +24,15 @@ import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js'
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { CompletionItem } from './suggest.js';
 import { canExpandCompletionItem } from './suggestWidgetDetails.js';
+const regexpDaFARgb = /(#([\da-fA-F]{3}){1,2}|(rgb|hsl)a\(\s*(\d{1,3}%?\s*,\s*){3}(1|0?\.\d+)\)|(rgb|hsl)\(\s*\d{1,3}%?(\s*,\s*\d{1,3}%?){2}\s*\))/;
+const regexp2 = /\r\n|\r|\n/g;
+
 
 const suggestMoreInfoIcon = registerIcon('suggest-more-info', Codicon.chevronRight, nls.localize('suggestMoreInfoIcon', 'Icon for more information in the suggest widget.'));
 
 const _completionItemColor = new class ColorExtractor {
 
-	private static _regexRelaxed = /(#([\da-fA-F]{3}){1,2}|(rgb|hsl)a\(\s*(\d{1,3}%?\s*,\s*){3}(1|0?\.\d+)\)|(rgb|hsl)\(\s*\d{1,3}%?(\s*,\s*\d{1,3}%?){2}\s*\))/;
+	private static _regexRelaxed = regexpDaFARgb;
 	private static _regexStrict = new RegExp(`^${ColorExtractor._regexRelaxed.source}$`, 'i');
 
 	extract(item: CompletionItem, out: string[]): boolean {
@@ -250,5 +253,5 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 }
 
 function stripNewLines(str: string): string {
-	return str.replace(/\r\n|\r|\n/g, '');
+	return str.replace(new RegExp(regexp2), '');
 }

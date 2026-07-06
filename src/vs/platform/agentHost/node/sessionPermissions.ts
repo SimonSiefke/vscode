@@ -30,6 +30,10 @@ import {
 import { IAgentConfigurationService } from './agentConfigurationService.js';
 import { AgentHostStateManager } from './agentHostStateManager.js';
 import { CommandAutoApprover } from './commandAutoApprover.js';
+const regexp1 = /[<>"|?*]/;
+const regexpCONPRNAUX = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)/i;
+const regexp3 = /^\d/;
+
 
 /**
  * Event fields needed for auto-approval decisions.
@@ -108,7 +112,7 @@ function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 	}
 
 	// Check for invalid Windows filename characters
-	const invalidChars = /[<>"|?*]/;
+	const invalidChars = regexp1;
 	const pathAfterDrive = fsPath.length > 2 ? fsPath.substring(2) : fsPath;
 	if (invalidChars.test(pathAfterDrive)) {
 		throw new Error(`Path contains invalid characters: ${fsPath}`);
@@ -119,7 +123,7 @@ function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 		throw new Error(`Path is a reserved device path: ${fsPath}`);
 	}
 
-	const reserved = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)/i;
+	const reserved = regexpCONPRNAUX;
 
 	// Check for trailing dots and spaces on path components (Windows quirk)
 	const parts = fsPath.split('\\');
@@ -139,7 +143,7 @@ function assertPathIsSafe(fsPath: string, _isWindows = isWindows): void {
 		const tildeIndex = part.indexOf('~');
 		if (tildeIndex !== -1) {
 			const afterTilde = part.substring(tildeIndex + 1);
-			if (afterTilde.length > 0 && /^\d/.test(afterTilde)) {
+			if (afterTilde.length > 0 && regexp3.test(afterTilde)) {
 				throw new Error(`Path appears to use short filename format (8.3 names): ${fsPath}. Please use the full path.`);
 			}
 		}

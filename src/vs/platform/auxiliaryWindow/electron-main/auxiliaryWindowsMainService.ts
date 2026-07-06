@@ -14,6 +14,8 @@ import { IInstantiationService } from '../../instantiation/common/instantiation.
 import { ILogService } from '../../log/common/log.js';
 import { IWindowState, WindowMode, defaultAuxWindowState } from '../../window/electron-main/window.js';
 import { IDefaultBrowserWindowOptionsOverrides, WindowStateValidator, defaultBrowserWindowOptions, getLastFocused } from '../../windows/electron-main/windows.js';
+const regexp9aFA9a = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
 
 export class AuxiliaryWindowsMainService extends Disposable implements IAuxiliaryWindowsMainService {
 
@@ -146,7 +148,7 @@ export class AuxiliaryWindowsMainService extends Disposable implements IAuxiliar
 					overrides.notResizable = true;
 					break;
 				case 'window-background-color':
-					if (typeof value === 'string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) {
+					if (typeof value === 'string' && regexp9aFA9a.test(value)) {
 						overrides.backgroundColor = value;
 					}
 					break;

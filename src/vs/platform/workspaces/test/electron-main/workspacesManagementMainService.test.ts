@@ -32,6 +32,8 @@ import { UserDataProfilesMainService } from '../../../userDataProfile/electron-m
 import { IRawFileWorkspaceFolder, IRawUriWorkspaceFolder, WORKSPACE_EXTENSION } from '../../../workspace/common/workspace.js';
 import { IStoredWorkspace, IStoredWorkspaceFolder, IWorkspaceFolderCreationData, rewriteWorkspaceFileForNewLocation } from '../../common/workspaces.js';
 import { WorkspacesManagementMainService } from '../../electron-main/workspacesManagementMainService.js';
+const regexp1 = /[\\]/g;
+
 
 flakySuite('WorkspacesManagementMainService', () => {
 
@@ -302,7 +304,7 @@ flakySuite('WorkspacesManagementMainService', () => {
 		const workspaceConfigPath = URI.file(path.join(tmpDir, `myworkspace.${Date.now()}.${WORKSPACE_EXTENSION}`));
 
 		let origContent = fs.readFileSync(workspace.configPath.fsPath).toString();
-		origContent = origContent.replace(/[\\]/g, '/'); // convert backslash to slash
+		origContent = origContent.replace(new RegExp(regexp1), '/'); // convert backslash to slash
 
 		const newContent = rewriteWorkspaceFileForNewLocation(origContent, workspace.configPath, false, workspaceConfigPath, extUriBiasedIgnorePathCase);
 		const ws = (JSON.parse(newContent) as IStoredWorkspace);

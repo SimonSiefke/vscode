@@ -72,6 +72,8 @@ import { AgentHostReviewOperationContribution } from './agentHostReviewOperation
 import { AgentHostPullRequestOperationContribution } from './agentHostPullRequestOperationProvider.js';
 import { AgentHostSyncOperationContribution } from './agentHostSyncOperationProvider.js';
 import { AgentHostReviewService } from './agentHostReviewService.js';
+const regexp1 = /[\\/:*?"<>|\u0000-\u001f]/g;
+
 
 /**
  * Grace period before an empty, unsubscribed session is garbage-collected
@@ -1784,7 +1786,7 @@ export class AgentService extends Disposable implements IAgentService {
 	 * downstream consumers can detect the right type from the path alone.
 	 */
 	private _attachmentBasename(label: string, contentType: string | undefined): string {
-		const safeLabel = (label || 'attachment').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_');
+		const safeLabel = (label || 'attachment').replace(new RegExp(regexp1), '_');
 		if (resourcesExtname(URI.file(safeLabel))) {
 			return safeLabel;
 		}

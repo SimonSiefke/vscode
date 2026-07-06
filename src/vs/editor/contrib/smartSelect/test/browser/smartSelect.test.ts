@@ -20,6 +20,8 @@ import { javascriptOnEnterRules } from '../../../../test/common/modes/supports/o
 import { LanguageFeatureRegistry } from '../../../../common/languageFeatureRegistry.js';
 import { ILanguageSelection, ILanguageService } from '../../../../common/languages/language.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexp1 = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\$\%\^\&\*\(\)\=\+\[\{\]\}\\\;\:\'\"\,\.\<\>\/\?\s]+)/g;
+
 
 class StaticLanguageSelector implements ILanguageSelection {
 	readonly onDidChange: Event<string> = Event.None;
@@ -57,7 +59,7 @@ suite('SmartSelect', () => {
 				['[', ']']
 			],
 			onEnterRules: javascriptOnEnterRules,
-			wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\$\%\^\&\*\(\)\=\+\[\{\]\}\\\;\:\'\"\,\.\<\>\/\?\s]+)/g
+			wordPattern: new RegExp(regexp1)
 		}));
 	});
 

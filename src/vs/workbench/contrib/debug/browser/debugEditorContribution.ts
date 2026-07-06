@@ -55,6 +55,9 @@ import { IHostService } from '../../../services/host/browser/host.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { InsertLineAfterAction } from '../../../../editor/contrib/linesOperations/browser/linesOperations.js';
+const regexp1 = /\r?\n/;
+const regexp2 = /[ \t\n]/g;
+
 
 const MAX_NUM_INLINE_VALUES = 100; // JS Global scope can have 700+ entries. We want to limit ourselves for perf reasons
 const MAX_INLINE_DECORATOR_LENGTH = 150; // Max string length of each inline decorator when debugging. If exceeded ... is added
@@ -114,7 +117,7 @@ export function formatHoverContent(contentText: string): MarkdownString {
 			const equalsIndex = pair.indexOf('=');
 			if (equalsIndex !== -1) {
 				const indent = ' '.repeat(equalsIndex + 2);
-				const [firstLine, ...restLines] = pair.split(/\r?\n/);
+				const [firstLine, ...restLines] = pair.split(regexp1);
 				return [firstLine, ...restLines.map(line => indent + line)].join('\n');
 			}
 			return pair;
@@ -172,7 +175,7 @@ export function createInlineValueDecoration(lineNumber: number, contentText: str
 }
 
 function replaceWsWithNoBreakWs(str: string): string {
-	return str.replace(/[ \t\n]/g, strings.noBreakWhitespace);
+	return str.replace(new RegExp(regexp2), strings.noBreakWhitespace);
 }
 
 function createInlineValueDecorationsInsideRange(expressions: ReadonlyArray<IExpression>, ranges: Range[], model: ITextModel, wordToLineNumbersMap: Map<string, number[]>) {

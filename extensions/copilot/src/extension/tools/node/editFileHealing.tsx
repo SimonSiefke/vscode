@@ -29,6 +29,8 @@ import { CancellationToken } from '../../../util/vs/base/common/cancellation.js'
 import { count } from '../../../util/vs/base/common/strings.js';
 import { findAndReplaceOne } from './editFileToolUtils.js';
 import { IReplaceStringToolParams } from './replaceStringTool.js';
+const regexp1 = /\\+(n|t|r|'|"|`|\\|\n)/g;
+
 
 /**
  * Defines the structure of the parameters within CorrectedEditResult
@@ -519,7 +521,7 @@ export function _unescapeStringForGeminiBug(inputString: string): string {
 	// g : Global flag, to replace all occurrences.
 
 	return inputString.replace(
-		/\\+(n|t|r|'|"|`|\\|\n)/g,
+		new RegExp(regexp1),
 		(match, capturedChar) => {
 			// 'match' is the entire erroneous sequence, e.g., if the input (in memory) was "\\\\`", match is "\\\\`".
 			// 'capturedChar' is the character that determines the true meaning, e.g., '`'.

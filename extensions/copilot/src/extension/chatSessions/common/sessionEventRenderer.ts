@@ -9,6 +9,13 @@ import { ILogger } from '../../../platform/log/common/logService';
 import { URI } from '../../../util/vs/base/common/uri';
 import { ChatResponseCodeblockUriPart, ChatResponseMarkdownPart, ChatResponsePullRequestPart, ChatResponseTextEditPart, ChatResponseThinkingProgressPart, ChatToolInvocationPart, MarkdownString } from '../../../vscodeTypes';
 import type { ExtendedChatResponsePart } from 'vscode';
+const regexpPrMetadataUri = /<pr_metadata\s+uri="(?<uri>[^"]+)"\s+title="(?<title>[^"]+)"\s+description="(?<description>[^"]+)"\s+author="(?<author>[^"]+)"\s+linkTag="(?<linkTag>[^"]+)"\s*\/?>/;
+const regexpAmp = /&amp;/g;
+const regexpLt = /&lt;/g;
+const regexpGt = /&gt;/g;
+const regexpQuot = /&quot;/g;
+const regexpApos = /&apos;/g;
+
 
 /**
  * A tool invocation entry tracked between `tool.execution_start` and
@@ -126,17 +133,17 @@ function appendAssistantMessageContent(ctx: AssistantMessageBufferCtx, content: 
  * Extract PR metadata from assistant message content.
  */
 function extractPRMetadata(content: string): { cleanedContent: string; prPart?: ChatResponsePullRequestPart } {
-	const prMetadataRegex = /<pr_metadata\s+uri="(?<uri>[^"]+)"\s+title="(?<title>[^"]+)"\s+description="(?<description>[^"]+)"\s+author="(?<author>[^"]+)"\s+linkTag="(?<linkTag>[^"]+)"\s*\/?>/;
+	const prMetadataRegex = regexpPrMetadataUri;
 	const match = content.match(prMetadataRegex);
 
 	if (match?.groups) {
 		const { title, description, author, linkTag } = match.groups;
 		const unescapeXml = (text: string) => text
-			.replace(/&apos;/g, `'`)
-			.replace(/&quot;/g, '"')
-			.replace(/&gt;/g, '>')
-			.replace(/&lt;/g, '<')
-			.replace(/&amp;/g, '&');
+			.replace(new RegExp(regexpApos), `'`)
+			.replace(new RegExp(regexpQuot), '"')
+			.replace(new RegExp(regexpGt), '>')
+			.replace(new RegExp(regexpLt), '<')
+			.replace(new RegExp(regexpAmp), '&');
 
 		const prPart = new ChatResponsePullRequestPart(
 			{ command: 'github.copilot.chat.openPullRequestReroute', title: l10n.t('View Pull Request {0}', linkTag), arguments: [Number(linkTag.substring(1))] },

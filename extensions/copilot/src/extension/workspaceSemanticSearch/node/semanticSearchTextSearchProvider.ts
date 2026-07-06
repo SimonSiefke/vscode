@@ -32,6 +32,9 @@ import { ISearchPanelKeywordsPromptContext } from '../../prompts/node/panel/sear
 import { ISearchPanelPromptContext } from '../../prompts/node/panel/searchPanelPrompt';
 import { MAX_CHUNK_TOKEN_COUNT, MAX_CHUNKS_RESULTS } from '../../prompts/node/panel/workspace/workspaceContext';
 import { combinedRanking, combineRankingInsights } from './combinedRank';
+const regexpJson = /```(?:json)?/g;
+const regexp2 = /[\(\[\{].*[\)\]\}]/g;
+
 
 export interface ISearchFeedbackTelemetry {
 	chunkCount: number;
@@ -240,7 +243,7 @@ export class SemanticSearchTextSearchProvider extends Disposable implements vsco
 				SemanticSearchTextSearchProvider.feedBackTelemetry.rankResult = fetchResult.type;
 			}
 
-			searchResult = searchResult.replace(/```(?:json)?/g, '').trim();
+			searchResult = searchResult.replace(new RegExp(regexpJson), '').trim();
 			let rankingResults: IRankResult[] = [];
 			try {
 				rankingResults = JSON.parse(searchResult) as IRankResult[];
@@ -595,7 +598,7 @@ export class SemanticSearchTextSearchProvider extends Disposable implements vsco
 
 	private processKeyword(keyword: string, chunks: FileChunk[]): string | undefined {
 		// Clean up keyword if it ends with any kind of bracket pairs
-		const cleanedKeyword = keyword.replace(/[\(\[\{].*[\)\]\}]/g, '').trim();
+		const cleanedKeyword = keyword.replace(new RegExp(regexp2), '').trim();
 		if (cleanedKeyword.length === 0) {
 			return undefined;
 		}

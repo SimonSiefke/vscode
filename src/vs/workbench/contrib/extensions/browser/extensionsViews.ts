@@ -53,6 +53,61 @@ import { isString } from '../../../../base/common/types.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { ExtensionsList } from './extensionsViewer.js';
+const regexpIdZ09A = /@id:(([a-z0-9A-Z][a-z0-9\-A-Z]*)\.([a-z0-9A-Z][a-z0-9\-A-Z]*))/g;
+const regexpBuiltin = /@builtin/i;
+const regexpContribute = /@contribute:/i;
+const regexpRestartrequired = /@restartrequired/i;
+const regexpRecentlyUpdated = /@recentlyUpdated/i;
+const regexpDeprecated = /@deprecated/i;
+const regexpWorkspaceUnsupported = /@workspaceUnsupported/i;
+const regexpEnabled = /@enabled/i;
+const regexpDisabled = /@disabled/i;
+const regexpOutdated = /@outdated/i;
+const regexpInstalled = /@installed/i;
+const regexpSort = /@sort:(\w+)(-\w*)?/g;
+const regexpBuiltin1 = /@builtin/gi;
+const regexpBcategory = /\bcategory:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g;
+const regexpInstalled1 = /@installed/g;
+const regexpOutdated1 = /@outdated/g;
+const regexpDisabledBuiltin = /@disabled|@builtin/gi;
+const regexpEnabledBuiltin = /@enabled|@builtin/gi;
+const regexpWorkspaceUnsupportedUntrustedVirtual = /^\s*@workspaceUnsupported(?::(untrusted|virtual)(Partial)?)?(?:\s+([^\s]*))?/i;
+const regexpDeprecated1 = /@deprecated/g;
+const regexpRecentlyUpdated1 = /@recentlyUpdated/g;
+const regexpRestartrequired1 = /@restartrequired/gi;
+const regexpContribute1 = /@contribute:/g;
+const regexpBext = /\bext:([^\s]+)\b/g;
+const regexpCategoryTag = /\b(category|tag):([^\s]+)\b/gi;
+const regexpBfeatured = /\bfeatured(\s+|\b|$)/gi;
+const regexpRecommendedAll = /@recommended:all/i;
+const regexpRecommendedKeymaps = /@recommended:keymaps/g;
+const regexpRecommendedLanguages = /@recommended:languages/g;
+const regexpRecommendedRemotes = /@recommended:remotes/g;
+const regexpExe = /@exe:/g;
+const regexpRecommended = /@recommended/g;
+const regexpBuiltinBuiltin = /@builtin\s.+|.+\s@builtin/i;
+const regexpBuiltin2 = /^@builtin$/i;
+const regexpBuiltin3 = /^@builtin:.+$/i;
+const regexpWorkspaceUnsupportedUntrustedVirtual1 = /^\s*@workspaceUnsupported(:(untrusted|virtual)(Partial)?)?(\s|$)/i;
+const regexpInstalled2 = /@installed$/i;
+const regexpMcp = /@mcp/i;
+const regexpAgentPlugins = /@agentPlugins/i;
+const regexpInstalled3 = /@installed\s./i;
+const regexpDeprecated2 = /@deprecated\s?.*/i;
+const regexpRecommended1 = /^@recommended$/i;
+const regexpRecommended2 = /@recommended\s.+/i;
+const regexpRecommendedWorkspace = /@recommended:workspace/i;
+const regexpExe1 = /@exe:.+/i;
+const regexpRecommendedRemotes1 = /@recommended:remotes/i;
+const regexpRecommendedKeymaps1 = /@recommended:keymaps/i;
+const regexpRecommendedLanguages1 = /@recommended:languages/i;
+const regexpSort1 = /^@sort:\S*$/i;
+const regexpPopular = /@popular/i;
+const regexpRecentlyPublished = /@recentlyPublished/i;
+const regexpUpdates = /@updates/i;
+const regexpSortUpdateDate = /@sort:updateDate/i;
+const regexpWorkspaceUnsupported1 = /@workspaceUnsupported/gi;
+
 
 export const NONE_CATEGORY = 'none';
 
@@ -288,7 +343,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async query(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IQueryResult> {
-		const idRegex = /@id:(([a-z0-9A-Z][a-z0-9\-A-Z]*)\.([a-z0-9A-Z][a-z0-9\-A-Z]*))/g;
+		const idRegex = new RegExp(regexpIdZ09A);
 		const ids: string[] = [];
 		let idMatch;
 		while ((idMatch = idRegex.exec(query.value)) !== null) {
@@ -369,42 +424,42 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		const value = query.value;
 		let extensions: IExtension[] = [];
 		let description: string | undefined;
-		const includeBuiltin = /@builtin/i.test(value);
+		const includeBuiltin = regexpBuiltin.test(value);
 		const canIncludeInstalledExtensions = !includeBuiltin;
 
-		if (/@installed/i.test(value)) {
+		if (regexpInstalled.test(value)) {
 			extensions = this.filterInstalledExtensions(local, runningExtensions, query, options);
 		}
 
-		else if (/@outdated/i.test(value)) {
+		else if (regexpOutdated.test(value)) {
 			extensions = this.filterOutdatedExtensions(local, query, options);
 		}
 
-		else if (/@disabled/i.test(value)) {
+		else if (regexpDisabled.test(value)) {
 			extensions = this.filterDisabledExtensions(local, runningExtensions, query, options, includeBuiltin);
 		}
 
-		else if (/@enabled/i.test(value)) {
+		else if (regexpEnabled.test(value)) {
 			extensions = this.filterEnabledExtensions(local, runningExtensions, query, options, includeBuiltin);
 		}
 
-		else if (/@workspaceUnsupported/i.test(value)) {
+		else if (regexpWorkspaceUnsupported.test(value)) {
 			extensions = this.filterWorkspaceUnsupportedExtensions(local, query, options);
 		}
 
-		else if (/@deprecated/i.test(query.value)) {
+		else if (regexpDeprecated.test(query.value)) {
 			extensions = await this.filterDeprecatedExtensions(local, query, options);
 		}
 
-		else if (/@recentlyUpdated/i.test(query.value)) {
+		else if (regexpRecentlyUpdated.test(query.value)) {
 			extensions = this.filterRecentlyUpdatedExtensions(local, query, options);
 		}
 
-		else if (/@restartrequired/i.test(query.value)) {
+		else if (regexpRestartrequired.test(query.value)) {
 			extensions = this.filterRestartRequiredExtensions(local, query, options);
 		}
 
-		else if (/@contribute:/i.test(query.value)) {
+		else if (regexpContribute.test(query.value)) {
 			extensions = this.filterExtensionsByFeature(local, query);
 		}
 
@@ -417,7 +472,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 	private filterBuiltinExtensions(local: IExtension[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
-		value = value.replaceAll(/@builtin/gi, '').replaceAll(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replaceAll(new RegExp(regexpBuiltin1), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		const result = local
 			.filter(e => e.isBuiltin && (e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -443,7 +498,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private parseCategories(value: string): { value: string; includedCategories: string[]; excludedCategories: string[] } {
 		const includedCategories: string[] = [];
 		const excludedCategories: string[] = [];
-		value = value.replace(/\bcategory:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g, (_, quotedCategory, category) => {
+		value = value.replace(new RegExp(regexpBcategory), (_, quotedCategory, category) => {
 			const entry = (category || quotedCategory || '').toLowerCase();
 			if (entry.startsWith('-')) {
 				if (excludedCategories.indexOf(entry) === -1) {
@@ -462,7 +517,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterInstalledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replace(/@installed/g, '').replace(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replace(new RegExp(regexpInstalled1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		const matchingText = (e: IExtension) => (e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1 || e.description.toLowerCase().indexOf(value) > -1)
 			&& this.filterExtensionByCategory(e, includedCategories, excludedCategories);
@@ -538,7 +593,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterOutdatedExtensions(local: IExtension[], query: Query, options: IQueryOptions): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replace(/@outdated/g, '').replace(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replace(new RegExp(regexpOutdated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		const result = local
 			.sort((e1, e2) => e1.displayName.localeCompare(e2.displayName))
@@ -552,7 +607,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterDisabledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions, includeBuiltin: boolean): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value.replaceAll(/@disabled|@builtin/gi, '').replaceAll(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replaceAll(new RegExp(regexpDisabledBuiltin), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		if (includeBuiltin) {
 			local = local.filter(e => e.isBuiltin);
@@ -569,7 +624,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	private filterEnabledExtensions(local: IExtension[], runningExtensions: readonly IExtensionDescription[], query: Query, options: IQueryOptions, includeBuiltin: boolean): IExtension[] {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 
-		value = value ? value.replaceAll(/@enabled|@builtin/gi, '').replaceAll(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase() : '';
+		value = value ? value.replaceAll(new RegExp(regexpEnabledBuiltin), '').replaceAll(new RegExp(regexpSort), '').trim().toLowerCase() : '';
 
 		local = local.filter(e => e.isBuiltin === includeBuiltin);
 		const result = local
@@ -586,7 +641,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 		const queryString = query.value; // @sortby is already filtered out
 
-		const match = queryString.match(/^\s*@workspaceUnsupported(?::(untrusted|virtual)(Partial)?)?(?:\s+([^\s]*))?/i);
+		const match = queryString.match(regexpWorkspaceUnsupportedUntrustedVirtual);
 		if (!match) {
 			return [];
 		}
@@ -642,7 +697,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async filterDeprecatedExtensions(local: IExtension[], query: Query, options: IQueryOptions): Promise<IExtension[]> {
-		const value = query.value.replace(/@deprecated/g, '').replace(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		const value = query.value.replace(new RegExp(regexpDeprecated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const deprecatedExtensionIds = Object.keys(extensionsControlManifest.deprecated);
 		local = local.filter(e => deprecatedExtensionIds.includes(e.identifier.id) && (!value || e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1));
@@ -654,7 +709,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		const currentTime = Date.now();
 		local = local.filter(e => !e.isBuiltin && !e.outdated && e.local?.updated && e.local?.installedTimestamp !== undefined && currentTime - e.local.installedTimestamp < ExtensionsListView.RECENT_UPDATE_DURATION);
 
-		value = value.replace(/@recentlyUpdated/g, '').replace(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replace(new RegExp(regexpRecentlyUpdated1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		const result = local.filter(e =>
 			(e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -669,7 +724,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		let { value, includedCategories, excludedCategories } = this.parseCategories(query.value);
 		local = local.filter(e => e.runtimeState !== undefined);
 
-		value = value.replace(/@restartrequired/gi, '').replace(/@sort:(\w+)(-\w*)?/g, '').trim().toLowerCase();
+		value = value.replace(new RegExp(regexpRestartrequired1), '').replace(new RegExp(regexpSort), '').trim().toLowerCase();
 
 		const result = local.filter(e =>
 			(e.name.toLowerCase().indexOf(value) > -1 || e.displayName.toLowerCase().indexOf(value) > -1)
@@ -679,7 +734,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private filterExtensionsByFeature(local: IExtension[], query: Query): IExtension[] {
-		const value = query.value.replace(/@contribute:/g, '').trim();
+		const value = query.value.replace(new RegExp(regexpContribute1), '').trim();
 		const featureId = value.split(' ')[0];
 		const feature = Registry.as<IExtensionFeaturesRegistry>(Extensions.ExtensionFeaturesRegistry).getExtensionFeature(featureId);
 		if (!feature) {
@@ -752,7 +807,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}
 
-		if (/\bext:([^\s]+)\b/g.test(text)) {
+		if (new RegExp(regexpBext).test(text)) {
 			options.text = text;
 			options.source = 'file-extension-tags';
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
@@ -762,7 +817,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		options.text = text.substring(0, 350);
 		options.source = 'searchText';
 
-		if (hasUserDefinedSortOrder || /\b(category|tag):([^\s]+)\b/gi.test(text) || /\bfeatured(\s+|\b|$)/gi.test(text)) {
+		if (hasUserDefinedSortOrder || new RegExp(regexpCategoryTag).test(text) || new RegExp(regexpBfeatured).test(text)) {
 			const pager = await this.extensionsWorkbenchService.queryGallery(options, token);
 			return { model: new PagedModel(pager), disposables: new DisposableStore() };
 		}
@@ -872,7 +927,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			|| ExtensionsListView.isLanguageRecommendedExtensionsQuery(query.value)
 			|| ExtensionsListView.isExeRecommendedExtensionsQuery(query.value)
 			|| ExtensionsListView.isRemoteRecommendedExtensionsQuery(query.value)
-			|| /@recommended:all/i.test(query.value)
+			|| regexpRecommendedAll.test(query.value)
 			|| ExtensionsListView.isSearchRecommendedExtensionsQuery(query.value)
 			|| ExtensionsListView.isRecommendedExtensionsQuery(query.value);
 	}
@@ -904,7 +959,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		}
 
 		// All recommendations
-		if (/@recommended:all/i.test(query.value)) {
+		if (regexpRecommendedAll.test(query.value)) {
 			return this.getAllRecommendationsModel(options, token);
 		}
 
@@ -979,7 +1034,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getKeymapRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(/@recommended:keymaps/g, '').trim().toLowerCase();
+		const value = query.value.replace(new RegExp(regexpRecommendedKeymaps), '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getKeymapRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-keymaps' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -987,7 +1042,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getLanguageRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(/@recommended:languages/g, '').trim().toLowerCase();
+		const value = query.value.replace(new RegExp(regexpRecommendedLanguages), '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getLanguageRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-languages' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -995,7 +1050,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getRemoteRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(/@recommended:remotes/g, '').trim().toLowerCase();
+		const value = query.value.replace(new RegExp(regexpRecommendedRemotes), '').trim().toLowerCase();
 		const recommendations = this.extensionRecommendationsService.getRemoteRecommendations();
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations-remotes' }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1003,7 +1058,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async getExeRecommendationsModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const exe = query.value.replace(/@exe:/g, '').trim().toLowerCase();
+		const exe = query.value.replace(new RegExp(regexpExe), '').trim().toLowerCase();
 		const { important, others } = await this.extensionRecommendationsService.getExeBasedRecommendations(exe.startsWith('"') ? exe.substring(1, exe.length - 1) : exe);
 		const installableRecommendations = await this.getInstallableRecommendations([...important, ...others], { ...options, source: 'recommendations-exe' }, token);
 		return new PagedModel(installableRecommendations);
@@ -1073,7 +1128,7 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	private async searchRecommendations(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
-		const value = query.value.replace(/@recommended/g, '').trim().toLowerCase();
+		const value = query.value.replace(new RegExp(regexpRecommended), '').trim().toLowerCase();
 		const recommendations = distinct([...await this.getWorkspaceRecommendations(), ...await this.getOtherRecommendations()]);
 		const installableRecommendations = (await this.getInstallableRecommendations(recommendations, { ...options, source: 'recommendations', sortBy: undefined }, token))
 			.filter(extension => extension.identifier.id.toLowerCase().indexOf(value) > -1);
@@ -1181,103 +1236,103 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 	}
 
 	static isSearchBuiltInExtensionsQuery(query: string): boolean {
-		return /@builtin\s.+|.+\s@builtin/i.test(query);
+		return regexpBuiltinBuiltin.test(query);
 	}
 
 	static isBuiltInExtensionsQuery(query: string): boolean {
-		return /^@builtin$/i.test(query.trim());
+		return regexpBuiltin2.test(query.trim());
 	}
 
 	static isBuiltInGroupExtensionsQuery(query: string): boolean {
-		return /^@builtin:.+$/i.test(query.trim());
+		return regexpBuiltin3.test(query.trim());
 	}
 
 	static isSearchWorkspaceUnsupportedExtensionsQuery(query: string): boolean {
-		return /^\s*@workspaceUnsupported(:(untrusted|virtual)(Partial)?)?(\s|$)/i.test(query);
+		return regexpWorkspaceUnsupportedUntrustedVirtual1.test(query);
 	}
 
 	static isInstalledExtensionsQuery(query: string): boolean {
-		return /@installed$/i.test(query) && !/@mcp/i.test(query) && !/@agentPlugins/i.test(query);
+		return regexpInstalled2.test(query) && !regexpMcp.test(query) && !regexpAgentPlugins.test(query);
 	}
 
 	static isSearchInstalledExtensionsQuery(query: string): boolean {
-		return (/@installed\s./i.test(query) && !/@mcp/i.test(query) && !/@agentPlugins/i.test(query)) || this.isFeatureExtensionsQuery(query);
+		return (regexpInstalled3.test(query) && !regexpMcp.test(query) && !regexpAgentPlugins.test(query)) || this.isFeatureExtensionsQuery(query);
 	}
 
 	static isOutdatedExtensionsQuery(query: string): boolean {
-		return /@outdated/i.test(query);
+		return regexpOutdated.test(query);
 	}
 
 	static isEnabledExtensionsQuery(query: string): boolean {
-		return /@enabled/i.test(query) && !/@builtin/i.test(query);
+		return regexpEnabled.test(query) && !regexpBuiltin.test(query);
 	}
 
 	static isDisabledExtensionsQuery(query: string): boolean {
-		return /@disabled/i.test(query) && !/@builtin/i.test(query);
+		return regexpDisabled.test(query) && !regexpBuiltin.test(query);
 	}
 
 	static isSearchDeprecatedExtensionsQuery(query: string): boolean {
-		return /@deprecated\s?.*/i.test(query);
+		return regexpDeprecated2.test(query);
 	}
 
 	static isRecommendedExtensionsQuery(query: string): boolean {
-		return /^@recommended$/i.test(query.trim());
+		return regexpRecommended1.test(query.trim());
 	}
 
 	static isSearchRecommendedExtensionsQuery(query: string): boolean {
-		return /@recommended\s.+/i.test(query);
+		return regexpRecommended2.test(query);
 	}
 
 	static isWorkspaceRecommendedExtensionsQuery(query: string): boolean {
-		return /@recommended:workspace/i.test(query);
+		return regexpRecommendedWorkspace.test(query);
 	}
 
 	static isExeRecommendedExtensionsQuery(query: string): boolean {
-		return /@exe:.+/i.test(query);
+		return regexpExe1.test(query);
 	}
 
 	static isRemoteRecommendedExtensionsQuery(query: string): boolean {
-		return /@recommended:remotes/i.test(query);
+		return regexpRecommendedRemotes1.test(query);
 	}
 
 	static isKeymapsRecommendedExtensionsQuery(query: string): boolean {
-		return /@recommended:keymaps/i.test(query);
+		return regexpRecommendedKeymaps1.test(query);
 	}
 
 	static isLanguageRecommendedExtensionsQuery(query: string): boolean {
-		return /@recommended:languages/i.test(query);
+		return regexpRecommendedLanguages1.test(query);
 	}
 
 	static isSortInstalledExtensionsQuery(query: string, sortBy?: string): boolean {
-		return (sortBy !== undefined && sortBy !== '' && query === '') || (!sortBy && /^@sort:\S*$/i.test(query));
+		return (sortBy !== undefined && sortBy !== '' && query === '') || (!sortBy && regexpSort1.test(query));
 	}
 
 	static isSearchPopularQuery(query: string): boolean {
-		return /@popular/i.test(query);
+		return regexpPopular.test(query);
 	}
 
 	static isSearchRecentlyPublishedQuery(query: string): boolean {
-		return /@recentlyPublished/i.test(query);
+		return regexpRecentlyPublished.test(query);
 	}
 
 	static isSearchRecentlyUpdatedQuery(query: string): boolean {
-		return /@recentlyUpdated/i.test(query);
+		return regexpRecentlyUpdated.test(query);
 	}
 
 	static isRestartRequiredQuery(query: string): boolean {
-		return /@restartrequired/i.test(query);
+		return regexpRestartrequired.test(query);
 	}
 
 	static isSearchExtensionUpdatesQuery(query: string): boolean {
-		return /@updates/i.test(query);
+		return regexpUpdates.test(query);
 	}
 
 	static isSortUpdateDateQuery(query: string): boolean {
-		return /@sort:updateDate/i.test(query);
+		return regexpSortUpdateDate.test(query);
 	}
 
 	static isFeatureExtensionsQuery(query: string): boolean {
-		return /@contribute:/i.test(query);
+		return regexpContribute.test(query);
 	}
 
 	override focus(): void {
@@ -1416,7 +1471,7 @@ function toSpecificWorkspaceUnsupportedQuery(query: string, qualifier: string): 
 	const match = query.match(new RegExp(`@workspaceUnsupported(:${qualifier})?(\\s|$)`, 'i'));
 	if (match) {
 		if (!match[1]) {
-			return query.replace(/@workspaceUnsupported/gi, '@workspaceUnsupported:' + qualifier);
+			return query.replace(new RegExp(regexpWorkspaceUnsupported1), '@workspaceUnsupported:' + qualifier);
 		}
 		return query;
 	}

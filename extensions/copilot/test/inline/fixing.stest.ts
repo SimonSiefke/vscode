@@ -10,6 +10,9 @@ import { KnownDiagnosticProviders } from '../simulation/diagnosticProviders';
 import { forInlineChatIntent, simulateInlineChatWithStrategy } from '../simulation/inlineChatSimulator';
 import { assertLessDiagnosticsAsync, assertNoDiagnosticsAsync, getWorkspaceDiagnostics } from '../simulation/outcomeValidators';
 import { assertConversationalOutcome, assertInlineEdit, assertNoOccurrence, assertOccursOnce, fromFixture, toFile } from '../simulation/stestUtil';
+const regexpPsBashNpm = /```(ps|bash)[.\n\r]*npm install.*@angular\/core/;
+const regexpPsBashNpm1 = /```(ps|bash)[.\n\r]*npm install.*cypress/;
+
 
 
 forInlineChatIntent((strategy, nonExtensionConfigurations, suffix) => {
@@ -349,7 +352,7 @@ forInlineChatIntent((strategy, nonExtensionConfigurations, suffix) => {
 						diagnostics: 'tsc',
 						validate: async (outcome, workspace, accessor) => {
 							assertConversationalOutcome(outcome);
-							const match = outcome.chatResponseMarkdown.match(/```(ps|bash)[.\n\r]*npm install.*@angular\/core/);
+							const match = outcome.chatResponseMarkdown.match(regexpPsBashNpm);
 							assert.ok(match, 'contains npm install @angular/core');
 						}
 					}
@@ -439,7 +442,7 @@ forInlineChatIntent((strategy, nonExtensionConfigurations, suffix) => {
 						diagnostics: 'tsc',
 						validate: async (outcome, workspace, accessor) => {
 							if (outcome.type === 'conversational') {
-								const match = outcome.chatResponseMarkdown.match(/```(ps|bash)[.\n\r]*npm install.*cypress/);
+								const match = outcome.chatResponseMarkdown.match(regexpPsBashNpm1);
 								assert.ok(match, 'contains npm install cypress');
 							} else if (outcome.type === 'inlineEdit') {
 								const diagnostics = await getWorkspaceDiagnostics(accessor, workspace, 'tsc');

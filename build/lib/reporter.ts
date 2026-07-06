@@ -8,6 +8,8 @@ import fancyLog from 'fancy-log';
 import ansiColors from 'ansi-colors';
 import fs from 'fs';
 import path from 'path';
+const regexp1 = /^([^(]+)\((\d+),(\d+)\): (.*)$/s;
+
 
 class ErrorLog {
 	public id: string;
@@ -49,7 +51,7 @@ class ErrorLog {
 
 		fancyLog(`Finished ${ansiColors.green('compilation')}${this.id ? ansiColors.blue(` ${this.id}`) : ''} with ${errors.length} errors after ${ansiColors.magenta((new Date().getTime() - this.startTime!) + ' ms')}`);
 
-		const regex = /^([^(]+)\((\d+),(\d+)\): (.*)$/s;
+		const regex = regexp1;
 		const messages = errors
 			.map(err => regex.exec(err))
 			.filter(match => !!match)

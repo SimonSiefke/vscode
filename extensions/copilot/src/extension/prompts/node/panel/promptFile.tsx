@@ -14,6 +14,9 @@ import { PromptVariable } from '../../../prompt/common/chatVariablesCollection';
 import { IPromptVariablesService } from '../../../prompt/node/promptVariablesService';
 import { EmbeddedInsideUserMessage } from '../base/promptElement';
 import { Tag } from '../base/tag';
+const regexp1 = /[\r\n]---[\s\r\n]*/;
+const regexp2 = /^---[\s\r\n]/;
+
 
 export interface PromptFileProps extends BasePromptElementProps, EmbeddedInsideUserMessage {
 	readonly variable: PromptVariable;
@@ -65,9 +68,9 @@ export class PromptFile extends PromptElement<PromptFileProps, void> {
 			}
 
 			let bodyOffset = 0;
-			if (content.match(/^---[\s\r\n]/)) {
+			if (content.match(regexp2)) {
 				// find the start of the body
-				const match = content.slice(3).match(/[\r\n]---[\s\r\n]*/);
+				const match = content.slice(3).match(regexp1);
 				if (match) {
 					bodyOffset = match.index! + match[0].length;
 				}

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ThemeIcon } from '../../../../util/vs/base/common/themables';
+const regexp1 = /^\s*$/;
+
 
 /**
  * Represents a specific point in time.
@@ -82,6 +84,6 @@ export function shortenOpportunityId(opportunityId: string): string {
 
 export function checkIfCursorAtEndOfLine(lineWithCursor: string, cursorOffsetZeroBased: number): boolean {
 	// check if there's any non-whitespace character after the cursor in the line
-	const isCursorAtEndOfLine = lineWithCursor.substring(cursorOffsetZeroBased).match(/^\s*$/) !== null;
+	const isCursorAtEndOfLine = lineWithCursor.substring(cursorOffsetZeroBased).match(regexp1) !== null;
 	return isCursorAtEndOfLine;
 }

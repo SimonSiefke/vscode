@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpZA = /^\/([a-zA-Z])(\/.*)?$/;
+const regexp2 = /\//g;
+const regexp3 = /\\/g;
+const regexpZA1 = /^[a-zA-Z]:\\/;
+
 /**
  * Converts a Git Bash absolute path to a Windows absolute path.
  * Examples:
@@ -18,14 +23,14 @@ export function gitBashToWindowsPath(path: string, driveLetter?: string): string
 	if (path === '/') {
 		return `${systemDrive}\\`;
 	}
-	const match = path.match(/^\/([a-zA-Z])(\/.*)?$/);
+	const match = path.match(regexpZA);
 	if (match) {
 		const drive = match[1].toUpperCase();
-		const rest = match[2] ? match[2].replace(/\//g, '\\') : '\\';
+		const rest = match[2] ? match[2].replace(new RegExp(regexp2), '\\') : '\\';
 		return `${drive}:${rest}`;
 	}
 	// Fallback: just replace slashes
-	return path.replace(/\//g, '\\');
+	return path.replace(new RegExp(regexp2), '\\');
 }
 
 /**
@@ -37,6 +42,6 @@ export function gitBashToWindowsPath(path: string, driveLetter?: string): string
 export function windowsToGitBashPath(path: string): string {
 	// Convert Windows path (e.g. C:\Users\foo) to Git Bash path (e.g. /c/Users/foo)
 	return path
-		.replace(/^[a-zA-Z]:\\/, match => `/${match[0].toLowerCase()}/`)
-		.replace(/\\/g, '/');
+		.replace(regexpZA1, match => `/${match[0].toLowerCase()}/`)
+		.replace(new RegExp(regexp3), '/');
 }

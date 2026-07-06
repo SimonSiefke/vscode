@@ -58,6 +58,12 @@ import { IWorkbenchEnvironmentService } from '../../../../../services/environmen
 import { IPathService } from '../../../../../services/path/common/pathService.js';
 import { FromWebviewMessage, IAckOutputHeight, IClickedDataUrlMessage, ICodeBlockHighlightRequest, IContentWidgetTopRequest, IControllerPreload, ICreationContent, ICreationRequestMessage, IFindMatch, IMarkupCellInitialization, RendererMetadata, StaticPreloadMetadata, ToWebviewMessage } from './webviewMessages.js';
 import { getOutputText, getOutputStreamText, TEXT_BASED_MIMETYPES } from '../../viewModel/cellOutputTextHelper.js';
+const regexp1 = /^[\w\-]+:/;
+const regexpLine = /(?:^|&)line=([^&]+)/;
+const regexpExecutionCount = /(?:^|&)execution_count=([^&]+)/;
+const regexpLine1 = /\?line=(\d+)$/;
+const regexpData = /^data:/;
+
 
 const LINE_COLUMN_REGEX = /:([\d]+)(?::([\d]+))?$/;
 const LineQueryRegex = /line=(\d+)$/;
@@ -807,7 +813,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 					} else if (matchesScheme(data.href, Schemas.vscodeNotebookCell)) {
 						const uri = URI.parse(data.href);
 						await this._handleNotebookCellResource(uri);
-					} else if (!/^[\w\-]+:/.test(data.href)) {
+					} else if (!regexp1.test(data.href)) {
 						// Uri without scheme, such as a file path
 						await this._handleResourceOpening(tryDecodeURIComponent(data.href));
 					} else {
@@ -981,7 +987,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 	private _handleNotebookCellResource(uri: URI) {
 		const notebookResource = uri.path.length > 0 ? uri : this.documentUri;
 
-		const lineMatch = /(?:^|&)line=([^&]+)/.exec(uri.query);
+		const lineMatch = regexpLine.exec(uri.query);
 		let editorOptions: ITextEditorOptions | undefined = undefined;
 		if (lineMatch) {
 			const parsedLineNumber = parseInt(lineMatch[1], 10);
@@ -994,7 +1000,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 			}
 		}
 
-		const executionMatch = /(?:^|&)execution_count=([^&]+)/.exec(uri.query);
+		const executionMatch = regexpExecutionCount.exec(uri.query);
 		if (executionMatch) {
 			const executionCount = parseInt(executionMatch[1], 10);
 			if (!isNaN(executionCount)) {
@@ -1017,7 +1023,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 
 		// URLs built by the jupyter extension put the line query param in the fragment
 		// They also have the cell fragment pre-calculated
-		const fragmentLineMatch = /\?line=(\d+)$/.exec(uri.fragment);
+		const fragmentLineMatch = regexpLine1.exec(uri.fragment);
 		if (fragmentLineMatch) {
 			const parsedLineNumber = parseInt(fragmentLineMatch[1], 10);
 			if (!isNaN(parsedLineNumber)) {
@@ -1174,7 +1180,7 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 		if (event.downloadName) {
 			defaultName = event.downloadName;
 		} else {
-			const mimeType = splitStart.replace(/^data:/, '');
+			const mimeType = splitStart.replace(regexpData, '');
 			const candidateExtension = mimeType && getExtensionForMimeType(mimeType);
 			defaultName = candidateExtension ? `download${candidateExtension}` : 'download';
 		}

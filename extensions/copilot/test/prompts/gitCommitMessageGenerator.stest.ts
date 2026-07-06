@@ -12,6 +12,8 @@ import { CancellationToken } from '../../src/util/vs/base/common/cancellation';
 import { URI } from '../../src/util/vs/base/common/uri';
 import { IInstantiationService } from '../../src/util/vs/platform/instantiation/common/instantiation';
 import { ssuite, stest } from '../base/stest';
+const regexp1 = /#\d+/;
+
 
 ssuite({ title: 'git commit message', location: 'external' }, () => {
 	stest({ description: 'Generates a simple commit message', language: 'python' }, async (testingServiceCollection) => {
@@ -98,7 +100,7 @@ index 0877b83..6260896 100644
 		assert.ok(!repoCommits.some(commit => message.toLowerCase().includes(commit)), 'Commit message contains a repo commit');
 		assert.ok(['fix:', 'chore:', 'feat:', 'refactor:'].some(prefix => message.toLowerCase().startsWith(prefix)), 'Commit message does not follow the conventional commits format');
 		assert.ok(!message.includes('example.com'), 'Commit message contains the email address');
-		assert.ok(!/#\d+/.test(message), 'Commit message does include an issue reference');
+		assert.ok(!regexp1.test(message), 'Commit message does include an issue reference');
 
 	});
 

@@ -9,6 +9,8 @@ import { copyExtension } from './extensions';
 import { URI } from 'vscode-uri';
 import { measureAndLog } from './logger';
 import type { LaunchOptions } from './code';
+const regexp1 = /^(\d+)\.(\d+)\.(\d+)/;
+
 
 const root = join(__dirname, '..', '..', '..');
 
@@ -139,7 +141,7 @@ function findFilePath(root: string, path: string): string {
 }
 
 function parseVersion(version: string) {
-	const match = /^(\d+)\.(\d+)\.(\d+)/.exec(version);
+	const match = regexp1.exec(version);
 	if (!match) {
 		throw new Error(`Invalid version string: ${version}`);
 	}

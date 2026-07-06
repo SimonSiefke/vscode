@@ -21,6 +21,8 @@ import { assertJSON, assertNoElidedCodeComments, getWorkspaceDiagnostics, valida
 import { INLINE_CHANGED_DOC_TAG, INLINE_INITIAL_DOC_TAG, INLINE_STATE_TAG, IWorkspaceState } from '../simulation/shared/sharedTypes';
 import { fromFixture } from '../simulation/stestUtil';
 import { OutcomeAnnotation } from '../simulation/types';
+const regexpConstActivatorCreateActivator = /(?!const\s*)activator = createActivator/g;
+
 
 
 function forEditsAndAgent(callback: (variant: string | undefined, model: string | undefined, configurations: Configuration<any>[] | undefined) => void): void {
@@ -458,7 +460,7 @@ forEditsAndAgent((variant, model, configurations) => {
 				],
 				validate: async (outcome, workspace, accessor) => {
 					assert.ok(outcome.appliedEdits.length, 'has edits');
-					assert.equal(numRegexOccurrences(outcome.editedFile, /(?!const\s*)activator = createActivator/g), 9);
+					assert.equal(numRegexOccurrences(outcome.editedFile, new RegExp(regexpConstActivatorCreateActivator)), 9);
 					assert.equal(numOccurrences(outcome.editedFile, 'activator.dispose();'), 1);
 					assertNoElidedCodeComments(outcome.editedFile);
 					validateConsistentIndentation(outcome.editedFile, false, outcome.annotations);

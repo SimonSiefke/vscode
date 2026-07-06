@@ -28,6 +28,8 @@ import { SearchSubagentToolCallingLoop, isContextOverflowBadRequest } from '../.
 import { ToolName } from '../common/toolNames';
 import { CopilotToolMode, ICopilotTool, ICopilotToolCtor, ToolRegistry } from '../common/toolsRegistry';
 import { assertFileOkForTool, isFileExternalAndNeedsConfirmation } from './toolUtils';
+const regexp1 = /^(.+):(\d+)-(\d+)$/;
+
 
 export interface ISearchSubagentParams {
 
@@ -212,7 +214,7 @@ class SearchSubagentTool implements ICopilotTool<ISearchSubagentParams> {
 		const lines = response.split('\n');
 
 		// Parse file:line-line format
-		const fileRangePattern = /^(.+):(\d+)-(\d+)$/;
+		const fileRangePattern = regexp1;
 		const processedLines: string[] = [];
 
 		for (const line of lines) {

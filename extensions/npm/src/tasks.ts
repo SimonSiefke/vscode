@@ -14,6 +14,9 @@ import minimatch from 'minimatch';
 import { Utils } from 'vscode-uri';
 import { findPreferredPM } from './preferred-pm';
 import { readScripts } from './readScripts';
+const regexpInspectDebugBrk = /--(inspect|debug)(-brk)?(=((\[[0-9a-fA-F:]*\]|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[a-zA-Z0-9\.]*):)?(\d+))?/;
+const regexp2 = /\s/;
+
 
 const excludeRegex = new RegExp('^(node_modules|.vscode-test)$', 'i');
 
@@ -265,7 +268,7 @@ function isExcluded(folder: WorkspaceFolder, packageJsonUri: Uri) {
 }
 
 function isDebugScript(script: string): boolean {
-	const match = script.match(/--(inspect|debug)(-brk)?(=((\[[0-9a-fA-F:]*\]|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[a-zA-Z0-9\.]*):)?(\d+))?/);
+	const match = script.match(regexpInspectDebugBrk);
 	return match !== null;
 }
 
@@ -303,7 +306,7 @@ export function getTaskName(script: string, relativePath: string | undefined) {
 
 function escapeCommandLine(cmd: string[]): (string | ShellQuotedString)[] {
 	return cmd.map(arg => {
-		if (/\s/.test(arg)) {
+		if (regexp2.test(arg)) {
 			return { value: arg, quoting: arg.includes('--') ? ShellQuoting.Weak : ShellQuoting.Strong };
 		} else {
 			return arg;

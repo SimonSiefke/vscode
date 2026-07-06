@@ -31,6 +31,8 @@ import { GestureEvent } from '../../../base/browser/touch.js';
 import { IPaneCompositePart } from './paneCompositePart.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
 import { IViewsService } from '../../services/views/common/viewsService.js';
+const regexp1 = /\./g;
+
 
 interface IPlaceholderViewContainer {
 	readonly id: string;
@@ -397,7 +399,7 @@ export class PaneCompositeBar extends Disposable {
 				const cssUrl = asCSSUrl(icon);
 				const hash = new StringSHA1();
 				hash.update(cssUrl);
-				const iconId = `activity-${id.replace(/\./g, '-')}-${hash.digest()}`;
+				const iconId = `activity-${id.replace(new RegExp(regexp1), '-')}-${hash.digest()}`;
 				const iconClass = `.monaco-workbench .${this.options.partContainerClass} .monaco-action-bar .action-label.${iconId}`;
 				classNames = [iconId, 'uri-icon'];
 				createCSSRule(iconClass, `

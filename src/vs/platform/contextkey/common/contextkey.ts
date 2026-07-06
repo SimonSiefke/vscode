@@ -12,6 +12,8 @@ import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { localize } from '../../../nls.js';
 import { IDisposable } from '../../../base/common/lifecycle.js';
 import { illegalArgument } from '../../../base/common/errors.js';
+const regexp1 = /g|y/g;
+
 
 const CONSTANT_VALUES = new Map<string, boolean>();
 CONSTANT_VALUES.set('false', false);
@@ -521,7 +523,7 @@ export class Parser {
 		}
 	}
 
-	private _flagsGYRe = /g|y/g;
+	private _flagsGYRe = new RegExp(regexp1);
 	private _removeFlagsGY(flags: string): string {
 		return flags.replaceAll(this._flagsGYRe, '');
 	}

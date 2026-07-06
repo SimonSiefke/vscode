@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 import path from 'path';
 import fs from 'fs';
+const regexp9a = /^[0-9a-f]{40}$/i;
+const regexpRef = /^ref: (.*)$/;
+const regexp9a1 = /^([0-9a-f]{40})\s+(.+)$/gm;
+
 
 /**
  * Returns the sha1 commit version of a repository or undefined in case of failure.
@@ -19,11 +23,11 @@ export function getVersion(repo: string): string | undefined {
 		return undefined;
 	}
 
-	if (/^[0-9a-f]{40}$/i.test(head)) {
+	if (regexp9a.test(head)) {
 		return head;
 	}
 
-	const refMatch = /^ref: (.*)$/.exec(head);
+	const refMatch = regexpRef.exec(head);
 
 	if (!refMatch) {
 		return undefined;
@@ -47,7 +51,7 @@ export function getVersion(repo: string): string | undefined {
 		return undefined;
 	}
 
-	const refsRegex = /^([0-9a-f]{40})\s+(.+)$/gm;
+	const refsRegex = new RegExp(regexp9a1);
 	let refsMatch: RegExpExecArray | null;
 	const refs: { [ref: string]: string } = {};
 

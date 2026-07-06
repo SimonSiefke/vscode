@@ -34,6 +34,8 @@ import { ICustomEditorLabelService } from '../../../services/editor/common/custo
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IPathService } from '../../../services/path/common/pathService.js';
 import { isAbsolute } from '../../../../base/common/path.js';
+const regexpZa = /^\*\.([A-Za-z_-]*)$/;
+
 
 export interface NotebookEditorInputOptions {
 	startDirty?: boolean;
@@ -276,7 +278,7 @@ export class NotebookEditorInput extends AbstractResourceEditorInput {
 
 		const resource = this.resource;
 		if (selectorStr) {
-			const matches = /^\*\.([A-Za-z_-]*)$/.exec(selectorStr);
+			const matches = regexpZa.exec(selectorStr);
 			if (matches && matches.length > 1) {
 				const fileExt = matches[1];
 				if (!resource.path.endsWith(fileExt)) {

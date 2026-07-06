@@ -7,6 +7,9 @@ import { sanitizeVSCodeVersion } from '../../../util/common/vscodeVersion';
 import { IEnvService } from '../../env/common/envService';
 import { IFetcherService } from '../../networking/common/fetcherService';
 import { IReleaseNotesService } from '../common/releaseNotesService';
+const regexp1 = /^(\d+)\.(\d+)$/;
+const regexp2 = /^\d+\.\d+(?:\.\d+)?$/;
+
 
 export class ReleaseNotesService implements IReleaseNotesService {
 	declare _serviceBrand: undefined;
@@ -51,9 +54,9 @@ export class ReleaseNotesService implements IReleaseNotesService {
 		let major: string | undefined;
 		let minor: string | undefined;
 
-		if (/^\d+\.\d+(?:\.\d+)?$/.test(sourceVersion)) {
+		if (regexp2.test(sourceVersion)) {
 			const sanitized = sanitizeVSCodeVersion(sourceVersion);
-			const mm = /^(\d+)\.(\d+)$/.exec(sanitized);
+			const mm = regexp1.exec(sanitized);
 			if (!mm) {
 				return;
 			}

@@ -42,6 +42,9 @@ import { RawContextKey } from '../../../../platform/contextkey/common/contextkey
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
+const regexp1 = /^["']|["']$/g;
+const regexp2 = /[:.]/g;
+
 
 /** Context key that's `true` whenever any IssueReporter editor is open in any group, even when not focused. */
 export const IssueReporterOpenContext = new RawContextKey<boolean>('issueReporterOpen', false);
@@ -401,7 +404,7 @@ export class IssueReporterEditorPane extends EditorPane {
 					{},
 					CancellationToken.None,
 				);
-				const title = (await getTextResponseFromStream(response)).trim().replace(/^["']|["']$/g, '');
+				const title = (await getTextResponseFromStream(response)).trim().replace(new RegExp(regexp1), '');
 				if (title && this.wizard) {
 					this.wizard.setGeneratedTitle(title);
 				} else {
@@ -555,7 +558,7 @@ export class IssueReporterEditorPane extends EditorPane {
 	private async saveRecordingAndAdd(data: IRecordingData): Promise<void> {
 		try {
 			const extension = data.mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
-			const fileName = `vscode-recording-${new Date().toISOString().replace(/[:.]/g, '-')}.${extension}`;
+			const fileName = `vscode-recording-${new Date().toISOString().replace(new RegExp(regexp2), '-')}.${extension}`;
 			// Write to the OS temp folder so artifacts are cleaned up automatically.
 			const folder = URI.joinPath(this.environmentService.tmpDir, 'issue-recordings');
 			const target = URI.joinPath(folder, fileName);

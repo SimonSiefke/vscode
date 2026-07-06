@@ -12,6 +12,8 @@ import { Logger } from './logging';
 import { PathMapper, looksLikeNodeModules, mapUri } from './pathMapper';
 import { findArgument, hasArgument } from './util/args';
 import { URI } from 'vscode-uri';
+const regexp1 = /\.\.|\/\.|\.\//;
+
 
 type TsModule = typeof ts;
 
@@ -368,7 +370,7 @@ function createServerHost(
 			&& !path.startsWith('/file/');
 
 		// skip paths without .. or ./ or /
-		if (!isNm && !path.match(/\.\.|\/\.|\.\//)) {
+		if (!isNm && !path.match(regexp1)) {
 			return path;
 		}
 

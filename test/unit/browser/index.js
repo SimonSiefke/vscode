@@ -5,6 +5,13 @@
 
 //@ts-check
 'use strict';
+const regexp1 = /[^\w]/g;
+const regexpSrc = /^src/;
+const regexpTs = /\.ts$/;
+const regexpJs = /\.js$/;
+const regexp5 = /\\/g;
+const regexpVsTestJs = /(vs\/.*\.test)\.js/;
+
 
 const path = require('path');
 const glob = require('glob');
@@ -95,7 +102,7 @@ const withReporter = (function () {
 				new MochaJUnitReporter(runner, {
 					reporterOptions: {
 						testsuitesTitle: `${args.tfs} ${process.platform}`,
-						mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${browserType}-${args.tfs.toLowerCase().replace(/[^\w]/g, '-')}-results.xml`) : undefined
+						mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${browserType}-${args.tfs.toLowerCase().replace(new RegExp(regexp1), '-')}-results.xml`) : undefined
 					}
 				});
 			};
@@ -123,8 +130,8 @@ const testModules = (async function () {
 		// use file list (--run)
 		isDefaultModules = false;
 		promise = Promise.resolve(ensureIsArray(args.run).map(file => {
-			file = file.replace(/^src/, 'out');
-			file = file.replace(/\.ts$/, '.js');
+			file = file.replace(regexpSrc, 'out');
+			file = file.replace(regexpTs, '.js');
 			return path.relative(out, file);
 		}));
 
@@ -149,7 +156,7 @@ const testModules = (async function () {
 		const modules = [];
 		for (const file of files) {
 			if (!minimatch(file, excludeGlob)) {
-				modules.push(file.replace(/\.js$/, ''));
+				modules.push(file.replace(regexpJs, ''));
 
 			} else if (!isDefaultModules) {
 				console.warn(`DROPPING ${file} because it cannot be run inside a browser`);
@@ -208,7 +215,7 @@ async function createServer() {
 		function massagePath(p) {
 			// TODO@jrieken FISHY but it enables snapshot
 			// in ESM browser tests
-			p = String(p).replace(/\\/g, '/').replace(prefix, rootDir);
+			p = String(p).replace(new RegExp(regexp5), '/').replace(prefix, rootDir);
 			return p;
 		}
 
@@ -291,7 +298,7 @@ async function runTestsInBrowser(testModules, browserType, browserChannel) {
 		failingTests.push({ title: test.fullTitle, message: err.message });
 
 		if (err.stack) {
-			const regex = /(vs\/.*\.test)\.js/;
+			const regex = regexpVsTestJs;
 			for (const line of String(err.stack).split('\n')) {
 				const match = regex.exec(line);
 				if (match) {

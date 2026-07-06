@@ -55,6 +55,8 @@ import { PANEL_BACKGROUND, PANEL_SECTION_DRAG_AND_DROP_BACKGROUND, PANEL_STICKY_
 import { IAccessibleViewInformationService } from '../../../services/accessibility/common/accessibleViewInformationService.js';
 import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { ViewMenuActions } from './viewMenuActions.js';
+const regexp1 = /[\.\:]/g;
+
 
 export enum ViewPaneShowActions {
 	/** Show the actions when the view is hovered. This is the default behavior. */
@@ -539,7 +541,7 @@ export abstract class ViewPane extends Pane implements IView {
 
 		let cssClass: string | undefined = undefined;
 		if (URI.isUri(icon)) {
-			cssClass = `view-${this.id.replace(/[\.\:]/g, '-')}`;
+			cssClass = `view-${this.id.replace(new RegExp(regexp1), '-')}`;
 			const iconClass = `.pane-header .icon.${cssClass}`;
 
 			createCSSRule(iconClass, `

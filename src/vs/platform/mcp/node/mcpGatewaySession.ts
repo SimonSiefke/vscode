@@ -13,6 +13,8 @@ import { hasKey } from '../../../base/common/types.js';
 import { ILogger } from '../../log/common/log.js';
 import { IMcpGatewaySingleServerInvoker } from '../common/mcpGateway.js';
 import { MCP } from '../common/modelContextProtocol.js';
+const regexp1 = /\r?\n/g;
+
 
 const MCP_LATEST_PROTOCOL_VERSION = '2025-11-25';
 const MCP_SUPPORTED_PROTOCOL_VERSIONS = [
@@ -124,7 +126,7 @@ export class McpGatewaySession extends Disposable {
 		const payload = JSON.stringify(message);
 		const eventId = String(++this._lastEventId);
 		this._logService.debug(`[McpGateway][session ${this.id}] Broadcasting SSE event id=${eventId} to ${this._sseClients.size}`);
-		const lines = payload.split(/\r?\n/g);
+		const lines = payload.split(new RegExp(regexp1));
 		const data = [
 			`id: ${eventId}`,
 			'event: message',

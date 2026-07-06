@@ -6,6 +6,8 @@
 import { Uri } from 'vscode';
 import type { Change } from './api/git';
 import { Status } from './api/git.constants';
+const regexpGit = /^git$/;
+
 
 export interface GitUriParams {
 	path: string;
@@ -14,7 +16,7 @@ export interface GitUriParams {
 }
 
 export function isGitUri(uri: Uri): boolean {
-	return /^git$/.test(uri.scheme);
+	return regexpGit.test(uri.scheme);
 }
 
 export function fromGitUri(uri: Uri): GitUriParams {

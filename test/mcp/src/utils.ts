@@ -5,21 +5,24 @@
 
 import { dirname, join } from 'path';
 import { Application, ApplicationOptions } from '../../automation';
+const regexp1 = /^(\d+)\.(\d+)\.(\d+)/;
+const regexpZ0 = /[^a-z0-9\-]/ig;
+
 
 let logsCounter = 1;
 let crashCounter = 1;
 
 export function parseVersion(version: string): { major: number; minor: number; patch: number } {
-	const [, major, minor, patch] = /^(\d+)\.(\d+)\.(\d+)/.exec(version)!;
+	const [, major, minor, patch] = regexp1.exec(version)!;
 	return { major: parseInt(major), minor: parseInt(minor), patch: parseInt(patch) };
 }
 
 export function suiteLogsPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(/[^a-z0-9\-]/ig, '_')}`);
+	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
 }
 
 export function suiteCrashPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(/[^a-z0-9\-]/ig, '_')}`);
+	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
 }
 
 export function getRandomUserDataDir(baseUserDataDir: string): string {

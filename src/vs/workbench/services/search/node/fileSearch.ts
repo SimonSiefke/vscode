@@ -22,6 +22,8 @@ import { Promises } from '../../../../base/node/pfs.js';
 import { IFileQuery, IFolderQuery, IProgressMessage, ISearchEngineStats, IRawFileMatch, ISearchEngine, ISearchEngineSuccess, isFilePatternMatch, hasSiblingFn } from '../common/search.js';
 import { spawnRipgrepCmd } from './ripgrepFileSearch.js';
 import { prepareQuery } from '../../../../base/common/fuzzyScorer.js';
+const regexp1 = /^-/;
+
 
 interface IDirectoryEntry extends IRawFileMatch {
 	base: string;
@@ -216,7 +218,7 @@ export class FileWalker {
 		const noSiblingsClauses = !Object.keys(ripgrep.siblingClauses).length;
 
 		const escapedArgs = ripgrep.rgArgs.args
-			.map(arg => arg.match(/^-/) ? arg : `'${arg}'`)
+			.map(arg => arg.match(regexp1) ? arg : `'${arg}'`)
 			.join(' ');
 
 		let rgCmd = `${ripgrep.rgDiskPath} ${escapedArgs}\n - cwd: ${ripgrep.cwd}`;

@@ -12,23 +12,28 @@ import { GeneralShellType, PosixShellType, WindowsShellType } from '../../../../
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestContextService, TestHistoryService } from '../../../../test/common/workbenchTestServices.js';
 import { testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
+const regexpMntDriveZA = /^\/mnt\/(?<drive>[a-zA-Z])\/(?<path>.+)$/;
+const regexp2 = /\//g;
+const regexpDriveZAPath = /(?<drive>[a-zA-Z]):\\(?<path>.+)/;
+const regexp4 = /\\/g;
+
 
 const wslPathBackend = {
 	getWslPath: async (original: string, direction: 'unix-to-win' | 'win-to-unix') => {
 		if (direction === 'unix-to-win') {
-			const match = original.match(/^\/mnt\/(?<drive>[a-zA-Z])\/(?<path>.+)$/);
+			const match = original.match(regexpMntDriveZA);
 			const groups = match?.groups;
 			if (!groups) {
 				return original;
 			}
-			return `${groups.drive}:\\${groups.path.replace(/\//g, '\\')}`;
+			return `${groups.drive}:\\${groups.path.replace(new RegExp(regexp2), '\\')}`;
 		}
-		const match = original.match(/(?<drive>[a-zA-Z]):\\(?<path>.+)/);
+		const match = original.match(regexpDriveZAPath);
 		const groups = match?.groups;
 		if (!groups) {
 			return original;
 		}
-		return `/mnt/${groups.drive.toLowerCase()}/${groups.path.replace(/\\/g, '/')}`;
+		return `/mnt/${groups.drive.toLowerCase()}/${groups.path.replace(new RegExp(regexp4), '/')}`;
 	}
 };
 

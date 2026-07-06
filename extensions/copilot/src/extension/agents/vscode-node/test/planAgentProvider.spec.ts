@@ -20,6 +20,10 @@ import { IInstantiationService } from '../../../../util/vs/platform/instantiatio
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { buildAgentMarkdown, DEFAULT_READ_TOOLS } from '../agentTypes';
 import { PlanAgentProvider } from '../planAgentProvider';
+const regexpTools = /tools: \[([^\]]+)\]/;
+const regexpAgent = /'agent'/g;
+const regexp3 = /'([^']+)'/g;
+
 
 suite('PlanAgentProvider', () => {
 	let disposables: DisposableStore;
@@ -118,10 +122,10 @@ suite('PlanAgentProvider', () => {
 
 		// Count occurrences of 'agent' in tools list (flow-style array)
 		// Should appear only once due to deduplication
-		const toolsMatch = content.match(/tools: \[([^\]]+)\]/);
+		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
 		const toolsSection = toolsMatch[1];
-		const agentCount = (toolsSection.match(/'agent'/g) || []).length;
+		const agentCount = (toolsSection.match(new RegExp(regexpAgent)) || []).length;
 		assert.equal(agentCount, 1, 'agent tool should appear only once after deduplication');
 
 		// Should contain new tool
@@ -256,9 +260,9 @@ suite('PlanAgentProvider', () => {
 		assert.equal(agents.length, 1);
 		const content = await getAgentContent(agents[0]);
 
-		const toolsMatch = content.match(/tools: \[([^\]]+)\]/);
+		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
-		const actualTools = (toolsMatch[1].match(/'([^']+)'/g) || []).map(tool => tool.slice(1, -1)).sort();
+		const actualTools = (toolsMatch[1].match(new RegExp(regexp3)) || []).map(tool => tool.slice(1, -1)).sort();
 		const expectedTools = [...DEFAULT_READ_TOOLS, 'agent', 'vscode/askQuestions'].sort();
 
 		assert.deepStrictEqual(actualTools, expectedTools);
@@ -421,7 +425,7 @@ suite('PlanAgentProvider', () => {
 		const content = await getAgentContent(agents[0]);
 
 		// Should not have the 'agent' tool
-		const toolsMatch = content.match(/tools: \[([^\]]+)\]/);
+		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch);
 		assert.ok(!toolsMatch[1].includes('\'agent\''), 'Should not include agent tool when explore is disabled');
 
@@ -437,7 +441,7 @@ suite('PlanAgentProvider', () => {
 		const content = await getAgentContent(agents[0]);
 
 		// Should have the 'agent' tool
-		const toolsMatch = content.match(/tools: \[([^\]]+)\]/);
+		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch);
 		assert.ok(toolsMatch[1].includes('\'agent\''), 'Should include agent tool when explore is enabled');
 

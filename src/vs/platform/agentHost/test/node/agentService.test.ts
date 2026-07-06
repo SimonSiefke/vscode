@@ -38,6 +38,16 @@ import { NULL_CHECKPOINT_SERVICE } from '../../common/agentHostCheckpointService
 import { buildSessionChangesetUri, buildUncommittedChangesetUri } from '../../common/changesetUri.js';
 import { type ICopilotApiService, type ICopilotApiServiceRequestOptions, type ICopilotUtilityChatCompletionRequest } from '../../node/shared/copilotApiService.js';
 import { AhpErrorCodes, JSON_RPC_INTERNAL_ERROR, ProtocolError } from '../../common/state/sessionProtocol.js';
+const regexpOut = /[/\\]out[/\\]/;
+const regexpAlreadyRegistered = /already registered/;
+const regexpNoAgentProvider = /No agent provider/;
+const regexpUnknownChangesetResource = /unknown changeset resource/;
+const regexpSessionNotFound = /Session not found on backend/;
+const regexpRestoreFailed = /restore failed/;
+const regexpDoesNotSupport = /does not support multiple chats/;
+const regexpDirectoryNotFound = /Directory not found/;
+const regexpNotDirectory = /Not a directory/;
+
 
 /**
  * Loads a JSONL fixture of raw Copilot SDK events, runs them through
@@ -54,7 +64,7 @@ async function loadFixtureMessages(fixtureName: string, session: URI) {
 	const thisFile = fileURLToPath(import.meta.url);
 	// Navigate from out/vs/... to src/vs/... by replacing the out/ prefix.
 	// Use a regex that handles both / and \ separators for Windows compat.
-	const srcFile = thisFile.replace(/[/\\]out[/\\]/, (m) => m.replace('out', 'src'));
+	const srcFile = thisFile.replace(regexpOut, (m) => m.replace('out', 'src'));
 	const lastSep = Math.max(srcFile.lastIndexOf('/'), srcFile.lastIndexOf('\\'));
 	const fixtureDir = srcFile.substring(0, lastSep);
 	const sep = srcFile.includes('\\') ? '\\' : '/';
@@ -142,7 +152,7 @@ suite('AgentService (node dispatcher)', () => {
 			service.registerProvider(copilotAgent);
 			const duplicate = new MockAgent('copilot');
 			disposables.add(toDisposable(() => duplicate.dispose()));
-			assert.throws(() => service.registerProvider(duplicate), /already registered/);
+			assert.throws(() => service.registerProvider(duplicate), regexpAlreadyRegistered);
 		});
 
 		test('maps progress events to protocol actions via onDidAction', async () => {
@@ -720,7 +730,7 @@ suite('AgentService (node dispatcher)', () => {
 		});
 
 		test('throws when no providers are registered at all', async () => {
-			await assert.rejects(() => service.createSession(), /No agent provider/);
+			await assert.rejects(() => service.createSession(), regexpNoAgentProvider);
 		});
 	});
 
@@ -1660,7 +1670,7 @@ suite('AgentService (node dispatcher)', () => {
 
 			await assert.rejects(
 				() => service.subscribe(URI.parse(changesetUri), 'client-cs-unknown'),
-				/unknown changeset resource/,
+				regexpUnknownChangesetResource,
 			);
 			assert.strictEqual(
 				service.stateManager.getSessionState(sessionUri),
@@ -2076,7 +2086,7 @@ suite('AgentService (node dispatcher)', () => {
 			service.registerProvider(copilotAgent);
 			await assert.rejects(
 				() => service.restoreSession(AgentSession.uri('copilot', 'nonexistent')),
-				/Session not found on backend/,
+				regexpSessionNotFound,
 			);
 		});
 
@@ -2232,7 +2242,7 @@ suite('AgentService (node dispatcher)', () => {
 				{ type: 'message', session, role: 'assistant', messageId: 'msg-2', content: 'Hi', toolRequests: [] },
 			];
 
-			await assert.rejects(() => service.restoreSession(session), /restore failed/);
+			await assert.rejects(() => service.restoreSession(session), regexpRestoreFailed);
 
 			agent.shouldFailRestore = false;
 			await service.restoreSession(session);
@@ -2598,7 +2608,7 @@ suite('AgentService (node dispatcher)', () => {
 
 			await assert.rejects(
 				() => service.createChat(session, chatUri),
-				/does not support multiple chats/,
+				regexpDoesNotSupport,
 			);
 		});
 
@@ -4234,14 +4244,14 @@ suite('AgentService (node dispatcher)', () => {
 		test('throws when the directory does not exist', async () => {
 			await assert.rejects(
 				() => service.resourceList(URI.from({ scheme: Schemas.inMemory, path: '/nonexistent' })),
-				/Directory not found/,
+				regexpDirectoryNotFound,
 			);
 		});
 
 		test('throws when the target is not a directory', async () => {
 			await assert.rejects(
 				() => service.resourceList(URI.from({ scheme: Schemas.inMemory, path: '/testDir/file.txt' })),
-				/Not a directory/,
+				regexpNotDirectory,
 			);
 		});
 	});

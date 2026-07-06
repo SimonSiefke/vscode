@@ -10,6 +10,8 @@ import { NotebookCellKind, Position, Range, Uri } from '../../../vscodeTypes';
 import { BaseAlternativeNotebookContentProvider } from './alternativeContentProvider';
 import { AlternativeNotebookDocument } from './alternativeNotebookDocument';
 import { EOL, getCellId, getCellIdMap, getDefaultLanguage, LineOfCellText, LineOfText, summarize } from './helpers';
+const regexp1 = /\r?\n/;
+
 
 const IndentSize = 4;
 
@@ -102,7 +104,7 @@ export class AlternativeJsonNotebookContentProvider extends BaseAlternativeNoteb
 				} else {
 					cellSummary.source = [existingCodeMarkerWithComment];
 				}
-				const summary = JSON.stringify(cellSummary, undefined, IndentSize).split(/\r?\n/).map(line => `    ${line}`);
+				const summary = JSON.stringify(cellSummary, undefined, IndentSize).split(regexp1).map(line => `    ${line}`);
 				lines.push(...summary);
 				lines.push(',');
 			} else if (!lines.length || lines[lines.length - 1] !== existingCodeMarkerWithComment) {

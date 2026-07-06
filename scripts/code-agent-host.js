@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpREADY = /READY:(\d+)/;
+
 // @ts-check
 
 const cp = require('child_process');
@@ -90,7 +92,7 @@ function startServer(programArgs) {
 		proc.stdout.on('data', (data) => {
 			const text = data.toString();
 			process.stdout.write(text);
-			const m = text.match(/READY:(\d+)/);
+			const m = text.match(regexpREADY);
 			if (m) {
 				resolve();
 			}

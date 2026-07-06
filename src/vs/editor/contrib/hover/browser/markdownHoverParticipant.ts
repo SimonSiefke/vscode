@@ -34,6 +34,8 @@ import { getHoverProviderResultsAsAsyncIterable } from './getHover.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { HoverStartSource } from './hoverOperation.js';
 import { ScrollEvent } from '../../../../base/common/scrollable.js';
+const regexp1 = /[^\S\n\r]+/gu;
+
 
 const $ = dom.$;
 const increaseHoverVerbosityIcon = registerIcon('hover-increase-verbosity', Codicon.addSmall, nls.localize('increaseHoverVerbosity', 'Icon for increaseing hover verbosity.'));
@@ -416,7 +418,7 @@ class MarkdownRenderedHoverParts implements IRenderedHoverParts<MarkdownHover> {
 			return undefined;
 		}
 		const hoverElementInnerText = renderedHoverPart.hoverElement.innerText;
-		const accessibleContent = hoverElementInnerText.replace(/[^\S\n\r]+/gu, ' ');
+		const accessibleContent = hoverElementInnerText.replace(new RegExp(regexp1), ' ');
 		return accessibleContent;
 	}
 

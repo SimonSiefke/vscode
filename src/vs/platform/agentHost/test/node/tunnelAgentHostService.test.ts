@@ -8,6 +8,9 @@ import { DeferredPromise, timeout } from '../../../../base/common/async.js';
 import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { TUNNEL_STEP_TIMEOUT_MS, withTimeout } from '../../node/tunnelAgentHostService.js';
+const regexpErrorBoom = /^Error: boom$/;
+const regexpTunnelRelayConnect = /tunnel relay connect timed out after 5000ms/;
+
 
 suite('TunnelAgentHostService - withTimeout', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -26,7 +29,7 @@ suite('TunnelAgentHostService - withTimeout', () => {
 		return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {
 			await assert.rejects(
 				() => withTimeout(async () => { throw new Error('boom'); }, 5_000, 'failing op'),
-				/^Error: boom$/,
+				regexpErrorBoom,
 			);
 		});
 	});
@@ -44,7 +47,7 @@ suite('TunnelAgentHostService - withTimeout', () => {
 			await timeout(6_000);
 			const err = await rejected;
 			assert.ok(err instanceof Error, `Expected Error, got ${String(err)}`);
-			assert.match(err.message, /tunnel relay connect timed out after 5000ms/);
+			assert.match(err.message, regexpTunnelRelayConnect);
 			// Settle the never-resolving promise so the timer/test cleans up
 			// without leaving an unhandled rejection/leaked promise.
 			hanging.complete(undefined as never);

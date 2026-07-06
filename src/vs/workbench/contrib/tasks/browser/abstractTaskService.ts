@@ -92,6 +92,10 @@ import { configureTaskIcon, isWorkspaceFolder, ITaskQuickPickEntry, QUICKOPEN_DE
 import { IHostService } from '../../../services/host/browser/host.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { FocusMode } from '../../../../platform/native/common/native.js';
+const regexp1 = /^(.*?)\s*\{[\s\S]*$/;
+const regexp2 = /(\n)(\t+)/g;
+const regexpTasksJson = /tasks\.json$/;
+
 
 const QUICKOPEN_HISTORY_LIMIT_CONFIG = 'task.quickOpen.history';
 const PROBLEM_MATCHER_NEVER_CONFIG = 'task.problemMatchers.neverPrompt';
@@ -800,7 +804,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 				const chatEnabled = this._chatService.isEnabled(ChatAgentLocation.Chat);
 				const actions = [];
 				if (chatEnabled && errorMessage) {
-					const beforeJSONregex = /^(.*?)\s*\{[\s\S]*$/;
+					const beforeJSONregex = regexp1;
 					const matches = errorMessage.match(beforeJSONregex);
 					if (matches && matches.length > 1) {
 						const message = matches[1];
@@ -1786,7 +1790,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 			].join('\n') + JSON.stringify(value, null, '\t').substr(1);
 			const editorConfig = this._configurationService.getValue<{ editor: { insertSpaces: boolean; tabSize: number } }>();
 			if (editorConfig.editor.insertSpaces) {
-				content = content.replace(/(\n)(\t+)/g, (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
+				content = content.replace(new RegExp(regexp2), (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
 			}
 			await this._textFileService.create([{ resource: workspaceFolder.toResource('.vscode/tasks.json'), value: content }]);
 		} else {
@@ -2666,7 +2670,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		if (parseErrors) {
 			let isAffected = false;
 			for (const parseError of parseErrors) {
-				if (/tasks\.json$/.test(parseError)) {
+				if (regexpTasksJson.test(parseError)) {
 					isAffected = true;
 					break;
 				}
@@ -2846,7 +2850,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		if (parseErrors) {
 			let isAffected = false;
 			for (const parseError of parseErrors) {
-				if (/tasks\.json$/.test(parseError)) {
+				if (regexpTasksJson.test(parseError)) {
 					isAffected = true;
 					break;
 				}
@@ -3580,7 +3584,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 				content = pickTemplateResult.content;
 				const editorConfig = this._configurationService.getValue() as { editor: { insertSpaces: boolean; tabSize: number } };
 				if (editorConfig.editor.insertSpaces) {
-					content = content.replace(/(\n)(\t+)/g, (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
+					content = content.replace(new RegExp(regexp2), (_, s1, s2) => s1 + ' '.repeat(s2.length * editorConfig.editor.tabSize));
 				}
 				configFileCreated = true;
 			}

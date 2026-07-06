@@ -20,6 +20,8 @@ import { UntitledTextEditorInput } from '../../../untitled/common/untitledTextEd
 import { createTextBufferFactory } from '../../../../../editor/common/model/textModel.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
+const regexpUnableToResolve = /Unable to resolve text model content for resource/;
+
 
 suite('Workbench - TextModelResolverService', () => {
 
@@ -232,7 +234,7 @@ suite('Workbench - TextModelResolverService', () => {
 
 		await assert.rejects(
 			() => accessor.textModelResolverService.createModelReference(resource),
-			/Unable to resolve text model content for resource/
+			regexpUnableToResolve
 		);
 	});
 

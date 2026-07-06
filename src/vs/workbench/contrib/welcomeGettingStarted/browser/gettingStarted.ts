@@ -75,6 +75,14 @@ import { AccessibilityVerbositySettingId } from '../../accessibility/browser/acc
 import { AccessibleViewAction } from '../../accessibility/browser/accessibleViewActions.js';
 import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
+const regexpAmp = /&amp;/g;
+const regexp2 = /&#39;/g;
+const regexpCheckedOn = /checked-on=\"([^'][^"]*)\"/g;
+const regexp4 = / /g;
+const regexpCommandToSide = /command:(toSide:)?/;
+const regexp6 = /[^#]+#/;
+const regexpCommand = /^command:/;
+
 
 const SLIDE_TRANSITION_TIME_MS = 250;
 const configurationKey = 'workbench.startupEditor';
@@ -679,9 +687,9 @@ export class GettingStartedPage extends EditorPane {
 			const rawHTML = await this.detailsRenderer.renderMarkdown(media.path, media.base);
 			this.webview.setHtml(rawHTML);
 
-			const serializedContextKeyExprs = rawHTML.match(/checked-on=\"([^'][^"]*)\"/g)?.map(attr => attr.slice('checked-on="'.length, -1)
-				.replace(/&#39;/g, '\'')
-				.replace(/&amp;/g, '&'));
+			const serializedContextKeyExprs = rawHTML.match(new RegExp(regexpCheckedOn))?.map(attr => attr.slice('checked-on="'.length, -1)
+				.replace(new RegExp(regexp2), '\'')
+				.replace(new RegExp(regexpAmp), '&'));
 
 			const postTrueKeysMessage = () => {
 				const enabledContextKeys = serializedContextKeyExprs?.filter(expr => this.contextService.contextMatchesRules(ContextKeyExpr.deserialize(expr)));
@@ -864,7 +872,7 @@ export class GettingStartedPage extends EditorPane {
 
 	private updateMediaSourceForColorMode(element: HTMLImageElement, sources: { hcDark: URI; hcLight: URI; dark: URI; light: URI }) {
 		const themeType = this.themeService.getColorTheme().type;
-		const src = sources[themeType].toString(true).replace(/ /g, '%20');
+		const src = sources[themeType].toString(true).replace(new RegExp(regexp4), '%20');
 		element.srcset = src.toLowerCase().endsWith('.svg') ? src : (src + ' 1.5x');
 	}
 
@@ -1367,7 +1375,7 @@ export class GettingStartedPage extends EditorPane {
 
 		const isCommand = href.startsWith('command:');
 		const toSide = href.startsWith('command:toSide:');
-		const command = href.replace(/command:(toSide:)?/, 'command:');
+		const command = href.replace(regexpCommandToSide, 'command:');
 
 		this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'runStepAction', argument: href, walkthroughId: this.currentWalkthrough?.id });
 
@@ -1448,7 +1456,7 @@ export class GettingStartedPage extends EditorPane {
 				const button = new Button(buttonContainer, { title: node.title, supportIcons: true, ...defaultButtonStyles });
 
 				const isCommand = node.href.startsWith('command:');
-				const command = node.href.replace(/command:(toSide:)?/, 'command:');
+				const command = node.href.replace(regexpCommandToSide, 'command:');
 
 				button.label = node.label;
 				button.onDidClick(e => {
@@ -1505,7 +1513,7 @@ export class GettingStartedPage extends EditorPane {
 
 		this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			// Remove internal extension id specifier from exposed id's
-			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(/[^#]+#/, '')}`);
+			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(regexp6, '')}`);
 		});
 
 		this.detailsPageDisposables.clear();
@@ -1666,7 +1674,7 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	private getKeybindingLabel(command: string) {
-		command = command.replace(/^command:/, '');
+		command = command.replace(regexpCommand, '');
 		const label = this.keybindingService.lookupKeybinding(command)?.getLabel();
 		if (!label) { return ''; }
 		else {
@@ -1675,7 +1683,7 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	private getKeyBinding(command: string) {
-		command = command.replace(/^command:/, '');
+		command = command.replace(regexpCommand, '');
 		return this.keybindingService.lookupKeybinding(command);
 	}
 

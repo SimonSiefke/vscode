@@ -5,6 +5,8 @@
 import path from 'path';
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
+const regexp1 = /^v/;
+
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const rootDir = path.resolve(import.meta.dirname, '..', '..');
@@ -50,7 +52,7 @@ async function isExpectedElectronInstalled(): Promise<boolean> {
 	try {
 		const { getElectronVersion } = await import('./util.ts');
 		const { electronVersion } = getElectronVersion();
-		const installedVersion = (await fs.readFile(path.join(rootDir, '.build', 'electron', 'version'), 'utf8')).trim().replace(/^v/, '');
+		const installedVersion = (await fs.readFile(path.join(rootDir, '.build', 'electron', 'version'), 'utf8')).trim().replace(regexp1, '');
 		return installedVersion === electronVersion;
 	} catch {
 		return false;

@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /[\*]/g;
+const regexp2 = /[\-\\\{\}\+\?\|\^\$\.\,\[\]\(\)\#\s]/g;
+
 /**
  * Determines if haystack ends with needle.
  */
@@ -18,5 +21,5 @@ export function endsWith(haystack: string, needle: string): boolean {
 }
 
 export function convertSimple2RegExpPattern(pattern: string): string {
-	return pattern.replace(/[\-\\\{\}\+\?\|\^\$\.\,\[\]\(\)\#\s]/g, '\\$&').replace(/[\*]/g, '.*');
+	return pattern.replace(new RegExp(regexp2), '\\$&').replace(new RegExp(regexp1), '.*');
 }

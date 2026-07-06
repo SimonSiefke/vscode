@@ -20,6 +20,8 @@ import { DisplayOptions } from './app';
 import { useContextMenu } from './contextMenu';
 import { OpenInVSCodeButton } from './openInVSCode';
 import { TestRunView } from './testRun';
+const regexp1 = /\r?\n/;
+
 
 type Props = {
 	readonly test: ISimulationTest;
@@ -467,7 +469,7 @@ const InlineTestError = mobxlite.observer(({ runnerStatus }: { runnerStatus: Run
 		return null;
 	}
 	const firstError = failedRuns[0].error!;
-	const firstLine = firstError.split(/\r?\n/)[0];
+	const firstLine = firstError.split(regexp1)[0];
 	const label = failedRuns.length > 1
 		? `${firstLine} (+${failedRuns.length - 1} more)`
 		: firstLine;

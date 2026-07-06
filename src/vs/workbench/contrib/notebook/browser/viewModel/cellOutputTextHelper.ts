@@ -9,6 +9,8 @@ import { NotebookTextModel } from '../../common/model/notebookTextModel.js';
 import { IOutputItemDto } from '../../common/notebookCommon.js';
 import { isTextStreamMime } from '../../../../../base/common/mime.js';
 import { ICellOutputViewModel, ICellViewModel } from '../notebookBrowser.js';
+const regexp1 = /\\u001b\[[0-9;]*m/gi;
+
 
 interface Error {
 	name: string;
@@ -90,7 +92,7 @@ export function getOutputText(mimeType: string, buffer: IOutputItemDto, shortErr
 	if (buffer.data.byteLength > charLimit) {
 		text = text + '...(truncated)';
 	} else if (mimeType === 'application/vnd.code.notebook.error') {
-		text = text.replace(/\\u001b\[[0-9;]*m/gi, '');
+		text = text.replace(new RegExp(regexp1), '');
 		try {
 			const error = JSON.parse(text) as Error;
 			if (!error.stack || shortError) {

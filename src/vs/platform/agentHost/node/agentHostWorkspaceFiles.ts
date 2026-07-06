@@ -11,6 +11,8 @@ import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
 import { ILogService } from '../../log/common/log.js';
 import { rgDiskPath } from '../../../base/node/ripgrep.js';
+const regexp1 = /\r$/;
+
 
 /** Maximum number of files cached per working directory. */
 const MAX_FILES = 50_000;
@@ -156,7 +158,7 @@ export class AgentHostWorkspaceFiles extends Disposable {
 				buffer += chunk;
 				let newlineIndex: number;
 				while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
-					const line = buffer.slice(0, newlineIndex).replace(/\r$/, '');
+					const line = buffer.slice(0, newlineIndex).replace(regexp1, '');
 					buffer = buffer.slice(newlineIndex + 1);
 					if (!line) {
 						continue;
@@ -188,7 +190,7 @@ export class AgentHostWorkspaceFiles extends Disposable {
 			child.on('close', () => {
 				// Flush any trailing line still in the buffer.
 				if (!limitHit && buffer.length > 0) {
-					const line = buffer.replace(/\r$/, '');
+					const line = buffer.replace(regexp1, '');
 					if (line) {
 						results.push(URI.joinPath(workingDirectory, line));
 					}

@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\s/;
+const regexp2 = /^\d/;
+
 /**
  * Lightweight POSIX-ish command line tokenizer / segmenter used by the
  * `run_in_terminal` output-compression filters. We deliberately do NOT
@@ -87,7 +90,7 @@ export function tokenize(segment: string): string[] {
 			hasContent = true;
 			continue;
 		}
-		if (/\s/.test(ch)) {
+		if (regexp1.test(ch)) {
 			if (cur.length > 0 || hasContent) {
 				tokens.push(cur);
 				cur = '';
@@ -252,7 +255,7 @@ function stripPrefixesAndWrappers(rawTokens: readonly string[]): {
 				}
 				// `timeout` and `nice` take a numeric / signal value before the
 				// program; consume one such token if present.
-				if ((tok === 'timeout' || tok === 'nice' || tok === 'ionice') && /^\d/.test(next)) {
+				if ((tok === 'timeout' || tok === 'nice' || tok === 'ionice') && regexp2.test(next)) {
 					i++;
 					continue;
 				}

@@ -1,3 +1,6 @@
+const regexp1 = /\s+/;
+const regexp2 = /\w+/g;
+
 // Compatibility: macOS
 
 function processIcon(path: string): string {
@@ -18,7 +21,7 @@ const completionSpec: Fig.Spec = {
 			script: ["bash", "-c", "ps axo pid,comm | sed 1d"],
 			postProcess: (result: string) => {
 				return result.split("\n").map((line) => {
-					const [pid, path] = line.trim().split(/\s+/);
+					const [pid, path] = line.trim().split(regexp1);
 					const name = path.slice(path.lastIndexOf("/") + 1);
 					return {
 						name: pid,
@@ -40,7 +43,7 @@ const completionSpec: Fig.Spec = {
 					// Bash's `kill` builtin has different output to /bin/kill
 					script: ["env", "kill", "-l"],
 					postProcess: (out) =>
-						out.match(/\w+/g)?.map((name) => ({
+						out.match(new RegExp(regexp2))?.map((name) => ({
 							name,
 							description: `Send ${name} instead of TERM`,
 							icon: "fig://icon?type=string",

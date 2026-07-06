@@ -9,6 +9,11 @@ import * as os from 'os';
 import * as child_process from 'child_process';
 import { dirs } from './dirs.ts';
 import { root, stateFile, stateContentsFile, computeState, computeContents, isUpToDate } from './installStateHash.ts';
+const regexpBuildDistroNpm = /^(.build\/distro\/npm\/)?remote$/;
+const regexp2 = /^"(.*)"$/;
+const regexp3 = /-/g;
+const regexpFromVscodeJsonrpc = /from "vscode-jsonrpc\/node"/g;
+
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const rootNpmrcConfigKeys = getNpmrcConfigKeys(path.join(root, '.npmrc'));
@@ -62,7 +67,7 @@ async function npmInstallAsync(dir: string, opts?: child_process.SpawnOptions): 
 
 	const command = process.env['npm_command'] || 'install';
 
-	if (process.env['VSCODE_REMOTE_DEPENDENCIES_CONTAINER_NAME'] && /^(.build\/distro\/npm\/)?remote$/.test(dir)) {
+	if (process.env['VSCODE_REMOTE_DEPENDENCIES_CONTAINER_NAME'] && regexpBuildDistroNpm.test(dir)) {
 		const syncOpts: child_process.SpawnSyncOptions = {
 			env: finalOpts.env,
 			cwd: root,
@@ -106,7 +111,7 @@ function setNpmrcConfig(dir: string, env: NodeJS.ProcessEnv) {
 		const trimmedLine = line.trim();
 		if (trimmedLine && !trimmedLine.startsWith('#')) {
 			const [key, value] = trimmedLine.split('=');
-			env[`npm_config_${key}`] = value.replace(/^"(.*)"$/, '$1');
+			env[`npm_config_${key}`] = value.replace(regexp2, '$1');
 		}
 	}
 
@@ -181,7 +186,7 @@ function clearInheritedNpmrcConfig(dir: string, env: NodeJS.ProcessEnv): void {
 	}
 
 	for (const key of rootNpmrcConfigKeys) {
-		const envKey = `npm_config_${key.replace(/-/g, '_')}`;
+		const envKey = `npm_config_${key.replace(new RegExp(regexp3), '_')}`;
 		delete env[envKey];
 	}
 }
@@ -269,7 +274,7 @@ async function main() {
 			continue;
 		}
 
-		if (/^(.build\/distro\/npm\/)?remote$/.test(dir)) {
+		if (regexpBuildDistroNpm.test(dir)) {
 			const remoteDir = dir;
 			nativeTasks.push(() => {
 				const env: NodeJS.ProcessEnv = { ...process.env };
@@ -342,7 +347,7 @@ async function main() {
 		const sessionFile = path.join(root, dir, 'node_modules', '@github', 'copilot-sdk', 'dist', 'session.js');
 		if (fs.existsSync(sessionFile)) {
 			const content = fs.readFileSync(sessionFile, 'utf8');
-			const patched = content.replace(/from "vscode-jsonrpc\/node"/g, 'from "vscode-jsonrpc/node.js"');
+			const patched = content.replace(new RegExp(regexpFromVscodeJsonrpc), 'from "vscode-jsonrpc/node.js"');
 			if (content !== patched) {
 				fs.writeFileSync(sessionFile, patched);
 				log(dir || '.', 'Patched @github/copilot-sdk session.js (vscode-jsonrpc ESM import fix)');

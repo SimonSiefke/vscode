@@ -13,6 +13,8 @@ import { IWebWorker, IWebWorkerClient, Message, WebWorkerClient } from '../../..
 import { getNLSLanguage, getNLSMessages } from '../../../nls.js';
 import { WebWorkerDescriptor } from './webWorkerDescriptor.js';
 import { IWebWorkerService } from './webWorkerService.js';
+const regexpHttpHttpsFile = /^((http:)|(https:)|(file:))/;
+
 
 export class WebWorkerService implements IWebWorkerService {
 	private static _workerIdPool: number = 0;
@@ -76,7 +78,7 @@ export function createBlobWorker(blobUrl: string, options?: WorkerOptions): Work
 }
 
 function getWorkerBootstrapUrl(label: string, workerScriptUrl: string, workerLoadingFailedErrorMessage: string | undefined): string {
-	if (/^((http:)|(https:)|(file:))/.test(workerScriptUrl) && workerScriptUrl.substring(0, globalThis.origin.length) !== globalThis.origin) {
+	if (regexpHttpHttpsFile.test(workerScriptUrl) && workerScriptUrl.substring(0, globalThis.origin.length) !== globalThis.origin) {
 		// this is the cross-origin case
 		// i.e. the webpage is running at a different origin than where the scripts are loaded from
 	} else {

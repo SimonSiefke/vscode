@@ -23,6 +23,11 @@ import { ProtocolServerHandler } from '../../node/protocolServerHandler.js';
 import { AgentHostStateManager } from '../../node/agentHostStateManager.js';
 import { AgentHostFileSystemProvider, agentHostUri } from '../../common/agentHostFileSystemProvider.js';
 import { iterateOtlpLogRecords, OtlpLogEmitter } from '../../common/otlp/otlpLogEmitter.js';
+const regexp1 = /0\.0\.0/;
+const regexp2 = /\./g;
+const regexpClientClientFs = /Client client-fs-overlap-close disconnected/;
+const regexpDirectoryNotFound = /Directory not found/;
+
 
 // ---- Mock helpers -----------------------------------------------------------
 
@@ -311,8 +316,8 @@ suite('ProtocolServerHandler', () => {
 		const resp = findResponse(transport.sent, 1) as { error?: { code: number; message: string; data?: unknown } } | undefined;
 		assert.ok(resp, 'should have sent error response');
 		assert.strictEqual(resp.error?.code, AHP_UNSUPPORTED_PROTOCOL_VERSION);
-		assert.match(resp.error!.message, /0\.0\.0/);
-		assert.match(resp.error!.message, new RegExp(PROTOCOL_VERSION.replace(/\./g, '\\.')));
+		assert.match(resp.error!.message, regexp1);
+		assert.match(resp.error!.message, new RegExp(PROTOCOL_VERSION.replace(new RegExp(regexp2), '\\.')));
 		// Without the upgrade-socket env var, no _meta should be advertised.
 		const data = resp.error!.data as { _meta?: { vscodeUpgradeMethod?: string } } | undefined;
 		assert.strictEqual(data?._meta?.vscodeUpgradeMethod, undefined);
@@ -942,7 +947,7 @@ suite('ProtocolServerHandler', () => {
 
 		transport1.simulateClose();
 
-		await assert.rejects(readPromise, /Client client-fs-overlap-close disconnected/);
+		await assert.rejects(readPromise, regexpClientClientFs);
 	});
 
 	test('client disconnect cleans up', () => {
@@ -1646,7 +1651,7 @@ suite('ProtocolServerHandler', () => {
 
 		assert.ok(resp?.error);
 		assert.strictEqual(resp.error!.code, JSON_RPC_INTERNAL_ERROR);
-		assert.match(resp.error!.message, /Directory not found/);
+		assert.match(resp.error!.message, regexpDirectoryNotFound);
 	});
 
 	test('resourceRead does not log missing file reads', async () => {

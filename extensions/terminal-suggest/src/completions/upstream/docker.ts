@@ -1,3 +1,5 @@
+const regexpAASS = /(?:[aA][sS]\s+)([\w:.-]+)/;
+
 const postProcessDockerPs: Fig.Generator["postProcess"] = (out) => {
 	return out.split("\n").map((i) => {
 		try {
@@ -363,7 +365,7 @@ const sharedCommands: Record<string, Fig.Subcommand> = {
 							// and due to the grep above, will only match lines where FROM and AS
 							// are on the same line. This could certainly be made more robust
 							// down the line.
-							const imageNameRegexp = /(?:[aA][sS]\s+)([\w:.-]+)/;
+							const imageNameRegexp = regexpAASS;
 							return out
 								.split("\n")
 								.map((i) => {

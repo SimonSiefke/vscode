@@ -63,6 +63,8 @@ import { testingDebugAllIcon, testingDebugIcon, testingRunAllIcon, testingRunIco
 import { renderTestMessageAsText } from './testMessageColorizer.js';
 import { MessageSubject } from './testResultsView/testResultsSubject.js';
 import { TestingOutputPeekController } from './testingOutputPeek.js';
+const regexp1 = /\s+/g;
+
 
 const MAX_INLINE_MESSAGE_LENGTH = 128;
 const MAX_TESTS_IN_SUBMENU = 30;
@@ -1399,7 +1401,7 @@ class TestErrorContentWidget extends Disposable implements IContentWidget {
 
 		let text: string;
 		if (message.expected !== undefined && message.actual !== undefined) {
-			text = `${truncateMiddle(message.actual.replace(/\s+/g, ' '), 30)} != ${truncateMiddle(message.expected.replace(/\s+/g, ' '), 30)}`;
+			text = `${truncateMiddle(message.actual.replace(new RegExp(regexp1), ' '), 30)} != ${truncateMiddle(message.expected.replace(new RegExp(regexp1), ' '), 30)}`;
 		} else {
 			const msg = renderAsPlaintext(message.message);
 			const lf = msg.indexOf('\n');

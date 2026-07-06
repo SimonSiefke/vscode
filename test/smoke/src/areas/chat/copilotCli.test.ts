@@ -9,6 +9,17 @@ import * as os from 'os';
 import * as path from 'path';
 import { Application, Logger } from '../../../../automation';
 import { getCopilotSmokeTestEnv, getMockLlmServerPath, installAllHandlers, MockLlmServer } from '../../utils';
+const regexpTimeoutGetElement = /Timeout: get element '([^']+)' after ([^.]+)\./;
+const regexpNativeAddonNot = /Native addon "([^"]+)" not found for ([^\s.]+)/;
+const regexpUsingCopilotCLI = /Using Copilot CLI session: /;
+const regexp4 = /\r?\n/;
+const regexpCopilotCLISessionCopilotCLIError = /\[CopilotCLISession\]CopilotCLI error: \(query\)|\(query\) Execution failed|Native addon ".*" not found|Failed to load @github\/copilot\/sdk|Unable to find node-pty binaries|Failed to create (?:node-pty|ripgrep) shim|Cannot find module|MODULE_NOT_FOUND|runtime\.node|pty\.node/;
+const regexpAuthorizationFailedUnauthorized = /Authorization failed|Unauthorized|\b401\b|No model available|policy enablement|sign in to GitHub|getGitHubSession.*undefined|Authentication (?:failed|required)|Timed out waiting for authentication provider|authentication provider ['"]github['"]/i;
+const regexpNativeAddonNot1 = /Native addon ".*" not found|runtime\.node|pty\.node|MODULE_NOT_FOUND|Cannot find module|Failed to load @github\/copilot\/sdk|Failed to initialize|CopilotCLI error: \(query\)|Using Copilot CLI session|Invoking session/i;
+const regexpCopilotCLICopilotCLISessionNo = /\[CopilotCLI\]|\[CopilotCLISession\]|No model available/i;
+const regexpGitHubOrgCustomAgentProviderGitHubOrgInstructionsProviderGetCurrentAuthedUser = /GitHubOrgCustomAgentProvider|GitHubOrgInstructionsProvider|getCurrentAuthedUser is not a function|Invalid response format/;
+const regexpUsingCopilotCLI1 = /Using Copilot CLI session: ([0-9a-f-]+)/g;
+
 
 const COPILOT_CLI_SCENARIO_ID = 'smoke-editor-copilot-cli';
 const COPILOT_CLI_REPLY = 'MOCKED_EDITOR_COPILOT_CLI_RESPONSE';
@@ -130,7 +141,7 @@ async function getCopilotCliDiagnostics(app: Application, mockServer?: MockLlmSe
 
 function summarizeUiFailure(error: unknown): string {
 	if (error instanceof Error) {
-		const timeout = error.message.match(/Timeout: get element '([^']+)' after ([^.]+)\./);
+		const timeout = error.message.match(regexpTimeoutGetElement);
 		if (timeout) {
 			return `no completed response rendered; timed out waiting for ${timeout[1]} after ${timeout[2]}`;
 		}
@@ -140,7 +151,7 @@ function summarizeUiFailure(error: unknown): string {
 }
 
 function summarizeCopilotCliFailure(diagnostics: string): string {
-	const nativeAddon = diagnostics.match(/Native addon "([^"]+)" not found for ([^\s.]+)/);
+	const nativeAddon = diagnostics.match(regexpNativeAddonNot);
 	if (nativeAddon) {
 		return `native SDK module missing: Native addon "${nativeAddon[1]}" not found for ${nativeAddon[2]}`;
 	}
@@ -155,7 +166,7 @@ function summarizeCopilotCliFailure(diagnostics: string): string {
 		return `authentication failure: ${authFailure}`;
 	}
 
-	if (/Using Copilot CLI session: /.test(diagnostics)) {
+	if (regexpUsingCopilotCLI.test(diagnostics)) {
 		return 'Copilot CLI session started, but no completed response appeared in the UI';
 	}
 
@@ -164,23 +175,23 @@ function summarizeCopilotCliFailure(diagnostics: string): string {
 
 function firstMatchingLine(contents: string, predicate: (line: string) => boolean): string | undefined {
 	return contents
-		.split(/\r?\n/)
+		.split(regexp4)
 		.map(line => line.trim())
 		.find(line => line && predicate(line));
 }
 
 function isQueryFailure(message: string): boolean {
-	return /\[CopilotCLISession\]CopilotCLI error: \(query\)|\(query\) Execution failed|Native addon ".*" not found|Failed to load @github\/copilot\/sdk|Unable to find node-pty binaries|Failed to create (?:node-pty|ripgrep) shim|Cannot find module|MODULE_NOT_FOUND|runtime\.node|pty\.node/.test(message);
+	return regexpCopilotCLISessionCopilotCLIError.test(message);
 }
 
 function isAuthFailure(message: string): boolean {
-	return /Authorization failed|Unauthorized|\b401\b|No model available|policy enablement|sign in to GitHub|getGitHubSession.*undefined|Authentication (?:failed|required)|Timed out waiting for authentication provider|authentication provider ['"]github['"]/i.test(message);
+	return regexpAuthorizationFailedUnauthorized.test(message);
 }
 
 function getRelevantLogTail(diagnostics: string, summary: string): string {
 	const nativeFailure = summary.startsWith('native SDK module missing') || summary.startsWith('native module / SDK boot failure');
 	return diagnostics
-		.split(/\r?\n/)
+		.split(regexp4)
 		.map(line => line.trim())
 		.filter(line => line && !isKnownScenarioAutomationNoise(line))
 		.filter(line => nativeFailure ? isNativeFailureLine(line) : isRelevantFailureLine(line))
@@ -189,15 +200,15 @@ function getRelevantLogTail(diagnostics: string, summary: string): string {
 }
 
 function isNativeFailureLine(line: string): boolean {
-	return /Native addon ".*" not found|runtime\.node|pty\.node|MODULE_NOT_FOUND|Cannot find module|Failed to load @github\/copilot\/sdk|Failed to initialize|CopilotCLI error: \(query\)|Using Copilot CLI session|Invoking session/i.test(line);
+	return regexpNativeAddonNot1.test(line);
 }
 
 function isRelevantFailureLine(line: string): boolean {
-	return isNativeFailureLine(line) || isAuthFailure(line) || /\[CopilotCLI\]|\[CopilotCLISession\]|No model available/i.test(line);
+	return isNativeFailureLine(line) || isAuthFailure(line) || regexpCopilotCLICopilotCLISessionNo.test(line);
 }
 
 function isKnownScenarioAutomationNoise(line: string): boolean {
-	return /GitHubOrgCustomAgentProvider|GitHubOrgInstructionsProvider|getCurrentAuthedUser is not a function|Invalid response format/.test(line);
+	return regexpGitHubOrgCustomAgentProviderGitHubOrgInstructionsProviderGetCurrentAuthedUser.test(line);
 }
 
 function findNewestLog(logs: readonly { relativePath: string; contents: string }[], fileName: string): { relativePath: string; contents: string } | undefined {
@@ -210,7 +221,7 @@ function tail(contents: string, maxLength: number): string {
 
 function extractLatestSessionId(log: string): string | undefined {
 	let sessionId: string | undefined;
-	for (const match of log.matchAll(/Using Copilot CLI session: ([0-9a-f-]+)/g)) {
+	for (const match of log.matchAll(new RegExp(regexpUsingCopilotCLI1))) {
 		sessionId = match[1];
 	}
 	return sessionId;

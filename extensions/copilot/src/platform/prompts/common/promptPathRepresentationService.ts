@@ -11,6 +11,9 @@ import { isWindows } from '../../../util/vs/base/common/platform';
 import { isDefined } from '../../../util/vs/base/common/types';
 import { URI } from '../../../util/vs/base/common/uri';
 import { IWorkspaceService } from '../../workspace/common/workspaceService';
+const regexp1 = /\\+/g;
+const regexp2 = /\w[\w\d+.-]*:\S/;
+
 
 export const IPromptPathRepresentationService = createServiceIdentifier<IPromptPathRepresentationService>('IPromptPathRepresentationService');
 
@@ -82,7 +85,7 @@ export class PromptPathRepresentationService implements IPromptPathRepresentatio
 			// Remove repeated backslashes from windows path (but preserve UNC paths)
 			if (isWindowsPath) {
 				const isUncPath = filepath.startsWith('\\\\');
-				filepath = filepath.replace(/\\+/g, '\\');
+				filepath = filepath.replace(new RegExp(regexp1), '\\');
 				if (isUncPath) { filepath = '\\' + filepath; }
 			}
 
@@ -104,7 +107,7 @@ export class PromptPathRepresentationService implements IPromptPathRepresentatio
 			const fileUri = URI.file(filepath);
 			return predominantScheme === Schemas.file ? fileUri : URI.from({ scheme: predominantScheme, path: fileUri.path });
 		}
-		if (/\w[\w\d+.-]*:\S/.test(filepath)) { // starts with a scheme
+		if (regexp2.test(filepath)) { // starts with a scheme
 			try {
 				return URI.parse(filepath);
 			} catch (e) {

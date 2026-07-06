@@ -7,6 +7,10 @@ import * as fs from 'fs';
 import * as child_process from 'child_process';
 import * as os from 'os';
 import { isUpToDate, forceInstallMessage } from './installStateHash.ts';
+const regexp1 = /\r\n|\n/g;
+const regexpDisturl = /\s*disturl=*\"(.*)\"\s*$/;
+const regexpTarget = /\s*target=*\"(.*)\"\s*$/;
+
 
 if (!process.env['VSCODE_SKIP_NODE_VERSION_CHECK']) {
 	// Get the running Node.js version
@@ -182,15 +186,15 @@ function getLocalHeaderPath(target: string): string | undefined {
 }
 
 function getHeaderInfo(rcFile: string): { disturl: string; target: string } | undefined {
-	const lines = fs.readFileSync(rcFile, 'utf8').split(/\r\n|\n/g);
+	const lines = fs.readFileSync(rcFile, 'utf8').split(new RegExp(regexp1));
 	let disturl: string | undefined;
 	let target: string | undefined;
 	for (const line of lines) {
-		let match = line.match(/\s*disturl=*\"(.*)\"\s*$/);
+		let match = line.match(regexpDisturl);
 		if (match !== null && match.length >= 1) {
 			disturl = match[1];
 		}
-		match = line.match(/\s*target=*\"(.*)\"\s*$/);
+		match = line.match(regexpTarget);
 		if (match !== null && match.length >= 1) {
 			target = match[1];
 		}

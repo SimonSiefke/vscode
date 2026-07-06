@@ -39,6 +39,8 @@ import { LRUCache } from '../../../../base/common/map.js';
 import { DEFAULT_FONT_FAMILY } from '../../../../base/browser/fonts.js';
 import { ViewModelDecoration } from '../../../common/viewModel/viewModelDecoration.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+const regexp1 = /\s/;
+
 
 /**
  * The orthogonal distance to the slider at which dragging "resets". This implements "snapping"
@@ -1901,7 +1903,7 @@ class InnerMinimap extends Disposable {
 
 		// Find a halfway point that isn't after whitespace
 		let halfCharCount = Math.ceil(maxCharCount / 2);
-		while (halfCharCount > 0 && /\s/.test(headerText[halfCharCount - 1])) {
+		while (halfCharCount > 0 && regexp1.test(headerText[halfCharCount - 1])) {
 			--halfCharCount;
 		}
 

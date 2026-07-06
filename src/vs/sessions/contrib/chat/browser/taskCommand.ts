@@ -6,6 +6,10 @@
 import { OperatingSystem } from '../../../../base/common/platform.js';
 import { CommandString } from '../../../../workbench/contrib/tasks/common/taskConfiguration.js';
 import { ITaskEntry } from './sessionsTasksService.js';
+const regexp1 = /'/g;
+const regexp2 = /(["\\$`])/g;
+const regexp3 = /([\\\s"'`$&|;<>(){}[\]*?#~!])/g;
+
 
 /**
  * Operating system identifier used to pick the right OS-specific overrides on
@@ -64,15 +68,15 @@ function expandVariables(value: string, ctx: ITaskResolutionContext): Promise<st
 const POSIX_NEEDS_QUOTING = /[^A-Za-z0-9_\-.,:/=@%+]/;
 
 function posixStrong(value: string): string {
-	return `'${value.replace(/'/g, `'\\''`)}'`;
+	return `'${value.replace(new RegExp(regexp1), `'\\''`)}'`;
 }
 
 function posixWeak(value: string): string {
-	return `"${value.replace(/(["\\$`])/g, '\\$1')}"`;
+	return `"${value.replace(new RegExp(regexp2), '\\$1')}"`;
 }
 
 function posixEscape(value: string): string {
-	return value.replace(/([\\\s"'`$&|;<>(){}[\]*?#~!])/g, '\\$1');
+	return value.replace(new RegExp(regexp3), '\\$1');
 }
 
 async function renderArg(arg: CommandString, ctx: ITaskResolutionContext): Promise<string> {

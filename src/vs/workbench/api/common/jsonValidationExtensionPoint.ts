@@ -13,6 +13,8 @@ import { IExtensionManifest } from '../../../platform/extensions/common/extensio
 import { Registry } from '../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../platform/instantiation/common/descriptors.js';
 import { MarkdownString } from '../../../base/common/htmlContent.js';
+const regexp1 = /^[^:/?#]+:\/\//;
+
 
 interface IJSONValidationExtensionPoint {
 	fileMatch: string | string[];
@@ -78,7 +80,7 @@ export class JSONValidationExtensionPoint {
 						} catch (e) {
 							collector.error(nls.localize('invalid.url.fileschema', "'configuration.jsonValidation.url' is an invalid relative URL: {0}", e.message));
 						}
-					} else if (!/^[^:/?#]+:\/\//.test(uri)) {
+					} else if (!regexp1.test(uri)) {
 						collector.error(nls.localize('invalid.url.schema', "'configuration.jsonValidation.url' must be an absolute URL or start with './'  to reference schemas located in the extension."));
 						return;
 					}

@@ -37,6 +37,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as tar from 'tar';
 import { getAgentDir, getAgentMeta, parseFlags, type Sdk, sha256OfFile } from './common.ts';
+const regexpZ0Z0Z0 = /^([a-z0-9]+)-([a-z0-9]+)(?:-([a-z0-9]+))?$/;
+
 
 const SCRIPT = 'package.ts';
 
@@ -103,7 +105,7 @@ export async function buildOne(args: IBuildArgs): Promise<IBuildResult> {
 
 function parseTargetTriple(sdkTarget: string): { os: string; cpu: string; libc?: string } {
 	// `darwin-arm64`, `linux-x64`, `linux-x64-musl`, `win32-x64`, …
-	const match = /^([a-z0-9]+)-([a-z0-9]+)(?:-([a-z0-9]+))?$/.exec(sdkTarget);
+	const match = regexpZ0Z0Z0.exec(sdkTarget);
 	if (!match) {
 		throw new Error(`[${SCRIPT}] Cannot parse target '${sdkTarget}'`);
 	}

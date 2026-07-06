@@ -8,6 +8,9 @@ import { mapFindFirst } from '../../../util/vs/base/common/arraysFind';
 import { roleToString } from '../../chat/common/globalStringUtils';
 import { rawPartAsStatefulMarker } from '../../endpoint/common/statefulMarkerContainer';
 import { rawPartAsThinkingData } from '../../endpoint/common/thinkingDataContainer';
+const regexp1 = /(?<!\\)\\t/g;
+const regexp2 = /(?<!\\)\\n/g;
+
 
 export function messageToMarkdown(message: Raw.ChatMessage, ignoreStatefulMarker?: boolean, skipFencing?: boolean): string {
 	const role = roleToString(message.role);
@@ -57,8 +60,8 @@ export function messageToMarkdown(message: Raw.ChatMessage, ignoreStatefulMarker
 			try {
 				const parsedArgs = JSON.parse(c.function.arguments);
 				argsStr = JSON.stringify(parsedArgs, undefined, 2)
-					.replace(/(?<!\\)\\n/g, '\n')
-					.replace(/(?<!\\)\\t/g, '\t');
+					.replace(new RegExp(regexp2), '\n')
+					.replace(new RegExp(regexp1), '\t');
 			} catch (e) { }
 			return `🛠️ ${c.function.name} (${c.id}) ${argsStr}`;
 		}).join('\n');

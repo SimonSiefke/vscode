@@ -24,6 +24,10 @@ import { IFilterMetadata, IFilterResult, IGroupFilter, IKeybindingsEditorModel, 
 import { FOLDER_SCOPES, WORKSPACE_SCOPES } from '../../configuration/common/configuration.js';
 import { createValidator } from './preferencesValidation.js';
 import { isString } from '../../../../base/common/types.js';
+const regexp1 = /`#([^#`]*)#`/g;
+const regexp2 = /\n/g;
+const regexp3 = /\r/g;
+
 
 export const nullRange: IRange = { startLineNumber: -1, startColumn: -1, endLineNumber: -1, endColumn: -1 };
 function isNullRange(range: IRange): boolean { return range.startLineNumber === -1 && range.startColumn === -1 && range.endLineNumber === -1 && range.endColumn === -1; }
@@ -33,7 +37,7 @@ function isNullRange(range: IRange): boolean { return range.startLineNumber === 
  * remains as inline code (e.g. `` `settingId` ``). Useful for contexts that don't render markdown links.
  */
 export function fixSettingLinks(text: string): string {
-	return text.replace(/`#([^#`]*)#`/g, (_, settingName) => `\`${settingName}\``);
+	return text.replace(new RegExp(regexp1), (_, settingName) => `\`${settingName}\``);
 }
 
 abstract class AbstractSettingsModel extends EditorModel {
@@ -1082,7 +1086,7 @@ class SettingsContentBuilder {
 	private pushSettingDescription(setting: ISetting, indent: string): void {
 		setting.descriptionRanges = [];
 		const descriptionPreValue = indent + '// ';
-		const deprecationMessageLines = setting.deprecationMessage?.split(/\n/g) ?? [];
+		const deprecationMessageLines = setting.deprecationMessage?.split(new RegExp(regexp2)) ?? [];
 		for (let line of [...deprecationMessageLines, ...setting.description]) {
 			line = fixSettingLinks(line);
 
@@ -1097,7 +1101,7 @@ class SettingsContentBuilder {
 					`${displayEnum}: ${fixSettingLinks(desc)}` :
 					displayEnum;
 
-				const lines = line.split(/\n/g);
+				const lines = line.split(new RegExp(regexp2));
 				lines[0] = ' - ' + lines[0];
 				this._contentByLines.push(...lines.map(l => `${indent}// ${l}`));
 
@@ -1181,8 +1185,8 @@ export class DefaultRawSettingsEditorModel extends Disposable {
 
 function escapeInvisibleChars(enumValue: string): string {
 	return enumValue && enumValue
-		.replace(/\n/g, '\\n')
-		.replace(/\r/g, '\\r');
+		.replace(new RegExp(regexp2), '\\n')
+		.replace(new RegExp(regexp3), '\\r');
 }
 
 export function defaultKeybindingsContents(keybindingService: IKeybindingService): string {

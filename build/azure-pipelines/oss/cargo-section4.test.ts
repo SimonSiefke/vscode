@@ -20,6 +20,9 @@
 import fs from 'fs';
 import path from 'path';
 import { isSpdxStub, parseCargoLock, getCrateRepository, crateLicenseRefs } from './scan-licenses.js';
+const regexpZaZ0 = /^[A-Za-z0-9_.-]+$/;
+const regexp2 = /^[0-9]/;
+
 
 let passed = 0;
 let failed = 0;
@@ -128,8 +131,8 @@ const term = win32Pkgs.find(p => p.name === 'term');
 check('win32: term present with version', !!term && /^\d/.test(term!.version));
 
 // Sanity: no parsed package has a quote/bracket leaking into its fields.
-check('parse: no malformed names', cliPkgs.every(p => /^[A-Za-z0-9_.-]+$/.test(p.name)));
-check('parse: no malformed versions', cliPkgs.every(p => /^[0-9]/.test(p.version)));
+check('parse: no malformed names', cliPkgs.every(p => regexpZaZ0.test(p.name)));
+check('parse: no malformed versions', cliPkgs.every(p => regexp2.test(p.version)));
 
 // -- 3. getCrateRepository override map ---------------------------------------
 console.log('getCrateRepository override map:');

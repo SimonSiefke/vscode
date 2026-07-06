@@ -20,6 +20,8 @@ import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { INativeEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { FileAccess } from '../../../../../base/common/network.js';
+const regexp1 = /-\s*\`([\w\.]+)\`: (.*)/g;
+
 
 interface ColorInfo {
 	description: string;
@@ -124,7 +126,7 @@ suite('Color Registry', function () {
 		const reqContext = await new RequestService('local', new TestConfigurationService(), environmentService, new NullLogService()).request({ url: docUrl, callSite: 'colorRegistry.releaseTest' }, CancellationToken.None);
 		const content = (await asTextOrError(reqContext))!;
 
-		const expression = /-\s*\`([\w\.]+)\`: (.*)/g;
+		const expression = new RegExp(regexp1);
 
 		let m: RegExpExecArray | null;
 		const colorsInDoc: { [id: string]: ColorInfo } = Object.create(null);

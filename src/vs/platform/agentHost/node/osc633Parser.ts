@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp9a = /\\(\\|x([0-9a-f]{2}))/gi;
+
 /**
  * Lightweight parser for OSC 633 (VS Code shell integration) sequences in raw
  * PTY output. Designed for the agent host where we don't have a full xterm.js
@@ -81,7 +83,7 @@ function deserializeOscMessage(message: string): string {
 		return message;
 	}
 	return message.replaceAll(
-		/\\(\\|x([0-9a-f]{2}))/gi,
+		new RegExp(regexp9a),
 		(_match: string, op: string, hex?: string) => hex ? String.fromCharCode(parseInt(hex, 16)) : op,
 	);
 }

@@ -25,6 +25,9 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { raceCancellation } from '../../../../../../base/common/async.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { TerminalToolId } from '../terminalToolIds.js';
+const regexpTerminalTermIdNotification = /\[Terminal (?<termId>\S+) notification:/;
+const regexpRunningInTerminal = /(?:running in terminal ID|may still be running in terminal ID) ([0-9a-fA-F-]+)/;
+
 
 /**
  * Response returned to the model when the user is not available (autopilot mode).
@@ -341,7 +344,7 @@ export class AskQuestionsTool extends Disposable implements IToolImpl {
 			return request.terminalExecutionId;
 		}
 
-		const match = request.message.text.match(/\[Terminal (?<termId>\S+) notification:/);
+		const match = request.message.text.match(regexpTerminalTermIdNotification);
 		if (match?.groups?.termId) {
 			return match.groups.termId;
 		}
@@ -361,7 +364,7 @@ export class AskQuestionsTool extends Disposable implements IToolImpl {
 					if (state.type === IChatToolInvocation.StateKind.Completed && state.contentForModel) {
 						for (const item of state.contentForModel) {
 							if (item.kind === 'text') {
-								const idMatch = item.value.match(/(?:running in terminal ID|may still be running in terminal ID) ([0-9a-fA-F-]+)/);
+								const idMatch = item.value.match(regexpRunningInTerminal);
 								if (idMatch) {
 									return idMatch[1];
 								}

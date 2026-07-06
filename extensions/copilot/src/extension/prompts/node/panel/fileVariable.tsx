@@ -31,6 +31,10 @@ import { ICostFnFactory, ProjectedDocument, RemovableNode } from '../inline/summ
 import { DocumentSummarizer, NotebookDocumentSummarizer } from '../inline/summarizedDocument/summarizeDocumentHelpers';
 import { BinaryFileHexdump, hexdumpIfBinary } from './binaryFileHexdump';
 import { CodeBlock } from './safeElements';
+const regexpPngJpgJpeg = /\.(png|jpg|jpeg|bmp|gif|webp)$/i;
+const regexpPdf = /\.pdf$/i;
+const regexpSvg = /\.(svg)$/i;
+
 
 export interface FileVariableProps extends BasePromptElementProps {
 	variableName: string;
@@ -85,7 +89,7 @@ export class FileVariable extends PromptElement<FileVariableProps, unknown> {
 			);
 		}
 
-		if (/\.(png|jpg|jpeg|bmp|gif|webp)$/i.test(uri.path)) {
+		if (regexpPngJpgJpeg.test(uri.path)) {
 			const options = { status: { description: l10n.t("{0} does not support images.", this.promptEndpoint.model), kind: ChatResponseReferencePartStatusKind.Omitted } };
 			if (this.props.omitReferences) {
 				return;
@@ -118,7 +122,7 @@ export class FileVariable extends PromptElement<FileVariableProps, unknown> {
 
 		}
 
-		if (/\.pdf$/i.test(uri.path)) {
+		if (regexpPdf.test(uri.path)) {
 			if (!this.promptEndpoint.supportsVision || !modelSupportsPDFDocuments(this.promptEndpoint)) {
 				if (this.props.omitReferences) {
 					return;
@@ -230,7 +234,7 @@ export class FileVariable extends PromptElement<FileVariableProps, unknown> {
 			);
 		}
 
-		if ((range && (!this.props.alwaysIncludeSummary || range.isEqual(new Range(new Position(0, 0), documentSnapshot.lineAt(documentSnapshot.lineCount - 1).range.end)))) || /\.(svg)$/i.test(uri.path)) {
+		if ((range && (!this.props.alwaysIncludeSummary || range.isEqual(new Range(new Position(0, 0), documentSnapshot.lineAt(documentSnapshot.lineCount - 1).range.end)))) || regexpSvg.test(uri.path)) {
 			// Don't summarize if the file is an SVG, since summarization will almost certainly not work as expected
 			return <CodeSelection variableName={this.props.variableName} document={documentSnapshot} range={range} filePathMode={this.props.filePathMode} omitReferences={this.props.omitReferences} description={this.props.description} />;
 		}

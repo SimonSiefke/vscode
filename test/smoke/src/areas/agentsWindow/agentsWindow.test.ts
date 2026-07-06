@@ -9,6 +9,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Application, ApplicationOptions, Logger } from '../../../../automation';
 import { createApp, dumpFailureDiagnostics, getCopilotSmokeTestEnv, getMockLlmServerPath, installAppAfterHandler, installDiagnosticsHandler, installAllHandlers, MockLlmServer, suiteCrashPath, suiteLogsPath } from '../../utils';
+const regexpBashPwshPowershell = /^(bash|pwsh|powershell)$/i;
+const regexpCopilotCLISessionToolExecution = /\[CopilotCLISession\] tool\.execution_complete .* sandboxed=true/;
+const regexpKMTokens = /\/\s*([\d.]+[KM]?)\s*tokens/;
+const regexpShellManagerCreatedShell = /\[ShellManager\] Created \w+ shell /;
+const regexpCopilotAutoApproving = /\[Copilot:[^\]]+\] Auto-approving sandboxed shell command for tool call /;
+const regexpShellManagerCreatedShell1 = /\[ShellManager\] Created \w+ shell .*executable=\/bin\/sh\)/;
+const regexpAppliedSDKSandboxConfig = /Applied SDK sandboxConfig/;
+const regexpCopilotAppliedSDK = /\[Copilot:[^\]]+\] Applied SDK sandboxConfig via session\.options\.update/;
+
 
 // Selector for the send button in the Agents Window new-session homepage.
 // Kept in sync with `SEND_BUTTON_ENABLED` in `test/automation/src/agentsWindow.ts`
@@ -233,7 +242,7 @@ export function setup(logger: Logger) {
 						kind: 'tool-calls',
 						toolCalls: [
 							{
-								toolNamePattern: /^(bash|pwsh|powershell)$/i,
+								toolNamePattern: regexpBashPwshPowershell,
 								arguments: { command: `echo ${COPILOT_SANDBOX_REPLY}` },
 							},
 						],
@@ -479,7 +488,7 @@ export function setup(logger: Logger) {
 			const chatLog = await fs.promises.readFile(chatLogPath, 'utf8');
 			assert.match(
 				chatLog,
-				/\[CopilotCLISession\] tool\.execution_complete .* sandboxed=true/,
+				regexpCopilotCLISessionToolExecution,
 				`expected tool.execution_complete with sandboxed=true in ${chatLogPath}`
 			);
 		});
@@ -629,7 +638,7 @@ export function setup(logger: Logger) {
 					// maxOutputTokens). The gauge renders once the response's token usage
 					// lands, so this reads the click-through details popup.
 					const usageLabel = await app.workbench.agentsWindow.readContextUsageTokenLabel();
-					const contextWindowLabel = usageLabel.match(/\/\s*([\d.]+[KM]?)\s*tokens/)?.[1];
+					const contextWindowLabel = usageLabel.match(regexpKMTokens)?.[1];
 					logger.log(`[Agents Window/model-config] case '${testCase.name}' context-usage label: '${usageLabel}' (denominator='${contextWindowLabel}')`);
 					assert.strictEqual(
 						contextWindowLabel,
@@ -758,11 +767,11 @@ export function setup(logger: Logger) {
 				//     taken (custom terminal tool is on, so we don't push to the SDK).
 				// The log is written through an async queue, so poll until it lands.
 				const agentHostLogPath = path.join(agentHost.logsPath, 'agenthost.log');
-				const engineShellRun = /\[ShellManager\] Created \w+ shell /;
+				const engineShellRun = regexpShellManagerCreatedShell;
 				const agentHostLog = await waitForLogContent(() => readFileIfExists(agentHostLogPath), engineShellRun);
 				assert.match(
 					agentHostLog,
-					/\[Copilot:[^\]]+\] Auto-approving sandboxed shell command for tool call /,
+					regexpCopilotAutoApproving,
 					`expected an "Auto-approving sandboxed shell command" entry in ${agentHostLogPath}`
 				);
 				assert.match(
@@ -773,13 +782,13 @@ export function setup(logger: Logger) {
 				if (process.platform === 'darwin') {
 					assert.match(
 						agentHostLog,
-						/\[ShellManager\] Created \w+ shell .*executable=\/bin\/sh\)/,
+						regexpShellManagerCreatedShell1,
 						`expected the macOS AgentHost sandbox smoke test to run under /bin/sh (CI parity and sentinel-parser coverage), in ${agentHostLogPath}`
 					);
 				}
 				assert.doesNotMatch(
 					agentHostLog,
-					/Applied SDK sandboxConfig/,
+					regexpAppliedSDKSandboxConfig,
 					`did not expect the SDK sandbox path (Applied SDK sandboxConfig) when the custom terminal tool is enabled, in ${agentHostLogPath}`
 				);
 			} catch (error) {
@@ -861,11 +870,11 @@ export function setup(logger: Logger) {
 				//      (customTerminalTool is off), so the SDK, not our engine, ran it.
 				// Poll for the auto-approve entry (the later of 1 & 2).
 				const agentHostLogPath = path.join(agentHost.logsPath, 'agenthost.log');
-				const autoApprove = /\[Copilot:[^\]]+\] Auto-approving sandboxed shell command for tool call /;
+				const autoApprove = regexpCopilotAutoApproving;
 				const agentHostLog = await waitForLogContent(() => readFileIfExists(agentHostLogPath), autoApprove);
 				assert.match(
 					agentHostLog,
-					/\[Copilot:[^\]]+\] Applied SDK sandboxConfig via session\.options\.update/,
+					regexpCopilotAppliedSDK,
 					`expected an "Applied SDK sandboxConfig" entry in ${agentHostLogPath}`
 				);
 				assert.match(
@@ -875,7 +884,7 @@ export function setup(logger: Logger) {
 				);
 				assert.doesNotMatch(
 					agentHostLog,
-					/\[ShellManager\] Created \w+ shell /,
+					regexpShellManagerCreatedShell,
 					`did not expect the AgentHost's own shell engine ([ShellManager]) to run the command on the SDK sandbox path, in ${agentHostLogPath}`
 				);
 			} catch (error) {
@@ -1027,7 +1036,7 @@ function shellEchoScenario(reply: string) {
 				kind: 'tool-calls',
 				toolCalls: [
 					{
-						toolNamePattern: /^(bash|pwsh|powershell)$/i,
+						toolNamePattern: regexpBashPwshPowershell,
 						arguments: { command: `echo ${reply}` },
 					},
 				],

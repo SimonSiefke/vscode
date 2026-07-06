@@ -7,6 +7,8 @@
 import { IChatEndpoint, IChatEndpointTokenPricing } from '../../../platform/networking/common/networking';
 import * as l10n from '@vscode/l10n';
 import type { LanguageModelChatInformation, LanguageModelConfigurationSchema } from 'vscode';
+const regexp1 = /\.?0+$/;
+
 
 /**
  * Picks a sensible default reasoning-effort level given the levels advertised
@@ -210,7 +212,7 @@ function formatAicPrice(price: number): string {
 		return price.toExponential(2);
 	}
 	// Remove unnecessary trailing zeros
-	return price.toFixed(4).replace(/\.?0+$/, '');
+	return price.toFixed(4).replace(regexp1, '');
 }
 
 /**

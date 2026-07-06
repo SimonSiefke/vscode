@@ -16,6 +16,10 @@ import { Lines, LinesEdit } from '../../../prompt/node/editGeneration';
 import { IGuessedIndentation, guessIndentation } from '../../../prompt/node/indentationGuesser';
 import { PartialAsyncTextReader } from '../../../prompt/node/streamingEdits';
 import { CodeBlock } from '../panel/safeElements';
+const regexp1 = /\S/;
+const regexp2 = /^\s*(\/\/|\/\*|#)/;
+const regexp3 = /^`{3,}/;
+
 
 const MARKER_PREFIX = '---';
 
@@ -114,7 +118,7 @@ export function getCustomMarker(markerName: string): string {
 }
 
 function isWhitespaceOrEmpty(line: string): boolean {
-	return !line.match(/\S/);
+	return !line.match(regexp1);
 }
 
 
@@ -198,7 +202,7 @@ function isWhiteSpace(charCode: number): boolean {
 }
 
 function isComment(line: string): boolean {
-	return line.match(/^\s*(\/\/|\/\*|#)/) !== null;
+	return line.match(regexp2) !== null;
 }
 
 
@@ -462,7 +466,7 @@ function addEditIfDisjoint(edits: TextEdit[], edit: TextEdit): boolean {
 export function getCodeBlock(content: Lines): Lines {
 	const result = [];
 	let inCodeBlock: string | undefined;
-	const codeBlockRegex = /^`{3,}/; // Regex to match 3 or more backticks at the beginning of the line
+	const codeBlockRegex = regexp3; // Regex to match 3 or more backticks at the beginning of the line
 	for (const line of content) {
 		const match = line.match(codeBlockRegex);
 		if (match) {

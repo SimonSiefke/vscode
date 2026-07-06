@@ -9,6 +9,10 @@ import { Readable } from 'stream';
 import { promises as fs, createReadStream } from 'fs';
 import byline from 'byline';
 import { Stash } from './git';
+const regexp1 = /[/\\]$/;
+const regexp2 = /^["']+|["':]+$/g;
+const regexp3 = /^["']/;
+
 
 export const isMacintosh = process.platform === 'darwin';
 export const isWindows = process.platform === 'win32';
@@ -313,7 +317,7 @@ function normalizePath(path: string): string {
 	}
 
 	// Trailing separator
-	if (/[/\\]$/.test(path)) {
+	if (regexp1.test(path)) {
 		// Remove trailing separator
 		path = path.substring(0, path.length - 1);
 	}
@@ -822,8 +826,8 @@ export function toDiagnosticSeverity(value: DiagnosticSeverityConfig): Diagnosti
 export function extractFilePathFromArgs(argv: string[], startIndex: number): string {
 	// Argument doesn't start with a quote
 	const firstArg = argv[startIndex];
-	if (!firstArg.match(/^["']/)) {
-		return firstArg.replace(/^["']+|["':]+$/g, '');
+	if (!firstArg.match(regexp3)) {
+		return firstArg.replace(new RegExp(regexp2), '');
 	}
 
 	// If it starts with a quote, we need to find the matching closing

@@ -24,6 +24,8 @@ import { buildDefaultChatUri } from '../../common/state/sessionState.js';
 import { ClaudeSdkPipeline, IRematerializer } from '../../node/claude/claudeSdkPipeline.js';
 import { SubagentRegistry } from '../../node/claude/claudeSubagentRegistry.js';
 import { createZeroDiffComputeService, TestSessionDatabase } from '../common/sessionTestHelpers.js';
+const regexpNoRematerializerAttached = /no rematerializer attached/;
+
 
 // ===== Test doubles =====
 
@@ -331,7 +333,7 @@ suite('ClaudeSdkPipeline', () => {
 				() => assert.fail('expected rejection'),
 				err => {
 					// _rebindQuery throws synchronously when no rematerializer is attached
-					assert.match(String(err), /no rematerializer attached/);
+					assert.match(String(err), regexpNoRematerializerAttached);
 				},
 			);
 		});

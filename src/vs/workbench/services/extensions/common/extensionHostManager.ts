@@ -30,6 +30,10 @@ import { ExtensionRunningLocation } from './extensionRunningLocation.js';
 import { ActivationKind, ExtensionActivationReason, ExtensionHostStartup, IExtensionHost, IExtensionInspectInfo, IInternalExtensionService } from './extensions.js';
 import { Proxied, ProxyIdentifier } from './proxyIdentifier.js';
 import { IRPCProtocolLogger, RPCProtocol, RequestInitiator, ResponsiveState } from './rpcProtocol.js';
+const regexp1 = /\($/;
+const regexpReceiveReplyErr = /^receiveReply(Err)?:/;
+const regexpReceiveRequest = /^receiveRequest /;
+
 
 // Enable to see detailed message communication between window and extension host
 const LOG_EXTENSION_HOST_COMMUNICATION = false;
@@ -517,7 +521,7 @@ class RPCLogger implements IRPCProtocolLogger {
 		const colorTable = colorTables[initiator];
 		const color = LOG_USE_COLORS ? colorTable[req % colorTable.length] : '#000000';
 		let args = [`%c[${extensionHostKindToString(this._kind)}][${direction}]%c[${String(totalLength).padStart(7)}]%c[len: ${String(msgLength).padStart(5)}]%c${String(req).padStart(5)} - ${str}`, 'color: darkgreen', 'color: grey', 'color: grey', `color: ${color}`];
-		if (/\($/.test(str)) {
+		if (regexp1.test(str)) {
 			args = args.concat(data);
 			args.push(')');
 		} else {
@@ -561,7 +565,7 @@ class TelemetryRPCLogger implements IRPCProtocolLogger {
 
 	logIncoming(msgLength: number, req: number, initiator: RequestInitiator, str: string): void {
 
-		if (initiator === RequestInitiator.LocalSide && /^receiveReply(Err)?:/.test(str)) {
+		if (initiator === RequestInitiator.LocalSide && regexpReceiveReplyErr.test(str)) {
 			// log the size of reply messages
 			const requestStr = this._pendingRequests.get(req) ?? 'unknown_reply';
 			this._pendingRequests.delete(req);
@@ -571,7 +575,7 @@ class TelemetryRPCLogger implements IRPCProtocolLogger {
 			});
 		}
 
-		if (initiator === RequestInitiator.OtherSide && /^receiveRequest /.test(str)) {
+		if (initiator === RequestInitiator.OtherSide && regexpReceiveRequest.test(str)) {
 			// incoming request
 			this._telemetryService.publicLog2<RPCTelemetryData, RPCTelemetryDataClassification>('extensionhost.incoming', {
 				type: `${str}`,

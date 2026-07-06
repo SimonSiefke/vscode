@@ -25,6 +25,9 @@ import { CopilotCLITerminalLinkProvider, SessionDirResolver } from './copilotCLI
 
 //@ts-ignore
 import powershellScript from './copilotCLIShim.ps1';
+const regexp1 = /["\\]/g;
+const regexp2 = /[\s"'$`\\|&;()<>]/;
+
 
 const COPILOT_CLI_SHIM_JS = 'copilotCLIShim.js';
 const COPILOT_CLI_COMMAND = 'copilot';
@@ -396,8 +399,8 @@ ELECTRON_RUN_AS_NODE=1 "${process.execPath}" "${path.join(storageLocation, COPIL
 function quoteArgsForShell(shellScript: string, args: string[]): string {
 	const escapeArg = (arg: string): string => {
 		// If argument contains spaces, quotes, or special characters, wrap in quotes and escape internal quotes
-		if (/[\s"'$`\\|&;()<>]/.test(arg)) {
-			return `"${arg.replace(/["\\]/g, '\\$&')}"`;
+		if (regexp2.test(arg)) {
+			return `"${arg.replace(new RegExp(regexp1), '\\$&')}"`;
 		}
 		return arg;
 	};

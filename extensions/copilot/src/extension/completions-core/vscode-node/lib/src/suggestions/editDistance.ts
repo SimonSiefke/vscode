@@ -2,6 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+const regexp1 = /(\p{L}|\p{Nd}|_)/u;
+
 interface Alignment {
 	distance: number;
 	startOffset: number;
@@ -130,7 +132,7 @@ export function* lexGeneratorWords(s: string): Generator<string, void, unknown> 
 	let state: State = State.Word;
 	for (const c of s) {
 		let newState: State;
-		if (/(\p{L}|\p{Nd}|_)/u.test(c)) { newState = State.Word; }
+		if (regexp1.test(c)) { newState = State.Word; }
 		else if (c === ' ') { newState = State.Space; }
 		else { newState = State.Other; }
 		if (newState === state && newState !== State.Other) {

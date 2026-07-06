@@ -13,6 +13,8 @@ import { MessageKind, ToolCallStatus, ToolCallConfirmationReason, ToolResultCont
 import { IChatToolInvocation, IChatToolInvocationSerialized, type IChatMarkdownContent, type IChatThinkingPart, type IChatUsage } from '../../../common/chatService/chatService.js';
 import { isToolResultInputOutputDetails, type IToolResultInputOutputDetails, ToolDataSource, ToolInvocationPresentation } from '../../../common/tools/languageModelToolsService.js';
 import { turnsToHistory as rawTurnsToHistory, activeTurnToProgress as rawActiveTurnToProgress, toolCallStateToInvocation as rawToolCallStateToInvocation, finalizeToolInvocation as rawFinalizeToolInvocation, updateRunningToolSpecificData as rawUpdateRunningToolSpecificData, usageInfoToQuotas, formatTurnResponseDetails, rewriteAgentHostLinkTarget, rewriteMarkdownLinks } from '../../../browser/agentSessions/agentHost/stateToProgressAdapter.js';
+const regexp1 = /\\/g;
+
 
 // ---- Helper factories -------------------------------------------------------
 
@@ -1071,7 +1073,7 @@ suite('stateToProgressAdapter', () => {
 			});
 
 			assert.strictEqual(fileEdits.length, 1);
-			assert.strictEqual(fileEdits[0].resource.fsPath.replace(/\\/g, '/'), '/home/user/file.ts');
+			assert.strictEqual(fileEdits[0].resource.fsPath.replace(new RegExp(regexp1), '/'), '/home/user/file.ts');
 			assert.strictEqual(fileEdits[0].beforeContentUri?.toString(), URI.parse('agenthost-content:///session/snap/before').toString());
 			assert.strictEqual(fileEdits[0].afterContentUri?.toString(), URI.parse('agenthost-content:///session/snap/after').toString());
 			assert.ok(fileEdits[0].undoStopId);
@@ -1213,7 +1215,7 @@ suite('stateToProgressAdapter', () => {
 
 			assert.strictEqual(fileEdits.length, 1);
 			assert.strictEqual(fileEdits[0].kind, 'create');
-			assert.strictEqual(fileEdits[0].resource.fsPath.replace(/\\/g, '/'), '/home/user/new-file.ts');
+			assert.strictEqual(fileEdits[0].resource.fsPath.replace(new RegExp(regexp1), '/'), '/home/user/new-file.ts');
 			assert.strictEqual(fileEdits[0].beforeContentUri, undefined);
 			assert.ok(fileEdits[0].afterContentUri);
 		});

@@ -6,6 +6,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DisposableStore } from '../../vs/base/common/lifecycle';
 import { throwIfDisposablesAreLeaked, throwIfDisposablesAreLeakedAsync } from './testUtils';
+const regexpThereAreUndisposed = /There are \d+ undisposed disposables!/;
+
 
 describe('testUtils', () => {
 	describe('throwIfDisposablesAreLeaked', () => {
@@ -31,7 +33,7 @@ describe('testUtils', () => {
 						store.add({ dispose: () => { } });
 						// Don't call store.dispose()
 					});
-				}).toThrow(/There are \d+ undisposed disposables!/);
+				}).toThrow(regexpThereAreUndisposed);
 			} finally {
 				consoleSpy.mockRestore();
 			}
@@ -59,7 +61,7 @@ describe('testUtils', () => {
 						store.add({ dispose: () => { } });
 						// Don't dispose
 					})
-				).rejects.toThrow(/There are \d+ undisposed disposables!/);
+				).rejects.toThrow(regexpThereAreUndisposed);
 			} finally {
 				consoleSpy.mockRestore();
 			}

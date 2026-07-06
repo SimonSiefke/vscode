@@ -26,6 +26,8 @@ import { ICompletionsCacheService } from './completionsCache';
 import { RequestContext } from './requestContext';
 import { ResultType } from './resultType';
 import { GhostTextResultWithTelemetry, mkBasicResultTelemetry, mkCanceledResultTelemetry } from './telemetry';
+const regexp1 = /^\r?\n/;
+
 
 export type GetNetworkCompletionsType = GhostTextResultWithTelemetry<[APIChoice, Promise<void>]>;
 
@@ -389,7 +391,7 @@ export function makeGhostAPIChoice(choice: APIChoice, options: { forceSingleLine
 	if (options.forceSingleLine) {
 		const { completionText } = ghostChoice;
 		// Special case for when completion starts with a newline, don't count that as its own line
-		const initialLineBreak = completionText.match(/^\r?\n/);
+		const initialLineBreak = completionText.match(regexp1);
 		if (initialLineBreak) {
 			ghostChoice.completionText = initialLineBreak[0] + completionText.split('\n')[1];
 		} else {

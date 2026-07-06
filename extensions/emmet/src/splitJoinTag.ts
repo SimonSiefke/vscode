@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import { validate, getEmmetMode, getEmmetConfiguration, getHtmlFlatNode, offsetRangeToVsRange } from './util';
 import { HtmlNode as HtmlFlatNode } from 'EmmetFlatNode';
 import { getRootNode } from './parseDocument';
+const regexp1 = /(\s*\/)?>$/;
+
 
 export function splitJoinTag() {
 	if (!validate(false) || !vscode.window.activeTextEditor) {
@@ -40,7 +42,7 @@ function getRangesToReplace(document: vscode.TextDocument, nodeToUpdate: HtmlFla
 	if (!nodeToUpdate.open || !nodeToUpdate.close) {
 		// Split Tag
 		const nodeText = document.getText().substring(nodeToUpdate.start, nodeToUpdate.end);
-		const m = nodeText.match(/(\s*\/)?>$/);
+		const m = nodeText.match(regexp1);
 		const end = nodeToUpdate.end;
 		const start = m ? end - m[0].length : end;
 

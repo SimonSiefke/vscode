@@ -6,6 +6,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { closeAllEditors, createRandomFile, disposeAll } from '../utils';
+const regexp1 = /\r?\n$/;
+
 
 const textPlain = 'text/plain';
 
@@ -57,7 +59,7 @@ suite.skip('vscode API - Copy Paste', function () {
 					const str = await existing.asString();
 					// text/plain includes the trailing new line in this case
 					// On windows, this will always be `\r\n` even if the document uses `\n`
-					const eol = str.match(/\r?\n$/)?.[0] ?? '\n';
+					const eol = str.match(regexp1)?.[0] ?? '\n';
 					const reversed = reverseString(str.slice(0, -eol.length));
 					dataTransfer.set(textPlain, new vscode.DataTransferItem(reversed + '\n'));
 				}

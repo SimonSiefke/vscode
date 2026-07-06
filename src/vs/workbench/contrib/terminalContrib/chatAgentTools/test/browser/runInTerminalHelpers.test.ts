@@ -13,6 +13,9 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/
 import { ConfigurationTarget } from '../../../../../../platform/configuration/common/configuration.js';
 import type { ICommandApprovalResultWithReason } from '../../browser/tools/commandLineAnalyzer/autoApprove/commandLineAutoApprover.js';
 import { isAutoApproveRule, type IAutoApproveRule } from '../../browser/tools/commandLineAnalyzer/commandLineAnalyzer.js';
+const regexp1 = /[.*+?^${}()|[\]\\]/g;
+const regexp2 = /<p>`/;
+
 
 suite('isPowerShell', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -310,7 +313,7 @@ suite('generateAutoApproveActions', () => {
 
 	function createMockRule(sourceText: string): IAutoApproveRule {
 		// Escape special regex characters for test purposes to prevent regex errors
-		const escapedText = sourceText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const escapedText = sourceText.replace(new RegExp(regexp1), '\\$&');
 		return {
 			regex: new RegExp(escapedText),
 			regexCaseInsensitive: new RegExp(escapedText, 'i'),
@@ -601,7 +604,7 @@ suite('buildCommandDisplayText', () => {
 		const html = render(label);
 
 		ok(html.includes('<code>'), `expected a code span, got: ${html}`);
-		ok(!/<p>`/.test(html), `expected no literal leading backtick, got: ${html}`);
+		ok(!regexp2.test(html), `expected no literal leading backtick, got: ${html}`);
 	});
 });
 
@@ -644,6 +647,6 @@ suite('buildCompletionNotificationCommand', () => {
 		const html = render(label);
 
 		ok(html.includes('<code>'), `expected a code span, got: ${html}`);
-		ok(!/<p>`/.test(html), `expected no literal leading backtick, got: ${html}`);
+		ok(!regexp2.test(html), `expected no literal leading backtick, got: ${html}`);
 	});
 });

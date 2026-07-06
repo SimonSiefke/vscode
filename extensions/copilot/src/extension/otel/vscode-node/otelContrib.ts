@@ -14,6 +14,8 @@ import { IOTelSqliteStore, type OTelSqliteStore } from '../../../platform/otel/n
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import type { IExtensionContribution } from '../../common/contributions';
+const regexp1 = /^.*[\\/]/;
+
 
 const OPEN_OTEL_SETTINGS_COMMAND = 'github.copilot.chat.otel.openSettings';
 const STATUS_ACTIVE_COMMAND = 'github.copilot.chat.otel.statusActive';
@@ -206,7 +208,7 @@ export class OTelContrib extends Disposable implements IExtensionContribution {
 						tooltip: vscode.l10n.t('the file exporter'),
 					};
 				}
-				const fileBaseName = filePath.replace(/^.*[\\/]/, '');
+				const fileBaseName = filePath.replace(regexp1, '');
 				return {
 					detail: `\`${fileBaseName}\``,
 					tooltip: filePath,

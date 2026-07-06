@@ -7,6 +7,11 @@ import assert from 'assert';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { getMimeTypes, registerPlatformLanguageAssociation, registerConfiguredLanguageAssociation } from '../../../common/services/languagesAssociations.js';
+const regexpRegexesAreNice = /RegexesAreNice/;
+const regexpFoobar = /foobar/;
+const regexpAzure = /azure/;
+const regexpDenoBunTs = /^#!.*\b(deno|bun|ts-node)\b/;
+
 
 suite('LanguagesAssociations', () => {
 
@@ -37,7 +42,7 @@ suite('LanguagesAssociations', () => {
 		guess = getMimeTypes(URI.file('docker-PROD'));
 		assert.deepStrictEqual(guess, ['text/docker', 'text/plain']);
 
-		registerPlatformLanguageAssociation({ id: 'niceregex', mime: 'text/nice-regex', firstline: /RegexesAreNice/ });
+		registerPlatformLanguageAssociation({ id: 'niceregex', mime: 'text/nice-regex', firstline: regexpRegexesAreNice });
 		guess = getMimeTypes(URI.file('Randomfile.noregistration'), 'RegexesAreNice');
 		assert.deepStrictEqual(guess, ['text/nice-regex', 'text/plain']);
 
@@ -50,7 +55,7 @@ suite('LanguagesAssociations', () => {
 
 	test('Mimes Priority', () => {
 		registerPlatformLanguageAssociation({ id: 'monaco', extension: '.monaco', mime: 'text/monaco' });
-		registerPlatformLanguageAssociation({ id: 'foobar', mime: 'text/foobar', firstline: /foobar/ });
+		registerPlatformLanguageAssociation({ id: 'foobar', mime: 'text/foobar', firstline: regexpFoobar });
 
 		let guess = getMimeTypes(URI.file('foo.monaco'));
 		assert.deepStrictEqual(guess, ['text/monaco', 'text/plain']);
@@ -63,8 +68,8 @@ suite('LanguagesAssociations', () => {
 		guess = getMimeTypes(URI.file('dockerfile'));
 		assert.deepStrictEqual(guess, ['text/winner', 'text/plain']);
 
-		registerPlatformLanguageAssociation({ id: 'azure-looser', mime: 'text/azure-looser', firstline: /azure/ });
-		registerPlatformLanguageAssociation({ id: 'azure-winner', mime: 'text/azure-winner', firstline: /azure/ });
+		registerPlatformLanguageAssociation({ id: 'azure-looser', mime: 'text/azure-looser', firstline: regexpAzure });
+		registerPlatformLanguageAssociation({ id: 'azure-winner', mime: 'text/azure-winner', firstline: regexpAzure });
 		guess = getMimeTypes(URI.file('azure'), 'azure');
 		assert.deepStrictEqual(guess, ['text/azure-winner', 'text/plain']);
 	});
@@ -131,7 +136,7 @@ suite('LanguagesAssociations', () => {
 	});
 
 	test('Shebang detection for TypeScript runtimes', () => {
-		registerPlatformLanguageAssociation({ id: 'typescript', mime: 'text/typescript', firstline: /^#!.*\b(deno|bun|ts-node)\b/ });
+		registerPlatformLanguageAssociation({ id: 'typescript', mime: 'text/typescript', firstline: regexpDenoBunTs });
 
 		// Deno shebangs
 		assert.deepStrictEqual(getMimeTypes(URI.file('script'), '#!/usr/bin/env deno'), ['text/typescript', 'text/plain']);

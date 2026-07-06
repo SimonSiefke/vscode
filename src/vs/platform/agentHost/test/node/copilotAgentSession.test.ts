@@ -40,6 +40,13 @@ import { AgentHostSandboxConfigKey, AgentHostSandboxKey } from '../../common/san
 import { AgentSandboxEnabledValue } from '../../../sandbox/common/settings.js';
 import { createSessionDataService, createZeroDiffComputeService } from '../common/sessionTestHelpers.js';
 import { IAgentServerToolHost } from '../../common/agentServerTools.js';
+const regexpFailedToRead = /Failed to read selected text/;
+const regexpNoActiveTurn = /no active turn/i;
+const regexpUserInputBoom = /user input boom/;
+const regexpPreToolBoom = /pre tool boom/;
+const regexpPostToolBoom = /post tool boom/;
+const regexpClientToolBoom = /client tool boom/;
+
 
 // ---- Mock CopilotSession (SDK level) ----------------------------------------
 
@@ -1368,7 +1375,7 @@ suite('CopilotAgentSession', () => {
 			],
 		}]);
 		assert.strictEqual(logService.warnings.length, 1);
-		assert.match(logService.warnings[0].message, /Failed to read selected text/);
+		assert.match(logService.warnings[0].message, regexpFailedToRead);
 	});
 
 	// ---- permission handling ----
@@ -2207,7 +2214,7 @@ suite('CopilotAgentSession', () => {
 			const markdownActions = getActions(signals)
 				.filter(a => a.type === ActionType.ChatResponsePart && a.part.kind === ResponsePartKind.Markdown);
 			assert.strictEqual(markdownActions.length, 0, 'the late delta must be dropped, not emitted');
-			assert.ok(logService.errors.some(e => /no active turn/i.test(String(e.first))), 'the dropped delta should be logged');
+			assert.ok(logService.errors.some(e => regexpNoActiveTurn.test(String(e.first))), 'the dropped delta should be logged');
 		});
 	});
 
@@ -2585,7 +2592,7 @@ suite('CopilotAgentSession', () => {
 			const parts = getActions(signals).filter(a => a.type === ActionType.ChatResponsePart || a.type === ActionType.ChatDelta);
 			assert.strictEqual(parts.length, 0, 'no response part/delta should be emitted without an active turn');
 			assert.strictEqual(logService.errors.length, 1, 'should log an error');
-			assert.match(String(logService.errors[0].first), /no active turn/i);
+			assert.match(String(logService.errors[0].first), regexpNoActiveTurn);
 		});
 
 		test('abort-induced idle does not complete a pending queued turn', async () => {
@@ -3527,7 +3534,7 @@ suite('CopilotAgentSession', () => {
 					{ question: 'Need input' },
 					{ sessionId: 'test-session-1' },
 				),
-				/user input boom/,
+				regexpUserInputBoom,
 			);
 
 			assert.strictEqual(logService.errors.length, 1);
@@ -3554,7 +3561,7 @@ suite('CopilotAgentSession', () => {
 					toolName: 'edit',
 					toolArgs: { path: '/tmp/file.ts' },
 				}),
-				/pre tool boom/,
+				regexpPreToolBoom,
 			);
 
 			assert.strictEqual(logService.errors.length, 1);
@@ -3582,7 +3589,7 @@ suite('CopilotAgentSession', () => {
 					toolArgs: { path: '/tmp/file.ts' },
 					toolResult: { textResultForLlm: '', resultType: 'success' },
 				}),
-				/post tool boom/,
+				regexpPostToolBoom,
 			);
 
 			assert.strictEqual(logService.errors.length, 1);
@@ -3899,7 +3906,7 @@ suite('CopilotAgentSession', () => {
 
 			await assert.rejects(
 				invokeClientToolHandler(tools[0], 'tc-client-error'),
-				/client tool boom/,
+				regexpClientToolBoom,
 			);
 
 			assert.strictEqual(logService.errors.length, 1);

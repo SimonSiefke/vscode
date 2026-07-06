@@ -16,6 +16,8 @@ import { ILogService } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
 import { IRemoteAuthorityResolverService, IRemoteConnectionData, RemoteConnectionType, ResolvedAuthority, ResolvedOptions, ResolverResult, WebSocketRemoteConnection, getRemoteAuthorityPrefix } from '../common/remoteAuthorityResolver.js';
 import { parseAuthorityWithOptionalPort } from '../common/remoteHosts.js';
+const regexpHttps = /^https:/;
+
 
 export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
 
@@ -86,7 +88,7 @@ export class RemoteAuthorityResolverService extends Disposable implements IRemot
 		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
 		performance.mark(`code/didResolveConnectionToken/${authorityPrefix}`);
 		this._logService.info(`Resolved connection token (${authorityPrefix}) after ${sw.elapsed()} ms`);
-		const defaultPort = (/^https:/.test(mainWindow.location.href) ? 443 : 80);
+		const defaultPort = (regexpHttps.test(mainWindow.location.href) ? 443 : 80);
 		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
 		const result: ResolverResult = { authority: { authority, connectTo: new WebSocketRemoteConnection(host, port), connectionToken } };
 		RemoteAuthorities.set(authority, host, port);

@@ -6,6 +6,8 @@
 import { describe, expect, test } from 'vitest';
 import { ConfigKey } from '../../../../platform/configuration/common/configurationService';
 import { resolveSummarizeThresholdTokens } from '../agentIntent';
+const regexpTooLow = /too low/;
+
 
 describe('resolveSummarizeThresholdTokens', () => {
 	const settingId = ConfigKey.Advanced.SummarizeAgentConversationHistoryThreshold.id;
@@ -32,7 +34,7 @@ describe('resolveSummarizeThresholdTokens', () => {
 	});
 
 	test('ambiguous values in (1, 100) are rejected', () => {
-		expect(() => resolveSummarizeThresholdTokens(80, maxTokens, settingId)).toThrow(/too low/);
-		expect(() => resolveSummarizeThresholdTokens(99, maxTokens, settingId)).toThrow(/too low/);
+		expect(() => resolveSummarizeThresholdTokens(80, maxTokens, settingId)).toThrow(regexpTooLow);
+		expect(() => resolveSummarizeThresholdTokens(99, maxTokens, settingId)).toThrow(regexpTooLow);
 	});
 });

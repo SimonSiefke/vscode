@@ -11,6 +11,9 @@ import { URI } from '../../../../base/common/uri.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+const regexpZaZ0 = /^[A-Za-z0-9+/]*={0,2}$/;
+const regexpImage = /image-(\d+)\./;
+
 
 /**
  * Resizes an image provided as a UInt8Array string. Resizing is based on Open AI's algorithm for tokenzing images.
@@ -206,7 +209,7 @@ export function convertUint8ArrayToString(data: Uint8Array): string {
 
 function isValidBase64(str: string): boolean {
 	// checks if the string is a valid base64 string that is NOT encoded
-	return /^[A-Za-z0-9+/]*={0,2}$/.test(str) && (() => {
+	return regexpZaZ0.test(str) && (() => {
 		try {
 			atob(str);
 			return true;
@@ -257,7 +260,7 @@ export async function cleanupOldImages(fileService: IFileService, logService: IL
 }
 
 function getTimestampFromFilename(filename: string): number | undefined {
-	const match = filename.match(/image-(\d+)\./);
+	const match = filename.match(regexpImage);
 	if (match) {
 		return parseInt(match[1], 10);
 	}

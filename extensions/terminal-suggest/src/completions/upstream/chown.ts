@@ -1,7 +1,9 @@
+const regexp1 = /^-.*n.*/;
+
 export const existingUsersandGroups: Fig.Generator = {
 	custom: async function (tokens, executeShellCommand) {
 		const colonAdded = tokens.find((token) => token.includes(":"));
-		const nFlagUsed = tokens.find((token) => /^-.*n.*/.test(token));
+		const nFlagUsed = tokens.find((token) => regexp1.test(token));
 
 		let shell: string;
 		// Using `:` as a trigger, check to see if a colon is added

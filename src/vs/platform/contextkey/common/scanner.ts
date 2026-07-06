@@ -6,6 +6,8 @@
 import { CharCode } from '../../../base/common/charCode.js';
 import { illegalState } from '../../../base/common/errors.js';
 import { localize } from '../../../nls.js';
+const regexpZAZ0 = /[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+/uy;
+
 
 export const enum TokenType {
 	LParen,
@@ -299,7 +301,7 @@ export class Scanner {
 	}
 
 	// u - unicode, y - sticky // TODO@ulugbekna: we accept double quotes as part of the string rather than as a delimiter (to preserve old parser's behavior)
-	private stringRe = /[a-zA-Z0-9_<>\-\./\\:\*\?\+\[\]\^,#@;"%\$\p{L}-]+/uy;
+	private stringRe = new RegExp(regexpZAZ0);
 	private _string() {
 		this.stringRe.lastIndex = this._start;
 		const match = this.stringRe.exec(this._input);

@@ -32,6 +32,8 @@ import { IMcpServer, IMcpService, IMcpTool, IMcpToolResourceLinkContents, McpRes
 import { mcpServerToSourceData } from './mcpTypesUtils.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { McpServer } from './mcpServer.js';
+const regexp1 = /\s+/g;
+
 
 interface ISyncedToolData {
 	toolData: IToolData;
@@ -79,7 +81,7 @@ export class McpLanguageModelToolContribution extends Disposable implements IWor
 				const rec: Rec = { dispose: () => store.dispose() };
 				const toolSet = new Lazy(() => {
 					const source = rec.source = mcpServerToSourceData(server);
-					const referenceName = server.definition.label.toLowerCase().replace(/\s+/g, '-'); // see issue https://github.com/microsoft/vscode/issues/278152
+					const referenceName = server.definition.label.toLowerCase().replace(new RegExp(regexp1), '-'); // see issue https://github.com/microsoft/vscode/issues/278152
 					const toolSet = store.add(this._toolsService.createToolSet(
 						source,
 						server.definition.id,

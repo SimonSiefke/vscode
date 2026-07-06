@@ -32,6 +32,14 @@ import { SessionsService } from '../../browser/sessionsService.js';
 import { ISessionsPartService } from '../../browser/sessionsPartService.js';
 import { ISessionsProvidersService } from '../../browser/sessionsProvidersService.js';
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
+const regexpModelNotFound = /model not found/;
+const regexpP1Failed = /p1 failed/;
+const regexpProviderMissingProvider = /Provider 'missing-provider' not found/;
+const regexpDoesNotSupport = /does not support forking into a chat/;
+const regexpNoSessionsProvider = /No sessions provider supports quick chats/;
+const regexpDoesNotAdvertise = /does not advertise session type/;
+const regexpDoesNotSupport1 = /does not support quick chats/;
+
 
 const stubChat = {
 	resource: URI.parse('test:///chat'),
@@ -887,7 +895,7 @@ suite('SessionsManagementService', () => {
 
 		await assert.rejects(
 			() => service.createAndSendNewChatRequest(URI.parse('test:///folder'), { query: 'hi' }, { modelId: 'bad' }),
-			/model not found/,
+			regexpModelNotFound,
 		);
 		assert.strictEqual(deleted, true);
 	});
@@ -1116,7 +1124,7 @@ suite('SessionsManagementService', () => {
 			const deleted: string[] = [];
 			disposables.add(service.onDidDeleteSession(session => deleted.push(session.sessionId)));
 
-			await assert.rejects(service.deleteSessions([s1, s2]), /p1 failed/);
+			await assert.rejects(service.deleteSessions([s1, s2]), regexpP1Failed);
 
 			assert.deepStrictEqual({
 				failingDeleted: failing.deleted,
@@ -1249,14 +1257,14 @@ suite('SessionsManagementService', () => {
 			const provider = new TestSessionsProvider(stubSession({ sessionId: 'other', providerId: 'test' }));
 			const { service } = createSessionsManagementService(session, disposables, provider);
 
-			await assert.rejects(() => service.forkChatInSession(session, URI.parse('test:///source'), 'turn-1'), /Provider 'missing-provider' not found/);
+			await assert.rejects(() => service.forkChatInSession(session, URI.parse('test:///source'), 'turn-1'), regexpProviderMissingProvider);
 		});
 
 		test('throws when the session does not support multiple chats', async () => {
 			const session = stubSession({ sessionId: 'single-chat', providerId: 'test', capabilities: constObservable({ supportsMultipleChats: false }) });
 			const { service } = createSessionsManagementService(session, disposables);
 
-			await assert.rejects(() => service.forkChatInSession(session, URI.parse('test:///source'), 'turn-1'), /does not support forking into a chat/);
+			await assert.rejects(() => service.forkChatInSession(session, URI.parse('test:///source'), 'turn-1'), regexpDoesNotSupport);
 		});
 	});
 
@@ -1492,7 +1500,7 @@ suite('SessionsManagementService', () => {
 		test('throws when no provider supports quick chats', () => {
 			const plain = new TestSessionsProvider(stubSession({ sessionId: 'p1', providerId: 'test' }));
 			const service = setupQuickChat([plain]);
-			assert.throws(() => service.createQuickChat(), /No sessions provider supports quick chats/);
+			assert.throws(() => service.createQuickChat(), regexpNoSessionsProvider);
 		});
 
 		test('honours options.providerId and the requested session type', () => {
@@ -1535,7 +1543,7 @@ suite('SessionsManagementService', () => {
 		test('throws when the requested provider does not advertise the session type', () => {
 			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }));
 			const service = setupQuickChat([quick]);
-			assert.throws(() => service.createQuickChat({ providerId: 'quick-provider', sessionTypeId: 'missing' }), /does not advertise session type/);
+			assert.throws(() => service.createQuickChat({ providerId: 'quick-provider', sessionTypeId: 'missing' }), regexpDoesNotAdvertise);
 		});
 
 		test('throws when the requested provider does not support quick chats', () => {
@@ -1543,7 +1551,7 @@ suite('SessionsManagementService', () => {
 				override readonly id = 'plain';
 			}(stubSession({ sessionId: 'p1', providerId: 'plain' }));
 			const service = setupQuickChat([plain]);
-			assert.throws(() => service.createQuickChat({ providerId: 'plain' }), /does not support quick chats/);
+			assert.throws(() => service.createQuickChat({ providerId: 'plain' }), regexpDoesNotSupport1);
 		});
 
 		test('getQuickChatSessionTypes returns every advertised type from quick-chat-capable providers only', () => {

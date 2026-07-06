@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { es5ClassCompat } from './es5ClassCompat.js';
+const regexp1 = /\$|}|\\/g;
+const regexp2 = /[|\\,]/g;
+const regexp3 = /\$|}/g;
+
 
 @es5ClassCompat
 export class SnippetString {
@@ -19,7 +23,7 @@ export class SnippetString {
 	}
 
 	private static _escape(value: string): string {
-		return value.replace(/\$|}|\\/g, '\\$&');
+		return value.replace(new RegExp(regexp1), '\\$&');
 	}
 
 	private _tabstop: number = 1;
@@ -63,7 +67,7 @@ export class SnippetString {
 	}
 
 	appendChoice(values: string[], number: number = this._tabstop++): SnippetString {
-		const value = values.map(s => s.replaceAll(/[|\\,]/g, '\\$&')).join(',');
+		const value = values.map(s => s.replaceAll(new RegExp(regexp2), '\\$&')).join(',');
 
 		this.value += '${';
 		this.value += number;
@@ -84,7 +88,7 @@ export class SnippetString {
 			defaultValue = nested.value;
 
 		} else if (typeof defaultValue === 'string') {
-			defaultValue = defaultValue.replace(/\$|}/g, '\\$&'); // CodeQL [SM02383] I do not want to escape backslashes here
+			defaultValue = defaultValue.replace(new RegExp(regexp3), '\\$&'); // CodeQL [SM02383] I do not want to escape backslashes here
 		}
 
 		this.value += '${';

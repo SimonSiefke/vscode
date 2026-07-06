@@ -11,6 +11,9 @@ import { TestNotificationService } from '../../../../../platform/notification/te
 import { GettingStartedDetailsRenderer } from '../../browser/gettingStartedDetailsRenderer.js';
 import { convertInternalMediaPathToFileURI } from '../../browser/gettingStartedService.js';
 import { TestExtensionService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
+const regexpImgSrc = /img src="[^"]*"/g;
+const regexpImgSrcVs = /^img src=".*\/vs\/workbench\/contrib\/welcomeGettingStarted\/common\/media\/.*.png"$/;
+
 
 
 suite('Getting Started Markdown Renderer', () => {
@@ -24,9 +27,9 @@ suite('Getting Started Markdown Renderer', () => {
 		const mdPath = convertInternalMediaPathToFileURI('theme_picker').with({ query: JSON.stringify({ moduleId: 'vs/workbench/contrib/welcomeGettingStarted/common/media/theme_picker' }) });
 		const mdBase = FileAccess.asFileUri('vs/workbench/contrib/welcomeGettingStarted/common/media/');
 		const rendered = await renderer.renderMarkdown(mdPath, mdBase);
-		const imageSrcs = [...rendered.matchAll(/img src="[^"]*"/g)].map(match => match[0]);
+		const imageSrcs = [...rendered.matchAll(new RegExp(regexpImgSrc))].map(match => match[0]);
 		for (const src of imageSrcs) {
-			const targetSrcFormat = /^img src=".*\/vs\/workbench\/contrib\/welcomeGettingStarted\/common\/media\/.*.png"$/;
+			const targetSrcFormat = regexpImgSrcVs;
 			assert(targetSrcFormat.test(src), `${src} didnt match regex`);
 		}
 		languageService.dispose();

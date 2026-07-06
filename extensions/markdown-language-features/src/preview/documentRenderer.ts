@@ -14,6 +14,8 @@ import { generateUuid } from '../util/uuid';
 import { MarkdownPreviewConfiguration, MarkdownPreviewConfigurationManager } from './previewConfig';
 import { ContentSecurityPolicyArbiter, MarkdownPreviewSecurityLevel } from './security';
 import type { DiffScrollSyncData, MarkdownPreviewInnerChange, MarkdownPreviewLineChanges } from '../../types/previewMessaging';
+const regexp1 = /^[a-z]:\\/i;
+
 
 
 /**
@@ -181,7 +183,7 @@ export class MdDocumentRenderer {
 		}
 
 		// Assume it must be a local file
-		if (href.startsWith('/') || /^[a-z]:\\/i.test(href)) {
+		if (href.startsWith('/') || regexp1.test(href)) {
 			return resourceProvider.asWebviewUri(vscode.Uri.file(href)).toString();
 		}
 

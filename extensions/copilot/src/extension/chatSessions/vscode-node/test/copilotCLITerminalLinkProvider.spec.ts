@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CancellationToken, Terminal, TerminalLinkContext, Uri } from 'vscode';
 import { TestLogService } from '../../../../platform/testing/common/testLogService';
 import { CopilotCLITerminalLinkProvider } from '../copilotCLITerminalLinkProvider';
+const regexp1 = /\{(\d+)\}/g;
+
 
 // --- Mocks ---------------------------------------------------------------
 
@@ -45,7 +47,7 @@ vi.mock('vscode', () => ({
 		showQuickPick: mockShowQuickPick,
 	},
 	l10n: {
-		t: (message: string, ...args: string[]) => message.replace(/\{(\d+)\}/g, (_, i) => args[Number(i)]),
+		t: (message: string, ...args: string[]) => message.replace(new RegExp(regexp1), (_, i) => args[Number(i)]),
 	},
 	FileType: {
 		Unknown: 0,

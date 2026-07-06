@@ -50,13 +50,18 @@ import { CHAT_SETUP_ACTION_ID } from './chatActions.js';
 import { IChatRequestPasteVariableEntry, PromptFileVariableKind, toPasteVariableEntry, toPromptFileVariableEntry } from '../../common/attachments/chatVariableEntries.js';
 import { getChatSessionType } from '../../common/model/chatUri.js';
 import { ChatSessionPosition, openChatSession } from '../chatSessions/chatSessions.contribution.js';
+const regexpGithubComOwner = /(?:github\.com)[/:](?<owner>[^/]+)\/(?<repo>[^/.]+)/;
+const regexpGitdir = /^gitdir:\s*/;
+const regexpWorktrees = /\/worktrees\/[^/]+$/;
+const regexpRemoteOriginUrl = /\[remote\s+"origin"\][^[]*url\s*=\s*(.+)/m;
+
 
 /**
  * Extracts the "owner/repo" name-with-owner from a git remote URL.
  * Supports HTTPS (https://github.com/owner/repo.git) and SSH (git@github.com:owner/repo.git) formats.
  */
 function extractNwoFromRemoteUrl(remoteUrl: string): string | undefined {
-	const match = remoteUrl.match(/(?:github\.com)[/:](?<owner>[^/]+)\/(?<repo>[^/.]+)/);
+	const match = remoteUrl.match(regexpGithubComOwner);
 	if (match?.groups) {
 		return `${match.groups.owner}/${match.groups.repo}`;
 	}
@@ -81,14 +86,14 @@ async function resolveGitRemoteNwo(repoPath: string, fileService: IFileService):
 			} else {
 				// Git worktree — .git is a file with "gitdir: <path>"
 				const gitFile = await fileService.readFile(gitUri);
-				const gitDir = gitFile.value.toString().trim().replace(/^gitdir:\s*/, '');
+				const gitDir = gitFile.value.toString().trim().replace(regexpGitdir, '');
 				// Resolve relative paths
 				const resolvedGitDir = gitDir.startsWith('/')
 					? gitDir
 					: `${repoPath}/${gitDir}`;
 				// The config is in the common dir (parent of worktree git dirs)
 				// e.g., gitdir points to /repo/.git/worktrees/name, config is at /repo/.git/config
-				const commonDir = resolvedGitDir.replace(/\/worktrees\/[^/]+$/, '');
+				const commonDir = resolvedGitDir.replace(regexpWorktrees, '');
 				configUri = URI.file(`${commonDir}/config`);
 			}
 		} catch {
@@ -100,7 +105,7 @@ async function resolveGitRemoteNwo(repoPath: string, fileService: IFileService):
 		const configText = content.value.toString();
 
 		// Parse remote "origin" URL from git config
-		const remoteMatch = configText.match(/\[remote\s+"origin"\][^[]*url\s*=\s*(.+)/m);
+		const remoteMatch = configText.match(regexpRemoteOriginUrl);
 		if (remoteMatch?.[1]) {
 			return extractNwoFromRemoteUrl(remoteMatch[1].trim());
 		}

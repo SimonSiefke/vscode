@@ -36,6 +36,8 @@ import { InlineCompletionViewData } from '../inlineEdits/inlineEditsViewInterfac
 import { InlineDecorationType } from '../../../../../common/viewModel/inlineDecorations.js';
 import { equals, sum } from '../../../../../../base/common/arrays.js';
 import { equalsIfDefinedC, IEquatable, thisEqualsC } from '../../../../../../base/common/equals.js';
+const regexp1 = /\s/g;
+
 
 export interface IGhostTextWidgetData {
 	readonly ghostText: GhostText | GhostTextReplacement;
@@ -211,7 +213,7 @@ export class GhostTextView extends Disposable {
 		if (!data) { return undefined; }
 		const ghostText = data.ghostText;
 		const allText = ghostText.parts.map(p => p.lines.map(l => l.line).join('')).join('');
-		return allText.replace(/\s/g, '').length;
+		return allText.replace(new RegExp(regexp1), '').length;
 	});
 
 	private readonly _extraClassNames = derived(this, reader => {

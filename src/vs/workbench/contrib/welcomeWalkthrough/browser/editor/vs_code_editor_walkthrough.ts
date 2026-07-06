@@ -6,6 +6,8 @@
 import * as platform from '../../../../../base/common/platform.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+const regexp1 = /\|/g;
+
 
 export default function content(accessor: ServicesAccessor) {
 	const isServerless = platform.isWeb && !accessor.get(IWorkbenchEnvironmentService).remoteAuthority;
@@ -190,5 +192,5 @@ That's all for now,
 
 Happy Coding! 🎉
 
-`.replace(/\|/g, '`');
+`.replace(new RegExp(regexp1), '`');
 }

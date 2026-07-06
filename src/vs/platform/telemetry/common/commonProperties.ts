@@ -7,9 +7,12 @@ import { isLinuxSnap, platform, Platform, PlatformToString } from '../../../base
 import { env, platform as nodePlatform } from '../../../base/common/process.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import { ICommonProperties } from './telemetry.js';
+const regexpPenguin = /^penguin(\.|$)/i;
+const regexp2 = /^(\d+)(\.\d+)?(\.\d+)?(.*)/;
+
 
 function getPlatformDetail(hostname: string): string | undefined {
-	if (platform === Platform.Linux && /^penguin(\.|$)/i.test(hostname)) {
+	if (platform === Platform.Linux && regexpPenguin.test(hostname)) {
 		return 'chromebook';
 	}
 
@@ -46,7 +49,7 @@ export function resolveCommonProperties(
 	// __GDPR__COMMON__ "common.releaseDate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 	result['common.releaseDate'] = releaseDate;
 	// __GDPR__COMMON__ "common.platformVersion" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.platformVersion'] = (release || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3');
+	result['common.platformVersion'] = (release || '').replace(regexp2, '$1$2$3');
 	// __GDPR__COMMON__ "common.platform" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 	result['common.platform'] = PlatformToString(platform);
 	// __GDPR__COMMON__ "common.nodePlatform" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }

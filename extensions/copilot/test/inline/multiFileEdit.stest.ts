@@ -12,6 +12,12 @@ import { assertContainsAllSnippets, assertCriteriaMetAsync, assertFileContent, a
 import { EditTestStrategyPanel, simulatePanelCodeMapper } from '../simulation/panelCodeMapperSimulator';
 import { assertInlineEdit, assertInlineEditShape, assertNoErrorOutcome, assertQualifiedFile, assertWorkspaceEdit, fromFixture, toFile } from '../simulation/stestUtil';
 import { EditTestStrategy, IScenario } from '../simulation/types';
+const regexpBimportFromAscii = /\bimport\b[^;\n]+from ['"]ascii-art['"]/;
+const regexpBimportFromFiglet = /\bimport\b[^;\n]+from ['"]figlet['"]/;
+const regexpBimportRandomDataFrom = /\bimport {[^}]+randomData[^}]+} from '.\/fileSystemProvider'/;
+const regexpBimportMemFSFrom = /\bimport { MemFS } from '.\/fileSystemProvider'/;
+const regexpBimportRandomDataFrom1 = /\bimport {[^}]+randomData[^}]+} from '.\/utils'/;
+
 
 function executeEditTest(
 	strategy: EditTestStrategyPanel,
@@ -220,7 +226,7 @@ forEditsAndAgent((strategy, variant, model, configurations) => {
 							assert.ok(commands.length === 2, 'Expected package.json to include a new command');
 							const newCommand = commands.find((c: { command: string }) => c.command !== 'test-multifile-1.helloWorld');
 							assert.ok(newCommand, 'Expected package.json to include a command other than helloWorld');
-							assert.ok(extensionTs.match(/\bimport\b[^;\n]+from ['"]ascii-art['"]/), 'Expected an import for ascii-art');
+							assert.ok(extensionTs.match(regexpBimportFromAscii), 'Expected an import for ascii-art');
 							assert.ok(extensionTs.match(new RegExp(`\\bregisterCommand\\b[^;\n]['"]${escapeRegExpCharacters(newCommand.command)}['"]`)), 'expected that the new command is registered');
 							assertNoElidedCodeComments(outcome);
 						}
@@ -243,7 +249,7 @@ forEditsAndAgent((strategy, variant, model, configurations) => {
 							assert.ok(commands.length === 2, 'Expected package.json to still include 2 command');
 							const newCommand = commands.find((c: { command: string }) => c.command !== 'test-multifile-1.helloWorld');
 							assert.ok(newCommand, 'Expected package.json to include a command other than helloWorld');
-							assert.ok(extensionTs.match(/\bimport\b[^;\n]+from ['"]figlet['"]/), 'Expected an import for figlet');
+							assert.ok(extensionTs.match(regexpBimportFromFiglet), 'Expected an import for figlet');
 							assertNoElidedCodeComments(outcome);
 						}
 					}
@@ -297,7 +303,7 @@ forEditsAndAgent((strategy, variant, model, configurations) => {
 							assert.ok(endOfMemFSIndex !== -1, `can no longer find the '// end of MemFS' comment in fileSystemProvider.ts`);
 							assert.ok(newIndex > endOfMemFSIndex, 'randomData was not placed at the end of fileSystemProvider.ts');
 							assert.ok(fileSystemProviderTs.indexOf('export function randomData') !== -1, 'randomData not exported in fileSystemProvider.ts');
-							assert.ok(extensionTs.match(/\bimport {[^}]+randomData[^}]+} from '.\/fileSystemProvider'/), 'Expected an import for randomData in extension.ts');
+							assert.ok(extensionTs.match(regexpBimportRandomDataFrom), 'Expected an import for randomData in extension.ts');
 							assertNoElidedCodeComments(outcome);
 						}
 					},
@@ -315,8 +321,8 @@ forEditsAndAgent((strategy, variant, model, configurations) => {
 							const newIndex = utilsTs.indexOf('function randomData(lineCnt: number, lineLen = 155): Buffer');
 							assert.ok(newIndex !== -1, 'randomData not found in utilsTs.ts');
 							assert.ok(utilsTs.indexOf('export function randomData') !== -1, 'randomData not exported in fileSystemProvider.ts');
-							assert.ok(extensionTs.match(/\bimport { MemFS } from '.\/fileSystemProvider'/), 'Expected only MemFs import from fileSystemProvider');
-							assert.ok(extensionTs.match(/\bimport {[^}]+randomData[^}]+} from '.\/utils'/), 'Expected an import for randomData from utils');
+							assert.ok(extensionTs.match(regexpBimportMemFSFrom), 'Expected only MemFs import from fileSystemProvider');
+							assert.ok(extensionTs.match(regexpBimportRandomDataFrom1), 'Expected an import for randomData from utils');
 							assertNoElidedCodeComments(outcome);
 						}
 					},

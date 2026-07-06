@@ -9,6 +9,9 @@ import { componentExplorer } from '@vscode/component-explorer-vite-plugin';
 import { statSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { rollupEsmUrlPlugin } from '@vscode/rollup-plugin-esm-url';
+const regexp1 = /[&<>"'`]/g;
+const regexpClassZAZ0 = /class\s+([a-zA-Z0-9_]+)\s+extends\s+DomWidget/g;
+
 
 function injectBuiltinExtensionsPlugin(): Plugin {
 	let builtinExtensionsCache: unknown[] | null = null;
@@ -46,7 +49,7 @@ function injectBuiltinExtensionsPlugin(): Plugin {
 			}
 		};
 
-		return str.replace(/[&<>"'`]/g, escapeCharacter);
+		return str.replace(new RegExp(regexp1), escapeCharacter);
 	}
 
 	const prebuiltExtensionsLocation = '.build/builtInExtensions';
@@ -116,7 +119,7 @@ function createHotClassSupport(): Plugin {
 					}
 
 					if (hasDomWidget) {
-						const matches = code.matchAll(/class\s+([a-zA-Z0-9_]+)\s+extends\s+DomWidget/g);
+						const matches = code.matchAll(new RegExp(regexpClassZAZ0));
 						/// @ts-ignore
 						for (const match of matches) {
 							const className = match[1];

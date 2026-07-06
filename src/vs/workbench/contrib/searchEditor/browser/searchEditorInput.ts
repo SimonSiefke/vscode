@@ -35,6 +35,8 @@ import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+const regexp1 = /[^\w \-_]+/g;
+
 
 export const SEARCH_EDITOR_EXT = '.code-search';
 
@@ -300,7 +302,7 @@ export class SearchEditorInput extends EditorInput {
 
 	private async suggestFileName(): Promise<URI> {
 		const query = (await this.resolveModels()).configurationModel.config.query;
-		const searchFileName = (query.replace(/[^\w \-_]+/g, '_') || 'Search') + SEARCH_EDITOR_EXT;
+		const searchFileName = (query.replace(new RegExp(regexp1), '_') || 'Search') + SEARCH_EDITOR_EXT;
 		return joinPath(await this.fileDialogService.defaultFilePath(this.pathService.defaultUriScheme), searchFileName);
 	}
 

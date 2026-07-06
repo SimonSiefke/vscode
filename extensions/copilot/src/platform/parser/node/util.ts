@@ -5,6 +5,17 @@
 
 import type { SyntaxNode } from 'web-tree-sitter';
 import { WASMLanguage } from './treeSitterLanguages';
+const regexpIdentifier = /identifier/;
+const regexpSpec = /spec/;
+const regexpDeclarator = /declarator/;
+const regexpConstantIdentifier = /constant|identifier/;
+const regexpDefinitionDeclarationDeclarator = /definition|declaration|declarator|export_statement/;
+const regexpDefinitionDeclarationDeclarator1 = /definition|declaration|declarator|var_spec/;
+const regexpDefinitionDeclarationClass = /definition|declaration|class_specifier/;
+const regexpModuleClassMethod = /module|class|method|assignment/;
+const regexpFunctionDefinitionClass = /^(function_definition|class_definition|decorated_definition)$/;
+const regexpDefinitionDeclarationDeclarator2 = /definition|declaration|declarator/;
+
 
 /**
  * Extracts the identifier for the given node (is based on heuristics, so not 100% accurate for all languages)
@@ -13,21 +24,21 @@ export function extractIdentifier(node: SyntaxNode, languageId: string): string 
 	switch (languageId) {
 		case 'python':
 		case 'csharp':
-			return node.children.find(c => c.type.match(/identifier/))?.text;
+			return node.children.find(c => c.type.match(regexpIdentifier))?.text;
 		case 'go': {
-			const identifierChild = node.children.find(c => c.type.match(/identifier/));
+			const identifierChild = node.children.find(c => c.type.match(regexpIdentifier));
 			if (identifierChild) { return identifierChild.text; }
-			const specChild = node.children.find(c => c.type.match(/spec/));
-			return specChild?.children.find(c => c.type.match(/identifier/))?.text;
+			const specChild = node.children.find(c => c.type.match(regexpSpec));
+			return specChild?.children.find(c => c.type.match(regexpIdentifier))?.text;
 		}
 		case 'javascript':
 		case 'javascriptreact':
 		case 'typescript':
 		case 'typescriptreact':
 		case 'cpp': {
-			const declarator = node.children.find(c => c.type.match(/declarator/));
-			if (declarator) { return declarator.children.find(c => c.type.match(/identifier/))?.text; }
-			const identifierChild = node.children.find(c => c.type.match(/identifier/));
+			const declarator = node.children.find(c => c.type.match(regexpDeclarator));
+			if (declarator) { return declarator.children.find(c => c.type.match(regexpIdentifier))?.text; }
+			const identifierChild = node.children.find(c => c.type.match(regexpIdentifier));
 			return identifierChild?.text;
 		}
 		case 'java': {
@@ -56,9 +67,9 @@ export function extractIdentifier(node: SyntaxNode, languageId: string): string 
 			return identifierChild?.text;
 		}
 		case 'ruby':
-			return node.children.find(c => c.type.match(/constant|identifier/))?.text;
+			return node.children.find(c => c.type.match(regexpConstantIdentifier))?.text;
 		default:
-			return node.children.find(c => c.type.match(/identifier/))?.text;
+			return node.children.find(c => c.type.match(regexpIdentifier))?.text;
 	}
 }
 
@@ -68,13 +79,13 @@ export function isDocumentableNode(node: SyntaxNode, language: WASMLanguage) {
 		case WASMLanguage.TypeScript:
 		case WASMLanguage.TypeScriptTsx:
 		case WASMLanguage.JavaScript:
-			return node.type.match(/definition|declaration|declarator|export_statement/);
+			return node.type.match(regexpDefinitionDeclarationDeclarator);
 		case WASMLanguage.Go:
-			return node.type.match(/definition|declaration|declarator|var_spec/);
+			return node.type.match(regexpDefinitionDeclarationDeclarator1);
 		case WASMLanguage.Cpp:
-			return node.type.match(/definition|declaration|class_specifier/);
+			return node.type.match(regexpDefinitionDeclarationClass);
 		case WASMLanguage.Ruby:
-			return node.type.match(/module|class|method|assignment/);
+			return node.type.match(regexpModuleClassMethod);
 		case WASMLanguage.Python:
 			// Match `function_definition`/`class_definition`, plus the wrapping
 			// `decorated_definition` so that selections/cursors *on the decorator
@@ -86,9 +97,9 @@ export function isDocumentableNode(node: SyntaxNode, language: WASMLanguage) {
 			// `@decorator` line — as the start of the definition. Otherwise
 			// docstrings end up *before* the decorator, which is a syntax error.
 			// See https://github.com/microsoft/vscode/issues/283165.
-			return node.type.match(/^(function_definition|class_definition|decorated_definition)$/);
+			return node.type.match(regexpFunctionDefinitionClass);
 		default:
-			return node.type.match(/definition|declaration|declarator/);
+			return node.type.match(regexpDefinitionDeclarationDeclarator2);
 	}
 }
 

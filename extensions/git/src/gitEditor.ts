@@ -9,6 +9,8 @@ import { ITerminalEnvironmentProvider } from './terminal';
 import { EmptyDisposable, IDisposable } from './util';
 import { Model } from './model';
 import { Repository } from './repository';
+const regexpModifiedNewFile = /^#\s+(modified|new file|deleted|renamed|copied|type change):\s+(?<file1>.*?)(?:\s+->\s+(?<file2>.*))*$/gm;
+
 
 interface GitEditorRequest {
 	commitMessagePath?: string;
@@ -69,7 +71,7 @@ export class GitEditor implements IIPCHandler, ITerminalEnvironmentProvider {
 }
 
 export class GitEditorDocumentLinkProvider implements DocumentLinkProvider {
-	private readonly _regex = /^#\s+(modified|new file|deleted|renamed|copied|type change):\s+(?<file1>.*?)(?:\s+->\s+(?<file2>.*))*$/gm;
+	private readonly _regex = new RegExp(regexpModifiedNewFile);
 
 	constructor(private readonly _model: Model) { }
 

@@ -20,6 +20,8 @@ import { InMemoryFileSystemProvider } from '../../../files/common/inMemoryFilesy
 import { NullLogService } from '../../../log/common/log.js';
 import { McpResourceScannerService } from '../../common/mcpResourceScannerService.js';
 import { UriIdentityService } from '../../../uriIdentity/common/uriIdentityService.js';
+const regexpNoServerPackage = /No server package found/;
+
 
 class TestMcpManagementService extends AbstractCommonMcpManagementService {
 
@@ -922,7 +924,7 @@ suite('McpManagementService - getMcpServerConfigurationFromManifest', () => {
 
 			assert.throws(() => {
 				service.getMcpServerConfigurationFromManifest(manifest, RegistryType.NODE);
-			}, /No server package found/);
+			}, regexpNoServerPackage);
 		});
 
 		test('manifest with no matching package type should use first package', () => {

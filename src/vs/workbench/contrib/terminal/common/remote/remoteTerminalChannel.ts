@@ -26,6 +26,8 @@ import { ISerializableEnvironmentDescriptionMap, ISerializableEnvironmentVariabl
 import type * as performance from '../../../../../base/common/performance.js';
 import { RemoteTerminalChannelEvent, RemoteTerminalChannelRequest } from './terminal.js';
 import { ConfigurationResolverExpression } from '../../../../services/configurationResolver/common/configurationResolverExpression.js';
+const regexpConfig = /^config:/;
+
 
 export const REMOTE_TERMINAL_CHANNEL_NAME = 'remoteterminal';
 
@@ -143,7 +145,7 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 			this._logService.error(err);
 		}
 		for (const [{ inner }, resolved] of expr.resolved()) {
-			if (/^config:/.test(inner) || inner === 'selectedText' || inner === 'lineNumber') {
+			if (regexpConfig.test(inner) || inner === 'selectedText' || inner === 'lineNumber') {
 				resolvedVariables[inner] = resolved.value;
 			}
 		}

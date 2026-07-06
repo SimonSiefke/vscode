@@ -76,6 +76,9 @@ import { getCleanPromptName } from '../../common/promptSyntax/config/promptFileL
 import { IChatContextService } from '../contextContrib/chatContextService.js';
 import { IChatImageCarouselService } from '../chatImageCarouselService.js';
 import { getOrCreateImageThumbnail } from '../chatImageUtils.js';
+const regexp1 = /\n\n(<[^>]+>)/;
+const regexp2 = /<([^>]+)>/;
+
 
 const commonHoverOptions: Partial<IHoverOptions> = {
 	style: HoverStyle.Pointer,
@@ -1409,12 +1412,12 @@ export class ElementChatAttachmentWidget extends AbstractChatAttachmentWidget {
 		// Extract the opening tag from the outerHTML within the value string
 		// Value format: "Attached HTML and CSS Context\n\n<tag ...>...</tag>\n\n..."
 		const content = attachment.value?.toString() ?? '';
-		const htmlMatch = content.match(/\n\n(<[^>]+>)/);
+		const htmlMatch = content.match(regexp1);
 		if (htmlMatch) {
 			return htmlMatch[1];
 		}
 		// Fallback: try first tag in content
-		const fallback = content.match(/<([^>]+)>/);
+		const fallback = content.match(regexp2);
 		if (fallback) {
 			return `<${fallback[1]}>`;
 		}

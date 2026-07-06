@@ -19,6 +19,10 @@ import { AgentSandboxEnabledValue, AgentSandboxSettingId } from '../../common/se
 import { ITerminalSandboxEngineHost, ITerminalSandboxRuntimeInfo, TerminalSandboxEngine } from '../../common/terminalSandboxEngine.js';
 import { IWindowsMxcTerminalSandboxRuntime, WindowsMxcTerminalSandboxRuntime } from '../../common/terminalSandboxMxcRuntime.js';
 import { TerminalSandboxPrerequisiteCheck, TerminalSandboxPreCheckRemediation } from '../../common/terminalSandboxService.js';
+const regexp1 = /\//g;
+const regexpZA = /^\/[a-zA-Z]:/;
+const regexp3 = /\\/g;
+
 
 suite('TerminalSandboxEngine', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -53,8 +57,8 @@ suite('TerminalSandboxEngine', () => {
 			const contentString = content.toString();
 			createdFiles.set(uri.path, contentString);
 			createdFiles.set(uri.fsPath, contentString);
-			if (/^\/[a-zA-Z]:/.test(uri.path)) {
-				createdFiles.set(uri.path.slice(1).replace(/\//g, '\\'), contentString);
+			if (regexpZA.test(uri.path)) {
+				createdFiles.set(uri.path.slice(1).replace(new RegExp(regexp1), '\\'), contentString);
 			}
 			return {};
 		}
@@ -160,7 +164,7 @@ suite('TerminalSandboxEngine', () => {
 	}
 
 	function normalizeWindowsPathForAssert(path: string): string {
-		return path.replace(/\\/g, '/').toLowerCase();
+		return path.replace(new RegExp(regexp3), '/').toLowerCase();
 	}
 
 	function enableWindowsSandbox(): void {

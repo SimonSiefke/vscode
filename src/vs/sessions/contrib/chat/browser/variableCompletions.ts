@@ -30,6 +30,10 @@ import { isDiffEditorInput } from '../../../../workbench/common/editor.js';
 import { isSupportedChatFileScheme } from '../../../../workbench/contrib/chat/common/constants.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { NewChatContextAttachments } from './newChatContextAttachments.js';
+const regexp1 = /#[^\s]*/g;
+const regexpTroubleshoot = /^\s*\/troubleshoot\b/;
+const regexpFile = /#file:\S+/g;
+
 
 const VARIABLE_LEADER = '#';
 
@@ -108,7 +112,7 @@ function computeRange(model: ITextModel, position: Position, reg: RegExp): IComp
  */
 export class VariableCompletionHandler extends Disposable {
 
-	private static readonly _wordPattern = /#[^\s]*/g; // MUST use g-flag
+	private static readonly _wordPattern = new RegExp(regexp1); // MUST use g-flag
 	private static readonly _className = 'sessions-variable-reference';
 
 	private readonly _decorations: IEditorDecorationsCollection;
@@ -146,7 +150,7 @@ export class VariableCompletionHandler extends Disposable {
 				// For a `/troubleshoot` request, `#` references target sessions
 				// (handled by the `#session` provider); suppress file/folder
 				// completions so only sessions are offered.
-				if (/^\s*\/troubleshoot\b/.test(model.getValue())) {
+				if (regexpTroubleshoot.test(model.getValue())) {
 					return null;
 				}
 
@@ -346,7 +350,7 @@ export class VariableCompletionHandler extends Disposable {
 		const value = model?.getValue() ?? '';
 
 		const decos: IModelDeltaDecoration[] = [];
-		const regex = /#file:\S+/g;
+		const regex = new RegExp(regexpFile);
 		let match: RegExpExecArray | null;
 
 		while ((match = regex.exec(value)) !== null) {

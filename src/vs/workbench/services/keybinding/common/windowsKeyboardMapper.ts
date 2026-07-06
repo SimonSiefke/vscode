@@ -13,6 +13,8 @@ import { IKeyboardMapper } from '../../../../platform/keyboardLayout/common/keyb
 import { BaseResolvedKeybinding } from '../../../../platform/keybinding/common/baseResolvedKeybinding.js';
 import { toEmptyArrayIfContainsNull } from '../../../../platform/keybinding/common/resolvedKeybindingItem.js';
 import { IWindowsKeyboardMapping } from '../../../../platform/keyboardLayout/common/keyboardLayout.js';
+const regexpControl = /Control\+/;
+
 
 const LOG = false;
 function log(str: string): void {
@@ -362,7 +364,7 @@ export class WindowsKeyboardMapper implements IKeyboardMapper {
 
 				const outScanCode = `${ctrlKey ? 'Ctrl+' : ''}${shiftKey ? 'Shift+' : ''}${altKey ? 'Alt+' : ''}${strCode}`;
 				const ariaLabel = (resolvedKb ? resolvedKb.getAriaLabel() : null);
-				const outUILabel = (ariaLabel ? ariaLabel.replace(/Control\+/, 'Ctrl+') : null);
+				const outUILabel = (ariaLabel ? ariaLabel.replace(regexpControl, 'Ctrl+') : null);
 				const outUserSettings = (resolvedKb ? resolvedKb.getUserSettingsLabel() : null);
 				const outKey = WindowsNativeResolvedKeybinding.getProducedChar(scanCodeChord, mapping);
 				const outKb = (strKeyCode ? `${ctrlKey ? 'Ctrl+' : ''}${shiftKey ? 'Shift+' : ''}${altKey ? 'Alt+' : ''}${strKeyCode}` : null);

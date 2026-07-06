@@ -15,6 +15,19 @@ import { all, copyrightFilter, eslintFilter, indentationFilter, stylelintFilter,
 import eslint from './gulp-eslint.ts';
 import * as formatter from './lib/formatter.ts';
 import gulpstylelint from './stylelint.ts';
+const regexp1 = /\r\n|\n/;
+const regexp2 = /\r?\n/;
+const regexp3 = /\r\n|\r|\n/;
+const regexpAllowAnyUnicode = /allow-any-unicode-comment-file/;
+const regexpAllowAnyUnicode1 = /allow-any-unicode-next-line/;
+const regexp6 = /\s+(\*)/;
+// eslint-disable-next-line no-misleading-character-class
+const regexp7 = /([^\t\n\r\x20-\x7E⊃⊇✔︎✓🎯🧪✍️⚠️🛑🔴🚗🚙🚕🎉✨❗⇧⌥⌘×÷¦⋯…↑↓￫→←↔⟷—·•●◆▼⟪⟫┌└├⏎↩√φ]+)/g;
+const regexp8 = /^[\t]* \*/;
+const regexp9 = /^[\t]*[^\s]/;
+const regexp10 = /^\s*$/;
+const regexpJsCjsMjs = /\.(js|cjs|mjs)$/;
+
 
 const copyrightHeaderLines = [
 	'/*---------------------------------------------------------------------------------------------',
@@ -54,7 +67,7 @@ export function checkNoNewJavaScriptFiles(repoRoot: string): string | undefined 
 	const allowlistPath = path.join(repoRoot, '.eslint-allowed-javascript-files');
 	const allowed = new Set(
 		fs.readFileSync(allowlistPath, 'utf8')
-			.split(/\r\n|\n/)
+			.split(regexp1)
 			.map(line => line.trim())
 			.filter(line => line && !line.startsWith('#'))
 	);
@@ -65,7 +78,7 @@ export function checkNoNewJavaScriptFiles(repoRoot: string): string | undefined 
 		encoding: 'utf8',
 		maxBuffer: 10 * 1024 * 1024,
 	});
-	const tracked = out.split(/\r?\n/).filter(line => !!line);
+	const tracked = out.split(regexp2).filter(line => !!line);
 
 	const unknown = tracked.filter(file => !allowed.has(file));
 	if (unknown.length > 0) {
@@ -98,12 +111,12 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 	});
 
 	const unicode = es.through(function (file: VinylFileWithLines) {
-		const lines = file.contents!.toString('utf8').split(/\r\n|\r|\n/);
+		const lines = file.contents!.toString('utf8').split(regexp3);
 		file.__lines = lines;
-		const allowInComments = lines.some(line => /allow-any-unicode-comment-file/.test(line));
+		const allowInComments = lines.some(line => regexpAllowAnyUnicode.test(line));
 		let skipNext = false;
 		lines.forEach((line, i) => {
-			if (/allow-any-unicode-next-line/.test(line)) {
+			if (regexpAllowAnyUnicode1.test(line)) {
 				skipNext = true;
 				return;
 			}
@@ -113,7 +126,7 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 			}
 			// If unicode is allowed in comments, trim the comment from the line
 			if (allowInComments) {
-				if (line.match(/\s+(\*)/)) { // Naive multi-line comment check
+				if (line.match(regexp6)) { // Naive multi-line comment check
 					line = '';
 				} else {
 					const index = line.indexOf('//');
@@ -121,8 +134,7 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 				}
 			}
 			// Please do not add symbols that resemble ASCII letters!
-			// eslint-disable-next-line no-misleading-character-class
-			const m = /([^\t\n\r\x20-\x7E⊃⊇✔︎✓🎯🧪✍️⚠️🛑🔴🚗🚙🚕🎉✨❗⇧⌥⌘×÷¦⋯…↑↓￫→←↔⟷—·•●◆▼⟪⟫┌└├⏎↩√φ]+)/g.exec(line);
+			const m = new RegExp(regexp7).exec(line);
 			if (m) {
 				console.error(
 					file.relative + `(${i + 1},${m.index + 1}): Unexpected unicode character: "${m[0]}" (charCode: ${m[0].charCodeAt(0)}). To suppress, use // allow-any-unicode-next-line`
@@ -135,15 +147,15 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 	});
 
 	const indentation = es.through(function (file: VinylFileWithLines) {
-		const lines = file.__lines || file.contents!.toString('utf8').split(/\r\n|\r|\n/);
+		const lines = file.__lines || file.contents!.toString('utf8').split(regexp3);
 		file.__lines = lines;
 
 		lines.forEach((line, i) => {
-			if (/^\s*$/.test(line)) {
+			if (regexp10.test(line)) {
 				// empty or whitespace lines are OK
-			} else if (/^[\t]*[^\s]/.test(line)) {
+			} else if (regexp9.test(line)) {
 				// good indent
-			} else if (/^[\t]* \*/.test(line)) {
+			} else if (regexp8.test(line)) {
 				// block comment using an extra space
 			} else {
 				console.error(
@@ -335,7 +347,7 @@ if (import.meta.main) {
 					process.exit(1);
 				}
 
-				const some = out.split(/\r?\n/).filter((l) => !!l);
+				const some = out.split(regexp2).filter((l) => !!l);
 
 				if (some.length > 0) {
 					// Check copilot engines.vscode version if relevant files are staged
@@ -348,7 +360,7 @@ if (import.meta.main) {
 					}
 
 					// Check that no new .js/.cjs/.mjs files are being added outside of the allowlist
-					if (some.some(f => /\.(js|cjs|mjs)$/.test(f) || f === '.eslint-allowed-javascript-files')) {
+					if (some.some(f => regexpJsCjsMjs.test(f) || f === '.eslint-allowed-javascript-files')) {
 						const jsAllowlistError = checkNoNewJavaScriptFiles(process.cwd());
 						if (jsAllowlistError) {
 							console.error(jsAllowlistError);

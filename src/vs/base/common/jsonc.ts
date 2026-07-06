@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /,\s*([}\]])/g;
+
 // First group matches a double quoted string
 // Second group matches a single quoted string
 // Third group matches a multi line comment
@@ -58,7 +60,7 @@ export function parse<T>(content: string): T {
 	try {
 		return JSON.parse(commentsStripped);
 	} catch (error) {
-		const trailingCommasStriped = commentsStripped.replace(/,\s*([}\]])/g, '$1');
+		const trailingCommasStriped = commentsStripped.replace(new RegExp(regexp1), '$1');
 		return JSON.parse(trailingCommasStriped);
 	}
 }

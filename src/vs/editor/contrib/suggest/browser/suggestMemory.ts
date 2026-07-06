@@ -16,6 +16,8 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
+const regexp1 = /\s$/;
+
 
 export abstract class Memory {
 
@@ -97,7 +99,7 @@ export class LRUMemory extends Memory {
 		}
 
 		const lineSuffix = model.getLineContent(pos.lineNumber).substr(pos.column - 10, pos.column - 1);
-		if (/\s$/.test(lineSuffix)) {
+		if (regexp1.test(lineSuffix)) {
 			return super.select(model, pos, items);
 		}
 

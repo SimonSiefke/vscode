@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { compressConsecutiveTextChanges, TextChange } from '../../../common/core/textChange.js';
+const regexp1 = /\n/g;
+
 
 const GENERATE_TESTS = false;
 
@@ -252,10 +254,10 @@ suite('TextChangeCompressor', () => {
 		private readonly _edits2: IGeneratedEdit[];
 
 		constructor() {
-			this._content = getRandomBuffer(false).replace(/\n/g, '_');
-			this._edits1 = getRandomEdits(this._content, 1, 5).map((e) => { return { offset: e.offset, length: e.length, text: e.text.replace(/\n/g, '_') }; });
+			this._content = getRandomBuffer(false).replace(new RegExp(regexp1), '_');
+			this._edits1 = getRandomEdits(this._content, 1, 5).map((e) => { return { offset: e.offset, length: e.length, text: e.text.replace(new RegExp(regexp1), '_') }; });
 			const tmp = getResultingContent(this._content, this._edits1);
-			this._edits2 = getRandomEdits(tmp, 1, 5).map((e) => { return { offset: e.offset, length: e.length, text: e.text.replace(/\n/g, '_') }; });
+			this._edits2 = getRandomEdits(tmp, 1, 5).map((e) => { return { offset: e.offset, length: e.length, text: e.text.replace(new RegExp(regexp1), '_') }; });
 		}
 
 		public print(): void {

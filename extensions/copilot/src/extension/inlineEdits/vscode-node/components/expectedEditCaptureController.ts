@@ -15,6 +15,8 @@ import { Disposable } from '../../../../util/vs/base/common/lifecycle';
 import { DebugRecorder } from '../../node/debugRecorder';
 import { filterLogForSensitiveFiles } from './inlineEditDebugComponent';
 import { NesFeedbackSubmitter } from './nesFeedbackSubmitter';
+const regexp1 = /[:.]/g;
+
 
 export const copilotNesCaptureMode = 'copilotNesCaptureMode';
 
@@ -426,7 +428,7 @@ export class ExpectedEditCaptureController extends Disposable {
 		}
 
 		// Generate filename with timestamp
-		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+		const timestamp = new Date().toISOString().replace(new RegExp(regexp1), '-').slice(0, -5);
 		const filename = `capture-${timestamp}.recording.w.json`;
 		const fileUri = Uri.joinPath(folderUri, filename);
 

@@ -16,12 +16,14 @@ import { InMemoryUserDataProfilesService, UserDataProfilesService } from '../../
 import { UriIdentityService } from '../../../uriIdentity/common/uriIdentityService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { Event } from '../../../../base/common/event.js';
+const regexpUser = /\/User$/;
+
 
 const ROOT = URI.file('tests').with({ scheme: 'vscode-tests' });
 
 class TestEnvironmentService extends AbstractNativeEnvironmentService {
 	constructor(private readonly _appSettingsHome: URI) {
-		const userDataDir = _appSettingsHome.fsPath.replace(/\/User$/, '');
+		const userDataDir = _appSettingsHome.fsPath.replace(regexpUser, '');
 		const paths: INativeEnvironmentPaths = {
 			userDataDir,
 			homeDir: userDataDir,

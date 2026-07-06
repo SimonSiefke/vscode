@@ -61,6 +61,10 @@ import * as icons from './debugIcons.js';
 import { DisassemblyView } from './disassemblyView.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { hasKey } from '../../../../base/common/types.js';
+const regexp1 = /^(\S+)\s*(?:([+-])\s*(\S+))?/;
+const regexp0x9a = /^0x[0-9a-f]+|[0-9]+$/i;
+const regexp0x9a1 = /^0x[0-9a-f]*|[0-9]*$/i;
+
 
 const $ = dom.$;
 
@@ -2074,12 +2078,12 @@ abstract class MemoryBreakpointAction extends Action2 {
 	private parseAddress(range: string, isFinal: false): { error: string } | undefined;
 	private parseAddress(range: string, isFinal: true): { error: string } | { address: string; bytes: number };
 	private parseAddress(range: string, isFinal: boolean): { error: string } | { address: string; bytes: number } | undefined {
-		const parts = /^(\S+)\s*(?:([+-])\s*(\S+))?/.exec(range);
+		const parts = regexp1.exec(range);
 		if (!parts) {
 			return { error: localize('dataBreakpointAddrFormat', 'Address should be a range of numbers the form "[Start] - [End]" or "[Start] + [Bytes]"') };
 		}
 
-		const isNum = (e: string) => isFinal ? /^0x[0-9a-f]*|[0-9]*$/i.test(e) : /^0x[0-9a-f]+|[0-9]+$/i.test(e);
+		const isNum = (e: string) => isFinal ? regexp0x9a1.test(e) : regexp0x9a.test(e);
 		const [, startStr, sign = '+', endStr = '1'] = parts;
 
 		for (const n of [startStr, endStr]) {

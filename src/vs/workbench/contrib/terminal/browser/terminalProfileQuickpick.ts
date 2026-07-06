@@ -20,6 +20,8 @@ import { basename } from '../../../../base/common/path.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { hasKey, isString } from '../../../../base/common/types.js';
 import { Event } from '../../../../base/common/event.js';
+const regexp1 = /"/g;
+
 
 
 type DefaultProfileName = string;
@@ -288,7 +290,7 @@ export class TerminalProfileQuickpick {
 			}
 			const argsString = profile.args.map(e => {
 				if (e.includes(' ')) {
-					return `"${e.replace(/"/g, '\\"')}"`; // CodeQL [SM02383] js/incomplete-sanitization This is only used as a label on the UI so this isn't a problem
+					return `"${e.replace(new RegExp(regexp1), '\\"')}"`; // CodeQL [SM02383] js/incomplete-sanitization This is only used as a label on the UI so this isn't a problem
 				}
 				return e;
 			}).join(' ');

@@ -31,6 +31,9 @@ import { ITextFileService } from '../../../services/textfile/common/textfiles.js
 import { ILanguageConfigurationService } from '../../../../editor/common/languages/languageConfigurationRegistry.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { insertInto } from '../../../../base/common/arrays.js';
+const regexpJson = /\.json/;
+const regexp2 = /\s/;
+
 
 namespace snippetExt {
 
@@ -493,7 +496,7 @@ export class SnippetsService implements ISnippetsService {
 	private _addSnippetFile(uri: URI, source: SnippetSource): IDisposable {
 		const ext = resources.extname(uri);
 		if (source === SnippetSource.User && ext === '.json') {
-			const langName = resources.basename(uri).replace(/\.json/, '');
+			const langName = resources.basename(uri).replace(regexpJson, '');
 			this._files.set(uri, new SnippetFile(source, uri, [langName], undefined, this._fileService, this._extensionResourceLoaderService));
 		} else if (ext === '.code-snippets') {
 			this._files.set(uri, new SnippetFile(source, uri, undefined, undefined, this._fileService, this._extensionResourceLoaderService));
@@ -521,7 +524,7 @@ export function getNonWhitespacePrefix(model: ISimpleModel, position: Position):
 	for (let chIndex = line.length - 1; chIndex >= minChIndex; chIndex--) {
 		const ch = line.charAt(chIndex);
 
-		if (/\s/.test(ch)) {
+		if (regexp2.test(ch)) {
 			return line.substr(chIndex + 1);
 		}
 	}

@@ -45,6 +45,9 @@ import { getPositionOffsetTransformerFromTextModel } from '../../../../../common
 import { InlineCompletionEditorType } from '../../model/provideInlineCompletions.js';
 import { TextModelValueReference } from '../../model/textModelValueReference.js';
 import { URI } from '../../../../../../base/common/uri.js';
+const regexpZA = /^[a-zA-Z]$/;
+const regexp2 = /^\s$/;
+
 
 export class InlineEditsView extends Disposable {
 	private readonly _editorObs: ObservableCodeEditor;
@@ -761,11 +764,11 @@ function isDeletion(inner: RangeMapping[], inlineEdit: InlineEditWithChanges, ne
 }
 
 function growEditsToEntireWord(replacements: TextReplacement[], originalText: AbstractText): TextReplacement[] {
-	return _growEdits(replacements, originalText, (char) => /^[a-zA-Z]$/.test(char));
+	return _growEdits(replacements, originalText, (char) => regexpZA.test(char));
 }
 
 function growEditsUntilWhitespace(replacements: TextReplacement[], originalText: AbstractText): TextReplacement[] {
-	return _growEdits(replacements, originalText, (char) => !(/^\s$/.test(char)));
+	return _growEdits(replacements, originalText, (char) => !(regexp2.test(char)));
 }
 
 function _growEdits(replacements: TextReplacement[], originalText: AbstractText, fn: (c: string) => boolean): TextReplacement[] {

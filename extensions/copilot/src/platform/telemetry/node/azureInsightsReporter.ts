@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpWrappedTelemetryEvent = /wrapped-telemetry-event-name-(.*?)-wrapped-telemetry-event-name/;
+
 // Need to set this env variable even before import to avoid stat beat
 process.env.APPLICATION_INSIGHTS_NO_STATSBEAT = 'true';
 
@@ -21,7 +23,7 @@ function isWrappedEventName(eventName: string): boolean {
 	return eventName.includes('wrapped-telemetry-event-name-') && eventName.endsWith('-wrapped-telemetry-event-name');
 }
 export function unwrapEventNameFromPrefix(eventName: string): string {
-	const match = eventName.match(/wrapped-telemetry-event-name-(.*?)-wrapped-telemetry-event-name/);
+	const match = eventName.match(regexpWrappedTelemetryEvent);
 	return match ? match[1] : eventName;
 }
 

@@ -21,6 +21,15 @@ import { Language, processNlsFiles } from './i18n';
 import { gulpPostcss } from './postcss';
 import { createStatsStream } from './stats';
 import * as util from './util';
+const regexpVs = /^vs\//;
+const regexpDefine = /^define\(/m;
+const regexpJs = /\.js$/;
+const regexpNlsJs = /\.nls\.js$/;
+const regexp5 = /\\/g;
+const regexp6 = /\.[^/.]+$/;
+const regexpJsMap = /\.js\.map$/;
+const regexp8 = /[^\x00-\xFF]+/g;
+
 
 const REPO_ROOT_PATH = path.join(__dirname, '../..');
 
@@ -34,7 +43,7 @@ export function loaderConfig() {
 			'vs': 'out-build/vs',
 			'vscode': 'empty:'
 		},
-		amdModulesPattern: /^vs\//
+		amdModulesPattern: regexpVs
 	};
 
 	result['vs/css'] = { inlineResources: true };
@@ -51,7 +60,7 @@ function loaderPlugin(src: string, base: string, amdModuleId: string | undefined
 			.pipe(es.through(function (data: VinylFile) {
 				if (amdModuleId) {
 					let contents = data.contents.toString('utf8');
-					contents = contents.replace(/^define\(/m, `define("${amdModuleId}",`);
+					contents = contents.replace(regexpDefine, `define("${amdModuleId}",`);
 					data.contents = Buffer.from(contents);
 				}
 				this.emit('data', data);
@@ -122,7 +131,7 @@ function emitExternalLoaderInfo(externalLoaderInfo: util.IExternalLoaderInfo): s
 }
 
 function toConcatStream(src: string, bundledFileHeader: string, sources: bundle.IFile[], dest: string, fileContentMapper: (contents: string, path: string) => string): NodeJS.ReadWriteStream {
-	const useSourcemaps = /\.js$/.test(dest) && !/\.nls\.js$/.test(dest);
+	const useSourcemaps = regexpJs.test(dest) && !regexpNlsJs.test(dest);
 
 	// If a bundle ends up including in any of the sources our copyright, then
 	// insert a fake source at the beginning of each bundle with our copyright
@@ -143,9 +152,9 @@ function toConcatStream(src: string, bundledFileHeader: string, sources: bundle.
 	}
 
 	const treatedSources = sources.map(function (source) {
-		const root = source.path ? REPO_ROOT_PATH.replace(/\\/g, '/') : '';
+		const root = source.path ? REPO_ROOT_PATH.replace(new RegExp(regexp5), '/') : '';
 		const base = source.path ? root + `/${src}` : '.';
-		const path = source.path ? root + '/' + source.path.replace(/\\/g, '/') : 'fake';
+		const path = source.path ? root + '/' + source.path.replace(new RegExp(regexp5), '/') : 'fake';
 		const contents = source.path ? fileContentMapper(source.contents, path) : source.contents;
 
 		return new VinylFile({
@@ -301,7 +310,7 @@ function optimizeESMTask(opts: IOptimizeAMDTaskOpts, cjsOpts?: IOptimizeCommonJS
 			console.log(`[bundle] '${entryPoint.name}'`);
 
 			// support for 'dest' via esbuild#in/out
-			const dest = entryPoint.dest?.replace(/\.[^/.]+$/, '') ?? entryPoint.name;
+			const dest = entryPoint.dest?.replace(regexp6, '') ?? entryPoint.name;
 
 			// boilerplate massage
 			const banner = { js: '' };
@@ -311,7 +320,7 @@ function optimizeESMTask(opts: IOptimizeAMDTaskOpts, cjsOpts?: IOptimizeCommonJS
 			const boilerplateTrimmer: esbuild.Plugin = {
 				name: 'boilerplate-trimmer',
 				setup(build) {
-					build.onLoad({ filter: /\.js$/ }, async args => {
+					build.onLoad({ filter: regexpJs }, async args => {
 						const contents = await fs.promises.readFile(args.path, 'utf-8');
 						const newContents = bundle.removeAllTSBoilerplate(contents);
 						return { contents: newContents };
@@ -553,11 +562,11 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 					target: ['es2022'],
 					write: false
 				}).then(res => {
-					const jsFile = res.outputFiles.find(f => /\.js$/.test(f.path))!;
-					const sourceMapFile = res.outputFiles.find(f => /\.js\.map$/.test(f.path))!;
+					const jsFile = res.outputFiles.find(f => regexpJs.test(f.path))!;
+					const sourceMapFile = res.outputFiles.find(f => regexpJsMap.test(f.path))!;
 
 					const contents = Buffer.from(jsFile.contents);
-					const unicodeMatch = contents.toString().match(/[^\x00-\xFF]+/g);
+					const unicodeMatch = contents.toString().match(new RegExp(regexp8));
 					if (unicodeMatch) {
 						cb(new Error(`Found non-ascii character ${unicodeMatch[0]} in the minified output of ${f.path}. Non-ASCII characters in the output can cause performance problems when loading. Please review if you have introduced a regular expression that esbuild is not automatically converting and convert it to using unicode escape sequences.`));
 					} else {

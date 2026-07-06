@@ -8,6 +8,8 @@ import { getMachineId, getSqmMachineId, getDevDeviceId } from '../../node/id.js'
 import { getMac } from '../../node/macAddress.js';
 import { flakySuite } from './testUtils.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
+const regexp9AFa9A = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+
 
 flakySuite('ID', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -35,6 +37,6 @@ flakySuite('ID', () => {
 
 	test('getMac', async () => {
 		const macAddress = getMac();
-		assert.ok(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(macAddress), `Expected a MAC address, got: ${macAddress}`);
+		assert.ok(regexp9AFa9A.test(macAddress), `Expected a MAC address, got: ${macAddress}`);
 	});
 });

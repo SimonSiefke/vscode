@@ -10,6 +10,8 @@ import { CodeCellViewModel } from '../../../browser/viewModel/codeCellViewModel.
 import { CodeCellLayout } from '../../../browser/view/cellParts/codeCell.js';
 import { ICodeEditor } from '../../../../../../editor/browser/editorBrowser.js';
 import { CodeCellLayoutInfo, IActiveNotebookEditorDelegate } from '../../../browser/notebookBrowser.js';
+const regexpPx = /px$/;
+
 
 suite('CellPart', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -193,7 +195,7 @@ suite('CellPart', () => {
 				`Scenario '${s.name}' (scrollTop=${s.scrollTop}) expected visibility ${s.expected} but got ${layout.editorVisibility}`
 			);
 			const actualTop = parseInt(
-				(editorPart.style.top || '0').replace(/px$/, '')
+				(editorPart.style.top || '0').replace(regexpPx, '')
 			); // style.top always like 'NNNpx'
 			assert.strictEqual(
 				actualTop,
@@ -382,7 +384,7 @@ suite('CellPart', () => {
 			);
 			layout.layoutEditor('nbDidScroll');
 			const actualTop = parseInt(
-				(editorPart.style.top || '0').replace(/px$/, '')
+				(editorPart.style.top || '0').replace(regexpPx, '')
 			);
 			assert.strictEqual(
 				actualTop,

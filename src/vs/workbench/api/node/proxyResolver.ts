@@ -19,6 +19,12 @@ import type * as undiciType from 'undici-types';
 import type * as tlsType from 'tls';
 import { lookupKerberosAuthorization } from '../../../platform/request/node/requestService.js';
 import * as proxyAgent from '@vscode/proxy-agent';
+const regexp1 = /\s+/;
+const regexp2 = /\/+$/;
+const regexpNegotiateKerberos = /^(Negotiate|Kerberos)( |$)/i;
+const regexpBasic = /^Basic( |$)/i;
+const regexpRealm = / realm="([^"]+)"/i;
+
 
 const require = createRequire(import.meta.url);
 const http = require('http');
@@ -323,7 +329,7 @@ const proxyResolveStats = {
 const telemetryInterval = 60 * 60 * 1000; // 1 hour
 
 function proxyResolveType(proxy: string | undefined): string {
-	const type = proxy ? String(proxy).trim().split(/\s+/, 1)[0] : 'EMPTY';
+	const type = proxy ? String(proxy).trim().split(regexp1, 1)[0] : 'EMPTY';
 	if (['DIRECT', 'PROXY', 'HTTPS', 'SOCKS', 'EMPTY'].indexOf(type) === -1) {
 		return 'UNKNOWN';
 	}
@@ -451,7 +457,7 @@ async function lookupProxyAuthorization(
 	proxyAuthenticate: string | string[] | undefined,
 	state: { kerberosRequested?: boolean; basicAuthCacheUsed?: boolean; basicAuthAttempt?: number }
 ): Promise<string | undefined> {
-	proxyURL = proxyURL.replace(/\/+$/, '');
+	proxyURL = proxyURL.replace(regexp2, '');
 	const cached = proxyAuthenticateCache[proxyURL];
 	if (proxyAuthenticate) {
 		proxyAuthenticateCache[proxyURL] = proxyAuthenticate;
@@ -460,7 +466,7 @@ async function lookupProxyAuthorization(
 	const header = proxyAuthenticate || cached;
 	const authenticate = Array.isArray(header) ? header : typeof header === 'string' ? [header] : [];
 	sendTelemetry(mainThreadTelemetry, authenticate, isRemote);
-	if (authenticate.some(a => /^(Negotiate|Kerberos)( |$)/i.test(a)) && !state.kerberosRequested) {
+	if (authenticate.some(a => regexpNegotiateKerberos.test(a)) && !state.kerberosRequested) {
 		state.kerberosRequested = true;
 
 		try {
@@ -479,7 +485,7 @@ async function lookupProxyAuthorization(
 			}
 		}
 	}
-	const basicAuthHeader = authenticate.find(a => /^Basic( |$)/i.test(a));
+	const basicAuthHeader = authenticate.find(a => regexpBasic.test(a));
 	if (basicAuthHeader) {
 		try {
 			const cachedAuth = basicAuthCache[proxyURL];
@@ -494,7 +500,7 @@ async function lookupProxyAuthorization(
 				}
 			}
 			state.basicAuthAttempt = (state.basicAuthAttempt || 0) + 1;
-			const realm = / realm="([^"]+)"/i.exec(basicAuthHeader)?.[1];
+			const realm = regexpRealm.exec(basicAuthHeader)?.[1];
 			extHostLogService.debug('ProxyResolver#lookupProxyAuthorization Basic authentication lookup', `proxyURL:${proxyURL}`, `realm:${realm}`);
 			const url = new URL(proxyURL);
 			const authInfo: AuthInfo = {

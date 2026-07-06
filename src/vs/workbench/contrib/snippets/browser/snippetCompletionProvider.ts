@@ -20,6 +20,9 @@ import { ILanguageConfigurationService } from '../../../../editor/common/languag
 import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { IWordAtPosition } from '../../../../editor/common/core/wordHelper.js';
+const regexp1 = /^\s/;
+const regexp2 = /\s/;
+
 
 
 const markSnippetAsUsed = '_snippet.markAsUsed';
@@ -118,7 +121,7 @@ export class SnippetCompletionProvider implements CompletionItemProvider {
 			let candidate: ISnippetPosition | undefined;
 			for (const anchor of anchors) {
 
-				if (anchor.prefixLow.match(/^\s/) && !snippet.prefixLow.match(/^\s/)) {
+				if (anchor.prefixLow.match(regexp1) && !snippet.prefixLow.match(regexp1)) {
 					// only allow whitespace anchor when snippet prefix starts with whitespace too
 					continue;
 				}
@@ -167,7 +170,7 @@ export class SnippetCompletionProvider implements CompletionItemProvider {
 
 		// add remaing snippets when the current prefix ends in whitespace or when line is empty
 		// and when not having a trigger character
-		if (!triggerCharacterLow && (/\s/.test(lineContentLow[position.column - 2]) /*end in whitespace */ || !lineContentLow /*empty line*/)) {
+		if (!triggerCharacterLow && (regexp2.test(lineContentLow[position.column - 2]) /*end in whitespace */ || !lineContentLow /*empty line*/)) {
 			for (const snippet of snippets) {
 				const insert = Range.fromPositions(position);
 				const replace = lineContentLow.indexOf(snippet.prefixLow, columnOffset) === columnOffset ? insert.setEndPosition(position.lineNumber, position.column + snippet.prefixLow.length) : insert;

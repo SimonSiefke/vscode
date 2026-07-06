@@ -29,6 +29,8 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { URI } from '../../../../base/common/uri.js';
 import './media/postUpdateWidget.css';
+const regexpImage = /^image\//i;
+
 
 const LAST_KNOWN_VERSION_KEY = 'postUpdateWidget/lastKnownVersion';
 
@@ -305,7 +307,7 @@ function sanitizeBannerImageUrl(value: string | undefined): string | undefined {
 		if (uri.scheme === 'https') {
 			return uri.toString(true);
 		}
-		if (uri.scheme === 'data' && /^image\//i.test(uri.path)) {
+		if (uri.scheme === 'data' && regexpImage.test(uri.path)) {
 			return uri.toString(true);
 		}
 	} catch {

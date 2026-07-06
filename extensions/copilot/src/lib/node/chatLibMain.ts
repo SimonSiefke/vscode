@@ -125,6 +125,8 @@ import { URI } from '../../util/vs/base/common/uri';
 import { generateUuid } from '../../util/vs/base/common/uuid';
 import { SyncDescriptor } from '../../util/vs/platform/instantiation/common/descriptors';
 import { IInstantiationService } from '../../util/vs/platform/instantiation/common/instantiation';
+const regexp1 = /^[^/]+\/(.*)/;
+
 export {
 	IAuthenticationService, ICAPIClientService, IEndpointProvider, IExperimentationService, IIgnoreService, ILanguageContextProviderService
 };
@@ -862,7 +864,7 @@ class UnwrappingTelemetrySender implements ITelemetrySender {
 
 	private normalizeEventName(eventName: string): string {
 		const unwrapped = unwrapEventNameFromPrefix(eventName);
-		const withoutPrefix = unwrapped.match(/^[^/]+\/(.*)/);
+		const withoutPrefix = unwrapped.match(regexp1);
 		return withoutPrefix ? withoutPrefix[1] : unwrapped;
 	}
 }

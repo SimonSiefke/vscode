@@ -18,6 +18,9 @@ import { FileSystemProvider, serveFileSystemRequests } from './requests';
 import { getCustomDataSource } from './customData';
 import { activateAutoInsertion } from './autoInsertion';
 import { getLanguageParticipants, LanguageParticipants } from './languageParticipants';
+const regexp1 = /^(\s*)(<(!(-(-\s*(#\w*)?)?)?)?)?$/;
+const regexp2 = /^(\s*)(<(h(t(m(l)?)?)?)?)?$/;
+
 
 namespace CustomDataChangedNotification {
 	export const type: NotificationType<string[]> = new NotificationType('html/customDataChanged');
@@ -287,8 +290,8 @@ async function startClientWithParticipants(languageParticipants: LanguagePartici
 		}
 	}
 
-	const regionCompletionRegExpr = /^(\s*)(<(!(-(-\s*(#\w*)?)?)?)?)?$/;
-	const htmlSnippetCompletionRegExpr = /^(\s*)(<(h(t(m(l)?)?)?)?)?$/;
+	const regionCompletionRegExpr = regexp1;
+	const htmlSnippetCompletionRegExpr = regexp2;
 	toDispose.push(languages.registerCompletionItemProvider(documentSelector, {
 		provideCompletionItems(doc, pos) {
 			const results: CompletionItem[] = [];

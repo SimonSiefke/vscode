@@ -10,6 +10,16 @@ import * as typeConverters from '../typeConverters';
 import { ITypeScriptServiceClient } from '../typescriptService';
 import { readUnifiedConfig } from '../utils/configuration';
 import FileConfigurationManager from './fileConfigurationManager';
+const regexp1 = /\/\**\s*$/;
+const regexp2 = /^\s*\**\//;
+const regexp3 = /^\s*$|\/\*\*\s*$|^\s*\/\*\*+\s*$/;
+const regexp4 = /^\s*(\*+\/)?\s*$/;
+const regexp5 = /\$/g;
+const regexp6 = /^[ \t]*(?=(\/|[ ]\*))/gm;
+const regexp7 = /^(\/\*\*\s*\*[ ]*)$/m;
+const regexpParam = /\* @param([ ]\{\S+\})?\s+(\S+)[ \t]*$/gm;
+const regexpReturns = /\* @returns[ \t]*$/gm;
+
 
 
 
@@ -25,8 +35,8 @@ class JsDocCompletionItem extends vscode.CompletionItem {
 		this.sortText = '\0';
 
 		const line = document.lineAt(position.line).text;
-		const prefix = line.slice(0, position.character).match(/\/\**\s*$/);
-		const suffix = line.slice(position.character).match(/^\s*\**\//);
+		const prefix = line.slice(0, position.character).match(regexp1);
+		const suffix = line.slice(position.character).match(regexp2);
 		const start = position.translate(0, prefix ? -prefix[0].length : 0);
 		const range = new vscode.Range(start, position.translate(0, suffix ? suffix[0].length : 0));
 		this.range = { inserting: range, replacing: range };
@@ -91,23 +101,23 @@ class JsDocCompletionProvider implements vscode.CompletionItemProvider {
 		// or could be the opening of a comment
 		const line = document.lineAt(position.line).text;
 		const prefix = line.slice(0, position.character);
-		if (!/^\s*$|\/\*\*\s*$|^\s*\/\*\*+\s*$/.test(prefix)) {
+		if (!regexp3.test(prefix)) {
 			return false;
 		}
 
 		// And everything after is possibly a closing comment or more whitespace
 		const suffix = line.slice(position.character);
-		return /^\s*(\*+\/)?\s*$/.test(suffix);
+		return regexp4.test(suffix);
 	}
 }
 
 export function templateToSnippet(template: string): vscode.SnippetString {
 	// TODO: use append placeholder
 	let snippetIndex = 1;
-	template = template.replace(/\$/g, '\\$'); // CodeQL [SM02383] This is only used for text which is put into the editor. It is not for rendered html
-	template = template.replace(/^[ \t]*(?=(\/|[ ]\*))/gm, '');
-	template = template.replace(/^(\/\*\*\s*\*[ ]*)$/m, (x) => x + `\$0`);
-	template = template.replace(/\* @param([ ]\{\S+\})?\s+(\S+)[ \t]*$/gm, (_param, type, post) => {
+	template = template.replace(new RegExp(regexp5), '\\$'); // CodeQL [SM02383] This is only used for text which is put into the editor. It is not for rendered html
+	template = template.replace(new RegExp(regexp6), '');
+	template = template.replace(regexp7, (x) => x + `\$0`);
+	template = template.replace(new RegExp(regexpParam), (_param, type, post) => {
 		let out = '* @param ';
 		if (type === ' {any}' || type === ' {*}') {
 			out += `{\$\{${snippetIndex++}:*\}} `;
@@ -118,7 +128,7 @@ export function templateToSnippet(template: string): vscode.SnippetString {
 		return out;
 	});
 
-	template = template.replace(/\* @returns[ \t]*$/gm, `* @returns \${${snippetIndex++}}`);
+	template = template.replace(new RegExp(regexpReturns), `* @returns \${${snippetIndex++}}`);
 
 	return new vscode.SnippetString(template);
 }

@@ -7,6 +7,18 @@ import { LRUCachedFunction } from 'vs/base/common/cache';
 import { CharCode } from 'vs/base/common/charCode';
 import { Lazy } from 'vs/base/common/lazy';
 import { Constants } from 'vs/base/common/uint';
+const regexp1 = /[<>"'&]/g;
+const regexp2 = /[<>&]/g;
+const regexp3 = /[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g;
+const regexp4 = /[\*]/g;
+const regexp5 = /[\-\\\{\}\+\?\|\^\$\.\,\[\]\(\)\#\s]/g;
+const regexp6 = /\*/g;
+const regexp7 = /\B/;
+const regexp8 = /\r\n|\r|\n/;
+const regexp9 = /(?:[\u05BE\u05C0\u05C3\u05C6\u05D0-\u05F4\u0608\u060B\u060D\u061B-\u064A\u066D-\u066F\u0671-\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u0710\u0712-\u072F\u074D-\u07A5\u07B1-\u07EA\u07F4\u07F5\u07FA\u07FE-\u0815\u081A\u0824\u0828\u0830-\u0858\u085E-\u088E\u08A0-\u08C9\u200F\uFB1D\uFB1F-\uFB28\uFB2A-\uFD3D\uFD50-\uFDC7\uFDF0-\uFDFC\uFE70-\uFEFC]|\uD802[\uDC00-\uDD1B\uDD20-\uDE00\uDE10-\uDE35\uDE40-\uDEE4\uDEEB-\uDF35\uDF40-\uDFFF]|\uD803[\uDC00-\uDD23\uDE80-\uDEA9\uDEAD-\uDF45\uDF51-\uDF81\uDF86-\uDFF6]|\uD83A[\uDC00-\uDCCF\uDD00-\uDD43\uDD4B-\uDFFF]|\uD83B[\uDC00-\uDEBB])/;
+const regexp10 = /\b/g;
+const regexp11 = /\\./g;
+
 
 export function isFalsyOrWhitespace(str: string | undefined): boolean {
 	if (!str || typeof str !== 'string') {
@@ -55,7 +67,7 @@ export function format2(template: string, values: Record<string, unknown>): stri
  * This prevents XSS injection.
  */
 export function htmlAttributeEncodeValue(value: string): string {
-	return value.replace(/[<>"'&]/g, ch => {
+	return value.replace(new RegExp(regexp1), ch => {
 		switch (ch) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -72,7 +84,7 @@ export function htmlAttributeEncodeValue(value: string): string {
  * being used e.g. in HTMLElement.innerHTML.
  */
 export function escape(html: string): string {
-	return html.replace(/[<>&]/g, function (match) {
+	return html.replace(new RegExp(regexp2), function (match) {
 		switch (match) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -86,7 +98,7 @@ export function escape(html: string): string {
  * Escapes regular expression characters in a given string
  */
 export function escapeRegExpCharacters(value: string): string {
-	return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
+	return value.replace(new RegExp(regexp3), '\\$&');
 }
 
 /**
@@ -190,11 +202,11 @@ export function rtrim(haystack: string, needle: string): string {
 }
 
 export function convertSimple2RegExpPattern(pattern: string): string {
-	return pattern.replace(/[\-\\\{\}\+\?\|\^\$\.\,\[\]\(\)\#\s]/g, '\\$&').replace(/[\*]/g, '.*');
+	return pattern.replace(new RegExp(regexp5), '\\$&').replace(new RegExp(regexp4), '.*');
 }
 
 export function stripWildcards(pattern: string): string {
-	return pattern.replace(/\*/g, '');
+	return pattern.replace(new RegExp(regexp6), '');
 }
 
 export interface RegExpOptions {
@@ -213,10 +225,10 @@ export function createRegExp(searchString: string, isRegex: boolean, options: Re
 		searchString = escapeRegExpCharacters(searchString);
 	}
 	if (options.wholeWord) {
-		if (!/\B/.test(searchString.charAt(0))) {
+		if (!regexp7.test(searchString.charAt(0))) {
 			searchString = '\\b' + searchString;
 		}
-		if (!/\B/.test(searchString.charAt(searchString.length - 1))) {
+		if (!regexp7.test(searchString.charAt(searchString.length - 1))) {
 			searchString = searchString + '\\b';
 		}
 	}
@@ -251,7 +263,7 @@ export function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {
 }
 
 export function splitLines(str: string): string[] {
-	return str.split(/\r\n|\r|\n/);
+	return str.split(regexp8);
 }
 
 /**
@@ -636,7 +648,7 @@ let CONTAINS_RTL: RegExp | undefined = undefined;
 
 function makeContainsRtl() {
 	// Generated using https://github.com/alexdima/unicode-utils/blob/main/rtl-test.js
-	return /(?:[\u05BE\u05C0\u05C3\u05C6\u05D0-\u05F4\u0608\u060B\u060D\u061B-\u064A\u066D-\u066F\u0671-\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u0710\u0712-\u072F\u074D-\u07A5\u07B1-\u07EA\u07F4\u07F5\u07FA\u07FE-\u0815\u081A\u0824\u0828\u0830-\u0858\u085E-\u088E\u08A0-\u08C9\u200F\uFB1D\uFB1F-\uFB28\uFB2A-\uFD3D\uFD50-\uFDC7\uFDF0-\uFDFC\uFE70-\uFEFC]|\uD802[\uDC00-\uDD1B\uDD20-\uDE00\uDE10-\uDE35\uDE40-\uDEE4\uDEEB-\uDF35\uDF40-\uDFFF]|\uD803[\uDC00-\uDD23\uDE80-\uDEA9\uDEAD-\uDF45\uDF51-\uDF81\uDF86-\uDFF6]|\uD83A[\uDC00-\uDCCF\uDD00-\uDD43\uDD4B-\uDFFF]|\uD83B[\uDC00-\uDEBB])/;
+	return regexp9;
 }
 
 /**
@@ -738,7 +750,7 @@ export function lcut(text: string, n: number, prefix = '') {
 		return trimmed;
 	}
 
-	const re = /\b/g;
+	const re = new RegExp(regexp10);
 	let i = 0;
 	while (re.test(trimmed)) {
 		if (trimmed.length - re.lastIndex < n) {
@@ -820,7 +832,7 @@ export function containsUppercaseCharacter(target: string, ignoreEscapedChars = 
 	}
 
 	if (ignoreEscapedChars) {
-		target = target.replace(/\\./g, '');
+		target = target.replace(new RegExp(regexp11), '');
 	}
 
 	return target.toLowerCase() !== target;

@@ -15,6 +15,8 @@ import { StringText } from '../../../../util/vs/editor/common/core/text/abstract
 import { LineRange0Based } from '../../common/lineRange';
 import { appendNeighborFileSnippets, buildCodeSnippetsUsingPagedClipping, computeFocalPageCost, historyEntriesToCodeSnippet, selectFocalRangesWithinSpanCap } from '../../common/recentFilesForPrompt';
 import { INeighborFileSnippet } from '../../common/similarFilesContextService';
+const regexp1 = /\r?\n/;
+
 
 function nLines(n: number): StringText {
 	return new StringText(new Array(n).fill(0).map((_, i) => `${i + 1}`).join('\n'));
@@ -831,7 +833,7 @@ suite('historyEntriesToCodeSnippet', () => {
 suite('appendNeighborFileSnippets', () => {
 
 	function makeNeighbor(uri: string, snippet: string, startLine: number, score = 0.5): INeighborFileSnippet {
-		const lineCount = snippet.split(/\r?\n/).length;
+		const lineCount = snippet.split(regexp1).length;
 		return { uri, relativePath: uri, snippet, lineRange: new LineRange0Based(startLine, startLine + lineCount), score };
 	}
 

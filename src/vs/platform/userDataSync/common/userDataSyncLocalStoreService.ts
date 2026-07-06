@@ -14,6 +14,9 @@ import { IEnvironmentService } from '../../environment/common/environment.js';
 import { FileOperationResult, IFileService, IFileStat, toFileOperationResult } from '../../files/common/files.js';
 import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 import { ALL_SYNC_RESOURCES, IResourceRefHandle, IUserDataSyncLocalStoreService, IUserDataSyncLogService, SyncResource } from './userDataSync.js';
+const regexp1 = /-|:|\.\d+Z$/g;
+const regexpJson = /^\d{8}T\d{6}(\.json)?$/;
+
 
 export class UserDataSyncLocalStoreService extends Disposable implements IUserDataSyncLocalStoreService {
 
@@ -98,7 +101,7 @@ export class UserDataSyncLocalStoreService extends Disposable implements IUserDa
 
 	async writeResource(resourceKey: SyncResource, content: string, cTime: Date, collection?: string, root?: URI): Promise<void> {
 		const folder = this.getResourceBackupHome(resourceKey, collection, root);
-		const resource = joinPath(folder, `${toLocalISOString(cTime).replace(/-|:|\.\d+Z$/g, '')}.json`);
+		const resource = joinPath(folder, `${toLocalISOString(cTime).replace(new RegExp(regexp1), '')}.json`);
 		try {
 			await this.fileService.writeFile(resource, VSBuffer.fromString(content));
 		} catch (e) {
@@ -121,7 +124,7 @@ export class UserDataSyncLocalStoreService extends Disposable implements IUserDa
 			}
 			const stat = await this.fileService.resolve(folder);
 			if (stat.children) {
-				const all = stat.children.filter(stat => stat.isFile && /^\d{8}T\d{6}(\.json)?$/.test(stat.name)).sort();
+				const all = stat.children.filter(stat => stat.isFile && regexpJson.test(stat.name)).sort();
 				const backUpMaxAge = 1000 * 60 * 60 * 24 * (this.configurationService.getValue<number>('sync.localBackupDuration') || 30 /* Default 30 days */);
 				let toDelete = all.filter(stat => Date.now() - this.getCreationTime(stat) > backUpMaxAge);
 				const remaining = all.length - toDelete.length;

@@ -48,6 +48,10 @@ import { type McCommand, type McEvent, type McSessionCreateResult, MissionContro
 import { handleMcpPermission, handleReadPermission, handleShellPermission, handleWritePermission, type PermissionRequest, type PermissionRequestResult, showInteractivePermissionPrompt } from './permissionHelpers';
 import { TodoSqlQuery } from './todoSqlQuery';
 import { IQuestion, IQuestionAnswer, IUserQuestionHandler } from './userInputHelpers';
+const regexpGithubComOwner = /github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/]+?)(?:\.git)?$/;
+const regexpHttps = /https?:\/\/[^\s"'`,;)\]}>]+/;
+const regexp3 = /[.)\]}>]+$/;
+
 
 /**
  * Known commands that can be sent to a CopilotCLI session instead of a free-form prompt.
@@ -2247,7 +2251,7 @@ export class CopilotCLISession extends DisposableStore implements ICopilotCLISes
 					return;
 				}
 				const url = stdout.trim();
-				const match = url.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/]+?)(?:\.git)?$/);
+				const match = url.match(regexpGithubComOwner);
 				if (match?.groups) {
 					resolve({ owner: match.groups.owner, repo: match.groups.repo });
 				} else {
@@ -3196,9 +3200,9 @@ function extractPullRequestUrlFromToolResult(result: unknown): string | undefine
 		// not JSON
 	}
 
-	const urlMatch = text.match(/https?:\/\/[^\s"'`,;)\]}>]+/);
+	const urlMatch = text.match(regexpHttps);
 	if (urlMatch) {
-		const cleaned = urlMatch[0].replace(/[.)\]}>]+$/, '');
+		const cleaned = urlMatch[0].replace(regexp3, '');
 		if (isHttpUrl(cleaned)) {
 			return cleaned;
 		}

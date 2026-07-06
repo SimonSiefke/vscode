@@ -17,6 +17,8 @@ import { ansiColorMap } from '../common/terminalColorRegistry.js';
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { isString } from '../../../../base/common/types.js';
+const regexp1 = /\./g;
+
 
 
 export function getColorClass(colorKey: string): string;
@@ -28,12 +30,12 @@ export function getColorClass(terminalOrColorKey: ITerminalInstance | IExtension
 	if (isString(terminalOrColorKey)) {
 		color = terminalOrColorKey;
 	} else if (terminalOrColorKey.color) {
-		color = terminalOrColorKey.color.replace(/\./g, '_');
+		color = terminalOrColorKey.color.replace(new RegExp(regexp1), '_');
 	} else if (ThemeIcon.isThemeIcon(terminalOrColorKey.icon) && terminalOrColorKey.icon.color) {
-		color = terminalOrColorKey.icon.color.id.replace(/\./g, '_');
+		color = terminalOrColorKey.icon.color.id.replace(new RegExp(regexp1), '_');
 	}
 	if (color) {
-		return `terminal-icon-${color.replace(/\./g, '_')}`;
+		return `terminal-icon-${color.replace(new RegExp(regexp1), '_')}`;
 	}
 	return undefined;
 }

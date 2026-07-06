@@ -13,6 +13,8 @@ import { URI } from '../../../../../base/common/uri.js';
 import { flakySuite } from '../../../../../base/test/node/testUtils.js';
 import { IFileQuery, IFileSearchStats, IFolderQuery, IProgressMessage, IRawFileMatch, ISearchEngine, ISearchEngineStats, ISearchEngineSuccess, ISerializedFileMatch, ISerializedSearchComplete, ISerializedSearchProgressItem, ISerializedSearchSuccess, isSerializedSearchComplete, isSerializedSearchSuccess, QueryType } from '../../common/search.js';
 import { IProgressCallback, SearchService as RawSearchService } from '../../node/rawSearchService.js';
+const regexp1 = /\\/g;
+
 
 const TEST_FOLDER_QUERIES = [
 	{ folder: URI.file(path.normalize('/some/where')) }
@@ -161,7 +163,7 @@ flakySuite('RawSearchService', () => {
 
 		const result = await collectResultsFromEvent(fileSearch(rawSearch, 10));
 		result.files.forEach(f => {
-			assert.strictEqual(f.path.replace(/\\/g, '/'), uriPath);
+			assert.strictEqual(f.path.replace(new RegExp(regexp1), '/'), uriPath);
 		});
 		assert.strictEqual(result.files.length, 25, 'Result');
 	});

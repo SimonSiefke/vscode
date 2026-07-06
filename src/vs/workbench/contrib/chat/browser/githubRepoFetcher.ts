@@ -13,6 +13,11 @@ import { generateUuid } from '../../../../base/common/uuid.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IRequestService, asJson, isClientError, isSuccess, readHeader, retryAfterFromHeaders } from '../../../../platform/request/common/request.js';
+const regexpGit = /\.git$/i;
+const regexp2 = /\/+$/;
+const regexp3 = /^\/+/;
+const regexp4 = /\s+/g;
+
 
 /**
  * GitHub `owner/repo` parsed from a clone URL. Only `https://github.com/...` URLs
@@ -41,7 +46,7 @@ export function parseGitHubCloneUrl(cloneUrl: string): IGitHubRepoRef | undefine
 		return undefined;
 	}
 	// Trim slashes before stripping `.git` so `.../o/r.git/` normalises to `o/r`.
-	const path = url.pathname.replace(/^\/+/, '').replace(/\/+$/, '').replace(/\.git$/i, '');
+	const path = url.pathname.replace(regexp3, '').replace(regexp2, '').replace(regexpGit, '');
 	const segments = path.split('/');
 	// Require exactly two segments to avoid mis-parsing `.../owner/repo/issues/42`.
 	if (segments.length !== 2 || !segments[0] || !segments[1]) {
@@ -356,7 +361,7 @@ async function fetchGitHubBlob(
 		throw new Error(`GitHub blob response for '${entry.path}' has unsupported encoding '${body.encoding}'`);
 	}
 	// GitHub wraps base64 at 60 columns; strip whitespace before decoding.
-	return decodeBase64(body.content.replace(/\s+/g, ''));
+	return decodeBase64(body.content.replace(new RegExp(regexp4), ''));
 }
 
 /** Response shape from `GET /repos/{owner}/{repo}/git/blobs/{sha}`. */

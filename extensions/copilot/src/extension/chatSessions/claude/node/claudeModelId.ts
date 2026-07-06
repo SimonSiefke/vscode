@@ -4,6 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ParsedClaudeModelId } from '../common/claudeModelId';
+const regexpClaudeNameMajor = /^claude-(?<name>\w+)-(?<major>\d+)-(?<minor>\d+)(?:-(?<mod>.+))?$/;
+const regexpClaudeMajorMinor = /^claude-(?<major>\d+)-(?<minor>\d+)-(?<name>\w+)(?:-(?<mod>.+))?$/;
+const regexpClaudeNameMajor1 = /^claude-(?<name>\w+)-(?<major>\d+)\.(?<minor>\d+)(?:-(?<mod>.+))?$/;
+const regexpClaudeNameMajor2 = /^claude-(?<name>\w+)-(?<major>\d+)(?:-(?<mod>.+))?$/;
+const regexpClaudeMajorName = /^claude-(?<major>\d+)-(?<name>\w+)(?:-(?<mod>.+))?$/;
+const regexpName = /^(?<name>\w+)$/;
+
 
 /**
  * Known model suffixes that are meaningful variants and should be preserved
@@ -65,37 +72,37 @@ function doParse(lower: string): ParsedClaudeModelId | undefined {
 	}
 
 	// Pattern 1: claude-{name}-{major}-{minor}[-{mod}] (e.g. claude-opus-4-5, claude-opus-4-6-1m)
-	const p1 = base.match(/^claude-(?<name>\w+)-(?<major>\d+)-(?<minor>\d+)(?:-(?<mod>.+))?$/);
+	const p1 = base.match(regexpClaudeNameMajor);
 	if (p1?.groups) {
 		return makeResult(p1.groups.name, p1.groups.major, p1.groups.minor, joinModifiers(p1.groups.mod, dateSuffix));
 	}
 
 	// Pattern 2: claude-{major}-{minor}-{name}[-{mod}] (e.g. claude-3-5-sonnet)
-	const p2 = base.match(/^claude-(?<major>\d+)-(?<minor>\d+)-(?<name>\w+)(?:-(?<mod>.+))?$/);
+	const p2 = base.match(regexpClaudeMajorMinor);
 	if (p2?.groups) {
 		return makeResult(p2.groups.name, p2.groups.major, p2.groups.minor, joinModifiers(p2.groups.mod, dateSuffix));
 	}
 
 	// Pattern 3: claude-{name}-{major}.{minor}[-{mod}] (e.g. claude-opus-4.5, claude-opus-4.6-1m)
-	const p3 = base.match(/^claude-(?<name>\w+)-(?<major>\d+)\.(?<minor>\d+)(?:-(?<mod>.+))?$/);
+	const p3 = base.match(regexpClaudeNameMajor1);
 	if (p3?.groups) {
 		return makeResult(p3.groups.name, p3.groups.major, p3.groups.minor, joinModifiers(p3.groups.mod, dateSuffix));
 	}
 
 	// Pattern 4: claude-{name}-{major}[-{mod}] (e.g. claude-sonnet-4, claude-sonnet-4-1m)
-	const p4 = base.match(/^claude-(?<name>\w+)-(?<major>\d+)(?:-(?<mod>.+))?$/);
+	const p4 = base.match(regexpClaudeNameMajor2);
 	if (p4?.groups) {
 		return makeResult(p4.groups.name, p4.groups.major, undefined, joinModifiers(p4.groups.mod, dateSuffix));
 	}
 
 	// Pattern 5: claude-{major}-{name}[-{mod}] (e.g. claude-3-opus)
-	const p5 = base.match(/^claude-(?<major>\d+)-(?<name>\w+)(?:-(?<mod>.+))?$/);
+	const p5 = base.match(regexpClaudeMajorName);
 	if (p5?.groups) {
 		return makeResult(p5.groups.name, p5.groups.major, undefined, joinModifiers(p5.groups.mod, dateSuffix));
 	}
 
 	// Pattern 6: bare model name with no version (e.g. nectarine)
-	const p6 = base.match(/^(?<name>\w+)$/);
+	const p6 = base.match(regexpName);
 	if (p6?.groups) {
 		return makeBareResult(p6.groups.name);
 	}

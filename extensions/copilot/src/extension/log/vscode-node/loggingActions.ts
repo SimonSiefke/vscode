@@ -33,6 +33,12 @@ import { Disposable, MutableDisposable } from '../../../util/vs/base/common/life
 import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { IInstantiationService, ServicesAccessor } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { EXTENSION_ID } from '../../common/constants';
+const regexp1 = /-/g;
+const regexpNet = /^net::[A-Z_]+$/;
+const regexp3 = /\p{Lu}|\p{Ll}|\p{Nd}/gu;
+const regexp4 = /\p{Lu}/u;
+const regexp5 = /\p{Ll}/u;
+
 
 interface ProxyAgentLog {
 	trace(message: string, ...args: any[]): void;
@@ -570,7 +576,7 @@ function collectFetcherTelemetry(accessor: ServicesAccessor): void {
 		const probeResults: Record<string, string> = {};
 		for (const fetcher of fetchers) {
 			const library = fetcher.getUserAgentLibrary();
-			const key = library.replace(/-/g, '');
+			const key = library.replace(new RegExp(regexp1), '');
 			const requestStartTime = Date.now();
 			try {
 				const response = await sendRawTelemetry(fetcher, envService, oneCollectorTelemetryUrl, extensionContext, 'GitHub.copilot-chat/fetcherTelemetryProbe', {});
@@ -728,14 +734,14 @@ export function sanitizeValue(input: string | undefined): string {
 }
 
 function maskByClass(s: string): string {
-	if (/^net::[A-Z_]+$/.test(s) || ['dev-container', 'attached-container', 'k8s-container', 'ssh-remote'].includes(s)) {
+	if (regexpNet.test(s) || ['dev-container', 'attached-container', 'k8s-container', 'ssh-remote'].includes(s)) {
 		return s;
 	}
-	return s.replace(/\p{Lu}|\p{Ll}|\p{Nd}/gu, (ch) => {
-		if (/\p{Lu}/u.test(ch)) {
+	return s.replace(new RegExp(regexp3), (ch) => {
+		if (regexp4.test(ch)) {
 			return 'A';
 		}
-		if (/\p{Ll}/u.test(ch)) {
+		if (regexp5.test(ch)) {
 			return 'a';
 		}
 		return '0';

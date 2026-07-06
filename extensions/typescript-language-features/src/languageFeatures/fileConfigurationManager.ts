@@ -14,6 +14,8 @@ import { readUnifiedConfig, UnifiedConfigurationScope } from '../utils/configura
 import { Disposable } from '../utils/dispose';
 import { equals } from '../utils/objects';
 import { ResourceMap } from '../utils/resourceMap';
+const regexp1 = /^\.\.?($|[\/\\])/;
+
 
 interface FileConfiguration {
 	readonly formatOptions: Proto.FormatCodeSettings;
@@ -211,7 +213,7 @@ export default class FileConfigurationManager extends Disposable {
 		const patterns = readUnifiedConfig<string[] | undefined>('preferences.autoImportFileExcludePatterns', undefined, { scope, fallbackSection });
 		return workspaceFolder && patterns?.map(p => {
 			// Normalization rules: https://github.com/microsoft/TypeScript/pull/49578
-			const isRelative = /^\.\.?($|[\/\\])/.test(p);
+			const isRelative = regexp1.test(p);
 			// In TypeScript < 5.3, the first path component cannot be a wildcard, so we need to prefix
 			// it with a path root (e.g. `/` or `c:\`)
 			const wildcardPrefix = this.client.apiVersion.gte(API.v540)

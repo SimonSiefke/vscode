@@ -31,6 +31,10 @@ import { ILifecycleService } from '../../../../../services/lifecycle/common/life
 import { ISandboxDependencyStatus, ISandboxHelperService, type IWindowsMxcConfig, IWindowsMxcFilesystemPolicy, type IWindowsMxcPolicyContainment, type IWindowsMxcSandboxPolicy } from '../../../../../../platform/sandbox/common/sandboxHelperService.js';
 import { IWindowsMxcTerminalSandboxRuntime, WindowsMxcTerminalSandboxRuntime } from '../../../../../../platform/sandbox/common/terminalSandboxMxcRuntime.js';
 import { getTerminalSandboxRuntimeConfigurationForCommands } from '../../../../../../platform/sandbox/common/terminalSandboxRuntimeConfigurationPerOperation.js';
+const regexp1 = /\//g;
+const regexpZA = /^\/[a-zA-Z]:/;
+const regexp3 = /\\''/g;
+
 
 suite('TerminalSandboxService - network domains', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -55,8 +59,8 @@ suite('TerminalSandboxService - network domains', () => {
 			const contentString = content.toString();
 			createdFiles.set(uri.path, contentString);
 			createdFiles.set(uri.fsPath, contentString);
-			if (/^\/[a-zA-Z]:/.test(uri.path)) {
-				createdFiles.set(uri.path.slice(1).replace(/\//g, '\\'), contentString);
+			if (regexpZA.test(uri.path)) {
+				createdFiles.set(uri.path.slice(1).replace(new RegExp(regexp1), '\\'), contentString);
 			}
 			return {};
 		}
@@ -1395,7 +1399,7 @@ suite('TerminalSandboxService - network domains', () => {
 			!wrappedCommand.includes(`-c '${command}'`),
 			'Wrapped command should not embed attacker-controlled single quotes without escaping'
 		);
-		strictEqual((wrappedCommand.match(/\\''/g) ?? []).length, 2, 'Single quote breakout payload should escape each embedded single quote');
+		strictEqual((wrappedCommand.match(new RegExp(regexp3)) ?? []).length, 2, 'Single quote breakout payload should escape each embedded single quote');
 	});
 
 	test('should escape embedded single quotes in wrapped command argument', async () => {
@@ -1403,7 +1407,7 @@ suite('TerminalSandboxService - network domains', () => {
 		await sandboxService.getSandboxConfigPath();
 
 		const wrappedCommand = (await sandboxService.wrapCommand(`echo 'hello'`)).command;
-		strictEqual((wrappedCommand.match(/\\''/g) ?? []).length, 2, 'Single quote escapes should be inserted for each embedded single quote');
+		strictEqual((wrappedCommand.match(new RegExp(regexp3)) ?? []).length, 2, 'Single quote escapes should be inserted for each embedded single quote');
 	});
 
 	test('should prefix wrapped command with ELECTRON_RUN_AS_NODE=1 when no remote env is available', async function () {

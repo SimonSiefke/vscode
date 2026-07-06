@@ -19,6 +19,10 @@ import { hash } from '../common/hash.js';
 import { CodeWindow, ensureCodeWindow, mainWindow } from './window.js';
 import { isPointWithinTriangle } from '../common/numbers.js';
 import { IObservable, derived, derivedOpts, IReader, observableValue, isObservable } from '../common/observable.js';
+const regexp1 = /\./g;
+const regexpOn = /^on\w+$/;
+const regexp3 = /([a-z])([A-Z])/g;
+
 
 export interface IRegisteredCodeWindow {
 	readonly window: CodeWindow;
@@ -1452,7 +1456,7 @@ function _$<T extends Element>(namespace: Namespace, description: string, attrs?
 		result.id = match[3];
 	}
 	if (match[4]) {
-		result.className = match[4].replace(/\./g, ' ').trim();
+		result.className = match[4].replace(new RegExp(regexp1), ' ').trim();
 	}
 
 	if (attrs) {
@@ -1461,7 +1465,7 @@ function _$<T extends Element>(namespace: Namespace, description: string, attrs?
 				return;
 			}
 
-			if (/^on\w+$/.test(name)) {
+			if (regexpOn.test(name)) {
 				// eslint-disable-next-line local/code-no-any-casts
 				(<any>result)[name] = value;
 			} else if (name === 'selected') {
@@ -2409,7 +2413,7 @@ export function svgElem(tag: string, ...args: [] | [attributes: { $: string } & 
 }
 
 function camelCaseToHyphenCase(str: string) {
-	return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+	return str.replace(new RegExp(regexp3), '$1-$2').toLowerCase();
 }
 
 export function copyAttributes(from: Element, to: Element, filter?: string[]): void {

@@ -23,6 +23,10 @@ import {
 	VirtualClock,
 	VirtualTimeProcessor,
 } from './index.js';
+const regexpReEntrant = /re-entrant/;
+const regexpExceededMaxEvents = /exceeded maxEvents/;
+const regexpDisposed = /disposed/;
+
 
 function traceInfo(t: Trace): { labels: string[]; rootLabel: string; depth: number } {
 	const labels: string[] = [];
@@ -76,7 +80,7 @@ suite('virtualScheduling - Trace + TraceContext', () => {
 			() => TraceContext.instance.runAsHandler(a,
 				() => TraceContext.instance.runAsHandler(b, () => { }, realSink),
 				realSink),
-			/re-entrant/,
+			regexpReEntrant,
 		);
 	});
 
@@ -286,7 +290,7 @@ suite('virtualScheduling - VirtualTimeProcessor termination policies', () => {
 
 		await assert.rejects(
 			p.run({ until: untilIdle, maxEvents: 5 }),
-			/exceeded maxEvents/,
+			regexpExceededMaxEvents,
 		);
 		store.dispose();
 	});
@@ -300,7 +304,7 @@ suite('virtualScheduling - VirtualTimeProcessor termination policies', () => {
 		const runP = p.run({ until: untilToken(cts.token) });
 		p.dispose();
 
-		await assert.rejects(runP, /disposed/);
+		await assert.rejects(runP, regexpDisposed);
 		store.dispose();
 	});
 });

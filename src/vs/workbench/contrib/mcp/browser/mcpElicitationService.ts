@@ -24,6 +24,8 @@ import { ElicitationState, IChatQuestion, IChatQuestionAnswers, IChatQuestionVal
 import { ElicitationKind, ElicitResult, IFormModeElicitResult, IMcpElicitationService, IMcpServer, IMcpToolCallContext, IUrlModeElicitResult, McpConnectionState, MpcResponseError } from '../common/mcpTypes.js';
 import { mcpServerToSourceData } from '../common/mcpTypesUtils.js';
 import { MCP } from '../common/modelContextProtocol.js';
+const regexp1 = /^\d{4}-\d{2}-\d{2}$/;
+
 
 const noneItem: IQuickPickItem = { id: undefined, label: localize('mcp.elicit.enum.none', 'None'), description: localize('mcp.elicit.enum.none.description', 'No selection'), alwaysShow: true };
 
@@ -495,7 +497,7 @@ export class McpElicitationService implements IMcpElicitationService {
 					return { isValid: false, message: localize('mcp.elicit.validation.uri', 'Please enter a valid URI') };
 				}
 			case 'date': {
-				const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+				const dateRegex = regexp1;
 				if (!dateRegex.test(value)) {
 					return { isValid: false, message: localize('mcp.elicit.validation.date', 'Please enter a valid date (YYYY-MM-DD)') };
 				}

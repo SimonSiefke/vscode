@@ -6,6 +6,23 @@
 import { DeferredPromise } from '../../../../../../base/common/async.js';
 import { DisposableStore, MutableDisposable, toDisposable, type IDisposable } from '../../../../../../base/common/lifecycle.js';
 import type { IMarker as IXtermMarker } from '@xterm/xterm';
+const regexp1 = /\w+@[\w.-]+:/;
+const regexp2 = /[\w.-]+:\S/;
+const regexpPS = /^PS\s/i;
+const regexp4 = /^[A-Z]:\\/;
+const regexp5 = /\u276f/;
+const regexp6 = />>>/;
+const regexp7 = /^\s*\w+@[\w.-]+:.*[#$]\s*$/;
+const regexp8 = /^\s*[\w.-]+:\S.*\s\w+[#$]\s*$/;
+const regexpPS1 = /^PS\s+[A-Z]:\\.*>\s*$/;
+const regexp10 = /^[A-Z]:\\.*>\s*$/;
+const regexp11 = /\u276f\s*$/;
+const regexp12 = /^>>>\s*$/;
+const regexp13 = /^\s*[\w/.-]+[#$]\s*$/;
+const regexp14 = /^\[\s*[\w.-]+(@[\w.-]+)?:[~\/]/;
+const regexp15 = /^\s*[\w][-\w.]*(@[\w.-]+)?:\S/;
+const regexp16 = /\]\s*[#$]\s*$/;
+
 
 /**
  * Sets up a recreating start marker which is resilient to prompts that clear/re-render (eg. transient
@@ -115,13 +132,13 @@ function _stripCommandEchoAndPromptOnce(output: string, commandLine: string, log
 	// Use evidence from the prompt prefix (content before the command echo)
 	// to narrow down which trailing prompt patterns to check.
 	const promptBefore = echoResult?.contentBefore ?? '';
-	const isUnixAt = /\w+@[\w.-]+:/.test(promptBefore);
-	const isUnixHost = !isUnixAt && /[\w.-]+:\S/.test(promptBefore);
+	const isUnixAt = regexp1.test(promptBefore);
+	const isUnixHost = !isUnixAt && regexp2.test(promptBefore);
 	const isUnix = isUnixAt || isUnixHost;
-	const isPowerShell = /^PS\s/i.test(promptBefore);
-	const isCmd = !isPowerShell && /^[A-Z]:\\/.test(promptBefore);
-	const isStarship = /\u276f/.test(promptBefore);
-	const isPython = />>>/.test(promptBefore);
+	const isPowerShell = regexpPS.test(promptBefore);
+	const isCmd = !isPowerShell && regexp4.test(promptBefore);
+	const isStarship = regexp5.test(promptBefore);
+	const isPython = regexp6.test(promptBefore);
 	const knownPrompt = isUnix || isPowerShell || isCmd || isStarship || isPython;
 
 	// Strip trailing lines that are part of the next shell prompt. Prompts may
@@ -149,36 +166,36 @@ function _stripCommandEchoAndPromptOnce(output: string, commandLine: string, log
 		const isCompletePrompt =
 			// Bash/zsh: user@host:path ending with $ or #
 			// e.g., "user@host:~/src $ " or "root@server:/var/log# "
-			((!knownPrompt || isUnixAt) && /^\s*\w+@[\w.-]+:.*[#$]\s*$/.test(line)) ||
+			((!knownPrompt || isUnixAt) && regexp7.test(line)) ||
 			// hostname:path user$ or hostname:path user#
 			// e.g., "dsm12-be220-abc:testWorkspace runner$"
-			((!knownPrompt || isUnixHost) && /^\s*[\w.-]+:\S.*\s\w+[#$]\s*$/.test(line)) ||
+			((!knownPrompt || isUnixHost) && regexp8.test(line)) ||
 			// PowerShell: PS C:\path>
-			((!knownPrompt || isPowerShell) && /^PS\s+[A-Z]:\\.*>\s*$/.test(line)) ||
+			((!knownPrompt || isPowerShell) && regexpPS1.test(line)) ||
 			// Windows cmd: C:\path>
-			((!knownPrompt || isCmd) && /^[A-Z]:\\.*>\s*$/.test(line)) ||
+			((!knownPrompt || isCmd) && regexp10.test(line)) ||
 			// Starship prompt character
 			// allow-any-unicode-next-line
-			((!knownPrompt || isStarship) && /\u276f\s*$/.test(line)) ||
+			((!knownPrompt || isStarship) && regexp11.test(line)) ||
 			// Python REPL
-			((!knownPrompt || isPython) && /^>>>\s*$/.test(line));
+			((!knownPrompt || isPython) && regexp12.test(line));
 
 		// Fragment/partial prompt patterns: these represent pieces of a prompt
 		// that wraps across multiple terminal lines due to column width.
 		const isPromptFragment =
 			// Wrapped fragment ending with $ or # (e.g. "er$", "ts/testWorkspace$")
-			((!knownPrompt || isUnix) && /^\s*[\w/.-]+[#$]\s*$/.test(line)) ||
+			((!knownPrompt || isUnix) && regexp13.test(line)) ||
 			// Bracketed prompt start: [ hostname:/path or [ user@host:/path
 			// e.g., "[ alex@MacBook-Pro:/Users/alex/src/vscode4/extensions/vscode-api-test"
 			// e.g., "[W007DV9PF9-1:~/vss/_work/1/s/extensions/vscode-api-tests/testWorkspace] cloudte"
-			((!knownPrompt || isUnix) && /^\[\s*[\w.-]+(@[\w.-]+)?:[~\/]/.test(line)) ||
+			((!knownPrompt || isUnix) && regexp14.test(line)) ||
 			// Wrapped continuation: user@host:path or hostname:path (no trailing $)
 			// Only matched after we've already stripped a prompt fragment below.
 			// e.g., "cloudtest@host:/mnt/vss/.../vscode-api-tes" or "dsm12-abc:testWorkspace runn"
-			((!knownPrompt || isUnix) && trailingStrippedCount > 0 && /^\s*[\w][-\w.]*(@[\w.-]+)?:\S/.test(line)) ||
+			((!knownPrompt || isUnix) && trailingStrippedCount > 0 && regexp15.test(line)) ||
 			// Bracketed prompt end: ...] $ or ...] #
 			// e.g., "s/testWorkspace (main**) ] $ "
-			((!knownPrompt || isUnix) && /\]\s*[#$]\s*$/.test(line));
+			((!knownPrompt || isUnix) && regexp16.test(line));
 
 		if (isCompletePrompt) {
 			endIndex--;

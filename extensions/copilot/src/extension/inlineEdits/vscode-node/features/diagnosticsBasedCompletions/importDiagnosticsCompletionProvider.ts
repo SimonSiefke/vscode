@@ -21,6 +21,11 @@ import { Position } from '../../../../../util/vs/editor/common/core/position';
 import { INextEditDisplayLocation } from '../../../node/nextEditResult';
 import { IVSCodeObservableDocument } from '../../parts/vscodeWorkspace';
 import { Diagnostic, DiagnosticCompletionItem, DiagnosticInlineEditRequestLogContext, IDiagnosticCompletionProvider, isDiagnosticWithinDistance, log, logList } from './diagnosticsCompletions';
+const regexp1 = /\*$/;
+const regexpAddFromImport = /Add "from\s+(.+?)\s+import\s(.+?)"/;
+const regexpAddImportAs = /Add "import\s+(.+?)\s+as\s(.+?)"/;
+const regexpAddImport = /Add "import\s+(.+?)"/;
+
 
 class ImportCodeAction {
 
@@ -438,7 +443,7 @@ class JavascriptImportHandler implements ILanguageImportHandler {
 
 		// Resolve against tsconfig paths
 		for (const [alias, _] of Object.entries(workspaceInfo.tsconfigPaths)) {
-			const aliasBase = alias.replace(/\*$/, '');
+			const aliasBase = alias.replace(regexp1, '');
 			if (importPath.startsWith(aliasBase)) {
 				return ImportSource.local;
 			}
@@ -472,21 +477,21 @@ class PythonImportHandler implements ILanguageImportHandler {
 	}
 
 	getImportDetails(codeAction: CodeActionData, importName: string, workspaceInfo: WorkspaceInformation): ImportDetails | null {
-		const fromImportMatch = codeAction.title.match(/Add "from\s+(.+?)\s+import\s(.+?)"/);
+		const fromImportMatch = codeAction.title.match(regexpAddFromImport);
 		if (fromImportMatch) {
 			const importPath = fromImportMatch[1];
 			const importName = fromImportMatch[2];
 			return { importName, importPath, labelDeduped: `import from ${importPath}`, labelShort: `import ${importName}`, importSource: this._getImportSource(importPath) };
 		}
 
-		const importAsMatch = codeAction.title.match(/Add "import\s+(.+?)\s+as\s(.+?)"/);
+		const importAsMatch = codeAction.title.match(regexpAddImportAs);
 		if (importAsMatch) {
 			const importName = importAsMatch[1];
 			const importAs = importAsMatch[2];
 			return { importName, importPath: importName, labelDeduped: `import ${importName} as ${importAs}`, labelShort: `import ${importName} as ${importAs}`, importSource: ImportSource.unknown };
 		}
 
-		const importMatch = codeAction.title.match(/Add "import\s+(.+?)"/);
+		const importMatch = codeAction.title.match(regexpAddImport);
 		if (importMatch) {
 			const importName = importMatch[1];
 			return { importName, importPath: importName, labelDeduped: `import ${importName}`, labelShort: `import ${importName}`, importSource: ImportSource.unknown };

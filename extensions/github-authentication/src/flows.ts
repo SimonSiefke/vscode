@@ -14,6 +14,10 @@ import { LoopbackAuthServer } from './node/authServer';
 import { promiseFromEvent } from './common/utils';
 import { isHostedGitHubEnterprise } from './common/env';
 import { NETWORK_ERROR, TIMED_OUT_ERROR, USER_CANCELLATION_ERROR } from './common/errors';
+const regexp1 = /=+$/;
+const regexp2 = /\//g;
+const regexp3 = /\+/g;
+
 
 interface IGitHubDeviceCodeResponse {
 	device_code: string;
@@ -140,9 +144,9 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 	// Base64url encode the digest
 	const base64String = btoa(String.fromCharCode(...new Uint8Array(digest)));
 	return base64String
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '');
+		.replace(new RegExp(regexp3), '-')
+		.replace(new RegExp(regexp2), '_')
+		.replace(regexp1, '');
 }
 
 async function exchangeCodeForToken(

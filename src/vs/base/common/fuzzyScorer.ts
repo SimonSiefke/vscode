@@ -10,6 +10,11 @@ import { hash } from './hash.js';
 import { sep } from './path.js';
 import { isLinux, isWindows } from './platform.js';
 import { equalsIgnoreCase } from './strings.js';
+const regexp1 = /\\/g;
+const regexp2 = /\//g;
+const regexp3 = /(?<=.)#$/;
+const regexp4 = /[\*\u2026\s"]/g;
+
 
 //#region Fuzzy scorer
 
@@ -895,9 +900,9 @@ export function prepareQuery(original: string): IPreparedQuery {
 function normalizeQuery(original: string): { pathNormalized: string; normalized: string; normalizedLowercase: string } {
 	let pathNormalized: string;
 	if (isWindows) {
-		pathNormalized = original.replace(/\//g, sep); // Help Windows users to search for paths when using slash
+		pathNormalized = original.replace(new RegExp(regexp2), sep); // Help Windows users to search for paths when using slash
 	} else {
-		pathNormalized = original.replace(/\\/g, sep); // Help macOS/Linux users to search for paths when using backslash
+		pathNormalized = original.replace(new RegExp(regexp1), sep); // Help macOS/Linux users to search for paths when using backslash
 	}
 
 	// remove certain characters that help find better results:
@@ -906,7 +911,7 @@ function normalizeQuery(original: string): { pathNormalized: string; normalized:
 	// - whitespace: are used to separate queries
 	// - ellipsis: sometimes used to indicate any path segments
 	// - trailing hash: used by some language servers (e.g. rust-analyzer) as query modifiers
-	const normalized = pathNormalized.replace(/[\*\u2026\s"]/g, '').replace(/(?<=.)#$/, '');
+	const normalized = pathNormalized.replace(new RegExp(regexp4), '').replace(regexp3, '');
 
 	return {
 		pathNormalized,

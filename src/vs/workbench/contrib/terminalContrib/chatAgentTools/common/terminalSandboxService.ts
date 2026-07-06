@@ -33,6 +33,9 @@ import { ChatElicitationRequestPart } from '../../../chat/common/model/chatProgr
 import { ElicitationState, IChatService } from '../../../chat/common/chatService/chatService.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { ILifecycleService, WillShutdownJoinerOrder } from '../../../../services/lifecycle/common/lifecycle.js';
+const regexpZA = /^\/[a-zA-Z]:/;
+const regexp2 = /\//g;
+
 
 export { ITerminalSandboxService, TerminalSandboxPrerequisiteCheck, TerminalSandboxPreCheckRemediation } from '../../../../../platform/sandbox/common/terminalSandboxService.js';
 export type { ISandboxDependencyInstallOptions, ISandboxDependencyInstallResult, ISandboxDependencyInstallTerminal, ITerminalSandboxCommand, ITerminalSandboxFileAccessCheckResult, ITerminalSandboxPrecheckInputs, ITerminalSandboxPrerequisiteCheckResult, ITerminalSandboxResolvedNetworkDomains, ITerminalSandboxWrapResult, TerminalSandboxFileAccessPermission } from '../../../../../platform/sandbox/common/terminalSandboxService.js';
@@ -193,12 +196,12 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 		let value: string;
 		if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
 			value = `\\\\${uri.authority}${uri.path}`;
-		} else if (/^\/[a-zA-Z]:/.test(uri.path)) {
+		} else if (regexpZA.test(uri.path)) {
 			value = uri.path.slice(1);
 		} else {
 			value = uri.fsPath;
 		}
-		return value.replace(/\//g, '\\');
+		return value.replace(new RegExp(regexp2), '\\');
 	}
 
 	private async _resolveUserHome(): Promise<URI | undefined> {

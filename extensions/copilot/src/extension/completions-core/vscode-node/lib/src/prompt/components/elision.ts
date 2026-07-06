@@ -5,6 +5,8 @@
 
 import { PromptSnapshotNodeStatistics } from '../../../../prompt/src/components/components';
 import { Tokenizer } from '../../../../prompt/src/tokenization';
+const regexp1 = /([^\n]*\n+)/;
+
 
 export interface WeightedBlock {
 	/**
@@ -112,7 +114,7 @@ export class WishlistElision implements ElisionStrategy {
 			// Update the total tokens by approximating the length of a block with the sum
 			// of the lengths of its lines. Lines are split by newlines, and the newline
 			// value is kept together with the line (and hence counted as a token).
-			const blockLines = block.value.split(/([^\n]*\n+)/).filter(l => l !== '');
+			const blockLines = block.value.split(regexp1).filter(l => l !== '');
 			const processedBlockLines = blockLines.map(line => {
 				const tokens = tokenizer.tokenLength(line);
 				blockTokens += tokens;

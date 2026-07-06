@@ -5,6 +5,8 @@
 
 import { Application, Terminal, SettingsEditor } from '../../../../automation';
 import { setTerminalTestSettings } from './terminal-helpers';
+const regexpFooBar = /foo.*bar/;
+
 
 export function setup(options?: { skipSuite: boolean }) {
 	(options?.skipSuite ? describe.skip : describe)('Terminal Input', () => {
@@ -41,7 +43,7 @@ export function setup(options?: { skipSuite: boolean }) {
 				await settingsEditor.addUserSetting('terminal.integrated.autoReplies', '{ "foo": "bar" }');
 				await terminal.createTerminal();
 				await writeTextForAutoReply('foo');
-				await terminal.waitForTerminalText(buffer => buffer.some(line => line.match(/foo.*bar/)));
+				await terminal.waitForTerminalText(buffer => buffer.some(line => line.match(regexpFooBar)));
 			});
 		});
 	});

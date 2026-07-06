@@ -17,6 +17,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { AgentsVoiceStorageKeys } from './agentsVoice.js';
+const regexpZaZ0 = /[^A-Za-z0-9-]/g;
+
 
 /**
  * Discriminates what produced this entry. Only ``user_voice`` and
@@ -312,7 +314,7 @@ export class VoiceTranscriptStore extends Disposable implements IVoiceTranscript
 	private fileFor(userId: string): URI {
 		// Sanitize userId to prevent path traversal — strip anything that isn't
 		// alphanumeric or hyphen (GitHub logins are [A-Za-z0-9-], max 39 chars).
-		const safe = userId.replace(/[^A-Za-z0-9-]/g, '_');
+		const safe = userId.replace(new RegExp(regexpZaZ0), '_');
 		if (!safe) {
 			throw new Error('Invalid userId for transcript storage');
 		}

@@ -9,6 +9,8 @@ import { URI } from '../../../../base/common/uri.js';
 import { parseRemoteAgentHostSessionTypeAuthority } from '../../../../platform/agentHost/common/agentHostSessionType.js';
 import { agentHostAuthority, fromAgentHostUri, toAgentHostUri } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { IRemoteAgentHostConnectionInfo } from '../../../../platform/agentHost/common/remoteAgentHostService.js';
+const regexpZA = /^\/([a-zA-Z]:)/;
+
 
 // Scheme conventions for `copilotcli` chat sessions:
 // - Local AH:  `agent-host-copilotcli:/<id>`         (LOCAL_RESOURCE_SCHEME_PREFIX + provider)
@@ -186,5 +188,5 @@ export function buildHostLocalEventsPath(
 	// real path on the remote host where the agent (and the skill) execute. Strip
 	// the leading slash from a Windows drive-letter path (`/c:/…` → `c:/…`) so the
 	// injected path is usable by host-side tooling; POSIX paths are left as-is.
-	return fromAgentHostUri(result.resource).path.replace(/^\/([a-zA-Z]:)/, '$1');
+	return fromAgentHostUri(result.resource).path.replace(regexpZA, '$1');
 }

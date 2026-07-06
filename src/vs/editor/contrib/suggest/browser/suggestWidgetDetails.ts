@@ -18,6 +18,8 @@ import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition } from '../../../br
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
 import { CompletionItem } from './suggest.js';
+const regexp1 = /\r?\n^\s+/gmi;
+
 
 export function canExpandCompletionItem(item: CompletionItem | undefined): boolean {
 	return !!item && Boolean(item.completion.documentation || item.completion.detail && item.completion.detail !== item.completion.label);
@@ -158,7 +160,7 @@ export class SuggestDetailsWidget {
 			this._type.textContent = cappedDetail;
 			this._type.title = cappedDetail;
 			dom.show(this._type);
-			this._type.classList.toggle('auto-wrap', !/\r?\n^\s+/gmi.test(cappedDetail));
+			this._type.classList.toggle('auto-wrap', !new RegExp(regexp1).test(cappedDetail));
 		} else {
 			dom.clearNode(this._type);
 			this._type.title = '';

@@ -10,6 +10,8 @@ import { CLANG_DIAGNOSTICS_PROVIDER_CACHE_SALT } from '../../cacheSalt';
 import { createTempDir } from '../stestUtil';
 import { IFile, ITestDiagnostic } from './diagnosticsProvider';
 import { CachingDiagnosticsProvider, findIfInstalled, setupTemporaryWorkspace } from './utils';
+const regexp1 = /\d+\.\d+\.\d+/;
+
 
 /**
  * Class which finds clang diagnostics after compilation of C++ files
@@ -32,9 +34,9 @@ export class CppDiagnosticsProvider extends CachingDiagnosticsProvider {
 
 	override isInstalled(): boolean {
 		if (this._isInstalled === undefined) {
-			if (findIfInstalled({ command: 'clang', arguments: ['-v'] }, /\d+\.\d+\.\d+/)) {
+			if (findIfInstalled({ command: 'clang', arguments: ['-v'] }, regexp1)) {
 				this._isInstalled = 'local';
-			} else if (findIfInstalled({ command: 'docker', arguments: ['--version'] }, /\d+\.\d+\.\d+/)) {
+			} else if (findIfInstalled({ command: 'docker', arguments: ['--version'] }, regexp1)) {
 				this._isInstalled = 'docker';
 			} else {
 				this._isInstalled = false;

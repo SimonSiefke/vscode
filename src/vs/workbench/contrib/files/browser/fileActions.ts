@@ -61,6 +61,15 @@ import { Categories } from '../../../../platform/action/common/actionCommonCateg
 import { ILocalizedString } from '../../../../platform/action/common/action.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { getPathForFile } from '../../../../platform/dnd/browser/dnd.js';
+const regexpCopy = /^(.+ copy)( \d+)?$/;
+const regexp2 = /(\d+)$/;
+const regexp3 = /^(\d+)(.*)$/;
+const regexp4 = /^(\d+)/;
+const regexp5 = /^\s+$/;
+const regexp6 = /[\\/]/;
+const regexp7 = /\*/g;
+const regexp8 = /^\s|\s$/;
+
 
 export const NEW_FILE_COMMAND_ID = 'explorer.newFile';
 export const NEW_FILE_LABEL = nls.localize2('newFile', "New File...");
@@ -364,7 +373,7 @@ export function incrementFileName(name: string, isFolder: boolean, incrementalNa
 
 		// name copy 5(.txt) => name copy 6(.txt)
 		// name copy(.txt) => name copy 2(.txt)
-		const suffixRegex = /^(.+ copy)( \d+)?$/;
+		const suffixRegex = regexpCopy;
 		if (suffixRegex.test(namePrefix)) {
 			return namePrefix.replace(suffixRegex, (match, g1?, g2?) => {
 				const number = (g2 ? parseInt(g2) : 1);
@@ -449,8 +458,8 @@ export function incrementFileName(name: string, isFolder: boolean, incrementalNa
 	}
 
 	// folder.1=>folder.2
-	if (isFolder && name.match(/(\d+)$/)) {
-		return name.replace(/(\d+)$/, (match, ...groups) => {
+	if (isFolder && name.match(regexp2)) {
+		return name.replace(regexp2, (match, ...groups) => {
 			const number = parseInt(groups[0]);
 			return number < maxNumber
 				? String(number + 1).padStart(groups[0].length, '0')
@@ -459,8 +468,8 @@ export function incrementFileName(name: string, isFolder: boolean, incrementalNa
 	}
 
 	// 1.folder=>2.folder
-	if (isFolder && name.match(/^(\d+)/)) {
-		return name.replace(/^(\d+)(.*)$/, (match, ...groups) => {
+	if (isFolder && name.match(regexp4)) {
+		return name.replace(regexp3, (match, ...groups) => {
 			const number = parseInt(groups[0]);
 			return number < maxNumber
 				? String(number + 1).padStart(groups[0].length, '0') + groups[1]
@@ -717,7 +726,7 @@ export function validateFileName(pathService: IPathService, item: ExplorerItem, 
 	name = getWellFormedFileName(name);
 
 	// Name not provided
-	if (!name || name.length === 0 || /^\s+$/.test(name)) {
+	if (!name || name.length === 0 || regexp5.test(name)) {
 		return {
 			content: nls.localize('emptyFileNameError', "A file or folder name must be provided."),
 			severity: Severity.Error
@@ -732,7 +741,7 @@ export function validateFileName(pathService: IPathService, item: ExplorerItem, 
 		};
 	}
 
-	const names = coalesce(name.split(/[\\/]/));
+	const names = coalesce(name.split(regexp6));
 	const parent = item.parent;
 
 	if (name !== item.name) {
@@ -749,14 +758,14 @@ export function validateFileName(pathService: IPathService, item: ExplorerItem, 
 	// Check for invalid file name.
 	if (names.some(folderName => !pathService.hasValidBasename(item.resource, os, folderName))) {
 		// Escape * characters
-		const escapedName = name.replace(/\*/g, '\\*'); // CodeQL [SM02383] This only processes filenames which are enforced against having backslashes in them farther up in the stack.
+		const escapedName = name.replace(new RegExp(regexp7), '\\*'); // CodeQL [SM02383] This only processes filenames which are enforced against having backslashes in them farther up in the stack.
 		return {
 			content: nls.localize('invalidFileNameError', "The name **{0}** is not valid as a file or folder name. Please choose a different name.", trimLongName(escapedName)),
 			severity: Severity.Error
 		};
 	}
 
-	if (names.some(name => /^\s|\s$/.test(name))) {
+	if (names.some(name => regexp8.test(name))) {
 		return {
 			content: nls.localize('fileNameWhitespaceWarning', "Leading or trailing whitespace detected in file or folder name."),
 			severity: Severity.Warning

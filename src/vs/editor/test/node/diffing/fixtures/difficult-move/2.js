@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
+const regexpTarget = /^target "(.*)"$/m;
+const regexpMsBuildId = /^ms_build_id "(.*)"$/m;
+const regexp3 = /\s+/;
+const regexpJs = /\.js$/;
+
 
 const gulp = require('gulp');
 const path = require('path');
@@ -125,8 +130,8 @@ const serverWithWebEntryPoints = [
 
 function getNodeVersion() {
 	const yarnrc = fs.readFileSync(path.join(REPO_ROOT, 'remote', '.yarnrc'), 'utf8');
-	const nodeVersion = /^target "(.*)"$/m.exec(yarnrc)[1];
-	const internalNodeVersion = /^ms_build_id "(.*)"$/m.exec(yarnrc)[1];
+	const nodeVersion = regexpTarget.exec(yarnrc)[1];
+	const internalNodeVersion = regexpMsBuildId.exec(yarnrc)[1];
 	return { nodeVersion, internalNodeVersion };
 }
 
@@ -146,7 +151,7 @@ function getNodeChecksum(nodeVersion, platform, arch) {
 
 	const nodeJsChecksums = fs.readFileSync(path.join(REPO_ROOT, 'build', 'checksums', 'nodejs.txt'), 'utf8');
 	for (const line of nodeJsChecksums.split('\n')) {
-		const [checksum, name] = line.split(/\s+/);
+		const [checksum, name] = line.split(regexp3);
 		if (name === expectedName) {
 			return checksum;
 		}
@@ -304,7 +309,7 @@ function packageTask(type, platform, arch, sourceFolderName, destinationFolderNa
 
 		const license = gulp.src(['remote/LICENSE'], { base: 'remote', allowEmpty: true });
 
-		const jsFilter = util.filter(data => !data.isDirectory() && /\.js$/.test(data.path));
+		const jsFilter = util.filter(data => !data.isDirectory() && regexpJs.test(data.path));
 
 		const productionDependencies = getProductionDependencies(REMOTE_FOLDER);
 		const dependenciesSrc = productionDependencies.map(d => path.relative(REPO_ROOT, d.path)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`, `!${d}/.bin/**`]).flat();

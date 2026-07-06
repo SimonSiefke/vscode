@@ -8,6 +8,8 @@
 
 import { ActionType, type StateAction } from '../actions.js';
 import type { ServerNotificationMap } from '../messages.js';
+const regexp1 = /^(\d+)\.(\d+)\.(\d+)$/;
+
 
 // ─── Protocol Version Constants ──────────────────────────────────────────────
 
@@ -49,7 +51,7 @@ export const SUPPORTED_PROTOCOL_VERSIONS: readonly string[] = Object.freeze([
  * Throws if `version` is not a well-formed `MAJOR.MINOR.PATCH` string.
  */
 function parseSemver(version: string): readonly [number, number, number] {
-	const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+	const match = regexp1.exec(version);
 	if (!match) {
 		throw new Error(`Invalid protocol version: ${version}`);
 	}

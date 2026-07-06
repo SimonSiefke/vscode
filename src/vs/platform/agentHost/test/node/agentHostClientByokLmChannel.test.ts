@@ -9,6 +9,9 @@ import type { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IAgentHostByokLmHandler, IByokLmChatRequest, IByokLmChatResult, IByokLmModelInfo } from '../../common/agentHostByokLm.js';
 import { AgentHostClientByokLmChannel, createAgentHostClientByokLmConnection } from '../../common/agentHostClientByokLmChannel.js';
+const regexpUnknownCommand = /Unknown command/;
+const regexpNoEvent = /No event/;
+
 
 suite('agentHostClientByokLmChannel', () => {
 
@@ -67,11 +70,11 @@ suite('agentHostClientByokLmChannel', () => {
 
 	test('rejects unknown channel commands', async () => {
 		const server = new AgentHostClientByokLmChannel(handlerOf(async () => ({ content: '' })));
-		await assert.rejects(() => server.call(null, 'frobnicate'), /Unknown command/);
+		await assert.rejects(() => server.call(null, 'frobnicate'), regexpUnknownCommand);
 	});
 
 	test('exposes no events', () => {
 		const server = new AgentHostClientByokLmChannel(handlerOf(async () => ({ content: '' })));
-		assert.throws(() => server.listen(null, 'anything'), /No event/);
+		assert.throws(() => server.listen(null, 'anything'), regexpNoEvent);
 	});
 });

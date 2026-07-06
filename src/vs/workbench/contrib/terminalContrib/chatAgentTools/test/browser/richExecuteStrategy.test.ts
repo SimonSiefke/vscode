@@ -14,6 +14,8 @@ import type { ITerminalLogService } from '../../../../../../platform/terminal/co
 import { RichExecuteStrategy } from '../../browser/executeStrategy/richExecuteStrategy.js';
 import type { ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import type { ICommandDetectionCapability } from '../../../../../../platform/terminal/common/capabilities/capabilities.js';
+const regexpTheTerminalWas = /The terminal was closed/;
+
 
 function createLogService(): ITerminalLogService {
 	return new class extends NullLogService { readonly _logBrand = undefined; };
@@ -223,7 +225,7 @@ suite('RichExecuteStrategy', () => {
 
 		await rejects(
 			() => strategy.execute('echo hello', CancellationToken.None),
-			/The terminal was closed/
+			regexpTheTerminalWas
 		);
 	});
 });

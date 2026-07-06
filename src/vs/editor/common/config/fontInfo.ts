@@ -6,6 +6,9 @@
 import * as platform from '../../../base/common/platform.js';
 import { EditorOption, FindComputedEditorOptionValueById } from './editorOptions.js';
 import { EditorZoom } from './editorZoom.js';
+const regexp1 = /[,"']/;
+const regexp2 = /[+ ]/;
+
 
 /**
  * Determined from empirical observations.
@@ -123,11 +126,11 @@ export class BareFontInfo {
 	}
 
 	private static _wrapInQuotes(fontFamily: string): string {
-		if (/[,"']/.test(fontFamily)) {
+		if (regexp1.test(fontFamily)) {
 			// Looks like the font family might be already escaped
 			return fontFamily;
 		}
-		if (/[+ ]/.test(fontFamily)) {
+		if (regexp2.test(fontFamily)) {
 			// Wrap a font family using + or <space> with quotes
 			return `"${fontFamily}"`;
 		}

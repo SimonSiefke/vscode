@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 
+const regexp1 = /!\[([^\]]*)\]\(<?([^)<>]+?)>?\)/;
+const regexpImgAltSrc = /<img\s+(?:alt=["']([^"']*)["']\s*)?src=["']([^"']+)["'](?:\s*alt=["']([^"']*)["'])?/;
+const regexpImageSource = /:::image\s+.*?source=["']([^"']+)["'].*?:::/;
+const regexpAltText = /alt-text=["']([^"']*?)["']/;
+
 export function getImageDimensions(base64: string) {
 	if (!base64.startsWith('data:image/')) {
 		throw new Error('Could not read image: invalid base64 image string');
@@ -180,9 +185,9 @@ export function getMimeType(base64String: string): string | undefined {
 
 export function extractImageAttributes(line: string, refineExisting?: boolean): string | undefined {
 	// Regex to match markdown image syntax ![alt text](<?image_path>?)
-	const markdownImageRegex = /!\[([^\]]*)\]\(<?([^)<>]+?)>?\)/;
+	const markdownImageRegex = regexp1;
 	// Updated regex to match HTML image syntax with alt and src in any order
-	const htmlImageRegex = /<img\s+(?:alt=["']([^"']*)["']\s*)?src=["']([^"']+)["'](?:\s*alt=["']([^"']*)["'])?/;
+	const htmlImageRegex = regexpImgAltSrc;
 
 	let match;
 	let imagePath = '';
@@ -196,12 +201,12 @@ export function extractImageAttributes(line: string, refineExisting?: boolean): 
 		altText = match[1] || match[3] || ''; // alt is sometimes first or third
 	} else {
 		// Try Learn Markdown format - check if it's a Learn Markdown image
-		const learnMarkdownRegex = /:::image\s+.*?source=["']([^"']+)["'].*?:::/;
+		const learnMarkdownRegex = regexpImageSource;
 		const sourceMatch = learnMarkdownRegex.exec(line);
 		if (sourceMatch) {
 			imagePath = sourceMatch[1];
 			// Check if there's an alt-text attribute
-			const altTextRegex = /alt-text=["']([^"']*?)["']/;
+			const altTextRegex = regexpAltText;
 			const altMatch = altTextRegex.exec(line);
 			altText = altMatch ? altMatch[1] : '';
 		} else {

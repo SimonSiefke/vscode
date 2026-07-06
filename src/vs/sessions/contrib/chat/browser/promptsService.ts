@@ -11,6 +11,8 @@ import { PromptsType } from '../../../../workbench/contrib/chat/common/promptSyn
 import { IAgentSkill, IPromptPath, PromptsStorage } from '../../../../workbench/contrib/chat/common/promptSyntax/service/promptsService.js';
 import { PromptsService } from '../../../../workbench/contrib/chat/common/promptSyntax/service/promptsServiceImpl.js';
 import { BUILTIN_STORAGE, IBuiltinPromptPath } from '../common/builtinPromptsStorage.js';
+const regexp1 = /<[^>]+>/g;
+
 
 /** URI root for built-in skills bundled with the Agents app. */
 export const BUILTIN_SKILLS_URI = FileAccess.asFileUri('vs/sessions/skills');
@@ -159,6 +161,6 @@ export class AgenticPromptsService extends PromptsService {
  * Matches the sanitization applied by PromptsService for other skill sources.
  */
 function sanitizeSkillText(text: string, maxLength: number): string {
-	const sanitized = text.replace(/<[^>]+>/g, '');
+	const sanitized = text.replace(new RegExp(regexp1), '');
 	return sanitized.length > maxLength ? sanitized.substring(0, maxLength) : sanitized;
 }

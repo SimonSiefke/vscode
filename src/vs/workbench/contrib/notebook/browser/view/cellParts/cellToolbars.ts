@@ -24,6 +24,8 @@ import { registerCellToolbarStickyScroll } from './cellToolbarStickyScroll.js';
 import { WorkbenchToolBar } from '../../../../../../platform/actions/browser/toolbar.js';
 import { createInstantHoverDelegate } from '../../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { IHoverDelegate } from '../../../../../../base/browser/ui/hover/hoverDelegate.js';
+const regexpInline = /^inline/;
+
 
 export class BetweenCellToolbar extends CellOverlayPart {
 	private _betweenCellToolbar: ToolBar | undefined;
@@ -271,7 +273,7 @@ export class CellTitleToolbarPart extends CellOverlayPart {
 }
 
 function getCellToolbarActions(menu: IMenu): PrimaryAndSecondaryActions {
-	return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => /^inline/.test(g));
+	return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => regexpInline.test(g));
 }
 
 function createDeleteToolbar(accessor: ServicesAccessor, container: HTMLElement, hoverDelegate: IHoverDelegate, elementClass?: string): ToolBar {

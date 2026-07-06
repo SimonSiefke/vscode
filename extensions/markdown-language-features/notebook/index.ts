@@ -7,6 +7,12 @@ import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify';
 import MarkdownIt from 'markdown-it';
 import type Token from 'markdown-it/lib/token.mjs';
 import type { ActivationFunction } from 'vscode-notebook-renderer';
+const regexp1 = /\-+$/;
+const regexp2 = /^\-+/;
+// allow-any-unicode-next-line
+const regexp3 = /[\]\[\!\/\'\"\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g;
+const regexp4 = /\s+/g;
+
 
 const allowedHtmlTags = Object.freeze(['a',
 	'abbr',
@@ -405,11 +411,11 @@ function slugify(text: string): string {
 	const slugifiedHeading = encodeURI(
 		text.trim()
 			.toLowerCase()
-			.replace(/\s+/g, '-') // Replace whitespace with -
+			.replace(new RegExp(regexp4), '-') // Replace whitespace with -
 			// allow-any-unicode-next-line
-			.replace(/[\]\[\!\/\'\"\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
-			.replace(/^\-+/, '') // Remove leading -
-			.replace(/\-+$/, '') // Remove trailing -
+			.replace(new RegExp(regexp3), '') // Remove known punctuators
+			.replace(regexp2, '') // Remove leading -
+			.replace(regexp1, '') // Remove trailing -
 	);
 	return slugifiedHeading;
 }

@@ -3,6 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpZ0 = /^[a-z][a-z0-9]*$/;
+const regexpZAZ0 = /^[a-z][a-zA-Z0-9]*$/;
+const regexpZ01 = /^[a-z]+(_[a-z0-9]+)*$/;
+const regexpZ02 = /^[a-z]+(-[a-z0-9]+)*$/;
+const regexpZ03 = /^[A-Z][a-z0-9]*$/;
+const regexpZ0Z0 = /^[A-Z0-9]+(_[A-Z0-9]+)+$/;
+const regexp7 = /^[A-Z]+$/;
+const regexpZAZ01 = /^[A-Z][a-zA-Z0-9]*$/;
+const regexpZ0Z01 = /^[A-Z][a-z0-9]*(_[a-z0-9]+)*$/;
+const regexp10 = /(?=[A-Z])/;
+const regexp11 = /[-_]/;
+
 export enum NamingConvention {
 	/** example: camelCase */
 	CamelCase = 'camelCase',
@@ -43,47 +55,47 @@ export enum NamingConvention {
 export function guessNamingConvention(ident: string): NamingConvention {
 
 	// lowercase
-	if (/^[a-z][a-z0-9]*$/.test(ident)) {
+	if (regexpZ0.test(ident)) {
 		return NamingConvention.LowerCase;
 	}
 
 	// camelCase
-	if (/^[a-z][a-zA-Z0-9]*$/.test(ident)) {
+	if (regexpZAZ0.test(ident)) {
 		return NamingConvention.CamelCase;
 	}
 
 	// snake_case
-	if (/^[a-z]+(_[a-z0-9]+)*$/.test(ident)) {
+	if (regexpZ01.test(ident)) {
 		return NamingConvention.SnakeCase;
 	}
 
 	// kebab-case
-	if (/^[a-z]+(-[a-z0-9]+)*$/.test(ident)) {
+	if (regexpZ02.test(ident)) {
 		return NamingConvention.KebabCase;
 	}
 
 	// Capitalized
-	if (/^[A-Z][a-z0-9]*$/.test(ident)) {
+	if (regexpZ03.test(ident)) {
 		return NamingConvention.Capitalized;
 	}
 
 	// SCREAMING_SNAKE_CASE
-	if (/^[A-Z0-9]+(_[A-Z0-9]+)+$/.test(ident)) {
+	if (regexpZ0Z0.test(ident)) {
 		return NamingConvention.ScreamingSnakeCase;
 	}
 
 	// UPPERCASE
-	if (/^[A-Z]+$/.test(ident)) {
+	if (regexp7.test(ident)) {
 		return NamingConvention.Uppercase;
 	}
 
 	// PascalCase
-	if (/^[A-Z][a-zA-Z0-9]*$/.test(ident)) {
+	if (regexpZAZ01.test(ident)) {
 		return NamingConvention.PascalCase;
 	}
 
 	// Capital_snake_case
-	if (/^[A-Z][a-z0-9]*(_[a-z0-9]+)*$/.test(ident)) {
+	if (regexpZ0Z01.test(ident)) {
 		return NamingConvention.CapitalSnakeCase;
 	}
 
@@ -149,12 +161,12 @@ export function chunkUpIdentByConvention(ident: string, identConvention: NamingC
 	switch (identConvention) {
 		case NamingConvention.CamelCase:
 		case NamingConvention.PascalCase:
-			return ident.split(/(?=[A-Z])/);
+			return ident.split(regexp10);
 		case NamingConvention.SnakeCase:
 		case NamingConvention.ScreamingSnakeCase:
 		case NamingConvention.CapitalSnakeCase:
 		case NamingConvention.KebabCase:
-			return ident.split(/[-_]/).map(chunk => chunk.toLowerCase());
+			return ident.split(regexp11).map(chunk => chunk.toLowerCase());
 		case NamingConvention.Capitalized:
 		case NamingConvention.Uppercase:
 		case NamingConvention.LowerCase:

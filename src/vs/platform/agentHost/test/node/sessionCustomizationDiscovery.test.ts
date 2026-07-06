@@ -21,6 +21,8 @@ import { IAgentPluginManager } from '../../common/agentPluginManager.js';
 import { DiscoveredType, SessionCustomizationDiscovery } from '../../node/copilot/sessionCustomizationDiscovery.js';
 import { SessionPluginBundler } from '../../node/shared/sessionPluginBundler.js';
 import { mapToParsedPlugin, toDiscoveredDirectoryCustomizations } from '../../node/copilot/copilotAgent.js';
+const regexpNameVSCode = /"name": "VS Code Synced Data"/;
+
 
 suite('SessionCustomizationDiscovery', () => {
 
@@ -659,7 +661,7 @@ suite('SessionPluginBundler', () => {
 
 		const root = bundler.rootUri;
 		const manifest = await fileService.readFile(URI.joinPath(root, '.plugin', 'plugin.json'));
-		assert.match(manifest.value.toString(), /"name": "VS Code Synced Data"/);
+		assert.match(manifest.value.toString(), regexpNameVSCode);
 
 		const agent = await fileService.readFile(URI.joinPath(root, 'agents', 'foo.agent.md'));
 		assert.strictEqual(agent.value.toString(), 'agent body');

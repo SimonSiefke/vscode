@@ -8,6 +8,8 @@ import { Event } from '../../../util/vs/base/common/event';
 import { URI } from '../../../util/vs/base/common/uri';
 import { AbstractEnvService, NameAndVersion, OperatingSystem } from './envService';
 import { packageJson } from './packagejson';
+const regexp1 = /\d+\.\d+/;
+
 
 export class NullEnvService extends AbstractEnvService {
 	declare readonly _serviceBrand: undefined;
@@ -69,7 +71,7 @@ export class NullEnvService extends AbstractEnvService {
 	}
 
 	override getEditorInfo(): NameAndVersion {
-		return new NameAndVersion('simulation-tests-editor', packageJson.engines.vscode.match(/\d+\.\d+/)?.[0] ?? '1.89');
+		return new NameAndVersion('simulation-tests-editor', packageJson.engines.vscode.match(regexp1)?.[0] ?? '1.89');
 	}
 
 	override getEditorPluginInfo(): NameAndVersion {

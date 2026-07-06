@@ -22,6 +22,8 @@ import { ICellViewModel, INotebookEditorDelegate } from '../../notebookBrowser.j
 import { CellContentPart } from '../cellPart.js';
 import { registerCellToolbarStickyScroll } from './cellToolbarStickyScroll.js';
 import { NOTEBOOK_CELL_EXECUTION_STATE, NOTEBOOK_CELL_LIST_FOCUSED, NOTEBOOK_CELL_TYPE, NOTEBOOK_EDITOR_FOCUSED } from '../../../common/notebookContextKeys.js';
+const regexpInline = /^inline/;
+
 
 export class RunToolbar extends CellContentPart {
 	private toolbar!: ToolBar;
@@ -72,7 +74,7 @@ export class RunToolbar extends CellContentPart {
 	}
 
 	getCellToolbarActions(menu: IMenu): { primary: IAction[]; secondary: IAction[] } {
-		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => /^inline/.test(g));
+		return getActionBarActions(menu.getActions({ shouldForwardArgs: true }), g => regexpInline.test(g));
 	}
 
 	private createRunCellToolbar(container: HTMLElement, cellContainer: HTMLElement, contextKeyService: IContextKeyService) {

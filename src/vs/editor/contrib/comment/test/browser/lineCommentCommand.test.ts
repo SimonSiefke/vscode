@@ -18,6 +18,8 @@ import { ILinePreflightData, IPreflightData, ISimpleModel, LineCommentCommand, T
 import { testCommand } from '../../../../test/browser/testCommand.js';
 import { TestLanguageConfigurationService } from '../../../../test/common/modes/testLanguageConfigurationService.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+const regexp1 = /^  /;
+
 
 function createTestCommandHelper(commentsConfig: CommentRule, commandFactory: (accessor: ServicesAccessor, selection: Selection) => ICommand): (lines: string[], selection: Selection, expectedLines: string[], expectedSelection: Selection) => void {
 	return (lines: string[], selection: Selection, expectedLines: string[], expectedSelection: Selection) => {
@@ -1136,7 +1138,7 @@ suite('Editor Contrib - Line Comment in mixed modes', () => {
 					throw new Error('not implemented');
 				},
 				tokenizeEncoded: (line: string, hasEOL: boolean, state: IState): EncodedTokenizationResult => {
-					const languageId = (/^  /.test(line) ? INNER_LANGUAGE_ID : OUTER_LANGUAGE_ID);
+					const languageId = (regexp1.test(line) ? INNER_LANGUAGE_ID : OUTER_LANGUAGE_ID);
 					const encodedLanguageId = languageService.languageIdCodec.encodeLanguageId(languageId);
 
 					const tokens = new Uint32Array(1 << 1);

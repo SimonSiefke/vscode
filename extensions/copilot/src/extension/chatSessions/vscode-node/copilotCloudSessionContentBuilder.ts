@@ -15,6 +15,14 @@ import { findLast } from '../../../util/vs/base/common/arraysFind';
 import { appendResponsePartsForEvent, createResponseEventRenderContext, flushPendingAssistantMessage, ResponseEventRenderContext } from '../common/sessionEventRenderer';
 import { CLI_TOOL_EVENT_HANDLERS } from '../copilotcli/common/copilotCLITools';
 import { getAuthorDisplayName } from '../vscode/copilotCodingAgentUtils';
+const regexp1 = /\r?\n/;
+const regexpError = /\s*<\/error>\s*$/i;
+const regexpError1 = /^\s*<error>\s*/i;
+const regexpHomeRunnerWork = /^\/(?:home\/runner\/work|tmp\/workspace|workspace)\/[^/]+\/[^/]+\//;
+const regexp5 = /\r?\n/g;
+const regexpDiffGit = /^diff --git a\/(.+?) b\/(.+)$/;
+const regexpEOF = /<<\s*['"]?EOF['"]?/;
+
 
 export interface SessionResponseLogChunk {
 	choices: Array<{
@@ -402,7 +410,7 @@ export class ChatSessionContentBuilder {
 
 	public parseSessionLogs(rawText: string): SessionResponseLogChunk[] {
 		const parts = rawText
-			.split(/\r?\n/)
+			.split(regexp1)
 			.filter(part => part.startsWith('data: '))
 			.map(part => part.slice('data: '.length).trim())
 			.map(part => JSON.parse(part));
@@ -471,7 +479,7 @@ export class ChatSessionContentBuilder {
 					if (isError) {
 						const toolPart = new ChatToolInvocationPart('Command', 'command');
 						// Remove <error> at the start and </error> at the end
-						const cleaned = (delta.content ?? '').replace(/^\s*<error>\s*/i, '').replace(/\s*<\/error>\s*$/i, '');
+						const cleaned = (delta.content ?? '').replace(regexpError1, '').replace(regexpError, '');
 						toolPart.invocationMessage = cleaned;
 						toolPart.isError = true;
 						responseParts.push(toolPart);
@@ -562,7 +570,7 @@ export class ChatSessionContentBuilder {
 	 * just the filename than to render a bare "Edit"/"Read" card.
 	 */
 	private toFileLabel(file: string): string {
-		const stripped = file.replace(/^\/(?:home\/runner\/work|tmp\/workspace|workspace)\/[^/]+\/[^/]+\//, '');
+		const stripped = file.replace(regexpHomeRunnerWork, '');
 		return stripped !== file ? stripped : pathLib.basename(file);
 	}
 
@@ -596,7 +604,7 @@ export class ChatSessionContentBuilder {
 	 * Parse diff content and extract file information
 	 */
 	private parseDiff(content: string): { content: string; fileA: string | undefined; fileB: string | undefined } | undefined {
-		const lines = content.split(/\r?\n/g);
+		const lines = content.split(new RegExp(regexp5));
 		let fileA: string | undefined;
 		let fileB: string | undefined;
 
@@ -604,7 +612,7 @@ export class ChatSessionContentBuilder {
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 			if (line.startsWith('diff --git')) {
-				const match = line.match(/^diff --git a\/(.+?) b\/(.+)$/);
+				const match = line.match(regexpDiffGit);
 				if (match) {
 					fileA = match[1];
 					fileB = match[2];
@@ -726,7 +734,7 @@ export class ChatSessionContentBuilder {
 			let displayContent = bashContent;
 			if (bashContent && bashContent.length > MAX_CONTENT_LENGTH) {
 				// Check if content contains EOF marker (heredoc pattern)
-				const hasEOF = (bashContent && /<<\s*['"]?EOF['"]?/.test(bashContent));
+				const hasEOF = (bashContent && regexpEOF.test(bashContent));
 				if (hasEOF) {
 					// show the command line up to EOL
 					const firstLineEnd = bashContent.indexOf('\n');

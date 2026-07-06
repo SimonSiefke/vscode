@@ -9,6 +9,31 @@ import { IConfigurationService } from '../../../../../../../platform/configurati
 import { TerminalChatAgentToolsSettingId } from '../../../common/terminalChatAgentToolsConfiguration.js';
 import { isBash, isFish, isPowerShell, isZsh } from '../../runInTerminalHelpers.js';
 import type { ICommandLineRewriter, ICommandLineRewriterOptions, ICommandLineRewriterResult } from './commandLineRewriter.js';
+const regexp1 = /(?:^|[^&])&$/;
+const regexpCd = /^\s*cd\s+\S+\s*(?:&&|;)\s*/i;
+const regexpZ0 = /^\s*(?:[A-Z_][A-Z0-9_]*=\S+\s+)+/;
+const regexpExpectPasswdVi = /^(expect|passwd|vi|vim|nano|less|more|top|htop|sftp|ftp|telnet|gdb|lldb)\b/;
+const regexpPsql = /^psql\b/;
+const regexpCommandFile = /\s(-c|-f|--command|--file)\b/;
+const regexpMysql = /^mysql\b/;
+const regexpExecute = /\s(-e|--execute)\b/;
+const regexpSsh = /^ssh\b/;
+const regexp10 = /\s-T\b/;
+const regexpSssh = /\sssh\s+\S+\s+\S/;
+const regexpSudo = /^sudo\b/;
+const regexp13 = /\s-n\b/;
+const regexpBSUDOASKPASS = /\bSUDO_ASKPASS\b/;
+const regexp15 = /\s*&$/;
+const regexp16 = /'/g;
+const regexp17 = /"/g;
+const regexp18 = /\\/g;
+const regexpForWhileUntil = /^(for|while|until|if|case|select|function)\b/;
+const regexpEvalSetExport = /^(eval|set|export|source|unset|declare|typeset|local|readonly|alias|cd|exec)\b/;
+const regexp21 = /^\.\s/;
+const regexp22 = /^[{(]/;
+const regexpZaZaZ0 = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const regexp24 = /(?:\|\||&&|[|;]|&(?!&)(?!\s*$))/;
+
 
 /**
  * Wraps background terminal commands so their processes survive VS Code shutdown.
@@ -41,7 +66,7 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		// in mode='sync' — without this, the trailing `&` silently produces a SIGHUP'd
 		// process that dies as soon as the tool's shell tears down.
 		const trimmedForCheck = options.commandLine.trimEnd();
-		const endsWithBareBackgroundAmp = /(?:^|[^&])&$/.test(trimmedForCheck);
+		const endsWithBareBackgroundAmp = regexp1.test(trimmedForCheck);
 		if (!options.isBackground && !endsWithBareBackgroundAmp) {
 			return undefined;
 		}
@@ -80,27 +105,27 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		// `cd ... && ` / `cd ... ;` / env-var assignments, since those don't
 		// affect stdin behaviour.
 		const trimmed = commandLine
-			.replace(/^\s*(?:[A-Z_][A-Z0-9_]*=\S+\s+)+/, '')
-			.replace(/^\s*cd\s+\S+\s*(?:&&|;)\s*/i, '')
+			.replace(regexpZ0, '')
+			.replace(regexpCd, '')
 			.trimStart();
 		// Bare `expect`, `gdb`, `psql` (without `-c`/`-f`), `passwd`, `vi`/`vim`,
 		// `nano`, `less`, `more`, `top`, `htop`, `ssh` without `-T`, `mysql`
 		// without `-e`, `sftp`, `ftp`, `telnet`.
-		if (/^(expect|passwd|vi|vim|nano|less|more|top|htop|sftp|ftp|telnet|gdb|lldb)\b/.test(trimmed)) {
+		if (regexpExpectPasswdVi.test(trimmed)) {
 			return true;
 		}
-		if (/^psql\b/.test(trimmed) && !/\s(-c|-f|--command|--file)\b/.test(trimmed)) {
+		if (regexpPsql.test(trimmed) && !regexpCommandFile.test(trimmed)) {
 			return true;
 		}
-		if (/^mysql\b/.test(trimmed) && !/\s(-e|--execute)\b/.test(trimmed)) {
+		if (regexpMysql.test(trimmed) && !regexpExecute.test(trimmed)) {
 			return true;
 		}
-		if (/^ssh\b/.test(trimmed) && !/\s-T\b/.test(trimmed) && !/\sssh\s+\S+\s+\S/.test(' ' + trimmed)) {
+		if (regexpSsh.test(trimmed) && !regexp10.test(trimmed) && !regexpSssh.test(' ' + trimmed)) {
 			// `ssh host` with no command is interactive; `ssh host cmd` runs cmd non-interactively.
 			return true;
 		}
 		// `sudo` without `-n` (non-interactive) may prompt for a password.
-		if (/^sudo\b/.test(trimmed) && !/\s-n\b/.test(trimmed) && !/\bSUDO_ASKPASS\b/.test(commandLine)) {
+		if (regexpSudo.test(trimmed) && !regexp13.test(trimmed) && !regexpBSUDOASKPASS.test(commandLine)) {
 			return true;
 		}
 		return false;
@@ -112,7 +137,7 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		// Check for a trailing background `&` (not `&&`) on the original command.
 		// When wrapping in `shell -c`, we strip the trailing `&` from the inner
 		// command and always place it outside the quotes to avoid double-backgrounding.
-		const endsWithBackgroundAmp = /(?:^|[^&])&$/.test(trimmed);
+		const endsWithBackgroundAmp = regexp1.test(trimmed);
 
 		// nohup only accepts a simple external command as its argument — it cannot exec
 		// compound statements (for/while/if/case) or shell builtins (eval/set/export/source).
@@ -120,22 +145,22 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		let commandToWrap = trimmed;
 		if (this._needsShellCWrapper(trimmed)) {
 			// Strip trailing `&` before quoting — we'll add the outer `&` below.
-			const innerCommand = endsWithBackgroundAmp ? trimmed.replace(/\s*&$/, '') : trimmed;
+			const innerCommand = endsWithBackgroundAmp ? trimmed.replace(regexp15, '') : trimmed;
 			if (isFish(options.shell, options.os)) {
 				// Fish does not support the POSIX '\'' escape inside single-quoted strings.
 				// Use a double-quoted string and escape backslash and double-quote instead.
-				const escaped = innerCommand.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+				const escaped = innerCommand.replace(new RegExp(regexp18), '\\\\').replace(new RegExp(regexp17), '\\"');
 				commandToWrap = `${options.shell} -c "${escaped}"`;
 			} else {
 				// bash/zsh: escape single quotes for use inside a single-quoted shell -c '...' string.
-				const escaped = innerCommand.replace(/'/g, `'\\''`);
+				const escaped = innerCommand.replace(new RegExp(regexp16), `'\\''`);
 				commandToWrap = `${options.shell} -c '${escaped}'`;
 			}
 		}
 
 		// Always append `&` unless the (unwrapped) command already has a trailing `&`
 		// and we didn't wrap it in shell -c (in which case the `&` is still present).
-		const needsTrailingAmp = !(/(?:^|[^&])&$/.test(commandToWrap));
+		const needsTrailingAmp = !(regexp1.test(commandToWrap));
 
 		// `disown` removes the job from the shell's job table so it won't print
 		// `[1]+  Done  nohup ...` notifications that contaminate subsequent command
@@ -167,24 +192,24 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		const trimmed = commandLine.trimStart();
 		return (
 			// Bash compound command keywords — syntax constructs that are not executables.
-			/^(for|while|until|if|case|select|function)\b/.test(trimmed) ||
+			regexpForWhileUntil.test(trimmed) ||
 			// Shell builtins — these only run meaningfully inside the current shell; nohup
 			// cannot exec them (eval, set, export, source, unset, declare, cd, exec, etc.).
-			/^(eval|set|export|source|unset|declare|typeset|local|readonly|alias|cd|exec)\b/.test(trimmed) ||
+			regexpEvalSetExport.test(trimmed) ||
 			// `. file` (dot-source builtin). Exclude `./script` (relative path) by requiring
 			// whitespace after the dot.
-			/^\.\s/.test(trimmed) ||
+			regexp21.test(trimmed) ||
 			// Compound groupings: subshell `( ... )` or brace group `{ ...; }`.
-			/^[{(]/.test(trimmed) ||
+			regexp22.test(trimmed) ||
 			// Inline environment variable assignments before a command (e.g. `VAR=val cmd`).
 			// nohup would try to exec `VAR=val` as a program name.
-			/^[A-Za-z_][A-Za-z0-9_]*=/.test(trimmed) ||
+			regexpZaZaZ0.test(trimmed) ||
 			// Shell operators: pipes, command chains (&&, ||), semicolons, or background
 			// operators (&) in the middle of the command. nohup only execs the first
 			// simple command; the rest would be lost or misinterpreted.
 			// A single trailing `&` is handled separately (not matched here) since it's
 			// just a background operator that nohup can coexist with.
-			/(?:\|\||&&|[|;]|&(?!&)(?!\s*$))/.test(trimmed)
+			regexp24.test(trimmed)
 		);
 	}
 
@@ -194,7 +219,7 @@ export class CommandLineBackgroundDetachRewriter extends Disposable implements I
 		}
 
 		// Escape double quotes for PowerShell string
-		const escapedCommand = options.commandLine.replace(/"/g, '\\"');
+		const escapedCommand = options.commandLine.replace(new RegExp(regexp17), '\\"');
 
 		return {
 			rewritten: `Start-Process -WindowStyle Hidden -FilePath "${options.shell}" -ArgumentList "-NoProfile", "-Command", "${escapedCommand}"`,

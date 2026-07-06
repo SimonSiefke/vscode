@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ICommandFileWriteParser } from './commandFileWriteParser.js';
+const regexpSed = /^sed\s+/;
+const regexpZAIIZA = /(?:^|\s)(-[a-zA-Z]*[iI][a-zA-Z]*\S*|--in-place(?:=\S*)?|(-i|-I)\s*'[^']*'|(-i|-I)\s*"[^"]*")(?:\s|$)/;
+const regexp3 = /\s/;
+
 
 /**
  * Parser for detecting file writes from `sed` commands using in-place editing.
@@ -21,12 +25,12 @@ export class SedFileWriteParser implements ICommandFileWriteParser {
 
 	canHandle(commandText: string): boolean {
 		// Check if this is a sed command
-		if (!commandText.match(/^sed\s+/)) {
+		if (!commandText.match(regexpSed)) {
 			return false;
 		}
 
 		// Check for -i, -I, or --in-place flag
-		const inPlaceRegex = /(?:^|\s)(-[a-zA-Z]*[iI][a-zA-Z]*\S*|--in-place(?:=\S*)?|(-i|-I)\s*'[^']*'|(-i|-I)\s*"[^"]*")(?:\s|$)/;
+		const inPlaceRegex = regexpZAIIZA;
 		return inPlaceRegex.test(commandText);
 	}
 
@@ -72,7 +76,7 @@ export class SedFileWriteParser implements ICommandFileWriteParser {
 				continue;
 			}
 
-			if (/\s/.test(char) && !inSingleQuote && !inDoubleQuote) {
+			if (regexp3.test(char) && !inSingleQuote && !inDoubleQuote) {
 				if (current) {
 					tokens.push(current);
 					current = '';

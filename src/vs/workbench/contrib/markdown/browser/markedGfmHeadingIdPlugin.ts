@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as marked from '../../../../base/common/marked/marked.js';
+const regexp1 = /\s/g;
+const regexp2 = /<[!\/a-z].*?>/gi;
+
 
 // Copied from https://github.com/Flet/github-slugger since we can't use esm yet.
 // eslint-disable-next-line no-misleading-character-class
@@ -12,7 +15,7 @@ function slugify(heading: string): string {
 	const slugifiedHeading = heading.trim()
 		.toLowerCase()
 		.replace(githubSlugReplaceRegex, '')
-		.replace(/\s/g, '-'); // Replace whitespace with -
+		.replace(new RegExp(regexp1), '-'); // Replace whitespace with -
 
 	return slugifiedHeading;
 }
@@ -51,7 +54,7 @@ export function markedGfmHeadingIdPlugin({ prefix = '', globalSlugs = false } = 
 				const text = this.parser.parseInline(tokens);
 				const raw = unescape(this.parser.parseInline(tokens, this.parser.textRenderer))
 					.trim()
-					.replace(/<[!\/a-z].*?>/gi, '');
+					.replace(new RegExp(regexp2), '');
 				const level = depth;
 				const id = `${prefix}${slugify(raw)}`;
 				// const heading = { level, text, id, raw };

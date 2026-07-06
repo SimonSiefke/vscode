@@ -15,6 +15,8 @@ import { Configuration, SimulationSuite, SimulationTest } from '../base/stest';
 import { InlineEditTester } from './inlineEdit/inlineEditTester';
 import { CompletionStests } from './nesCoffeTestsTypes';
 import { nesOptionsToConfigurations } from './nesOptionsToConfigurations';
+const regexp1 = /(\w|\.)/;
+
 
 const TEST_FILE_SUFFIX = '.completion.yml';
 const RESULT_FILE_SUFFIX = '.response.json';
@@ -157,7 +159,7 @@ function computeTargetFileBeforeEditAndEdit(targetFile: CompletionStests.TestDoc
 
 	const targetFileWithoutCursor = targetFile.text.replace('⮑', '');
 	let wordAtCursorStartOffset = cursorOffset - 1;
-	while (wordAtCursorStartOffset > 0 && /(\w|\.)/.test(targetFileWithoutCursor[wordAtCursorStartOffset - 1])) {
+	while (wordAtCursorStartOffset > 0 && regexp1.test(targetFileWithoutCursor[wordAtCursorStartOffset - 1])) {
 		wordAtCursorStartOffset--;
 	}
 	const editToRemoveWordAtCursor = StringEdit.create([StringReplacement.delete(new OffsetRange(wordAtCursorStartOffset, cursorOffset))]);

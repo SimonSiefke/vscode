@@ -10,6 +10,8 @@ import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import { isWindows, platform } from '../../../base/common/platform.js';
 import { GeneralShellType, TerminalShellType, WindowsShellType } from '../common/terminal.js';
 import type * as WindowsProcessTreeType from '@vscode/windows-process-tree';
+const regexpPythonExe = /python(\d(\.\d{0,2})?)?\.exe/;
+
 
 export interface IWindowsShellHelper extends IDisposable {
 	readonly onShellNameChanged: Event<string>;
@@ -202,7 +204,7 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 			case 'sles-12.exe':
 				return WindowsShellType.Wsl;
 			default:
-				if (executable.match(/python(\d(\.\d{0,2})?)?\.exe/)) {
+				if (executable.match(regexpPythonExe)) {
 					return GeneralShellType.Python;
 				}
 				return undefined;

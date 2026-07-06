@@ -27,6 +27,8 @@ import { IFetcherService, Response } from '../../networking/common/fetcherServic
 import { postRequest } from '../../networking/common/networking';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
 import { CodeSearchOptions, LexicalCodeSearchResult, RemoteCodeSearchError, RemoteCodeSearchIndexState, RemoteCodeSearchIndexStatus, SemanticCodeSearchResult } from './remoteCodeSearch';
+const regexpApi = /^api\./;
+
 
 
 interface ResponseShape {
@@ -532,7 +534,7 @@ export async function parseGithubCodeSearchResponse(body: ResponseShape, repo: G
 		const nwo = firstResult.location.repo.nwo;
 		try {
 			const parsed = URI.parse(apiUrl);
-			const host = parsed.authority === 'api.github.com' ? 'github.com' : parsed.authority.replace(/^api\./, '');
+			const host = parsed.authority === 'api.github.com' ? 'github.com' : parsed.authority.replace(regexpApi, '');
 			remoteUrl = `https://${host}/${nwo}`;
 		} catch {
 			// Fall back to constructing from nwo

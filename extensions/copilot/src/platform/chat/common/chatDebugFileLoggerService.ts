@@ -7,6 +7,8 @@ import { createServiceIdentifier } from '../../../util/common/services';
 import { decodeBase64 } from '../../../util/vs/base/common/buffer';
 import { Event } from '../../../util/vs/base/common/event';
 import { URI } from '../../../util/vs/base/common/uri';
+const regexp1 = /^\//;
+
 
 export const IChatDebugFileLoggerService = createServiceIdentifier<IChatDebugFileLoggerService>('IChatDebugFileLoggerService');
 
@@ -17,7 +19,7 @@ export const IChatDebugFileLoggerService = createServiceIdentifier<IChatDebugFil
  * - `copilotcli:///<sessionId>` and `claude-code:///<sessionId>` — uses raw path segment
  */
 export function sessionResourceToId(sessionResource: URI): string {
-	const pathSegment = sessionResource.path.replace(/^\//, '').split('/').pop() || '';
+	const pathSegment = sessionResource.path.replace(regexp1, '').split('/').pop() || '';
 	if (!pathSegment) {
 		return pathSegment;
 	}

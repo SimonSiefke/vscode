@@ -13,6 +13,8 @@ import morphdom from 'morphdom';
 import type { MarkdownPreviewChangeIndicator, MarkdownPreviewInnerChange, MarkdownPreviewLineChanges, ToWebviewMessage } from '../types/previewMessaging';
 import { isOfScheme, Schemes } from '../src/util/schemes';
 import { DiffScrollSyncManager } from './diffScrollSync';
+const regexp1 = /^[a-z\-]+:/i;
+
 
 let scrollDisabledCount = 0;
 let scrollDisabledTimer: number | undefined;
@@ -676,7 +678,7 @@ document.addEventListener('click', event => {
 			}
 
 			// If original link doesn't look like a url, delegate back to VS Code to resolve
-			if (hrefText && !/^[a-z\-]+:/i.test(hrefText)) {
+			if (hrefText && !regexp1.test(hrefText)) {
 				messaging.postMessage('openLink', { href: hrefText });
 				event.preventDefault();
 				event.stopPropagation();

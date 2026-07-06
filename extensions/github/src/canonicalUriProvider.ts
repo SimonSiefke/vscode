@@ -5,6 +5,8 @@
 
 import { CancellationToken, CanonicalUriProvider, CanonicalUriRequestOptions, Disposable, ProviderResult, Uri, workspace } from 'vscode';
 import type { API } from './typings/git.d.ts';
+const regexpGit = /^(git@[^\/:]+)(:)/i;
+
 
 const SUPPORTED_SCHEMES = ['ssh', 'https', 'file'];
 
@@ -25,7 +27,7 @@ export class GitHubCanonicalUriProvider implements CanonicalUriProvider {
 		switch (uri.scheme) {
 			case 'file': {
 				const repository = this.gitApi.getRepository(uri);
-				const remote = repository?.state.remotes.find((remote) => remote.name === repository.state.HEAD?.remote)?.pushUrl?.replace(/^(git@[^\/:]+)(:)/i, 'ssh://$1/');
+				const remote = repository?.state.remotes.find((remote) => remote.name === repository.state.HEAD?.remote)?.pushUrl?.replace(regexpGit, 'ssh://$1/');
 				if (remote) {
 					return toHttpsGitHubRemote(uri);
 				}

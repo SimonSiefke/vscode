@@ -21,6 +21,8 @@ import { getBaseLayerHoverDelegate } from '../hover/hoverDelegate2.js';
 import { getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
 import './dropdown.css';
 import { DropdownMenu, IActionProvider, IDropdownMenuOptions, ILabelRenderer } from './dropdown.js';
+const regexp1 = /\s+/g;
+
 
 export interface IKeybindingProvider {
 	(action: IAction): ResolvedKeybinding | undefined;
@@ -119,7 +121,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 		let classNames: string[] = [];
 
 		if (typeof this.options.classNames === 'string') {
-			classNames = this.options.classNames.split(/\s+/g).filter(s => !!s);
+			classNames = this.options.classNames.split(new RegExp(regexp1)).filter(s => !!s);
 		} else if (this.options.classNames) {
 			classNames = this.options.classNames;
 		}

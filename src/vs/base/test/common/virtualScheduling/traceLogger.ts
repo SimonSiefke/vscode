@@ -5,6 +5,10 @@
 
 import { LogEntryLike } from '../executionGraph.js';
 import { Trace, TraceContext } from './trace.js';
+const regexpAsync = /^\s*(?:async\s+)?\(\s*\)\s*=>\s*([\s\S]+?)\s*$/;
+const regexpAsyncFunction = /^\s*(?:async\s+)?function\s*\w*\s*\(\s*\)\s*\{\s*([\s\S]+?)\s*\}\s*$/;
+const regexp3 = /\s+/g;
+
 
 /**
  * A minimal logger for tests that captures the active {@link Trace} at log
@@ -65,13 +69,13 @@ export function createTraceLogger(buffer: ITraceLogEntry[]): ITraceLogger {
 function _describeFn(fn: () => unknown): string {
 	const src = fn.toString();
 	// Strip `() => ` / `function () {` wrappers so the body reads naturally.
-	const arrow = src.match(/^\s*(?:async\s+)?\(\s*\)\s*=>\s*([\s\S]+?)\s*$/);
+	const arrow = src.match(regexpAsync);
 	if (arrow) { return _collapseWhitespace(arrow[1]); }
-	const fnExpr = src.match(/^\s*(?:async\s+)?function\s*\w*\s*\(\s*\)\s*\{\s*([\s\S]+?)\s*\}\s*$/);
+	const fnExpr = src.match(regexpAsyncFunction);
 	if (fnExpr) { return _collapseWhitespace(fnExpr[1]); }
 	return _collapseWhitespace(src);
 }
 
 function _collapseWhitespace(s: string): string {
-	return s.replace(/\s+/g, ' ').trim();
+	return s.replace(new RegExp(regexp3), ' ').trim();
 }

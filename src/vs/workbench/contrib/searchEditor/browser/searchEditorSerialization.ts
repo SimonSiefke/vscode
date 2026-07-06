@@ -16,6 +16,12 @@ import { ITextFileService } from '../../../services/textfile/common/textfiles.js
 import { ISearchTreeMatch, ISearchTreeFileMatch, ISearchResult, ISearchTreeFolderMatch } from '../../search/browser/searchTreeModel/searchTreeCommon.js';
 import { searchMatchComparer } from '../../search/browser/searchCompare.js';
 import { ICellMatch, isNotebookFileMatch } from '../../search/browser/notebookSearch/notebookSearchModelBase.js';
+const regexp1 = /\r?\n?$/;
+const regexp2 = /\n/g;
+const regexp3 = /\\/g;
+const regexp4 = /^# ([^:]*): (.*)$/;
+const regexp5 = /\r?\n/g;
+
 
 // Using \r\n on Windows inserts an extra newline between results.
 const lineDelimiter = '\n';
@@ -41,7 +47,7 @@ const matchToSearchResultFormat = (match: ISearchTreeMatch, longestLineNumber: n
 			const prefixOffset = prefix.length;
 
 			// split instead of replace to avoid creating a new string object
-			const line = prefix + (sourceLine.split(/\r?\n?$/, 1)[0] || '');
+			const line = prefix + (sourceLine.split(regexp1, 1)[0] || '');
 
 			const rangeOnThisLine = ({ start, end }: { start?: number; end?: number }) => new Range(1, (start ?? 1) + prefixOffset, 1, (end ?? sourceLine.length + 1) + prefixOffset);
 
@@ -141,7 +147,7 @@ const contentPatternToSearchConfiguration = (pattern: ITextQuery, includes: stri
 export const serializeSearchConfiguration = (config: Partial<SearchConfiguration>): string => {
 	const removeNullFalseAndUndefined = <T>(a: (T | null | false | undefined)[]) => a.filter(a => a !== false && a !== null && a !== undefined) as T[];
 
-	const escapeNewlines = (str: string) => str.replace(/\\/g, '\\\\').replace(/\n/g, '\\n');
+	const escapeNewlines = (str: string) => str.replace(new RegExp(regexp3), '\\\\').replace(new RegExp(regexp2), '\\n');
 
 	return removeNullFalseAndUndefined([
 		`# Query: ${escapeNewlines(config.query ?? '')}`,
@@ -210,7 +216,7 @@ export const extractSearchQueryFromLines = (lines: string[]): SearchConfiguratio
 		return out;
 	};
 
-	const parseYML = /^# ([^:]*): (.*)$/;
+	const parseYML = regexp4;
 	for (const line of lines) {
 		const parsed = parseYML.exec(line);
 		if (!parsed) { continue; }
@@ -293,7 +299,7 @@ export const parseSerializedSearchEditor = (text: string) => {
 	const bodylines = [];
 
 	let inHeader = true;
-	for (const line of text.split(/\r?\n/g)) {
+	for (const line of text.split(new RegExp(regexp5))) {
 		if (inHeader) {
 			headerlines.push(line);
 			if (line === '') {

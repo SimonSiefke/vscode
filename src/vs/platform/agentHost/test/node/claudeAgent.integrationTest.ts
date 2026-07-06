@@ -73,6 +73,8 @@ import {
 	makeTextDelta,
 	makeUserToolResultMessage,
 } from './claudeMapSessionEventsTestUtils.js';
+const regexp1 = /^\//;
+
 
 // #region Test fixtures
 
@@ -648,7 +650,7 @@ suite('ClaudeAgent integration (proxy-backed)', function () {
 		assert.strictEqual(sdk.capturedStartupOptions.length, 0, 'createSession does not touch the SDK');
 
 		// Stage a transcript on the SDK so `sendMessage` resolves.
-		const sessionId = created.session.path.replace(/^\//, '');
+		const sessionId = created.session.path.replace(regexp1, '');
 		sdk.queryMessages = [makeSystemInitMessage(sessionId), makeResultSuccess(sessionId)];
 
 		// First send materializes — drives `startup()`, which performs
@@ -771,7 +773,7 @@ suite('ClaudeAgent integration (proxy-backed)', function () {
 
 		await agent.authenticate(GITHUB_COPILOT_PROTECTED_RESOURCE.resource, 'gh-int-test-token');
 		const created = await agent.createSession({ workingDirectory: URI.file('/integration-cwd') });
-		const sessionId = created.session.path.replace(/^\//, '');
+		const sessionId = created.session.path.replace(regexp1, '');
 		sdk.queryMessages = [makeSystemInitMessage(sessionId), makeResultSuccess(sessionId)];
 
 		await agent.chats.sendMessage(created.session, 'hi', undefined, 'turn-1');
@@ -830,7 +832,7 @@ suite('ClaudeAgent integration (proxy-backed)', function () {
 
 		await agent.authenticate(GITHUB_COPILOT_PROTECTED_RESOURCE.resource, 'gh-int-test-token');
 		const created = await agent.createSession({ workingDirectory: URI.file('/integration-cwd') });
-		const sessionId = created.session.path.replace(/^\//, '');
+		const sessionId = created.session.path.replace(regexp1, '');
 
 		// Canned turn: assistant says "reading", calls `Read`, the SDK
 		// invokes `canUseTool`, then a synthetic user `tool_result`

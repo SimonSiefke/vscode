@@ -22,6 +22,11 @@ import { ISessionsProvidersService } from '../../../../services/sessions/browser
 import { IAgentHostFilterService } from '../../../../services/agentHostFilter/common/agentHostFilter.js';
 import { RemoteAgentHostSessionsProvider } from './remoteAgentHostSessionsProvider.js';
 import { watchForIncompatibleNotifications } from './remoteHostOptions.js';
+const regexpTokenExpiredExpired = /\b(401|403)\b|token.*expired|expired.*token|invalid[_ -]?grant/i;
+const regexpAuthenticatUnauthorizAuth = /authenticat|unauthoriz|auth.*(fail|error|invalid)/i;
+const regexpWebSocketRelayConnection = /WebSocket relay connection failed|failed to connect to relay/i;
+const regexpNetworkFetchOffline = /network|fetch|offline|ECONN|ENOTFOUND|ETIMEDOUT/i;
+
 
 /** Minimum interval between silent status checks (5 minutes). */
 const STATUS_CHECK_INTERVAL = 5 * 60 * 1000;
@@ -690,18 +695,18 @@ export class TunnelAgentHostContribution extends Disposable implements IWorkbenc
 		const message = err instanceof Error ? err.message : String(err);
 		// Expired / invalid credential — callers short-circuit this category
 		// to avoid burning retry budget on a token the user has to refresh.
-		if (/\b(401|403)\b|token.*expired|expired.*token|invalid[_ -]?grant/i.test(message)) {
+		if (regexpTokenExpiredExpired.test(message)) {
 			return 'authExpired';
 		}
 		// Match authentication-specific language but NOT "connection token"
 		// or other protocol uses of the word "token".
-		if (/authenticat|unauthoriz|auth.*(fail|error|invalid)/i.test(message)) {
+		if (regexpAuthenticatUnauthorizAuth.test(message)) {
 			return 'auth';
 		}
-		if (/WebSocket relay connection failed|failed to connect to relay/i.test(message)) {
+		if (regexpWebSocketRelayConnection.test(message)) {
 			return 'relayConnectionFailed';
 		}
-		if (/network|fetch|offline|ECONN|ENOTFOUND|ETIMEDOUT/i.test(message)) {
+		if (regexpNetworkFetchOffline.test(message)) {
 			return 'network';
 		}
 		return 'other';

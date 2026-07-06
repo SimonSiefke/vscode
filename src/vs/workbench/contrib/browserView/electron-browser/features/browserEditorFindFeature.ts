@@ -24,6 +24,8 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { BrowserEditor, BrowserEditorContribution, BrowserWidgetLocation, BROWSER_EDITOR_ACTIVE, BrowserActionCategory, BrowserActionGroup, CONTEXT_BROWSER_HAS_ERROR, CONTEXT_BROWSER_HAS_URL, IBrowserEditorWidget } from '../browserEditor.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+const regexp1 = /[\r\n]/;
+
 
 const CONTEXT_BROWSER_FIND_WIDGET_VISIBLE = new RawContextKey<boolean>('browserFindWidgetVisible', false, localize('browser.findWidgetVisible', "Whether the browser find widget is visible"));
 const CONTEXT_BROWSER_FIND_WIDGET_FOCUSED = new RawContextKey<boolean>('browserFindWidgetFocused', false, localize('browser.findWidgetFocused', "Whether the browser find widget is focused"));
@@ -254,7 +256,7 @@ export class BrowserEditorFindContribution extends BrowserEditorContribution {
 	 */
 	async showFind(): Promise<void> {
 		const selectedText = (await this.editor.model?.getSelectedText())?.trim();
-		const textToReveal = selectedText && !/[\r\n]/.test(selectedText) ? selectedText : undefined;
+		const textToReveal = selectedText && !regexp1.test(selectedText) ? selectedText : undefined;
 		this._findWidget.value.reveal(textToReveal);
 		this._findWidget.value.layout(this._findWidgetContainer.clientWidth);
 	}

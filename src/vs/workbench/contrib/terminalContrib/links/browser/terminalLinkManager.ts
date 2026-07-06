@@ -35,6 +35,8 @@ import { INotificationService, Severity } from '../../../../../platform/notifica
 import type { IHoverAction } from '../../../../../base/browser/ui/hover/hover.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { isString } from '../../../../../base/common/types.js';
+const regexpNbsp = /(\s|&nbsp;)/;
+
 
 export type XtermLinkMatcherHandler = (event: MouseEvent | undefined, link: string) => Promise<void>;
 
@@ -502,7 +504,7 @@ export class TerminalLinkManager extends DisposableStore {
 		// Use the label when uri is '' so the link displays correctly
 		uri = uri || label;
 		// Although if there is a space in the uri, just replace it completely
-		if (/(\s|&nbsp;)/.test(uri)) {
+		if (regexpNbsp.test(uri)) {
 			uri = nls.localize('followLinkUrl', 'Link');
 		}
 

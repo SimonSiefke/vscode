@@ -9,13 +9,17 @@ import { BugIndicatingError } from '../../../util/vs/base/common/errors';
 import { Position } from '../../../vscodeTypes';
 import { AbstractDocument } from '../../editing/common/abstractText';
 import { OverlayNode } from './nodes';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /^[\}\]\)];?$/;
+const regexp3 = /^<\/\w/;
+
 
 export function getStructureUsingIndentation(
 	document: AbstractDocument,
 	languageId: string,
 	formattingOptions: vscode.FormattingOptions | undefined
 ): OverlayNode {
-	const lines = document.getText().split(/\r\n|\r|\n/g);
+	const lines = document.getText().split(new RegExp(regexp1));
 	const opts = formattingOptions || { tabSize: 4 };
 	const simpleModel = {
 		getLineCount: () => lines.length,
@@ -101,8 +105,8 @@ class FoldingRangeNode {
 	private _adjustRegular(document: AbstractDocument, maxEndLineNumber: number): void {
 		if (this.endLineNumber < maxEndLineNumber) {
 			const nextLine = document.getLineText(this.endLineNumber).trim();
-			const isClosingBracket = /^[\}\]\)];?$/.test(nextLine);
-			const isClosingTag = /^<\/\w/.test(nextLine);
+			const isClosingBracket = regexp2.test(nextLine);
+			const isClosingTag = regexp3.test(nextLine);
 			if (isClosingBracket || isClosingTag) {
 				this.endLineNumber++;
 			}

@@ -14,6 +14,11 @@ import {
 	LoopbackProxyServer,
 	readProxyRequestBody,
 } from '../../node/shared/loopbackProxyServer.js';
+const regexpHttp = /^http:\/\/127\.0\.0\.1:\d+$/;
+const regexp9a = /^[0-9a-f]{64}$/;
+const regexpDisposed = /disposed/;
+const regexpMyCustomProxyHasBeen = /MyCustomProxy has been disposed/;
+
 
 // #region Test subclass
 
@@ -212,8 +217,8 @@ suite('LoopbackProxyServer', () => {
 			const service = new TestProxyServer();
 			const handle = await service.startHandle();
 			try {
-				assert.match(handle.baseUrl, /^http:\/\/127\.0\.0\.1:\d+$/);
-				assert.match(handle.nonce, /^[0-9a-f]{64}$/);
+				assert.match(handle.baseUrl, regexpHttp);
+				assert.match(handle.nonce, regexp9a);
 			} finally {
 				handle.dispose();
 				service.dispose();
@@ -224,7 +229,7 @@ suite('LoopbackProxyServer', () => {
 			const service = new TestProxyServer();
 			const handle = await service.startHandle();
 			try {
-				assert.match(handle.baseUrl, /^http:\/\/127\.0\.0\.1:\d+$/);
+				assert.match(handle.baseUrl, regexpHttp);
 				// Binding to 127.0.0.1 must NOT also listen on the IPv6
 				// loopback (::1); a connection there should be refused.
 				const port = Number(new URL(handle.baseUrl).port);
@@ -339,7 +344,7 @@ suite('LoopbackProxyServer', () => {
 			const h2 = await service.startHandle();
 			try {
 				assert.notStrictEqual(h2.nonce, nonce1);
-				assert.match(h2.baseUrl, /^http:\/\/127\.0\.0\.1:\d+$/);
+				assert.match(h2.baseUrl, regexpHttp);
 				assert.strictEqual(service.createStateCalls, 2, 'state is rebuilt per bind');
 			} finally {
 				h2.dispose();
@@ -437,13 +442,13 @@ suite('LoopbackProxyServer', () => {
 			const service = new TestProxyServer();
 			const startPromise = service.startHandle();
 			service.dispose();
-			await assert.rejects(() => startPromise, /disposed/);
+			await assert.rejects(() => startPromise, regexpDisposed);
 		});
 
 		test('acquire after dispose() rejects', async () => {
 			const service = new TestProxyServer();
 			service.dispose();
-			await assert.rejects(() => service.startHandle(), /disposed/);
+			await assert.rejects(() => service.startHandle(), regexpDisposed);
 		});
 
 		test('dispose() is idempotent', async () => {
@@ -459,7 +464,7 @@ suite('LoopbackProxyServer', () => {
 		test('error message is prefixed with the proxy name', async () => {
 			const service = new TestProxyServer('MyCustomProxy');
 			service.dispose();
-			await assert.rejects(() => service.startHandle(), /MyCustomProxy has been disposed/);
+			await assert.rejects(() => service.startHandle(), regexpMyCustomProxyHasBeen);
 		});
 	});
 

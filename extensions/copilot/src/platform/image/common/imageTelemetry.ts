@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getImageDimensions, getImageDimensionsFromBytes as readImageDimensionsFromBytes } from '../../../util/common/imageUtils';
+const regexpDataImageJpeg = /^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/;
+
 
 type ImageTelemetrySource = 'clipboard' | 'screenshot' | 'file' | 'url' | 'unknown';
 
@@ -175,7 +177,7 @@ function getImageTelemetryInputFromUrl(url: string, mediaType: string | undefine
 		return url.startsWith('https://') ? { mimeType: mediaType, source: 'url' } : undefined;
 	}
 
-	const match = /^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/.exec(url);
+	const match = regexpDataImageJpeg.exec(url);
 	if (!match) {
 		return undefined;
 	}

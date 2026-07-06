@@ -8,6 +8,8 @@
 import assert from 'assert';
 import dedent from 'ts-dedent';
 import { StatementNode, StatementTree } from '../statementTree';
+const regexp1 = /▶️|◀️|❚/;
+
 
 type StatementNodeSpec = {
 	startOffset: number;
@@ -4476,7 +4478,7 @@ suite('StatementTree', function () {
 	 * (otherwise, the full text region is used).
 	 */
 	async function testStatementBuilding(language: string, text: string) {
-		const delim = /▶️|◀️|❚/;
+		const delim = regexp1;
 		const statements: StatementNodeSpec[] = [];
 		let doc = '';
 		let remainder = text;

@@ -5,6 +5,8 @@
 
 import { basename, isAbsolute, join } from '../../../base/common/path.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
+const regexp1 = /^\w[\w\d+.-]*:\/\/\/?/;
+
 
 export interface IV8Profile {
 	nodes: IV8ProfileNode[];
@@ -52,7 +54,7 @@ export namespace Utils {
 	export function rewriteAbsolutePaths(profile: IV8Profile, replace: string = 'noAbsolutePaths') {
 		for (const node of profile.nodes) {
 			if (node.callFrame && node.callFrame.url) {
-				if (isAbsolute(node.callFrame.url) || /^\w[\w\d+.-]*:\/\/\/?/.test(node.callFrame.url)) {
+				if (isAbsolute(node.callFrame.url) || regexp1.test(node.callFrame.url)) {
 					node.callFrame.url = join(replace, basename(node.callFrame.url));
 				}
 			}

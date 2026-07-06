@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\S/;
+const regexp2 = /^[\w[\]]+\+?=.*/;
+
 // Loosely follows the following grammar:
 // terminator = ";" | "&" | "&;"
 // literal = string | ansi_c_string | raw_string | expansion | simple_expansion | word
@@ -188,7 +191,7 @@ export const createTextNode = (
 	createNode(str, { startIndex, text, endIndex: startIndex + text.length });
 
 const nextWordIndex = (str: string, index: number) => {
-	const firstChar = str.slice(index).search(/\S/);
+	const firstChar = str.slice(index).search(regexp1);
 	if (firstChar === -1) {
 		return -1;
 	}
@@ -563,7 +566,7 @@ const parseAssignments = (str: string, index: number): AssignmentNode[] => {
 	let lastVariableEnd = index;
 	while (lastVariableEnd < str.length) {
 		const nextTokenStart = nextWordIndex(str, lastVariableEnd);
-		if (/^[\w[\]]+\+?=.*/.test(str.slice(nextTokenStart))) {
+		if (regexp2.test(str.slice(nextTokenStart))) {
 			const assignmentNode = parseAssignmentNode(str, nextTokenStart);
 			variables.push(assignmentNode);
 			lastVariableEnd = assignmentNode.endIndex;

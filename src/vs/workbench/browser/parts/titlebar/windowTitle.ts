@@ -32,6 +32,8 @@ import { getWindowById } from '../../../../base/browser/dom.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+const regexp1 = /[^\S ]/g;
+
 
 const enum WindowSettingNames {
 	titleSeparator = 'window.titleSeparator',
@@ -228,7 +230,7 @@ export class WindowTitle extends Disposable {
 		}
 
 		// Replace non-space whitespace
-		return title.replace(/[^\S ]/g, ' ');
+		return title.replace(new RegExp(regexp1), ' ');
 	}
 
 	getTitleDecorations() {

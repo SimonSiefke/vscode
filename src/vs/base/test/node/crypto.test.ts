@@ -11,6 +11,8 @@ import { checksum } from '../../node/crypto.js';
 import { Promises } from '../../node/pfs.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 import { flakySuite, getRandomTestPath } from './testUtils.js';
+const regexpHashMismatch = /Hash mismatch/;
+
 
 flakySuite('Crypto', () => {
 
@@ -41,7 +43,7 @@ flakySuite('Crypto', () => {
 
 		await assert.rejects(
 			() => checksum(testFile, 'wrong-hash'),
-			/Hash mismatch/
+			regexpHashMismatch
 		);
 	});
 });

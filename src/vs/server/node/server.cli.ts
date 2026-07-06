@@ -16,6 +16,11 @@ import { PipeCommand } from '../../workbench/api/node/extHostCLIServer.js';
 import { hasStdinWithoutTty, getStdinFilePath, readFromStdin } from '../../platform/environment/node/stdin.js';
 import { DeferredPromise } from '../../base/common/async.js';
 import { FileAccess } from '../../base/common/network.js';
+const regexpZA = /^([a-zA-Z]:[\\\/])/;
+const regexp2 = /^[a-z-]+:\/\/.+/;
+const regexpVsix = /\.vsix$/i;
+const regexpFile = /^file:\/\//;
+
 
 /*
  * Implements a standalone CLI app that opens VS Code from a remote terminal.
@@ -222,7 +227,7 @@ export async function main(desc: ProductDescription, args: string[]): Promise<vo
 	}
 
 	const crashReporterDirectory = parsedArgs['crash-reporter-directory'];
-	if (crashReporterDirectory !== undefined && !crashReporterDirectory.match(/^([a-zA-Z]:[\\\/])/)) {
+	if (crashReporterDirectory !== undefined && !crashReporterDirectory.match(regexpZA)) {
 		console.log(`The crash reporter directory '${crashReporterDirectory}' must be an absolute Windows path (e.g. c:/crashes)`);
 		return;
 	}
@@ -393,7 +398,7 @@ async function openInBrowser(args: string[], verbose: boolean) {
 	const uris: string[] = [];
 	for (const location of args) {
 		try {
-			if (/^[a-z-]+:\/\/.+/.test(location)) {
+			if (regexp2.test(location)) {
 				uris.push(url.parse(location).href);
 			} else {
 				uris.push(pathToURI(location).href);
@@ -469,7 +474,7 @@ async function sendToPipe(args: PipeCommand, verbose: boolean): Promise<string> 
 }
 
 function asExtensionIdOrVSIX(inputs: string[] | undefined) {
-	return inputs?.map(input => /\.vsix$/i.test(input) ? pathToURI(input).href : input);
+	return inputs?.map(input => regexpVsix.test(input) ? pathToURI(input).href : input);
 }
 
 function fatal(message: string, err: unknown): void {
@@ -511,7 +516,7 @@ function translatePath(input: string, mapFileUri: (input: string) => string, fol
 }
 
 function mapFileToRemoteUri(uri: string): string {
-	return uri.replace(/^file:\/\//, 'vscode-remote://' + cliRemoteAuthority);
+	return uri.replace(regexpFile, 'vscode-remote://' + cliRemoteAuthority);
 }
 
 function getAppRoot() {

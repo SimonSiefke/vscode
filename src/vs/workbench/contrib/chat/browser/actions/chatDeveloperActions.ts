@@ -24,6 +24,9 @@ import { OpenCopilotCliStateFileAction } from './openCopilotCliStateFileAction.j
 import { IAgentConnection } from '../../../../../platform/agentHost/common/agentService.js';
 import { IAgentHostConnectionsService } from '../../../../../platform/agentHost/common/agentHostConnectionsService.js';
 import { StateComponents } from '../../../../../platform/agentHost/common/state/sessionState.js';
+const regexp1 = /\|/g;
+const regexp2 = /\r?\n/g;
+
 
 function uriReplacer(_key: string, value: unknown): unknown {
 	if (URI.isUri(value)) {
@@ -238,7 +241,7 @@ function subscriptionKindLabel(kind: StateComponents): string {
 
 /** Escape a value so it is safe to embed in a markdown table cell. */
 function escapeMarkdownTableCell(value: string): string {
-	return value.replace(/\r?\n/g, '<br>').replace(/\|/g, '\\|');
+	return value.replace(new RegExp(regexp2), '<br>').replace(new RegExp(regexp1), '\\|');
 }
 
 function formatConnectionSubscriptions(label: string, details: string, connection: IAgentConnection | undefined): string {

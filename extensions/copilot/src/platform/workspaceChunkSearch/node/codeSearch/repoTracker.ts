@@ -20,6 +20,10 @@ import { isGitHubRemoteRepository } from '../../../remoteRepositories/common/uti
 import { ISimulationTestContext } from '../../../simulationTestContext/common/simulationTestContext';
 import { ITelemetryService } from '../../../telemetry/common/telemetry';
 import { IWorkspaceService } from '../../../workspace/common/workspaceService';
+const regexpAuthenticatedTo = /^Authenticated to ([^\s]+)\s/m;
+const regexpFrom = /^From ([^:]+):([^/]+)\/([^\s]+)$/m;
+const regexpGit = /\.git$/;
+
 
 export enum TrackedRepoStatus {
 	/** The repo is currently being resolved */
@@ -392,13 +396,13 @@ export class CodeSearchRepoTracker extends Disposable {
 
 			const output = stdout + '\n' + stderr;
 
-			const authMatch = output.match(/^Authenticated to ([^\s]+)\s/m);
-			const fromMatch = output.match(/^From ([^:]+):([^/]+)\/([^\s]+)$/m);
+			const authMatch = output.match(regexpAuthenticatedTo);
+			const fromMatch = output.match(regexpFrom);
 
 			if (authMatch && fromMatch) {
 				const authenticatedTo = authMatch[1];
 				const owner = fromMatch[2];
-				const repo = fromMatch[3].replace(/\.git$/, '');
+				const repo = fromMatch[3].replace(regexpGit, '');
 				const remoteUrl = `ssh://${authenticatedTo}/${owner}/${repo}`;
 
 				const githubRepoId = getGithubRepoIdFromFetchUrl(remoteUrl);

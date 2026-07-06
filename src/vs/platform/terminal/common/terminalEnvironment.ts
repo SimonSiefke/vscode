@@ -5,6 +5,13 @@
 
 import { OperatingSystem, OS } from '../../../base/common/platform.js';
 import { IShellLaunchConfig, TerminalShellType, PosixShellType, WindowsShellType, GeneralShellType } from './terminal.js';
+const regexp1 = /\\/g;
+const regexp2 = /'/g;
+const regexp3 = /"/g;
+const regexp4 = /[\`\$\|\&\>\~\#\!\^\*\;\<]/g;
+const regexp5 = /[\/\\]$/;
+const regexp6 = /^['"].*['"]$/;
+
 
 /**
  * Aggressively escape non-windows paths to prepare for being sent to a shell. This will do some
@@ -14,7 +21,7 @@ import { IShellLaunchConfig, TerminalShellType, PosixShellType, WindowsShellType
 export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType): string {
 	let newPath = path;
 	if (newPath.includes('\\')) {
-		newPath = newPath.replace(/\\/g, '\\\\');
+		newPath = newPath.replace(new RegExp(regexp1), '\\\\');
 	}
 
 	// Define shell-specific escaping rules
@@ -34,15 +41,15 @@ export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType
 		case PosixShellType.Zsh:
 		case WindowsShellType.GitBash:
 			escapeConfig = {
-				bothQuotes: (path) => `$'${path.replace(/'/g, '\\\'')}'`,
-				singleQuotes: (path) => `'${path.replace(/'/g, '\\\'')}'`,
+				bothQuotes: (path) => `$'${path.replace(new RegExp(regexp2), '\\\'')}'`,
+				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 		case PosixShellType.Fish:
 			escapeConfig = {
-				bothQuotes: (path) => `"${path.replace(/"/g, '\\"')}"`,
-				singleQuotes: (path) => `'${path.replace(/'/g, '\\\'')}'`,
+				bothQuotes: (path) => `"${path.replace(new RegExp(regexp3), '\\"')}"`,
+				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
@@ -50,23 +57,23 @@ export function escapeNonWindowsPath(path: string, shellType?: TerminalShellType
 			// PowerShell should be handled separately in preparePathForShell
 			// but if we get here, use PowerShell escaping
 			escapeConfig = {
-				bothQuotes: (path) => `"${path.replace(/"/g, '`"')}"`,
-				singleQuotes: (path) => `'${path.replace(/'/g, '\'\'')}'`,
+				bothQuotes: (path) => `"${path.replace(new RegExp(regexp3), '`"')}"`,
+				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\'\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 		default:
 			// Default to POSIX shell escaping for unknown shells
 			escapeConfig = {
-				bothQuotes: (path) => `$'${path.replace(/'/g, '\\\'')}'`,
-				singleQuotes: (path) => `'${path.replace(/'/g, '\\\'')}'`,
+				bothQuotes: (path) => `$'${path.replace(new RegExp(regexp2), '\\\'')}'`,
+				singleQuotes: (path) => `'${path.replace(new RegExp(regexp2), '\\\'')}'`,
 				noSingleQuotes: (path) => `'${path}'`
 			};
 			break;
 	}
 
 	// Remove dangerous characters except single and double quotes, which we'll escape properly
-	const bannedChars = /[\`\$\|\&\>\~\#\!\^\*\;\<]/g;
+	const bannedChars = new RegExp(regexp4);
 	newPath = newPath.replace(bannedChars, '');
 
 	// Apply shell-specific escaping based on quote content
@@ -91,11 +98,11 @@ export function collapseTildePath(path: string | undefined, userHome: string | u
 		return path;
 	}
 	// Trim the trailing separator from the end if it exists
-	if (userHome.match(/[\/\\]$/)) {
+	if (userHome.match(regexp5)) {
 		userHome = userHome.slice(0, userHome.length - 1);
 	}
-	const normalizedPath = path.replace(/\\/g, '/').toLowerCase();
-	const normalizedUserHome = userHome.replace(/\\/g, '/').toLowerCase();
+	const normalizedPath = path.replace(new RegExp(regexp1), '/').toLowerCase();
+	const normalizedUserHome = userHome.replace(new RegExp(regexp1), '/').toLowerCase();
 	if (!normalizedPath.includes(normalizedUserHome)) {
 		return path;
 	}
@@ -109,7 +116,7 @@ export function collapseTildePath(path: string | undefined, userHome: string | u
  */
 export function sanitizeCwd(cwd: string): string {
 	// Sanity check that the cwd is not wrapped in quotes (see #160109)
-	if (cwd.match(/^['"].*['"]$/)) {
+	if (cwd.match(regexp6)) {
 		cwd = cwd.substring(1, cwd.length - 1);
 	}
 	// Make the drive letter uppercase on Windows (see #9448)

@@ -13,6 +13,11 @@ import { IWorkspaceService } from '../../../../platform/workspace/common/workspa
 import { createServiceIdentifier } from '../../../../util/common/services';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { Uri } from '../../../../vscodeTypes';
+const regexpSetCMAKECXX = /set\s*\(\s*CMAKE_CXX_STANDARD\s*(\d+)/gmi;
+const regexpSetCMAKESTANDARD = /set\s*\(\s*CMAKE_C_STANDARD\s*(\d+)/gmi;
+const regexp3 = /[^0-9]/g;
+const regexp4 = /"|'/g;
+
 
 export const IPromptWorkspaceLabels = createServiceIdentifier<IPromptWorkspaceLabels>('IPromptWorkspaceLabels');
 export interface IPromptWorkspaceLabels {
@@ -199,13 +204,13 @@ class BasicPromptWorkspaceLabels implements IPromptWorkspaceLabelsStrategy {
 
 		const tags: string[] = [];
 		const cppLangStdVer = parseStandardVersion(contents,
-			/set\s*\(\s*CMAKE_CXX_STANDARD\s*(\d+)/gmi, [98, 11, 14, 17, 20, 23, 26]);
+			new RegExp(regexpSetCMAKECXX), [98, 11, 14, 17, 20, 23, 26]);
 		if (cppLangStdVer) {
 			tags.push(`C++${cppLangStdVer}`);
 		}
 
 		const cLangStdVer = parseStandardVersion(contents,
-			/set\s*\(\s*CMAKE_C_STANDARD\s*(\d+)/gmi, [90, 99, 11, 17, 23]);
+			new RegExp(regexpSetCMAKESTANDARD), [90, 99, 11, 17, 23]);
 		if (cLangStdVer) {
 			tags.push(`C${cLangStdVer}`);
 		}
@@ -264,7 +269,7 @@ class ExpandedPromptWorkspaceLabels extends BasicPromptWorkspaceLabels {
 
 		const extractMajorMinorVersion = (version: string): string => {
 			const [major, minor] = version.split('.');
-			return `${major.replace(/[^0-9]/g, '')}.${minor.replace(/[^0-9]/g, '')}`;
+			return `${major.replace(new RegExp(regexp3), '')}.${minor.replace(new RegExp(regexp3), '')}`;
 		};
 
 		const checkDependencies = (dependencies: Record<string, string> | undefined, list: { dependency: string; prefix?: string }[]) => {
@@ -501,7 +506,7 @@ class ExpandedPromptWorkspaceLabels extends BasicPromptWorkspaceLabels {
 			} else if (line.startsWith('[') && line.endsWith(']')) {
 				inDependenciesSection = false;
 			} else if (inDependenciesSection && line) {
-				const [pkg, version] = line.split('=').map(s => s.trim().replace(/"|'/g, ''));
+				const [pkg, version] = line.split('=').map(s => s.trim().replace(new RegExp(regexp4), ''));
 				if (this.popularPackages.includes(pkg)) {
 					tags.push(`${pkg}-${version || 'latest'}`);
 				}

@@ -16,6 +16,10 @@ import { IExtensionDescription } from '../../../../platform/extensions/common/ex
 import { IDebugAdapterExecutable, IDebugAdapterNamedPipeServer, IDebugAdapterServer, IDebuggerContribution, IPlatformSpecificAdapterContribution } from '../common/debug.js';
 import { AbstractDebugAdapter } from '../common/abstractDebugAdapter.js';
 import { killTree } from '../../../../base/node/processes.js';
+const regexp1 = /\r?\n/;
+const regexp2 = /: */;
+const regexp3 = /"/g;
+
 
 /**
  * An implementation that communicates via two streams with the debug adapter.
@@ -23,8 +27,8 @@ import { killTree } from '../../../../base/node/processes.js';
 export abstract class StreamDebugAdapter extends AbstractDebugAdapter {
 
 	private static readonly TWO_CRLF = '\r\n\r\n';
-	private static readonly HEADER_LINESEPARATOR = /\r?\n/;	// allow for non-RFC 2822 conforming line separators
-	private static readonly HEADER_FIELDSEPARATOR = /: */;
+	private static readonly HEADER_LINESEPARATOR = regexp1;	// allow for non-RFC 2822 conforming line separators
+	private static readonly HEADER_FIELDSEPARATOR = regexp2;
 
 	private outputStream!: stream.Writable;
 	private rawData = Buffer.allocUnsafe(0);
@@ -241,7 +245,7 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
 					spawnOptions.shell = true;
 					spawnCommand = `"${command}"`;
 					spawnArgs = args.map(a => {
-						a = a.replace(/"/g, '\\"'); // Escape existing double quotes with \
+						a = a.replace(new RegExp(regexp3), '\\"'); // Escape existing double quotes with \
 						// Wrap in double quotes
 						return `"${a}"`;
 					});

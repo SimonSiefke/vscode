@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpZA = /^[a-zA-Z_]\w*$/;
+
 export class TsExpr {
 	static str(value: string): TsExpr;
 	static str(strings: TemplateStringsArray, ...values: unknown[]): TsExpr;
@@ -92,7 +94,7 @@ function indentLine(str: string, indentation: number): string {
 }
 
 function serializeObjectKey(key: string): string {
-	if (/^[a-zA-Z_]\w*$/.test(key)) {
+	if (regexpZA.test(key)) {
 		return key;
 	}
 	return JSON.stringify(key);

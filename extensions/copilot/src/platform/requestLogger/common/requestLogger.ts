@@ -17,6 +17,11 @@ import type { IModelAPIResponse } from '../../endpoint/common/endpointProvider';
 import { APIUsage } from '../../networking/common/openai';
 import { ThinkingData } from '../../thinking/common/thinking';
 import { CapturingToken } from '../common/capturingToken';
+const regexpCcreqCopilotmd = /ccreq:([^\s]+)\.copilotmd/;
+const regexpCcreqRequestJson = /ccreq:([^\s]+)\.request\.json/;
+const regexpCcreqJson = /ccreq:([^\s]+)\.json/;
+const regexpCcreqCopilotmdJson = /(ccreq:[^\s]+\.(copilotmd|json|request\.json))/g;
+
 
 export type UriData = { kind: 'request'; id: string } | { kind: 'latest' };
 
@@ -54,19 +59,19 @@ export class ChatRequestScheme {
 		}
 
 		// Check for specific request markdown
-		const mdMatch = uri.match(/ccreq:([^\s]+)\.copilotmd/);
+		const mdMatch = uri.match(regexpCcreqCopilotmd);
 		if (mdMatch) {
 			return { data: { kind: 'request', id: mdMatch[1] }, format: 'markdown' };
 		}
 
 		// specific raw body json
-		const bodyJsonMatch = uri.match(/ccreq:([^\s]+)\.request\.json/);
+		const bodyJsonMatch = uri.match(regexpCcreqRequestJson);
 		if (bodyJsonMatch) {
 			return { data: { kind: 'request', id: bodyJsonMatch[1] }, format: 'rawrequest' };
 		}
 
 		// Check for specific request JSON
-		const jsonMatch = uri.match(/ccreq:([^\s]+)\.json/);
+		const jsonMatch = uri.match(regexpCcreqJson);
 		if (jsonMatch) {
 			return { data: { kind: 'request', id: jsonMatch[1] }, format: 'json' };
 		}
@@ -75,7 +80,7 @@ export class ChatRequestScheme {
 	}
 
 	public static findAllUris(text: string): { uri: string; range: OffsetRange }[] {
-		const linkRE = /(ccreq:[^\s]+\.(copilotmd|json|request\.json))/g;
+		const linkRE = new RegExp(regexpCcreqCopilotmdJson);
 		return [...text.matchAll(linkRE)].map(
 			(m) => {
 				const identifier = m[1];

@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
+const regexp1 = /[&<>'"_]/g;
+const regexpSS = /\$((\$)|(#)|(\d\d?)|[sS](\d\d?)|@(\w+))/g;
+const regexpSS1 = /\$[sS](\d\d?)/g;
+
 
 /*
  * This module exports common types and functionality shared between
@@ -122,7 +126,7 @@ export function fixCase(lexer: ILexerMin, str: string): string {
  * Ensures there are no bad characters in a CSS token class.
  */
 export function sanitize(s: string) {
-	return s.replace(/[&<>'"_]/g, '-'); // used on all output token CSS classes
+	return s.replace(new RegExp(regexp1), '-'); // used on all output token CSS classes
 }
 
 // Logging
@@ -152,7 +156,7 @@ export function createError(lexer: ILexerMin, msg: string): Error {
  * See documentation for more info
  */
 export function substituteMatches(lexer: ILexerMin, str: string, id: string, matches: string[], state: string): string {
-	const re = /\$((\$)|(#)|(\d\d?)|[sS](\d\d?)|@(\w+))/g;
+	const re = new RegExp(regexpSS);
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, sub?, dollar?, hash?, n?, s?, attr?, ofs?, total?) {
 		if (!empty(dollar)) {
@@ -184,7 +188,7 @@ export function substituteMatches(lexer: ILexerMin, str: string, id: string, mat
  *
  */
 export function substituteMatchesRe(lexer: ILexerMin, str: string, state: string): string {
-	const re = /\$[sS](\d\d?)/g;
+	const re = new RegExp(regexpSS1);
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, s) {
 		if (stateMatches === null) { // split state on demand

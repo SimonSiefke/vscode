@@ -6,6 +6,8 @@
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IPickerQuickAccessItem } from '../../../../platform/quickinput/browser/pickerQuickAccess.js';
+const regexpKeybindingCommandId = /(\<keybinding:(?<commandId>[^\<]*)\>)/gm;
+
 
 export function resolveContentAndKeybindingItems(keybindingService: IKeybindingService, value?: string): { content: MarkdownString; configureKeybindingItems: IPickerQuickAccessItem[] | undefined; configuredKeybindingItems: IPickerQuickAccessItem[] | undefined } | undefined {
 	if (!value) {
@@ -13,7 +15,7 @@ export function resolveContentAndKeybindingItems(keybindingService: IKeybindingS
 	}
 	const configureKeybindingItems: IPickerQuickAccessItem[] = [];
 	const configuredKeybindingItems: IPickerQuickAccessItem[] = [];
-	const matches = value.matchAll(/(\<keybinding:(?<commandId>[^\<]*)\>)/gm);
+	const matches = value.matchAll(new RegExp(regexpKeybindingCommandId));
 	for (const match of [...matches]) {
 		const commandId = match?.groups?.commandId;
 		let kbLabel;

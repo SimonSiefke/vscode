@@ -32,6 +32,8 @@ import { IHoverService } from '../../../../../../platform/hover/browser/hover.js
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { HoverPosition } from '../../../../../../base/browser/ui/hover/hoverWidget.js';
 import type { IManagedHoverTooltipMarkdownString } from '../../../../../../base/browser/ui/hover/hover.js';
+const regexp1 = /\n/g;
+
 
 const $ = DOM.$;
 
@@ -308,7 +310,7 @@ class CellStatusBarItem extends Disposable {
 		this._itemDisposables.clear();
 
 		if (!this._currentItem || this._currentItem.text !== item.text) {
-			this._itemDisposables.add(new SimpleIconLabel(this.container)).text = item.text.replace(/\n/g, ' ');
+			this._itemDisposables.add(new SimpleIconLabel(this.container)).text = item.text.replace(new RegExp(regexp1), ' ');
 		}
 
 		const resolveColor = (color: ThemeColor | string) => {

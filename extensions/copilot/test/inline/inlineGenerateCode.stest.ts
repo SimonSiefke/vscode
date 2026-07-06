@@ -15,6 +15,8 @@ import { simulateInlineChat, simulateInlineChatIntent } from '../simulation/inli
 import { assertContainsAllSnippets, assertNoDiagnosticsAsync, assertNoSyntacticDiagnosticsAsync } from '../simulation/outcomeValidators';
 import { assertConversationalOutcome, assertInlineEdit, assertInlineEditShape, assertOccursOnce, assertOneOf, assertSomeStrings, fromFixture, toFile } from '../simulation/stestUtil';
 import { EditTestStrategy, IScenario } from '../simulation/types';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 function executeEditTestStrategy(
 	strategy: EditTestStrategy,
@@ -696,7 +698,7 @@ forInlineChatIntent((strategy, variant, nonExtensionConfigurations) => {
 						validate: async (outcome, workspace, accessor) => {
 							assertInlineEdit(outcome);
 							await assertNoSyntacticDiagnosticsAsync(accessor, outcome, workspace, 'tsc');
-							const firstLine = outcome.fileContents.split(/\r\n|\r|\n/g)[0];
+							const firstLine = outcome.fileContents.split(new RegExp(regexp1))[0];
 							assertSomeStrings(firstLine, ['import', 'require'], 1);
 						}
 					}

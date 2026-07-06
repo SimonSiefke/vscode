@@ -13,6 +13,9 @@ import * as strings from '../../../../base/common/strings.js';
 import { IFileQuery, IFolderQuery } from '../common/search.js';
 import { anchorGlob } from './ripgrepSearchUtils.js';
 import { rgDiskPath } from '../../../../base/node/ripgrep.js';
+const regexp1 = /\\/g;
+const regexp2 = /^c:[/\\]/i;
+
 
 export async function spawnRipgrepCmd(config: IFileQuery, folderQuery: IFolderQuery, includePattern?: glob.IExpression, excludePattern?: glob.IExpression, numThreads?: number) {
 	const rgArgs = getRgArgs(config, folderQuery, includePattern, excludePattern, numThreads);
@@ -139,9 +142,9 @@ function globExprsToRgGlobs(patterns: glob.IExpression, folder?: string, exclude
 			// glob.ts requires forward slashes, but a UNC path still must start with \\
 			// #38165 and #38151
 			if (key.startsWith('\\\\')) {
-				key = '\\\\' + key.substr(2).replace(/\\/g, '/');
+				key = '\\\\' + key.substr(2).replace(new RegExp(regexp1), '/');
 			} else {
-				key = key.replace(/\\/g, '/');
+				key = key.replace(new RegExp(regexp1), '/');
 			}
 
 			if (typeof value === 'boolean' && value) {
@@ -179,6 +182,6 @@ function trimTrailingSlash(str: string): string {
 export function fixDriveC(path: string): string {
 	const root = extpath.getRoot(path);
 	return root.toLowerCase() === 'c:/' ?
-		path.replace(/^c:[/\\]/i, '/') :
+		path.replace(regexp2, '/') :
 		path;
 }

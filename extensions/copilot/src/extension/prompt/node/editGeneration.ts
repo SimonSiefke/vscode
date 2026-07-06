@@ -5,6 +5,9 @@
 
 import type * as vscode from 'vscode';
 import { Range, TextEdit } from '../../../vscodeTypes';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /^\s+/g;
+
 
 export type Lines = readonly string[];
 
@@ -38,7 +41,7 @@ export namespace Lines {
 		if (code.length === 0) {
 			return [];
 		}
-		return code.split(/\r\n|\r|\n/g);
+		return code.split(new RegExp(regexp1));
 	}
 	export function fromDocument(doc: vscode.TextDocument): Lines {
 		if (doc.lineCount === 0) {
@@ -79,6 +82,6 @@ export const enum EditStrategy {
 }
 
 export function trimLeadingWhitespace(str: string): string {
-	return str.replace(/^\s+/g, '');
+	return str.replace(new RegExp(regexp2), '');
 }
 

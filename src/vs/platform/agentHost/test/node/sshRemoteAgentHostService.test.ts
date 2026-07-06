@@ -15,6 +15,14 @@ import { createRemoteAgentHostState } from '../../common/remoteAgentHostMetadata
 import { SSHAuthMethod, type ISSHAgentHostConfig, type ISSHConnectProgress, type ISSHKeyboardInteractivePrompt, type ISSHKeyboardInteractiveRequest } from '../../common/sshRemoteAgentHost.js';
 import { SSHRemoteAgentHostMainService, makeAuthHandler, type SSHAuthAttempt } from '../../node/sshRemoteAgentHostService.js';
 import type { AnyAuthMethod, AuthenticationType, ConnectConfig } from 'ssh2';
+const regexpConnectionRefused = /connection refused/;
+const regexpLs1tCode = /ls -1t .*code-insiders-/;
+const regexpAwkNR = /awk\s+'NR>5'/;
+const regexpRelayFailed = /relay failed/;
+const regexpTimedOutTimeout = /timed out|timeout/i;
+const regexpPrivateKeyPath = /private key path/i;
+const regexpMissingKey = /\/missing\/key/;
+
 
 const dataFolderName = '.vscode-insiders';
 const quality = 'insider';
@@ -644,7 +652,7 @@ suite('SSHRemoteAgentHostMainService - connect flow', () => {
 
 		await assert.rejects(
 			() => service.connect(makeConfig()),
-			/connection refused/,
+			regexpConnectionRefused,
 		);
 		assert.strictEqual(service.startCalled, 1);
 	});
@@ -1085,7 +1093,7 @@ suite('SSHRemoteAgentHostMainService - connect flow', () => {
 
 			const execCalls = pinnedService.mockClients[0].execCalls;
 			// Retention snippet: `ls -1t ... | awk 'NR>5' | xargs rm`
-			assert.ok(execCalls.some(c => /ls -1t .*code-insiders-/.test(c) && /awk\s+'NR>5'/.test(c)),
+			assert.ok(execCalls.some(c => regexpLs1tCode.test(c) && regexpAwkNR.test(c)),
 				`cleanup command should have run; saw: ${JSON.stringify(execCalls)}`);
 		});
 
@@ -1149,7 +1157,7 @@ suite('SSHRemoteAgentHostMainService - connect flow', () => {
 
 			const execCalls = pinnedService.mockClients[0].execCalls;
 			// Fallback finder snippet enumerates commit-keyed candidates by mtime.
-			assert.ok(execCalls.some(c => /ls -1t .*code-insiders-/.test(c) && c.includes('.vscode-cli-insider/code-insiders')),
+			assert.ok(execCalls.some(c => regexpLs1tCode.test(c) && c.includes('.vscode-cli-insider/code-insiders')),
 				`should have run fallback finder; saw: ${JSON.stringify(execCalls)}`);
 			// Should have --version-validated the fallback candidate.
 			assert.ok(execCalls.some(c => c.includes(`${fallbackBin} --version`)),
@@ -1277,7 +1285,7 @@ suite('SSHRemoteAgentHostMainService - connect flow', () => {
 
 		await assert.rejects(
 			() => service.reconnect('myhost', 'test-host'),
-			/relay failed/,
+			regexpRelayFailed,
 		);
 
 		// SSH client should have been cleaned up despite the failure
@@ -1315,7 +1323,7 @@ suite('SSHRemoteAgentHostMainService - connect flow', () => {
 
 		await assert.rejects(
 			() => service.reconnect('myhost', 'test-host'),
-			/timed out|timeout/i,
+			regexpTimedOutTimeout,
 			'reconnect should reject (with a timeout error) instead of hanging when relay creation never settles'
 		);
 
@@ -1609,7 +1617,7 @@ suite('SSHRemoteAgentHostMainService - _buildAuthAttempts', () => {
 	test('KeyFile + missing privateKeyPath throws', async () => {
 		await assert.rejects(
 			() => service.testBuildAuthAttempts(makeConfig({ authMethod: SSHAuthMethod.KeyFile })),
-			/private key path/i,
+			regexpPrivateKeyPath,
 		);
 	});
 
@@ -1619,7 +1627,7 @@ suite('SSHRemoteAgentHostMainService - _buildAuthAttempts', () => {
 				authMethod: SSHAuthMethod.KeyFile,
 				privateKeyPath: '/missing/key',
 			})),
-			/\/missing\/key/,
+			regexpMissingKey,
 		);
 	});
 

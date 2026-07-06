@@ -22,6 +22,11 @@ import { IStorageService, StorageScope, StorageTarget } from '../../storage/comm
 import { isString } from '../../../base/common/types.js';
 import { StreamSplitter } from '../../../base/node/nodeStreams.js';
 import { joinPath } from '../../../base/common/resources.js';
+const regexpOpenThisLink = /Open this link in your browser (https:\/\/([^\/\s]+)\/([^\/\s]+)\/([^\/\s]+))/;
+const regexpErrorRefreshingToken = /error refreshing token/;
+const regexp3 = /[^\w-]/g;
+const regexp4 = /^-+/g;
+
 
 type RemoteTunnelEnablementClassification = {
 	owner: 'aeschli';
@@ -409,7 +414,7 @@ export class RemoteTunnelService extends Disposable implements IRemoteTunnelServ
 				isAttached = true;
 			}
 
-			const m = message.match(/Open this link in your browser (https:\/\/([^\/\s]+)\/([^\/\s]+)\/([^\/\s]+))/);
+			const m = message.match(regexpOpenThisLink);
 			if (m) {
 				const info: ConnectionInfo = { link: m[1], domain: m[2], tunnelName: m[4], isAttached };
 				this.telemetryService.publicLog2<RemoteTunnelConnectedEvent, RemoteTunnelConnectedClassification>('remoteTunnel.connected', {
@@ -417,7 +422,7 @@ export class RemoteTunnelService extends Disposable implements IRemoteTunnelServ
 					isAttached: info.isAttached,
 				});
 				this.setTunnelStatus(TunnelStates.connected(info, serviceInstallFailed));
-			} else if (message.match(/error refreshing token/)) {
+			} else if (message.match(regexpErrorRefreshingToken)) {
 				serveCommand.cancel();
 				this._onDidTokenFailedEmitter.fire(session);
 				this.setTunnelStatus(TunnelStates.disconnected(session));
@@ -502,7 +507,7 @@ export class RemoteTunnelService extends Disposable implements IRemoteTunnelServ
 
 	private _getTunnelName(): string | undefined {
 		let name = this.configurationService.getValue<string>(CONFIGURATION_KEY_HOST_NAME) || hostname();
-		name = name.replace(/^-+/g, '').replace(/[^\w-]/g, '').substring(0, 20);
+		name = name.replace(new RegExp(regexp4), '').replace(new RegExp(regexp3), '').substring(0, 20);
 		return name || undefined;
 	}
 

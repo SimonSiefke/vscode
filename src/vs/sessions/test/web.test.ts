@@ -36,6 +36,10 @@ import { getSingletonServiceDescriptors } from '../../platform/instantiation/com
 import { ServiceIdentifier } from '../../platform/instantiation/common/instantiation.js';
 import { IWorkbench } from '../../workbench/browser/web.api.js';
 import { isEqual } from '../../base/common/resources.js';
+const regexpBuildCompileCreate = /build|compile|create/i;
+const regexpFixBug = /fix|bug/i;
+const regexpExplainDescribe = /explain|describe/i;
+
 
 /**
  * Mock files pre-seeded in the in-memory file system. These match the
@@ -195,7 +199,7 @@ function emitFileEdits(fileEdits: MockFileEdit[], progress: (parts: IChatProgres
  * Edits for new files produce "file created" entries.
  */
 function getMockResponseWithEdits(message: string): MockResponse {
-	if (/build|compile|create/i.test(message)) {
+	if (regexpBuildCompileCreate.test(message)) {
 		return {
 			text: 'I\'ll help you build the project. Here are the changes:',
 			fileEdits: [
@@ -217,7 +221,7 @@ function getMockResponseWithEdits(message: string): MockResponse {
 			],
 		};
 	}
-	if (/fix|bug/i.test(message)) {
+	if (regexpFixBug.test(message)) {
 		return {
 			text: 'I found the issue and applied the fix. The input validation has been added.',
 			fileEdits: [
@@ -229,7 +233,7 @@ function getMockResponseWithEdits(message: string): MockResponse {
 			],
 		};
 	}
-	if (/explain|describe/i.test(message)) {
+	if (regexpExplainDescribe.test(message)) {
 		return {
 			text: 'This project has a simple structure with a main entry point and utility functions.',
 		};

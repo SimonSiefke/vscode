@@ -27,6 +27,9 @@ import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { CurrentChangeInput } from '../../prompts/node/feedback/currentChange';
 import { ProvideFeedbackPrompt } from '../../prompts/node/feedback/provideFeedback';
 import { sendUserActionTelemetry } from './telemetry';
+const regexpNumLineFrom = /(?<num>\d+)\. Line (?<from>\d+)(-(?<to>\d+))?([^:]*)( in `?(?<relativeDocumentPath>[^,:`]+))`?(, (?<kind>\w+))?(, (?<severity>\w+) severity)?: (?<content>.+?)((?=\n\d+\.|\n\n)|(?<earlyEnd>$))/gs;
+const regexp2 = /```/g;
+
 
 export type FeedbackResult = { type: 'success'; comments: ReviewComment[]; excludedComments?: ReviewComment[]; reason?: string } | { type: 'error'; severity?: 'info'; reason: string } | { type: 'cancelled' };
 
@@ -246,7 +249,7 @@ export function parseReviewComments(request: ReviewRequest, input: CurrentChange
 }
 
 export function parseFeedbackResponse(response: string, dropPartial = false) {
-	const regex = /(?<num>\d+)\. Line (?<from>\d+)(-(?<to>\d+))?([^:]*)( in `?(?<relativeDocumentPath>[^,:`]+))`?(, (?<kind>\w+))?(, (?<severity>\w+) severity)?: (?<content>.+?)((?=\n\d+\.|\n\n)|(?<earlyEnd>$))/gs;
+	const regex = new RegExp(regexpNumLineFrom);
 	return coalesce(Array.from(response.matchAll(regex), match => {
 		const groups = match.groups!;
 		if (dropPartial && typeof groups.earlyEnd === 'string') {
@@ -267,7 +270,7 @@ export function parseFeedbackResponse(response: string, dropPartial = false) {
 			}
 		}
 		// Remove broken block.
-		const blockBorders = [...content.matchAll(/```/g)];
+		const blockBorders = [...content.matchAll(new RegExp(regexp2))];
 		if (blockBorders.length % 2) {
 			const odd = blockBorders[blockBorders.length - 1];
 			content = content.substring(0, odd.index)

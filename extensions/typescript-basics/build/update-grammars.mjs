@@ -5,13 +5,18 @@
 // @ts-check
 
 import { update } from 'vscode-grammar-updater';
+const regexpHTMLElementATTRIBUTENODE = /\b(HTMLElement|ATTRIBUTE_NODE|stopImmediatePropagation)\b/g;
+const regexpBJSON = /\bJSON\b/g;
+const regexpBMath = /\bMath\b/g;
+const regexpTsx = /\.tsx/g;
+
 
 function removeDom(grammar) {
 	grammar.repository['support-objects'].patterns = grammar.repository['support-objects'].patterns.filter(pattern => {
 		if (pattern.match && (
-			/\b(HTMLElement|ATTRIBUTE_NODE|stopImmediatePropagation)\b/g.test(pattern.match)
-			|| /\bJSON\b/g.test(pattern.match)
-			|| /\bMath\b/g.test(pattern.match)
+			new RegExp(regexpHTMLElementATTRIBUTENODE).test(pattern.match)
+			|| new RegExp(regexpBJSON).test(pattern.match)
+			|| new RegExp(regexpBMath).test(pattern.match)
 		)) {
 			return false;
 		}
@@ -69,10 +74,10 @@ function adaptToJavaScript(grammar, replacementScope) {
 
 	var fixScopeNames = function (rule) {
 		if (typeof rule.name === 'string') {
-			rule.name = rule.name.replace(/\.tsx/g, replacementScope);
+			rule.name = rule.name.replace(new RegExp(regexpTsx), replacementScope);
 		}
 		if (typeof rule.contentName === 'string') {
-			rule.contentName = rule.contentName.replace(/\.tsx/g, replacementScope);
+			rule.contentName = rule.contentName.replace(new RegExp(regexpTsx), replacementScope);
 		}
 		for (var property in rule) {
 			var value = rule[property];

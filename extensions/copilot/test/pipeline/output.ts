@@ -10,6 +10,8 @@ import { IGeneratedPrompt } from './promptStep';
 import { IProcessedRow } from './replayRecording';
 import { IGeneratedResponse } from './responseStep';
 import { openWriteStream } from './writeStream';
+const regexp1 = /\\/g;
+
 
 export interface IMessage {
 	readonly role: 'system' | 'user' | 'assistant';
@@ -97,7 +99,7 @@ export function assembleSample(
 		strategy,
 		oracleEditCount: processedRow.nextUserEdit?.edit?.length ?? 0,
 		suggestionStatus: processedRow.row.suggestionStatus,
-		filePath: processedRow.activeFilePath.replace(/\\/g, '/'),
+		filePath: processedRow.activeFilePath.replace(new RegExp(regexp1), '/'),
 		docContent: processedRow.activeDocument.value.get().value,
 		oracleEdits: processedRow.nextUserEdit?.edit ?? [],
 		originalPrompt: processedRow.row.prompt,

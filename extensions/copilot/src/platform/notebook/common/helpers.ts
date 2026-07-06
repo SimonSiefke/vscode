@@ -10,6 +10,8 @@ import { removeAnsiEscapeCodes } from '../../../util/vs/base/common/strings';
 import { isUriComponents, URI } from '../../../util/vs/base/common/uri';
 import { NotebookCellData, NotebookCellKind } from '../../../vscodeTypes';
 import { INotebookService } from './notebookService';
+const regexp1 = /\r$/;
+
 
 
 export class LineOfText {
@@ -18,7 +20,7 @@ export class LineOfText {
 	constructor(
 		value: string
 	) {
-		this.value = value.replace(/\r$/, '');
+		this.value = value.replace(regexp1, '');
 	}
 }
 

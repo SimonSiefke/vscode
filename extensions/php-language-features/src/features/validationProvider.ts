@@ -9,6 +9,8 @@ import which from 'which';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ThrottledDelayer } from './utils/async';
+const regexpParseFatalError = /(?:(?:Parse|Fatal) error): (.*)(?: in )(.*?)(?: on line )(\d+)/;
+
 
 const enum Setting {
 	Run = 'php.validate.run',
@@ -83,7 +85,7 @@ namespace RunTrigger {
 
 export default class PHPValidationProvider {
 
-	private static MatchExpression: RegExp = /(?:(?:Parse|Fatal) error): (.*)(?: in )(.*?)(?: on line )(\d+)/;
+	private static MatchExpression: RegExp = regexpParseFatalError;
 	private static BufferArgs: string[] = ['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off'];
 	private static FileArgs: string[] = ['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off', '-f'];
 

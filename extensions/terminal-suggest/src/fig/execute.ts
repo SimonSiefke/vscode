@@ -6,13 +6,18 @@
 import { osIsWindows } from '../helpers/os';
 import { spawnHelper2 } from '../shell/common';
 import { withTimeout } from './shared/utils';
+const regexp1 = /\n+$/;
+const regexp2 = /^\n+/;
+const regexp25h = /\x1b\[\?25h/g;
+const regexp4 = /\r\n/g;
+
 
 export const cleanOutput = (output: string) =>
 	output
-		.replace(/\r\n/g, '\n') // Replace carriage returns with just a normal return
-		.replace(/\x1b\[\?25h/g, '') // removes cursor character if present
-		.replace(/^\n+/, '') // strips new lines from start of output
-		.replace(/\n+$/, ''); // strips new lines from end of output
+		.replace(new RegExp(regexp4), '\n') // Replace carriage returns with just a normal return
+		.replace(new RegExp(regexp25h), '') // removes cursor character if present
+		.replace(regexp2, '') // strips new lines from start of output
+		.replace(regexp1, ''); // strips new lines from end of output
 
 export const executeCommandTimeout = async (
 	fallbacks: {

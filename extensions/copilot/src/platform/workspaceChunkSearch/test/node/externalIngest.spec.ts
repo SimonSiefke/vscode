@@ -26,6 +26,13 @@ import { createPlatformServices, TestingServiceCollection } from '../../../test/
 import { IWorkspaceService, NullWorkspaceService } from '../../../workspace/common/workspaceService';
 import { ExternalIngestClient, ExternalIngestFile, ExternalIngestFileSet, ExternalIngestUpdateIndexResult, IExternalIngestClient } from '../../node/codeSearch/externalIngestClient';
 import { ExternalIngestIndex } from '../../node/codeSearch/externalIngestIndex';
+const regexpNoMissingDocuments = /no missing documents/i;
+const regexpFailedToUpload = /Failed to upload 1 document/i;
+const regexpStatus = /status 500/i;
+const regexpDocReq = /doc-req-42/;
+const regexpIngestNotFound = /Ingest not found \(404\)/i;
+const regexpUnmappedDocSha = /unmapped docSha/i;
+
 
 const emptyProgressCb: (message: string) => void = () => { };
 const testTelemetryInfo = new TelemetryCorrelationId('externalIngest.spec.ts');
@@ -701,7 +708,7 @@ suite('ExternalIngestClient finalize retry', () => {
 
 		assert.ok(result.isError(), 'updateIndex should fail after exhausting finalize retries');
 		assert.strictEqual(fetcher.finalizeCallCount, 3, 'Finalize should be attempted the maximum number of times');
-		assert.match(result.isError() ? result.err.message : '', /no missing documents/i, 'Error should describe the server-side phase mismatch');
+		assert.match(result.isError() ? result.err.message : '', regexpNoMissingDocuments, 'Error should describe the server-side phase mismatch');
 	});
 
 	test('surfaces the underlying document upload failure instead of a finalize phase error', async () => {
@@ -724,9 +731,9 @@ suite('ExternalIngestClient finalize retry', () => {
 
 		assert.ok(result.isError(), 'updateIndex should fail when a document upload fails');
 		const message = result.isError() ? result.err.message : '';
-		assert.match(message, /Failed to upload 1 document/i, 'Error should describe the document upload failure');
-		assert.match(message, /status 500/i, 'Error should include the real failure status');
-		assert.match(message, /doc-req-42/, 'Error should include the failing requestId for diagnosis');
+		assert.match(message, regexpFailedToUpload, 'Error should describe the document upload failure');
+		assert.match(message, regexpStatus, 'Error should include the real failure status');
+		assert.match(message, regexpDocReq, 'Error should include the failing requestId for diagnosis');
 		assert.strictEqual(fetcher.finalizeCallCount, 0, 'Finalize should never be attempted when documents failed to upload');
 	});
 
@@ -748,7 +755,7 @@ suite('ExternalIngestClient finalize retry', () => {
 		const result = await runUpdateIndex(client, fileSet);
 
 		assert.ok(result.isError(), 'updateIndex should fail when the ingest is gone (404)');
-		assert.match(result.isError() ? result.err.message : '', /Ingest not found \(404\)/i, 'Error should describe the missing ingest');
+		assert.match(result.isError() ? result.err.message : '', regexpIngestNotFound, 'Error should describe the missing ingest');
 		assert.strictEqual(fetcher.finalizeCallCount, 0, 'Finalize should never be attempted after a 404');
 	});
 
@@ -767,8 +774,8 @@ suite('ExternalIngestClient finalize retry', () => {
 
 		assert.ok(result.isError(), 'updateIndex should fail when the server requests an unmapped docSha');
 		const message = result.isError() ? result.err.message : '';
-		assert.match(message, /Failed to upload 1 document/i, 'Error should describe the upload failure');
-		assert.match(message, /unmapped docSha/i, 'Error should identify the unmapped docSha');
+		assert.match(message, regexpFailedToUpload, 'Error should describe the upload failure');
+		assert.match(message, regexpUnmappedDocSha, 'Error should identify the unmapped docSha');
 		assert.strictEqual(fetcher.documentUploadCount, 0, 'No document upload should be attempted for an unmapped docSha');
 		assert.strictEqual(fetcher.finalizeCallCount, 0, 'Finalize should never be attempted for an unmapped docSha');
 	});

@@ -8,6 +8,9 @@ import { CHAT_MODEL } from '../../../../platform/configuration/common/configurat
 import { JsonSchema } from '../../../../platform/configuration/common/jsonSchema';
 import { OpenAiFunctionTool } from '../../../../platform/networking/common/fetch';
 import { normalizeToolSchema } from '../../common/toolSchemaNormalizer';
+const regexpDoNotMatch = /do not match JSON schema/;
+const regexpArrayTypeMust = /array type must have items/;
+
 
 describe('ToolSchemaNormalizer', () => {
 	const makeTool = (properties: Record<string, JsonSchema>): OpenAiFunctionTool[] => [{
@@ -28,7 +31,7 @@ describe('ToolSchemaNormalizer', () => {
 				type: 'text',
 				description: 'foo',
 			}
-		})), Error, /do not match JSON schema/);
+		})), Error, regexpDoNotMatch);
 	});
 
 	test('fails on array without item specs', () => {
@@ -36,7 +39,7 @@ describe('ToolSchemaNormalizer', () => {
 			foo: {
 				type: 'array',
 			}
-		})), Error, /array type must have items/);
+		})), Error, regexpArrayTypeMust);
 	});
 
 	test('trims extra properties', () => {

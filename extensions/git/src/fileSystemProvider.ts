@@ -9,6 +9,8 @@ import { fromGitUri, toGitUri } from './uri';
 import { Model, ModelChangeEvent, OriginalResourceChangeEvent } from './model';
 import { filterEvent, eventToPromise, isDescendant, pathEquals, EmptyDisposable } from './util';
 import { Repository } from './repository';
+const regexp1 = /^~\d$/;
+
 
 interface CacheRow {
 	uri: Uri;
@@ -26,7 +28,7 @@ function sanitizeRef(ref: string, path: string, submoduleOf: string | undefined,
 		return indexStatus ? '' : 'HEAD';
 	}
 
-	if (/^~\d$/.test(ref)) {
+	if (regexp1.test(ref)) {
 		return `:${ref[1]}`;
 	}
 

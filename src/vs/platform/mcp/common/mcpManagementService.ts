@@ -24,6 +24,8 @@ import { IUserDataProfilesService } from '../../userDataProfile/common/userDataP
 import { DidUninstallMcpServerEvent, IGalleryMcpServer, ILocalMcpServer, IMcpGalleryService, IMcpManagementService, IMcpServerInput, IGalleryMcpServerConfiguration, InstallMcpServerEvent, InstallMcpServerResult, RegistryType, UninstallMcpServerEvent, InstallOptions, UninstallOptions, IInstallableMcpServer, IAllowedMcpServersService, IMcpServerArgument, IMcpServerKeyValueInput, McpServerConfigurationParseResult } from './mcpManagement.js';
 import { IMcpSandboxConfiguration, IMcpServerVariable, McpServerVariableType, IMcpServerConfiguration, McpServerType } from './mcpPlatformTypes.js';
 import { IMcpResourceScannerService, McpResourceTarget } from './mcpResourceScannerService.js';
+const regexp1 = /^--?/;
+
 
 export interface ILocalMcpServerInfo {
 	name: string;
@@ -287,7 +289,7 @@ export abstract class AbstractCommonMcpManagementService extends Disposable impl
 					}
 				} else if (arg.description || arg.default !== undefined) {
 					// Create input variable for named argument without value
-					const variableId = arg.name.replace(/^--?/, '');
+					const variableId = arg.name.replace(regexp1, '');
 					variables.push({
 						id: variableId,
 						type: McpServerVariableType.PROMPT,

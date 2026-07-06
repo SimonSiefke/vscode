@@ -8,6 +8,8 @@ import { DEFAULT_WORD_REGEXP, getWordAtText } from '../../../util/vs/editor/comm
 import { Position, Range } from '../../../vscodeTypes';
 import { PositionOffsetTransformer } from '../../editing/common/positionOffsetTransformer';
 import { SnapshotDocumentLine } from '../../editing/common/textDocumentSnapshot';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 
 export abstract class AlternativeNotebookDocument {
@@ -74,7 +76,7 @@ export abstract class AlternativeNotebookDocument {
 
 	get lines(): string[] {
 		if (!this._lines) {
-			this._lines = this._text.split(/\r\n|\r|\n/g);
+			this._lines = this._text.split(new RegExp(regexp1));
 		}
 		return this._lines;
 	}

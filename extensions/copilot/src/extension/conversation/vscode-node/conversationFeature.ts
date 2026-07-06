@@ -41,6 +41,10 @@ import { GitHubPullRequestProviders } from '../node/githubPullRequestProviders';
 import { startFeedbackCollection } from './feedbackCollection';
 import { registerNewWorkspaceIntentCommand } from './newWorkspaceFollowup';
 import { generateTerminalFixes, setLastCommandMatchResult } from './terminalFixGenerator';
+const regexp1 = /\$/g;
+const regexp2 = /\\/g;
+const regexp3 = /"/g;
+
 
 /**
  * Class that checks if users are allowed to use the conversation feature,
@@ -296,7 +300,7 @@ export class ConversationFeature implements IExtensionContribution {
 				const commitMessage = await this.gitCommitMessageService.generateCommitMessage(repository, CancellationToken.None);
 				if (commitMessage) {
 					// Sanitize the message by escaping double quotes, backslashes, and $ characters
-					const sanitizedMessage = commitMessage.replace(/"/g, '\\"').replace(/\\/g, '\\\\').replace(/\$/g, '\\$'); // CodeQL [SM02383] Backslashes are escaped as part of the second replace.
+					const sanitizedMessage = commitMessage.replace(new RegExp(regexp3), '\\"').replace(new RegExp(regexp2), '\\\\').replace(new RegExp(regexp1), '\\$'); // CodeQL [SM02383] Backslashes are escaped as part of the second replace.
 					const message = `git commit -m "${sanitizedMessage}"`;
 					vscode.window.activeTerminal?.sendText(message, false);
 				}

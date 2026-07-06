@@ -9,6 +9,8 @@ import { escapeHtmlText } from './util/html';
 import { generateUuid } from './util/uuid';
 import { disposeAll } from './util/dispose';
 import { renderMermaidConfigSpan } from './markdownMermaid/config';
+const regexp1 = /`+/g;
+
 
 /**
  * Mime type used to identify Mermaid diagram data in chat output.
@@ -191,7 +193,7 @@ function writeMermaidToolOutput(sourceCode: string, title: string | undefined): 
 }
 
 function getFenceForContent(content: string): string {
-	const backtickMatch = content.matchAll(/`+/g);
+	const backtickMatch = content.matchAll(new RegExp(regexp1));
 	if (!backtickMatch) {
 		return '```';
 	}

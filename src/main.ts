@@ -19,6 +19,8 @@ import { resolveNLSConfiguration } from './vs/base/node/nls.js';
 import { getUNCHost, addUNCHostToAllowlist } from './vs/base/node/unc.js';
 import { INLSConfiguration } from './vs/nls.js';
 import { NativeParsedArgs } from './vs/platform/environment/common/argv.js';
+const regexp9a9a9a = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 perf.mark('code/didStartMain');
 
@@ -489,7 +491,7 @@ function configureCrashReporter(): void {
 			const isLinux = (process.platform === 'linux');
 			const isDarwin = (process.platform === 'darwin');
 			const crashReporterId = argvConfig['crash-reporter-id'];
-			const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+			const uuidPattern = regexp9a9a9a;
 			if (crashReporterId && uuidPattern.test(crashReporterId)) {
 				if (isWindows) {
 					switch (process.arch) {

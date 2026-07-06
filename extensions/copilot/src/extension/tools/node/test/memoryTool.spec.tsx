@@ -18,6 +18,8 @@ import { IInstantiationService } from '../../../../util/vs/platform/instantiatio
 import { MarkdownString } from '../../../../vscodeTypes';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { MemoryTool } from '../memoryTool';
+const regexpLineOne = /1.*line one/;
+
 
 /**
  * Capturing telemetry service that records all events for assertion.
@@ -108,7 +110,7 @@ suite('MemoryTool', () => {
 		expect(text).toContain('line one');
 		expect(text).toContain('line two');
 		expect(text).toContain('line three');
-		expect(text).toMatch(/1.*line one/);
+		expect(text).toMatch(regexpLineOne);
 	});
 
 	test('view lists session directory contents', async () => {

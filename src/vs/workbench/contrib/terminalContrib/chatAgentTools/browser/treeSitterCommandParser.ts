@@ -13,6 +13,11 @@ import { ITreeSitterLibraryService } from '../../../../../editor/common/services
 import type { ITerminalSandboxCommand } from '../../../../../platform/sandbox/common/terminalSandboxService.js';
 import { ICommandFileWriteParser } from './commandParsers/commandFileWriteParser.js';
 import { SedFileWriteParser } from './commandParsers/sedFileWriteParser.js';
+const regexp1 = /^['"]|['"]$/g;
+const regexpExeCmdBat = /\.(?:exe|cmd|bat|ps1)$/i;
+const regexp3 = /\s/;
+const regexpZaZaZ0 = /^[A-Za-z_][A-Za-z0-9_]*=.*/;
+
 
 export const enum TreeSitterCommandParserLanguage {
 	Bash = 'bash',
@@ -153,13 +158,13 @@ export class TreeSitterCommandParser extends Disposable {
 	 * rules by stripping quotes, path segments, and common executable suffixes.
 	 */
 	private _normalizeCommandKeyword(token: string): string | undefined {
-		const unquoted = token.replace(/^['"]|['"]$/g, '');
+		const unquoted = token.replace(new RegExp(regexp1), '');
 		if (!unquoted) {
 			return undefined;
 		}
 
 		const pathBase = unquoted.includes('\\') ? win32.basename(unquoted) : posix.basename(unquoted);
-		const normalized = pathBase.toLowerCase().replace(/\.(?:exe|cmd|bat|ps1)$/i, '');
+		const normalized = pathBase.toLowerCase().replace(regexpExeCmdBat, '');
 		return normalized || undefined;
 	}
 
@@ -221,7 +226,7 @@ export class TreeSitterCommandParser extends Disposable {
 				continue;
 			}
 
-			if (/\s/.test(char)) {
+			if (regexp3.test(char)) {
 				if (current) {
 					tokens.push(current);
 					current = '';
@@ -248,7 +253,7 @@ export class TreeSitterCommandParser extends Disposable {
 	 * can prefix a command invocation.
 	 */
 	private _isVariableAssignment(token: string): boolean {
-		return /^[A-Za-z_][A-Za-z0-9_]*=.*/.test(token);
+		return regexpZaZaZ0.test(token);
 	}
 
 	private async _doQuery(languageId: TreeSitterCommandParserLanguage, commandLine: string, querySource: string): Promise<{ tree: Tree; query: Query }> {

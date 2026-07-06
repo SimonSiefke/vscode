@@ -6,6 +6,8 @@
 import { Code } from './code';
 import { QuickAccess } from './quickaccess';
 import { QuickInput } from './quickinput';
+const regexp1 = /\u00a0/g;
+
 
 const anyRowSelector = `.notebook-editor .monaco-list-row`;
 const activeRowSelector = `${anyRowSelector}.focused`;
@@ -68,7 +70,7 @@ export class Notebook {
 
 	private async _waitForActiveCellEditorContents(accept: (contents: string) => boolean): Promise<any> {
 		const selector = `${activeRowSelector} .monaco-editor .view-lines`;
-		return this.code.waitForTextContent(selector, undefined, c => accept(c.replace(/\u00a0/g, ' ')));
+		return this.code.waitForTextContent(selector, undefined, c => accept(c.replace(new RegExp(regexp1), ' ')));
 	}
 
 	async waitForMarkdownContents(markdownSelector: string, text: string): Promise<void> {

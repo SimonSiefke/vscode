@@ -15,6 +15,9 @@ import { LineDecoration } from '../../../common/viewLayout/lineDecorations.js';
 import { CharacterMapping, DomPosition, IRenderLineInputOptions, RenderLineInput, RenderLineOutput2, renderViewLine2 as renderViewLine } from '../../../common/viewLayout/viewLineRenderer.js';
 import { InlineDecorationType } from '../../../common/viewModel/inlineDecorations.js';
 import { TestLineToken, TestLineTokens } from '../core/testLineToken.js';
+const regexpSpan = /^<span>/;
+const regexpSpan1 = /<\/span>$/;
+
 
 const HTML_EXTENSION = { extension: 'html' };
 
@@ -32,9 +35,9 @@ function inflateRenderLineOutput(renderLineOutput: RenderLineOutput2) {
 	// remove encompassing <span> to simplify test writing.
 	let html = renderLineOutput.html;
 	if (html.startsWith('<span>')) {
-		html = html.replace(/^<span>/, '');
+		html = html.replace(regexpSpan, '');
 	}
-	html = html.replace(/<\/span>$/, '');
+	html = html.replace(regexpSpan1, '');
 	const spans: string[] = [];
 	let lastIndex = 0;
 	do {

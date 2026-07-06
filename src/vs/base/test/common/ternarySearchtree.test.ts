@@ -10,6 +10,8 @@ import { StopWatch } from '../../common/stopwatch.js';
 import { ConfigKeysIterator, PathIterator, StringIterator, TernarySearchTree, UriIterator } from '../../common/ternarySearchTree.js';
 import { URI } from '../../common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexpHttps = /^https?$/;
+
 
 suite('Ternary Search Tree', () => {
 
@@ -792,7 +794,7 @@ suite('Ternary Search Tree', () => {
 
 	test('TernarySearchTree (URI) - lookup, casing', function () {
 
-		const map = new TernarySearchTree<URI, number>(new UriIterator(uri => /^https?$/.test(uri.scheme), () => false));
+		const map = new TernarySearchTree<URI, number>(new UriIterator(uri => regexpHttps.test(uri.scheme), () => false));
 		map.set(URI.parse('http://foo.bar/user/foo/bar'), 1);
 		assert.strictEqual(map.get(URI.parse('http://foo.bar/USER/foo/bar')), 1);
 

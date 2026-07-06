@@ -20,6 +20,8 @@ import { getTokenizer, TokenizerName } from '../../../../prompt/src/tokenization
 import { isContextNode } from './completionsContext';
 import { AfterCursor, BeforeCursor, CurrentFile } from './currentFile';
 import { ElidedBlock, makePrompt, WeightedBlock, WishlistElision } from './elision';
+const regexp1 = /\r\n?/g;
+
 
 const TOKENS_RESERVED_FOR_SUFFIX_ENCODING = 5;
 
@@ -292,5 +294,5 @@ function computeComponentStatistics(elidedBlocks: ElidedBlock[]) {
 }
 
 export function normalizeLineEndings(text: string) {
-	return text.replace(/\r\n?/g, '\n');
+	return text.replace(new RegExp(regexp1), '\n');
 }

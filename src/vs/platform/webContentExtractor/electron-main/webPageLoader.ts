@@ -14,6 +14,9 @@ import { ILogService } from '../../log/common/log.js';
 import { IAgentNetworkFilterService } from '../../networkFilter/common/networkFilterService.js';
 import { IWebContentExtractorOptions, WebContentExtractResult } from '../common/webContentExtractor.js';
 import { AXNode, convertAXTreeToMarkdown } from './cdpAccessibilityDomain.js';
+const regexpTextApplicationJson = /^(?:text\/|application\/(?:json|xml|xhtml\+xml|rss\+xml|atom\+xml|svg\+xml|javascript|ecmascript|x-yaml|yaml|toml|.*\+(?:xml|json))$)/;
+const regexpWww = /^www\./;
+
 
 type NetworkRequestEventParams = Readonly<{
 	requestId?: string;
@@ -221,7 +224,7 @@ export class WebPageLoader extends Disposable {
 	 * Returns whether the given MIME type represents text-based content
 	 * that can be meaningfully rendered and extracted.
 	 */
-	private static readonly TEXT_MIME_TYPE_RE = /^(?:text\/|application\/(?:json|xml|xhtml\+xml|rss\+xml|atom\+xml|svg\+xml|javascript|ecmascript|x-yaml|yaml|toml|.*\+(?:xml|json))$)/;
+	private static readonly TEXT_MIME_TYPE_RE = regexpTextApplicationJson;
 
 	private isTextMimeType(contentType: string | undefined): boolean {
 		const mimeType = contentType?.split(';')[0].trim();
@@ -334,7 +337,7 @@ export class WebPageLoader extends Disposable {
 	 * Normalizes an authority by removing the 'www.' prefix if present.
 	 */
 	private normalizeAuthority(authority: string): string {
-		return authority.toLowerCase().replace(/^www\./, '');
+		return authority.toLowerCase().replace(regexpWww, '');
 	}
 
 	/**

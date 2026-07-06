@@ -54,6 +54,9 @@ import { IPullRequestIconCache } from '../../../github/browser/pullRequestIconCa
 import { mapProtocolStatus } from './agentHostDiffs.js';
 import { createChangesets } from './agentHostSessionChangesets.js';
 import { createSessionFilesObs } from './agentHostSessionFiles.js';
+const regexpGithubComPull = /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/;
+const regexp2 = /^\//;
+
 
 const STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES = 'sessions.agentHost.sessionConfigPicker.selectedValues';
 const UNSAFE_SESSION_CONFIG_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -568,7 +571,7 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 
 			if (state.pullRequestUrl) {
 				// Extract pull request information from the URL
-				const match = /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/.exec(state.pullRequestUrl);
+				const match = regexpGithubComPull.exec(state.pullRequestUrl);
 				if (match) {
 					owner = owner ?? match[1];
 					repo = repo ?? match[2];
@@ -3228,7 +3231,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		const existingKeys = new Set(this._sessionCache.keys());
 		// The eagerly-created session may already be cached before first send.
 		// Treat that raw id as the session we are waiting for, not old state.
-		const newSessionRawId = chatResource.path.replace(/^\//, '');
+		const newSessionRawId = chatResource.path.replace(regexp2, '');
 		existingKeys.delete(newSessionRawId);
 
 		const result = await this._chatService.sendRequest(chatResource, query, sendOptions);
@@ -3827,7 +3830,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			const removed: ISession[] = [];
 			// Some hosts briefly omit the just-sent eager session from listSessions.
 			// Keep the pending session visible until sendRequest graduates it.
-			const pendingRawId = this._pendingSession?.resource.path.replace(/^\//, '');
+			const pendingRawId = this._pendingSession?.resource.path.replace(regexp2, '');
 			for (const [key, cached] of this._sessionCache) {
 				if (!currentKeys.has(key)) {
 					if (key === pendingRawId) {

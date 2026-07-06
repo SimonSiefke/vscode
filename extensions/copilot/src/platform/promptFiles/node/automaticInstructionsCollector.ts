@@ -35,6 +35,9 @@ import { ICustomInstructionsService } from '../../customInstructions/common/cust
 import { IPromptVariablesService } from '../../../extension/prompt/node/promptVariablesService';
 import { arrayEqual } from 'diff/lib/util/array.js';
 import { structuralEquals } from '../../../util/vs/base/common/equals';
+const regexp1 = /\t/g;
+const regexp2 = /\r/g;
+
 
 /**
  * Telemetry payload (parity with core's `instructionsCollected` event).
@@ -716,7 +719,7 @@ function matchesAttachedFiles(attachedFiles: ResourceSet, applyToPattern: string
 
 function formatDiffLine(line: string): string {
 	const MAX_LINE_LENGTH = 200;
-	const normalized = line.replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+	const normalized = line.replace(new RegExp(regexp2), '\\r').replace(new RegExp(regexp1), '\\t');
 	if (normalized.length <= MAX_LINE_LENGTH) {
 		return normalized;
 	}

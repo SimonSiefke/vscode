@@ -12,6 +12,8 @@ import { IAuthenticationService } from '../../../../workbench/services/authentic
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { GITHUB_REMOTE_FILE_SCHEME } from '../../../services/sessions/common/session.js';
+const regexp1 = /\n/g;
+
 
 /**
  * Derives a display name from a github-remote-file URI.
@@ -308,7 +310,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		}
 
 		if (data.encoding === 'base64') {
-			const binaryString = atob(data.content.replace(/\n/g, ''));
+			const binaryString = atob(data.content.replace(new RegExp(regexp1), ''));
 			const bytes = new Uint8Array(binaryString.length);
 			for (let i = 0; i < binaryString.length; i++) {
 				bytes[i] = binaryString.charCodeAt(i);

@@ -11,6 +11,9 @@ import { CacheScope } from '../../base/simulationContext';
 import { cleanTempDirWithRetry, createTempDir } from '../stestUtil';
 import { IFile, ITestDiagnostic } from './diagnosticsProvider';
 import { CachingDiagnosticsProvider, findIfInstalled, setupTemporaryWorkspace } from './utils';
+const regexp1 = /\d+\.\d+\.\d+/;
+const regexp2 = /^(\d+[\.\d+]*)/g;
+
 
 /**
  * Class which finds roslyn diagnostics after compilation of C# files
@@ -56,9 +59,9 @@ export class RoslynDiagnosticsProvider extends CachingDiagnosticsProvider {
 
 	override isInstalled(): boolean {
 		if (this._isInstalled === undefined) {
-			if (findIfInstalled({ command: 'dotnet', arguments: ['--version'] }, /^(\d+[\.\d+]*)/g)) {
+			if (findIfInstalled({ command: 'dotnet', arguments: ['--version'] }, new RegExp(regexp2))) {
 				this._isInstalled = 'local';
-			} else if (findIfInstalled({ command: 'docker', arguments: ['--version'] }, /\d+\.\d+\.\d+/)) {
+			} else if (findIfInstalled({ command: 'docker', arguments: ['--version'] }, regexp1)) {
 				this._isInstalled = 'docker';
 			} else {
 				this._isInstalled = false;

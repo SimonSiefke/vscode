@@ -8,6 +8,8 @@ import { OnEnterSupport } from '../../../../common/languages/supports/onEnter.js
 import { javascriptOnEnterRules } from './onEnterRules.js';
 import { EditorAutoIndentStrategy } from '../../../../common/config/editorOptions.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexp1 = /^\s*\/{3}.*$/gm;
+
 
 suite('OnEnter', () => {
 
@@ -59,7 +61,7 @@ suite('OnEnter', () => {
 						appendText: '/// ',
 						indentAction: IndentAction.Outdent
 					},
-					beforeText: /^\s*\/{3}.*$/gm
+					beforeText: new RegExp(regexp1)
 				}
 			]
 		});

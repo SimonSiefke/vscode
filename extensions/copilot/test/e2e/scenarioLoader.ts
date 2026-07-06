@@ -12,6 +12,8 @@ import { Turn } from '../../src/extension/prompt/common/conversation';
 import { deserializeWorkbenchState, IDeserializedWorkspaceState } from '../../src/platform/test/node/promptContextModel';
 import { ITestingServicesAccessor } from '../../src/platform/test/node/services';
 import { SimulationWorkspace } from '../../src/platform/test/node/simulationWorkspace';
+const regexpConversationJson = /^\d+\.conversation\.json$/;
+
 
 export interface IConversationTestCase {
 	name: string;
@@ -48,7 +50,7 @@ export type Scenario = IConversationTestCase[];
 
 function createTestNameFromPath(folderName: string, fileName: string): string {
 	// Test file is <number>.conversation.json
-	if (/^\d+\.conversation\.json$/.test(fileName)) {
+	if (regexpConversationJson.test(fileName)) {
 		return `${folderName}.${fileName}`;
 	}
 	// Test file contains scenario information

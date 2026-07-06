@@ -11,6 +11,10 @@ import { coalesce } from '../../src/util/vs/base/common/arrays';
 import { Processor } from '../../test/pipeline/alternativeAction/processor';
 import { IData, Scoring } from '../../test/pipeline/alternativeAction/types';
 import { Either, log } from '../../test/pipeline/alternativeAction/util';
+const regexpJson = /\.json$/;
+const regexpScoredEditsJson = /\.scoredEdits\.json$/;
+const regexp3 = /^\[(\d+), (\d+)\)$/;
+
 
 async function extractFromCsv(csvContents: string): Promise<(Scoring.t | undefined)[]> {
 	const options = {
@@ -123,14 +127,14 @@ async function handleAlternativeActionJson(inputFilePath: string) {
 		console.error('Failed to create scoring from alternative action');
 		return;
 	}
-	const outputFilePath = inputFilePath.replace(/\.json$/, '.scoredEdits.json');
-	await Promise.all(writeFiles(outputFilePath.replace(/\.scoredEdits\.json$/, ''), scoring));
+	const outputFilePath = inputFilePath.replace(regexpJson, '.scoredEdits.json');
+	await Promise.all(writeFiles(outputFilePath.replace(regexpScoredEditsJson, ''), scoring));
 	log('Scoring written to:', outputFilePath);
 }
 
 function parseSuggestedEdit(suggestedEditStr: string): [number, number, string] | null {
 	const [stringifiedRange, quotedText] = suggestedEditStr.split(' -> ');
-	const match = stringifiedRange.match(/^\[(\d+), (\d+)\)$/);
+	const match = stringifiedRange.match(regexp3);
 	if (match) {
 		const start = parseInt(match[1], 10);
 		const endEx = parseInt(match[2], 10);

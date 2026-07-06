@@ -10,6 +10,8 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+const regexp1 = /^\w+:/;
+
 
 const reAbsolutePosix = /^\/+/;
 const reAbsoluteWin32 = /^\\+/;
@@ -22,7 +24,7 @@ const reAbsolute = path.sep === '/' ? reAbsolutePosix : reAbsoluteWin32;
  * @param filePath File to locate.
  */
 export function locateFile(base: string, filePath: string): Promise<string> {
-	if (/^\w+:/.test(filePath)) {
+	if (regexp1.test(filePath)) {
 		// path with protocol, already absolute
 		return Promise.resolve(filePath);
 	}

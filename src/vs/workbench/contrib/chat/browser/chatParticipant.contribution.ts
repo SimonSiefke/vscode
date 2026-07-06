@@ -32,6 +32,9 @@ import { IRawChatParticipantContribution } from '../common/participants/chatPart
 import { ChatAgentLocation, ChatModeKind } from '../common/constants.js';
 import { ChatViewId, ChatViewContainerId } from './chat.js';
 import { ChatViewPane } from './widgetHosts/viewPane/chatViewPane.js';
+const regexp1 = /^[\w-]+$/;
+const regexp2 = / /g;
+
 
 // --- Chat Container &  View Registration
 
@@ -228,7 +231,7 @@ export class ChatExtensionPointHandler implements IWorkbenchContribution {
 		chatParticipantExtensionPoint.setHandler((extensions, delta) => {
 			for (const extension of delta.added) {
 				for (const providerDescriptor of extension.value) {
-					if (!providerDescriptor.name?.match(/^[\w-]+$/)) {
+					if (!providerDescriptor.name?.match(regexp1)) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register participant with invalid name: ${providerDescriptor.name}. Name must match /^[\\w-]+$/.`);
 						continue;
 					}
@@ -239,7 +242,7 @@ export class ChatExtensionPointHandler implements IWorkbenchContribution {
 					}
 
 					// Spaces are allowed but considered "invisible"
-					if (providerDescriptor.fullName && strings.InvisibleCharacters.containsInvisibleCharacter(providerDescriptor.fullName.replace(/ /g, ''))) {
+					if (providerDescriptor.fullName && strings.InvisibleCharacters.containsInvisibleCharacter(providerDescriptor.fullName.replace(new RegExp(regexp2), ''))) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register participant with fullName that contains invisible characters: ${providerDescriptor.fullName}.`);
 						continue;
 					}

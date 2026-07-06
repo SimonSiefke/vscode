@@ -5,6 +5,8 @@
 
 import { ChatAgentLocation, ChatModeKind } from '../../../common/constants.js';
 import { COPILOT_VENDOR_ID, ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier } from '../../../common/languageModels.js';
+const regexp1 = /\d+/g;
+
 
 /**
  * Describes the context needed for model selection decisions.
@@ -341,8 +343,8 @@ const AUTO_MODEL_ID = 'auto';
 function compareModelVersions(a: string | undefined, b: string | undefined): number {
 	const rawA = a ?? '';
 	const rawB = b ?? '';
-	const segmentsA = rawA.match(/\d+/g)?.map(Number) ?? [];
-	const segmentsB = rawB.match(/\d+/g)?.map(Number) ?? [];
+	const segmentsA = rawA.match(new RegExp(regexp1))?.map(Number) ?? [];
+	const segmentsB = rawB.match(new RegExp(regexp1))?.map(Number) ?? [];
 	const length = Math.max(segmentsA.length, segmentsB.length);
 	for (let i = 0; i < length; i++) {
 		const numA = segmentsA[i] ?? 0;

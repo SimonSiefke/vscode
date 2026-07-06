@@ -13,6 +13,9 @@ import { ILanguageConfigurationService } from './languageConfigurationRegistry.j
 import { IViewLineTokens } from '../tokens/lineTokens.js';
 import { IndentationContextProcessor, isLanguageDifferentFromLineStart, ProcessedIndentRulesSupport } from './supports/indentationLineProcessor.js';
 import { CursorConfiguration } from '../cursorCommon.js';
+const regexp1 = /^\s+$/;
+const regexp2 = /^\s*$/;
+
 
 export interface IVirtualModel {
 	tokenization: {
@@ -48,7 +51,7 @@ function getPrecedingValidLine(model: IVirtualModel, lineNumber: number, process
 				return resultLineNumber;
 			}
 			const text = model.getLineContent(lastLineNumber);
-			if (processedIndentRulesSupport.shouldIgnore(lastLineNumber) || /^\s+$/.test(text) || text === '') {
+			if (processedIndentRulesSupport.shouldIgnore(lastLineNumber) || regexp1.test(text) || text === '') {
 				resultLineNumber = lastLineNumber;
 				continue;
 			}
@@ -247,7 +250,7 @@ export function getGoodIndentForLine(
 			// Apply enter action as long as there are only whitespace lines between inherited line and this line.
 			let shouldApplyEnterRules = true;
 			for (let inBetweenLine = inheritLine; inBetweenLine < lineNumber - 1; inBetweenLine++) {
-				if (!/^\s*$/.test(virtualModel.getLineContent(inBetweenLine))) {
+				if (!regexp2.test(virtualModel.getLineContent(inBetweenLine))) {
 					shouldApplyEnterRules = false;
 					break;
 				}
@@ -418,7 +421,7 @@ export function getIndentActionForType(
 				const inferredCurrentIndentation = indentConverter.shiftIndent(inheritedIndentation);
 				// If the inferred current indentation is not equal to the actual current indentation, then the indentation has been intentionally changed, in that case keep it
 				const inferredIndentationEqualsActual = inferredCurrentIndentation === actualCurrentIndentation;
-				const textAroundRangeContainsOnlyWhitespace = /^\s*$/.test(textAroundRange);
+				const textAroundRangeContainsOnlyWhitespace = regexp2.test(textAroundRange);
 				const autoClosingPairs = cursorConfig.autoClosingPairs.autoClosingPairsOpenByEnd.get(ch);
 				const autoClosingPairExists = autoClosingPairs && autoClosingPairs.length > 0;
 				const isChFirstNonWhitespaceCharacterAndInAutoClosingPair = autoClosingPairExists && textAroundRangeContainsOnlyWhitespace;

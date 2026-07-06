@@ -16,6 +16,18 @@ import { pathToFileURL } from 'url';
 import ternaryStream from 'ternary-stream';
 import type { Transform } from 'stream';
 import * as tar from 'tar';
+const regexpWin32 = /win32/;
+const regexp2 = /^([a-z])\:(.*)$/i;
+const regexp3 = /\\/g;
+const regexp4 = /^#/;
+const regexp5 = /\r?\n/g;
+const regexp6 = /^!/;
+const regexpSourceMappingURL = /\/\/# sourceMappingURL=(.*)$/g;
+const regexpSourceMappingURL1 = /\n\/\/# sourceMappingURL=(.*)$/gm;
+const regexp9 = /[\/\\]/;
+const regexpTarget = /^target="(.*)"$/m;
+const regexpMsBuildId = /^ms_build_id="(.*)"$/m;
+
 
 const root = path.dirname(path.dirname(import.meta.dirname));
 
@@ -114,7 +126,7 @@ export function debounce(task: () => NodeJS.ReadWriteStream, duration = 500): No
 }
 
 export function fixWin32DirectoryPermissions(): NodeJS.ReadWriteStream {
-	if (!/win32/.test(process.platform)) {
+	if (!regexpWin32.test(process.platform)) {
 		return es.through();
 	}
 
@@ -152,13 +164,13 @@ export function setExecutableBit(pattern?: string | string[]): NodeJS.ReadWriteS
 }
 
 export function toFileUri(filePath: string): string {
-	const match = filePath.match(/^([a-z])\:(.*)$/i);
+	const match = filePath.match(regexp2);
 
 	if (match) {
 		filePath = '/' + match[1].toUpperCase() + ':' + match[2];
 	}
 
-	return 'file://' + filePath.replace(/\\/g, '/');
+	return 'file://' + filePath.replace(new RegExp(regexp3), '/');
 }
 
 export function skipDirectories(): NodeJS.ReadWriteStream {
@@ -171,12 +183,12 @@ export function skipDirectories(): NodeJS.ReadWriteStream {
 
 export function cleanNodeModules(rulePath: string): NodeJS.ReadWriteStream {
 	const rules = fs.readFileSync(rulePath, 'utf8')
-		.split(/\r?\n/g)
+		.split(new RegExp(regexp5))
 		.map(line => line.trim())
-		.filter(line => line && !/^#/.test(line));
+		.filter(line => line && !regexp4.test(line));
 
-	const excludes = rules.filter(line => !/^!/.test(line)).map(line => `!**/node_modules/${line}`);
-	const includes = rules.filter(line => /^!/.test(line)).map(line => `**/node_modules/${line.substr(1)}`);
+	const excludes = rules.filter(line => !regexp6.test(line)).map(line => `!**/node_modules/${line}`);
+	const includes = rules.filter(line => regexp6.test(line)).map(line => `**/node_modules/${line.substr(1)}`);
 
 	const input = es.through();
 	const output = es.merge(
@@ -205,7 +217,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 			}
 
 			const contents = (f.contents as Buffer).toString('utf8');
-			const reg = /\/\/# sourceMappingURL=(.*)$/g;
+			const reg = new RegExp(regexpSourceMappingURL);
 			let lastMatch: RegExpExecArray | null = null;
 			let match: RegExpExecArray | null = null;
 
@@ -218,7 +230,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 					version: '3',
 					names: [],
 					mappings: '',
-					sources: [f.relative.replace(/\\/g, '/')],
+					sources: [f.relative.replace(new RegExp(regexp3), '/')],
 					sourcesContent: [contents]
 				};
 
@@ -226,7 +238,7 @@ export function loadSourcemaps(): NodeJS.ReadWriteStream {
 				return;
 			}
 
-			f.contents = Buffer.from(contents.replace(/\/\/# sourceMappingURL=(.*)$/g, ''), 'utf8');
+			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL), ''), 'utf8');
 
 			fs.readFile(path.join(path.dirname(f.path), lastMatch[1]), 'utf8', (err, contents) => {
 				if (err) { return cb(err); }
@@ -245,7 +257,7 @@ export function stripSourceMappingURL(): NodeJS.ReadWriteStream {
 	const output = input
 		.pipe(es.mapSync<VinylFile, VinylFile>(f => {
 			const contents = (f.contents as Buffer).toString('utf8');
-			f.contents = Buffer.from(contents.replace(/\n\/\/# sourceMappingURL=(.*)$/gm, ''), 'utf8');
+			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL1), ''), 'utf8');
 			return f;
 		}));
 
@@ -284,8 +296,8 @@ export function rewriteSourceMappingURL(sourceMappingURLBase: string): NodeJS.Re
 	const output = input
 		.pipe(es.mapSync<VinylFile, VinylFile>(f => {
 			const contents = (f.contents as Buffer).toString('utf8');
-			const str = `//# sourceMappingURL=${sourceMappingURLBase}/${path.dirname(f.relative).replace(/\\/g, '/')}/$1`;
-			f.contents = Buffer.from(contents.replace(/\n\/\/# sourceMappingURL=(.*)$/gm, str));
+			const str = `//# sourceMappingURL=${sourceMappingURLBase}/${path.dirname(f.relative).replace(new RegExp(regexp3), '/')}/$1`;
+			f.contents = Buffer.from(contents.replace(new RegExp(regexpSourceMappingURL1), str));
 			return f;
 		}));
 
@@ -344,7 +356,7 @@ export function ensureDir(dirPath: string): void {
 
 export function rebase(count: number): NodeJS.ReadWriteStream {
 	return rename(f => {
-		const parts = f.dirname ? f.dirname.split(/[\/\\]/) : [];
+		const parts = f.dirname ? f.dirname.split(regexp9) : [];
 		f.dirname = parts.slice(count).join(path.sep);
 	});
 }
@@ -375,8 +387,8 @@ export function streamToPromise(stream: NodeJS.ReadWriteStream): Promise<void> {
 
 export function getElectronVersion(): Record<string, string> {
 	const npmrc = fs.readFileSync(path.join(root, '.npmrc'), 'utf8');
-	const electronVersion = /^target="(.*)"$/m.exec(npmrc)![1];
-	const msBuildId = /^ms_build_id="(.*)"$/m.exec(npmrc)![1];
+	const electronVersion = regexpTarget.exec(npmrc)![1];
+	const msBuildId = regexpMsBuildId.exec(npmrc)![1];
 	return { electronVersion, msBuildId };
 }
 

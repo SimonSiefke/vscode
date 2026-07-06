@@ -41,6 +41,8 @@ import { CopilotCLISessionType } from '../../../agentHost/browser/baseAgentHostS
 import { IObservable, constObservable } from '../../../../../../base/common/observable.js';
 import { IActiveSession } from '../../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../../../services/sessions/browser/sessionsService.js';
+const regexpNotFound = /not found/;
+
 
 // ---- Mock connection --------------------------------------------------------
 
@@ -966,7 +968,7 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		const provider = createProvider(disposables, connection);
 		await assert.rejects(
 			() => provider.sendRequest('nonexistent', URI.parse('untitled:chat'), { query: 'test' }),
-			/not found/,
+			regexpNotFound,
 		);
 	});
 

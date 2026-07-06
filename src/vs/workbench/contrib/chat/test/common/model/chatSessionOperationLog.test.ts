@@ -8,6 +8,9 @@ import { VSBuffer } from '../../../../../../base/common/buffer.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import * as Adapt from '../../../common/model/objectMutationLog.js';
 import { equals } from '../../../../../../base/common/objects.js';
+const regexpEmptyLogFile = /Empty log file/;
+const regexpMissingAnInitial = /missing an initial entry/;
+
 
 suite('ChatSessionOperationLog', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -385,7 +388,7 @@ suite('ChatSessionOperationLog', () => {
 			const schema = createTestSchema();
 			const adapter = new Adapt.ObjectMutationLog(schema);
 
-			assert.throws(() => adapter.read(VSBuffer.fromString('')), /Empty log file/);
+			assert.throws(() => adapter.read(VSBuffer.fromString('')), regexpEmptyLogFile);
 		});
 
 		test('write without prior read creates initial entry', () => {
@@ -624,7 +627,7 @@ suite('ChatSessionOperationLog', () => {
 			const adapter = new Adapt.ObjectMutationLog(schema);
 
 			const logContent = JSON.stringify({ kind: 1, k: ['count'], v: 5 }) + '\n';
-			assert.throws(() => adapter.read(VSBuffer.fromString(logContent)), /missing an initial entry/);
+			assert.throws(() => adapter.read(VSBuffer.fromString(logContent)), regexpMissingAnInitial);
 		});
 
 		test('failed first write followed by successful write produces valid roundtrip', () => {

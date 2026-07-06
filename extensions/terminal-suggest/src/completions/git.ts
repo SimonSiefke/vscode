@@ -6,6 +6,14 @@
 /* eslint-disable local/code-no-unexternalized-strings */
 
 import * as vscode from 'vscode';
+const regexp1 = /^"|"$/g;
+const regexp2 = /\S+/g;
+const regexp3 = /^M /;
+const regexp4 = /A /;
+const regexp5 = /M /;
+const regexpExternalCommands = /external commands/i;
+const regexp7 = /\s+/;
+
 
 function ai(...args: any[]): undefined { return undefined; }
 
@@ -33,7 +41,7 @@ const postProcessTrackedFiles: Fig.Generator["postProcess"] = (
 
 	return [
 		...files.map((item) => {
-			const file = item.file.replace(/^"|"$/g, "");
+			const file = item.file.replace(new RegExp(regexp1), "");
 			let ext = "";
 
 			try {
@@ -81,7 +89,7 @@ const postProcessBranches =
 					if (parts.length < 5) {
 						// Fallback to old parsing if format doesn't match
 						let name = branch.trim();
-						const oldParts = branch.match(/\S+/g);
+						const oldParts = branch.match(new RegExp(regexp2));
 						if (oldParts && oldParts.length > 1) {
 							if (oldParts[0] === "*") {
 								if (branch.includes("HEAD detached")) {
@@ -433,7 +441,7 @@ export const gitGenerators = {
 
 			// Filter out the files that the user has already input in the current edit buffer
 			files = files.filter((item) => {
-				const file = item.file.replace(/^"|"$/g, "");
+				const file = item.file.replace(new RegExp(regexp1), "");
 				return !context.some((ctx) => {
 					return (
 						ctx === file ||
@@ -453,7 +461,7 @@ export const gitGenerators = {
 					};
 				}),
 				...files.map((item) => {
-					const file = item.file.replace(/^"|"$/g, "");
+					const file = item.file.replace(new RegExp(regexp1), "");
 					let ext = "";
 					try {
 						ext = file.split(".").slice(-1)[0];
@@ -487,7 +495,7 @@ export const gitGenerators = {
 			}
 
 			const filteredLines = output.split("\n").filter(line => {
-				return line.match(/^M /) || line.match(/A /);
+				return line.match(regexp3) || line.match(regexp4);
 			});
 
 			return postProcessTrackedFiles(filteredLines.join("\n"), context);
@@ -511,11 +519,11 @@ export const gitGenerators = {
 			let filteredLines;
 			if (context.includes("--staged") || context.includes("--cached")) {
 				filteredLines = output.split("\n").filter(line => {
-					return line.match(/^M /) || line.match(/A /);
+					return line.match(regexp3) || line.match(regexp4);
 				});
 			} else {
 				filteredLines = output.split("\n").filter(line => {
-					return line.match(/M /) || line.match(/A /);
+					return line.match(regexp5) || line.match(regexp4);
 				});
 			}
 
@@ -4077,14 +4085,14 @@ const completionSpec: Fig.Spec = {
 			args: ["help", "-a"],
 		});
 		const lines = stdout.trim().split("\n");
-		const start = lines.findIndex((val) => val.match(/external commands/i));
+		const start = lines.findIndex((val) => val.match(regexpExternalCommands));
 		const commands: string[] = [];
 		for (let i = start + 1; i < lines.length; i += 1) {
 			const line = lines[i].trim();
 			if (!line) {
 				break;
 			}
-			const command = line.split(/\s+/)[0];
+			const command = line.split(regexp7)[0];
 			commands.push(command);
 		}
 		return {

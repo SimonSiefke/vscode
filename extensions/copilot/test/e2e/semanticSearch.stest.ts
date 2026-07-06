@@ -6,9 +6,11 @@
 import { ssuite, stest } from '../base/stest';
 import { discoverScenarios } from './scenarioLoader';
 import { generateScenarioTestRunner, shouldSkip } from './scenarioTest';
+const regexp1 = /\#\#\s+(.*)\n/g;
+
 
 function getFiles(answer: string): string[] {
-	const regex = /\#\#\s+(.*)\n/g;
+	const regex = new RegExp(regexp1);
 	let match;
 	const titles = [];
 	while ((match = regex.exec(answer)) !== null) {

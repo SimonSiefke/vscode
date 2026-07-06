@@ -11,6 +11,10 @@ import type { IOutputAnalyzer, IOutputAnalyzerOptions } from './outputAnalyzer.j
 import { TerminalChatAgentToolsSettingId } from '../../common/terminalChatAgentToolsConfiguration.js';
 import { AgentNetworkDomainSettingId } from '../../../../../../platform/networkFilter/common/settings.js';
 import { AgentSandboxSettingId } from '../../../../../../platform/sandbox/common/settings.js';
+const regexp1 = /\n/g;
+const regexpOperationNotPermitted = /Operation not permitted|Permission denied|Read-only file system|sandbox-exec|bwrap|sandbox_violation|No such file or directory/i;
+const regexpCouldNotResolve = /Could not resolve host|Temporary failure in name resolution|Name or service not known|EAI_AGAIN|ENETUNREACH|Network is unreachable|Received HTTP code 403 from proxy after CONNECT|network (?:access )?(?:blocked|disabled)|(?:connect|socket).*(?:Operation not permitted|Permission denied)|(?:Operation not permitted|Permission denied).*(?:connect|socket)/i;
+
 
 export class SandboxOutputAnalyzer extends Disposable implements IOutputAnalyzer {
 	constructor(
@@ -79,8 +83,8 @@ Here is the output of the command:\n`;
  * by terminal wrapping, so we strip them before testing.
  */
 export function outputLooksSandboxBlocked(output: string): boolean {
-	const normalized = output.replace(/\n/g, ' ');
-	return /Operation not permitted|Permission denied|Read-only file system|sandbox-exec|bwrap|sandbox_violation|No such file or directory/i.test(normalized);
+	const normalized = output.replace(new RegExp(regexp1), ' ');
+	return regexpOperationNotPermitted.test(normalized);
 }
 
 /**
@@ -88,6 +92,6 @@ export function outputLooksSandboxBlocked(output: string): boolean {
  * to select automatic allow-network retries and prevent automatic unsandboxing.
  */
 export function outputLooksSandboxNetworkBlocked(output: string): boolean {
-	const normalized = output.replace(/\n/g, ' ');
-	return /Could not resolve host|Temporary failure in name resolution|Name or service not known|EAI_AGAIN|ENETUNREACH|Network is unreachable|Received HTTP code 403 from proxy after CONNECT|network (?:access )?(?:blocked|disabled)|(?:connect|socket).*(?:Operation not permitted|Permission denied)|(?:Operation not permitted|Permission denied).*(?:connect|socket)/i.test(normalized);
+	const normalized = output.replace(new RegExp(regexp1), ' ');
+	return regexpCouldNotResolve.test(normalized);
 }

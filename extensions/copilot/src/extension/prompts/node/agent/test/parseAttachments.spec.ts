@@ -31,6 +31,8 @@ import { createExtensionUnitTestingServices } from '../../../../test/node/servic
 import { TestChatRequest } from '../../../../test/node/testHelpers';
 import { MockExtensionContext } from '../../../../../platform/test/node/extensionContext';
 import { IVSCodeExtensionContext } from '../../../../../platform/extContext/common/extensionContext';
+const regexp1 = /\\/g;
+
 
 
 suite('CopilotCLI Generate & parse prompts', () => {
@@ -805,11 +807,11 @@ function createWorkspaceInfo(workspaceType: 'emptyWorkspace' | 'workspace' | 'wo
 function fixFilePathsForTestComparison(attachments: Attachment[]): Attachment[] {
 	attachments.forEach(attachment => {
 		if (attachment.type === 'file') {
-			attachment.path = attachment.path.replace(/\\/g, '/');
+			attachment.path = attachment.path.replace(new RegExp(regexp1), '/');
 		} else if (attachment.type === 'directory') {
-			attachment.path = attachment.path.replace(/\\/g, '/');
+			attachment.path = attachment.path.replace(new RegExp(regexp1), '/');
 		} else if (attachment.type === 'selection') {
-			attachment.filePath = attachment.filePath.replace(/\\/g, '/');
+			attachment.filePath = attachment.filePath.replace(new RegExp(regexp1), '/');
 		}
 	});
 	return attachments;

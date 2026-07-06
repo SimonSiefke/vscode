@@ -66,6 +66,9 @@ import { ICopilotApiService } from '../shared/copilotApiService.js';
 import { CopilotSlashCommandCompletionProvider } from './copilotSlashCommandCompletionProvider.js';
 import { DiscoveredType, SessionCustomizationDiscovery, areDiscoveredDirectoriesEqual, type IDiscoveredDirectory } from './sessionCustomizationDiscovery.js';
 import { COPILOT_INTEGRATION_ID } from '../../../endpoint/common/licenseAgreement.js';
+const regexp1 = /\//g;
+const regexpMd = /\.md$/i;
+
 
 const RUNTIME_SLASH_COMMAND_COMPLETION_WAIT_MS = 300;
 const COPILOT_CAPI_URL = 'https://api.githubcopilot.com';
@@ -241,7 +244,7 @@ export function getCopilotWorktreeName(branchName: string): string {
 	const withoutPrefix = branchName.startsWith(COPILOT_BRANCH_PREFIX)
 		? branchName.substring(COPILOT_BRANCH_PREFIX.length)
 		: branchName;
-	return withoutPrefix.replace(/\//g, '-');
+	return withoutPrefix.replace(new RegExp(regexp1), '-');
 }
 
 /**
@@ -3547,7 +3550,7 @@ export function mapToParsedPlugin(customizations: readonly DirectoryCustomizatio
 			}
 
 			if (child.type === CustomizationType.Rule) {
-				if (child.alwaysApply && child.name.match(/\.md$/i)) {
+				if (child.alwaysApply && child.name.match(regexpMd)) {
 					continue; // agent instruction
 				}
 				instructions.push({

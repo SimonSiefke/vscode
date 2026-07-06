@@ -7,6 +7,8 @@ import type * as vscode from 'vscode';
 import { sessionResourceToId } from '../../../platform/chat/common/chatDebugFileLoggerService';
 import { URI } from '../../../util/vs/base/common/uri';
 import { basename } from '../../../util/vs/base/common/resources';
+const regexpCommandArgs = /^\s*\/(?<command>\S+)(?:\s+(?<args>.*))?$/s;
+
 
 export interface PromptVariable {
 	readonly reference: vscode.ChatPromptReference;
@@ -260,7 +262,7 @@ export interface ParsedSlashCommand {
  * Returns the matched prompt file and parsed arguments, or `undefined` if no match.
  */
 export function parseSlashCommand(query: string, chatVariables: ChatVariablesCollection): ParsedSlashCommand | undefined {
-	const slashCommandMatch = query.match(/^\s*\/(?<command>\S+)(?:\s+(?<args>.*))?$/s);
+	const slashCommandMatch = query.match(regexpCommandArgs);
 	const slashCommand = slashCommandMatch?.groups?.command;
 	if (!slashCommand) {
 		return undefined;

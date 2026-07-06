@@ -15,6 +15,13 @@ import { WorkspaceFolder } from '../../../../../platform/workspace/common/worksp
 import { DebugLinkHoverBehavior, LinkDetector } from '../../browser/linkDetector.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IHighlight } from '../../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
+const regexpSpanTheLink = /^<span>The link: <a tabindex="0">.*\/foo\/bar.js:12:34<\/a><\/span>$/;
+const regexpSpanHereIs = /^<span>Here is a link <a tabindex="0">.*\/foo\/bar.js:12:34<\/a> and here is another <a tabindex="0">.*\/boo\/far.js:56:78<\/a><\/span>$/;
+const regexpSpanSpanLine = /^<span><span>Line one\n<\/span><span>Line two\n<\/span><span>Line three<\/span><\/span>$/;
+const regexpSpanSpanHave = /^<span><span>I have a link for you\n<\/span><span>Here it is: <a tabindex="0">.*\/foo\/bar.js:12:34<\/a>\n<\/span><span>Cool, huh\?<\/span><\/span>$/;
+const regexpSpanTabindexFoo = /^<span><a tabindex="0">.*\/foo\/bar\.js:12:34<\/a> and <a tabindex="0">.*\/baz\/qux\.cs:line 6<\/a><\/span>$/;
+const regexpSpanTabindexFoo1 = /^<span><a tabindex="0">.*\\foo\\bar\.js:12:34<\/a> and <a tabindex="0">.*\\baz\\qux\.cs:line 6<\/a><\/span>$/;
+
 
 suite('Debug - Link Detector', () => {
 
@@ -127,7 +134,7 @@ suite('Debug - Link Detector', () => {
 	test('singleLineLinkAndText', function () {
 		const hoverBehavior = { type: DebugLinkHoverBehavior.None, store: new DisposableStore() };
 		const input = isWindows ? 'The link: C:/foo/bar.js:12:34' : 'The link: /Users/foo/bar.js:12:34';
-		const expectedOutput = /^<span>The link: <a tabindex="0">.*\/foo\/bar.js:12:34<\/a><\/span>$/;
+		const expectedOutput = regexpSpanTheLink;
 		const output = linkDetector.linkify(input, hoverBehavior);
 
 		assert.strictEqual(1, output.children.length);
@@ -143,7 +150,7 @@ suite('Debug - Link Detector', () => {
 		const hoverBehavior = { type: DebugLinkHoverBehavior.None, store: new DisposableStore() };
 		const input = isWindows ? 'Here is a link C:/foo/bar.js:12:34 and here is another D:/boo/far.js:56:78' :
 			'Here is a link /Users/foo/bar.js:12:34 and here is another /Users/boo/far.js:56:78';
-		const expectedOutput = /^<span>Here is a link <a tabindex="0">.*\/foo\/bar.js:12:34<\/a> and here is another <a tabindex="0">.*\/boo\/far.js:56:78<\/a><\/span>$/;
+		const expectedOutput = regexpSpanHereIs;
 		const output = linkDetector.linkify(input, hoverBehavior);
 
 		assert.strictEqual(2, output.children.length);
@@ -161,7 +168,7 @@ suite('Debug - Link Detector', () => {
 	test('multilineNoLinks', () => {
 		const hoverBehavior = { type: DebugLinkHoverBehavior.None, store: new DisposableStore() };
 		const input = 'Line one\nLine two\nLine three';
-		const expectedOutput = /^<span><span>Line one\n<\/span><span>Line two\n<\/span><span>Line three<\/span><\/span>$/;
+		const expectedOutput = regexpSpanSpanLine;
 		const output = linkDetector.linkify(input, hoverBehavior, true);
 
 		assert.strictEqual(3, output.children.length);
@@ -191,7 +198,7 @@ suite('Debug - Link Detector', () => {
 		const hoverBehavior = { type: DebugLinkHoverBehavior.None, store: new DisposableStore() };
 		const input = isWindows ? 'I have a link for you\nHere it is: C:/foo/bar.js:12:34\nCool, huh?' :
 			'I have a link for you\nHere it is: /Users/foo/bar.js:12:34\nCool, huh?';
-		const expectedOutput = /^<span><span>I have a link for you\n<\/span><span>Here it is: <a tabindex="0">.*\/foo\/bar.js:12:34<\/a>\n<\/span><span>Cool, huh\?<\/span><\/span>$/;
+		const expectedOutput = regexpSpanSpanHave;
 		const output = linkDetector.linkify(input, hoverBehavior, true);
 
 		assert.strictEqual(3, output.children.length);
@@ -315,8 +322,8 @@ suite('Debug - Link Detector', () => {
 			'/Users/foo/bar.js:12:34 and /Users/baz/qux.cs:line 6';
 		// Use flexible path separator matching for cross-platform compatibility
 		const expectedOutput = isWindows ?
-			/^<span><a tabindex="0">.*\\foo\\bar\.js:12:34<\/a> and <a tabindex="0">.*\\baz\\qux\.cs:line 6<\/a><\/span>$/ :
-			/^<span><a tabindex="0">.*\/foo\/bar\.js:12:34<\/a> and <a tabindex="0">.*\/baz\/qux\.cs:line 6<\/a><\/span>$/;
+			regexpSpanTabindexFoo1 :
+			regexpSpanTabindexFoo;
 		const output = linkDetector.linkify(input, hoverBehavior);
 
 		assert.strictEqual(2, output.children.length);

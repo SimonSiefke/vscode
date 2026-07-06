@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Code } from './code';
+const regexp1 = /\d+/;
+
 
 export class References {
 
@@ -20,7 +22,7 @@ export class References {
 
 	async waitForReferencesCountInTitle(count: number): Promise<void> {
 		await this.code.waitForTextContent(References.REFERENCES_TITLE_COUNT, undefined, titleCount => {
-			const matches = titleCount.match(/\d+/);
+			const matches = titleCount.match(regexp1);
 			return matches ? parseInt(matches[0]) === count : false;
 		});
 	}

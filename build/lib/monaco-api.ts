@@ -11,6 +11,32 @@ import { type IFileMap, TypeScriptLanguageServiceHost } from './typeScriptLangua
 import ts from 'typescript';
 
 import tsfmt from '../../tsfmt.json' with { type: 'json' };
+const regexpExportDefault = /export default /g;
+const regexpExportDeclare = /export declare /g;
+const regexpDeclare = /declare /g;
+const regexp4 = /\r\n|\r|\n/;
+const regexp5 = /\s*\*/;
+const regexp6 = /"/g;
+const regexpConstEnum = /const enum/;
+const regexp8 = /\s$/;
+const regexp9 = /\*\//;
+const regexp10 = /\/\*/;
+const regexp11 = /^\}/;
+const regexp12 = /[({]/;
+const regexp13 = /{$/;
+const regexp14 = /[\-\\\{\}\*\+\?\|\^\$\.\,\[\]\(\)\#\s]/g;
+const regexp15 = /\r\n/;
+const regexpDtsv = /^\/\/dtsv=(\d+)$/;
+const regexpInclude = /^\s*#include\(([^;)]*)(;[^)]*)?\)\:(.*)$/;
+const regexp18 = /,/;
+const regexpIncludeAll = /^\s*#includeAll\(([^;)]*)(;[^)]*)?\)\:(.*)$/;
+const regexpBURI = /\bURI\b/g;
+const regexpBEvent = /\bEvent</g;
+const regexp22 = /\r\n|\n|\r/;
+const regexp23 = /\r\n/gm;
+const regexpTs = /\.d\.ts$/;
+const regexpJs = /\.js$/;
+
 
 const dtsv = '3';
 
@@ -183,21 +209,21 @@ function getMassagedTopLevelDeclarationText(ts: typeof import('typescript'), sou
 			}
 		});
 	}
-	result = result.replace(/export default /g, 'export ');
-	result = result.replace(/export declare /g, 'export ');
-	result = result.replace(/declare /g, '');
-	const lines = result.split(/\r\n|\r|\n/);
+	result = result.replace(new RegExp(regexpExportDefault), 'export ');
+	result = result.replace(new RegExp(regexpExportDeclare), 'export ');
+	result = result.replace(new RegExp(regexpDeclare), '');
+	const lines = result.split(regexp4);
 	for (let i = 0; i < lines.length; i++) {
-		if (/\s*\*/.test(lines[i])) {
+		if (regexp5.test(lines[i])) {
 			// very likely a comment
 			continue;
 		}
-		lines[i] = lines[i].replace(/"/g, '\'');
+		lines[i] = lines[i].replace(new RegExp(regexp6), '\'');
 	}
 	result = lines.join('\n');
 
 	if (declaration.kind === ts.SyntaxKind.EnumDeclaration) {
-		result = result.replace(/const enum/, 'enum');
+		result = result.replace(regexpConstEnum, 'enum');
 		enums.push({
 			enumName: declaration.name.getText(sourceFile),
 			text: result
@@ -258,7 +284,7 @@ function format(ts: Typescript, text: string, endl: string): string {
 		let inCommentDeltaIndent = 0;
 		let indent = 0;
 		for (let i = 0; i < lines.length; i++) {
-			let line = lines[i].replace(/\s$/, '');
+			let line = lines[i].replace(regexp8, '');
 			let repeat = false;
 			let lineIndent = 0;
 			do {
@@ -280,14 +306,14 @@ function format(ts: Typescript, text: string, endl: string): string {
 			}
 
 			if (inComment) {
-				if (/\*\//.test(line)) {
+				if (regexp9.test(line)) {
 					inComment = false;
 				}
 				lines[i] = repeatStr('\t', lineIndent + inCommentDeltaIndent) + line;
 				continue;
 			}
 
-			if (/\/\*/.test(line)) {
+			if (regexp10.test(line)) {
 				inComment = true;
 				inCommentDeltaIndent = indent - lineIndent;
 				lines[i] = repeatStr('\t', indent) + line;
@@ -298,19 +324,19 @@ function format(ts: Typescript, text: string, endl: string): string {
 			let shouldUnindentAfter = false;
 			let shouldUnindentBefore = false;
 			if (cnt < 0) {
-				if (/[({]/.test(line)) {
+				if (regexp12.test(line)) {
 					shouldUnindentAfter = true;
 				} else {
 					shouldUnindentBefore = true;
 				}
 			} else if (cnt === 0) {
-				shouldUnindentBefore = /^\}/.test(line);
+				shouldUnindentBefore = regexp11.test(line);
 			}
 			let shouldIndentAfter = false;
 			if (cnt > 0) {
 				shouldIndentAfter = true;
 			} else if (cnt === 0) {
-				shouldIndentAfter = /{$/.test(line);
+				shouldIndentAfter = regexp13.test(line);
 			}
 
 			if (shouldUnindentBefore) {
@@ -370,7 +396,7 @@ function createReplacer(data: string): (str: string) => string {
 		let findStr = pieces[0];
 		const replaceStr = pieces[1];
 
-		findStr = findStr.replace(/[\-\\\{\}\*\+\?\|\^\$\.\,\[\]\(\)\#\s]/g, '\\$&');
+		findStr = findStr.replace(new RegExp(regexp14), '\\$&');
 		findStr = '\\b' + findStr + '\\b';
 		directives.push([new RegExp(findStr, 'g'), replaceStr]);
 	});
@@ -390,7 +416,7 @@ interface IEnumEntry {
 }
 
 function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGetter: SourceFileGetter): ITempResult | null {
-	const endl = /\r\n/.test(recipe) ? '\r\n' : '\n';
+	const endl = regexp15.test(recipe) ? '\r\n' : '\n';
 
 	const lines = recipe.split(endl);
 	const result: string[] = [];
@@ -419,12 +445,12 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 			return;
 		}
 
-		const m0 = line.match(/^\/\/dtsv=(\d+)$/);
+		const m0 = line.match(regexpDtsv);
 		if (m0) {
 			version = m0[1];
 		}
 
-		const m1 = line.match(/^\s*#include\(([^;)]*)(;[^)]*)?\)\:(.*)$/);
+		const m1 = line.match(regexpInclude);
 		if (m1) {
 			const moduleId = m1[1];
 			const sourceFile = sourceFileGetter(moduleId);
@@ -439,7 +465,7 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 
 			const replacer = createReplacer(m1[2]);
 
-			const typeNames = m1[3].split(/,/);
+			const typeNames = m1[3].split(regexp18);
 			typeNames.forEach((typeName) => {
 				typeName = typeName.trim();
 				if (typeName.length === 0) {
@@ -457,7 +483,7 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 			return;
 		}
 
-		const m2 = line.match(/^\s*#includeAll\(([^;)]*)(;[^)]*)?\)\:(.*)$/);
+		const m2 = line.match(regexpIncludeAll);
 		if (m2) {
 			const moduleId = m2[1];
 			const sourceFile = sourceFileGetter(moduleId);
@@ -472,7 +498,7 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 
 			const replacer = createReplacer(m2[2]);
 
-			const typeNames = m2[3].split(/,/);
+			const typeNames = m2[3].split(regexp18);
 			const typesToExcludeMap: { [typeName: string]: boolean } = {};
 			const typesToExcludeArr: string[] = [];
 			typeNames.forEach((typeName) => {
@@ -520,11 +546,11 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 	}
 
 	let resultTxt = result.join(endl);
-	resultTxt = resultTxt.replace(/\bURI\b/g, 'Uri');
-	resultTxt = resultTxt.replace(/\bEvent</g, 'IEvent<');
-	resultTxt = resultTxt.split(/\r\n|\n|\r/).join(endl);
+	resultTxt = resultTxt.replace(new RegExp(regexpBURI), 'Uri');
+	resultTxt = resultTxt.replace(new RegExp(regexpBEvent), 'IEvent<');
+	resultTxt = resultTxt.split(regexp22).join(endl);
 	resultTxt = format(ts, resultTxt, endl);
-	resultTxt = resultTxt.split(/\r\n|\n|\r/).join(endl);
+	resultTxt = resultTxt.split(regexp22).join(endl);
 
 	enums.sort((e1, e2) => {
 		if (e1.enumName < e2.enumName) {
@@ -545,9 +571,9 @@ function generateDeclarationFile(ts: Typescript, recipe: string, sourceFileGette
 		'// THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY.',
 		''
 	].concat(enums.map(e => e.text)).join(endl);
-	resultEnums = resultEnums.split(/\r\n|\n|\r/).join(endl);
+	resultEnums = resultEnums.split(regexp22).join(endl);
 	resultEnums = format(ts, resultEnums, endl);
-	resultEnums = resultEnums.split(/\r\n|\n|\r/).join(endl);
+	resultEnums = resultEnums.split(regexp22).join(endl);
 
 	return {
 		result: resultTxt,
@@ -576,8 +602,8 @@ function _run(ts: Typescript, sourceFileGetter: SourceFileGetter): IMonacoDeclar
 	const enums = t.enums;
 
 	const currentContent = fs.readFileSync(DECLARATION_PATH).toString();
-	const one = currentContent.replace(/\r\n/gm, '\n');
-	const other = result.replace(/\r\n/gm, '\n');
+	const one = currentContent.replace(new RegExp(regexp23), '\n');
+	const other = result.replace(new RegExp(regexp23), '\n');
 	const isTheSame = (one === other);
 
 	return {
@@ -646,11 +672,11 @@ export class DeclarationResolver {
 	}
 
 	private _getFileName(moduleId: string): string {
-		if (/\.d\.ts$/.test(moduleId)) {
+		if (regexpTs.test(moduleId)) {
 			return path.join(SRC, moduleId);
 		}
-		if (/\.js$/.test(moduleId)) {
-			return path.join(SRC, moduleId.replace(/\.js$/, '.ts'));
+		if (regexpJs.test(moduleId)) {
+			return path.join(SRC, moduleId.replace(regexpJs, '.ts'));
 		}
 		return path.join(SRC, `${moduleId}.ts`);
 	}
@@ -661,7 +687,7 @@ export class DeclarationResolver {
 			return null;
 		}
 		const mtime = this._fsProvider.statSync(fileName).mtime.getTime();
-		if (/\.d\.ts$/.test(moduleId)) {
+		if (regexpTs.test(moduleId)) {
 			// const mtime = this._fsProvider.statFileSync()
 			const fileContents = this._fsProvider.readFileSync(moduleId, fileName).toString();
 			return new CacheEntry(

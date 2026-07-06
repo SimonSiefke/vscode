@@ -14,6 +14,9 @@ import { URI } from '../../src/util/vs/base/common/uri';
 import { getDiagnostics } from './diagnosticProviders';
 import { DiagnosticsProvider, ITestDiagnostic } from './diagnosticProviders/diagnosticsProvider';
 import { DiagnosticProviderId, IInlineEditOutcome, IOutcome, IWorkspaceEditOutcome, OutcomeAnnotation } from './types';
+const regexp1 = /^\t*(\S|$|( \*))/;
+const regexp2 = /^[ ]*[\S$]/;
+
 
 export function assertLooksLikeJSDoc(text: string): void {
 	text = text.trim();
@@ -184,7 +187,7 @@ export async function assertCriteriaMetAsync(accessor: ITestingServicesAccessor,
 }
 
 export function validateConsistentIndentation(newText: string, insertSpaces: boolean, annotations: OutcomeAnnotation[]): void {
-	const indentationRegex = insertSpaces ? /^[ ]*[\S$]/ : /^\t*(\S|$|( \*))/; // special handling for Doc comments that start with ` *
+	const indentationRegex = insertSpaces ? regexp2 : regexp1; // special handling for Doc comments that start with ` *
 	const lines = splitLines(newText);
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];

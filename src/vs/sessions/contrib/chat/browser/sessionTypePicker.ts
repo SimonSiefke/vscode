@@ -28,6 +28,8 @@ import { IChatEntitlementService } from '../../../../workbench/services/chat/com
 import { markOnboardingTarget } from '../../../../workbench/contrib/onboarding/browser/spotlight/onboardingTarget.js';
 import { reportNewChatPickerClosed } from './newChatPickerTelemetry.js';
 import { SessionHarnessPickerVisibleContext } from '../../../common/contextkeys.js';
+const regexp1 = /\s+/;
+
 
 const STORAGE_KEY_LAST_SESSION_TYPE = 'sessions.userSelectedSessionType';
 
@@ -194,7 +196,7 @@ export class SessionTypePicker extends Disposable {
 
 		const slot = dom.append(container, dom.$('.sessions-chat-picker-slot'));
 		if (options?.className) {
-			const classNames = options.className.split(/\s+/).filter(className => className.length > 0);
+			const classNames = options.className.split(regexp1).filter(className => className.length > 0);
 			if (classNames.length > 0) {
 				slot.classList.add(...classNames);
 			}

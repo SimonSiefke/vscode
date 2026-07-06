@@ -57,6 +57,9 @@ import { IToolsService, ToolCallCancelledError } from '../../tools/common/toolsS
 import { ReadFileParams } from '../../tools/node/readFileTool';
 import { isHookAbortError, processHookResults } from './hookResultProcessor';
 import { applyConfiguredPromptOverrides } from './promptOverride';
+const regexpYESNOIMPOSSIBLE = /^(YES|NO|IMPOSSIBLE)\b\s*[:.\-]?\s*([\s\S]*)$/i;
+const regexp2 = /\s+/g;
+
 
 export const enum ToolCallLimitBehavior {
 	Confirm,
@@ -580,7 +583,7 @@ export abstract class ToolCallingLoop<TOptions extends IToolCallingLoopOptions =
 			}
 
 			const text = String(fetchResult.value ?? '').trim();
-			const match = text.match(/^(YES|NO|IMPOSSIBLE)\b\s*[:.\-]?\s*([\s\S]*)$/i);
+			const match = text.match(regexpYESNOIMPOSSIBLE);
 			if (!match) {
 				this._logService.warn(`[ToolCallingLoop] Autopilot goal classifier unparseable response: ${text.slice(0, 200)}`);
 				return undefined;
@@ -588,7 +591,7 @@ export abstract class ToolCallingLoop<TOptions extends IToolCallingLoopOptions =
 			const verdict = match[1].toUpperCase();
 			const done = verdict === 'YES';
 			const impossible = verdict === 'IMPOSSIBLE';
-			const reason = match[2].trim().replace(/\s+/g, ' ') ||
+			const reason = match[2].trim().replace(new RegExp(regexp2), ' ') ||
 				(done ? 'Task complete' : impossible ? 'Task cannot be completed' : 'Task not yet complete');
 			return { done, impossible, reason };
 		} catch (e) {

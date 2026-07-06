@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { TestContext } from './context.js';
+const regexpExtensionHostAgent = /Extension host agent listening on (\d+)/;
+
 
 export function setup(context: TestContext) {
 	context.test('server-alpine-arm64', ['alpine', 'arm64'], async () => {
@@ -76,7 +78,7 @@ export function setup(context: TestContext) {
 				'--extensions-dir', context.createTempDir()
 			],
 			async (line) => {
-				const port = /Extension host agent listening on (\d+)/.exec(line)?.[1];
+				const port = regexpExtensionHostAgent.exec(line)?.[1];
 				if (!port) {
 					return false;
 				}

@@ -13,6 +13,9 @@ import { ChatConfiguration } from '../../common/constants.js';
 import { ChatMessageRole, ILanguageModelsService } from '../../common/languageModels.js';
 import { TerminalToolId } from '../../common/tools/terminalToolIds.js';
 import { IToolData } from '../../common/tools/languageModelToolsService.js';
+const regexp1 = /\n?```$/;
+const regexpJson = /^```(?:json)?\n?/;
+
 
 export const enum ToolRiskLevel {
 	Green = 'green',
@@ -325,7 +328,7 @@ function buildGenericToolPrompt(tool: IToolData, argsJson: string): string {
 function parseAssessment(rawText: string, tool: IToolData): IToolRiskAssessment | undefined {
 	let text = rawText.trim();
 	if (text.startsWith('```')) {
-		text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+		text = text.replace(regexpJson, '').replace(regexp1, '');
 	}
 	// Try to extract JSON object if model added a preamble.
 	const firstBrace = text.indexOf('{');

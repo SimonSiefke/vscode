@@ -24,6 +24,8 @@ import {
 	wrapInResourceSpans,
 	type ChatDebugLogExport,
 } from './otlpFormatConversion';
+const regexp1 = /:r(\d+)$/;
+
 
 /**
  * Stateless ChatDebugLogProvider backed by JSONL files.
@@ -541,7 +543,7 @@ export class OTelChatDebugLogProviderContribution extends Disposable implements 
 	 */
 	private async _findEntryOnDisk(sessionId: string, eventId: string): Promise<IDebugLogEntry | undefined> {
 		// The eventId may have a run suffix (e.g., "0000000000000001:r1").
-		const runMatch = /:r(\d+)$/.exec(eventId);
+		const runMatch = regexp1.exec(eventId);
 		const rawSpanId = runMatch ? eventId.slice(0, runMatch.index) : eventId;
 		const targetRunIndex = runMatch ? parseInt(runMatch[1], 10) : 0;
 

@@ -6,6 +6,8 @@
 import { mainWindow } from '../../../../base/browser/window.js';
 import { isRemoteDiagnosticError, SystemInfo } from '../../../../platform/diagnostics/common/diagnostics.js';
 import { ISettingSearchResult, IssueReporterExtensionData, IssueSource, IssueType } from '../common/issue.js';
+const regexp1 = /\\/g;
+
 
 interface VersionInfo {
 	vscodeVersion: string;
@@ -194,7 +196,7 @@ ${this.getInfos()}
 |GPU Status|${Object.keys(this._data.systemInfo.gpuStatus).map(key => `${key}: ${this._data.systemInfo!.gpuStatus[key]}`).join('<br>')}|
 |Load (avg)|${this._data.systemInfo.load}|
 |Memory (System)|${this._data.systemInfo.memory}|
-|Process Argv|${this._data.systemInfo.processArgs.replace(/\\/g, '\\\\')}|
+|Process Argv|${this._data.systemInfo.processArgs.replace(new RegExp(regexp1), '\\\\')}|
 |Screen Reader|${this._data.systemInfo.screenReader}|
 |VM|${this._data.systemInfo.vmHint}|`;
 

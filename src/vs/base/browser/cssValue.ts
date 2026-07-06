@@ -5,6 +5,12 @@
 import { Color } from '../common/color.js';
 import { FileAccess } from '../common/network.js';
 import { URI } from '../common/uri.js';
+const regexpVar = /^\s*var\((.+)\)$/;
+const regexp2 = /[^\w.%+-]/gi;
+const regexp9aFA = /[^[0-9a-fA-F#]]/gi;
+const regexpZ0 = /[^_\-a-z0-9]/gi;
+const regexp5 = /'/g;
+
 
 export type CssFragment = string & { readonly __cssFragment: unique symbol };
 
@@ -14,7 +20,7 @@ function asFragment(raw: string): CssFragment {
 
 export function asCssValueWithDefault(cssPropertyValue: string | undefined, dflt: string): string {
 	if (cssPropertyValue !== undefined) {
-		const variableMatch = cssPropertyValue.match(/^\s*var\((.+)\)$/);
+		const variableMatch = cssPropertyValue.match(regexpVar);
 		if (variableMatch) {
 			const varArguments = variableMatch[1].split(',', 2);
 			if (varArguments.length === 2) {
@@ -28,7 +34,7 @@ export function asCssValueWithDefault(cssPropertyValue: string | undefined, dflt
 }
 
 export function sizeValue(value: string): CssFragment {
-	const out = value.replaceAll(/[^\w.%+-]/gi, '');
+	const out = value.replaceAll(new RegExp(regexp2), '');
 	if (out !== value) {
 		console.warn(`CSS size ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -36,7 +42,7 @@ export function sizeValue(value: string): CssFragment {
 }
 
 export function hexColorValue(value: string): CssFragment {
-	const out = value.replaceAll(/[^[0-9a-fA-F#]]/gi, '');
+	const out = value.replaceAll(new RegExp(regexp9aFA), '');
 	if (out !== value) {
 		console.warn(`CSS hex color ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -44,7 +50,7 @@ export function hexColorValue(value: string): CssFragment {
 }
 
 export function identValue(value: string): CssFragment {
-	const out = value.replaceAll(/[^_\-a-z0-9]/gi, '');
+	const out = value.replaceAll(new RegExp(regexpZ0), '');
 	if (out !== value) {
 		console.warn(`CSS ident value ${value} modified to ${out} to be safe for CSS`);
 	}
@@ -52,7 +58,7 @@ export function identValue(value: string): CssFragment {
 }
 
 export function stringValue(value: string): CssFragment {
-	return asFragment(`'${value.replaceAll(/'/g, '\\000027')}'`);
+	return asFragment(`'${value.replaceAll(new RegExp(regexp5), '\\000027')}'`);
 }
 
 /**

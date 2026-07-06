@@ -27,6 +27,29 @@ import { formatModelDetails, ModelDetailsInfo } from '../../../../platform/chat/
 import { appendResponsePartsForEvent, createResponseEventRenderContext, flushPendingAssistantMessage, ResponseEventRenderContext, ToolEventHandlers } from '../../common/sessionEventRenderer';
 import { extractChatPromptReferences, getFolderAttachmentPath } from './copilotCLIPrompt';
 import { IChatDelegationSummaryService } from './delegationSummaryService';
+const regexp1 = /\\/g;
+const regexpPrMetadata = /<pr_metadata[^>]*\/?>\s*/g;
+const regexpCurrentDatetimeCurrent = /<current_datetime>[\s\S]*?<\/current_datetime>\s*/g;
+const regexpContextContext = /<context>[\s\S]*?<\/context>\s*/g;
+const regexpUserQueryUser = /<user_query>[\s\S]*?<\/user_query>\s*/g;
+const regexpUserRequestUserRequest = /<userRequest>[\s\S]*?<\/userRequest>\s*/g;
+const regexpAttachmentsAttachments = /<attachments>[\s\S]*?<\/attachments>\s*/g;
+const regexpReminderReminder = /<reminder>[\s\S]*?<\/reminder>\s*/g;
+const regexpCdDirSuffix = /^cd (?<dir>"[^"]*"|[^\s]+) &&\s+(?<suffix>.+)$/;
+const regexpCdSetLocation = /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>"[^"]*"|[^\s]+) ?(?:&&|;)\s+(?<suffix>.+)$/i;
+const regexpExitedWithExit = /<exited with exit code (\d+)>$/;
+const regexp12 = /\n/g;
+const regexpExitedWithExit1 = /<exited with exit code \d+>$/;
+const regexp14 = /^#+\s*/;
+const regexp15 = /^[-*+]\s+\[.\]/;
+const regexp16 = /^\d+[.)]\s+\[.\]/;
+const regexp17 = /^\s*[-*+]\s+\[(.?)\]\s*(.*)$/;
+const regexp18 = /^\s*\d+[.)]\s+\[(.?)\]\s*(.*)$/;
+const regexp19 = /\s+/g;
+const regexpBtodos = /\btodos\b/;
+const regexpBtodoDeps = /\btodo_deps\b/;
+const regexpInsertUpdateDelete = /\b(insert|update|delete|create|drop|alter)\b/;
+
 
 
 interface CreateTool {
@@ -423,7 +446,7 @@ export type ToolCall = ToolInfo & {
 export type UnknownToolCall = { toolName: string; arguments: unknown; toolCallId: string };
 
 function isInstructionAttachmentPath(path: string): boolean {
-	const normalizedPath = path.replace(/\\/g, '/');
+	const normalizedPath = path.replace(new RegExp(regexp1), '/');
 	return normalizedPath.endsWith('/.github/copilot-instructions.md')
 		|| (normalizedPath.includes('/.github/instructions/') && normalizedPath.endsWith('.md'));
 }
@@ -474,13 +497,13 @@ export function stripReminders(text: string): string {
 	// Also remove <current_datetime> ... </current_datetime> blocks
 	// Also remove <pr_metadata .../> tags
 	return text
-		.replace(/<reminder>[\s\S]*?<\/reminder>\s*/g, '')
-		.replace(/<attachments>[\s\S]*?<\/attachments>\s*/g, '')
-		.replace(/<userRequest>[\s\S]*?<\/userRequest>\s*/g, '')
-		.replace(/<user_query>[\s\S]*?<\/user_query>\s*/g, '')
-		.replace(/<context>[\s\S]*?<\/context>\s*/g, '')
-		.replace(/<current_datetime>[\s\S]*?<\/current_datetime>\s*/g, '')
-		.replace(/<pr_metadata[^>]*\/?>\s*/g, '')
+		.replace(new RegExp(regexpReminderReminder), '')
+		.replace(new RegExp(regexpAttachmentsAttachments), '')
+		.replace(new RegExp(regexpUserRequestUserRequest), '')
+		.replace(new RegExp(regexpUserQueryUser), '')
+		.replace(new RegExp(regexpContextContext), '')
+		.replace(new RegExp(regexpCurrentDatetimeCurrent), '')
+		.replace(new RegExp(regexpPrMetadata), '')
 		.trim();
 }
 
@@ -1171,8 +1194,8 @@ function formatCreateToolInvocation(invocation: ChatToolInvocationPart, toolCall
 export function extractCdPrefix(commandLine: string, isPowershell: boolean): { directory: string; command: string } | undefined {
 	const cdPrefixMatch = commandLine.match(
 		isPowershell
-			? /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>"[^"]*"|[^\s]+) ?(?:&&|;)\s+(?<suffix>.+)$/i
-			: /^cd (?<dir>"[^"]*"|[^\s]+) &&\s+(?<suffix>.+)$/
+			? regexpCdSetLocation
+			: regexpCdDirSuffix
 	);
 	const cdDir = cdPrefixMatch?.groups?.dir;
 	const cdSuffix = cdPrefixMatch?.groups?.suffix;
@@ -1218,10 +1241,10 @@ function formatShellInvocation(invocation: ChatToolInvocationPart, toolCall: She
 function formatShellInvocationCompleted(invocation: ChatToolInvocationPart, toolCall: ShellTool, result: ToolCallResult, workingDirectory?: URI): void {
 	const resultContent = result.result?.content || '';
 	// Exit code will be at the end of the result in the last line in the form of `<exited with exit code ${output.exitCode}>`,
-	const exitCodeStr = resultContent ? /<exited with exit code (\d+)>$/.exec(resultContent)?.[1] : undefined;
+	const exitCodeStr = resultContent ? regexpExitedWithExit.exec(resultContent)?.[1] : undefined;
 	const exitCode = exitCodeStr ? parseInt(exitCodeStr, 10) : undefined;
 	// Lets remove the last line containing the exit code from the output.
-	const text = (exitCode !== undefined ? resultContent.replace(/<exited with exit code \d+>$/, '').trimEnd() : resultContent).replace(/\n/g, '\r\n');
+	const text = (exitCode !== undefined ? resultContent.replace(regexpExitedWithExit1, '').trimEnd() : resultContent).replace(new RegExp(regexp12), '\r\n');
 	const isPowershell = toolCall.toolName === 'powershell';
 	const presentationOverrides = getCdPresentationOverrides(toolCall.arguments.command, isPowershell, workingDirectory);
 	const toolSpecificData: ChatTerminalToolInvocationData = {
@@ -1453,15 +1476,15 @@ export function parseTodoMarkdown(markdown: string): { title: string; todoList: 
 		if (title === 'Updated todo list' && line.trim()) {
 			const trimmed = line.trim();
 			// Check if it's not a list item
-			if (!trimmed.match(/^[-*+]\s+\[.\]/) && !trimmed.match(/^\d+[.)]\s+\[.\]/)) {
+			if (!trimmed.match(regexp15) && !trimmed.match(regexp16)) {
 				// Strip leading # for headings
-				title = trimmed.replace(/^#+\s*/, '');
+				title = trimmed.replace(regexp14, '');
 			}
 		}
 
 		// Parse checklist items (unordered and ordered lists)
-		const unorderedMatch = line.match(/^\s*[-*+]\s+\[(.?)\]\s*(.*)$/);
-		const orderedMatch = line.match(/^\s*\d+[.)]\s+\[(.?)\]\s*(.*)$/);
+		const unorderedMatch = line.match(regexp17);
+		const orderedMatch = line.match(regexp18);
 		const match = unorderedMatch || orderedMatch;
 
 		if (match) {
@@ -1536,12 +1559,12 @@ function formatUpdateTodoInvocationCompleted(invocation: ChatToolInvocationPart,
  * Pure reads (SELECT) are ignored to avoid unnecessary widget refreshes.
  */
 export function isTodoRelatedSqlQuery(query: string): boolean {
-	const normalized = query.replace(/\s+/g, ' ').toLowerCase();
-	const targetsTodoTable = /\btodos\b/.test(normalized) || /\btodo_deps\b/.test(normalized);
+	const normalized = query.replace(new RegExp(regexp19), ' ').toLowerCase();
+	const targetsTodoTable = regexpBtodos.test(normalized) || regexpBtodoDeps.test(normalized);
 	if (!targetsTodoTable) {
 		return false;
 	}
-	return /\b(insert|update|delete|create|drop|alter)\b/.test(normalized);
+	return regexpInsertUpdateDelete.test(normalized);
 }
 
 interface SqlTodoItem {

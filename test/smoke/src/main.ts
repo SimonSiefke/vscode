@@ -33,6 +33,8 @@ import { setup as setupChatSessionsTests } from './areas/chat/chatSessions.test'
 import { setup as setupChatModelConfigTests } from './areas/chat/chatModelConfig.test';
 import { setup as setupAccessibilityTests } from './areas/accessibility/accessibility.test';
 import { setup as setupAgentsWindowTests } from './areas/agentsWindow/agentsWindow.test';
+const regexp1 = /^(\d+)\.(\d+)\.(\d+)/;
+
 
 const rootPath = path.join(__dirname, '..', '..', '..');
 
@@ -176,7 +178,7 @@ let quality: Quality;
 let version: string | undefined;
 
 function parseVersion(version: string): { major: number; minor: number; patch: number } {
-	const [, major, minor, patch] = /^(\d+)\.(\d+)\.(\d+)/.exec(version)!;
+	const [, major, minor, patch] = regexp1.exec(version)!;
 	return { major: parseInt(major), minor: parseInt(minor), patch: parseInt(patch) };
 }
 

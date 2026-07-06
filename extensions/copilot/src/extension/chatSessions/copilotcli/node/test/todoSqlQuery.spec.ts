@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+const regexpSomeSessionDir = /[\\/]some[\\/]session[\\/]dir[\\/]session\.db$/;
+
 
 interface TodoItem {
 	id: string;
@@ -40,7 +42,7 @@ describe('TodoSqlQuery', () => {
 	it('queryTodos passes the correct database path to the worker', async () => {
 		mockQueryTodos.mockResolvedValue([]);
 		await query.queryTodos('/some/session/dir');
-		expect(mockQueryTodos).toHaveBeenCalledWith(expect.stringMatching(/[\\/]some[\\/]session[\\/]dir[\\/]session\.db$/));
+		expect(mockQueryTodos).toHaveBeenCalledWith(expect.stringMatching(regexpSomeSessionDir));
 	});
 
 	it('queryTodos returns items from the worker', async () => {

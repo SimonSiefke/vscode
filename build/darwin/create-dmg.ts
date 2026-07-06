@@ -6,6 +6,8 @@
 import fs from 'fs';
 import path from 'path';
 import { spawn } from '@malept/cross-spawn-promise';
+const regexpPython = /Python (\d+)\.(\d+)/;
+
 
 const root = path.dirname(path.dirname(import.meta.dirname));
 const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf8'));
@@ -29,7 +31,7 @@ function getPythonPath(): string {
 async function checkPythonVersion(pythonBin: string): Promise<boolean> {
 	try {
 		const output = await spawn(pythonBin, ['--version']);
-		const match = output.match(/Python (\d+)\.(\d+)/);
+		const match = output.match(regexpPython);
 		if (match) {
 			const major = parseInt(match[1], 10);
 			const minor = parseInt(match[2], 10);

@@ -8,6 +8,8 @@ import { Position } from 'vscode';
 import { APIChoice } from '../../openai/openai';
 import { createTextDocument } from '../../test/textDocument';
 import { ILines, checkSuffix, maybeSnipCompletionImpl } from '../suggestions';
+const regexp1 = /\r\n|\n/g;
+
 
 suite('checkSuffix', function () {
 	function assertSuffix(completionText: string, lineSuffix: string, expected: number) {
@@ -225,7 +227,7 @@ class LicenseStore {
 class StaticLines implements ILines {
 	private readonly lines: string[];
 	constructor(text: string) {
-		this.lines = text.split(/\r\n|\n/g);
+		this.lines = text.split(new RegExp(regexp1));
 	}
 
 	getLineText(lineIdx: number): string {

@@ -21,6 +21,8 @@ import { detectAvailableProfiles } from './terminalProfiles.js';
 import * as performance from '../../../base/common/performance.js';
 import { getSystemShell } from '../../../base/node/shell.js';
 import { StopWatch } from '../../../base/common/stopwatch.js';
+const regexpError = /^Error/;
+
 
 enum Constants {
 	MaxRestarts = 5
@@ -149,7 +151,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 
 		// Log a full stack trace which will tell the exact reason the pty host is starting up
 		if (this._logService.getLevel() === LogLevel.Trace) {
-			this._logService.trace('PtyHostService#_startPtyHost', new Error().stack?.replace(/^Error/, ''));
+			this._logService.trace('PtyHostService#_startPtyHost', new Error().stack?.replace(regexpError, ''));
 		}
 
 		// Setup heartbeat service and trigger a heartbeat immediately to reset the timeouts

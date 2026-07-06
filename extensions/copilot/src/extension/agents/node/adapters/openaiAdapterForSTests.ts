@@ -12,6 +12,8 @@ import { IMakeChatRequestOptions } from '../../../../platform/networking/common/
 import { APIUsage } from '../../../../platform/networking/common/openai';
 import { coalesce } from '../../../../util/vs/base/common/arrays';
 import { IAgentStreamBlock, IParsedRequest, IProtocolAdapter, IProtocolAdapterFactory, IStreamEventData, IStreamingContext } from './types';
+const regexp1 = /\n/g;
+
 
 export class OpenAIAdapterFactoryForSTests implements IProtocolAdapterFactory {
 	private readonly requestHooks: ((body: string) => string)[] = [];
@@ -259,7 +261,7 @@ class OpenAIAdapterForSTests implements IProtocolAdapter {
 	}
 
 	private formatEventData(data: unknown): string {
-		return JSON.stringify(data).replace(/\n/g, '\\n');
+		return JSON.stringify(data).replace(new RegExp(regexp1), '\\n');
 	}
 }
 function responseApiInputToRawMessages(messages: ChatCompletionMessageParam[]): Raw.ChatMessage[] {

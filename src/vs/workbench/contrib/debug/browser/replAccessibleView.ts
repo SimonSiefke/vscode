@@ -14,6 +14,8 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Position } from '../../../../editor/common/core/position.js';
+const regexp1 = /\n/g;
+
 
 export class ReplAccessibleView implements IAccessibleViewImplementation {
 	priority = 70;
@@ -104,7 +106,7 @@ class ReplOutputAccessibleViewProvider extends Disposable implements IAccessible
 		let line = 1;
 		const content: string[] = [];
 		for (const e of elements) {
-			content.push(e.toString().replace(/\n/g, ''));
+			content.push(e.toString().replace(new RegExp(regexp1), ''));
 			this._elementPositionMap.set(e.getId(), new Position(line, 1));
 			line++;
 			if (dataSource.hasChildren(e)) {

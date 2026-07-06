@@ -19,6 +19,11 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { TitleAndDescriptionProvider } from '../../githubPullRequest';
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { GitHubPullRequestPrompt } from '../../prompts/node/github/pullRequestDescriptionPrompt';
+const regexp1 = /\++?(\n)\++/;
+const regexpTitle = /Title\:\s/;
+const regexpTitle1 = /^\"(?<title>.+)\"$/;
+const regexpDescription = /Description\:\s/;
+
 
 export class GitHubPullRequestTitleAndDescriptionGenerator implements TitleAndDescriptionProvider {
 	protected readonly disposables: DisposableStore = new DisposableStore();
@@ -125,7 +130,7 @@ export class GitHubPullRequestTitleAndDescriptionGenerator implements TitleAndDe
 		}
 
 		const lastIndexOfDelimiter = workingValue.lastIndexOf(delimiter);
-		workingValue = workingValue.substring(firstIndexOfDelimiter + delimiter.length, lastIndexOfDelimiter > firstIndexOfDelimiter + delimiter.length ? lastIndexOfDelimiter : undefined).trim().replace(/\++?(\n)\++/, delimiter);
+		workingValue = workingValue.substring(firstIndexOfDelimiter + delimiter.length, lastIndexOfDelimiter > firstIndexOfDelimiter + delimiter.length ? lastIndexOfDelimiter : undefined).trim().replace(regexp1, delimiter);
 		const splitOnPlus = workingValue.split(delimiter).filter(s => s.trim().length > 0);
 		let splitOnLines: string[];
 		if (splitOnPlus.length === 1) {
@@ -164,10 +169,10 @@ export class GitHubPullRequestTitleAndDescriptionGenerator implements TitleAndDe
 			}
 		}
 		if (title) {
-			title = title.replace(/Title\:\s/, '').trim();
-			title = title.replace(/^\"(?<title>.+)\"$/, (_match, title) => title);
+			title = title.replace(regexpTitle, '').trim();
+			title = title.replace(regexpTitle1, (_match, title) => title);
 			if (description && !hasTemplate) {
-				description = description.replace(/Description\:\s/, '').trim();
+				description = description.replace(regexpDescription, '').trim();
 			}
 			return { title, description };
 		}

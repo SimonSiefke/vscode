@@ -12,6 +12,8 @@ import { createTextModel } from '../../../../test/common/testTextModel.js';
 import type { Position } from '../../../../common/core/position.js';
 import { StandardTokenType } from '../../../../common/encodedTokenAttributes.js';
 import type { ITextModel } from '../../../../common/model.js';
+const regexp1 = /(-?\d*\.\d\w*)|([^\`\@\~\!\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>/\?\s]+)/;
+
 
 class TestRenameInferenceEngine extends RenameInferenceEngine {
 
@@ -36,7 +38,7 @@ function assertDefined<T>(value: T | undefined | null): asserts value is T {
 suite('renameSymbolProcessor', () => {
 
 	// This got copied from the TypeScript language configuration.
-	const wordPattern = /(-?\d*\.\d\w*)|([^\`\@\~\!\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>/\?\s]+)/;
+	const wordPattern = regexp1;
 
 	let disposables: DisposableStore;
 

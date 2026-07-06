@@ -5,6 +5,8 @@
 
 import { IChatDebugEvent } from '../../common/chatDebugService.js';
 import { FlowLayout, FlowNode, LayoutEdge, LayoutNode, SubgraphRect, FlowChartRenderResult } from './chatDebugFlowGraph.js';
+const regexpZAZ0 = /[^a-zA-Z0-9]/g;
+
 
 // ---- Layout constants ----
 
@@ -809,7 +811,7 @@ function renderNodes(svg: SVGElement, nodes: readonly LayoutNode[], focusableEle
 		}
 
 		const color = getNodeColor(node.kind, node.isError);
-		const safeId = node.id.replace(/[^a-zA-Z0-9]/g, '_');
+		const safeId = node.id.replace(new RegExp(regexpZAZ0), '_');
 		const rectAttrs = { x: node.x, y: node.y, width: node.width, height: node.height, rx: NODE_BORDER_RADIUS, ry: NODE_BORDER_RADIUS };
 
 		// Clip path shared by gutter bar and text

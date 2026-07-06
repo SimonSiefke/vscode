@@ -22,6 +22,8 @@ import { LanguageFeatureRegistry } from '../../../common/languageFeatureRegistry
 import { CodeActionProvider, CodeActionTriggerType } from '../../../common/languages.js';
 import { CodeActionKind, CodeActionSet, CodeActionTrigger, CodeActionTriggerSource } from '../common/types.js';
 import { getCodeActions } from './codeAction.js';
+const regexp1 = /\s/;
+
 
 export const SUPPORTED_CODE_ACTIONS = new RawContextKey<string>('supportedCodeAction', '');
 
@@ -93,17 +95,17 @@ class CodeActionOracle extends Disposable {
 				return undefined;
 			} else if (column === 1) {
 				// look only right
-				if (/\s/.test(line[0])) {
+				if (regexp1.test(line[0])) {
 					return undefined;
 				}
 			} else if (column === model.getLineMaxColumn(lineNumber)) {
 				// look only left
-				if (/\s/.test(line[line.length - 1])) {
+				if (regexp1.test(line[line.length - 1])) {
 					return undefined;
 				}
 			} else {
 				// look left and right
-				if (/\s/.test(line[column - 2]) && /\s/.test(line[column - 1])) {
+				if (regexp1.test(line[column - 2]) && regexp1.test(line[column - 1])) {
 					return undefined;
 				}
 			}

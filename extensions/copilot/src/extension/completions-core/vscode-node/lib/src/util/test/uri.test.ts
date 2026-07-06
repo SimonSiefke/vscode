@@ -7,6 +7,9 @@ import assert from 'assert';
 import { platform } from 'os';
 import * as path from 'path';
 import { basename, dirname, fsPath, getFsPath, makeFsUri, normalizeUri } from '../uri';
+const regexpCopilotCurrentlyDoes = /Copilot currently does not support URI with scheme/;
+const regexpUnsupportedRemoteFile = /Unsupported remote file path/;
+
 
 suite('normalizeUri tests', function () {
 	test('returns the canonical form of a URI as a string', function () {
@@ -71,8 +74,8 @@ suite('URI file system tests', function () {
 	});
 
 	test('fsPath throws when the scheme does not represent a local file', function () {
-		assert.throws(() => fsPath('https://host.example/path'), /Copilot currently does not support URI with scheme/);
-		assert.throws(() => fsPath('untitled:Untitled-1'), /Copilot currently does not support URI with scheme/);
+		assert.throws(() => fsPath('https://host.example/path'), regexpCopilotCurrentlyDoes);
+		assert.throws(() => fsPath('untitled:Untitled-1'), regexpCopilotCurrentlyDoes);
 		assert.ok(fsPath('vscode-notebook-cell:///path/to/file'));
 		assert.ok(fsPath('vscode-notebook:///path/to/file'));
 		assert.ok(fsPath('notebook:///path/to/file'));
@@ -84,7 +87,7 @@ suite('URI file system tests', function () {
 		if (platform() === 'win32') {
 			assert.strictEqual(fsPath(uri), '\\\\Server\\Share\\path');
 		} else {
-			assert.throws(() => fsPath(uri), /Unsupported remote file path/);
+			assert.throws(() => fsPath(uri), regexpUnsupportedRemoteFile);
 		}
 	});
 });

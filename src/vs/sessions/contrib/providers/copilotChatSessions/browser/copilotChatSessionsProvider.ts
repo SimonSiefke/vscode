@@ -53,6 +53,10 @@ import { CopilotCLISessionType } from '../../agentHost/browser/baseAgentHostSess
 import { createChangesets } from './copilotChatSessionsChangesets.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IAgentHostEnablementService } from '../../../../services/agentHost/common/agentHostEnablementService.js';
+const regexpPull = /\/pull\/(\d+)/;
+const regexpGithubComPull = /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/;
+const regexpHEAD = /\/HEAD$/;
+
 
 /** Claude Code session type — local agent powered by Claude. */
 export const ClaudeCodeSessionType: ISessionType = {
@@ -1157,7 +1161,7 @@ class AgentSessionAdapter implements ICopilotChatSession {
 		if (typeof metadata?.pullRequestNumber === 'number') {
 			return metadata.pullRequestNumber as number;
 		}
-		const match = /\/pull\/(\d+)/.exec(pullRequestUri.path);
+		const match = regexpPull.exec(pullRequestUri.path);
 		if (match) {
 			return parseInt(match[1], 10);
 		}
@@ -1194,7 +1198,7 @@ class AgentSessionAdapter implements ICopilotChatSession {
 
 		// Parse from pullRequestUrl
 		if (typeof metadata.pullRequestUrl === 'string') {
-			const match = /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/.exec(metadata.pullRequestUrl as string);
+			const match = regexpGithubComPull.exec(metadata.pullRequestUrl as string);
 			if (match) {
 				return { owner: match[1], repo: match[2] };
 			}
@@ -2502,7 +2506,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 	private _labelFromUri(uri: URI): string {
 		if (uri.scheme === GITHUB_REMOTE_FILE_SCHEME) {
-			return uri.path.substring(1).replace(/\/HEAD$/, '');
+			return uri.path.substring(1).replace(regexpHEAD, '');
 		}
 		return basename(uri);
 	}

@@ -6,6 +6,8 @@
 import { MermaidConfig } from 'mermaid';
 import { MermaidExtensionConfig } from './config';
 import { IDisposable } from './disposable';
+const regexpRgba = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/;
+
 
 /**
  * Identifier for the custom Mermaid theme that is derived from the current VS Code color theme.
@@ -37,7 +39,7 @@ function resolveCssColor(cssValue: string): string | undefined {
 }
 
 function rgbStringToHex(value: string): string | undefined {
-	const match = value.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/);
+	const match = value.match(regexpRgba);
 	if (!match) {
 		return undefined;
 	}

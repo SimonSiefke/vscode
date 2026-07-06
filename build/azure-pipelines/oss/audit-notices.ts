@@ -21,6 +21,16 @@ import fs from 'fs';
 import path from 'path';
 import { parseNoticeFile, type NoticeEntry } from './parse-notices.js';
 import { parseArgs } from './utils.js';
+const regexp1 = /^[\^~>=<]+/;
+const regexpPackage = /\[\[package\]\]\s*\n((?:[^\[]*\n)*)/g;
+const regexpName = /^name\s*=\s*"(.+?)"/m;
+const regexpVersion = /^version\s*=\s*"(.+?)"/m;
+const regexp5 = /\/$/;
+const regexp6 = /@[^@]*$/;
+const regexpExtensionsPackageLock = /^extensions\/[^/]+\/package-lock\.json$/;
+const regexpPackageLockJson = /\/package-lock\.json$/;
+const regexp9 = /\\/g;
+
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -137,7 +147,7 @@ function collectPackageJsonDeps(filePath: string): ManifestPackage[] {
 				for (const [name, ver] of Object.entries(deps)) {
 					results.push({
 						name,
-						version: String(ver).replace(/^[\^~>=<]+/, ''),
+						version: String(ver).replace(regexp1, ''),
 						source: 'package.json',
 					});
 				}
@@ -154,12 +164,12 @@ function collectCargoLockDeps(filePath: string): ManifestPackage[] {
 	const results: ManifestPackage[] = [];
 	try {
 		const content = fs.readFileSync(filePath, 'utf8');
-		const blockRe = /\[\[package\]\]\s*\n((?:[^\[]*\n)*)/g;
+		const blockRe = new RegExp(regexpPackage);
 		let m: RegExpExecArray | null;
 		while ((m = blockRe.exec(content)) !== null) {
 			const block = m[1];
-			const nameMatch = block.match(/^name\s*=\s*"(.+?)"/m);
-			const verMatch = block.match(/^version\s*=\s*"(.+?)"/m);
+			const nameMatch = block.match(regexpName);
+			const verMatch = block.match(regexpVersion);
 			if (nameMatch) {
 				results.push({
 					name: nameMatch[1],
@@ -197,7 +207,7 @@ function collectPackageLockDeps(filePath: string): ManifestPackage[] {
 			const segments = key.split('node_modules/');
 			const lastSegment = segments[segments.length - 1];
 			// Remove trailing slash if present
-			const name = lastSegment.replace(/\/$/, '');
+			const name = lastSegment.replace(regexp5, '');
 			if (name && entry.version) {
 				results.push({
 					name,
@@ -401,7 +411,7 @@ function printReport(noticePath: string, stats: NoticeStats, xref: CrossRefResul
 	// -- Section 3: Summary --
 	console.log('-- 3. SUMMARY ------------------------------------------------');
 	console.log('');
-	const noticeUniqueNames = new Set([...stats.uniqueKey].map(k => k.replace(/@[^@]*$/, '')));
+	const noticeUniqueNames = new Set([...stats.uniqueKey].map(k => k.replace(regexp6, '')));
 	console.log(`  NOTICE has ${stats.entries.length} entries (${noticeUniqueNames.size} unique names).`);
 	console.log(`  Repo manifests declare ${xref.manifestUniqueNames.size} unique runtime packages.`);
 	console.log(`  Overlap: ${xref.overlapCount}. NOTICE-only: ${xref.noticeOnlyNames.length} (CG + scanner coverage). Manifest-only: ${xref.manifestOnlyNames.length} (potential gaps).`);
@@ -435,13 +445,13 @@ function printReport(noticePath: string, stats: NoticeStats, xref: CrossRefResul
 		console.log('');
 
 		// Top extensions by package count
-		const extensionEntries = sorted.filter(([p]) => /^extensions\/[^/]+\/package-lock\.json$/.test(p));
+		const extensionEntries = sorted.filter(([p]) => regexpExtensionsPackageLock.test(p));
 		if (extensionEntries.length > 0) {
 			const top10 = extensionEntries.slice(0, 10);
-			const maxExtLen = Math.max(...top10.map(([p]) => p.replace(/\/package-lock\.json$/, '').length));
+			const maxExtLen = Math.max(...top10.map(([p]) => p.replace(regexpPackageLockJson, '').length));
 			console.log('  Top 10 extensions by package count:');
 			for (const [relPath, count] of top10) {
-				const extName = relPath.replace(/\/package-lock\.json$/, '');
+				const extName = relPath.replace(regexpPackageLockJson, '');
 				console.log(`     ${extName.padEnd(maxExtLen)}  ${String(count).padStart(5)}`);
 			}
 			console.log('');
@@ -498,7 +508,7 @@ function main(): void {
 	const lockfileBreakdown = new Map<string, number>();
 	for (const f of packageLockFiles) {
 		const deps = collectPackageLockDeps(f);
-		const relPath = path.relative(repoRoot, f).replace(/\\/g, '/');
+		const relPath = path.relative(repoRoot, f).replace(new RegExp(regexp9), '/');
 		lockfileBreakdown.set(relPath, deps.length);
 		allManifestPkgs.push(...deps);
 	}

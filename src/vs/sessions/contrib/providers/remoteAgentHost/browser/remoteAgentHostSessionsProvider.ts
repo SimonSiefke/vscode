@@ -40,6 +40,8 @@ import { ISessionsService } from '../../../../services/sessions/browser/sessions
 import { IGitHubService } from '../../../github/browser/githubService.js';
 import { BaseAgentHostSessionsProvider } from '../../agentHost/browser/baseAgentHostSessionsProvider.js';
 import { remoteAgentHostSessionTypeId } from '../../../../../platform/agentHost/common/agentHostSessionType.js';
+const regexp1 = /^\/+|\/+$/g;
+
 
 /** Storage key prefix for cached session summaries, per remote address. */
 const CACHED_SESSIONS_STORAGE_PREFIX = 'remoteAgentHost.cachedSessions.';
@@ -513,7 +515,7 @@ export class RemoteAgentHostSessionsProvider extends BaseAgentHostSessionsProvid
 		let listingAgentHostUri = rootAgentHostUri;
 		let filter = trimmed;
 		if (lastSlash >= 0) {
-			const subPath = trimmed.slice(0, lastSlash).replace(/^\/+|\/+$/g, '');
+			const subPath = trimmed.slice(0, lastSlash).replace(new RegExp(regexp1), '');
 			filter = trimmed.slice(lastSlash + 1);
 			if (subPath) {
 				listingAgentHostUri = URI.joinPath(rootAgentHostUri, subPath);

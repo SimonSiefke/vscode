@@ -7,6 +7,8 @@ import { Disposable } from '../../../../../../../base/common/lifecycle.js';
 import { OperatingSystem } from '../../../../../../../base/common/platform.js';
 import { extractCdPrefix } from '../../runInTerminalHelpers.js';
 import type { ICommandLineRewriter, ICommandLineRewriterOptions, ICommandLineRewriterResult } from './commandLineRewriter.js';
+const regexp1 = /(?:[\\\/])$/;
+
 
 export class CommandLineCdPrefixRewriter extends Disposable implements ICommandLineRewriter {
 	rewrite(options: ICommandLineRewriterOptions): ICommandLineRewriterResult | undefined {
@@ -20,8 +22,8 @@ export class CommandLineCdPrefixRewriter extends Disposable implements ICommandL
 		const extracted = extractCdPrefix(options.commandLine, options.shell, options.os);
 		if (extracted) {
 			// Normalize trailing slashes
-			let cdDirPath = extracted.directory.replace(/(?:[\\\/])$/, '');
-			let cwdFsPath = options.cwd.fsPath.replace(/(?:[\\\/])$/, '');
+			let cdDirPath = extracted.directory.replace(regexp1, '');
+			let cwdFsPath = options.cwd.fsPath.replace(regexp1, '');
 			// Case-insensitive comparison on Windows
 			if (options.os === OperatingSystem.Windows) {
 				cdDirPath = cdDirPath.toLowerCase();

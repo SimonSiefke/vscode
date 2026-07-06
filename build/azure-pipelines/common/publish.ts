@@ -19,6 +19,17 @@ import { ConfidentialClientApplication } from '@azure/msal-node';
 import { BlobClient, BlobServiceClient, BlockBlobClient, ContainerClient, ContainerSASPermissions, generateBlobSASQueryParameters } from '@azure/storage-blob';
 import jws from 'jws';
 import { clearInterval, setInterval } from 'node:timers';
+const regexpBEGINCERTIFICATEEND = /-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g;
+const regexpBEGINPRIVATEKEY = /-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/g;
+const regexpBEGINCERTIFICATEEND1 = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g;
+const regexpArtifactsProcessed = /^artifacts_processed_(\d+)$/;
+const regexp5 = /\n/;
+const regexpVscode = /^vscode_/;
+const regexpSbom = /sbom$/;
+const regexp8 = /\/$/;
+const regexpVscodeProductOs = /^vscode_(?<product>[^_]+)_(?<os>[^_]+)(?:_legacy)?_(?<arch>[^_]+)_(?<unprocessedType>[^_]+)$/;
+const regexpManifest = /_manifest/;
+
 
 export function e(name: string): string {
 	const result = process.env[name];
@@ -271,7 +282,7 @@ interface ReleaseRequestMessage {
 }
 
 function getCertificateBuffer(input: string) {
-	return Buffer.from(input.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''), 'base64');
+	return Buffer.from(input.replace(new RegExp(regexpBEGINCERTIFICATEEND), ''), 'base64');
 }
 
 function getThumbprint(input: string, algorithm: string): Buffer {
@@ -288,7 +299,7 @@ function getKeyFromPFX(pfx: string): string {
 		fs.writeFileSync(pfxCertificatePath, pfxCertificate);
 		cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nocerts -nodes -out "${pemKeyPath}" -passin pass:`);
 		const raw = fs.readFileSync(pemKeyPath, 'utf-8');
-		const result = raw.match(/-----BEGIN PRIVATE KEY-----[\s\S]+?-----END PRIVATE KEY-----/g)![0];
+		const result = raw.match(new RegExp(regexpBEGINPRIVATEKEY))![0];
 		return result;
 	} finally {
 		fs.rmSync(pfxCertificatePath, { force: true });
@@ -305,7 +316,7 @@ function getCertificatesFromPFX(pfx: string): string[] {
 		fs.writeFileSync(pfxCertificatePath, pfxCertificate);
 		cp.execSync(`openssl pkcs12 -in "${pfxCertificatePath}" -nokeys -out "${pemCertificatePath}" -passin pass:`);
 		const raw = fs.readFileSync(pemCertificatePath, 'utf-8');
-		const matches = raw.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g);
+		const matches = raw.match(new RegExp(regexpBEGINCERTIFICATEEND1));
 		return matches ? matches.reverse() : [];
 	} finally {
 		fs.rmSync(pfxCertificatePath, { force: true });
@@ -558,14 +569,14 @@ class State {
 	constructor() {
 		const pipelineWorkspacePath = e('PIPELINE_WORKSPACE');
 		const previousState = fs.readdirSync(pipelineWorkspacePath)
-			.map(name => /^artifacts_processed_(\d+)$/.exec(name))
+			.map(name => regexpArtifactsProcessed.exec(name))
 			.filter((match): match is RegExpExecArray => !!match)
 			.map(match => ({ name: match![0], attempt: Number(match![1]) }))
 			.sort((a, b) => b.attempt - a.attempt)[0];
 
 		if (previousState) {
 			const previousStatePath = path.join(pipelineWorkspacePath, previousState.name, previousState.name + '.txt');
-			fs.readFileSync(previousStatePath, 'utf8').split(/\n/).filter(name => !!name).forEach(name => this.set.add(name));
+			fs.readFileSync(previousStatePath, 'utf8').split(regexp5).filter(name => !!name).forEach(name => this.set.add(name));
 		}
 
 		const stageAttempt = e('SYSTEM_STAGEATTEMPT');
@@ -633,7 +644,7 @@ export interface Artifact {
 
 async function getPipelineArtifacts(): Promise<Artifact[]> {
 	const result = await requestAZDOAPI<{ readonly value: Artifact[] }>('artifacts');
-	return result.value.filter(a => /^vscode_/.test(a.name) && !/sbom$/.test(a.name));
+	return result.value.filter(a => regexpVscode.test(a.name) && !regexpSbom.test(a.name));
 }
 
 interface Timeline {
@@ -675,7 +686,7 @@ async function unzip(packagePath: string, outputPath: string): Promise<string[]>
 
 			const result: string[] = [];
 			zipfile!.on('entry', entry => {
-				if (/\/$/.test(entry.fileName)) {
+				if (regexp8.test(entry.fileName)) {
 					zipfile!.readEntry();
 				} else {
 					zipfile!.openReadStream(entry, (err, istream) => {
@@ -872,7 +883,7 @@ async function processArtifact(
 	filePath: string
 ) {
 	const log = (...args: unknown[]) => console.log(`[${artifact.name}]`, ...args);
-	const match = /^vscode_(?<product>[^_]+)_(?<os>[^_]+)(?:_legacy)?_(?<arch>[^_]+)_(?<unprocessedType>[^_]+)$/.exec(artifact.name);
+	const match = regexpVscodeProductOs.exec(artifact.name);
 
 	if (!match) {
 		throw new Error(`Invalid artifact name: ${artifact.name}`);
@@ -1019,7 +1030,7 @@ async function main() {
 			});
 
 			const artifactFilePaths = await unzip(artifactZipPath, e('AGENT_TEMPDIRECTORY'));
-			const artifactFilePath = artifactFilePaths.filter(p => !/_manifest/.test(p))[0];
+			const artifactFilePath = artifactFilePaths.filter(p => !regexpManifest.test(p))[0];
 
 			processing.add(artifact.name);
 			const promise = new Promise<void>((resolve, reject) => {

@@ -6,6 +6,8 @@
 import { createServiceIdentifier } from '../../../util/common/services';
 import { IDisposable } from '../../../util/vs/base/common/lifecycle';
 import { IConversationOptions } from './conversationOptions';
+const regexpGithubCopilot = /^github\.copilot\./;
+
 
 export const IChatAgentService = createServiceIdentifier<IChatAgentService>('IChatAgentService');
 export interface IChatAgentService {
@@ -30,5 +32,5 @@ export function getChatParticipantIdFromName(name: string): string {
 }
 
 export function getChatParticipantNameFromId(id: string): string {
-	return id.replace(/^github\.copilot\./, '');
+	return id.replace(regexpGithubCopilot, '');
 }

@@ -17,6 +17,8 @@ import { AzureOpenAIEndpoint } from '../node/azureOpenAIEndpoint';
 import { OpenAICompatibleLanguageModelChatInformation } from './abstractLanguageModelChatProvider';
 import { IBYOKStorageService } from './byokStorageService';
 import { AbstractCustomOAIBYOKModelProvider, CustomOAIModelProviderConfig, hasExplicitApiPath } from './customOAIProvider';
+const regexp1 = /\/$/;
+
 
 export function resolveAzureUrl(modelId: string, url: string): string {
 	// The fully resolved url was already passed in
@@ -62,7 +64,7 @@ export function azureSupportedEndpointsForUrl(url: string): ModelSupportedEndpoi
 	// Match the final path segment so a deployment named "responses" (e.g.
 	// `/openai/deployments/responses/chat/completions`) is not misclassified. Compare
 	// case-insensitively to tolerate APIM vanity routes that may use different casing.
-	if (pathname.replace(/\/$/, '').toLowerCase().endsWith('/responses')) {
+	if (pathname.replace(regexp1, '').toLowerCase().endsWith('/responses')) {
 		return [ModelSupportedEndpoint.ChatCompletions, ModelSupportedEndpoint.Responses];
 	}
 	return undefined;

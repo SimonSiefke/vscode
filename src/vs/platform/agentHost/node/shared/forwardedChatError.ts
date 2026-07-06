@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CopilotApiError, COPILOT_API_ERROR_STATUS_STREAMING } from './copilotApiService.js';
+const regexp1 = /[\s"']/;
+
 
 /**
  * Marker prefix used to smuggle a structured, serialized chat fetch error
@@ -232,7 +234,7 @@ export function tryParseForwardedChatError(errorText: string | undefined): IForw
 	}
 	// Extract the base64 payload after the prefix, stopping at whitespace or quotes.
 	const start = idx + PROXY_ERROR_PREFIX.length;
-	const end = errorText.slice(start).search(/[\s"']/);
+	const end = errorText.slice(start).search(regexp1);
 	const b64 = end === -1 ? errorText.slice(start) : errorText.slice(start, start + end);
 	// Reject empty, oversized, or non-base64 payloads before decoding so a
 	// stray/adversarial marker in model-influenced text can't be parsed.

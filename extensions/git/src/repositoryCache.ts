@@ -7,6 +7,8 @@ import { LogOutputChannel, Memento, Uri, workspace } from 'vscode';
 import { LRUCache } from './cache';
 import type { Remote, RepositoryAccessDetails } from './api/git';
 import { isDescendant } from './util';
+const regexpGit = /(?:\.git)?\/*$/i;
+
 
 export interface RepositoryCacheInfo {
 	repositoryPath: string; // path of the local repository clone
@@ -32,7 +34,7 @@ export class RepositoryCache {
 	private normalizeRepoUrl(url: string): string {
 		try {
 			const trimmed = url.trim();
-			return trimmed.replace(/(?:\.git)?\/*$/i, '');
+			return trimmed.replace(regexpGit, '');
 		} catch {
 			return url;
 		}

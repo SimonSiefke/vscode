@@ -8,6 +8,8 @@ import { DeferredPromise } from '../../../base/common/async.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import type { ILogService } from '../../log/common/log.js';
 import pkg from '@xterm/headless';
+const regexp1 = /^(?:\x1b\[\??\d+;\d+R)+$/;
+
 
 type XtermTerminal = pkg.Terminal;
 const { Terminal: XtermTerminal } = pkg;
@@ -133,7 +135,7 @@ export class AgentHostHeadlessTerminal extends Disposable {
 		// Only forward cursor position reports for now. xterm can also answer
 		// device attribute queries, but workbench only forwards those in narrow
 		// ConPTY-specific cases; keep Agent Host conservative until needed.
-		return /^(?:\x1b\[\??\d+;\d+R)+$/.test(data);
+		return regexp1.test(data);
 	}
 }
 

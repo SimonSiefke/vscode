@@ -14,6 +14,8 @@ import { ISearchService } from '../../search/common/search.js';
 import { toWorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { promiseWithResolvers } from '../../../../base/common/async.js';
+const regexpWorkspaceContains = /^workspaceContains:/;
+
 
 const WORKSPACE_CONTAINS_TIMEOUT = 7000;
 
@@ -40,7 +42,7 @@ export function checkActivateWorkspaceContainsExtension(host: IExtensionActivati
 	const globPatterns: string[] = [];
 
 	for (const activationEvent of activationEvents) {
-		if (/^workspaceContains:/.test(activationEvent)) {
+		if (regexpWorkspaceContains.test(activationEvent)) {
 			const fileNameOrGlob = activationEvent.substr('workspaceContains:'.length);
 			if (fileNameOrGlob.indexOf('*') >= 0 || fileNameOrGlob.indexOf('?') >= 0 || host.forceUsingSearch) {
 				globPatterns.push(fileNameOrGlob);

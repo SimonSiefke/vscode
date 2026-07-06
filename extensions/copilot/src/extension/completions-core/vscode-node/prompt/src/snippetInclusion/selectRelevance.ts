@@ -6,6 +6,8 @@
 import { DocumentInfo, DocumentInfoWithOffset, SimilarFileInfo } from '../prompt';
 import { CursorContextInfo } from './cursorContext';
 import { SnippetProviderType, SnippetSemantics, SnippetWithProviderInfo } from './snippets';
+const regexpZAZ0 = /[^a-zA-Z0-9]/;
+
 
 class FifoCache<T> {
 	private keys: string[] = [];
@@ -238,7 +240,7 @@ export abstract class WindowedMatcher {
  * Split by non-alphanumeric characters
  */
 export function splitIntoWords(a: string): string[] {
-	return a.split(/[^a-zA-Z0-9]/).filter(x => x.length > 0);
+	return a.split(regexpZAZ0).filter(x => x.length > 0);
 }
 
 const ENGLISH_STOPS = new Set([

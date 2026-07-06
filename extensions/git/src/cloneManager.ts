@@ -11,6 +11,11 @@ import { l10n, workspace, window, Uri, ProgressLocation, commands } from 'vscode
 import { RepositoryCache, RepositoryCacheInfo } from './repositoryCache';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { Model } from './model';
+const regexpGitClone = /^git\s+clone\s+/;
+const regexp2 = /^~/;
+const regexpCancelled = /Cancelled/i;
+const regexpAlreadyExistsAnd = /already exists and is not an empty directory/;
+
 
 type ApiPostCloneAction = 'none';
 enum PostCloneAction { Open, OpenNewWindow, AddToWorkspace, None }
@@ -47,7 +52,7 @@ export class CloneManager {
 			return;
 		}
 
-		url = url.trim().replace(/^git\s+clone\s+/, '');
+		url = url.trim().replace(regexpGitClone, '');
 
 		const cachedRepository = this.repositoryCache.get(url);
 		if (cachedRepository && (cachedRepository.length > 0)) {
@@ -60,7 +65,7 @@ export class CloneManager {
 		if (!parentPath) {
 			const config = workspace.getConfiguration('git');
 			let defaultCloneDirectory = config.get<string>('defaultCloneDirectory') || os.homedir();
-			defaultCloneDirectory = defaultCloneDirectory.replace(/^~/, os.homedir());
+			defaultCloneDirectory = defaultCloneDirectory.replace(regexp2, os.homedir());
 
 			const uris = await window.showOpenDialog({
 				canSelectFiles: false,
@@ -103,7 +108,7 @@ export class CloneManager {
 
 			return repositoryPath;
 		} catch (err) {
-			if (/already exists and is not an empty directory/.test(err && err.stderr || '')) {
+			if (regexpAlreadyExistsAnd.test(err && err.stderr || '')) {
 				/* __GDPR__
 					"clone" : {
 						"owner": "lszomoru",
@@ -112,7 +117,7 @@ export class CloneManager {
 					}
 				*/
 				this.telemetryReporter.sendTelemetryEvent('clone', { outcome: 'directory_not_empty' });
-			} else if (/Cancelled/i.test(err && (err.message || err.stderr || ''))) {
+			} else if (regexpCancelled.test(err && (err.message || err.stderr || ''))) {
 				return;
 			} else {
 				/* __GDPR__

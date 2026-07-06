@@ -34,6 +34,10 @@ import {
 	type IRealSdkProviderConfig,
 } from './realSdkTestHelpers.js';
 import { fetchSessionWithChat, getActionEnvelope, isActionNotification, IServerHandle, startRealServer, TestProtocolClient } from './testHelpers.js';
+const regexpBadd = /\badd\b/i;
+const regexpBsubtract = /\bsubtract\b/i;
+const regexp3 = /[.*+?^${}()|[\]\\]/g;
+
 
 const REAL_SDK_ENABLED = process.env['AGENT_HOST_REAL_SDK'] === '1';
 
@@ -148,7 +152,7 @@ defineSharedRealSdkTests(COPILOT_CONFIG);
 
 		const result = await driveTurnWithAttachmentsToCompletion(client, sessionUri, 'turn-attachment', prompt, attachments, 1);
 
-		assert.match(result.responseText, /\badd\b/i, `expected the model to identify the attached file function; got: ${JSON.stringify(result.responseText)}`);
+		assert.match(result.responseText, regexpBadd, `expected the model to identify the attached file function; got: ${JSON.stringify(result.responseText)}`);
 	});
 
 	test('attaches a text blob and reads its function names', async function () {
@@ -171,7 +175,7 @@ defineSharedRealSdkTests(COPILOT_CONFIG);
 
 		const result = await driveTurnWithAttachmentsToCompletion(client, sessionUri, 'turn-blob-attachment', prompt, attachments, 1);
 
-		assert.match(result.responseText, /\bsubtract\b/i, `expected the model to identify the attached blob function; got: ${JSON.stringify(result.responseText)}`);
+		assert.match(result.responseText, regexpBsubtract, `expected the model to identify the attached blob function; got: ${JSON.stringify(result.responseText)}`);
 	});
 
 	test('strips redundant `cd <workingDirectory> &&` prefix from shell tool calls', async function () {
@@ -199,7 +203,7 @@ defineSharedRealSdkTests(COPILOT_CONFIG);
 		const toolReadyAction = toolReadyEnvelope.action as { toolCallId: string; toolInput?: string; confirmed?: string };
 		const toolInput = toolReadyAction.toolInput!;
 
-		const escapedWorkingDirPath = expectedWorkingDirPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const escapedWorkingDirPath = expectedWorkingDirPath.replace(new RegExp(regexp3), '\\$&');
 		const redundantWorkingDirCdPrefix = new RegExp(
 			`^\\s*cd\\s+(?:"${escapedWorkingDirPath}"|'${escapedWorkingDirPath}'|${escapedWorkingDirPath})\\s*(?:&&|;)\\s*`,
 		);

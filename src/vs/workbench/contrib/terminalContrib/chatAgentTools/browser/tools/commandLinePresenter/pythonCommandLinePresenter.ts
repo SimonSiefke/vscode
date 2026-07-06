@@ -6,6 +6,11 @@
 import { OperatingSystem } from '../../../../../../../base/common/platform.js';
 import { isPowerShell } from '../../runInTerminalHelpers.js';
 import type { ICommandLinePresenter, ICommandLinePresenterOptions, ICommandLinePresenterResult } from './commandLinePresenter.js';
+const regexpPythonPython = /^python(?:3)?\s+-c\s+"(?<python>.+)"$/s;
+const regexp2 = /\\"/g;
+const regexp3 = /`"/g;
+const regexpPythonPython1 = /^python(?:3)?\s+-c\s+'(?<python>.+)'$/s;
+
 
 /**
  * Command line presenter for Python inline commands (`python -c "..."`).
@@ -37,17 +42,17 @@ export class PythonCommandLinePresenter implements ICommandLinePresenter {
  */
 export function extractPythonCommand(commandLine: string, shell: string, os: OperatingSystem): string | undefined {
 	// Match python/python3 -c "..." pattern (double quotes)
-	const doubleQuoteMatch = commandLine.match(/^python(?:3)?\s+-c\s+"(?<python>.+)"$/s);
+	const doubleQuoteMatch = commandLine.match(regexpPythonPython);
 	if (doubleQuoteMatch?.groups?.python) {
 		let pythonCode = doubleQuoteMatch.groups.python.trim();
 
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			pythonCode = pythonCode.replace(/`"/g, '"');
+			pythonCode = pythonCode.replace(new RegExp(regexp3), '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			pythonCode = pythonCode.replace(/\\"/g, '"');
+			pythonCode = pythonCode.replace(new RegExp(regexp2), '"');
 		}
 
 		return pythonCode;
@@ -56,7 +61,7 @@ export function extractPythonCommand(commandLine: string, shell: string, os: Ope
 	// Match python/python3 -c '...' pattern (single quotes)
 	// Single quotes in bash/sh/zsh are literal - no escaping inside
 	// Single quotes in PowerShell are also literal
-	const singleQuoteMatch = commandLine.match(/^python(?:3)?\s+-c\s+'(?<python>.+)'$/s);
+	const singleQuoteMatch = commandLine.match(regexpPythonPython1);
 	if (singleQuoteMatch?.groups?.python) {
 		return singleQuoteMatch.groups.python.trim();
 	}

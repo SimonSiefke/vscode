@@ -8,6 +8,9 @@ import { VSBuffer, VSBufferReadable, VSBufferReadableStream } from '../../../../
 import { importAMDNodeModule } from '../../../../amdX.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { coalesce } from '../../../../base/common/arrays.js';
+const regexpZAZ0 = /[^a-zA-Z0-9]/g;
+const regexpWindows = /windows(\d+)/;
+
 
 export const UTF8 = 'utf8';
 export const UTF8_with_bom = 'utf8bom';
@@ -363,7 +366,7 @@ const JSCHARDET_TO_ICONV_ENCODINGS: { [name: string]: string } = {
 };
 
 function normalizeEncoding(encodingName: string): string {
-	return encodingName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+	return encodingName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
 }
 
 function toIconvLiteEncoding(encodingName: string): string {
@@ -417,7 +420,7 @@ export function toCanonicalName(enc: string): string {
 		case 'utf8bom':
 			return 'utf8';
 		default: {
-			const m = enc.match(/windows(\d+)/);
+			const m = enc.match(regexpWindows);
 			if (m) {
 				return 'windows-' + m[1];
 			}

@@ -11,6 +11,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import { IObservableValue, MutableObservableValue } from './observableValue.js';
 import { StoredValue } from './storedValue.js';
 import { namespaceTestTag } from './testTypes.js';
+const regexp1 = /\s\s+/g;
+
 
 export interface ITestExplorerFilterState {
 	_serviceBrand: undefined;
@@ -76,7 +78,7 @@ export interface ITestExplorerFilterState {
 export const ITestExplorerFilterState = createDecorator<ITestExplorerFilterState>('testingFilterState');
 
 const tagRe = /!?@([^ ,:]+)/g;
-const trimExtraWhitespace = (str: string) => str.replace(/\s\s+/g, ' ').trim();
+const trimExtraWhitespace = (str: string) => str.replace(new RegExp(regexp1), ' ').trim();
 
 export class TestExplorerFilterState extends Disposable implements ITestExplorerFilterState {
 	declare _serviceBrand: undefined;

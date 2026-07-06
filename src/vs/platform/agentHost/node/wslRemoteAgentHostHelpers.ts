@@ -17,6 +17,10 @@ import {
 	shellEscape,
 	validateShellToken,
 } from './sshRemoteAgentHostHelpers.js';
+const regexp1 = /\r\n|\r|\n/;
+const regexp2 = /\s+$/;
+const regexp3 = /\s+/;
+
 
 export { extractAgentHostWebSocketURL };
 
@@ -179,11 +183,11 @@ export function parseWslListVerbose(output: string): IWSLDistro[] {
 		return [];
 	}
 	const stripped = output.charCodeAt(0) === 0xfeff ? output.slice(1) : output;
-	const lines = stripped.split(/\r\n|\r|\n/);
+	const lines = stripped.split(regexp1);
 	const distros: IWSLDistro[] = [];
 	let headerSeen = false;
 	for (const rawLine of lines) {
-		const line = rawLine.replace(/\s+$/, '');
+		const line = rawLine.replace(regexp2, '');
 		if (!line.trim()) {
 			continue;
 		}
@@ -207,7 +211,7 @@ export function parseWslListVerbose(output: string): IWSLDistro[] {
 		} else if (working.startsWith(' ')) {
 			working = working.slice(1);
 		}
-		const columns = working.trim().split(/\s+/);
+		const columns = working.trim().split(regexp3);
 		if (columns.length < 3) {
 			continue;
 		}
@@ -239,7 +243,7 @@ export function parseRunningDistros(output: string): string[] {
 	}
 	const stripped = output.charCodeAt(0) === 0xfeff ? output.slice(1) : output;
 	return stripped
-		.split(/\r\n|\r|\n/)
+		.split(regexp1)
 		.map(line => line.trim())
 		.filter(line => line.length > 0);
 }

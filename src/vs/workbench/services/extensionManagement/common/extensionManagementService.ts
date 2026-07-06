@@ -49,6 +49,9 @@ import { verifiedPublisherIcon } from './extensionsIcons.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { IStringDictionary } from '../../../../base/common/collections.js';
 import { CommontExtensionManagementService } from '../../../../platform/extensionManagement/common/abstractExtensionManagementService.js';
+const regexpReadmeTxtMd = /^readme(\.txt|\.md|)$/i;
+const regexpChangelogTxtMd = /^changelog(\.txt|\.md|)$/i;
+
 
 const TrustedPublishersStorageKey = 'extensions.trustedPublishers';
 
@@ -1380,8 +1383,8 @@ class WorkspaceExtensionsManagementService extends Disposable {
 		let readmeUrl: URI | undefined;
 		let changelogUrl: URI | undefined;
 		if (stat.children) {
-			readmeUrl = stat.children.find(({ name }) => /^readme(\.txt|\.md|)$/i.test(name))?.resource;
-			changelogUrl = stat.children.find(({ name }) => /^changelog(\.txt|\.md|)$/i.test(name))?.resource;
+			readmeUrl = stat.children.find(({ name }) => regexpReadmeTxtMd.test(name))?.resource;
+			changelogUrl = stat.children.find(({ name }) => regexpChangelogTxtMd.test(name))?.resource;
 		}
 		const validations: [Severity, string][] = [...extension.validations];
 		let isValid = extension.isValid;

@@ -6,6 +6,8 @@
 import { Raw } from '@vscode/prompt-tsx';
 import type { ChatResultPromptTokenDetail, LanguageModelToolInformation } from 'vscode';
 import { ITokenizer } from '../../../util/common/tokenizer';
+const regexpZA = /<([a-zA-Z_][\w.\-]*)[^>]*>[\s\S]*?<\/\1>/g;
+
 
 /**
  * Categories for prompt token breakdown
@@ -245,7 +247,7 @@ async function parseTextContentTokens(
 	let accountedTokens = 0;
 
 	// Find all XML tags in the text
-	const allTagsRegex = /<([a-zA-Z_][\w.\-]*)[^>]*>[\s\S]*?<\/\1>/g;
+	const allTagsRegex = new RegExp(regexpZA);
 	let tagMatch;
 	const processedRanges: Array<{ start: number; end: number }> = [];
 

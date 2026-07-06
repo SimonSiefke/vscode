@@ -9,6 +9,9 @@ import { Range } from '../../core/range.js';
 import { FindMatch, ITextSnapshot, SearchData } from '../../model.js';
 import { NodeColor, SENTINEL, TreeNode, fixInsert, leftest, rbDelete, righttest, updateTreeMetadata } from './rbTreeBase.js';
 import { Searcher, createFindMatch, isValidMatch } from '../textModelSearch.js';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /(\r\n|\r|\n)$/;
+
 
 // const lfRegex = new RegExp(/\r\n|\r|\n/g);
 const AverageBufferSize = 65535;
@@ -336,7 +339,7 @@ export class PieceTreeBase {
 			}
 
 			// flush anyways
-			const text = tempChunk.replace(/\r\n|\r|\n/g, eol);
+			const text = tempChunk.replace(new RegExp(regexp1), eol);
 			chunks.push(new StringBuffer(text, createLineStartsFast(text)));
 			tempChunk = str;
 			tempChunkLen = len;
@@ -344,7 +347,7 @@ export class PieceTreeBase {
 		});
 
 		if (tempChunkLen > 0) {
-			const text = tempChunk.replace(/\r\n|\r|\n/g, eol);
+			const text = tempChunk.replace(new RegExp(regexp1), eol);
 			chunks.push(new StringBuffer(text, createLineStartsFast(text)));
 		}
 
@@ -467,7 +470,7 @@ export class PieceTreeBase {
 		const value = this.getValueInRange2(startPosition, endPosition);
 		if (eol) {
 			if (eol !== this._EOL || !this._EOLNormalized) {
-				return value.replace(/\r\n|\r|\n/g, eol);
+				return value.replace(new RegExp(regexp1), eol);
 			}
 
 			if (eol === this.getEOL() && this._EOLNormalized) {
@@ -476,7 +479,7 @@ export class PieceTreeBase {
 				}
 				return value;
 			}
-			return value.replace(/\r\n|\r|\n/g, eol);
+			return value.replace(new RegExp(regexp1), eol);
 		}
 		return value;
 	}
@@ -565,7 +568,7 @@ export class PieceTreeBase {
 			currentLine += (
 				this._EOLNormalized
 					? buffer.substring(pieceStartOffset, Math.max(pieceStartOffset, lineStarts[pieceStartLine + 1] - this._EOLLength))
-					: buffer.substring(pieceStartOffset, lineStarts[pieceStartLine + 1]).replace(/(\r\n|\r|\n)$/, '')
+					: buffer.substring(pieceStartOffset, lineStarts[pieceStartLine + 1]).replace(regexp2, '')
 			);
 			lines[linesLength++] = currentLine;
 
@@ -573,7 +576,7 @@ export class PieceTreeBase {
 				currentLine = (
 					this._EOLNormalized
 						? buffer.substring(lineStarts[line], lineStarts[line + 1] - this._EOLLength)
-						: buffer.substring(lineStarts[line], lineStarts[line + 1]).replace(/(\r\n|\r|\n)$/, '')
+						: buffer.substring(lineStarts[line], lineStarts[line + 1]).replace(regexp2, '')
 				);
 				lines[linesLength++] = currentLine;
 			}
@@ -622,7 +625,7 @@ export class PieceTreeBase {
 		} else if (this._EOLNormalized) {
 			this._lastVisitedLine.value = this.getLineRawContent(lineNumber, this._EOLLength);
 		} else {
-			this._lastVisitedLine.value = this.getLineRawContent(lineNumber).replace(/(\r\n|\r|\n)$/, '');
+			this._lastVisitedLine.value = this.getLineRawContent(lineNumber).replace(regexp2, '');
 		}
 
 		return this._lastVisitedLine.value;

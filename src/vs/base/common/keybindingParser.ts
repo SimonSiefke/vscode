@@ -5,6 +5,14 @@
 
 import { KeyCodeUtils, ScanCodeUtils } from './keyCodes.js';
 import { KeyCodeChord, ScanCodeChord, Keybinding, Chord } from './keybindings.js';
+const regexpCtrl = /^ctrl(\+|\-)/;
+const regexpShift = /^shift(\+|\-)/;
+const regexpAlt = /^alt(\+|\-)/;
+const regexpMeta = /^meta(\+|\-)/;
+const regexpWin = /^win(\+|\-)/;
+const regexpCmd = /^cmd(\+|\-)/;
+const regexp7 = /^\[([^\]]+)\]$/;
+
 
 export class KeybindingParser {
 
@@ -20,32 +28,32 @@ export class KeybindingParser {
 
 		do {
 			matchedModifier = false;
-			if (/^ctrl(\+|\-)/.test(input)) {
+			if (regexpCtrl.test(input)) {
 				ctrl = true;
 				input = input.substr('ctrl-'.length);
 				matchedModifier = true;
 			}
-			if (/^shift(\+|\-)/.test(input)) {
+			if (regexpShift.test(input)) {
 				shift = true;
 				input = input.substr('shift-'.length);
 				matchedModifier = true;
 			}
-			if (/^alt(\+|\-)/.test(input)) {
+			if (regexpAlt.test(input)) {
 				alt = true;
 				input = input.substr('alt-'.length);
 				matchedModifier = true;
 			}
-			if (/^meta(\+|\-)/.test(input)) {
+			if (regexpMeta.test(input)) {
 				meta = true;
 				input = input.substr('meta-'.length);
 				matchedModifier = true;
 			}
-			if (/^win(\+|\-)/.test(input)) {
+			if (regexpWin.test(input)) {
 				meta = true;
 				input = input.substr('win-'.length);
 				matchedModifier = true;
 			}
-			if (/^cmd(\+|\-)/.test(input)) {
+			if (regexpCmd.test(input)) {
 				meta = true;
 				input = input.substr('cmd-'.length);
 				matchedModifier = true;
@@ -75,7 +83,7 @@ export class KeybindingParser {
 
 	private static parseChord(input: string): [Chord, string] {
 		const mods = this._readModifiers(input);
-		const scanCodeMatch = mods.key.match(/^\[([^\]]+)\]$/);
+		const scanCodeMatch = mods.key.match(regexp7);
 		if (scanCodeMatch) {
 			const strScanCode = scanCodeMatch[1];
 			const scanCode = ScanCodeUtils.lowerCaseToEnum(strScanCode);

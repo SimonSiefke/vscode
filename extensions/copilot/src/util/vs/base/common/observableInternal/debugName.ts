@@ -1,3 +1,5 @@
+const regexpDescription = /\/\*\*\s*@description\s*([^*]*)\*\//;
+
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
@@ -143,7 +145,7 @@ export function getClassName(obj: object): string | undefined {
 export function getFunctionName(fn: Function): string | undefined {
 	const fnSrc = fn.toString();
 	// Pattern: /** @description ... */
-	const regexp = /\/\*\*\s*@description\s*([^*]*)\*\//;
+	const regexp = regexpDescription;
 	const match = regexp.exec(fnSrc);
 	const result = match ? match[1] : undefined;
 	return result?.trim();

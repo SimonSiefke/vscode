@@ -18,6 +18,9 @@ import { AlternativeTextNotebookContentProvider } from '../../common/alternative
 import { AlternativeXmlNotebookContentProvider } from '../../common/alternativeContentProvider.xml';
 import { LineOfText } from '../../common/helpers';
 import { fixture, loadFile, loadNotebook } from './utils';
+const regexp1 = /\r?\n/;
+const regexp2 = /\r?\n/g;
+
 
 describe('Alternative Content Edit Generator', () => {
 	[
@@ -70,7 +73,7 @@ describe('Alternative Content Edit Generator', () => {
 				const notebook = await loadNotebook(file);
 
 				const alternativeContents = '# Cell 1: Print a simple number\nprint(1234)';
-				const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(/\r?\n/)).map(l => new LineOfText(l));
+				const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(regexp1)).map(l => new LineOfText(l));
 				const edits = await getEditGenerator(provider).generateNotebookEdits(notebook, alternativeContentLines, undefined, CancellationToken.None);
 				const notebookEdits: NotebookEdit[] = [];
 				for await (const edit of edits) {
@@ -83,7 +86,7 @@ describe('Alternative Content Edit Generator', () => {
 				expect(notebookEdits.length).toBe(1);
 				expect(notebookEdits[0].newCells.length).toBe(1);
 				expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Code);
-				expect(notebookEdits[0].newCells[0].value.split(/\r?\n/g)).toEqual([`# Cell 1: Print a simple number`, `print(1234)`]);
+				expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual([`# Cell 1: Print a simple number`, `print(1234)`]);
 				expect(notebookEdits[0].range.start).toBe(0);
 				expect(notebookEdits[0].range.end).toBe(0);
 			});

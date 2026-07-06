@@ -13,6 +13,8 @@ import * as platform from '../../registry/common/platform.js';
 import { IColorTheme } from './themeService.js';
 import * as nls from '../../../nls.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
+const regexp1 = /\./g;
+
 
 //  ------ API types
 
@@ -33,7 +35,7 @@ export interface ColorContribution {
  * @sample `editorSuggestWidget.background` is `--vscode-editorSuggestWidget-background`.
  */
 export function asCssVariableName(colorIdent: ColorIdentifier): string {
-	return `--vscode-${colorIdent.replace(/\./g, '-')}`;
+	return `--vscode-${colorIdent.replace(new RegExp(regexp1), '-')}`;
 }
 
 export function asCssVariable(color: ColorIdentifier): string {

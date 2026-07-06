@@ -17,6 +17,8 @@ import { IAction } from '../../../../../base/common/actions.js';
 import { MarshalledId } from '../../../../../base/common/marshallingIds.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { getActiveWindow, runWhenWindowIdle } from '../../../../../base/browser/dom.js';
+const regexpPrimary = /^primary/;
+
 
 class KernelInfo {
 
@@ -337,7 +339,7 @@ export class NotebookKernelService extends Disposable implements INotebookKernel
 			const groups = menu.getActions({ shouldForwardArgs: true });
 			const sourceActions: [ISourceAction, IDisposable][] = [];
 			groups.forEach(group => {
-				const isPrimary = /^primary/.test(group[0]);
+				const isPrimary = regexpPrimary.test(group[0]);
 				group[1].forEach(action => {
 					const sourceAction = new SourceAction(action, document, isPrimary);
 					const stateChangeListener = sourceAction.onDidChangeState(() => {

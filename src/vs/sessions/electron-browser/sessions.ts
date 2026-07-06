@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const sessionsBackslashRegexp = /\\/g;
+const sessionsHashRegexp = /#/g;
+
 /* eslint-disable no-restricted-globals */
 
 (async function () {
@@ -246,7 +249,7 @@
 
 		// Since we are building a URI, we normalize any backslash
 		// to slashes and we ensure that the path begins with a '/'.
-		let pathName = path.replace(/\\/g, '/');
+		let pathName = path.replace(new RegExp(sessionsBackslashRegexp), '/');
 		if (pathName.length > 0 && pathName.charAt(0) !== '/') {
 			pathName = `/${pathName}`;
 		}
@@ -265,7 +268,7 @@
 			uri = encodeURI(`${config.scheme || 'file'}://${config.fallbackAuthority || ''}${pathName}`);
 		}
 
-		return uri.replace(/#/g, '%23');
+		return uri.replace(new RegExp(sessionsHashRegexp), '%23');
 	}
 
 	function setupCSSImportMaps<T extends ISandboxConfiguration>(configuration: T, baseUrl: URL) {

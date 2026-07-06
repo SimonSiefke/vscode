@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\r?\n/;
+
 export namespace AsyncIterUtils {
 
 	export async function* map<T0, T1>(iterable: AsyncIterable<T0>, mapItem: (item: T0) => T1): AsyncIterable<T1> {
@@ -91,7 +93,7 @@ export namespace AsyncIterUtilsExt {
 			buffer ??= '';
 			buffer += chunk;
 
-			const parts: string[] = buffer.split(/\r?\n/);
+			const parts: string[] = buffer.split(regexp1);
 			buffer = parts.pop() ?? '';
 
 			yield* parts;

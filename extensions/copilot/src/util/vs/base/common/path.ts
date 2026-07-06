@@ -36,6 +36,9 @@
  */
 
 import * as process from './process';
+const regexpNot = /^not /;
+const regexp2 = /\\/g;
+
 
 const CHAR_UPPERCASE_A = 65;/* A */
 const CHAR_LOWERCASE_A = 97; /* a */
@@ -54,7 +57,7 @@ class ErrorInvalidArgType extends Error {
 		let determiner;
 		if (typeof expected === 'string' && expected.indexOf('not ') === 0) {
 			determiner = 'must not be';
-			expected = expected.replace(/^not /, '');
+			expected = expected.replace(regexpNot, '');
 		} else {
 			determiner = 'must be';
 		}
@@ -1138,7 +1141,7 @@ const posixCwd = (() => {
 	if (platformIsWin32) {
 		// Converts Windows' backslash path separators to POSIX forward slashes
 		// and truncates any drive indicator
-		const regexp = /\\/g;
+		const regexp = new RegExp(regexp2);
 		return () => {
 			const cwd = process.cwd().replace(regexp, '/');
 			return cwd.slice(cwd.indexOf('/'));

@@ -8,6 +8,8 @@ import type { ICompletionResource } from '../types';
 import { getAliasesHelper } from './common';
 import { type ExecOptionsWithStringEncoding } from 'node:child_process';
 import { fishBuiltinsCommandDescriptionsCache } from './fishBuiltinsCache';
+const regexpAliasAliasZA = /^alias (?<alias>[a-zA-Z0-9\.:-]+) (?<resolved>.+)$/;
+
 
 const commandDescriptionsCache: Map<string, { shortDescription?: string; description: string; args: string | undefined }> | undefined = parseCache(fishBuiltinsCommandDescriptionsCache);
 
@@ -87,5 +89,5 @@ function parseCache(cache: Object): Map<string, { shortDescription?: string; des
 }
 
 async function getAliases(options: ExecOptionsWithStringEncoding): Promise<ICompletionResource[]> {
-	return getAliasesHelper('fish', ['-ic', 'alias'], /^alias (?<alias>[a-zA-Z0-9\.:-]+) (?<resolved>.+)$/, options);
+	return getAliasesHelper('fish', ['-ic', 'alias'], regexpAliasAliasZA, options);
 }

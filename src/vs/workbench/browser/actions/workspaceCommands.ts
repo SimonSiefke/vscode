@@ -24,6 +24,8 @@ import { IFileToOpen, IFolderToOpen, IOpenEmptyWindowOptions, IOpenWindowOptions
 import { IRecent, IWorkspacesService } from '../../../platform/workspaces/common/workspaces.js';
 import { IPathService } from '../../services/path/common/pathService.js';
 import { ILocalizedString } from '../../../platform/action/common/action.js';
+const regexp1 = /^[^:/?#]+:\/\//;
+
 
 export const ADD_ROOT_FOLDER_COMMAND_ID = 'addRootFolder';
 export const ADD_ROOT_FOLDER_LABEL: ILocalizedString = localize2('addFolderToWorkspace', 'Add Folder to Workspace...');
@@ -273,7 +275,7 @@ CommandsRegistry.registerCommand({
 		const workspacesService = accessor.get(IWorkspacesService);
 
 		if (typeof path === 'string') {
-			path = path.match(/^[^:/?#]+:\/\//) ? URI.parse(path) : URI.file(path);
+			path = path.match(regexp1) ? URI.parse(path) : URI.file(path);
 		} else {
 			path = URI.revive(path); // called from extension host
 		}

@@ -11,6 +11,22 @@ import { IObservable } from '../../../util/vs/base/common/observableInternal';
 import { equalsIgnoreCase } from '../../../util/vs/base/common/strings';
 import { URI } from '../../../util/vs/base/common/uri';
 import { Branch, Change, CommitOptions, CommitShortStat, DiffChange, Ref, RefQuery, Repository, RepositoryAccessDetails, RepositoryKind, Worktree } from '../vscode/git';
+const regexp1 = /^[\w\d\-]+@/i;
+const regexp2 = /:\d+$/;
+const regexp3 = /-[\w\-]+$/;
+const regexp4 = /^[\w\-]+-/;
+const regexpGit = /^\/?([^/]+)\/([^/]+?)(\/|\.git\/?)?$/i;
+const regexpOrgProjectGit = /^\/?(?<org>[^/]+)\/(?<project>[^/]+?)\/_git\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i;
+const regexpV3OrgProject = /^\/?v3\/(?<org>[^/]+)\/(?<project>[^/]+?)\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i;
+const regexpOrgVisualstudioCom = /^(?<org>[^\.]+)\.visualstudio\.com$/i;
+const regexpV3OrgProject1 = /^\/(v3\/)(?<org>[^/]+?)\/(?<project>[^/]+?)\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i;
+const regexpCollectionProjectGit = /^\/?((?<collection>[^/]+?)\/)?(?<project>[^/]+?)\/_git\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i;
+const regexp11 = /([\w\d\-]+)@([\w\d\.\-]+):(.+)/;
+const regexp12 = /^[\w\d\-]+@[\w\d\.\-]+:/;
+const regexpScmScmGit = /^\/scm\/scm\.git/;
+const regexpScm = /^\/scm\//;
+const regexpScm1 = /^\/scm\/[^/]/;
+
 
 export interface RepoContext {
 	readonly rootUri: URI;
@@ -167,7 +183,7 @@ export function parseRemoteUrl(fetchUrl: string): { host: string; rawHost: strin
 	try {
 		// Normalize git shorthand syntax (git@github.com:user/repo.git) into an explicit ssh:// url
 		// See https://git-scm.com/docs/git-clone/2.35.0#_git_urls
-		if (/^[\w\d\-]+@/i.test(fetchUrl)) {
+		if (regexp1.test(fetchUrl)) {
 			const parts = fetchUrl.split(':');
 			if (parts.length !== 2) {
 				return undefined;
@@ -194,11 +210,11 @@ export function parseRemoteUrl(fetchUrl: string): { host: string; rawHost: strin
 
 		const rawHost = extractedHost
 			.toLowerCase()
-			.replace(/:\d+$/, ''); // Remove optional port
+			.replace(regexp2, ''); // Remove optional port
 
 		const normalizedHost = rawHost
-			.replace(/^[\w\-]+-/, '') // Remove common ssh syntax: abc-github.com
-			.replace(/-[\w\-]+$/, '');// Remove common ssh syntax: github.com-abc
+			.replace(regexp4, '') // Remove common ssh syntax: abc-github.com
+			.replace(regexp3, '');// Remove common ssh syntax: github.com-abc
 
 		return { host: normalizedHost, rawHost, path: path };
 	} catch (err) {
@@ -260,7 +276,7 @@ export function getGithubRepoIdFromFetchUrl(fetchUrl: string): GithubRepoId | un
 		? parsed.rawHost
 		: 'github.com';
 
-	const pathMatch = parsed.path.match(/^\/?([^/]+)\/([^/]+?)(\/|\.git\/?)?$/i);
+	const pathMatch = parsed.path.match(regexpGit);
 	return pathMatch ? new GithubRepoId(pathMatch[1], pathMatch[2], webHost) : undefined;
 }
 
@@ -294,7 +310,7 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
 	// Http: https://dev.azure.com/organization/project/_git/_optimized/repository
 	// Http: https://dev.azure.com/organization/project/_git/_full/repository
 	if (parsed.host === 'dev.azure.com') {
-		const partsMatch = parsed.path.match(/^\/?(?<org>[^/]+)\/(?<project>[^/]+?)\/_git\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i);
+		const partsMatch = parsed.path.match(regexpOrgProjectGit);
 		if (partsMatch?.groups) {
 			return new AdoRepoId(partsMatch.groups.org, partsMatch.groups.project, partsMatch.groups.repo);
 		}
@@ -305,7 +321,7 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
 	// Ssh: git@ssh.dev.azure.com:v3/organization/project/_optimized/repository
 	// Ssh: git@ssh.dev.azure.com:v3/organization/project/_full/repository
 	if (parsed.host === 'ssh.dev.azure.com') {
-		const partsMatch = parsed.path.match(/^\/?v3\/(?<org>[^/]+)\/(?<project>[^/]+?)\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i);
+		const partsMatch = parsed.path.match(regexpV3OrgProject);
 		if (partsMatch?.groups) {
 			return new AdoRepoId(partsMatch.groups.org, partsMatch.groups.project, partsMatch.groups.repo);
 		}
@@ -315,7 +331,7 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
 	// legacy https: https://organization.visualstudio.com/project/_git/repository
 	// Legacy ssh: git@organization.visualstudio.com:v3/organization/project/repository
 	if (parsed.host.endsWith('.visualstudio.com')) {
-		const hostMatch = parsed.host.match(/^(?<org>[^\.]+)\.visualstudio\.com$/i);
+		const hostMatch = parsed.host.match(regexpOrgVisualstudioCom);
 		if (!hostMatch?.groups) {
 			return undefined;
 		}
@@ -324,7 +340,7 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
 			// Legacy ssh:  git@organization.visualstudio.com:v3/organization/project/repository
 			// Legacy ssh:  git@organization.visualstudio.com:v3/organization/project/_optimized/repository
 			// Legacy ssh:  git@organization.visualstudio.com:v3/organization/project/_full/repository
-			parsed.path.match(/^\/(v3\/)(?<org>[^/]+?)\/(?<project>[^/]+?)\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i)
+			parsed.path.match(regexpV3OrgProject1)
 
 			// legacy https: https://organization.visualstudio.com/project/_git/repository
 			// legacy https: https://organization.visualstudio.com/project/_git/_optimized/repository
@@ -332,7 +348,7 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
 			// or legacy https: https://organization.visualstudio.com/collection/project/_git/repository
 			// or legacy https: https://organization.visualstudio.com/collection/project/_git/_optimized/repository
 			// or legacy https: https://organization.visualstudio.com/collection/project/_git/_full/repository
-			?? parsed.path.match(/^\/?((?<collection>[^/]+?)\/)?(?<project>[^/]+?)\/_git\/(?:_(?:optimized|full)\/)?(?<repo>[^/]+?)(\.git|\/)?$/i);
+			?? parsed.path.match(regexpCollectionProjectGit);
 		if (partsMatch?.groups) {
 			return new AdoRepoId(hostMatch.groups.org, partsMatch.groups.project, partsMatch.groups.repo);
 		}
@@ -350,8 +366,8 @@ export function getAdoRepoIdFromFetchUrl(fetchUrl: string): AdoRepoId | undefine
  */
 export function normalizeFetchUrl(fetchUrl: string): string {
 	// Handle SSH shorthand (git@host:project/repo.git)
-	if (/^[\w\d\-]+@[\w\d\.\-]+:/.test(fetchUrl)) {
-		fetchUrl = fetchUrl.replace(/([\w\d\-]+)@([\w\d\.\-]+):(.+)/, 'https://$2/$3');
+	if (regexp12.test(fetchUrl)) {
+		fetchUrl = fetchUrl.replace(regexp11, 'https://$2/$3');
 		return fetchUrl;
 	}
 
@@ -363,14 +379,14 @@ export function normalizeFetchUrl(fetchUrl: string): string {
 	}
 
 	// Special handling for the scm/scm.git case
-	const scmScmMatch = url.pathname.match(/^\/scm\/scm\.git/);
+	const scmScmMatch = url.pathname.match(regexpScmScmGit);
 
 	// Create new URL with HTTPS protocol
 	const newUrl = new URL('https://' + url.hostname + url.pathname);
 
 	// Only remove /scm/ if it is followed by another segment (not if repo is named 'scm')
-	if (!scmScmMatch && /^\/scm\/[^/]/.test(newUrl.pathname)) {
-		newUrl.pathname = newUrl.pathname.replace(/^\/scm\//, '/');
+	if (!scmScmMatch && regexpScm1.test(newUrl.pathname)) {
+		newUrl.pathname = newUrl.pathname.replace(regexpScm, '/');
 	}
 
 	return newUrl.toString();

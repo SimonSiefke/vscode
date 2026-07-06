@@ -16,6 +16,8 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { GitCommitMessagePrompt } from '../../prompts/node/git/gitCommitMessagePrompt';
 import { RecentCommitMessages } from '../common/repository';
+const regexpText = /^```text\s*([\s\S]+?)\s*```$/m;
+
 
 type ResponseFormat = 'noTextCodeBlock' | 'oneTextCodeBlock' | 'multipleTextCodeBlocks';
 
@@ -108,7 +110,7 @@ export class GitCommitMessageGenerator {
 	}
 
 	private processGeneratedCommitMessage(raw: string): [ResponseFormat, string] {
-		const textCodeBlockRegex = /^```text\s*([\s\S]+?)\s*```$/m;
+		const textCodeBlockRegex = regexpText;
 		const textCodeBlockMatch = textCodeBlockRegex.exec(raw);
 
 		if (textCodeBlockMatch === null) {

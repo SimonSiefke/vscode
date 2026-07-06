@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IProcessEnvironment, isLinux } from './platform.js';
+const regexpELECTRON = /^ELECTRON_.+$/;
+const regexpVSCODEPORTABLESHELL = /^VSCODE_(?!(PORTABLE|SHELL_LOGIN|ENV_REPLACE|ENV_APPEND|ENV_PREPEND)).+$/;
+const regexpSNAP = /^SNAP(|_.*)$/;
+const regexpGDKPIXBUF = /^GDK_PIXBUF_.+$/;
+
 
 /**
  * Options to be passed to the external program or shell.
@@ -107,10 +112,10 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
 		return set;
 	}, {});
 	const keysToRemove = [
-		/^ELECTRON_.+$/,
-		/^VSCODE_(?!(PORTABLE|SHELL_LOGIN|ENV_REPLACE|ENV_APPEND|ENV_PREPEND)).+$/,
-		/^SNAP(|_.*)$/,
-		/^GDK_PIXBUF_.+$/,
+		regexpELECTRON,
+		regexpVSCODEPORTABLESHELL,
+		regexpSNAP,
+		regexpGDKPIXBUF,
 	];
 	const envKeys = Object.keys(env);
 	envKeys

@@ -32,13 +32,16 @@ import * as path from '../../common/path.js';
 import { isWeb, isWindows } from '../../common/platform.js';
 import * as process from '../../common/process.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexp1 = /\\/g;
+const regexp2 = /\//g;
+
 
 suite('Paths (Node Implementation)', () => {
 	const __filename = 'path.test.js';
 	ensureNoDisposablesAreLeakedInTestSuite();
 	test('join', () => {
 		const failures = [] as string[];
-		const backslashRE = /\\/g;
+		const backslashRE = new RegExp(regexp1);
 
 		const joinTests: any = [
 			[[path.posix.join, path.win32.join],
@@ -260,7 +263,7 @@ suite('Paths (Node Implementation)', () => {
 
 	test('extname', () => {
 		const failures = [] as string[];
-		const slashRE = /\//g;
+		const slashRE = new RegExp(regexp2);
 
 		[
 			[__filename, '.js'],
@@ -364,8 +367,8 @@ suite('Paths (Node Implementation)', () => {
 
 	test('resolve', () => {
 		const failures = [] as string[];
-		const slashRE = /\//g;
-		const backslashRE = /\\/g;
+		const slashRE = new RegExp(regexp2);
+		const backslashRE = new RegExp(regexp1);
 
 		const resolveTests = [
 			[path.win32.resolve,

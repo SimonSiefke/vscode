@@ -7,6 +7,8 @@ import { IRange } from '../core/range.js';
 import { FoldingRules } from '../languages/languageConfiguration.js';
 import { isMultilineRegexSource } from '../model/textModelSearch.js';
 import { regExpLeadsToEndlessLoop } from '../../../base/common/strings.js';
+const regexp1 = /\n/g;
+
 
 export interface ISectionHeaderFinderTarget {
 	getLineCount(): number;
@@ -125,7 +127,7 @@ export function collectMarkHeaders(model: ISectionHeaderFinderTarget, options: F
 		while ((match = regex.exec(text)) !== null) {
 			// Calculate which line this match starts on by counting newlines before it
 			const precedingText = text.substring(0, match.index);
-			const lineOffset = (precedingText.match(/\n/g) || []).length;
+			const lineOffset = (precedingText.match(new RegExp(regexp1)) || []).length;
 			const lineNumber = startLine + lineOffset;
 
 			// Calculate match height to check overlap properly

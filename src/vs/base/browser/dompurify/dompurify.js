@@ -1,5 +1,13 @@
 /*! @license DOMPurify 3.4.8 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.8/LICENSE */
 
+const regexpUiNtClamped = /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/;
+const regexp2 = /^[\r\n\t ]+/;
+const regexp3 = /<[/\w!]/g;
+const regexp4 = /<[/\w]/g;
+const regexpNoScriptEmbed = /<\/no(script|embed|frames)/i;
+const regexpStyleScriptTitle = /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i;
+const regexp7 = /\/>/i;
+
 function _arrayLikeToArray(r, a) {
   (null == a || a > r.length) && (a = r.length);
   for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
@@ -42,7 +50,7 @@ function _unsupportedIterableToArray(r, a) {
   if (r) {
     if ("string" == typeof r) return _arrayLikeToArray(r, a);
     var t = {}.toString.call(r).slice(8, -1);
-    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || regexpUiNtClamped.test(t) ? _arrayLikeToArray(r, a) : void 0;
   }
 }
 
@@ -985,7 +993,7 @@ function createDOMPurify() {
       dirty = '<remove></remove>' + dirty;
     } else {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
-      const matches = stringMatch(dirty, /^[\r\n\t ]+/);
+      const matches = stringMatch(dirty, regexp2);
       leadingWhitespace = matches && matches[0];
     }
     if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
@@ -1200,7 +1208,7 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
     /* Detect mXSS attempts abusing namespace confusion */
-    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(new RegExp(regexp3), currentNode.innerHTML) && regExpTest(new RegExp(regexp3), currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1215,7 +1223,7 @@ function createDOMPurify() {
       return true;
     }
     /* Remove any kind of possibly harmful comments */
-    if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
+    if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(new RegExp(regexp4), currentNode.data)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1264,7 +1272,7 @@ function createDOMPurify() {
       return true;
     }
     /* Make sure that older browsers don't get fallback-tag mXSS */
-    if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
+    if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(regexpNoScriptEmbed, currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1395,7 +1403,7 @@ function createDOMPurify() {
       // Else: already prefixed, leave the attribute alone — the prefix is
       // itself the clobbering protection, and re-applying it is incorrect.
       /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) {
+      if (SAFE_FOR_XML && regExpTest(regexpStyleScriptTitle, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
@@ -1414,7 +1422,7 @@ function createDOMPurify() {
         continue;
       }
       /* Work around a security issue in jQuery 3.0 */
-      if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+      if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(regexp7, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }

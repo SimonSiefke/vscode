@@ -52,6 +52,8 @@ import { CopilotCliBridgeSpanProcessor } from './copilotCliBridgeSpanProcessor';
 import { CopilotCLISession, ICopilotCLISession } from './copilotcliSession';
 import { ICopilotCLISkills } from './copilotCLISkills';
 import { ICopilotCLIMCPHandler, McpServerMappings, remapCustomAgentTools } from './mcpHandler';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 
 const COPILOT_CLI_WORKSPACE_JSON_FILE_KEY = 'github.copilot.cli.workspaceSessionFile';
@@ -692,7 +694,7 @@ export class CopilotCLISessionService extends Disposable implements ICopilotCLIS
 			return false;
 		}
 		// Must mirror `SessionDataService._sanitizedSessionKey`.
-		const sanitized = sessionId.replace(/[^a-zA-Z0-9_.-]/g, '-');
+		const sanitized = sessionId.replace(new RegExp(regexpZAZ0), '-');
 		const dbPath = joinPath(dataDir, sanitized, 'session.db');
 		return this.fileSystem.stat(dbPath).then(() => true, () => false);
 	}

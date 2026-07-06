@@ -22,6 +22,8 @@ import { sendEngineMessagesTelemetry } from '../../networking/node/chatStream';
 import { IExperimentationService } from '../../telemetry/common/nullExperimentationService';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
 import { TelemetryData } from '../../telemetry/common/telemetryData';
+const regexpDataImageJpeg = /^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/;
+
 
 /**
  * Build the `input_schema` for an Anthropic tool from an arbitrary JSON Schema
@@ -414,7 +416,7 @@ function rawContentToAnthropicContent(content: readonly Raw.ChatCompletionConten
 			case Raw.ChatCompletionContentPartKind.Image: {
 				const url = part.imageUrl.url;
 				// Parse data URL: data:image/png;base64,<data>
-				const match = url.match(/^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/);
+				const match = url.match(regexpDataImageJpeg);
 				if (match) {
 					convertedContent.push({
 						type: 'image',

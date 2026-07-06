@@ -18,6 +18,17 @@ import product from '../../product.json' with { type: 'json' };
 import packageJson from '../../package.json' with { type: 'json' };
 import { useEsbuildTranspile } from '../buildConfig.ts';
 import { isWebExtension, type IScannedBuiltinExtension } from '../lib/extensions.ts';
+const regexpReadmeTxtMd = /^readme(\.txt|\.md|)$/i;
+const regexpChangelogTxtMd = /^changelog(\.txt|\.md|)$/i;
+const regexpTestUtf8 = /([\/\\])test\1.*utf8/;
+const regexpTs = /\.ts$/;
+const regexpMinimist = /^minimist$/;
+const regexpCss = /\.css$/;
+const regexpTsEsm = /\.ts(\?esm['"])/g;
+const regexpSourceMappingURL = /\/\/# sourceMappingURL=.+$/m;
+const regexpSourceMappingURL1 = /\/\*# sourceMappingURL=.+\*\/$/m;
+const regexpMap = /\.map$/;
+
 
 const globAsync = promisify(glob);
 
@@ -434,8 +445,8 @@ function scanBuiltinExtensions(extensionsRoot: string): Array<IScannedBuiltinExt
 			const children = fs.readdirSync(path.join(extensionsPath, extensionFolder));
 			const packageNLSPath = children.filter(child => child === 'package.nls.json')[0];
 			const packageNLS = packageNLSPath ? JSON.parse(fs.readFileSync(path.join(extensionsPath, extensionFolder, packageNLSPath), 'utf8')) : undefined;
-			const readme = children.filter(child => /^readme(\.txt|\.md|)$/i.test(child))[0];
-			const changelog = children.filter(child => /^changelog(\.txt|\.md|)$/i.test(child))[0];
+			const readme = children.filter(child => regexpReadmeTxtMd.test(child))[0];
+			const changelog = children.filter(child => regexpChangelogTxtMd.test(child))[0];
 
 			scannedExtensions.push({
 				extensionPath: extensionFolder,
@@ -468,7 +479,7 @@ function readISODate(outDir: string): string {
  * tests expect one... so we add it here.
  */
 function needsBomAdded(filePath: string): boolean {
-	return /([\/\\])test\1.*utf8/.test(filePath);
+	return regexpTestUtf8.test(filePath);
 }
 
 async function copyFile(srcPath: string, destPath: string): Promise<void> {
@@ -509,7 +520,7 @@ async function compileStandaloneFiles(outDir: string, doMinify: boolean, target:
 
 	await Promise.all(desktopStandaloneFiles.map(async (file) => {
 		const entryPath = path.join(REPO_ROOT, SRC_DIR, file);
-		const outPath = path.join(REPO_ROOT, outDir, file.replace(/\.ts$/, '.js'));
+		const outPath = path.join(REPO_ROOT, outDir, file.replace(regexpTs, '.js'));
 
 		await esbuild.build({
 			entryPoints: [entryPath],
@@ -608,7 +619,7 @@ function inlineMinimistPlugin(): esbuild.Plugin {
 	return {
 		name: 'inline-minimist',
 		setup(build) {
-			build.onResolve({ filter: /^minimist$/ }, () => ({
+			build.onResolve({ filter: regexpMinimist }, () => ({
 				path: path.join(REPO_ROOT, 'node_modules/minimist/index.js'),
 				external: false,
 			}));
@@ -622,7 +633,7 @@ function cssExternalPlugin(): esbuild.Plugin {
 	return {
 		name: 'css-external',
 		setup(build) {
-			build.onResolve({ filter: /\.css$/ }, (args) => ({
+			build.onResolve({ filter: regexpCss }, (args) => ({
 				path: args.path,
 				external: true,
 			}));
@@ -644,7 +655,7 @@ function fileContentMapperPlugin(outDir: string, target: BuildTarget): esbuild.P
 	return {
 		name: 'file-content-mapper',
 		setup(build) {
-			build.onLoad({ filter: /\.ts$/ }, async (args) => {
+			build.onLoad({ filter: regexpTs }, async (args) => {
 				// Skip .d.ts files
 				if (args.path.endsWith('.d.ts')) {
 					return undefined;
@@ -739,7 +750,7 @@ async function transpileFile(srcPath: string, destPath: string): Promise<void> {
  * +  esmModuleLocationBundler: () => new URL("../../../api/worker/extensionHostWorkerMain.js?esm", import.meta.url)
  */
 function adjustEsmUrl(code: string): string {
-	const fixedCode = code.replace(/\.ts(\?esm['"])/g, '.js$1');
+	const fixedCode = code.replace(new RegExp(regexpTsEsm), '.js$1');
 	return fixedCode;
 }
 
@@ -760,7 +771,7 @@ async function transpile(outDir: string, excludeTests: boolean): Promise<void> {
 	// Transpile all files in parallel using esbuild.transform (fastest approach)
 	await Promise.all(files.map(file => {
 		const srcPath = path.join(REPO_ROOT, SRC_DIR, file);
-		const destPath = path.join(REPO_ROOT, outDir, file.replace(/\.ts$/, '.js'));
+		const destPath = path.join(REPO_ROOT, outDir, file.replace(regexpTs, '.js'));
 		return transpileFile(srcPath, destPath);
 	}));
 }
@@ -990,11 +1001,11 @@ ${tslib}`,
 				if (sourceMapBaseUrl) {
 					const relativePath = path.relative(path.join(REPO_ROOT, outDir), file.path);
 					content = content.replace(
-						/\/\/# sourceMappingURL=.+$/m,
+						regexpSourceMappingURL,
 						`//# sourceMappingURL=${sourceMapBaseUrl}/${relativePath}.map`
 					);
 					content = content.replace(
-						/\/\*# sourceMappingURL=.+\*\/$/m,
+						regexpSourceMappingURL1,
 						`/*# sourceMappingURL=${sourceMapBaseUrl}/${relativePath}.map*/`
 					);
 				}
@@ -1014,7 +1025,7 @@ ${tslib}`,
 	// Second pass: process deferred .map files now that all mangle/NLS edits
 	// have been collected from .js processing above.
 	for (const mapFile of deferredMaps) {
-		const jsPath = mapFile.path.replace(/\.map$/, '');
+		const jsPath = mapFile.path.replace(regexpMap, '');
 		const mangle = mangleEdits.get(jsPath);
 		const nls = nlsEdits.get(jsPath);
 
@@ -1127,7 +1138,7 @@ async function watch(): Promise<void> {
 				console.log(`[watch] Transpiling ${tsFiles.length} file(s)...`);
 				await Promise.all(tsFiles.map(srcPath => {
 					const relativePath = path.relative(path.join(REPO_ROOT, SRC_DIR), srcPath);
-					const destPath = path.join(REPO_ROOT, outDir, relativePath.replace(/\.ts$/, '.js'));
+					const destPath = path.join(REPO_ROOT, outDir, relativePath.replace(regexpTs, '.js'));
 					return transpileFile(srcPath, destPath);
 				}));
 			}

@@ -15,6 +15,8 @@ import { InstantiationType, registerSingleton } from '../../../../../platform/in
 import { Disposable, DisposableMap, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { basename } from '../../../../../base/common/resources.js';
+const regexp1 = /\.+$/;
+
 
 export const IChatContextService = createDecorator<IChatContextService>('chatContextService');
 
@@ -69,7 +71,7 @@ export class ChatContextService extends Disposable {
 		if (!providerEntry || !providerEntry.picker || !providerEntry.explicitProvider) {
 			return;
 		}
-		const title = `${providerEntry.picker.title.replace(/\.+$/, '')}...`;
+		const title = `${providerEntry.picker.title.replace(regexp1, '')}...`;
 		this._registeredPickers.set(id, this._contextPickService.registerChatContextItem(this._asPicker(title, providerEntry.picker.icon, id)));
 	}
 

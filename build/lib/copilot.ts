@@ -9,6 +9,8 @@ import { execFileSync } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
 import { extract } from 'tar';
+const regexp1 = /\s+/;
+
 
 /**
  * The platforms that @github/copilot ships platform-specific packages for.
@@ -260,7 +262,7 @@ function verifyNpmIntegrity(tarballPath: string, integrity: string | undefined):
 		return;
 	}
 
-	const sha512Integrity = integrity.split(/\s+/).find(entry => entry.startsWith('sha512-'));
+	const sha512Integrity = integrity.split(regexp1).find(entry => entry.startsWith('sha512-'));
 	if (!sha512Integrity) {
 		return;
 	}

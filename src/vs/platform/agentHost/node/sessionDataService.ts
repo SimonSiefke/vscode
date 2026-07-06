@@ -11,6 +11,8 @@ import { ILogService } from '../../log/common/log.js';
 import { AgentSession } from '../common/agentService.js';
 import { ISessionDatabase, ISessionDataService, IWillDeleteSessionDataEvent, SESSION_DB_FILENAME } from '../common/sessionDataService.js';
 import { SessionDatabase } from './sessionDatabase.js';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 class SessionDatabaseCollection extends ReferenceCollection<ISessionDatabase> {
 
@@ -75,12 +77,12 @@ export class SessionDataService implements ISessionDataService {
 	}
 
 	getSessionDataDirById(sessionId: string): URI {
-		const sanitized = sessionId.replace(/[^a-zA-Z0-9_.-]/g, '-');
+		const sanitized = sessionId.replace(new RegExp(regexpZAZ0), '-');
 		return URI.joinPath(this._basePath, sanitized);
 	}
 
 	private _sanitizedSessionKey(session: URI): string {
-		return this._dataKey(session).replace(/[^a-zA-Z0-9_.-]/g, '-');
+		return this._dataKey(session).replace(new RegExp(regexpZAZ0), '-');
 	}
 
 	/**

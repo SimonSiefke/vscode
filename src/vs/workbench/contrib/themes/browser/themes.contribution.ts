@@ -41,6 +41,8 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+const regexp1 = /\"__/g;
+
 
 export const manageExtensionIcon = registerIcon('theme-selection-manage-extension', Codicon.gear, localize('manageExtensionIcon', 'Icon for the \'Manage\' action in the theme selection quick pick.'));
 
@@ -776,7 +778,7 @@ registerAction2(class extends Action2 {
 			colors: resultingColors,
 			tokenColors: theme.tokenColors.filter(t => !!t.scope)
 		}, null, '\t');
-		contents = contents.replace(/\"__/g, '//"');
+		contents = contents.replace(new RegExp(regexp1), '//"');
 
 		const editorService = accessor.get(IEditorService);
 		return editorService.openEditor({ resource: undefined, contents, languageId: 'jsonc', options: { pinned: true } });

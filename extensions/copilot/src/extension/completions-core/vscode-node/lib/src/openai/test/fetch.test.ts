@@ -28,6 +28,8 @@ import {
 	LiveOpenAIFetcher, sanitizeRequestOptionTelemetry
 } from '../fetch';
 import { SyntheticCompletions } from '../fetch.fake';
+const regexpLimit = /limit/;
+
 
 suite('"Fetch" unit tests', function () {
 	let accessor: ServicesAccessor;
@@ -191,7 +193,7 @@ suite('"Fetch" unit tests', function () {
 
 		assert.deepStrictEqual(result, { type: 'failed', reason: 'monthly free code completions exhausted' });
 		assert.deepStrictEqual(statusReporter.kind, 'Error');
-		assert.match(statusReporter.message, /limit/);
+		assert.match(statusReporter.message, regexpLimit);
 		assert.deepStrictEqual(statusReporter.eventCount, 1);
 		assert.deepStrictEqual(statusReporter.command, CMDQuotaExceeded);
 		const exhausted = await fetcherService.fetchAndStreamCompletions(

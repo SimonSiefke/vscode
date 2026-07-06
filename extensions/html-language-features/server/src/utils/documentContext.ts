@@ -7,6 +7,8 @@ import { DocumentContext } from 'vscode-css-languageservice';
 import { endsWith, startsWith } from '../utils/strings.js';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { URI, Utils } from 'vscode-uri';
+const regexp1 = /^\w[\w\d+.-]*:/;
+
 
 export function getDocumentContext(documentUri: string, workspaceFolders: WorkspaceFolder[]): DocumentContext {
 	function getRootFolder(): string | undefined {
@@ -24,7 +26,7 @@ export function getDocumentContext(documentUri: string, workspaceFolders: Worksp
 
 	return {
 		resolveReference: (ref: string, base = documentUri) => {
-			if (ref.match(/^\w[\w\d+.-]*:/)) {
+			if (ref.match(regexp1)) {
 				// starts with a schema
 				return ref;
 			}

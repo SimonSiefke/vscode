@@ -53,6 +53,8 @@ import { addUNCHostToAllowlist, disableUNCAccessRestrictions } from '../../base/
 import { AllowedExtensionsService } from '../../platform/extensionManagement/common/allowedExtensionsService.js';
 import { IExtensionGalleryManifestService } from '../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { ExtensionGalleryManifestService } from '../../platform/extensionManagement/common/extensionGalleryManifestService.js';
+const regexpVsix = /\.vsix$/i;
+
 
 class CliMain extends Disposable {
 
@@ -176,7 +178,7 @@ class CliMain extends Disposable {
 	}
 
 	private asExtensionIdOrVSIX(inputs: string[]): (string | URI)[] {
-		return inputs.map(input => /\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
+		return inputs.map(input => regexpVsix.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
 	}
 }
 

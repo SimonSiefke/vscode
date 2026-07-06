@@ -9,6 +9,8 @@ import { basename, dirname } from '../../../../base/common/resources.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { Promises } from '../../../../base/common/async.js';
+const regexp1 = /^\d{8}T\d{6}$/;
+
 
 export class LogsDataCleaner extends Disposable {
 
@@ -27,7 +29,7 @@ export class LogsDataCleaner extends Disposable {
 			const stat = await this.fileService.resolve(dirname(this.environmentService.logsHome));
 			if (stat.children) {
 				const currentLog = basename(this.environmentService.logsHome);
-				const allSessions = stat.children.filter(stat => stat.isDirectory && /^\d{8}T\d{6}$/.test(stat.name));
+				const allSessions = stat.children.filter(stat => stat.isDirectory && regexp1.test(stat.name));
 				const oldSessions = allSessions.sort().filter((d, i) => d.name !== currentLog);
 				const toDelete = oldSessions.slice(0, Math.max(0, oldSessions.length - 49));
 				Promises.settled(toDelete.map(stat => this.fileService.del(stat.resource, { recursive: true })));

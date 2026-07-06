@@ -19,6 +19,9 @@ import { SyncDescriptor } from '../../../../util/vs/platform/instantiation/commo
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { AskAgentProvider } from '../askAgentProvider';
+const regexpTools = /tools: \[([^\]]+)\]/;
+const regexpSearch = /'search'/g;
+
 
 suite('AskAgentProvider', () => {
 	let disposables: DisposableStore;
@@ -118,10 +121,10 @@ suite('AskAgentProvider', () => {
 		const content = await getAgentContent(agents[0]);
 
 		// Count occurrences of 'search' in tools list
-		const toolsMatch = content.match(/tools: \[([^\]]+)\]/);
+		const toolsMatch = content.match(regexpTools);
 		assert.ok(toolsMatch, 'Tools list not found in agent content');
 		const toolsSection = toolsMatch[1];
-		const searchCount = (toolsSection.match(/'search'/g) || []).length;
+		const searchCount = (toolsSection.match(new RegExp(regexpSearch)) || []).length;
 		assert.equal(searchCount, 1, 'search tool should appear only once after deduplication');
 
 		// Should contain new tool

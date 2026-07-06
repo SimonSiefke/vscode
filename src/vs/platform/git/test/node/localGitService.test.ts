@@ -8,6 +8,9 @@ import * as cp from 'child_process';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../log/common/log.js';
 import { LocalGitService } from '../../node/localGitService.js';
+const regexpNotPossibleTo = /Not possible to fast-forward/;
+const regexpFailedToPull = /Failed to pull/;
+
 
 interface IExecFileExpectation {
 	args: string[];
@@ -95,7 +98,7 @@ suite('LocalGitService', () => {
 
 		await assert.rejects(
 			() => service.pull('test-op', 'C:\\repo', { allowHardResetOnDivergence: true }),
-			/Not possible to fast-forward/
+			regexpNotPossibleTo
 		);
 		assert.strictEqual(expectations.length, 0);
 	});
@@ -110,7 +113,7 @@ suite('LocalGitService', () => {
 
 		await assert.rejects(
 			() => service.pull('test-op', 'C:\\repo', { allowHardResetOnDivergence: true }),
-			/Failed to pull/
+			regexpFailedToPull
 		);
 		assert.strictEqual(expectations.length, 0);
 	});
@@ -127,7 +130,7 @@ suite('LocalGitService', () => {
 
 		await assert.rejects(
 			() => service.pull('test-op', 'C:\\repo', { allowHardResetOnDivergence: true }),
-			/Failed to pull/
+			regexpFailedToPull
 		);
 		assert.strictEqual(expectations.length, 0);
 	});
@@ -159,7 +162,7 @@ suite('LocalGitService', () => {
 
 		await assert.rejects(
 			() => service.pull('test-op', 'C:\\repo'),
-			/Not possible to fast-forward/
+			regexpNotPossibleTo
 		);
 		assert.strictEqual(expectations.length, 0);
 	});
@@ -177,7 +180,7 @@ suite('LocalGitService', () => {
 
 		await assert.rejects(
 			() => service.pull('test-op', 'C:\\repo', { allowHardResetOnDivergence: true }),
-			/Not possible to fast-forward/
+			regexpNotPossibleTo
 		);
 		assert.strictEqual(expectations.length, 0);
 	});

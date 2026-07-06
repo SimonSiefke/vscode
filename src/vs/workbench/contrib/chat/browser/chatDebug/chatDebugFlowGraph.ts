@@ -5,6 +5,11 @@
 
 import { localize } from '../../../../../nls.js';
 import { IChatDebugEvent } from '../../common/chatDebugService.js';
+const regexp1 = /^\u{1F6E0}\uFE0F?\s*/u;
+const regexpSubagent = /^Subagent:\s*/i;
+const regexp3 = /[\s_-]+/g;
+const regexp4 = /\s+/g;
+
 
 // ---- Data model ----
 
@@ -123,7 +128,7 @@ export function buildFlowGraph(events: readonly IChatDebugEvent[]): FlowNode[] {
 	}
 
 	/** Strip the leading tool emoji prefix if present. */
-	const emojiPrefixRe = /^\u{1F6E0}\uFE0F?\s*/u;
+	const emojiPrefixRe = regexp1;
 	function stripToolEmoji(name: string): string {
 		return name.replace(emojiPrefixRe, '');
 	}
@@ -211,7 +216,7 @@ export function buildFlowGraph(events: readonly IChatDebugEvent[]): FlowNode[] {
 			description = getSubagentDescription(event);
 			// Strip any existing "Subagent:" prefix from the description to
 			// avoid double-prefixing (e.g. "Subagent: Subagent: name").
-			const cleanDesc = description?.replace(/^Subagent:\s*/i, '');
+			const cleanDesc = description?.replace(regexpSubagent, '');
 			// Show "Subagent: <description>" as the label so users can identify
 			// these nodes and see what task they perform.
 			label = cleanDesc
@@ -607,7 +612,7 @@ export function mergeToolCallNodes(
  */
 function getEffectiveKind(event: IChatDebugEvent): IChatDebugEvent['kind'] {
 	if (event.kind === 'generic') {
-		const name = event.name.toLowerCase().replace(/[\s_-]+/g, '');
+		const name = event.name.toLowerCase().replace(new RegExp(regexp3), '');
 		if (name === 'usermessage' || name === 'userprompt' || name === 'user' || name.startsWith('usermessage')) {
 			return 'userMessage';
 		}
@@ -705,7 +710,7 @@ function getEventSublabel(event: IChatDebugEvent, effectiveKind?: IChatDebugEven
 			}
 			if (!firstLine) {
 				// Fall back to the full text collapsed to a single line
-				firstLine = text.replace(/\s+/g, ' ').trim();
+				firstLine = text.replace(new RegExp(regexp4), ' ').trim();
 			}
 			if (!firstLine) {
 				return undefined;

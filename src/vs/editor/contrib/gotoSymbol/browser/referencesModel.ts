@@ -18,6 +18,9 @@ import { IRange, Range } from '../../../common/core/range.js';
 import { Location, LocationLink } from '../../../common/languages.js';
 import { ITextEditorModel, ITextModelService } from '../../../common/services/resolverService.js';
 import { localize } from '../../../../nls.js';
+const regexp1 = /^\s+/;
+const regexp2 = /\s+$/;
+
 
 export class OneReference {
 
@@ -85,9 +88,9 @@ export class FilePreview implements IDisposable {
 		const beforeRange = new Range(startLineNumber, word.startColumn, startLineNumber, startColumn);
 		const afterRange = new Range(endLineNumber, endColumn, endLineNumber, Constants.MAX_SAFE_SMALL_INTEGER);
 
-		const before = model.getValueInRange(beforeRange).replace(/^\s+/, '');
+		const before = model.getValueInRange(beforeRange).replace(regexp1, '');
 		const inside = model.getValueInRange(range);
-		const after = model.getValueInRange(afterRange).replace(/\s+$/, '');
+		const after = model.getValueInRange(afterRange).replace(regexp2, '');
 
 		return {
 			value: before + inside + after,

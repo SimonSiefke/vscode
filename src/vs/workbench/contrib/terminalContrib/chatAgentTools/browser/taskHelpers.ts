@@ -24,6 +24,9 @@ import { Event } from '../../../../../base/common/event.js';
 import { IReconnectionTaskData } from '../../../tasks/browser/terminalTaskSystem.js';
 import { isString } from '../../../../../base/common/types.js';
 import type { IMarker as IXtermMarker } from '@xterm/xterm';
+const regexp1 = /^\d+$/;
+const regexp2 = /\/$/;
+
 
 
 export function getTaskDefinition(id: string) {
@@ -31,7 +34,7 @@ export function getTaskDefinition(id: string) {
 	const taskType = id.substring(0, idx);
 	let taskLabel = idx > 0 ? id.substring(idx + 2) : id;
 
-	if (/^\d+$/.test(taskLabel)) {
+	if (regexp1.test(taskLabel)) {
 		taskLabel = id;
 	}
 
@@ -104,7 +107,7 @@ export async function getTaskForTool(id: string | undefined, taskDefinition: { t
 	}
 
 	let tasksForWorkspace;
-	const getPathForCompare = (uri: URI) => uri.path.replace(/\/$/, '').toLowerCase();
+	const getPathForCompare = (uri: URI) => uri.path.replace(regexp2, '').toLowerCase();
 	const workspaceFolderPath = getPathForCompare(URI.file(workspaceFolder));
 	for (const [folder, tasks] of workspaceFolderToTaskMap) {
 		if (getPathForCompare(URI.parse(folder)) === workspaceFolderPath) {

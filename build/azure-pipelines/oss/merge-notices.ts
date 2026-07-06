@@ -20,6 +20,10 @@ import fs from 'fs';
 import { applyOverrides, readCglicenses } from './apply-overrides.js';
 import { isPackageHeader } from './parse-notices.js';
 import { parseArgs } from './utils.js';
+const regexp1 = /^(.+?)\s+([\d][^\s]*)\s+-\s+(.+)$/;
+const regexp2 = /^(.+?)\s+-\s+(.+)$/;
+const regexpDarwinWin32Linux = /(darwin|win32|linux|linuxmusl|alpine|freebsd|android|arm64|x64|ia32|armhf|ppc64|s390x|musl)/i;
+
 
 interface NoticeEntry {
 	name: string;
@@ -72,7 +76,7 @@ function parseNoticeFile(filePath: string): NoticeEntry[] {
 			continue;
 		}
 
-		const match = headerLine.match(/^(.+?)\s+([\d][^\s]*)\s+-\s+(.+)$/);
+		const match = headerLine.match(regexp1);
 		let name: string, version: string, license: string;
 		let url = '';
 
@@ -81,7 +85,7 @@ function parseNoticeFile(filePath: string): NoticeEntry[] {
 			version = match[2];
 			license = match[3];
 		} else {
-			const match2 = headerLine.match(/^(.+?)\s+-\s+(.+)$/);
+			const match2 = headerLine.match(regexp2);
 			if (match2) {
 				name = match2[1];
 				version = '';
@@ -368,7 +372,7 @@ async function mainAsync(): Promise<void> {
 					// Heuristic: flag names that contain a platform/arch token so a
 					// single-platform build doesn't lead someone to delete an override
 					// that other-platform builds still rely on.
-					const platformToken = /(darwin|win32|linux|linuxmusl|alpine|freebsd|android|arm64|x64|ia32|armhf|ppc64|s390x|musl)/i;
+					const platformToken = regexpDarwinWin32Linux;
 					for (const name of result.staleNames.sort()) {
 						const hint = platformToken.test(name)
 							? ' (likely platform-specific -- do NOT delete based on a single-platform build)'

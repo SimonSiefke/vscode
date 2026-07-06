@@ -5,6 +5,10 @@
 
 import { BasePromptElementProps, Chunk, PrioritizedList, PromptElement, PromptSizing, SystemMessage, UserMessage } from '@vscode/prompt-tsx';
 import { BGToolCallRound, ReadOnlyTurnHistory } from './backgroundTodoAgentSessionHistoryStore';
+const regexp1 = />/g;
+const regexp2 = /</g;
+const regexp3 = /\s+/g;
+
 
 const BACKGROUND_TODO_SYSTEM_MESSAGE = `You are a background task tracker for the main coding agent. Your only job is to maintain a structured todo list for the user's coding request by calling manage_todo_list.
 
@@ -216,11 +220,11 @@ export function renderBackgroundTodoRound(round: BGToolCallRound): string {
  * `<previous-turn-todos>`).
  */
 function escapeForPromptTag(text: string): string {
-	return text.replace(/</g, '\u2039').replace(/>/g, '\u203A');
+	return text.replace(new RegExp(regexp2), '\u2039').replace(new RegExp(regexp1), '\u203A');
 }
 
 function escapeInlineForPromptTag(text: string): string {
-	return escapeForPromptTag(text.replace(/\s+/g, ' ').trim());
+	return escapeForPromptTag(text.replace(new RegExp(regexp3), ' ').trim());
 }
 
 /**

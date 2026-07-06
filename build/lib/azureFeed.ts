@@ -6,6 +6,8 @@
 import cp from 'child_process';
 import fs from 'fs';
 import path from 'path';
+const regexp1 = /\/+$/;
+
 
 function getEnv(name: string): string {
 	const value = process.env[name];
@@ -57,7 +59,7 @@ export async function downloadFeedPackage(root: string, cacheDir: string, pkg: I
 		await ensureAzureDevOpsExtension();
 		await azExecFile([
 			'artifacts', 'universal', 'download',
-			'--organization', getEnv('SYSTEM_COLLECTIONURI').replace(/\/+$/, ''),
+			'--organization', getEnv('SYSTEM_COLLECTIONURI').replace(regexp1, ''),
 			'--project', getEnv('SYSTEM_TEAMPROJECT'),
 			'--scope', 'project',
 			'--feed', pkg.feed,

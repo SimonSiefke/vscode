@@ -12,6 +12,8 @@ import { generateUuid } from '../../base/common/uuid.js';
 import { connectionTokenCookieName, connectionTokenQueryName } from '../../base/common/network.js';
 import { ServerParsedArgs } from './serverEnvironmentService.js';
 import { Promises } from '../../base/node/pfs.js';
+const regexp1 = /\r?\n$/;
+
 
 const connectionTokenRegex = /^[0-9A-Za-z_-]+$/;
 
@@ -67,7 +69,7 @@ export async function parseServerConnectionToken(args: ServerParsedArgs, default
 
 		let rawConnectionToken: string;
 		try {
-			rawConnectionToken = fs.readFileSync(connectionTokenFile).toString().replace(/\r?\n$/, '');
+			rawConnectionToken = fs.readFileSync(connectionTokenFile).toString().replace(regexp1, '');
 		} catch (e) {
 			return new ServerConnectionTokenParseError(`Unable to read the connection token file at '${connectionTokenFile}'.`);
 		}
@@ -101,7 +103,7 @@ export async function determineServerConnectionToken(args: ServerParsedArgs): Pr
 		// First try to find a connection token
 		try {
 			const fileContents = await fs.promises.readFile(storageLocation);
-			const connectionToken = fileContents.toString().replace(/\r?\n$/, '');
+			const connectionToken = fileContents.toString().replace(regexp1, '');
 			if (connectionTokenRegex.test(connectionToken)) {
 				return connectionToken;
 			}

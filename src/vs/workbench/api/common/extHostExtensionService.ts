@@ -46,6 +46,8 @@ import { StopWatch } from '../../../base/common/stopwatch.js';
 import { isCI, setTimeout0 } from '../../../base/common/platform.js';
 import { IExtHostManagedSockets } from './extHostManagedSockets.js';
 import { Dto } from '../../services/extensions/common/proxyIdentifier.js';
+const regexp1 = /@|%40/g;
+
 
 interface ITestRunner {
 	/** Old test runner API, as exported from `vscode/lib/testrunner` */
@@ -878,7 +880,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 			return { resolver, authorityPrefix, remoteAuthority };
 		};
 
-		const chain = remoteAuthorityChain.split(/@|%40/g).reverse();
+		const chain = remoteAuthorityChain.split(new RegExp(regexp1)).reverse();
 		logInfo(`activating remote resolvers ${chain.join(' -> ')}`);
 
 		let resolvers;

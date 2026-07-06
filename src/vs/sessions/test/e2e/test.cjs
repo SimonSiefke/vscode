@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /[\uE000-\uF8FF]/g;
+const regexpClickFocus = /^(click|focus)\s+(\w+)\s+"([^"]+)"$/;
+const regexpRef = /\[ref=(e\d+)\]/;
+const regexp4 = /"([^"]+)"/;
+const regexpClickFocus1 = /^(click|focus)\s+\w+\s+"[^"]+"$/;
+
 // @ts-check
 
 /**
@@ -49,7 +55,7 @@ function discoverCommandFiles(filter) {
 // ---------------------------------------------------------------------------
 
 function normalizeLabel(text) {
-	return text.replace(/[\uE000-\uF8FF]/g, '').trim().toLowerCase();
+	return text.replace(new RegExp(regexp1), '').trim().toLowerCase();
 }
 
 // ---------------------------------------------------------------------------
@@ -65,17 +71,17 @@ function normalizeLabel(text) {
  */
 function resolveSemanticCommand(cmd, snapshotText) {
 	// Match: <action> <role> "<label>"
-	const match = cmd.match(/^(click|focus)\s+(\w+)\s+"([^"]+)"$/);
+	const match = cmd.match(regexpClickFocus);
 	if (!match) { return { resolved: cmd, ok: true }; }
 
 	const [, action, role, label] = match;
 	const needle = normalizeLabel(label);
 
 	for (const line of snapshotText.split('\n')) {
-		const refMatch = line.match(/\[ref=(e\d+)\]/);
+		const refMatch = line.match(regexpRef);
 		if (!refMatch) { continue; }
 		if (!line.includes(role)) { continue; }
-		const labelMatch = line.match(/"([^"]+)"/);
+		const labelMatch = line.match(regexp4);
 		if (!labelMatch) { continue; }
 		const lineLabel = normalizeLabel(labelMatch[1]);
 		if (lineLabel.includes(needle) || needle.includes(lineLabel)) {
@@ -132,8 +138,8 @@ function executeCommand(cmd) {
 			if (!snap.stdout) { return { ok: false, message: 'Failed to get snapshot for assertion' }; }
 			const needle = normalizeLabel(label);
 			const buttonLine = snap.stdout.split('\n').find(l =>
-				l.includes('button') && l.match(/"([^"]+)"/) &&
-				normalizeLabel(l.match(/"([^"]+)"/)[1]) === needle
+				l.includes('button') && l.match(regexp4) &&
+				normalizeLabel(l.match(regexp4)[1]) === needle
 			);
 			if (!buttonLine) { return { ok: false, message: `Button "${label}" not found in snapshot` }; }
 			if (!buttonLine.includes('[disabled]')) {
@@ -150,8 +156,8 @@ function executeCommand(cmd) {
 			if (!snap.stdout) { return { ok: false, message: 'Failed to get snapshot for assertion' }; }
 			const needle = normalizeLabel(label);
 			const buttonLine = snap.stdout.split('\n').find(l =>
-				l.includes('button') && l.match(/"([^"]+)"/) &&
-				normalizeLabel(l.match(/"([^"]+)"/)[1]) === needle
+				l.includes('button') && l.match(regexp4) &&
+				normalizeLabel(l.match(regexp4)[1]) === needle
 			);
 			if (!buttonLine) { return { ok: false, message: `Button "${label}" not found in snapshot` }; }
 			if (buttonLine.includes('[disabled]')) {
@@ -165,7 +171,7 @@ function executeCommand(cmd) {
 	if (cmd.startsWith('#')) { return { ok: true }; }
 
 	// Semantic commands (e.g. `click button "Send"`) — resolve to ref from live snapshot
-	const semanticMatch = cmd.match(/^(click|focus)\s+\w+\s+"[^"]+"$/);
+	const semanticMatch = cmd.match(regexpClickFocus1);
 	if (semanticMatch) {
 		// Poll: the element might not be rendered yet
 		return pollAssertion(() => {

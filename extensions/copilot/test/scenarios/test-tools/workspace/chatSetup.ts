@@ -66,6 +66,11 @@ import { CHAT_CATEGORY, CHAT_OPEN_ACTION_ID, CHAT_SETUP_ACTION_ID } from './acti
 import { ChatViewId, IChatWidgetService, showCopilotView } from './chat.js';
 import { CHAT_SIDEBAR_PANEL_ID } from './chatViewPane.js';
 import { coalesce } from '../../../../base/common/arrays.js';
+const regexpSetup = /setup\./;
+const regexpSetupTools = /setup.tools\./;
+const regexpZA = /^[a-zA-Z\-_]+$/;
+const regexpHttpsZAZ0 = /^(https:\/\/)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.ghe\.com\/?$/;
+
 
 const defaultChat = {
 	extensionId: product.defaultChatAgent?.extensionId ?? '',
@@ -442,7 +447,7 @@ class SetupAgent extends Disposable implements IChatAgentImplementation {
 			return requestModel;
 		}
 
-		const agentId = agentPart.agent.id.replace(/setup\./, `${defaultChat.extensionId}.`.toLowerCase());
+		const agentId = agentPart.agent.id.replace(regexpSetup, `${defaultChat.extensionId}.`.toLowerCase());
 		const githubAgent = chatAgentService.getAgent(agentId);
 		if (!githubAgent) {
 			return requestModel;
@@ -477,7 +482,7 @@ class SetupAgent extends Disposable implements IChatAgentImplementation {
 			return requestModel;
 		}
 
-		const toolId = toolPart.toolId.replace(/setup.tools\./, `copilot_`.toLowerCase());
+		const toolId = toolPart.toolId.replace(regexpSetupTools, `copilot_`.toLowerCase());
 		const newToolPart = new ChatRequestToolPart(
 			toolPart.range,
 			toolPart.editorRange,
@@ -1355,8 +1360,8 @@ class ChatSetupController extends Disposable {
 	}
 
 	private async handleEnterpriseInstance(): Promise<boolean /* success */> {
-		const domainRegEx = /^[a-zA-Z\-_]+$/;
-		const fullUriRegEx = /^(https:\/\/)?([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.ghe\.com\/?$/;
+		const domainRegEx = regexpZA;
+		const fullUriRegEx = regexpHttpsZAZ0;
 
 		const uri = this.configurationService.getValue<string>(defaultChat.providerUriSetting);
 		if (typeof uri === 'string' && fullUriRegEx.test(uri)) {

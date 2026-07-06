@@ -19,6 +19,8 @@ import { ILineFilter, IStreamingEditsStrategyFactory, IStreamingTextPieceClassif
 import { ProjectedDocument } from './summarizedDocument/summarizeDocument';
 import { adjustSelectionAndSummarizeDocument } from './summarizedDocument/summarizeDocumentHelpers';
 import { DocumentSnapshot, WorkingCopyDerivedDocument } from './workingCopies';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export async function createPromptingSummarizedDocument(
 	parserService: IParserService,
@@ -247,7 +249,7 @@ export class InlineReplyInterpreter implements ReplyInterpreter {
 			return [];
 		}
 
-		const documentLines = this._workingCopySummarizedDoc.originalText.split(/\r\n|\r|\n/g);
+		const documentLines = this._workingCopySummarizedDoc.originalText.split(new RegExp(regexp1));
 		const lastImportStatementLineIdx = findLastIdx(documentLines, l => isImportStatement(l, this._workingCopySummarizedDoc.languageId));
 		if (lastImportStatementLineIdx === -1) {
 			// no existing import statements, we insert it on line 0

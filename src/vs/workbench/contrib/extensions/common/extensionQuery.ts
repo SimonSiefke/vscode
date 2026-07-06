@@ -8,6 +8,9 @@ import { FilterType, SortBy } from '../../../../platform/extensionManagement/com
 import { EXTENSION_CATEGORIES } from '../../../../platform/extensions/common/extensions.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions, IExtensionFeaturesRegistry } from '../../../services/extensionManagement/common/extensionFeatures.js';
+const regexpSort = /@sort:(\w+)(-\w*)?/g;
+const regexpOutdated = /@outdated/;
+
 
 export class Query {
 
@@ -72,7 +75,7 @@ export class Query {
 
 	static parse(value: string): Query {
 		let sortBy = '';
-		value = value.replace(/@sort:(\w+)(-\w*)?/g, (match, by: string, order: string) => {
+		value = value.replace(new RegExp(regexpSort), (match, by: string, order: string) => {
 			sortBy = by;
 
 			return '';
@@ -90,7 +93,7 @@ export class Query {
 	}
 
 	isValid(): boolean {
-		return !/@outdated/.test(this.value);
+		return !regexpOutdated.test(this.value);
 	}
 
 	equals(other: Query): boolean {

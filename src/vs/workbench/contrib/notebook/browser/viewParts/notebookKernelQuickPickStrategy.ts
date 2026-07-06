@@ -35,6 +35,8 @@ import { INotebookTextModel } from '../../common/notebookCommon.js';
 import { SELECT_KERNEL_ID } from '../controller/coreActions.js';
 import { EnablementState, IExtensionManagementServerService } from '../../../../services/extensionManagement/common/extensionManagement.js';
 import { areSameExtensions } from '../../../../../platform/extensionManagement/common/extensionManagementUtil.js';
+const regexpZ0 = /[^a-z0-9]/ig;
+
 
 type KernelPick = IQuickPickItem & { kernel: INotebookKernel };
 function isKernelPick(item: QuickPickInput<IQuickPickItem>): item is KernelPick {
@@ -352,7 +354,7 @@ abstract class KernelPickerStrategyBase implements IKernelPickerStrategy {
 			return;
 		}
 
-		const pascalCased = viewType.split(/[^a-z0-9]/ig).map(uppercaseFirstLetter).join('');
+		const pascalCased = viewType.split(new RegExp(regexpZ0)).map(uppercaseFirstLetter).join('');
 		await extensionWorkbenchService.openSearch(`@tag:notebookKernel${pascalCased}`);
 	}
 

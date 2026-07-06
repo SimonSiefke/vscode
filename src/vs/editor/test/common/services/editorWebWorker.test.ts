@@ -10,6 +10,8 @@ import { IRange, Range } from '../../../common/core/range.js';
 import { TextEdit } from '../../../common/languages.js';
 import { EditorWorker } from '../../../common/services/editorWebWorker.js';
 import { ICommonModel } from '../../../common/services/textModelSync/textModelSync.impl.js';
+const regexp1 = /[a-z]+/img;
+
 
 suite('EditorWebWorker', () => {
 
@@ -308,7 +310,7 @@ suite('EditorWebWorker', () => {
 			'and now we are done'
 		]);
 
-		const words: string[] = [...model.words(/[a-z]+/img)];
+		const words: string[] = [...model.words(new RegExp(regexp1))];
 
 		assert.deepStrictEqual(words, ['one', 'line', 'two', 'line', 'past', 'empty', 'single', 'and', 'now', 'we', 'are', 'done']);
 	});

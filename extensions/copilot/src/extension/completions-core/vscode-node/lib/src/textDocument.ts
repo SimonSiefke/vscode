@@ -8,6 +8,8 @@ import { TextEdit } from '../../types/src';
 import { TextDocumentContentChangeEvent } from 'vscode-languageserver-protocol';
 import { TextDocument as LspTextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range, SelectedCompletionInfo } from 'vscode-languageserver-types';
+const regexp1 = /\r\n$|\r$|\n$/g;
+
 
 export { type Position as IPosition, type Range as IRange } from '../../types/src';
 
@@ -279,7 +281,7 @@ export class CopilotTextDocument implements ITextDocument {
 			throw new RangeError('Illegal value for lineNumber');
 		}
 		const rangeWithNewline = Range.create(lineNumber, 0, lineNumber + 1, 0);
-		const text = this.getText(rangeWithNewline).replace(/\r\n$|\r$|\n$/g, '');
+		const text = this.getText(rangeWithNewline).replace(new RegExp(regexp1), '');
 		const range = Range.create(Position.create(lineNumber, 0), Position.create(lineNumber, text.length));
 
 		const isEmptyOrWhitespace = text.trim().length === 0;

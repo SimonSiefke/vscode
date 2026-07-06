@@ -30,6 +30,9 @@ import { ResourceSet } from '../../../../../base/common/map.js';
 import { extUri, extUriIgnorePathCase } from '../../../../../base/common/resources.js';
 import { IPathService } from '../../../../services/path/common/pathService.js';
 import { isObject } from '../../../../../base/common/types.js';
+const regexp1 = /\s\s\s+/g;
+const regexp2 = /\r?\n/g;
+
 
 export async function showRunRecentQuickPick(
 	accessor: ServicesAccessor,
@@ -81,10 +84,10 @@ export async function showRunRecentQuickPick(
 		function formatLabel(label: string) {
 			return label
 				// Replace new lines with "enter" symbol
-				.replace(/\r?\n/g, '\u23CE')
+				.replace(new RegExp(regexp2), '\u23CE')
 				// Replace 3 or more spaces with midline horizontal ellipsis which looks similar
 				// to whitespace in the editor
-				.replace(/\s\s\s+/g, '\u22EF');
+				.replace(new RegExp(regexp1), '\u22EF');
 		}
 		if (commands && commands.length > 0) {
 			for (let i = commands.length - 1; i >= 0; i--) {

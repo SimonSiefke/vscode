@@ -36,6 +36,15 @@ import { getZshGlobals } from './shell/zsh';
 import { defaultShellTypeResetChars, getTokenType, shellTypeResetChars, TokenType } from './tokens';
 import type { ICompletionResource } from './types';
 import { TerminalShellType } from './constants';
+const regexp1 = /\s+/;
+const regexp2 = /\S/;
+const regexp3 = /^\s+/;
+const regexp4 = /\.[^ ]+$/;
+const regexpELECTRON = /^ELECTRON_.$/;
+const regexpVSCODEPORTABLESHELL = /^VSCODE_(?!(PORTABLE|SHELL_LOGIN|ENV_REPLACE|ENV_APPEND|ENV_PREPEND)).+$/;
+const regexpSNAP = /^SNAP(|_.*)$/;
+const regexpGDKPIXBUF = /^GDK_PIXBUF_.$/;
+
 
 const isWindows = osIsWindows();
 type ShellGlobalsCacheEntry = {
@@ -382,7 +391,7 @@ async function watchPathDirectories(context: vscode.ExtensionContext, env: ITerm
  * @returns The new working directory.
  */
 export async function resolveCwdFromCurrentCommandString(currentCommandString: string, currentCwd?: vscode.Uri): Promise<vscode.Uri | undefined> {
-	const prefix = currentCommandString.split(/\s+/).pop()?.trim() ?? '';
+	const prefix = currentCommandString.split(regexp1).pop()?.trim() ?? '';
 
 	if (!currentCwd) {
 		return;
@@ -436,7 +445,7 @@ export function getCurrentCommandAndArgs(commandLine: string, cursorIndex: numbe
 	}
 
 	// Check if cursor is not at the end and there's non-whitespace after the cursor
-	if (cursorIndex < commandLine.length && /\S/.test(commandLine[cursorIndex])) {
+	if (cursorIndex < commandLine.length && regexp2.test(commandLine[cursorIndex])) {
 		return '';
 	}
 
@@ -455,7 +464,7 @@ export function getCurrentCommandAndArgs(commandLine: string, cursorIndex: numbe
 
 	// The start of the current command string is after the last reset char (plus one for the char itself)
 	const currentCommandStart = lastResetIndex + 1;
-	const currentCommandString = beforeCursor.slice(currentCommandStart).replace(/^\s+/, '');
+	const currentCommandString = beforeCursor.slice(currentCommandStart).replace(regexp3, '');
 
 	return currentCommandString;
 }
@@ -527,7 +536,7 @@ export async function getCompletionItemsFromSpecs(
 		for (const command of availableCommands) {
 			const commandTextLabel = typeof command.label === 'string' ? command.label : command.label.label;
 			// Remove any file extension for matching on Windows
-			const labelWithoutExtension = isWindows ? commandTextLabel.replace(/\.[^ ]+$/, '') : commandTextLabel;
+			const labelWithoutExtension = isWindows ? commandTextLabel.replace(regexp4, '') : commandTextLabel;
 			if (!labels.has(labelWithoutExtension)) {
 				items.push(createCompletionItem(
 					terminalContext.cursorIndex,
@@ -600,10 +609,10 @@ export function sanitizeProcessEnvironment(env: Record<string, string>, ...prese
 		return set;
 	}, {});
 	const keysToRemove = [
-		/^ELECTRON_.$/,
-		/^VSCODE_(?!(PORTABLE|SHELL_LOGIN|ENV_REPLACE|ENV_APPEND|ENV_PREPEND)).+$/,
-		/^SNAP(|_.*)$/,
-		/^GDK_PIXBUF_.$/,
+		regexpELECTRON,
+		regexpVSCODEPORTABLESHELL,
+		regexpSNAP,
+		regexpGDKPIXBUF,
 	];
 	const envKeys = Object.keys(env);
 	envKeys

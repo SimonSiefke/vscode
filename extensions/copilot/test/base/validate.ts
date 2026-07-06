@@ -2,6 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+const regexp1 = /^\w/;
+const regexp2 = /\w$/;
+const regexp3 = /[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g;
+
 export type KeywordPredicate =
 	| string
 	| { anyOf: readonly KeywordPredicate[] }
@@ -20,8 +24,8 @@ export function validate(answer: string, predicate: readonly KeywordPredicate[] 
 
 function validatePredicate(answer: string, predicate: KeywordPredicate): string | undefined {
 	if (typeof predicate === 'string') {
-		const startsWithWordChar = /^\w/.test(predicate);
-		const endsWithWordChar = /\w$/.test(predicate);
+		const startsWithWordChar = regexp1.test(predicate);
+		const endsWithWordChar = regexp2.test(predicate);
 		// Use word boundaries to prevent matching inside words
 		if (!new RegExp((startsWithWordChar ? '\\b' : '') + escapeRegExpCharacters(predicate) + (endsWithWordChar ? '\\b' : ''), 'i').test(answer)) {
 			return `Missing keyword: ${predicate}`;
@@ -59,5 +63,5 @@ function validatePredicate(answer: string, predicate: KeywordPredicate): string 
  * Escapes regular expression characters in a given string
  */
 function escapeRegExpCharacters(value: string): string {
-	return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
+	return value.replace(new RegExp(regexp3), '\\$&');
 }

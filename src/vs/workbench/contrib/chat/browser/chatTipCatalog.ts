@@ -23,6 +23,9 @@ import {
 	INSERT_FORK_CONVERSATION_COMMAND_ID,
 	INSERT_TROUBLESHOOT_COMMAND_ID,
 } from './actions/chatActions.js';
+const regexpCommand = /\[.*?\]\(command:([^?\s)]+)/g;
+const regexp2 = /\{0\}/g;
+
 
 export const enum ChatTipTier {
 	Foundational = 'foundational',
@@ -81,7 +84,7 @@ function formatKeybinding(ctx: ITipBuildContext, commandId: string): string {
  * Used to automatically populate enabledCommands for trusted markdown.
  */
 export function extractCommandIds(markdown: string): string[] {
-	const commandPattern = /\[.*?\]\(command:([^?\s)]+)/g;
+	const commandPattern = new RegExp(regexpCommand);
 	const commands = new Set<string>();
 	let match;
 	while ((match = commandPattern.exec(markdown)) !== null) {
@@ -416,7 +419,7 @@ export const TIP_CATALOG: readonly ITipDefinition[] = [
 			);
 			const experimentalTemplate = ctx.experimentalTipMessages.get(ChatTipExperiment.OpenAgentsWindowTip);
 			const message = experimentalTemplate
-				? experimentalTemplate.replace(/\{0\}/g, OPEN_AGENTS_WINDOW_COMMAND_ID)
+				? experimentalTemplate.replace(new RegExp(regexp2), OPEN_AGENTS_WINDOW_COMMAND_ID)
 				: defaultMessage;
 			return new MarkdownString(message);
 		},

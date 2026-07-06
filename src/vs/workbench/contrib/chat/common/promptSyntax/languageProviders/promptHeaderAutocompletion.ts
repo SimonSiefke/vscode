@@ -22,6 +22,13 @@ import { formatArrayValue, getQuotePreference } from '../utils/promptEditHelper.
 import { HOOKS_BY_TARGET, HOOK_METADATA } from '../hookTypes.js';
 import { HOOK_COMMAND_FIELD_DESCRIPTIONS } from '../hookSchema.js';
 import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
+const regexp1 = /^\s*$/;
+const regexp2 = /^\s*/;
+const regexp3 = /\S/;
+const regexp4 = /^\s+(\S+)\s*:/;
+const regexp5 = /^(\s*-\s+)/;
+const regexp6 = /[:,[]\s*$/;
+
 
 export class PromptHeaderAutocompletion implements CompletionItemProvider {
 	/**
@@ -60,7 +67,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 			return undefined;
 		}
 
-		if (/^\s*$/.test(model.getValue())) {
+		if (regexp1.test(model.getValue())) {
 			return {
 				suggestions: [{
 					label: localize('promptHeaderAutocompletion.addHeader', "Add Prompt Header"),
@@ -250,7 +257,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 			}
 		}
 		const lineContent = model.getLineContent(attribute.range.startLineNumber);
-		const whilespaceAfterColon = (lineContent.substring(colonPosition.column).match(/^\s*/)?.[0].length) ?? 0;
+		const whilespaceAfterColon = (lineContent.substring(colonPosition.column).match(regexp2)?.[0].length) ?? 0;
 		const entries = await this.getValueSuggestions(promptType, attribute.key, target);
 		for (const entry of entries) {
 			const item: CompletionItem = {
@@ -316,7 +323,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 			const lineText = model.getLineContent(position.lineNumber);
 			const colonIdx = lineText.indexOf(':');
 			if (colonIdx !== -1 && position.column > colonIdx + 1) {
-				const whilespaceAfterColon = (lineText.substring(colonIdx + 1).match(/^\s*/)?.[0].length) ?? 0;
+				const whilespaceAfterColon = (lineText.substring(colonIdx + 1).match(regexp2)?.[0].length) ?? 0;
 				const commandSnippet = [
 					'',
 					'  - type: command',
@@ -346,7 +353,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 		const hooksByTarget = HOOKS_BY_TARGET[target] ?? HOOKS_BY_TARGET[Target.Undefined];
 
 		const lineText = model.getLineContent(position.lineNumber);
-		const firstNonWhitespace = lineText.search(/\S/);
+		const firstNonWhitespace = lineText.search(regexp3);
 		const isEmptyLine = firstNonWhitespace === -1;
 		// Start the range after leading whitespace so VS Code's completion
 		// filtering matches the hook name prefix the user has typed.
@@ -373,7 +380,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 					continue;
 				}
 				const lt = model.getLineContent(lineNum);
-				const lineIndent = lt.search(/\S/);
+				const lineIndent = lt.search(regexp3);
 				if (lineIndent === -1) {
 					continue;
 				}
@@ -381,7 +388,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 					break; // Left the hooks map scope
 				}
 				if (lineIndent === expectedIndent) {
-					const match = lt.match(/^\s+(\S+)\s*:/);
+					const match = lt.match(regexp4);
 					if (match) {
 						existingKeys.add(match[1]);
 					}
@@ -456,12 +463,12 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 		);
 
 		const lineText = model.getLineContent(position.lineNumber);
-		const firstNonWhitespace = lineText.search(/\S/);
+		const firstNonWhitespace = lineText.search(regexp3);
 		const isEmptyLine = firstNonWhitespace === -1;
 		// Skip past the YAML sequence indicator `- ` so the range starts at the
 		// actual field name; otherwise VS Code's completion filter would see the
 		// `- ` prefix and reject valid field names.
-		const dashPrefixMatch = lineText.match(/^(\s*-\s+)/);
+		const dashPrefixMatch = lineText.match(regexp5);
 		const fieldStart = dashPrefixMatch ? dashPrefixMatch[1].length : firstNonWhitespace;
 		const rangeStartColumn = isEmptyLine ? position.column : fieldStart + 1;
 		const colonIndex = lineText.indexOf(':');
@@ -510,7 +517,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 				// the hook event key — otherwise it belongs to the parent map.
 				if (isTrailingSeq) {
 					const lineText = model.getLineContent(position.lineNumber);
-					const firstNonWs = lineText.search(/\S/);
+					const firstNonWs = lineText.search(regexp3);
 					const effectiveIndent = firstNonWs === -1 ? position.column - 1 : firstNonWs;
 					const hookKeyIndent = prop.key.range.startColumn - 1;
 					if (effectiveIndent <= hookKeyIndent) {
@@ -646,7 +653,7 @@ export class PromptHeaderAutocompletion implements CompletionItemProvider {
 			}
 		}
 		const prefix = model.getValueInRange(new Range(position.lineNumber, 1, position.lineNumber, position.column));
-		if (prefix.match(/[:,[]\s*$/)) {
+		if (prefix.match(regexp6)) {
 			// if the position is after a comma or bracket
 			return await getSuggestions(new Range(position.lineNumber, position.column, position.lineNumber, position.column));
 		}

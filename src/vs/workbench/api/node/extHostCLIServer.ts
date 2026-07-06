@@ -11,6 +11,8 @@ import { IWindowOpenable, IOpenWindowOptions } from '../../../platform/window/co
 import { URI } from '../../../base/common/uri.js';
 import { ILogService } from '../../../platform/log/common/log.js';
 import { hasWorkspaceFileExtension } from '../../../platform/workspace/common/workspace.js';
+const regexpVsix = /\.vsix$/i;
+
 
 export interface OpenCommandPipeArgs {
 	type: 'open';
@@ -166,7 +168,7 @@ export class CLIServerBase {
 	}
 
 	private async manageExtensions(data: ExtensionManagementPipeArgs): Promise<string | undefined> {
-		const toExtOrVSIX = (inputs: string[] | undefined) => inputs?.map(input => /\.vsix$/i.test(input) ? URI.parse(input) : input);
+		const toExtOrVSIX = (inputs: string[] | undefined) => inputs?.map(input => regexpVsix.test(input) ? URI.parse(input) : input);
 		const commandArgs = {
 			list: data.list,
 			install: toExtOrVSIX(data.install),

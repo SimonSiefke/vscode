@@ -15,6 +15,12 @@ import { getHashedRemotesFromConfig } from './workspaceTags.js';
 import { splitLines } from '../../../../base/common/strings.js';
 import { MavenArtifactIdRegex, MavenDependenciesRegex, MavenDependencyRegex, GradleDependencyCompactRegex, GradleDependencyLooseRegex, MavenGroupIdRegex, JavaLibrariesToLookFor } from '../common/javaWorkspaceTags.js';
 import { hashAsync } from '../../../../base/common/hash.js';
+const regexpCs = /^.+\.cs$/i;
+const regexpSlnCsproj = /^.+\.sln$|^.+\.csproj$/i;
+const regexpRequirementsTxt = /^(.*)requirements(.*)\.txt$/i;
+const regexpEnvironmentYmlYaml = /^environment(\.yml$|\.yaml$)/i;
+const regexpAzure = /azure/i;
+
 
 const MetaModulesToLookFor = [
 	// Azure packages
@@ -1406,8 +1412,8 @@ export class WorkspaceTagsService implements IWorkspaceTagsService {
 			tags['workspace.config.xml'] = nameSet.has('config.xml');
 			tags['workspace.vsc.extension'] = nameSet.has('vsc-extension-quickstart.md');
 
-			tags['workspace.ASP5'] = nameSet.has('project.json') && this.searchArray(names, /^.+\.cs$/i);
-			tags['workspace.sln'] = this.searchArray(names, /^.+\.sln$|^.+\.csproj$/i);
+			tags['workspace.ASP5'] = nameSet.has('project.json') && this.searchArray(names, regexpCs);
+			tags['workspace.sln'] = this.searchArray(names, regexpSlnCsproj);
 			tags['workspace.unity'] = nameSet.has('assets') && nameSet.has('library') && nameSet.has('projectsettings');
 			tags['workspace.npm'] = nameSet.has('package.json') || nameSet.has('node_modules');
 			tags['workspace.bower'] = nameSet.has('bower.json') || nameSet.has('bower_components');
@@ -1420,9 +1426,9 @@ export class WorkspaceTagsService implements IWorkspaceTagsService {
 			tags['workspace.yeoman.code.ext'] = nameSet.has('vsc-extension-quickstart.md');
 
 			tags['workspace.py.requirements'] = nameSet.has('requirements.txt');
-			tags['workspace.py.requirements.star'] = this.searchArray(names, /^(.*)requirements(.*)\.txt$/i);
+			tags['workspace.py.requirements.star'] = this.searchArray(names, regexpRequirementsTxt);
 			tags['workspace.py.Pipfile'] = nameSet.has('pipfile');
-			tags['workspace.py.conda'] = this.searchArray(names, /^environment(\.yml$|\.yaml$)/i);
+			tags['workspace.py.conda'] = this.searchArray(names, regexpEnvironmentYmlYaml);
 			tags['workspace.py.setup'] = nameSet.has('setup.py');
 			tags['workspace.py.manage'] = nameSet.has('manage.py');
 			tags['workspace.py.setupcfg'] = nameSet.has('setup.cfg');
@@ -1498,7 +1504,7 @@ export class WorkspaceTagsService implements IWorkspaceTagsService {
 				}
 
 				if (!tags['workspace.py.any-azure']) {
-					tags['workspace.py.any-azure'] = /azure/i.test(packageName);
+					tags['workspace.py.any-azure'] = regexpAzure.test(packageName);
 				}
 			}
 

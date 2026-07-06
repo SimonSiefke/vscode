@@ -5,10 +5,13 @@
 
 import { posix as pathPosix, win32 as pathWin32 } from '../../../base/common/path.js';
 import * as platform from '../../../base/common/platform.js';
+const regexpZshExe = /^zsh(?:\.exe)?$/i;
+const regexpZsh = /^zsh$/;
+
 
 export function isZsh(shell: string): boolean {
 	if (platform.OS === platform.OperatingSystem.Windows) {
-		return /^zsh(?:\.exe)?$/i.test(pathWin32.basename(shell));
+		return regexpZshExe.test(pathWin32.basename(shell));
 	}
-	return /^zsh$/.test(pathPosix.basename(shell));
+	return regexpZsh.test(pathPosix.basename(shell));
 }

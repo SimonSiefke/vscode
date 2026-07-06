@@ -8,6 +8,11 @@ import { ScanCode, ScanCodeUtils } from '../../../base/common/keyCodes.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IKeyboardEvent } from '../../keybinding/common/keybinding.js';
 import { IKeyboardMapper } from './keyboardMapper.js';
+const regexp1 = /-/g;
+const regexpComAppleKeylayout = /^com\.apple\.keylayout\./;
+const regexp3 = /[-\.]/g;
+const regexpInputmethod = /^.*inputmethod\./;
+
 
 export const IKeyboardLayoutService = createDecorator<IKeyboardLayoutService>('keyboardLayoutService');
 
@@ -130,15 +135,15 @@ export function parseKeyboardLayoutDescription(layout: IKeyboardLayoutInfo | nul
 			};
 		}
 
-		if (/^com\.apple\.keylayout\./.test(macLayout.id)) {
+		if (regexpComAppleKeylayout.test(macLayout.id)) {
 			return {
-				label: macLayout.id.replace(/^com\.apple\.keylayout\./, '').replace(/-/g, ' '),
+				label: macLayout.id.replace(regexpComAppleKeylayout, '').replace(new RegExp(regexp1), ' '),
 				description: ''
 			};
 		}
-		if (/^.*inputmethod\./.test(macLayout.id)) {
+		if (regexpInputmethod.test(macLayout.id)) {
 			return {
-				label: macLayout.id.replace(/^.*inputmethod\./, '').replace(/[-\.]/g, ' '),
+				label: macLayout.id.replace(regexpInputmethod, '').replace(new RegExp(regexp3), ' '),
 				description: `Input Method (${macLayout.lang})`
 			};
 		}

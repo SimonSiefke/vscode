@@ -36,6 +36,8 @@ import { SymbolAtCursor } from '../../prompts/node/panel/symbolAtCursor';
 import { reviewFileChanges, ReviewSession } from '../../review/node/doReview';
 import { QuickFixesProvider, RefactorsProvider } from './inlineChatCodeActions';
 import { NotebookExectionStatusBarItemProvider } from './inlineChatNotebookActions';
+const regexp1 = /\r?\n/g;
+
 
 export function registerInlineChatCommands(accessor: ServicesAccessor): IDisposable {
 	const instaService = accessor.get(IInstantiationService);
@@ -406,6 +408,6 @@ function formatSelection(selection: {
 	fileName?: string;
 }): string {
 	const fileContext = selection.fileName ? `From the file: ${path.basename(selection.fileName)}\n` : '';
-	const { trimmedLines } = trimCommonLeadingWhitespace(selection.selectedText.split(/\r?\n/g));
+	const { trimmedLines } = trimCommonLeadingWhitespace(selection.selectedText.split(new RegExp(regexp1)));
 	return `\n\n${fileContext}${createFencedCodeBlock(selection.languageId, coalesce(trimmedLines).join('\n'))}\n\n`;
 }

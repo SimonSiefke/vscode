@@ -11,6 +11,8 @@ import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRa
 import { StringText } from '../../../util/vs/editor/common/core/text/abstractText';
 import { DefaultLinesDiffComputer } from '../../../util/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer';
 import { ILinesDiffComputerOptions } from '../../../util/vs/editor/common/diff/linesDiffComputer';
+const regexp1 = /\r\n|\r|\n/;
+
 
 const TROUBLESHOOT_EDIT_CONSISTENCY = false;
 
@@ -371,8 +373,8 @@ function agreementIndexOf<T extends IEditData<T>>(content: string, ourE: Annotat
 }
 
 function computeDiff(original: string, modified: string, offset: number, editData: EditDataWithIndex, options: ILinesDiffComputerOptions): AnnotatedStringReplacement<EditDataWithIndex>[] | undefined {
-	const originalLines = original.split(/\r\n|\r|\n/);
-	const modifiedLines = modified.split(/\r\n|\r|\n/);
+	const originalLines = original.split(regexp1);
+	const modifiedLines = modified.split(regexp1);
 	const diffComputer = new DefaultLinesDiffComputer();
 	const result = diffComputer.computeDiff(originalLines, modifiedLines, options);
 	if (result.hitTimeout) {

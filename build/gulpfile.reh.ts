@@ -33,6 +33,16 @@ import { fetchUrls } from './lib/fetch.ts';
 import { downloadFeedPackage } from './lib/azureFeed.ts';
 import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
 import { readAgentSdkResults } from './agent-sdk/common.ts';
+const regexpTarget = /^target="(.*)"$/m;
+const regexpMsBuildId = /^ms_build_id="(.*)"$/m;
+const regexp3 = /\s+/;
+const regexp4 = /[._-]+$/;
+const regexp5 = /^[._-]+/;
+const regexpZ0 = /[^a-z0-9._-]+/g;
+const regexp7 = /\.[^.]+$/;
+const regexpJs = /\.js$/;
+const regexp9 = /-.*$/;
+
 
 
 const rcedit = promisify(rceditCallback);
@@ -142,15 +152,15 @@ const bootstrapEntryPoints = [
 
 function getNodeVersion() {
 	const npmrc = fs.readFileSync(path.join(REPO_ROOT, 'remote', '.npmrc'), 'utf8');
-	const nodeVersion = /^target="(.*)"$/m.exec(npmrc)![1];
-	const internalNodeVersion = /^ms_build_id="(.*)"$/m.exec(npmrc)![1];
+	const nodeVersion = regexpTarget.exec(npmrc)![1];
+	const internalNodeVersion = regexpMsBuildId.exec(npmrc)![1];
 	return { nodeVersion, internalNodeVersion };
 }
 
 function getNodeChecksum(expectedName: string): string | undefined {
 	const nodeJsChecksums = fs.readFileSync(path.join(REPO_ROOT, 'build', 'checksums', 'nodejs.txt'), 'utf8');
 	for (const line of nodeJsChecksums.split('\n')) {
-		const [checksum, name] = line.split(/\s+/);
+		const [checksum, name] = line.split(regexp3);
 		if (name === expectedName) {
 			return checksum;
 		}
@@ -220,11 +230,11 @@ const nodejsArtifactFeed = product.nodejsArtifactFeed;
 
 function internalNodeFeedPackageName(assetName: string): string {
 	return assetName
-		.replace(/\.[^.]+$/, '')
+		.replace(regexp7, '')
 		.toLowerCase()
-		.replace(/[^a-z0-9._-]+/g, '-')
-		.replace(/^[._-]+/, '')
-		.replace(/[._-]+$/, '');
+		.replace(new RegExp(regexpZ0), '-')
+		.replace(regexp5, '')
+		.replace(regexp4, '');
 }
 
 function fetchNodejsFromInternalFeed(feed: string, assetName: string, version: string, checksumSha256: string | undefined): NodeJS.ReadWriteStream {
@@ -433,7 +443,7 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 
 		const license = gulp.src(['remote/LICENSE'], { base: 'remote', allowEmpty: true });
 
-		const jsFilter = util.filter(data => !data.isDirectory() && /\.js$/.test(data.path));
+		const jsFilter = util.filter(data => !data.isDirectory() && regexpJs.test(data.path));
 
 		const productionDependencies = getProductionDependencies(REMOTE_FOLDER);
 		const dependenciesSrc = productionDependencies.map(d => path.relative(REPO_ROOT, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`, `!${d}/.bin/**`]).flat();
@@ -575,7 +585,7 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 		])).flatMap(o => o);
 		const packageJsonContents = JSON.parse(await fs.promises.readFile(path.join(cwd, 'package.json'), 'utf8'));
 		const productContents = JSON.parse(await fs.promises.readFile(path.join(cwd, 'product.json'), 'utf8'));
-		const baseVersion = packageJsonContents.version.replace(/-.*$/, '');
+		const baseVersion = packageJsonContents.version.replace(regexp9, '');
 
 		const patchPromises = deps.map<Promise<unknown>>(async dep => {
 			const basename = path.basename(dep);

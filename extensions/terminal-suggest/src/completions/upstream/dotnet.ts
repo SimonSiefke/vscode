@@ -1,4 +1,6 @@
 import { filepaths } from '../../helpers/filepaths';
+const regexpZA = /(([a-zA-Z \.\[\]#,/][^ ]{1,})+)/g;
+
 
 const DOTNET_ICON =
 	undefined;
@@ -208,7 +210,7 @@ const completionSpec: Fig.Spec = {
 	],
 	subcommands: commands,
 	async generateSpec(_, executeShellCommand) {
-		const argRegex = /(([a-zA-Z \.\[\]#,/][^ ]{1,})+)/g;
+		const argRegex = new RegExp(regexpZA);
 
 		const subcommands: Fig.Subcommand[] = [];
 		const { stdout } = await executeShellCommand({

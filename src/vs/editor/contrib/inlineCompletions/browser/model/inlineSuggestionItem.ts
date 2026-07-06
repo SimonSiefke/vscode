@@ -27,6 +27,8 @@ import { inlineCompletionIsVisible } from './inlineCompletionIsVisible.js';
 import { IInlineSuggestDataAction, IInlineSuggestDataActionEdit, InlineSuggestData, InlineSuggestionList, PartialAcceptance, RenameInfo, SnippetInfo } from './provideInlineCompletions.js';
 import { InlineSuggestAlternativeAction } from './InlineSuggestAlternativeAction.js';
 import { TextModelValueReference } from './textModelValueReference.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export type InlineSuggestionItem = InlineEditItem | InlineCompletionItem;
 
@@ -266,7 +268,7 @@ export class InlineCompletionItem extends InlineSuggestionItemBase {
 		const identity = new InlineSuggestionIdentity();
 		const transformer = textModel.getTransformer();
 
-		const insertText = action.insertText.replace(/\r\n|\r|\n/g, textModel.getEOL());
+		const insertText = action.insertText.replace(new RegExp(regexp1), textModel.getEOL());
 
 		const edit = reshapeInlineCompletion(new StringReplacement(transformer.getOffsetRange(action.range), insertText), textModel);
 		const trimmedEdit = edit.removeCommonSuffixAndPrefix(textModel.getValue());
@@ -600,7 +602,7 @@ export class InlineEditItem extends InlineSuggestionItemBase {
 function getDiffedStringEdit(textModel: TextModelValueReference, editRange: Range, replaceText: string): StringEdit {
 	const eol = textModel.getEOL();
 	const editOriginalText = textModel.getValueOfRange(editRange);
-	const editReplaceText = replaceText.replace(/\r\n|\r|\n/g, eol);
+	const editReplaceText = replaceText.replace(new RegExp(regexp1), eol);
 
 	const diffAlgorithm = linesDiffComputers.getDefault();
 	const lineDiffs = diffAlgorithm.computeDiff(

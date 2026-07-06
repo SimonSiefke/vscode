@@ -24,6 +24,12 @@ import {
 	IChatInputNotification,
 	IChatInputNotificationService,
 } from '../../../browser/widget/input/chatInputNotificationService.js';
+const regexpWantsToWrite = /wants to write/;
+const regexpMyHost = /My Host/;
+const regexpWantsToRead = /wants to read/;
+const regexp4 = /(`{2,})([^`]|`(?!\1))*\1/;
+const regexpUnknown = /unknown:9999/;
+
 
 class FakePermissionService extends Disposable implements IAgentHostResourceService {
 	declare readonly _serviceBrand: undefined;
@@ -176,8 +182,8 @@ suite('AgentHostPermissionUiContribution', () => {
 
 		const text = notificationService.setCalls[0].message;
 		const value = isMarkdownString(text) ? text.value : text;
-		assert.match(value, /wants to write/);
-		assert.match(value, /My Host/);
+		assert.match(value, regexpWantsToWrite);
+		assert.match(value, regexpMyHost);
 	});
 
 	test('read-mode requests use a "wants to read" message', () => {
@@ -192,7 +198,7 @@ suite('AgentHostPermissionUiContribution', () => {
 
 		const text = notificationService.setCalls[0].message;
 		const value = isMarkdownString(text) ? text.value : text;
-		assert.match(value, /wants to read/);
+		assert.match(value, regexpWantsToRead);
 	});
 
 	test('paths are wrapped in a markdown code span using a fence longer than any embedded backticks', () => {
@@ -207,7 +213,7 @@ suite('AgentHostPermissionUiContribution', () => {
 		const text = notificationService.setCalls[0].message;
 		const value = isMarkdownString(text) ? text.value : text;
 		// Find the opening fence; it must be ≥2 backticks and the path must follow it.
-		const match = value.match(/(`{2,})([^`]|`(?!\1))*\1/);
+		const match = value.match(regexp4);
 		assert.ok(match, `expected a code span fence, got: ${value}`);
 		assert.ok(match![0].includes('`name`'), 'path with embedded backticks should be inside the fence');
 	});
@@ -224,6 +230,6 @@ suite('AgentHostPermissionUiContribution', () => {
 
 		const text = notificationService.setCalls[0].message;
 		const value = isMarkdownString(text) ? text.value : text;
-		assert.match(value, /unknown:9999/);
+		assert.match(value, regexpUnknown);
 	});
 });

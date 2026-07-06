@@ -9,12 +9,14 @@ import { isMacintosh, isLinux, isWindows } from '../../../../../base/common/plat
 import { OutputLinkComputer } from '../../common/outputLinkComputer.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexp1 = /\\/g;
+
 
 suite('OutputLinkProvider', () => {
 
 	function toOSPath(p: string): string {
 		if (isMacintosh || isLinux) {
-			return p.replace(/\\/g, '/');
+			return p.replace(new RegExp(regexp1), '/');
 		}
 
 		return p;

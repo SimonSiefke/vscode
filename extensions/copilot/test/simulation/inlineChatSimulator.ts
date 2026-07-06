@@ -49,6 +49,8 @@ import { convertTestToVSCodeDiagnostics } from './diagnosticProviders/utils';
 import { SimulationLanguageFeaturesService } from './language/simulationLanguageFeatureService';
 import { IDiagnostic, IDiagnosticComparison, INLINE_CHANGED_DOC_TAG, INLINE_INITIAL_DOC_TAG, INLINE_STATE_TAG, IRange, IWorkspaceState, IWorkspaceStateFile } from './shared/sharedTypes';
 import { DiagnosticProviderId, EditTestStrategy, IDeserializedWorkspaceStateBasedScenario, IInlineEdit, IOutcome, IScenario, IScenarioDiagnostic, IScenarioQuery, OutcomeAnnotation } from './types';
+const regexpIntentIdRestOfQuery = /\/(?<intentId>\w+)(?<restOfQuery>\s.*)?/s;
+
 
 export type SimulationWorkspaceInput = { files: IFile[]; workspaceFolders?: Uri[] } | { workspaceState: IDeserializedWorkspaceState };
 
@@ -334,7 +336,7 @@ export async function simulateEditingScenario(
 			let command: string | undefined;
 			let prompt = query.query;
 			if (prompt.startsWith('/')) {
-				const groups = /\/(?<intentId>\w+)(?<restOfQuery>\s.*)?/s.exec(query.query)?.groups;
+				const groups = regexpIntentIdRestOfQuery.exec(query.query)?.groups;
 				command = groups?.intentId ?? undefined;
 				prompt = groups?.restOfQuery?.trim() ?? '';
 			}

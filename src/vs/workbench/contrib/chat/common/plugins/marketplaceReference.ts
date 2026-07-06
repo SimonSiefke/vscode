@@ -6,6 +6,14 @@
 import { URI } from '../../../../../base/common/uri.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ChatConfiguration } from '../constants.js';
+const regexpZaZ0Za = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?:#(.+))?$/;
+const regexpFile = /^file:\/\//i;
+const regexp3 = /^\/+/;
+const regexp4 = /\/+$/g;
+const regexp5 = /\/+/g;
+const regexpGit = /^([^@\s]+)@([^:\s]+):(.+?\.git)(?:#(.+))?$/i;
+const regexp7 = /[\\/:*?"<>|]/g;
+
 
 export { extraKnownMarketplacesToConfigDict } from '../../../../../base/common/managedSettings.js';
 
@@ -177,7 +185,7 @@ export function parseMarketplaceReference(value: string): IMarketplaceReference 
 		return scpReference;
 	}
 
-	const shorthandMatch = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?:#(.+))?$/.exec(rawValue);
+	const shorthandMatch = regexpZaZ0Za.exec(rawValue);
 	if (shorthandMatch) {
 		const owner = shorthandMatch[1];
 		const repo = shorthandMatch[2];
@@ -206,7 +214,7 @@ function parseUriMarketplaceReference(rawValue: string): IMarketplaceReference |
 	}
 
 	const scheme = uri.scheme.toLowerCase();
-	if (scheme === 'file' && /^file:\/\//i.test(rawValue)) {
+	if (scheme === 'file' && regexpFile.test(rawValue)) {
 		if (uri.fragment) {
 			return undefined;
 		}
@@ -233,7 +241,7 @@ function parseUriMarketplaceReference(rawValue: string): IMarketplaceReference |
 	const ref = uri.fragment || undefined;
 	const cloneUri = uri.fragment ? uri.with({ fragment: '' }) : uri;
 	const sanitizedAuthority = sanitizePathSegment(uri.authority.toLowerCase());
-	const trimmedPath = uri.path.replace(/\/+/g, '/').replace(/\/+$/g, '').replace(/^\/+/, '');
+	const trimmedPath = uri.path.replace(new RegExp(regexp5), '/').replace(new RegExp(regexp4), '').replace(regexp3, '');
 
 	// Host-only marketplace endpoint (e.g. `https://plugins.internal.example.com`).
 	// The ADR allows any string for `git.url`, so a URL without a repo path is
@@ -284,14 +292,14 @@ function parseUriMarketplaceReference(rawValue: string): IMarketplaceReference |
 }
 
 function parseScpMarketplaceReference(rawValue: string): IMarketplaceReference | undefined {
-	const match = /^([^@\s]+)@([^:\s]+):(.+?\.git)(?:#(.+))?$/i.exec(rawValue);
+	const match = regexpGit.exec(rawValue);
 	if (!match) {
 		return undefined;
 	}
 
 	const gitSuffix = '.git';
 	const authority = match[2];
-	const pathWithGit = match[3].replace(/^\/+/, '');
+	const pathWithGit = match[3].replace(regexp3, '');
 	const ref = match[4];
 	if (!pathWithGit.toLowerCase().endsWith(gitSuffix)) {
 		return undefined;
@@ -347,5 +355,5 @@ function getRefCacheSegments(ref: string | undefined): string[] {
 }
 
 function sanitizePathSegment(value: string): string {
-	return value.replace(/[\\/:*?"<>|]/g, '_');
+	return value.replace(new RegExp(regexp7), '_');
 }

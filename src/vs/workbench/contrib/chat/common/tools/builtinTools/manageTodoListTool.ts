@@ -24,6 +24,8 @@ import { IChatTodo, IChatTodoListService } from '../chatTodoListService.js';
 import { localize } from '../../../../../../nls.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { URI } from '../../../../../../base/common/uri.js';
+const regexpStartingCompleted = /^(Starting|Completed): /i;
+
 
 export const ManageTodoListToolToolId = 'manage_todo_list';
 
@@ -158,7 +160,7 @@ export class ManageTodoListTool extends Disposable implements IToolImpl {
 			status: todo.status
 		}));
 
-		const invocationLabel = message?.replace(/^(Starting|Completed): /i, '') ?? localize('todo.updatingList', "Updating todo list");
+		const invocationLabel = message?.replace(regexpStartingCompleted, '') ?? localize('todo.updatingList', "Updating todo list");
 		const invocationMessage = new MarkdownString(invocationLabel);
 
 		return {

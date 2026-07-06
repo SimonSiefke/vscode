@@ -8,6 +8,10 @@ import * as eslint from 'eslint';
 import minimatch from 'minimatch';
 import * as path from 'path';
 import { createImportRuleListener } from './utils';
+const regexp1 = /\/\~$/;
+const regexpSrcVs = /^src\/vs\//;
+const regexp3 = /\\/g;
+
 
 const REPO_ROOT = path.normalize(path.join(__dirname, '../'));
 
@@ -148,11 +152,11 @@ export = new class implements eslint.Rule.RuleModule {
 					|| (when === 'hasBrowser' && layerRule.isBrowser)
 					|| (when === 'hasNode' && layerRule.isNode)
 				) {
-					restrictions.push(importPattern.replace(/\/\~$/, `/${layerRule.deps}/**`));
-					testRestrictions.push(importPattern.replace(/\/\~$/, `/test/${layerRule.deps}/**`));
+					restrictions.push(importPattern.replace(regexp1, `/${layerRule.deps}/**`));
+					testRestrictions.push(importPattern.replace(regexp1, `/test/${layerRule.deps}/**`));
 				} else if (when === 'test') {
-					testRestrictions.push(importPattern.replace(/\/\~$/, `/${layerRule.deps}/**`));
-					testRestrictions.push(importPattern.replace(/\/\~$/, `/test/${layerRule.deps}/**`));
+					testRestrictions.push(importPattern.replace(regexp1, `/${layerRule.deps}/**`));
+					testRestrictions.push(importPattern.replace(regexp1, `/test/${layerRule.deps}/**`));
 				}
 			}
 
@@ -160,11 +164,11 @@ export = new class implements eslint.Rule.RuleModule {
 
 			return [
 				{
-					target: target.replace(/\/\~$/, `/${layerRule.layer}/**`),
+					target: target.replace(regexp1, `/${layerRule.layer}/**`),
 					restrictions: restrictions
 				},
 				{
-					target: target.replace(/\/\~$/, `/test/${layerRule.layer}/**`),
+					target: target.replace(regexp1, `/test/${layerRule.layer}/**`),
 					restrictions: testRestrictions
 				}
 			];
@@ -176,7 +180,7 @@ export = new class implements eslint.Rule.RuleModule {
 				continue;
 			}
 			const target = option.target;
-			const targetIsVS = /^src\/vs\//.test(target);
+			const targetIsVS = regexpSrcVs.test(target);
 			const restrictions = (typeof option.restrictions === 'string' ? [option.restrictions] : option.restrictions).slice(0);
 
 			if (targetIsVS) {
@@ -195,7 +199,7 @@ export = new class implements eslint.Rule.RuleModule {
 						configs.push(config);
 					}
 				}
-			} else if (targetIsVS && /\/\~$/.test(target)) {
+			} else if (targetIsVS && regexp1.test(target)) {
 				// generate all layers
 				for (const layerRule of layerRules) {
 					const [config, testConfig] = generateConfig(layerRule, target, restrictions);
@@ -216,7 +220,7 @@ export = new class implements eslint.Rule.RuleModule {
 		if (importPath[0] === '.') {
 			const relativeFilename = getRelativeFilename(context);
 			importPath = path.posix.join(path.posix.dirname(relativeFilename), importPath);
-			if (/^src\/vs\//.test(importPath)) {
+			if (regexpSrcVs.test(importPath)) {
 				// resolve using AMD base url
 				importPath = importPath.substring('src/'.length);
 			}
@@ -250,5 +254,5 @@ export = new class implements eslint.Rule.RuleModule {
  */
 function getRelativeFilename(context: eslint.Rule.RuleContext): string {
 	const filename = path.normalize(context.getFilename());
-	return filename.substring(REPO_ROOT.length).replace(/\\/g, '/');
+	return filename.substring(REPO_ROOT.length).replace(new RegExp(regexp3), '/');
 }

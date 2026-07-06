@@ -23,6 +23,8 @@ import * as path from 'path';
 import { ClientAssertionCredential } from '@azure/identity';
 import { BlobServiceClient } from '@azure/storage-blob';
 import { buildCdnUrl, getAgentMeta, parseFlags, type Sdk, sha256OfFile } from './common.ts';
+const regexpClaudeCodex9A = /^(claude|codex)-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)-((?:darwin|linux|win32)-(?:x64|arm64)(?:-musl)?)\.tgz$/;
+
 
 const SCRIPT = 'upload.ts';
 
@@ -122,7 +124,7 @@ function parseCliArgs(): IUploadArgs {
 	if (!tgzPath) { throw new Error('--tarball=<path> is required'); }
 	// Filename convention from package.ts: `<sdk>-<sdkVersion>-<sdkTarget>.tgz`.
 	const basename = path.basename(tgzPath);
-	const match = /^(claude|codex)-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)-((?:darwin|linux|win32)-(?:x64|arm64)(?:-musl)?)\.tgz$/.exec(basename);
+	const match = regexpClaudeCodex9A.exec(basename);
 	if (!match) {
 		throw new Error(`Cannot derive (sdk, version, target) from tarball filename '${basename}'`);
 	}

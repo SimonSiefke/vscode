@@ -76,6 +76,12 @@ import { fromNow } from '../../../../base/common/date.js';
 import { hash } from '../../../../base/common/hash.js';
 import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IMeteredConnectionService } from '../../../../platform/meteredConnection/common/meteredConnection.js';
+const regexpWeb = /@web/g;
+const regexpBext = /\bext:([^\s]+)\b/g;
+const regexpGetaddrinfoENOTFOUNDGetaddrinfo = /getaddrinfo ENOTFOUND|getaddrinfo ENOENT|connect EACCES|connect ECONNREFUSED/;
+const regexpExtension = /^extension/;
+const regexpExtension1 = /^extension\/([^/]+)$/;
+
 
 interface IExtensionStateProvider<T> {
 	(extension: Extension): T;
@@ -1646,9 +1652,9 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	private resolveQueryText(text: string): string {
-		text = text.replace(/@web/g, `tag:"${WEB_EXTENSION_TAG}"`);
+		text = text.replace(new RegExp(regexpWeb), `tag:"${WEB_EXTENSION_TAG}"`);
 
-		const extensionRegex = /\bext:([^\s]+)\b/g;
+		const extensionRegex = new RegExp(regexpBext);
 		if (extensionRegex.test(text)) {
 			text = text.replace(extensionRegex, (m, ext) => {
 
@@ -3281,7 +3287,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 
 		const message = err && err.message || '';
 
-		if (/getaddrinfo ENOTFOUND|getaddrinfo ENOENT|connect EACCES|connect ECONNREFUSED/.test(message)) {
+		if (regexpGetaddrinfoENOTFOUNDGetaddrinfo.test(message)) {
 			return;
 		}
 
@@ -3289,7 +3295,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	handleURL(uri: URI, options?: IOpenURLOptions): Promise<boolean> {
-		if (!/^extension/.test(uri.path)) {
+		if (!regexpExtension.test(uri.path)) {
 			return Promise.resolve(false);
 		}
 
@@ -3298,7 +3304,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	private onOpenExtensionUrl(uri: URI): void {
-		const match = /^extension\/([^/]+)$/.exec(uri.path);
+		const match = regexpExtension1.exec(uri.path);
 
 		if (!match) {
 			return;

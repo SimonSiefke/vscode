@@ -11,6 +11,9 @@ import * as path from '../../../util/vs/base/common/path';
 import { Reporter, createEditsFromPseudoDiff, createEditsFromRealDiff } from '../../prompt/node/editFromDiffGeneration';
 import { Lines } from '../../prompt/node/editGeneration';
 import { applyEdits } from '../../prompt/node/intents';
+const regexp1 = /^(\d\d-\w+)-([^.]+)$/;
+const regexp2 = /_/g;
+
 
 suite('Real Diff Apply', function () {
 	createTestsFromFixtures(path.join(__dirname, './fixtures/gitdiff'), (original: string, diff: string, expected: string, messages: string[]) => {
@@ -50,9 +53,9 @@ function createTestsFromFixtures(testDir: string, runTest: (original: string, di
 	const entries = readdirSync(testDir);
 	for (const entry of entries) {
 
-		const match = entry.match(/^(\d\d-\w+)-([^.]+)$/);
+		const match = entry.match(regexp1);
 		if (match) {
-			test(`${match[1]} - ${match[2].replace(/_/g, ' ')}`, async () => {
+			test(`${match[1]} - ${match[2].replace(new RegExp(regexp2), ' ')}`, async () => {
 				const expected = await fs.readFile(path.join(testDir, entry), 'utf8');
 				const diff = await fs.readFile(path.join(testDir, `${entry}.diff`), 'utf8');
 				const original = await fs.readFile(path.join(testDir, match[1]), 'utf8');

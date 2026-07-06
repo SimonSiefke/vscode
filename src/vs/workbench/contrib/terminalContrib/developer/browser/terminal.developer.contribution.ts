@@ -28,6 +28,10 @@ import { registerTerminalContribution, type ITerminalContributionContext } from 
 import { TerminalContextKeys } from '../../../terminal/common/terminalContextKey.js';
 import { TerminalDeveloperCommandId } from '../common/terminal.developer.js';
 import './media/developer.css';
+const regexp1 = /\\r/g;
+const regexp2 = /\\n/g;
+const regexp9aFA = /\\x([0-9a-fA-F]{2})/;
+
 
 registerTerminalAction({
 	id: TerminalDeveloperCommandId.ShowTextureAtlas,
@@ -82,10 +86,10 @@ registerTerminalAction({
 			return;
 		}
 		let escapedData = data
-			.replace(/\\n/g, '\n')
-			.replace(/\\r/g, '\r');
+			.replace(new RegExp(regexp2), '\n')
+			.replace(new RegExp(regexp1), '\r');
 		while (true) {
-			const match = escapedData.match(/\\x([0-9a-fA-F]{2})/);
+			const match = escapedData.match(regexp9aFA);
 			if (match === null || match.index === undefined || match.length < 2) {
 				break;
 			}

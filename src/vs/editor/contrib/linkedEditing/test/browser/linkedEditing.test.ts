@@ -22,6 +22,10 @@ import { DeleteWordLeft } from '../../../wordOperations/browser/wordOperations.j
 import { ITestCodeEditor, createCodeEditorServices, instantiateTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
 import { instantiateTextModel } from '../../../../test/common/testTextModel.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+const regexpZA = /[a-zA-Z]+/;
+const regexpYA = /[a-yA-Y]+/;
+const regexpEA = /[a-eA-E]+/;
+
 
 const mockFile = URI.parse('test:somefile.ttt');
 const mockFileSelector = { scheme: 'test' };
@@ -50,7 +54,7 @@ suite('linked editing', () => {
 		languageConfigurationService = instantiationService.get(ILanguageConfigurationService);
 
 		disposables.add(languageConfigurationService.register(languageId, {
-			wordPattern: /[a-zA-Z]+/
+			wordPattern: regexpZA
 		}));
 	});
 
@@ -323,7 +327,7 @@ suite('linked editing', () => {
 
 	const state3 = {
 		...state,
-		responseWordPattern: /[a-yA-Y]+/
+		responseWordPattern: regexpYA
 	};
 
 	testCase('Breakout with stop pattern - insert', state3, async (editor) => {
@@ -358,7 +362,7 @@ suite('linked editing', () => {
 
 	const state4 = {
 		...state,
-		responseWordPattern: /[a-eA-E]+/
+		responseWordPattern: regexpEA
 	};
 
 	testCase('Breakout with stop pattern - insert stop char, respos', state4, async (editor) => {

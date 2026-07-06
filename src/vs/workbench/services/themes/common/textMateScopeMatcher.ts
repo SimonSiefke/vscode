@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
+const regexp1 = /[\w\.:]+/;
+const regexpLR = /([LR]:|[\w\.:][\w\.:\-]*|[\,\|\-\(\)])/g;
+
 
 export interface MatcherWithPriority<T> {
 	matcher: Matcher<T>;
@@ -115,11 +118,11 @@ export function createMatchers<T>(selector: string, matchesName: (names: string[
 }
 
 function isIdentifier(token: string | null): token is string {
-	return !!token && !!token.match(/[\w\.:]+/);
+	return !!token && !!token.match(regexp1);
 }
 
 function newTokenizer(input: string): { next: () => string | null } {
-	const regex = /([LR]:|[\w\.:][\w\.:\-]*|[\,\|\-\(\)])/g;
+	const regex = new RegExp(regexpLR);
 	let match = regex.exec(input);
 	return {
 		next: () => {

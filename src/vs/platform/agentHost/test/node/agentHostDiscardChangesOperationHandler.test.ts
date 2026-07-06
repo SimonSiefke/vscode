@@ -16,6 +16,8 @@ import { SessionStatus, type ISessionFileDiff } from '../../common/state/session
 import { AgentHostDiscardChangesOperationHandler } from '../../node/agentHostDiscardChangesOperationHandler.js';
 import type { IAgentHostGitService } from '../../common/agentHostGitService.js';
 import { AgentHostStateManager } from '../../node/agentHostStateManager.js';
+const regexpCancelled = /cancelled/i;
+
 
 class TestGitService implements IAgentHostGitService {
 	declare readonly _serviceBrand: undefined;
@@ -242,7 +244,7 @@ suite('AgentHostDiscardChangesOperationHandler', () => {
 				operationId: AgentHostDiscardChangesOperationHandler.OPERATION_DISCARD_CHANGES,
 				target: makeResourceTarget(target),
 			}, cts.token),
-			/cancelled/i,
+			regexpCancelled,
 		);
 
 		assert.deepStrictEqual({ restoreCalls: gitService.restoreCalls.length }, { restoreCalls: 0 });

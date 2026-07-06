@@ -28,6 +28,8 @@ import { IChatFollowup, IChatLocationData, IChatProgress, IChatResponseErrorDeta
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel } from '../constants.js';
 import { ILanguageModelsService } from '../languageModels.js';
 import { ChatPerfMark, markChat } from '../chatPerf.js';
+const regexp1 = /\s/g;
+
 
 //#region agent service, commands etc
 
@@ -715,7 +717,7 @@ export class ChatAgentNameService implements IChatAgentNameService {
 
 		// TODO would like to use observables here but nothing uses it downstream and I'm not sure how to combine these two
 		const nameAllowed = this.checkAgentNameRestriction(chatAgentData.name, chatAgentData).get();
-		const fullNameAllowed = !chatAgentData.fullName || this.checkAgentNameRestriction(chatAgentData.fullName.replace(/\s/g, ''), chatAgentData).get();
+		const fullNameAllowed = !chatAgentData.fullName || this.checkAgentNameRestriction(chatAgentData.fullName.replace(new RegExp(regexp1), ''), chatAgentData).get();
 		return nameAllowed && fullNameAllowed;
 	}
 

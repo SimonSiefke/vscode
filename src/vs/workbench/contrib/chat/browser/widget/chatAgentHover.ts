@@ -19,6 +19,8 @@ import { getFullyQualifiedId, IChatAgentData, IChatAgentNameService, IChatAgentS
 import { showExtensionsWithIdsCommandId } from '../../../extensions/browser/extensionsActions.js';
 import { IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
 import { verifiedPublisherIcon } from '../../../../services/extensionManagement/common/extensionsIcons.js';
+const regexp1 = /[\.\?\!] *$/;
+
 
 export class ChatAgentHover extends Disposable {
 	public readonly domNode: HTMLElement;
@@ -97,7 +99,7 @@ export class ChatAgentHover extends Disposable {
 
 		let description = agent.description ?? '';
 		if (description) {
-			if (!description.match(/[\.\?\!] *$/)) {
+			if (!description.match(regexp1)) {
 				description += '.';
 			}
 		}

@@ -14,6 +14,9 @@ import { SnippyFetchService } from './snippyFetcher';
 import { SnippyNotifier } from './snippyNotifier';
 import { ISnippyService } from './snippyService';
 import * as types from './snippyTypes';
+const regexp1 = /[\r\n\t]+|^[ \t]+/gm;
+const regexp2 = /,\s*$/;
+
 
 export class SnippyService implements ISnippyService {
 	_serviceBrand: undefined;
@@ -89,7 +92,7 @@ export class SnippyService implements ISnippyService {
 			const matchLocation = `[Ln ${sourceToCheck.startPosition.lineNumber}, Col ${sourceToCheck.startPosition.column}]`;
 			const shortenedMatchText = `${citation.match.matched_source
 				.slice(0, 100)
-				.replace(/[\r\n\t]+|^[ \t]+/gm, ' ')
+				.replace(new RegExp(regexp1), ' ')
 				.trim()}...`;
 
 			this.logService.info([
@@ -97,7 +100,7 @@ export class SnippyService implements ISnippyService {
 				documentUri,
 				`Similar code with ${pluralize(allLicenses.length, 'license type')}`,
 				`[${allLicenses.join(', ')}]`,
-				`${citation.match.github_url.replace(/,\s*$/, '')}&editor=vscode`,
+				`${citation.match.github_url.replace(regexp2, '')}&editor=vscode`,
 				matchLocation,
 				shortenedMatchText
 			].join(' '));

@@ -14,6 +14,9 @@ import { ILanguageService } from '../../../../editor/common/languages/language.j
 import { tokenizeToString } from '../../../../editor/common/languages/textToHtmlTokenizer.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { markedGfmHeadingIdPlugin } from './markedGfmHeadingIdPlugin.js';
+const regexp1 = /\s+|:|,|(?!^)\{|\?]/;
+const regexp2 = /\n$/;
+
 
 export const DEFAULT_MARKDOWN_STYLES = `
 body {
@@ -240,7 +243,7 @@ export async function renderMarkdownDocument(
 					return '';
 				}
 
-				const languageId = languageService.getLanguageIdByLanguageName(lang) ?? languageService.getLanguageIdByLanguageName(lang.split(/\s+|:|,|(?!^)\{|\?]/, 1)[0]);
+				const languageId = languageService.getLanguageIdByLanguageName(lang) ?? languageService.getLanguageIdByLanguageName(lang.split(regexp1, 1)[0]);
 				return tokenizeToString(languageService, code, languageId);
 			}
 		}),
@@ -288,7 +291,7 @@ namespace MarkedHighlight {
 					const classAttr = lang
 						? ` class="language-${escape(lang)}"`
 						: '';
-					text = text.replace(/\n$/, '');
+					text = text.replace(regexp2, '');
 					return `<pre><code${classAttr}>${escaped ? text : escape(text, true)}\n</code></pre>`;
 				},
 			},

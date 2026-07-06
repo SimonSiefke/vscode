@@ -13,6 +13,9 @@ import { IExtHostTerminalService } from './extHostTerminalService.js';
 import { Emitter, type Event } from '../../../base/common/event.js';
 import { URI } from '../../../base/common/uri.js';
 import { AsyncIterableObject, Barrier, type AsyncIterableEmitter } from '../../../base/common/async.js';
+const regexp1 = /["'`]/;
+const regexp2 = /\s/;
+
 
 export interface IExtHostTerminalShellIntegration extends ExtHostTerminalShellIntegrationShape {
 	readonly _serviceBrand: undefined;
@@ -213,7 +216,7 @@ export class InternalTerminalShellIntegration extends Disposable {
 				let commandLineValue = commandLineOrExecutable;
 				if (args) {
 					for (const arg of args) {
-						const wrapInQuotes = !arg.match(/["'`]/) && arg.match(/\s/);
+						const wrapInQuotes = !arg.match(regexp1) && arg.match(regexp2);
 						if (wrapInQuotes) {
 							commandLineValue += ` "${arg}"`;
 						} else {

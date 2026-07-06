@@ -36,6 +36,18 @@ import { Schemas } from '../../../../base/common/network.js';
 import { ICodeEditorService } from '../../../../editor/browser/services/codeEditorService.js';
 import { dirname } from '../../../../base/common/resources.js';
 import { asWebviewUri } from '../../webview/common/webview.js';
+const regexp1 = /^(\d+\.\d+)\./;
+const regexp2 = /\./g;
+const regexp3 = /\\/g;
+const regexpKbstyle = /kbstyle\(([^\)]+)\)/gi;
+const regexpKb = /kb\(([a-z.\d\-]+)\)/gi;
+const regexpKbstyle1 = /`kbstyle\(([^\)]+)\)`/gi;
+const regexpKb1 = /`kb\(([a-z.\d\-]+)\)`/gi;
+const regexp8 = /^#\s/;
+const regexpIFENDIF = /<!--\s*%IF\s+(\w+)\s*%([\s\S]*?)%ENDIF\s*%\s*-->/gi;
+const regexpNavigationEnd = /\s*Navigation End\s*-->/gi;
+const regexpTOC = /<!--\s*TOC\s*/gi;
+
 
 export class ReleaseNotesManager extends Disposable {
 	private readonly _simpleSettingRenderer: SimpleSettingRenderer;
@@ -148,18 +160,18 @@ export class ReleaseNotesManager extends Disposable {
 	}
 
 	private async loadReleaseNotes(version: string, useCurrentFile: boolean): Promise<string> {
-		const match = /^(\d+\.\d+)\./.exec(version);
+		const match = regexp1.exec(version);
 		if (!match) {
 			throw new Error('not found');
 		}
 
-		const versionLabel = match[1].replace(/\./g, '_');
+		const versionLabel = match[1].replace(new RegExp(regexp2), '_');
 		const baseUrl = 'https://code.visualstudio.com/raw';
 		const url = `${baseUrl}/v${versionLabel}.md`;
 		const unassigned = nls.localize('unassigned', "unassigned");
 
 		const escapeMdHtml = (text: string): string => {
-			return escape(text).replace(/\\/g, '\\\\');
+			return escape(text).replace(new RegExp(regexp3), '\\\\');
 		};
 
 		const patchKeybindings = (text: string): string => {
@@ -200,10 +212,10 @@ export class ReleaseNotesManager extends Disposable {
 			};
 
 			return text
-				.replace(/`kb\(([a-z.\d\-]+)\)`/gi, kbCode)
-				.replace(/`kbstyle\(([^\)]+)\)`/gi, kbstyleCode)
-				.replace(/kb\(([a-z.\d\-]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
-				.replace(/kbstyle\(([^\)]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
+				.replace(new RegExp(regexpKb1), kbCode)
+				.replace(new RegExp(regexpKbstyle1), kbstyleCode)
+				.replace(new RegExp(regexpKb), (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
+				.replace(new RegExp(regexpKbstyle), (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
 		};
 
 		const fetchReleaseNotes = async () => {
@@ -219,7 +231,7 @@ export class ReleaseNotesManager extends Disposable {
 				throw new Error('Failed to fetch release notes');
 			}
 
-			if (!text || (!/^#\s/.test(text) && !useCurrentFile)) { // release notes always starts with `#` followed by whitespace, except when using the current file
+			if (!text || (!regexp8.test(text) && !useCurrentFile)) { // release notes always starts with `#` followed by whitespace, except when using the current file
 				throw new Error('Invalid release notes');
 			}
 
@@ -634,7 +646,7 @@ export class ReleaseNotesManager extends Disposable {
  */
 export function processConditionalBlocks(text: string, activeConditions: ReadonlySet<string>): string {
 	return text.replace(
-		/<!--\s*%IF\s+(\w+)\s*%([\s\S]*?)%ENDIF\s*%\s*-->/gi,
+		new RegExp(regexpIFENDIF),
 		(_match, condition: string, content: string) => {
 			if (activeConditions.has(condition.toUpperCase())) {
 				// Strip comment markers, reveal content
@@ -656,8 +668,8 @@ export async function renderReleaseNotesMarkdown(
 	// Remove HTML comment markers around table of contents navigation
 	text = text
 		.toString()
-		.replace(/<!--\s*TOC\s*/gi, '')
-		.replace(/\s*Navigation End\s*-->/gi, '');
+		.replace(new RegExp(regexpTOC), '')
+		.replace(new RegExp(regexpNavigationEnd), '');
 
 	// Process conditional blocks based on active conditions
 	const activeConditions = new Set<string>(['IN_PRODUCT']);

@@ -6,6 +6,8 @@
 import { constants as FSConstants, promises as FSPromises } from 'fs';
 import { createInterface as readLines } from 'readline';
 import * as Platform from '../common/platform.js';
+const regexp1 = /"/g;
+
 
 type ReleaseInfo = {
 	id: string;
@@ -52,7 +54,7 @@ export async function getOSReleaseInfo(errorLogger: (error: string | Error) => v
 			}
 			const key = line.split('=')[0].toUpperCase().trim();
 			if (osReleaseKeys.has(key)) {
-				const value = line.split('=')[1].replace(/"/g, '').toLowerCase().trim();
+				const value = line.split('=')[1].replace(new RegExp(regexp1), '').toLowerCase().trim();
 				if (key === 'ID' || key === 'DISTRIB_ID') {
 					releaseInfo.id = value;
 				} else if (key === 'ID_LIKE') {

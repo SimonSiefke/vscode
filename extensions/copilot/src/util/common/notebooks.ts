@@ -10,6 +10,10 @@ import { Schemas } from '../vs/base/common/network';
 import { basename } from '../vs/base/common/path';
 import { isEqual } from '../vs/base/common/resources';
 import { URI } from '../vs/base/common/uri';
+const regexp1 = /\r?\n/;
+const regexp2 = /\n/g;
+const regexpJson = /```(?:json)?(.+)/g;
+
 
 
 export interface INotebookSection {
@@ -125,15 +129,15 @@ export function serializeNotebookDocument(document: vscode.NotebookDocument, fea
 		cells: document.getCells().map(cell => ({
 			uri_fragment: features.cell_uri_fragment ? cell.document.uri.fragment : undefined,
 			cell_type: cell.kind,
-			source: cell.document.getText().split(/\r?\n/),
+			source: cell.document.getText().split(regexp1),
 		}))
 	});
 }
 
 export function extractNotebookOutline(response: string): INotebookOutline | undefined {
 	try {
-		const trimmedResponse = response.replace(/\n/g, '');
-		const regex = /```(?:json)?(.+)/g;
+		const trimmedResponse = response.replace(new RegExp(regexp2), '');
+		const regex = new RegExp(regexpJson);
 		const match = regex.exec(trimmedResponse);
 		if (match) {
 			const prefixTrimed = match[1];

@@ -16,6 +16,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { TextReplacement, TextEdit } from '../../../common/core/edits/textEdit.js';
 import { AbstractText, ArrayText } from '../../../common/core/text/abstractText.js';
 import { LinesDiff } from '../../../common/diff/linesDiffComputer.js';
+const regexp1 = /\n/;
+
 
 suite('diffing fixtures', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -41,9 +43,9 @@ suite('diffing fixtures', () => {
 		const secondFileName = files.find(f => f.startsWith('2.'))!;
 
 		const firstContent = readFileSync(join(folderPath, firstFileName), 'utf8').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-		const firstContentLines = firstContent.split(/\n/);
+		const firstContentLines = firstContent.split(regexp1);
 		const secondContent = readFileSync(join(folderPath, secondFileName), 'utf8').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-		const secondContentLines = secondContent.split(/\n/);
+		const secondContentLines = secondContent.split(regexp1);
 
 		const diffingAlgo = diffingAlgoName === 'legacy' ? new LegacyLinesDiffComputer() : new DefaultLinesDiffComputer();
 

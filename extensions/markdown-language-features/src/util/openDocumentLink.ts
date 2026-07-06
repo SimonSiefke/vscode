@@ -6,6 +6,9 @@
 import * as vscode from 'vscode';
 import { MdLanguageClient } from '../client/client';
 import * as proto from '../client/protocol';
+const regexp1 = /^L?(\d+)(?:,(\d+))?(?:-L?(\d+)(?:,(\d+))?)?$/i;
+const regexp2 = /^L?\d+(?:,\d+)?(?:-L?\d+(?:,\d+)?)?$/i;
+
 
 enum OpenMarkdownLinks {
 	beside = 'beside',
@@ -78,7 +81,7 @@ export class MdLinkOpener {
 }
 
 function getSelectionFromLocationFragment(fragment: string): vscode.Range | undefined {
-	const match = /^L?(\d+)(?:,(\d+))?(?:-L?(\d+)(?:,(\d+))?)?$/i.exec(fragment);
+	const match = regexp1.exec(fragment);
 	if (!match) {
 		return undefined;
 	}
@@ -136,7 +139,7 @@ function getLocationFragmentFromLinkText(linkText: string): string | undefined {
 		return undefined;
 	}
 
-	if (/^L?\d+(?:,\d+)?(?:-L?\d+(?:,\d+)?)?$/i.test(fragment)) {
+	if (regexp2.test(fragment)) {
 		return fragment;
 	}
 

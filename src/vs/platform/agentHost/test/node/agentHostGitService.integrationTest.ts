@@ -28,6 +28,9 @@ import { Schemas } from '../../../../base/common/network.js';
 import { DiskFileSystemProvider } from '../../../files/node/diskFileSystemProvider.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { AgentHostGitService } from '../../node/agentHostGitService.js';
+const regexp1 = /\r?\n/g;
+const regexpFatal = /fatal:/;
+
 
 function createGitService(disposables: Pick<DisposableStore, 'add'>): AgentHostGitService {
 	const logService = new NullLogService();
@@ -344,7 +347,7 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 		assert.ok(tree, 'expected tree object');
 		const treePaths = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: dir, encoding: 'utf8' })
 			.trim()
-			.split(/\r?\n/g)
+			.split(new RegExp(regexp1))
 			.filter(Boolean)
 			.sort();
 
@@ -443,7 +446,7 @@ suite('AgentHostGitService - worktree helpers (real git)', () => {
 
 		const status = cp.execFileSync('git', ['status', '--porcelain'], { cwd: dir, env, encoding: 'utf8' }).trim();
 		const lastMessage = cp.execFileSync('git', ['log', '-1', '--format=%s'], { cwd: dir, env, encoding: 'utf8' }).trim();
-		const committedFiles = cp.execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'], { cwd: dir, env, encoding: 'utf8' }).trim().split(/\r?\n/g).sort();
+		const committedFiles = cp.execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'], { cwd: dir, env, encoding: 'utf8' }).trim().split(new RegExp(regexp1)).sort();
 
 		assert.deepStrictEqual({ status, lastMessage, committedFiles }, {
 			status: '',
@@ -482,7 +485,7 @@ suite('AgentHostGitService - worktree helpers (real git)', () => {
 			await svc!.addWorktree(URI.file(dir), URI.file(wtPath), 'agents/test-origin-start-point', 'main');
 			const stat = await fs.stat(join(wtPath, 'upstream.txt'));
 			assert.ok(stat.isFile(), 'worktree should start from origin/main, not stale local main');
-			assert.throws(() => cp.execFileSync('git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], { cwd: wtPath, env, stdio: 'pipe' }), /fatal:/);
+			assert.throws(() => cp.execFileSync('git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], { cwd: wtPath, env, stdio: 'pipe' }), regexpFatal);
 		} finally {
 			try { await svc!.removeWorktree(URI.file(dir), URI.file(wtPath)); } catch { /* best-effort cleanup */ }
 			rmDirWithRetry(wtPath);

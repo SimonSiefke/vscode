@@ -14,6 +14,9 @@ import kill from 'tree-kill';
 import minimist from 'minimist';
 import { promisify } from 'util';
 import { promises } from 'fs';
+const regexpNSERRORCONNECTION = /NS_ERROR_CONNECTION_REFUSED|net::ERR_CONNECTION_REFUSED|ECONNREFUSED/i;
+const regexpWebUIAvailable = /Web UI available at (.+)/;
+
 
 const root = path.join(__dirname, '..', '..', '..', '..');
 const logsPath = path.join(root, '.build', 'logs', 'integration-tests-browser');
@@ -152,7 +155,7 @@ async function gotoWithRetry(page: playwright.Page, targetUrl: string): Promise<
 			return;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			const isConnectionRefused = /NS_ERROR_CONNECTION_REFUSED|net::ERR_CONNECTION_REFUSED|ECONNREFUSED/i.test(message);
+			const isConnectionRefused = regexpNSERRORCONNECTION.test(message);
 			if (!isConnectionRefused || attempt >= maxAttempts) {
 				throw error;
 			}
@@ -239,7 +242,7 @@ async function launchServer(browserType: BrowserType, browserChannel: BrowserCha
 
 	return new Promise(c => {
 		serverProcess.stdout!.on('data', data => {
-			const matches = data.toString('ascii').match(/Web UI available at (.+)/);
+			const matches = data.toString('ascii').match(regexpWebUIAvailable);
 			if (matches !== null) {
 				c({ endpoint: url.parse(matches[1]), server: serverProcess });
 			}

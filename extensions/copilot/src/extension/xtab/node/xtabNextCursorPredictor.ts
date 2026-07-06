@@ -30,6 +30,8 @@ import { LintErrors } from '../common/lintErrors';
 import { constructTaggedFile, getUserPrompt, PromptPieces } from '../common/promptCrafting';
 import type { RequestTracingContext } from './xtabProvider';
 import { constructMessages } from './xtabUtils';
+const regexpThinkThink = /<think>[\s\S]*?<\/think>\s*/g;
+
 
 export type CursorJumpPrediction =
 	| { readonly kind: 'sameFile'; readonly lineNumber: number }
@@ -358,7 +360,7 @@ export class XtabNextCursorPredictor {
  * (which can happen when generation hits the max tokens limit).
  */
 function stripThinkTags(text: string): string {
-	let result = text.replace(/<think>[\s\S]*?<\/think>\s*/g, '');
+	let result = text.replace(new RegExp(regexpThinkThink), '');
 	if (result.trimStart().startsWith('<think>')) {
 		result = '';
 	}

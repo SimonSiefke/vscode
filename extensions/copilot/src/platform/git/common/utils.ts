@@ -5,6 +5,10 @@
 
 import type * as vscode from 'vscode';
 import { Remote, Repository } from '../vscode/git';
+const regexp1 = /\r?\n/;
+const regexp2 = /^\s*(\w+)\s*=\s*"?([^"]+)"?$/;
+const regexp3 = /^\s*\[\s*([^\]]+?)\s*(\"[^"]+\")*\]\s*$/;
+
 
 interface GitConfigSection {
 	name: string;
@@ -13,10 +17,10 @@ interface GitConfigSection {
 }
 
 class GitConfigParser {
-	private static readonly _lineSeparator = /\r?\n/;
+	private static readonly _lineSeparator = regexp1;
 
-	private static readonly _propertyRegex = /^\s*(\w+)\s*=\s*"?([^"]+)"?$/;
-	private static readonly _sectionRegex = /^\s*\[\s*([^\]]+?)\s*(\"[^"]+\")*\]\s*$/;
+	private static readonly _propertyRegex = regexp2;
+	private static readonly _sectionRegex = regexp3;
 
 	static parse(raw: string): GitConfigSection[] {
 		const config: { sections: GitConfigSection[] } = { sections: [] };

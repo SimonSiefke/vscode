@@ -57,6 +57,8 @@ import { IToolResultCompressor } from '../../common/tools/toolResultCompressor.j
 import { getToolConfirmationAlert } from '../accessibility/chatAccessibilityProvider.js';
 import { IChatWidgetService } from '../chat.js';
 import { IChatToolRiskAssessmentService, ToolRiskLevel } from './chatToolRiskAssessmentService.js';
+const regexpUri = /\[\s*\]\((?<uri>[^)]+)\)/g;
+
 
 const jsonSchemaRegistry = Registry.as<JSONContributionRegistry.IJSONContributionRegistry>(JSONContributionRegistry.Extensions.JSONContribution);
 
@@ -1225,7 +1227,7 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 		}
 		const value = typeof message === 'string' ? message : message.value;
 		// Match empty-text markdown links: [](uri) or [ ](uri), capturing the uri
-		const linkPattern = /\[\s*\]\((?<uri>[^)]+)\)/g;
+		const linkPattern = new RegExp(regexpUri);
 		let match: RegExpExecArray | null;
 		while ((match = linkPattern.exec(value)) !== null) {
 			try {

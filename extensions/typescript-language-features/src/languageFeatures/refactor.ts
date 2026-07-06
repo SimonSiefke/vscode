@@ -23,6 +23,9 @@ import { nulToken } from '../utils/cancellation';
 import FormattingOptionsManager from './fileConfigurationManager';
 import { CompositeCommand, EditorChatFollowUp } from './util/copilot';
 import { conditionalRegistration, requireSomeCapability } from './util/dependentRegistration';
+const regexpBexport = /\bexport\b/;
+const regexpScope = /scope_(\d)/;
+
 
 function toWorkspaceEdit(client: ITypeScriptServiceClient, edits: readonly Proto.FileCodeEdits[]): vscode.WorkspaceEdit {
 	const workspaceEdit = new vscode.WorkspaceEdit();
@@ -484,7 +487,7 @@ class TypeScriptRefactorProvider implements vscode.CodeActionProvider<TsCodeActi
 			}
 
 			// Show when on the same line as an exported symbols without a name (handles default exports)
-			if (!node.nameSpan && /\bexport\b/.test(node.kindModifiers) && node.spans.length) {
+			if (!node.nameSpan && regexpBexport.test(node.kindModifiers) && node.spans.length) {
 				const convertedSpan = typeConverters.Range.fromTextSpan(node.spans[0]);
 				if (range.intersection(new vscode.Range(convertedSpan.start.line, 0, convertedSpan.start.line, Number.MAX_SAFE_INTEGER))) {
 					return true;
@@ -677,7 +680,7 @@ class TypeScriptRefactorProvider implements vscode.CodeActionProvider<TsCodeActi
 		if (Extract_Constant.matches(action)) {
 			// Only mark the action with the lowest scope as preferred
 			const getScope = (name: string) => {
-				const scope = name.match(/scope_(\d)/)?.[1];
+				const scope = name.match(regexpScope)?.[1];
 				return scope ? +scope : undefined;
 			};
 			const scope = getScope(action.name);

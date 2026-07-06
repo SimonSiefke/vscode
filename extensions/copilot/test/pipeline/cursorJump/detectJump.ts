@@ -6,6 +6,9 @@
 import { Result } from '../../../src/util/common/result';
 import { LogDocumentId, LogEntry } from '../logRecordingTypes';
 import { applyEditsToContent } from '../responseStep';
+const regexp1 = /\\/g;
+const regexp2 = /\/{2,}/g;
+
 
 /**
  * The user moved their cursor to a different line within the active file.
@@ -219,10 +222,10 @@ function resolveCrossFileLine(
  * prompt presents.
  */
 export function normalizeRelativePathForModel(relPath: string): string {
-	let p = relPath.replace(/\\/g, '/');
+	let p = relPath.replace(new RegExp(regexp1), '/');
 	while (p.startsWith('./')) {
 		p = p.slice(2);
 	}
-	p = p.replace(/\/{2,}/g, '/');
+	p = p.replace(new RegExp(regexp2), '/');
 	return p;
 }

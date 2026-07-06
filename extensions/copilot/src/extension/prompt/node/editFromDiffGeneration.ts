@@ -6,6 +6,8 @@
 import { CharCode } from '../../../util/vs/base/common/charCode';
 import { Lines, LinesEdit } from './editGeneration';
 import { IGuessedIndentation, computeIndentLevel2, guessIndentation } from './indentationGuesser';
+const regexp1 = /^@@ -(\d+),?\d* \+(\d+),?\d* @@/;
+
 
 
 export interface Reporter {
@@ -49,7 +51,7 @@ export function createEditsFromRealDiff(code: Lines, diff: Lines, reporter?: Rep
 		const firstChar = diffLine.charCodeAt(0);
 		switch (firstChar) {
 			case CharCode.AtSign: {
-				const match = /^@@ -(\d+),?\d* \+(\d+),?\d* @@/.exec(diffLine);
+				const match = regexp1.exec(diffLine);
 				if (match) {
 					const originalLineHint = parseInt(match[1]);
 					originalLineIndex = originalLineHint - 1;

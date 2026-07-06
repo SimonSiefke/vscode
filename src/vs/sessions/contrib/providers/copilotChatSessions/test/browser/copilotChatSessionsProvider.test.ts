@@ -40,6 +40,10 @@ import { IUriIdentityService } from '../../../../../../platform/uriIdentity/comm
 import { extUri } from '../../../../../../base/common/resources.js';
 import { CopilotCLISessionType } from '../../../agentHost/browser/baseAgentHostSessionsProvider.js';
 import { IAgentHostEnablementService } from '../../../../../services/agentHost/common/agentHostEnablementService.js';
+const regexpNotFound = /not found/;
+const regexpNotSupportedWhen = /not supported when multi-chat is disabled/;
+const regexpNotSupported = /not supported/;
+
 
 // ---- Helpers ----------------------------------------------------------------
 
@@ -751,7 +755,7 @@ suite('CopilotChatSessionsProvider', () => {
 		const provider = createProvider(disposables, model);
 		await assert.rejects(
 			() => provider.sendRequest('nonexistent', URI.parse('untitled:chat'), { query: 'test' }),
-			/not found/,
+			regexpNotFound,
 		);
 	});
 
@@ -965,7 +969,7 @@ suite('CopilotChatSessionsProvider', () => {
 
 		await assert.rejects(
 			() => provider.deleteChat(session.sessionId, resource),
-			/not supported when multi-chat is disabled/,
+			regexpNotSupportedWhen,
 		);
 	});
 
@@ -1338,7 +1342,7 @@ suite('CopilotChatSessionsProvider', () => {
 
 		await assert.rejects(
 			() => provider.renameChat(sessions[0].sessionId, resource, 'New Title'),
-			/not supported/,
+			regexpNotSupported,
 		);
 	});
 

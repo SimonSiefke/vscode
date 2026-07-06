@@ -10,6 +10,8 @@ import { CodeWindow } from '../../../../base/browser/window.js';
 import { Lazy } from '../../../../base/common/lazy.js';
 import type * as marked from '../../../../base/common/marked/marked.js';
 import { katexContainerLatexAttributeName, MarkedKatexExtension } from '../common/markedKatexExtension.js';
+const regexp1 = /^(([\d\.\-]+\w*\s?)+|\w+)$/;
+
 
 export class MarkedKatexSupport {
 
@@ -75,7 +77,7 @@ export class MarkedKatexSupport {
 				const value = style.getPropertyValue(prop);
 				// Allow through lists of numbers with units or bare words like 'block'
 				// Main goal is to block things like 'url()'.
-				if (/^(([\d\.\-]+\w*\s?)+|\w+)$/.test(value)) {
+				if (regexp1.test(value)) {
 					sanitizedProps.push(`${prop}: ${value}`);
 				}
 			}

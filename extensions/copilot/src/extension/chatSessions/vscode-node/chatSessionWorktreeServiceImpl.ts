@@ -23,6 +23,8 @@ import { IAgentSessionsWorkspace } from '../common/agentSessionsWorkspace';
 import { IChatSessionMetadataStore } from '../common/chatSessionMetadataStore';
 import { ChatSessionWorktreeFile, ChatSessionWorktreeProperties, ChatSessionWorktreePropertiesV2, IChatSessionWorktreeService } from '../common/chatSessionWorktreeService';
 import { SequencerByKey } from '../../../util/vs/base/common/async';
+const regexp1 = /[:.]/g;
+
 
 // const CHAT_SESSION_WORKTREE_MEMENTO_KEY = 'github.copilot.cli.sessionWorktrees';
 
@@ -180,7 +182,7 @@ export class ChatSessionWorktreeService extends Disposable implements IChatSessi
 		const randomBranchName = await this.gitService.generateRandomBranchName(repository.rootUri);
 
 		const branch = randomBranchName ? `${branchPrefixConfig}${branchPrefix}/${randomBranchName.substring(branchPrefixConfig.length)}`
-			: `${branchPrefixConfig}${branchPrefix}/worktree-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`;
+			: `${branchPrefixConfig}${branchPrefix}/worktree-${new Date().toISOString().replace(new RegExp(regexp1), '-').slice(0, 19)}`;
 
 		return branch;
 	}

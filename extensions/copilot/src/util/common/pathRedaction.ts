@@ -3,12 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpFile = /([\s|(]|file:\/\/)(\\[^\s]+)/gi;
+const regexpFileZA = /([\s|(]|file:\/\/)([a-zA-Z]:[(\\|/){1,2}][^\s]+)/gi;
+const regexpFile1 = /([\s|(]|file:\/\/)(\/[^\s]+)/g;
+
 /**
  * Redacts all things that look like a file path from a given input string.
  */
 export function redactPaths(input: string): string {
 	return input
-		.replace(/([\s|(]|file:\/\/)(\/[^\s]+)/g, '$1[redacted]') // unix path
-		.replace(/([\s|(]|file:\/\/)([a-zA-Z]:[(\\|/){1,2}][^\s]+)/gi, '$1[redacted]') // windows path
-		.replace(/([\s|(]|file:\/\/)(\\[^\s]+)/gi, '$1[redacted]'); // unc path
+		.replace(new RegExp(regexpFile1), '$1[redacted]') // unix path
+		.replace(new RegExp(regexpFileZA), '$1[redacted]') // windows path
+		.replace(new RegExp(regexpFile), '$1[redacted]'); // unc path
 }

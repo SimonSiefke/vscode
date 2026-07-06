@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
+const regexp1 = /[\r\n]/;
+const regexpZ0Z0Z0 = /^[a-z0-9][a-z0-9-]*\.[a-z0-9][a-z0-9-]*$/i;
+const regexp3 = /^(.+)-\d+\./;
+
 
 /**
  * Truncates a description string to the first line.
  * The UI applies CSS text-overflow ellipsis for width overflow.
  */
 export function truncateToFirstLine(text: string): string {
-	const newlineIndex = text.search(/[\r\n]/);
+	const newlineIndex = text.search(regexp1);
 	if (newlineIndex !== -1) {
 		return text.substring(0, newlineIndex);
 	}
@@ -53,7 +57,7 @@ export function extractExtensionIdFromPath(uriPath: string): string | undefined 
 	) {
 		const candidate = segments[globalStorageIdx + 1];
 		// Extension IDs are `<publisher>.<name>` (alphanumeric/hyphen each side).
-		if (/^[a-z0-9][a-z0-9-]*\.[a-z0-9][a-z0-9-]*$/i.test(candidate)) {
+		if (regexpZ0Z0Z0.test(candidate)) {
 			return candidate;
 		}
 	}
@@ -66,6 +70,6 @@ export function extractExtensionIdFromPath(uriPath: string): string | undefined 
 	const folderName = segments[extensionsIdx + 1];
 	// Strip version suffix: the version starts with digits after the last hyphen
 	// e.g. "github.copilot-chat-0.43.2026040602" → "github.copilot-chat"
-	const versionMatch = folderName.match(/^(.+)-\d+\./);
+	const versionMatch = folderName.match(regexp3);
 	return versionMatch ? versionMatch[1] : undefined;
 }

@@ -7,6 +7,8 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import * as strings from '../../../../base/common/strings.js';
 import { CharacterPair, EnterAction, IndentAction, OnEnterRule } from '../languageConfiguration.js';
 import { EditorAutoIndentStrategy } from '../../config/editorOptions.js';
+const regexp1 = /\B/;
+
 
 export interface IOnEnterSupportOptions {
 	brackets?: CharacterPair[];
@@ -108,7 +110,7 @@ export class OnEnterSupport {
 
 	private static _createOpenBracketRegExp(bracket: string): RegExp | null {
 		let str = strings.escapeRegExpCharacters(bracket);
-		if (!/\B/.test(str.charAt(0))) {
+		if (!regexp1.test(str.charAt(0))) {
 			str = '\\b' + str;
 		}
 		str += '\\s*$';
@@ -117,7 +119,7 @@ export class OnEnterSupport {
 
 	private static _createCloseBracketRegExp(bracket: string): RegExp | null {
 		let str = strings.escapeRegExpCharacters(bracket);
-		if (!/\B/.test(str.charAt(str.length - 1))) {
+		if (!regexp1.test(str.charAt(str.length - 1))) {
 			str = str + '\\b';
 		}
 		str = '^\\s*' + str;

@@ -7,6 +7,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
+const regexp1 = /\r{0,1}\n/;
+const regexp2 = /^\s*(\S.*\S)  \S/g;
+
 
 type AutoDetect = 'on' | 'off';
 
@@ -164,7 +167,7 @@ class FolderDetector {
 				//
 				// Tasks run in the order specified
 
-				const lines = stdout.split(/\r{0,1}\n/);
+				const lines = stdout.split(regexp1);
 				let tasksStart = false;
 				let tasksEnd = false;
 				for (const line of lines) {
@@ -179,7 +182,7 @@ class FolderDetector {
 						if (line.indexOf('Tasks run in the order specified') === 0) {
 							tasksEnd = true;
 						} else {
-							const regExp = /^\s*(\S.*\S)  \S/g;
+							const regExp = new RegExp(regexp2);
 							const matches = regExp.exec(line);
 							if (matches && matches.length === 2) {
 								const name = matches[1];

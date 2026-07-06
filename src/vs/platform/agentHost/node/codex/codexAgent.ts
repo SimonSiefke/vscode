@@ -83,6 +83,8 @@ import type { McpResourceReadResponse } from './protocol/generated/v2/McpResourc
 import type { McpServerStartupState } from './protocol/generated/v2/McpServerStartupState.js';
 import type { McpServerElicitationRequestParams } from './protocol/generated/v2/McpServerElicitationRequestParams.js';
 import type { McpServerElicitationRequestResponse } from './protocol/generated/v2/McpServerElicitationRequestResponse.js';
+const regexpThreadNotLoaded = /thread not loaded/i;
+
 
 const CLIENT_INFO = {
 	name: 'vscode_agent_host',
@@ -2303,7 +2305,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			// `thread not loaded` is app-server's expected response for any
 			// thread we have not yet resumed in this process; sendMessage's
 			// `thread/resume` path will handle it. Log at info level.
-			if (/thread not loaded/i.test(message)) {
+			if (regexpThreadNotLoaded.test(message)) {
 				this._logService.info(`[Codex:${threadId}] thread/read: not loaded yet (will resume on first send)`);
 			} else {
 				this._logService.warn(`[Codex:${threadId}] thread/read failed: ${message}`);

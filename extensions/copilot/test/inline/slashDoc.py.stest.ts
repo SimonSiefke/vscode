@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { guessIndentation } from '../../src/extension/prompt/node/indentationGuesser';
+const regexp1 = /^\s*/;
+const regexp2 = /^('''|""")/;
+const regexp3 = / /g;
+
 
 
 export function validateDocstringFormat(fileContents: string, targetLineString: string): void {
@@ -23,16 +27,16 @@ export function validateDocstringFormat(fileContents: string, targetLineString: 
 	const insertSpaces = indentation.insertSpaces;
 
 	const targetLine = lines[targetLineIndex];
-	const targetIndentation = targetLine.match(/^\s*/)?.[0] || '';
+	const targetIndentation = targetLine.match(regexp1)?.[0] || '';
 
 	// Check the next line for a docstring start
 	const nextLine = lines[targetLineIndex + 1];
-	const docstringStart = nextLine.trim().match(/^('''|""")/);
+	const docstringStart = nextLine.trim().match(regexp2);
 	if (!docstringStart) {
 		throw new Error('No docstring found after the target line.');
 	}
 
-	const docstringIndentation = nextLine.match(/^\s*/)?.[0] || '';
+	const docstringIndentation = nextLine.match(regexp1)?.[0] || '';
 
 	// Calculate the expected indentation
 	let expectedIndentation: string;
@@ -44,6 +48,6 @@ export function validateDocstringFormat(fileContents: string, targetLineString: 
 
 	// The docstring should have the expected indentation
 	if (docstringIndentation !== expectedIndentation) {
-		throw new Error(`Incorrect docstring indentation. Expected: '${expectedIndentation.replace(/ /g, '·')}', but got: '${docstringIndentation.replace(/ /g, '·')}'`);
+		throw new Error(`Incorrect docstring indentation. Expected: '${expectedIndentation.replace(new RegExp(regexp3), '·')}', but got: '${docstringIndentation.replace(new RegExp(regexp3), '·')}'`);
 	}
 }

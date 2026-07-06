@@ -11,6 +11,8 @@ import { IKeyboardEvent } from '../../../../platform/keybinding/common/keybindin
 import { IKeyboardMapper } from '../../../../platform/keyboardLayout/common/keyboardMapper.js';
 import { BaseResolvedKeybinding } from '../../../../platform/keybinding/common/baseResolvedKeybinding.js';
 import { IMacLinuxKeyboardMapping, IMacLinuxKeyMapping } from '../../../../platform/keyboardLayout/common/keyboardLayout.js';
+const regexpControl = /Control\+/;
+
 
 /**
  * A map from character to key codes.
@@ -707,7 +709,7 @@ export class MacLinuxKeyboardMapper implements IKeyboardMapper {
 				const outScanCodeCombo = scanCodeCombo.toString();
 				const outKey = scanCodeCombo.getProducedChar(mapping);
 				const ariaLabel = resolvedKb.getAriaLabel();
-				const outUILabel = (ariaLabel ? ariaLabel.replace(/Control\+/, 'Ctrl+') : null);
+				const outUILabel = (ariaLabel ? ariaLabel.replace(regexpControl, 'Ctrl+') : null);
 				const outUserSettings = resolvedKb.getUserSettingsLabel();
 				const outElectronAccelerator = resolvedKb.getElectronAccelerator();
 				const outDispatchStr = resolvedKb.getDispatchChords()[0];

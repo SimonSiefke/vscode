@@ -15,6 +15,8 @@ import { ViewModel } from '../../../../common/viewModel/viewModelImpl.js';
 import { CamelCaseAction, PascalCaseAction, DeleteAllLeftAction, DeleteAllRightAction, DeleteDuplicateLinesAction, DeleteLinesAction, IndentLinesAction, InsertLineAfterAction, InsertLineBeforeAction, JoinLinesAction, KebabCaseAction, LowerCaseAction, SnakeCaseAction, SortLinesAscendingAction, SortLinesDescendingAction, TitleCaseAction, TransposeAction, UpperCaseAction, ReverseLinesAction } from '../../browser/linesOperations.js';
 import { withTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
 import { createTextModel } from '../../../../test/common/testTextModel.js';
+const regexp1 = /^\s+/gm;
+
 
 function assertSelection(editor: ICodeEditor, expected: Selection | Selection[]): void {
 	if (!Array.isArray(expected)) {
@@ -918,7 +920,7 @@ suite('Editor Contrib - Line Operations', () => {
 				`function helloWorld() {
 				return someGlobalObject.printHelloWorld("en", "utf-8");
 				}
-				helloWorld();`.replace(/^\s+/gm, ''),
+				helloWorld();`.replace(new RegExp(regexp1), ''),
 				`'JavaScript'`,
 				'parseHTML4String',
 				'_accessor: ServicesAccessor'
@@ -1029,7 +1031,7 @@ suite('Editor Contrib - Line Operations', () => {
 				assert.strictEqual(model.getValueInRange(new Selection(14, 1, 17, 15)), `function hello_world() {
 					return some_global_object.print_hello_world("en", "utf-8");
 				}
-				hello_world();`.replace(/^\s+/gm, ''));
+				hello_world();`.replace(new RegExp(regexp1), ''));
 				assertSelection(editor, new Selection(14, 1, 17, 15));
 
 				editor.setSelection(new Selection(18, 1, 18, 13));

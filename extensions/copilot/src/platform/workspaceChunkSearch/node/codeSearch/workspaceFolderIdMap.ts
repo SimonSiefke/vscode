@@ -7,6 +7,8 @@ import type { Memento } from 'vscode';
 import { ResourceMap } from '../../../../util/vs/base/common/map';
 import { basenameOrAuthority } from '../../../../util/vs/base/common/resources';
 import { URI } from '../../../../util/vs/base/common/uri';
+const regexpZAZ0 = /[^a-zA-Z0-9_-]/g;
+
 
 const maxPrefixLength = 8;
 
@@ -55,7 +57,7 @@ export class WorkspaceFolderIdMap {
 
 	private _generateUniqueId(folderRoot: URI): string {
 		const name = basenameOrAuthority(folderRoot);
-		const sanitized = name.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
+		const sanitized = name.replace(new RegExp(regexpZAZ0), '').toLowerCase();
 		const base = sanitized.slice(0, maxPrefixLength) || 'ws';
 
 		if (base.length <= maxPrefixLength && !this._usedIds.has(base)) {

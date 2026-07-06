@@ -7,6 +7,8 @@ import { distinct } from './arrays.js';
 import { Iterable } from './iterator.js';
 import { URI } from './uri.js';
 import { generateUuid } from './uuid.js';
+const regexp1 = /^([a-z]+)\/([a-z]+|\*)$/i;
+
 
 export interface IDataTransferFile {
 	readonly id: string;
@@ -170,7 +172,7 @@ function matchesMimeType_normalized(normalizedPattern: string, normalizedMimeTyp
 	}
 
 	// Wildcard, such as `image/*`
-	const wildcard = normalizedPattern.match(/^([a-z]+)\/([a-z]+|\*)$/i);
+	const wildcard = normalizedPattern.match(regexp1);
 	if (!wildcard) {
 		return false;
 	}

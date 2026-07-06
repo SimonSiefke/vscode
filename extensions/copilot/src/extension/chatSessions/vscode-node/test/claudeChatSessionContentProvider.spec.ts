@@ -39,6 +39,10 @@ import { FolderRepositoryMRUEntry, IChatFolderMruService } from '../../common/fo
 import { IClaudeWorkspaceFolderService } from '../../common/claudeWorkspaceFolderService';
 import { builtinSlashCommands } from '../../common/builtinSlashCommands';
 import { ClaudeChatSessionContentProvider, ClaudeChatSessionItemController } from '../claudeChatSessionContentProvider';
+const regexpSessionNotFound = /session not found/i;
+const regexpCouldNotBe = /could not be found/i;
+const regexpFirstMessage = /first message/i;
+
 
 // Expose the most recently created items map so tests can inspect controller items.
 let lastCreatedItemsMap: Map<string, vscode.ChatSessionItem>;
@@ -2090,7 +2094,7 @@ describe('ClaudeChatSessionItemController', () => {
 			vi.mocked(mockSessionService.getSession).mockResolvedValue(undefined);
 
 			const request = { id: 'msg-1', prompt: 'test' } as vscode.ChatRequestTurn2;
-			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(/session not found/i);
+			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(regexpSessionNotFound);
 		});
 
 		it('throws when request message is not found in session', async () => {
@@ -2101,7 +2105,7 @@ describe('ClaudeChatSessionItemController', () => {
 			vi.mocked(mockSessionService.getSession).mockResolvedValue(session as any);
 
 			const request = { id: 'nonexistent', prompt: 'test' } as vscode.ChatRequestTurn2;
-			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(/could not be found/i);
+			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(regexpCouldNotBe);
 		});
 
 		it('throws when trying to fork at the first message', async () => {
@@ -2112,7 +2116,7 @@ describe('ClaudeChatSessionItemController', () => {
 			vi.mocked(mockSessionService.getSession).mockResolvedValue(session as any);
 
 			const request = { id: 'msg-1', prompt: 'test' } as vscode.ChatRequestTurn2;
-			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(/first message/i);
+			await expect(lastForkHandler!(sessionResource, request, CancellationToken.None)).rejects.toThrow(regexpFirstMessage);
 		});
 
 		it('adds the forked item to the controller items', async () => {

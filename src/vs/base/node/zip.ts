@@ -12,6 +12,8 @@ import { assertReturnsDefined } from '../common/types.js';
 import { Promises } from './pfs.js';
 import * as nls from '../../nls.js';
 import type { Entry, ZipFile } from 'yauzl';
+const regexp1 = /\/$/;
+
 
 export const CorruptZipMessage: string = 'end of central directory record signature not found';
 const CORRUPT_ZIP_PATTERN = new RegExp(CorruptZipMessage);
@@ -146,7 +148,7 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IOptions, tok
 			const fileName = entry.fileName.replace(options.sourcePathRegex, '');
 
 			// directory file names end with '/'
-			if (/\/$/.test(fileName)) {
+			if (regexp1.test(fileName)) {
 				const targetFileName = path.join(targetPath, fileName);
 				last = createCancelablePromise(token => promises.mkdir(targetFileName, { recursive: true }).then(() => readNextEntry(token)).then(undefined, e));
 				return;

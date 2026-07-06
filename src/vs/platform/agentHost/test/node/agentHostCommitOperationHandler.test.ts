@@ -21,6 +21,8 @@ import { GITHUB_COPILOT_PROTECTED_RESOURCE, IAgentService } from '../../common/a
 import { AHP_AUTH_REQUIRED, ProtocolError } from '../../common/state/sessionProtocol.js';
 import { ChangesSummary } from '../../common/state/protocol/state.js';
 import type { IAgentHostChangesetService, IPersistedChangesetMetadata, IRestoredChangesetDiffs, StaticChangesetKind } from '../../common/agentHostChangesetService.js';
+const regexpCommitOperationWas = /Commit operation was cancelled/;
+
 
 class TestGitService implements IAgentHostGitService {
 	declare readonly _serviceBrand: undefined;
@@ -239,7 +241,7 @@ suite('AgentHostCommitOperationHandler', () => {
 
 		await assert.rejects(
 			() => handler.invoke({ channel: buildUncommittedChangesetUri(session.toString()), operationId: AgentHostCommitOperationHandler.OPERATION_COMMIT }, cts.token),
-			/Commit operation was cancelled/,
+			regexpCommitOperationWas,
 		);
 
 		assert.deepStrictEqual({ gitCalls: gitService.calls, completionCalls: copilotApiService.calls.length, changesetCalls: changesets.calls }, {

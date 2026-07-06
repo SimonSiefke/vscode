@@ -14,6 +14,8 @@ import { PositionOffsetTransformer } from '../../editing/common/positionOffsetTr
 import { generateCellTextMarker, getBlockComment, getLineCommentStart } from './alternativeContentProvider.text';
 import { EOL, summarize } from './helpers';
 import { CrLfOffsetTranslator } from './offsetTranslator';
+const regexp1 = /\r\n|\n/g;
+
 
 
 class AlternativeNotebookCellSnapshot {
@@ -27,7 +29,7 @@ class AlternativeNotebookCellSnapshot {
 	public static fromNotebookCell(cell: NotebookCell, blockComment: [string, string], lineCommentStart: string): AlternativeNotebookCellSnapshot {
 		const summary = summarize(cell);
 		const cellMarker = generateCellTextMarker(summary, lineCommentStart);
-		const code = cell.document.getText().replace(/\r\n|\n/g, EOL);
+		const code = cell.document.getText().replace(new RegExp(regexp1), EOL);
 		const prefix = cell.kind === NotebookCellKind.Markup ? `${cellMarker}${EOL}${blockComment[0]}${EOL}` : `${cellMarker}${EOL}`;
 		const suffix = cell.kind === NotebookCellKind.Markup ? `${EOL}${blockComment[1]}` : '';
 		return new AlternativeNotebookCellSnapshot(cell, blockComment, lineCommentStart, code, prefix, suffix);
@@ -57,7 +59,7 @@ class AlternativeNotebookCellSnapshot {
 				range,
 				rangeLength: endOffset - rangeOffset,
 				rangeOffset,
-				text: e.text.replace(/\r\n|\n/g, EOL), // Normalize line endings to EOL
+				text: e.text.replace(new RegExp(regexp1), EOL), // Normalize line endings to EOL
 			};
 		});
 	}
@@ -465,7 +467,7 @@ function toAltCellTextDocumentContentChangeEvents(notebook: AbstractAlternativeN
 			range,
 			rangeLength: rangeOffset.endExclusive - rangeOffset.start,
 			rangeOffset: rangeOffset.start,
-			text: e.text.replace(/\r\n|\n/g, EOL), // Normalize line endings to EOL
+			text: e.text.replace(new RegExp(regexp1), EOL), // Normalize line endings to EOL
 		} as typeof e;
 	}));
 }

@@ -54,6 +54,9 @@ import { IDefaultAccountService } from '../../../../../platform/defaultAccount/c
 import { IDefaultAccount } from '../../../../../base/common/defaultAccount.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { getInlineCompletionsController } from '../controller/common.js';
+const regexp1 = /\s+/g;
+const regexp2 = /\n/;
+
 
 export class InlineCompletionsModel extends Disposable {
 	private readonly _source;
@@ -1032,7 +1035,7 @@ export class InlineCompletionsModel extends Disposable {
 				acceptUntilIndexExclusive = text.length;
 			}
 
-			const wsRegExp = /\s+/g;
+			const wsRegExp = new RegExp(regexp1);
 			const m2 = wsRegExp.exec(text);
 			if (m2 && m2.index !== undefined) {
 				if (m2.index + m2[0].length < acceptUntilIndexExclusive) {
@@ -1045,7 +1048,7 @@ export class InlineCompletionsModel extends Disposable {
 
 	public async acceptNextLine(): Promise<void> {
 		await this._acceptNext(this._editor, 'line', (pos, text) => {
-			const m = text.match(/\n/);
+			const m = text.match(regexp2);
 			if (m && m.index !== undefined) {
 				return m.index + 1;
 			}

@@ -17,6 +17,8 @@ import { deriveMcpState } from './scan/claudeMcpScan.js';
 import { claudeMemoryFiles } from './scan/claudeRuleScan.js';
 import type { IResolvedNativePlugin } from './scan/claudeNativePluginScan.js';
 import { CLAUDE_BUILTIN_AGENTS, buildClaudeBuiltinSkillsContainer, buildSdkBuiltinSkillsContainer } from './claudeBuiltinCommands.js';
+const regexpMd = /\.md$/i;
+
 
 /**
  * The Claude SDK's built-in default agent. Hidden from the picker:
@@ -240,7 +242,7 @@ export async function resolveClaudeAgentName(
 	}
 
 	const basename = uri.path.split('/').pop() ?? '';
-	const name = basename.replace(/\.md$/i, '');
+	const name = basename.replace(regexpMd, '');
 	if (!name) {
 		logService.warn(`[Claude:${sessionId}] resolveClaudeAgentName: could not extract agent name from URI '${agent.uri}'`);
 		return undefined;

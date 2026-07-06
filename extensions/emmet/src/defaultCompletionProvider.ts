@@ -9,6 +9,9 @@ import { isValidLocationForEmmetAbbreviation, getSyntaxFromArgs } from './abbrev
 import { getEmmetHelper, getMappingForIncludedLanguages, parsePartialStylesheet, getEmmetConfiguration, getEmmetMode, isStyleSheet, getFlatNode, allowedMimeTypesInScriptTag, toLSTextDocument, getHtmlFlatNode, getEmbeddedCssNodeIfAny } from './util';
 import { Range as LSRange } from 'vscode-languageserver-textdocument';
 import { getRootNode } from './parseDocument';
+const regexp1 = />|\*|\+/;
+const regexp2 = /\[[^\]=]*\]/;
+
 
 export class DefaultCompletionItemProvider implements vscode.CompletionItemProvider {
 
@@ -170,11 +173,11 @@ export class DefaultCompletionItemProvider implements vscode.CompletionItemProvi
 			const abbreviation: string = extractAbbreviationResults.abbreviation;
 			// For the second condition, we don't want abbreviations that have [] characters but not ='s in them to expand
 			// In turn, users must explicitly expand abbreviations of the form Component[attr1 attr2], but it means we don't try to expand a[i].
-			if (abbreviation.startsWith('this.') || /\[[^\]=]*\]/.test(abbreviation)) {
+			if (abbreviation.startsWith('this.') || regexp2.test(abbreviation)) {
 				isNoisePromise = Promise.resolve(true);
 			} else {
 				isNoisePromise = vscode.commands.executeCommand<vscode.SymbolInformation[] | undefined>('vscode.executeDocumentSymbolProvider', document.uri).then(symbols => {
-					return !!symbols && symbols.some(x => abbreviation === x.name || (abbreviation.startsWith(x.name + '.') && !/>|\*|\+/.test(abbreviation)));
+					return !!symbols && symbols.some(x => abbreviation === x.name || (abbreviation.startsWith(x.name + '.') && !regexp1.test(abbreviation)));
 				});
 			}
 		}

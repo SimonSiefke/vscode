@@ -9,6 +9,10 @@ import { extname } from '../vs/base/common/resources';
 import { escapeRegExpCharacters } from '../vs/base/common/strings';
 import { URI } from '../vs/base/common/uri';
 import { getLanguage, wellKnownLanguages } from './languages';
+const regexp1 = /^\s*(```+)/gm;
+const regexp2 = /^\./;
+const regexp3 = /\n$/;
+
 
 /**
  *
@@ -16,7 +20,7 @@ import { getLanguage, wellKnownLanguages } from './languages';
  * @returns A fence with the required number of backticks to avoid prematurely terminating the code block
  */
 export function getFenceForCodeBlock(code: string, minNumberOfBackticks = 3) {
-	const backticks = code.matchAll(/^\s*(```+)/gm);
+	const backticks = code.matchAll(new RegExp(regexp1));
 	const backticksNeeded = Math.max(minNumberOfBackticks, ...Array.from(backticks, d => d[1].length + 1));
 	return '`'.repeat(backticksNeeded);
 }
@@ -100,7 +104,7 @@ export function getLanguageId(uri: URI) {
 
 	return Object.keys(wellKnownLanguages).find(id => {
 		return wellKnownLanguages.get(id)?.extensions?.includes(ext);
-	}) || ext.replace(/^\./, '');
+	}) || ext.replace(regexp2, '');
 }
 
 export function getMdCodeBlockLanguage(uri: URI) {
@@ -132,7 +136,7 @@ export function extractCodeBlocks(text: string): MarkdownCodeBlock[] {
 			out.push({
 				startMarkup: token.markup,
 				// Trim trailing newline since this is always included
-				code: token.content.replace(/\n$/, ''),
+				code: token.content.replace(regexp3, ''),
 				language: token.info.trim(),
 				startLine: token.map[0],
 				endLine: token.map[1],
@@ -148,7 +152,7 @@ export function extractInlineCode(text: string): string[] {
 	const tokens = md.parse(text, {});
 	for (const token of flattenTokensLists(tokens)) {
 		if (token.type === 'code_inline') {
-			out.push(token.content.replace(/\n$/, ''));
+			out.push(token.content.replace(regexp3, ''));
 		}
 	}
 	return out;

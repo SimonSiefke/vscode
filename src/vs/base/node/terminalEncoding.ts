@@ -8,6 +8,8 @@
  */
 import { exec } from 'child_process';
 import { isWindows } from '../common/platform.js';
+const regexpZAZ0 = /[^a-zA-Z0-9]/g;
+
 
 const windowsTerminalEncodings = {
 	'437': 'cp437', // United States
@@ -26,7 +28,7 @@ const windowsTerminalEncodings = {
 };
 
 function toIconvLiteEncoding(encodingName: string): string {
-	const normalizedEncodingName = encodingName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+	const normalizedEncodingName = encodingName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
 	const mapped = JSCHARDET_TO_ICONV_ENCODINGS[normalizedEncodingName];
 
 	return mapped || normalizedEncodingName;

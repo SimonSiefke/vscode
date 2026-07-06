@@ -29,6 +29,13 @@ import { GitCommitInputBoxCodeActionsProvider, GitCommitInputBoxDiagnosticsManag
 import { GitBlameController } from './blame';
 import { CloneManager } from './cloneManager';
 import { getAskpassPaths } from './askpassManager';
+const regexp1 = /[\r\n]+$/;
+const regexp2 = /\r?\n/mg;
+const regexp3 = /^\s*$/;
+const regexpGitInstallationNot = /Git installation not found/;
+const regexp5 = /^[01]/;
+const regexp6 = /^2\.(25|26)\./;
+
 
 const deactivateTasks: { (): Promise<void> }[] = [];
 
@@ -43,7 +50,7 @@ async function createModel(context: ExtensionContext, logger: LogOutputChannel, 
 	let pathHints = Array.isArray(pathValue) ? pathValue : pathValue ? [pathValue] : [];
 
 	const { isTrusted, workspaceFolders = [] } = workspace;
-	const excludes = isTrusted ? [] : workspaceFolders.map(f => path.normalize(f.uri.fsPath).replace(/[\r\n]+$/, ''));
+	const excludes = isTrusted ? [] : workspaceFolders.map(f => path.normalize(f.uri.fsPath).replace(regexp1, ''));
 
 	if (!isTrusted && pathHints.length !== 0) {
 		// Filter out any non-absolute paths
@@ -56,7 +63,7 @@ async function createModel(context: ExtensionContext, logger: LogOutputChannel, 
 			return true;
 		}
 
-		const normalized = path.normalize(gitPath).replace(/[\r\n]+$/, '');
+		const normalized = path.normalize(gitPath).replace(regexp1, '');
 		const skip = excludes.some(e => normalized.startsWith(e));
 		if (skip) {
 			logger.info(l10n.t('[main] Skipped found git in: "{0}"', gitPath));
@@ -101,9 +108,9 @@ async function createModel(context: ExtensionContext, logger: LogOutputChannel, 
 	onRepository();
 
 	const onOutput = (str: string) => {
-		const lines = str.split(/\r?\n/mg);
+		const lines = str.split(new RegExp(regexp2));
 
-		while (/^\s*$/.test(lines[lines.length - 1])) {
+		while (regexp3.test(lines[lines.length - 1])) {
 			lines.pop();
 		}
 
@@ -230,7 +237,7 @@ export async function _activate(context: ExtensionContext): Promise<GitExtension
 		console.warn(err.message);
 		logger.warn(`[main] Failed to create model: ${err}`);
 
-		if (!/Git installation not found/.test(err.message || '')) {
+		if (!regexpGitInstallationNot.test(err.message || '')) {
 			throw err;
 		}
 
@@ -271,7 +278,7 @@ async function checkGitv1(info: IGit): Promise<void> {
 		return;
 	}
 
-	if (!/^[01]/.test(info.version)) {
+	if (!regexp5.test(info.version)) {
 		return;
 	}
 
@@ -292,7 +299,7 @@ async function checkGitv1(info: IGit): Promise<void> {
 }
 
 async function checkGitWindows(info: IGit): Promise<void> {
-	if (!/^2\.(25|26)\./.test(info.version)) {
+	if (!regexp6.test(info.version)) {
 		return;
 	}
 

@@ -22,6 +22,8 @@ import { CompletionsMutableObservableWorkspace } from '../../completionsPromptFa
 import { FullRecentEditsProvider, ICompletionsRecentEditsProviderService } from '../../recentEdits/recentEditsProvider';
 import { DiffHunk, RecentEdit, summarizeEdit } from '../../recentEdits/recentEditsReducer';
 import { RecentEdits, editIsTooCloseToCursor } from '../recentEdits';
+const regexp1 = /\n {12}/g;
+
 
 class MockRecentEditsProvider extends FullRecentEditsProvider {
 	override getRecentEdits = () => [] as RecentEdit[];
@@ -148,7 +150,7 @@ File: relative/main.ts
 +++ b/file:///root/relative/main.ts
 @@ -2,1 +2,1 @@
 +  return "hello";
-End of recent edits\n`.replace(/\n {12}/g, '\n')
+End of recent edits\n`.replace(new RegExp(regexp1), '\n')
 		);
 	});
 
@@ -202,7 +204,7 @@ File: file-3
 +++ b/file:///root/file-3
 @@ -1,0 +1,1 @@
 +edit-3
-End of recent edits\n`.replace(/\n {12}/g, '\n')
+End of recent edits\n`.replace(new RegExp(regexp1), '\n')
 		);
 	});
 
@@ -260,7 +262,7 @@ File: file-3
 +++ b/file:///root/file-3
 @@ -1,0 +1,1 @@
 +edit-3
-End of recent edits\n`.replace(/\n {12}/g, '\n')
+End of recent edits\n`.replace(new RegExp(regexp1), '\n')
 		);
 	});
 

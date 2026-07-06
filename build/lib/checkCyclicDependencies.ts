@@ -6,6 +6,8 @@
 import fs from 'fs';
 import path from 'path';
 import * as ts from 'typescript';
+const regexp1 = /\\/g;
+
 
 // --- Graph (extracted from build/lib/tsb/utils.ts) ---
 
@@ -83,7 +85,7 @@ export class Graph {
 // --- Dependency scanning & cycle detection ---
 
 export function normalize(p: string): string {
-	return p.replace(/\\/g, '/');
+	return p.replace(new RegExp(regexp1), '/');
 }
 
 export function collectJsFiles(dir: string): string[] {

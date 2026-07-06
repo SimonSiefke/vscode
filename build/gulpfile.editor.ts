@@ -18,6 +18,14 @@ import * as monacoapi from './lib/monaco-api.ts';
 import * as fs from 'fs';
 import { createReporter } from './lib/reporter.ts';
 import monacoPackage from './monaco/package.json' with { type: 'json' };
+const regexpCss = /\.css$/;
+const regexp2 = /\r\n|\r|\n/;
+const regexp3 = /\n\n\n+/g;
+const regexpMonacoTs = /monaco\.d\.ts/;
+const regexpREADMENpmMd = /README-npm\.md/;
+const regexp9AORZcfNqry = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+const regexp7 = /(.*\(\d+,\d+\): )(.*: )(.*)/;
+
 
 const root = path.dirname(import.meta.dirname);
 const sha1 = getVersion(root);
@@ -62,7 +70,7 @@ const extractEditorSrcTask = task.define('extract-editor-src', () => {
 			'vs/base/common/marked/marked.js',
 		],
 		shakeLevel: 2, // 0-Files, 1-InnerFile, 2-ClassMembers
-		importIgnorePattern: /\.css$/,
+		importIgnorePattern: regexpCss,
 		destRoot: path.join(root, 'out-editor-src'),
 		tsOutDir: '../out-monaco-editor-core/esm/vs',
 	});
@@ -90,7 +98,7 @@ const compileEditorESMTask = task.define('compile-editor-esm', () => {
 });
 
 function toExternalDTS(contents: string) {
-	const lines = contents.split(/\r\n|\r|\n/);
+	const lines = contents.split(regexp2);
 	let killNextCloseCurlyBrace = false;
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
@@ -125,7 +133,7 @@ function toExternalDTS(contents: string) {
 			lines[i] = `declare global {\n    var MonacoEnvironment: Environment | undefined;\n}`;
 		}
 	}
-	return lines.join('\n').replace(/\n\n\n+/g, '\n\n');
+	return lines.join('\n').replace(new RegExp(regexp3), '\n\n');
 }
 
 const finalEditorResourcesTask = task.define('final-editor-resources', () => {
@@ -141,7 +149,7 @@ const finalEditorResourcesTask = task.define('final-editor-resources', () => {
 		gulp.src('src/vs/monaco.d.ts')
 			.pipe(es.through(function (data) {
 				this.emit('data', new File({
-					path: data.path.replace(/monaco\.d\.ts/, 'editor.api.d.ts'),
+					path: data.path.replace(regexpMonacoTs, 'editor.api.d.ts'),
 					base: data.base,
 					contents: Buffer.from(toExternalDTS(data.contents.toString()))
 				}));
@@ -195,7 +203,7 @@ const finalEditorResourcesTask = task.define('final-editor-resources', () => {
 		gulp.src('build/monaco/README-npm.md')
 			.pipe(es.through(function (data) {
 				this.emit('data', new File({
-					path: data.path.replace(/README-npm\.md/, 'README.md'),
+					path: data.path.replace(regexpREADMENpmMd, 'README.md'),
 					base: data.base,
 					contents: data.contents
 				}));
@@ -247,7 +255,7 @@ function createTscCompileTask(watch: boolean) {
 			const reporter = createReporter('monaco');
 
 			let report: NodeJS.ReadWriteStream | undefined;
-			const magic = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g; // https://stackoverflow.com/questions/25245716/remove-all-ansi-colors-styles-from-strings
+			const magic = new RegExp(regexp9AORZcfNqry); // https://stackoverflow.com/questions/25245716/remove-all-ansi-colors-styles-from-strings
 
 			child.stdout.on('data', data => {
 				let str = String(data);
@@ -261,7 +269,7 @@ function createTscCompileTask(watch: boolean) {
 					report.end();
 
 				} else if (str) {
-					const match = /(.*\(\d+,\d+\): )(.*: )(.*)/.exec(str);
+					const match = regexp7.exec(str);
 					if (match) {
 						// trying to massage the message so that it matches the gulp-tsb error messages
 						// e.g. src/vs/base/common/strings.ts(663,5): error TS2322: Type '1234' is not assignable to type 'string'.

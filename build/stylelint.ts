@@ -8,6 +8,16 @@ import vfs from 'vinyl-fs';
 import { stylelintFilter } from './filters.ts';
 import { getVariableNameValidator } from './lib/stylelint/validateVariableNames.ts';
 import { validateCodiconFontSizes, validateFontSizeTokens, validateFontWeightTokens, validateCornerRadiusTokens, validateSpacingTokens, validateStrokeTokens } from './lib/stylelint/validateDesignTokens.ts';
+const regexpMonacoWorkbench = /\.monaco-workbench/;
+const regexpSrcVsBase = /^src[\/\\]vs[\/\\](base|platform|editor)[\/\\]/;
+const regexpSrcVsSessions = /^src[\/\\]vs[\/\\]sessions[\/\\]/;
+const regexpStylelintDisableLayer = /\/\*\s*stylelint-disable\s+layer-checker\s*\*\//;
+const regexp5 = /\r\n|\r|\n/;
+const regexp6 = /\/+$/;
+const regexp7 = /\\/g;
+const regexp8 = /[*?[\]{}]/;
+const regexpCss = /\.css$/i;
+
 
 interface FileWithLines {
 	__lines?: string[];
@@ -26,17 +36,17 @@ type Reporter = (message: string, isError: boolean) => void;
 export default function gulpstylelint(reporter: Reporter, designTokensEverywhere = false): NodeJS.ReadWriteStream {
 	const variableValidator = getVariableNameValidator();
 	let errorCount = 0;
-	const monacoWorkbenchPattern = /\.monaco-workbench/;
-	const restrictedPathPattern = /^src[\/\\]vs[\/\\](base|platform|editor)[\/\\]/;
-	const designSystemPattern = /^src[\/\\]vs[\/\\]sessions[\/\\]/;
-	const layerCheckerDisablePattern = /\/\*\s*stylelint-disable\s+layer-checker\s*\*\//;
+	const monacoWorkbenchPattern = regexpMonacoWorkbench;
+	const restrictedPathPattern = regexpSrcVsBase;
+	const designSystemPattern = regexpSrcVsSessions;
+	const layerCheckerDisablePattern = regexpStylelintDisableLayer;
 
 	// Per-category tally of design-token suggestions for the summary footer.
 	const designTokenCounts: Record<string, number> = { codicon: 0, 'font-size': 0, weight: 0, radius: 0, spacing: 0, stroke: 0 };
 	let designTokenFileCount = 0;
 
 	return es.through(function (this, file: FileWithLines) {
-		const lines = file.__lines || file.contents.toString('utf8').split(/\r\n|\r|\n/);
+		const lines = file.__lines || file.contents.toString('utf8').split(regexp5);
 		file.__lines = lines;
 
 		const isRestrictedPath = restrictedPathPattern.test(file.relative);
@@ -158,8 +168,8 @@ function resolveSources(argv: string[]): { sources: string[]; explicit: boolean 
 		return { sources: Array.from(stylelintFilter), explicit: false };
 	}
 	// Normalise separators and trim any trailing slash.
-	const normalized = target.replace(/\\/g, '/').replace(/\/+$/, '');
-	if (/[*?[\]{}]/.test(normalized) || /\.css$/i.test(normalized)) {
+	const normalized = target.replace(new RegExp(regexp7), '/').replace(regexp6, '');
+	if (regexp8.test(normalized) || regexpCss.test(normalized)) {
 		return { sources: [normalized], explicit: true };
 	}
 	return { sources: [normalized + '/**/*.css'], explicit: true };

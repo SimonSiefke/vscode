@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IChatDebugEvent } from './chatDebugService.js';
+const regexp1 = /\s*,\s*/;
+
 
 /**
  * Checks whether a debug event matches a single text search term.
@@ -112,7 +114,7 @@ export function filterDebugEventsByText(events: readonly IChatDebugEvent[], filt
 
 	// Strip timestamp tokens before splitting into text search terms
 	const textOnly = stripTimestampTokens(filterText);
-	const terms = textOnly.split(/\s*,\s*/).filter(t => t.length > 0);
+	const terms = textOnly.split(regexp1).filter(t => t.length > 0);
 	const includeTerms = terms.filter(t => !t.startsWith('!')).map(t => t.trim());
 	const excludeTerms = terms.filter(t => t.startsWith('!')).map(t => t.slice(1).trim()).filter(t => t.length > 0);
 

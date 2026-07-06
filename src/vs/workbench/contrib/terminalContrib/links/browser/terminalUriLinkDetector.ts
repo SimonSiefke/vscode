@@ -15,6 +15,8 @@ import { ITerminalProcessManager } from '../../../terminal/common/terminal.js';
 import type { IBufferLine, Terminal } from '@xterm/xterm';
 import { ITerminalBackend, ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
 import { isString } from '../../../../../base/common/types.js';
+const regexp1 = /:\d+(:\d+)?$/;
+
 
 const enum Constants {
 	/**
@@ -123,7 +125,7 @@ export class TerminalUriLinkDetector implements ITerminalLinkDetector {
 	}
 
 	private _excludeLineAndColSuffix(path: string): string {
-		return path.replace(/:\d+(:\d+)?$/, '');
+		return path.replace(regexp1, '');
 	}
 }
 

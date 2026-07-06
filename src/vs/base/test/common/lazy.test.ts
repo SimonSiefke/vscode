@@ -6,6 +6,9 @@
 import assert from 'assert';
 import { Lazy } from '../../common/lazy.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexpB1 = /\b1\b/;
+const regexpCannotReadThe = /Cannot read the value of a lazy that is being initialized/;
+
 
 suite('Lazy', () => {
 
@@ -24,15 +27,15 @@ suite('Lazy', () => {
 		const value = new Lazy(() => { throw new Error(`${++counter}`); });
 
 		assert.strictEqual(value.hasValue, false);
-		assert.throws(() => value.value, /\b1\b/);
+		assert.throws(() => value.value, regexpB1);
 		assert.strictEqual(value.hasValue, true);
-		assert.throws(() => value.value, /\b1\b/);
+		assert.throws(() => value.value, regexpB1);
 	});
 
 	test('Should throw when accessing lazy value in initializer', () => {
 		const value = new Lazy<string>((): string => { return value.value; });
 
-		assert.throws(() => value.value, /Cannot read the value of a lazy that is being initialized/);
+		assert.throws(() => value.value, regexpCannotReadThe);
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();

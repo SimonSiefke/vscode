@@ -11,6 +11,8 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import { GitHubCIOverallStatus, IGitHubCICheck } from '../../common/types.js';
 import { GitHubApiClient } from '../githubApiClient.js';
 import { computeOverallCIStatus, GitHubPRCIFetcher } from '../fetchers/githubPRCIFetcher.js';
+const regexpActionsRunsRunId = /\/actions\/runs\/(?<runId>\d+)/;
+
 
 const LOG_PREFIX = '[GitHubPullRequestCIModel]';
 const TRACE_PREFIX = '[PR-ICON-TRACE]';
@@ -228,7 +230,7 @@ export function parseWorkflowRunId(detailsUrl: string | undefined): number | und
 	if (!detailsUrl) {
 		return undefined;
 	}
-	const match = /\/actions\/runs\/(?<runId>\d+)/.exec(detailsUrl);
+	const match = regexpActionsRunsRunId.exec(detailsUrl);
 	const runId = match?.groups?.runId;
 	return runId ? parseInt(runId, 10) : undefined;
 }

@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^(\w+:\/\/|\/|!)/;
+const regexpAPPSETTINGSHOME = /%APP_SETTINGS_HOME%/;
+const regexpMACHINESETTINGSHOME = /%MACHINE_SETTINGS_HOME%/;
+const regexpAPPWORKSPACESHOME = /%APP_WORKSPACES_HOME%/;
+
 export type JSONLanguageStatus = { schemas: string[] };
 
 import {
@@ -789,10 +794,10 @@ function getSchemaExtensionAssociations(): ISchemaAssociation[] {
 						}
 						fileMatch = fileMatch.map(fm => {
 							if (fm[0] === '%') {
-								fm = fm.replace(/%APP_SETTINGS_HOME%/, '/User');
-								fm = fm.replace(/%MACHINE_SETTINGS_HOME%/, '/Machine');
-								fm = fm.replace(/%APP_WORKSPACES_HOME%/, '/Workspaces');
-							} else if (!fm.match(/^(\w+:\/\/|\/|!)/)) {
+								fm = fm.replace(regexpAPPSETTINGSHOME, '/User');
+								fm = fm.replace(regexpMACHINESETTINGSHOME, '/Machine');
+								fm = fm.replace(regexpAPPWORKSPACESHOME, '/Workspaces');
+							} else if (!fm.match(regexp1)) {
 								fm = '/' + fm;
 							}
 							return fm;

@@ -13,6 +13,9 @@ import { assertContainsAllSnippets, assertNoDiagnosticsAsync, assertNoElidedCode
 import { simulatePanelCodeMapper } from '../simulation/panelCodeMapperSimulator';
 import { assertInlineEdit, assertInlineEditShape, assertNoOccurrence, assertOccursOnce, assertSomeStrings, extractInlineReplaceEdits, fromFixture, toFile } from '../simulation/stestUtil';
 import { EditTestStrategy, IScenario } from '../simulation/types';
+const regexp1 = /\/\/.*/g;
+const regexp2 = /\r\n|\r|\n/g;
+
 
 function executeEditTest(
 	strategy: EditTestStrategy,
@@ -752,10 +755,10 @@ forInlineChatIntent((strategy, location, variant, nonExtensionConfigurations) =>
 							assertInlineEdit(outcome);
 
 							assertOccursOnce(outcome.fileContents, 'public class BasketService');
-							const fileContentsWithoutComments = outcome.fileContents.replace(/\/\/.*/g, '');
+							const fileContentsWithoutComments = outcome.fileContents.replace(new RegExp(regexp1), '');
 							assertNoOccurrence(fileContentsWithoutComments, 'using Ardalis.GuardClauses;');
 							assertNoOccurrence(fileContentsWithoutComments, 'using Ardalis.Result;');
-							assert.ok(outcome.fileContents.split(/\r\n|\r|\n/g).length < 95, 'file stays under 95 lines');
+							assert.ok(outcome.fileContents.split(new RegExp(regexp2)).length < 95, 'file stays under 95 lines');
 							assertNoElidedCodeComments(outcome.fileContents);
 						}
 					}

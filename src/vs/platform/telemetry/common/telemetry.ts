@@ -5,6 +5,8 @@
 
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck } from './gdprTypings.js';
+const regexp1 = /[\/\\]/g;
+
 
 export const ITelemetryService = createDecorator<ITelemetryService>('telemetryService');
 
@@ -68,7 +70,7 @@ export function telemetryLevelEnabled(service: ITelemetryService, level: Telemet
  * telemetry pipeline from redacting them as file paths.
  */
 export function escapeModelIdForTelemetry(modelId: string | undefined): string | undefined {
-	return modelId?.replace(/[\/\\]/g, '|');
+	return modelId?.replace(new RegExp(regexp1), '|');
 }
 
 export interface ITelemetryEndpoint {

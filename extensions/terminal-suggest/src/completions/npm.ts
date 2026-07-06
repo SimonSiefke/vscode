@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /@/g;
+
 function uninstallSubcommand(named: string | string[]): Fig.Subcommand {
 	return {
 		name: named,
@@ -17,7 +19,7 @@ function uninstallSubcommand(named: string | string[]): Fig.Subcommand {
 	};
 }
 
-const atsInStr = (s: string) => (s.match(/@/g) || []).length;
+const atsInStr = (s: string) => (s.match(new RegExp(regexp1)) || []).length;
 
 export const createNpmSearchHandler =
 	(keywords?: string[]) =>

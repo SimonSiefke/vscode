@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\{([^{}]+)\}/g;
+const regexp2 = /^(.*?):(\d+)$/;
+const regexp3 = /=\s*$/;
+
 export interface IUriTemplateVariable {
 	readonly explodable: boolean;
 	readonly name: string;
@@ -39,7 +43,7 @@ export class UriTemplate {
 	 */
 	public static parse(template: string): UriTemplate {
 		const components: Array<IUriTemplateComponent | string> = [];
-		const regex = /\{([^{}]+)\}/g;
+		const regex = new RegExp(regexp1);
 		let match: RegExpExecArray | null;
 		let lastPos = 0;
 		while ((match = regex.exec(template))) {
@@ -70,7 +74,7 @@ export class UriTemplate {
 					repeatable = true;
 					name = name.slice(0, -1);
 				}
-				const prefixMatch = name.match(/^(.*?):(\d+)$/);
+				const prefixMatch = name.match(regexp2);
 				if (prefixMatch) {
 					name = prefixMatch[1];
 					prefixLength = parseInt(prefixMatch[2], 10);
@@ -262,7 +266,7 @@ export class UriTemplate {
 			}
 		} else if (isParam) {
 			// For param, if value is empty string, just append ;name
-			joined = vals.length ? prefix + vals.map(v => v.replace(/=\s*$/, '')).join(';') : '';
+			joined = vals.length ? prefix + vals.map(v => v.replace(regexp3, '')).join(';') : '';
 		} else if (isForm) {
 			joined = vals.length ? prefix + vals.join('&') : '';
 		} else if (isFormCont) {

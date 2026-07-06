@@ -6,6 +6,9 @@
 import * as vscode from 'vscode';
 import { JUPYTER_NOTEBOOK_MARKDOWN_SELECTOR } from './constants';
 import { basename, extname } from 'path';
+const regexp1 = /\s/;
+const regexp2 = /\r?\n/g;
+
 
 enum MimeType {
 	bmp = 'image/bmp',
@@ -123,7 +126,7 @@ class DropOrPasteEditProvider implements vscode.DocumentPasteEditProvider, vscod
 		newAttachment.filenames.forEach((filename, i) => {
 			insertText.appendText('![');
 			insertText.appendPlaceholder(`${filename}`);
-			insertText.appendText(`](${/\s/.test(filename) ? `<attachment:${filename}>` : `attachment:${filename}`})`);
+			insertText.appendText(`](${regexp1.test(filename) ? `<attachment:${filename}>` : `attachment:${filename}`})`);
 			if (i !== newAttachment.filenames.length - 1) {
 				insertText.appendText(' ');
 			}
@@ -164,7 +167,7 @@ async function getDroppedImageData(
 
 	if (urlList) {
 		const uris: vscode.Uri[] = [];
-		for (const resource of urlList.split(/\r?\n/g)) {
+		for (const resource of urlList.split(new RegExp(regexp2))) {
 			try {
 				uris.push(vscode.Uri.parse(resource));
 			} catch {

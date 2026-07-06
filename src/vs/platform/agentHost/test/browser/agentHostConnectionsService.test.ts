@@ -11,6 +11,8 @@ import { AgentHostConnectionsService } from '../../browser/agentHostConnectionsS
 import { AMBIENT_AGENT_HOST_AUTHORITY } from '../../common/agentHostConnectionsService.js';
 import type { IAgentConnection, IAgentHostService } from '../../common/agentService.js';
 import type { IRemoteAgentHostConnectionInfo, IRemoteAgentHostService } from '../../common/remoteAgentHostService.js';
+const regexpZAZ0 = /^[a-zA-Z0-9]+$/;
+
 
 /** A connection stand-in identified by a `marker` so equality checks read clearly. */
 function fakeConnection(marker: string): IAgentConnection {
@@ -49,7 +51,7 @@ suite('AgentHostConnectionsService', () => {
 
 	// Mirror agentHostAuthority for the simple alphanumeric/host cases used here.
 	function toAuthority(address: string): string {
-		return /^[a-zA-Z0-9]+$/.test(address) ? address : address.replaceAll(':', '__');
+		return regexpZAZ0.test(address) ? address : address.replaceAll(':', '__');
 	}
 
 	function info(address: string, name: string): IRemoteAgentHostConnectionInfo {

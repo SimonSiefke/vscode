@@ -59,6 +59,10 @@ import { appendSdkToolResultContent, mapSessionEvents } from './mapSessionEvents
 import { buildPendingEditContentUri } from './pendingEditContentStore.js';
 import { McpAuthRequiredReason, McpServerStatus, type McpServerState } from '../../common/state/protocol/channels-session/state.js';
 import type { ProtectedResourceMetadata } from '../../common/state/protocol/common/state.js';
+const regexpImage = /^image(\/|$)/;
+const regexp2 = /\s+/;
+const regexp3 = /\r\n|\r|\n$/;
+
 
 /**
  * The full set of agent modes the Copilot SDK accepts. AHP now exposes the
@@ -976,7 +980,7 @@ export class CopilotAgentSession extends Disposable {
 
 		const binaryResults = result.content
 			?.filter(c => c.type === ToolResultContentType.EmbeddedResource)
-			.map(c => ({ data: c.data, mimeType: c.contentType, type: (/^image(\/|$)/.test(c.contentType) ? 'image' : 'resource') as 'image' | 'resource' }));
+			.map(c => ({ data: c.data, mimeType: c.contentType, type: (regexpImage.test(c.contentType) ? 'image' : 'resource') as 'image' | 'resource' }));
 		const textResultForLlm = textContent.trim() ? textContent : getEmptyToolResultText(binaryResults);
 
 		if (result.success) {
@@ -1102,7 +1106,7 @@ export class CopilotAgentSession extends Disposable {
 	}
 
 	private _scopesFromChallenge(scope: string | undefined): readonly string[] {
-		return scope?.split(/\s+/).map(s => s.trim()).filter(s => s.length > 0) ?? [];
+		return scope?.split(regexp2).map(s => s.trim()).filter(s => s.length > 0) ?? [];
 	}
 
 	private _mcpAuthRequiredReason(reason: McpAuthRequest['reason']): McpAuthRequiredReason {
@@ -1459,7 +1463,7 @@ export class CopilotAgentSession extends Disposable {
 		for (let i = 0; i < line; i++) {
 			offset += lines[i].length;
 		}
-		const lineText = lines[line].replace(/\r\n|\r|\n$/, '');
+		const lineText = lines[line].replace(regexp3, '');
 		return offset + Math.max(0, Math.min(position.character, lineText.length));
 	}
 

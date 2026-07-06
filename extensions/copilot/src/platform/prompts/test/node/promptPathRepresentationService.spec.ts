@@ -9,6 +9,8 @@ import { isWindows } from '../../../../util/vs/base/common/platform';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { TestWorkspaceService } from '../../../test/node/testWorkspaceService';
 import { PromptPathRepresentationService, TestPromptPathRepresentationService } from '../../common/promptPathRepresentationService';
+const regexp1 = /^\/d:/i;
+
 
 /**
  * Subclass that simulates a Windows environment for testing Windows-specific code paths.
@@ -150,7 +152,7 @@ describe('PromptPathRepresentationService', () => {
 			expect(result).toBeDefined();
 			expect(result!.scheme).toBe(Schemas.file);
 			// Should have prepended the drive letter from workspace folder
-			expect(result!.path).toMatch(/^\/d:/i);
+			expect(result!.path).toMatch(regexp1);
 		});
 
 		it('does not prepend drive letter for posix paths on Windows when workspace folders don\'t exist', () => {

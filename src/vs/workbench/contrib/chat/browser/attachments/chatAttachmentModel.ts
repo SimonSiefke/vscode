@@ -16,6 +16,8 @@ import { IChatAttachmentResolveService } from './chatAttachmentResolveService.js
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { equals } from '../../../../../base/common/objects.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
+const regexpPngJpeGif = /\.(png|jpe?g|gif|bmp|webp)$/i;
+
 
 export interface IChatAttachmentChangeEvent {
 	readonly deleted: readonly string[];
@@ -57,7 +59,7 @@ export class ChatAttachmentModel extends Disposable {
 	}
 
 	async addFile(uri: URI, range?: IRange) {
-		if (/\.(png|jpe?g|gif|bmp|webp)$/i.test(uri.path)) {
+		if (regexpPngJpeGif.test(uri.path)) {
 			const context = await this.asImageVariableEntry(uri);
 			if (context) {
 				this.addContext(context);

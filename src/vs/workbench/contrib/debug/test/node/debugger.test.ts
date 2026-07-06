@@ -16,6 +16,8 @@ import { ExtensionIdentifier, IExtensionDescription, TargetPlatform } from '../.
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { IJSONSchemaMap } from '../../../../../base/common/jsonSchema.js';
+const regexpIgnoringMalformedDebug = /^Ignoring malformed debug configuration schema properties for type 'mock': malformed$/;
+
 
 suite('Debug - Debugger', () => {
 	let _debugger: Debugger;
@@ -222,6 +224,6 @@ suite('Debug - Debugger', () => {
 		assert.strictEqual(attributes![0].properties?.['valid'].type, 'string');
 		assert.strictEqual(attributes![0].properties?.['malformed'], 'integer');
 		assert.ok(warningMessage);
-		assert.match(warningMessage, /^Ignoring malformed debug configuration schema properties for type 'mock': malformed$/);
+		assert.match(warningMessage, regexpIgnoringMalformedDebug);
 	});
 });

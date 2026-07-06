@@ -61,6 +61,8 @@ import { TerminalToolId } from '../../browser/tools/toolIds.js';
 import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { ILanguageModelsService } from '../../../../chat/common/languageModels.js';
+const regexpOutsideTheSandbox = /outside the sandbox/i;
+
 
 class TestRunInTerminalTool extends RunInTerminalTool {
 	protected override _osBackend: Promise<OperatingSystem> = Promise.resolve(OperatingSystem.Windows);
@@ -3218,7 +3220,7 @@ suite('RunInTerminalTool', () => {
 			assertConfirmationRequired(result, 'Run in terminal outside the sandbox?');
 			const message = result!.confirmationMessages!.message;
 			const messageText = typeof message === 'string' ? message : message?.value ?? '';
-			ok(/outside the sandbox/i.test(messageText), `expected message to mention the sandbox, got: ${messageText}`);
+			ok(regexpOutsideTheSandbox.test(messageText), `expected message to mention the sandbox, got: ${messageText}`);
 			ok(messageText.includes('Needs access outside the workspace'), `expected message to include the reason, got: ${messageText}`);
 		});
 

@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpClickFocus = /^(click|focus)\s+(\w+)\s+"([^"]+)"$/;
+const regexp2 = /[\uE000-\uF8FF]/g;
+const regexpRef = /\[ref=(e\d+)\]/;
+const regexp4 = /"([^"]+)"/;
+
 // @ts-check
 
 /**
@@ -99,19 +104,19 @@ function askCopilot(step, snapshot) {
 
 function resolveSemanticCommand(cmd, snapshotText) {
 	// Match: <action> <role> "<label>"
-	const match = cmd.match(/^(click|focus)\s+(\w+)\s+"([^"]+)"$/);
+	const match = cmd.match(regexpClickFocus);
 	if (!match) { return cmd; }
 
 	const [, action, role, label] = match;
-	const needle = label.replace(/[\uE000-\uF8FF]/g, '').trim().toLowerCase();
+	const needle = label.replace(new RegExp(regexp2), '').trim().toLowerCase();
 
 	for (const line of snapshotText.split('\n')) {
-		const refMatch = line.match(/\[ref=(e\d+)\]/);
+		const refMatch = line.match(regexpRef);
 		if (!refMatch) { continue; }
 		if (!line.includes(role)) { continue; }
-		const labelMatch = line.match(/"([^"]+)"/);
+		const labelMatch = line.match(regexp4);
 		if (!labelMatch) { continue; }
-		const lineLabel = labelMatch[1].replace(/[\uE000-\uF8FF]/g, '').trim().toLowerCase();
+		const lineLabel = labelMatch[1].replace(new RegExp(regexp2), '').trim().toLowerCase();
 		if (lineLabel.includes(needle) || needle.includes(lineLabel)) {
 			return `${action} ${refMatch[1]}`;
 		}

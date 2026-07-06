@@ -13,6 +13,8 @@ import { ITextModel } from '../model.js';
 import { EditorAutoIndentStrategy } from '../config/editorOptions.js';
 import { getEnterAction } from '../languages/enterAction.js';
 import { ILanguageConfigurationService } from '../languages/languageConfigurationRegistry.js';
+const regexp1 = /^\s*$/;
+
 
 export interface IShiftCommandOpts {
 	isUnshift: boolean;
@@ -114,7 +116,7 @@ export class ShiftCommand implements ICommand {
 		if (this._opts.useTabStops) {
 			// if indenting or outdenting on a whitespace only line
 			if (this._selection.isEmpty()) {
-				if (/^\s*$/.test(model.getLineContent(startLine))) {
+				if (regexp1.test(model.getLineContent(startLine))) {
 					this._useLastEditRangeForCursorEndPosition = true;
 				}
 			}

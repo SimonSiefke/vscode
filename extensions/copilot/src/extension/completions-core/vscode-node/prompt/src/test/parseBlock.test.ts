@@ -6,6 +6,8 @@ import * as assert from 'assert';
 import dedent from 'ts-dedent';
 
 import { getBlockParser } from '../parseBlock';
+const regexp1 = /〚.*?〛/g;
+
 
 interface TestCase {
 	before: string; // text before the cursor
@@ -1647,7 +1649,7 @@ suite('parseBlock Tests', function () {
         }`;
 
 	function mkTestCase(src: string, stripTypes: boolean) {
-		if (stripTypes) { src = src.replace(/〚.*?〛/g, ''); }
+		if (stripTypes) { src = src.replace(new RegExp(regexp1), ''); }
 		const bodyStart = src.indexOf('⦃');
 		const bodyEnd = src.indexOf('⦄');
 		return {

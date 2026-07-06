@@ -21,6 +21,8 @@ import { getChatSessionType, isUntitledChatSession, LocalChatSessionUri } from '
 import { IChatWidgetService } from '../chat.js';
 import { IAgentSessionsService } from '../agentSessions/agentSessionsService.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
+const regexp1 = /^\//;
+
 
 const $ = DOM.$;
 
@@ -177,11 +179,11 @@ export class ChatDebugHomeView extends Disposable {
 				} else if (LocalChatSessionUri.isLocalSession(sessionResource)) {
 					sessionTitle = localize('chatDebug.newSession', "New Chat");
 				} else if (getChatSessionType(sessionResource) === 'copilotcli') {
-					const pathId = sessionResource.path.replace(/^\//, '').split('-')[0];
+					const pathId = sessionResource.path.replace(regexp1, '').split('-')[0];
 					const shortId = pathId || sessionResource.authority || sessionResource.toString();
 					sessionTitle = localize('chatDebug.copilotCliSessionWithId', "Copilot CLI: {0}", shortId);
 				} else if (getChatSessionType(sessionResource) === 'claude-code') {
-					const pathId = sessionResource.path.replace(/^\//, '').split('-')[0];
+					const pathId = sessionResource.path.replace(regexp1, '').split('-')[0];
 					const shortId = pathId || sessionResource.authority || sessionResource.toString();
 					sessionTitle = localize('chatDebug.claudeCodeSessionWithId', "Claude Code: {0}", shortId);
 				} else {

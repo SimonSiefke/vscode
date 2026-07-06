@@ -7,6 +7,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { resolveOTelConfig } from '../../common/otelConfig';
 import type { TraceContext } from '../../common/otelService';
 import { NodeOTelService } from '../otelServiceImpl';
+const regexp9a = /^[0-9a-f]{32}$/;
+const regexp9a1 = /^[0-9a-f]{16}$/;
+
 
 /**
  * Tests for trace context propagation, specifically verifying that
@@ -68,8 +71,8 @@ describe('Trace Context Propagation', () => {
 				capturedCtx = service.getActiveTraceContext();
 			});
 			expect(capturedCtx).toBeDefined();
-			expect(capturedCtx!.traceId).toMatch(/^[0-9a-f]{32}$/);
-			expect(capturedCtx!.spanId).toMatch(/^[0-9a-f]{16}$/);
+			expect(capturedCtx!.traceId).toMatch(regexp9a);
+			expect(capturedCtx!.spanId).toMatch(regexp9a1);
 		});
 	});
 

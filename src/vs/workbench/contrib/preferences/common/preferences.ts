@@ -14,6 +14,12 @@ import { createDecorator } from '../../../../platform/instantiation/common/insta
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 import { ISearchResult, ISettingsEditorModel } from '../../../services/preferences/common/preferences.js';
+const regexp1 = /\b\w+\b/g;
+const regexp2 = /^[a-z]/g;
+const regexp3 = /([A-Z]{1,})([A-Z][a-z])/g;
+const regexpZ0 = /([a-z0-9])([A-Z])/g;
+const regexpZ01 = /\.([a-z0-9])/g;
+
 
 export interface IWorkbenchSettingsConfiguration {
 	workbench: {
@@ -243,11 +249,11 @@ knownTermMappings.set('resharper', 'ReSharper');
 
 export function wordifyKey(key: string): string {
 	key = key
-		.replace(/\.([a-z0-9])/g, (_, p1) => ` \u203A ${p1.toUpperCase()}`) // Replace dot with spaced '>'
-		.replace(/([a-z0-9])([A-Z])/g, '$1 $2') // Camel case to spacing, fooBar => foo Bar
-		.replace(/([A-Z]{1,})([A-Z][a-z])/g, '$1 $2') // Split consecutive capitals letters, AISearch => AI Search
-		.replace(/^[a-z]/g, match => match.toUpperCase()) // Upper casing all first letters, foo => Foo
-		.replace(/\b\w+\b/g, match => { // Upper casing known acronyms
+		.replace(new RegExp(regexpZ01), (_, p1) => ` \u203A ${p1.toUpperCase()}`) // Replace dot with spaced '>'
+		.replace(new RegExp(regexpZ0), '$1 $2') // Camel case to spacing, fooBar => foo Bar
+		.replace(new RegExp(regexp3), '$1 $2') // Split consecutive capitals letters, AISearch => AI Search
+		.replace(new RegExp(regexp2), match => match.toUpperCase()) // Upper casing all first letters, foo => Foo
+		.replace(new RegExp(regexp1), match => { // Upper casing known acronyms
 			return knownAcronyms.has(match.toLowerCase()) ?
 				match.toUpperCase() :
 				match;

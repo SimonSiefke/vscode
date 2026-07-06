@@ -25,13 +25,15 @@ import { IPathService } from '../../path/common/pathService.js';
 import { ConfiguredInput, VariableError, VariableKind } from '../common/configurationResolver.js';
 import { ConfigurationResolverExpression, IResolvedValue } from '../common/configurationResolverExpression.js';
 import { AbstractVariableResolverService } from '../common/variableResolver.js';
+const regexpInputCommand = /\${((input|command):(.*?))}/g;
+
 
 const LAST_INPUT_STORAGE_KEY = 'configResolveInputLru';
 const LAST_INPUT_CACHE_SIZE = 5;
 
 export abstract class BaseConfigurationResolverService extends AbstractVariableResolverService {
 
-	static readonly INPUT_OR_COMMAND_VARIABLES_PATTERN = /\${((input|command):(.*?))}/g;
+	static readonly INPUT_OR_COMMAND_VARIABLES_PATTERN = new RegExp(regexpInputCommand);
 
 	private userInputAccessQueue = new Queue<string | IQuickPickItem | undefined>();
 

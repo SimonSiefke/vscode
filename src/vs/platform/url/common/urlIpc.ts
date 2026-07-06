@@ -9,6 +9,8 @@ import { URI } from '../../../base/common/uri.js';
 import { Client, IChannel, IClientRouter, IConnectionHub, IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { ILogService } from '../../log/common/log.js';
 import { IOpenURLOptions, IURLHandler } from './url.js';
+const regexpBwindowId = /\bwindowId=(\d+)/;
+
 
 export class URLHandlerChannel implements IServerChannel {
 
@@ -54,7 +56,7 @@ export class URLHandlerRouter implements IClientRouter<string> {
 			this.logService.trace('URLHandlerRouter#routeCall() with URI argument', uri.toString(true));
 
 			if (uri.query) {
-				const match = /\bwindowId=(\d+)/.exec(uri.query);
+				const match = regexpBwindowId.exec(uri.query);
 
 				if (match) {
 					const windowId = match[1];

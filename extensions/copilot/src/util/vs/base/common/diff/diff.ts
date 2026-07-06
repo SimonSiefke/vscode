@@ -8,6 +8,8 @@
 import { DiffChange } from './diffChange';
 import { stringHash } from '../hash';
 import { Constants } from '../uint';
+const regexp1 = /^\s*$/;
+
 
 export class StringDiffSequence implements ISequence {
 
@@ -999,7 +1001,7 @@ export class LcsDiff {
 		if (index <= 0 || index >= this._originalElementsOrHash.length - 1) {
 			return true;
 		}
-		return (this._hasStrings && /^\s*$/.test(this._originalStringElements[index]));
+		return (this._hasStrings && regexp1.test(this._originalStringElements[index]));
 	}
 
 	private _OriginalRegionIsBoundary(originalStart: number, originalLength: number): boolean {
@@ -1019,7 +1021,7 @@ export class LcsDiff {
 		if (index <= 0 || index >= this._modifiedElementsOrHash.length - 1) {
 			return true;
 		}
-		return (this._hasStrings && /^\s*$/.test(this._modifiedStringElements[index]));
+		return (this._hasStrings && regexp1.test(this._modifiedStringElements[index]));
 	}
 
 	private _ModifiedRegionIsBoundary(modifiedStart: number, modifiedLength: number): boolean {

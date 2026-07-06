@@ -24,6 +24,10 @@ import { Schemas } from '../../base/common/network.js';
 import { IRemoteExtensionsScannerService } from '../../platform/remote/common/remoteExtensionsScanner.js';
 import { ILanguagePackService } from '../../platform/languagePacks/common/languagePacks.js';
 import { areSameExtensions } from '../../platform/extensionManagement/common/extensionManagementUtil.js';
+const regexpVsix = /\.vsix$/i;
+const regexpFile = /file/g;
+const regexpResourceScheme = /resourceScheme/;
+
 
 export class RemoteExtensionsScannerService implements IRemoteExtensionsScannerService {
 
@@ -100,7 +104,7 @@ export class RemoteExtensionsScannerService implements IRemoteExtensionsScannerS
 	}
 
 	private _asExtensionIdOrVSIX(inputs: string[]): (string | URI)[] {
-		return inputs.map(input => /\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
+		return inputs.map(input => regexpVsix.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
 	}
 
 	whenExtensionsReady(): Promise<InstallExtensionSummary> {
@@ -220,7 +224,7 @@ export class RemoteExtensionsScannerService implements IRemoteExtensionsScannerS
 
 		const _mapResourceSchemeValue = (value: string, isRegex: boolean): string => {
 			// console.log(`_mapResourceSchemeValue: ${value}, ${isRegex}`);
-			return value.replace(/file/g, 'vscode-remote');
+			return value.replace(new RegExp(regexpFile), 'vscode-remote');
 		};
 
 		const _mapResourceRegExpValue = (value: RegExp): RegExp => {
@@ -280,7 +284,7 @@ export class RemoteExtensionsScannerService implements IRemoteExtensionsScannerS
 		};
 
 		const _massageWhenUser = (element: WhenUser) => {
-			if (!element || !element.when || !/resourceScheme/.test(element.when)) {
+			if (!element || !element.when || !regexpResourceScheme.test(element.when)) {
 				return;
 			}
 

@@ -15,6 +15,8 @@ import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { GeneralShellType, PosixShellType } from '../../../../common/terminal.js';
 import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { TestXtermLogger } from '../../terminalTestHelpers.js';
+const regexp1 = /[\|\[\]]/g;
+
 
 suite('PromptInputModel', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -60,7 +62,7 @@ suite('PromptInputModel', () => {
 		);
 
 		// This is required to ensure the cursor index is correctly resolved for non-ascii characters
-		const value = valueWithCursor.replace(/[\|\[\]]/g, '');
+		const value = valueWithCursor.replace(new RegExp(regexp1), '');
 		const cursorIndex = valueWithCursor.indexOf('|');
 		strictEqual(promptInputModel.value, value);
 		strictEqual(promptInputModel.cursorIndex, cursorIndex, `value=${promptInputModel.value}`);

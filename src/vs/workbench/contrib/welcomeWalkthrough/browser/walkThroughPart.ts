@@ -38,6 +38,9 @@ import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/com
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+const regexp1 = /[\\.]/g;
+const regexpKb = /kb\(([a-z.\d\-]+)\)/gi;
+
 
 export const WALK_THROUGH_FOCUS = new RawContextKey<boolean>('interactivePlaygroundFocus', false);
 
@@ -315,7 +318,7 @@ export class WalkThroughPart extends EditorPane {
 					}
 					const id = `snippet-${model.uri.fragment}`;
 					// eslint-disable-next-line no-restricted-syntax
-					const div = innerContent.querySelector(`#${id.replace(/[\\.]/g, '\\$&')}`) as HTMLElement;
+					const div = innerContent.querySelector(`#${id.replace(new RegExp(regexp1), '\\$&')}`) as HTMLElement;
 
 					const options = this.getEditorOptions(model.getLanguageId());
 					const telemetryData = {
@@ -419,7 +422,7 @@ export class WalkThroughPart extends EditorPane {
 	}
 
 	private expandMacros(input: string) {
-		return input.replace(/kb\(([a-z.\d\-]+)\)/gi, (match: string, kb: string) => {
+		return input.replace(new RegExp(regexpKb), (match: string, kb: string) => {
 			const keybinding = this.keybindingService.lookupKeybinding(kb);
 			const shortcut = keybinding ? keybinding.getLabel() || '' : UNBOUND_COMMAND;
 			return `<span class="shortcut">${strings.escape(shortcut)}</span>`;

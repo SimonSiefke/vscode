@@ -10,6 +10,8 @@ import {
 	TextDocument, Position, Range, FoldingRange,
 	LanguageMode, Workspace, Settings
 } from './languageModes.js';
+const regexp1 = /[>\/]/g;
+
 
 export function getHTMLMode(htmlLanguageService: HTMLLanguageService, workspace: Workspace): LanguageMode {
 	const htmlDocuments = getLanguageModelCache<HTMLDocument>(10, 60, document => htmlLanguageService.parseHTMLDocument(document));
@@ -67,7 +69,7 @@ export function getHTMLMode(htmlLanguageService: HTMLLanguageService, workspace:
 					return htmlLanguageService.doQuoteComplete(document, position, htmlDocuments.get(document), options);
 				}
 			} else if (kind === 'autoClose') {
-				if (offset > 0 && text.charAt(offset - 1).match(/[>\/]/g)) {
+				if (offset > 0 && text.charAt(offset - 1).match(new RegExp(regexp1))) {
 					return htmlLanguageService.doTagComplete(document, position, htmlDocuments.get(document));
 				}
 			}

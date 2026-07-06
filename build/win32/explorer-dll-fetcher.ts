@@ -7,6 +7,8 @@ import debug from 'debug';
 import path from 'path';
 import { downloadArtifact } from '@electron/get';
 import productJson from '../../product.json' with { type: 'json' };
+const regexp1 = /\s+/;
+
 
 interface ProductConfiguration {
 	quality?: string;
@@ -33,7 +35,7 @@ export async function downloadExplorerDll(outDir: string, quality: string = 'sta
 	checksumsContent.split('\n').forEach(line => {
 		const trimmedLine = line.trim();
 		if (trimmedLine) {
-			const [checksum, filename] = trimmedLine.split(/\s+/);
+			const [checksum, filename] = trimmedLine.split(regexp1);
 			if (checksum && filename) {
 				checksums[filename] = checksum;
 			}

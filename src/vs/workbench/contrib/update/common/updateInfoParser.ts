@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { hasKey, Mutable } from '../../../../base/common/types.js';
+const regexp1 = /^\uFEFF/;
+const regexpJsonBody = /^---[ \t]*\r?\n(?<json>[\s\S]*?)\r?\n---[ \t]*(?:\r?\n(?<body>[\s\S]*))?$/;
+const regexpJsonBody1 = /^---[ \t]*(?<json>\{.*\})[ \t]*---[ \t]*(?<body>[\s\S]*)$/;
+
 
 const MAX_FEATURES = 5;
 
@@ -88,7 +92,7 @@ export interface IParsedUpdateInfoInput {
  * At most 5 feature entries are retained; any additional ones are silently dropped.
  */
 export function parseUpdateInfoInput(text: string): IParsedUpdateInfoInput {
-	const normalized = text.replace(/^\uFEFF/, '');
+	const normalized = text.replace(regexp1, '');
 	return tryParseUpdateInfoEnvelope(normalized) ?? parseUpdateInfoFrontmatter(normalized);
 }
 
@@ -124,12 +128,12 @@ function buildParsedInput(markdown: string, meta: { buttons?: unknown; bannerIma
 }
 
 function parseUpdateInfoFrontmatter(text: string): IParsedUpdateInfoInput {
-	const blockMatch = text.match(/^---[ \t]*\r?\n(?<json>[\s\S]*?)\r?\n---[ \t]*(?:\r?\n(?<body>[\s\S]*))?$/);
+	const blockMatch = text.match(regexpJsonBody);
 	if (blockMatch?.groups) {
 		return parseUpdateInfoFrontmatterMatch(text, blockMatch.groups['json'], blockMatch.groups['body'] ?? '');
 	}
 
-	const inlineMatch = text.match(/^---[ \t]*(?<json>\{.*\})[ \t]*---[ \t]*(?<body>[\s\S]*)$/);
+	const inlineMatch = text.match(regexpJsonBody1);
 	if (inlineMatch?.groups) {
 		return parseUpdateInfoFrontmatterMatch(text, inlineMatch.groups['json'], inlineMatch.groups['body']);
 	}

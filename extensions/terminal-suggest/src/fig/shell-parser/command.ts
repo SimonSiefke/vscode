@@ -5,6 +5,8 @@
 
 import { NodeType, BaseNode, createTextNode, parse } from './parser.js';
 import { ConvertCommandError, SubstituteAliasError } from './errors.js';
+const regexp1 = /^'(.*)'$/g;
+
 
 export * from './errors.js';
 
@@ -177,7 +179,7 @@ export const expandCommand = (
 		!usedAliases.has(name.text)
 	) {
 		// Remove quotes
-		const aliasValue = aliases[name.text].replace(/^'(.*)'$/g, '$1');
+		const aliasValue = aliases[name.text].replace(new RegExp(regexp1), '$1');
 		try {
 			expanded = substituteAlias(expanded, name, aliasValue);
 		} catch (_err) {

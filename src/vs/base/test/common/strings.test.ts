@@ -5,6 +5,8 @@
 import assert from 'assert';
 import * as strings from '../../common/strings.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexp1 = /b(.)/g;
+
 
 suite('Strings', () => {
 	test('equalsIgnoreCase', () => {
@@ -502,7 +504,7 @@ suite('Strings', () => {
 
 	test('replaceAsync', async () => {
 		let i = 0;
-		assert.strictEqual(await strings.replaceAsync('abcabcabcabc', /b(.)/g, async (match, after) => {
+		assert.strictEqual(await strings.replaceAsync('abcabcabcabc', new RegExp(regexp1), async (match, after) => {
 			assert.strictEqual(match, 'bc');
 			assert.strictEqual(after, 'c');
 			return `${i++}${after}`;

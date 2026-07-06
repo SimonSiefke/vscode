@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpWebUIAvailable = /Web UI available at (.*)/;
+
 // @ts-check
 
 const cp = require('child_process');
@@ -47,7 +49,7 @@ function startServer(programArgs) {
 		proc.stdout.on('data', e => {
 			const data = e.toString();
 			process.stdout.write(data);
-			const m = data.match(/Web UI available at (.*)/);
+			const m = data.match(regexpWebUIAvailable);
 			if (m) {
 				s(m[1]);
 			}

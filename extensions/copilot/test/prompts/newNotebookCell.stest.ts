@@ -14,6 +14,8 @@ import { IInstantiationService } from '../../src/util/vs/platform/instantiation/
 import { ssuite, stest } from '../base/stest';
 import { fetchConversationOptions } from '../e2e/scenarioTest';
 import { isValidPythonFile } from '../simulation/diagnosticProviders/python';
+const regexp1 = /`/g;
+
 
 ssuite({ title: 'newNotebook', subtitle: 'prompt', location: 'panel' }, () => {
 	stest({ description: 'generate code cell', language: 'python' }, async (testingServiceCollection) => {
@@ -162,7 +164,7 @@ ssuite({ title: 'newNotebook', subtitle: 'prompt', location: 'panel' }, () => {
 // }
 
 async function validatePythonCode(accessor: ITestingServicesAccessor, pythonCode: string): Promise<boolean> {
-	const escapedPythonCode = pythonCode.replace(/`/g, 'BACKTICK_PLACEHOLDER');
+	const escapedPythonCode = pythonCode.replace(new RegExp(regexp1), 'BACKTICK_PLACEHOLDER');
 	const validateCode = `
 import codeop
 import re

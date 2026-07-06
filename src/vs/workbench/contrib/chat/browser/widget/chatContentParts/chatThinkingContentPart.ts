@@ -42,6 +42,11 @@ import { IChatCollapsibleIODataPart } from './chatToolInputOutputContentPart.js'
 import { ChatThinkingExternalResourceWidget } from './chatThinkingExternalResourcesWidget.js';
 import { LocalChatSessionUri, chatSessionResourceToId } from '../../../common/model/chatUri.js';
 import { IEditSessionDiffStats } from '../../../common/editing/chatEditingService.js';
+const regexp1 = /^\*\*([^*]+)\*\*/;
+const regexp2 = /`(.+?)`/g;
+const regexp3 = /\*(.+?)\*/g;
+const regexp4 = /\*\*(.+?)\*\*/g;
+
 
 
 // Context key id mirrored from `vs/sessions/common/contextkeys` (`IsPhoneLayoutContext`).
@@ -167,7 +172,7 @@ function setThinkingIcon(iconElement: HTMLElement, icon: ThemeIcon): void {
 }
 
 function extractTitleFromThinkingContent(content: string): string | undefined {
-	const headerMatch = content.match(/^\*\*([^*]+)\*\*/);
+	const headerMatch = content.match(regexp1);
 	return headerMatch ? headerMatch[1] : undefined;
 }
 
@@ -915,7 +920,7 @@ export class ChatThinkingContentPart extends ChatCollapsibleContentPart implemen
 
 		const stripMarkdown = (text: string) => {
 			return text
-				.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1').replace(/`(.+?)`/g, '$1').trim();
+				.replace(new RegExp(regexp4), '$1').replace(new RegExp(regexp3), '$1').replace(new RegExp(regexp2), '$1').trim();
 		};
 
 		const strippedContent = stripMarkdown(contentWithoutTitle);

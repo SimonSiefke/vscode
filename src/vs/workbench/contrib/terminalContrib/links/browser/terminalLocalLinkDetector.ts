@@ -14,6 +14,9 @@ import type { IBufferLine, IBufferRange, Terminal } from '@xterm/xterm';
 import { ITerminalProcessManager } from '../../../terminal/common/terminal.js';
 import { detectLinks } from './terminalLinkParsing.js';
 import { ITerminalBackend, ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
+const regexp1 = /^(\.\.[\/\\])+/;
+const regexp2 = /[\[\]"'\.]$/;
+
 
 const enum Constants {
 	/**
@@ -129,15 +132,15 @@ export class TerminalLocalLinkDetector implements ITerminalLinkDetector {
 				// Fallback to resolving against the initial cwd, removing any relative directory prefixes
 				if (linkCandidates.length === 0) {
 					linkCandidates.push(parsedLink.path.text);
-					if (parsedLink.path.text.match(/^(\.\.[\/\\])+/)) {
-						linkCandidates.push(parsedLink.path.text.replace(/^(\.\.[\/\\])+/, ''));
+					if (parsedLink.path.text.match(regexp1)) {
+						linkCandidates.push(parsedLink.path.text.replace(regexp1, ''));
 					}
 				}
 			}
 
 			// If any candidates end with special characters that are likely to not be part of the
 			// link, add a candidate excluding them.
-			const specialEndCharRegex = /[\[\]"'\.]$/;
+			const specialEndCharRegex = regexp2;
 			const trimRangeMap: Map<string, number> = new Map();
 			const specialEndLinkCandidates: string[] = [];
 			for (const candidate of linkCandidates) {

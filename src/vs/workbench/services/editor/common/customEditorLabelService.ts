@@ -14,6 +14,10 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { MRUCache } from '../../../../base/common/map.js';
+const regexpZAZ0 = /[a-zA-Z0-9]/;
+const regexpDirnameFilenameExtname = /\$\{(dirname|filename|extname|extname\((?<extnameN>[-+]?\d+)\)|dirname\((?<dirnameN>[-+]?\d+)\))\}/g;
+const regexpFilename = /(?<filename>^\.*[^.]*)/;
+
 
 interface ICustomEditorLabelObject {
 	readonly [key: string]: string;
@@ -78,7 +82,7 @@ export class CustomEditorLabelService extends Disposable implements ICustomEdito
 		this.enabled = this.configurationService.getValue<boolean>(CustomEditorLabelService.SETTING_ID_ENABLED);
 	}
 
-	private _templateRegexValidation = /[a-zA-Z0-9]/;
+	private _templateRegexValidation = regexpZAZ0;
 	private storeCustomPatterns(): void {
 		this.patterns = [];
 		const customLabelPatterns = this.configurationService.getValue<ICustomEditorLabelObject>(CustomEditorLabelService.SETTING_ID_PATTERNS);
@@ -155,8 +159,8 @@ export class CustomEditorLabelService extends Disposable implements ICustomEdito
 		return undefined;
 	}
 
-	private readonly _parsedTemplateExpression = /\$\{(dirname|filename|extname|extname\((?<extnameN>[-+]?\d+)\)|dirname\((?<dirnameN>[-+]?\d+)\))\}/g;
-	private readonly _filenameCaptureExpression = /(?<filename>^\.*[^.]*)/;
+	private readonly _parsedTemplateExpression = new RegExp(regexpDirnameFilenameExtname);
+	private readonly _filenameCaptureExpression = regexpFilename;
 	private applyTemplate(template: string, resource: URI, relevantPath: string): string {
 		let parsedPath: undefined | ParsedPath;
 		return template.replace(this._parsedTemplateExpression, (match: string, variable: string, ...args: unknown[]) => {

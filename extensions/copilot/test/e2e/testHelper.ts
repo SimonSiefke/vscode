@@ -10,6 +10,9 @@ import { SimulationWorkspace } from '../../src/platform/test/node/simulationWork
 import { basename } from '../../src/util/vs/base/common/resources';
 import { Location, Uri } from '../../src/vscodeTypes';
 import { IConversationTestCase } from './scenarioLoader';
+const regexp1 = /#([\w_\-]+)(?::(\S+))?(?=(\s|$|\b))/ig;
+const regexp2 = /(?:@(\S+))?\s*(?:\/(\S+))?(.*)/;
+
 
 export interface IParsedQuery {
 	query: string;
@@ -59,11 +62,11 @@ export function createWorkingSetFileVariable(uri: Uri) {
 }
 
 export function parseQueryForTest(accessor: ITestingServicesAccessor, query: string, simulationWorkspace: SimulationWorkspace): IParsedQuery {
-	const variableReg = /#([\w_\-]+)(?::(\S+))?(?=(\s|$|\b))/ig;
+	const variableReg = new RegExp(regexp1);
 
 	const toolsService = accessor.get(IToolsService);
 
-	const match = query.match(/(?:@(\S+))?\s*(?:\/(\S+))?(.*)/);
+	const match = query.match(regexp2);
 	let command: string | undefined;
 	let participantName: string | undefined;
 	if (match) {

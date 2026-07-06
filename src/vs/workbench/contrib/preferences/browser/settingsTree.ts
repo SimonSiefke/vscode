@@ -72,6 +72,11 @@ import { ISettingOverrideClickEvent, SettingsTreeIndicatorsLabel, getIndicatorsL
 import { ITOCEntry, ITOCFilter } from './settingsLayout.js';
 import { ISettingsEditorViewState, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeNewExtensionsElement, SettingsTreeSettingElement, inspectSetting, objectSettingSupportsRemoveDefaultValue, settingKeyToDisplayFormat } from './settingsTreeModels.js';
 import { ExcludeSettingWidget, IBoolObjectDataItem, IIncludeExcludeDataItem, IListDataItem, IObjectDataItem, IObjectEnumOption, IObjectKeySuggester, IObjectValueSuggester, IncludeSettingWidget, ListSettingWidget, ObjectSettingCheckboxWidget, ObjectSettingDropdownWidget, ObjectValue, SettingListEvent } from './settingsWidgets.js';
+const regexp1 = /\\\*/g;
+const regexp2 = /`#([^#\s`]+)#`|'#([^#\s']+)#'/g;
+const regexp3 = /\r/g;
+const regexp4 = /\n/g;
+
 
 const $ = DOM.$;
 
@@ -683,7 +688,7 @@ const settingPatternCache = new Map<string, RegExp>();
 
 export function createSettingMatchRegExp(pattern: string): RegExp {
 	pattern = escapeRegExpCharacters(pattern)
-		.replace(/\\\*/g, '.*');
+		.replace(new RegExp(regexp1), '.*');
 
 	return new RegExp(`^${pattern}$`, 'i');
 }
@@ -2414,7 +2419,7 @@ function cleanRenderedMarkdown(element: Node): void {
 }
 
 function fixSettingLinks(text: string, linkify = true): string {
-	return text.replace(/`#([^#\s`]+)#`|'#([^#\s']+)#'/g, (match, backticksGroup, quotesGroup) => {
+	return text.replace(new RegExp(regexp2), (match, backticksGroup, quotesGroup) => {
 		const settingKey: string = backticksGroup ?? quotesGroup;
 		const targetDisplayFormat = settingKeyToDisplayFormat(settingKey);
 		const targetName = `${targetDisplayFormat.category}: ${targetDisplayFormat.label}`;
@@ -2426,8 +2431,8 @@ function fixSettingLinks(text: string, linkify = true): string {
 
 function escapeInvisibleChars(enumValue: string): string {
 	return enumValue && enumValue
-		.replace(/\n/g, '\\n')
-		.replace(/\r/g, '\\r');
+		.replace(new RegExp(regexp4), '\\n')
+		.replace(new RegExp(regexp3), '\\r');
 }
 
 

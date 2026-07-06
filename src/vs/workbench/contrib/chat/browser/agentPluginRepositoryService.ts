@@ -26,6 +26,8 @@ import { IMarketplacePlugin, IMarketplaceReference, IPluginSourceDescriptor, Mar
 import { IPluginSource } from '../common/plugins/pluginSource.js';
 import { IPluginGitService } from '../common/plugins/pluginGitService.js';
 import { GitHubPluginSource, GitUrlPluginSource, NpmPluginSource, PipPluginSource, RelativePathPluginSource } from './pluginSources.js';
+const regexp1 = /^\.?\/+|\/+$/g;
+
 
 const MARKETPLACE_INDEX_STORAGE_KEY = 'chat.plugins.marketplaces.index.v1';
 
@@ -113,7 +115,7 @@ export class AgentPluginRepositoryService implements IAgentPluginRepositoryServi
 			return this.getPluginSourceInstallUri(plugin.sourceDescriptor);
 		}
 		const repoDir = this.getRepositoryUri(plugin.marketplaceReference, plugin.marketplaceType);
-		const normalizedSource = plugin.source.trim().replace(/^\.?\/+|\/+$/g, '');
+		const normalizedSource = plugin.source.trim().replace(new RegExp(regexp1), '');
 		const pluginDir = normalizedSource ? joinPath(repoDir, normalizedSource) : repoDir;
 		if (!isEqualOrParent(pluginDir, repoDir)) {
 			throw new Error(`Invalid plugin source path '${plugin.source}'`);

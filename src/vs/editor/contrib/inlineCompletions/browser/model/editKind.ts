@@ -5,6 +5,12 @@
 import { Position } from '../../../../common/core/position.js';
 import { StringEdit, StringReplacement } from '../../../../common/core/edits/stringEdit.js';
 import { ITextModel } from '../../../../common/model.js';
+const regexpZAZ0 = /[a-zA-Z0-9_]/;
+const regexp2 = /\r\n|\r|\n/;
+const regexp3 = /[ \t]+/g;
+const regexp4 = /\s+/;
+const regexpZAZAZ0 = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
 
 const syntacticalChars = new Set([';', ',', '=', '+', '-', '*', '/', '{', '}', '(', ')', '[', ']', '<', '>', ':', '.', '!', '?', '&', '|', '^', '%', '@', '#', '~', '`', '\\', '\'', '"', '$']);
 
@@ -13,7 +19,7 @@ function isSyntacticalChar(char: string): boolean {
 }
 
 function isIdentifierChar(char: string): boolean {
-	return /[a-zA-Z0-9_]/.test(char);
+	return regexpZAZ0.test(char);
 }
 
 function isWhitespaceChar(char: string): boolean {
@@ -40,7 +46,7 @@ interface MultiLineTextShape {
 type TextShape = SingleLineTextShape | MultiLineTextShape;
 
 function analyzeTextShape(text: string): TextShape {
-	const lines = text.split(/\r\n|\r|\n/);
+	const lines = text.split(regexp2);
 	if (lines.length > 1) {
 		return {
 			kind: 'multiLine',
@@ -61,15 +67,15 @@ function analyzeTextShape(text: string): TextShape {
 	}
 
 	// Analyze whitespace patterns
-	const whitespaceMatches = text.match(/[ \t]+/g) || [];
+	const whitespaceMatches = text.match(new RegExp(regexp3)) || [];
 	const isMultipleWhitespace = whitespaceMatches.some(ws => ws.length > 1);
 	const hasDuplicatedWhitespace = whitespaceMatches.some(ws =>
 		(ws.includes('  ') || ws.includes('\t\t'))
 	);
 
 	// Analyze word patterns
-	const words = text.split(/\s+/).filter(w => w.length > 0);
-	const isWord = words.length === 1 && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(words[0]);
+	const words = text.split(regexp4).filter(w => w.length > 0);
+	const isWord = words.length === 1 && regexpZAZAZ0.test(words[0]);
 	const isMultipleWords = words.length > 1;
 
 	return {
@@ -144,7 +150,7 @@ function countLines(text: string): number {
 	if (text.length === 0) {
 		return 0;
 	}
-	return text.split(/\r\n|\r|\n/).length - 1;
+	return text.split(regexp2).length - 1;
 }
 
 function computeSingleEditKind(replacement: StringReplacement, textModel: ITextModel, cursorPosition?: Position): IInlineSuggestionEditKindEdit {

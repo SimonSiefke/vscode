@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { parseClaudeModelId, toSdkModelId, tryParseClaudeModelId } from '../../node/claude/claudeModelId.js';
+const regexpUnableToParse = /Unable to parse Claude model ID: 'gpt-4o'/;
+
 
 suite('parseClaudeModelId', () => {
 
@@ -165,7 +167,7 @@ suite('parseClaudeModelId', () => {
 
 	suite('unparseable inputs', () => {
 		test('throws for hyphenated non-Claude IDs', () => {
-			assert.throws(() => parseClaudeModelId('gpt-4o'), /Unable to parse Claude model ID: 'gpt-4o'/);
+			assert.throws(() => parseClaudeModelId('gpt-4o'), regexpUnableToParse);
 		});
 
 		test('throws for garbage with hyphens', () => {

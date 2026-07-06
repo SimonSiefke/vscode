@@ -5,6 +5,8 @@
 
 import * as vscode from 'vscode';
 import { getLocation, getNodeValue, parseTree, findNodeAtLocation, visit } from 'jsonc-parser';
+const regexp1 = /^%(.+)%$/;
+
 
 
 const packageJsonSelector: vscode.DocumentSelector = { language: 'json', pattern: '**/package.json' };
@@ -83,7 +85,7 @@ export class PackageDocumentL10nSupport implements vscode.DefinitionProvider, vs
 			return undefined;
 		}
 
-		const match = value.match(/^%(.+)%$/);
+		const match = value.match(regexp1);
 		if (!match) {
 			return undefined;
 		}

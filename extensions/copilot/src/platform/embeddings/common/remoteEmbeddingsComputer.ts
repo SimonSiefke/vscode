@@ -20,6 +20,8 @@ import { GenAiAttr, GenAiOperationName, GenAiProviderName } from '../../otel/com
 import { IOTelService, SpanKind, SpanStatusCode } from '../../otel/common/otelService';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
 import { ComputeEmbeddingsOptions, Embedding, EmbeddingType, EmbeddingTypeInfo, EmbeddingVector, Embeddings, IEmbeddingsComputer, getWellKnownEmbeddingTypeInfo } from './embeddingsComputer';
+const regexpUnexpectedJSON = /Unexpected.*JSON/i;
+
 
 interface CAPIEmbeddingResults {
 	readonly type: 'success';
@@ -311,7 +313,7 @@ export class RemoteEmbeddingsComputer implements IEmbeddingsComputer {
 		} catch (e) {
 			let errorMessage = (e as Error)?.message ?? 'Unknown error';
 			// Timeouts = JSON parse errors because the response is incomplete
-			if (errorMessage.match(/Unexpected.*JSON/i)) {
+			if (errorMessage.match(regexpUnexpectedJSON)) {
 				errorMessage = 'timeout';
 			}
 			return { type: 'failed', reason: errorMessage };

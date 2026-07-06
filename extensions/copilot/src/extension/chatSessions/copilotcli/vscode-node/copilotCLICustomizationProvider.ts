@@ -18,6 +18,8 @@ import { basename } from '../../../../util/vs/base/common/resources';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { ICopilotCLIAgents, isEnabledForCopilotCLI } from '../../copilotcli/node/copilotCli';
 import { INativeEnvService } from '../../../../platform/env/common/envService';
+const regexpJson = /\.json$/i;
+
 
 export class CopilotCLICustomizationProvider extends Disposable implements vscode.ChatSessionCustomizationProvider {
 
@@ -245,7 +247,7 @@ export class CopilotCLICustomizationProvider extends Disposable implements vscod
 		return (await this.promptsService.getHooks(token)).filter(isEnabledForCopilotCLI).map(h => ({
 			uri: h.uri,
 			type: vscode.ChatSessionCustomizationType.Hook,
-			name: basename(h.uri).replace(/\.json$/i, ''),
+			name: basename(h.uri).replace(regexpJson, ''),
 			description: undefined,
 			extensionId: h.extensionId,
 			pluginUri: h.pluginUri,

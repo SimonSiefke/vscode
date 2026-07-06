@@ -6,6 +6,8 @@
 import { workspace, extensions, Uri, EventEmitter, Disposable } from 'vscode';
 import { Runtime } from './htmlClient';
 import { Utils } from 'vscode-uri';
+const regexpScheme = /^(?<scheme>\w[\w\d+.-]*):/;
+
 
 
 export function getCustomDataSource(runtime: Runtime, toDispose: Disposable[]) {
@@ -77,7 +79,7 @@ function hasChanges(s1: Set<string>, s2: Set<string>) {
 }
 
 function isURI(uriOrPath: string) {
-	return /^(?<scheme>\w[\w\d+.-]*):/.test(uriOrPath);
+	return regexpScheme.test(uriOrPath);
 }
 
 

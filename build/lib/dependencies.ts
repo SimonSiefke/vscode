@@ -6,6 +6,12 @@
 import fs from 'fs';
 import path from 'path';
 import cp from 'child_process';
+const regexpNpmERR = /^npm ERR! .*$/gm;
+const regexpCompleteLogOf = /A complete log of this run/;
+const regexpInvalidXterm = /invalid: xterm/;
+const regexpELSPROBLEMS = /ELSPROBLEMS/;
+const regexp5 = /\r?\n/;
+
 const root = fs.realpathSync(path.dirname(path.dirname(import.meta.dirname)));
 
 function getNpmProductionDependencies(folder: string): string[] {
@@ -14,15 +20,15 @@ function getNpmProductionDependencies(folder: string): string[] {
 	try {
 		raw = cp.execSync('npm ls --all --omit=dev --parseable', { cwd: folder, encoding: 'utf8', env: { ...process.env, NODE_ENV: 'production' }, stdio: [null, null, null] });
 	} catch (err) {
-		const regex = /^npm ERR! .*$/gm;
+		const regex = new RegExp(regexpNpmERR);
 		let match: RegExpExecArray | null;
 
 		while (match = regex.exec(err.message)) {
-			if (/ELSPROBLEMS/.test(match[0])) {
+			if (regexpELSPROBLEMS.test(match[0])) {
 				continue;
-			} else if (/invalid: xterm/.test(match[0])) {
+			} else if (regexpInvalidXterm.test(match[0])) {
 				continue;
-			} else if (/A complete log of this run/.test(match[0])) {
+			} else if (regexpCompleteLogOf.test(match[0])) {
 				continue;
 			} else {
 				throw err;
@@ -32,7 +38,7 @@ function getNpmProductionDependencies(folder: string): string[] {
 		raw = err.stdout;
 	}
 
-	return raw.split(/\r?\n/).filter(line => {
+	return raw.split(regexp5).filter(line => {
 		return !!line.trim() && path.relative(root, line) !== path.relative(root, folder);
 	});
 }

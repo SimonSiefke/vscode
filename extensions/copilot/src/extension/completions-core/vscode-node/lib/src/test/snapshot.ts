@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { PromptSnapshotNode } from '../../../prompt/src/components/components';
+const regexp1 = /^([^[]+)(?:\[(\d+|\*|["'][\w-]+["'])\])?$/;
+
 
 interface PathSegment {
 	name: string;
@@ -57,7 +59,7 @@ export function querySnapshot(snapshot: PromptSnapshotNode, path: string): strin
 }
 
 function parsePathSegment(segment: string): PathSegment {
-	const match = segment.match(/^([^[]+)(?:\[(\d+|\*|["'][\w-]+["'])\])?$/);
+	const match = segment.match(regexp1);
 	if (!match) {
 		throw new Error(`Invalid path segment: ${segment}`);
 	}

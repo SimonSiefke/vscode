@@ -16,6 +16,8 @@ import { ITextModelService } from '../../../editor/common/services/resolverServi
 import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 import { ExtHostContext, ExtHostDocumentContentProvidersShape, MainContext, MainThreadDocumentContentProvidersShape } from '../common/extHost.protocol.js';
 import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+const regexp1 = /\r?\n/;
+
 
 @extHostNamedCustomer(MainContext.MainThreadDocumentContentProviders)
 export class MainThreadDocumentContentProviders implements MainThreadDocumentContentProvidersShape {
@@ -44,7 +46,7 @@ export class MainThreadDocumentContentProviders implements MainThreadDocumentCon
 			provideTextContent: (uri: URI): Promise<ITextModel | null> => {
 				return this._proxy.$provideTextDocumentContent(handle, uri).then(value => {
 					if (typeof value === 'string') {
-						const firstLineText = value.substr(0, 1 + value.search(/\r?\n/));
+						const firstLineText = value.substr(0, 1 + value.search(regexp1));
 						const languageSelection = this._languageService.createByFilepathOrFirstLine(uri, firstLineText);
 						return this._modelService.createModel(value, languageSelection, uri);
 					}

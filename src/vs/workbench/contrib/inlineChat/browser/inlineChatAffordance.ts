@@ -20,6 +20,8 @@ import { CodeActionController } from '../../../../editor/contrib/codeAction/brow
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+const regexp1 = /^\s+$/;
+
 
 type InlineChatAffordanceEvent = {
 	mode: string;
@@ -75,7 +77,7 @@ export class InlineChatAffordance extends Disposable {
 
 		this._store.add(autorun(r => {
 			const value = debouncedSelection.read(r);
-			if (!value || value.isEmpty() || !explicitSelection || this.#editor.getModel()?.getValueInRange(value).match(/^\s+$/)) {
+			if (!value || value.isEmpty() || !explicitSelection || this.#editor.getModel()?.getValueInRange(value).match(regexp1)) {
 				selectionData.set(undefined, undefined);
 				affordanceId = undefined;
 				return;

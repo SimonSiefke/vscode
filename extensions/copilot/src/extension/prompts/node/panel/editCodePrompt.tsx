@@ -41,6 +41,11 @@ import { NotebookFormat, NotebookReminderInstructions } from './notebookEditCode
 import { ProjectLabels } from './projectLabels';
 import { CodeBlock, ExampleCodeBlock } from './safeElements';
 import { ChatToolCalls } from './toolCalling';
+const regexpFile = /<\/?file>/g;
+const regexpInstructionsInstructions = /<instructions>[\s\S]*?<\/instructions>/g;
+const regexpFileSelectionFile = /<file(-selection)?>[\s\S]*?<\/file(-selection)?>/g;
+const regexpReminderReminder = /^<reminder>[\s\S]*?^<\/reminder>/gm;
+
 
 export interface EditCodePromptProps extends GenericBasePromptElementProps {
 	readonly promptContext: IEditStepBuildPromptContext;
@@ -228,7 +233,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 	}
 
 	private _renderAssistantMessageWithoutFileTags(message: string): AssistantMessage {
-		message = message.replace(/<\/?file>/g, '');
+		message = message.replace(new RegExp(regexpFile), '');
 		return (
 			<AssistantMessage>{message}</AssistantMessage>
 		);
@@ -266,7 +271,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 
 	private _removePromptInstructionsFromPastUserMessage(userMessage: string, shouldRemove: Uri[]) {
 		const interestingFilePaths = shouldRemove.map(uri => this._promptPathRepresentationService.getFilePath(uri));
-		return userMessage.replace(/<instructions>[\s\S]*?<\/instructions>/g, (match) => {
+		return userMessage.replace(new RegExp(regexpInstructionsInstructions), (match) => {
 			if (interestingFilePaths.some(path => match.includes(path))) {
 				return '';
 			}
@@ -276,7 +281,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 
 	private _removeFilesFromPastUserMessage(userMessage: string, shouldRemove: Uri[]) {
 		const interestingFilePaths = shouldRemove.map(uri => `${filepathCodeBlockMarker} ${this._promptPathRepresentationService.getFilePath(uri)}`);
-		return userMessage.replace(/<file(-selection)?>[\s\S]*?<\/file(-selection)?>/g, (match) => {
+		return userMessage.replace(new RegExp(regexpFileSelectionFile), (match) => {
 			if (interestingFilePaths.some(path => match.includes(path))) {
 				return '';
 			}
@@ -285,7 +290,7 @@ class EditCodeConversationHistory extends PromptElement<EditCodeConversationHist
 	}
 
 	private _removeReminders(userMessage: string) {
-		return userMessage.replace(/^<reminder>[\s\S]*?^<\/reminder>/gm, (match) => {
+		return userMessage.replace(new RegExp(regexpReminderReminder), (match) => {
 			return '';
 		});
 	}

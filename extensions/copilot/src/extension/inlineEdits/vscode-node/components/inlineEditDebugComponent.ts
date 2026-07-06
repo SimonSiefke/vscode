@@ -16,6 +16,8 @@ import { openIssueReporter } from '../../../conversation/vscode-node/feedbackRep
 import { XtabProvider } from '../../../xtab/node/xtabProvider';
 import { defaultNextEditProviderId } from '../../node/createNextEditProvider';
 import { DebugRecorder } from '../../node/debugRecorder';
+const regexp1 = /\\/g;
+
 
 export const reportFeedbackCommandId = 'github.copilot.debug.inlineEdit.reportFeedback';
 const pickProviderId = 'github.copilot.debug.inlineEdit.pickProvider';
@@ -227,7 +229,7 @@ const SENSITIVE_FILE_PATTERNS = {
  */
 function isSensitiveFile(relativePath: string): boolean {
 	// Normalize path separators for consistent handling across platforms
-	const normalizedPath = relativePath.replace(/\\/g, '/');
+	const normalizedPath = relativePath.replace(new RegExp(regexp1), '/');
 	const pathParts = normalizedPath.split('/');
 
 	// Use basename/extname on normalized path for robust filename extraction

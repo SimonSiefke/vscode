@@ -17,6 +17,9 @@ import { IMemoryCleanupService } from '../common/memoryCleanupService';
 import { ToolName } from '../common/toolNames';
 import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
 import { formatUriForFileWidget } from '../common/toolUtils';
+const regexp1 = /^\//;
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 const MEMORY_BASE_DIR = 'memory-tool/memories';
 const REPO_PATH_PREFIX = '/memories/repo';
@@ -109,10 +112,10 @@ function isSessionPath(path: string): boolean {
 export function extractSessionId(sessionResource: string): string {
 	const parsed = URI.parse(sessionResource);
 	// Extract the last path segment as the session ID
-	const segments = parsed.path.replace(/^\//, '').split('/');
+	const segments = parsed.path.replace(regexp1, '').split('/');
 	const raw = segments[segments.length - 1] || parsed.authority || 'unknown';
 	// Sanitize to only safe characters for a directory name
-	return raw.replace(/[^a-zA-Z0-9_.-]/g, '_');
+	return raw.replace(new RegExp(regexpZAZ0), '_');
 }
 
 function formatLineNumber(line: number): string {

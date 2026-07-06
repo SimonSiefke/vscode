@@ -21,6 +21,8 @@ import { createExtensionUnitTestingServices } from '../../../test/node/services'
 import { GitHubOrgChatResourcesService } from '../githubOrgChatResourcesService';
 import { GitHubOrgCustomAgentProvider, looksLikeNumber, yamlString } from '../githubOrgCustomAgentProvider';
 import { MockOctoKitService } from './mockOctoKitService';
+const regexp1 = /"/g;
+
 
 suite('GitHubOrgCustomAgentProvider', () => {
 	let disposables: DisposableStore;
@@ -1481,7 +1483,7 @@ suite('yamlString round-trip with custom YAML parser', () => {
 				yamlStr = `'${value}'`;
 			} else {
 				// Double quotes - need to escape internal double quotes
-				yamlStr = `"${value.replace(/"/g, '\\"')}"`;
+				yamlStr = `"${value.replace(new RegExp(regexp1), '\\"')}"`;
 			}
 		} else {
 			yamlStr = value;

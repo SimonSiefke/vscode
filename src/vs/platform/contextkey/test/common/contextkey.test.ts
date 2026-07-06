@@ -6,6 +6,10 @@ import assert from 'assert';
 import { isLinux, isMacintosh, isWindows } from '../../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ContextKeyExpr, ContextKeyExpression, implies } from '../../common/contextkey.js';
+const regexp1 = /d.*/;
+const regexp2 = /\*\*3*/;
+const regexp3 = /D/i;
+
 
 function createContext(ctx: any) {
 	return {
@@ -24,8 +28,8 @@ suite('ContextKeyExpr', () => {
 			ContextKeyExpr.has('a1'),
 			ContextKeyExpr.and(ContextKeyExpr.has('and.a')),
 			ContextKeyExpr.has('a2'),
-			ContextKeyExpr.regex('d3', /d.*/),
-			ContextKeyExpr.regex('d4', /\*\*3*/),
+			ContextKeyExpr.regex('d3', regexp1),
+			ContextKeyExpr.regex('d4', regexp2),
 			ContextKeyExpr.equals('b1', 'bb1'),
 			ContextKeyExpr.equals('b2', 'bb2'),
 			ContextKeyExpr.notEquals('c1', 'cc1'),
@@ -37,11 +41,11 @@ suite('ContextKeyExpr', () => {
 			ContextKeyExpr.equals('b2', 'bb2'),
 			ContextKeyExpr.notEquals('c1', 'cc1'),
 			ContextKeyExpr.not('d1'),
-			ContextKeyExpr.regex('d4', /\*\*3*/),
+			ContextKeyExpr.regex('d4', regexp2),
 			ContextKeyExpr.notEquals('c2', 'cc2'),
 			ContextKeyExpr.has('a2'),
 			ContextKeyExpr.equals('b1', 'bb1'),
-			ContextKeyExpr.regex('d3', /d.*/),
+			ContextKeyExpr.regex('d3', regexp1),
 			ContextKeyExpr.has('a1'),
 			ContextKeyExpr.and(ContextKeyExpr.equals('and.a', true)),
 			ContextKeyExpr.not('d2')
@@ -98,8 +102,8 @@ suite('ContextKeyExpr', () => {
 			// eslint-disable-next-line local/code-no-any-casts
 			testExpression(expr + ' != 5', value != <any>'5');
 			testExpression('!' + expr, !value);
-			testExpression(expr + ' =~ /d.*/', /d.*/.test(value));
-			testExpression(expr + ' =~ /D/i', /D/i.test(value));
+			testExpression(expr + ' =~ /d.*/', regexp1.test(value));
+			testExpression(expr + ' =~ /D/i', regexp3.test(value));
 			/* eslint-enable eqeqeq */
 		}
 

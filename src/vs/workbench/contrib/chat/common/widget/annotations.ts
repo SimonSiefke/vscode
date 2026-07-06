@@ -9,6 +9,10 @@ import { IRange } from '../../../../../editor/common/core/range.js';
 import { isLocation } from '../../../../../editor/common/languages.js';
 import { IChatProgressRenderableResponseContent, IChatProgressResponseContent, appendMarkdownString, canMergeMarkdownStrings } from '../model/chatModel.js';
 import { IChatAgentVulnerabilityDetails } from '../chatService/chatService.js';
+const regexpVscodeCodeblockUri = /<vscode_codeblock_uri( isEdit)?( subAgentInvocationId="([^"]*)")?>([\s\S]*?)<\/vscode_codeblock_uri>/ms;
+const regexpVscodeCodeblockUri1 = /<vscode_codeblock_uri[^>]* subAgentInvocationId="([^"]*)"/ms;
+const regexpVscodeAnnotationDetails = /<vscode_annotation details='(.*?)'>(.*?)<\/vscode_annotation>/ms;
+
 
 export const contentRefUrl = 'http://_vscodecontentref_'; // must be lowercase for URI
 
@@ -214,7 +218,7 @@ export interface IMarkdownVulnerability {
 	readonly range: IRange;
 }
 export function extractCodeblockUrisFromText(text: string): { uri: URI; isEdit?: boolean; subAgentInvocationId?: string; textWithoutResult: string } | undefined {
-	const match = /<vscode_codeblock_uri( isEdit)?( subAgentInvocationId="([^"]*)")?>([\s\S]*?)<\/vscode_codeblock_uri>/ms.exec(text);
+	const match = regexpVscodeCodeblockUri.exec(text);
 	if (match) {
 		const [all, isEdit, , encodedSubAgentId, uriString] = match;
 		if (uriString) {
@@ -240,7 +244,7 @@ export function extractCodeblockUrisFromText(text: string): { uri: URI; isEdit?:
 }
 
 export function extractSubAgentInvocationIdFromText(text: string): string | undefined {
-	const match = /<vscode_codeblock_uri[^>]* subAgentInvocationId="([^"]*)"/ms.exec(text);
+	const match = regexpVscodeCodeblockUri1.exec(text);
 	if (match) {
 		try {
 			return decodeURIComponent(match[1]);
@@ -263,7 +267,7 @@ export function extractVulnerabilitiesFromText(text: string): { newText: string;
 	const vulnerabilities: IMarkdownVulnerability[] = [];
 	let newText = text;
 	let match: RegExpExecArray | null;
-	while ((match = /<vscode_annotation details='(.*?)'>(.*?)<\/vscode_annotation>/ms.exec(newText)) !== null) {
+	while ((match = regexpVscodeAnnotationDetails.exec(newText)) !== null) {
 		const [full, details, content] = match;
 		const start = match.index;
 		const textBefore = newText.substring(0, start);

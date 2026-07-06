@@ -12,6 +12,8 @@ import { RUN_METADATA, SIMULATION_FOLDER_NAME } from '../../shared/sharedTypes';
 import { REPO_ROOT, genericEquals } from '../utils/utils';
 import { SimulationRunner } from './simulationRunner';
 import { SimulationStorage, SimulationStorageValue } from './simulationStorage';
+const regexpOut = /^out-(?:\w+-)?(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/;
+
 
 const SIMULATION_FOLDER_PATH = path.join(REPO_ROOT, SIMULATION_FOLDER_NAME);
 
@@ -28,7 +30,7 @@ class SimulationRun {
 		public readonly label?: string
 	) {
 		// example: out-20230804-105913 or out-external-20230804-105913
-		const m = name.match(/^out-(?:\w+-)?(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/);
+		const m = name.match(regexpOut);
 		if (m) {
 			const year = m ? parseInt(m[1], 10) : 0;
 			const month = m ? parseInt(m[2], 10) : 0;

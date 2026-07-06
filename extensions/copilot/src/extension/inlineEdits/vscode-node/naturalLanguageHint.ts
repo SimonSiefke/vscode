@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+const regexp1 = /^\s+$/;
+
 
 
 export namespace LineCheck {
@@ -56,7 +58,7 @@ export namespace LineCheck {
 			if (start !== lastEnd) {
 				const value = line.text.substring(lastEnd, start);
 				result.push({
-					type: value.match(/^\s+$/) ? 'space' : 'other',
+					type: value.match(regexp1) ? 'space' : 'other',
 					value
 				});
 			}
@@ -73,7 +75,7 @@ export namespace LineCheck {
 		if (lastEnd < line.range.end.character) {
 			const value = line.text.substring(lastEnd);
 			result.push({
-				type: value.match(/^\s+$/) ? 'space' : 'other',
+				type: value.match(regexp1) ? 'space' : 'other',
 				value
 			});
 

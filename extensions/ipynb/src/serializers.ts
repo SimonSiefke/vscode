@@ -7,6 +7,8 @@ import type * as nbformat from '@jupyterlab/nbformat';
 import type { NotebookCell, NotebookCellData, NotebookCellOutput, NotebookData, NotebookDocument } from 'vscode';
 import { CellOutputMetadata, hasKey, type CellMetadata } from './common';
 import { textMimeTypes, NotebookCellKindMarkup, CellOutputMimeTypes, defaultNotebookFormat } from './constants';
+const regexp1 = /\r\n/g;
+
 
 const textDecoder = new TextDecoder();
 
@@ -135,7 +137,7 @@ function createRawCellFromNotebookCell(cell: NotebookCellData): nbformat.IRawCel
  * Same is done in deserializer as well.
  */
 function splitCellSourceIntoMultilineString(source: string): string[] {
-	return splitMultilineString(source.replace(/\r\n/g, '\n'));
+	return splitMultilineString(source.replace(new RegExp(regexp1), '\n'));
 }
 
 function splitMultilineString(source: nbformat.MultilineString): string[] {

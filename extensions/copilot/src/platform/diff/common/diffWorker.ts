@@ -6,6 +6,8 @@
 import { DefaultLinesDiffComputer } from '../../../util/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer';
 import { ILinesDiffComputerOptions } from '../../../util/vs/editor/common/diff/linesDiffComputer';
 import { DetailedLineRangeMapping } from '../../../util/vs/editor/common/diff/rangeMapping';
+const regexp1 = /\r\n|\r|\n/;
+
 
 
 export async function computeDiff(original: string, modified: string, options: ILinesDiffComputerOptions): Promise<IDiffComputationResult> {
@@ -13,8 +15,8 @@ export async function computeDiff(original: string, modified: string, options: I
 }
 
 export function computeDiffSync(original: string, modified: string, options: ILinesDiffComputerOptions): IDiffComputationResult {
-	const originalLines = original.split(/\r\n|\r|\n/);
-	const modifiedLines = modified.split(/\r\n|\r|\n/);
+	const originalLines = original.split(regexp1);
+	const modifiedLines = modified.split(regexp1);
 	const diffComputer = new DefaultLinesDiffComputer();
 	const result = diffComputer.computeDiff(originalLines, modifiedLines, options);
 

@@ -6,6 +6,11 @@
 import { equalsIgnoreCase } from '../../../../base/common/strings.js';
 import { URI } from '../../../../base/common/uri.js';
 import { GitRemote, GitRepositoryState } from './gitService.js';
+const regexp1 = /^[\w\d\-]+@/i;
+const regexp2 = /:\d+$/;
+const regexp3 = /-[\w\-]+$/;
+const regexp4 = /^[\w\-]+-/;
+
 
 export function hasGitHubRemotes(repositoryState: GitRepositoryState): boolean {
 	const hosts = ['github.com', 'ghe.com'];
@@ -69,7 +74,7 @@ function parseRemoteUrl(fetchUrl: string): { host: string; rawHost: string; path
 	try {
 		// Normalize git shorthand syntax (git@github.com:user/repo.git) into an explicit ssh:// url
 		// See https://git-scm.com/docs/git-clone/2.35.0#_git_urls
-		if (/^[\w\d\-]+@/i.test(fetchUrl)) {
+		if (regexp1.test(fetchUrl)) {
 			const parts = fetchUrl.split(':');
 			if (parts.length !== 2) {
 				return undefined;
@@ -96,11 +101,11 @@ function parseRemoteUrl(fetchUrl: string): { host: string; rawHost: string; path
 
 		const rawHost = extractedHost
 			.toLowerCase()
-			.replace(/:\d+$/, ''); // Remove optional port
+			.replace(regexp2, ''); // Remove optional port
 
 		const normalizedHost = rawHost
-			.replace(/^[\w\-]+-/, '') // Remove common ssh syntax: abc-github.com
-			.replace(/-[\w\-]+$/, '');// Remove common ssh syntax: github.com-abc
+			.replace(regexp4, '') // Remove common ssh syntax: abc-github.com
+			.replace(regexp3, '');// Remove common ssh syntax: github.com-abc
 
 		return { host: normalizedHost, rawHost, path: path };
 	} catch (err) {

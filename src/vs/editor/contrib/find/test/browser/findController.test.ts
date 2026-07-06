@@ -23,6 +23,8 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IStorageService, InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 class TestFindController extends CommonFindController {
 
@@ -514,7 +516,7 @@ suite('FindController', () => {
 			await editor.runAction(startFindWithSelectionAction);
 			const findState = findController.getState();
 
-			assert.deepStrictEqual(findState.searchString.split(/\r\n|\r|\n/g), ['ABC', 'ABC']);
+			assert.deepStrictEqual(findState.searchString.split(new RegExp(regexp1)), ['ABC', 'ABC']);
 
 			editor.setSelection(new Selection(3, 1, 3, 1));
 			await editor.runAction(startFindWithSelectionAction);

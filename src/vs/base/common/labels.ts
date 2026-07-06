@@ -9,6 +9,14 @@ import { isMacintosh, isWindows, OperatingSystem, OS } from './platform.js';
 import { extUri, extUriIgnorePathCase } from './resources.js';
 import { rtrim, startsWithIgnoreCase } from './strings.js';
 import { URI } from './uri.js';
+const regexp1 = /\\/g;
+const regexp2 = /\//g;
+const regexp3 = /^~($|\/|\\)/;
+const regexp4 = /&/g;
+const regexp5 = /\(&&\w\)|&&/g;
+const regexp6 = /&&|&/g;
+const regexp7 = /&&/g;
+
 
 export interface IPathLabelFormatting {
 
@@ -65,9 +73,9 @@ export function getPathLabel(resource: URI, formatting: IPathLabelFormatting): s
 	// OS differs from actual OS we are running in
 	let absolutePath = resource.fsPath;
 	if (os === OperatingSystem.Windows && !isWindows) {
-		absolutePath = absolutePath.replace(/\//g, '\\');
+		absolutePath = absolutePath.replace(new RegExp(regexp2), '\\');
 	} else if (os !== OperatingSystem.Windows && isWindows) {
-		absolutePath = absolutePath.replace(/\\/g, '/');
+		absolutePath = absolutePath.replace(new RegExp(regexp1), '/');
 	}
 
 	// macOS/Linux: tildify with provided user home directory
@@ -175,7 +183,7 @@ export function tildify(path: string, userHome: string, os = OS): string {
 }
 
 export function untildify(path: string, userHome: string): string {
-	return path.replace(/^~($|\/|\\)/, `${userHome}$1`);
+	return path.replace(regexp3, `${userHome}$1`);
 }
 
 /**
@@ -417,10 +425,10 @@ export function template(template: string, values: { [key: string]: string | ISe
  */
 export function mnemonicMenuLabel(label: string, forceDisableMnemonics?: boolean): string {
 	if (isMacintosh || forceDisableMnemonics) {
-		return label.replace(/\(&&\w\)|&&/g, '').replace(/&/g, isMacintosh ? '&' : '&&');
+		return label.replace(new RegExp(regexp5), '').replace(new RegExp(regexp4), isMacintosh ? '&' : '&&');
 	}
 
-	return label.replace(/&&|&/g, m => m === '&' ? '&&' : '&');
+	return label.replace(new RegExp(regexp6), m => m === '&' ? '&&' : '&');
 }
 
 /**
@@ -433,7 +441,7 @@ export function mnemonicMenuLabel(label: string, forceDisableMnemonics?: boolean
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics: true): string;
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: false): { readonly withMnemonic: string; readonly withoutMnemonic: string };
 export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: boolean): { readonly withMnemonic: string; readonly withoutMnemonic: string } | string {
-	const withoutMnemonic = label.replace(/\(&&\w\)|&&/g, '');
+	const withoutMnemonic = label.replace(new RegExp(regexp5), '');
 
 	if (forceDisableMnemonics) {
 		return withoutMnemonic;
@@ -444,15 +452,15 @@ export function mnemonicButtonLabel(label: string, forceDisableMnemonics?: boole
 
 	let withMnemonic: string;
 	if (isWindows) {
-		withMnemonic = label.replace(/&&|&/g, m => m === '&' ? '&&' : '&');
+		withMnemonic = label.replace(new RegExp(regexp6), m => m === '&' ? '&&' : '&');
 	} else {
-		withMnemonic = label.replace(/&&/g, '_');
+		withMnemonic = label.replace(new RegExp(regexp7), '_');
 	}
 	return { withMnemonic, withoutMnemonic };
 }
 
 export function unmnemonicLabel(label: string): string {
-	return label.replace(/&/g, '&&');
+	return label.replace(new RegExp(regexp4), '&&');
 }
 
 /**

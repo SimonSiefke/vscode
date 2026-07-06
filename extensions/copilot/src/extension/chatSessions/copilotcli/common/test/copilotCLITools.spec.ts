@@ -17,6 +17,18 @@ import {
 } from '../copilotCLITools';
 import { formatModelDetails, formatModelDetailsWithCredits, formatModelDetailsWithMultiplier } from '../../../../../platform/chat/common/chatModelDetails';
 import { IChatDelegationSummaryService } from '../delegationSummaryService';
+const regexpRead = /Read/;
+const regexpFileTs = /file.ts/;
+const regexpCreat = /Creat/;
+const regexpShowingFileTs = /Showing.*file\.ts/;
+const regexpDiff = /diff/i;
+const regexp6 = /10/;
+const regexp7 = /20/;
+const regexpPlan = /plan/i;
+const regexpAppTs = /app\.ts/;
+const regexpPatch = /patch/i;
+const regexpMcpConfigJson = /mcp-config\.json/i;
+
 
 // Helper to extract invocation message text independent of MarkdownString vs string
 function getInvocationMessageText(part: ChatToolInvocationPart | undefined): string {
@@ -160,8 +172,8 @@ describe('CopilotCLITools', () => {
 			const invocation = createCopilotCLIToolInvocation({ toolName: 'str_replace_editor', toolCallId: 'id3', arguments: { command: 'view', path: '/tmp/file.ts', view_range: [1, 5] } }) as ChatToolInvocationPart;
 			expect(invocation).toBeInstanceOf(ChatToolInvocationPart);
 			const msg = typeof invocation.invocationMessage === 'string' ? invocation.invocationMessage : invocation.invocationMessage?.value;
-			expect(msg).toMatch(/Read/);
-			expect(msg).toMatch(/file.ts/);
+			expect(msg).toMatch(regexpRead);
+			expect(msg).toMatch(regexpFileTs);
 		});
 
 		it('includes tool invocation parts and thinking progress without duplication', () => {
@@ -616,24 +628,24 @@ describe('CopilotCLITools', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'str_replace_editor', toolCallId: 'e1', arguments: { command: 'create', path: '/tmp/x.ts' } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
 			const msg = getInvocationMessageText(part as ChatToolInvocationPart);
-			expect(msg).toMatch(/Creat/);
+			expect(msg).toMatch(regexpCreat);
 		});
 		it.skip('formats show_file invocation with path', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'show_file', toolCallId: 'sf1', arguments: { path: '/tmp/file.ts' } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
-			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(/Showing.*file\.ts/);
+			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(regexpShowingFileTs);
 		});
 		it.skip('formats show_file invocation with diff mode', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'show_file', toolCallId: 'sf2', arguments: { path: '/tmp/file.ts', diff: true } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
-			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(/diff/i);
+			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(regexpDiff);
 		});
 		it.skip('formats show_file invocation with view_range', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'show_file', toolCallId: 'sf3', arguments: { path: '/tmp/file.ts', view_range: [10, 20] } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
 			const msg = getInvocationMessageText(part as ChatToolInvocationPart);
-			expect(msg).toMatch(/10/);
-			expect(msg).toMatch(/20/);
+			expect(msg).toMatch(regexp6);
+			expect(msg).toMatch(regexp7);
 		});
 		it('formats propose_work invocation with title', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'propose_work', toolCallId: 'pw1', arguments: { workType: 'code_change', workTitle: 'Refactor auth', workDescription: 'desc' } });
@@ -689,7 +701,7 @@ describe('CopilotCLITools', () => {
 		it('formats exit_plan_mode invocation', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'exit_plan_mode', toolCallId: 'ep1', arguments: { summary: 'Plan summary' } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
-			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(/plan/i);
+			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(regexpPlan);
 		});
 		it('formats sql invocation with description', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'sql', toolCallId: 'sq1', arguments: { description: 'Query todos', query: 'SELECT * FROM todos' } });
@@ -701,7 +713,7 @@ describe('CopilotCLITools', () => {
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
 			const msg = getInvocationMessageText(part as ChatToolInvocationPart);
 			expect(msg).toContain('goToDefinition');
-			expect(msg).toMatch(/app\.ts/);
+			expect(msg).toMatch(regexpAppTs);
 		});
 		it('formats lsp invocation without file', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'lsp', toolCallId: 'lsp2', arguments: { operation: 'workspaceSymbol', query: 'MyClass' } });
@@ -751,7 +763,7 @@ describe('CopilotCLITools', () => {
 		it('formats apply_patch invocation', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'apply_patch', toolCallId: 'ap1', arguments: { input: '*** Begin Patch\n*** End Patch' } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
-			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(/patch/i);
+			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(regexpPatch);
 		});
 		it('formats write_agent invocation with agent_id', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'write_agent', toolCallId: 'wa1', arguments: { agent_id: 'agent-42', message: 'Hello agent' } });
@@ -765,7 +777,7 @@ describe('CopilotCLITools', () => {
 		it('formats mcp_validate invocation with path', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'mcp_validate', toolCallId: 'mv1', arguments: { path: '/home/user/.copilot/config/mcp-config.json' } });
 			expect(part).toBeInstanceOf(ChatToolInvocationPart);
-			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(/mcp-config\.json/i);
+			expect(getInvocationMessageText(part as ChatToolInvocationPart)).toMatch(regexpMcpConfigJson);
 		});
 		it('formats tool_search_tool_regex invocation with pattern', () => {
 			const part = createCopilotCLIToolInvocation({ toolName: 'tool_search_tool_regex', toolCallId: 'ts1', arguments: { pattern: 'search.*file' } });

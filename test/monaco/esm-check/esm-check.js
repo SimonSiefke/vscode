@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpJs = /\.js$/;
+const regexpImportCss = /import '[^']+\.css';/g;
+
 // @ts-check
 
 const fs = require('fs');
@@ -80,14 +83,14 @@ async function extractSourcesWithoutCSS() {
 
 	for (const file of glob.sync('**/*', { cwd: SRC_DIR, nodir: true })) {
 		const srcFilename = path.join(SRC_DIR, file);
-		if (!/\.js$/.test(srcFilename)) {
+		if (!regexpJs.test(srcFilename)) {
 			continue;
 		}
 
 		const dstFilename = path.join(DST_DIR, file);
 
 		let contents = fs.readFileSync(srcFilename).toString();
-		contents = contents.replace(/import '[^']+\.css';/g, '');
+		contents = contents.replace(new RegExp(regexpImportCss), '');
 
 		fs.mkdirSync(path.dirname(dstFilename), { recursive: true });
 		fs.writeFileSync(dstFilename, contents);

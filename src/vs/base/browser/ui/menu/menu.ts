@@ -26,6 +26,9 @@ import { isLinux, isMacintosh } from '../../../common/platform.js';
 import { ScrollbarVisibility, ScrollEvent } from '../../../common/scrollable.js';
 import * as strings from '../../../common/strings.js';
 import { AnchorAlignment, layout, LayoutAnchorPosition } from '../../../common/layout.js';
+const regexp1 = /&&/g;
+const regexpAmpAmp = /&amp;&amp;/g;
+
 
 export const MENU_MNEMONIC_REGEX = /\(&([^\s&])\)|(^|[^&])&([^\s&])/;
 export const MENU_ESCAPED_MNEMONIC_REGEX = /(&amp;)?(&amp;)([^\s&])/g;
@@ -599,7 +602,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 					label = cleanLabel;
 				}
 
-				this.label.setAttribute('aria-label', cleanLabel.replace(/&&/g, '&'));
+				this.label.setAttribute('aria-label', cleanLabel.replace(new RegExp(regexp1), '&'));
 
 				const matches = MENU_MNEMONIC_REGEX.exec(label);
 
@@ -615,7 +618,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 						escMatch = MENU_ESCAPED_MNEMONIC_REGEX.exec(label);
 					}
 
-					const replaceDoubleEscapes = (str: string) => str.replace(/&amp;&amp;/g, '&amp;');
+					const replaceDoubleEscapes = (str: string) => str.replace(new RegExp(regexpAmpAmp), '&amp;');
 
 					if (escMatch) {
 						this.label.append(
@@ -629,7 +632,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 
 					this.item?.setAttribute('aria-keyshortcuts', (!!matches[1] ? matches[1] : matches[3]).toLocaleLowerCase());
 				} else {
-					this.label.textContent = label.replace(/&&/g, '&').trim();
+					this.label.textContent = label.replace(new RegExp(regexp1), '&').trim();
 				}
 			}
 		}

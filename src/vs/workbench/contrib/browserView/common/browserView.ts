@@ -58,6 +58,8 @@ import { isLocalhostAuthority } from '../../../../platform/url/common/trustedDom
 import { IAgentNetworkFilterService } from '../../../../platform/networkFilter/common/networkFilterService.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IBrowserZoomService } from './browserZoomService.js';
+const regexpLocalhost = /^localhost(:|\/|$)/i;
+
 
 export const enum BrowserViewSharingState {
 	/** Tools are available and the page is shared with the agent. */
@@ -694,7 +696,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 		this._onWillNavigate.fire(url);
 
 		// Prepend http:// for bare localhost authorities (e.g. "localhost:3000").
-		if (/^localhost(:|\/|$)/i.test(url)) {
+		if (regexpLocalhost.test(url)) {
 			url = 'http://' + url;
 		} else if (!URL.parse(url)?.protocol) {
 			// No scheme — default to http://; sites typically upgrade to https://.

@@ -8,6 +8,22 @@ import { CancellationError, isCancellationError } from '../../../util/vs/base/co
 import { escapeRegExpCharacters } from '../../../util/vs/base/common/strings';
 import { LinkifiedPart, LinkifiedText, coalesceParts } from './linkifiedText';
 import type { IContributedLinkifier, ILinkifier, LinkifierContext } from './linkifyService';
+const regexp1 = /^\s*\[[^\]]*$/;
+const regexp2 = /^[^\[`]*\$[^\$]*\$$/;
+const regexp3 = /^[^\[`]*\$[^\$]*$/;
+const regexp4 = /^`[^`]+`$/;
+const regexp5 = /^[^\[`]*`[^`]*$/;
+const regexp6 = /^\s+$/;
+const regexp7 = /(\n|^)([ \t]*)[`~]*$/;
+const regexp8 = /(^|\n)\s*(`{3,}|~{3,}|\$\$)/;
+const regexp9 = /(\n|^)([ \t]*)$/;
+const regexp10 = /\s/;
+const regexp11 = /\n/;
+const regexp12 = /]/;
+const regexp13 = /(\s+)/;
+const regexp14 = /\[([^\[\]]+)\]\(([^\s\)]+)\)/g;
+const regexp15 = /^\w{2,}:/;
+
 
 namespace LinkifierState {
 	export enum Type {
@@ -83,38 +99,38 @@ export class Linkifier implements ILinkifier {
 
 		const out: LinkifiedPart[] = [];
 
-		for (const part of newText.split(/(\s+)/)) {
+		for (const part of newText.split(regexp13)) {
 			if (!part.length) {
 				continue;
 			}
 
 			switch (this._state.type) {
 				case LinkifierState.Type.Default: {
-					if (/^\s+$/.test(part)) {
+					if (regexp6.test(part)) {
 						out.push(this.doAppend(part));
 					} else {
 						// Start accumulating
 
 						// `text...
-						if (/^[^\[`]*`[^`]*$/.test(part)) {
+						if (regexp5.test(part)) {
 							this._state = new LinkifierState.Accumulating(part, LinkifierState.AccumulationType.InlineCodeOrMath, '`');
 						}
 						// `text`
-						else if (/^`[^`]+`$/.test(part)) {
+						else if (regexp4.test(part)) {
 							// No linkifying inside inline code
 							out.push(...(await this.doLinkifyAndAppend(part, { skipUnlikify: true }, token)).parts);
 						}
 						// $text...
-						else if (/^[^\[`]*\$[^\$]*$/.test(part)) {
+						else if (regexp3.test(part)) {
 							this._state = new LinkifierState.Accumulating(part, LinkifierState.AccumulationType.InlineCodeOrMath, '$');
 						}
 						// $text$
-						else if (/^[^\[`]*\$[^\$]*\$$/.test(part)) {
+						else if (regexp2.test(part)) {
 							// No linkifying inside math code
 							out.push(this.doAppend(part));
 						}
 						// [text...
-						else if (/^\s*\[[^\]]*$/.test(part)) {
+						else if (regexp1.test(part)) {
 							this._state = new LinkifierState.Accumulating(part, LinkifierState.AccumulationType.PotentialLink);
 						}
 						// Plain old word
@@ -131,7 +147,7 @@ export class Linkifier implements ILinkifier {
 					) {
 						// To end the code block, the previous text needs to be empty up the start of the last line and
 						// at lower indentation than the opening code block.
-						const indent = this._appliedText.match(/(\n|^)([ \t]*)[`~]*$/);
+						const indent = this._appliedText.match(regexp7);
 						if (indent && indent[2].length <= this._state.indent.length) {
 							this._state = LinkifierState.Default;
 							out.push(this.doAppend(part));
@@ -154,10 +170,10 @@ export class Linkifier implements ILinkifier {
 					};
 
 					if (this._state.accumulationType === LinkifierState.AccumulationType.PotentialLink) {
-						if (/]/.test(part)) {
+						if (regexp12.test(part)) {
 							this._state = this._state.append(part);
 							break;
-						} else if (/\n/.test(part)) {
+						} else if (regexp11.test(part)) {
 							await completeWord(this._state, part, false);
 							break;
 						}
@@ -185,14 +201,14 @@ export class Linkifier implements ILinkifier {
 							}
 						}
 						break;
-					} else if (this._state.accumulationType === LinkifierState.AccumulationType.Word && /\s/.test(part)) {
+					} else if (this._state.accumulationType === LinkifierState.AccumulationType.Word && regexp10.test(part)) {
 						const toAppend = this._state.pendingText + part;
 						this._state = LinkifierState.Default;
 
 						// Check if we've found special tokens
-						const fence = toAppend.match(/(^|\n)\s*(`{3,}|~{3,}|\$\$)/);
+						const fence = toAppend.match(regexp8);
 						if (fence) {
-							const indent = this._appliedText.match(/(\n|^)([ \t]*)$/);
+							const indent = this._appliedText.match(regexp9);
 							this._state = new LinkifierState.CodeOrMathBlock(fence[2], indent?.[2] ?? '');
 							out.push(this.doAppend(toAppend));
 						}
@@ -258,13 +274,13 @@ export class Linkifier implements ILinkifier {
 		if (!options.skipUnlikify) {
 			parts = parts.map(part => {
 				if (typeof part === 'string') {
-					return part.replaceAll(/\[([^\[\]]+)\]\(([^\s\)]+)\)/g, (matched, text, path) => {
+					return part.replaceAll(new RegExp(regexp14), (matched, text, path) => {
 						// Always preserve product URI scheme links
 						if (path.startsWith(this.productUriScheme + ':')) {
 							return matched;
 						}
 
-						return /^\w{2,}:/.test(path) ? matched : text;
+						return regexp15.test(path) ? matched : text;
 					});
 				}
 				return part;

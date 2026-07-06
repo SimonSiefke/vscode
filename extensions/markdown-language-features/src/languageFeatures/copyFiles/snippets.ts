@@ -3,11 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpEscapeNamePattern = /(?<escape>\\\$)|(?<!\\)\$\{(?<name>\w+)(?:\/(?<pattern>(?:\\\/|[^\}])+?)\/(?<replacement>(?:\\\/|[^\}])+?)\/)?\}/g;
+const regexp2 = /\\\//g;
+
 /**
  * Resolves variables in a VS Code snippet style string
  */
 export function resolveSnippet(snippetString: string, vars: ReadonlyMap<string, string>): string {
-	return snippetString.replaceAll(/(?<escape>\\\$)|(?<!\\)\$\{(?<name>\w+)(?:\/(?<pattern>(?:\\\/|[^\}])+?)\/(?<replacement>(?:\\\/|[^\}])+?)\/)?\}/g, (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
+	return snippetString.replaceAll(new RegExp(regexpEscapeNamePattern), (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
 		if (groups?.['escape']) {
 			return '$';
 		}
@@ -27,6 +30,6 @@ export function resolveSnippet(snippetString: string, vars: ReadonlyMap<string, 
 
 
 function replaceTransformEscapes(str: string): string {
-	return str.replaceAll(/\\\//g, '/');
+	return str.replaceAll(new RegExp(regexp2), '/');
 }
 

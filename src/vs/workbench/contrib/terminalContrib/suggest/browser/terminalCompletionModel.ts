@@ -8,6 +8,8 @@ import { count } from '../../../../../base/common/strings.js';
 import { isString } from '../../../../../base/common/types.js';
 import { SimpleCompletionModel, type LineContext } from '../../../../services/suggest/browser/simpleCompletionModel.js';
 import { TerminalCompletionItemKind, type TerminalCompletionItem } from './terminalCompletionItem.js';
+const regexpGit = /^\s*git\b/;
+
 
 export class TerminalCompletionModel extends SimpleCompletionModel<TerminalCompletionItem> {
 	constructor(
@@ -74,7 +76,7 @@ const compareCompletionsFn = (leadingLineContent: string, a: TerminalCompletionI
 	// Boost main and master branches for git commands
 	// HACK: Currently this just matches leading line content, it should eventually check the
 	//       completion type is a branch
-	if (a.completion.kind === TerminalCompletionItemKind.Argument && b.completion.kind === TerminalCompletionItemKind.Argument && /^\s*git\b/.test(leadingLineContent)) {
+	if (a.completion.kind === TerminalCompletionItemKind.Argument && b.completion.kind === TerminalCompletionItemKind.Argument && regexpGit.test(leadingLineContent)) {
 		const aLabel = isString(a.completion.label) ? a.completion.label : a.completion.label.label;
 		const bLabel = isString(b.completion.label) ? b.completion.label : b.completion.label.label;
 		const aIsMainOrMaster = aLabel === 'main' || aLabel === 'master';

@@ -9,6 +9,13 @@ import { TelemetryTrustedValue } from '../../../../../platform/telemetry/common/
 import { ChatConfiguration } from '../../../chat/common/constants.js';
 import type { ITerminalInstance } from '../../../terminal/browser/terminal.js';
 import { ShellIntegrationQuality } from './toolTerminalCreator.js';
+const regexp1 = /[^\x00-\x7F]/;
+const regexp2 = /[a-z]/;
+const regexp3 = /[A-Z]/;
+const regexp4 = /[0-9]/;
+const regexpZ0 = /^[a-z0-9_\-\.\\\/:;]+$/i;
+const regexpZ0Z0 = /^(?:[A-Z][a-z0-9]+)+(?:-(?:[A-Z][a-z0-9]+))*$/;
+
 
 export class RunInTerminalToolTelemetry {
 	constructor(
@@ -29,17 +36,17 @@ export class RunInTerminalToolTelemetry {
 			const commandName = e.split(' ')[0];
 			let sanitizedCommandName = commandName.toLowerCase();
 			if (!commandAllowList.has(sanitizedCommandName)) {
-				if (/^(?:[A-Z][a-z0-9]+)+(?:-(?:[A-Z][a-z0-9]+))*$/.test(commandName)) {
+				if (regexpZ0Z0.test(commandName)) {
 					sanitizedCommandName = '(unknown:pwsh)';
-				} else if (/^[a-z0-9_\-\.\\\/:;]+$/i.test(commandName)) {
+				} else if (regexpZ0.test(commandName)) {
 					const properties: string[] = [];
-					if (/[a-z]/.test(commandName)) {
+					if (regexp2.test(commandName)) {
 						properties.push('ascii_lower');
 					}
-					if (/[A-Z]/.test(commandName)) {
+					if (regexp3.test(commandName)) {
 						properties.push('ascii_upper');
 					}
-					if (/[0-9]/.test(commandName)) {
+					if (regexp4.test(commandName)) {
 						properties.push('numeric');
 					}
 					const chars: string[] = [];
@@ -49,7 +56,7 @@ export class RunInTerminalToolTelemetry {
 						}
 					}
 					sanitizedCommandName = `(unknown:${properties.join(',')}:${chars.join('')})`;
-				} else if (/[^\x00-\x7F]/.test(commandName)) {
+				} else if (regexp1.test(commandName)) {
 					sanitizedCommandName = '(unknown:unicode)';
 				} else {
 					sanitizedCommandName = '(unknown)';

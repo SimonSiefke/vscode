@@ -21,6 +21,8 @@ import { Tag } from '../base/tag';
 import { NotebookPromptPriority } from './inlineChatNotebookCommon';
 import { PromptingSummarizedDocument } from './promptingSummarizedDocument';
 import { ProjectedDocument } from './summarizedDocument/summarizeDocument';
+const regexpZA = /^[a-zA-Z_][\w\.\-]*$/;
+
 
 export interface InlineChatNotebookBasePromptState {
 	summarizedDocument: PromptingSummarizedDocument;
@@ -229,7 +231,7 @@ export type IndexedTagProps = PromptElementProps<{
 
 export class IndexedTag extends PromptElement<IndexedTagProps> {
 
-	private static readonly _regex = /^[a-zA-Z_][\w\.\-]*$/;
+	private static readonly _regex = regexpZA;
 
 	render() {
 		const { name, index } = this.props;

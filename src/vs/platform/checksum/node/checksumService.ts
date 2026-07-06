@@ -8,6 +8,8 @@ import { listenStream } from '../../../base/common/stream.js';
 import { URI } from '../../../base/common/uri.js';
 import { IChecksumService } from '../common/checksumService.js';
 import { IFileService } from '../../files/common/files.js';
+const regexp1 = /=+$/;
+
 
 export class ChecksumService implements IChecksumService {
 
@@ -23,7 +25,7 @@ export class ChecksumService implements IChecksumService {
 			listenStream(stream, {
 				onData: data => hash.update(data.buffer),
 				onError: error => reject(error),
-				onEnd: () => resolve(hash.digest('base64').replace(/=+$/, ''))
+				onEnd: () => resolve(hash.digest('base64').replace(regexp1, ''))
 			});
 		});
 	}

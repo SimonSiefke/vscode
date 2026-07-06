@@ -14,6 +14,8 @@ import { WASMLanguage } from './treeSitterLanguages';
 import { _isFineScope, _isScope, _isStatement, callExpressionQuery, classDeclarationQuery, classReferenceQuery, coarseScopesQuery, functionQuery, semanticChunkingTargetQuery, symbolQueries, typeDeclarationQuery, typeReferenceQuery } from './treeSitterQueries';
 import { extractIdentifier } from './util';
 import Parser = require('web-tree-sitter');
+const regexpDefinition = /definition/;
+
 
 export { _getDocumentableNodeIfOnIdentifier, _getNodeToDocument, NodeToDocumentContext } from './docGenParsing';
 export { _dispose } from './parserWithCaching';
@@ -479,7 +481,7 @@ export async function _getNodeToExplain(
 }
 
 function isExplainableNode(node: Parser.SyntaxNode, language: WASMLanguage) {
-	return node.type.match(/definition/);
+	return node.type.match(regexpDefinition);
 }
 
 export function getBlockNameTree(language: WASMLanguage, queryMatches: Parser.QueryMatch[], root: Parser.SyntaxNode): QueryMatchTree<BlockNameDetail> {

@@ -34,6 +34,9 @@ import { isEqual as isURLEquals } from '../../../../base/common/resources.js';
 import { equals as objectEquals } from '../../../../base/common/objects.js';
 import { Delayer } from '../../../../base/common/async.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
+const regexp1 = /^-|-$/g;
+const regexpZ0 = /[^a-z0-9]+/g;
+
 
 
 export const IChatModeService = createDecorator<IChatModeService>('chatModeService');
@@ -745,7 +748,7 @@ export function getModeNameForTelemetry(mode: IChatMode): string {
  * ```
  */
 export function getHandoffId(handoff: IHandOff): string {
-	const slug = handoff.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+	const slug = handoff.label.toLowerCase().replace(new RegExp(regexpZ0), '-').replace(new RegExp(regexp1), '');
 	return `${handoff.agent}:${slug}`;
 }
 

@@ -11,6 +11,9 @@ import { DocumentStreamReader } from './bufferStream';
 import * as EmmetHelper from '@vscode/emmet-helper';
 import { TextDocument as LSTextDocument } from 'vscode-languageserver-textdocument';
 import { getRootNode } from './parseDocument';
+const regexpTypescriptreactJavascriptreactJsx = /\b(typescriptreact|javascriptreact|jsx-tags)\b/;
+const regexp2 = /\s/;
+
 
 let _emmetHelper: typeof EmmetHelper;
 let _currentExtensionsPath: string[] | undefined;
@@ -158,7 +161,7 @@ export function getEmmetMode(language: string, mappedModes: Record<string, strin
 		language = mappedModes[language];
 	}
 
-	if (/\b(typescriptreact|javascriptreact|jsx-tags)\b/.test(language)) { // treat tsx like jsx
+	if (regexpTypescriptreactJavascriptreactJsx.test(language)) { // treat tsx like jsx
 		language = 'jsx';
 	}
 	else if (language === 'sass-indented') { // map sass-indented to sass
@@ -302,7 +305,7 @@ export function parsePartialStylesheet(document: vscode.TextDocument, position: 
 		consumeLineCommentBackwards();
 
 		const ch = stream.backUp(1);
-		if (/\s/.test(String.fromCharCode(ch))) {
+		if (regexp2.test(String.fromCharCode(ch))) {
 			continue;
 		}
 

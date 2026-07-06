@@ -10,6 +10,8 @@ import { ILogService } from '../../../../platform/log/common/logService';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { PromptRenderer } from '../../../prompts/node/base/promptRenderer';
+const regexp1 = /\r\n|\r|\n/;
+
 
 
 type ParsedUserQuery = {
@@ -53,7 +55,7 @@ export class UserQueryParser {
 	private processResponse(response: string) {
 
 		// remove first (1-based) and last lines of response if they're backticks (```)
-		const lines = response.split(/\r\n|\r|\n/).filter(s => s !== '');
+		const lines = response.split(regexp1).filter(s => s !== '');
 		if (lines.at(0) !== '```') {
 			lines.splice(0, 1);
 			if (lines.at(-1) === '```') {

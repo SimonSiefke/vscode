@@ -22,6 +22,9 @@ import { WindowsShellHelper } from './windowsShellHelper.js';
 import { IPty, IPtyForkOptions, IWindowsPtyForkOptions, spawn } from 'node-pty';
 import { isNumber } from '../../../base/common/types.js';
 import { getWindowsBuildNumberSync } from '../../../base/node/windowsVersion.js';
+const regexpError = /^Error/;
+const regexpFigterm = / \(figterm\)$/g;
+
 
 const enum ShutdownConstants {
 	/**
@@ -375,7 +378,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 	// See https://github.com/microsoft/node-pty/issues/72
 	private _queueProcessExit() {
 		if (this._logService.getLevel() === LogLevel.Trace) {
-			this._logService.trace('TerminalProcess#_queueProcessExit', new Error().stack?.replace(/^Error/, ''));
+			this._logService.trace('TerminalProcess#_queueProcessExit', new Error().stack?.replace(regexpError, ''));
 		}
 		if (this._closeTimeout) {
 			clearTimeout(this._closeTimeout);
@@ -441,7 +444,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 		this._currentTitle = (ptyProcess.process ?? '');
 		this._onDidChangeProperty.fire({ type: ProcessPropertyType.Title, value: this._currentTitle });
 		// If fig is installed it may change the title of the process
-		let sanitizedTitle = this.currentTitle.replace(/ \(figterm\)$/g, '');
+		let sanitizedTitle = this.currentTitle.replace(new RegExp(regexpFigterm), '');
 		// Ensure any prefixed path is removed so that the executable name since we use this to
 		// detect the shell type
 		if (!isWindows) {
@@ -460,7 +463,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 
 	shutdown(immediate: boolean): void {
 		if (this._logService.getLevel() === LogLevel.Trace) {
-			this._logService.trace('TerminalProcess#shutdown', new Error().stack?.replace(/^Error/, ''));
+			this._logService.trace('TerminalProcess#shutdown', new Error().stack?.replace(regexpError, ''));
 		}
 		// don't force immediate disposal of the terminal processes on Windows as an additional
 		// mitigation for https://github.com/microsoft/vscode/issues/71966 which causes the pty host

@@ -11,6 +11,14 @@ import colors from 'ansi-colors';
 import ts from 'typescript';
 import Vinyl from 'vinyl';
 import { type RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
+const regexp1 = /\\/g;
+const regexpDeclareModule = /declare\s+module\s+('|")(.+)\1/;
+const regexpTs = /\.d\.ts$/;
+const regexpJsMap = /\.js\.map$/;
+const regexpJs = /\.js$/;
+const regexpDeclareModule1 = /declare\s+module\s+('|")(.+)\1/g;
+const regexpTs1 = /.*\.d\.ts$/;
+
 
 export interface IConfiguration {
 	logFn: (topic: string, message: string) => void;
@@ -34,7 +42,7 @@ export interface ITypeScriptBuilder {
 }
 
 function normalize(path: string): string {
-	return path.replace(/\\/g, '/');
+	return path.replace(new RegExp(regexp1), '/');
 }
 
 export function createTypeScriptBuilder(config: IConfiguration, projectFile: string, cmd: ts.ParsedCommandLine): ITypeScriptBuilder {
@@ -84,7 +92,7 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 			externalModuleIndicator?: unknown;
 		}
 		return !!(sourceFile as SourceFileWithModuleIndicator).externalModuleIndicator
-			|| /declare\s+module\s+('|")(.+)\1/.test(sourceFile.getText());
+			|| regexpDeclareModule.test(sourceFile.getText());
 	}
 
 	function build(out: (file: Vinyl) => void, onError: (err: any) => void, token = CancellationToken.None): Promise<any> {
@@ -118,7 +126,7 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 			return new Promise(resolve => {
 				process.nextTick(function () {
 
-					if (/\.d\.ts$/.test(fileName)) {
+					if (regexpTs.test(fileName)) {
 						// if it's already a d.ts file just emit it signature
 						const snapshot = host.getScriptSnapshot(fileName);
 						const signature = crypto.createHash('sha256')
@@ -137,11 +145,11 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 					let signature: string | undefined;
 
 					for (const file of output.outputFiles) {
-						if (!emitSourceMapsInStream && /\.js\.map$/.test(file.name)) {
+						if (!emitSourceMapsInStream && regexpJsMap.test(file.name)) {
 							continue;
 						}
 
-						if (/\.d\.ts$/.test(file.name)) {
+						if (regexpTs.test(file.name)) {
 							signature = crypto.createHash('sha256')
 								.update(file.text)
 								.digest('base64');
@@ -158,8 +166,8 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 							base: !config._emitWithoutBasePath && baseFor(host.getScriptSnapshot(fileName)) || undefined
 						});
 
-						if (!emitSourceMapsInStream && /\.js$/.test(file.name)) {
-							const sourcemapFile = output.outputFiles.filter(f => /\.js\.map$/.test(f.name))[0];
+						if (!emitSourceMapsInStream && regexpJs.test(file.name)) {
+							const sourcemapFile = output.outputFiles.filter(f => regexpJsMap.test(f.name))[0];
 
 							if (sourcemapFile) {
 								const extname = path.extname(vinyl.relative);
@@ -168,7 +176,7 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 								const tsname = (dirname === '.' ? '' : dirname + '/') + basename + '.ts';
 
 								let sourceMap = JSON.parse(sourcemapFile.text) as RawSourceMap;
-								sourceMap.sources[0] = tsname.replace(/\\/g, '/');
+								sourceMap.sources[0] = tsname.replace(new RegExp(regexp1), '/');
 
 								// check for an "input source" map and combine them
 								// in step 1 we extract all line edit from the input source map, and
@@ -609,7 +617,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
 		return result;
 	}
 
-	private static _declareModule = /declare\s+module\s+('|")(.+)\1/g;
+	private static _declareModule = new RegExp(regexpDeclareModule1);
 
 	addScriptSnapshot(filename: string, snapshot: ScriptSnapshot): ScriptSnapshot {
 		this._projectVersion++;
@@ -689,7 +697,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
 	}
 
 	_processFile(filename: string): void {
-		if (filename.match(/.*\.d\.ts$/)) {
+		if (filename.match(regexpTs1)) {
 			return;
 		}
 		filename = normalize(filename);

@@ -6,6 +6,9 @@
 import { deepStrictEqual, doesNotThrow, equal, ok, strictEqual, throws } from 'assert';
 import { commands, ConfigurationTarget, Disposable, env, EnvironmentVariableMutator, EnvironmentVariableMutatorOptions, EnvironmentVariableMutatorType, EventEmitter, ExtensionContext, extensions, ExtensionTerminalOptions, Pseudoterminal, Terminal, TerminalDimensions, TerminalExitReason, TerminalOptions, TerminalState, UIKind, Uri, window, workspace } from 'vscode';
 import { assertNoRpc, poll } from '../utils';
+const regexp1 = /[\r\n]/g;
+const regexpZA = /(:?(:?\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~])|(:?\x1b\].*?\x07)/g;
+
 
 // Disable terminal tests:
 // - Web https://github.com/microsoft/vscode/issues/92826
@@ -974,11 +977,11 @@ import { assertNoRpc, poll } from '../utils';
 
 function sanitizeData(data: string): string {
 	// Strip NL/CR so terminal dimensions don't impact tests
-	data = data.replace(/[\r\n]/g, '');
+	data = data.replace(new RegExp(regexp1), '');
 
 	// Strip escape sequences so conpty doesn't cause flakiness, do for all platforms for
 	// consistency
-	const CSI_SEQUENCE = /(:?(:?\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~])|(:?\x1b\].*?\x07)/g;
+	const CSI_SEQUENCE = new RegExp(regexpZA);
 	data = data.replace(CSI_SEQUENCE, '');
 
 	return data;

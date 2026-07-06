@@ -6,6 +6,8 @@
 import fs from 'fs';
 import cp from 'child_process';
 import path from 'path';
+const regexp1 = /\t/gm;
+
 
 let tag = '';
 try {
@@ -51,7 +53,7 @@ function repeat(str: string, times: number): string {
 }
 
 function convertTabsToSpaces(str: string): string {
-	return str.replace(/\t/gm, value => repeat('    ', value.length));
+	return str.replace(new RegExp(regexp1), value => repeat('    ', value.length));
 }
 
 function getNewFileContent(content: string, shorttag: string) {

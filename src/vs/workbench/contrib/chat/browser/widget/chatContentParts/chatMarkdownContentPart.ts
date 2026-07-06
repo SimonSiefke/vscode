@@ -67,6 +67,9 @@ import { ChatProgressSubPart } from './chatProgressContentPart.js';
 import { IncrementalDOMMorpher } from './chatIncrementalRendering/chatIncrementalRendering.js';
 import { IChatOutputPartStateCache, IOutputPartState } from './chatOutputPartStateCache.js';
 import './media/chatMarkdownPart.css';
+const regexpDiff = /^```diff:(\w+)/;
+const regexp2 = /\n```+$/;
+
 
 const $ = dom.$;
 
@@ -247,7 +250,7 @@ export class ChatMarkdownContentPart extends Disposable implements IChatContentP
 						return hideEmptyCodeblock;
 					}
 					if (languageId === 'diff' && raw && this.rendererOptions.allowInlineDiffs) {
-						const match = raw.match(/^```diff:(\w+)/);
+						const match = raw.match(regexpDiff);
 						if (match && isResponseVM(context.element)) {
 							const actualLanguageId = match[1];
 							const codeBlockUri = extractCodeblockUrisFromText(text);
@@ -688,7 +691,7 @@ function equalsSymbolTags(a: readonly SymbolTag[] | undefined, b: readonly Symbo
 
 export function codeblockHasClosingBackticks(str: string): boolean {
 	str = str.trim();
-	return !!str.match(/\n```+$/);
+	return !!str.match(regexp2);
 }
 
 class ChatOutputCodeBlockPart extends Disposable {

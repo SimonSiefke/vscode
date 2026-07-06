@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 import { StatementNode, StatementTree } from './statementTree';
 import { IPosition, TextDocumentContents } from '../textDocument';
+const regexp1 = /\n/g;
+const regexp2 = /\r?\n\s*\r?\n/g;
+const regexp3 = /\S/;
+
 
 /**
  * BlockTrimmer base class.
@@ -112,7 +116,7 @@ export class VerboseBlockTrimmer extends BlockTrimmer {
 	) {
 		super(languageId, prefix, completion);
 		// determine the end of the lineLimit line as an offset into the completion
-		const completionLineEnds = [...this.completion.matchAll(/\n/g)];
+		const completionLineEnds = [...this.completion.matchAll(new RegExp(regexp1))];
 		if (completionLineEnds.length >= this.lineLimit && this.lineLimit > 0) {
 			this.offsetLimit = completionLineEnds[this.lineLimit - 1].index;
 		} else {
@@ -146,7 +150,7 @@ export class VerboseBlockTrimmer extends BlockTrimmer {
 	}
 
 	private trimToBlankLine(offset: number | undefined): number | undefined {
-		const blankLines = [...this.trimmedCompletion(offset).matchAll(/\r?\n\s*\r?\n/g)].reverse();
+		const blankLines = [...this.trimmedCompletion(offset).matchAll(new RegExp(regexp2))].reverse();
 		while (blankLines.length > 0 && !this.isWithinLimit(offset)) {
 			const match = blankLines.pop()!;
 			offset = match.index;
@@ -192,7 +196,7 @@ export class TerseBlockTrimmer extends BlockTrimmer {
 	) {
 		super(languageId, prefix, completion);
 		// determine the end of the lineLimit line as an offset into the completion
-		const completionLineEnds = [...this.completion.matchAll(/\n/g)];
+		const completionLineEnds = [...this.completion.matchAll(new RegExp(regexp1))];
 		const limitAndLookAhead = this.lineLimit + this.lookAhead;
 		if (completionLineEnds.length >= this.lineLimit && this.lineLimit > 0) {
 			this.limitOffset = completionLineEnds[this.lineLimit - 1].index;
@@ -231,7 +235,7 @@ export class TerseBlockTrimmer extends BlockTrimmer {
 	 * of the cursor, or the start of the completion if it is blank.
 	 */
 	private stmtStartPos(): number {
-		const match = this.completion.match(/\S/);
+		const match = this.completion.match(regexp3);
 		if (match && match.index !== undefined) {
 			return this.prefix.length + match.index;
 		}
@@ -239,7 +243,7 @@ export class TerseBlockTrimmer extends BlockTrimmer {
 	}
 
 	private trimAtFirstBlankLine(offset: number | undefined): number | undefined {
-		const blankLines = [...this.trimmedCompletion(offset).matchAll(/\r?\n\s*\r?\n/g)];
+		const blankLines = [...this.trimmedCompletion(offset).matchAll(new RegExp(regexp2))];
 
 		while (blankLines.length > 0 && (offset === undefined || offset > blankLines[0].index)) {
 			const match = blankLines.shift()!;

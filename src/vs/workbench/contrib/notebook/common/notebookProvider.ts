@@ -9,6 +9,8 @@ import { basename } from '../../../../base/common/path.js';
 import { INotebookExclusiveDocumentFilter, isDocumentExcludePattern, TransientOptions } from './notebookCommon.js';
 import { RegisteredEditorPriority } from '../../../services/editor/common/editorResolverService.js';
 import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
+const regexpZAZ0 = /^.*(\.[a-zA-Z0-9_-]+)$/;
+
 
 type NotebookSelector = string | glob.IRelativePattern | INotebookExclusiveDocumentFilter;
 
@@ -114,7 +116,7 @@ export class NotebookProviderInfo {
 
 	private static _possibleFileEnding(selector: NotebookSelector): string | undefined {
 
-		const pattern = /^.*(\.[a-zA-Z0-9_-]+)$/;
+		const pattern = regexpZAZ0;
 
 		let candidate: string | undefined;
 

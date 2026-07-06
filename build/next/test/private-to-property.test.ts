@@ -7,6 +7,9 @@ import assert from 'assert';
 import { suite, test } from 'node:test';
 import { convertPrivateFields, adjustSourceMap } from '../private-to-property.ts';
 import { SourceMapConsumer, SourceMapGenerator, type RawSourceMap } from 'source-map';
+const regexp1 = /\$a/g;
+const regexp2 = /\$a\s*=/g;
+
 
 suite('convertPrivateFields', () => {
 
@@ -128,7 +131,7 @@ suite('convertPrivateFields', () => {
 		].join('\n');
 		const result = convertPrivateFields(code, 'test.js');
 		assert.ok(!result.code.includes('#x'));
-		const matches = result.code.match(/\$a/g);
+		const matches = result.code.match(new RegExp(regexp1));
 		assert.strictEqual(matches?.length, 3, 'decl + this.#x + o.#x = 3');
 	});
 
@@ -171,7 +174,7 @@ suite('convertPrivateFields', () => {
 		].join('\n');
 		const result = convertPrivateFields(code, 'test.js');
 		assert.ok(!result.code.includes('#secret'));
-		const matches = result.code.match(/\$a/g);
+		const matches = result.code.match(new RegExp(regexp1));
 		assert.strictEqual(matches?.length, 3);
 	});
 
@@ -394,7 +397,7 @@ suite('convertPrivateFields', () => {
 		].join('\n');
 		const result = convertPrivateFields(code, 'test.js');
 		// #x must not be renamed to $a since the class already has a public $a
-		const fieldDecls = result.code.match(/\$a\s*=/g);
+		const fieldDecls = result.code.match(new RegExp(regexp2));
 		assert.ok(!fieldDecls || fieldDecls.length <= 1,
 			'should not produce duplicate $a property declarations, got:\n' + result.code);
 	});

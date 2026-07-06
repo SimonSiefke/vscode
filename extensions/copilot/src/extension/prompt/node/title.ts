@@ -15,6 +15,8 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { ChatRequestTurn } from '../../../vscodeTypes';
 import { renderPromptElement } from '../../prompts/node/base/promptRenderer';
 import { TitlePrompt } from '../../prompts/node/panel/title';
+const regexp1 = /^".*"$/;
+
 
 export class ChatTitleProvider implements vscode.ChatTitleProvider {
 
@@ -74,7 +76,7 @@ export class ChatTitleProvider implements vscode.ChatTitleProvider {
 
 		if (response.type === ChatFetchResponseType.Success) {
 			let title = response.value.trim();
-			if (title.match(/^".*"$/)) {
+			if (title.match(regexp1)) {
 				title = title.slice(1, -1);
 			}
 

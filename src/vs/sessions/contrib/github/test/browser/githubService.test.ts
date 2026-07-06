@@ -13,6 +13,8 @@ import { TestInstantiationService } from '../../../../../platform/instantiation/
 import { GitHubService } from '../../browser/githubService.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { GITHUB_REMOTE_FILE_SCHEME } from '../../../../services/sessions/common/session.js';
+const regexpPull = /\/pull\/(\d+)/;
+
 
 suite('GitHubService', () => {
 
@@ -185,7 +187,7 @@ suite('getGitHubContext', () => {
 
 	test('parses PR number from pullRequestUrl', () => {
 		const url = 'https://github.com/microsoft/vscode/pull/12345';
-		const match = /\/pull\/(\d+)/.exec(url);
+		const match = regexpPull.exec(url);
 		assert.ok(match);
 		assert.strictEqual(parseInt(match![1], 10), 12345);
 	});

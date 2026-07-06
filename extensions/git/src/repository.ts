@@ -32,6 +32,18 @@ import { ISourceControlHistoryItemDetailsProviderRegistry } from './historyItemD
 import { GitArtifactProvider } from './artifactProvider';
 import { RepositoryCache } from './repositoryCache';
 import { GitQuickDiffProvider, StagedResourceQuickDiffProvider } from './quickDiffProvider';
+const regexpGitIndexLock = /\/\.git(\/index\.lock|\/worktrees\/[^/]+\/index\.lock)?$|\/\.watchman-cookie-/;
+const regexpGit = /\.git($|\\|\/)/;
+const regexpBranchCreatedFrom = /branch: Created from (?<name>.*)$/;
+const regexpCheckoutMovingFrom = /checkout: moving from ([^\s]+)\s/;
+const regexp5 = /\//g;
+const regexp6 = /[\/\\]/;
+const regexp7 = /[*?{}[\]]/;
+const regexp8 = /^=/;
+const regexp9 = /\\|\[/g;
+const regexpIsInSubmodule = / is in submodule /;
+const regexpRejectedWouldClobber = /^ ! \[rejected\]\s+([^\s]+)\s+->\s+([^\s]+)\s+\(would clobber existing tag\)$/gm;
+
 
 const timeout = (millis: number) => new Promise(c => setTimeout(c, millis));
 
@@ -467,7 +479,7 @@ class DotGitWatcher implements IFileWatcher {
 
 		// Ignore changes to the "index.lock" file (including worktree index.lock files), and watchman fsmonitor hook (https://git-scm.com/docs/githooks#_fsmonitor_watchman) cookie files.
 		// Watchman creates a cookie file inside the git directory whenever a query is run (https://facebook.github.io/watchman/docs/cookies.html).
-		const filteredRootWatcher = filterEvent(rootWatcher.event, uri => uri.scheme === 'file' && !/\/\.git(\/index\.lock|\/worktrees\/[^/]+\/index\.lock)?$|\/\.watchman-cookie-/.test(uri.path));
+		const filteredRootWatcher = filterEvent(rootWatcher.event, uri => uri.scheme === 'file' && !regexpGitIndexLock.test(uri.path));
 		this.event = anyEvent(filteredRootWatcher, this.emitter.event);
 
 		repository.onDidRunGitStatus(this.updateTransientWatchers, this, this.disposables);
@@ -921,7 +933,7 @@ export class Repository implements Disposable {
 		this.disposables.push(repositoryWatcher);
 
 		const onRepositoryFileChange = anyEvent(repositoryWatcher.onDidChange, repositoryWatcher.onDidCreate, repositoryWatcher.onDidDelete);
-		const onRepositoryWorkingTreeFileChange = filterEvent(onRepositoryFileChange, uri => !/\.git($|\\|\/)/.test(relativePath(repository.root, uri.fsPath)));
+		const onRepositoryWorkingTreeFileChange = filterEvent(onRepositoryFileChange, uri => !regexpGit.test(relativePath(repository.root, uri.fsPath)));
 
 		let onRepositoryDotGitFileChange: Event<Uri>;
 
@@ -932,7 +944,7 @@ export class Repository implements Disposable {
 		} catch (err) {
 			logger.error(`Failed to watch path:'${this.dotGit.path}' or commonPath:'${this.dotGit.commonPath}', reverting to legacy API file watched. Some events might be lost.\n${err.stack || err}`);
 
-			onRepositoryDotGitFileChange = filterEvent(onRepositoryFileChange, uri => /\.git($|\\|\/)/.test(uri.path));
+			onRepositoryDotGitFileChange = filterEvent(onRepositoryFileChange, uri => regexpGit.test(uri.path));
 		}
 
 		// FS changes should trigger `git status`:
@@ -1807,7 +1819,7 @@ export class Repository implements Disposable {
 			}
 
 			// Branch created from an explicit branch
-			const match = reflogEntries[0].match(/branch: Created from (?<name>.*)$/);
+			const match = reflogEntries[0].match(regexpBranchCreatedFrom);
 			if (match && match.length === 2 && match[1] !== 'HEAD') {
 				return await this.getBranch(match[1]);
 			}
@@ -1818,7 +1830,7 @@ export class Repository implements Disposable {
 				return undefined;
 			}
 
-			const match2 = headReflogEntries[headReflogEntries.length - 1].match(/checkout: moving from ([^\s]+)\s/);
+			const match2 = headReflogEntries[headReflogEntries.length - 1].match(regexpCheckoutMovingFrom);
 			if (match2 && match2.length === 2) {
 				return await this.getBranch(match2[1]);
 			}
@@ -1945,8 +1957,8 @@ export class Repository implements Disposable {
 			// Create worktree path based on the branch name
 			if (worktreePath === undefined && branch !== undefined) {
 				worktreeName = branch.startsWith(branchPrefix)
-					? branch.substring(branchPrefix.length).replace(/\//g, '-')
-					: branch.replace(/\//g, '-');
+					? branch.substring(branchPrefix.length).replace(new RegExp(regexp5), '-')
+					: branch.replace(new RegExp(regexp5), '-');
 
 				worktreePath = defaultWorktreeRoot
 					? path.join(defaultWorktreeRoot, worktreeName)
@@ -2041,10 +2053,10 @@ export class Repository implements Disposable {
 		// optimize the upward traversal when adding parent directories.
 		const filePatternBases = new Set<string>();
 		for (const pattern of worktreeIncludeFiles) {
-			const segments = pattern.split(/[\/\\]/);
+			const segments = pattern.split(regexp6);
 			const fixedSegments: string[] = [];
 			for (const seg of segments) {
-				if (/[*?{}[\]]/.test(seg)) {
+				if (regexp7.test(seg)) {
 					break;
 				}
 				fixedSegments.push(seg);
@@ -2462,7 +2474,7 @@ export class Repository implements Disposable {
 					return false;
 				}
 
-				return /^=/.test(result.stdout);
+				return regexp8.test(result.stdout);
 			} catch {
 				return false;
 			}
@@ -2573,7 +2585,7 @@ export class Repository implements Disposable {
 			const ignoreFile = `${this.repository.root}${path.sep}.gitignore`;
 			const textToAppend = files
 				.map(uri => relativePath(this.repository.root, uri.fsPath)
-					.replace(/\\|\[/g, match => match === '\\' ? '/' : `\\${match}`))
+					.replace(new RegExp(regexp9), match => match === '\\' ? '/' : `\\${match}`))
 				.join('\n');
 
 			const document = await new Promise(c => fs.exists(ignoreFile, c))
@@ -2627,7 +2639,7 @@ export class Repository implements Disposable {
 					} else if (exitCode === 0) {
 						resolve(new Set<string>(this.parseIgnoreCheck(data)));
 					} else {
-						if (/ is in submodule /.test(stderr)) {
+						if (regexpIsInSubmodule.test(stderr)) {
 							reject(new GitError({ stdout: data, stderr, exitCode, gitErrorCode: GitErrorCodes.IsInSubmodule }));
 						} else {
 							reject(new GitError({ stdout: data, stderr, exitCode }));
@@ -3326,7 +3338,7 @@ export class Repository implements Disposable {
 
 		// Extract tag names from message
 		const tags: string[] = [];
-		for (const match of raw.matchAll(/^ ! \[rejected\]\s+([^\s]+)\s+->\s+([^\s]+)\s+\(would clobber existing tag\)$/gm)) {
+		for (const match of raw.matchAll(new RegExp(regexpRejectedWouldClobber))) {
 			if (match.length === 3) {
 				tags.push(match[1]);
 			}

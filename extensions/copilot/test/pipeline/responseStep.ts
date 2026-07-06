@@ -7,6 +7,9 @@ import { ResponseFormat } from '../../src/platform/inlineEdits/common/dataTypes/
 import { assertNever } from '../../src/util/vs/base/common/assert';
 import { splitLines } from '../../src/util/vs/base/common/strings';
 import { StringText } from '../../src/util/vs/editor/common/core/text/abstractText';
+const regexp1 = /^(\d+)\|\s?/;
+const regexp2 = /^\d+\|\s?/;
+
 
 export interface IGeneratedResponse {
 	readonly assistant: string;
@@ -297,7 +300,7 @@ export function findEditWindowStartLine(
 	}
 
 	// Fallback: try to extract line number from the first edit window line
-	const lineNumMatch = editWindowLines[0].match(/^(\d+)\|\s?/);
+	const lineNumMatch = editWindowLines[0].match(regexp1);
 	if (lineNumMatch) {
 		return parseInt(lineNumMatch[1], 10) - 1; // Convert 1-based to 0-based
 	}
@@ -306,7 +309,7 @@ export function findEditWindowStartLine(
 }
 
 function stripLineNumber(line: string): string {
-	const match = line.match(/^\d+\|\s?/);
+	const match = line.match(regexp2);
 	if (match) {
 		return line.substring(match[0].length);
 	}

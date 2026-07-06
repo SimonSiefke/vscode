@@ -12,6 +12,9 @@ import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../b
 import { ICodeEditor } from './editorBrowser.js';
 import { asCssVariable } from '../../platform/theme/common/colorRegistry.js';
 import { ThemeColor } from '../../base/common/themables.js';
+const regexp1 = /([A-Z])/g;
+const regexp2 = /(^[A-Z])/;
+
 
 /**
  * Coordinates relative to the whole document (e.g. mouse event's pageX and pageY)
@@ -424,6 +427,6 @@ class RefCountedCssRule {
 }
 
 function camelToDashes(str: string): string {
-	return str.replace(/(^[A-Z])/, ([first]) => first.toLowerCase())
-		.replace(/([A-Z])/g, ([letter]) => `-${letter.toLowerCase()}`);
+	return str.replace(regexp2, ([first]) => first.toLowerCase())
+		.replace(new RegExp(regexp1), ([letter]) => `-${letter.toLowerCase()}`);
 }

@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpSteps = /^## steps?$/i;
+const regexp2 = /^(?:-|\d+\.)\s+(.*)/;
+const regexp3 = /^"|"$/g;
+const regexp4 = /"[^"]*"|\S+/g;
+const regexpSnapshotYml = /\[Snapshot\]\((.+?\.yml)\)/;
+
 // @ts-check
 
 /**
@@ -30,10 +36,10 @@ function parseScenario(filePath) {
 	for (const line of lines) {
 		const trimmed = line.trim();
 		if (trimmed.startsWith('# ')) { name = trimmed.slice(2).trim(); }
-		if (/^## steps?$/i.test(trimmed)) { inSteps = true; continue; }
+		if (regexpSteps.test(trimmed)) { inSteps = true; continue; }
 		if (trimmed.startsWith('## ')) { inSteps = false; continue; }
 		if (inSteps) {
-			const m = trimmed.match(/^(?:-|\d+\.)\s+(.*)/);
+			const m = trimmed.match(regexp2);
 			if (m) { steps.push(m[1].trim()); }
 		}
 	}
@@ -54,7 +60,7 @@ function discoverScenarios() {
 function runPlaywrightCli(args) {
 	const argList = Array.isArray(args)
 		? args
-		: (args.match(/"[^"]*"|\S+/g) || []).map(s => s.replace(/^"|"$/g, ''));
+		: (args.match(new RegExp(regexp4)) || []).map(s => s.replace(new RegExp(regexp3), ''));
 	const result = cp.spawnSync('playwright-cli', argList, {
 		cwd: APP_ROOT,
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -75,7 +81,7 @@ function getSnapshot() {
 			path: ''
 		};
 	}
-	const fileMatch = result.stdout.match(/\[Snapshot\]\((.+?\.yml)\)/);
+	const fileMatch = result.stdout.match(regexpSnapshotYml);
 	let pathStr = '';
 	if (fileMatch) {
 		pathStr = path.join(APP_ROOT, fileMatch[1]);

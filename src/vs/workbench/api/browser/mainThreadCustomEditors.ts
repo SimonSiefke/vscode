@@ -47,6 +47,8 @@ import { IWorkingCopyFileService, WorkingCopyFileEvent } from '../../services/wo
 import { IWorkingCopyService } from '../../services/workingCopy/common/workingCopyService.js';
 import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
 import { IUntitledTextEditorService } from '../../services/untitled/common/untitledTextEditorService.js';
+const regexpZ0 = /[^a-z0-9\-_]/gi;
+
 
 const enum CustomEditorModelType {
 	Custom,
@@ -605,7 +607,7 @@ class MainThreadCustomEditorModel extends ResourceWorkingCopy implements ICustom
 
 	// Make sure each custom editor has a unique resource for backup and edits
 	private static toWorkingCopyResource(viewType: string, resource: URI) {
-		const authority = viewType.replace(/[^a-z0-9\-_]/gi, '-');
+		const authority = viewType.replace(new RegExp(regexpZ0), '-');
 		const path = `/${multibyteAwareBtoa(resource.with({ query: null, fragment: null }).toString(true))}`;
 		return URI.from({
 			scheme: Schemas.vscodeCustomEditor,

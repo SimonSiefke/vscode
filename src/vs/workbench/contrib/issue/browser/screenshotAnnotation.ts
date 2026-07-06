@@ -13,6 +13,10 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IScreenshot } from './issueReporterOverlay.js';
+const regexp1 = /\s/;
+const regexp2 = /\s+$/u;
+const regexp3 = /\s/u;
+
 
 const enum AnnotationTool {
 	Select = 'select',
@@ -1987,7 +1991,7 @@ export class ScreenshotAnnotationEditor {
 						const candidate = text.slice(lineStart, i);
 						if (this.ctx.measureText(candidate).width <= maxWidth) {
 							bestEnd = i;
-							if (/\s/.test(text[i - 1])) {
+							if (regexp1.test(text[i - 1])) {
 								lastWhitespaceBreak = i;
 							}
 						} else {
@@ -2004,13 +2008,13 @@ export class ScreenshotAnnotationEditor {
 					}
 
 					const rawLineText = text.slice(lineStart, lineEnd);
-					const lineText = rawLineText.replace(/\s+$/u, '');
+					const lineText = rawLineText.replace(regexp2, '');
 					lines.push({ text: lineText, startIndex: lineStart, endIndex: lineEnd, lineIndex });
 					maxLineWidth = Math.max(maxLineWidth, this.ctx.measureText(lineText).width);
 					lineIndex++;
 
 					lineStart = lineEnd;
-					while (lineStart < paragraphEnd && /\s/u.test(text[lineStart])) {
+					while (lineStart < paragraphEnd && regexp3.test(text[lineStart])) {
 						lineStart++;
 					}
 				}

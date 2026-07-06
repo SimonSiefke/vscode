@@ -11,6 +11,11 @@
 
 import { Lazy } from '../../../../../base/common/lazy.js';
 import { OperatingSystem } from '../../../../../base/common/platform.js';
+const regexp1 = / /g;
+const regexpPrefix = /^(?<prefix>['"]+)/;
+const regexp3 = /['"]/;
+const regexpBracket = /(?<bracket>[\[\(])(?![\]\)])/g;
+
 
 export interface IParsedLink {
 	path: ILinkPartialRange;
@@ -129,7 +134,7 @@ function generateLinkSuffixRegex(eolOnly: boolean) {
 		// Join all clauses together
 		.join('|')
 		// Convert spaces to allow the non-breaking space char (ascii 160)
-		.replace(/ /g, `[${'\u00A0'} ]`);
+		.replace(new RegExp(regexp1), `[${'\u00A0'} ]`);
 
 	return new RegExp(`(${suffixClause})`, eolOnly ? undefined : 'g');
 }
@@ -275,7 +280,7 @@ function detectLinksViaSuffix(line: string): IParsedLink[] {
 			// Extract a path prefix if it exists (not part of the path, but part of the underlined
 			// section)
 			let prefix: ILinkPartialRange | undefined = undefined;
-			const prefixMatch = path.match(/^(?<prefix>['"]+)/);
+			const prefixMatch = path.match(regexpPrefix);
 			if (prefixMatch?.groups?.prefix) {
 				prefix = {
 					index: linkStartIndex,
@@ -298,7 +303,7 @@ function detectLinksViaSuffix(line: string): IParsedLink[] {
 				//
 				// If this fails on a multi-character prefix, just keep the original.
 				if (prefixMatch.groups.prefix.length > 1) {
-					if (suffix.suffix.text[0].match(/['"]/) && prefixMatch.groups.prefix[prefixMatch.groups.prefix.length - 1] === suffix.suffix.text[0]) {
+					if (suffix.suffix.text[0].match(regexp3) && prefixMatch.groups.prefix[prefixMatch.groups.prefix.length - 1] === suffix.suffix.text[0]) {
 						const trimPrefixAmount = prefixMatch.groups.prefix.length - 1;
 						prefix.index += trimPrefixAmount;
 						prefix.text = prefixMatch.groups.prefix[prefixMatch.groups.prefix.length - 1];
@@ -317,7 +322,7 @@ function detectLinksViaSuffix(line: string): IParsedLink[] {
 
 			// If the path contains an opening bracket, provide the path starting immediately after
 			// the opening bracket as an additional result
-			const openingBracketMatch = path.matchAll(/(?<bracket>[\[\(])(?![\]\)])/g);
+			const openingBracketMatch = path.matchAll(new RegExp(regexpBracket));
 			for (const match of openingBracketMatch) {
 				const bracket = match.groups?.bracket;
 				if (bracket) {

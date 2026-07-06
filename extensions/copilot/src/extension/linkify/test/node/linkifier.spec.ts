@@ -8,6 +8,8 @@ import { CancellationToken } from '../../../../util/vs/base/common/cancellation'
 import { coalesceParts, LinkifiedPart, LinkifyLocationAnchor } from '../../common/linkifiedText';
 import { ILinkifier, LinkifierContext } from '../../common/linkifyService';
 import { assertPartsEqual, createTestLinkifierService, workspaceFile } from './util';
+const regexp1 = /\s*`[^`]+`\s*/;
+
 
 const emptyContext: LinkifierContext = { requestId: undefined, references: [] };
 
@@ -125,7 +127,7 @@ suite('Stateful Linkifier', () => {
 			{
 				create: () => ({
 					async linkify(newText) {
-						if (/\s*`[^`]+`\s*/.test(newText)) {
+						if (regexp1.test(newText)) {
 							return { parts: [linkText] };
 						}
 						return;

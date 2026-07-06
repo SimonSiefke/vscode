@@ -13,6 +13,9 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { IDocumentContext } from '../../prompt/node/documentContext';
 import { renderPromptElement } from '../../prompts/node/base/promptRenderer';
 import { ContextualProgressMessagePrompt, ContextualProgressMessagePromptProps, ProgressMessageScenario, ProgressMessagesPrompt, ProgressMessagesPromptProps } from './progressMessagesPrompt';
+const regexp1 = /^["']|["']$/g;
+const regexpJson = /```(?:json)?\s*([\s\S]*?)```/;
+
 
 const MESSAGES_PER_FETCH = 10;
 const REFETCH_THRESHOLD = 3;
@@ -143,7 +146,7 @@ export class InlineChatProgressMessages {
 	private _parseContextualMessage(responseText: string): string | undefined {
 		const trimmed = responseText.trim();
 		// Remove any surrounding quotes if present
-		const unquoted = trimmed.replace(/^["']|["']$/g, '');
+		const unquoted = trimmed.replace(new RegExp(regexp1), '');
 		// Validate the message is reasonable length
 		if (unquoted.length > 0 && unquoted.length < 60) {
 			return unquoted;
@@ -233,7 +236,7 @@ export class InlineChatProgressMessages {
 			let jsonStr = trimmed;
 
 			// Handle markdown code blocks
-			const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+			const jsonMatch = trimmed.match(regexpJson);
 			if (jsonMatch) {
 				jsonStr = jsonMatch[1].trim();
 			}

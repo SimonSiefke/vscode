@@ -52,6 +52,8 @@ import { InlineEditLogger } from './parts/inlineEditLogger';
 import { IVSCodeObservableDocument } from './parts/vscodeWorkspace';
 import { raceAndAll } from './raceAndAll';
 import { toExternalRange } from './utils/translations';
+const regexpVscodeCellId = /%% vscode.cell \[id=/g;
+
 
 const learnMoreAction: Command = {
 	title: l10n.t('Learn More'),
@@ -777,7 +779,7 @@ function addNotebookTelemetry(document: TextDocument, position: Position, newTex
 	if (!cell || !notebook || !documents.length) {
 		return;
 	}
-	const cellMarkerCount = newText.match(/%% vscode.cell \[id=/g)?.length || 0;
+	const cellMarkerCount = newText.match(new RegExp(regexpVscodeCellId))?.length || 0;
 	const cellMarkerIndex = newText.indexOf('#%% vscode.cell [id=');
 	const isMultiline = newText.includes('\n');
 	const targetEol = documents[0][0].eol === EndOfLine.CRLF ? '\r\n' : '\n';

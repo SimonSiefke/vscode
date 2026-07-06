@@ -8,6 +8,8 @@ import type vscode from 'vscode';
 import * as path from '../vs/base/common/path';
 import { isWindows } from '../vs/base/common/platform';
 import { URI } from '../vs/base/common/uri';
+const regexp1 = /\{.*\}/g;
+
 
 export function isMatch(uri: URI, glob: vscode.GlobPattern): boolean {
 	if (typeof glob === 'string') {
@@ -62,8 +64,8 @@ export function combineGlob(glob1: string | vscode.RelativePattern, glob2: strin
 	let stringGlob1 = typeof glob1 === 'string' ? glob1 : glob1.baseUri.toString() + glob1.pattern;
 	let stringGlob2 = typeof glob2 === 'string' ? glob2 : glob2.baseUri.toString() + glob2.pattern;
 	// Remove any bracket expansion from the globs
-	stringGlob1 = stringGlob1.replace(/\{.*\}/g, '');
-	stringGlob2 = stringGlob2.replace(/\{.*\}/g, '');
+	stringGlob1 = stringGlob1.replace(new RegExp(regexp1), '');
+	stringGlob2 = stringGlob2.replace(new RegExp(regexp1), '');
 	// Combine them into one bracket expanded glob pattern
 	return `{${stringGlob1},${stringGlob2}}`;
 }

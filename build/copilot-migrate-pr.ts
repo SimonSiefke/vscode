@@ -21,6 +21,15 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { createInterface } from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
+const regexp1 = /^\d+$/;
+const regexpDiffGit = /^diff --git a\/(.+) b\/(.+)$/;
+const regexp3 = /^--- a\/(.+)$/;
+const regexp4 = /^\+\+\+ b\/(.+)$/;
+const regexpRenameFrom = /^rename from (.+)$/;
+const regexpRenameTo = /^rename to (.+)$/;
+const regexpCopyFrom = /^copy from (.+)$/;
+const regexpCopyTo = /^copy to (.+)$/;
+
 
 const SOURCE_REPO = 'microsoft/vscode-copilot-chat';
 const TARGET_REPO = 'microsoft/vscode';
@@ -47,7 +56,7 @@ function parseArgs(): Options {
 			dryRun = true;
 		} else if (arg === '--verbose') {
 			verbose = true;
-		} else if (!prNumber && /^\d+$/.test(arg)) {
+		} else if (!prNumber && regexp1.test(arg)) {
 			prNumber = parseInt(arg, 10);
 		} else {
 			console.error(`Unknown argument: ${arg}`);
@@ -309,41 +318,41 @@ function rewriteDiff(diff: string): string {
 
 function rewriteDiffLine(line: string): string {
 	// diff --git a/path b/path
-	const diffGitMatch = line.match(/^diff --git a\/(.+) b\/(.+)$/);
+	const diffGitMatch = line.match(regexpDiffGit);
 	if (diffGitMatch) {
 		return `diff --git a/${PATH_PREFIX}/${diffGitMatch[1]} b/${PATH_PREFIX}/${diffGitMatch[2]}`;
 	}
 
 	// --- a/path or --- /dev/null
-	const minusMatch = line.match(/^--- a\/(.+)$/);
+	const minusMatch = line.match(regexp3);
 	if (minusMatch) {
 		return `--- a/${PATH_PREFIX}/${minusMatch[1]}`;
 	}
 
 	// +++ b/path or +++ /dev/null
-	const plusMatch = line.match(/^\+\+\+ b\/(.+)$/);
+	const plusMatch = line.match(regexp4);
 	if (plusMatch) {
 		return `+++ b/${PATH_PREFIX}/${plusMatch[1]}`;
 	}
 
 	// rename from path / rename to path
-	const renameFromMatch = line.match(/^rename from (.+)$/);
+	const renameFromMatch = line.match(regexpRenameFrom);
 	if (renameFromMatch) {
 		return `rename from ${PATH_PREFIX}/${renameFromMatch[1]}`;
 	}
 
-	const renameToMatch = line.match(/^rename to (.+)$/);
+	const renameToMatch = line.match(regexpRenameTo);
 	if (renameToMatch) {
 		return `rename to ${PATH_PREFIX}/${renameToMatch[1]}`;
 	}
 
 	// copy from path / copy to path
-	const copyFromMatch = line.match(/^copy from (.+)$/);
+	const copyFromMatch = line.match(regexpCopyFrom);
 	if (copyFromMatch) {
 		return `copy from ${PATH_PREFIX}/${copyFromMatch[1]}`;
 	}
 
-	const copyToMatch = line.match(/^copy to (.+)$/);
+	const copyToMatch = line.match(regexpCopyTo);
 	if (copyToMatch) {
 		return `copy to ${PATH_PREFIX}/${copyToMatch[1]}`;
 	}

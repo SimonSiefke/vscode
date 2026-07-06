@@ -6,6 +6,9 @@ import { suite, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { getLanguageModes, TextDocument, ClientCapabilities } from '../modes/languageModes.js';
 import { getNodeFileFS } from '../node/nodeFs.js';
+const regexpTypescriptGreeter = /```typescript[\s\S]*Greeter[\s\S]*```/;
+const regexpTypescriptSayHello = /```typescript[\s\S]*sayHello[\s\S]*```/;
+
 
 const testUri = 'test://test/test.html';
 
@@ -57,7 +60,7 @@ suite('HTML Hover', () => {
 		const value = await getHoverValue(html);
 
 		// The signature should still be present in a typescript code block
-		assert.match(value, /```typescript[\s\S]*Greeter[\s\S]*```/, `signature missing in hover: ${value}`);
+		assert.match(value, regexpTypescriptGreeter, `signature missing in hover: ${value}`);
 		// The JSDoc summary should also be present (this is the bug fix)
 		assert.ok(value.includes('A greeter that says hello.'), `JSDoc description missing in hover: ${value}`);
 	});
@@ -76,7 +79,7 @@ suite('HTML Hover', () => {
 		].join('\n');
 		const value = await getHoverValue(html);
 
-		assert.match(value, /```typescript[\s\S]*sayHello[\s\S]*```/, `signature missing in hover: ${value}`);
+		assert.match(value, regexpTypescriptSayHello, `signature missing in hover: ${value}`);
 		assert.ok(value.includes('Returns a friendly greeting.'), `JSDoc description missing in hover: ${value}`);
 	});
 });

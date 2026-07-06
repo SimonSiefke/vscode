@@ -37,6 +37,12 @@ import { MockLanguageModelToolsConfirmationService } from '../../common/tools/mo
 import { IToolResultCompressor } from '../../../common/tools/toolResultCompressor.js';
 import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { ILanguageModelChatMetadata } from '../../../common/languageModels.js';
+const regexpToolDuplicateToolIs = /Tool "duplicateTool" is already registered/;
+const regexpToolNonExistentToolWas = /Tool "nonExistentTool" was not contributed/;
+const regexpToolTestToolAlready = /Tool "testTool" already has an implementation/;
+const regexpToolUnknownToolWas = /Tool unknownTool was not contributed/;
+const regexpToolExtensionActivationToolDoes = /Tool extensionActivationTool does not have an implementation registered/;
+
 
 // --- Test helpers to reduce repetition and improve readability ---
 
@@ -2635,7 +2641,7 @@ suite('LanguageModelToolsService', () => {
 		// Second registration should throw
 		assert.throws(() => {
 			service.registerToolData(toolData);
-		}, /Tool "duplicateTool" is already registered/);
+		}, regexpToolDuplicateToolIs);
 	});
 
 	test('tool implementation registration without data throws', () => {
@@ -2646,7 +2652,7 @@ suite('LanguageModelToolsService', () => {
 		// Should throw when registering implementation for non-existent tool
 		assert.throws(() => {
 			service.registerToolImplementation('nonExistentTool', toolImpl);
-		}, /Tool "nonExistentTool" was not contributed/);
+		}, regexpToolNonExistentToolWas);
 	});
 
 	test('tool implementation duplicate registration throws', () => {
@@ -2671,7 +2677,7 @@ suite('LanguageModelToolsService', () => {
 		// Second implementation should throw
 		assert.throws(() => {
 			service.registerToolImplementation('testTool', toolImpl2);
-		}, /Tool "testTool" already has an implementation/);
+		}, regexpToolTestToolAlready);
 	});
 
 	test('invokeTool with unknown tool throws', async () => {
@@ -2685,7 +2691,7 @@ suite('LanguageModelToolsService', () => {
 
 		await assert.rejects(
 			service.invokeTool(dto, async () => 0, CancellationToken.None),
-			/Tool unknownTool was not contributed/
+			regexpToolUnknownToolWas
 		);
 	});
 
@@ -2710,7 +2716,7 @@ suite('LanguageModelToolsService', () => {
 		// Should throw after attempting extension activation
 		await assert.rejects(
 			service.invokeTool(dto, async () => 0, CancellationToken.None),
-			/Tool extensionActivationTool does not have an implementation registered/
+			regexpToolExtensionActivationToolDoes
 		);
 	});
 

@@ -26,6 +26,10 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import type { IDiscoveredTunnel, ITunnelConnection, ITunnelDiscoveryProvider } from '../../../../../workbench/browser/web.api.js';
 import { IBrowserWorkbenchEnvironmentService } from '../../../../../workbench/services/environment/browser/environmentService.js';
 import { IAuthenticationService } from '../../../../../workbench/services/authentication/common/authentication.js';
+const regexp1 = /=+$/;
+const regexp2 = /\//g;
+const regexp3 = /\+/g;
+
 
 const LOG_PREFIX = '[WebTunnelAgentHost]';
 
@@ -381,9 +385,9 @@ async function deriveConnectionToken(tunnelId: string): Promise<string> {
 
 	// Base64url encode (matches Node's createHash('sha256').digest('base64url'))
 	let result = btoa(String.fromCharCode(...hashArray))
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '');
+		.replace(new RegExp(regexp3), '-')
+		.replace(new RegExp(regexp2), '_')
+		.replace(regexp1, '');
 
 	if (result.startsWith('-')) {
 		result = 'a' + result;

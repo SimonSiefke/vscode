@@ -26,6 +26,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import * as ts from 'typescript';
+const regexp1 = /^\/\*\*?[\s\S]*?\*\/\s*/;
+const regexp2 = /^( +)/;
+const regexp3 = /\r\n/g;
+const regexpImportTypeFrom = /import\s+(type\s+)?\{([^}]+)\}\s+from\s+'([^']+)';/g;
+const regexp5 = /\s+/g;
+const regexpImportTypeFrom1 = /^import type \{([^}]+)\} from '([^']+)';$/;
+const regexpImportFrom = /^import \{([^}]+)\} from '([^']+)';$/;
+
 
 const ROOT = path.resolve(__dirname, '..');
 const PROTOCOL_REPO = path.resolve(ROOT, '../agent-host-protocol');
@@ -133,13 +141,13 @@ function getSourceCommitHash(): string {
 }
 
 function stripExistingHeader(content: string): string {
-	return content.replace(/^\/\*\*?[\s\S]*?\*\/\s*/, '');
+	return content.replace(regexp1, '');
 }
 
 function convertIndentation(content: string): string {
 	const lines = content.split('\n');
 	return lines.map(line => {
-		const match = line.match(/^( +)/);
+		const match = line.match(regexp2);
 		if (!match) {
 			return line;
 		}
@@ -158,11 +166,11 @@ function convertIndentation(content: string): string {
 function mergeDuplicateImports(content: string): string {
 	// Normalize line endings so the `$`-anchored import regexes below match
 	// regardless of whether the source was checked out with CRLF or LF.
-	content = content.replace(/\r\n/g, '\n');
+	content = content.replace(new RegExp(regexp3), '\n');
 
 	// Collapse multi-line imports into single lines first
-	content = content.replace(/import\s+(type\s+)?\{([^}]+)\}\s+from\s+'([^']+)';/g, (_match, typeKeyword, names, mod) => {
-		const collapsed = names.replace(/\s+/g, ' ').trim();
+	content = content.replace(new RegExp(regexpImportTypeFrom), (_match, typeKeyword, names, mod) => {
+		const collapsed = names.replace(new RegExp(regexp5), ' ').trim();
 		return typeKeyword ? `import type { ${collapsed} } from '${mod}';` : `import { ${collapsed} } from '${mod}';`;
 	});
 
@@ -171,8 +179,8 @@ function mergeDuplicateImports(content: string): string {
 	const seenModules = new Set<string>();
 
 	for (const line of content.split('\n')) {
-		const typeMatch = line.match(/^import type \{([^}]+)\} from '([^']+)';$/);
-		const valueMatch = line.match(/^import \{([^}]+)\} from '([^']+)';$/);
+		const typeMatch = line.match(regexpImportTypeFrom1);
+		const valueMatch = line.match(regexpImportFrom);
 
 		if (typeMatch) {
 			const [, names, mod] = typeMatch;

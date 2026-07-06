@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpZAZAZ0 = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)([^?#]*)(\?[^#]*)?(#.*)?$/;
+
 // perf-benchmark-marker
 
 /**
@@ -44,7 +46,7 @@ export class URI {
 	}
 
 	static parse(value: string): URI {
-		const match = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)([^?#]*)(\?[^#]*)?(#.*)?$/.exec(value);
+		const match = regexpZAZAZ0.exec(value);
 		if (!match) { return new URI(_empty, _empty, _empty, _empty, _empty); }
 		return new URI(match[1], match[2], match[3], match[4]?.substring(1) || _empty, match[5]?.substring(1) || _empty);
 	}

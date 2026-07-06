@@ -22,6 +22,8 @@ import { buildCommandDisplayText, isMultilineCommand, normalizeCommandForExecuti
 import { RunInTerminalTool } from './runInTerminalTool.js';
 import { isSessionAutoApproveLevel } from './terminalToolAutoApprove.js';
 import { TerminalToolId } from './toolIds.js';
+const regexp1 = /^[\u0003\u0004\u001c]$/;
+
 
 export const SendToTerminalToolData: IToolData = {
 	id: TerminalToolId.SendToTerminal,
@@ -66,7 +68,7 @@ export interface ISendToTerminalInputParams {
  * than completing it, so the model needs an extra nudge that the turn is not done.
  */
 function isCancelSignal(command: string): boolean {
-	return /^[\u0003\u0004\u001c]$/.test(command.trim());
+	return regexp1.test(command.trim());
 }
 
 const FocusTerminalByIdCommandId = 'workbench.action.terminal.chat.focusTerminalById';

@@ -6,6 +6,8 @@
 import { Raw } from '@vscode/prompt-tsx';
 import { toTextParts } from '../../../platform/chat/common/globalStringUtils';
 import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRange';
+const regexp1 = /^```[a-z]*$/;
+
 
 
 /**
@@ -24,7 +26,7 @@ export async function* linesWithBackticksRemoved(linesStream: AsyncIterable<stri
 			bufferedBacktickLine = undefined;
 		}
 
-		if (line.match(/^```[a-z]*$/)) {
+		if (line.match(regexp1)) {
 			if (lineN === 0) {
 				continue;
 			} else {

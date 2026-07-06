@@ -15,6 +15,17 @@ import { buildGitBlobUri } from './gitDiffContent.js';
 import { EMPTY_TREE_OBJECT, getBranchCompletions, IAgentHostGitService, IComputeSessionFileDiffsOptions, IPullOptions, IPushOptions } from '../common/agentHostGitService.js';
 import { LRUCache } from '../../../base/common/map.js';
 import { SequencerByKey } from '../../../base/common/async.js';
+const regexp1 = /\r?\n/g;
+const regexp2 = /[\r\n]+/g;
+const regexpBgitLfs = /\bgit-lfs\b/i;
+const regexpCommandNotFound = /(command not found|not recognized|no such file)/i;
+const regexpBranchAb = /^# branch\.ab \+(\d+) -(\d+)$/;
+const regexpGithubCom = /github\.com[:\/]/i;
+const regexpFetch = /^(\S+)\s+(\S+)\s+\(fetch\)$/;
+const regexp8 = /\r?\n/;
+const regexpGithubComGit = /^[^@\s]+@github\.com:([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i;
+const regexpGithubComGit1 = /^[a-z+]+:\/\/(?:[^@\/\s]+@)?github\.com(?::\d+)?\/([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i;
+
 
 export class AgentHostGitService implements IAgentHostGitService {
 	declare readonly _serviceBrand: undefined;
@@ -71,7 +82,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 		if (!output) {
 			return [];
 		}
-		const branches = output.split(/\r?\n/g).map(line => line.trim()).filter(branch => branch.length > 0);
+		const branches = output.split(new RegExp(regexp1)).map(line => line.trim()).filter(branch => branch.length > 0);
 		return getBranchCompletions(branches, options);
 	}
 
@@ -103,7 +114,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 		if (!output) {
 			return [];
 		}
-		return output.split(/\r?\n/g)
+		return output.split(new RegExp(regexp1))
 			.filter(line => line.startsWith('worktree '))
 			.map(line => URI.file(line.substring('worktree '.length)));
 	}
@@ -625,14 +636,14 @@ export function summarizeStderrForError(stderr: string): string {
 	if (!stderr) {
 		return '';
 	}
-	const lines = stderr.split(/[\r\n]+/g).map(line => line.trim()).filter(line => line.length > 0);
+	const lines = stderr.split(new RegExp(regexp2)).map(line => line.trim()).filter(line => line.length > 0);
 	if (lines.length === 0) {
 		return '';
 	}
 	const MAX = 200;
 	const gitLfsMissing = lines.find(line =>
-		/\bgit-lfs\b/i.test(line) &&
-		/(command not found|not recognized|no such file)/i.test(line)
+		regexpBgitLfs.test(line) &&
+		regexpCommandNotFound.test(line)
 	);
 	const summary = gitLfsMissing ?? lines[lines.length - 1];
 	return summary.length > MAX ? `${summary.slice(0, MAX - 1)}…` : summary;
@@ -863,7 +874,7 @@ export function parseGitStatusV2(output: string | undefined): {
 	let outgoingChanges: number | undefined;
 	let incomingChanges: number | undefined;
 	let uncommittedChanges = 0;
-	for (const rawLine of output.split(/\r?\n/g)) {
+	for (const rawLine of output.split(new RegExp(regexp1))) {
 		const line = rawLine.trimEnd();
 		if (!line) { continue; }
 		if (line.startsWith('# branch.head ')) {
@@ -873,7 +884,7 @@ export function parseGitStatusV2(output: string | undefined): {
 		} else if (line.startsWith('# branch.upstream ')) {
 			upstreamBranchName = line.substring('# branch.upstream '.length).trim();
 		} else if (line.startsWith('# branch.ab ')) {
-			const m = /^# branch\.ab \+(\d+) -(\d+)$/.exec(line);
+			const m = regexpBranchAb.exec(line);
 			if (m) {
 				outgoingChanges = Number(m[1]);
 				incomingChanges = Number(m[2]);
@@ -893,7 +904,7 @@ export function parseHasGitHubRemote(remotesOutput: string | undefined): boolean
 	if (!remotesOutput.trim()) {
 		return false;
 	}
-	return /github\.com[:\/]/i.test(remotesOutput);
+	return regexpGithubCom.test(remotesOutput);
 }
 
 /**
@@ -911,10 +922,10 @@ export function parseGitHubRepoFromRemote(remotesOutput: string | undefined): { 
 	// Each line: `<name>\t<url> (<fetch|push>)`. Take fetch URLs only so we
 	// don't double-count the same remote.
 	const candidates: { name: string; url: string }[] = [];
-	for (const rawLine of remotesOutput.split(/\r?\n/)) {
+	for (const rawLine of remotesOutput.split(regexp8)) {
 		const line = rawLine.trim();
 		if (!line) { continue; }
-		const m = /^(\S+)\s+(\S+)\s+\(fetch\)$/.exec(line);
+		const m = regexpFetch.exec(line);
 		if (!m) { continue; }
 		candidates.push({ name: m[1], url: m[2] });
 	}
@@ -942,12 +953,12 @@ export function parseGitHubRepoFromRemote(remotesOutput: string | undefined): { 
  */
 function parseGitHubOwnerRepoFromUrl(url: string): { owner: string; repo: string } | undefined {
 	// SCP-like: git@github.com:owner/repo(.git)?
-	let m = /^[^@\s]+@github\.com:([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i.exec(url);
+	let m = regexpGithubComGit.exec(url);
 	if (m) {
 		return { owner: m[1], repo: m[2] };
 	}
 	// URL-form: <scheme>://[user@]github.com[:port]/owner/repo(.git)?
-	m = /^[a-z+]+:\/\/(?:[^@\/\s]+@)?github\.com(?::\d+)?\/([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i.exec(url);
+	m = regexpGithubComGit1.exec(url);
 	if (m) {
 		return { owner: m[1], repo: m[2] };
 	}

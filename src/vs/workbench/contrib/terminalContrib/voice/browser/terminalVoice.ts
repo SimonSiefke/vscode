@@ -19,6 +19,8 @@ import type { IMarker, IDecoration } from '@xterm/xterm';
 import { alert } from '../../../../../base/browser/ui/aria/aria.js';
 import { ITerminalService } from '../../../terminal/browser/terminal.js';
 import { TerminalContextKeys } from '../../../terminal/common/terminalContextKey.js';
+const regexp1 = /[.,?;!]/g;
+
 
 
 const symbolMap: { [key: string]: string } = {
@@ -159,7 +161,7 @@ export class TerminalVoiceSession extends Disposable {
 
 	private _updateInput(e: ISpeechToTextEvent): void {
 		if (e.text) {
-			let input = e.text.replaceAll(/[.,?;!]/g, '');
+			let input = e.text.replaceAll(new RegExp(regexp1), '');
 			for (const symbol of Object.entries(symbolMap)) {
 				input = input.replace(new RegExp('\\b' + symbol[0] + '\\b'), symbol[1]);
 			}

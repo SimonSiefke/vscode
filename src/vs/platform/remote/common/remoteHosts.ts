@@ -5,6 +5,10 @@
 
 import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
+const regexp9a = /^(\[[0-9a-z:]+\]):(\d+)$/;
+const regexp9a1 = /^(\[[0-9a-z:]+\])$/;
+const regexp3 = /(.*):(\d+)$/;
+
 
 export function getRemoteAuthority(uri: URI): string | undefined {
 	return uri.scheme === Schemas.vscodeRemote ? uri.authority : undefined;
@@ -67,19 +71,19 @@ export function parseAuthorityWithOptionalPort(authority: string, defaultPort: n
 
 function parseAuthority(authority: string): { host: string; port: number | undefined } {
 	// check for ipv6 with port
-	const m1 = authority.match(/^(\[[0-9a-z:]+\]):(\d+)$/);
+	const m1 = authority.match(regexp9a);
 	if (m1) {
 		return { host: m1[1], port: parseInt(m1[2], 10) };
 	}
 
 	// check for ipv6 without port
-	const m2 = authority.match(/^(\[[0-9a-z:]+\])$/);
+	const m2 = authority.match(regexp9a1);
 	if (m2) {
 		return { host: m2[1], port: undefined };
 	}
 
 	// anything with a trailing port
-	const m3 = authority.match(/(.*):(\d+)$/);
+	const m3 = authority.match(regexp3);
 	if (m3) {
 		return { host: m3[1], port: parseInt(m3[2], 10) };
 	}

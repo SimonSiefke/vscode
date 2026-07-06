@@ -10,6 +10,8 @@ import { ChatReferenceBinaryData, ChatRequestTurn2 } from '../../../vscodeTypes'
 import { tryParseClaudeModelId } from '../claude/node/claudeModelId';
 import { completeToolInvocation, createFormattedToolInvocation } from '../claude/common/toolInvocationFormatter';
 import { AssistantMessageContent, ContentBlock, IClaudeCodeSession, ImageBlock, ISubagentSession, StoredMessage, SYNTHETIC_MODEL_ID, TextBlock, ThinkingBlock, ToolResultBlock, ToolUseBlock } from '../claude/node/sessionParser/claudeSessionSchema';
+const regexpSystemReminderSystem = /<system-reminder>[\s\S]*?<\/system-reminder>\s*/g;
+
 
 // #region Types
 
@@ -121,7 +123,7 @@ function isSystemReminderBlock(text: string): boolean {
  * sessions with concatenated system-reminders are no longer common.
  */
 function stripSystemReminders(text: string): string {
-	return text.replace(/<system-reminder>[\s\S]*?<\/system-reminder>\s*/g, '');
+	return text.replace(new RegExp(regexpSystemReminderSystem), '');
 }
 
 /**

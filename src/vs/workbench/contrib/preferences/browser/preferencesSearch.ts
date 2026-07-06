@@ -18,6 +18,14 @@ import { IAiSettingsSearchService } from '../../../services/aiSettingsSearch/com
 import { IGroupFilter, ISearchResult, ISetting, ISettingMatch, ISettingMatcher, ISettingsEditorModel, ISettingsGroup, SettingKeyMatchTypes, SettingMatchType } from '../../../services/preferences/common/preferences.js';
 import { nullRange } from '../../../services/preferences/common/preferencesModels.js';
 import { EMBEDDINGS_SEARCH_PROVIDER_NAME, IAiSearchProvider, IPreferencesSearchService, IRemoteSearchProvider, ISearchProvider, IWorkbenchSettingsConfiguration, LLM_RANKED_SEARCH_PROVIDER_NAME, STRING_MATCH_SEARCH_PROVIDER_NAME, TF_IDF_SEARCH_PROVIDER_NAME } from '../common/preferences.js';
+const regexp1 = /  /g;
+const regexp2 = /[":]/g;
+const regexpZa = /(\d+)([A-Za-z]+)/g;
+const regexpZa1 = /([A-Za-z]+)(\d+)/g;
+const regexp5 = /([a-z]+)([A-Z])/g;
+const regexp6 = /[-._]/g;
+const regexp7 = /[^\p{L}\p{N}]+/gu;
+
 
 export interface IEndpointDetails {
 	urlBase?: string;
@@ -71,8 +79,8 @@ function cleanFilter(filter: string): string {
 	// Remove " and : which are likely to be copypasted as part of a setting name.
 	// Leave other special characters which the user might want to search for.
 	return filter
-		.replace(/[":]/g, ' ')
-		.replace(/  /g, ' ')
+		.replace(new RegExp(regexp2), ' ')
+		.replace(new RegExp(regexp1), ' ')
 		.trim();
 }
 
@@ -158,16 +166,16 @@ export class SettingMatches {
 
 	private _keyToLabel(settingId: string): string {
 		const label = settingId
-			.replace(/[-._]/g, ' ')
-			.replace(/([a-z]+)([A-Z])/g, '$1 $2')
-			.replace(/([A-Za-z]+)(\d+)/g, '$1 $2')
-			.replace(/(\d+)([A-Za-z]+)/g, '$1 $2')
+			.replace(new RegExp(regexp6), ' ')
+			.replace(new RegExp(regexp5), '$1 $2')
+			.replace(new RegExp(regexpZa1), '$1 $2')
+			.replace(new RegExp(regexpZa), '$1 $2')
 			.toLowerCase();
 		return label;
 	}
 
 	private _toAlphaNumeric(s: string): string {
-		return s.replace(/[^\p{L}\p{N}]+/gu, '');
+		return s.replace(new RegExp(regexp7), '');
 	}
 
 	private _doFindMatchesInSetting(searchString: string, setting: ISetting): IRange[] {
@@ -465,10 +473,10 @@ class TfIdfSearchProvider implements IRemoteSearchProvider {
 
 	keyToLabel(settingId: string): string {
 		const label = settingId
-			.replace(/[-._]/g, ' ')
-			.replace(/([a-z]+)([A-Z])/g, '$1 $2')
-			.replace(/([A-Za-z]+)(\d+)/g, '$1 $2')
-			.replace(/(\d+)([A-Za-z]+)/g, '$1 $2')
+			.replace(new RegExp(regexp6), ' ')
+			.replace(new RegExp(regexp5), '$1 $2')
+			.replace(new RegExp(regexpZa1), '$1 $2')
+			.replace(new RegExp(regexpZa), '$1 $2')
 			.toLowerCase();
 		return label;
 	}

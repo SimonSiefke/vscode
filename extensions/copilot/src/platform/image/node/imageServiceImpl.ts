@@ -7,6 +7,9 @@ import { RequestType } from '@vscode/copilot-api';
 import { URI } from '../../../util/vs/base/common/uri';
 import { ICAPIClientService } from '../../endpoint/common/capiClient';
 import { IImageService } from '../common/imageService';
+const regexpZAZ0 = /[^a-zA-Z0-9._-]/g;
+const regexp2 = /^[^\/]+\/([^+;]+)/;
+
 
 export class ImageServiceImpl implements IImageService {
 	declare readonly _serviceBrand: undefined;
@@ -20,11 +23,11 @@ export class ImageServiceImpl implements IImageService {
 			throw new Error('Missing required mimeType or token for image upload');
 		}
 
-		const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, '');
+		const sanitizedName = name.replace(new RegExp(regexpZAZ0), '');
 		let uploadName = sanitizedName;
 
 		// can catch unexpected types like "IMAGE/JPEG", "image/svg+xml", or "image/png; charset=UTF-8"
-		const subtypeMatch = mimeType.toLowerCase().match(/^[^\/]+\/([^+;]+)/);
+		const subtypeMatch = mimeType.toLowerCase().match(regexp2);
 		const subtype = subtypeMatch?.[1];
 
 		// add the extension if it is missing.

@@ -11,6 +11,14 @@ import { Location, Position, Range, Uri } from '../../../vscodeTypes';
 import { coalesceParts, LinkifiedPart, LinkifiedText, LinkifyLocationAnchor } from './linkifiedText';
 import { IContributedLinkifier, LinkifierContext } from './linkifyService';
 import { IStatCache } from './statCache';
+const regexp1 = /\\+/g;
+const regexp2 = /^`|`$/g;
+const regexp3 = /^(.+?)(#L\d+(?:-\d+)?)$/;
+const regexp4 = /\.\w+$/;
+const regexp5 = /\\/g;
+const regexp6 = /^L?(\d+)(?:-L?(\d+))?$/;
+const regexp7 = /^[a-z]:/i;
+
 
 // Matches markdown links where the text is a path and optional #L anchor is present
 // Example: [src/file.ts](src/file.ts#L10-12) or [src/file.ts](src/file.ts)
@@ -109,16 +117,16 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 
 	private normalizeSlashes(value: string): string {
 		// Collapse one or more backslashes into a single forward slash so mixed separators normalize consistently.
-		return value.replace(/\\+/g, '/');
+		return value.replace(new RegExp(regexp1), '/');
 	}
 
 	private normalizeLinkText(rawText: string): string {
 		let text = this.normalizeSlashes(rawText);
 		// Remove a leading or trailing backtick that sometimes wraps the visible link label.
-		text = text.replace(/^`|`$/g, '');
+		text = text.replace(new RegExp(regexp2), '');
 
 		// Look for a trailing #L anchor segment so it can be stripped before we compare names.
-		const anchorMatch = /^(.+?)(#L\d+(?:-\d+)?)$/.exec(text);
+		const anchorMatch = regexp3.exec(text);
 		return anchorMatch ? anchorMatch[1] : text;
 	}
 
@@ -131,7 +139,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 		// it must match the target's filename to prevent linking to wrong files
 		let descriptiveWithAnchor = false;
 		if (anchor) {
-			const textLooksLikeFilename = /\.\w+$/.test(text);
+			const textLooksLikeFilename = regexp4.test(text);
 			if (textLooksLikeFilename) {
 				// Text looks like a filename/path - require it ends with target's basename
 				const targetBasename = targetPath.split('/').pop() ?? '';
@@ -159,7 +167,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 			// Choose URI construction strategy based on workspace folder schemes.
 			// For local (file:) workspaces we keep using Uri.file; for remote schemes we attempt
 			// to project the absolute path into the remote scheme preserving the folder URI's authority.
-			const normalizedAbs = targetPath.replace(/\\/g, '/');
+			const normalizedAbs = targetPath.replace(new RegExp(regexp5), '/');
 
 			// Build candidate URIs for all workspace folders, then stat them in parallel.
 			const candidates: Uri[] = [];
@@ -171,7 +179,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 					}
 				} else {
 					// Remote / virtual workspace: attempt to map the absolute path into the same scheme.
-					const folderPath = folderUri.path.replace(/\\/g, '/');
+					const folderPath = folderUri.path.replace(new RegExp(regexp5), '/');
 					const prefix = folderPath.endsWith('/') ? folderPath : folderPath + '/';
 					if (normalizedAbs.startsWith(prefix)) {
 						candidates.push(folderUri.with({ path: normalizedAbs }));
@@ -220,7 +228,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 		if (!anchor) {
 			return undefined;
 		}
-		const match = /^L?(\d+)(?:-L?(\d+))?$/.exec(anchor);
+		const match = regexp6.exec(anchor);
 		if (!match) {
 			return undefined;
 		}
@@ -243,7 +251,7 @@ export class ModelFilePathLinkifier implements IContributedLinkifier {
 
 	private isAbsolutePath(path: string): boolean {
 		// Treat drive-letter prefixes (e.g. C:) or leading slashes as absolute paths.
-		return /^[a-z]:/i.test(path) || path.startsWith('/');
+		return regexp7.test(path) || path.startsWith('/');
 	}
 
 	private async tryStat(uri: Uri, preserveDirectorySlash: boolean, token: CancellationToken): Promise<Uri | undefined> {

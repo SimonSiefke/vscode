@@ -38,6 +38,10 @@ import { isToolResultInputOutputDetails, IToolResult } from '../../../../common/
 import { IChatWidgetService } from '../../../chat.js';
 import { IChatCollapsibleIODataPart } from '../chatToolInputOutputContentPart.js';
 import { IMcpAppRenderData } from './chatMcpAppSubPart.js';
+const regexpHead = /<head[^>]*>/i;
+const regexpHtml = /<html[^>]*>/i;
+const regexp3 = /\s+/g;
+
 
 /** Storage key for persistent webview origins */
 const ORIGIN_STORE_KEY = 'chatMcpApp.origins';
@@ -414,14 +418,14 @@ export class ChatMcpAppModel extends Disposable {
 
 	private _prependToHead(html: string, content: string): string {
 		// Try to inject into <head>
-		const headMatch = html.match(/<head[^>]*>/i);
+		const headMatch = html.match(regexpHead);
 		if (headMatch) {
 			const insertIndex = headMatch.index! + headMatch[0].length;
 			return html.slice(0, insertIndex) + '\n' + content + html.slice(insertIndex);
 		}
 
 		// If no <head>, try to inject after <html>
-		const htmlMatch = html.match(/<html[^>]*>/i);
+		const htmlMatch = html.match(regexpHtml);
 		if (htmlMatch) {
 			const insertIndex = htmlMatch.index! + htmlMatch[0].length;
 			return html.slice(0, insertIndex) + '\n<head>' + content + '</head>' + html.slice(insertIndex);
@@ -706,7 +710,7 @@ export class ChatMcpAppModel extends Disposable {
 						name: basename(uri),
 					});
 				} else if (block.type === 'text') {
-					const preview = block.text.replaceAll(/\s+/g, ' ').trim();
+					const preview = block.text.replaceAll(new RegExp(regexp3), ' ').trim();
 					const truncateTo = 20;
 					entries.push({
 						kind: 'generic',

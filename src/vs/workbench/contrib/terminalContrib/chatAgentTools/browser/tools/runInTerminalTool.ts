@@ -86,6 +86,12 @@ import { isSessionAutoApproveLevel, isTerminalAutoApproveAllowed, isToolEligible
 import type { IJSONSchemaMap } from '../../../../../../base/common/jsonSchema.js';
 import { ChatElicitationRequestPart } from '../../../../chat/common/model/chatProgressTypes/chatElicitationRequestPart.js';
 import { getSandboxPrecheckInputsForToolInvocation } from '../../../../chat/browser/tools/toolHelpers.js';
+const regexp1 = /\r|\n/;
+const regexpNohupStartProcess = /(^|\s)nohup\s|Start-Process\b/;
+const regexpPngJpeGif = /[^\s/\\]*(?:[/\\][^\s/\\]*)+\.(?:png|jpe?g|gif|webp|bmp)/gi;
+const regexp4 = /\r?\n/;
+const regexpZa = /^\/|^[A-Za-z]:[\\\/]/;
+
 
 // #region Tool data
 
@@ -626,7 +632,7 @@ const altBufferMessage = '\n' + localize('runInTerminalTool.altBufferMessage', "
  * {@link appendEscapedMarkdownInlineCode} when interpolating into markdown.
  */
 export function buildCompletionNotificationCommand(command: string): string {
-	const firstNewline = command.search(/\r|\n/);
+	const firstNewline = command.search(regexp1);
 	const hasMoreLines = firstNewline !== -1;
 	const firstLine = hasMoreLines ? command.substring(0, firstNewline) : command;
 	const normalized = normalizeTerminalCommandForDisplay(firstLine);
@@ -2464,7 +2470,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 				// If the tool wrapped the command with `nohup` (POSIX) or `Start-Process`
 				// (Windows) to detach a background process, stdin is no longer connected.
 				// Tell the model so it does not try to drive interactive programs through it.
-				const wasDetachedToBackground = /(^|\s)nohup\s|Start-Process\b/.test(command);
+				const wasDetachedToBackground = regexpNohupStartProcess.test(command);
 				const stdinHint = wasDetachedToBackground
 					? ' Note that stdin is closed for detached background processes; do not try to send input via send_to_terminal — re-run with mode="sync" instead if interactive input is required.'
 					: '';
@@ -2592,10 +2598,10 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		// extension. Each atom uses [^\s/\\]* so it cannot consume separators,
 		// which keeps the [/\\] tokens unambiguous and prevents catastrophic
 		// backtracking on long strings.
-		const pathPattern = /[^\s/\\]*(?:[/\\][^\s/\\]*)+\.(?:png|jpe?g|gif|webp|bmp)/gi;
+		const pathPattern = new RegExp(regexpPngJpeGif);
 
 		const matches = new Set<string>();
-		for (const line of output.split(/\r?\n/)) {
+		for (const line of output.split(regexp4)) {
 			if (line.length > 10_000) {
 				continue;
 			}
@@ -2618,7 +2624,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 				// Resolve the URI - check for absolute path (Unix / or Windows drive letter)
 				let fileUri: URI;
-				if (/^\/|^[A-Za-z]:[\\\/]/.test(filePath)) {
+				if (regexpZa.test(filePath)) {
 					fileUri = URI.file(filePath);
 				} else if (cwd) {
 					fileUri = URI.joinPath(cwd, filePath);

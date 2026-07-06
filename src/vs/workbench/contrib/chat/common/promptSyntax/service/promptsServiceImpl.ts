@@ -48,6 +48,10 @@ import { getCanonicalPluginCommandId, IAgentPlugin, IAgentPluginService } from '
 import { isContributionEnabled } from '../../enablement.js';
 import { assertNever } from '../../../../../../base/common/assert.js';
 import { ExtensionPromptFileService } from './extensionPromptFileService.js';
+const regexp1 = /^[\p{L}\d_\-\.:]+$/u;
+const regexp2 = /[^\p{L}\d_\-\.:]+/gu;
+const regexp3 = /<[^>]+>/g;
+
 
 /**
  * Provides prompt services.
@@ -542,7 +546,7 @@ export class PromptsService extends Disposable implements IPromptsService {
 	}
 
 	public isValidSlashCommandName(command: string): boolean {
-		return command.match(/^[\p{L}\d_\-\.:]+$/u) !== null;
+		return command.match(regexp1) !== null;
 	}
 
 	public hasPromptSlashCommand(name: string): boolean {
@@ -579,7 +583,7 @@ export class PromptsService extends Disposable implements IPromptsService {
 
 	private asChatPromptSlashCommand(argumentHint: string | undefined, userInvocable: boolean | undefined, promptPath: IPromptPath): IChatPromptSlashCommand {
 		let name = promptPath.name ?? getCleanPromptName(promptPath.uri);
-		name = name.replace(/[^\p{L}\d_\-\.:]+/gu, '-'); // replace spaces with dashes
+		name = name.replace(new RegExp(regexp2), '-'); // replace spaces with dashes
 		return {
 			uri: promptPath.uri,
 			name: name,
@@ -853,7 +857,7 @@ export class PromptsService extends Disposable implements IPromptsService {
 
 	private sanitizeAgentSkillText(text: string): string {
 		// Remove XML tags
-		return text.replace(/<[^>]+>/g, '');
+		return text.replace(new RegExp(regexp3), '');
 	}
 
 	private truncateAgentSkillName(name: string, uri: URI): string {

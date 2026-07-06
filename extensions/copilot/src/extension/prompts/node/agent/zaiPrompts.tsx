@@ -14,6 +14,8 @@ import { ResponseRenderingRules } from '../panel/editorIntegrationRules';
 import { ApplyPatchInstructions, CodesearchModeInstructions, DefaultAgentPromptProps, DefaultReminderInstructions, detectToolCapabilities, GenericEditingTips, McpToolInstructions, NotebookInstructions } from './defaultAgentInstructions';
 import { FileLinkificationInstructions } from './fileLinkificationInstructions';
 import { IAgentPrompt, PromptRegistry, ReminderInstructionsConstructor, SystemPrompt } from './promptRegistry';
+const regexpGlm = /glm[-_]?4[._p]?[67]/;
+
 
 
 
@@ -175,7 +177,7 @@ class ZaiPromptResolver implements IAgentPrompt {
 	static matchesModel(endpoint: IChatEndpoint): boolean {
 		const model = endpoint.model?.toLowerCase() || '';
 		// Match GLM 4.6 or 4.7 with various separators (e.g., glm-4.7, glm4p7, glm_4.6)
-		return /glm[-_]?4[._p]?[67]/.test(model);
+		return regexpGlm.test(model);
 	}
 
 	resolveSystemPrompt(endpoint: IChatEndpoint): SystemPrompt | undefined {

@@ -7,6 +7,10 @@ import { spawnSync, SpawnSyncOptions } from 'child_process';
 import { createHash } from 'crypto';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+const regexpZaZ0Users = /^(?:\d+\+)?([A-Za-z0-9-]+)@users\.noreply\.github\.com$/;
+const regexp2 = /\s/;
+const regexp3 = /^[0]+$/;
+
 
 interface ESLintMessage {
 	ruleId: string | null;
@@ -286,7 +290,7 @@ function getHandleFromLocalGit(commit: string): string | undefined {
 }
 
 function extractHandleFromEmail(email: string): string | undefined {
-	const noreplyPattern = /^(?:\d+\+)?([A-Za-z0-9-]+)@users\.noreply\.github\.com$/;
+	const noreplyPattern = regexpZaZ0Users;
 	const match = email.match(noreplyPattern);
 	if (match) {
 		return match[1];
@@ -296,7 +300,7 @@ function extractHandleFromEmail(email: string): string | undefined {
 
 function normalizePossibleHandle(name: string): string | undefined {
 	const normalized = name.trim();
-	if (!normalized || /\s/.test(normalized)) {
+	if (!normalized || regexp2.test(normalized)) {
 		return undefined;
 	}
 	return normalized;
@@ -313,7 +317,7 @@ function extractCommitHash(blameOutput: string): string | undefined {
 	}
 
 	const commit = firstLine.split(' ')[0];
-	if (!commit || /^[0]+$/.test(commit)) {
+	if (!commit || regexp3.test(commit)) {
 		return undefined;
 	}
 

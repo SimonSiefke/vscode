@@ -19,6 +19,9 @@ import { EditorAction, registerEditorAction, type ServicesAccessor } from '../..
 import { ensureNonNullable } from '../../../browser/gpu/gpuUtils.js';
 import { GlyphRasterizer } from '../../../browser/gpu/raster/glyphRasterizer.js';
 import { ViewGpuContext } from '../../../browser/gpu/viewGpuContext.js';
+const regexp0xCodePoint9a = /0x(?<codePoint>[0-9a-f]+)/i;
+const regexp2 = /[,\\\/\.'\s]/g;
+
 
 class DebugEditorGpuRendererAction extends EditorAction {
 
@@ -112,7 +115,7 @@ class DebugEditorGpuRendererAction extends EditorAction {
 					if (!chars) {
 						return;
 					}
-					const codePoint = chars.match(/0x(?<codePoint>[0-9a-f]+)/i)?.groups?.codePoint;
+					const codePoint = chars.match(regexp0xCodePoint9a)?.groups?.codePoint;
 					if (codePoint !== undefined) {
 						chars = String.fromCodePoint(parseInt(codePoint, 16));
 					}
@@ -135,7 +138,7 @@ class DebugEditorGpuRendererAction extends EditorAction {
 					const ctx = ensureNonNullable(canvas.getContext('2d'));
 					ctx.putImageData(imageData, 0, 0);
 					const blob = await canvas.convertToBlob({ type: 'image/png' });
-					const resource = URI.joinPath(folders[0].uri, `glyph_${chars}_${tokenMetadata}_${fontSize}px_${fontFamily.replaceAll(/[,\\\/\.'\s]/g, '_')}.png`);
+					const resource = URI.joinPath(folders[0].uri, `glyph_${chars}_${tokenMetadata}_${fontSize}px_${fontFamily.replaceAll(new RegExp(regexp2), '_')}.png`);
 					await fileService.writeFile(resource, VSBuffer.wrap(new Uint8Array(await blob.arrayBuffer())));
 				});
 				break;

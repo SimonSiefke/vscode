@@ -13,6 +13,8 @@ import { LinkifiedPart, LinkifiedText, LinkifySymbolAnchor } from '../common/lin
 import { IContributedLinkifier, LinkifierContext } from '../common/linkifyService';
 import { resolveSymbolFromReferences } from './commands';
 import { ReferencesSymbolResolver } from './findWord';
+const regexpHttps = /^https?:\/\//i;
+
 
 export const inlineCodeRegexp = /(?<!\[)`([^`\n]+)`(?!\])/g;
 
@@ -103,7 +105,7 @@ export class InlineCodeSymbolLinkifier implements IContributedLinkifier {
 	}
 
 	private async tryResolveSymbol(symbolText: string, context: LinkifierContext, token: CancellationToken): Promise<vscode.Location[] | undefined> {
-		if (/^https?:\/\//i.test(symbolText)) {
+		if (regexpHttps.test(symbolText)) {
 			return;
 		}
 

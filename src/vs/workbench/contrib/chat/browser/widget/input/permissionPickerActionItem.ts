@@ -29,6 +29,8 @@ import { URI } from '../../../../../../base/common/uri.js';
 import { IStorageService } from '../../../../../../platform/storage/common/storage.js';
 import { maybeConfirmElevatedPermissionLevel } from '../../../common/chatPermissionWarnings.js';
 import { AgentSandboxEnabledSettingValue, AgentSandboxEnabledValue, AgentSandboxSettingId, isAgentSandboxEnabledValue } from '../../../../../../platform/sandbox/common/settings.js';
+const regexpZAZ0 = /[^a-zA-Z0-9_-]/g;
+
 
 export interface IExtensionPermissionState {
 	/** Stable identifier for the contributing chat session type, used to namespace action ids. */
@@ -127,7 +129,7 @@ function getPermissionLevelMeta(level: ChatPermissionLevel): IPermissionLevelMet
 
 /** Sanitize a free-form id segment so it is safe to embed in a stable action identifier. */
 function sanitizeIdSegment(value: string): string {
-	return value.replace(/[^a-zA-Z0-9_-]/g, '_');
+	return value.replace(new RegExp(regexpZAZ0), '_');
 }
 
 function getSandboxEnabledSettingId(): AgentSandboxSettingId.AgentSandboxEnabled | AgentSandboxSettingId.AgentSandboxWindowsEnabled {

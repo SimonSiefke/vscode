@@ -19,6 +19,8 @@ import { LogLevel } from '../../../platform/log/common/log.js';
 import { McpConnectionState, McpServerLaunch, McpServerTransportStdio, McpServerTransportType } from '../../contrib/mcp/common/mcpTypes.js';
 import { McpStdioStateHandler } from '../../contrib/mcp/node/mcpStdioStateHandler.js';
 import { CommonRequestInit, CommonResponse, ExtHostMcpService, McpHTTPHandle } from '../common/extHostMcp.js';
+const regexp1 = /"/g;
+
 
 export class NodeExtHostMpcService extends ExtHostMcpService {
 	private nodeServers = this._register(new DisposableMap<number, McpStdioStateHandler>());
@@ -189,7 +191,7 @@ class McpHTTPHandleNode extends McpHTTPHandle {
 
 const windowsShellScriptRe = /\.(bat|cmd)$/i;
 
-export const escapeCmdArg = (s: string): string => `"${s.replace(/"/g, '""')}"`;
+export const escapeCmdArg = (s: string): string => `"${s.replace(new RegExp(regexp1), '""')}"`;
 
 /**
  * Formats arguments to avoid issues on Windows for CVE-2024-27980.

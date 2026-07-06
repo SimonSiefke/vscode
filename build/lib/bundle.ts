@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\r\n|\n|\r/;
+
 export interface IEntryPoint {
 	name: string;
 	include?: string[];
@@ -31,7 +33,7 @@ const BOILERPLATE = [
 ];
 
 function removeDuplicateTSBoilerplate(source: string, SEEN_BOILERPLATE: boolean[] = []): string {
-	const lines = source.split(/\r\n|\n|\r/);
+	const lines = source.split(regexp1);
 	const newLines: string[] = [];
 	let IS_REMOVING_BOILERPLATE = false, END_BOILERPLATE: RegExp;
 

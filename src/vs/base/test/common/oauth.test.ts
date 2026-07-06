@@ -28,6 +28,50 @@ import {
 } from '../../common/oauth.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 import { encodeBase64, VSBuffer } from '../../common/buffer.js';
+const regexpAuthorizationServerMetadata = /Authorization server metadata must have an issuer/;
+const regexpAuthorizationServerMetadata1 = /Authorization server metadata 'authorization_endpoint' must be a string/;
+const regexpAuthorizationServerMetadata2 = /Authorization server metadata 'token_endpoint' must be a string/;
+const regexpAuthorizationServerMetadata3 = /Authorization server metadata 'registration_endpoint' must be a string/;
+const regexpAuthorizationServerMetadata4 = /Authorization server metadata 'jwks_uri' must be a string/;
+const regexpAuthorizationServerMetadata5 = /Authorization server metadata 'issuer' must start with http:\/\/ or https:\/\//;
+const regexpAuthorizationServerMetadata6 = /Authorization server metadata 'authorization_endpoint' must start with http:\/\/ or https:\/\//;
+const regexpAuthorizationServerMetadata7 = /Authorization server metadata 'token_endpoint' must start with http:\/\/ or https:\/\//;
+const regexpAuthorizationServerMetadata8 = /Authorization server metadata 'registration_endpoint' must start with http:\/\/ or https:\/\//;
+const regexpAuthorizationServerMetadata9 = /Authorization server metadata 'jwks_uri' must start with http:\/\/ or https:\/\//;
+const regexpInvalidJWTToken = /Invalid JWT token format.*three parts/;
+const regexpFailedToParse = /Failed to parse JWT token/;
+const regexpRegistrationToHttps = /Registration to https:\/\/auth\.example\.com\/register failed: Bad Request/;
+const regexpInvalidAuthorizationDynamic = /Invalid authorization dynamic client registration response/;
+const regexpServerDoesNot = /Server does not support dynamic registration/;
+const regexpRegistrationToHttps1 = /Registration to https:\/\/auth\.example\.com\/register failed: invalid_client_metadata: The client metadata is invalid/;
+const regexpRegistrationToHttps2 = /Registration to https:\/\/auth\.example\.com\/register failed: invalid_redirect_uri/;
+const regexpRegistrationToHttps3 = /Registration to https:\/\/auth\.example\.com\/register failed: Invalid JSON \{/;
+const regexpNetworkError = /Network error/;
+const regexpJSONParsingFailed = /JSON parsing failed/;
+const regexpTextParsingFailed = /Text parsing failed/;
+const regexpRegistrationToHttps4 = /Registration to https:\/\/auth\.example\.com\/register failed: DCR not supported/;
+const regexpFailedToFetch = /Failed to fetch resource metadata from.*404 Not Found/;
+const regexpFailedToFetch1 = /Failed to fetch resource metadata from.*500 Internal Server Error/;
+const regexpDoesNotMatch = /does not match expected value/;
+const regexpInvalidResourceMetadata = /Invalid resource metadata/;
+const regexpHttpsDifferentCom = /https:\/\/different\.com\/other/;
+const regexpHttpsExampleCom = /https:\/\/example\.com\/api/;
+const regexpFailedToFetch2 = /Failed to fetch resource metadata from.*\/api\/v1.*404/;
+const regexpFailedToFetch3 = /Failed to fetch resource metadata from.*\.well-known.*404/;
+const regexpNetworkConnectionFailed = /Network connection failed/;
+const regexpConnectionTimeout = /Connection timeout/;
+const regexpFailedToFetch4 = /Failed to fetch resource metadata.*404/;
+const regexp34 = /404/;
+const regexpHttpsExampleCom1 = /https:\/\/example\.com\/api\/v1.*https:\/\/example\.com/;
+const regexpDNSResolutionFailed = /DNS resolution failed/;
+const regexpOauthAuthorizationServer = /oauth-authorization-server.*404/;
+const regexpOpenidConfiguration = /openid-configuration.*404/;
+const regexpNotFound = /404.*Not Found/;
+const regexpInternalServerError = /500.*Internal Server Error/;
+const regexpFailedToFetch5 = /Failed to fetch authorization server metadata/;
+const regexpInternalServerError1 = /500 Internal Server Error/;
+const regexpFailedToFetch6 = /Failed to fetch authorization server metadata from/;
+
 
 suite('OAuth', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -86,63 +130,63 @@ suite('OAuth', () => {
 			assert.strictEqual(isAuthorizationServerMetadata('not an object'), false);
 
 			// Invalid cases - missing issuer should throw
-			assert.throws(() => isAuthorizationServerMetadata({}), /Authorization server metadata must have an issuer/);
-			assert.throws(() => isAuthorizationServerMetadata({ response_types_supported: ['code'] }), /Authorization server metadata must have an issuer/);
+			assert.throws(() => isAuthorizationServerMetadata({}), regexpAuthorizationServerMetadata);
+			assert.throws(() => isAuthorizationServerMetadata({ response_types_supported: ['code'] }), regexpAuthorizationServerMetadata);
 
 			// Invalid cases - URI fields must be strings when provided (truthy values)
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				authorization_endpoint: 123,
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'authorization_endpoint' must be a string/);
+			}), regexpAuthorizationServerMetadata1);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				token_endpoint: 123,
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'token_endpoint' must be a string/);
+			}), regexpAuthorizationServerMetadata2);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				registration_endpoint: [],
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'registration_endpoint' must be a string/);
+			}), regexpAuthorizationServerMetadata3);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				jwks_uri: {},
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'jwks_uri' must be a string/);
+			}), regexpAuthorizationServerMetadata4);
 
 			// Invalid cases - URI fields must start with http:// or https://
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'ftp://example.com',
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'issuer' must start with http:\/\/ or https:\/\//);
+			}), regexpAuthorizationServerMetadata5);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				authorization_endpoint: 'ftp://example.com/auth',
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'authorization_endpoint' must start with http:\/\/ or https:\/\//);
+			}), regexpAuthorizationServerMetadata6);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				token_endpoint: 'file:///path/to/token',
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'token_endpoint' must start with http:\/\/ or https:\/\//);
+			}), regexpAuthorizationServerMetadata7);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				registration_endpoint: 'mailto:admin@example.com',
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'registration_endpoint' must start with http:\/\/ or https:\/\//);
+			}), regexpAuthorizationServerMetadata8);
 
 			assert.throws(() => isAuthorizationServerMetadata({
 				issuer: 'https://example.com',
 				jwks_uri: 'data:application/json,{}',
 				response_types_supported: ['code']
-			}), /Authorization server metadata 'jwks_uri' must start with http:\/\/ or https:\/\//);
+			}), regexpAuthorizationServerMetadata9);
 		});
 
 		test('isAuthorizationDynamicClientRegistrationResponse should correctly identify registration response', () => {
@@ -411,9 +455,9 @@ suite('OAuth', () => {
 
 		test('getClaimsFromJWT should throw for invalid JWT format', () => {
 			// Test with wrong number of parts - should throw "Invalid JWT token format"
-			assert.throws(() => getClaimsFromJWT('only.two'), /Invalid JWT token format.*three parts/);
-			assert.throws(() => getClaimsFromJWT('one'), /Invalid JWT token format.*three parts/);
-			assert.throws(() => getClaimsFromJWT('has.four.parts.here'), /Invalid JWT token format.*three parts/);
+			assert.throws(() => getClaimsFromJWT('only.two'), regexpInvalidJWTToken);
+			assert.throws(() => getClaimsFromJWT('one'), regexpInvalidJWTToken);
+			assert.throws(() => getClaimsFromJWT('has.four.parts.here'), regexpInvalidJWTToken);
 		});
 
 		test('getClaimsFromJWT should throw for invalid header content', () => {
@@ -422,7 +466,7 @@ suite('OAuth', () => {
 			const encodedPayload = encodeBase64(VSBuffer.fromString(JSON.stringify({ sub: 'test' })));
 			const token = `${encodedHeader}.${encodedPayload}.signature`;
 
-			assert.throws(() => getClaimsFromJWT(token), /Failed to parse JWT token/);
+			assert.throws(() => getClaimsFromJWT(token), regexpFailedToParse);
 		});
 
 		test('getClaimsFromJWT should throw for invalid payload content', () => {
@@ -432,7 +476,7 @@ suite('OAuth', () => {
 			const encodedPayload = encodeBase64(VSBuffer.fromString('not-json'));
 			const token = `${encodedHeader}.${encodedPayload}.signature`;
 
-			assert.throws(() => getClaimsFromJWT(token), /Failed to parse JWT token/);
+			assert.throws(() => getClaimsFromJWT(token), regexpFailedToParse);
 		});
 	});
 
@@ -512,7 +556,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Registration to https:\/\/auth\.example\.com\/register failed: Bad Request/
+				regexpRegistrationToHttps
 			);
 		});
 
@@ -530,7 +574,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Invalid authorization dynamic client registration response/
+				regexpInvalidAuthorizationDynamic
 			);
 		});
 
@@ -603,7 +647,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Server does not support dynamic registration/
+				regexpServerDoesNot
 			);
 		});
 
@@ -626,7 +670,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Registration to https:\/\/auth\.example\.com\/register failed: invalid_client_metadata: The client metadata is invalid/
+				regexpRegistrationToHttps1
 			);
 		});
 
@@ -648,7 +692,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Registration to https:\/\/auth\.example\.com\/register failed: invalid_redirect_uri/
+				regexpRegistrationToHttps2
 			);
 		});
 
@@ -666,7 +710,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Registration to https:\/\/auth\.example\.com\/register failed: Invalid JSON \{/
+				regexpRegistrationToHttps3
 			);
 		});
 
@@ -756,7 +800,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Network error/
+				regexpNetworkError
 			);
 		});
 
@@ -776,7 +820,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/JSON parsing failed/
+				regexpJSONParsingFailed
 			);
 		});
 
@@ -796,7 +840,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Text parsing failed/
+				regexpTextParsingFailed
 			);
 		});
 	});
@@ -843,7 +887,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => await fetchDynamicRegistration(serverMetadata, 'Test Client'),
-				/Registration to https:\/\/auth\.example\.com\/register failed: DCR not supported/
+				regexpRegistrationToHttps4
 			);
 		});
 	});
@@ -962,7 +1006,7 @@ suite('OAuth', () => {
 				async () => fetchResourceMetadata(targetResource, resourceMetadataUrl, { fetch: fetchStub }),
 				(error: any) => {
 					// Should be AggregateError since all URLs fail
-					assert.ok(error instanceof AggregateError || /Failed to fetch resource metadata from.*404 Not Found/.test(error.message));
+					assert.ok(error instanceof AggregateError || regexpFailedToFetch.test(error.message));
 					return true;
 				}
 			);
@@ -983,7 +1027,7 @@ suite('OAuth', () => {
 				async () => fetchResourceMetadata(targetResource, resourceMetadataUrl, { fetch: fetchStub }),
 				(error: any) => {
 					// Should be AggregateError since all URLs fail
-					assert.ok(error instanceof AggregateError || /Failed to fetch resource metadata from.*500 Internal Server Error/.test(error.message));
+					assert.ok(error instanceof AggregateError || regexpFailedToFetch1.test(error.message));
 					return true;
 				}
 			);
@@ -1008,7 +1052,7 @@ suite('OAuth', () => {
 				(error: any) => {
 					// Should be AggregateError since all URLs fail validation
 					assert.ok(error instanceof AggregateError);
-					assert.ok(error.errors.some((e: Error) => /does not match expected value/.test(e.message)));
+					assert.ok(error.errors.some((e: Error) => regexpDoesNotMatch.test(e.message)));
 					return true;
 				}
 			);
@@ -1052,7 +1096,7 @@ suite('OAuth', () => {
 				async () => fetchResourceMetadata(targetResource, resourceMetadataUrl, { fetch: fetchStub }),
 				(error: any) => {
 					// Should be AggregateError since all URLs return invalid metadata
-					assert.ok(error instanceof AggregateError || /Invalid resource metadata/.test(error.message));
+					assert.ok(error instanceof AggregateError || regexpInvalidResourceMetadata.test(error.message));
 					return true;
 				}
 			);
@@ -1077,7 +1121,7 @@ suite('OAuth', () => {
 				async () => fetchResourceMetadata(targetResource, resourceMetadataUrl, { fetch: fetchStub }),
 				(error: any) => {
 					// Should be AggregateError since all URLs return invalid metadata
-					assert.ok(error instanceof AggregateError || /Invalid resource metadata/.test(error.message));
+					assert.ok(error instanceof AggregateError || regexpInvalidResourceMetadata.test(error.message));
 					return true;
 				}
 			);
@@ -1203,9 +1247,9 @@ suite('OAuth', () => {
 			} catch (error: any) {
 				// Should be AggregateError with validation errors
 				const errorMessage = error instanceof AggregateError ? error.errors.map((e: Error) => e.message).join(' ') : error.message;
-				assert.ok(/does not match expected value/.test(errorMessage), 'Error message should mention mismatch');
-				assert.ok(/https:\/\/different\.com\/other/.test(errorMessage), 'Error message should include actual resource value');
-				assert.ok(/https:\/\/example\.com\/api/.test(errorMessage), 'Error message should include expected resource value');
+				assert.ok(regexpDoesNotMatch.test(errorMessage), 'Error message should mention mismatch');
+				assert.ok(regexpHttpsDifferentCom.test(errorMessage), 'Error message should include actual resource value');
+				assert.ok(regexpHttpsExampleCom.test(errorMessage), 'Error message should include expected resource value');
 			}
 		});
 
@@ -1285,8 +1329,8 @@ suite('OAuth', () => {
 				(error: any) => {
 					assert.ok(error instanceof AggregateError, 'Should be an AggregateError');
 					assert.strictEqual(error.errors.length, 2, 'Should contain 2 errors');
-					assert.ok(/Failed to fetch resource metadata from.*\/api\/v1.*404/.test(error.errors[0].message), 'First error should mention /api/v1 and 404');
-					assert.ok(/Failed to fetch resource metadata from.*\.well-known.*404/.test(error.errors[1].message), 'Second error should mention .well-known and 404');
+					assert.ok(regexpFailedToFetch2.test(error.errors[0].message), 'First error should mention /api/v1 and 404');
+					assert.ok(regexpFailedToFetch3.test(error.errors[1].message), 'Second error should mention .well-known and 404');
 					return true;
 				}
 			); assert.strictEqual(fetchStub.callCount, 2);
@@ -1372,7 +1416,7 @@ suite('OAuth', () => {
 			assert.deepStrictEqual(result.metadata, expectedMetadata);
 			assert.strictEqual(result.discoveryUrl, 'https://example.com/.well-known/oauth-protected-resource');
 			assert.strictEqual(result.errors.length, 1);
-			assert.ok(/Network connection failed/.test(result.errors[0].message));
+			assert.ok(regexpNetworkConnectionFailed.test(result.errors[0].message));
 			assert.strictEqual(fetchStub.callCount, 2);
 			// First attempt with path should have thrown error
 			assert.strictEqual(fetchStub.firstCall.args[0], 'https://example.com/.well-known/oauth-protected-resource/api/v1');
@@ -1391,8 +1435,8 @@ suite('OAuth', () => {
 				(error: any) => {
 					assert.ok(error instanceof AggregateError, 'Should be an AggregateError');
 					assert.strictEqual(error.errors.length, 2, 'Should contain 2 errors');
-					assert.ok(/Network connection failed/.test(error.errors[0].message), 'First error should mention network failure');
-					assert.ok(/Network connection failed/.test(error.errors[1].message), 'Second error should mention network failure');
+					assert.ok(regexpNetworkConnectionFailed.test(error.errors[0].message), 'First error should mention network failure');
+					assert.ok(regexpNetworkConnectionFailed.test(error.errors[1].message), 'Second error should mention network failure');
 					return true;
 				}
 			);
@@ -1418,8 +1462,8 @@ suite('OAuth', () => {
 				(error: any) => {
 					assert.ok(error instanceof AggregateError, 'Should be an AggregateError');
 					assert.strictEqual(error.errors.length, 2, 'Should contain 2 errors');
-					assert.ok(/Connection timeout/.test(error.errors[0].message), 'First error should be network error');
-					assert.ok(/Failed to fetch resource metadata.*404/.test(error.errors[1].message), 'Second error should be 404');
+					assert.ok(regexpConnectionTimeout.test(error.errors[0].message), 'First error should be network error');
+					assert.ok(regexpFailedToFetch4.test(error.errors[1].message), 'Second error should be 404');
 					return true;
 				}
 			);
@@ -1517,11 +1561,11 @@ suite('OAuth', () => {
 					assert.ok(error instanceof AggregateError, 'Should be an AggregateError');
 					assert.strictEqual(error.errors.length, 2);
 					// First error is 404 from path-appended attempt
-					assert.ok(/404/.test(error.errors[0].message));
+					assert.ok(regexp34.test(error.errors[0].message));
 					// Second error is validation failure from root attempt
-					assert.ok(/does not match expected value/.test(error.errors[1].message));
+					assert.ok(regexpDoesNotMatch.test(error.errors[1].message));
 					// Check that validation was against root URL (origin) not full path
-					assert.ok(/https:\/\/example\.com\/api\/v1.*https:\/\/example\.com/.test(error.errors[1].message));
+					assert.ok(regexpHttpsExampleCom1.test(error.errors[1].message));
 					return true;
 				}
 			);
@@ -1621,7 +1665,7 @@ suite('OAuth', () => {
 				async () => fetchResourceMetadata(targetResource, resourceMetadataUrl, { fetch: fetchStub }),
 				(error: any) => {
 					// Should be AggregateError since all URLs fail
-					assert.ok(error instanceof AggregateError || /DNS resolution failed/.test(error.message));
+					assert.ok(error instanceof AggregateError || regexpDNSResolutionFailed.test(error.message));
 					return true;
 				}
 			);
@@ -1845,9 +1889,9 @@ suite('OAuth', () => {
 					assert.strictEqual(error.errors.length, 3, 'Should contain 3 errors (one for each URL)');
 					assert.strictEqual(error.message, 'Failed to fetch authorization server metadata from all attempted URLs');
 					// Verify each error includes the URL it attempted
-					assert.ok(/oauth-authorization-server.*404/.test(error.errors[0].message), 'First error should mention OAuth discovery and 404');
-					assert.ok(/openid-configuration.*404/.test(error.errors[1].message), 'Second error should mention OpenID path insertion and 404');
-					assert.ok(/openid-configuration.*404/.test(error.errors[2].message), 'Third error should mention OpenID path addition and 404');
+					assert.ok(regexpOauthAuthorizationServer.test(error.errors[0].message), 'First error should mention OAuth discovery and 404');
+					assert.ok(regexpOpenidConfiguration.test(error.errors[1].message), 'Second error should mention OpenID path insertion and 404');
+					assert.ok(regexpOpenidConfiguration.test(error.errors[2].message), 'Third error should mention OpenID path addition and 404');
 					return true;
 				}
 			);
@@ -1914,11 +1958,11 @@ suite('OAuth', () => {
 					assert.ok(error instanceof AggregateError, 'Should be an AggregateError');
 					assert.strictEqual(error.errors.length, 3, 'Should contain 3 errors');
 					// First error is network error
-					assert.ok(/Connection timeout/.test(error.errors[0].message), 'First error should be network error');
+					assert.ok(regexpConnectionTimeout.test(error.errors[0].message), 'First error should be network error');
 					// Second error is 404
-					assert.ok(/404.*Not Found/.test(error.errors[1].message), 'Second error should be 404');
+					assert.ok(regexpNotFound.test(error.errors[1].message), 'Second error should be 404');
 					// Third error is 500
-					assert.ok(/500.*Internal Server Error/.test(error.errors[2].message), 'Third error should be 500');
+					assert.ok(regexpInternalServerError.test(error.errors[2].message), 'Third error should be 500');
 					return true;
 				}
 			);
@@ -1938,7 +1982,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => fetchAuthorizationServerMetadata(authorizationServer, { fetch: fetchStub }),
-				/Failed to fetch authorization server metadata/
+				regexpFailedToFetch5
 			);
 		});
 
@@ -1958,7 +2002,7 @@ suite('OAuth', () => {
 
 			await assert.rejects(
 				async () => fetchAuthorizationServerMetadata(authorizationServer, { fetch: fetchStub }),
-				/Failed to fetch authorization server metadata/
+				regexpFailedToFetch5
 			);
 		});
 
@@ -2005,7 +2049,7 @@ suite('OAuth', () => {
 
 			assert.deepStrictEqual(result.metadata, expectedMetadata);
 			assert.strictEqual(result.errors.length, 1);
-			assert.ok(/Network error/.test(result.errors[0].message));
+			assert.ok(regexpNetworkError.test(result.errors[0].message));
 			// Should have tried two endpoints
 			assert.strictEqual(fetchStub.callCount, 2);
 		});
@@ -2022,9 +2066,9 @@ suite('OAuth', () => {
 					assert.strictEqual(error.errors.length, 3, 'Should contain 3 errors');
 					assert.strictEqual(error.message, 'Failed to fetch authorization server metadata from all attempted URLs');
 					// All errors should be network errors
-					assert.ok(/Network error/.test(error.errors[0].message), 'First error should be network error');
-					assert.ok(/Network error/.test(error.errors[1].message), 'Second error should be network error');
-					assert.ok(/Network error/.test(error.errors[2].message), 'Third error should be network error');
+					assert.ok(regexpNetworkError.test(error.errors[0].message), 'First error should be network error');
+					assert.ok(regexpNetworkError.test(error.errors[1].message), 'Second error should be network error');
+					assert.ok(regexpNetworkError.test(error.errors[2].message), 'Third error should be network error');
 					return true;
 				}
 			);
@@ -2084,7 +2128,7 @@ suite('OAuth', () => {
 					assert.strictEqual(error.errors.length, 3, 'Should contain 3 errors');
 					// All errors should include status code and statusText (fallback when text() fails)
 					for (const err of error.errors) {
-						assert.ok(/500 Internal Server Error/.test(err.message), `Error should mention 500 and statusText: ${err.message}`);
+						assert.ok(regexpInternalServerError1.test(err.message), `Error should mention 500 and statusText: ${err.message}`);
 					}
 					return true;
 				}
@@ -2175,7 +2219,7 @@ suite('OAuth', () => {
 					assert.strictEqual(error.errors.length, 3, 'Should contain 3 errors');
 					// All errors should indicate failed to fetch with status code
 					for (const err of error.errors) {
-						assert.ok(/Failed to fetch authorization server metadata from/.test(err.message), `Error should mention failed fetch: ${err.message}`);
+						assert.ok(regexpFailedToFetch6.test(err.message), `Error should mention failed fetch: ${err.message}`);
 					}
 					return true;
 				}

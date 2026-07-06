@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../../../../base/common/uri.js';
+const regexp1 = /^\//;
+
 
 export function toAgentHostBackendSessionUri(sessionResource: URI): URI | undefined {
 	const scheme = sessionResource.scheme;
@@ -15,6 +17,6 @@ export function toAgentHostBackendSessionUri(sessionResource: URI): URI | undefi
 	if (!provider) {
 		return undefined;
 	}
-	const rawId = sessionResource.path.replace(/^\//, '');
+	const rawId = sessionResource.path.replace(regexp1, '');
 	return URI.from({ scheme: provider, path: `/${rawId}` });
 }

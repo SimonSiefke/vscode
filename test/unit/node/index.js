@@ -5,6 +5,13 @@
 
 //@ts-check
 'use strict';
+const regexpJs = /\.js$/;
+const regexpSrc = /^src/;
+const regexpTs = /\.ts$/;
+const regexp4 = /\\/g;
+const regexpJsJsMap = /(\.js)|(\.js\.map)$/;
+const regexpJsTsJs = /(\.js)|(\.d\.ts)|(\.js\.map)$/;
+
 
 process.env.MOCHA_COLORS = '1'; // Force colors (note that this must come before any mocha imports)
 
@@ -174,7 +181,7 @@ function main() {
 						test = path.relative(src, path.resolve(test));
 					}
 
-					return test.replace(/(\.js)|(\.d\.ts)|(\.js\.map)$/, '');
+					return test.replace(regexpJsTsJs, '');
 				});
 				loadModules(modulesToLoad).then(() => cb(null), cb);
 			};
@@ -184,9 +191,9 @@ function main() {
 	} else if (args.run) {
 		const tests = (typeof args.run === 'string') ? [args.run] : args.run;
 		const modulesToLoad = tests.map(function(test) {
-			test = test.replace(/^src/, 'out');
-			test = test.replace(/\.ts$/, '.js');
-			return path.relative(src, path.resolve(test)).replace(/(\.js)|(\.js\.map)$/, '').replace(/\\/g, '/');
+			test = test.replace(regexpSrc, 'out');
+			test = test.replace(regexpTs, '.js');
+			return path.relative(src, path.resolve(test)).replace(regexpJsJsMap, '').replace(new RegExp(regexp4), '/');
 		});
 		loadFunc = (cb) => {
 			loadModules(modulesToLoad).then(() => cb(null), cb);
@@ -198,7 +205,7 @@ function main() {
 				const modules = [];
 				for (const file of files) {
 					if (!excludeGlobs.some(excludeGlob => minimatch(file, excludeGlob))) {
-						modules.push(file.replace(/\.js$/, ''));
+						modules.push(file.replace(regexpJs, ''));
 					}
 				}
 				loadModules(modules).then(() => cb(null), cb);

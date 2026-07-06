@@ -61,6 +61,13 @@ import { IPullRequestCreationService } from './pullRequestCreationService';
 import { getBlockingSiblingSessionsForFolder } from './worktreeSharing';
 import { convertReferenceToVariable } from '../copilotcli/vscode-node/copilotCLIPromptReferences';
 import { clearChangesCacheForAffectedSessions } from './chatSessionRepositoryTracker';
+const regexp1 = /'/g;
+const regexp2 = /"/g;
+const regexp3 = />/g;
+const regexp4 = /</g;
+const regexp5 = /&/g;
+const regexpUnknownEventType = /Unknown event type:/i;
+
 
 const REPOSITORY_OPTION_ID = 'repository';
 const PERMISSION_LEVEL_OPTION_ID = 'permissionLevel';
@@ -105,11 +112,11 @@ namespace SessionIdForCLI {
  */
 function escapeXml(text: string): string {
 	return text
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&apos;');
+		.replace(new RegExp(regexp5), '&amp;')
+		.replace(new RegExp(regexp4), '&lt;')
+		.replace(new RegExp(regexp3), '&gt;')
+		.replace(new RegExp(regexp2), '&quot;')
+		.replace(new RegExp(regexp1), '&apos;');
 }
 
 function getIssueRuntimeInfo(): { readonly platform: string; readonly vscodeInfo: string; readonly extensionVersion: string } {
@@ -3115,7 +3122,7 @@ async function checkPathExists(filePath: vscode.Uri, fileSystemService: IFileSys
 
 function isUnknownEventTypeError(error: unknown): boolean {
 	const message = error instanceof Error ? error.message : String(error);
-	return /Unknown event type:/i.test(message);
+	return regexpUnknownEventType.test(message);
 }
 
 /**

@@ -6,6 +6,9 @@
 import { References } from './peek';
 import { Commands } from './workbench';
 import { Code } from './code';
+const regexp1 = /\u00a0/g;
+const regexp2 = /\s/g;
+
 
 const RENAME_BOX = '.monaco-editor .monaco-editor.rename-box';
 const RENAME_INPUT = `${RENAME_BOX} .rename-input`;
@@ -102,13 +105,13 @@ export class Editor {
 
 	async waitForEditorContents(filename: string, accept: (contents: string) => boolean, selectorPrefix = ''): Promise<any> {
 		const selector = [selectorPrefix || '', `${EDITOR(filename)} .view-lines`].join(' ');
-		return this.code.waitForTextContent(selector, undefined, c => accept(c.replace(/\u00a0/g, ' ')));
+		return this.code.waitForTextContent(selector, undefined, c => accept(c.replace(new RegExp(regexp1), ' ')));
 	}
 
 	private async getClassSelectors(filename: string, term: string, viewline: number): Promise<string[]> {
 		const elements = await this.code.waitForElements(`${VIEW_LINES(filename)}>:nth-child(${viewline}) span span`, false, els => els.some(el => el.textContent === term));
 		const { className } = elements.filter(r => r.textContent === term)[0];
-		return className.split(/\s/g);
+		return className.split(new RegExp(regexp2));
 	}
 
 	private async getViewLineIndex(filename: string, line: number): Promise<number> {

@@ -6,6 +6,8 @@
 import { LRUCache } from '../../../../base/common/map.js';
 import { createDecorator } from '../../../instantiation/common/instantiation.js';
 import { ILogService } from '../../../log/common/log.js';
+const regexp1 = /\s+/g;
+
 
 export type FetchFunction = typeof globalThis.fetch;
 
@@ -321,7 +323,7 @@ export class AgentHostOctoKitService implements IAgentHostOctoKitService {
 	}
 
 	private _formatErrorResponseBody(errorText: string | undefined): string | undefined {
-		const normalized = errorText?.replace(/\s+/g, ' ').trim();
+		const normalized = errorText?.replace(new RegExp(regexp1), ' ').trim();
 		if (!normalized) {
 			return undefined;
 		}

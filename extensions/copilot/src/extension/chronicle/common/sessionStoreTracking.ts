@@ -5,6 +5,14 @@
 
 import { GenAiAttr } from '../../../platform/otel/common/genAiAttributes';
 import type { ICompletedSpanData } from '../../../platform/otel/common/otelService';
+const regexpUpdateAddDelete = /^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s*(.+)$/m;
+const regexpHttpsGithubCom = /https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/(\d+)/;
+const regexpBghPrCreate = /\bgh\s+pr\s+(create|checkout|view|merge)\b/;
+const regexpHttpsGithubCom1 = /https:\/\/github\.com\/[^/]+\/[^/]+\/issues\/(\d+)/;
+const regexp9a = /\[[\w/.-]+\s+([0-9a-f]{7,40})\]/;
+const regexpBgitCommit = /\bgit\s+commit\b/;
+const regexpInvokeAgent = /^invoke_agent\s+(.+)/;
+
 
 /**
  * Helpers for extracting file paths and refs from tool calls,
@@ -122,7 +130,7 @@ export function extractFilePath(toolName: string, toolArgs: unknown): string | u
  * Matches lines like `*** Update File: /path/to/file` or `*** Add File: /path`.
  */
 function extractFirstFileFromPatch(input: string): string | undefined {
-	const match = input.match(/^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s*(.+)$/m);
+	const match = input.match(regexpUpdateAddDelete);
 	return match?.[1]?.trim();
 }
 
@@ -196,8 +204,8 @@ export function extractRefsFromTerminal(
 	const refs: Array<{ ref_type: 'pr' | 'issue' | 'commit'; ref_value: string }> = [];
 
 	// Detect PR creation/checkout/view/merge — look for PR URL in result
-	if (/\bgh\s+pr\s+(create|checkout|view|merge)\b/.test(command) && resultText) {
-		const prMatch = resultText.match(/https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/(\d+)/);
+	if (regexpBghPrCreate.test(command) && resultText) {
+		const prMatch = resultText.match(regexpHttpsGithubCom);
 		if (prMatch?.[1]) {
 			refs.push({ ref_type: 'pr', ref_value: prMatch[1] });
 		}
@@ -205,15 +213,15 @@ export function extractRefsFromTerminal(
 
 	// Detect issue creation — look for issue URL in result
 	if (command.includes('gh issue create') && resultText) {
-		const issueMatch = resultText.match(/https:\/\/github\.com\/[^/]+\/[^/]+\/issues\/(\d+)/);
+		const issueMatch = resultText.match(regexpHttpsGithubCom1);
 		if (issueMatch?.[1]) {
 			refs.push({ ref_type: 'issue', ref_value: issueMatch[1] });
 		}
 	}
 
 	// Detect git commit — extract SHA from "[branch sha]" pattern in output
-	if (/\bgit\s+commit\b/.test(command) && resultText) {
-		const commitMatch = resultText.match(/\[[\w/.-]+\s+([0-9a-f]{7,40})\]/);
+	if (regexpBgitCommit.test(command) && resultText) {
+		const commitMatch = resultText.match(regexp9a);
 		if (commitMatch?.[1]) {
 			refs.push({ ref_type: 'commit', ref_value: commitMatch[1] });
 		}
@@ -256,7 +264,7 @@ export function extractAgentName(span: { name: string; attributes: Record<string
 		return attr.trim();
 	}
 	// 2. Parse span name: "invoke_agent copilot" → "copilot"
-	const match = span.name.match(/^invoke_agent\s+(.+)/);
+	const match = span.name.match(regexpInvokeAgent);
 	if (match?.[1]?.trim()) {
 		return match[1].trim();
 	}

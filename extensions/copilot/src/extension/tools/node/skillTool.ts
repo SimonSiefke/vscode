@@ -25,6 +25,9 @@ import { CopilotToolMode, ICopilotTool, ToolRegistry } from '../common/toolsRegi
 import { IToolsService } from '../common/toolsService';
 import { formatUriForFileWidget } from '../common/toolUtils';
 import { sendSkillContentReadTelemetry } from '../common/skillTelemetry';
+const regexp1 = /^---\n([\s\S]*?)\n---/m;
+const regexpContext = /^context:\s*(.+)$/m;
+
 
 export interface ISkillParams {
 	/** The skill name. E.g., "commit", "review-pr", or "pdf" */
@@ -293,11 +296,11 @@ export async function listRelatedFilesRecursive(baseUri: URI, currentUri: URI, f
  * Returns 'fork' if frontmatter contains `context: fork`, otherwise 'inline'.
  */
 export function parseSkillContext(content: string): 'inline' | 'fork' {
-	const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/m);
+	const frontmatterMatch = content.match(regexp1);
 	if (!frontmatterMatch) {
 		return 'inline';
 	}
-	const contextMatch = frontmatterMatch[1].match(/^context:\s*(.+)$/m);
+	const contextMatch = frontmatterMatch[1].match(regexpContext);
 	if (contextMatch && contextMatch[1].trim() === 'fork') {
 		return 'fork';
 	}

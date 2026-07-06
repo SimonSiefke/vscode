@@ -8,6 +8,8 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { TestLogService } from '../../../../../platform/testing/common/testLogService';
+const regexpCopilotIdeLock = /\.copilot[/\\]ide.*\.lock$/;
+
 
 vi.mock('vscode', async (importOriginal) => {
 	const original = await importOriginal<typeof import('vscode')>();
@@ -125,7 +127,7 @@ describe('createLockFile', () => {
 		const handle = await createLockFile(mockServerUri, mockHeaders, logger);
 		createdLockFile = handle.path;
 
-		expect(handle.path).toMatch(/\.copilot[/\\]ide.*\.lock$/);
+		expect(handle.path).toMatch(regexpCopilotIdeLock);
 		const stat = await fs.stat(handle.path);
 		expect(stat.isFile()).toBe(true);
 

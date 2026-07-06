@@ -5,6 +5,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+const regexpEscapeNamePattern = /(?<escape>\\\$)|(?<!\\)\$\{(?<name>\w+)(?:\/(?<pattern>(?:\\\/|[^\}\/])+)\/(?<replacement>(?:\\\/|[^\}\/])*)\/)?\}/g;
+const regexp2 = /\\\//g;
+
 
 type OverwriteBehavior = 'overwrite' | 'nameIncrementally';
 
@@ -100,7 +103,7 @@ function resolveCopyDestinationSetting(documentUri: vscode.Uri, fileName: string
 		['isoTime', new Date().toISOString()], // The current time in ISO 8601 format, e.g. '2025-06-06T08:40:32.123Z'.
 	]);
 
-	return outDest.replaceAll(/(?<escape>\\\$)|(?<!\\)\$\{(?<name>\w+)(?:\/(?<pattern>(?:\\\/|[^\}\/])+)\/(?<replacement>(?:\\\/|[^\}\/])*)\/)?\}/g, (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
+	return outDest.replaceAll(new RegExp(regexpEscapeNamePattern), (match, _escape, name, pattern, replacement, _offset, _str, groups) => {
 		if (groups?.['escape']) {
 			return '$';
 		}
@@ -123,5 +126,5 @@ function resolveCopyDestinationSetting(documentUri: vscode.Uri, fileName: string
 }
 
 function replaceTransformEscapes(str: string): string {
-	return str.replaceAll(/\\\//g, '/');
+	return str.replaceAll(new RegExp(regexp2), '/');
 }

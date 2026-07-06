@@ -35,6 +35,9 @@ import { PromptRegistry } from '../promptRegistry';
 import { ISessionTranscriptService, NullSessionTranscriptService } from '../../../../../platform/chat/common/sessionTranscriptService';
 import { ITokenizerProvider } from '../../../../../platform/tokenizer/node/tokenizer';
 import { appendTranscriptHintToSummary, ConversationHistorySummarizationPrompt, extractSummary, stripToolSearchMessages, SummarizedConversationHistory, SummarizedConversationHistoryMetadata, SummarizedConversationHistoryPropsBuilder } from '../summarizedConversationHistory';
+const regexpTheCurrentDate = /The current date is.*/g;
+const regexp2 = /\\+/g;
+
 
 suite('Agent Summarization', () => {
 	let accessor: ITestingServicesAccessor;
@@ -143,8 +146,8 @@ suite('Agent Summarization', () => {
 			.filter(message => message.role !== Raw.ChatRole.System)
 			.map(m => messageToMarkdown(m))
 			.join('\n\n')
-			.replace(/\\+/g, '/')
-			.replace(/The current date is.*/g, '(Date removed from snapshot)');
+			.replace(new RegExp(regexp2), '/')
+			.replace(new RegExp(regexpTheCurrentDate), '(Date removed from snapshot)');
 	}
 
 	function createEditFileToolCall(idx: number): IToolCall {

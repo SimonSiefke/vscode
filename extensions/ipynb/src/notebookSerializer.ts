@@ -9,6 +9,8 @@ import * as vscode from 'vscode';
 import { getPreferredLanguage, jupyterNotebookModelToNotebookData } from './deserializers';
 import * as fnv from '@enonic/fnv-plus';
 import { serializeNotebookToString } from './serializers';
+const regexp1 = /\S/;
+
 
 export abstract class NotebookSerializerBase extends vscode.Disposable implements vscode.NotebookSerializer {
 	protected disposed: boolean = false;
@@ -28,7 +30,7 @@ export abstract class NotebookSerializerBase extends vscode.Disposable implement
 		} catch {
 		}
 
-		let json = contents && /\S/.test(contents) ? (JSON.parse(contents) as Partial<nbformat.INotebookContent>) : {};
+		let json = contents && regexp1.test(contents) ? (JSON.parse(contents) as Partial<nbformat.INotebookContent>) : {};
 
 		if (json.__webview_backup) {
 			const backupId = json.__webview_backup;

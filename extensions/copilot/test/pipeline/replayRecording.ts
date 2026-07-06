@@ -16,6 +16,8 @@ import { IStringReplacement } from './alternativeAction/types';
 import { IInputRow } from './parseInput';
 import { applyEditsToContent } from './responseStep';
 import type { WithRowIndex } from './withRowIndex';
+const regexp1 = /^\[(\d+), (\d+)\)$/;
+
 
 /**
  * Result of processing a single input row: replayed workspace + oracle edit.
@@ -80,7 +82,7 @@ export function parseSuggestedEdit(suggestedEditStr: string): [start: number, en
 	}
 	const stringifiedRange = suggestedEditStr.substring(0, delimiterIdx);
 	const quotedText = suggestedEditStr.substring(delimiterIdx + separator.length);
-	const match = stringifiedRange.match(/^\[(\d+), (\d+)\)$/);
+	const match = stringifiedRange.match(regexp1);
 	if (!match || !quotedText) {
 		return null;
 	}

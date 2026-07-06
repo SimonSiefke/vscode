@@ -10,6 +10,10 @@ import { joinPath } from '../../../base/common/resources.js';
 import { isUriComponents, URI, UriComponents } from '../../../base/common/uri.js';
 import { IFileService, IFileStatWithMetadata } from '../../files/common/files.js';
 import { ILogService } from '../../log/common/log.js';
+const regexp1 = /[:.]/g;
+const regexp2 = /^-+|-+$/g;
+const regexp3 = /[\\/:\*\?"<>\|\s]+/g;
+
 
 export type AhpLogDirection = 'c2s' | 's2c';
 
@@ -253,9 +257,9 @@ function _ahpReplacer(this: unknown, _key: string, value: unknown): unknown {
 }
 
 function toFileTimestamp(date: Date): string {
-	return date.toISOString().replace(/[:.]/g, '-');
+	return date.toISOString().replace(new RegExp(regexp1), '-');
 }
 
 function sanitizeFilePart(value: string): string {
-	return value.replace(/[\\/:\*\?"<>\|\s]+/g, '-').replace(/^-+|-+$/g, '') || 'connection';
+	return value.replace(new RegExp(regexp3), '-').replace(new RegExp(regexp2), '') || 'connection';
 }

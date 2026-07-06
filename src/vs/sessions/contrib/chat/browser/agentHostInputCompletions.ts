@@ -21,6 +21,8 @@ import { getChatSessionType } from '../../../../workbench/contrib/chat/common/mo
 import { AgentHostInputCompletionsBase } from '../../../../workbench/contrib/chat/browser/widget/input/editor/agentHostInputCompletionsBase.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
 import { NewChatContextAttachments } from './newChatContextAttachments.js';
+const regexpTroubleshoot = /^\s*\/troubleshoot\b/;
+
 
 /**
  * Command ID used by completion items to attach an agent-host-supplied
@@ -179,7 +181,7 @@ export class AgentHostInputCompletionHandler extends AgentHostInputCompletionsBa
 		// For a `/troubleshoot` request, `#` references target sessions (served
 		// by the `#session` provider); suppress host-supplied completions (e.g.
 		// the host's `#file` list) so only sessions are offered.
-		if (/^\s*\/troubleshoot\b/.test(model.getValue())) {
+		if (regexpTroubleshoot.test(model.getValue())) {
 			return undefined;
 		}
 		const session = this._sessionsService.activeSession.get();

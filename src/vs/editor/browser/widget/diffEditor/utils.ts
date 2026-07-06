@@ -15,6 +15,8 @@ import { Range } from '../../../common/core/range.js';
 import { DetailedLineRangeMapping } from '../../../common/diff/rangeMapping.js';
 import { IModelDeltaDecoration } from '../../../common/model.js';
 import { TextLength } from '../../../common/core/text/textLength.js';
+const regexp1 = /[A-Z]/g;
+
 
 export function joinCombine<T>(arr1: readonly T[], arr2: readonly T[], keySelector: (val: T) => number, combine: (v1: T, v2: T) => T): readonly T[] {
 	if (arr1.length === 0) {
@@ -311,7 +313,7 @@ export function applyStyle(domNode: HTMLElement, style: Partial<{ [TKey in keyof
 			if (typeof val === 'number') {
 				val = `${val}px`;
 			}
-			key = key.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+			key = key.replace(new RegExp(regexp1), m => '-' + m.toLowerCase());
 			// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
 			domNode.style[key as any] = val as any;
 		}

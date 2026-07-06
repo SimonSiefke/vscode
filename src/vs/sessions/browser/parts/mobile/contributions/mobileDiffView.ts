@@ -20,6 +20,16 @@ import { ILanguageService } from '../../../../../editor/common/languages/languag
 import { tokenizeToString } from '../../../../../editor/common/languages/textToHtmlTokenizer.js';
 import { TokenizationRegistry } from '../../../../../editor/common/languages.js';
 import { generateTokensCSSForColorMap } from '../../../../../editor/common/languages/supports/tokenization.js';
+const regexpClassMtkClass = /class="mtk[2-9]|class="mtk[1-9][0-9]/;
+const regexp2 = />/g;
+const regexp3 = /</g;
+const regexp4 = /&/g;
+const regexp0x9aFA = /^0x[0-9a-fA-F]+|^[0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?/;
+const regexp6 = /[0-9]/;
+const regexpZAZAZ0 = /^[a-zA-Z_$][a-zA-Z0-9_$]*/;
+const regexpZA = /[a-zA-Z_$]/;
+const regexp9 = /\r?\n/;
+
 
 const $ = DOM.$;
 
@@ -543,7 +553,7 @@ function stripTokenizedWrapper(html: string): string {
  */
 function hasMultipleTokenClasses(lines: readonly string[]): boolean {
 	for (const line of lines) {
-		if (line && /class="mtk[2-9]|class="mtk[1-9][0-9]/.test(line)) {
+		if (line && regexpClassMtkClass.test(line)) {
 			return true;
 		}
 	}
@@ -601,7 +611,7 @@ const PY_KEYWORDS = new Set([
 ]);
 
 function escapeHtml(s: string): string {
-	return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	return s.replace(new RegExp(regexp4), '&amp;').replace(new RegExp(regexp3), '&lt;').replace(new RegExp(regexp2), '&gt;');
 }
 
 function buildSpan(kind: RegexTokenKind, text: string): string {
@@ -665,8 +675,8 @@ function regexTokenizeLine(line: string, lang: LangFamily): string {
 		}
 
 		// Numbers
-		if (!matched && /[0-9]/.test(line[pos])) {
-			const m = line.slice(pos).match(/^0x[0-9a-fA-F]+|^[0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?/);
+		if (!matched && regexp6.test(line[pos])) {
+			const m = line.slice(pos).match(regexp0x9aFA);
 			if (m) {
 				tokens.push({ start: pos, end: pos + m[0].length, kind: 'number' });
 				pos += m[0].length;
@@ -675,8 +685,8 @@ function regexTokenizeLine(line: string, lang: LangFamily): string {
 		}
 
 		// Keywords and identifiers
-		if (!matched && /[a-zA-Z_$]/.test(line[pos])) {
-			const m = line.slice(pos).match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
+		if (!matched && regexpZA.test(line[pos])) {
+			const m = line.slice(pos).match(regexpZAZAZ0);
 			if (m) {
 				const word = m[0];
 				const keywords = lang === 'python' ? PY_KEYWORDS : JS_KEYWORDS;
@@ -712,7 +722,7 @@ function regexTokenizeLines(text: string, languageId: string): string[] {
 		return [''];
 	}
 	const lang: LangFamily = LANG_FAMILY[languageId] ?? 'generic';
-	return text.split(/\r?\n/).map(line => regexTokenizeLine(line, lang));
+	return text.split(regexp9).map(line => regexTokenizeLine(line, lang));
 }
 
 // -- Unified diff hunk rendering ---------------------------------------------
@@ -733,8 +743,8 @@ interface IDiffHunk {
 const CONTEXT_LINES = 3;
 
 function computeUnifiedDiff(original: string, modified: string): IDiffHunk[] {
-	const origLines = original.split(/\r?\n/);
-	const modLines = modified.split(/\r?\n/);
+	const origLines = original.split(regexp9);
+	const modLines = modified.split(regexp9);
 
 	const result = linesDiffComputers.getDefault().computeDiff(origLines, modLines, {
 		ignoreTrimWhitespace: false,

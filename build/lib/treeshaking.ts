@@ -7,6 +7,13 @@ import fs from 'fs';
 import path from 'path';
 import * as ts from 'typescript';
 import { type IFileMap, TypeScriptLanguageServiceHost } from './typeScriptLanguageServiceHost.ts';
+const regexpCreateDecoratorRefineServiceDecorator = /(createDecorator|refineServiceDecorator)/;
+const regexpExport = /export/;
+const regexpDefaultLib = /^defaultLib:/;
+const regexpTs = /\.d\.ts$/;
+const regexp5 = /(^\.\/)|(^\.\.\/)/;
+const regexpBrand = /^_(.*)Brand$/;
+
 
 const ShakeLevel = Object.freeze({
 	Files: 0,
@@ -208,7 +215,7 @@ function isVariableStatementWithSideEffects(ts: typeof import('typescript'), nod
 		}
 		if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
 			// TODO: assuming `createDecorator` and `refineServiceDecorator` calls are side-effect free
-			const isSideEffectFree = /(createDecorator|refineServiceDecorator)/.test(node.expression.getText());
+			const isSideEffectFree = regexpCreateDecoratorRefineServiceDecorator.test(node.expression.getText());
 			if (!isSideEffectFree) {
 				hasSideEffects = true;
 			}
@@ -303,7 +310,7 @@ function markNodes(ts: typeof import('typescript'), languageService: ts.Language
 			}
 
 			if (ts.isImportEqualsDeclaration(node)) {
-				if (/export/.test(node.getFullText(sourceFile))) {
+				if (regexpExport.test(node.getFullText(sourceFile))) {
 					// e.g. "export import Severity = BaseSeverity;"
 					enqueue_black(node);
 				}
@@ -360,7 +367,7 @@ function markNodes(ts: typeof import('typescript'), languageService: ts.Language
 		}
 
 		const fileName = node.getSourceFile().fileName;
-		if (/^defaultLib:/.test(fileName) || /\.d\.ts$/.test(fileName)) {
+		if (regexpDefaultLib.test(fileName) || regexpTs.test(fileName)) {
 			setColor(node, NodeColor.Black);
 			return;
 		}
@@ -421,7 +428,7 @@ function markNodes(ts: typeof import('typescript'), languageService: ts.Language
 
 		const nodeSourceFile = node.getSourceFile();
 		let fullPath: string;
-		if (/(^\.\/)|(^\.\.\/)/.test(importText)) {
+		if (regexp5.test(importText)) {
 			if (importText.endsWith('.js')) { // ESM: code imports require to be relative and to have a '.js' file extension
 				importText = importText.substr(0, importText.length - 3);
 			}
@@ -511,7 +518,7 @@ function markNodes(ts: typeof import('typescript'), languageService: ts.Language
 									|| memberName === 'toJSON'
 									|| memberName === 'toString'
 									|| memberName === 'dispose'// TODO: keeping all `dispose` methods
-									|| /^_(.*)Brand$/.test(memberName || '') // TODO: keeping all members ending with `Brand`...
+									|| regexpBrand.test(memberName || '') // TODO: keeping all members ending with `Brand`...
 								) {
 									enqueue_black(member);
 								}
@@ -583,11 +590,11 @@ function generateResult(ts: typeof import('typescript'), languageService: ts.Lan
 
 	program.getSourceFiles().forEach((sourceFile) => {
 		const fileName = sourceFile.fileName;
-		if (/^defaultLib:/.test(fileName)) {
+		if (regexpDefaultLib.test(fileName)) {
 			return;
 		}
 		const destination = fileName;
-		if (/\.d\.ts$/.test(fileName)) {
+		if (regexpTs.test(fileName)) {
 			if (nodeOrChildIsBlack(sourceFile)) {
 				writeFile(destination, sourceFile.text);
 			}

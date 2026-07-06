@@ -19,6 +19,8 @@ import { Event } from '../../../util/vs/base/common/event';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { ProductionEndpointProvider } from '../../prompt/vscode-node/endpointProviderImpl';
 import { createExtensionTestingServices } from './services';
+const regexpNoUtilityModel = /No utility model is configured/;
+
 
 class FakeModelMetadataFetcher implements IModelMetadataFetcher {
 	public onDidModelsRefresh = Event.None;
@@ -202,7 +204,7 @@ suite('ProductionEndpointProvider — utility model overrides', () => {
 
 		await assert.rejects(
 			() => endpointProvider.getChatEndpoint('copilot-utility'),
-			/No utility model is configured/
+			regexpNoUtilityModel
 		);
 	});
 

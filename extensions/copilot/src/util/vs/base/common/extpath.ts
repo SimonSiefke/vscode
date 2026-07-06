@@ -10,6 +10,10 @@ import { isAbsolute, join, normalize, posix, sep } from './path';
 import { isWindows } from './platform';
 import { equalsIgnoreCase, rtrim, startsWithIgnoreCase } from './strings';
 import { isNumber } from './types';
+const regexp1 = /[\\/]/g;
+const regexpZA = /^[a-zA-Z]:(\/|$)/;
+const regexp3 = /^\s+$/;
+
 
 export function isPathSeparator(code: number) {
 	return code === CharCode.Slash || code === CharCode.Backslash;
@@ -21,7 +25,7 @@ export function isPathSeparator(code: number) {
  * Using it on a Linux or MaxOS path might change it.
  */
 export function toSlashes(osPath: string) {
-	return osPath.replace(/[\\/]/g, posix.sep);
+	return osPath.replace(new RegExp(regexp1), posix.sep);
 }
 
 /**
@@ -35,7 +39,7 @@ export function toPosixPath(osPath: string) {
 	if (osPath.indexOf('/') === -1) {
 		osPath = toSlashes(osPath);
 	}
-	if (/^[a-zA-Z]:(\/|$)/.test(osPath)) { // starts with a drive letter
+	if (regexpZA.test(osPath)) { // starts with a drive letter
 		osPath = '/' + osPath;
 	}
 	return osPath;
@@ -70,7 +74,7 @@ export function getRoot(path: string, sep: string = posix.sep): string {
 					for (; pos < len; pos++) {
 						if (isPathSeparator(path.charCodeAt(pos))) {
 							return path.slice(0, pos + 1) // consume this separator
-								.replace(/[\\/]/g, sep);
+								.replace(new RegExp(regexp1), sep);
 						}
 					}
 				}
@@ -171,7 +175,7 @@ const WINDOWS_FORBIDDEN_NAMES = /^(con|prn|aux|clock\$|nul|lpt[0-9]|com[0-9])(\.
 export function isValidBasename(name: string | null | undefined, isWindowsOS: boolean = isWindows): boolean {
 	const invalidFileChars = isWindowsOS ? WINDOWS_INVALID_FILE_CHARS : UNIX_INVALID_FILE_CHARS;
 
-	if (!name || name.length === 0 || /^\s+$/.test(name)) {
+	if (!name || name.length === 0 || regexp3.test(name)) {
 		return false; // require a name that is not just whitespace
 	}
 

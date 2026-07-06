@@ -15,6 +15,9 @@ import { CharCode } from '../../../../../../base/common/charCode.js';
 import { getWordAtText } from '../../../../../../editor/common/core/wordHelper.js';
 import { chatVariableLeader } from '../../requestParser/chatParserTypes.js';
 import { ILanguageModelToolsService } from '../../tools/languageModelToolsService.js';
+const regexp1 = /[^\/]\.\.$/i;
+const regexp2 = /^#(\w+:)?/;
+
 
 /**
  * Provides autocompletion for the variables inside prompt bodies.
@@ -93,7 +96,7 @@ export class PromptBodyAutocompletion implements CompletionItemProvider {
 		const pathUntilPosition = model.getValueInRange(pathRange.setEndPosition(position.lineNumber, position.column));
 		const pathSeparator = pathUntilPosition.includes('/') || !pathUntilPosition.includes('\\') ? '/' : '\\';
 		let parentFolderPath: string;
-		if (pathUntilPosition.match(/[^\/]\.\.$/i)) { // ends with `..`
+		if (pathUntilPosition.match(regexp1)) { // ends with `..`
 			parentFolderPath = pathUntilPosition + pathSeparator;
 		} else {
 			let i = pathUntilPosition.length - 1;
@@ -156,7 +159,7 @@ export class PromptBodyAutocompletion implements CompletionItemProvider {
 			return undefined;
 		}
 		const range = new Range(position.lineNumber, varWord.startColumn + 1, position.lineNumber, varWord.endColumn);
-		const nameMatch = varWord.word.match(/^#(\w+:)?/);
+		const nameMatch = varWord.word.match(regexp2);
 		if (nameMatch) {
 			const contentCol = varWord.startColumn + nameMatch[0].length;
 			if (nameMatch[1] === 'file:') {

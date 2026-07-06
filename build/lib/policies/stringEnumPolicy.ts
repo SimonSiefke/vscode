@@ -7,6 +7,8 @@ import { BasePolicy } from './basePolicy.ts';
 import type { CategoryDto, PolicyDto } from './policyDto.ts';
 import { renderProfileString } from './render.ts';
 import { type Category, type NlsString, PolicyType, type LanguageTranslations } from './types.ts';
+const regexp1 = /\./g;
+
 
 export class StringEnumPolicy extends BasePolicy {
 
@@ -58,7 +60,7 @@ export class StringEnumPolicy extends BasePolicy {
 	protected renderADMXElements(): string[] {
 		return [
 			`<enum id="${this.name}" valueName="${this.name}">`,
-			...this.enum_.map((value, index) => `	<item displayName="$(string.${this.name}_${this.enumDescriptions[index].nlsKey.replace(/\./g, '_')})"><value><string>${value}</string></value></item>`),
+			...this.enum_.map((value, index) => `	<item displayName="$(string.${this.name}_${this.enumDescriptions[index].nlsKey.replace(new RegExp(regexp1), '_')})"><value><string>${value}</string></value></item>`),
 			`</enum>`
 		];
 	}

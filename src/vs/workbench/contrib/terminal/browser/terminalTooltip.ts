@@ -12,6 +12,8 @@ import { StorageScope, StorageTarget, type IStorageService } from '../../../../p
 import type { ITerminalStatusHoverAction } from '../common/terminal.js';
 import { TerminalStorageKeys } from '../common/terminalStorageKeys.js';
 import { ITerminalInstance } from './terminal.js';
+const regexp1 = /\s/;
+
 
 export function getInstanceHoverInfo(instance: ITerminalInstance, storageService: IStorageService): { content: MarkdownString; actions: IHoverAction[] } {
 	const showDetailed = parseInt(storageService.get(TerminalStorageKeys.TabsShowDetailed, StorageScope.APPLICATION) ?? '0');
@@ -63,7 +65,7 @@ export function getShellProcessTooltip(instance: ITerminalInstance, showDetailed
 		} else {
 			commandLine += instance.shellLaunchConfig.executable;
 		}
-		const args = asArray(instance.injectedArgs || instance.shellLaunchConfig.args || []).map(x => x.match(/\s/) ? `'${x}'` : x).join(' ');
+		const args = asArray(instance.injectedArgs || instance.shellLaunchConfig.args || []).map(x => x.match(regexp1) ? `'${x}'` : x).join(' ');
 		if (args) {
 			commandLine += ` ${args}`;
 		}

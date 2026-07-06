@@ -9,6 +9,9 @@ import { BracketAstNode } from './ast.js';
 import { toLength } from './length.js';
 import { DenseKeyProvider, identityKeyProvider, SmallImmutableSet } from './smallImmutableSet.js';
 import { OpeningBracketId, Token, TokenKind } from './tokenizer.js';
+const regexp1 = /^[\w ]+/;
+const regexp2 = /[\w ]+$/;
+
 
 export class BracketTokens {
 	static createFromLanguage(configuration: ResolvedLanguageConfiguration, denseKeyProvider: DenseKeyProvider<string>): BracketTokens {
@@ -101,10 +104,10 @@ function prepareBracketForRegExp(str: string): string {
 	let escaped = escapeRegExpCharacters(str);
 	// These bracket pair delimiters start or end with letters
 	// see https://github.com/microsoft/vscode/issues/132162 https://github.com/microsoft/vscode/issues/150440
-	if (/^[\w ]+/.test(str)) {
+	if (regexp1.test(str)) {
 		escaped = `\\b${escaped}`;
 	}
-	if (/[\w ]+$/.test(str)) {
+	if (regexp2.test(str)) {
 		escaped = `${escaped}\\b`;
 	}
 	return escaped;

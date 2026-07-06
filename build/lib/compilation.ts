@@ -25,6 +25,14 @@ import { createTsgoStream, spawnTsgo } from './tsgo.ts';
 
 
 import { extractExtensionPointNamesFromFile } from './extractExtensionPoints.ts';
+const regexp1 = /\r\n/;
+const regexpTs = /\.ts$/;
+const regexpTestUtf8 = /(\/|\\)test(\/|\\).*utf8/;
+const regexpTs1 = /\.d\.ts$/;
+const regexp5 = /\r?\n/m;
+const regexpVscodeProposedZA = /vscode\.proposed\.([a-zA-Z\d]+)\.d\.ts$/;
+const regexp7 = /\r\n/g;
+
 
 
 // --- gulp-tsb: compile and transpile --------------------------------
@@ -42,7 +50,7 @@ function getTypeScriptCompilerOptions(src: string): ts.CompilerOptions {
 	options.rootDir = rootDir;
 	options.baseUrl = rootDir;
 	options.sourceRoot = util.toFileUri(rootDir);
-	options.newLine = /\r\n/.test(fs.readFileSync(import.meta.filename, 'utf8')) ? 0 : 1;
+	options.newLine = regexp1.test(fs.readFileSync(import.meta.filename, 'utf8')) ? 0 : 1;
 	return options;
 }
 
@@ -72,10 +80,10 @@ export function createCompile(src: string, { build, emitError, transpileOnly, pr
 
 	function pipeline(token?: util.ICancellationToken) {
 
-		const tsFilter = util.filter(data => /\.ts$/.test(data.path));
-		const isUtf8Test = (f: File) => /(\/|\\)test(\/|\\).*utf8/.test(f.path);
+		const tsFilter = util.filter(data => regexpTs.test(data.path));
+		const isUtf8Test = (f: File) => regexpTestUtf8.test(f.path);
 		const isRuntimeJs = (f: File) => f.path.endsWith('.js') && !f.path.includes('fixtures');
-		const noDeclarationsFilter = util.filter(data => !(/\.d\.ts$/.test(data.path)));
+		const noDeclarationsFilter = util.filter(data => !(regexpTs1.test(data.path)));
 
 		const input = es.through();
 		const output = input
@@ -291,13 +299,13 @@ function generateApiProposalNames() {
 
 	try {
 		const src = fs.readFileSync('src/vs/platform/extensions/common/extensionsApiProposals.ts', 'utf-8');
-		const match = /\r?\n/m.exec(src);
+		const match = regexp5.exec(src);
 		eol = match ? match[0] : os.EOL;
 	} catch {
 		eol = os.EOL;
 	}
 
-	const pattern = /vscode\.proposed\.([a-zA-Z\d]+)\.d\.ts$/;
+	const pattern = regexpVscodeProposedZA;
 	const proposals = new Map<string, { proposal: string }>();
 
 	const input = es.through();
@@ -383,7 +391,7 @@ function generateExtensionPointNames() {
 			const filePath = 'vs/workbench/services/extensions/common/extensionPoints.json';
 			try {
 				const existing = fs.readFileSync(path.join('src', filePath), 'utf-8');
-				if (existing.replace(/\r\n/g, '\n') === content) {
+				if (existing.replace(new RegExp(regexp7), '\n') === content) {
 					this.emit('end');
 					return;
 				}

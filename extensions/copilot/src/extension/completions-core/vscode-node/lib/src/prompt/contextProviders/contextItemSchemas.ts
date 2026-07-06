@@ -17,6 +17,8 @@ import {
 } from '../../../../types/src';
 import { ICompletionsLogTargetService, logger } from '../../logger';
 import { ResolvedContextItem } from '../contextProviderRegistry';
+const regexpZAZ0 = /[^a-zA-Z0-9-]/g;
+
 
 namespace ContextItemSchema {
 	export function is(item: SupportedContextItem): boolean {
@@ -166,7 +168,7 @@ export function filterSupportedContextItems(
  * be problematic when used as prompt components keys.
  */
 function validateContextItemId(id: string): boolean {
-	return id.length > 0 && id.replaceAll(/[^a-zA-Z0-9-]/g, '').length === id.length;
+	return id.length > 0 && id.replaceAll(new RegExp(regexpZAZ0), '').length === id.length;
 }
 
 /**

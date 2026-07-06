@@ -36,6 +36,15 @@ import { RegisteredEditorPriority } from '../../../services/editor/common/editor
 import { generateMetadataUri, generate as generateUri, extractCellOutputDetails, parseMetadataUri, parse as parseUri } from '../../../services/notebook/common/notebookDocumentService.js';
 import { IWorkingCopyBackupMeta, IWorkingCopySaveEvent } from '../../../services/workingCopy/common/workingCopy.js';
 import { SnapshotContext } from '../../../services/workingCopy/common/fileWorkingCopy.js';
+const regexp1 = /\//g;
+const regexp2 = /[^\n]\x08/gm;
+const regexp3 = /\r+\n/gm;
+const regexp4 = /^(.*)\r+/m;
+const regexp5 = /\r+(.*)$/m;
+const regexp6 = /^.*\r/m;
+const regexp7 = /\r+.*$/m;
+const regexp8 = /\r[^$]/g;
+
 
 export const NOTEBOOK_EDITOR_ID = 'workbench.editor.notebook';
 export const NOTEBOOK_DIFF_EDITOR_ID = 'workbench.editor.notebookTextDiffEditor';
@@ -677,7 +686,7 @@ export namespace CellUri {
 	}
 }
 
-const normalizeSlashes = (str: string) => isWindows ? str.replace(/\//g, '\\') : str;
+const normalizeSlashes = (str: string) => isWindows ? str.replace(new RegExp(regexp1), '\\') : str;
 
 interface IMimeTypeWithMatcher {
 	pattern: string;
@@ -1159,7 +1168,7 @@ function fixBackspace(txt: string) {
 	do {
 		txt = tmp;
 		// Cancel out anything-but-newline followed by backspace
-		tmp = txt.replace(/[^\n]\x08/gm, '');
+		tmp = txt.replace(new RegExp(regexp2), '');
 	} while (tmp.length < txt.length);
 	return txt;
 }
@@ -1169,12 +1178,12 @@ function fixBackspace(txt: string) {
  * From https://github.com/jupyter/notebook/blob/master/notebook/static/base/js/utils.js
  */
 function fixCarriageReturn(txt: string) {
-	txt = txt.replace(/\r+\n/gm, '\n'); // \r followed by \n --> newline
-	while (txt.search(/\r[^$]/g) > -1) {
-		const base = txt.match(/^(.*)\r+/m)![1];
-		let insert = txt.match(/\r+(.*)$/m)![1];
+	txt = txt.replace(new RegExp(regexp3), '\n'); // \r followed by \n --> newline
+	while (txt.search(new RegExp(regexp8)) > -1) {
+		const base = txt.match(regexp4)![1];
+		let insert = txt.match(regexp5)![1];
 		insert = insert + base.slice(insert.length, base.length);
-		txt = txt.replace(/\r+.*$/m, '\r').replace(/^.*\r/m, insert);
+		txt = txt.replace(regexp7, '\r').replace(regexp6, insert);
 	}
 	return txt;
 }

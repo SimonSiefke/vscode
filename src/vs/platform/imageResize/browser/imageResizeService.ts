@@ -10,6 +10,8 @@ import { IFileService } from '../../files/common/files.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
 import { ILogService } from '../../log/common/log.js';
 import { IImageResizeService } from '../common/imageResizeService.js';
+const regexpImage = /image-(\d+)\./;
+
 
 
 export class ImageResizeService implements IImageResizeService {
@@ -158,7 +160,7 @@ export class ImageResizeService implements IImageResizeService {
 	}
 
 	getTimestampFromFilename(filename: string): number | undefined {
-		const match = filename.match(/image-(\d+)\./);
+		const match = filename.match(regexpImage);
 		if (match) {
 			return parseInt(match[1], 10);
 		}

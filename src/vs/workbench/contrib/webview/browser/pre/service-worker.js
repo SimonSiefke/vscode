@@ -2,6 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+const regexp1 = /^\?/;
+const regexpLocalhost = /^(localhost|127.0.0.1|0.0.0.0):(\d+)$/;
+const regexpBytes = /^bytes\=(\d+)\-(\d+)?$/;
+
 //@ts-check
 /// <reference lib="webworker" />
 
@@ -231,7 +235,7 @@ sw.addEventListener('fetch', (event) => {
 					scheme,
 					authority,
 					path: requestUrl.pathname,
-					query: requestUrl.search.replace(/^\?/, ''),
+					query: requestUrl.search.replace(regexp1, ''),
 				}));
 			}
 			default: {
@@ -252,7 +256,7 @@ sw.addEventListener('fetch', (event) => {
 					path: requestUrl.pathname,
 					scheme: requestUrl.protocol.slice(0, requestUrl.protocol.length - 1),
 					authority: requestUrl.host,
-					query: requestUrl.search.replace(/^\?/, ''),
+					query: requestUrl.search.replace(regexp1, ''),
 				}));
 			}
 			default: {
@@ -262,7 +266,7 @@ sw.addEventListener('fetch', (event) => {
 	}
 
 	// See if it's a localhost request
-	if (requestUrl.origin !== sw.origin && requestUrl.host.match(/^(localhost|127.0.0.1|0.0.0.0):(\d+)$/)) {
+	if (requestUrl.origin !== sw.origin && requestUrl.host.match(regexpLocalhost)) {
 		return event.respondWith(processLocalhostRequest(event, requestUrl));
 	}
 });
@@ -411,7 +415,7 @@ async function processResourceRequest(
 	let range;
 	const rangeHeader = event.request.headers.get('range');
 	if (rangeHeader) {
-		const bytes = rangeHeader.match(/^bytes\=(\d+)\-(\d+)?$/);
+		const bytes = rangeHeader.match(regexpBytes);
 		if (bytes) {
 			range = {
 				start: Number(bytes[1]),

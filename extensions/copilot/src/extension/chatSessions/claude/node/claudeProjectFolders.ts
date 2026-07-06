@@ -6,6 +6,9 @@
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { IFolderRepositoryManager } from '../../../chatSessions/common/folderRepositoryManager';
+const regexp1 = /[\/ .]/g;
+const regexp2 = /^\/([a-z]):/i;
+
 
 // #region Slug Computation
 
@@ -22,8 +25,8 @@ import { IFolderRepositoryManager } from '../../../chatSessions/common/folderRep
  */
 export function computeFolderSlug(folderUri: URI): string {
 	return folderUri.path
-		.replace(/^\/([a-z]):/i, (_, driveLetter: string) => driveLetter.toUpperCase() + '-')
-		.replace(/[\/ .]/g, '-');
+		.replace(regexp2, (_, driveLetter: string) => driveLetter.toUpperCase() + '-')
+		.replace(new RegExp(regexp1), '-');
 }
 
 // #endregion

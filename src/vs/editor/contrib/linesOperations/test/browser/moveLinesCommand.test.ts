@@ -13,6 +13,13 @@ import { LanguageService } from '../../../../common/services/languageService.js'
 import { MoveLinesCommand } from '../../browser/moveLinesCommand.js';
 import { testCommand } from '../../../../test/browser/testCommand.js';
 import { TestLanguageConfigurationService } from '../../../../test/common/modes/testLanguageConfigurationService.js';
+const regexpCaseDefault = /^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$/;
+const regexpCaseDefault1 = /(\{[^}"'`]*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$/;
+const regexpForWhileIf = /^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$)/;
+const regexpCaseDefaultCase = /^(?!.*([;{}]|\S:)\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!.*(\{[^}"']*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$))/;
+const regexp5 = /^\s*\[$/;
+const regexp6 = /^\s*\]$/;
+
 
 const enum MoveLinesDirection {
 	Up,
@@ -307,10 +314,10 @@ suite('Editor contrib - Move Lines Command honors Indentation Rules', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const indentRules = {
-		decreaseIndentPattern: /^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$/,
-		increaseIndentPattern: /(\{[^}"'`]*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$/,
-		indentNextLinePattern: /^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$)/,
-		unIndentedLinePattern: /^(?!.*([;{}]|\S:)\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!.*(\{[^}"']*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$))/
+		decreaseIndentPattern: regexpCaseDefault,
+		increaseIndentPattern: regexpCaseDefault1,
+		indentNextLinePattern: regexpForWhileIf,
+		unIndentedLinePattern: regexpCaseDefaultCase
 	};
 
 	// https://github.com/microsoft/vscode/issues/28552#issuecomment-307862797
@@ -409,8 +416,8 @@ class EnterRulesMode extends Disposable {
 		this._register(languageService.registerLanguage({ id: this.languageId }));
 		this._register(languageConfigurationService.register(this.languageId, {
 			indentationRules: {
-				decreaseIndentPattern: /^\s*\[$/,
-				increaseIndentPattern: /^\s*\]$/,
+				decreaseIndentPattern: regexp5,
+				increaseIndentPattern: regexp6,
 			},
 			brackets: [
 				['{', '}']

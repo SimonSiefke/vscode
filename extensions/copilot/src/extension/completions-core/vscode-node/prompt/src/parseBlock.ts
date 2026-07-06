@@ -11,6 +11,11 @@ import {
 	parseTreeSitterIncludingVersion,
 	queryPythonIsDocstring,
 } from './parse';
+const regexp1 = /\s/g;
+const regexp2 = /\s/;
+const regexp3 = /^\s*$/;
+const regexp4 = /\S/;
+
 
 interface BlockParser {
 	isEmptyBlockStart: (text: string, offset: number) => Promise<boolean>;
@@ -194,7 +199,7 @@ class RegexBasedBlockParser extends BaseBlockParser {
 			// block.startIndex and offset, all the way up to block.endIndex.
 			if (block.startIndex < offset) { offset = block.startIndex; }
 			const blockText = text.substring(offset, block.endIndex).trim();
-			if (blockText === '' || blockText.replace(/\s/g, '') === this.blockEmptyMatch) {
+			if (blockText === '' || blockText.replace(new RegExp(regexp1), '') === this.blockEmptyMatch) {
 				// block is empty
 				return true;
 			}
@@ -224,7 +229,7 @@ function getLineAtOffset(text: string, offset: number): string {
  */
 function rewindToNearestNonWs(text: string, offset: number): number {
 	let result = offset;
-	while (result > 0 && /\s/.test(text.charAt(result - 1))) {
+	while (result > 0 && regexp2.test(text.charAt(result - 1))) {
 		result--;
 	}
 	return result;
@@ -239,7 +244,7 @@ function indent(nd: Parser.SyntaxNode, source: string): string | undefined {
 	const startIndex = nd.startIndex;
 	const lineStart = nd.startIndex - nd.startPosition.column;
 	const prefix = source.substring(lineStart, startIndex);
-	if (/^\s*$/.test(prefix)) {
+	if (regexp3.test(prefix)) {
 		return prefix;
 	}
 	return undefined;
@@ -316,7 +321,7 @@ class TreeSitterBasedBlockParser extends BaseBlockParser {
 		for (let i = offset; i < text.length; i++) {
 			if (text.charAt(i) === '\n') {
 				break;
-			} else if (/\S/.test(text.charAt(i))) {
+			} else if (regexp4.test(text.charAt(i))) {
 				return false;
 			}
 		}

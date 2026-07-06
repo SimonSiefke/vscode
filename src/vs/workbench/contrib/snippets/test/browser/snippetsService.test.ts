@@ -23,6 +23,8 @@ import { CompletionItem } from '../../../../../editor/contrib/suggest/browser/su
 import { WordDistance } from '../../../../../editor/contrib/suggest/browser/wordDistance.js';
 import { EditorOptions } from '../../../../../editor/common/config/editorOptions.js';
 import { URI } from '../../../../../base/common/uri.js';
+const regexp1 = /(#?-?\d*\.\d\w*%?)|(::?[\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\w\-?]+%?|[@#!.])/g;
+
 
 class SimpleSnippetService implements ISnippetsService {
 	declare readonly _serviceBrand: undefined;
@@ -571,7 +573,7 @@ suite('SnippetsService', function () {
 	test('issue #61296: VS code freezes when editing CSS fi`le with emoji', async function () {
 		const languageConfigurationService = disposables.add(new TestLanguageConfigurationService());
 		disposables.add(languageConfigurationService.register('fooLang', {
-			wordPattern: /(#?-?\d*\.\d\w*%?)|(::?[\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\w\-?]+%?|[@#!.])/g
+			wordPattern: new RegExp(regexp1)
 		}));
 
 		snippetService = new SimpleSnippetService([new Snippet(

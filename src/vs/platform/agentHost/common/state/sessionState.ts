@@ -43,6 +43,9 @@ import {
 	type UsageInfo,
 	type Message,
 } from './protocol/state.js';
+const regexp1 = /^\//;
+const regexp2 = /#/g;
+
 
 // Re-export everything from the protocol state module
 export {
@@ -269,7 +272,7 @@ export function parseResourceWatchChannelUri(uri: string): {
 	if (parsed.scheme !== AHP_RESOURCE_WATCH_SCHEME) {
 		return undefined;
 	}
-	const encoded = parsed.path.replace(/^\//, '');
+	const encoded = parsed.path.replace(regexp1, '');
 	if (!encoded) {
 		return undefined;
 	}
@@ -333,7 +336,7 @@ export function customizationId(uri: string, range?: TextRange): string {
 	if (!range) {
 		return uri;
 	}
-	const safeUri = uri.replace(/#/g, '%23');
+	const safeUri = uri.replace(new RegExp(regexp2), '%23');
 	return `${safeUri}#range=${range.start.line}:${range.start.character}-${range.end.line}:${range.end.character}`;
 }
 
@@ -651,7 +654,7 @@ export function parseChatUri(uri: ProtocolURI | ResourceURI): { session: string;
 	if (parsed.scheme !== AHP_CHAT_SCHEME || !parsed.authority) {
 		return undefined;
 	}
-	const encoded = parsed.path.replace(/^\//, '');
+	const encoded = parsed.path.replace(regexp1, '');
 	if (!encoded) {
 		return undefined;
 	}

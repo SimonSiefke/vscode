@@ -55,6 +55,8 @@ import Severity from '../../../../base/common/severity.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
+const regexpRemoteVirtualfsZ0 = /^(remote|virtualfs)_(\d\d)_(([a-z][a-z0-9+.-]*)_(.*))$/;
+
 
 type ActionGroup = [string, Array<MenuItemAction | SubmenuItemAction>];
 
@@ -473,7 +475,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 	}
 
 	private validatedGroup(group: string) {
-		if (!group.match(/^(remote|virtualfs)_(\d\d)_(([a-z][a-z0-9+.-]*)_(.*))$/)) {
+		if (!group.match(regexpRemoteVirtualfsZ0)) {
 			if (!this.loggedInvalidGroupNames[group]) {
 				this.loggedInvalidGroupNames[group] = true;
 				this.logService.warn(`Invalid group name used in "statusBar/remoteIndicator" menu contribution: ${group}. Entries ignored. Expected format: 'remote_$ORDER_$REMOTENAME_$GROUPING or 'virtualfs_$ORDER_$FILESCHEME_$GROUPING.`);

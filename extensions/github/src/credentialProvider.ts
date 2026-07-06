@@ -6,13 +6,15 @@
 import type { CredentialsProvider, Credentials, API as GitAPI } from './typings/git.d.ts';
 import { workspace, Uri, Disposable } from 'vscode';
 import { getSession } from './auth.js';
+const regexp1 = /:\d+$/;
+
 
 const EmptyDisposable: Disposable = { dispose() { } };
 
 class GitHubCredentialProvider implements CredentialsProvider {
 
 	async getCredentials(host: Uri): Promise<Credentials | undefined> {
-		const hostname = host.authority.replace(/:\d+$/, '').toLowerCase();
+		const hostname = host.authority.replace(regexp1, '').toLowerCase();
 		if (hostname !== 'github.com') {
 			return;
 		}

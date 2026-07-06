@@ -15,6 +15,10 @@ import { StringEnumPolicy } from './stringEnumPolicy.ts';
 import { StringPolicy } from './stringPolicy.ts';
 import { type Version, type LanguageTranslations, type Policy, type Translations, Languages, type ProductJson } from './types.ts';
 import { renderGP, renderJsonPolicies, renderMacOSPolicy } from './render.ts';
+const regexp1 = /\{([^}]+)\}/g;
+const regexp2 = /^(\d+)\.(\d+)\.(\d+)/;
+const regexp3 = /\r?\n/g;
+
 
 const product: ProductJson = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, '../../../product.json'), 'utf8'));
 const packageJson = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, '../../../package.json'), 'utf8'));
@@ -27,7 +31,7 @@ async function getSpecificNLS(resourceUrlTemplate: string, languageId: string, v
 		path: 'extension/translations/main.i18n.json'
 	};
 
-	const url = resourceUrlTemplate.replace(/\{([^}]+)\}/g, (_, key) => resource[key as keyof typeof resource]);
+	const url = resourceUrlTemplate.replace(new RegExp(regexp1), (_, key) => resource[key as keyof typeof resource]);
 	const res = await fetch(url);
 
 	if (res.status !== 200) {
@@ -49,7 +53,7 @@ async function getSpecificNLS(resourceUrlTemplate: string, languageId: string, v
 }
 
 function parseVersion(version: string): Version {
-	const [, major, minor, patch] = /^(\d+)\.(\d+)\.(\d+)/.exec(version)!;
+	const [, major, minor, patch] = regexp2.exec(version)!;
 	return [parseInt(major), parseInt(minor), parseInt(patch)];
 }
 
@@ -174,12 +178,12 @@ async function windowsMain(policies: Policy[], translations: Translations) {
 	await fs.promises.rm(root, { recursive: true, force: true });
 	await fs.promises.mkdir(root, { recursive: true });
 
-	await fs.promises.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(/\r?\n/g, '\n'));
+	await fs.promises.writeFile(path.join(root, `${product.win32RegValueName}.admx`), admx.replace(new RegExp(regexp3), '\n'));
 
 	for (const { languageId, contents } of adml) {
 		const languagePath = path.join(root, languageId === 'en-us' ? 'en-us' : Languages[languageId as keyof typeof Languages]);
 		await fs.promises.mkdir(languagePath, { recursive: true });
-		await fs.promises.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(/\r?\n/g, '\n'));
+		await fs.promises.writeFile(path.join(languagePath, `${product.win32RegValueName}.adml`), contents.replace(new RegExp(regexp3), '\n'));
 	}
 }
 
@@ -193,12 +197,12 @@ async function darwinMain(policies: Policy[], translations: Translations) {
 
 	await fs.promises.rm(root, { recursive: true, force: true });
 	await fs.promises.mkdir(root, { recursive: true });
-	await fs.promises.writeFile(path.join(root, `${bundleIdentifier}.mobileconfig`), profile.replace(/\r?\n/g, '\n'));
+	await fs.promises.writeFile(path.join(root, `${bundleIdentifier}.mobileconfig`), profile.replace(new RegExp(regexp3), '\n'));
 
 	for (const { languageId, contents } of manifests) {
 		const languagePath = path.join(root, languageId === 'en-us' ? 'en-us' : Languages[languageId as keyof typeof Languages]);
 		await fs.promises.mkdir(languagePath, { recursive: true });
-		await fs.promises.writeFile(path.join(languagePath, `${bundleIdentifier}.plist`), contents.replace(/\r?\n/g, '\n'));
+		await fs.promises.writeFile(path.join(languagePath, `${bundleIdentifier}.plist`), contents.replace(new RegExp(regexp3), '\n'));
 	}
 }
 
@@ -210,7 +214,7 @@ async function linuxMain(policies: Policy[]) {
 	await fs.promises.mkdir(root, { recursive: true });
 
 	const jsonPath = path.join(root, `policy.json`);
-	await fs.promises.writeFile(jsonPath, policyFileContents.replace(/\r?\n/g, '\n'));
+	await fs.promises.writeFile(jsonPath, policyFileContents.replace(new RegExp(regexp3), '\n'));
 }
 
 async function main() {

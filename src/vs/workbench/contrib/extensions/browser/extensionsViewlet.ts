@@ -70,6 +70,19 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IExtensionGalleryManifest, IExtensionGalleryManifestService, ExtensionGalleryManifestStatus } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { URI } from '../../../../base/common/uri.js';
 import { DEFAULT_ACCOUNT_SIGN_IN_COMMAND } from '../../../services/accounts/browser/defaultAccount.js';
+const regexpSort = /sort:/;
+const regexpExt = /ext:/;
+const regexpId = /id:/;
+const regexpTag = /tag:/;
+const regexpPopular = /@popular/g;
+const regexpFeatured = /@featured/g;
+const regexpExt1 = /@ext:/g;
+const regexpTag1 = /@tag:/g;
+const regexpCategory = /@category/g;
+const regexpMcp = /@mcp\s?.*/i;
+const regexpAgentPlugins = /@agentPlugins\s?.*/i;
+const regexpECONNREFUSED = /ECONNREFUSED/;
+
 
 export const ExtensionsSortByContext = new RawContextKey<string>('extensionsSortByValue', '');
 export const SearchMarketplaceExtensionsContext = new RawContextKey<boolean>('searchMarketplaceExtensions', false);
@@ -637,8 +650,8 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 			triggerCharacters: ['@'],
 			sortKey: (item: string) => {
 				if (item.indexOf(':') === -1) { return 'a'; }
-				else if (/ext:/.test(item) || /id:/.test(item) || /tag:/.test(item)) { return 'b'; }
-				else if (/sort:/.test(item)) { return 'c'; }
+				else if (regexpExt.test(item) || regexpId.test(item) || regexpTag.test(item)) { return 'b'; }
+				else if (regexpSort.test(item)) { return 'c'; }
 				else { return 'd'; }
 			},
 			provideResults: (query: string) => Query.suggestions(query, this.extensionGalleryManifest)
@@ -869,11 +882,11 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		return this.searchBox
 			? this.searchBox.getValue()
 				.trim()
-				.replace(/@category/g, 'category')
-				.replace(/@tag:/g, 'tag:')
-				.replace(/@ext:/g, 'ext:')
-				.replace(/@featured/g, 'featured')
-				.replace(/@popular/g, this.extensionManagementServerService.webExtensionManagementServer && !this.extensionManagementServerService.localExtensionManagementServer && !this.extensionManagementServerService.remoteExtensionManagementServer ? '@web' : '@popular')
+				.replace(new RegExp(regexpCategory), 'category')
+				.replace(new RegExp(regexpTag1), 'tag:')
+				.replace(new RegExp(regexpExt1), 'ext:')
+				.replace(new RegExp(regexpFeatured), 'featured')
+				.replace(new RegExp(regexpPopular), this.extensionManagementServerService.webExtensionManagementServer && !this.extensionManagementServerService.localExtensionManagementServer && !this.extensionManagementServerService.remoteExtensionManagementServer ? '@web' : '@popular')
 			: '';
 	}
 
@@ -906,8 +919,8 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 			this.searchRestartRequiredExtensionsContextKey.set(ExtensionsListView.isRestartRequiredQuery(value));
 			this.builtInExtensionsContextKey.set(ExtensionsListView.isBuiltInExtensionsQuery(value));
 			this.recommendedExtensionsContextKey.set(isRecommendedExtensionsQuery);
-			this.searchMcpServersContextKey.set(!!value && /@mcp\s?.*/i.test(value));
-			this.searchAgentPluginsContextKey.set(!!value && /@agentPlugins\s?.*/i.test(value));
+			this.searchMcpServersContextKey.set(!!value && regexpMcp.test(value));
+			this.searchAgentPluginsContextKey.set(!!value && regexpAgentPlugins.test(value));
 			this.searchMarketplaceExtensionsContextKey.set(!!value && !ExtensionsListView.isLocalExtensionsQuery(value) && !isRecommendedExtensionsQuery && !this.searchMcpServersContextKey.get() && !this.searchAgentPluginsContextKey.get());
 			this.sortByUpdateDateContextKey.set(ExtensionsListView.isSortUpdateDateQuery(value));
 			this.defaultViewsContextKey.set(!value || ExtensionsListView.isSortInstalledExtensionsQuery(value));
@@ -998,7 +1011,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 		const message = err && err.message || '';
 
-		if (/ECONNREFUSED/.test(message)) {
+		if (regexpECONNREFUSED.test(message)) {
 			const error = createErrorWithActions(localize('suggestProxyError', "Marketplace returned 'ECONNREFUSED'. Please check the 'http.proxy' setting."), [
 				new Action('open user settings', localize('open user settings', "Open User Settings"), undefined, true, () => this.preferencesService.openUserSettings())
 			]);

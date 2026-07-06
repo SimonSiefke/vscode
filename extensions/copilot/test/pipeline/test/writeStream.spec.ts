@@ -7,6 +7,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { openWriteStream } from '../writeStream';
+const regexpENOENTNoSuch = /ENOENT|no such file/i;
+
 
 describe('openWriteStream', () => {
 	let tmpDir: string;
@@ -55,6 +57,6 @@ describe('openWriteStream', () => {
 		}
 
 		expect(caught).toBeDefined();
-		expect(caught!.message).toMatch(/ENOENT|no such file/i);
+		expect(caught!.message).toMatch(regexpENOENTNoSuch);
 	});
 });

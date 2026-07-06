@@ -8,6 +8,10 @@ import * as path from 'path';
 import 'mocha';
 import * as vscode from 'vscode';
 import { assertNoRpc, closeAllEditors } from '../utils';
+const regexpPageID = /Page ID:/;
+const regexpPageID1 = /Page ID:\s*(\S+)/;
+const regexpResultDone = /Result: "done"/;
+
 
 /**
  * Extracts all text content from a LanguageModelToolResult.
@@ -87,7 +91,7 @@ function extractTextContent(result: vscode.LanguageModelToolResult): string {
 
 		const output = await invokeTool('open_browser_page', { url: 'about:blank' });
 
-		assert.match(output, /Page ID:/, `Expected output to contain "Page ID:", got: ${output}`);
+		assert.match(output, regexpPageID, `Expected output to contain "Page ID:", got: ${output}`);
 	});
 
 	test('Open a page from the web', async function () {
@@ -95,7 +99,7 @@ function extractTextContent(result: vscode.LanguageModelToolResult): string {
 
 		const output = await invokeTool('open_browser_page', { url: 'https://google.com/' });
 
-		assert.match(output, /Page ID:/, `Expected output to contain "Page ID:", got: ${output}`);
+		assert.match(output, regexpPageID, `Expected output to contain "Page ID:", got: ${output}`);
 	});
 
 	// Loads `file:///<workspaceFolder>/index.html`. Skipped in remote
@@ -112,10 +116,10 @@ function extractTextContent(result: vscode.LanguageModelToolResult): string {
 
 		// Open the page
 		const openOutput = await invokeTool('open_browser_page', { url: fileUrl });
-		assert.match(openOutput, /Page ID:/, `Expected open output to contain "Page ID:", got: ${openOutput}`);
+		assert.match(openOutput, regexpPageID, `Expected open output to contain "Page ID:", got: ${openOutput}`);
 
 		// Extract the page ID from the output
-		const pageIdMatch = openOutput.match(/Page ID:\s*(\S+)/);
+		const pageIdMatch = openOutput.match(regexpPageID1);
 		assert.ok(pageIdMatch, `Could not extract Page ID from: ${openOutput}`);
 		const pageId = pageIdMatch[1];
 
@@ -141,7 +145,7 @@ function extractTextContent(result: vscode.LanguageModelToolResult): string {
 			pageId,
 			code: `await page.waitForSelector('#output:text-is("test message")'); return "done";`,
 		});
-		assert.match(runOutput, /Result: "done"/, `Expected run_playwright_code output to contain result "done", got: ${runOutput}`);
+		assert.match(runOutput, regexpResultDone, `Expected run_playwright_code output to contain result "done", got: ${runOutput}`);
 
 		// Read the page to verify the output element was populated
 		const readOutput = await invokeTool('read_page', { pageId });

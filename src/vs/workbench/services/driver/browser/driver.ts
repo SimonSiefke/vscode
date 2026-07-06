@@ -18,6 +18,8 @@ import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions } fr
 import { IWindowDriver, IElement, ILocaleInfo, ILocalizedStrings } from '../common/driver.js';
 import { ILifecycleService, LifecyclePhase } from '../../lifecycle/common/lifecycle.js';
 import type { Terminal as XtermTerminal } from '@xterm/xterm';
+const regexp1 = /\s+/g;
+
 
 export class BrowserWindowDriver implements IWindowDriver {
 
@@ -67,7 +69,7 @@ export class BrowserWindowDriver implements IWindowDriver {
 			while (el) {
 				const tagName = el.tagName;
 				const id = el.id ? `#${el.id}` : '';
-				const classes = coalesce(el.className.split(/\s+/g).map(c => c.trim())).map(c => `.${c}`).join('');
+				const classes = coalesce(el.className.split(new RegExp(regexp1)).map(c => c.trim())).map(c => `.${c}`).join('');
 				chain.unshift(`${tagName}${id}${classes}`);
 
 				el = el.parentElement;

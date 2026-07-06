@@ -11,6 +11,9 @@ import es from 'event-stream';
 import { filter, type FileFunction } from '../gulp/facade.ts';
 import { Stream } from 'stream';
 import { fileURLToPath } from 'url';
+const regexpGit = /^\.git/;
+const regexpOut = /(^|\\)out($|\\)/;
+
 
 const watcherPath = path.join(typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url)), 'watcher.exe');
 
@@ -38,7 +41,7 @@ function watch(root: string): Stream {
 			const changePath = line.substr(2);
 
 			// filter as early as possible
-			if (/^\.git/.test(changePath) || /(^|\\)out($|\\)/.test(changePath)) {
+			if (regexpGit.test(changePath) || regexpOut.test(changePath)) {
 				continue;
 			}
 

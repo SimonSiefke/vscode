@@ -13,6 +13,8 @@ import { INotebookActionContext } from '../controller/coreActions.js';
 import { INotebookEditorDelegate } from '../notebookBrowser.js';
 import { NotebookOptions } from '../notebookOptions.js';
 import { CodiconActionViewItem } from '../view/cellParts/cellActionView.js';
+const regexpInline = /^inline/;
+
 
 export class ListTopCellToolbar extends Disposable {
 	private readonly topCellToolbarContainer: HTMLElement;
@@ -108,7 +110,7 @@ export class ListTopCellToolbar extends Disposable {
 					shouldForwardArgs: true
 				},
 				toolbarOptions: {
-					primaryGroup: (g: string) => /^inline/.test(g),
+					primaryGroup: (g: string) => regexpInline.test(g),
 				},
 				hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			});

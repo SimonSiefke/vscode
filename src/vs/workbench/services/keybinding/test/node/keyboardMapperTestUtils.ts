@@ -11,6 +11,9 @@ import { Promises } from '../../../../../base/node/pfs.js';
 import { IKeyboardEvent } from '../../../../../platform/keybinding/common/keybinding.js';
 import { IKeyboardMapper } from '../../../../../platform/keyboardLayout/common/keyboardMapper.js';
 import { FileAccess } from '../../../../../base/common/network.js';
+const regexp1 = /\r\n/g;
+const regexpOutVsWorkbench = /[\/\\]out[\/\\]vs[\/\\]workbench/;
+
 
 export interface IResolvedKeybinding {
 	label: string | null;
@@ -62,10 +65,10 @@ export function assertMapping(writeFileIfDifferent: boolean, mapper: IKeyboardMa
 	const filePath = path.normalize(FileAccess.asFileUri(`vs/workbench/services/keybinding/test/node/${file}`).fsPath);
 
 	return fs.promises.readFile(filePath).then((buff) => {
-		const expected = buff.toString().replace(/\r\n/g, '\n');
-		const actual = mapper.dumpDebugInfo().replace(/\r\n/g, '\n');
+		const expected = buff.toString().replace(new RegExp(regexp1), '\n');
+		const actual = mapper.dumpDebugInfo().replace(new RegExp(regexp1), '\n');
 		if (actual !== expected && writeFileIfDifferent) {
-			const destPath = filePath.replace(/[\/\\]out[\/\\]vs[\/\\]workbench/, '/src/vs/workbench');
+			const destPath = filePath.replace(regexpOutVsWorkbench, '/src/vs/workbench');
 			Promises.writeFile(destPath, actual);
 		}
 		assert.deepStrictEqual(actual, expected);

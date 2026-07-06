@@ -22,6 +22,8 @@ import { INotebookEditorModelResolverService } from '../../common/notebookEditor
 import { IFileDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { URI } from '../../../../../base/common/uri.js';
+const regexpImage = /^image\//;
+
 
 export const COPY_OUTPUT_COMMAND_ID = 'notebook.cellOutput.copy';
 
@@ -188,7 +190,7 @@ registerAction2(class SaveCellOutputImageAction extends Action2 {
 			title: localize('notebookActions.saveOutputImage', "Save Image"),
 			menu: {
 				id: MenuId.NotebookOutputToolbar,
-				when: ContextKeyExpr.regex(NOTEBOOK_CELL_OUTPUT_MIMETYPE.key, /^image\//)
+				when: ContextKeyExpr.regex(NOTEBOOK_CELL_OUTPUT_MIMETYPE.key, regexpImage)
 			},
 			f1: false,
 			category: NOTEBOOK_ACTIONS_CATEGORY,

@@ -32,6 +32,9 @@ import {
 	runWslCommand,
 	validateDistroName,
 } from './wslRemoteAgentHostHelpers.js';
+const regexp1 = /\r\n|\r|\n/;
+const regexp2 = /\s+/;
+
 
 const LOG_PREFIX = '[WSLRemoteAgentHost]';
 
@@ -235,7 +238,7 @@ export class WSLRemoteAgentHostMainService extends Disposable implements IWSLRem
 			// messages — "There is no distribution with the supplied name"
 			// etc. — arrive on stderr without `WSL_UTF8=1`).
 			const cleanText = removeAnsiEscapeCodes(decodeWslOutput(data));
-			for (const rawLine of cleanText.split(/\r\n|\r|\n/)) {
+			for (const rawLine of cleanText.split(regexp1)) {
 				const line = rawLine.trimEnd();
 				if (!line) {
 					continue;
@@ -410,7 +413,7 @@ export class WSLRemoteAgentHostMainService extends Disposable implements IWSLRem
 		if (result.exitCode !== 0) {
 			throw new Error(`${LOG_PREFIX} Failed to detect platform in '${distro}' (exit ${result.exitCode}): ${result.stderr.trim() || result.stdout.trim()}`);
 		}
-		const tokens = result.stdout.trim().split(/\s+/);
+		const tokens = result.stdout.trim().split(regexp2);
 		if (tokens.length < 2) {
 			throw new Error(`${LOG_PREFIX} Unexpected uname output from '${distro}': ${JSON.stringify(result.stdout)}`);
 		}

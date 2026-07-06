@@ -13,6 +13,10 @@ import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ILogService } from '../../log/common/log.js';
 import { IAddressProvider } from '../../remote/common/remoteAgentConnection.js';
 import { TunnelPrivacy } from '../../remote/common/remoteAuthorityResolver.js';
+const regexpLocalhost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)$/;
+const regexpHttps = /^https?:/;
+const regexp3 = /(\d+)\.(\d+)\.(\d+)/g;
+
 
 export const ITunnelService = createDecorator<ITunnelService>('tunnelService');
 export const ISharedTunnelsService = createDecorator<ISharedTunnelsService>('sharedTunnelsService');
@@ -150,7 +154,7 @@ export function extractLocalHostUriMetaDataForPortMapping(uri: URI): { address: 
 	if (uri.scheme !== 'http' && uri.scheme !== 'https') {
 		return undefined;
 	}
-	const localhostMatch = /^(localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)$/.exec(uri.authority);
+	const localhostMatch = regexpLocalhost.exec(uri.authority);
 	if (!localhostMatch) {
 		return undefined;
 	}
@@ -167,7 +171,7 @@ export function extractQueryLocalHostUriMetaDataForPortMapping(uri: URI): { addr
 	const keyvalues = uri.query.split('&');
 	for (const keyvalue of keyvalues) {
 		const value = keyvalue.split('=')[1];
-		if (/^https?:/.exec(value)) {
+		if (regexpHttps.exec(value)) {
 			const result = extractLocalHostUriMetaDataForPortMapping(URI.parse(value));
 			if (result) {
 				return result;
@@ -193,7 +197,7 @@ export function isPortPrivileged(port: number, host: string, os: OperatingSystem
 	}
 	if (os === OperatingSystem.Macintosh) {
 		if (isAllInterfaces(host)) {
-			const osVersion = (/(\d+)\.(\d+)\.(\d+)/g).exec(osRelease);
+			const osVersion = (new RegExp(regexp3)).exec(osRelease);
 			if (osVersion?.length === 4) {
 				const major = parseInt(osVersion[1]);
 				if (major >= 18 /* since macOS Mojave, darwin version 18.0.0 */) {

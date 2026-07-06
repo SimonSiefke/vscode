@@ -13,6 +13,8 @@ import { lengthAdd, lengthToObj, lengthToPosition, positionToLength, toLength } 
 import { TextModel } from '../../../../common/model/textModel.js';
 import { Random } from '../../core/random.js';
 import { createTextModel } from '../../testTextModel.js';
+const regexp1 = /^(L|C|\n)*$/;
+
 
 suite('combineTextEditInfos', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -42,7 +44,7 @@ function runTest(seed: number) {
 	for (const edit of combinedEdits) {
 		const range = Range.fromPositions(lengthToPosition(edit.startOffset), lengthToPosition(lengthAdd(edit.startOffset, edit.newLength)));
 		const value = textModelS2.getValueInRange(range);
-		if (!value.match(/^(L|C|\n)*$/)) {
+		if (!value.match(regexp1)) {
 			throw new Error('Invalid edit: ' + value);
 		}
 		textModelS2.applyEdits([{

@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /{(\d+)}/g;
+const regexp2 = /[<>&"']/g;
+const regexp3 = /\r\n|\r|\n/;
+
 // perf-benchmark-marker
 
 /**
@@ -11,14 +15,14 @@
  */
 
 export function format(value: string, ...args: any[]): string {
-	return value.replace(/{(\d+)}/g, (match, index) => {
+	return value.replace(new RegExp(regexp1), (match, index) => {
 		const i = parseInt(index, 10);
 		return i >= 0 && i < args.length ? `${args[i]}` : match;
 	});
 }
 
 export function escape(value: string): string {
-	return value.replace(/[<>&"']/g, ch => {
+	return value.replace(new RegExp(regexp2), ch => {
 		switch (ch) {
 			case '<': return '&lt;';
 			case '>': return '&gt;';
@@ -64,7 +68,7 @@ export function commonSuffixLength(a: string, b: string): number {
 }
 
 export function splitLines(str: string): string[] {
-	return str.split(/\r\n|\r|\n/);
+	return str.split(regexp3);
 }
 
 export function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {

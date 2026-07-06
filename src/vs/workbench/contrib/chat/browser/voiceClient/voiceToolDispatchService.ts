@@ -16,6 +16,8 @@ import { ChatAgentLocation, ChatModeKind } from '../../common/constants.js';
 import { ILanguageModelToolsService } from '../../common/tools/languageModelToolsService.js';
 import { IVoiceToolCall } from '../../common/voiceClient/voiceClientService.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+const regexp1 = /^\//;
+
 
 /**
  * Callbacks that require access to the chat widget or view state.
@@ -453,7 +455,7 @@ export class VoiceToolDispatchService implements IVoiceToolDispatchService {
 		// without dumping full workspace paths into the prompt.
 		const parts = uri.path.split('/').filter(Boolean);
 		if (parts.length <= 2) {
-			return uri.path.replace(/^\//, '');
+			return uri.path.replace(regexp1, '');
 		}
 		return parts.slice(-2).join('/');
 	}

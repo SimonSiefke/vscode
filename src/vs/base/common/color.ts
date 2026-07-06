@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CharCode } from './charCode.js';
+const regexpRgba = /rgba\((?<r>(?:\+|-)?\d+), *(?<g>(?:\+|-)?\d+), *(?<b>(?:\+|-)?\d+), *(?<a>(?:\+|-)?\d+(\.\d+)?)\)/;
+const regexpRgb = /rgb\((?<r>(?:\+|-)?\d+), *(?<g>(?:\+|-)?\d+), *(?<b>(?:\+|-)?\d+)\)/;
+
 
 function roundFloat(number: number, decimalPoints: number): number {
 	const decimal = Math.pow(10, decimalPoints);
@@ -675,7 +678,7 @@ export namespace Color {
 					return parseHex(css);
 				}
 				if (css.startsWith('rgba(')) {
-					const color = css.match(/rgba\((?<r>(?:\+|-)?\d+), *(?<g>(?:\+|-)?\d+), *(?<b>(?:\+|-)?\d+), *(?<a>(?:\+|-)?\d+(\.\d+)?)\)/);
+					const color = css.match(regexpRgba);
 					if (!color) {
 						throw new Error('Invalid color format ' + css);
 					}
@@ -686,7 +689,7 @@ export namespace Color {
 					return new Color(new RGBA(r, g, b, a));
 				}
 				if (css.startsWith('rgb(')) {
-					const color = css.match(/rgb\((?<r>(?:\+|-)?\d+), *(?<g>(?:\+|-)?\d+), *(?<b>(?:\+|-)?\d+)\)/);
+					const color = css.match(regexpRgb);
 					if (!color) {
 						throw new Error('Invalid color format ' + css);
 					}

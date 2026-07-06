@@ -24,6 +24,8 @@ import { WindowTitle } from './windowTitle.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 const AI_DISABLED_SETTING = 'chat.disableAIFeatures';
 const AGENT_STATUS_ENABLED_SETTING = 'chat.agentsControl.enabled';
@@ -231,7 +233,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 								label = localize('label2', "{0} {1}", label, suffix);
 							}
 
-							return label.replaceAll(/\r\n|\r|\n/g, '\u23CE');
+							return label.replaceAll(new RegExp(regexp1), '\u23CE');
 						}
 					});
 				}

@@ -55,6 +55,10 @@ import { IWalkthroughsService } from '../../welcomeGettingStarted/browser/gettin
 import { Schemas } from '../../../../base/common/network.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+const regexpTargets = /^targets@(\d+)$/;
+const regexpDetails = /^details(@(\d+))?$/;
+const regexpHelp = /^help(@(\d+))?$/;
+
 
 interface IViewModel {
 	readonly onDidChangeHelpInformation: Event<void>;
@@ -641,18 +645,18 @@ Registry.as<IViewContainersRegistry>(Extensions.ViewContainersRegistry).register
 					return;
 				}
 
-				let matches = /^targets@(\d+)$/.exec(group);
+				let matches = regexpTargets.exec(group);
 				if (matches) {
 					return -1000;
 				}
 
-				matches = /^details(@(\d+))?$/.exec(group);
+				matches = regexpDetails.exec(group);
 
 				if (matches) {
 					return -500 + Number(matches[2]);
 				}
 
-				matches = /^help(@(\d+))?$/.exec(group);
+				matches = regexpHelp.exec(group);
 				if (matches) {
 					return -10;
 				}

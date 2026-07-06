@@ -18,6 +18,9 @@ import { generateUuid } from '../../../base/common/uuid.js';
 
 // eslint-disable-next-line local/code-import-patterns
 import type { Browser, BrowserContext, ConnectOverCDPTransport, Page } from 'playwright-core';
+const regexpTimeoutMsExceeded = /Timeout \d+ms exceeded/;
+const regexpNavigationTimeout = /navigation timeout/i;
+
 
 /**
  * Tracks whether a caller-initiated Playwright action is currently in flight.
@@ -773,8 +776,8 @@ function isNavigationTimeoutError(error: unknown): boolean {
 	}
 
 	return error.name === 'TimeoutError'
-		|| /Timeout \d+ms exceeded/.test(error.message)
-		|| /navigation timeout/i.test(error.message);
+		|| regexpTimeoutMsExceeded.test(error.message)
+		|| regexpNavigationTimeout.test(error.message);
 }
 
 /**

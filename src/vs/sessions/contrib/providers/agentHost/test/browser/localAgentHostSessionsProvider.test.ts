@@ -49,6 +49,8 @@ import { IPullRequestIconCache, PullRequestIconCache } from '../../../../github/
 import { computePullRequestIcon, GitHubPullRequestState } from '../../../../github/common/types.js';
 import { IWorkbenchEnvironmentService } from '../../../../../../workbench/services/environment/common/environmentService.js';
 import { IAgentHostEnablementService } from '../../../../../services/agentHost/common/agentHostEnablementService.js';
+const regexpNotFound = /not found/;
+
 
 // ---- Mock IAgentHostService -------------------------------------------------
 
@@ -2994,7 +2996,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		const provider = createProvider(disposables, agentHost);
 		await assert.rejects(
 			() => provider.sendRequest('nonexistent', URI.parse('untitled:chat'), { query: 'test' }),
-			/not found/,
+			regexpNotFound,
 		);
 	});
 

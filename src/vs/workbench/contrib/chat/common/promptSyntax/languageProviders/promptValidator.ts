@@ -26,6 +26,8 @@ import { URI } from '../../../../../../base/common/uri.js';
 import { HOOKS_BY_TARGET } from '../hookTypes.js';
 import { GithubPromptHeaderAttributes } from './promptFileAttributes.js';
 import { ILogService } from '../../../../../../platform/log/common/log.js';
+const regexpZAZ0 = /[a-zA-Z0-9]/;
+
 
 export const MARKERS_OWNER_ID = 'prompts-diagnostics-provider';
 
@@ -857,7 +859,7 @@ export class PromptValidator {
 					case 'label':
 						if (prop.value.type !== 'scalar' || prop.value.value.trim().length === 0) {
 							report(toMarker(localize('promptValidator.handoffLabelMustBeNonEmptyString', "The 'label' property in a handoff must be a non-empty string."), prop.value.range, MarkerSeverity.Error));
-						} else if (!/[a-zA-Z0-9]/.test(prop.value.value)) {
+						} else if (!regexpZAZ0.test(prop.value.value)) {
 							report(toMarker(localize('promptValidator.handoffLabelMustContainAlphanumeric', "The 'label' property in a handoff must contain at least one alphanumeric character."), prop.value.range, MarkerSeverity.Error));
 						}
 						break;

@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { URI } from 'vscode-uri';
+const regexpZAZADiagnosticMessages = /^\/[a-zA-Z]+(-[a-zA-Z]+)?\/diagnosticMessages\.generated\.json$/;
+const regexp2 = /^\/([^\/]+)\/([^\/]*)(?:\/(.+))?$/;
+
 
 export class PathMapper {
 
@@ -84,7 +87,7 @@ export function looksLikeLibDtsPath(filepath: string) {
 }
 
 export function looksLikeLocaleResourcePath(filepath: string) {
-	return !!filepath.match(/^\/[a-zA-Z]+(-[a-zA-Z]+)?\/diagnosticMessages\.generated\.json$/);
+	return !!filepath.match(regexpZAZADiagnosticMessages);
 }
 
 export function looksLikeNodeModules(filepath: string) {
@@ -92,7 +95,7 @@ export function looksLikeNodeModules(filepath: string) {
 }
 
 function filePathToResourceUri(filepath: string): URI | undefined {
-	const parts = filepath.match(/^\/([^\/]+)\/([^\/]*)(?:\/(.+))?$/);
+	const parts = filepath.match(regexp2);
 	if (!parts) {
 		return undefined;
 	}

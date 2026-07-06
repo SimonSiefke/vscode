@@ -15,6 +15,8 @@ import { deepClone } from '../../../common/objects.js';
 import { createQueuedSender } from '../../../node/processes.js';
 import { removeDangerousEnvVariables } from '../../../common/processes.js';
 import { ChannelClient as IPCClient, ChannelServer as IPCServer, IChannel, IChannelClient } from '../common/ipc.js';
+const regexpInspectBrk = /^--inspect(-brk)?=/;
+
 
 /**
  * This implementation doesn't perform well since it uses base64 encoding for buffers.
@@ -197,7 +199,7 @@ export class Client implements IChannelClient, IDisposable {
 
 			if (forkOpts.execArgv === undefined) {
 				forkOpts.execArgv = process.execArgv			// if not set, the forked process inherits the execArgv of the parent process
-					.filter(a => !/^--inspect(-brk)?=/.test(a)) // --inspect and --inspect-brk can not be inherited as the port would conflict
+					.filter(a => !regexpInspectBrk.test(a)) // --inspect and --inspect-brk can not be inherited as the port would conflict
 					.filter(a => !a.startsWith('--vscode-')); 	// --vscode-* arguments are unsupported by node.js and thus need to remove
 			}
 

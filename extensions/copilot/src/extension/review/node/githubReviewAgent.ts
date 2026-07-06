@@ -28,6 +28,10 @@ import * as path from '../../../util/vs/base/common/path';
 import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { MarkdownString, Range, Uri } from '../../../vscodeTypes';
 import { FeedbackResult } from '../../prompt/node/feedbackGenerator';
+const regexp1 = /\\/g;
+const regexp2 = /\r?\n/;
+const regexp3 = /@@ -(\d+),\d+ \+\d+,\d+ @@/;
+
 
 
 const testing = false;
@@ -49,7 +53,7 @@ interface FileChange {
  * Normalizes a file path to use forward slashes on all platforms.
  */
 export function normalizePath(relativePath: string): string {
-	return process.platform === 'win32' ? relativePath.replace(/\\/g, '/') : relativePath;
+	return process.platform === 'win32' ? relativePath.replace(new RegExp(regexp1), '/') : relativePath;
 }
 
 /**
@@ -627,8 +631,8 @@ async function fetchComments(logService: ILogService, authService: IAuthenticati
 }
 
 export function reversePatch(after: string, diff: string) {
-	const patch = parsePatch(diff.split(/\r?\n/));
-	const patchedLines = reverseParsedPatch(after.split(/\r?\n/), patch);
+	const patch = parsePatch(diff.split(regexp2));
+	const patchedLines = reverseParsedPatch(after.split(regexp2), patch);
 	return patchedLines.join('\n');
 }
 
@@ -644,7 +648,7 @@ export function parsePatch(patchLines: string[]): LineChange[] {
 
 	for (const line of patchLines) {
 		if (line.startsWith('@@')) {
-			const match = /@@ -(\d+),\d+ \+\d+,\d+ @@/.exec(line);
+			const match = regexp3.exec(line);
 			if (match) {
 				beforeLineNumber = parseInt(match[1], 10);
 			}

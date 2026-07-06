@@ -25,6 +25,8 @@ import { InlineEditTabAction } from '../../inlineEditsViewInterface.js';
 import { classNames, maxContentWidthInRange } from '../../utils/utils.js';
 import { JumpToView } from '../jumpToView.js';
 import { TextModelValueReference } from '../../../../model/textModelValueReference.js';
+const regexpZAZ0 = /[a-zA-Z0-9_]/;
+
 
 export interface ILongDistancePreviewProps {
 	nextCursorPosition: Position | null; // assert: nextCursorPosition !== null  xor  diff.length > 0
@@ -385,7 +387,7 @@ function growUntilVariableBoundaries(textModel: ITextModel, range: Range, maxGro
 
 	function isVariableNameCharacter(col: number): boolean {
 		const char = line.charAt(col - 1);
-		return (/[a-zA-Z0-9_]/).test(char);
+		return (regexpZAZ0).test(char);
 	}
 
 	function isWhitespace(col: number): boolean {

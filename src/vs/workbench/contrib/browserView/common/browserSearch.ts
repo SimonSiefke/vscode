@@ -16,6 +16,15 @@
  */
 
 import { localize } from '../../../../nls.js';
+const regexp1 = /%20/g;
+const regexp2 = /^[\x00-\x7F]*$/;
+const regexp3 = /[/?#]/;
+const regexp4 = /\.$/;
+const regexp5 = /^[a-z]{2,}$/;
+const regexp6 = /\s/;
+const regexp7 = /^\d+(?:[/?#]|$)/;
+const regexp8 = /\s+/g;
+
 
 /**
  * Identifier of the integrated browser address bar search engine.
@@ -63,7 +72,7 @@ export interface IBrowserSearchEngine {
  * used by popular browsers: `encodeURIComponent` then replace `%20` with `+`.
  */
 function encodeQuery(query: string): string {
-	return encodeURIComponent(query).replace(/%20/g, '+');
+	return encodeURIComponent(query).replace(new RegExp(regexp1), '+');
 }
 
 /**
@@ -154,7 +163,7 @@ const IPV4_REGEX = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
  * `HOST_CHARS_REGEX` at the call site).
  */
 function toAsciiHost(host: string): string | undefined {
-	const needsUrlParse = host.startsWith('[') || !/^[\x00-\x7F]*$/.test(host);
+	const needsUrlParse = host.startsWith('[') || !regexp2.test(host);
 	if (!needsUrlParse) {
 		return host;
 	}
@@ -173,7 +182,7 @@ interface IParsedAuthority {
 }
 
 function parseHostAndPath(rest: string): IParsedAuthority {
-	const sepMatch = /[/?#]/.exec(rest);
+	const sepMatch = regexp3.exec(rest);
 	const authority = sepMatch ? rest.slice(0, sepMatch.index) : rest;
 	const pathAndRest = sepMatch ? rest.slice(sepMatch.index) : '';
 
@@ -213,7 +222,7 @@ function parseHostAndPath(rest: string): IParsedAuthority {
 }
 
 function hasKnownTld(host: string): boolean {
-	const trimmed = host.toLowerCase().replace(/\.$/, '');
+	const trimmed = host.toLowerCase().replace(regexp4, '');
 	const labels = trimmed.split('.');
 	if (labels.length < 2) {
 		return false;
@@ -225,7 +234,7 @@ function hasKnownTld(host: string): boolean {
 	// Any all-letter last label of length >= 2 is treated as a TLD. This is a
 	// lightweight stand-in for Chromium's Public Suffix List lookup that
 	// covers ccTLDs, gTLDs, and newer/brand TLDs without maintaining a list.
-	if (/^[a-z]{2,}$/.test(last)) {
+	if (regexp5.test(last)) {
 		return true;
 	}
 	// Punycode IDN TLDs.
@@ -303,7 +312,7 @@ export function resolveAddressBarInputType(rawInput: string): AddressBarInputKin
 		}
 		// Recognized as a scheme only because of `//`, but not in our known
 		// set. Treat as URL only if it looks like userinfo with a password.
-		if (USERINFO_WITH_PASSWORD_REGEX.test(trimmed) && !/\s/.test(trimmed)) {
+		if (USERINFO_WITH_PASSWORD_REGEX.test(trimmed) && !regexp6.test(trimmed)) {
 			return 'url';
 		}
 		return 'unknown';
@@ -312,8 +321,8 @@ export function resolveAddressBarInputType(rawInput: string): AddressBarInputKin
 	// Handle unrecognized scheme that's NOT followed by `//` and NOT a
 	// plausible host:port (`localhost:3000`). E.g. `site:foo`,
 	// `unknownscheme:bar` — search operators, classified as `unknown`.
-	if (candidateScheme && !scheme && !/^\d+(?:[/?#]|$)/.test(afterScheme)) {
-		if (USERINFO_WITH_PASSWORD_REGEX.test(trimmed) && !/\s/.test(trimmed)) {
+	if (candidateScheme && !scheme && !regexp7.test(afterScheme)) {
+		if (USERINFO_WITH_PASSWORD_REGEX.test(trimmed) && !regexp6.test(trimmed)) {
 			return 'url';
 		}
 		return 'unknown';
@@ -333,7 +342,7 @@ export function resolveAddressBarInputType(rawInput: string): AddressBarInputKin
 	}
 
 	// Whitespace inside the input is a strong query signal.
-	if (/\s/.test(rest)) {
+	if (regexp6.test(rest)) {
 		return 'query';
 	}
 
@@ -425,7 +434,7 @@ export function buildSearchUrl(
 	const engine =
 		BROWSER_SEARCH_ENGINES.find((e) => e.id === engineId) ??
 		BROWSER_SEARCH_ENGINES[0];
-	return engine.buildSearchUrl(query.trim().replace(/\s+/g, ' '));
+	return engine.buildSearchUrl(query.trim().replace(new RegExp(regexp8), ' '));
 }
 
 /**

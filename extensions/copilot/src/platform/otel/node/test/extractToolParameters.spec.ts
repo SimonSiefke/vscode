@@ -6,6 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import { GitHubCopilotAttr, TOOL_PARAM_COMMAND_MAX_LEN } from '../../common/genAiAttributes';
 import { extractToolParameters } from '../extractToolParameters';
+const regexpF0 = /^[a-f0-9]{64}$/;
+
 
 describe('extractToolParameters', () => {
 	it('returns empty attrs for non-object input', () => {
@@ -23,14 +25,14 @@ describe('extractToolParameters', () => {
 
 	it('emits MCP server hash unconditionally and raw name gated', () => {
 		const { attrs, gatedAttrs } = extractToolParameters('mcp_github_search_issues', {});
-		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME_HASH]).toMatch(/^[a-f0-9]{64}$/);
+		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME_HASH]).toMatch(regexpF0);
 		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_TOOL_NAME]).toBe('search_issues');
 		expect(gatedAttrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME]).toBe('github');
 	});
 
 	it('also handles Anthropic-style mcp__server__tool double-underscore format', () => {
 		const { attrs, gatedAttrs } = extractToolParameters('mcp__github__list_issues', {});
-		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME_HASH]).toMatch(/^[a-f0-9]{64}$/);
+		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME_HASH]).toMatch(regexpF0);
 		expect(attrs[GitHubCopilotAttr.TOOL_PARAM_MCP_TOOL_NAME]).toBe('list_issues');
 		expect(gatedAttrs[GitHubCopilotAttr.TOOL_PARAM_MCP_SERVER_NAME]).toBe('github');
 	});

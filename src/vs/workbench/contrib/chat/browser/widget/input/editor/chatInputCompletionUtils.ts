@@ -7,9 +7,13 @@ import { Position } from '../../../../../../../editor/common/core/position.js';
 import { Range } from '../../../../../../../editor/common/core/range.js';
 import { IWordAtPosition, getWordAtText } from '../../../../../../../editor/common/core/wordHelper.js';
 import { ITextModel } from '../../../../../../../editor/common/model.js';
+const regexp1 = /[-\\^\]]/g;
+const regexp2 = /^\s*$/;
+const regexp3 = /\s\S*$/;
+
 
 export function escapeForCharClass(text: string): string {
-	return text.replace(/[-\\^\]]/g, '\\$&');
+	return text.replace(new RegExp(regexp1), '\\$&');
 }
 
 export interface IChatCompletionRangeResult {
@@ -54,7 +58,7 @@ export function computeCompletionRanges(model: ITextModel, position: Position, r
 
 export function isEmptyUpToCompletionWord(model: ITextModel, rangeResult: IChatCompletionRangeResult): boolean {
 	const startToCompletionWordStart = new Range(1, 1, rangeResult.replace.startLineNumber, rangeResult.replace.startColumn);
-	return !!model.getValueInRange(startToCompletionWordStart).match(/^\s*$/);
+	return !!model.getValueInRange(startToCompletionWordStart).match(regexp2);
 }
 
 /**
@@ -71,7 +75,7 @@ export function isAtTriggerCharacterToken(model: ITextModel, position: Position,
 	const beforeCursor = line.slice(0, position.column - 1);
 	// The current token is everything from the last whitespace char (or
 	// start-of-line) up to the cursor.
-	const wsIdx = beforeCursor.search(/\s\S*$/);
+	const wsIdx = beforeCursor.search(regexp3);
 	const token = wsIdx >= 0 ? beforeCursor.slice(wsIdx + 1) : beforeCursor;
 	if (token.length === 0) {
 		return false;

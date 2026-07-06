@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { MarkedString } from 'vscode';
+const regexp1 = /[\\`*_{}[\]()#+\-.!]/g;
+
 
 export function textToMarkedString(text: string): MarkedString {
-	return text.replace(/[\\`*_{}[\]()#+\-.!]/g, '\\$&'); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
+	return text.replace(new RegExp(regexp1), '\\$&'); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
 }

@@ -6,6 +6,13 @@
 /* Based on @sergeche's work in his emmet plugin */
 
 import * as vscode from 'vscode';
+const regexp1 = /\.(\d+)$/;
+const regexp2 = /\.0+$/;
+const regexp3 = /^(\-?)(\d+)/;
+const regexp4 = /^\-?(0\d+)/;
+const regexp5 = /^(\-?)0+/;
+const regexp6 = /^\-?\./;
+
 
 const reNumber = /[0-9]/;
 
@@ -40,18 +47,18 @@ export function incrementDecrement(delta: number): Thenable<boolean> | undefined
  */
 export function update(numString: string, delta: number): string {
 	let m: RegExpMatchArray | null;
-	const decimals = (m = numString.match(/\.(\d+)$/)) ? m[1].length : 1;
-	let output = String((parseFloat(numString) + delta).toFixed(decimals)).replace(/\.0+$/, '');
+	const decimals = (m = numString.match(regexp1)) ? m[1].length : 1;
+	let output = String((parseFloat(numString) + delta).toFixed(decimals)).replace(regexp2, '');
 
-	if (m = numString.match(/^\-?(0\d+)/)) {
+	if (m = numString.match(regexp4)) {
 		// padded number: preserve padding
-		output = output.replace(/^(\-?)(\d+)/, (_, minus, prefix) =>
+		output = output.replace(regexp3, (_, minus, prefix) =>
 			minus + '0'.repeat(Math.max(0, (m ? m[1].length : 0) - prefix.length)) + prefix);
 	}
 
-	if (/^\-?\./.test(numString)) {
+	if (regexp6.test(numString)) {
 		// omit integer part
-		output = output.replace(/^(\-?)0+/, '$1');
+		output = output.replace(regexp5, '$1');
 	}
 
 	return output;

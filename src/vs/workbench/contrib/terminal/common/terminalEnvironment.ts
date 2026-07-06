@@ -19,6 +19,14 @@ import { isNumber, isString } from '../../../../base/common/types.js';
 import { IHistoryService } from '../../../services/history/common/history.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import type { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+const regexpUTF = /\.UTF\-8$/;
+const regexpUtf8 = /\.utf8$/;
+const regexpEuc = /\.euc.+/;
+const regexp4 = /\//g;
+const regexp5 = /\\/g;
+const regexp6 = /'/g;
+const regexpZA = /^([a-zA-Z]):\//;
+
 
 export function mergeEnvironments(parent: IProcessEnvironment, other: ITerminalEnvironment | undefined): void {
 	if (!other) {
@@ -102,7 +110,7 @@ export function shouldSetLangEnvVariable(env: IProcessEnvironment, detectLocale:
 	}
 	if (detectLocale === 'auto') {
 		const lang = env['LANG'];
-		return !lang || (lang.search(/\.UTF\-8$/) === -1 && lang.search(/\.utf8$/) === -1 && lang.search(/\.euc.+/) === -1);
+		return !lang || (lang.search(regexpUTF) === -1 && lang.search(regexpUtf8) === -1 && lang.search(regexpEuc) === -1);
 	}
 	return false; // 'off'
 }
@@ -325,9 +333,9 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		originalPath = resource.fsPath;
 		// Apply backend OS-specific formatting to the path since URI.fsPath uses the frontend's OS
 		if (isWindowsFrontend && os !== OperatingSystem.Windows) {
-			originalPath = originalPath.replace(/\\/g, '\/');
+			originalPath = originalPath.replace(new RegExp(regexp5), '\/');
 		} else if (!isWindowsFrontend && os === OperatingSystem.Windows) {
-			originalPath = originalPath.replace(/\//g, '\\');
+			originalPath = originalPath.replace(new RegExp(regexp4), '\\');
 		}
 	}
 
@@ -345,7 +353,7 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		title === 'powershell';
 
 	if (isPowerShell && (hasSpace || originalPath.includes('\''))) {
-		return `& '${originalPath.replace(/'/g, '\'\'')}'`;
+		return `& '${originalPath.replace(new RegExp(regexp6), '\'\'')}'`;
 	}
 
 	if (hasParens && isPowerShell) {
@@ -357,7 +365,7 @@ export async function preparePathForShell(resource: string | URI, executable: st
 		// Update Windows uriPath to be executed in WSL.
 		if (shellType !== undefined) {
 			if (shellType === WindowsShellType.GitBash) {
-				return escapeNonWindowsPath(originalPath.replace(/\\/g, '/'), shellType);
+				return escapeNonWindowsPath(originalPath.replace(new RegExp(regexp5), '/'), shellType);
 			}
 			else if (shellType === WindowsShellType.Wsl) {
 				return backend?.getWslPath(originalPath, 'win-to-unix') || originalPath;
@@ -398,7 +406,7 @@ export async function getUriLabelForShell(uri: URI | string, backend: Pick<ITerm
 			return backend.getWslPath(path.replaceAll('/', '\\'), 'win-to-unix');
 		} else if (shellType === WindowsShellType.GitBash) {
 			// Convert \ to / and replace 'c:\' with '/c/'.
-			return path.replaceAll('\\', '/').replace(/^([a-zA-Z]):\//, '/$1/');
+			return path.replaceAll('\\', '/').replace(regexpZA, '/$1/');
 		} else {
 			// If the frontend is not Windows but the terminal is, convert / to \.
 			path = isString(uri) ? path : uriToFsPath(uri, true);

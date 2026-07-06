@@ -8,6 +8,14 @@ import fs from 'fs';
 import path from 'path';
 import { Page } from 'playwright';
 import { TestContext } from './context.js';
+const regexpTypeTheName = /^Type the name of a command/;
+const regexpTypeFileName = /^Type file name/;
+const regexpStartTyping = /Start typing/;
+const regexpResult = /\d+\s+result/;
+const regexpResultInFile = /1 result in 1 file/;
+const regexpGitHubPullRequests = /^GitHub Pull Requests$/;
+const regexpInstall = /Install/;
+
 
 /**
  * UI Test helper class to perform common UI actions and verifications.
@@ -93,7 +101,7 @@ export class UITest {
 	private async runCommand(page: Page, command: string) {
 		this.context.log(`Running command: ${command}`);
 		await page.keyboard.press('F1');
-		const input = page.getByPlaceholder(/^Type the name of a command/);
+		const input = page.getByPlaceholder(regexpTypeTheName);
 		await input.fill(`>${command}`);
 		const item = page.locator('span.monaco-highlighted-label', { hasText: new RegExp(`^${command}$`) });
 		await item.click();
@@ -110,11 +118,11 @@ export class UITest {
 		await page.getByLabel('New File...').click();
 
 		this.context.log('Typing file name');
-		await page.getByRole('textbox', { name: /^Type file name/ }).fill('helloWorld.txt');
+		await page.getByRole('textbox', { name: regexpTypeFileName }).fill('helloWorld.txt');
 		await page.keyboard.press('Enter');
 
 		this.context.log('Focusing the code editor');
-		await page.getByText(/Start typing/).focus();
+		await page.getByText(regexpStartTyping).focus();
 
 		this.context.log('Typing some content into the file');
 		await page.keyboard.type('Hello, World!', { delay: 100 });
@@ -150,7 +158,7 @@ export class UITest {
 		await resultMessage.waitFor({ state: 'visible' });
 		await page.waitForFunction(() => {
 			const el = document.querySelector('.search-view .messages .message');
-			return el && /\d+\s+result/.test(el.textContent ?? '');
+			return el && regexpResult.test(el.textContent ?? '');
 		}, undefined, { timeout: 30_000 });
 
 		const resultText = (await resultMessage.innerText()).trim();
@@ -160,7 +168,7 @@ export class UITest {
 
 		assert.match(
 			resultText,
-			/1 result in 1 file/,
+			regexpResultInFile,
 			`Expected exactly 1 search result for "Hello, World!", but got: ${resultText}`,
 		);
 	}
@@ -176,7 +184,7 @@ export class UITest {
 		await page.keyboard.type('GitHub Pull Requests', { delay: 50 });
 
 		this.context.log('Waiting for extension to appear in search results');
-		const extensionItem = page.locator('.extension-list-item').getByText(/^GitHub Pull Requests$/);
+		const extensionItem = page.locator('.extension-list-item').getByText(regexpGitHubPullRequests);
 		const messageContainer = page.locator('.extensions-viewlet .message-container:not(.hidden)').first();
 
 		for (let attempt = 0; attempt < 5; attempt++) {
@@ -201,7 +209,7 @@ export class UITest {
 		for (let attempt = 0; attempt < 3; attempt++) {
 			try {
 				this.context.log(`Clicking Install on the first extension in the list (attempt ${attempt + 1}/3)`);
-				const installButton = page.locator('.extension-action:not(.disabled)', { hasText: /Install/ }).first();
+				const installButton = page.locator('.extension-action:not(.disabled)', { hasText: regexpInstall }).first();
 				await installButton.click();
 
 				this.context.log('Waiting for extension to be installed');

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Position, Range, TextDocument } from 'vscode';
+const regexp1 = /\r?\n$/;
+
 
 export interface InlineSuggestionEdit {
 	readonly range: Range;
@@ -70,7 +72,7 @@ function tryAdjustNextLineInsertion(cursorPos: Position, doc: TextDocument, rang
 	//  - drop a single trailing line ending from `newText` to avoid an extra blank line.
 	// CRLF-safe so we don't leak a dangling '\r' into the suggestion.
 	const lineBreak = doc.getText(new Range(cursorPos, range.start));
-	const trimmedNewText = newText.replace(/\r?\n$/, '');
+	const trimmedNewText = newText.replace(regexp1, '');
 	return { range: new Range(cursorPos, cursorPos), newText: lineBreak + trimmedNewText };
 }
 

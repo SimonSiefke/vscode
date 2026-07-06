@@ -15,6 +15,9 @@ import { createDecorator } from '../../../../../platform/instantiation/common/in
 import { InstantiationType, registerSingleton } from '../../../../../platform/instantiation/common/extensions.js';
 import { ChatMessageRole, ILanguageModelsService } from '../../common/languageModels.js';
 import * as nls from '../../../../../nls.js';
+const regexp1 = /\n?```$/;
+const regexpJson = /^```(?:json)?\n?/;
+
 
 /**
  * Simple diff info interface for explanation generation
@@ -317,7 +320,7 @@ Example response format:
 				// Handle potential markdown wrapping
 				let jsonText = responseText.trim();
 				if (jsonText.startsWith('```')) {
-					jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+					jsonText = jsonText.replace(regexpJson, '').replace(regexp1, '');
 				}
 				parsed = JSON.parse(jsonText);
 			} catch {

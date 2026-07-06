@@ -5,6 +5,8 @@
 
 import * as os from 'os';
 import { isWindows } from '../common/platform.js';
+const regexp1 = /(\d+)\.(\d+)\.(\d+)/g;
+
 
 let versionInfo: { release: string; buildNumber: number } | undefined;
 
@@ -105,7 +107,7 @@ export function getWindowsReleaseSync(): string {
  * This is used as a fallback when registry reading is not available.
  */
 function getWindowsBuildNumberFromOsRelease(): number {
-	const osVersion = (/(\d+)\.(\d+)\.(\d+)/g).exec(os.release());
+	const osVersion = (new RegExp(regexp1)).exec(os.release());
 	if (osVersion && osVersion.length === 4) {
 		return parseInt(osVersion[3], 10);
 	}

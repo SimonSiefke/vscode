@@ -11,6 +11,8 @@ import { MessageAttachmentKind } from '../common/state/protocol/state.js';
 import { toCommandCompletionAttachmentMeta } from '../common/meta/agentCompletionAttachmentMeta.js';
 import { CompletionTriggerCharacter, IAgentHostCompletionItemProvider } from './agentHostCompletions.js';
 import { extractLeadingSlashToken } from './agentHostSlashCompletion.js';
+const regexpRename = /^\/rename(?:$|\s+([\s\S]*))/;
+
 
 /** The generic, agent-agnostic `/rename` slash command name. */
 export const RENAME_SLASH_COMMAND = 'rename';
@@ -29,7 +31,7 @@ export const RENAME_SLASH_COMMAND = 'rename';
  * with empty title" (`''`).
  */
 export function parseRenameCommand(prompt: string): string | undefined {
-	const match = /^\/rename(?:$|\s+([\s\S]*))/.exec(prompt);
+	const match = regexpRename.exec(prompt);
 	if (!match) {
 		return undefined;
 	}

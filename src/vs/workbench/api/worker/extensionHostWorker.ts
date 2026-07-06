@@ -17,6 +17,11 @@ import '../common/extHost.common.services.js';
 import './extHost.worker.services.js';
 import { FileAccess } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
+const regexpFileVscodeRemote = /^(file|vscode-remote):/i;
+const regexpVscodeRemote = /^vscode-remote:/i;
+const regexpFile = /^file:/i;
+const regexpFile1 = /^file:\/\//i;
+
 
 //#region --- Define, capture, and override some globals
 
@@ -47,7 +52,7 @@ function shouldTransformUri(uri: string): boolean {
 	// In principle, we could convert any URI, but we have concerns
 	// that parsing https URIs might end up decoding escape characters
 	// and result in an unintended transformation
-	return /^(file|vscode-remote):/i.test(uri);
+	return regexpFileVscodeRemote.test(uri);
 }
 
 const nativeFetch = fetch.bind(self);
@@ -105,9 +110,9 @@ if ((<any>self).Worker) {
 	const _Worker = (<any>self).Worker;
 	// eslint-disable-next-line local/code-no-any-casts
 	Worker = <any>function (stringUrl: string | URL, options?: WorkerOptions) {
-		if (/^file:/i.test(stringUrl.toString())) {
+		if (regexpFile.test(stringUrl.toString())) {
 			stringUrl = FileAccess.uriToBrowserUri(URI.parse(stringUrl.toString())).toString(true);
-		} else if (/^vscode-remote:/i.test(stringUrl.toString())) {
+		} else if (regexpVscodeRemote.test(stringUrl.toString())) {
 			// Supporting transformation of vscode-remote URIs requires an async call to the main thread,
 			// but we cannot do this call from within the embedded Worker, and the only way out would be
 			// to use templating instead of a function in the web api (`resourceUriProvider`)
@@ -120,7 +125,7 @@ if ((<any>self).Worker) {
 		const bootstrapFnSource = (function bootstrapFn(workerUrl: string) {
 			function asWorkerBrowserUrl(url: string | URL | TrustedScriptURL): any {
 				if (typeof url === 'string' || url instanceof URL) {
-					return String(url).replace(/^file:\/\//i, 'vscode-file://vscode-app');
+					return String(url).replace(regexpFile1, 'vscode-file://vscode-app');
 				}
 				return url;
 			}

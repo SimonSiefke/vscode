@@ -12,6 +12,8 @@ import { EditorOption } from '../../../common/config/editorOptions.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { VSDataTransfer } from '../../../../base/common/dataTransfer.js';
 import { toExternalVSDataTransfer } from '../../dataTransfer.js';
+const regexp1 = /\r\n/g;
+
 
 export function generateDataToCopyAndStoreInMemory(viewModel: IViewModel, id: string | undefined, isFirefox: boolean): { dataToCopy: ClipboardDataToCopy; metadata: ClipboardStoredMetadata } {
 	const { dataToCopy, metadata } = generateDataToCopy(viewModel);
@@ -23,7 +25,7 @@ function storeMetadataInMemory(textToCopy: string, metadata: ClipboardStoredMeta
 	InMemoryClipboardMetadataManager.INSTANCE.set(
 		// When writing "LINE\r\n" to the clipboard and then pasting,
 		// Firefox pastes "LINE\n", so let's work around this quirk
-		(isFirefox ? textToCopy.replace(/\r\n/g, '\n') : textToCopy),
+		(isFirefox ? textToCopy.replace(new RegExp(regexp1), '\n') : textToCopy),
 		metadata
 	);
 }

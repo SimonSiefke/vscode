@@ -65,6 +65,10 @@ import { MockChatSessionsService } from '../mockChatSessionsService.js';
 import { AGENT_DEBUG_LOG_FILE_LOGGING_ENABLED_SETTING, COPILOT_SKILL_URI_SCHEME, TROUBLESHOOT_SKILL_PATH } from '../../../common/promptSyntax/promptTypes.js';
 import { ChatRequestSlashPromptPart } from '../../../common/requestParser/chatParserTypes.js';
 import { NullLanguageModelsService } from '../languageModels.js';
+const regexpBoom = /boom/;
+const regexpUnknownSession = /Unknown session/;
+const regexpLoadBoom = /load boom/;
+
 
 const chatAgentWithUsedContextId = 'ChatProviderWithUsedContext';
 const chatAgentWithUsedContext: IChatAgent = {
@@ -1381,7 +1385,7 @@ suite('ChatService', () => {
 			});
 			testDisposables.add((await service.acquireOrLoadSession(untitledResource, ChatAgentLocation.Chat, CancellationToken.None))!);
 
-			await assert.rejects(service.sendRequest(untitledResource, 'first', { agentId: remoteScheme }), /boom/);
+			await assert.rejects(service.sendRequest(untitledResource, 'first', { agentId: remoteScheme }), regexpBoom);
 
 			// The in-flight entry must have been cleared so a retry materializes.
 			const r2 = await service.sendRequest(untitledResource, 'second', { agentId: remoteScheme });
@@ -1435,7 +1439,7 @@ suite('ChatService', () => {
 
 			await assert.rejects(
 				service.sendRequest(untitledResource, 'second', { agentId: remoteScheme }),
-				/Unknown session/,
+				regexpUnknownSession,
 				'the stale untitled resource no longer re-targets the real session',
 			);
 
@@ -1468,7 +1472,7 @@ suite('ChatService', () => {
 			// fails. The forward mapping must NOT have been published (it is only
 			// published after a successful load), so nothing re-targets a session
 			// that was never created.
-			await assert.rejects(service.sendRequest(untitledResource, 'first', { agentId: remoteScheme }), /load boom/);
+			await assert.rejects(service.sendRequest(untitledResource, 'first', { agentId: remoteScheme }), regexpLoadBoom);
 			assert.strictEqual(mockSessionsService.getMaterializedSessionResource(untitledResource), undefined, 'no poisoned untitled→real mapping after a load failure');
 
 			// A subsequent send must NOT throw `Unknown session` (the poisoning

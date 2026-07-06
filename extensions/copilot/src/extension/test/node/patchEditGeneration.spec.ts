@@ -17,6 +17,8 @@ import { applyEdits } from '../../prompt/node/intents';
 import { processPatchResponse } from '../../prompts/node/codeMapper/codeMapper';
 import { getPatchEditReplyProcessor } from '../../prompts/node/codeMapper/patchEditGeneration';
 import { TestWorkspaceService } from '../../../platform/test/node/testWorkspaceService';
+const regexpTxtBin = /^([^.]+)\.([^.]+)\.(txt|bin)$/;
+
 
 const fixturesRootFolder = path.join(__dirname, './fixtures/patch');
 
@@ -62,7 +64,7 @@ function createTestsFromFixtures(fixturesFolder: string, runTest: (data: { [key:
 	const entries = readdirSync(fixturesFolder);
 	const testsData = new Map<string, { [key: string]: Promise<string> }>();
 	for (const entry of entries) {
-		const match = entry.match(/^([^.]+)\.([^.]+)\.(txt|bin)$/);
+		const match = entry.match(regexpTxtBin);
 		if (match) {
 			const [, testName, inputName] = match;
 			const content = fs.readFile(path.join(fixturesFolder, entry), 'utf8');

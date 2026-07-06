@@ -18,6 +18,9 @@ import { IModelDecorationOptions, IModelDecorationOverviewRulerOptions, Injected
 import { IResourceEditorInput } from '../../../platform/editor/common/editor.js';
 import { IColorTheme, IThemeService } from '../../../platform/theme/common/themeService.js';
 import { ThemeColor } from '../../../base/common/themables.js';
+const regexp1 = /^.*$/m;
+const regexp2 = /['\\]/g;
+
 
 export abstract class AbstractCodeEditorService extends Disposable implements ICodeEditorService {
 
@@ -793,8 +796,8 @@ class DecorationCSSRules {
 				cssTextArr.push(strings.format(_CSS_MAP.contentIconPath, cssJs.asCSSUrl(URI.revive(opts.contentIconPath))));
 			}
 			if (typeof opts.contentText === 'string') {
-				const truncated = opts.contentText.match(/^.*$/m)![0]; // only take first line
-				const escaped = truncated.replace(/['\\]/g, '\\$&');
+				const truncated = opts.contentText.match(regexp1)![0]; // only take first line
+				const escaped = truncated.replace(new RegExp(regexp2), '\\$&');
 
 				cssTextArr.push(strings.format(_CSS_MAP.contentText, escaped));
 			}

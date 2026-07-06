@@ -41,6 +41,9 @@ import { ClaudeSettingsChangeTracker } from './claudeSettingsChangeTracker';
 import { ParsedClaudeModelId } from '../common/claudeModelId';
 import { IClaudeSessionStateService } from '../common/claudeSessionStateService';
 import { ClaudeOTelTracker } from './claudeOTelTracker';
+const regexp1 = /^_+|_+$/g;
+const regexpZ0 = /[^a-z0-9_-]/g;
+
 
 // Manages Claude Code agent interactions and language model server lifecycle
 export class ClaudeAgentManager extends Disposable {
@@ -439,7 +442,7 @@ export class ClaudeCodeSession extends Disposable {
 			this._gateway ??= await this.mcpService.startMcpGateway(ClaudeSessionUri.forSessionId(this.sessionId)) ?? undefined;
 			if (this._gateway) {
 				for (const server of this._gateway.servers) {
-					const serverId = server.label.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/^_+|_+$/g, '') || `vscode-mcp-server-${Object.keys(mcpServers).length}`;
+					const serverId = server.label.toLowerCase().replace(new RegExp(regexpZ0), '_').replace(new RegExp(regexp1), '') || `vscode-mcp-server-${Object.keys(mcpServers).length}`;
 					mcpServers[serverId] = {
 						type: 'http',
 						url: server.address.toString(),

@@ -22,6 +22,8 @@ import { CountTokensCallback, IPreparedToolInvocation, IToolData, IToolImpl, ITo
 import { InternalFetchWebPageToolId } from '../../common/tools/builtinTools/tools.js';
 import { IAgentNetworkFilterService } from '../../../../../platform/networkFilter/common/networkFilterService.js';
 import { WorkingDirectory } from '../../common/workingDirectory.js';
+const regexp1 = /\/$/;
+
 
 export const FetchWebPageToolData: IToolData = {
 	id: InternalFetchWebPageToolId,
@@ -239,7 +241,7 @@ export class FetchWebPageTool implements IToolImpl {
 			let urlsMentionedInPrompt = false;
 			for (const uri of urlsNeedingConfirmation) {
 				// Normalize to lowercase and remove any trailing slash
-				const toToCheck = uri.toString(true).toLowerCase().replace(/\/$/, '');
+				const toToCheck = uri.toString(true).toLowerCase().replace(regexp1, '');
 				if (userMessages?.some(m => m.includes(toToCheck))) {
 					urlsNeedingConfirmation.delete(uri);
 					urlsMentionedInPrompt = true;

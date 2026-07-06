@@ -14,6 +14,8 @@ import { ILogService } from 'vs/platform/log/common/log';
 import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
 import { ILanguageModelToolsService, IToolData } from 'vs/workbench/contrib/chat/common/languageModelToolsService';
 import * as extensionsRegistry from 'vs/workbench/services/extensions/common/extensionsRegistry';
+const regexp1 = /^[\w-]+$/;
+
 
 interface IRawToolContribution {
 	id: string;
@@ -114,7 +116,7 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 						continue;
 					}
 
-					if (!rawTool.id.match(/^[\w-]+$/)) {
+					if (!rawTool.id.match(regexp1)) {
 						logService.error(`Extension '${extension.description.identifier.value}' CANNOT register participant with invalid id: ${rawTool.id}. The id must match /^[\\w-]+$/.`);
 						continue;
 					}

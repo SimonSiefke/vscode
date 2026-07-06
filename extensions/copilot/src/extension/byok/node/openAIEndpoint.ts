@@ -17,6 +17,10 @@ import { IChatWebSocketManager } from '../../../platform/networking/node/chatWeb
 import { IExperimentationService } from '../../../platform/telemetry/common/nullExperimentationService';
 import { ITokenizerProvider } from '../../../platform/tokenizer/node/tokenizer';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
+const regexp9A = /^[!#$%&'*+\-.0-9A-Z^_`a-z|~]+$/;
+const regexp2 = /[\x00-\x1F\x7F]/;
+const regexp3 = /[\u200B-\u200D\u202A-\u202E\uFEFF]/;
+
 
 function hydrateBYOKErrorMessages(response: ChatResponse): ChatResponse {
 	if (response.type === ChatFetchResponseType.Failed && response.streamError) {
@@ -103,7 +107,7 @@ export class OpenAIEndpoint extends ChatEndpoint {
 	]);
 
 	// RFC 7230 compliant header name pattern: token characters only
-	private static readonly _validHeaderNamePattern = /^[!#$%&'*+\-.0-9A-Z^_`a-z|~]+$/;
+	private static readonly _validHeaderNamePattern = regexp9A;
 
 	// Maximum limits to prevent abuse
 	private static readonly _maxHeaderNameLength = 256;
@@ -232,13 +236,13 @@ export class OpenAIEndpoint extends ChatEndpoint {
 
 		// Disallow control characters including CR, LF, and others (0x00-0x1F, 0x7F)
 		// This prevents HTTP header injection and response splitting attacks
-		if (/[\x00-\x1F\x7F]/.test(trimmed)) {
+		if (regexp2.test(trimmed)) {
 			return undefined;
 		}
 
 		// Additional check for potential Unicode issues
 		// Reject headers with bidirectional override characters or zero-width characters
-		if (/[\u200B-\u200D\u202A-\u202E\uFEFF]/.test(trimmed)) {
+		if (regexp3.test(trimmed)) {
 			return undefined;
 		}
 

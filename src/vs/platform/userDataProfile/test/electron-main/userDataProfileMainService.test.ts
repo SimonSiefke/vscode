@@ -17,12 +17,14 @@ import { SaveStrategy, StateService } from '../../../state/node/stateService.js'
 import { UriIdentityService } from '../../../uriIdentity/common/uriIdentityService.js';
 import { IProductService } from '../../../product/common/productService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+const regexpUser = /\/User$/;
+
 
 const ROOT = URI.file('tests').with({ scheme: 'vscode-tests' });
 
 class TestEnvironmentService extends AbstractNativeEnvironmentService {
 	constructor(private readonly _appSettingsHome: URI) {
-		const userDataDir = _appSettingsHome.fsPath.replace(/\/User$/, '');
+		const userDataDir = _appSettingsHome.fsPath.replace(regexpUser, '');
 		const paths: INativeEnvironmentPaths = {
 			userDataDir,
 			homeDir: userDataDir,

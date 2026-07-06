@@ -6,6 +6,9 @@
 import { Raw } from '@vscode/prompt-tsx';
 import { describe, expect, it } from 'vitest';
 import { filterHistoryImages } from '../imageLimits';
+const regexpImagesProvidedMaximum = /11 images provided.*maximum of 10 images/;
+const regexpImagesProvidedMaximum1 = /25 images provided.*maximum of 20 images/;
+
 
 const createUserImageMessage = (imageCount: number = 1): Raw.ChatMessage => ({
 	role: Raw.ChatRole.User,
@@ -102,10 +105,10 @@ describe('filterHistoryImages', () => {
 		// Current user message has 11 images. The error must mention the exact
 		// model-scoped limit (10 for Gemini, 20 for Anthropic Messages API).
 		const messages = [createUserImageMessage(11)];
-		expect(() => filterHistoryImages(messages, 10)).toThrow(/11 images provided.*maximum of 10 images/);
+		expect(() => filterHistoryImages(messages, 10)).toThrow(regexpImagesProvidedMaximum);
 
 		const many = [createUserImageMessage(25)];
-		expect(() => filterHistoryImages(many, 20)).toThrow(/25 images provided.*maximum of 20 images/);
+		expect(() => filterHistoryImages(many, 20)).toThrow(regexpImagesProvidedMaximum1);
 	});
 
 	it('handles conversations with no user message by treating the last message as current', () => {

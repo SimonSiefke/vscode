@@ -13,6 +13,9 @@ import * as http from 'http';
 import * as crypto from 'crypto';
 import { downloadAndUnzipVSCodeServer } from './download';
 import { terminateProcess } from './util/processes';
+const regexpExtensionHostAgent = /Extension host agent listening on (\d+)/;
+const regexp2 = /^[\d]+$/;
+
 
 let extHostProcess: cp.ChildProcess | undefined;
 const enum CharCode {
@@ -116,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
 				for (let i = 0; i < output.length; i++) {
 					const chr = output.charCodeAt(i);
 					if (chr === CharCode.LineFeed) {
-						const match = lastProgressLine.match(/Extension host agent listening on (\d+)/);
+						const match = lastProgressLine.match(regexpExtensionHostAgent);
 						if (match) {
 							isResolved = true;
 							res(new vscode.ResolvedAuthority('127.0.0.1', parseInt(match[1], 10), connectionToken)); // success!
@@ -460,7 +463,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const result = await vscode.window.showInputBox({
 			prompt: 'Enter the remote port for the tunnel',
 			value: '5000',
-			validateInput: input => /^[\d]+$/.test(input) ? undefined : 'Not a valid number'
+			validateInput: input => regexp2.test(input) ? undefined : 'Not a valid number'
 		});
 		if (result) {
 			const port = Number.parseInt(result);
@@ -478,7 +481,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const result = await vscode.window.showInputBox({
 			prompt: 'Enter the port for the remote server',
 			value: '5000',
-			validateInput: input => /^[\d]+$/.test(input) ? undefined : 'Not a valid number'
+			validateInput: input => regexp2.test(input) ? undefined : 'Not a valid number'
 		});
 		if (result) {
 			runHTTPTestServer(Number.parseInt(result));

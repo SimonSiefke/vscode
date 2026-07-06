@@ -10,6 +10,11 @@ import { BrowserTabDto, MainThreadBrowsersShape } from '../../common/extHost.pro
 import { ExtHostBrowsers } from '../../common/extHostBrowsers.js';
 import { SingleProxyRPCProtocol } from '../common/testRPCProtocol.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+const regexpMustBeAn = /must be an object/;
+const regexpNumericId = /numeric id/;
+const regexpMethodString = /method string/;
+const regexpClosed = /closed/;
+
 
 suite('ExtHostBrowsers', () => {
 
@@ -292,9 +297,9 @@ suite('ExtHostBrowsers', () => {
 		await session.sendMessage({ id: 1, method: 'Page.enable' });
 
 		// Invalid messages are rejected
-		await assert.rejects(Promise.resolve().then(() => session.sendMessage(null as never)), /must be an object/);
-		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ method: 'Foo' } as never)), /numeric id/);
-		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ id: 1 } as never)), /method string/);
+		await assert.rejects(Promise.resolve().then(() => session.sendMessage(null as never)), regexpMustBeAn);
+		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ method: 'Foo' } as never)), regexpNumericId);
+		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ id: 1 } as never)), regexpMethodString);
 	});
 
 	test('sendMessage forwards valid message to proxy', async () => {
@@ -320,7 +325,7 @@ suite('ExtHostBrowsers', () => {
 		const session = await extHost.browserTabs[0].startCDPSession();
 
 		await session.close();
-		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ id: 1, method: 'Foo' })), /closed/);
+		await assert.rejects(Promise.resolve().then(() => session.sendMessage({ id: 1, method: 'Foo' })), regexpClosed);
 	});
 
 	test('$onCDPSessionMessage delivers to correct session', async () => {

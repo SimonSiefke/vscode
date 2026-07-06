@@ -41,6 +41,8 @@ import {
 	reverseParsedPatch,
 	reversePatch
 } from '../githubReviewAgent';
+const regexpTest = /^\/test\//;
+
 
 suite('githubReviewAgent', () => {
 
@@ -1103,7 +1105,7 @@ suite('githubReviewAgent', () => {
 					return Promise.reject(new Error(`Document not found: ${uri.toString()}`));
 				}
 				override asRelativePath(uri: URI): string {
-					return uri.path.replace(/^\/test\//, '');
+					return uri.path.replace(regexpTest, '');
 				}
 			}
 
@@ -1174,7 +1176,7 @@ suite('githubReviewAgent', () => {
 					return Promise.reject(new Error(`Document not found: ${uri.toString()}`));
 				}
 				override asRelativePath(uri: URI): string {
-					return uri.path.replace(/^\/test\//, '');
+					return uri.path.replace(regexpTest, '');
 				}
 			}
 
@@ -1246,7 +1248,7 @@ suite('githubReviewAgent', () => {
 					return Promise.reject(new Error(`Document not found: ${uri.toString()}`));
 				}
 				override asRelativePath(uri: URI): string {
-					return uri.path.replace(/^\/test\//, '');
+					return uri.path.replace(regexpTest, '');
 				}
 			}
 
@@ -1318,7 +1320,7 @@ suite('githubReviewAgent', () => {
 					return Promise.reject(new Error(`Document not found: ${uri.toString()}`));
 				}
 				override asRelativePath(uri: URI): string {
-					return uri.path.replace(/^\/test\//, '');
+					return uri.path.replace(regexpTest, '');
 				}
 			}
 
@@ -1393,7 +1395,7 @@ suite('githubReviewAgent', () => {
 					return Promise.reject(new Error(`Document not found: ${uri.toString()}`));
 				}
 				override asRelativePath(uri: URI): string {
-					return uri.path.replace(/^\/test\//, '');
+					return uri.path.replace(regexpTest, '');
 				}
 			}
 

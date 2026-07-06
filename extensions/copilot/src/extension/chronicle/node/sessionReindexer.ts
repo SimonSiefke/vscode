@@ -26,6 +26,9 @@ import {
 	isTerminalTool,
 	truncateForStore,
 } from '../common/sessionStoreTracking';
+const regexp1 = /^[^/]+\/[^/]+$/;
+const regexpGit = /\.git$/;
+
 
 /**
  * Result of a reindex operation.
@@ -517,13 +520,13 @@ async function reindexOneCloudSession(
  */
 function extractNwoFromRepoString(repo: string): string | undefined {
 	// Already in owner/repo format
-	if (/^[^/]+\/[^/]+$/.test(repo)) {
+	if (regexp1.test(repo)) {
 		return repo;
 	}
 	// URL format: extract from path
 	try {
 		const url = new URL(repo);
-		const parts = url.pathname.replace(/\.git$/, '').split('/').filter(Boolean);
+		const parts = url.pathname.replace(regexpGit, '').split('/').filter(Boolean);
 		if (parts.length >= 2) {
 			return `${parts[0]}/${parts[1]}`;
 		}

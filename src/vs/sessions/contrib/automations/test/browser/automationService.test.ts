@@ -12,6 +12,9 @@ import { InMemoryStorageService } from '../../../../../platform/storage/common/s
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { AutomationService } from '../../browser/automationService.js';
 import { IAutomationSchedule } from '../../../../../workbench/contrib/chat/common/automations/automation.js';
+const regexpFolderUri = /folderUri/;
+const regexpNewerVersion = /newer version/;
+
 
 const FOLDER = URI.parse('file:///workspace');
 
@@ -71,7 +74,7 @@ suite('AutomationService', () => {
 				// forgetting the required field.
 				folderUri: undefined as unknown as URI,
 			}),
-			/folderUri/,
+			regexpFolderUri,
 		);
 	});
 
@@ -242,7 +245,7 @@ suite('AutomationService', () => {
 		// destroy the on-disk newer ledger.
 		await assert.rejects(
 			() => service.createAutomation({ name: 'A', prompt: 'p', schedule: dailySchedule(), folderUri: FOLDER }),
-			/newer version/,
+			regexpNewerVersion,
 		);
 
 		// In-memory state is also unchanged because the mutation was rejected

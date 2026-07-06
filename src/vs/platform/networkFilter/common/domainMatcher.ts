@@ -4,6 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../base/common/uri.js';
+const regexp1 = /\.+$/;
+const regexp2 = /:\d+$/;
+const regexp3 = /^[^@]+@/;
+const regexpZ0 = /^\*?\.?[a-z0-9.;,)!?:-]+$/;
+const regexp5 = /[),;:!?]+$/;
+const regexpZ0Z0Z0 = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?))*$/;
+const regexpZ01 = /^[a-z0-9.-]+$/;
+
 
 /**
  * Common file extensions that are unlikely to be network domains.
@@ -39,7 +47,7 @@ export function normalizeDomain(value: string | undefined, fromUrl: boolean = fa
 		return undefined;
 	}
 
-	const normalized = value.trim().toLowerCase().replace(/^[^@]+@/, '').replace(/:\d+$/, '').replace(/\.+$/, '');
+	const normalized = value.trim().toLowerCase().replace(regexp3, '').replace(regexp2, '').replace(regexp1, '');
 	if (!normalized || normalized.includes('/') || normalized === '.' || normalized === '..') {
 		return undefined;
 	}
@@ -49,18 +57,18 @@ export function normalizeDomain(value: string | undefined, fromUrl: boolean = fa
 		return '*';
 	}
 
-	if (!/^\*?\.?[a-z0-9.;,)!?:-]+$/.test(normalized)) {
+	if (!regexpZ0.test(normalized)) {
 		return undefined;
 	}
 
 	// Strip common trailing punctuation that may follow a domain in text, e.g. "example.com,".
-	const stripped = normalized.replace(/[),;:!?]+$/, '');
+	const stripped = normalized.replace(regexp5, '');
 	if (!stripped) {
 		return undefined;
 	}
 
 	const domainToValidate = stripped.startsWith('*.') ? stripped.slice(2) : stripped;
-	if (!/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?))*$/.test(domainToValidate)) {
+	if (!regexpZ0Z0Z0.test(domainToValidate)) {
 		return undefined;
 	}
 
@@ -72,7 +80,7 @@ export function normalizeDomain(value: string | undefined, fromUrl: boolean = fa
 	}
 
 	// Validate that the host part only contains valid hostname characters.
-	if (!/^[a-z0-9.-]+$/.test(host)) {
+	if (!regexpZ01.test(host)) {
 		return undefined;
 	}
 

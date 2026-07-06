@@ -23,6 +23,9 @@ import { ExtensionIdentifier } from '../../../../../../../platform/extensions/co
 import { IToolInvocation, ToolProgress } from '../../../../common/tools/languageModelToolsService.js';
 import { IChatModel } from '../../../../common/model/chatModel.js';
 import { ChatConfiguration, GeneralPurposeAgentName } from '../../../../common/constants.js';
+const regexp1 = /^\n*```\n+```\n*/g;
+const regexp2 = /\s+/g;
+
 
 suite('RunSubagentTool', () => {
 	const testDisposables = ensureNoDisposablesAreLeakedInTestSuite();
@@ -41,7 +44,7 @@ suite('RunSubagentTool', () => {
 			];
 
 			for (const { input, expected } of testCases) {
-				const result = input.replace(/^\n*```\n+```\n*/g, '').trim();
+				const result = input.replace(new RegExp(regexp1), '').trim();
 				assert.strictEqual(result, expected, `Failed for input: ${JSON.stringify(input)}`);
 			}
 		});
@@ -337,7 +340,7 @@ suite('RunSubagentTool', () => {
 			return {
 				extension: new ExtensionIdentifier('test.extension'),
 				name,
-				id: name.toLowerCase().replace(/\s+/g, '-'),
+				id: name.toLowerCase().replace(new RegExp(regexp2), '-'),
 				vendor,
 				version: '1.0',
 				family: 'test',
@@ -782,7 +785,7 @@ suite('RunSubagentTool', () => {
 			return {
 				extension: new ExtensionIdentifier('test.extension'),
 				name,
-				id: name.toLowerCase().replace(/\s+/g, '-'),
+				id: name.toLowerCase().replace(new RegExp(regexp2), '-'),
 				vendor: 'TestVendor',
 				version: '1.0',
 				family: 'test',

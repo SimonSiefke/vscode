@@ -10,6 +10,9 @@ import { EndOfLine, NotebookCellKind } from '../../../vscodeTypes';
 import { BaseAlternativeNotebookContentProvider } from './alternativeContentProvider';
 import { AlternativeNotebookDocument } from './alternativeNotebookDocument';
 import { EOL, getCellIdMap, getDefaultLanguage, LineOfCellText, LineOfText, summarize, SummaryCell } from './helpers';
+const regexpId = /\[id=(.+?)\]/;
+const regexpLanguage = /\[language=(.+?)\]/;
+
 
 export function generateCellTextMarker(cell: SummaryCell, lineComment: string): string {
 	const cellIdStr = cell.id ? `[id=${cell.id}] ` : '';
@@ -271,8 +274,8 @@ export function getLineCommentStart(notebook?: NotebookDocument): string {
 }
 
 function extractCellParts(line: string, defaultLanguage: string | undefined): { id: string; language: string } | undefined {
-	const idMatch = line.match(/\[id=(.+?)\]/);
-	const languageMatch = line.match(/\[language=(.+?)\]/);
+	const idMatch = line.match(regexpId);
+	const languageMatch = line.match(regexpLanguage);
 	if (!languageMatch) {
 		if (lineMightHaveCellMarker(line) && typeof defaultLanguage === 'string') {
 			// If we have a cell marker but no language, we assume the default language.

@@ -15,6 +15,8 @@ import { TestConfigurationService } from '../../../../../../../platform/configur
 import { IChatQuestionAnswers, IChatService } from '../../../../common/chatService/chatService.js';
 import { AskQuestionsTool, IAnswerResult, IQuestion, IQuestionAnswer } from '../../../../common/tools/builtinTools/askQuestionsTool.js';
 import { ChatQuestionCarouselData } from '../../../../common/model/chatProgressTypes/chatQuestionCarouselData.js';
+const regexpMustHaveAt = /must have at least two options/;
+
 
 class TestableAskQuestionsTool extends AskQuestionsTool {
 	public testConvertCarouselAnswers(questions: IQuestion[], carouselAnswers: IChatQuestionAnswers | undefined): IAnswerResult {
@@ -294,7 +296,7 @@ suite('AskQuestionsTool - prepareToolInvocation validation', () => {
 			tool.prepareToolInvocation(makeContext([
 				{ header: 'Q1', question: 'Pick one', options: [{ label: 'Only option' }] }
 			]), CancellationToken.None),
-			/must have at least two options/
+			regexpMustHaveAt
 		);
 	});
 

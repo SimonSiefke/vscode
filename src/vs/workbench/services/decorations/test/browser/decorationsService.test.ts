@@ -15,6 +15,10 @@ import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexpTxt = /\.txt/;
+const regexpHello = /hello$/;
+const regexpFileTs = /file.ts$/;
+
 
 suite('DecorationsService', function () {
 
@@ -140,7 +144,7 @@ suite('DecorationsService', function () {
 			label: 'Test',
 			onDidChange: Event.None,
 			provideDecorations(uri: URI) {
-				return uri.path.match(/\.txt/)
+				return uri.path.match(regexpTxt)
 					? { tooltip: '.txt', weight: 17 }
 					: undefined;
 			}
@@ -160,7 +164,7 @@ suite('DecorationsService', function () {
 			label: 'Test',
 			onDidChange: Event.None,
 			provideDecorations(uri: URI) {
-				return uri.path.match(/\.txt/)
+				return uri.path.match(regexpTxt)
 					? { tooltip: '.txt.bubble', weight: 71, bubble: true }
 					: undefined;
 			}
@@ -223,7 +227,7 @@ suite('DecorationsService', function () {
 			label: 'Test',
 			onDidChange: Event.None,
 			provideDecorations(uri: URI) {
-				if (uri.path.match(/hello$/)) {
+				if (uri.path.match(regexpHello)) {
 					return { tooltip: 'FOO', weight: 17, bubble: true };
 				} else {
 					return new Promise<IDecorationData>(_resolve => { });
@@ -252,7 +256,7 @@ suite('DecorationsService', function () {
 			label: 'Test',
 			onDidChange: emitter.event,
 			provideDecorations(uri: URI) {
-				if (!gone && uri.path.match(/file.ts$/)) {
+				if (!gone && uri.path.match(regexpFileTs)) {
 					return { tooltip: 'FOO', weight: 17, bubble: true };
 				}
 				return undefined;
@@ -289,7 +293,7 @@ suite('DecorationsService', function () {
 				label: 'Test',
 				onDidChange: emitter.event,
 				provideDecorations(uri: URI) {
-					if (!gone && uri.path.match(/file.ts$/)) {
+					if (!gone && uri.path.match(regexpFileTs)) {
 						return { tooltip: 'FOO', weight: 17, bubble: true };
 					}
 					return undefined;

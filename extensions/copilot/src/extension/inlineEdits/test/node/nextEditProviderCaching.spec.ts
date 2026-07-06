@@ -36,6 +36,8 @@ import { LineRange } from '../../../../util/vs/editor/common/core/ranges/lineRan
 import { OffsetRange } from '../../../../util/vs/editor/common/core/ranges/offsetRange';
 import { NESInlineCompletionContext, NextEditProvider } from '../../node/nextEditProvider';
 import { NextEditProviderTelemetryBuilder } from '../../node/nextEditProviderTelemetry';
+const regexp1 = /[^\r]\n/;
+
 
 describe('NextEditProvider Caching', () => {
 
@@ -246,7 +248,7 @@ describe('NextEditProvider Caching', () => {
 
 		// Verify CRLF line endings are preserved
 		expect(doc.value.get().value).toContain('\r\n');
-		expect(doc.value.get().value).not.toMatch(/[^\r]\n/);
+		expect(doc.value.get().value).not.toMatch(regexp1);
 
 		// Second edit: should update getDistance method — this uses a cached edit
 		const tb2 = new NextEditProviderTelemetryBuilder(gitExtensionService, mockNotebookService, workspaceService, nextEditProvider.ID, doc);
@@ -255,7 +257,7 @@ describe('NextEditProvider Caching', () => {
 		assert(result.result?.edit, 'second cached edit should be found');
 		doc.applyEdit(result.result.edit.toEdit());
 
-		expect(doc.value.get().value).not.toMatch(/[^\r]\n/);
+		expect(doc.value.get().value).not.toMatch(regexp1);
 
 		// Third edit: should update the variable — also from cache
 		const tb3 = new NextEditProviderTelemetryBuilder(gitExtensionService, mockNotebookService, workspaceService, nextEditProvider.ID, doc);

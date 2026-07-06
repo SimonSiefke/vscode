@@ -12,6 +12,26 @@ import xml2js from 'xml2js';
 import fancyLog from 'fancy-log';
 import ansiColors from 'ansi-colors';
 import { type l10nJsonFormat, getL10nXlf, type l10nJsonDetails, getL10nFilesFromXlf, getL10nJson } from '@vscode/l10n-dev';
+const regexp1 = /\r\n|\r|\n/;
+const regexp2 = /("[^"\\]*(?:\\.[^"\\]*)*")|('[^'\\]*(?:\\.[^'\\]*)*')|(\/\*[^\/\*]*(?:(?:\*|\/)[^\/\*]*)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))|(,\s*[}\]])/g;
+const regexpVsSessions = /^vs\/sessions/;
+const regexpVsSessionsContrib = /^vs\/sessions\/contrib/;
+const regexpVsWorkbench = /^vs\/workbench/;
+const regexpVsWorkbenchServices = /^vs\/workbench\/services/;
+const regexpVsWorkbenchContrib = /^vs\/workbench\/contrib/;
+const regexpVsServer = /^vs\/server/;
+const regexpVsCode = /^vs\/code/;
+const regexpVsBase = /^vs\/base/;
+const regexpVsEditor = /^vs\/editor/;
+const regexpVsEditorContrib = /^vs\/editor\/contrib/;
+const regexpVsPlatform = /^vs\/platform/;
+const regexp14 = /\//g;
+const regexp15 = /\\/g;
+const regexp16 = /\n/g;
+const regexpAmp = /&amp;/g;
+const regexpGt = /&gt;/g;
+const regexpLt = /&lt;/g;
+
 
 const REPO_ROOT_PATH = path.join(import.meta.dirname, '../..');
 
@@ -127,7 +147,7 @@ class TextModel {
 		if (contents.charCodeAt(0) === 0xFEFF) {
 			contents = contents.slice(1);
 		}
-		this._lines = contents.split(/\r\n|\r|\n/);
+		this._lines = contents.split(regexp1);
 	}
 
 	public get lines(): string[] {
@@ -302,7 +322,7 @@ function stripComments(content: string): string {
 	// Third group matches a multi line comment
 	// Forth group matches a single line comment
 	// Fifth group matches a trailing comma
-	const regexp = /("[^"\\]*(?:\\.[^"\\]*)*")|('[^'\\]*(?:\\.[^'\\]*)*')|(\/\*[^\/\*]*(?:(?:\*|\/)[^\/\*]*)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))|(,\s*[}\]])/g;
+	const regexp = new RegExp(regexp2);
 	const result = content.replace(regexp, (match, _m1: string, _m2: string, m3: string, m4: string, m5: string) => {
 		// Only one of m1, m2, m3, m4, m5 matches
 		if (m3) {
@@ -396,30 +416,30 @@ const editorProject: string = 'vscode-editor',
 export function getResource(sourceFile: string): Resource {
 	let resource: string;
 
-	if (/^vs\/platform/.test(sourceFile)) {
+	if (regexpVsPlatform.test(sourceFile)) {
 		return { name: 'vs/platform', project: editorProject };
-	} else if (/^vs\/editor\/contrib/.test(sourceFile)) {
+	} else if (regexpVsEditorContrib.test(sourceFile)) {
 		return { name: 'vs/editor/contrib', project: editorProject };
-	} else if (/^vs\/editor/.test(sourceFile)) {
+	} else if (regexpVsEditor.test(sourceFile)) {
 		return { name: 'vs/editor', project: editorProject };
-	} else if (/^vs\/base/.test(sourceFile)) {
+	} else if (regexpVsBase.test(sourceFile)) {
 		return { name: 'vs/base', project: editorProject };
-	} else if (/^vs\/code/.test(sourceFile)) {
+	} else if (regexpVsCode.test(sourceFile)) {
 		return { name: 'vs/code', project: workbenchProject };
-	} else if (/^vs\/server/.test(sourceFile)) {
+	} else if (regexpVsServer.test(sourceFile)) {
 		return { name: 'vs/server', project: serverProject };
-	} else if (/^vs\/workbench\/contrib/.test(sourceFile)) {
+	} else if (regexpVsWorkbenchContrib.test(sourceFile)) {
 		resource = sourceFile.split('/', 4).join('/');
 		return { name: resource, project: workbenchProject };
-	} else if (/^vs\/workbench\/services/.test(sourceFile)) {
+	} else if (regexpVsWorkbenchServices.test(sourceFile)) {
 		resource = sourceFile.split('/', 4).join('/');
 		return { name: resource, project: workbenchProject };
-	} else if (/^vs\/workbench/.test(sourceFile)) {
+	} else if (regexpVsWorkbench.test(sourceFile)) {
 		return { name: 'vs/workbench', project: workbenchProject };
-	} else if (/^vs\/sessions\/contrib/.test(sourceFile)) {
+	} else if (regexpVsSessionsContrib.test(sourceFile)) {
 		resource = sourceFile.split('/', 4).join('/');
 		return { name: resource, project: sessionsProject };
-	} else if (/^vs\/sessions/.test(sourceFile)) {
+	} else if (regexpVsSessions.test(sourceFile)) {
 		return { name: 'vs/sessions', project: sessionsProject };
 	}
 
@@ -455,7 +475,7 @@ export function createXlfFilesForCoreBundle(): eventStream.ThroughStream {
 				}
 				for (const resource in xlfs) {
 					const xlf = xlfs[resource];
-					const filePath = `${xlf.project}/${resource.replace(/\//g, '_')}.xlf`;
+					const filePath = `${xlf.project}/${resource.replace(new RegExp(regexp14), '_')}.xlf`;
 					const xlfFile = new File({
 						path: filePath,
 						contents: Buffer.from(xlf.toString(), 'utf8')
@@ -674,7 +694,7 @@ export function createXlfFilesForIsl(): eventStream.ThroughStream {
 			}
 		});
 
-		const originalPath = file.path.substring(file.cwd.length + 1, file.path.split('.')[0].length).replace(/\\/g, '/');
+		const originalPath = file.path.substring(file.cwd.length + 1, file.path.split('.')[0].length).replace(new RegExp(regexp15), '/');
 		xlf.addFile(originalPath, keys, messages);
 
 		// Emit only upon all ISL files combined into single XLF instance
@@ -699,7 +719,7 @@ function createI18nFile(name: string, messages: any): File {
 
 	let content = JSON.stringify(result, null, '\t');
 	if (process.platform === 'win32') {
-		content = content.replace(/\n/g, '\r\n');
+		content = content.replace(new RegExp(regexp16), '\r\n');
 	}
 	return new File({
 		path: path.join(name + '.i18n.json'),
@@ -886,5 +906,5 @@ function encodeEntities(value: string): string {
 }
 
 function decodeEntities(value: string): string {
-	return value.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+	return value.replace(new RegExp(regexpLt), '<').replace(new RegExp(regexpGt), '>').replace(new RegExp(regexpAmp), '&');
 }

@@ -20,6 +20,8 @@ import { IBuildPromptContext } from '../common/intents';
 import { addHistoryToConversation } from './chatParticipantRequestHandler';
 
 import { sessionResourceToId } from '../../../platform/chat/common/chatDebugFileLoggerService';
+const regexp1 = /^".*"$/;
+
 
 export class ChatSummarizerProvider implements vscode.ChatSummarizer {
 
@@ -105,7 +107,7 @@ export class ChatSummarizerProvider implements vscode.ChatSummarizer {
 
 		if (response.type === ChatFetchResponseType.Success) {
 			let summary = response.value.trim();
-			if (summary.match(/^".*"$/)) {
+			if (summary.match(regexp1)) {
 				summary = summary.slice(1, -1);
 			}
 			return summary;

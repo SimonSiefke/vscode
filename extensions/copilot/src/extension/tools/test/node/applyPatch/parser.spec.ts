@@ -11,6 +11,8 @@ import { StringTextDocumentWithLanguageId } from '../../../../../platform/editin
 import { findLast } from '../../../../../util/vs/base/common/arraysFind';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { patch_to_commit, replace_explicit_tabs, text_to_patch } from '../../../node/applyPatch/parser';
+const regexp1 = /^\s*/;
+
 
 suite('applyPatch parser', () => {
 	it('replace_explicit_tabs', () => {
@@ -584,7 +586,7 @@ suite('applyPatch parser', () => {
 						if (ln > 0) {
 							patch.push('');
 						}
-						const currentIndent = lines[ln].match(/^\s*/)?.[0];
+						const currentIndent = lines[ln].match(regexp1)?.[0];
 						const contextLine = currentIndent && findLast(lines, i => !i.startsWith(currentIndent), ln - 1);
 						if (contextLine) {
 							patch.push(`@@ ${contextLine.trim()}`);

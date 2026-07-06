@@ -22,6 +22,8 @@ import { IRemoteAgentEnvironment } from '../../../../platform/remote/common/remo
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { IMcpSandboxConfiguration } from '../../../../platform/mcp/common/mcpPlatformTypes.js';
 import { IMcpPotentialSandboxBlock, McpServerDefinition, McpServerLaunch, McpServerTransportStdio, McpServerTransportType } from './mcpTypes.js';
+const regexp1 = /'/g;
+
 
 
 export const IMcpSandboxService = createDecorator<IMcpSandboxService>('mcpSandboxService');
@@ -409,7 +411,7 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 	};
 
 	private _quoteShellArgument(value: string): string {
-		return `'${value.replace(/'/g, `'\\''`)}'`;
+		return `'${value.replace(new RegExp(regexp1), `'\\''`)}'`;
 	}
 
 }

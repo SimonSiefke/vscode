@@ -23,6 +23,8 @@ import { InjectedText } from '../../common/modelLineProjectionData.js';
 import { Mutable } from '../../../base/common/types.js';
 import { Lazy } from '../../../base/common/lazy.js';
 import type { ViewLinesGpu } from '../viewParts/viewLinesGpu/viewLinesGpu.js';
+const regexpSliderScrollbar = /\b(slider|scrollbar)\b/;
+
 
 const enum HitTestResultType {
 	Unknown,
@@ -834,7 +836,7 @@ export class MouseTargetFactory {
 		if (ElementPath.isChildOfScrollableElement(request.targetPath)) {
 			if (request.target && request.target.nodeType === 1) {
 				const className = request.target.className;
-				if (className && /\b(slider|scrollbar)\b/.test(className)) {
+				if (className && regexpSliderScrollbar.test(className)) {
 					const possibleLineNumber = ctx.getLineNumberAtVerticalOffset(request.mouseVerticalOffset);
 					const maxColumn = ctx.viewModel.getLineMaxColumn(possibleLineNumber);
 					return request.fulfillScrollbar(new Position(possibleLineNumber, maxColumn));

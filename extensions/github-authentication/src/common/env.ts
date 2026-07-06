@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 import { Uri } from 'vscode';
 import { AuthProviderType } from '../github';
+const regexpVscodeDev = /(?:^|\.)vscode\.dev$/;
+const regexpGithubDev = /(?:^|\.)github\.dev$/;
+const regexpGheCom = /\.ghe\.com$/;
+
 
 const VALID_DESKTOP_CALLBACK_SCHEMES = [
 	'vscode',
@@ -23,9 +27,9 @@ export function isSupportedClient(uri: Uri): boolean {
 	return (
 		VALID_DESKTOP_CALLBACK_SCHEMES.includes(uri.scheme) ||
 		// vscode.dev & insiders.vscode.dev
-		/(?:^|\.)vscode\.dev$/.test(uri.authority) ||
+		regexpVscodeDev.test(uri.authority) ||
 		// github.dev & codespaces
-		/(?:^|\.)github\.dev$/.test(uri.authority)
+		regexpGithubDev.test(uri.authority)
 	);
 }
 
@@ -37,5 +41,5 @@ export function isSupportedTarget(type: AuthProviderType, gheUri?: Uri): boolean
 }
 
 export function isHostedGitHubEnterprise(uri: Uri): boolean {
-	return /\.ghe\.com$/.test(uri.authority);
+	return regexpGheCom.test(uri.authority);
 }

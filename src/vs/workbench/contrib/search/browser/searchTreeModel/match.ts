@@ -8,6 +8,8 @@ import { lcut } from '../../../../../base/common/strings.js';
 import { ISearchRange, ITextSearchMatch, OneLineRange } from '../../../../services/search/common/search.js';
 import { ISearchTreeMatch, ISearchTreeFileMatch, MATCH_PREFIX } from './searchTreeCommon.js';
 import { Range } from '../../../../../editor/common/core/range.js';
+const regexp1 = /\r\n/g;
+
 
 export function textSearchResultToMatches(rawMatch: ITextSearchMatch, fileMatch: ISearchTreeFileMatch, isAiContributed: boolean): ISearchTreeMatch[] {
 	const previewLines = rawMatch.previewText.split('\n');
@@ -93,7 +95,7 @@ export class MatchImpl implements ISearchTreeMatch {
 		}
 
 		// Search/find normalize line endings - check whether \r prevents regex from matching
-		const fullMatchTextWithoutCR = fullMatchText.replace(/\r\n/g, '\n');
+		const fullMatchTextWithoutCR = fullMatchText.replace(new RegExp(regexp1), '\n');
 		if (fullMatchTextWithoutCR !== fullMatchText) {
 			replaceString = searchModel.replacePattern.getReplaceString(fullMatchTextWithoutCR, searchModel.preserveCase);
 			if (replaceString !== null) {
@@ -109,7 +111,7 @@ export class MatchImpl implements ISearchTreeMatch {
 		}
 
 		// Search/find normalize line endings, this time in full context
-		const contextMatchTextWithoutCR = contextMatchTextWithSurroundingContent.replace(/\r\n/g, '\n');
+		const contextMatchTextWithoutCR = contextMatchTextWithSurroundingContent.replace(new RegExp(regexp1), '\n');
 		if (contextMatchTextWithoutCR !== contextMatchTextWithSurroundingContent) {
 			replaceString = searchModel.replacePattern.getReplaceString(contextMatchTextWithoutCR, searchModel.preserveCase);
 			if (replaceString !== null) {

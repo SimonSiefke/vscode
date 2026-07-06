@@ -12,6 +12,8 @@ import * as os from 'os';
 import { type RawSourceMap, SourceMapConsumer } from 'source-map';
 import { nlsPlugin, createNLSCollector, finalizeNLS, postProcessNLS } from '../nls-plugin.ts';
 import { adjustSourceMap } from '../private-to-property.ts';
+const regexpTs = /\.ts$/;
+
 
 // analyzeLocalizeCalls requires the import path to end with `/nls`
 const NLS_STUB = [
@@ -58,7 +60,7 @@ async function bundleWithNLS(
 
 	const result = await esbuild.build({
 		entryPoints: [path.join(srcDir, entryPoint)],
-		outfile: path.join(outDir, entryPoint.replace(/\.ts$/, '.js')),
+		outfile: path.join(outDir, entryPoint.replace(regexpTs, '.js')),
 		bundle: true,
 		format: 'esm',
 		platform: 'neutral',

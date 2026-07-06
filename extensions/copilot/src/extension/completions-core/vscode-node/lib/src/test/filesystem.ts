@@ -6,6 +6,8 @@
 import { dirname, join, normalize } from 'path';
 import { FileIdentifier, FileStat, FileType, ICompletionsFileSystemService } from '../fileSystem';
 import { getFsPath } from '../util/uri';
+const regexp1 = /[\\/]+/;
+
 
 interface Exception extends Error {
 	errno?: unknown;
@@ -165,7 +167,7 @@ export class FakeFileSystem implements ICompletionsFileSystemService {
 	}
 
 	private pathParts(path: string): string[] {
-		const parts = normalize(path).split(/[\\/]+/);
+		const parts = normalize(path).split(regexp1);
 		if (parts[0] === '') {
 			parts.shift();
 		}

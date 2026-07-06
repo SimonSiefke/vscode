@@ -12,6 +12,9 @@ import { pathToFileURL } from 'url';
 import workerpool from 'workerpool';
 import { StaticLanguageServiceHost } from './staticLanguageServiceHost.ts';
 import * as buildfile from '../../buildfile.ts';
+const regexp1 = /^[_0-9]/;
+const regexp2 = /\\/g;
+
 
 class ShortIdent {
 
@@ -34,7 +37,7 @@ class ShortIdent {
 	next(isNameTaken?: (name: string) => boolean): string {
 		const candidate = this.prefix + ShortIdent.convert(this._value);
 		this._value++;
-		if (ShortIdent._keywords.has(candidate) || /^[_0-9]/.test(candidate) || isNameTaken?.(candidate)) {
+		if (ShortIdent._keywords.has(candidate) || regexp1.test(candidate) || isNameTaken?.(candidate)) {
 			// try again
 			return this.next(isNameTaken);
 		}
@@ -769,7 +772,7 @@ function isInAmbientContext(node: ts.Node): boolean {
 }
 
 function normalize(path: string): string {
-	return path.replace(/\\/g, '/');
+	return path.replace(new RegExp(regexp2), '/');
 }
 
 async function _run() {

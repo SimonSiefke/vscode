@@ -12,6 +12,8 @@ import { Disposable, IDisposable } from '../../../util/vs/base/common/lifecycle'
 import { IEnvService } from '../../env/common/envService';
 import { ILogService } from '../../log/common/logService';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
+const regexpVersionSubName = /^(?<version>.+?)(\-(?<subName>\w+?))?$/;
+
 
 export const IGithubApiFetcherService = createServiceIdentifier<IGithubApiFetcherService>('IGithubApiFetcherService');
 
@@ -397,7 +399,7 @@ export function getGithubMetadataHeaders(callerInfo: CallTracker, envService: IE
 	const editorInfo = envService.getEditorInfo();
 
 	// Try converting vscode/1.xxx-insiders to vscode-insiders/1.xxx
-	const versionNumberAndSubName = editorInfo.version.match(/^(?<version>.+?)(\-(?<subName>\w+?))?$/);
+	const versionNumberAndSubName = editorInfo.version.match(regexpVersionSubName);
 	const application = versionNumberAndSubName && versionNumberAndSubName.groups?.subName
 		? `${editorInfo.name}-${versionNumberAndSubName.groups.subName}/${versionNumberAndSubName.groups.version}`
 		: editorInfo.format();

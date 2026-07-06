@@ -14,6 +14,8 @@ import { EMPTY_TREE_OBJECT, IAgentHostGitService } from '../common/agentHostGitS
 import { buildReviewedRefName, IAgentHostReviewService } from '../common/agentHostReviewService.js';
 import { ISessionDataService } from '../common/sessionDataService.js';
 import { AgentHostStateManager } from './agentHostStateManager.js';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 /**
  * Resolved git context shared by the review operations: the repository root,
@@ -225,6 +227,6 @@ export class AgentHostReviewService extends Disposable implements IAgentHostRevi
 	}
 
 	private _sanitizedSessionId(session: ProtocolURI): string {
-		return AgentSession.id(session).replace(/[^a-zA-Z0-9_.-]/g, '-');
+		return AgentSession.id(session).replace(new RegExp(regexpZAZ0), '-');
 	}
 }

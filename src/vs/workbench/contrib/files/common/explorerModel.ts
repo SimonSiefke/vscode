@@ -22,6 +22,8 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IFilesConfigurationService } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
+const regexp1 = /\u200b/g;
+
 
 export class ExplorerModel implements IDisposable {
 
@@ -388,7 +390,7 @@ export class ExplorerItem {
 				.map(([parentPattern, childrenPatterns]) =>
 					[
 						this.getPlatformAwareName(parentPattern.trim()),
-						childrenPatterns.split(',').map(p => this.getPlatformAwareName(p.trim().replace(/\u200b/g, '').trim()))
+						childrenPatterns.split(',').map(p => this.getPlatformAwareName(p.trim().replace(new RegExp(regexp1), '').trim()))
 							.filter(p => p !== '')
 					] as [string, string[]]);
 

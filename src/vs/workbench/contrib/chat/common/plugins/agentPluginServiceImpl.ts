@@ -54,6 +54,8 @@ import { AgentPluginCollisionEnablementModel, getAgentPluginPolicyId, getCanonic
 import { IAgentPluginRepositoryService } from './agentPluginRepositoryService.js';
 import { AgentPluginDiscoveryPriority, agentPluginDiscoveryRegistry, IAgentPlugin, IAgentPluginDiscovery, IAgentPluginHook, IAgentPluginInstruction, IAgentPluginMcpServerDefinition, IAgentPluginService } from './agentPluginService.js';
 import { IMarketplacePlugin, IPluginMarketplaceService } from './pluginMarketplaceService.js';
+const regexp1 = /^([^@/\\~]+)@([^@/\\~]+)$/;
+
 
 // Re-export shared helpers so existing consumers (including tests) continue to work.
 export { shellQuotePluginRootInCommand, resolveMcpServersMap, convertBareEnvVarsToVsCodeSyntax } from '../../../../../platform/agentPlugins/common/pluginParsers.js';
@@ -694,7 +696,7 @@ export class ConfiguredAgentPluginDiscovery extends AbstractAgentPluginDiscovery
 	 * Returns `undefined` for anything that doesn't match the ID shape.
 	 */
 	private _resolveEnterprisePluginId(id: string, userHome: string): URI | undefined {
-		const idMatch = id.match(/^([^@/\\~]+)@([^@/\\~]+)$/);
+		const idMatch = id.match(regexp1);
 		if (!idMatch) {
 			return undefined;
 		}

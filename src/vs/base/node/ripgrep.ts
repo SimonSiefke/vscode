@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Lazy } from '../common/lazy.js';
+const regexpBnodeModulesAsar = /\bnode_modules\.asar\b/;
+
 
 const _rgDiskPath = new Lazy(async () => {
 	const m = await import('@vscode/ripgrep-universal');
-	return m.rgPath.replace(/\bnode_modules\.asar\b/, 'node_modules.asar.unpacked');
+	return m.rgPath.replace(regexpBnodeModulesAsar, 'node_modules.asar.unpacked');
 });
 
 export function rgDiskPath(): Promise<string> {

@@ -12,6 +12,16 @@ import { CancellationToken } from '../../../../../util/vs/base/common/cancellati
 import { DisposableStore } from '../../../../../util/vs/base/common/lifecycle';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { IClaudeSlashCommandHandler, registerClaudeSlashCommand } from './claudeSlashCommandRegistry';
+const regexpZ0 = /^[a-z0-9-]+$/;
+const regexpJson = /```(?:json)?\s*([\s\S]*?)```/;
+const regexp3 = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+const regexpName = /^name:\s*(.+)$/m;
+const regexpDescription = /^description:\s*["']?([\s\S]*?)["']?$/m;
+const regexpModel = /^model:\s*(.+)$/m;
+const regexpAllowedTools = /^allowedTools:\s*\n((?:\s+-\s+.+\n?)+)/m;
+const regexp8 = /^\s+-\s+(.+)$/;
+const regexp9 = /"/g;
+
 
 /**
  * AGENTS CONFIGURATION WIZARD
@@ -445,7 +455,7 @@ export class AgentsSlashCommand implements IClaudeSlashCommandHandler {
 				if (!value) {
 					return vscode.l10n.t('Agent name is required');
 				}
-				if (!/^[a-z0-9-]+$/.test(value)) {
+				if (!regexpZ0.test(value)) {
 					return vscode.l10n.t('Use lowercase letters, numbers, and hyphens only');
 				}
 				return null;
@@ -558,7 +568,7 @@ Respond ONLY with the JSON object, no markdown code blocks or other text.`;
 
 			// Strip markdown code blocks if present
 			let jsonText = responseText.trim();
-			const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+			const codeBlockMatch = jsonText.match(regexpJson);
 			if (codeBlockMatch) {
 				jsonText = codeBlockMatch[1].trim();
 			}
@@ -916,7 +926,7 @@ Respond ONLY with the JSON object, no markdown code blocks or other text.`;
 			const text = new TextDecoder().decode(content);
 
 			// Parse YAML frontmatter
-			const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+			const frontmatterMatch = text.match(regexp3);
 			if (!frontmatterMatch) {
 				return undefined;
 			}
@@ -925,17 +935,17 @@ Respond ONLY with the JSON object, no markdown code blocks or other text.`;
 			const systemPrompt = frontmatterMatch[2].trim();
 
 			// Simple YAML parsing for the fields we need
-			const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
-			const descMatch = frontmatter.match(/^description:\s*["']?([\s\S]*?)["']?$/m);
-			const modelMatch = frontmatter.match(/^model:\s*(.+)$/m);
+			const nameMatch = frontmatter.match(regexpName);
+			const descMatch = frontmatter.match(regexpDescription);
+			const modelMatch = frontmatter.match(regexpModel);
 
 			// Parse allowedTools if present
-			const toolsMatch = frontmatter.match(/^allowedTools:\s*\n((?:\s+-\s+.+\n?)+)/m);
+			const toolsMatch = frontmatter.match(regexpAllowedTools);
 			let allowedTools: string[] | undefined;
 			if (toolsMatch) {
 				allowedTools = toolsMatch[1]
 					.split('\n')
-					.map(line => line.match(/^\s+-\s+(.+)$/)?.[1])
+					.map(line => line.match(regexp8)?.[1])
 					.filter((t): t is string => !!t);
 			}
 
@@ -964,7 +974,7 @@ Respond ONLY with the JSON object, no markdown code blocks or other text.`;
 		await createDirectoryIfNotExists(this.fileSystemService, dir);
 
 		// Build the file content
-		let content = `---\nname: ${config.name}\ndescription: "${config.description.replace(/"/g, '\\"')}"\nmodel: ${config.model}\n`;
+		let content = `---\nname: ${config.name}\ndescription: "${config.description.replace(new RegExp(regexp9), '\\"')}"\nmodel: ${config.model}\n`;
 
 		if (config.allowedTools && config.allowedTools.length > 0) {
 			content += 'allowedTools:\n';

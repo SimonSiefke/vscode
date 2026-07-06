@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CurrentDocument } from './xtabCurrentDocument';
+const regexp1 = /^\s*[)>}\]"'`]*\s*[:{;,]?\s*$/;
+
 
 /**
  * Checks if the position is valid inline suggestion position (middle of the line).
@@ -40,5 +42,5 @@ function isMiddleOfTheLineFromTextAfterCursor(textAfterCursor: string): boolean 
 /** Checks if text after cursor matches valid pattern for middle-of-line suggestions */
 function isValidMiddleOfTheLineFromTextAfterCursor(textAfterCursor: string): boolean {
 	const endOfLine = textAfterCursor.trim();
-	return /^\s*[)>}\]"'`]*\s*[:{;,]?\s*$/.test(endOfLine);
+	return regexp1.test(endOfLine);
 }

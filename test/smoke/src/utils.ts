@@ -8,6 +8,10 @@ import * as fs from 'fs';
 import { Suite, Context } from 'mocha';
 import { dirname, join } from 'path';
 import { Application, ApplicationOptions, Logger } from '../../automation';
+const regexpZ0 = /[^a-z0-9\-]/ig;
+const regexpWindow = /^window\d+$/;
+const regexp3 = /\r?\n/;
+
 
 export interface MockLlmServer {
 	readonly url: string;
@@ -72,7 +76,7 @@ export function installDiagnosticsHandler(logger: Logger, appFn?: () => Applicat
 		logger.log('');
 
 		const app: Application = appFn?.() ?? this.app;
-		await app?.stopTracing(testTitle.replace(/[^a-z0-9\-]/ig, '_'), failed);
+		await app?.stopTracing(testTitle.replace(new RegExp(regexpZ0), '_'), failed);
 	});
 }
 
@@ -80,11 +84,11 @@ let logsCounter = 1;
 let crashCounter = 1;
 
 export function suiteLogsPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(/[^a-z0-9\-]/ig, '_')}`);
+	return join(dirname(options.logsPath), `${logsCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
 }
 
 export function suiteCrashPath(options: ApplicationOptions, suiteName: string): string {
-	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(/[^a-z0-9\-]/ig, '_')}`);
+	return join(dirname(options.crashesPath), `${crashCounter++}_suite_${suiteName.replace(new RegExp(regexpZ0), '_')}`);
 }
 
 function installAppBeforeHandler(optionsTransform?: (opts: ApplicationOptions) => ApplicationOptions, beforeStart?: (app: Application) => Promise<void> | void) {
@@ -347,7 +351,7 @@ export async function dumpFailureDiagnostics(
 	// 3. Tail the Copilot Chat extension log for every window in this suite.
 	try {
 		const entries = await fs.promises.readdir(logsPath, { withFileTypes: true });
-		const windowDirs = entries.filter(e => e.isDirectory() && /^window\d+$/.test(e.name)).map(e => e.name).sort();
+		const windowDirs = entries.filter(e => e.isDirectory() && regexpWindow.test(e.name)).map(e => e.name).sort();
 		if (windowDirs.length === 0) {
 			logger.log(`[${label}] no window* directories found under ${logsPath}`);
 		}
@@ -356,7 +360,7 @@ export async function dumpFailureDiagnostics(
 			try {
 				const stat = await fs.promises.stat(chatLogPath);
 				const content = await fs.promises.readFile(chatLogPath, 'utf8');
-				const lines = content.split(/\r?\n/);
+				const lines = content.split(regexp3);
 				const tail = lines.slice(-80);
 				logger.log(`[${label}] --- BEGIN ${w}/GitHub Copilot Chat.log (size=${stat.size}; last ${tail.length} of ${lines.length} lines) ---`);
 				for (const ln of tail) {

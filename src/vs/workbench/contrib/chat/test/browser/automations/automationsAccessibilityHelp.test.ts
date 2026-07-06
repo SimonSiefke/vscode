@@ -11,6 +11,15 @@ import { TestInstantiationService } from '../../../../../../platform/instantiati
 import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
 import { AccessibilityVerbositySettingId } from '../../../../accessibility/browser/accessibilityConfiguration.js';
 import { AutomationsAccessibilityHelp, buildAutomationsHelpContent } from '../../../browser/aiCustomization/automationsAccessibilityHelp.js';
+const regexpAutomations = /Automations/;
+const regexpRunNow = /Run now/;
+const regexpShowHistory = /Show history/;
+const regexpCreateEditDialog = /Create\/Edit Dialog/;
+const regexpWorkspaceFolder = /Workspace folder/;
+const regexpRunHistory = /Run History/;
+const regexpAccessibilityVerbosityAutomations = /accessibility\.verbosity\.automations/;
+const regexp8 = /\{0\}/;
+
 
 class FakeKeybindingService extends mock<IKeybindingService>() {
 	override lookupKeybinding(): undefined {
@@ -49,19 +58,19 @@ suite('AutomationsAccessibilityHelp', () => {
 
 	test('help content covers actions, dialog, history and settings', () => {
 		const content = buildAutomationsHelpContent(new FakeKeybindingService());
-		assert.match(content, /Automations/);
-		assert.match(content, /Run now/);
-		assert.match(content, /Show history/);
-		assert.match(content, /Create\/Edit Dialog/);
-		assert.match(content, /Workspace folder/);
-		assert.match(content, /Run History/);
-		assert.match(content, /accessibility\.verbosity\.automations/);
+		assert.match(content, regexpAutomations);
+		assert.match(content, regexpRunNow);
+		assert.match(content, regexpShowHistory);
+		assert.match(content, regexpCreateEditDialog);
+		assert.match(content, regexpWorkspaceFolder);
+		assert.match(content, regexpRunHistory);
+		assert.match(content, regexpAccessibilityVerbosityAutomations);
 	});
 
 	test('help content does not contain unresolved placeholders', () => {
 		const content = buildAutomationsHelpContent(upcastPartial<IKeybindingService>({ lookupKeybinding: () => undefined }));
 		// The string template uses {0} for keybinding insertion; if any
 		// placeholder leaks through unresolved that is a content bug.
-		assert.doesNotMatch(content, /\{0\}/);
+		assert.doesNotMatch(content, regexp8);
 	});
 });

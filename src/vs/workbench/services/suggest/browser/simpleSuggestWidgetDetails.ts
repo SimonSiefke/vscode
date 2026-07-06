@@ -16,6 +16,8 @@ import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ISimpleSuggestWidgetFontInfo } from './simpleSuggestWidgetRenderer.js';
+const regexp1 = /\r?\n^\s+/gmi;
+
 
 export function canExpandCompletionItem(item: SimpleCompletionItem | undefined): boolean {
 	return !!item && Boolean(item.completion.documentation || item.completion.detail && item.completion.detail !== item.completion.label);
@@ -178,7 +180,7 @@ export class SimpleSuggestDetailsWidget {
 			this._type.textContent = cappedDetail;
 			this._type.title = cappedDetail;
 			dom.show(this._type);
-			this._type.classList.toggle('auto-wrap', !/\r?\n^\s+/gmi.test(cappedDetail));
+			this._type.classList.toggle('auto-wrap', !new RegExp(regexp1).test(cappedDetail));
 		} else {
 			dom.clearNode(this._type);
 			this._type.title = '';

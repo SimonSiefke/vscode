@@ -16,6 +16,11 @@ import { ITelemetryService } from '../../../platform/telemetry/common/telemetry'
 import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { EXTENSION_ID } from '../../common/constants';
 import { getRepoId } from './copilotCodingAgentUtils';
+const regexp1 = /\/$/;
+const regexpHttpsGithubCom = /^https:\/\/(?:[\w\-]+\.)*(?:github\.com|ghe\.com)\//;
+const regexp3 = /^[\w\-]+@([\w.\-]+):/;
+const regexpGit = /\.git$/;
+
 
 export const GHPR_EXTENSION_ID = 'GitHub.vscode-pull-request-github';
 const PENDING_CHAT_SESSION_STORAGE_KEY = 'github.copilot.pendingChatSession';
@@ -284,11 +289,11 @@ export class ChatSessionsUriHandler extends Disposable implements CustomUriHandl
 
 	private _normalizeGitUri(uri: string): string {
 		return uri.toLowerCase()
-			.replace(/\.git$/, '')
+			.replace(regexpGit, '')
 			// Normalize SSH shorthand to HTTPS for both github.com and ghe.com
-			.replace(/^[\w\-]+@([\w.\-]+):/, 'https://$1/')
+			.replace(regexp3, 'https://$1/')
 			// Strip the host prefix for github.com and ghe.com to get just owner/repo
-			.replace(/^https:\/\/(?:[\w\-]+\.)*(?:github\.com|ghe\.com)\//, '')
-			.replace(/\/$/, '');
+			.replace(regexpHttpsGithubCom, '')
+			.replace(regexp1, '');
 	}
 }

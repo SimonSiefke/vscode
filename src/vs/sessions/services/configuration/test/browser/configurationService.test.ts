@@ -27,6 +27,8 @@ import { SessionsWorkspaceContextService } from '../../../workspace/browser/work
 import { getWorkspaceIdentifier } from '../../../../../platform/workspaces/common/workspaceIdentifier.js';
 import { Event } from '../../../../../base/common/event.js';
 import { IUserDataProfileService } from '../../../../../workbench/services/userDataProfile/common/userDataProfile.js';
+const regexpReadOnlyIn = /read-only in the Agents window/;
+
 
 const ROOT = URI.file('tests').with({ scheme: 'vscode-tests' });
 
@@ -492,7 +494,7 @@ suite('Sessions ConfigurationService', () => {
 	test('agentsWindow.readOnly setting rejects writes', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		await assert.rejects(
 			() => testObject.updateValue('sessionsConfigurationService.agentsWindowReadOnly', 'newValue'),
-			/read-only in the Agents window/
+			regexpReadOnlyIn
 		);
 	}));
 
@@ -524,7 +526,7 @@ suite('Sessions ConfigurationService', () => {
 		assert.strictEqual(testObject.getValue('sessionsConfigurationService.dynamicReadOnly'), 'dynamicDefault');
 		await assert.rejects(
 			() => testObject.updateValue('sessionsConfigurationService.dynamicReadOnly', 'newValue'),
-			/read-only in the Agents window/
+			regexpReadOnlyIn
 		);
 	}));
 

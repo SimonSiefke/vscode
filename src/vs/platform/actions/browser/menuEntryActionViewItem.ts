@@ -37,6 +37,9 @@ import { IThemeService } from '../../theme/common/themeService.js';
 import { hasNativeContextMenu } from '../../window/common/window.js';
 import { IMenuService, MenuItemAction, SubmenuItemAction } from '../common/actions.js';
 import './menuEntryActionViewItem.css';
+const regexpBEscape = /\bEscape\b/gi;
+const regexpBenter = /\benter\b/gi;
+
 
 export interface PrimaryAndSecondaryActions {
 	primary: IAction[];
@@ -371,8 +374,8 @@ export class TextOnlyMenuEntryActionViewItem extends MenuEntryActionViewItem<ITe
 
 	private static _symbolPrintEnter(kb: ResolvedKeybinding) {
 		return kb.getLabel()
-			?.replace(/\benter\b/gi, '\u23CE')
-			.replace(/\bEscape\b/gi, 'Esc');
+			?.replace(new RegExp(regexpBenter), '\u23CE')
+			.replace(new RegExp(regexpBEscape), 'Esc');
 	}
 }
 

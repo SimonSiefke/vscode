@@ -8,6 +8,8 @@ import { EditorHighlights } from './highlights';
 import { Navigation } from './navigation';
 import { SymbolItemDragAndDrop, SymbolTreeInput } from './references-view';
 import { ContextKey, isValidRequestPosition, WordAnchor } from './utils';
+const regexp1 = /[^\s]+/;
+
 
 
 export class SymbolsTree {
@@ -311,7 +313,7 @@ class TreeInputHistory implements vscode.TreeDataProvider<HistoryItem> {
 		const doc = await vscode.workspace.openTextDocument(input.location.uri);
 
 		const anchor = new WordAnchor(doc, input.location.range.start);
-		const range = doc.getWordRangeAtPosition(input.location.range.start) ?? doc.getWordRangeAtPosition(input.location.range.start, /[^\s]+/);
+		const range = doc.getWordRangeAtPosition(input.location.range.start) ?? doc.getWordRangeAtPosition(input.location.range.start, regexp1);
 		const word = range ? doc.getText(range) : '???';
 
 		const item = new HistoryItem(JSON.stringify([range?.start ?? input.location.range.start, input.location.uri, input.title]), word, anchor, input);

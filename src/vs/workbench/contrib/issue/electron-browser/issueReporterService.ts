@@ -25,6 +25,8 @@ import { IAuthenticationService } from '../../../services/authentication/common/
 import { BaseIssueReporterService } from '../browser/baseIssueReporterService.js';
 import { IssueReporterData as IssueReporterModelData } from '../browser/issueReporterModel.js';
 import { IIssueFormService, IssueReporterData, IssueType } from '../common/issue.js';
+const regexp1 = /:/g;
+
 
 // GitHub has let us know that we could up our limit here to 8k. We chose 7500 to play it safe.
 // ref https://github.com/microsoft/vscode/issues/159191
@@ -130,7 +132,7 @@ export class IssueReporter extends BaseIssueReporterService {
 				issueBody = issueBody.replace(extensionData, '');
 				const date = new Date();
 				const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
-				const formattedTime = date.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+				const formattedTime = date.toTimeString().split(' ')[0].replace(new RegExp(regexp1), '-'); // HH-MM-SS
 				const fileName = `extensionData_${formattedDate}_${formattedTime}.md`;
 				try {
 					const downloadPath = await this.fileDialogService.showSaveDialog({

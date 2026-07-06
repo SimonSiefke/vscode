@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /[^\w]+/g;
+
 //@ts-check
 
 // note: we use a fork here since we can't make a worker from the renderer process
@@ -17,7 +19,7 @@ if (!workerData) {
 	const { tmpdir } = require('os');
 
 	exports.takeSnapshotAndCountClasses = async (/** @type string */currentTest, /** @type string[] */ classes) => {
-		const cleanTitle = currentTest.replace(/[^\w]+/g, '-');
+		const cleanTitle = currentTest.replace(new RegExp(regexp1), '-');
 		const file = join(tmpdir(), `vscode-test-snap-${cleanTitle}.heapsnapshot`);
 
 		if (typeof process.takeHeapSnapshot !== 'function') {

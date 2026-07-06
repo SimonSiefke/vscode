@@ -6,6 +6,8 @@
 import * as vscode from 'vscode';
 import { Disposable } from './dispose';
 import { generateUuid } from './uuid';
+const regexp1 = /"/g;
+
 
 
 export interface ShowOptions {
@@ -180,5 +182,5 @@ export class SimpleBrowserView extends Disposable {
 }
 
 function escapeAttribute(value: string | vscode.Uri): string {
-	return value.toString().replace(/"/g, '&quot;');
+	return value.toString().replace(new RegExp(regexp1), '&quot;');
 }

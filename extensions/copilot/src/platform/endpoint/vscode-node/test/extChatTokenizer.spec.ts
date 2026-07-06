@@ -7,6 +7,8 @@ import { Raw } from '@vscode/prompt-tsx';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LanguageModelChat, LanguageModelChatMessage, LanguageModelChatMessage2 } from 'vscode';
 import { ExtensionContributedChatTokenizer } from '../extChatTokenizer';
+const regexp1 = /\s+/;
+
 
 /**
  * Mock implementation of LanguageModelChat for testing purposes.
@@ -19,13 +21,13 @@ class MockLanguageModelChat implements Partial<LanguageModelChat> {
 		// Default: approximate token count as words (split by whitespace)
 		this._tokenCountFn = tokenCountFn ?? ((input) => {
 			if (typeof input === 'string') {
-				return input.split(/\s+/).filter(Boolean).length || 0;
+				return input.split(regexp1).filter(Boolean).length || 0;
 			}
 			// For messages, count tokens in all text content parts
 			let total = 0;
 			for (const part of input.content) {
 				if ('value' in part && typeof part.value === 'string') {
-					total += part.value.split(/\s+/).filter(Boolean).length || 0;
+					total += part.value.split(regexp1).filter(Boolean).length || 0;
 				}
 			}
 			return total;

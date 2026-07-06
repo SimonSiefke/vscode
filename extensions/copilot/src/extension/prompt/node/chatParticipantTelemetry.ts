@@ -34,6 +34,8 @@ import { IDocumentContext } from './documentContext';
 import { IIntent, TelemetryData } from './intents';
 import { RepoInfoTelemetry } from './repoInfoTelemetry';
 import { ConversationalBaseTelemetryData, ConversationalTelemetryData, createTelemetryWithId, extendUserMessageTelemetryData, getCodeBlocks, getModeNameForTelemetry, sendModelMessageTelemetry, sendOffTopicMessageTelemetry, sendUserActionTelemetry, sendUserMessageTelemetry } from './telemetry';
+const regexp1 = /\n{2,}/;
+
 
 // #region: internal telemetry for responses
 
@@ -743,7 +745,7 @@ export class PanelChatTelemetry extends ChatTelemetry<IDocumentContext | undefin
 		} satisfies RequestPanelTelemetryProperties, {
 			turn: this._conversation.turns.length,
 			round: roundIndex,
-			textBlocks: codeBlocks.length ? -1 : response.split(/\n{2,}/).length ?? 0,
+			textBlocks: codeBlocks.length ? -1 : response.split(regexp1).length ?? 0,
 			links: this._addedLinkCount,
 			maybeOffTopic: maybeOffTopic,
 			messageTokenCount,
@@ -783,7 +785,7 @@ export class PanelChatTelemetry extends ChatTelemetry<IDocumentContext | undefin
 				isAgent: this._intent.id === AgentIntent.ID ? 1 : 0,
 				turn: this._conversation.turns.length,
 				round: roundIndex,
-				textBlocks: codeBlocks.length ? -1 : response.split(/\n{2,}/).length ?? 0,
+				textBlocks: codeBlocks.length ? -1 : response.split(regexp1).length ?? 0,
 				links: this._addedLinkCount,
 				maybeOffTopic,
 				messageTokenCount,

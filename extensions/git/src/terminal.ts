@@ -6,6 +6,8 @@
 import { ExtensionContext, l10n, LogOutputChannel, TerminalShellExecutionEndEvent, window, workspace } from 'vscode';
 import { dispose, filterEvent, IDisposable } from './util';
 import { Model } from './model';
+const regexp1 = /\s+/;
+
 
 export interface ITerminalEnvironmentProvider {
 	featureDescription?: string;
@@ -68,7 +70,7 @@ export class TerminalShellExecutionManager {
 
 	private onDidEndTerminalShellExecution(e: TerminalShellExecutionEndEvent): void {
 		const { execution, exitCode, shellIntegration } = e;
-		const [executable, subcommand] = execution.commandLine.value.split(/\s+/);
+		const [executable, subcommand] = execution.commandLine.value.split(regexp1);
 		const cwd = execution.cwd ?? shellIntegration.cwd;
 
 		if (executable.toLowerCase() !== 'git' || !this.subcommands.has(subcommand?.toLowerCase()) || !cwd || exitCode !== 0) {

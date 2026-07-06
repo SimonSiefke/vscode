@@ -16,6 +16,8 @@ import { LinkifiedPart, LinkifiedText, LinkifySymbolAnchor } from '../common/lin
 import { IContributedLinkifier, LinkifierContext } from '../common/linkifyService';
 import { findBestSymbolByPath } from './findSymbol';
 import { findSymbolLocationInFile, type SymbolFileCache } from './findWord';
+const regexp1 = /\[`([^`\[\]]+?)`]\((\S+?\.\w+)\)/g;
+
 
 const maxParallelSymbolLinkResolutions = 10;
 
@@ -53,7 +55,7 @@ export class SymbolLinkifier implements IContributedLinkifier {
 			return;
 		}
 
-		const matches = [...text.matchAll(/\[`([^`\[\]]+?)`]\((\S+?\.\w+)\)/g)];
+		const matches = [...text.matchAll(new RegExp(regexp1))];
 		const resolvedMatches = await this.resolveMatches(matches, workspaceFolders, token);
 
 		const out: LinkifiedPart[] = [];

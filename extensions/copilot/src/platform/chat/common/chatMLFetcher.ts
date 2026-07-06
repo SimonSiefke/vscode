@@ -10,6 +10,9 @@ import { Event } from '../../../util/vs/base/common/event';
 import { FinishedCallback, IResponseDelta, OptionalChatRequestParams } from '../../networking/common/fetch';
 import { IChatEndpoint, IMakeChatRequestOptions } from '../../networking/common/networking';
 import { ChatResponse, ChatResponses } from './commonTypes';
+const regexp1 = /(^|\n)```/g;
+const regexp2 = /(^|\n)```\w*\s*$/;
+
 
 export interface Source {
 	readonly extensionId?: string;
@@ -87,9 +90,9 @@ export class FetchStreamSource {
 
 		if (delta.codeVulnAnnotations) {
 			// We can only display vulnerabilities inside codeblocks, and it's ok to discard annotations that fell outside of them
-			const numTripleBackticks = text.match(/(^|\n)```/g)?.length ?? 0;
+			const numTripleBackticks = text.match(new RegExp(regexp1))?.length ?? 0;
 			const insideCodeblock = numTripleBackticks % 2 === 1;
-			if (!insideCodeblock || text.match(/(^|\n)```\w*\s*$/)) { // Not inside a codeblock, or right on the start triple-backtick of a codeblock
+			if (!insideCodeblock || text.match(regexp2)) { // Not inside a codeblock, or right on the start triple-backtick of a codeblock
 				delta.codeVulnAnnotations = undefined;
 			}
 		}

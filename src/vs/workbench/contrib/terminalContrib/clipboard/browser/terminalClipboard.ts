@@ -9,13 +9,16 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
+const regexp1 = /\r?\n/;
+const regexp2 = /\r?\n/g;
+
 
 export async function shouldPasteTerminalText(accessor: ServicesAccessor, text: string, bracketedPasteMode: boolean | undefined): Promise<boolean | { modifiedText: string }> {
 	const configurationService = accessor.get(IConfigurationService);
 	const dialogService = accessor.get(IDialogService);
 
 	// If the clipboard has only one line, a warning should never show
-	const textForLines = text.split(/\r?\n/);
+	const textForLines = text.split(regexp1);
 	if (textForLines.length === 1) {
 		return true;
 	}
@@ -103,7 +106,7 @@ export async function shouldPasteTerminalText(accessor: ServicesAccessor, text: 
 	}
 
 	if (result.singleLine) {
-		return { modifiedText: text.replace(/\r?\n/g, '') };
+		return { modifiedText: text.replace(new RegExp(regexp2), '') };
 	}
 
 	return result.confirmed;

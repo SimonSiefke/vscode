@@ -29,6 +29,9 @@ import { TraitWithId } from '../contextProviders/contextItemSchemas';
 import { ContextProviderStatistics, ICompletionsContextProviderService } from '../contextProviderStatistics';
 import { TestContextProviderStatistics } from '../test/contextProviderStatistics';
 import { ICompletionsFeaturesService } from '../../experiments/featuresService';
+const regexpErrorResolvingContext = /Error resolving context/;
+const regexpContextProviderSlowAsyncIterableProvider = /Context provider slowAsyncIterableProvider exceeded time budget/;
+
 
 suite('ContextProviderRegistry', function () {
 	let accessor: ServicesAccessor;
@@ -660,7 +663,7 @@ suite('ContextProviderRegistry', function () {
 			},
 		]);
 		// Logs the error
-		testLogTarget.assertHasMessageMatching(LogLevel.ERROR, /Error resolving context/);
+		testLogTarget.assertHasMessageMatching(LogLevel.ERROR, regexpErrorResolvingContext);
 	});
 
 	test('provider cancels', async function () {
@@ -735,7 +738,7 @@ suite('ContextProviderRegistry', function () {
 			},
 		]);
 		// Logs the error
-		testLogTarget.assertHasMessageMatching(LogLevel.ERROR, /Error resolving context/);
+		testLogTarget.assertHasMessageMatching(LogLevel.ERROR, regexpErrorResolvingContext);
 	});
 
 	test('asynciterable provider cancels', async function () {
@@ -1395,7 +1398,7 @@ suite('ContextProviderRegistry', function () {
 		]);
 		testLogTarget.assertHasMessageMatching(
 			LogLevel.INFO,
-			/Context provider slowAsyncIterableProvider exceeded time budget/
+			regexpContextProviderSlowAsyncIterableProvider
 		);
 		assert.deepStrictEqual(statistics.lastResolution.get('slowAsyncIterableProvider'), 'partial');
 	});

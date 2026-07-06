@@ -12,6 +12,10 @@ import type { UnsupportedProtocolVersionErrorData } from './state/protocol/error
 import { AHP_UNSUPPORTED_PROTOCOL_VERSION, ProtocolError } from './state/sessionProtocol.js';
 import { readUnsupportedProtocolVersionErrorMeta, type IVscodeUpgradeResult } from './state/protocolUpgrade.js';
 import { TUNNEL_ADDRESS_PREFIX } from './tunnelAgentHost.js';
+const regexpZAZA = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//;
+const regexpUrlHttpsWss = /(?<url>(?:https?|wss?):\/\/\S+)/i;
+const regexp3 = /[),.;\]]+$/;
+
 
 /**
  * Connection status for a remote agent host.
@@ -372,7 +376,7 @@ export function parseRemoteAgentHostInput(input: string): RemoteAgentHostInputPa
 		return { error: RemoteAgentHostInputValidationError.Invalid };
 	}
 
-	const hasExplicitScheme = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(candidate);
+	const hasExplicitScheme = regexpZAZA.test(candidate);
 	try {
 		const url = new URL(hasExplicitScheme ? candidate : `ws://${candidate}`);
 		const normalizedProtocol = normalizeRemoteAgentHostProtocol(url.protocol);
@@ -402,9 +406,9 @@ export function parseRemoteAgentHostInput(input: string): RemoteAgentHostInputPa
 }
 
 function extractRemoteAgentHostCandidate(input: string): string | undefined {
-	const urlMatch = input.match(/(?<url>(?:https?|wss?):\/\/\S+)/i);
+	const urlMatch = input.match(regexpUrlHttpsWss);
 	const candidate = urlMatch?.groups?.url ?? input;
-	const trimmedCandidate = candidate.trim().replace(/[),.;\]]+$/, '');
+	const trimmedCandidate = candidate.trim().replace(regexp3, '');
 	return trimmedCandidate || undefined;
 }
 

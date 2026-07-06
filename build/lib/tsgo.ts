@@ -8,6 +8,10 @@ import * as cp from 'child_process';
 import es from 'event-stream';
 import fancyLog from 'fancy-log';
 import * as path from 'path';
+const regexpError = /error \w+:/;
+const regexpStartingCompilationFile = /Starting compilation|File change detected|Compilation complete/i;
+const regexp3 = /\r?\n/;
+
 
 const root = path.dirname(path.dirname(import.meta.dirname));
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
@@ -17,7 +21,7 @@ const timestampRegex = /^\[\d{2}:\d{2}:\d{2}\]\s*/;
 export function spawnTsgo(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): Promise<void> {
 	function runReporter(output: string) {
 		const lines = (output || '').split('\n');
-		const errorLines = lines.filter(line => /error \w+:/.test(line));
+		const errorLines = lines.filter(line => regexpError.test(line));
 		fancyLog(`Finished ${ansiColors.green(config.taskName)} ${projectPath} with ${errorLines.length} errors.`);
 		for (const line of errorLines) {
 			fancyLog(line);
@@ -50,11 +54,11 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
 		child.on('exit', code => {
 			const allOutput = stdoutData + '\n' + stderrData;
 			const lines = allOutput
-				.split(/\r?\n/)
+				.split(regexp3)
 				.map(line => line.replace(ansiRegex, '').trim())
 				.map(line => line.replace(timestampRegex, ''))
 				.filter(line => line.length > 0)
-				.filter(line => !/Starting compilation|File change detected|Compilation complete/i.test(line));
+				.filter(line => !regexpStartingCompilationFile.test(line));
 
 			runReporter(lines.join('\n'));
 

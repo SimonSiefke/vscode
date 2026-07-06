@@ -23,6 +23,10 @@ import { ITerminalService } from '../../../terminal/browser/terminal.js';
 import { registerTerminalAction } from '../../../terminal/browser/terminalActions.js';
 import { TerminalCommandId } from '../../../terminal/common/terminal.js';
 import { TerminalContextKeys, TerminalContextKeyStrings } from '../../../terminal/common/terminalContextKey.js';
+const regexp1 = /\\r/g;
+const regexp2 = /\\n/g;
+const regexp9aFA = /\\x([0-9a-fA-F]{2})/;
+
 
 export const enum TerminalSendSequenceCommandId {
 	SendSequence = 'workbench.action.terminal.sendSequence',
@@ -58,12 +62,12 @@ export const terminalSendSequenceCommand = async (accessor: ServicesAccessor, ar
 			}
 			// Process escape sequences
 			let processedText = text
-				.replace(/\\n/g, '\n')
-				.replace(/\\r/g, '\r');
+				.replace(new RegExp(regexp2), '\n')
+				.replace(new RegExp(regexp1), '\r');
 
 			// Process hex escape sequences (\xNN)
 			while (true) {
-				const match = processedText.match(/\\x([0-9a-fA-F]{2})/);
+				const match = processedText.match(regexp9aFA);
 				if (match === null || match.index === undefined || match.length < 2) {
 					break;
 				}

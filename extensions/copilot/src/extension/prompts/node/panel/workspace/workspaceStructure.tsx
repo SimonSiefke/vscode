@@ -13,6 +13,8 @@ import { URI } from '../../../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../../../util/vs/platform/instantiation/common/instantiation';
 import { ToolName } from '../../../../tools/common/toolNames';
 import { IFileTreeData, workspaceVisualFileTree } from './visualFileTree';
+const regexp1 = /[\\/]/g;
+
 
 type WorkspaceStructureProps = BasePromptElementProps & {
 	maxSize: number;
@@ -79,7 +81,7 @@ export class MultirootWorkspaceStructure extends PromptElement<WorkspaceStructur
 		const labels = folders.map(f => workspaceService.getWorkspaceFolderName(f));
 		const result: { file: URI; workspaceFolder: URI; relativePath: string }[] = [];
 		for (let relativePath of files) {
-			const segments = relativePath.split(/[\\/]/g);
+			const segments = relativePath.split(new RegExp(regexp1));
 
 			let workspaceFolder = folders[0];
 			if (folders.length > 1) {

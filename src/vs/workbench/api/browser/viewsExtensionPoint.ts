@@ -30,6 +30,8 @@ import { WebviewViewPane } from '../../contrib/webviewView/browser/webviewViewPa
 import { Extensions as ExtensionFeaturesRegistryExtensions, IExtensionFeatureTableRenderer, IExtensionFeaturesRegistry, IRenderedData, IRowData, ITableData } from '../../services/extensionManagement/common/extensionFeatures.js';
 import { isProposedApiEnabled } from '../../services/extensions/common/extensions.js';
 import { ExtensionMessageCollector, ExtensionsRegistry, IExtensionPoint, IExtensionPointUser } from '../../services/extensions/common/extensionsRegistry.js';
+const regexpZ0 = /^[a-z0-9_-]+$/i;
+
 
 export interface IUserFriendlyViewsContainerDescriptor {
 	id: string;
@@ -354,7 +356,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
 				collector.error(localize('requireidstring', "property `{0}` is mandatory and must be of type `string` with non-empty value. Only alphanumeric characters, '_', and '-' are allowed.", 'id'));
 				return false;
 			}
-			if (!(/^[a-z0-9_-]+$/i.test(descriptor.id))) {
+			if (!(regexpZ0.test(descriptor.id))) {
 				collector.error(localize('requireidstring', "property `{0}` is mandatory and must be of type `string` with non-empty value. Only alphanumeric characters, '_', and '-' are allowed.", 'id'));
 				return false;
 			}

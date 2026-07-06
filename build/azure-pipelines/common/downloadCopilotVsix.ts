@@ -11,6 +11,9 @@ import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
 import { type Artifact, e, requestAZDOAPI } from './publish.ts';
 import { retry } from './retry.ts';
+const regexpSbom = /sbom$/;
+const regexp2 = /\/$/;
+
 
 const ARTIFACT_NAME = 'copilot_vsix';
 const COPILOT_JOB_NAME = 'Copilot';
@@ -68,7 +71,7 @@ function getAzdoFetchOptions() {
 
 async function getPipelineArtifacts(): Promise<Artifact[]> {
 	const result = await requestAZDOAPI<{ readonly value: Artifact[] }>('artifacts');
-	return result.value.filter(a => !/sbom$/.test(a.name));
+	return result.value.filter(a => !regexpSbom.test(a.name));
 }
 
 async function getPipelineTimeline(): Promise<Timeline> {
@@ -106,7 +109,7 @@ async function unzip(zipPath: string, outputPath: string): Promise<string[]> {
 
 			const result: string[] = [];
 			zipfile!.on('entry', entry => {
-				if (/\/$/.test(entry.fileName)) {
+				if (regexp2.test(entry.fileName)) {
 					zipfile!.readEntry();
 				} else {
 					zipfile!.openReadStream(entry, (err, istream) => {

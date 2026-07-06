@@ -6,6 +6,8 @@
 import * as assert from 'assert';
 import 'mocha';
 import { ExtensionContext, extensions, Uri } from 'vscode';
+const regexpFoo = /foo/;
+
 
 suite('vscode API - globalState / workspaceState', () => {
 
@@ -52,7 +54,7 @@ suite('vscode API - globalState / workspaceState', () => {
 			const date = state.get('state.test.date');
 			assert.ok(typeof date === 'string');
 
-			state.update('state.test.regex', /foo/);
+			state.update('state.test.regex', regexpFoo);
 			const regex = state.get('state.test.regex');
 			assert.ok(typeof regex === 'object' && !(regex instanceof RegExp));
 

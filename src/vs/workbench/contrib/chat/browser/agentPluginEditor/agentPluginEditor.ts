@@ -45,6 +45,8 @@ import { IWorkspaceContextService } from '../../../../../platform/workspace/comm
 import { EnablementStatusWidget, pluginEnablementLabels } from '../enablementStatusWidget.js';
 import { InstallPluginAction, UninstallPluginAction, createEnablePluginDropDown, createDisablePluginDropDown, createPolicyBlockedEnableAction, isPluginPolicyBlocked, EnablementDropDownAction, EnablementDropdownActionViewItem } from '../agentPluginActions.js';
 import './media/agentPluginEditor.css';
+const regexpHttpsGithubCom = /^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/blob\/(?<rest>.+)$/;
+
 
 interface IAgentPluginEditorTemplate {
 	name: HTMLElement;
@@ -374,7 +376,7 @@ export class AgentPluginEditor extends EditorPane {
 		// For https GitHub URLs, convert blob URL to raw URL
 		if (readmeUri.scheme === Schemas.https) {
 			let rawUrl = readmeUri.toString();
-			const githubBlobMatch = rawUrl.match(/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/blob\/(?<rest>.+)$/);
+			const githubBlobMatch = rawUrl.match(regexpHttpsGithubCom);
 			if (githubBlobMatch?.groups) {
 				rawUrl = `https://raw.githubusercontent.com/${githubBlobMatch.groups['owner']}/${githubBlobMatch.groups['repo']}/${githubBlobMatch.groups['rest']}`;
 			}

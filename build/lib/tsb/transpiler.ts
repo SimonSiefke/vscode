@@ -9,6 +9,10 @@ import threads from 'node:worker_threads';
 import Vinyl from 'vinyl';
 import { cpus } from 'node:os';
 import { getTargetStringFromTsConfig } from '../tsconfigUtils.ts';
+const regexpImportExport = /\n(import|export)/m;
+const regexp2 = /\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm;
+const regexpSourceMappingURL = /\/\/# sourceMappingURL.*^/;
+
 
 interface TranspileReq {
 	readonly tsSrcs: string[];
@@ -22,7 +26,7 @@ interface TranspileRes {
 
 function transpile(tsSrc: string, options: ts.TranspileOptions): { jsSrc: string; diag: ts.Diagnostic[] } {
 
-	const isAmd = /\n(import|export)/m.test(tsSrc);
+	const isAmd = regexpImportExport.test(tsSrc);
 	if (!isAmd && options.compilerOptions?.module === ts.ModuleKind.AMD) {
 		// enforce NONE module-system for not-amd cases
 		options = { ...options, ...{ compilerOptions: { ...options.compilerOptions, module: ts.ModuleKind.None } } };
@@ -391,7 +395,7 @@ export class ESBuildTranspiler implements ITranspiler {
 function _isDefaultEmpty(src: string): boolean {
 	return src
 		.replace('"use strict";', '')
-		.replace(/\/\/# sourceMappingURL.*^/, '')
-		.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1')
+		.replace(regexpSourceMappingURL, '')
+		.replace(new RegExp(regexp2), '$1')
 		.trim().length === 0;
 }

@@ -6,6 +6,9 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, Position, Range, TextDocument, workspace } from 'vscode';
 import * as phpGlobalFunctions from './phpGlobalFunctions';
 import * as phpGlobals from './phpGlobals';
+const regexpZAZAZ0 = /\$([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/g;
+const regexpFunctionZAZA = /function\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/g;
+
 
 export default class PHPCompletionItemProvider implements CompletionItemProvider {
 
@@ -90,7 +93,7 @@ export default class PHPCompletionItemProvider implements CompletionItemProvider
 
 		const text = document.getText();
 		if (prefix[0] === '$') {
-			const variableMatch = /\$([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/g;
+			const variableMatch = new RegExp(regexpZAZAZ0);
 			let match: RegExpExecArray | null = null;
 			while (match = variableMatch.exec(text)) {
 				const word = match[0];
@@ -100,7 +103,7 @@ export default class PHPCompletionItemProvider implements CompletionItemProvider
 				}
 			}
 		}
-		const functionMatch = /function\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/g;
+		const functionMatch = new RegExp(regexpFunctionZAZA);
 		let match2: RegExpExecArray | null = null;
 		while (match2 = functionMatch.exec(text)) {
 			const word2 = match2[1];

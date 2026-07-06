@@ -13,6 +13,10 @@ import { ISlugifier, SlugBuilder } from './slugify';
 import { ITextDocument } from './types/textDocument';
 import { WebviewResourceProvider } from './util/resources';
 import { isOfScheme, Schemes } from './util/schemes';
+const regexpDataImage = /^data:image\/.*?;/;
+const regexpMarkdownLink = /^markdown-link:/;
+const regexp3 = /^[a-z\-]+:/i;
+
 
 /**
  * Adds begin line index to the output via the 'data-line' data attribute.
@@ -298,7 +302,7 @@ export class MarkdownItEngine implements IMdParser {
 			return validateLink(link)
 				|| isOfScheme(Schemes.vscode, link)
 				|| isOfScheme(Schemes['vscode-insiders'], link)
-				|| /^data:image\/.*?;/.test(link);
+				|| regexpDataImage.test(link);
 		};
 	}
 
@@ -363,7 +367,7 @@ export class MarkdownItEngine implements IMdParser {
 			}
 
 			// If original link doesn't look like a url with a scheme, assume it must be a link to a file in workspace
-			if (!/^[a-z\-]+:/i.test(href)) {
+			if (!regexp3.test(href)) {
 				// Use a fake scheme for parsing
 				let uri = vscode.Uri.parse('markdown-link:' + href);
 
@@ -385,7 +389,7 @@ export class MarkdownItEngine implements IMdParser {
 					}
 				}
 
-				return uri.toString(true).replace(/^markdown-link:/, '');
+				return uri.toString(true).replace(regexpMarkdownLink, '');
 			}
 
 			return href;

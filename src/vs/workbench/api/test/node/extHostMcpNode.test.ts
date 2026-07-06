@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { escapeCmdArg } from '../../node/extHostMcpNode.js';
+const regexp1 = /"/g;
+
 
 suite('extHostMcpNode - escapeCmdArg', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -67,7 +69,7 @@ suite('extHostMcpNode - escapeCmdArg', () => {
 		// outside a quoted region.
 		for (const input of ['"', '""', 'a"b', '"&calc"', 'a"&calc']) {
 			const out = escapeCmdArg(input);
-			const quoteCount = (out.match(/"/g) || []).length;
+			const quoteCount = (out.match(new RegExp(regexp1)) || []).length;
 			assert.strictEqual(quoteCount % 2, 0, `quote count must be even for ${JSON.stringify(input)} -> ${out}`);
 		}
 	});

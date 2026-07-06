@@ -8,6 +8,8 @@
 import { IMatch, matchesFuzzy } from './filters';
 import { ltrim } from './strings';
 import { ThemeIcon } from './themables';
+const regexp1 = /\$\((.*?)\)/g;
+
 
 const iconStartMarker = '$(';
 
@@ -46,7 +48,7 @@ export function getCodiconAriaLabel(text: string | undefined) {
 		return '';
 	}
 
-	return text.replace(/\$\((.*?)\)/g, (_match, codiconName) => ` ${codiconName} `).trim();
+	return text.replace(new RegExp(regexp1), (_match, codiconName) => ` ${codiconName} `).trim();
 }
 
 

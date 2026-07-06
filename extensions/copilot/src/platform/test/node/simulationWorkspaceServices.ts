@@ -42,6 +42,8 @@ import { ITabsAndEditorsService, TabInfo } from '../../tabs/common/tabsAndEditor
 import { IKnownTerminal, ITerminalService, ShellIntegrationQuality } from '../../terminal/common/terminalService';
 import { AbstractWorkspaceService, IWorkspaceService } from '../../workspace/common/workspaceService';
 import { isNotebook, SimulationWorkspace } from './simulationWorkspace';
+const regexp1 = /\/$/;
+
 
 export const WORKSPACE_PATH = `/Users/someone/Projects/proj01/`;
 
@@ -1016,8 +1018,8 @@ class SimulationTerminalShellExecution extends Disposable implements vscode.Term
 	}
 
 	private async run(): Promise<string | undefined> {
-		const fakeWorkspacePath = this.workspace.workspaceFolders[0].fsPath.replace(/\/$/, '');
-		const realWorkspacePath = this.workspace.mapLocation(this.workspace.workspaceFolders[0]).fsPath.replace(/\/$/, '');
+		const fakeWorkspacePath = this.workspace.workspaceFolders[0].fsPath.replace(regexp1, '');
+		const realWorkspacePath = this.workspace.mapLocation(this.workspace.workspaceFolders[0]).fsPath.replace(regexp1, '');
 		try {
 			let command = this.commandLine.value;
 			this.logService.trace(`Original command: ${command}`);

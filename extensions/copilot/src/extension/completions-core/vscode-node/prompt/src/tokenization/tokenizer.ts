@@ -7,6 +7,9 @@ import { TikTokenizer, createTokenizer, getRegexByEncoder, getSpecialTokensByEnc
 import { parseTikTokenBinary } from '../../../../../../platform/tokenizer/node/parseTikTokens';
 import { CopilotPromptLoadFailure } from '../error';
 import { locateFile } from '../fileLoader';
+const regexp1 = /\b/;
+const regexp2 = /.{1,4}/g;
+
 
 export enum TokenizerName {
 	cl100k = 'cl100k_base',
@@ -273,7 +276,7 @@ class MockTokenizer implements Tokenizer {
 		return tokens.map(token => token.toString()).join(' ');
 	}
 	tokenizeStrings(text: string): string[] {
-		return text.split(/\b/);
+		return text.split(regexp1);
 	}
 	tokenLength(text: string): number {
 		return this.tokenizeStrings(text).length;
@@ -379,7 +382,7 @@ export class ApproximateTokenizer implements Tokenizer {
 
 	tokenizeStrings(text: string): string[] {
 		// Mock tokenize by defaultETL
-		return text.match(/.{1,4}/g) ?? [];
+		return text.match(new RegExp(regexp2)) ?? [];
 	}
 
 	private getEffectiveTokenLength(): number {

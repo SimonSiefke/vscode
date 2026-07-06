@@ -14,6 +14,8 @@ import { randomPath } from '../../../util/vs/base/common/extpath';
 import { isObject } from '../../../util/vs/base/common/types';
 import { ValidatePackageErrorType, ValidatePackageResult } from './commands';
 import { CommandExecutor, ICommandExecutor } from './util';
+const regexp1 = /^--?/;
+
 
 interface NuGetServiceIndexResponse {
 	resources?: Array<{ '@id': string; '@type': string }>;
@@ -1037,7 +1039,7 @@ export class McpMappingUtility {
 					}
 				} else if (arg.description || arg.default !== undefined) {
 					// Create input variable for named argument without value
-					const variableId = arg.name.replace(/^--?/, '');
+					const variableId = arg.name.replace(regexp1, '');
 					variables.push({
 						id: variableId,
 						type: McpServerVariableType.PROMPT,

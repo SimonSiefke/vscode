@@ -40,6 +40,9 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { localChatSessionType } from '../../common/chatSessionsService.js';
 import { GENERATE_AGENT_INSTRUCTIONS_COMMAND_ID, GENERATE_PROMPT_COMMAND_ID } from '../../browser/actions/chatActions.js';
+const regexpCommand = /\[[^\]]+\]\((command:[^)]+)\)/g;
+const regexp2 = /\s"[^"]+"$/;
+
 
 class MockContextKeyServiceWithRulesMatching extends MockContextKeyService {
 	override contextMatchesRules(rules: ContextKeyExpression): boolean {
@@ -150,10 +153,10 @@ suite('ChatTipService', () => {
 				experimentalTipMessages: new Map(),
 			}).value;
 
-			const commandLinkRegex = /\[[^\]]+\]\((command:[^)]+)\)/g;
+			const commandLinkRegex = new RegExp(regexpCommand);
 			let match: RegExpExecArray | null;
 			while ((match = commandLinkRegex.exec(markdown)) !== null) {
-				assert.ok(/\s"[^"]+"$/.test(match[1]), `Expected command link in ${tip.id} to include a descriptive title: ${match[0]}`);
+				assert.ok(regexp2.test(match[1]), `Expected command link in ${tip.id} to include a descriptive title: ${match[0]}`);
 			}
 		}
 	});

@@ -7,6 +7,10 @@ import assert from 'assert';
 import { CancellationToken, CancellationTokenSource } from '../../common/cancellation.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 import { IterativePagedModel, IIterativePager, IIterativePage } from '../../common/paging.js';
+const regexpItemNotResolved = /Item not resolved yet/;
+const regexpIndexOutOf = /Index out of bounds/;
+const regexpCanceled = /Canceled/;
+
 
 function createTestPager(pageSize: number, maxPages: number): IIterativePager<number> {
 	let currentPage = 0;
@@ -177,7 +181,7 @@ suite('IterativePagedModel', () => {
 		const model = store.add(new IterativePagedModel(pager));
 
 		// Try to access item beyond current length
-		assert.throws(() => model.get(15), /Item not resolved yet/);
+		assert.throws(() => model.get(15), regexpItemNotResolved);
 	});
 
 	test('resolving item beyond all pages throws', async () => {
@@ -191,7 +195,7 @@ suite('IterativePagedModel', () => {
 		// Try to resolve beyond the last item
 		await assert.rejects(
 			async () => model.resolve(30, CancellationToken.None),
-			/Index out of bounds/
+			regexpIndexOutOf
 		);
 	});
 
@@ -204,7 +208,7 @@ suite('IterativePagedModel', () => {
 
 		await assert.rejects(
 			async () => model.resolve(0, cts.token),
-			/Canceled/
+			regexpCanceled
 		);
 	});
 

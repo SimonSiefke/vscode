@@ -5,6 +5,8 @@
 
 import { URI } from '../../../util/vs/base/common/uri';
 import { Schemas } from '../../../util/vs/base/common/network';
+const regexp1 = /^\//;
+
 
 /**
  * A set of well-known session types
@@ -33,9 +35,9 @@ export namespace SessionType {
  */
 export function decodeSessionId(sessionResource: URI): string {
 	if (sessionResource.scheme === SessionType.CopilotCLI || sessionResource.scheme === SessionType.ClaudeCode) {
-		return sessionResource.path.replace(/^\//, '');
+		return sessionResource.path.replace(regexp1, '');
 	}
-	const pathSegment = sessionResource.path.replace(/^\//, '').split('/').pop() || '';
+	const pathSegment = sessionResource.path.replace(regexp1, '').split('/').pop() || '';
 	if (pathSegment) {
 		try {
 			return Buffer.from(pathSegment, 'base64').toString('utf-8');

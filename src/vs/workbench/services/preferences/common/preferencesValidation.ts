@@ -8,6 +8,9 @@ import { JSONSchemaType } from '../../../../base/common/jsonSchema.js';
 import { Color } from '../../../../base/common/color.js';
 import { isObject, isUndefinedOrNull, isString, isStringArray } from '../../../../base/common/types.js';
 import { IConfigurationPropertySchema } from '../../../../platform/configuration/common/configurationRegistry.js';
+const regexp1 = /.*/;
+const regexp2 = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+
 
 type Validator<T> = { enabled: boolean; isValid: (value: T) => boolean; message: string };
 
@@ -126,13 +129,13 @@ function toRegExp(pattern: string): RegExp {
 			// just log the error to avoid rendering the entire Settings editor blank.
 			// Ref https://github.com/microsoft/vscode/issues/195054
 			console.error(nls.localize('regexParsingError', "Error parsing the following regex both with and without the u flag:"), pattern);
-			return /.*/;
+			return regexp1;
 		}
 	}
 }
 
 function getStringValidators(prop: IConfigurationPropertySchema) {
-	const uriRegex = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+	const uriRegex = regexp2;
 	let patternRegex: RegExp | undefined;
 	if (typeof prop.pattern === 'string') {
 		patternRegex = toRegExp(prop.pattern);

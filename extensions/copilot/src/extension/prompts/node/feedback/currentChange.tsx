@@ -15,6 +15,8 @@ import { Location, Range, Uri } from '../../../../vscodeTypes';
 import { Tag } from '../base/tag';
 import { CodeBlock } from '../panel/safeElements';
 import { SymbolAtCursor } from '../panel/symbolAtCursor';
+const regexp1 = /-(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?/;
+
 
 export interface CurrentChangeProps extends BasePromptElementProps {
 	input: CurrentChangeInput[];
@@ -339,7 +341,7 @@ export class CurrentChange extends PromptElement<CurrentChangeProps, CurrentChan
 			hunkTexts[hunkTexts.length - 1] = hunkTexts[hunkTexts.length - 1].slice(0, -1);
 		}
 		const hunks = hunkTexts.map(chunk => {
-			const rangeMatch = chunk.match(/-(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))?/);
+			const rangeMatch = chunk.match(regexp1);
 			if (rangeMatch) {
 				let startDeletedLine = parseInt(rangeMatch[1]);
 				const deletedLines = rangeMatch[2] ? parseInt(rangeMatch[2]) : 1;

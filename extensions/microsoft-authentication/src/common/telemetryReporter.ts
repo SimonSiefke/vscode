@@ -6,6 +6,8 @@
 import { AuthError, ClientAuthError } from '@azure/msal-node';
 import TelemetryReporter, { TelemetryEventProperties } from '@vscode/extension-telemetry';
 import { IExperimentationTelemetry } from 'vscode-tas-client';
+const regexp9A9A9A = /[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/i;
+
 
 export const enum MicrosoftAccountType {
 	AAD = 'aad',
@@ -168,7 +170,7 @@ export class MicrosoftAuthenticationTelemetryReporter implements IExperimentatio
 	}
 
 	protected _scrubGuids(scopes: readonly string[]): string[] {
-		return scopes.map(s => s.replace(/[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/i, '{guid}'));
+		return scopes.map(s => s.replace(regexp9A9A9A, '{guid}'));
 	}
 }
 

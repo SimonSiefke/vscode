@@ -26,6 +26,10 @@ import { IBuildPromptContext } from '../../../prompt/common/intents';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { encodeUrlHostname } from '../../common/toolUtils';
 import { assertFileOkForTool, inputGlobToPattern, isDirExternalAndNeedsConfirmation, isFileExternalAndNeedsConfirmation } from '../toolUtils';
+const regexpOutsideOfThe = /outside of the workspace/;
+const regexpConfiguredToBe = /configured to be ignored by Copilot/;
+const regexpDoesNotExist = /does not exist/;
+
 
 class TestIgnoreService extends NullIgnoreService {
 	private readonly _ignoredUris = new Set<string>();
@@ -89,7 +93,7 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 
 		test('external file throws without additionalReadAccessPaths', async () => {
 			await expect(invokeAssertFileOkForTool(URI.file('/external/file.ts'), true))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('external file allowed when under additionalReadAccessPaths with readOnly', async () => {
@@ -110,25 +114,25 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 		test('sibling of additional path is not allowed', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external/folder']);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/other/file.ts'), true))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('parent of additional path is not allowed', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external/folder/sub']);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/folder/file.ts'), true))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('additional paths are NOT honored without readOnly flag', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external']);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/file.ts'), false))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('additional paths are NOT honored when readOnly is undefined', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external']);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/file.ts')))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('multiple additional paths are checked', async () => {
@@ -141,19 +145,19 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external']);
 			ignoreService.setIgnoredUris([URI.file('/external/secret.ts')]);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/secret.ts'), true))
-				.rejects.toThrow(/configured to be ignored by Copilot/);
+				.rejects.toThrow(regexpConfiguredToBe);
 		});
 
 		test('copilotignore overrides workspace membership', async () => {
 			ignoreService.setIgnoredUris([URI.file('/workspace/secret.ts')]);
 			await expect(invokeAssertFileOkForTool(URI.file('/workspace/secret.ts')))
-				.rejects.toThrow(/configured to be ignored by Copilot/);
+				.rejects.toThrow(regexpConfiguredToBe);
 		});
 
 		test('empty additional paths array has no effect', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, []);
 			await expect(invokeAssertFileOkForTool(URI.file('/external/file.ts'), true))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 	});
 
@@ -164,12 +168,12 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 
 		test('external file that does not exist throws', async () => {
 			await expect(invokeIsFileExternalAndNeedsConfirmation(URI.file('/external/file.ts')))
-				.rejects.toThrow(/does not exist/);
+				.rejects.toThrow(regexpDoesNotExist);
 		});
 
 		test('non-existent file throws', async () => {
 			await expect(invokeIsFileExternalAndNeedsConfirmation(URI.file('/nonexistent/file.ts')))
-				.rejects.toThrow(/does not exist/);
+				.rejects.toThrow(regexpDoesNotExist);
 		});
 
 		test('non-existent workspace file does not need confirmation', async () => {
@@ -190,13 +194,13 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 		test('external file under additional paths without readOnly throws when file does not exist', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/external']);
 			await expect(invokeIsFileExternalAndNeedsConfirmation(URI.file('/external/file.ts'), false))
-				.rejects.toThrow(/does not exist/);
+				.rejects.toThrow(regexpDoesNotExist);
 		});
 
 		test('file outside additional paths throws when file does not exist', async () => {
 			await configService.setConfig(ConfigKey.AdditionalReadAccessPaths, ['/allowed']);
 			await expect(invokeIsFileExternalAndNeedsConfirmation(URI.file('/disallowed/file.ts'), true))
-				.rejects.toThrow(/does not exist/);
+				.rejects.toThrow(regexpDoesNotExist);
 		});
 	});
 
@@ -246,13 +250,13 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 
 		test('assertFileOkForTool rejects file outside workingDirectory', async () => {
 			await expect(invokeAssertFileOkWithWd(URI.file('/other-project/file.ts')))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('assertFileOkForTool rejects workspace file when workingDirectory is set', async () => {
 			// /workspace is the workspace folder, but workingDirectory overrides it
 			await expect(invokeAssertFileOkWithWd(URI.file('/workspace/file.ts')))
-				.rejects.toThrow(/outside of the workspace/);
+				.rejects.toThrow(regexpOutsideOfThe);
 		});
 
 		test('isFileExternalAndNeedsConfirmation: file within workingDirectory is not external', async () => {
@@ -261,7 +265,7 @@ suite('toolUtils - additionalReadAccessPaths', () => {
 
 		test('isFileExternalAndNeedsConfirmation: workspace file is external when workingDirectory is set', async () => {
 			await expect(invokeIsFileExternalWithWd(URI.file('/workspace/file.ts')))
-				.rejects.toThrow(/does not exist/);
+				.rejects.toThrow(regexpDoesNotExist);
 		});
 
 		test('isDirExternalAndNeedsConfirmation: dir within workingDirectory is not external', () => {
@@ -389,7 +393,7 @@ suite('toolUtils - external file existence', () => {
 	test('external file that does not exist throws', async () => {
 		// File doesn't exist in mock file system
 		await expect(invokeIsFileExternalAndNeedsConfirmation(URI.file('/external/nonexistent.ts')))
-			.rejects.toThrow(/does not exist/);
+			.rejects.toThrow(regexpDoesNotExist);
 	});
 
 	test('workspace file does not need confirmation even if it exists', async () => {

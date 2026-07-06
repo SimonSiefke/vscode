@@ -38,6 +38,8 @@ import { ColorIdentifier, asCssVariable, asCssVariableWithDefault, inputBackgrou
 import { MenuPreventer } from '../menuPreventer.js';
 import { SelectionClipboardContributionID } from '../selectionClipboard.js';
 import { getSimpleEditorOptions, setupSimpleEditorSelectionStyling } from '../simpleEditorOptions.js';
+const regexp1 = /\s/g;
+
 
 export interface SuggestResultsProvider {
 	/**
@@ -296,7 +298,7 @@ export class SuggestEnabledInput extends Widget {
 	}
 
 	public setValue(val: string) {
-		val = val.replace(/\s/g, ' ');
+		val = val.replace(new RegExp(regexp1), ' ');
 		const fullRange = this.inputModel.getFullModelRange();
 		this.inputWidget.executeEdits('suggestEnabledInput.setValue', [EditOperation.replace(fullRange, val)]);
 		this.inputWidget.setScrollTop(0);

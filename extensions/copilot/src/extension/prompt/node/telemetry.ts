@@ -10,6 +10,8 @@ import { ITelemetryService, TelemetryProperties } from '../../../platform/teleme
 import { TelemetryData } from '../../../platform/telemetry/common/telemetryData';
 import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { Conversation } from '../common/conversation';
+const regexp1 = /^(\s*)(`{3,}|~{3,})(\w*)/;
+
 
 export type ConversationalBaseTelemetryData = ConversationalTelemetryData<{ messageId: string }, { promptTokenLen: number; messageCharLen: number }>;
 
@@ -292,7 +294,7 @@ export function getCodeBlocks(text: string): ICodeblockDetails[] {
 				codeBlockState.totalLines++;
 			}
 		} else {
-			const match = line.match(/^(\s*)(`{3,}|~{3,})(\w*)/);
+			const match = line.match(regexp1);
 			if (match) {
 				codeBlockState = {
 					delimiter: match[2],

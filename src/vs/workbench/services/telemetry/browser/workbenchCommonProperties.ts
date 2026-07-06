@@ -12,6 +12,8 @@ import { ICommonProperties, firstSessionDateStorageKey, lastSessionDateStorageKe
 import { Gesture } from '../../../../base/browser/touch.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
+const regexp1 = /(\d+\.\d+)(\.\d+)+/g;
+
 
 /**
  * General function to help reduce the individuality of user agents
@@ -19,7 +21,7 @@ import { IWorkbenchEnvironmentService } from '../../environment/common/environme
  * @returns A simplified user agent with less detail
  */
 function cleanUserAgent(userAgent: string): string {
-	return userAgent.replace(/(\d+\.\d+)(\.\d+)+/g, '$1');
+	return userAgent.replace(new RegExp(regexp1), '$1');
 }
 
 export function resolveWorkbenchCommonProperties(

@@ -1,4 +1,6 @@
 import { filepaths } from '../../helpers/filepaths';
+const regexp1 = /\/.*/;
+
 
 const packages: Fig.Generator = {
 	// only trigger when the token length transitions to or from 0
@@ -22,7 +24,7 @@ const packages: Fig.Generator = {
 			.trim()
 			.split("\n")
 			.filter((name) => name.startsWith(finalToken))
-			.map((name) => name.replace(/\/.*/, ""))
+			.map((name) => name.replace(regexp1, ""))
 			.map((name) => ({
 				name,
 				description: "Package",

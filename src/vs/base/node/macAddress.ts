@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { networkInterfaces } from 'os';
+const regexp1 = /\-/g;
+
 
 const invalidMacAddresses = new Set([
 	'00:00:00:00:00:00',
@@ -12,7 +14,7 @@ const invalidMacAddresses = new Set([
 ]);
 
 function validateMacAddress(candidate: string): boolean {
-	const tempCandidate = candidate.replace(/\-/g, ':').toLowerCase();
+	const tempCandidate = candidate.replace(new RegExp(regexp1), ':').toLowerCase();
 	return !invalidMacAddresses.has(tempCandidate);
 }
 

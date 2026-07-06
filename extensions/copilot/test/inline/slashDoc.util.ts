@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as assert from 'assert';
+const regexp1 = /^\s+/;
+
 
 export function assertDocLines(fileContents: string | string[], line: string, lineAssertion = (line: string) => { }) {
 
@@ -35,7 +37,7 @@ export function assertDocLinesForInlineComments(fileContents: string | string[],
 
 	if (lineNum === -1) { throw new Error(`given line cannot be found: either original line was changed or test was incorrectly created`); }
 
-	const indentation = fileLines[lineNum].match(/^\s+/)?.[0] ?? '';
+	const indentation = fileLines[lineNum].match(regexp1)?.[0] ?? '';
 	const expectedPrefix = `${indentation}${docCommentPrefix}`;
 
 	let hadDoc = false;

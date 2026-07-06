@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SettingsManager } from './settings';
+const regexp1 = /\n/g;
+
 
 const codeLineClass = 'code-line';
 
@@ -61,7 +63,7 @@ const getCodeLineElements = (() => {
 					// the `<code>` element and not the parent `<pre>` element.
 					// Calculate the end line by counting newlines in the code block
 					const text = element.textContent || '';
-					const lineCount = (text.match(/\n/g) || []).length + 1;
+					const lineCount = (text.match(new RegExp(regexp1)) || []).length + 1;
 					const endLine = line + lineCount - 1;
 					cachedElements.push(new CodeLineElement(element.parentElement, line, element, endLine));
 				} else if (element.tagName === 'PRE') {

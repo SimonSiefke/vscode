@@ -6,6 +6,8 @@
 import * as vscode from 'vscode';
 import * as util from 'util';
 import { randomUUID } from 'crypto';
+const regexp1 = /^[0-9]+$/;
+
 
 const PATTERN = 'listening on.* (https?://\\S+|[0-9]+)'; // matches "listening on port 3000" or "Now listening on: https://localhost:5001"
 const URI_PORT_FORMAT = 'http://localhost:%s';
@@ -170,7 +172,7 @@ class ServerReadyDetector extends vscode.Disposable {
 			uri = format;
 		} else {
 			// if no uriFormat is specified guess the appropriate format based on the captureString
-			const format = args.uriFormat || (/^[0-9]+$/.test(captureString) ? URI_PORT_FORMAT : URI_FORMAT);
+			const format = args.uriFormat || (regexp1.test(captureString) ? URI_PORT_FORMAT : URI_FORMAT);
 			// verify that format only contains a single '%s'
 			const s = format.split('%s');
 			if (s.length !== 2) {

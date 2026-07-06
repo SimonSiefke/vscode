@@ -13,6 +13,11 @@ import { type INamedPluginResource, type IMcpServerDefinition, type IParsedHookC
 import { ContributionEnablementState, IEnablementModel } from '../enablement.js';
 import { HookType } from '../promptSyntax/hookTypes.js';
 import { IMarketplacePlugin } from './pluginMarketplaceService.js';
+const regexp1 = /^[-:.]+|[-:.]+$/g;
+const regexp2 = /-+/g;
+const regexpZ0 = /[^a-z0-9_.:-]/g;
+const regexp4 = /\s+/g;
+
 
 export const IAgentPluginService = createDecorator<IAgentPluginService>('agentPluginService');
 
@@ -93,10 +98,10 @@ function normalizePluginToken(value: string): string {
 	return value
 		.trim()
 		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9_.:-]/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^[-:.]+|[-:.]+$/g, '');
+		.replace(new RegExp(regexp4), '-')
+		.replace(new RegExp(regexpZ0), '-')
+		.replace(new RegExp(regexp2), '-')
+		.replace(new RegExp(regexp1), '');
 }
 
 class AgentPluginDiscoveryRegistry {

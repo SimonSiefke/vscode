@@ -25,6 +25,8 @@ import { ClaudeFolderRepositoryManager, CopilotCLIFolderRepositoryManager } from
 import { MockChatSessionMetadataStore } from '../../common/test/mockChatSessionMetadataStore';
 import type { IClaudeSessionStateService } from '../../claude/common/claudeSessionStateService';
 import type { ClaudeFolderInfo } from '../../claude/common/claudeFolderInfo';
+const regexpFailedToCreate = /failed to create worktree/i;
+
 
 /**
  * Fake implementation of IChatSessionWorktreeService for testing.
@@ -515,7 +517,7 @@ describe('CopilotCLIFolderRepositoryManager', () => {
 
 			expect(result.worktree).toBeUndefined();
 			expect(result.repository?.fsPath).toBe(vscode.Uri.file('/my/repo').fsPath);
-			expect(stream.output.some(o => /failed to create worktree/i.test(o))).toBe(true);
+			expect(stream.output.some(o => regexpFailedToCreate.test(o))).toBe(true);
 		});
 
 		it('handles workspace folder without git repo', async () => {

@@ -44,6 +44,9 @@ import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { isImageDataPart } from '../common/languageModelChatMessageHelpers';
 import { LanguageModelAccessPrompt } from './languageModelAccessPrompt';
 import { formatPricingLabel, formatTokenCount, getAutoModelDescription, getAutoModelDiscountLabel, getModelCapabilitiesDescription, buildReasoningEffortSchemaProperty } from '../common/languageModelAccess';
+const regexpBcontext = /\([^)]*\bcontext\)/gi;
+const regexp2 = /^[\w-]+$/;
+
 
 /**
  * Markers in the autoModelHint experiment variable that indicate the auto model
@@ -311,7 +314,7 @@ export class LanguageModelAccess extends Disposable implements IExtensionContrib
 			seenFamilies.add(endpoint.family);
 
 			const sanitizedModelName = endpoint.name
-				.replace(/\([^)]*\bcontext\)/gi, '')
+				.replace(new RegExp(regexpBcontext), '')
 				.trim();
 			let modelTooltip: string | undefined;
 			if (endpoint.degradationReason) {
@@ -932,7 +935,7 @@ export class CopilotLanguageModelWrapper extends Disposable {
 
 	private validateTools(tools: readonly vscode.LanguageModelChatTool[]): void {
 		for (const tool of tools) {
-			if (!tool.name.match(/^[\w-]+$/)) {
+			if (!tool.name.match(regexp2)) {
 				throw new Error(`Invalid tool name "${tool.name}": only alphanumeric characters, hyphens, and underscores are allowed.`);
 			}
 		}

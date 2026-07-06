@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ISSHResolvedConfig } from './sshRemoteAgentHost.js';
+const regexpHost = /^Host\s+(.+)$/i;
+const regexp2 = /\s+/;
+
 
 /** Strip inline comments from an SSH config value. */
 export function stripSSHComment(s: string): string {
@@ -21,10 +24,10 @@ export function parseSSHConfigHostEntries(content: string): string[] {
 		if (!trimmed || trimmed.startsWith('#')) {
 			continue;
 		}
-		const hostMatch = trimmed.match(/^Host\s+(.+)$/i);
+		const hostMatch = trimmed.match(regexpHost);
 		if (hostMatch) {
 			const hostValue = stripSSHComment(hostMatch[1]);
-			for (const h of hostValue.split(/\s+/)) {
+			for (const h of hostValue.split(regexp2)) {
 				if (!h.includes('*') && !h.includes('?') && !h.startsWith('!')) {
 					hosts.push(h);
 				}

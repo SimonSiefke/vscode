@@ -17,6 +17,14 @@ import { type AutoMergeMethod, type CreatedPullRequest, IAgentHostOctoKitService
 import type { InvokeChangesetOperationParams, InvokeChangesetOperationResult } from '../common/state/protocol/channels-changeset/commands.js';
 import { ICopilotApiService, type ICopilotUtilityChatMessage } from './shared/copilotApiService.js';
 import { buildConversationContext } from '../common/agentHostConversationContext.js';
+const regexp1 = /[-_]+/g;
+const regexp2 = /\r\n/g;
+const regexpMarkdownMdText = /^```(?:markdown|md|text)?\s*([\s\S]*?)\s*```$/i;
+const regexpInner = /^"(?<inner>.+)"$/;
+const regexpTitle = /^title:\s*/i;
+const regexp6 = /^#+\s*/;
+const regexpDescription = /^description:\s*/i;
+
 
 /**
  * Soft upper bound, in characters, for the conversation context fed to the
@@ -312,10 +320,10 @@ export class AgentHostPullRequestOperationHandler implements IChangesetOperation
 		const idx = branchName.indexOf('/');
 		if (idx > 0 && idx < branchName.length - 1) {
 			const prefix = branchName.substring(0, idx);
-			const rest = branchName.substring(idx + 1).replace(/[-_]+/g, ' ');
+			const rest = branchName.substring(idx + 1).replace(new RegExp(regexp1), ' ');
 			return `${prefix}: ${rest}`;
 		}
-		return branchName.replace(/[-_]+/g, ' ');
+		return branchName.replace(new RegExp(regexp1), ' ');
 	}
 
 	private _formatCommitMessage(branchName: string): string {
@@ -439,8 +447,8 @@ export class AgentHostPullRequestOperationHandler implements IChangesetOperation
 	}
 
 	private _parseTitleAndDescription(raw: string): { title: string; description: string } | undefined {
-		let text = raw.trim().replace(/\r\n/g, '\n');
-		const fenced = /^```(?:markdown|md|text)?\s*([\s\S]*?)\s*```$/i.exec(text);
+		let text = raw.trim().replace(new RegExp(regexp2), '\n');
+		const fenced = regexpMarkdownMdText.exec(text);
 		if (fenced) {
 			text = fenced[1].trim();
 		}
@@ -458,16 +466,16 @@ export class AgentHostPullRequestOperationHandler implements IChangesetOperation
 		}
 
 		const title = lines[i].trim()
-			.replace(/^#+\s*/, '')
-			.replace(/^title:\s*/i, '')
+			.replace(regexp6, '')
+			.replace(regexpTitle, '')
 			.trim()
-			.replace(/^"(?<inner>.+)"$/, (_match, inner) => inner)
+			.replace(regexpInner, (_match, inner) => inner)
 			.trim();
 		if (!title) {
 			return undefined;
 		}
 
-		const description = lines.slice(i + 1).join('\n').trim().replace(/^description:\s*/i, '').trim();
+		const description = lines.slice(i + 1).join('\n').trim().replace(regexpDescription, '').trim();
 		return { title, description };
 	}
 

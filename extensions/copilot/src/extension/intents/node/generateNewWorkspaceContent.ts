@@ -9,6 +9,9 @@ import { IEndpointProvider } from '../../../platform/endpoint/common/endpointPro
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { FileContentsPrompt, NewWorkspaceContentsPromptProps, ProjectSpecificationPrompt } from '../../prompts/node/panel/newWorkspace/newWorkspaceContents';
+const regexp1 = /```([^\n]+)?\s*\n([\s\S]+?)\s*```/g;
+const regexpZA = /^```([a-zA-Z]+)?\s*([\s\S]+?)\s*```$/;
+
 
 
 abstract class NewWorkspaceContentGenerator {
@@ -80,7 +83,7 @@ export class FileContentsGenerator extends NewWorkspaceContentGenerator {
 
 		if (filePath.endsWith('.md')) {
 			// If returned as a markdown codeblock, strip the codeblock markers
-			const fromCodeblock = safeParse(chatResponse, /^```([a-zA-Z]+)?\s*([\s\S]+?)\s*```$/);
+			const fromCodeblock = safeParse(chatResponse, regexpZA);
 			// If returned as bare text, remove any text before the first header
 			const [preamble, ...withoutPreamble] = fromCodeblock.split('#');
 			if (preamble.length) {
@@ -88,7 +91,7 @@ export class FileContentsGenerator extends NewWorkspaceContentGenerator {
 			}
 			return fromCodeblock;
 		} else {
-			return safeParse(chatResponse, /```([^\n]+)?\s*\n([\s\S]+?)\s*```/g);
+			return safeParse(chatResponse, new RegExp(regexp1));
 		}
 	}
 }

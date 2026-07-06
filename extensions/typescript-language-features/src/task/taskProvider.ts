@@ -16,6 +16,8 @@ import { isTsConfigFileName } from '../configuration/languageDescription';
 import { Lazy } from '../utils/lazy';
 import { isImplicitProjectConfigFile } from '../tsconfig';
 import { TSConfig, TsConfigProvider } from './tsconfigProvider';
+const regexpTsconfigJson = /\\tsconfig.*\.json/;
+
 
 
 enum AutoDetect {
@@ -71,7 +73,7 @@ class TscTaskProvider extends Disposable implements vscode.TaskProvider {
 
 	public async resolveTask(task: vscode.Task): Promise<vscode.Task | undefined> {
 		const definition = <TypeScriptTaskDefinition>task.definition;
-		if (/\\tsconfig.*\.json/.test(definition.tsconfig)) {
+		if (regexpTsconfigJson.test(definition.tsconfig)) {
 			// Warn that the task has the wrong slash type
 			vscode.window.showWarningMessage(vscode.l10n.t("TypeScript Task in tasks.json contains \"\\\\\". TypeScript tasks tsconfig must use \"/\""));
 			return undefined;

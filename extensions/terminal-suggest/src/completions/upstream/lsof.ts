@@ -1,3 +1,7 @@
+const regexp1 = /^(-i[46])/;
+const regexp2 = /^[46]/;
+const regexpInet = /inet\b/;
+
 const completionSpec: Fig.Spec = {
 	name: "lsof",
 	description: "List open files",
@@ -257,8 +261,8 @@ const completionSpec: Fig.Spec = {
 						postProcess: function (out, tokens) {
 							const startParams = ["tcp", "udp", "TCP", "UDP"];
 							const token =
-								tokens[1].match(/^(-i[46])/) ||
-								(tokens[2] && tokens[2].match(/^[46]/));
+								tokens[1].match(regexp1) ||
+								(tokens[2] && tokens[2].match(regexp2));
 							const prefix = token && token.length > 0 ? token[1] : "";
 							const result = startParams.map((param) => ({
 								name: prefix + param,
@@ -271,7 +275,7 @@ const completionSpec: Fig.Spec = {
 						postProcess: function (out, tokens) {
 							const ips = out
 								.split("\n")
-								.filter((line) => line.match(/inet\b/))
+								.filter((line) => line.match(regexpInet))
 								.map((line) => {
 									const parts = line.split(" ");
 									return parts[1];

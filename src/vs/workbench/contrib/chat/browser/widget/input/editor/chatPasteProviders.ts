@@ -35,6 +35,8 @@ import { IChatWidgetService } from '../../../chat.js';
 import { getDynamicVariablesForWidget } from '../../../attachments/chatVariables.js';
 import { ChatDynamicVariableModel } from '../../../attachments/chatDynamicVariables.js';
 import { cleanupOldImages, createFileForMedia, resizeImage } from '../../../chatImageUtils.js';
+const regexpStrongEmCode = /<(a|strong|b|em|i|h[1-6]|code|pre|ul|ol|li|blockquote|del|s|strike|img|hr)\b/i;
+
 
 const COPY_MIME_TYPES = 'application/vnd.code.additional-editor-data';
 
@@ -706,7 +708,7 @@ class PasteHtmlProvider implements DocumentPasteEditProvider {
 		}
 
 		// Skip if the HTML is trivially plain text (no meaningful tags)
-		if (!/<(a|strong|b|em|i|h[1-6]|code|pre|ul|ol|li|blockquote|del|s|strike|img|hr)\b/i.test(htmlText)) {
+		if (!regexpStrongEmCode.test(htmlText)) {
 			return;
 		}
 

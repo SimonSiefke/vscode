@@ -7,6 +7,9 @@ import { Command, l10n, MarkdownString, Uri } from 'vscode';
 import { fromNow, getCommitShortHash } from './util';
 import { emojify } from './emoji';
 import { CoAuthor, CommitShortStat } from './git';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /!\[/g;
+
 
 export const AVATAR_SIZE = 20;
 
@@ -122,7 +125,7 @@ function appendContent(markdownString: MarkdownString, authorAvatar: string | un
 	}
 
 	// Subject | Message (escape image syntax)
-	markdownString.appendMarkdown(`${emojify(message.replace(/!\[/g, '&#33;&#91;').replace(/\r\n|\r|\n/g, '\n\n'))}`);
+	markdownString.appendMarkdown(`${emojify(message.replace(new RegExp(regexp2), '&#33;&#91;').replace(new RegExp(regexp1), '\n\n'))}`);
 	markdownString.appendMarkdown(`\n\n---\n\n`);
 }
 

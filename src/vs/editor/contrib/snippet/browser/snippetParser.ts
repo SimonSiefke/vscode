@@ -4,6 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CharCode } from '../../../../base/common/charCode.js';
+const regexp1 = /\$|}|\\/g;
+const regexp2 = /\||,|\\/g;
+const regexp3 = /[\p{L}0-9]+/gu;
+const regexp4 = /[\s_]+/g;
+const regexp5 = /^_+|_+$/g;
+const regexp6 = /[\p{L}0-9]/u;
+const regexp7 = /\p{Lu}{2,}(?=\p{Lu}\p{Ll}+[0-9]*|[\s_-]|$)|\p{Lu}?\p{Ll}+[0-9]*|\p{Lu}(?=\p{Lu}\p{Ll})|\p{Lu}(?=[\s_-]|$)|[0-9]+/gu;
+const regexp8 = /[\s_-]+/;
+const regexp9 = /[\s\-]+/g;
+const regexp10 = /(\p{Ll})(\p{Lu})/gu;
+const regexpCLIPBOARD = /\${?CLIPBOARD/;
+const regexp12 = /\\(\$|}|\\)/g;
+const regexp13 = /^\d+$/;
+
 
 export const enum TokenType {
 	Dollar,
@@ -201,7 +215,7 @@ export abstract class Marker {
 export class Text extends Marker {
 
 	static escape(value: string): string {
-		return value.replace(/\$|}|\\/g, '\\$&');
+		return value.replace(new RegExp(regexp1), '\\$&');
 	}
 
 	constructor(public value: string) {
@@ -300,7 +314,7 @@ export class Choice extends Marker {
 
 	toTextmateString(): string {
 		return this.options
-			.map(option => option.value.replace(/\||,|\\/g, '\\$&'))
+			.map(option => option.value.replace(new RegExp(regexp2), '\\$&'))
 			.join(',');
 	}
 
@@ -403,26 +417,26 @@ export class FormatString extends Marker {
 	// Note: word-based case transforms rely on uppercase/lowercase distinctions.
 	// For scripts without case, transforms are effectively no-ops.
 	private _toKebabCase(value: string): string {
-		const match = value.match(/[\p{L}0-9]+/gu);
+		const match = value.match(new RegExp(regexp3));
 		if (!match) {
 			return value;
 		}
 
-		if (!value.match(/[\p{L}0-9]/u)) {
+		if (!value.match(regexp6)) {
 			return value
 				.trim()
 				.toLowerCase()
-				.replace(/^_+|_+$/g, '')
-				.replace(/[\s_]+/g, '-');
+				.replace(new RegExp(regexp5), '')
+				.replace(new RegExp(regexp4), '-');
 		}
 
-		const cleaned = value.trim().replace(/^_+|_+$/g, '');
+		const cleaned = value.trim().replace(new RegExp(regexp5), '');
 
-		const match2 = cleaned.match(/\p{Lu}{2,}(?=\p{Lu}\p{Ll}+[0-9]*|[\s_-]|$)|\p{Lu}?\p{Ll}+[0-9]*|\p{Lu}(?=\p{Lu}\p{Ll})|\p{Lu}(?=[\s_-]|$)|[0-9]+/gu);
+		const match2 = cleaned.match(new RegExp(regexp7));
 
 		if (!match2) {
 			return cleaned
-				.split(/[\s_-]+/)
+				.split(regexp8)
 				.filter(word => word.length > 0)
 				.map(word => word.toLowerCase())
 				.join('-');
@@ -434,7 +448,7 @@ export class FormatString extends Marker {
 	}
 
 	private _toPascalCase(value: string): string {
-		const match = value.match(/[\p{L}0-9]+/gu);
+		const match = value.match(new RegExp(regexp3));
 		if (!match) {
 			return value;
 		}
@@ -445,7 +459,7 @@ export class FormatString extends Marker {
 	}
 
 	private _toCamelCase(value: string): string {
-		const match = value.match(/[\p{L}0-9]+/gu);
+		const match = value.match(new RegExp(regexp3));
 		if (!match) {
 			return value;
 		}
@@ -459,8 +473,8 @@ export class FormatString extends Marker {
 	}
 
 	private _toSnakeCase(value: string): string {
-		return value.replace(/(\p{Ll})(\p{Lu})/gu, '$1_$2')
-			.replace(/[\s\-]+/g, '_')
+		return value.replace(new RegExp(regexp10), '$1_$2')
+			.replace(new RegExp(regexp9), '_')
 			.toLowerCase();
 	}
 
@@ -648,7 +662,7 @@ export class TextmateSnippet extends Marker {
 export class SnippetParser {
 
 	static escape(value: string): string {
-		return value.replace(/\$|}|\\/g, '\\$&');
+		return value.replace(new RegExp(regexp1), '\\$&');
 	}
 
 	/**
@@ -660,7 +674,7 @@ export class SnippetParser {
 	}
 
 	static guessNeedsClipboard(template: string): boolean {
-		return /\${?CLIPBOARD/.test(template);
+		return regexpCLIPBOARD.test(template);
 	}
 
 	private _scanner: Scanner = new Scanner();
@@ -773,7 +787,7 @@ export class SnippetParser {
 			}
 			this._token = this._scanner.next();
 		}
-		const value = this._scanner.value.substring(start.pos, this._token.pos).replace(/\\(\$|}|\\)/g, '$1');
+		const value = this._scanner.value.substring(start.pos, this._token.pos).replace(new RegExp(regexp12), '$1');
 		this._token = this._scanner.next();
 		return value;
 	}
@@ -813,7 +827,7 @@ export class SnippetParser {
 			return this._backTo(token);
 		}
 
-		parent.appendChild(/^\d+$/.test(value!)
+		parent.appendChild(regexp13.test(value!)
 			? new Placeholder(Number(value!))
 			: new Variable(value!)
 		);

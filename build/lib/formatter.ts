@@ -5,6 +5,8 @@
 import fs from 'fs';
 import path from 'path';
 import ts from 'typescript';
+const regexp1 = /\r\n/gm;
+
 
 
 class LanguageServiceHost implements ts.LanguageServiceHost {
@@ -102,7 +104,7 @@ export function format(fileName: string, text: string) {
 
 export function verifyFormatting(fileName: string, text: string): boolean {
 	const formatted = format(fileName, text);
-	return text.replace(/\r\n/gm, '\n') === formatted.replace(/\r\n/gm, '\n');
+	return text.replace(new RegExp(regexp1), '\n') === formatted.replace(new RegExp(regexp1), '\n');
 }
 
 if (import.meta.main) {

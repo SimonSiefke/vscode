@@ -30,6 +30,9 @@ import { disposableTimeout } from '../../../../../base/common/async.js';
 import { HiddenItemStrategy, IWorkbenchToolBarOptions, WorkbenchToolBar } from '../../../../../platform/actions/browser/toolbar.js';
 import { IActionViewItemOptions } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { WorkbenchHoverDelegate } from '../../../../../platform/hover/browser/hover.js';
+const regexpNavigation = /^navigation/;
+const regexpStatus = /^status/;
+
 
 interface IActionModel {
 	action: IAction;
@@ -497,7 +500,7 @@ export class NotebookEditorWorkbenchToolbar extends Disposable {
 	private async _setNotebookActions() {
 		const groups = this._notebookGlobalActionsMenu.getActions({ shouldForwardArgs: true, renderShortTitle: true });
 		this.domNode.style.display = 'flex';
-		const primaryLeftGroups = groups.filter(group => /^navigation/.test(group[0]));
+		const primaryLeftGroups = groups.filter(group => regexpNavigation.test(group[0]));
 		const primaryActions: IAction[] = [];
 		primaryLeftGroups.sort((a, b) => {
 			if (a[0] === 'navigation') {
@@ -515,9 +518,9 @@ export class NotebookEditorWorkbenchToolbar extends Disposable {
 				primaryActions.push(new Separator());
 			}
 		});
-		const primaryRightGroup = groups.find(group => /^status/.test(group[0]));
+		const primaryRightGroup = groups.find(group => regexpStatus.test(group[0]));
 		const primaryRightActions = primaryRightGroup ? primaryRightGroup[1] : [];
-		const secondaryActions = groups.filter(group => !/^navigation/.test(group[0]) && !/^status/.test(group[0])).reduce((prev: (MenuItemAction | SubmenuItemAction)[], curr) => { prev.push(...curr[1]); return prev; }, []);
+		const secondaryActions = groups.filter(group => !regexpNavigation.test(group[0]) && !regexpStatus.test(group[0])).reduce((prev: (MenuItemAction | SubmenuItemAction)[], curr) => { prev.push(...curr[1]); return prev; }, []);
 
 		this._notebookLeftToolbar.setActions([], []);
 

@@ -16,6 +16,8 @@ import { NewSymbolNameTriggerKind, Range } from '../../src/vscodeTypes';
 import { ISimulationTestRuntime, ssuite, stest } from '../base/stest';
 import { setupSimulationWorkspace, teardownSimulationWorkspace } from './inlineChatSimulator';
 import { INLINE_INITIAL_DOC_TAG } from './shared/sharedTypes';
+const regexpZA = /^\.([a-zA-Z]+)/;
+
 
 type OffsetRange = {
 	startIndex: number;
@@ -515,7 +517,7 @@ ssuite({ title: 'Rename suggestions', location: 'external' }, () => {
 		const symbols = await provideNewSymbolNames(testingServiceCollection, [file]);
 
 		assert.ok(symbols && symbols.length > 1, 'Expected to provide > 1 symbols');
-		assert.ok(symbols.every(s => s.newSymbolName.match(/^\.([a-zA-Z]+)/)), 'All symbols are class names');
+		assert.ok(symbols.every(s => s.newSymbolName.match(regexpZA)), 'All symbols are class names');
 	});
 
 });

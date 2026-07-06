@@ -24,6 +24,8 @@ import { isProposedApiEnabled } from '../../../../services/extensions/common/ext
 import * as extensionsRegistry from '../../../../services/extensions/common/extensionsRegistry.js';
 import { ILanguageModelToolsService, IToolData, IToolSet, ToolDataSource, ToolSet } from './languageModelToolsService.js';
 import { toolsParametersSchemaSchemaId } from './languageModelToolsParametersSchema.js';
+const regexp1 = /^[\w-]+$/;
+
 
 export interface IRawToolContribution {
 	name: string;
@@ -229,7 +231,7 @@ export class LanguageModelToolsExtensionPointHandler implements IWorkbenchContri
 						continue;
 					}
 
-					if (!rawTool.name.match(/^[\w-]+$/)) {
+					if (!rawTool.name.match(regexp1)) {
 						extension.collector.error(`Extension '${extension.description.identifier.value}' CANNOT register tool with invalid id: ${rawTool.name}. The id must match /^[\\w-]+$/.`);
 						continue;
 					}

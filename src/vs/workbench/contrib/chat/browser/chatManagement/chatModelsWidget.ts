@@ -49,6 +49,9 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import Severity from '../../../../../base/common/severity.js';
 import { IJSONSchema } from '../../../../../base/common/jsonSchema.js';
 import { formatTokenCount } from '../../../../../base/common/numbers.js';
+const regexp1 = /\s+/g;
+const regexp2 = /\s/g;
+
 
 const $ = DOM.$;
 
@@ -248,14 +251,14 @@ function toggleFilter(currentQuery: string, filter: IFilterQuery): string {
 		for (const q of allSynonyms) {
 			queryWithRemovedFilter = queryWithRemovedFilter.replace(q, '');
 		}
-		return queryWithRemovedFilter.replace(/\s+/g, ' ').trim();
+		return queryWithRemovedFilter.replace(new RegExp(regexp1), ' ').trim();
 	} else if (hasExcludedQuery) {
 		// An excluded query is set, replace it with the new query
 		let newQuery = currentQuery;
 		for (const q of excludes) {
 			newQuery = newQuery.replace(q, '');
 		}
-		newQuery = newQuery.replace(/\s+/g, ' ').trim();
+		newQuery = newQuery.replace(new RegExp(regexp1), ' ').trim();
 		return newQuery ? `${newQuery} ${query}` : query;
 	} else {
 		// No filter is set, add the new query
@@ -1161,7 +1164,7 @@ export class ChatModelsWidget extends Disposable {
 					if (!query.trim()) {
 						return allSuggestions;
 					}
-					const queryParts = query.split(/\s/g);
+					const queryParts = query.split(new RegExp(regexp2));
 					const lastPart = queryParts[queryParts.length - 1];
 					if (lastPart.startsWith('@provider:')) {
 						return providerSuggestions;

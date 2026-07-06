@@ -18,6 +18,13 @@ import { defaultButtonStyles } from '../../../../../../../platform/theme/browser
 import { IChatToolInvocation, ToolConfirmKind } from '../../../../common/chatService/chatService.js';
 import { ChatToolInvocationPart } from './chatToolInvocationPart.js';
 import '../media/chatToolConfirmationCarousel.css';
+const regexp1 = /\s+/g;
+const regexp2 = /[\\*_#>]/g;
+const regexp3 = /`([^`]+)`/g;
+const regexp4 = /__([^_]+)__/g;
+const regexp5 = /\*\*([^*]+)\*\*/g;
+const regexp6 = /\[([^\]]*)\]\(([^)]+)\)/g;
+
 
 const COLLAPSED_CAROUSEL_MAX_HEIGHT = 300;
 const COLLAPSED_MESSAGE_MAX_HEIGHT = 200;
@@ -549,7 +556,7 @@ export class ChatToolConfirmationCarouselPart extends Disposable {
 	}
 
 	private truncateTitle(text: string): string {
-		text = text.replace(/\s+/g, ' ').trim();
+		text = text.replace(new RegExp(regexp1), ' ').trim();
 		const maxLength = 100;
 		return text.length > maxLength ? `${text.substring(0, maxLength)}\u2026` : text;
 	}
@@ -557,11 +564,11 @@ export class ChatToolConfirmationCarouselPart extends Disposable {
 	private toPlainText(message: string | IMarkdownString): string {
 		const markdown = typeof message === 'string' ? message : message.value;
 		return markdown
-			.replace(/\[([^\]]*)\]\(([^)]+)\)/g, (_match, text, url) => text || this.basename(url))
-			.replace(/\*\*([^*]+)\*\*/g, '$1')
-			.replace(/__([^_]+)__/g, '$1')
-			.replace(/`([^`]+)`/g, '$1')
-			.replace(/[\\*_#>]/g, '');
+			.replace(new RegExp(regexp6), (_match, text, url) => text || this.basename(url))
+			.replace(new RegExp(regexp5), '$1')
+			.replace(new RegExp(regexp4), '$1')
+			.replace(new RegExp(regexp3), '$1')
+			.replace(new RegExp(regexp2), '');
 	}
 
 	private basename(url: string): string {

@@ -32,6 +32,8 @@ import {
 	type ISSHResolvedConfig,
 	type ISSHConnectProgress,
 } from '../common/sshRemoteAgentHost.js';
+const regexp1 = /[\s:]+$/;
+
 
 export const ISSHRelayClientFactory = createDecorator<ISSHRelayClientFactory>('sshRelayClientFactory');
 
@@ -360,7 +362,7 @@ export class SSHRemoteAgentHostService extends Disposable implements ISSHRemoteA
 				const prompt = request.prompts[i];
 				// Trim trailing whitespace/colons from the server-supplied
 				// prompt for a cleaner title (e.g. "Password: " -> "Password").
-				const cleanedPrompt = prompt.prompt.replace(/[\s:]+$/, '');
+				const cleanedPrompt = prompt.prompt.replace(regexp1, '');
 				const title = request.prompts.length > 1
 					? `${request.displayHost} (${i + 1}/${request.prompts.length})`
 					: request.displayHost;

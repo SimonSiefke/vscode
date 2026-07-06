@@ -31,6 +31,9 @@ import { imageToHash } from '../widget/input/editor/chatPasteProviders.js';
 import { resizeImage } from '../chatImageUtils.js';
 import { BrowserViewUri } from '../../../../../platform/browserView/common/browserViewUri.js';
 import { BrowserViewSharingState, IBrowserViewWorkbenchService } from '../../../browserView/common/browserView.js';
+const regexpSvg = /\.(svg)$/i;
+const regexpGif = /\.gif$/i;
+
 
 export const IChatAttachmentResolveService = createDecorator<IChatAttachmentResolveService>('IChatAttachmentResolveService');
 
@@ -121,7 +124,7 @@ export class ChatAttachmentResolveService implements IChatAttachmentResolveServi
 		let omittedState = OmittedState.NotOmitted;
 
 		if (!isDirectory) {
-			if (/\.(svg)$/i.test(resource.path)) {
+			if (regexpSvg.test(resource.path)) {
 				omittedState = OmittedState.Full;
 			}
 		}
@@ -211,7 +214,7 @@ export class ChatAttachmentResolveService implements IChatAttachmentResolveServi
 			dataBuffer = readFile.value;
 		}
 
-		const isPartiallyOmitted = /\.gif$/i.test(resource.path);
+		const isPartiallyOmitted = regexpGif.test(resource.path);
 		const imageFileContext = await this.resolveImageAttachContext([{
 			id: resource.toString(),
 			name: fileName,

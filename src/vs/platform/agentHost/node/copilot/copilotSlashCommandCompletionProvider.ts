@@ -12,6 +12,9 @@ import { CompletionTriggerCharacter, IAgentHostCompletionItemProvider } from '..
 import { extractLeadingSlashToken, extractWhitespaceDelimitedSlashToken } from '../agentHostSlashCompletion.js';
 import { localize } from '../../../../nls.js';
 import { SYNCED_CUSTOMIZATION_SCHEME } from '../../common/agentHostFileSystemService.js';
+const regexp1 = /^\/([^\s/]+)(?:$|\s+([\s\S]*))/;
+const regexp2 = /[\[\]]/g;
+
 
 const HIDDEN_RUNTIME_COMMANDS = new Set<string>(['agent', 'app', 'changelog', 'context', 'copy', 'cwd', 'exit', 'extensions', 'feedback', 'help', 'ide', 'instructions', 'login', 'logout', 'mcp', 'model', 'new', 'plugin', 'rename', 'restart', 'resume', 'sandbox', 'session', 'settings', 'skills', 'statusline', 'streamer-mode', 'subagents', 'tasks', 'terminal-setup', 'theme', 'undo', 'update', 'user', 'voice', 'worktree', 'autopilot', 'yolo']);
 
@@ -80,7 +83,7 @@ export interface IParsedLeadingSlashCommand {
  * by end-of-input or by at least one whitespace character.
  */
 export function parseLeadingSlashCommand(prompt: string): IParsedLeadingSlashCommand | undefined {
-	const match = /^\/([^\s/]+)(?:$|\s+([\s\S]*))/.exec(prompt);
+	const match = regexp1.exec(prompt);
 	if (!match) {
 		return undefined;
 	}
@@ -196,7 +199,7 @@ export class CopilotSlashCommandCompletionProvider implements IAgentHostCompleti
 				// do nothing, skills do not have options
 				skillHint = command.input?.hint ? `  \n(Prompt: ${command.input.hint})` : '';
 			} else {
-				options.push(...(command.input?.hint ?? '').replace(/[\[\]]/g, '').split('|'));
+				options.push(...(command.input?.hint ?? '').replace(new RegExp(regexp2), '').split('|'));
 				if (options.length && !command.input?.required) {
 					// If we have options but they are optional,
 					// then make sure we add an empty option so that the user can select just the command without any options.

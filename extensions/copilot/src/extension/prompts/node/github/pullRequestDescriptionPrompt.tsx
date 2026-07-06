@@ -6,6 +6,10 @@ import { BasePromptElementProps, PromptElement, SystemMessage, UserMessage, } fr
 import { SafetyRules } from '../base/safetyRules';
 import { Tag } from '../base/tag';
 import { CustomInstructions } from '../panel/customInstructions';
+const regexp1 = /\n/g;
+const regexp2 = /\s+/g;
+const regexp3 = /[\u0000-\u001F\u007F]+/g;
+
 
 interface GitHubPullRequestPromptProps extends BasePromptElementProps {
 	commitMessages: string[];
@@ -95,11 +99,11 @@ interface GitHubPullRequestUserMessageProps extends BasePromptElementProps {
 
 class GitHubPullRequestUserMessage extends PromptElement<GitHubPullRequestUserMessageProps> {
 	render() {
-		const formattedCommitMessages = this.props.commitMessages.map(commit => `"${commit.replace(/\n/g, '. ')}"`).join(', ');
+		const formattedCommitMessages = this.props.commitMessages.map(commit => `"${commit.replace(new RegExp(regexp1), '. ')}"`).join(', ');
 		const formattedPatches = this.props.patches.map(patch => <>```diff<br />{patch}<br />```<br /></>);
 		const normalizedCompareBranch = this.props.compareBranch
-			?.replace(/[\u0000-\u001F\u007F]+/g, ' ')
-			.replace(/\s+/g, ' ')
+			?.replace(new RegExp(regexp3), ' ')
+			.replace(new RegExp(regexp2), ' ')
 			.trim();
 		const escapedCompareBranch = normalizedCompareBranch ? JSON.stringify(normalizedCompareBranch) : undefined;
 		return (

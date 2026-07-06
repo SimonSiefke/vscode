@@ -29,6 +29,9 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+const regexp9AZa = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const regexpZA = /^--([a-zA-Z-]+)=(.+)$/;
+
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -102,7 +105,7 @@ export function getAgentMeta(sdk: Sdk): { name: string; version: string } {
 		throw new Error(`Expected exactly one dependency in ${pkgPath}, found ${entries.length}: ${entries.map(([k]) => k).join(', ')}`);
 	}
 	const [name, version] = entries[0];
-	if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+	if (!regexp9AZa.test(version)) {
 		throw new Error(`Refusing to use ${name}@${version} from ${pkgPath}: must be an exact version (no ^ or ~ ranges)`);
 	}
 	const meta = { name, version };
@@ -207,7 +210,7 @@ export function sha256OfFile(filePath: string): Promise<string> {
 export function parseFlags(argv: readonly string[]): Map<string, string> {
 	const flags = new Map<string, string>();
 	for (const arg of argv) {
-		const m = /^--([a-zA-Z-]+)=(.+)$/.exec(arg);
+		const m = regexpZA.exec(arg);
 		if (m) {
 			flags.set(m[1], m[2]);
 		}

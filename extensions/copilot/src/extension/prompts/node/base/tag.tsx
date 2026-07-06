@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { PromptElement, PromptElementProps, TextChunk, useKeepWith } from '@vscode/prompt-tsx';
+const regexpZA = /^[a-zA-Z_][\w\.\-]*$/;
+
 
 export type TagProps = PromptElementProps<{
 	name: string;
@@ -12,7 +14,7 @@ export type TagProps = PromptElementProps<{
 
 export class Tag extends PromptElement<TagProps> {
 
-	private static readonly _regex = /^[a-zA-Z_][\w\.\-]*$/;
+	private static readonly _regex = regexpZA;
 
 	render() {
 

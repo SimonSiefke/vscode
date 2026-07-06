@@ -12,6 +12,8 @@ import { Event, Emitter } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { Disposable, DisposableResourceMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+const regexpUntitled = /Untitled-\d+/;
+
 
 export const IUntitledTextEditorService = createDecorator<IUntitledTextEditorService>('untitledTextEditorService');
 
@@ -164,7 +166,7 @@ export class UntitledTextEditorService extends Disposable implements IUntitledTe
 
 	declare readonly _serviceBrand: undefined;
 
-	private static readonly UNTITLED_WITHOUT_ASSOCIATED_RESOURCE_REGEX = /Untitled-\d+/;
+	private static readonly UNTITLED_WITHOUT_ASSOCIATED_RESOURCE_REGEX = regexpUntitled;
 
 	private readonly _onDidSave = this._register(new Emitter<IUntitledTextEditorModelSaveEvent>());
 	readonly onDidSave = this._onDidSave.event;

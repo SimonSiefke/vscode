@@ -10,6 +10,8 @@ import * as platform from '../../registry/common/platform.js';
 import { IColorTheme } from './themeService.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { RunOnceScheduler } from '../../../base/common/async.js';
+const regexp1 = /\./g;
+
 
 //  ------ API types
 
@@ -43,7 +45,7 @@ export interface SizeContribution {
  * @sample `editor.fontSize` is `--vscode-editor-fontSize`.
  */
 export function asCssVariableName(sizeIdent: SizeIdentifier): string {
-	return `--vscode-${sizeIdent.replace(/\./g, '-')}`;
+	return `--vscode-${sizeIdent.replace(new RegExp(regexp1), '-')}`;
 }
 
 export function asCssVariable(size: SizeIdentifier): string {

@@ -6,6 +6,11 @@ import assert from 'assert';
 
 import * as tt from 'typescript';
 import TS from '../../common/typescript';
+const regexp1 = /\s+/g;
+const regexp2 = /\t+/g;
+const regexp3 = /\n/g;
+const regexp4 = /\r\n/g;
+
 const ts = TS();
 
 import { computeContext as _computeContext, nesRename as _nesRename, prepareNesRename as _prepareNesRename } from '../../common/api';
@@ -73,7 +78,7 @@ export class SingleLanguageServiceSession extends ComputeContextSession {
 }
 
 function normalize(value: string): string {
-	return value.trim().replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\t+/g, ' ').replace(/\s+/g, ' ');
+	return value.trim().replace(new RegExp(regexp4), ' ').replace(new RegExp(regexp3), ' ').replace(new RegExp(regexp2), ' ').replace(new RegExp(regexp1), ' ');
 }
 
 export type ExpectedCodeSnippet = {

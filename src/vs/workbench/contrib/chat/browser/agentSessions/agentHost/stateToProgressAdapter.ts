@@ -34,6 +34,10 @@ import { hasKey, type Mutable } from '../../../../../../base/common/types.js';
 import { localize } from '../../../../../../nls.js';
 import type { IRange } from '../../../../../../editor/common/core/range.js';
 import { isSessionReferenceTrajectoryAttachment, restoreSessionReferenceVariableEntryFromAttachment } from './agentHostSessionReferenceAttachment.js';
+const regexp1 = /\r?\n/g;
+const regexpPathLineColumn = /^(?<path>.+?):(?<line>[1-9]\d*)(?::(?<column>[1-9]\d*))?$/;
+const regexp3 = /\s+/g;
+
 
 /**
  * Constructs a terminal tool session ID from a terminal URI and backend session.
@@ -707,7 +711,7 @@ function getTerminalOutput(tc: ToolCallState) {
 	// so a lone `\n` only advances the row without resetting the column (producing a
 	// staircase). SDK terminal tools return plain text with `\n` line endings, so
 	// normalize to `\r\n` here. The replace is idempotent on already-CRLF input.
-	return { text: text.replace(/\r?\n/g, '\r\n') };
+	return { text: text.replace(new RegExp(regexp1), '\r\n') };
 }
 
 function isToolResultTextContent(content: ToolResultContent): content is Extract<ToolResultContent, { type: ToolResultContentType.Text }> {
@@ -1272,7 +1276,7 @@ interface IFileLocation {
 }
 
 function parseFileLocation(path: string): IFileLocation {
-	const match = /^(?<path>.+?):(?<line>[1-9]\d*)(?::(?<column>[1-9]\d*))?$/.exec(path);
+	const match = regexpPathLineColumn.exec(path);
 	if (!match?.groups) {
 		return { path };
 	}
@@ -1370,7 +1374,7 @@ const ADD_COMMENT_PREVIEW_LENGTH = 40;
  * {@link ADD_COMMENT_PREVIEW_LENGTH} characters with a trailing ellipsis.
  */
 function addCommentPreview(text: string): string {
-	const singleLine = text.replace(/\s+/g, ' ').trim();
+	const singleLine = text.replace(new RegExp(regexp3), ' ').trim();
 	return singleLine.length > ADD_COMMENT_PREVIEW_LENGTH
 		? `${singleLine.slice(0, ADD_COMMENT_PREVIEW_LENGTH)}…`
 		: singleLine;

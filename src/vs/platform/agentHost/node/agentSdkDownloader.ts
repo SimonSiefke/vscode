@@ -22,6 +22,9 @@ import { ILogService } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
 import { IRequestService } from '../../request/common/request.js';
 import { IRequestContext } from '../../../base/parts/request/common/request.js';
+const regexp1 = /^\d+$/;
+const regexp2 = /{[^}]+}/;
+
 
 // #region Per-package strategy
 
@@ -219,7 +222,7 @@ const PROGRESS_EMIT_THROTTLE_MS = 250;
  * `undefined` when the header is absent, an array, or not a clean integer.
  */
 function parseContentLength(header: string | string[] | undefined): number | undefined {
-	if (typeof header !== 'string' || !/^\d+$/.test(header)) {
+	if (typeof header !== 'string' || !regexp1.test(header)) {
 		return undefined;
 	}
 	const parsed = parseInt(header, 10);
@@ -341,7 +344,7 @@ export class AgentSdkDownloader extends Disposable implements IAgentSdkDownloade
 		// `format2` leaves unknown `{placeholder}` segments untouched; catch
 		// vscode-distro typos like `{sdkTaret}` here instead of letting the
 		// CDN return a 404 against a clearly-broken URL.
-		const stray = /{[^}]+}/.exec(url);
+		const stray = regexp2.exec(url);
 		if (stray) {
 			throw new Error(
 				`Cannot load ${pkg.id} SDK: \`product.agentSdks.${pkg.id}.urlTemplate\` ` +

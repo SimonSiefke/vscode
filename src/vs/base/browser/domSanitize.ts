@@ -7,6 +7,8 @@ import { Schemas } from '../common/network.js';
 import { reset } from './dom.js';
 // eslint-disable-next-line no-restricted-imports
 import dompurify, * as DomPurifyTypes from './dompurify/dompurify.js';
+const regexp1 = /:$/;
+
 
 /**
  * List of safe, non-input html tags.
@@ -117,7 +119,7 @@ function validateLink(value: string, allowedProtocols: AllowedLinksConfig): bool
 
 	try {
 		const url = new URL(value, fakeRelativeUrlProtocol + '://');
-		if (allowedProtocols.override.includes(url.protocol.replace(/:$/, ''))) {
+		if (allowedProtocols.override.includes(url.protocol.replace(regexp1, ''))) {
 			return true;
 		}
 

@@ -10,6 +10,10 @@ import * as types from '../../../base/common/types.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IWorkspaceFolder } from '../../workspace/common/workspace.js';
+const regexp1 = /\]\[/g;
+const regexp2 = /]$/g;
+const regexp3 = /^\[/;
+
 
 export const IConfigurationService = createDecorator<IConfigurationService>('configurationService');
 
@@ -352,7 +356,7 @@ export function merge(base: IStringDictionary<unknown>, add: IStringDictionary<u
 
 export function getLanguageTagSettingPlainKey(settingKey: string) {
 	return settingKey
-		.replace(/^\[/, '')
-		.replace(/]$/g, '')
-		.replace(/\]\[/g, ', ');
+		.replace(regexp3, '')
+		.replace(new RegExp(regexp2), '')
+		.replace(new RegExp(regexp1), ', ');
 }

@@ -48,6 +48,17 @@ import {
 } from './sshRemoteAgentHostHelpers.js';
 import { parseSSHConfigHostEntries, parseSSHGOutput, stripSSHComment } from '../common/sshConfigParsing.js';
 import { removeAnsiEscapeCodes } from '../../../base/common/strings.js';
+const regexpBEGINENCRYPTEDPRIVATE = /-----BEGIN ENCRYPTED PRIVATE KEY-----/;
+const regexpProcTypeENCRYPTED = /Proc-Type:\s*4,ENCRYPTED/i;
+const regexpBEGINOPENSSHPRIVATE = /-----BEGIN OPENSSH PRIVATE KEY-----([\s\S]+?)-----END OPENSSH PRIVATE KEY-----/;
+const regexp4 = /\s+/g;
+const regexpVSCODEPID = /VSCODE_PID=(\d+)/;
+const regexpInclude = /^Include\s+(.+)$/i;
+const regexp7 = /\s+/;
+const regexp8 = /^~/;
+const regexp9 = /\*/g;
+const regexpBracedZaZa = /^\$\{(?<braced>[A-Za-z_][A-Za-z0-9_]*)\}$|^\$(?<plain>[A-Za-z_][A-Za-z0-9_]*)$/;
+
 
 /** Minimal subset of ssh2.ClientChannel used by this module (duplex stream). */
 interface SSHChannel extends NodeJS.ReadWriteStream {
@@ -253,14 +264,14 @@ function readSSHString(buffer: Buffer, offset: number): { value: string; offset:
 
 function isEncryptedPrivateKey(key: Buffer): boolean {
 	const text = key.toString('utf8');
-	if (/-----BEGIN ENCRYPTED PRIVATE KEY-----/.test(text) || /Proc-Type:\s*4,ENCRYPTED/i.test(text)) {
+	if (regexpBEGINENCRYPTEDPRIVATE.test(text) || regexpProcTypeENCRYPTED.test(text)) {
 		return true;
 	}
-	const openSSHKey = /-----BEGIN OPENSSH PRIVATE KEY-----([\s\S]+?)-----END OPENSSH PRIVATE KEY-----/.exec(text);
+	const openSSHKey = regexpBEGINOPENSSHPRIVATE.exec(text);
 	if (!openSSHKey) {
 		return false;
 	}
-	const data = Buffer.from(openSSHKey[1].replace(/\s+/g, ''), 'base64');
+	const data = Buffer.from(openSSHKey[1].replace(new RegExp(regexp4), ''), 'base64');
 	const magic = Buffer.from('openssh-key-v1\0', 'utf8');
 	if (data.length < magic.length || !data.subarray(0, magic.length).equals(magic)) {
 		return false;
@@ -350,7 +361,7 @@ function startRemoteAgentHost(
 			const checkForOutput = () => {
 				const clean = removeAnsiEscapeCodes(outputBuf);
 				if (pid === undefined) {
-					const pidMatch = clean.match(/VSCODE_PID=(\d+)/);
+					const pidMatch = clean.match(regexpVSCODEPID);
 					if (pidMatch) {
 						pid = parseInt(pidMatch[1], 10);
 						logService.info(`${LOG_PREFIX} Remote agent host PID: ${pid}`);
@@ -974,16 +985,16 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 			if (!trimmed || trimmed.startsWith('#')) {
 				continue;
 			}
-			const includeMatch = trimmed.match(/^Include\s+(.+)$/i);
+			const includeMatch = trimmed.match(regexpInclude);
 			if (!includeMatch) {
 				continue;
 			}
 
 			const rawValue = stripSSHComment(includeMatch[1]);
-			const patterns = rawValue.split(/\s+/).filter(Boolean);
+			const patterns = rawValue.split(regexp7).filter(Boolean);
 
 			for (const rawPattern of patterns) {
-				const pattern = rawPattern.replace(/^~/, os.homedir());
+				const pattern = rawPattern.replace(regexp8, os.homedir());
 				const resolvedPattern = isAbsolute(pattern) ? pattern : join(configDir, pattern);
 
 				if (seen.has(resolvedPattern)) {
@@ -1012,7 +1023,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 						try {
 							const files = await fsp.readdir(dir);
 							for (const file of files) {
-								const regex = new RegExp('^' + base.replace(/\*/g, '.*') + '$');
+								const regex = new RegExp('^' + base.replace(new RegExp(regexp9), '.*') + '$');
 								if (regex.test(file)) {
 									try {
 										const sub = await fsp.readFile(join(dir, file), 'utf-8');
@@ -1241,7 +1252,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 	 * `~`-prefixed defaults.
 	 */
 	private static _normalizeKeyPath(keyPath: string): string {
-		return keyPath.replace(/^~/, os.homedir());
+		return keyPath.replace(regexp8, os.homedir());
 	}
 
 	private static _isDefaultKeyPath(keyPath: string): boolean {
@@ -1270,10 +1281,10 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 			return this._isAgentAvailable();
 		}
 		if (trimmed.startsWith('$')) {
-			const envMatch = /^\$\{(?<braced>[A-Za-z_][A-Za-z0-9_]*)\}$|^\$(?<plain>[A-Za-z_][A-Za-z0-9_]*)$/.exec(trimmed);
+			const envMatch = regexpBracedZaZa.exec(trimmed);
 			return envMatch?.groups ? process.env[envMatch.groups.braced ?? envMatch.groups.plain] || undefined : undefined;
 		}
-		return trimmed.replace(/^~/, os.homedir());
+		return trimmed.replace(regexp8, os.homedir());
 	}
 
 	/**
@@ -1338,7 +1349,7 @@ export class SSHRemoteAgentHostMainService extends Disposable implements ISSHRem
 	 * so a single broken key doesn't abort the whole auth flow.
 	 */
 	protected async _readKeyFileIfExists(keyPath: string): Promise<Buffer | undefined> {
-		const resolved = keyPath.replace(/^~/, os.homedir());
+		const resolved = keyPath.replace(regexp8, os.homedir());
 		try {
 			return await fsp.readFile(resolved);
 		} catch (error) {

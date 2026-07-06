@@ -6,6 +6,8 @@
 import { distinct } from '../../../../base/common/arrays.js';
 import { ScopedLineTokens, ignoreBracketsInToken } from '../supports.js';
 import { BracketsUtils, RichEditBrackets } from './richEditBrackets.js';
+const regexp1 = /^\s*$/;
+
 
 /**
  * Interface used to support electric characters
@@ -66,7 +68,7 @@ export class BracketElectricCharacterSupport {
 		}
 
 		const textBeforeBracket = context.getActualLineContentBefore(r.startColumn - 1);
-		if (!/^\s*$/.test(textBeforeBracket)) {
+		if (!regexp1.test(textBeforeBracket)) {
 			// There is other text on the line before the bracket
 			return null;
 		}

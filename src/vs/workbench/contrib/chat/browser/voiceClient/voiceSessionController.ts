@@ -41,6 +41,10 @@ import {
 	VoiceReconnectClassification, VoiceReconnectEvent,
 	VoiceLatencyClassification, VoiceLatencyEvent,
 } from './voiceTelemetry.js';
+const regexp1 = /[.,!?;:]+$/;
+const regexp2 = /\s+/g;
+const regexp3 = /[^.!?]+[.!?]+(\s|$)/g;
+
 
 export type VoiceState = 'idle' | 'listening' | 'processing' | 'speaking' | 'error';
 
@@ -1346,7 +1350,7 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			return undefined;
 		}
 		// Strip trailing punctuation that speech recognizers often append
-		const trimmed = text.trimEnd().replace(/[.,!?;:]+$/, '').trimEnd();
+		const trimmed = text.trimEnd().replace(regexp1, '').trimEnd();
 		const keywordLower = keyword.toLowerCase();
 		if (trimmed.toLowerCase().endsWith(keywordLower)) {
 			const stripped = trimmed.slice(0, trimmed.length - keyword.length).trimEnd();
@@ -1835,12 +1839,12 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 	 * shows up in the first 600 chars.
 	 */
 	private _firstSentences(text: string, n: number): string {
-		const collapsed = text.replace(/\s+/g, ' ').trim();
+		const collapsed = text.replace(new RegExp(regexp2), ' ').trim();
 		if (!collapsed) {
 			return '';
 		}
 		const sentences: string[] = [];
-		const re = /[^.!?]+[.!?]+(\s|$)/g;
+		const re = new RegExp(regexp3);
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(collapsed)) !== null && sentences.length < n) {
 			sentences.push(m[0].trim());

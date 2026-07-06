@@ -6,6 +6,8 @@
 import type { SessionEventPayload } from '@github/copilot-sdk';
 import { softAssertNever } from '../../../../base/common/assert.js';
 import { localize } from '../../../../nls.js';
+const regexpSystemNotificationSystem = /^<system_notification>\s*([\s\S]*?)\s*<\/system_notification>$/;
+
 
 export interface ICopilotSystemNotification {
 	/** Text for a new system-origin AHP turn; derived from SDK `data.kind` metadata, e.g. shell completion `description`. */
@@ -66,6 +68,6 @@ export function buildCopilotSystemNotification(event: SessionEventPayload<'syste
 
 function cleanSystemNotificationContent(content: string): string {
 	const trimmed = content.trim();
-	const match = /^<system_notification>\s*([\s\S]*?)\s*<\/system_notification>$/.exec(trimmed);
+	const match = regexpSystemNotificationSystem.exec(trimmed);
 	return (match?.[1] ?? trimmed).trim();
 }

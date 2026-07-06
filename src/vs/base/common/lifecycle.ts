@@ -10,6 +10,9 @@ import { URI } from './uri.js';
 import { createSingleCallFunction } from './functional.js';
 import { Iterable } from './iterator.js';
 import { BugIndicatingError, onUnexpectedError } from './errors.js';
+const regexpTrackDisposable = /^trackDisposable \(.*\)$/;
+const regexpDisposableTrackerTrackDisposable = /^DisposableTracker.trackDisposable \(.*\)$/;
+
 
 // #region Disposable Tracking
 
@@ -175,7 +178,7 @@ export class DisposableTracker implements IDisposableTracker {
 			}
 
 			const lines = leaking.source!.split('\n').map(p => p.trim().replace('at ', '')).filter(l => l !== '');
-			removePrefix(lines, ['Error', /^trackDisposable \(.*\)$/, /^DisposableTracker.trackDisposable \(.*\)$/]);
+			removePrefix(lines, ['Error', regexpTrackDisposable, regexpDisposableTrackerTrackDisposable]);
 			return lines.reverse();
 		}
 

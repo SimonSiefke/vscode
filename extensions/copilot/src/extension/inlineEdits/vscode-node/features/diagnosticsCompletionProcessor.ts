@@ -38,6 +38,8 @@ import { AnyDiagnosticCompletionItem, AnyDiagnosticCompletionProvider } from './
 import { AsyncDiagnosticCompletionProvider } from './diagnosticsBasedCompletions/asyncDiagnosticsCompletionProvider';
 import { Diagnostic, DiagnosticCompletionItem, DiagnosticInlineEditRequestLogContext, IDiagnosticCompletionProvider, log, logList, sortDiagnosticsByDistance } from './diagnosticsBasedCompletions/diagnosticsCompletions';
 import { ImportDiagnosticCompletionItem, ImportDiagnosticCompletionProvider } from './diagnosticsBasedCompletions/importDiagnosticsCompletionProvider';
+const regexpZAZ0 = /^[a-zA-Z0-9_]$/;
+
 
 interface IDiagnosticsCompletionState<T extends DiagnosticCompletionItem = DiagnosticCompletionItem> {
 	completionItem: T | null;
@@ -104,7 +106,7 @@ export class DiagnosticsCollection {
 				edgeCharacter = new OffsetRange(offsetBeforeOldRange, offsetBeforeOldRange + 1).substring(after.value);
 			}
 
-			if (edgeCharacter.length !== 1 || /^[a-zA-Z0-9_]$/.test(edgeCharacter)) {
+			if (edgeCharacter.length !== 1 || regexpZAZ0.test(edgeCharacter)) {
 				// The content at the diagnostic range has changed
 				diagnostic.invalidate();
 				hasInvalidated = true;

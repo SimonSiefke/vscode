@@ -5,6 +5,16 @@
 
 import { createServiceIdentifier } from '../../../util/common/services';
 import { Disposable } from '../../../util/vs/base/common/lifecycle';
+const regexpPROXYHTTPSSOCKS = /(\b(?:PROXY|HTTPS?|SOCKS[45]?)\s+)[^\s]+@([^\s:\/]+)/gi;
+const regexpPROXYHTTPSSOCKS1 = /(\b(?:PROXY|HTTPS?|SOCKS[45]?)\s+)([a-zA-Z0-9][-a-zA-Z0-9.]*)/gi;
+const regexp3 = /(\/\/)[^\s/]+@([^\s:\/]+)/g;
+const regexp4 = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+const regexpZA9aFA = /(?<![a-zA-Z_:])(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}(?![a-zA-Z_])/g;
+const regexpZA9aFA1 = /(?<![a-zA-Z_:])(?:(?:[0-9a-fA-F]{1,4}:){1,7}|:):[0-9a-fA-F:]*[0-9a-fA-F](?![a-zA-Z_])/g;
+const regexpZAZ0ZA = /\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}\b/g;
+const regexpZ0 = /([a-z][a-z0-9+.-]*):\/\//gi;
+const regexpRequestDoneRequestId = /request done: requestId: \[([0-9a-fA-F-]+)\] model deployment ID: \[/;
+
 
 export const ILogService = createServiceIdentifier<ILogService>('ILogService');
 
@@ -409,19 +419,19 @@ export function collectSingleLineErrorMessage(e: any, includeDetails = false): s
  */
 export function sanitizeNetworkErrorForTelemetry(message: string): string {
 	// Strip credentials and host from proxy result strings (e.g., "PROXY user:pass@host" → "PROXY <credentials>@<host>")
-	message = message.replace(/(\b(?:PROXY|HTTPS?|SOCKS[45]?)\s+)[^\s]+@([^\s:\/]+)/gi, '$1<credentials>@<host>');
+	message = message.replace(new RegExp(regexpPROXYHTTPSSOCKS), '$1<credentials>@<host>');
 	// Strip host from proxy result strings without credentials (e.g., "PROXY host:8080" → "PROXY <host>:8080")
-	message = message.replace(/(\b(?:PROXY|HTTPS?|SOCKS[45]?)\s+)([a-zA-Z0-9][-a-zA-Z0-9.]*)/gi, '$1<host>');
+	message = message.replace(new RegExp(regexpPROXYHTTPSSOCKS1), '$1<host>');
 	// Strip credentials and host from URLs (e.g., "://user:pass@host" → "://<credentials>@<host>")
-	message = message.replace(/(\/\/)[^\s/]+@([^\s:\/]+)/g, '$1<credentials>@<host>');
+	message = message.replace(new RegExp(regexp3), '$1<credentials>@<host>');
 	// Replace IPv4 addresses, preserving the port if present
-	message = message.replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, '<ip>');
+	message = message.replace(new RegExp(regexp4), '<ip>');
 	// Replace IPv6 addresses (full form, e.g., "2001:db8:85a3:0:0:8a2e:370:7334")
-	message = message.replace(/(?<![a-zA-Z_:])(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}(?![a-zA-Z_])/g, '<ip>');
+	message = message.replace(new RegExp(regexpZA9aFA), '<ip>');
 	// Replace IPv6 addresses (compressed form with ::, e.g., "2001:db8::1" or "::1")
-	message = message.replace(/(?<![a-zA-Z_:])(?:(?:[0-9a-fA-F]{1,4}:){1,7}|:):[0-9a-fA-F:]*[0-9a-fA-F](?![a-zA-Z_])/g, '<ip>');
+	message = message.replace(new RegExp(regexpZA9aFA1), '<ip>');
 	// Replace FQDNs (at least one dot, TLD of 2+ alpha chars), preserving the port if present
-	message = message.replace(/\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,}\b/g, '<host>');
+	message = message.replace(new RegExp(regexpZAZ0ZA), '<host>');
 	return message;
 }
 
@@ -485,7 +495,7 @@ function extractChromiumDetails(details: ElectronFetchErrorChromiumDetails): any
 
 	if (details.proxy) {
 		const proxyString = String(details.proxy);
-		const proxySchemes = [...proxyString.matchAll(/([a-z][a-z0-9+.-]*):\/\//gi)].map(match => match[1]);
+		const proxySchemes = [...proxyString.matchAll(new RegExp(regexpZ0))].map(match => match[1]);
 		if (proxySchemes.length > 0) {
 			extracted.proxy_schemes = proxySchemes;
 		}
@@ -648,7 +658,7 @@ export class LogMemory {
 	 * Returns a string in the format 'requestId: {string}' or undefined if not found.
 	 */
 	private static extractRequestIdFromMessage(message: string): string | undefined {
-		const match = message.match(/request done: requestId: \[([0-9a-fA-F-]+)\] model deployment ID: \[/);
+		const match = message.match(regexpRequestDoneRequestId);
 		if (match) {
 			const requestId = match[1];
 			if (!this._requestIds.includes(requestId)) {

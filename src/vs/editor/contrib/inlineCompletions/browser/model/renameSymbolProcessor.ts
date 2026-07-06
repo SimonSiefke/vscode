@@ -31,6 +31,8 @@ import type { URI } from '../../../../../base/common/uri.js';
 import type { ICodeEditor } from '../../../../browser/editorBrowser.js';
 import { ICodeEditorService } from '../../../../browser/services/codeEditorService.js';
 import { TextModelValueReference } from './textModelValueReference.js';
+const regexp1 = /\s/;
+
 
 enum RenameKind {
 	no = 'no',
@@ -166,7 +168,7 @@ export class RenameInferenceEngine {
 
 			// If the original text segment contains a whitespace character we don't consider this a rename since
 			// identifiers in programming languages can't contain whitespace characters usually
-			if (/\s/.test(originalTextSegment)) {
+			if (regexp1.test(originalTextSegment)) {
 				others.push(new TextReplacement(range, insertedTextSegment));
 				tokenDiff += diff;
 				continue;
@@ -182,7 +184,7 @@ export class RenameInferenceEngine {
 			}
 			// If the inserted text contains a whitespace character we don't consider this a rename since identifiers in
 			// programming languages can't contain whitespace characters usually
-			if (/\s/.test(insertedTextSegment)) {
+			if (regexp1.test(insertedTextSegment)) {
 				others.push(new TextReplacement(range, insertedTextSegment));
 				tokenDiff += diff;
 				continue;

@@ -11,6 +11,8 @@ import { debounce } from './decorators';
 import { filterEvent, dispose, anyEvent, PromiseSource, combinedDisposable, runAndSubscribeEvent } from './util';
 import type { Change } from './api/git';
 import { GitErrorCodes, Status } from './api/git.constants';
+const regexpGitignoreGitInfo = /\.gitignore$|\.git\/info\/exclude$/;
+
 
 function equalSourceControlHistoryItemRefs(ref1?: SourceControlHistoryItemRef, ref2?: SourceControlHistoryItemRef): boolean {
 	if (ref1 === ref2) {
@@ -34,7 +36,7 @@ class GitIgnoreDecorationProvider implements FileDecorationProvider {
 
 	constructor(private model: Model) {
 		const onDidChangeRepository = anyEvent<unknown>(
-			filterEvent(workspace.onDidSaveTextDocument, e => /\.gitignore$|\.git\/info\/exclude$/.test(e.uri.path)),
+			filterEvent(workspace.onDidSaveTextDocument, e => regexpGitignoreGitInfo.test(e.uri.path)),
 			model.onDidOpenRepository,
 			model.onDidCloseRepository
 		);

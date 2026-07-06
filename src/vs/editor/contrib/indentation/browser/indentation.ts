@@ -27,6 +27,9 @@ import { IModelService } from '../../../common/services/model.js';
 import { getStandardTokenTypeAtPosition } from '../../../common/tokens/lineTokens.js';
 import { getReindentEditOperations } from '../common/indentation.js';
 import * as indentUtils from '../common/indentUtils.js';
+const regexp1 = /\S/;
+const regexp2 = /\t/ig;
+
 
 export class IndentationToSpacesAction extends EditorAction {
 	public static readonly ID = 'editor.action.indentationToSpaces';
@@ -438,7 +441,7 @@ export class AutoIndentOnPaste implements IEditorContribution {
 		let startLineNumber = range.startLineNumber;
 
 		let firstLineText = model.getLineContent(startLineNumber);
-		if (!/\S/.test(firstLineText.substring(0, range.startColumn - 1))) {
+		if (!regexp1.test(firstLineText.substring(0, range.startColumn - 1))) {
 			const indentOfFirstLine = getGoodIndentForLine(autoIndent, model, model.getLanguageId(), startLineNumber, indentConverter, this._languageConfigurationService);
 
 			if (indentOfFirstLine !== null) {
@@ -471,7 +474,7 @@ export class AutoIndentOnPaste implements IEditorContribution {
 
 		// ignore empty or ignored lines
 		while (startLineNumber < range.endLineNumber) {
-			if (!/\S/.test(model.getLineContent(startLineNumber + 1))) {
+			if (!regexp1.test(model.getLineContent(startLineNumber + 1))) {
 				startLineNumber++;
 				continue;
 			}
@@ -602,7 +605,7 @@ function getIndentationEditOperations(model: ITextModel, builder: IEditOperation
 		const originalIndentation = model.getValueInRange(originalIndentationRange);
 		const newIndentation = (
 			tabsToSpaces
-				? originalIndentation.replace(/\t/ig, spaces)
+				? originalIndentation.replace(new RegExp(regexp2), spaces)
 				: originalIndentation.replace(spacesRegExp, '\t')
 		);
 

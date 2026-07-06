@@ -45,6 +45,11 @@ import { CustomLineHeightData } from '../viewLayout/lineHeights.js';
 import { TextModelEditSource } from '../textModelEditSource.js';
 import { InlineDecoration } from './inlineDecorations.js';
 import { ICoordinatesConverter } from '../coordinatesConverter.js';
+const regexp1 = /[:;\\\/<>]/;
+const regexp2 = /"/g;
+const regexp3 = /[,']/;
+const regexp4 = /[+ ]/;
+
 
 const USE_IDENTITY_LINES_COLLECTION = true;
 
@@ -1071,17 +1076,17 @@ export class ViewModel extends Disposable implements IViewModel {
 
 		const fontInfo = this._configuration.options.get(EditorOption.fontInfo);
 		const colorMap = this._getColorMap();
-		const hasBadChars = (/[:;\\\/<>]/.test(fontInfo.fontFamily));
+		const hasBadChars = (regexp1.test(fontInfo.fontFamily));
 		const useDefaultFontFamily = (hasBadChars || fontInfo.fontFamily === EDITOR_FONT_DEFAULTS.fontFamily);
 		let fontFamily: string;
 		if (useDefaultFontFamily) {
 			fontFamily = EDITOR_FONT_DEFAULTS.fontFamily;
 		} else {
 			fontFamily = fontInfo.fontFamily;
-			fontFamily = fontFamily.replace(/"/g, '\'');
-			const hasQuotesOrIsList = /[,']/.test(fontFamily);
+			fontFamily = fontFamily.replace(new RegExp(regexp2), '\'');
+			const hasQuotesOrIsList = regexp3.test(fontFamily);
 			if (!hasQuotesOrIsList) {
-				const needsQuotes = /[+ ]/.test(fontFamily);
+				const needsQuotes = regexp4.test(fontFamily);
 				if (needsQuotes) {
 					fontFamily = `'${fontFamily}'`;
 				}

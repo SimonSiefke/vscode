@@ -12,6 +12,8 @@ import { NullTelemetryService } from '../../../../platform/telemetry/common/null
 import type { TelemetryDestination, TelemetryEventMeasurements, TelemetryEventProperties } from '../../../../platform/telemetry/common/telemetry';
 import { TestLogService } from '../../../../platform/testing/common/testLogService';
 import type { IBYOKStorageService } from '../byokStorageService';
+const regexpNoAPIKey = /No API key configured/i;
+
 
 const mockHandleAPIKeyUpdate = vi.fn();
 
@@ -188,7 +190,7 @@ describe('GeminiNativeBYOKLMProvider', () => {
 			{ requestInitiator: 'test', tools: [], toolMode: vscode.LanguageModelChatToolMode.Auto },
 			progress,
 			tokenSource.token
-		)).rejects.toThrow(/No API key configured/i);
+		)).rejects.toThrow(regexpNoAPIKey);
 	});
 
 	// it.skip('initializes the Gemini client on API key update and can stream a response', async () => {

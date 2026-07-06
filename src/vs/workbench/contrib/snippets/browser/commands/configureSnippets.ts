@@ -22,6 +22,8 @@ import { ISnippetsService } from '../snippets.js';
 import { SnippetSource } from '../snippetsFile.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { IUserDataProfileService } from '../../../../services/userDataProfile/common/userDataProfile.js';
+const regexpJson = /\.json$/;
+
 
 namespace ISnippetPick {
 	export function is(thing: object | undefined): thing is ISnippetPick {
@@ -98,7 +100,7 @@ async function computePicks(snippetService: ISnippetsService, userDataProfileSer
 
 		} else {
 			// language snippet
-			const mode = basename(file.location).replace(/\.json$/, '');
+			const mode = basename(file.location).replace(regexpJson, '');
 			existing.push({
 				label: basename(file.location),
 				description: `(${languageService.getLanguageName(mode) ?? mode})`,

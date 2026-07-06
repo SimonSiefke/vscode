@@ -47,6 +47,8 @@ import { CachedEdit, CachedOrRebasedEdit, NextEditCache } from './nextEditCache'
 import { LlmNESTelemetryBuilder, ReusedRequestKind } from './nextEditProviderTelemetry';
 import { INextEditResult, NextEditResult } from './nextEditResult';
 import { SpeculativeCancelReason, SpeculativeRequestManager } from './speculativeRequestManager';
+const regexp1 = /\n/g;
+
 
 /**
  * Computes a reduced window range that encompasses both the original window (shrunk by one line
@@ -86,7 +88,7 @@ function convertLineEditToEdit(nextLineEdit: LineEdit, document: StringText): St
 	// line endings and the resulting content matches what VS Code reports.
 	if (document.value.includes('\r\n')) {
 		return new StringEdit(suggestedEdit.replacements.map(
-			r => new StringReplacement(r.replaceRange, r.newText.replace(/\n/g, '\r\n'))
+			r => new StringReplacement(r.replaceRange, r.newText.replace(new RegExp(regexp1), '\r\n'))
 		));
 	}
 	return suggestedEdit;

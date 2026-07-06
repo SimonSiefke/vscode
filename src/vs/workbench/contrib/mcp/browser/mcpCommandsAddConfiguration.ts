@@ -41,6 +41,11 @@ import { allDiscoverySources, DiscoverySource, mcpDiscoverySection, mcpStdioServ
 import { IMcpRegistry } from '../common/mcpRegistryTypes.js';
 import { IMcpService, McpConnectionState } from '../common/mcpTypes.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+const regexp1 = /(?:[^\s"]+|"[^"]*")+/g;
+const regexp2 = /"/g;
+const regexpJson = /\.json$/;
+const regexpJson1 = /\.json$/i;
+
 
 export const enum AddConfigurationType {
 	Stdio,
@@ -242,12 +247,12 @@ export class McpAddConfigurationCommand {
 		});
 
 		// Split command into command and args, handling quotes
-		const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g)!;
+		const parts = command.match(new RegExp(regexp1))!;
 		return {
 			type: McpServerType.LOCAL,
-			command: parts[0].replace(/"/g, ''),
+			command: parts[0].replace(new RegExp(regexp2), ''),
 
-			args: parts.slice(1).map(arg => arg.replace(/"/g, ''))
+			args: parts.slice(1).map(arg => arg.replace(new RegExp(regexp2), ''))
 		};
 	}
 
@@ -596,7 +601,7 @@ export class McpAddConfigurationCommand {
 	}
 
 	public async pickForUrlHandler(resource: URI, showIsPrimary = false): Promise<void> {
-		const name = decodeURIComponent(basename(resource)).replace(/\.json$/, '');
+		const name = decodeURIComponent(basename(resource)).replace(regexpJson, '');
 		const placeHolder = localize('install.title', 'Install MCP server {0}', name);
 
 		const items: IQuickPickItem[] = [
@@ -738,7 +743,7 @@ export class McpInstallFromManifestCommand {
 			name = await this._quickInputService.input({
 				title: localize('mcp.installFromManifest.serverId.title', "Enter Server ID"),
 				placeHolder: localize('mcp.installFromManifest.serverId.placeholder', "Unique identifier for this server"),
-				value: basename(manifestUri).replace(/\.json$/i, ''),
+				value: basename(manifestUri).replace(regexpJson1, ''),
 				ignoreFocusLost: true,
 			});
 

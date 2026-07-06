@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { sign, type SignOptions } from '@electron/osx-sign';
 import { spawn } from '@malept/cross-spawn-promise';
+const regexpTarget = /^target="(.*)"$/m;
+
 
 const root = path.dirname(path.dirname(import.meta.dirname));
 const baseDir = path.dirname(import.meta.dirname);
@@ -14,7 +16,7 @@ const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf
 
 function getElectronVersion(): string {
 	const npmrc = fs.readFileSync(path.join(root, '.npmrc'), 'utf8');
-	const target = /^target="(.*)"$/m.exec(npmrc)![1];
+	const target = regexpTarget.exec(npmrc)![1];
 	return target;
 }
 

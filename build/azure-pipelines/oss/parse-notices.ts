@@ -12,6 +12,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import fs from 'fs';
+const regexp1 = /\s/;
+const regexpZ0Z0 = /^@?[a-z0-9][a-z0-9\-\./@_]*$/;
+const regexpZAZ0ZA = /^[a-zA-Z0-9_\-]+\/[a-zA-Z0-9_\-\.]+$/;
+const regexp4 = /^.+?\s+[\d][^\s]*\s+-\s+.+$/;
+const regexp5 = /^-{50,}$/;
+const regexp6 = /^(.+?)\s+([\d][^\s]*)\s+-\s+(.+)$/;
+const regexp7 = /^(.+?)\s+-\s+(.+)$/;
+
 
 export interface NoticeEntry {
 	name: string;
@@ -55,15 +63,15 @@ export function isPackageHeader(line: string): boolean {
 	// They start with @, a lowercase letter, or a digit (for rare cases)
 	// and consist of [a-z0-9@/._-]
 	// CG git entries use Org/Repo (mixed case) — handle separately
-	const firstWord = line.split(/\s/)[0];
+	const firstWord = line.split(regexp1)[0];
 	if (!firstWord) {
 		return false;
 	}
 
 	// Standard npm-style package name (lowercase, may start with @)
-	const npmNameRe = /^@?[a-z0-9][a-z0-9\-\./@_]*$/;
+	const npmNameRe = regexpZ0Z0;
 	// CG git-style: Org/Repo (e.g., "nickel-org/rust-mustache")
-	const gitRepoRe = /^[a-zA-Z0-9_\-]+\/[a-zA-Z0-9_\-\.]+$/;
+	const gitRepoRe = regexpZAZ0ZA;
 
 	if (npmNameRe.test(firstWord) || gitRepoRe.test(firstWord)) {
 		return true;
@@ -71,7 +79,7 @@ export function isPackageHeader(line: string): boolean {
 
 	// Some entries have names with mixed case (rare but legitimate)
 	// Accept if the line matches "name version - license" pattern strictly
-	if (/^.+?\s+[\d][^\s]*\s+-\s+.+$/.test(line)) {
+	if (regexp4.test(line)) {
 		return true;
 	}
 
@@ -82,7 +90,7 @@ export function parseNoticeFile(filePath: string): NoticeEntry[] {
 	const content = fs.readFileSync(filePath, 'utf8');
 	const lines = content.split('\n');
 	const entries: NoticeEntry[] = [];
-	const sepRe = /^-{50,}$/;
+	const sepRe = regexp5;
 
 	for (let i = 0; i < lines.length; i++) {
 		if (!sepRe.test(lines[i].trim())) {
@@ -124,7 +132,7 @@ export function parseNoticeFile(filePath: string): NoticeEntry[] {
 		}
 
 		// Parse: "name version - license" or just "name"
-		const match = headerLine.match(/^(.+?)\s+([\d][^\s]*)\s+-\s+(.+)$/);
+		const match = headerLine.match(regexp6);
 		let name: string, version: string, license: string;
 		if (match) {
 			name = match[1];
@@ -132,7 +140,7 @@ export function parseNoticeFile(filePath: string): NoticeEntry[] {
 			license = match[3];
 		} else {
 			// Try: "name - license" (no version)
-			const match2 = headerLine.match(/^(.+?)\s+-\s+(.+)$/);
+			const match2 = headerLine.match(regexp7);
 			if (match2) {
 				name = match2[1];
 				version = '';

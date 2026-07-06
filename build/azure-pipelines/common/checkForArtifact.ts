@@ -5,10 +5,12 @@
 
 import { type Artifact, requestAZDOAPI } from './publish.ts';
 import { retry } from './retry.ts';
+const regexpSbom = /sbom$/;
+
 
 async function getPipelineArtifacts(): Promise<Artifact[]> {
 	const result = await requestAZDOAPI<{ readonly value: Artifact[] }>('artifacts');
-	return result.value.filter(a => !/sbom$/.test(a.name));
+	return result.value.filter(a => !regexpSbom.test(a.name));
 }
 
 async function main([variableName, artifactName]: string[]): Promise<void> {

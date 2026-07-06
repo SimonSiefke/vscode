@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^\d{4}-/;
+const regexpRegressionThreshold = /Regression threshold\*\* \| (\d+)%/;
+const regexp9a = /^[0-9a-f]{7,40}$/;
+const regexp4 = /^\d+\.\d+\.\d+/;
+
 // @ts-check
 
 /**
@@ -117,7 +122,7 @@ function mergeResults(resultsDir) {
 		// Search for results.json in timestamped subdirs
 		const subdirs = fs.readdirSync(simDataDir).filter(d => {
 			const full = path.join(simDataDir, d);
-			return fs.statSync(full).isDirectory() && /^\d{4}-/.test(d);
+			return fs.statSync(full).isDirectory() && regexp1.test(d);
 		});
 
 		for (const subdir of subdirs) {
@@ -159,7 +164,7 @@ function mergeResults(resultsDir) {
 		const ciSummaryPath = path.join(simDataDir, 'ci-summary.md');
 		if (fs.existsSync(ciSummaryPath)) {
 			const content = fs.readFileSync(ciSummaryPath, 'utf-8');
-			const thresholdMatch = content.match(/Regression threshold\*\* \| (\d+)%/);
+			const thresholdMatch = content.match(regexpRegressionThreshold);
 			if (thresholdMatch) {
 				threshold = thresholdMatch[1];
 			}
@@ -187,10 +192,10 @@ const GITHUB_REPO = 'https://github.com/microsoft/vscode';
 
 /** @param {string} label */
 function formatBuildLink(label) {
-	if (/^[0-9a-f]{7,40}$/.test(label)) {
+	if (regexp9a.test(label)) {
 		return `[\`${label.substring(0, 7)}\`](${GITHUB_REPO}/commit/${label})`;
 	}
-	if (/^\d+\.\d+\.\d+/.test(label)) {
+	if (regexp4.test(label)) {
 		return `[\`${label}\`](${GITHUB_REPO}/releases/tag/${label})`;
 	}
 	return `\`${label}\``;
@@ -201,7 +206,7 @@ function formatBuildLink(label) {
  * @param {string} test
  */
 function formatCompareLink(base, test) {
-	const isRef = (/** @type {string} */ v) => /^[0-9a-f]{7,40}$/.test(v) || /^\d+\.\d+\.\d+/.test(v);
+	const isRef = (/** @type {string} */ v) => regexp9a.test(v) || regexp4.test(v);
 	if (!isRef(base) || !isRef(test)) { return ''; }
 	return `[compare](${GITHUB_REPO}/compare/${base}...${test})`;
 }

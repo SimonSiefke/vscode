@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpReadFile = /read.?file/i;
+const regexpInsertEditReplace = /insert.?edit|replace.?string|apply.?patch/i;
+const regexp3 = /\s/g;
+
 // @ts-check
 
 /**
@@ -292,14 +296,14 @@ const TOOL_CALL_SCENARIOS = {
 					{
 						kind: 'tool-calls',
 						toolCalls: filesToRead.slice(0, 4).map(f => ({
-							toolNamePattern: /read.?file/i,
+							toolNamePattern: regexpReadFile,
 							arguments: { filePath: path.join(FIXTURES_DIR, f), startLine: 1, endLine: 50 },
 						})),
 					},
 					{
 						kind: 'tool-calls',
 						toolCalls: filesToRead.slice(4).map(f => ({
-							toolNamePattern: /read.?file/i,
+							toolNamePattern: regexpReadFile,
 							arguments: { filePath: path.join(FIXTURES_DIR, f), startLine: 1, endLine: 50 },
 						})),
 					},
@@ -350,7 +354,7 @@ const TOOL_CALL_SCENARIOS = {
 					{
 						kind: 'tool-calls',
 						toolCalls: readFiles.map(f => ({
-							toolNamePattern: /read.?file/i,
+							toolNamePattern: regexpReadFile,
 							arguments: { filePath: path.join(FIXTURES_DIR, f), startLine: 1, endLine: 40 },
 						})),
 					},
@@ -359,7 +363,7 @@ const TOOL_CALL_SCENARIOS = {
 						kind: 'tool-calls',
 						toolCalls: [
 							{
-								toolNamePattern: /insert.?edit|replace.?string|apply.?patch/i,
+								toolNamePattern: regexpInsertEditReplace,
 								arguments: {
 									filePath: path.join(FIXTURES_DIR, '_chatperf_lifecycle.ts'),
 									explanation: 'Update the benchmark marker comment in lifecycle.ts',
@@ -367,7 +371,7 @@ const TOOL_CALL_SCENARIOS = {
 								},
 							},
 							{
-								toolNamePattern: /insert.?edit|replace.?string|apply.?patch/i,
+								toolNamePattern: regexpInsertEditReplace,
 								arguments: {
 									filePath: path.join(FIXTURES_DIR, '_chatperf_event.ts'),
 									explanation: 'Update the benchmark marker comment in event.ts',
@@ -706,7 +710,7 @@ const MULTI_TURN_SCENARIOS = {
 					b.emit('```typescript\n');
 					for (let j = 0; j < 8; j++) {
 						b.stream([
-							`export class ${topic.heading.replace(/\s/g, '')}Part${j} extends Disposable {\n`,
+							`export class ${topic.heading.replace(new RegExp(regexp3), '')}Part${j} extends Disposable {\n`,
 							`  private readonly _state = new Map<string, unknown>();\n\n`,
 							`  process(input: string): string {\n`,
 							`    const cached = this._state.get(input);\n`,
@@ -724,7 +728,7 @@ const MULTI_TURN_SCENARIOS = {
 					b.emit('Key points to remember:\n\n');
 					for (let j = 0; j < 6; j++) {
 						b.stream([
-							`${j + 1}. **Point ${j + 1}**: The \`${topic.heading.replace(/\s/g, '')}${j}\` `,
+							`${j + 1}. **Point ${j + 1}**: The \`${topic.heading.replace(new RegExp(regexp3), '')}${j}\` `,
 							`component uses the standard pattern with \`_register()\` for lifecycle. `,
 							`It handles edge cases like ${['empty input', 'null references', 'concurrent access', 'circular deps', 'timeout expiry', 'disposal races'][j]}.\n`,
 						], 10);

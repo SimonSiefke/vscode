@@ -13,6 +13,12 @@
  */
 
 import { createTrustedTypesPolicy } from './trustedTypes.js';
+const regexp1 = /<[^>]+>/g;
+const regexp2 = /\u00A0/g;
+const regexp3 = /\n{3,}/g;
+const regexp4 = /^\n+|\n+$/g;
+const regexpJavascriptVbscriptData = /^(javascript|vbscript|data):/i;
+
 
 const maxInputLength = 200_000;
 
@@ -21,7 +27,7 @@ const ttPolicy = createTrustedTypesPolicy('htmlToMarkdown', { createHTML: value 
 export function convertHtmlToMarkdown(html: string): string {
 	// Bail out on very large inputs to limit DOM parsing cost
 	if (html.length > maxInputLength) {
-		return html.replace(/<[^>]+>/g, '');
+		return html.replace(new RegExp(regexp1), '');
 	}
 
 	const trustedHtml = ttPolicy?.createHTML(html) ?? html;
@@ -29,10 +35,10 @@ export function convertHtmlToMarkdown(html: string): string {
 	let result = convertChildren(doc.body);
 
 	// Convert non-breaking spaces to regular spaces
-	result = result.replace(/\u00A0/g, ' ');
+	result = result.replace(new RegExp(regexp2), ' ');
 
 	// Collapse runs of 3+ newlines into 2
-	result = result.replace(/\n{3,}/g, '\n\n');
+	result = result.replace(new RegExp(regexp3), '\n\n');
 
 	return result.trim();
 }
@@ -61,7 +67,7 @@ function convertNode(node: Node): string {
 			// eslint-disable-next-line no-restricted-syntax -- querying a detached DOMParser document, not the live DOM
 			const codeEl = el.querySelector('code');
 			const text = (codeEl ?? el).textContent ?? '';
-			return `\n\`\`\`\n${text.replace(/^\n+|\n+$/g, '')}\n\`\`\`\n`;
+			return `\n\`\`\`\n${text.replace(new RegExp(regexp4), '')}\n\`\`\`\n`;
 		}
 
 		case 'code':
@@ -149,7 +155,7 @@ function convertChildren(node: Node): string {
 
 /** Produce a markdown link, stripping dangerous schemes like `javascript:`. */
 function sanitizeLink(href: string, text: string): string {
-	if (/^(javascript|vbscript|data):/i.test(href.trim())) {
+	if (regexpJavascriptVbscriptData.test(href.trim())) {
 		return text;
 	}
 	return `[${text}](${href})`;

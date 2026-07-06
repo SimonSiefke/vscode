@@ -10,6 +10,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/comm
 import type { Client, IPCServer } from '../../../base/parts/ipc/common/ipc.js';
 import { NullLogService } from '../../../platform/log/common/log.js';
 import { AgentHostChannel, IAgentHostUpstreamEndpoint, IUpstreamConnection, UnavailableAgentHostChannel } from '../../node/agentHostChannel.js';
+const regexpAgentHostProxy = /Agent host proxy is not available/;
+
 
 class FakeUpstream extends Disposable implements IUpstreamConnection {
 	private readonly _onFrame = this._register(new Emitter<string>());
@@ -137,7 +139,7 @@ suite('UnavailableAgentHostChannel', () => {
 
 		assert.doesNotThrow(() => channel.listen('renderer1', 'frame'));
 		assert.doesNotThrow(() => channel.listen('renderer1', 'close'));
-		await assert.rejects(() => channel.call('renderer1', 'connect'), /Agent host proxy is not available/);
+		await assert.rejects(() => channel.call('renderer1', 'connect'), regexpAgentHostProxy);
 		await assert.doesNotReject(() => channel.call('renderer1', 'send'));
 		await assert.doesNotReject(() => channel.call('renderer1', 'close'));
 	});

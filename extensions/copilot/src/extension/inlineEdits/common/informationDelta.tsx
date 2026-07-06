@@ -5,6 +5,8 @@
 
 import { StringEdit } from '../../../util/vs/editor/common/core/edits/stringEdit';
 import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRange';
+const regexp1 = /\r\n|\r|\n/;
+
 
 const N_GRAM_UNDO_RATIO_TO_FILTER_OUT = 0.7;
 
@@ -49,7 +51,7 @@ export function getInformationDelta(source: string, edit: StringEdit): Informati
 			return;
 		}
 		const deletedText = source.substring(deletedRange.start, deletedRange.endExclusive);
-		for (let line of deletedText.split(/\r\n|\r|\n/)) {
+		for (let line of deletedText.split(regexp1)) {
 			line = line.trim();
 			for (const piece of to4grams(line)) {
 				deleted.add(piece);
@@ -57,7 +59,7 @@ export function getInformationDelta(source: string, edit: StringEdit): Informati
 		}
 	};
 	const tryAddInserted = (insertedText: string) => {
-		for (let line of insertedText.split(/\r\n|\r|\n/)) {
+		for (let line of insertedText.split(regexp1)) {
 			line = line.trim();
 			for (const piece of to4grams(line)) {
 				inserted.add(piece);

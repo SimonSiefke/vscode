@@ -26,6 +26,8 @@ import { EnablementState, IWorkbenchExtensionEnablementService, IWorkbenchExtens
 import { timeout } from '../../../../base/common/async.js';
 import { ExtensionIdentifierSet } from '../../../../platform/extensions/common/extensions.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
+const regexpZAZA = /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//;
+
 
 export class ConfigureLanguageBasedSettingsAction extends Action {
 
@@ -222,7 +224,7 @@ CommandsRegistry.registerCommand({
 
 		const targetUri = URI.isUri(path)
 			? path
-			: /^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(path)
+			: regexpZAZA.test(path)
 				? URI.parse(path)
 				: URI.file(path);
 

@@ -9,6 +9,8 @@ import { Schemas } from '../../../vs/base/common/network';
 import { URI as Uri } from '../../../vs/base/common/uri';
 import { NotebookCellKind, NotebookCellOutput, NotebookCellOutputItem, NotebookData } from '../../../vs/workbench/api/common/extHostTypes/notebooks';
 import { createTextDocumentData, IExtHostDocumentData } from './textDocument';
+const regexp1 = /(^[\t\f\v\r ]+|[\t\f\v\r ]+$)/g;
+
 
 interface ISimulationWorkspace {
 	addDocument(doc: IExtHostDocumentData): void;
@@ -21,7 +23,7 @@ export interface NotebookCellExecutionSummary {
 declare type OutputType = 'execute_result' | 'display_data' | 'stream' | 'error' | 'update_display_data';
 
 function concatMultilineString(str: string | string[], trim?: boolean): string {
-	const nonLineFeedWhiteSpaceTrim = /(^[\t\f\v\r ]+|[\t\f\v\r ]+$)/g;
+	const nonLineFeedWhiteSpaceTrim = new RegExp(regexp1);
 	if (Array.isArray(str)) {
 		let result = '';
 		for (let i = 0; i < str.length; i += 1) {

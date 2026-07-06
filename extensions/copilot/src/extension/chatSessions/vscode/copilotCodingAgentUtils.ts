@@ -7,6 +7,9 @@ import * as vscode from 'vscode';
 import { getGithubRepoIdFromFetchUrl, GithubRepoId, IGitService } from '../../../platform/git/common/gitService';
 import { ILogService } from '../../../platform/log/common/logService';
 import { UriHandlerPaths, UriHandlers } from './chatSessionsUriHandler';
+const regexpTITLE = /TITLE: \s*(.*)/i;
+const regexpTask = /^\/task\/(.+)$/;
+
 
 export const MAX_PROBLEM_STATEMENT_LENGTH = 30_000 - 50; // 50 character buffer
 export const CONTINUE_TRUNCATION = vscode.l10n.t('Continue with truncation');
@@ -58,7 +61,7 @@ export function extractTitle(prompt: string, context: string | undefined): strin
 		}
 		return prompt.substring(0, 20) + '...';
 	};
-	const titleMatch = context?.match(/TITLE: \s*(.*)/i);
+	const titleMatch = context?.match(regexpTITLE);
 	if (titleMatch && titleMatch[1]) {
 		return titleMatch[1].trim();
 	}
@@ -126,7 +129,7 @@ export namespace SessionIdForTask {
 	}
 
 	export function parse(resource: vscode.Uri): { taskId: string } | undefined {
-		const match = resource.path.match(/^\/task\/(.+)$/);
+		const match = resource.path.match(regexpTask);
 		if (match) {
 			return { taskId: match[1] };
 		}

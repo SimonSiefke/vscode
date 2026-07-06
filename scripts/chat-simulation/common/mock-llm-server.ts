@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpScenario = /\[scenario:[^\]]+\]/;
+const regexpScenario1 = /\[scenario:([^\]]+)\]/;
+const regexp3 = /[\\.|?*+^${}()\[\]]/g;
+
 /**
  * Local mock server that implements the OpenAI Chat Completions streaming API.
  * Used by the chat perf benchmark to replace the real LLM backend with
@@ -865,7 +869,7 @@ function countCompletedModelTurns(messages: any[]): number {
 			: Array.isArray(msg.content)
 				? msg.content.map((c: any) => c.text || '').join('')
 				: '';
-		if (/\[scenario:[^\]]+\]/.test(content)) {
+		if (regexpScenario.test(content)) {
 			scenarioMsgIdx = i;
 			break;
 		}
@@ -946,7 +950,7 @@ async function handleChatCompletions(body: string, res: import('http').ServerRes
 				: Array.isArray(msg.content)
 					? msg.content.map((c: any) => c.text || '').join('')
 					: '';
-			const match = content.match(/\[scenario:([^\]]+)\]/);
+			const match = content.match(regexpScenario1);
 			if (match && SCENARIOS[match[1]]) {
 				scenarioId = match[1];
 				isScenarioRequest = true;
@@ -1084,7 +1088,7 @@ async function handleResponsesApi(body: string, res: import('http').ServerRespon
 				: Array.isArray(item.content)
 					? item.content.map((c: any) => c.text || '').join('')
 					: '';
-			const match = content.match(/\[scenario:([^\]]+)\]/);
+			const match = content.match(regexpScenario1);
 			if (match && SCENARIOS[match[1]]) {
 				scenarioId = match[1];
 				isScenarioRequest = true;
@@ -1155,7 +1159,7 @@ function countCompletedResponsesApiModelTurns(input: any[]): number {
 			: Array.isArray(item.content)
 				? item.content.map((c: any) => c.text || '').join('')
 				: '';
-		if (/\[scenario:[^\]]+\]/.test(content)) {
+		if (regexpScenario.test(content)) {
 			scenarioIdx = i;
 			break;
 		}
@@ -1233,7 +1237,7 @@ async function streamResponsesApiToolCalls(
 		const call = toolCalls[i];
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(/[\\.|?*+^${}()\[\]]/g, '');
+			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 
@@ -1556,7 +1560,7 @@ async function handleMessagesApi(body: string, res: import('http').ServerRespons
 				: Array.isArray(msg.content)
 					? msg.content.map((c: any) => c.text || '').join('')
 					: '';
-			const match = content.match(/\[scenario:([^\]]+)\]/);
+			const match = content.match(regexpScenario1);
 			if (match && SCENARIOS[match[1]]) {
 				scenarioId = match[1];
 				isScenarioRequest = true;
@@ -1575,7 +1579,7 @@ async function handleMessagesApi(body: string, res: import('http').ServerRespons
 				: Array.isArray(parsed.system)
 					? parsed.system.map((c: any) => c.text || '').join('')
 					: '';
-			const match = systemContent.match(/\[scenario:([^\]]+)\]/);
+			const match = systemContent.match(regexpScenario1);
 			if (match && SCENARIOS[match[1]]) {
 				scenarioId = match[1];
 				isScenarioRequest = true;
@@ -1658,7 +1662,7 @@ async function streamAnthropicToolCalls(
 		const call = toolCalls[i];
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(/[\\.|?*+^${}()\[\]]/g, '');
+			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 
@@ -1751,7 +1755,7 @@ async function streamToolCalls(
 		// Find the matching tool name from the request's tools array
 		let toolName = requestToolNames.find(name => call.toolNamePattern.test(name));
 		if (!toolName) {
-			toolName = call.toolNamePattern.source.replace(/[\\.|?*+^${}()\[\]]/g, '');
+			toolName = call.toolNamePattern.source.replace(new RegExp(regexp3), '');
 			_log(`[mock-llm]   No matching tool for pattern ${call.toolNamePattern}, using fallback: ${toolName}`);
 		}
 

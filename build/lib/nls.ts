@@ -11,6 +11,9 @@ import sm from 'source-map';
 import path from 'path';
 import { sort } from './gulp/facade.ts';
 import { type ISpan, analyzeLocalizeCalls, TextModel, parseLocalizeKeyOrValue } from './nls-analysis.ts';
+const regexp1 = /\\/g;
+const regexpJs = /\.js$/;
+
 
 type FileWithSourcemap = File & { sourceMap: sm.RawSourceMap };
 
@@ -164,7 +167,7 @@ const _nls = (() => {
 			}
 
 			source = rsm.sourceRoot ? path.relative(rsm.sourceRoot, m.source) : m.source;
-			source = source.replace(/\\/g, '/');
+			source = source.replace(new RegExp(regexp1), '/');
 			smg.addMapping({ source, name: m.name, original, generated });
 		}, null, sm.SourceMapConsumer.GENERATED_ORDER);
 
@@ -237,8 +240,8 @@ const _nls = (() => {
 	function patchFile(javascriptFile: File, typescript: string, options: { preserveEnglish: boolean }): File {
 		// hack?
 		const moduleId = javascriptFile.relative
-			.replace(/\.js$/, '')
-			.replace(/\\/g, '/');
+			.replace(regexpJs, '')
+			.replace(new RegExp(regexp1), '/');
 
 		const { javascript, sourcemap, nlsKeys, nlsMessages } = patch(
 			typescript,

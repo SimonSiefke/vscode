@@ -10,6 +10,10 @@ import https from 'https';
 import path from 'path';
 import { createHash } from 'crypto';
 import type { DebianArchString } from './types.ts';
+const regexpTarget = /^target="(.*)"$/m;
+const regexpMsBuildId = /^ms_build_id="(.*)"$/m;
+const regexp3 = /\s+/;
+
 
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:build/linux/sysroot_scripts/install-sysroot.py.
 const URL_PREFIX = 'https://msftelectronbuild.z5.web.core.windows.net';
@@ -38,8 +42,8 @@ interface IFetchOptions {
 
 function getElectronVersion(): Record<string, string> {
 	const npmrc = fs.readFileSync(path.join(REPO_ROOT, '.npmrc'), 'utf8');
-	const electronVersion = /^target="(.*)"$/m.exec(npmrc)![1];
-	const msBuildId = /^ms_build_id="(.*)"$/m.exec(npmrc)![1];
+	const electronVersion = regexpTarget.exec(npmrc)![1];
+	const msBuildId = regexpMsBuildId.exec(npmrc)![1];
 	return { electronVersion, msBuildId };
 }
 
@@ -61,7 +65,7 @@ function getSha(filename: fs.PathLike): string {
 function getVSCodeSysrootChecksum(expectedName: string) {
 	const checksums = fs.readFileSync(path.join(REPO_ROOT, 'build', 'checksums', 'vscode-sysroot.txt'), 'utf8');
 	for (const line of checksums.split('\n')) {
-		const [checksum, name] = line.split(/\s+/);
+		const [checksum, name] = line.split(regexp3);
 		if (name === expectedName) {
 			return checksum;
 		}

@@ -10,6 +10,9 @@ import { URI } from '../../../util/vs/base/common/uri';
 import { Range } from '../../../util/vs/editor/common/core/range';
 import { ITokenizerProvider, TokenizationEndpoint } from '../../tokenizer/node/tokenizer';
 import { FileChunk } from '../common/chunk';
+const regexp1 = /[\w\d]{2}/;
+const regexp2 = /^\s+/;
+
 
 export const MAX_CHUNK_SIZE_TOKENS = 250;
 
@@ -47,7 +50,7 @@ export class NaiveChunker {
 				return [];
 			}
 
-			if (!removeEmptyLines || (!!chunk.text.length && /[\w\d]{2}/.test(chunk.text))) {
+			if (!removeEmptyLines || (!!chunk.text.length && regexp1.test(chunk.text))) {
 				chunks.push(chunk);
 			}
 		}
@@ -81,7 +84,7 @@ export class NaiveChunker {
 			}
 
 			if (longestCommonWhitespaceInChunk === undefined || longestCommonWhitespaceInChunk.length > 0) {
-				const leadingWhitespaceMatches = line.match(/^\s+/);
+				const leadingWhitespaceMatches = line.match(regexp2);
 				const currentLeadingWhitespace = leadingWhitespaceMatches ? leadingWhitespaceMatches[0] : '';
 
 				longestCommonWhitespaceInChunk = longestCommonWhitespaceInChunk
@@ -143,7 +146,7 @@ export class NaiveChunker {
 export function trimCommonLeadingWhitespace(lines: string[]): { trimmedLines: string[]; shortestLeadingCommonWhitespace: string } {
 	let longestCommonWhitespace: string | undefined;
 	for (const line of lines) {
-		const leadingWhitespaceMatches = line.match(/^\s+/);
+		const leadingWhitespaceMatches = line.match(regexp2);
 		const currentLeadingWhitespace = leadingWhitespaceMatches ? leadingWhitespaceMatches[0] : '';
 
 		if (longestCommonWhitespace === undefined) {

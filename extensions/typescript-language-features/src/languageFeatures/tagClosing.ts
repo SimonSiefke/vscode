@@ -12,6 +12,8 @@ import { ITypeScriptServiceClient } from '../typescriptService';
 import { Disposable } from '../utils/dispose';
 import { readUnifiedConfig } from '../utils/configuration';
 import { Condition, conditionalRegistration } from './util/dependentRegistration';
+const regexp1 = /\r\n|\n/g;
+
 
 class TagClosing extends Disposable {
 
@@ -93,7 +95,7 @@ class TagClosing extends Disposable {
 				return;
 			}
 
-			const addedLines = lastChange.text.split(/\r\n|\n/g);
+			const addedLines = lastChange.text.split(new RegExp(regexp1));
 			const position = addedLines.length <= 1
 				? lastChange.range.start.translate({ characterDelta: lastChange.text.length })
 				: new vscode.Position(lastChange.range.start.line + addedLines.length - 1, addedLines[addedLines.length - 1].length);

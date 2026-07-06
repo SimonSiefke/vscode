@@ -12,6 +12,8 @@ import { ConfigKey, IConfigurationService } from '../../configuration/common/con
 import { IVSCodeExtensionContext } from '../../extContext/common/extensionContext';
 import { IGitExtensionService } from '../../git/common/gitExtensionService';
 import { IReviewService, ReviewComment, ReviewDiagnosticCollection, ReviewSuggestionChange } from '../common/reviewService';
+const regexp1 = /\r?\n/;
+
 
 interface InternalComment {
 	comment: ReviewComment;
@@ -233,8 +235,8 @@ export class ReviewServiceImpl implements IReviewService {
 }
 
 function diff(change: ReviewSuggestionChange): string {
-	const oldText = change.oldText.split(/\r?\n/);
-	const newText = change.newText.split(/\r?\n/);
+	const oldText = change.oldText.split(regexp1);
+	const newText = change.newText.split(regexp1);
 	while (oldText.length && newText.length && oldText[0] === newText[0]) {
 		oldText.shift();
 		newText.shift();

@@ -1,8 +1,10 @@
+const regexp1 = /\w\S*/g;
+
 function toTitleCase(str: string): string {
 	return str
 		.trim()
 		.replace(
-			/\w\S*/g,
+			new RegExp(regexp1),
 			(txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
 		);
 }

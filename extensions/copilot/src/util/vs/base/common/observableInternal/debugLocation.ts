@@ -1,3 +1,6 @@
+const regexp1 = /\((.*):(\d+):(\d+)\)/;
+const regexpAt = /at ([^\(\)]*):(\d+):(\d+)/;
+
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
@@ -63,7 +66,7 @@ export interface ILocation {
 }
 
 function parseLine(stackLine: string): ILocation | undefined {
-	const match = stackLine.match(/\((.*):(\d+):(\d+)\)/);
+	const match = stackLine.match(regexp1);
 	if (match) {
 		return {
 			fileName: match[1],
@@ -73,7 +76,7 @@ function parseLine(stackLine: string): ILocation | undefined {
 		};
 	}
 
-	const match2 = stackLine.match(/at ([^\(\)]*):(\d+):(\d+)/);
+	const match2 = stackLine.match(regexpAt);
 
 	if (match2) {
 		return {

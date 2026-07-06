@@ -21,6 +21,8 @@ import { parse } from '../../../../base/common/marshalling.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+const regexpCommandToSide = /command:(toSide:)?/;
+
 
 export class GettingStartedAccessibleView implements IAccessibleViewImplementation {
 	readonly type = AccessibleViewType.View;
@@ -87,7 +89,7 @@ class GettingStartedAccessibleProvider extends Disposable implements IAccessible
 			actions.push(new Action('walthrough.step.action', node.label, ThemeIcon.asClassName(Codicon.run), true, () => {
 
 				const isCommand = node.href.startsWith('command:');
-				const command = node.href.replace(/command:(toSide:)?/, 'command:');
+				const command = node.href.replace(regexpCommandToSide, 'command:');
 
 				if (isCommand) {
 					const commandURI = URI.parse(command);

@@ -56,6 +56,10 @@ import { IDefaultAccountService } from '../../../../../platform/defaultAccount/c
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IOutputService } from '../../../../services/output/common/output.js';
 import { IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
+const regexpSetup = /setup\./;
+const regexpSetupTools = /setup.tools\./;
+const regexp3 = /^\s*$/;
+
 
 const defaultChat = {
 	extensionId: product.defaultChatAgent?.extensionId ?? '',
@@ -749,7 +753,7 @@ export class SetupAgent extends Disposable implements IChatAgentImplementation {
 			return requestModel;
 		}
 
-		const agentId = agentPart.agent.id.replace(/setup\./, `${defaultChat.extensionId}.`.toLowerCase());
+		const agentId = agentPart.agent.id.replace(regexpSetup, `${defaultChat.extensionId}.`.toLowerCase());
 		const githubAgent = chatAgentService.getAgent(agentId);
 		if (!githubAgent) {
 			return requestModel;
@@ -785,7 +789,7 @@ export class SetupAgent extends Disposable implements IChatAgentImplementation {
 			return requestModel;
 		}
 
-		const toolId = toolPart.toolId.replace(/setup.tools\./, `copilot_`.toLowerCase());
+		const toolId = toolPart.toolId.replace(regexpSetupTools, `copilot_`.toLowerCase());
 		const newToolPart = new ChatRequestToolPart(
 			toolPart.range,
 			toolPart.editorRange,
@@ -914,13 +918,13 @@ export class ChatCodeActionsProvider {
 		let generateOrModifyCommand: Command | undefined;
 		if (range.isEmpty()) {
 			const textAtLine = model.getLineContent(range.startLineNumber);
-			if (/^\s*$/.test(textAtLine)) {
+			if (regexp3.test(textAtLine)) {
 				generateOrModifyTitle = localize('generate', "Generate");
 				generateOrModifyCommand = AICodeActionsHelper.generate(range);
 			}
 		} else {
 			const textInSelection = model.getValueInRange(range);
-			if (!/^\s*$/.test(textInSelection)) {
+			if (!regexp3.test(textInSelection)) {
 				generateOrModifyTitle = localize('modify', "Modify");
 				generateOrModifyCommand = AICodeActionsHelper.modify(range);
 			}

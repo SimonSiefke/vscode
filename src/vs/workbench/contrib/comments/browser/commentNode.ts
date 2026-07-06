@@ -51,6 +51,8 @@ import { MarshalledCommentThread } from '../../../common/comments.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { Position } from '../../../../editor/common/core/position.js';
+const regexpInline = /^inline/;
+
 
 class CommentsActionRunner extends ActionRunner {
 	protected override async runAction(action: IAction, context: unknown[]): Promise<void> {
@@ -275,7 +277,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 		const primary: IAction[] = [];
 		const secondary: IAction[] = [];
 		const result = { primary, secondary };
-		fillInActions(contributedActions, result, false, g => /^inline/.test(g));
+		fillInActions(contributedActions, result, false, g => regexpInline.test(g));
 		return result;
 	}
 

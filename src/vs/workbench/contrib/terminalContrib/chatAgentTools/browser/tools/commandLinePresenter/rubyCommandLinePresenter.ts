@@ -6,6 +6,11 @@
 import { OperatingSystem } from '../../../../../../../base/common/platform.js';
 import { isPowerShell } from '../../runInTerminalHelpers.js';
 import type { ICommandLinePresenter, ICommandLinePresenterOptions, ICommandLinePresenterResult } from './commandLinePresenter.js';
+const regexpRubyCode = /^ruby\s+-e\s+"(?<code>.+)"$/s;
+const regexp2 = /\\"/g;
+const regexp3 = /`"/g;
+const regexpRubyCode1 = /^ruby\s+-e\s+'(?<code>.+)'$/s;
+
 
 /**
  * Command line presenter for Ruby inline commands (`ruby -e "..."`).
@@ -37,7 +42,7 @@ export class RubyCommandLinePresenter implements ICommandLinePresenter {
  */
 export function extractRubyCommand(commandLine: string, shell: string, os: OperatingSystem): string | undefined {
 	// Match ruby -e "..." pattern (double quotes)
-	const doubleQuoteMatch = commandLine.match(/^ruby\s+-e\s+"(?<code>.+)"$/s);
+	const doubleQuoteMatch = commandLine.match(regexpRubyCode);
 	if (doubleQuoteMatch?.groups?.code) {
 		let rubyCode = doubleQuoteMatch.groups.code.trim();
 
@@ -49,10 +54,10 @@ export function extractRubyCommand(commandLine: string, shell: string, os: Opera
 		// Unescape quotes based on shell type
 		if (isPowerShell(shell, os)) {
 			// PowerShell uses backtick-quote (`") to escape quotes inside double-quoted strings
-			rubyCode = rubyCode.replace(/`"/g, '"');
+			rubyCode = rubyCode.replace(new RegExp(regexp3), '"');
 		} else {
 			// Bash/sh/zsh use backslash-quote (\")
-			rubyCode = rubyCode.replace(/\\"/g, '"');
+			rubyCode = rubyCode.replace(new RegExp(regexp2), '"');
 		}
 
 		return rubyCode;
@@ -61,7 +66,7 @@ export function extractRubyCommand(commandLine: string, shell: string, os: Opera
 	// Match ruby -e '...' pattern (single quotes)
 	// Single quotes in bash/sh/zsh are literal - no escaping inside
 	// Single quotes in PowerShell are also literal
-	const singleQuoteMatch = commandLine.match(/^ruby\s+-e\s+'(?<code>.+)'$/s);
+	const singleQuoteMatch = commandLine.match(regexpRubyCode1);
 	if (singleQuoteMatch?.groups?.code) {
 		const rubyCode = singleQuoteMatch.groups.code.trim();
 

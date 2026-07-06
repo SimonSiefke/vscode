@@ -25,6 +25,8 @@ import { IWorkbenchEnvironmentService } from '../../../services/environment/comm
 import { IPathService } from '../../../services/path/common/pathService.js';
 import { IHighlight } from '../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
 import { Iterable } from '../../../../base/common/iterator.js';
+const regexp1 = /\\/g;
+
 
 const CONTROL_CODES = '\\u0000-\\u0020\\u007f-\\u009f';
 const WEB_LINK_REGEX = new RegExp('(?:[a-zA-Z][a-zA-Z0-9+.-]{2,}:\\/\\/|data:|www\\.)[^\\s' + CONTROL_CODES + '"]{2,}[^\\s' + CONTROL_CODES + '"\')}\\],:;.!?]', 'ug');
@@ -243,7 +245,7 @@ export class LinkDetector implements ILinkDetector {
 				// Just using fsPath here is unsafe: https://github.com/microsoft/vscode/issues/109076
 				const fsPath = uri.fsPath;
 				const path = await this.pathService.path;
-				const fileUrl = osPath.normalize(((path.sep === osPath.posix.sep) && platform.isWindows) ? fsPath.replace(/\\/g, osPath.posix.sep) : fsPath);
+				const fileUrl = osPath.normalize(((path.sep === osPath.posix.sep) && platform.isWindows) ? fsPath.replace(new RegExp(regexp1), osPath.posix.sep) : fsPath);
 
 				const fileUri = URI.parse(fileUrl);
 				const exists = await this.fileService.exists(fileUri);

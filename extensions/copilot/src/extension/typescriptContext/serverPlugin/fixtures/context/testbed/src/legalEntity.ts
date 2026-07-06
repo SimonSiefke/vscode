@@ -1,8 +1,10 @@
 import { Entity, type Name } from './entity';
+const regexpZ0 = /^[A-Z0-9]{8,12}$/;
+
 
 export class RegistrationNumber {
 	constructor(private _value: string) {
-		if (!/^[A-Z0-9]{8,12}$/.test(_value)) {
+		if (!regexpZ0.test(_value)) {
 			throw new Error('Registration number must be 8-12 alphanumeric characters.');
 		}
 	}

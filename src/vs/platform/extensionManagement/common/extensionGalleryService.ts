@@ -31,6 +31,10 @@ import { StopWatch } from '../../../base/common/stopwatch.js';
 import { format2 } from '../../../base/common/strings.js';
 import { ExtensionGalleryResourceType, Flag, getExtensionGalleryManifestResourceUri, IExtensionGalleryManifest, IExtensionGalleryManifestService, ExtensionGalleryManifestStatus } from './extensionGalleryManifest.js';
 import { TelemetryTrustedValue } from '../../telemetry/common/telemetryUtils.js';
+const regexpBcategory = /\bcategory:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g;
+const regexpBtag = /\btag:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g;
+const regexpBfeatured = /\bfeatured(\s+|\b|$)/g;
+
 
 const CURRENT_TARGET_PLATFORM = isWeb ? TargetPlatform.WEB : getTargetPlatform(platform, arch);
 const SEARCH_ACTIVITY_HEADER_NAME = 'X-Market-Search-Activity-Id';
@@ -1104,19 +1108,19 @@ export abstract class AbstractExtensionGalleryService implements IExtensionGalle
 
 		if (text) {
 			// Use category filter instead of "category:themes"
-			text = text.replace(/\bcategory:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g, (_, quotedCategory, category) => {
+			text = text.replace(new RegExp(regexpBcategory), (_, quotedCategory, category) => {
 				query = query.withFilter(FilterType.Category, category || quotedCategory);
 				return '';
 			});
 
 			// Use tag filter instead of "tag:debuggers"
-			text = text.replace(/\btag:("([^"]*)"|([^"]\S*))(\s+|\b|$)/g, (_, quotedTag, tag) => {
+			text = text.replace(new RegExp(regexpBtag), (_, quotedTag, tag) => {
 				query = query.withFilter(FilterType.Tag, tag || quotedTag);
 				return '';
 			});
 
 			// Use featured filter
-			text = text.replace(/\bfeatured(\s+|\b|$)/g, () => {
+			text = text.replace(new RegExp(regexpBfeatured), () => {
 				query = query.withFilter(FilterType.Featured);
 				return '';
 			});

@@ -27,6 +27,9 @@ import { SafetyRules } from '../../prompts/node/base/safetyRules';
 import { PatchEditExamplePatch, PatchEditRules, getPatchEditReplyProcessor } from '../../prompts/node/codeMapper/patchEditGeneration';
 import { summarizeDocument } from '../../prompts/node/inline/summarizedDocument/summarizeDocumentHelpers';
 import { CodeBlock } from '../../prompts/node/panel/safeElements';
+const regexp1 = /^\//;
+const regexp2 = /^`?(.*?)`?:\s*(.+)$/gm;
+
 
 const KEEP_LAST_N = 5;
 
@@ -78,7 +81,7 @@ class WorkspaceMutation implements IWorkspaceMutation {
 
 	/** @inheritdoc */
 	public get(file: string) {
-		file = file.replaceAll('\\', '/').replace(/^\//, '');
+		file = file.replaceAll('\\', '/').replace(regexp1, '');
 
 		const res = this.getInner(file);
 
@@ -195,7 +198,7 @@ class WorkspaceMutation implements IWorkspaceMutation {
 		}
 
 		const out: { file: string; description: string }[] = [];
-		for (const [, file, description] of fetchResult.value.matchAll(/^`?(.*?)`?:\s*(.+)$/gm)) {
+		for (const [, file, description] of fetchResult.value.matchAll(new RegExp(regexp2))) {
 			out.push({ file, description });
 		}
 		return { perFile: out, response: fetchResult.value };

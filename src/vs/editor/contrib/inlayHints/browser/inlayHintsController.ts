@@ -37,6 +37,8 @@ import { INotificationService, Severity } from '../../../../platform/notificatio
 import * as colors from '../../../../platform/theme/common/colorRegistry.js';
 import { themeColorFromId } from '../../../../platform/theme/common/themeService.js';
 import { Position } from '../../../common/core/position.js';
+const regexp1 = /[ \t]/g;
+
 
 // --- hint caching service (per session)
 
@@ -793,7 +795,7 @@ export class InlayHintsController implements IEditorContribution {
 // Prevents the view from potentially visible whitespace
 function fixSpace(str: string): string {
 	const noBreakWhitespace = '\xa0';
-	return str.replace(/[ \t]/g, noBreakWhitespace);
+	return str.replace(new RegExp(regexp1), noBreakWhitespace);
 }
 
 CommandsRegistry.registerCommand('_executeInlayHintProvider', async (accessor, ...args: [URI, IRange]): Promise<languages.InlayHint[]> => {

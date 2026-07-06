@@ -30,6 +30,13 @@ import { IWorkspacePluginSettingsService } from './workspacePluginSettingsServic
 import { IWorkspaceTrustManagementService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { type IMarketplaceReference, deduplicateMarketplaceReferences, MarketplaceReferenceKind, parseMarketplaceObjectEntry, parseMarketplaceReference, parseMarketplaceReferences, readConfiguredMarketplaces } from './marketplaceReference.js';
 import { getStrictKnownMarketplaces, isMarketplaceReferenceAllowed } from './strictKnownMarketplaces.js';
+const regexp1 = /\\/g;
+const regexp2 = /\/+$/g;
+const regexp3 = /^\.?\/+/;
+const regexp9aFA = /^[0-9a-fA-F]{40}$/;
+const regexpZaZ0Za = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const regexp6 = /^\.?\/+|\/+$/g;
+
 
 // Re-export marketplace reference types for downstream consumers.
 export { deduplicateMarketplaceReferences, extraKnownMarketplacesToConfigDict, MarketplaceReferenceKind, parseMarketplaceReference, parseMarketplaceReferences, readConfiguredMarketplaces } from './marketplaceReference.js';
@@ -945,8 +952,8 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 }
 
 function normalizeMarketplacePath(value: string): string {
-	let normalized = value.trim().replace(/\\/g, '/');
-	normalized = normalized.replace(/^\.?\/+/, '').replace(/\/+$/g, '');
+	let normalized = value.trim().replace(new RegExp(regexp1), '/');
+	normalized = normalized.replace(regexp3, '').replace(new RegExp(regexp2), '');
 	return normalized;
 }
 
@@ -1112,11 +1119,11 @@ function isOptionalString(value: unknown): value is string | undefined {
 }
 
 function isOptionalGitSha(value: unknown): value is string | undefined {
-	return value === undefined || (typeof value === 'string' && /^[0-9a-fA-F]{40}$/.test(value));
+	return value === undefined || (typeof value === 'string' && regexp9aFA.test(value));
 }
 
 function isValidGitHubRepo(repo: string): boolean {
-	return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo);
+	return regexpZaZ0Za.test(repo);
 }
 
 /**
@@ -1166,12 +1173,12 @@ export function hasSourceChanged(installed: IPluginSourceDescriptor, marketplace
 }
 
 function getMarketplaceReadmeUri(repo: string, source: string): URI {
-	const normalizedSource = source.trim().replace(/^\.?\/+|\/+$/g, '');
+	const normalizedSource = source.trim().replace(new RegExp(regexp6), '');
 	const readmePath = normalizedSource ? `${normalizedSource}/README.md` : 'README.md';
 	return URI.parse(`https://github.com/${repo}/blob/main/${readmePath}`);
 }
 
 function getMarketplaceReadmeFileUri(repoDir: URI, source: string): URI {
-	const normalizedSource = source.trim().replace(/^\.?\/+|\/+$/g, '');
+	const normalizedSource = source.trim().replace(new RegExp(regexp6), '');
 	return normalizedSource ? joinPath(repoDir, normalizedSource, 'README.md') : joinPath(repoDir, 'README.md');
 }

@@ -24,6 +24,9 @@ import { PromptsConfig } from './config/config.js';
 import { isInClaudeAgentsFolder, isInClaudeRulesFolder, isPromptOrInstructionsFile } from './config/promptFileLocations.js';
 import { ParsedPromptFile } from './promptFileParser.js';
 import { AgentInstructionFileType, IAgentSkill, ICustomAgent, IInstructionFile, IPromptsService, matchesSessionType, newInstructionsCollectionEvent, newInstructionsCollectionDebugInfo, type InstructionsCollectionEvent, type InstructionsCollectionDebugInfo } from './service/promptsService.js';
+const regexp1 = /\//g;
+const regexp2 = /\\/g;
+
 export type { InstructionsCollectionEvent, InstructionsCollectionDebugInfo } from './service/promptsService.js';
 export { newInstructionsCollectionEvent, newInstructionsCollectionDebugInfo } from './service/promptsService.js';
 import { AGENT_DEBUG_LOG_FILE_LOGGING_ENABLED_SETTING, TROUBLESHOOT_SKILL_PATH } from './promptTypes.js';
@@ -648,9 +651,9 @@ export function getFilePath(uri: URI, remoteOS: OperatingSystem | undefined, isR
 		// to match the remote OS (idempotent when local and remote match).
 		if (remoteOS !== undefined) {
 			if (remoteOS === OperatingSystem.Windows) {
-				return fsPath.replace(/\//g, '\\');
+				return fsPath.replace(new RegExp(regexp1), '\\');
 			}
-			return fsPath.replace(/\\/g, '/');
+			return fsPath.replace(new RegExp(regexp2), '/');
 		}
 		return fsPath;
 	}

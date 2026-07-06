@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
+const regexp9A = /@([\w-]+):\s*'(\\E[0-9A-F]+)';/g;
+const regexpIconSetPartial = /\.icon-(?:set|partial)\(['"]([\w-\.+]+)['"],\s*['"]([\w-]+)['"],\s*(@[\w-]+)\)/g;
+const regexp9a = /(@[\w-]+):\s*(#[0-9a-z]+)/g;
+
 
 const path = require('path');
 const fs = require('fs');
@@ -345,14 +349,14 @@ exports.update = function () {
 	let match;
 
 	return download(fontMappingsFile).then(function (content) {
-		const regex = /@([\w-]+):\s*'(\\E[0-9A-F]+)';/g;
+		const regex = new RegExp(regexp9A);
 		const contents = {};
 		while ((match = regex.exec(content)) !== null) {
 			contents[match[1]] = match[2];
 		}
 
 		return download(fileAssociationFile).then(function (content) {
-			const regex2 = /\.icon-(?:set|partial)\(['"]([\w-\.+]+)['"],\s*['"]([\w-]+)['"],\s*(@[\w-]+)\)/g;
+			const regex2 = new RegExp(regexpIconSetPartial);
 			while ((match = regex2.exec(content)) !== null) {
 				const pattern = match[1];
 				let def = '_' + match[2];
@@ -443,7 +447,7 @@ exports.update = function () {
 
 
 			return download(colorsFile).then(function (content) {
-				const regex3 = /(@[\w-]+):\s*(#[0-9a-z]+)/g;
+				const regex3 = new RegExp(regexp9a);
 				while ((match = regex3.exec(content)) !== null) {
 					colorId2Value[match[1]] = match[2];
 				}

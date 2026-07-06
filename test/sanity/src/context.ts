@@ -12,6 +12,27 @@ import os from 'os';
 import path from 'path';
 import { Browser, chromium, ElectronApplication, Page, webkit } from 'playwright';
 import { Capability, detectCapabilities } from './detectors.js';
+const regexpExeDllSys = /^.+\.(exe|dll|sys|cab|cat|msi|jar|ocx|ps1|psm1|psd1|ps1xml|pssc1)$/i;
+const regexpNodeModulesMicrosoft = /[\\/]node_modules[\\/]@microsoft[\\/]mxc-sdk[\\/]bin[\\/][^\\/]+[\\/]_manifest[\\/][^\\/]+[\\/]manifest\.cat$/i;
+const regexpExeDllNode = /^.+\.(exe|dll|node|msi)$/i;
+const regexpDxilDllFfmpeg = /^(dxil\.dll|ffmpeg\.dll|msalruntime\.dll)$/i;
+const regexpNodeModulesAsar = /(?:^|[\\/])node_modules(?:\.asar\.unpacked)?[\\/]@microsoft[\\/]mxc-sdk[\\/]bin[\\/]/i;
+const regexpDpkgFrontendLock = /dpkg frontend lock was locked by another process|unable to acquire the dpkg frontend lock|could not get lock \/var\/lib\/dpkg\/lock-frontend/i;
+const regexpZa = /^([A-Za-z]):/;
+const regexp8 = /\0/g;
+const regexpNAMESTATEVERSION = /^NAME\s+STATE\s+VERSION$/i;
+const regexp10 = /^\*\s*/;
+const regexp11 = /\s+/;
+const regexp12 = /\r?\n/;
+const regexp13 = /^(.+)\|(\w+)$/;
+const regexp14 = /^(.+)\|(.*)$/;
+const regexpZAZ0 = /[^a-zA-Z0-9_-]/g;
+const regexp16 = /\/+$/;
+const regexpShCmd = /\.(sh|cmd)$/;
+const regexpBerror = /\berror\b/;
+const regexpECONNRESETECONNABORTEDECANCELED = /ECONNRESET|ECONNABORTED|ECANCELED|EPIPE|SIGPIPE/;
+const regexpNodeZ0Za = /(^|\n)(?:\[[^\]]+\]\s*)?(?:\(node:\d+\)\s*)?(?:\[[A-Z0-9]+\]\s*)?(?:[A-Za-z]+Warning|Warning):/;
+
 
 /**
  * Response from https://update.code.visualstudio.com/api/versions/commit:<commit>/<target>/<quality>
@@ -31,14 +52,14 @@ interface ITargetMetadata {
  * Provides context and utilities for VS Code sanity tests.
  */
 export class TestContext {
-	private static readonly authenticodeInclude = /^.+\.(exe|dll|sys|cab|cat|msi|jar|ocx|ps1|psm1|psd1|ps1xml|pssc1)$/i;
+	private static readonly authenticodeInclude = regexpExeDllSys;
 	// MXC SDK ships per-arch SPDX catalog manifests that Get-AuthenticodeSignature reports as UnknownError.
-	private static readonly authenticodeExclude = /[\\/]node_modules[\\/]@microsoft[\\/]mxc-sdk[\\/]bin[\\/][^\\/]+[\\/]_manifest[\\/][^\\/]+[\\/]manifest\.cat$/i;
-	private static readonly versionInfoInclude = /^.+\.(exe|dll|node|msi)$/i;
-	private static readonly versionInfoFileExclude = /^(dxil\.dll|ffmpeg\.dll|msalruntime\.dll)$/i;
+	private static readonly authenticodeExclude = regexpNodeModulesMicrosoft;
+	private static readonly versionInfoInclude = regexpExeDllNode;
+	private static readonly versionInfoFileExclude = regexpDxilDllFfmpeg;
 	// MXC SDK binaries under bin are signed, but they do not carry a ProductName VersionInfo resource.
-	private static readonly versionInfoPathExclude = /(?:^|[\\/])node_modules(?:\.asar\.unpacked)?[\\/]@microsoft[\\/]mxc-sdk[\\/]bin[\\/]/i;
-	private static readonly dpkgLockError = /dpkg frontend lock was locked by another process|unable to acquire the dpkg frontend lock|could not get lock \/var\/lib\/dpkg\/lock-frontend/i;
+	private static readonly versionInfoPathExclude = regexpNodeModulesAsar;
+	private static readonly dpkgLockError = regexpDpkgFrontendLock;
 
 	private readonly tempDirs = new Set<string>();
 	private readonly wslTempDirs = new Set<string>();
@@ -208,7 +229,7 @@ export class TestContext {
 	 */
 	public toWslPath(windowsPath: string): string {
 		return windowsPath
-			.replace(/^([A-Za-z]):/, (_, drive) => `/mnt/${drive.toLowerCase()}`)
+			.replace(regexpZa, (_, drive) => `/mnt/${drive.toLowerCase()}`)
 			.replaceAll('\\', '/');
 	}
 
@@ -218,7 +239,7 @@ export class TestContext {
 	 */
 	public getDefaultWslDistro(): string {
 		const result = this.runNoErrors('wsl', '--list', '--quiet');
-		const distro = result.stdout.trim().split('\n')[0].replace(/\0/g, '').trim();
+		const distro = result.stdout.trim().split('\n')[0].replace(new RegExp(regexp8), '').trim();
 		if (!distro) {
 			this.error('No WSL distribution found');
 		}
@@ -235,14 +256,14 @@ export class TestContext {
 		}
 
 		const result = this.runNoErrors('wsl', '--list', '--verbose');
-		for (const rawLine of result.stdout.split(/\r?\n/)) {
+		for (const rawLine of result.stdout.split(regexp12)) {
 			const line = rawLine.trim();
-			if (!line || /^NAME\s+STATE\s+VERSION$/i.test(line)) {
+			if (!line || regexpNAMESTATEVERSION.test(line)) {
 				continue;
 			}
 
-			const normalizedLine = line.replace(/^\*\s*/, '');
-			const columns = normalizedLine.split(/\s+/);
+			const normalizedLine = line.replace(regexp10, '');
+			const columns = normalizedLine.split(regexp11);
 			if (columns.length < 3 || columns[0] !== 'Ubuntu') {
 				continue;
 			}
@@ -430,7 +451,7 @@ export class TestContext {
 
 		const invalid: string[] = [];
 		for (const line of result.stdout.trim().split('\n')) {
-			const [, filePath, status] = /^(.+)\|(\w+)$/.exec(line.trim()) ?? [];
+			const [, filePath, status] = regexp13.exec(line.trim()) ?? [];
 			if (filePath) {
 				if (status === 'Valid') {
 					this.log(`Authenticode signature is valid for ${filePath}`);
@@ -508,7 +529,7 @@ export class TestContext {
 
 		const invalid: string[] = [];
 		for (const line of result.stdout.trim().split('\n')) {
-			const [, filePath, productName] = /^(.+)\|(.*)$/.exec(line.trim()) ?? [];
+			const [, filePath, productName] = regexp14.exec(line.trim()) ?? [];
 			if (filePath) {
 				if (productName && productName.trim().length > 0) {
 					this.log(`VersionInfo ProductName is set for ${filePath}: ${productName.trim()}`);
@@ -1239,7 +1260,7 @@ export class TestContext {
 		if (!this.options.crashDumpsDir || !this.currentTestName) {
 			return undefined;
 		}
-		const sanitizedName = this.currentTestName.replace(/[^a-zA-Z0-9_-]/g, '_');
+		const sanitizedName = this.currentTestName.replace(new RegExp(regexpZAZ0), '_');
 		return path.join(this.options.crashDumpsDir, sanitizedName);
 	}
 
@@ -1254,7 +1275,7 @@ export class TestContext {
 		try {
 			const screenshotDir = this.options.screenshotsDir ?? path.join(this.osTempDir, 'vscode-sanity-screenshots');
 			fs.mkdirSync(screenshotDir, { recursive: true });
-			const sanitizedName = this.currentTestName.replace(/[^a-zA-Z0-9_-]/g, '_');
+			const sanitizedName = this.currentTestName.replace(new RegExp(regexpZAZ0), '_');
 			const screenshotPath = path.join(screenshotDir, `${sanitizedName}-${++this.screenshotCounter}.png`);
 			await page.screenshot({ path: screenshotPath, fullPage: true });
 			this.log(`Screenshot saved to: ${screenshotPath}`);
@@ -1299,7 +1320,7 @@ export class TestContext {
 			if (!folder.startsWith('/')) {
 				folder = `/${folder}`;
 			}
-			url.pathname = url.pathname.replace(/\/+$/, '') + folder;
+			url.pathname = url.pathname.replace(regexp16, '') + folder;
 		}
 		return url.toString();
 	}
@@ -1349,7 +1370,7 @@ export class TestContext {
 		this.log(`Starting ${name} with command line: ${command} ${args.join(' ')}`);
 
 		const app = spawn(command, args, {
-			shell: /\.(sh|cmd)$/.test(command),
+			shell: regexpShCmd.test(command),
 			detached: !this.capabilities.has('windows'),
 			stdio: ['ignore', 'pipe', 'pipe'],
 		});
@@ -1368,7 +1389,7 @@ export class TestContext {
 				let terminated = false;
 				app.stdout.on('data', (data) => {
 					const text = data.toString().trim();
-					if (/\berror\b/.test(text)) {
+					if (regexpBerror.test(text)) {
 						reject(new Error(`[${name}] ${text}`));
 					}
 
@@ -1398,7 +1419,7 @@ export class TestContext {
 	}
 
 	private isNonFatalCliStderr(text: string): boolean {
-		return /ECONNRESET|ECONNABORTED|ECANCELED|EPIPE|SIGPIPE/.test(text)
-			|| /(^|\n)(?:\[[^\]]+\]\s*)?(?:\(node:\d+\)\s*)?(?:\[[A-Z0-9]+\]\s*)?(?:[A-Za-z]+Warning|Warning):/.test(text);
+		return regexpECONNRESETECONNABORTEDECANCELED.test(text)
+			|| regexpNodeZ0Za.test(text);
 	}
 }

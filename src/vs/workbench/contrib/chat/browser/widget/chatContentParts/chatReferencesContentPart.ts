@@ -48,6 +48,8 @@ import { IDisposableReference, ResourcePool } from './chatCollections.js';
 import { IChatContentPartRenderContext } from './chatContentParts.js';
 import { IHoverService } from '../../../../../../platform/hover/browser/hover.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
+const regexpBL = /\bL(\d+)(?:-L(\d+))?/;
+
 
 const $ = dom.$;
 
@@ -483,7 +485,7 @@ function getLineRangeFromGithubUri(uri: URI): IRange | undefined {
 
 	// Extract the line range from the fragment
 	// Github line ranges are 1-based
-	const match = uri.fragment.match(/\bL(\d+)(?:-L(\d+))?/);
+	const match = uri.fragment.match(regexpBL);
 	if (!match) {
 		return undefined;
 	}

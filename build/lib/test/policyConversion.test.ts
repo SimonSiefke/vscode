@@ -16,6 +16,8 @@ import { StringPolicy } from '../policies/stringPolicy.ts';
 import type { Policy, ProductJson } from '../policies/types.ts';
 import { renderGP, renderMacOSPolicy, renderJsonPolicies } from '../policies/render.ts';
 import * as JSONC from 'jsonc-parser';
+const regexpDateDate = /<date>.*?<\/date>/;
+
 
 const PolicyTypes = [
 	BooleanPolicy,
@@ -421,7 +423,7 @@ suite('Policy E2E conversion', () => {
 
 		// Compare the rendered manifest with the fixture, ignoring the timestamp
 		// The pfm_last_modified field contains a timestamp that will differ each time
-		const normalizeTimestamp = (content: string) => content.replace(/<date>.*?<\/date>/, '<date>TIMESTAMP</date>');
+		const normalizeTimestamp = (content: string) => content.replace(regexpDateDate, '<date>TIMESTAMP</date>');
 		assert.strictEqual(
 			normalizeTimestamp(enUsManifest.contents),
 			normalizeTimestamp(expectedContent),
@@ -470,7 +472,7 @@ suite('Policy E2E conversion', () => {
 		assert.ok(frFrManifest, 'fr-fr manifest should exist');
 
 		// Compare the rendered manifest with the fixture, ignoring the timestamp
-		const normalizeTimestamp = (content: string) => content.replace(/<date>.*?<\/date>/, '<date>TIMESTAMP</date>');
+		const normalizeTimestamp = (content: string) => content.replace(regexpDateDate, '<date>TIMESTAMP</date>');
 		assert.strictEqual(
 			normalizeTimestamp(frFrManifest.contents),
 			normalizeTimestamp(expectedContent),

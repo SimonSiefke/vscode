@@ -16,6 +16,10 @@ import { TerminalChatAgentToolsSettingId } from '../../../../common/terminalChat
 import { isPowerShell } from '../../../runInTerminalHelpers.js';
 import type { IAutoApproveRule, INpmScriptAutoApproveRule } from '../commandLineAnalyzer.js';
 import { NpmScriptAutoApprover } from './npmScriptAutoApprover.js';
+const regexpPatternFlagsDgimsuvy = /^\/(?<pattern>.+)\/(?<flags>[dgimsuvy]*)$/;
+const regexp2 = /[/\\]/g;
+const regexpPATHSEP = /%%PATH_SEP%%*/g;
+
 
 export interface ICommandApprovalResultWithReason {
 	result: ICommandApprovalResult;
@@ -342,7 +346,7 @@ export class CommandLineAutoApprover extends Disposable {
 	private _doConvertAutoApproveEntryToRegex(value: string): RegExp {
 		// If it's wrapped in `/`, it's in regex format and should be converted directly
 		// Support all standard JavaScript regex flags: d, g, i, m, s, u, v, y
-		const regexMatch = value.match(/^\/(?<pattern>.+)\/(?<flags>[dgimsuvy]*)$/);
+		const regexMatch = value.match(regexpPatternFlagsDgimsuvy);
 		const regexPattern = regexMatch?.groups?.pattern;
 		if (regexPattern) {
 			let flags = regexMatch.groups?.flags;
@@ -381,9 +385,9 @@ export class CommandLineAutoApprover extends Disposable {
 		if (value.includes('/') || value.includes('\\')) {
 			// Replace path separators with placeholders first, apply standard sanitization, then
 			// apply special path handling
-			let pattern = value.replace(/[/\\]/g, '%%PATH_SEP%%');
+			let pattern = value.replace(new RegExp(regexp2), '%%PATH_SEP%%');
 			pattern = escapeRegExpCharacters(pattern);
-			pattern = pattern.replace(/%%PATH_SEP%%*/g, '[/\\\\]');
+			pattern = pattern.replace(new RegExp(regexpPATHSEP), '[/\\\\]');
 			sanitizedValue = `^(?:\\.[/\\\\])?${pattern}`;
 		}
 

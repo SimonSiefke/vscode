@@ -14,6 +14,8 @@ import { getSizeRegistry, sizeValueToCss } from '../../../../platform/theme/comm
 import { ColorScheme } from '../../../../platform/theme/common/theme.js';
 import { IWorkbenchColorTheme, IWorkbenchThemeService } from '../../../services/themes/common/workbenchThemeService.js';
 import { WebviewStyles } from './webview.js';
+const regexp1 = /\./g;
+
 
 interface WebviewThemeData {
 	readonly activeTheme: string;
@@ -73,7 +75,7 @@ export class WebviewThemeDataProvider extends Disposable {
 			const exportedSizes = sizeRegistry.getSizes().reduce<Record<string, string>>((sizes, entry) => {
 				const sizeValue = sizeRegistry.resolveDefaultSize(entry.id, theme);
 				if (sizeValue) {
-					sizes['vscode-' + entry.id.replace(/\./g, '-')] = sizeValueToCss(sizeValue);
+					sizes['vscode-' + entry.id.replace(new RegExp(regexp1), '-')] = sizeValueToCss(sizeValue);
 				}
 				return sizes;
 			}, {});

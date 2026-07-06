@@ -17,6 +17,8 @@ import { Color } from '../../../../base/common/color.js';
 import { isDefined } from '../../../../base/common/types.js';
 import { BracketPairGuidesClassNames } from '../../../common/model/guidesTextModelPart.js';
 import { IndentGuide, HorizontalGuidesState } from '../../../common/textModelGuides.js';
+const regexp1 = / /g;
+
 
 /**
  * Indent guides are vertical lines that help identify the indentation level of
@@ -321,7 +323,7 @@ registerThemingParticipant((theme, collector) => {
 	if (colorValues.length > 0) {
 		for (let level = 0; level < 30; level++) {
 			const colors = colorValues[level % colorValues.length];
-			collector.addRule(`.monaco-editor .${colorProvider.getInlineClassNameOfLevel(level).replace(/ /g, '.')} { --guide-color: ${colors.guideColor}; --guide-color-active: ${colors.guideColorActive}; }`);
+			collector.addRule(`.monaco-editor .${colorProvider.getInlineClassNameOfLevel(level).replace(new RegExp(regexp1), '.')} { --guide-color: ${colors.guideColor}; --guide-color-active: ${colors.guideColorActive}; }`);
 		}
 
 		collector.addRule(`.monaco-editor .vertical { box-shadow: 1px 0 0 0 var(--guide-color) inset; }`);

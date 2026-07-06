@@ -17,6 +17,9 @@ import { LineTokens } from '../../../common/tokens/lineTokens.js';
 import { SparseMultilineTokens } from '../../../common/tokens/sparseMultilineTokens.js';
 import { SparseTokensStore } from '../../../common/tokens/sparseTokensStore.js';
 import { createModelServices, createTextModel, instantiateTextModel } from '../testTextModel.js';
+const regexp1 = /^\[\(/;
+const regexp2 = /\)\]$/;
+
 
 suite('TokensStore', () => {
 
@@ -401,8 +404,8 @@ suite('TokensStore', () => {
 
 	test('bug', () => {
 		function createTokens(str: string): SparseMultilineTokens {
-			str = str.replace(/^\[\(/, '');
-			str = str.replace(/\)\]$/, '');
+			str = str.replace(regexp1, '');
+			str = str.replace(regexp2, '');
 			const strTokens = str.split('),(');
 			const result: number[] = [];
 			let firstLineNumber = 0;

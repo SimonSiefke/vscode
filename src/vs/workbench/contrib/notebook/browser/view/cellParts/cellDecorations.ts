@@ -6,6 +6,8 @@
 import * as DOM from '../../../../../../base/browser/dom.js';
 import { ICellViewModel, INotebookEditorDelegate } from '../../notebookBrowser.js';
 import { CellContentPart } from '../cellPart.js';
+const regexpNb = /^nb\-.*$/;
+
 
 export class CellDecorations extends CellContentPart {
 	constructor(
@@ -19,7 +21,7 @@ export class CellDecorations extends CellContentPart {
 	override didRenderCell(element: ICellViewModel): void {
 		const removedClassNames: string[] = [];
 		this.rootContainer.classList.forEach(className => {
-			if (/^nb\-.*$/.test(className)) {
+			if (regexpNb.test(className)) {
 				removedClassNames.push(className);
 			}
 		});

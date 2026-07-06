@@ -16,6 +16,11 @@ import { IMcpRemoteServerConfiguration, IMcpServerConfiguration, IMcpStdioServer
 import { CustomizationType, McpServerStatus, type AgentCustomization, type HookCustomization, type McpServerCustomization, type RuleCustomization, type SkillCustomization } from '../../agentHost/common/state/protocol/state.js';
 import { DEFAULT_MCP_APP } from '../../agentHost/common/state/protocol/mcpAppDefaults.js';
 import { customizationId } from '../../agentHost/common/state/sessionState.js';
+const regexp1 = /#/g;
+const regexp2 = /"/g;
+const regexpAgentMd = /(\.agent)?\.md$/i;
+const regexpInstructionsMd = /(\.instructions)?\.md$/i;
+
 
 // ---------------------------------------------------------------------------
 // Types
@@ -206,7 +211,7 @@ function buildChildId(uri: URI, disambiguator?: string): string {
 	if (!disambiguator) {
 		return base;
 	}
-	return `${base.replace(/#/g, '%23')}#${disambiguator}`;
+	return `${base.replace(new RegExp(regexp1), '%23')}#${disambiguator}`;
 }
 
 function makeAgentCustomization(resource: INamedPluginResource): AgentCustomization {
@@ -437,7 +442,7 @@ export function shellQuotePluginRootInCommand(command: string, fsPath: string, t
 		if (leadingQuote) {
 			return leadingQuote + fullPath;
 		}
-		return '"' + fullPath.replace(/"/g, '\\"') + '"';
+		return '"' + fullPath.replace(new RegExp(regexp2), '\\"') + '"';
 	});
 }
 
@@ -992,7 +997,7 @@ export async function readAgentComponents(dirs: readonly URI[], fileService: IFi
 
 export async function parseAgentFile(uri: URI, fileService: IFileService): Promise<{ name: string; description?: string; userInvocable?: boolean }> {
 	// Use regex to strip the trailing `.agent.md` or .md before parsing, so we can fall back to a cleaner name if frontmatter is missing or broken.
-	const nameFromFile = basename(uri).replace(/(\.agent)?\.md$/i, '');
+	const nameFromFile = basename(uri).replace(regexpAgentMd, '');
 	try {
 		const content = await fileService.readFile(uri);
 		const frontmatter = parseFrontMatter(content.value.toString());
@@ -1019,7 +1024,7 @@ export async function parseSkillFile(uri: URI, fileService: IFileService): Promi
 }
 
 export async function parseRuleFile(uri: URI, fileService: IFileService): Promise<{ name: string; description?: string; globs?: string[]; alwaysApply?: boolean }> {
-	const nameFromFile = basename(uri).replace(/(\.instructions)?\.md$/i, '');
+	const nameFromFile = basename(uri).replace(regexpInstructionsMd, '');
 	try {
 		const content = await fileService.readFile(uri);
 		const frontmatter = parseFrontMatter(content.value.toString());

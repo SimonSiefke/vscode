@@ -28,6 +28,9 @@ import { KeybindingWeight } from '../../../../platform/keybinding/common/keybind
 import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
 import { getSelectionHighlightDecorationOptions } from '../../wordHighlighter/browser/highlightDecorations.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+const regexp1 = /\r\n/g;
+const regexp2 = /^[ \t]+$/;
+
 
 function announceCursorChange(previousCursorState: CursorState[], cursorState: CursorState[]): void {
 	const cursorDiff = cursorState.filter(cs => !previousCursorState.find(pcs => pcs.equals(cs)));
@@ -319,7 +322,7 @@ export class MultiCursorSession {
 			searchText = word.word;
 			currentMatch = new Selection(s.startLineNumber, word.startColumn, s.startLineNumber, word.endColumn);
 		} else {
-			searchText = editor.getModel().getValueInRange(s).replace(/\r\n/g, '\n');
+			searchText = editor.getModel().getValueInRange(s).replace(new RegExp(regexp1), '\n');
 		}
 
 		return new MultiCursorSession(editor, findController, isDisconnectedFromFindController, searchText, wholeWord, matchCase, currentMatch);
@@ -956,7 +959,7 @@ export class SelectionHighlighter extends Disposable implements IEditorContribut
 			// Do not interfere with semantic word highlighting in the no selection case
 			return null;
 		}
-		if (/^[ \t]+$/.test(r.searchText)) {
+		if (regexp2.test(r.searchText)) {
 			// whitespace only selection
 			return null;
 		}

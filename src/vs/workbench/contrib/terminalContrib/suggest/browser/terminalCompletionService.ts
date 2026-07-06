@@ -23,6 +23,19 @@ import { isEqual } from '../../../../../base/common/resources.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IRelativePattern, match } from '../../../../../base/common/glob.js';
 import { isString } from '../../../../../base/common/types.js';
+const regexp1 = /[\\/]/g;
+const regexp2 = /(?<!\\) /;
+const regexpZARhs = /^[a-zA-Z_]+=(?<rhs>.+)$/;
+const regexp4 = /^\.\.?[\\\/]/;
+const regexp5 = /^~[\\\/]?/;
+const regexp6 = /\/+$/;
+const regexp7 = /^\.\/+/;
+const regexp8 = /^~[\\\/]$/;
+const regexp9 = /[\\\/]/;
+const regexp10 = /[\[\]\(\)'"\\\`\*\?;|&<>]/g;
+const regexpZA = /^[a-zA-Z]:\//;
+const regexpZA1 = /^[a-zA-Z]:[\\\/]/;
+
 
 export const ITerminalCompletionService = createDecorator<ITerminalCompletionService>('terminalCompletionService');
 
@@ -253,7 +266,7 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 		const useWindowsStylePath = resourceOptions.pathSeparator === '\\';
 		if (useWindowsStylePath) {
 			// for tests, make sure the right path separator is used
-			promptValue = promptValue.replaceAll(/[\\/]/g, resourceOptions.pathSeparator);
+			promptValue = promptValue.replaceAll(new RegExp(regexp1), resourceOptions.pathSeparator);
 		}
 
 		// Files requested implies folders requested since the file could be in any folder. We could
@@ -271,16 +284,16 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 
 		// Determine if we're completing the command (first word) vs an argument
 		// We're in command position if there are no unescaped spaces before cursor
-		const wordsBeforeCursor = cursorPrefix.split(/(?<!\\) /);
+		const wordsBeforeCursor = cursorPrefix.split(regexp2);
 		const isCommandPosition = wordsBeforeCursor.length <= 1 && !cursorPrefix.endsWith(' ');
 
 		// TODO: Leverage Fig's tokens array here?
 		// The last word (or argument). When the cursor is following a space it will be the empty
 		// string
-		let lastWord = cursorPrefix.endsWith(' ') ? '' : cursorPrefix.split(/(?<!\\) /).at(-1) ?? '';
+		let lastWord = cursorPrefix.endsWith(' ') ? '' : cursorPrefix.split(regexp2).at(-1) ?? '';
 
 		// Ignore prefixes in the word that look like setting an environment variable
-		const matchEnvVarPrefix = lastWord.match(/^[a-zA-Z_]+=(?<rhs>.+)$/);
+		const matchEnvVarPrefix = lastWord.match(regexpZARhs);
 		if (matchEnvVarPrefix?.groups?.rhs) {
 			lastWord = matchEnvVarPrefix.groups.rhs;
 		}
@@ -314,8 +327,8 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 
 
 		// Determine the current folder being shown
-		const lastWordFolderHasDotPrefix = !!lastWordFolder.match(/^\.\.?[\\\/]/);
-		const lastWordFolderHasTildePrefix = !!lastWordFolder.match(/^~[\\\/]?/);
+		const lastWordFolderHasDotPrefix = !!lastWordFolder.match(regexp4);
+		const lastWordFolderHasTildePrefix = !!lastWordFolder.match(regexp5);
 		const isAbsolutePath = getIsAbsolutePath(shellType, resourceOptions.pathSeparator, lastWordFolder, useWindowsStylePath);
 		const type = lastWordFolderHasTildePrefix ? 'tilde' : isAbsolutePath ? 'absolute' : 'relative';
 		const cwd = URI.revive(resourceOptions.cwd);
@@ -326,9 +339,9 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 			const normalizedFolder = (useWindowsStylePath ? lastWordFolder.replaceAll('\\', '/') : lastWordFolder).replaceAll('\\ ', ' ');
 			const hasDotPrefix = normalizedFolder.startsWith('./');
 			if (hasDotPrefix) {
-				const stripped = normalizedFolder.replace(/^\.\/+/, '').replace(/\/+$/, '');
+				const stripped = normalizedFolder.replace(regexp7, '').replace(regexp6, '');
 				if (stripped) {
-					const cwdParts = cwd.path.replace(/\/+$/, '').split('/');
+					const cwdParts = cwd.path.replace(regexp6, '').split('/');
 					const strippedParts = stripped.split('/');
 					const tailMatches = strippedParts.length <= cwdParts.length && strippedParts.every((part, idx) => cwdParts[cwdParts.length - strippedParts.length + idx] === part);
 					if (tailMatches) {
@@ -382,7 +395,7 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 				if (!lastWordFolderResource) {
 					// Use less strong wording here as it's not as strong of a concept on Windows
 					// and could be misleading
-					if (lastWord.match(/^~[\\\/]$/)) {
+					if (lastWord.match(regexp8)) {
 						lastWordFolderResource = useWindowsStylePath ? 'Home directory' : '$HOME';
 					}
 				}
@@ -615,7 +628,7 @@ export class TerminalCompletionService extends Disposable implements ITerminalCo
 		//
 		// - (relative) `|` -> `~`
 		this._logService.trace(`TerminalCompletionService#resolveResources tilde`);
-		if (type === 'relative' && !lastWordFolder.match(/[\\\/]/)) {
+		if (type === 'relative' && !lastWordFolder.match(regexp9)) {
 			let homeResource: URI | string | undefined;
 			const home = this._getHomeDir(useWindowsStylePath, capabilities);
 			if (home) {
@@ -685,14 +698,14 @@ export function escapeTerminalCompletionLabel(label: string, shellType: Terminal
 	if (shellType === undefined || shellType === GeneralShellType.PowerShell || shellType === WindowsShellType.CommandPrompt) {
 		return label;
 	}
-	return label.replace(/[\[\]\(\)'"\\\`\*\?;|&<>]/g, '\\$&');
+	return label.replace(new RegExp(regexp10), '\\$&');
 }
 
 function getIsAbsolutePath(shellType: TerminalShellType | undefined, pathSeparator: string, lastWord: string, useWindowsStylePath: boolean): boolean {
 	if (shellType === WindowsShellType.GitBash) {
-		return lastWord.startsWith(pathSeparator) || /^[a-zA-Z]:\//.test(lastWord);
+		return lastWord.startsWith(pathSeparator) || regexpZA.test(lastWord);
 	}
-	return useWindowsStylePath ? /^[a-zA-Z]:[\\\/]/.test(lastWord) : lastWord.startsWith(pathSeparator);
+	return useWindowsStylePath ? regexpZA1.test(lastWord) : lastWord.startsWith(pathSeparator);
 }
 
 /**

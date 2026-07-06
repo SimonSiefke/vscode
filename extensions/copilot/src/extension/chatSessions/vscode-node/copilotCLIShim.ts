@@ -6,6 +6,10 @@
 import { spawnSync } from 'child_process';
 import * as readline from 'readline';
 import * as path from '../../../util/vs/base/common/path';
+const regexp1 = /^v/;
+const regexp2 = /[^0-9].*$/;
+const regexp3 = /[0-9]+\.[0-9]+\.[0-9]+/;
+
 
 // ⚠️⚠️⚠️
 // This file is built into a standalone bundle, executed from the terminal.
@@ -51,8 +55,8 @@ function promptYes(question: string): Promise<boolean> {
 }
 
 function semverParts(v: string) {
-	const cleaned = v.replace(/^v/, '').split('.');
-	return [0, 1, 2].map(i => parseInt((cleaned[i] || '0').replace(/[^0-9].*$/, ''), 10) || 0);
+	const cleaned = v.replace(regexp1, '').split('.');
+	return [0, 1, 2].map(i => parseInt((cleaned[i] || '0').replace(regexp2, ''), 10) || 0);
 }
 
 function versionGte(versionA: string, versionB: string) {
@@ -74,7 +78,7 @@ function getCopilotInfo(): { installed: true; version?: string } | undefined {
 	if (result.error || result.status !== 0) {
 		return undefined;
 	}
-	const m = result.stdout.match(/[0-9]+\.[0-9]+\.[0-9]+/);
+	const m = result.stdout.match(regexp3);
 	return m ? { version: m[0], installed: true } : { installed: true };
 
 }

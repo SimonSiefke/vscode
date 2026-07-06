@@ -33,6 +33,9 @@ import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uri
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 import { UserDataSyncConflictsViewPane } from './userDataSyncConflictsView.js';
+const regexpSyncResource = /sync-resource-.*/i;
+const regexpSyncAssociatedResource = /sync-associatedResource-.*/i;
+
 
 export class UserDataSyncDataViews extends Disposable {
 
@@ -232,7 +235,7 @@ export class UserDataSyncDataViews extends Disposable {
 					title: localize('workbench.actions.sync.resolveResourceRef', "Show raw JSON sync data"),
 					menu: {
 						id: MenuId.ViewItemContext,
-						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', /sync-resource-.*/i))
+						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', regexpSyncResource))
 					},
 				});
 			}
@@ -250,7 +253,7 @@ export class UserDataSyncDataViews extends Disposable {
 					title: localize('workbench.actions.sync.compareWithLocal', "Compare with Local"),
 					menu: {
 						id: MenuId.ViewItemContext,
-						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', /sync-associatedResource-.*/i))
+						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', regexpSyncAssociatedResource))
 					},
 				});
 			}
@@ -276,7 +279,7 @@ export class UserDataSyncDataViews extends Disposable {
 					icon: Codicon.discard,
 					menu: {
 						id: MenuId.ViewItemContext,
-						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', /sync-resource-.*/i), ContextKeyExpr.notEquals('viewItem', `sync-resource-${SyncResource.Profiles}`)),
+						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', regexpSyncResource), ContextKeyExpr.notEquals('viewItem', `sync-resource-${SyncResource.Profiles}`)),
 						group: 'inline',
 					},
 				});

@@ -33,6 +33,8 @@ import { IAutomationService } from '../../common/automations/automationService.j
 import { IAutomationDialogService } from '../../common/automations/automationDialogService.js';
 import { CHAT_AUTOMATIONS_ENABLED_SETTING } from '../../common/automations/automationsEnabled.js';
 import { DAYS_OF_WEEK } from '../../common/automations/schedule.js';
+const regexp1 = /\s+/g;
+
 
 const $ = DOM.$;
 
@@ -689,7 +691,7 @@ function formatRelativeTimeOrIso(iso: string): string {
 }
 
 function truncate(s: string, max: number): string {
-	const single = s.replace(/\s+/g, ' ').trim();
+	const single = s.replace(new RegExp(regexp1), ' ').trim();
 	if (single.length <= max) {
 		return single;
 	}

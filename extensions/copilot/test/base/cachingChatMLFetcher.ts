@@ -30,6 +30,10 @@ import { ISimulationEndpointHealth } from './simulationEndpointHealth';
 import { SimulationOutcomeImpl } from './simulationOutcome';
 import { drainStdoutAndExit } from './stdout';
 import { REPO_ROOT, SimulationTest } from './stest';
+const regexp1 = /\n/g;
+const regexpKeyAlreadyExists = /Key already exists/;
+const regexp3 = /\n\n+/;
+
 
 export class CacheableChatRequest {
 	public readonly hash: string;
@@ -182,7 +186,7 @@ export class CachingChatMLFetcher extends AbstractChatMLFetcher {
 
 				console.log(JSON.stringify(opts.messages, (key, value) => {
 					if (typeof value === 'string') {
-						const split = value.split(/\n/g);
+						const split = value.split(new RegExp(regexp1));
 						return split.length > 1 ? split : value;
 					}
 					return value;
@@ -232,10 +236,10 @@ export class CachingChatMLFetcher extends AbstractChatMLFetcher {
 					try {
 						await this.cache.set(req, this.testInfo.cacheSlot, cachedResponse);
 					} catch (err) {
-						if (/Key already exists/.test(err.message)) {
+						if (regexpKeyAlreadyExists.test(err.message)) {
 							console.log(JSON.stringify(opts.messages, (key, value) => {
 								if (typeof value === 'string') {
-									const split = value.split(/\n/g);
+									const split = value.split(new RegExp(regexp1));
 									return split.length > 1 ? split : value;
 								}
 								return value;
@@ -305,7 +309,7 @@ export class CachingChatMLFetcher extends AbstractChatMLFetcher {
 					const bestCast = best as { messages: { content: string[] }[] };
 					const currentCast = req.toJSON() as { messages: { content: string[] }[] };
 					if (bestCast.messages.length === currentCast.messages.length && bestCast.messages.every(
-						(v, i) => v.content.join('').replace(/\n\n+/, '\n').trim() === currentCast.messages[i].content.join('').replace(/\n\n+/, '\n').trim())) {
+						(v, i) => v.content.join('').replace(regexp3, '\n').trim() === currentCast.messages[i].content.join('').replace(regexp3, '\n').trim())) {
 						whitespaceOnly = true;
 					}
 				}

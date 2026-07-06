@@ -30,6 +30,9 @@ import type { IRelayMessage } from '../../common/relayTransport.js';
 import { PROTOCOL_VERSION } from '../../common/state/protocol/version/registry.js';
 import { ISSHRelayClientFactory, SSHRemoteAgentHostService } from '../../electron-browser/sshRemoteAgentHostServiceImpl.js';
 import { RemoteAgentHostProtocolClient } from '../../browser/remoteAgentHostProtocolClient.js';
+const regexpUnsupportedProtocolVersion = /Unsupported protocol version/;
+const regexpNotEnabled = /not enabled/;
+
 
 /**
  * In-renderer mock of the shared-process SSH service. Exposes the same
@@ -312,7 +315,7 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 			{ supportedVersions: ['^0.2.0'], _meta: { vscodeUpgradeMethod: '_vscodeUpgrade' } },
 		));
 
-		await assert.rejects(connectPromise, /Unsupported protocol version/);
+		await assert.rejects(connectPromise, regexpUnsupportedProtocolVersion);
 
 		assert.deepStrictEqual({
 			added: remoteAgentHostService.added.map(({ address, status }) => ({ address, status })),
@@ -344,7 +347,7 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 			'Unsupported protocol version',
 			{ supportedVersions: ['^0.2.0'], _meta: { vscodeUpgradeMethod: '_vscodeUpgrade' } },
 		));
-		await assert.rejects(firstConnect, /Unsupported protocol version/);
+		await assert.rejects(firstConnect, regexpUnsupportedProtocolVersion);
 
 		// User triggers the server upgrade and then the contribution reconnects.
 		// The reconnect must NOT short-circuit to the stale handle (whose
@@ -378,8 +381,8 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 	test('disabled setting prevents SSH tunnel connects and reconnects', async () => {
 		configurationService.setRemoteAgentHostsEnabled(false);
 
-		await assert.rejects(() => service.connect(sampleConfig), /not enabled/);
-		await assert.rejects(() => service.reconnect('remote.example', 'My Remote'), /not enabled/);
+		await assert.rejects(() => service.connect(sampleConfig), regexpNotEnabled);
+		await assert.rejects(() => service.reconnect('remote.example', 'My Remote'), regexpNotEnabled);
 
 		assert.deepStrictEqual({ connectCalls: mainService.connectCalls, reconnectCalls: mainService.reconnectCalls, added: remoteAgentHostService.added }, {
 			connectCalls: [],

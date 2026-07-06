@@ -10,6 +10,13 @@ import { ILogService } from '../../../platform/log/common/logService';
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
 import { extUriBiasedIgnorePathCase } from '../../../util/vs/base/common/resources';
 import { getCopilotHome } from '../copilotcli/node/cliHelpers';
+const regexp1 = /[\[\]"'.]$/;
+const regexpZA = /^[a-zA-Z]:[/\\]/;
+const regexp3 = /[\\/]/;
+const regexp4 = /\\/g;
+const regexp5 = /\/$/;
+const regexp6 = /^\d+(?:\.\d+)+$/;
+
 
 const UNTRUSTED_COPILOT_HOME_MESSAGE = l10n.t('The Copilot home directory is not trusted. Please trust the directory to open this file.');
 
@@ -120,7 +127,7 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			// Strip trailing punctuation that is unlikely part of the path.
 			// Mirrors VS Code's specialEndCharRegex (terminalLocalLinkDetector.ts).
 			let trimmed = 0;
-			while (pathText.length > 1 && /[\[\]"'.]$/.test(pathText)) {
+			while (pathText.length > 1 && regexp1.test(pathText)) {
 				pathText = pathText.slice(0, -1);
 				trimmed++;
 			}
@@ -155,7 +162,7 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 
 			// Skip absolute paths; the built-in detector handles them.
 			// Unix: /foo, Windows: C:\foo or \Users\foo
-			if (pathText.startsWith('/') || pathText.startsWith('\\') || /^[a-zA-Z]:[/\\]/.test(pathText)) {
+			if (pathText.startsWith('/') || pathText.startsWith('\\') || regexpZA.test(pathText)) {
 				continue;
 			}
 
@@ -394,14 +401,14 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 	private _labelCandidate(uri: Uri, sessionDirs: readonly Uri[]): string {
 		return this._relativeTo(uri, sessionDirs)
 			?? this._relativeTo(uri, workspace.workspaceFolders?.map(f => f.uri) ?? [])
-			?? uri.fsPath.split(/[\\/]/).pop()
+			?? uri.fsPath.split(regexp3).pop()
 			?? uri.fsPath;
 	}
 
 	private _describeCandidate(uri: Uri, sessionDirs: readonly Uri[]): string {
-		const normalizedCandidatePath = uri.fsPath.replace(/\\/g, '/');
+		const normalizedCandidatePath = uri.fsPath.replace(new RegExp(regexp4), '/');
 		for (const sessionDir of sessionDirs) {
-			const normalizedSessionPath = sessionDir.fsPath.replace(/\\/g, '/').replace(/\/$/, '');
+			const normalizedSessionPath = sessionDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
 			if (normalizedCandidatePath.startsWith(`${normalizedSessionPath}/`)) {
 				const sessionId = normalizedSessionPath.split('/').pop();
 				return `session-state/${sessionId}`;
@@ -421,9 +428,9 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 	 * normalized separators.
 	 */
 	private _relativeTo(uri: Uri, baseDirs: readonly Uri[]): string | undefined {
-		const normalizedCandidatePath = uri.fsPath.replace(/\\/g, '/');
+		const normalizedCandidatePath = uri.fsPath.replace(new RegExp(regexp4), '/');
 		for (const baseDir of baseDirs) {
-			const normalizedBasePath = baseDir.fsPath.replace(/\\/g, '/').replace(/\/$/, '');
+			const normalizedBasePath = baseDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
 			const prefix = `${normalizedBasePath}/`;
 			if (normalizedCandidatePath.startsWith(prefix)) {
 				return normalizedCandidatePath.slice(prefix.length);
@@ -445,7 +452,7 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			}
 
 			const dir = queue[i];
-			const normalizedDir = dir.fsPath.replace(/\\/g, '/');
+			const normalizedDir = dir.fsPath.replace(new RegExp(regexp4), '/');
 			if (visited.has(normalizedDir)) {
 				continue;
 			}
@@ -481,11 +488,11 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			return undefined;
 		}
 
-		const normalizedSessionPath = sessionDir.fsPath.replace(/\\/g, '/').replace(/\/$/, '');
+		const normalizedSessionPath = sessionDir.fsPath.replace(new RegExp(regexp4), '/').replace(regexp5, '');
 		const sessionPathPrefix = `${normalizedSessionPath}/`;
 		matches.sort((a, b) => {
-			const pathA = a.fsPath.replace(/\\/g, '/');
-			const pathB = b.fsPath.replace(/\\/g, '/');
+			const pathA = a.fsPath.replace(new RegExp(regexp4), '/');
+			const pathB = b.fsPath.replace(new RegExp(regexp4), '/');
 			const relA = pathA.startsWith(sessionPathPrefix) ? pathA.slice(sessionPathPrefix.length) : pathA;
 			const relB = pathB.startsWith(sessionPathPrefix) ? pathB.slice(sessionPathPrefix.length) : pathB;
 
@@ -507,7 +514,7 @@ export class CopilotCLITerminalLinkProvider implements TerminalLinkProvider<Copi
 			return false;
 		}
 
-		return /^\d+(?:\.\d+)+$/.test(pathText);
+		return regexp6.test(pathText);
 	}
 
 	private _nestedBareFilenameScore(relativePath: string, basename: string): number {

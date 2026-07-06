@@ -45,6 +45,8 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IHistory } from '../../../../base/common/history.js';
 import { HoverStyle, type IHoverLifecycleOptions } from '../../../../base/browser/ui/hover/hover.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+const regexp1 = /\n/;
+
 
 const findCollapsedIcon = registerIcon('find-collapsed', Codicon.chevronRight, nls.localize('findCollapsedIcon', 'Icon to indicate that the editor find widget is collapsed.'));
 const findExpandedIcon = registerIcon('find-expanded', Codicon.chevronDown, nls.localize('findExpandedIcon', 'Icon to indicate that the editor find widget is expanded.'));
@@ -104,7 +106,7 @@ export class FindWidgetViewZone implements IViewZone {
 }
 
 function stopPropagationForMultiLineUpwards(event: IKeyboardEvent, value: string, textarea: HTMLTextAreaElement | null) {
-	const isMultiline = !!value.match(/\n/);
+	const isMultiline = !!value.match(regexp1);
 	if (textarea && isMultiline && textarea.selectionStart > 0) {
 		event.stopPropagation();
 		return;
@@ -112,7 +114,7 @@ function stopPropagationForMultiLineUpwards(event: IKeyboardEvent, value: string
 }
 
 function stopPropagationForMultiLineDownwards(event: IKeyboardEvent, value: string, textarea: HTMLTextAreaElement | null) {
-	const isMultiline = !!value.match(/\n/);
+	const isMultiline = !!value.match(regexp1);
 	if (textarea && isMultiline && textarea.selectionEnd < textarea.value.length) {
 		event.stopPropagation();
 		return;

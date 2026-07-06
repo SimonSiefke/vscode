@@ -21,6 +21,8 @@ import { IDisposable, Disposable } from '../../../base/common/lifecycle.js';
 import { ColorScheme, isDark, isHighContrast } from '../../../platform/theme/common/theme.js';
 import { getIconsStyleSheet, UnthemedProductIconTheme } from '../../../platform/theme/browser/iconsStyleSheet.js';
 import { mainWindow } from '../../../base/browser/window.js';
+const regexpZ0 = /^[a-z0-9\-]+$/i;
+
 
 export const VS_LIGHT_THEME_NAME = 'vs';
 export const VS_DARK_THEME_NAME = 'vs-dark';
@@ -309,7 +311,7 @@ export class StandaloneThemeService extends Disposable implements IStandaloneThe
 	}
 
 	public defineTheme(themeName: string, themeData: IStandaloneThemeData): void {
-		if (!/^[a-z0-9\-]+$/i.test(themeName)) {
+		if (!regexpZ0.test(themeName)) {
 			throw new Error('Illegal theme name!');
 		}
 		if (!isBuiltinTheme(themeData.base) && !isBuiltinTheme(themeName)) {

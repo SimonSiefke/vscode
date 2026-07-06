@@ -77,6 +77,8 @@ import { XtabEndpoint } from './xtabEndpoint';
 import { CursorJumpPrediction, XtabNextCursorPredictor } from './xtabNextCursorPredictor';
 import { charCount, constructMessages, findMergeConflictMarkersRange } from './xtabUtils';
 import { XtabPatchResponseHandler } from './xtabPatchResponseHandler';
+const regexp1 = /^(\s*)/;
+
 
 /**
  * Returns true if the user has made document edits since the request was created.
@@ -1717,7 +1719,7 @@ export class XtabProvider implements IStatelessNextEditProvider {
 	}
 
 	public static getNextCursorColumn(nextCursorLine: string | undefined): number {
-		return (nextCursorLine?.match(/^(\s*)/)?.at(1)?.length ?? 0) + 1;
+		return (nextCursorLine?.match(regexp1)?.at(1)?.length ?? 0) + 1;
 	}
 }
 

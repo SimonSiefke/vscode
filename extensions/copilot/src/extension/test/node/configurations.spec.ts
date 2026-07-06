@@ -7,6 +7,9 @@ import * as path from 'path';
 import { describe, expect, it } from 'vitest';
 import { Config, ConfigKey } from '../../../platform/configuration/common/configurationService';
 import { packageJson } from '../../../platform/env/common/packagejson';
+const regexpGithubCopilotChat = /^github\.copilot\.chat\.advanced\./;
+const regexp2 = /"%([^"]+)%"/g;
+
 
 describe('Configurations', () => {
 	it('package.json configuration contains stable, experimental, preview, and advanced sections', () => {
@@ -84,7 +87,7 @@ describe('Configurations', () => {
 
 		// Validate Internal settings have the correct prefix
 		internalKeys.forEach(key => {
-			expect(key, 'Internal settings must start with github.copilot.chat.advanced.').toMatch(/^github\.copilot\.chat\.advanced\./);
+			expect(key, 'Internal settings must start with github.copilot.chat.advanced.').toMatch(regexpGithubCopilotChat);
 		});
 
 		// Validate public settings in code are in package.json
@@ -94,7 +97,7 @@ describe('Configurations', () => {
 
 		// Validate advanced settings in code are in the advanced section of package.json
 		advancedPublicKeys.forEach(key => {
-			expect(key, 'Advanced settings must not start wih github.copilot.chat.advanced.').not.toMatch(/^github\.copilot\.chat\.advanced\./);
+			expect(key, 'Advanced settings must not start wih github.copilot.chat.advanced.').not.toMatch(regexpGithubCopilotChat);
 			if (key === ConfigKey.Advanced.DebugGitHubAuthFailWith.fullyQualifiedId) {
 				// This setting should be internal, but can't be made TeamInternal because we lose the team and internal flags as part of its testing.
 				return;
@@ -139,7 +142,7 @@ describe('Configurations', () => {
 		const nlsKeys = Object.keys(packageNls);
 
 		// Find all %key% references in package.json
-		const nlsReferences = Array.from(packageJsonFileContents.matchAll(/"%([^"]+)%"/g)).map(match => match[1]);
+		const nlsReferences = Array.from(packageJsonFileContents.matchAll(new RegExp(regexp2))).map(match => match[1]);
 
 		// Validate all references exist in package.nls.json
 		const missingKeys = nlsReferences.filter(key => !nlsKeys.includes(key));

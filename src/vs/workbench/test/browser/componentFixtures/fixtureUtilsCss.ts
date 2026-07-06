@@ -11,6 +11,8 @@ import { ColorScheme } from '../../../../platform/theme/common/theme.js';
 import { IThemingRegistry, Extensions as ThemingExtensions } from '../../../../platform/theme/common/themeService.js';
 import { generateColorThemeCSS } from '../../../services/themes/browser/colorThemeCss.js';
 import { ColorThemeData } from '../../../services/themes/common/colorThemeData.js';
+const regexpCssSource = /\/\*\s*@css-source:/;
+
 
 const themingRegistry = Registry.as<IThemingRegistry>(ThemingExtensions.ThemingContribution);
 const mockEnvironmentService: IEnvironmentService = Object.create(null);
@@ -142,7 +144,7 @@ function readBundle(): Promise<Bundle> {
 		const sources = await Promise.all(sheets.map(readStyleSheetSource));
 		const bundled = sheets
 			.map((sheet, i) => ({ sheet, source: sources[i] }))
-			.filter(entry => /\/\*\s*@css-source:/.test(entry.source));
+			.filter(entry => regexpCssSource.test(entry.source));
 		return bundle = {
 			sheets: bundled.map(entry => entry.sheet),
 			rawSources: bundled.map(entry => entry.source).join('\n'),

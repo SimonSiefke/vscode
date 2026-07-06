@@ -11,6 +11,9 @@ import { IWorkspaceService } from '../../../../../platform/workspace/common/work
 import { CancellationToken } from '../../../../../util/vs/base/common/cancellation';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { IClaudeSlashCommandHandler, registerClaudeSlashCommand } from './claudeSlashCommandRegistry';
+const regexp1 = /[.*+?^${}()|[\]\\]/g;
+const regexp2 = /\n/g;
+
 
 /**
  * HOOKS CONFIGURATION WIZARD
@@ -357,14 +360,14 @@ export class HooksSlashCommand implements IClaudeSlashCommandHandler {
 			const text = document.getText();
 
 			// Find the line containing the command
-			const commandEscaped = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			const commandEscaped = command.replace(new RegExp(regexp1), '\\$&');
 			const regex = new RegExp(`"command"\\s*:\\s*"${commandEscaped}"`);
 			const match = regex.exec(text);
 
 			let position = new vscode.Position(0, 0);
 			if (match) {
 				const beforeMatch = text.substring(0, match.index);
-				const lineNumber = (beforeMatch.match(/\n/g) || []).length;
+				const lineNumber = (beforeMatch.match(new RegExp(regexp2)) || []).length;
 				const lastNewline = beforeMatch.lastIndexOf('\n');
 				const column = match.index - lastNewline - 1 + match[0].indexOf(command);
 				position = new vscode.Position(lineNumber, column);

@@ -30,6 +30,9 @@ import { ITabsAndEditorsService } from '../../tabs/common/tabsAndEditorsService'
 import { IExperimentationService } from '../../telemetry/common/nullExperimentationService';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
 import { IWorkspaceService } from '../../workspace/common/workspaceService';
+const regexp1 = /[/\\]/g;
+const regexp2 = /\./;
+
 
 /**
  * The maximum size of a file to index (in bytes)
@@ -225,13 +228,13 @@ export function shouldAlwaysIgnoreFile(resource: URI): boolean {
 	}
 
 	// Ignore some common folders like node_modules
-	const parts = resource.fsPath.toLowerCase().split(/[/\\]/g);
+	const parts = resource.fsPath.toLowerCase().split(new RegExp(regexp1));
 	if (parts.some(part => EXCLUDED_FOLDERS.includes(part))) {
 		return true;
 	}
 
 	// Ignore some common extensions
-	const normalizedExt = extname(resource).replace(/\./, '').toLowerCase();
+	const normalizedExt = extname(resource).replace(regexp2, '').toLowerCase();
 	if (EXCLUDE_EXTENSIONS.has(normalizedExt)) {
 		return true;
 	}

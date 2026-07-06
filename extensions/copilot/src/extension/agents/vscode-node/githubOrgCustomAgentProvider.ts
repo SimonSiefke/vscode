@@ -10,6 +10,9 @@ import { CustomAgentDetails, CustomAgentListOptions, IOctoKitService } from '../
 import { ILogService } from '../../../platform/log/common/logService';
 import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { IGitHubOrgChatResourcesService } from './githubOrgChatResourcesService';
+const regexp1 = /[#:\[\]{},\n\r]/;
+const regexp2 = /^-?\d*\.?\d+$/;
+
 
 /**
  * Polling interval for refreshing custom agents from GitHub (5 minutes).
@@ -172,7 +175,7 @@ export function yamlString(value: string): string | Scalar {
 	// - Newlines would corrupt the value (parser splits on newlines)
 	// - Single quotes in value require double quotes (parser doesn't handle escapes)
 	const needsQuoting =
-		/[#:\[\]{},\n\r]/.test(value) ||
+		regexp1.test(value) ||
 		value.startsWith('\'') ||
 		value.startsWith('"') ||
 		value !== value.trim() ||
@@ -207,5 +210,5 @@ export function looksLikeNumber(value: string): boolean {
 	}
 	const num = Number(value);
 	// Matches parser logic: !isNaN && isFinite && passes regex /^-?\d*\.?\d+$/
-	return !isNaN(num) && isFinite(num) && /^-?\d*\.?\d+$/.test(value);
+	return !isNaN(num) && isFinite(num) && regexp2.test(value);
 }

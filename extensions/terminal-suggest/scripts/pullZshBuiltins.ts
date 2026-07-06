@@ -6,6 +6,10 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { checkWindows, execAsync, copyright } from './terminalScriptHelpers';
+const regexpZsh = /zsh (\d+\.\d+)/;
+const regexpCommand = /^\*\*(?<command>[a-z\.:]+)\*\*(?:\s\*.+\*)?(?:\s\\\[.+\\\])?$/;
+const regexp3 = /\\`([^']+)\\'/g;
+
 
 checkWindows();
 
@@ -133,7 +137,7 @@ async function createCommandDescriptionsCache(): Promise<void> {
 	const cachedCommandDescriptions: Map<string, { shortDescription?: string; description: string; args: string | undefined }> = new Map();
 	let output = '';
 	const zshVersionOutput = await execAsync('zsh --version').then(r => r.stdout);
-	const zshVersionMatch = zshVersionOutput.match(/zsh (\d+\.\d+)/);
+	const zshVersionMatch = zshVersionOutput.match(regexpZsh);
 	if (!zshVersionMatch) {
 		console.error('\x1b[31mFailed to determine zsh version\x1b[0m');
 		process.exit(1);
@@ -149,7 +153,7 @@ async function createCommandDescriptionsCache(): Promise<void> {
 	}
 
 	const commands: Map<string, string[]> = new Map();
-	const commandRegex = /^\*\*(?<command>[a-z\.:]+)\*\*(?:\s\*.+\*)?(?:\s\\\[.+\\\])?$/;
+	const commandRegex = regexpCommand;
 	if (output) {
 		const lines = output.split('\n');
 		let currentCommand: string | undefined;
@@ -224,7 +228,7 @@ function formatLineAsMarkdown(text: string): string {
 	// them to standard markdown `code` (backtick, backtick). This doesn't attempt to remove
 	// formatting inside the code blocks. We probably need to use the original .troff format to do
 	// this
-	const formattedText = text.replace(/\\`([^']+)\\'/g, '`$1`');
+	const formattedText = text.replace(new RegExp(regexp3), '`$1`');
 	return formattedText;
 }
 

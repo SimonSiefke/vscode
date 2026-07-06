@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\((.*):(\d+):(\d+)\)/;
+const regexpAt = /at ([^\(\)]*):(\d+):(\d+)/;
+
 export type DebugLocation = DebugLocationImpl | undefined;
 
 export namespace DebugLocation {
@@ -61,7 +64,7 @@ export interface ILocation {
 }
 
 function parseLine(stackLine: string): ILocation | undefined {
-	const match = stackLine.match(/\((.*):(\d+):(\d+)\)/);
+	const match = stackLine.match(regexp1);
 	if (match) {
 		return {
 			fileName: match[1],
@@ -71,7 +74,7 @@ function parseLine(stackLine: string): ILocation | undefined {
 		};
 	}
 
-	const match2 = stackLine.match(/at ([^\(\)]*):(\d+):(\d+)/);
+	const match2 = stackLine.match(regexpAt);
 
 	if (match2) {
 		return {

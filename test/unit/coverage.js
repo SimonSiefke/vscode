@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^[a-z]:/;
+const regexp2 = /^[A-Z]:/;
+
 const minimatch = require('minimatch');
 const fs = require('fs');
 const path = require('path');
@@ -77,14 +80,14 @@ exports.createReport = function (isSingle, coveragePath, formats) {
 };
 
 function toUpperDriveLetter(str) {
-	if (/^[a-z]:/.test(str)) {
+	if (regexp1.test(str)) {
 		return str.charAt(0).toUpperCase() + str.substr(1);
 	}
 	return str;
 }
 
 function toLowerDriveLetter(str) {
-	if (/^[A-Z]:/.test(str)) {
+	if (regexp2.test(str)) {
 		return str.charAt(0).toLowerCase() + str.substr(1);
 	}
 	return str;

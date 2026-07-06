@@ -17,6 +17,10 @@ import { Platform, platform } from '../../../common/platform.js';
 import { generateUuid } from '../../../common/uuid.js';
 import { ClientConnectionEvent, IPCServer } from '../common/ipc.js';
 import { ChunkStream, Client, ISocket, Protocol, SocketCloseEvent, SocketCloseEventType, SocketDiagnostics, SocketDiagnosticsEventType } from '../common/ipc.net.js';
+const regexpServerMaxWindow = /\b((server_max_window_bits)|(server_no_context_takeover)|(client_no_context_takeover))\b/;
+const regexpPermessageDeflate = /\b(permessage-deflate)\b/;
+const regexpWebkitDeflateFrame = /\b(x-webkit-deflate-frame)\b/;
+
 
 export function upgradeToISocket(req: http.IncomingMessage, socket: Socket, {
 	debugLabel,
@@ -52,16 +56,16 @@ export function upgradeToISocket(req: http.IncomingMessage, socket: Socket, {
 	if (!skipWebSocketFrames && !disableWebSocketCompression && req.headers['sec-websocket-extensions']) {
 		const websocketExtensionOptions = Array.isArray(req.headers['sec-websocket-extensions']) ? req.headers['sec-websocket-extensions'] : [req.headers['sec-websocket-extensions']];
 		for (const websocketExtensionOption of websocketExtensionOptions) {
-			if (/\b((server_max_window_bits)|(server_no_context_takeover)|(client_no_context_takeover))\b/.test(websocketExtensionOption)) {
+			if (regexpServerMaxWindow.test(websocketExtensionOption)) {
 				// sorry, the server does not support zlib parameter tweaks
 				continue;
 			}
-			if (/\b(permessage-deflate)\b/.test(websocketExtensionOption)) {
+			if (regexpPermessageDeflate.test(websocketExtensionOption)) {
 				permessageDeflate = true;
 				responseHeaders.push(`Sec-WebSocket-Extensions: permessage-deflate`);
 				break;
 			}
-			if (/\b(x-webkit-deflate-frame)\b/.test(websocketExtensionOption)) {
+			if (regexpWebkitDeflateFrame.test(websocketExtensionOption)) {
 				permessageDeflate = true;
 				responseHeaders.push(`Sec-WebSocket-Extensions: x-webkit-deflate-frame`);
 				break;

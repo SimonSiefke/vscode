@@ -25,6 +25,10 @@ import { LocalChatSessionUri } from '../../common/model/chatUri.js';
 import { appendSystemDrift, appendToolsDrift, CacheDiffKind, diffPromptSignature, ICacheDiffResult, IComponentDrift, INormalizedMessage, parseInputMessages } from './chatDebugCacheDiff.js';
 import { analyzeStringDivergence, buildSessionCacheReport, CacheBreakCategory, cacheBreakCategoryLabel, CacheInsightSeverity, categorizeCacheBreak, computeCacheInsights, describeStringDivergence, ICacheInsight, ISessionCacheReport, ISessionPairOutcome, maxInsightSeverity, primaryInsight } from './chatDebugCacheInsights.js';
 import { setupBreadcrumbKeyboardNavigation, TextBreadcrumbItem } from './chatDebugTypes.js';
+const regexpMessages = /^messages\[(\d+)\]$/;
+const regexpTruncatedOriginalChars = /\.\.\.\[truncated, original (\d+) chars\]$/;
+const regexp3 = /\r?\n/;
+
 
 const $ = DOM.$;
 const numberFormatter = safeIntl.NumberFormat();
@@ -1802,7 +1806,7 @@ function textForComponent(c: IComponentDrift, side: ISideData): string {
 	if (c.name === CURRENT_CONTINUATION_DELTA_COMPONENT) {
 		return continuationDeltaText(side);
 	}
-	const m = /^messages\[(\d+)\]$/.exec(c.name);
+	const m = regexpMessages.exec(c.name);
 	if (m) {
 		const idx = parseInt(m[1], 10);
 		return side.inputMessages[idx]?.text ?? '';
@@ -1872,7 +1876,7 @@ function badgeLabel(status: CacheDiffKind): string {
  * Returns `undefined` when neither side is truncated.
  */
 function describeTruncation(aText: string, bText: string): string | undefined {
-	const re = /\.\.\.\[truncated, original (\d+) chars\]$/;
+	const re = regexpTruncatedOriginalChars;
 	const aMatch = re.exec(aText);
 	const bMatch = re.exec(bText);
 	if (!aMatch && !bMatch) {
@@ -2163,8 +2167,8 @@ const DIFF_OPTIONS = {
  * context.
  */
 function renderInlineDiff(prevHost: HTMLElement, currHost: HTMLElement, prev: string, curr: string): void {
-	const prevLines = prev.split(/\r?\n/);
-	const currLines = curr.split(/\r?\n/);
+	const prevLines = prev.split(regexp3);
+	const currLines = curr.split(regexp3);
 	const result = linesDiffComputers.getDefault().computeDiff(prevLines, currLines, DIFF_OPTIONS);
 
 	let prevIdx = 0;

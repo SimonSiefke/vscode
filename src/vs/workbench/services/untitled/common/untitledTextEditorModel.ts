@@ -28,6 +28,9 @@ import { UTF8 } from '../../textfile/common/encoding.js';
 import { bufferToReadable, bufferToStream, VSBuffer, VSBufferReadable, VSBufferReadableStream } from '../../../../base/common/buffer.js';
 import { ILanguageDetectionService } from '../../languageDetection/common/languageDetectionWorkerService.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+const regexp1 = /\u202E/g;
+const regexp2 = /\s+/g;
+
 
 export interface IUntitledTextEditorModel extends ITextEditorModel, ILanguageSupport, IEncodingSupport, IWorkingCopy {
 
@@ -442,8 +445,8 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 				startColumn: 1,
 				endColumn: UntitledTextEditorModel.FIRST_LINE_NAME_CANDIDATE_MAX_LENGTH + 1		// first cap at FIRST_LINE_NAME_CANDIDATE_MAX_LENGTH
 			})
-			.trim().replace(/\s+/g, ' ') 														// normalize whitespaces
-			.replace(/\u202E/g, '');															// drop Right-to-Left Override character (#190133)
+			.trim().replace(new RegExp(regexp2), ' ') 														// normalize whitespaces
+			.replace(new RegExp(regexp1), '');															// drop Right-to-Left Override character (#190133)
 		firstLineText = firstLineText.substr(0, getCharContainingOffset(						// finally cap at FIRST_LINE_NAME_MAX_LENGTH (grapheme aware #111235)
 			firstLineText,
 			UntitledTextEditorModel.FIRST_LINE_NAME_MAX_LENGTH)[0]

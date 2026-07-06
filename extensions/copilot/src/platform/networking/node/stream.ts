@@ -12,6 +12,8 @@ import { extractThinkingDeltaFromChoice, } from '../../thinking/common/thinkingU
 import { FinishedCallback, getRequestId, ICodeVulnerabilityAnnotation, ICopilotBeginToolCall, ICopilotConfirmation, ICopilotError, ICopilotFunctionCall, ICopilotReference, ICopilotToolCall, ICopilotToolCallStreamUpdate, IIPCodeCitation, isCodeCitationAnnotation, isCopilotAnnotation, RequestId } from '../common/fetch';
 import { DestroyableStream, Response } from '../common/fetcherService';
 import { APIErrorResponse, APIJsonData, APIUsage, ChoiceLogProbs, FilterReason, FinishedCompletionReason, isApiUsage, IToolCall } from '../common/openai';
+const regexp1 = /\r$/g;
+
 
 /** Gathers together many chunks of a single completion choice. */
 class APIJsonDataStreaming {
@@ -50,7 +52,7 @@ class APIJsonDataStreaming {
 	}
 
 	private static _removeCR(text: string): string {
-		return text.replace(/\r$/g, '');
+		return text.replace(new RegExp(regexp1), '');
 	}
 
 	toJSON() {

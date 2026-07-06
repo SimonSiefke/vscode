@@ -5,6 +5,9 @@
 
 import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IToolResult } from './languageModelToolsService.js';
+const regexp1 = /^---\s*\n/;
+const regexpZaZaZ0 = /^\[[A-Za-z_][A-Za-z0-9_.-]*\]\s*\n/;
+
 
 export const IToolResultCompressor = createDecorator<IToolResultCompressor>('IToolResultCompressor');
 
@@ -116,7 +119,7 @@ export function isProtectedFromCompression(text: string): boolean {
 	// TOML / YAML-style documents at the top level: a line `---` opener or
 	// a file-level table header like `[section]`.
 	// These are cheap heuristics — we don't try to parse YAML/TOML.
-	if (/^---\s*\n/.test(trimmed) || /^\[[A-Za-z_][A-Za-z0-9_.-]*\]\s*\n/.test(trimmed)) {
+	if (regexp1.test(trimmed) || regexpZaZaZ0.test(trimmed)) {
 		return true;
 	}
 	return false;

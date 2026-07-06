@@ -24,6 +24,11 @@ import { createTsgoStream, spawnTsgo } from './tsgo.ts';
 import watcher from './watch/index.ts';
 
 import { createRequire } from 'module';
+const regexpError = /\> (.+): error: (.+)?/g;
+const regexpExtension = /^extension\/?/;
+const regexpReadmeTxtMd = /^readme(\.txt|\.md|)$/i;
+const regexpChangelogTxtMd = /^changelog(\.txt|\.md|)$/i;
+
 const require = createRequire(import.meta.url);
 
 const root = path.dirname(path.dirname(import.meta.dirname));
@@ -168,7 +173,7 @@ function fromLocalEsbuild(extensionPath: string, esbuildConfigFileName: string):
 				return reject(error);
 			}
 
-			const matches = (stderr || '').match(/\> (.+): error: (.+)?/g);
+			const matches = (stderr || '').match(new RegExp(regexpError));
 			fancyLog(`Bundled extension: ${ansiColors.yellow(path.join(path.basename(extensionPath), esbuildConfigFileName))} with ${matches ? matches.length : 0} errors.`);
 			for (const match of matches || []) {
 				fancyLog.error(match);
@@ -245,7 +250,7 @@ export function fromMarketplace(serviceUrl: string, { name: extensionName, versi
 	})
 		.pipe(vinylZip.src())
 		.pipe(filter('extension/**'))
-		.pipe(rename(p => p.dirname = p.dirname!.replace(/^extension\/?/, '')))
+		.pipe(rename(p => p.dirname = p.dirname!.replace(regexpExtension, '')))
 		.pipe(packageJsonFilter)
 		.pipe(buffer())
 		.pipe(jsonEditor({ __metadata: metadata }))
@@ -270,7 +275,7 @@ export function fromVsix(vsixPath: string, { name: extensionName, version, sha25
 		}))
 		.pipe(vinylZip.src())
 		.pipe(filter('extension/**'))
-		.pipe(rename(p => p.dirname = p.dirname!.replace(/^extension\/?/, '')))
+		.pipe(rename(p => p.dirname = p.dirname!.replace(regexpExtension, '')))
 		.pipe(packageJsonFilter)
 		.pipe(buffer())
 		.pipe(jsonEditor({ __metadata: metadata }))
@@ -291,7 +296,7 @@ export function fromGithub({ name, version, repo, sha256, metadata }: IExtension
 		.pipe(buffer())
 		.pipe(vinylZip.src())
 		.pipe(filter('extension/**'))
-		.pipe(rename(p => p.dirname = p.dirname!.replace(/^extension\/?/, '')))
+		.pipe(rename(p => p.dirname = p.dirname!.replace(regexpExtension, '')))
 		.pipe(packageJsonFilter)
 		.pipe(buffer())
 		.pipe(jsonEditor({ __metadata: metadata }))
@@ -537,8 +542,8 @@ export function scanBuiltinExtensions(extensionsRoot: string, exclude: string[] 
 			const children = fs.readdirSync(path.join(extensionsRoot, extensionFolder));
 			const packageNLSPath = children.filter(child => child === 'package.nls.json')[0];
 			const packageNLS = packageNLSPath ? JSON.parse(fs.readFileSync(path.join(extensionsRoot, extensionFolder, packageNLSPath)).toString()) : undefined;
-			const readme = children.filter(child => /^readme(\.txt|\.md|)$/i.test(child))[0];
-			const changelog = children.filter(child => /^changelog(\.txt|\.md|)$/i.test(child))[0];
+			const readme = children.filter(child => regexpReadmeTxtMd.test(child))[0];
+			const changelog = children.filter(child => regexpChangelogTxtMd.test(child))[0];
 
 			scannedExtensions.push({
 				extensionPath: extensionFolder,
@@ -583,7 +588,7 @@ const extensionsPath = path.join(root, 'extensions');
 
 export async function esbuildExtensions(taskName: string, isWatch: boolean, scripts: { script: string; outputRoot?: string }[]): Promise<void> {
 	function reporter(stdError: string, script: string) {
-		const matches = (stdError || '').match(/\> (.+): error: (.+)?/g);
+		const matches = (stdError || '').match(new RegExp(regexpError));
 		fancyLog(`Finished ${ansiColors.green(taskName)} ${script} with ${matches ? matches.length : 0} errors.`);
 		for (const match of matches || []) {
 			fancyLog.error(match);

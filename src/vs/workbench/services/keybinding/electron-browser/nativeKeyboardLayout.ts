@@ -16,6 +16,8 @@ import { IKeyboardEvent } from '../../../../platform/keybinding/common/keybindin
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { INativeKeyboardLayoutService } from './nativeKeyboardLayoutService.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+const regexp1 = /,/g;
+
 
 export class KeyboardLayoutService extends Disposable implements IKeyboardLayoutService {
 
@@ -104,7 +106,7 @@ function isUSStandard(_kbInfo: IKeyboardLayoutInfo | null): boolean {
 
 	if (OS === OperatingSystem.Linux) {
 		const kbInfo = <ILinuxKeyboardLayoutInfo>_kbInfo;
-		const layouts = kbInfo.layout.split(/,/g);
+		const layouts = kbInfo.layout.split(new RegExp(regexp1));
 		return (layouts[kbInfo.group] === 'us');
 	}
 

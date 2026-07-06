@@ -36,6 +36,17 @@ import { terminalSymbolAliasIcon, terminalSymbolArgumentIcon, terminalSymbolEnum
 import { TerminalSuggestShownTracker } from './terminalSuggestShownTracker.js';
 import { SimpleSuggestDetailsPlacement } from '../../../../services/suggest/browser/simpleSuggestWidgetDetails.js';
 import { isString } from '../../../../../base/common/types.js';
+const regexpSep = /(?<sep>[\\\/])/;
+const regexp2 = /^\x1b[\[O]?C$/;
+const regexp3 = /^\x1b[\[O]?[A-B]$/;
+const regexp4 = /^\x1b[\[O]?[A-D]$/;
+const regexp5 = /\s/;
+const regexp6 = /[^\s]$/;
+const regexp7 = /\s[\-]$/;
+const regexp8 = /[\\\/]$/;
+const regexp9 = /[\\\/\s]/;
+const regexp10 = /\.[^\.]+$/;
+
 
 export interface ISuggestController {
 	isPasting: boolean;
@@ -344,7 +355,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			const firstDir = completions.find(e => e.kind === TerminalCompletionItemKind.Folder);
 			const textLabel = isString(firstDir?.label) ? firstDir.label : firstDir?.label.label;
 			// Get path separator from the completion label, which is coming from the extension host
-			const labelSep = textLabel?.match(/(?<sep>[\\\/])/)?.groups?.sep;
+			const labelSep = textLabel?.match(regexpSep)?.groups?.sep;
 			if (labelSep) {
 				this._pathSeparator = labelSep;
 			}
@@ -494,11 +505,11 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 	}
 
 	private _wasLastInputRightArrowKey(): boolean {
-		return !!this._lastUserData?.match(/^\x1b[\[O]?C$/);
+		return !!this._lastUserData?.match(regexp2);
 	}
 
 	private _wasLastInputVerticalArrowKey(): boolean {
-		return !!this._lastUserData?.match(/^\x1b[\[O]?[A-B]$/);
+		return !!this._lastUserData?.match(regexp3);
 	}
 
 	/**
@@ -512,7 +523,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 	private _wasLastInputArrowKey(): boolean {
 		// Never request completions if the last key sequence was up or down as the user was likely
 		// navigating history
-		return !!this._lastUserData?.match(/^\x1b[\[O]?[A-D]$/);
+		return !!this._lastUserData?.match(regexp4);
 	}
 
 	private _wasLastInputTabKey(): boolean {
@@ -535,12 +546,12 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			if (!this._mostRecentPromptInputState || promptInputState.cursorIndex > this._mostRecentPromptInputState.cursorIndex) {
 				// Quick suggestions - Trigger whenever a new non-whitespace character is used
 				if (!this._terminalSuggestWidgetVisibleContextKey.get()) {
-					const commandLineHasSpace = promptInputState.prefix.trim().match(/\s/);
+					const commandLineHasSpace = promptInputState.prefix.trim().match(regexp5);
 					if (
 						(!commandLineHasSpace && quickSuggestions.commands === 'on') ||
 						(commandLineHasSpace && quickSuggestions.arguments === 'on')
 					) {
-						if (promptInputState.prefix.match(/[^\s]$/)) {
+						if (promptInputState.prefix.match(regexp6)) {
 							sent = this._requestTriggerCharQuickSuggestCompletions();
 						}
 					}
@@ -552,10 +563,10 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 					if (
 						// Only trigger on `-` if it's after a space. This is required to not clear
 						// completions when typing the `-` in `git cherry-pick`
-						prefix?.match(/\s[\-]$/) ||
+						prefix?.match(regexp7) ||
 						// Only trigger on `\` and `/` if it's a directory. Not doing so causes problems
 						// with git branches in particular
-						this._isFilteringDirectories && prefix?.match(/[\\\/]$/)
+						this._isFilteringDirectories && prefix?.match(regexp8)
 					) {
 						sent = this._requestTriggerCharQuickSuggestCompletions();
 					}
@@ -587,7 +598,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 							char && (
 								// Only trigger on `\` and `/` if it's a directory. Not doing so causes problems
 								// with git branches in particular
-								this._isFilteringDirectories && char.match(/[\\\/]$/) ||
+								this._isFilteringDirectories && char.match(regexp8) ||
 								// Check if the character is a trigger character from providers
 								this._checkProviderTriggerCharacters(char)
 							)
@@ -630,7 +641,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 		// requested, but since extensions are expected to allow the client-side to filter, they are
 		// only invalidated when whitespace is encountered.
 		if (this._currentPromptInputState && this._currentPromptInputState.cursorIndex < this._leadingLineContent.length) {
-			if (this._currentPromptInputState.cursorIndex <= 0 || previousPromptInputState?.value[this._currentPromptInputState.cursorIndex]?.match(/[\\\/\s]/)) {
+			if (this._currentPromptInputState.cursorIndex <= 0 || previousPromptInputState?.value[this._currentPromptInputState.cursorIndex]?.match(regexp9)) {
 				this.hideSuggestWidget(false);
 				return;
 			}
@@ -996,7 +1007,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 					case 'exactMatchIgnoreExtension': {
 						runOnEnter = replacementText.toLowerCase() === completionText.toLowerCase();
 						if (completion.isFileOverride) {
-							runOnEnter ||= replacementText.toLowerCase() === completionText.toLowerCase().replace(/\.[^\.]+$/, '');
+							runOnEnter ||= replacementText.toLowerCase() === completionText.toLowerCase().replace(regexp10, '');
 						}
 						break;
 					}

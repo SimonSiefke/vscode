@@ -13,6 +13,8 @@ import { equals } from '../../base/common/arrays.js';
 import { parseLinkedText, LinkedText } from '../../base/common/linkedText.js';
 import { mapsStrictEqualIgnoreOrder } from '../../base/common/map.js';
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
+const regexp1 = /(\r\n|\n|\r)/gm;
+
 
 export interface INotificationsModel {
 
@@ -523,7 +525,7 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		// Remove newlines from messages as we do not support that and it makes link parsing hard
-		message = message.replace(/(\r\n|\n|\r)/gm, ' ').trim();
+		message = message.replace(new RegExp(regexp1), ' ').trim();
 
 		// Parse Links
 		const linkedText = parseLinkedText(message);

@@ -18,6 +18,15 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import { GeneralShellType, PosixShellType, TerminalShellType } from '../../../../../platform/terminal/common/terminal.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { TerminalHistorySettingId } from './terminal.history.js';
+const regexp1 = /['"]/;
+const regexp2 = /^:\s\d+:\d+;/;
+const regexp3 = /(?<!\\)\n/;
+const regexp4 = /\:\s\d+\:\d+;/;
+const regexp5 = /\\\n/g;
+const regexp6 = /`/;
+const regexp7 = /`$/;
+const regexp8 = /(^|[^\\])((?:\\\\)*)(\\n)/g;
+
 
 /**
  * Tracks a list of generic entries.
@@ -268,7 +277,7 @@ export async function fetchBashHistory(accessor: ServicesAccessor): Promise<IShe
 					wrapChar = undefined;
 				}
 			} else {
-				if (currentLine[c].match(/['"]/)) {
+				if (currentLine[c].match(regexp1)) {
 					wrapChar = currentLine[c];
 				}
 			}
@@ -302,11 +311,11 @@ export async function fetchZshHistory(accessor: ServicesAccessor): Promise<IShel
 	if (resolvedFile === undefined) {
 		return undefined;
 	}
-	const isExtendedHistory = /^:\s\d+:\d+;/.test(resolvedFile.content);
-	const fileLines = resolvedFile.content.split(isExtendedHistory ? /\:\s\d+\:\d+;/ : /(?<!\\)\n/);
+	const isExtendedHistory = regexp2.test(resolvedFile.content);
+	const fileLines = resolvedFile.content.split(isExtendedHistory ? regexp4 : regexp3);
 	const result: Set<string> = new Set();
 	for (let i = 0; i < fileLines.length; i++) {
-		const sanitized = fileLines[i].replace(/\\\n/g, '\n').trim();
+		const sanitized = fileLines[i].replace(new RegExp(regexp5), '\n').trim();
 		if (sanitized.length > 0) {
 			result.add(sanitized);
 		}
@@ -398,7 +407,7 @@ export async function fetchPwshHistory(accessor: ServicesAccessor): Promise<IShe
 					wrapChar = undefined;
 				}
 			} else {
-				if (currentLine[c].match(/`/)) {
+				if (currentLine[c].match(regexp6)) {
 					wrapChar = currentLine[c];
 				}
 			}
@@ -413,7 +422,7 @@ export async function fetchPwshHistory(accessor: ServicesAccessor): Promise<IShe
 			currentCommand = undefined;
 		} else {
 			// Remove trailing backtick
-			currentCommand = currentCommand.replace(/`$/, '');
+			currentCommand = currentCommand.replace(regexp7, '');
 			wrapChar = undefined;
 		}
 	}
@@ -507,7 +516,7 @@ export function sanitizeFishHistoryCmd(cmd: string): string {
 	 * But since not all browsers support look aheads we opted to a simple
 	 * pattern and repeatedly calling replace method.
 	 */
-	return repeatedReplace(/(^|[^\\])((?:\\\\)*)(\\n)/g, cmd, '$1$2\n');
+	return repeatedReplace(new RegExp(regexp8), cmd, '$1$2\n');
 }
 
 function repeatedReplace(pattern: RegExp, value: string, replaceValue: string): string {

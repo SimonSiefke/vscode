@@ -8,6 +8,12 @@ import { AgentPluginDiscoveryPriority, IAgentPlugin } from './agentPluginService
 import { IGitHubPluginSource, IGitUrlPluginSource, IMarketplacePlugin, INpmPluginSource, IPipPluginSource, PluginSourceKind } from './pluginMarketplaceService.js';
 import { type IMarketplaceReference } from './marketplaceReference.js';
 import { CollisionEnablementModel, IEnablementModel } from '../enablement.js';
+const regexpOwnerRepoPlugin = /^(?<owner>.+)--(?<repo>.+)--(?<plugin>.+)$/;
+const regexp2 = /^[-:.]+|[-:.]+$/g;
+const regexp3 = /-+/g;
+const regexpZ0 = /[^a-z0-9_.:-]/g;
+const regexp5 = /\s+/g;
+
 
 export interface IDiscoveredAgentPlugins {
 	readonly plugins: readonly IAgentPlugin[];
@@ -181,7 +187,7 @@ function getCopilotCliInstallCanonicalIdentity(plugin: IAgentPlugin): string | u
 		return `copilot-cli-marketplace:${normalizePluginIdentitySegment(bucket)}|${normalizedName}`;
 	}
 
-	const match = /^(?<owner>.+)--(?<repo>.+)--(?<plugin>.+)$/.exec(installName);
+	const match = regexpOwnerRepoPlugin.exec(installName);
 	const groups = match?.groups;
 	if (!groups) {
 		return undefined;
@@ -194,10 +200,10 @@ function normalizePluginIdentitySegment(value: string): string {
 	return value
 		.trim()
 		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/[^a-z0-9_.:-]/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^[-:.]+|[-:.]+$/g, '');
+		.replace(new RegExp(regexp5), '-')
+		.replace(new RegExp(regexpZ0), '-')
+		.replace(new RegExp(regexp3), '-')
+		.replace(new RegExp(regexp2), '');
 }
 
 interface IPolicyIdentity {

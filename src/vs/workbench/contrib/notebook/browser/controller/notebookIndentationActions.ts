@@ -18,6 +18,8 @@ import { INotebookEditorService } from '../services/notebookEditorService.js';
 import { NotebookSetting } from '../../common/notebookCommon.js';
 import { isNotebookEditorInput } from '../../common/notebookEditorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+const regexp1 = /\t/ig;
+
 
 export class NotebookIndentUsingTabs extends Action2 {
 	public static readonly ID = 'notebook.action.indentUsingTabs';
@@ -244,7 +246,7 @@ function getIndentationEditOperations(model: ITextModel, tabSize: number, tabsTo
 		const originalIndentation = model.getValueInRange(originalIndentationRange);
 		const newIndentation = (
 			tabsToSpaces
-				? originalIndentation.replace(/\t/ig, spaces)
+				? originalIndentation.replace(new RegExp(regexp1), spaces)
 				: originalIndentation.replace(spacesRegExp, '\t')
 		);
 		edits.push(new ResourceTextEdit(model.uri, { range: originalIndentationRange, text: newIndentation }));

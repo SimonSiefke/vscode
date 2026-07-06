@@ -8,6 +8,8 @@ import * as platform from './platform.js';
 import { equalsIgnoreCase, startsWithIgnoreCase } from './strings.js';
 import { URI } from './uri.js';
 import * as paths from './path.js';
+const regexp1 = /^\w[\w\d+.-]*:\/\//;
+
 
 export namespace Schemas {
 
@@ -367,7 +369,7 @@ class FileAccessImpl {
 			const rootUriOrPath = globalThis._VSCODE_FILE_ROOT;
 
 			// File URL (with scheme)
-			if (/^\w[\w\d+.-]*:\/\//.test(rootUriOrPath)) {
+			if (regexp1.test(rootUriOrPath)) {
 				return URI.joinPath(URI.parse(rootUriOrPath, true), uriOrModule);
 			}
 

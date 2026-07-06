@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import { DocumentSelector } from '../configuration/documentSelector';
 import { API } from '../tsServer/api';
 import { ITypeScriptServiceClient } from '../typescriptService';
+const regexpZA = /^\s*\/\/+\s?(@[a-zA-Z\-]*)?$/;
+
 
 
 interface Directive {
@@ -53,7 +55,7 @@ class DirectiveCommentCompletionProvider implements vscode.CompletionItemProvide
 
 		const line = document.lineAt(position.line).text;
 		const prefix = line.slice(0, position.character);
-		const match = prefix.match(/^\s*\/\/+\s?(@[a-zA-Z\-]*)?$/);
+		const match = prefix.match(regexpZA);
 		if (match) {
 			const directives = this.client.apiVersion.gte(API.v390)
 				? tsDirectives390

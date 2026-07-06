@@ -14,6 +14,14 @@ import { grepStrToRegex } from '../simulation/shared/grepFilter';
 import { EXPLICIT_LOG_TAG, IMPLICIT_LOG_TAG, ITestLocation, IWrittenFile, SIMULATION_EXPLICIT_LOG_FILENAME, SIMULATION_IMPLICIT_LOG_FILENAME, SimulationTestOutcome } from '../simulation/shared/sharedTypes';
 import { computeSHA256 } from './hash';
 import { SimulationOptions } from './simulationOptions';
+const regexp1 = /-+/g;
+const regexp2 = /^!s:/;
+const regexp3 = /\s+/g;
+const regexp4 = /\.[^/.]+$/;
+const regexp5 = /\((.+):(\d+):(\d+)\)/;
+const regexpAt = /at (.+):(\d+):(\d+)/;
+const regexpZAZ0 = /[^a-zA-Z0-9]/g;
+
 export { REPO_ROOT } from '../util';
 
 export interface SimulationTestFunction {
@@ -176,7 +184,7 @@ export function getOutcomeFileName(testName: string): string {
 		suffix = '-gpt-3.5-turbo';
 	}
 	const result = toDirname(testName);
-	return `${result.substring(0, 60)}${suffix}.json`.replace(/-+/g, '-');
+	return `${result.substring(0, 60)}${suffix}.json`.replace(new RegExp(regexp1), '-');
 }
 
 export interface ISimulationSuiteOptions {
@@ -295,7 +303,7 @@ export function createSimulationTestFilter(grep?: string[] | string, omitGrep?: 
 			let trimmedGrep = grep.trim();
 			const isSuiteNameSearch = trimmedGrep.startsWith('!s:');
 			if (isSuiteNameSearch) {
-				trimmedGrep = trimmedGrep.replace(/^!s:/, '');
+				trimmedGrep = trimmedGrep.replace(regexp2, '');
 			}
 			const grepRegex = grepStrToRegex(trimmedGrep);
 			filters.push((test) => isSuiteNameSearch ? grepRegex.test(test.suite.fullName) : grepRegex.test(test.fullName));
@@ -371,7 +379,7 @@ class SimulationTestsRegistryClass {
 		}
 
 		// remove newlines, carriage returns, bad whitespace, etc
-		testDescriptor = { ...testDescriptor, description: testDescriptor.description.replace(/\s+/g, ' ') };
+		testDescriptor = { ...testDescriptor, description: testDescriptor.description.replace(new RegExp(regexp3), ' ') };
 
 		// force a length of 100 chars for a stest name
 		if (testDescriptor.description.length > 100) {
@@ -392,7 +400,7 @@ class SimulationTestsRegistryClass {
 		if (this._testPath && options.location !== undefined) {
 
 			const testBasename = path.basename(options.location.path);
-			const testBasenameWithoutExtension = testBasename.replace(/\.[^/.]+$/, '');
+			const testBasenameWithoutExtension = testBasename.replace(regexp4, '');
 
 			if (this._testPath !== testBasename && this._testPath !== testBasenameWithoutExtension) {
 				return;
@@ -457,8 +465,8 @@ function captureLocation(fn: Function): ITestLocation | undefined {
 	}
 
 	function extractPositionFromStackTraceLine(stack: string): ITestLocation | undefined {
-		const r1 = /\((.+):(\d+):(\d+)\)/;
-		const r2 = /at (.+):(\d+):(\d+)/;
+		const r1 = regexp5;
+		const r2 = regexpAt;
 		const match = stack.match(r1) ?? stack.match(r2);
 		if (!match) {
 			console.log(`No matches in stack for captureLocation`);
@@ -633,7 +641,7 @@ export class SimulationTestRuntime implements ISimulationTestRuntime {
 const FILENAME_LIMIT = 125;
 
 export function toDirname(testName: string): string {
-	const filename = testName.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').toLowerCase();
+	const filename = testName.replace(new RegExp(regexpZAZ0), '-').replace(new RegExp(regexp1), '-').toLowerCase();
 	if (filename.length > FILENAME_LIMIT) { // windows file names can not exceed 255 chars and path length limits, so keep it short
 		return `${filename.substring(0, FILENAME_LIMIT)}-${computeSHA256(filename).substring(0, 8)}`;
 	}

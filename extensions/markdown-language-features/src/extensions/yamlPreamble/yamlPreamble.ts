@@ -8,6 +8,10 @@ import type Token from 'markdown-it/lib/token.mjs';
 import * as vscode from 'vscode';
 import * as yaml from 'yaml';
 import { escapeHtml } from '../../util/dom';
+const regexp1 = /\s+$/;
+const regexp2 = /\n$/;
+const regexpPre = /^<pre\b/;
+
 
 export type FrontMatterRenderStyle = 'hide' | 'codeBlock' | 'table';
 
@@ -44,7 +48,7 @@ const frontMatterRule = (state: MarkdownIt.StateBlock, startLine: number, endLin
 
 	const firstLineStart = state.bMarks[startLine];
 	const firstLineEnd = state.eMarks[startLine];
-	const firstLine = state.src.slice(firstLineStart, firstLineEnd).replace(/\s+$/, '');
+	const firstLine = state.src.slice(firstLineStart, firstLineEnd).replace(regexp1, '');
 
 	if (firstLine !== MARKER) {
 		return false;
@@ -58,7 +62,7 @@ const frontMatterRule = (state: MarkdownIt.StateBlock, startLine: number, endLin
 		}
 		const lineStart = state.bMarks[nextLine];
 		const lineEnd = state.eMarks[nextLine];
-		const line = state.src.slice(lineStart, lineEnd).replace(/\s+$/, '');
+		const line = state.src.slice(lineStart, lineEnd).replace(regexp1, '');
 		if (line === MARKER) {
 			foundEnd = true;
 			break;
@@ -75,7 +79,7 @@ const frontMatterRule = (state: MarkdownIt.StateBlock, startLine: number, endLin
 
 	const contentStart = state.bMarks[startLine + 1];
 	const contentEnd = state.bMarks[nextLine];
-	const rawContent = state.src.slice(contentStart, contentEnd).replace(/\n$/, '');
+	const rawContent = state.src.slice(contentStart, contentEnd).replace(regexp2, '');
 
 	const token = state.push(FRONT_MATTER_TOKEN, '', 0);
 	token.block = true;
@@ -132,7 +136,7 @@ function renderAsCodeBlock(meta: IFrontMatterMeta, options: MarkdownIt.Options):
 		}
 	}
 	if (highlighted?.startsWith('<pre')) {
-		return highlighted.replace(/^<pre\b/, `<pre ${frontMatterAttributes()}`) + '\n';
+		return highlighted.replace(regexpPre, `<pre ${frontMatterAttributes()}`) + '\n';
 	}
 	const body = highlighted ?? escapeHtml(meta.content);
 	return `<pre class="frontmatter hljs" ${frontMatterAttributes()}><code class="language-yaml">${body}</code></pre>\n`;

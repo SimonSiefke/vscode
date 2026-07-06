@@ -6,6 +6,9 @@
 import { URI } from '../../../../../../base/common/uri.js';
 import { normalizeURL } from '../../../../../../platform/url/common/trustedDomains.js';
 import { testUrlMatchesGlob } from '../../../../../../platform/url/common/urlGlob.js';
+const regexp9aFA = /^(\[)?[0-9a-fA-F:]+(\])?(?::\d+)?$/;
+const regexp2 = /\/+$/;
+
 
 /**
  * Approval settings for a URL pattern
@@ -40,7 +43,7 @@ export function extractUrlPatterns(url: URI): string[] {
 	// Only add wildcard subdomain if there are at least 2 parts and it's not an IP
 	const isIPv4 = domainParts.length === 4 && domainParts.every((segment: string) =>
 		Number.isInteger(+segment));
-	const isIPv6 = authority.includes(':') && authority.match(/^(\[)?[0-9a-fA-F:]+(\])?(?::\d+)?$/);
+	const isIPv6 = authority.includes(':') && authority.match(regexp9aFA);
 	const isIP = isIPv4 || isIPv6;
 
 	// Only emit subdomain patterns if there are actually subdomains (more than 2 parts)
@@ -74,7 +77,7 @@ export function extractUrlPatterns(url: URI): string[] {
 		}
 	}
 
-	return [...patterns].map(p => p.replace(/\/+$/, ''));
+	return [...patterns].map(p => p.replace(regexp2, ''));
 }
 
 /**
@@ -92,7 +95,7 @@ export function getPatternLabel(url: URI, pattern: string): string {
 		displayPattern = displayPattern.substring(7);
 	}
 
-	return displayPattern.replace(/\/+$/, ''); // Remove trailing slashes
+	return displayPattern.replace(regexp2, ''); // Remove trailing slashes
 }
 
 /**

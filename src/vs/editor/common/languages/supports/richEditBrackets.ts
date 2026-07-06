@@ -7,6 +7,8 @@ import * as strings from '../../../../base/common/strings.js';
 import * as stringBuilder from '../../core/stringBuilder.js';
 import { Range } from '../../core/range.js';
 import { CharacterPair } from '../languageConfiguration.js';
+const regexp1 = /^[\w ]+$/;
+
 
 interface InternalBracket {
 	open: string[];
@@ -403,7 +405,7 @@ function getReversedRegexForBrackets(brackets: RichEditBracket[]): RegExp {
 
 function prepareBracketForRegExp(str: string): string {
 	// This bracket pair uses letters like e.g. "begin" - "end"
-	const insertWordBoundaries = (/^[\w ]+$/.test(str));
+	const insertWordBoundaries = (regexp1.test(str));
 	str = strings.escapeRegExpCharacters(str);
 	return (insertWordBoundaries ? `\\b${str}\\b` : str);
 }

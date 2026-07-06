@@ -53,6 +53,9 @@ import { adaptManagedSettings, IManagedSettingsResponse } from '../../services/a
 import { isObject } from '../../../base/common/types.js';
 import * as json from '../../../base/common/json.js';
 import { getParseErrorMessage } from '../../../base/common/jsonErrorMessages.js';
+const regexp1 = /[\uac00-\ud787\u3131-\u314e\u314f-\u3163\u3041-\u3094\u30a1-\u30f4\u30fc\u3005\u3006\u3024\u4e00-\u9fa5]/u;
+const regexp2 = /\|/g;
+
 
 class InspectContextKeysAction extends Action2 {
 
@@ -313,7 +316,7 @@ class ToggleScreencastModeAction extends Action2 {
 		}));
 
 		disposables.add(onKeyDown.event(e => {
-			if (e.key === 'Process' || /[\uac00-\ud787\u3131-\u314e\u314f-\u3163\u3041-\u3094\u30a1-\u30f4\u30fc\u3005\u3006\u3024\u4e00-\u9fa5]/u.test(e.key)) {
+			if (e.key === 'Process' || regexp1.test(e.key)) {
 				if (e.code === 'Backspace') {
 					imeBackSpace = true;
 				} else if (!e.code.includes('Key')) {
@@ -701,7 +704,7 @@ function managedValueCell(value: ManagedSettingValue | undefined): string {
 	if (value === undefined) {
 		return '—';
 	}
-	return `\`${JSON.stringify(value).replace(/\|/g, '\\|')}\``;
+	return `\`${JSON.stringify(value).replace(new RegExp(regexp2), '\\|')}\``;
 }
 
 /** Header row + separator for the report's two-column `Property | Value` tables. */
@@ -969,7 +972,7 @@ class PolicyDiagnosticsAction extends Action2 {
 				content += '| Stage | Message |\n';
 				content += '|-------|---------|\n';
 				for (const { stage, message } of parseErrors) {
-					content += `| ${stage} | ${message.replace(/\|/g, '\\|')} |\n`;
+					content += `| ${stage} | ${message.replace(new RegExp(regexp2), '\\|')} |\n`;
 				}
 				content += '\n';
 			}

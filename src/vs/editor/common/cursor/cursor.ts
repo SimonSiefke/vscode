@@ -23,6 +23,8 @@ import { dispose, Disposable } from '../../../base/common/lifecycle.js';
 import { CursorStateChangedEvent, ViewModelEventsCollector } from '../viewModelEventDispatcher.js';
 import { TextModelEditSource, EditSources } from '../textModelEditSource.js';
 import { ICoordinatesConverter } from '../coordinatesConverter.js';
+const regexp1 = /([)\]}>'"`])([^)\]}>'"`]*)$/;
+
 
 export class CursorsController extends Disposable {
 
@@ -440,7 +442,7 @@ export class CursorsController extends Disposable {
 				return null;
 			}
 
-			const m = edit.text.match(/([)\]}>'"`])([^)\]}>'"`]*)$/);
+			const m = edit.text.match(regexp1);
 			if (!m) {
 				return null;
 			}

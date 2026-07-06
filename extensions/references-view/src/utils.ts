@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+const regexp1 = /[^\s]+/;
+const regexp2 = /^\s*/g;
+const regexp3 = /\s*$/g;
+
 
 export function del<T>(array: T[], e: T): void {
 	const idx = array.indexOf(e);
@@ -24,7 +28,7 @@ export async function isValidRequestPosition(uri: vscode.Uri, position: vscode.P
 	const doc = await vscode.workspace.openTextDocument(uri);
 	let range = doc.getWordRangeAtPosition(position);
 	if (!range) {
-		range = doc.getWordRangeAtPosition(position, /[^\s]+/);
+		range = doc.getWordRangeAtPosition(position, regexp1);
 	}
 	return Boolean(range);
 }
@@ -37,8 +41,8 @@ export function getPreviewChunks(doc: vscode.TextDocument, range: vscode.Range, 
 	const previewEnd = range.end.translate(0, 331);
 	let after = doc.getText(new vscode.Range(range.end, previewEnd));
 	if (trim) {
-		before = before.replace(/^\s*/g, '');
-		after = after.replace(/\s*$/g, '');
+		before = before.replace(new RegExp(regexp2), '');
+		after = after.replace(new RegExp(regexp3), '');
 	}
 	return { before, inside, after };
 }
@@ -67,7 +71,7 @@ export class WordAnchor {
 	}
 
 	private _getAnchorWord(doc: vscode.TextDocument, pos: vscode.Position): string | undefined {
-		const range = doc.getWordRangeAtPosition(pos) || doc.getWordRangeAtPosition(pos, /[^\s]+/);
+		const range = doc.getWordRangeAtPosition(pos) || doc.getWordRangeAtPosition(pos, regexp1);
 		return range && doc.getText(range);
 	}
 

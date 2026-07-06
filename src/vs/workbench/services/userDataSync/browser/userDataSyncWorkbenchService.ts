@@ -43,6 +43,8 @@ import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
 import { IUserDataSyncMachinesService } from '../../../../platform/userDataSync/common/userDataSyncMachines.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { env } from '../../../../base/common/process.js';
+const regexp1 = /^\d{8}T\d{6}$/;
+
 
 type AccountQuickPickItem = { label: string; authenticationProvider: IAuthenticationProvider; account?: UserDataSyncAccount; description?: string };
 
@@ -487,7 +489,7 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 		const stat = await this.fileService.resolve(this.uriIdentityService.extUri.dirname(this.environmentService.logsHome));
 		if (stat.children) {
 			logsFolders.push(...stat.children
-				.filter(stat => stat.isDirectory && /^\d{8}T\d{6}$/.test(stat.name))
+				.filter(stat => stat.isDirectory && regexp1.test(stat.name))
 				.sort()
 				.reverse()
 				.map(d => d.resource));

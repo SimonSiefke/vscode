@@ -7,6 +7,10 @@ import * as vscode from 'vscode';
 import { IMdParser } from '../../markdownEngine';
 import { ITextDocument } from '../../types/textDocument';
 import { Schemes } from '../../util/schemes';
+const regexp1 = /\[.*\]\(.*\)/;
+const regexp2 = /!\[.*\]\(.*\)/;
+const regexp3 = /^\S+$/;
+
 
 const smartPasteLineRegexes = [
 	{ regex: /(\[[^\[\]]*](?:\([^\(\)]*\)|\[[^\[\]]*]))/g }, // In a Markdown link
@@ -76,7 +80,7 @@ async function shouldSmartPasteForSelection(
 		return false;
 	}
 
-	if (/\[.*\]\(.*\)/.test(rangeText) || /!\[.*\]\(.*\)/.test(rangeText)) {
+	if (regexp1.test(rangeText) || regexp2.test(rangeText)) {
 		return false;
 	}
 
@@ -144,7 +148,7 @@ const externalUriSchemes: ReadonlySet<string> = new Set([
 export function findValidUriInText(text: string): string | undefined {
 	const trimmedUrlList = text.trim();
 
-	if (!/^\S+$/.test(trimmedUrlList) // Uri must consist of a single sequence of characters without spaces
+	if (!regexp3.test(trimmedUrlList) // Uri must consist of a single sequence of characters without spaces
 		|| !trimmedUrlList.includes(':') // And it must have colon somewhere for the scheme. We will verify the schema again later
 	) {
 		return;

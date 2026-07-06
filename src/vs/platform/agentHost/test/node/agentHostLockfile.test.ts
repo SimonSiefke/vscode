@@ -17,6 +17,9 @@ import {
 	readActiveAgentHostFromLockfile,
 	readLocalAgentHostLockfile,
 } from '../../node/agentHostLockfile.js';
+const regexpUnsafeServerData = /Unsafe server data folder name/;
+const regexpUnsafeQuality = /Unsafe quality/;
+
 
 suite('Agent Host Lockfile (local)', () => {
 
@@ -58,14 +61,14 @@ suite('Agent Host Lockfile (local)', () => {
 		});
 
 		test('rejects unsafe server data folder names', () => {
-			assert.throws(() => getLocalAgentHostLockfilePath('foo bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => getLocalAgentHostLockfilePath('foo/bar', 'stable'), /Unsafe server data folder name/);
-			assert.throws(() => getLocalAgentHostLockfilePath('$(whoami)', 'stable'), /Unsafe server data folder name/);
+			assert.throws(() => getLocalAgentHostLockfilePath('foo bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => getLocalAgentHostLockfilePath('foo/bar', 'stable'), regexpUnsafeServerData);
+			assert.throws(() => getLocalAgentHostLockfilePath('$(whoami)', 'stable'), regexpUnsafeServerData);
 		});
 
 		test('rejects unsafe quality strings', () => {
-			assert.throws(() => getLocalAgentHostLockfilePath('.vscode-server-oss', 'foo bar'), /Unsafe quality/);
-			assert.throws(() => getLocalAgentHostLockfilePath('.vscode-server-oss', '/abs'), /Unsafe quality/);
+			assert.throws(() => getLocalAgentHostLockfilePath('.vscode-server-oss', 'foo bar'), regexpUnsafeQuality);
+			assert.throws(() => getLocalAgentHostLockfilePath('.vscode-server-oss', '/abs'), regexpUnsafeQuality);
 		});
 	});
 

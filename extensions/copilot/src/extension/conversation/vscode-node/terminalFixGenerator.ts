@@ -19,6 +19,8 @@ import { URI } from '../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { TerminalQuickFixFileContextPrompt, TerminalQuickFixPrompt } from '../../prompts/node/panel/terminalQuickFix';
+const regexp1 = /{.+}/;
+
 
 const enum CommandRelevance {
 	Low = 1,
@@ -116,7 +118,7 @@ export async function generateTerminalFixes(instantiationService: IInstantiation
 
 	const item = pick.activeItems[0];
 	if (item && 'suggestion' in item) {
-		const shouldExecute = !item.suggestion.command.match(/{.+}/);
+		const shouldExecute = !item.suggestion.command.match(regexp1);
 		vscode.window.activeTerminal?.sendText(item.suggestion.command, shouldExecute);
 	}
 

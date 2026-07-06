@@ -28,6 +28,10 @@ import { INotebookKernelService, VariablesResult } from '../../../common/noteboo
 import { INotebookActionContext, NotebookAction } from '../../controller/coreActions.js';
 import { ICellViewModel, INotebookEditor, INotebookEditorContribution } from '../../notebookBrowser.js';
 import { registerNotebookContribution } from '../../notebookEditorExtensions.js';
+const regexpAsyncDefClass = /^(\s*)(async\s+)?(?:def\s+\w+|class\s+\w+)\s*\([^)]*\)\s*:/;
+const regexp2 = /^\s*/;
+const regexpFunctionAsyncClass = /\b(?:function\s+\w+|(?:async\s+)?(?:\w+\s*=\s*)?\([^)]*\)\s*=>|class\s+\w+|(?:public|private|protected|static)?\s*\w+\s*\([^)]*\)\s*{)/;
+
 
 class InlineSegment {
 	constructor(public column: number, public text: string) {
@@ -342,7 +346,7 @@ export class NotebookInlineVariablesController extends Disposable implements INo
 		let functionStartLine = -1;
 		let inFunction = false;
 		let pythonIndentLevel = -1;
-		const pythonFunctionDeclRegex = /^(\s*)(async\s+)?(?:def\s+\w+|class\s+\w+)\s*\([^)]*\)\s*:/;
+		const pythonFunctionDeclRegex = regexpAsyncDefClass;
 
 		for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
 			const line = lines[lineNumber];
@@ -375,7 +379,7 @@ export class NotebookInlineVariablesController extends Disposable implements INo
 				}
 
 				// Get the indentation of the current line
-				const currentIndent = line.match(/^\s*/)?.[0].length ?? 0;
+				const currentIndent = line.match(regexp2)?.[0].length ?? 0;
 
 				// If we hit a line with same or lower indentation than where the function started,
 				// we've exited the function
@@ -401,7 +405,7 @@ export class NotebookInlineVariablesController extends Disposable implements INo
 		let braceDepth = 0;
 		let functionStartLine = -1;
 		let inFunction = false;
-		const functionDeclRegex = /\b(?:function\s+\w+|(?:async\s+)?(?:\w+\s*=\s*)?\([^)]*\)\s*=>|class\s+\w+|(?:public|private|protected|static)?\s*\w+\s*\([^)]*\)\s*{)/;
+		const functionDeclRegex = regexpFunctionAsyncClass;
 
 		for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
 			const line = lines[lineNumber];

@@ -64,6 +64,8 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import type { IManagedHover } from '../../../../base/browser/ui/hover/hover.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+const regexpZA = /[a-zA-Z.]+/;
+
 
 const $ = DOM.$;
 
@@ -1142,7 +1144,7 @@ class WhenInputWidget extends Disposable {
 				return result;
 			},
 			triggerCharacters: ['!', ' '],
-			wordDefinition: /[a-zA-Z.]+/,
+			wordDefinition: regexpZA,
 			alwaysShowSuggestions: true,
 		}, '', `keyboardshortcutseditor#wheninput`, { focusContextKey, overflowWidgetsDomNode: keybindingsEditor.overflowWidgetsDomNode }));
 

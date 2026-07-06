@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /(\{\d+\})/g;
+
 export const strings = (() => {
 
     function format(value: string, ...rest: unknown[]): string {
-        return value.replace(/(\{\d+\})/g, function (match) {
+        return value.replace(new RegExp(regexp1), function (match) {
             const index = Number(match.substring(1, match.length - 1));
             return String(rest[index]) || match;
         });

@@ -11,6 +11,9 @@ import { Location } from 'jsonc-parser';
 import type * as cp from 'child_process';
 import { dirname } from 'path';
 import { fromNow } from './date';
+const regexp1 = /^[-_.\s]/;
+const regexp2 = /^(?:@([^/~\s)('!*]+?)[/])?([^/~)('!*\s]+?)$/;
+
 
 const LIMIT = 40;
 
@@ -258,10 +261,10 @@ export class PackageJSONContribution implements IJSONContribution {
 	private isValidNPMName(name: string): boolean {
 		// following rules from https://github.com/npm/validate-npm-package-name,
 		// leading slash added as additional security measure
-		if (!name || name.length > 214 || name.match(/^[-_.\s]/)) {
+		if (!name || name.length > 214 || name.match(regexp1)) {
 			return false;
 		}
-		const match = name.match(/^(?:@([^/~\s)('!*]+?)[/])?([^/~)('!*\s]+?)$/);
+		const match = name.match(regexp2);
 		if (match) {
 			const scope = match[1];
 			if (scope && encodeURIComponent(scope) !== scope) {

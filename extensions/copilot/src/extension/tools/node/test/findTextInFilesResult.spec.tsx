@@ -14,6 +14,8 @@ import { Range } from '../../../../vscodeTypes';
 import { PromptRenderer } from '../../../prompts/node/base/promptRenderer';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { FindTextInFilesGrepResult, FindTextInFilesGrepResultProps, FindTextInFilesResult } from '../findTextInFilesTool';
+const regexp1 = /\\+/g;
+
 
 suite('FindTextInFilesResult', () => {
 	let services: ITestingServicesAccessor;
@@ -42,7 +44,7 @@ suite('FindTextInFilesResult', () => {
 		return r.messages
 			.map(m => m.content
 				.map(c => c.type === Raw.ChatCompletionContentPartKind.Text ? c.text : JSON.stringify(c)).join('')
-			).join('\n').replace(/\\+/g, '/');
+			).join('\n').replace(new RegExp(regexp1), '/');
 	}
 
 	test('returns simple single line matches', async () => {
@@ -187,7 +189,7 @@ suite('FindTextInFilesGrepResult', () => {
 		return r.messages
 			.map(m => m.content
 				.map(c => c.type === Raw.ChatCompletionContentPartKind.Text ? c.text : JSON.stringify(c)).join('')
-			).join('\n').replace(/\\+/g, '/');
+			).join('\n').replace(new RegExp(regexp1), '/');
 	}
 
 	function lineMatch(uri: URI, line: number, text: string) {

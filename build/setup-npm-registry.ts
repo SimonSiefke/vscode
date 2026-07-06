@@ -5,6 +5,8 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+const regexpHttpsRegistryOrg = /https:\/\/registry\.[^.]+\.org\//g;
+
 
 /**
  * Recursively find all package-lock.json files in a directory
@@ -29,7 +31,7 @@ async function* getPackageLockFiles(dir: string): AsyncGenerator<string> {
  */
 async function setup(url: string, file: string): Promise<void> {
 	let contents = await fs.readFile(file, 'utf8');
-	contents = contents.replace(/https:\/\/registry\.[^.]+\.org\//g, url);
+	contents = contents.replace(new RegExp(regexpHttpsRegistryOrg), url);
 	await fs.writeFile(file, contents);
 }
 

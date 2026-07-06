@@ -8,6 +8,8 @@ import { ICopilotTokenManager } from '../../../platform/authentication/common/co
 import { INTEGRATION_ID } from '../../../platform/endpoint/common/licenseAgreement';
 import { IFetcherService } from '../../../platform/networking/common/fetcherService';
 import type { CreateSessionFailureReason, CreateSessionResult, CloudSession, SessionEvent, SubmitSessionEventsResult } from '../common/cloudSessionTypes';
+const regexp1 = /\/+$/;
+
 
 /** Timeout for individual cloud API requests (ms). */
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -359,7 +361,7 @@ export class CloudSessionApiClient {
 			const githubToken = this._authService.anyGitHubSession?.accessToken;
 			const bearerToken = githubToken ?? copilotToken.token;
 
-			const url = `${baseUrl.replace(/\/+$/, '')}${path}`;
+			const url = `${baseUrl.replace(regexp1, '')}${path}`;
 			const headers: Record<string, string> = {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${bearerToken}`,

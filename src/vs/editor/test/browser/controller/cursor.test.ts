@@ -30,6 +30,27 @@ import { IRelaxedTextModelCreationOptions, createTextModel, instantiateTextModel
 import { TestInstantiationService } from '../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { InputMode } from '../../../common/inputMode.js';
 import { EditSources } from '../../../common/textModelEditSource.js';
+const regexpCaseDefault = /^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$/;
+const regexpCaseDefault1 = /^((?!\/\/).)*(\{[^}"'`]*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$/;
+const regexpForWhileIf = /^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$)/;
+const regexpCaseDefaultCase = /^(?!.*([;{}]|\S:)\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!.*(\{[^}"']*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$))/;
+const regexp5 = /.*/;
+const regexp6 = /^[^*]+/g;
+const regexp7 = /^\*\//;
+const regexp8 = /^[^\\'"`\$]+/g;
+const regexp9 = /^\\/;
+const regexp10 = /^\$\{/;
+const regexp11 = /^[^'"`{}/]+/g;
+const regexp12 = /^['"`]/;
+const regexp13 = /^{/;
+const regexp14 = /^}/;
+const regexp15 = /^\/\//;
+const regexp16 = /^\/\*/;
+const regexpBeginClassDef = /^\s*((begin|class|def|else|elsif|ensure|for|if|module|rescue|unless|until|when|while)|(.*\sdo\b))\b[^\{;]*$/;
+const regexpZAEndRescue = /^\s*([}\]]([,)]?\s*(#|$)|\.[a-zA-Z_]\w*\b)|(end|rescue|ensure|else|elsif|when)\b)/;
+const regexp19 = /^\s*}$/gm;
+const regexpXXXX = /^(?![^\S\n]*(?!--|––|——)(?:[-❍❑■⬜□☐▪▫–—≡→›✘xX✔✓☑+]|\[[ xX+-]?\])\s[^\n]*)[^\S\n]*(.+:)[^\S\n]*(?:(?=@[^\s*~(]+(?::\/\/[^\s*~(:]+)?(?:\([^)]*\))?)|$)/gm;
+
 
 // --------- utils
 
@@ -1393,10 +1414,10 @@ suite('Editor Controller', () => {
 		}));
 
 		setupIndentRulesLanguage(indentRulesLanguageId, {
-			decreaseIndentPattern: /^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$/,
-			increaseIndentPattern: /^((?!\/\/).)*(\{[^}"'`]*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$/,
-			indentNextLinePattern: /^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$)/,
-			unIndentedLinePattern: /^(?!.*([;{}]|\S:)\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!.*(\{[^}"']*|\([^)"']*|\[[^\]"']*|^\s*(\{\}|\(\)|\[\]|(case\b.*|default):))\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*((?!\S.*\/[*]).*[*]\/\s*)?[})\]]|^\s*(case\b.*|default):\s*(\/\/.*|\/[*].*[*]\/\s*)?$)(?!^\s*(for|while|if|else)\b(?!.*[;{}]\s*(\/\/.*|\/[*].*[*]\/\s*)?$))/
+			decreaseIndentPattern: regexpCaseDefault,
+			increaseIndentPattern: regexpCaseDefault1,
+			indentNextLinePattern: regexpForWhileIf,
+			unIndentedLinePattern: regexpCaseDefaultCase
 		});
 
 		disposables.add(languageService.registerLanguage({ id: electricCharLanguageId }));
@@ -1426,7 +1447,7 @@ suite('Editor Controller', () => {
 		disposables.add(languageService.registerLanguage({ id: onEnterLanguageId }));
 		disposables.add(languageConfigurationService.register(onEnterLanguageId, {
 			onEnterRules: [{
-				beforeText: /.*/,
+				beforeText: regexp5,
 				action: {
 					indentAction: indentAction
 				}
@@ -1537,47 +1558,47 @@ suite('Editor Controller', () => {
 
 				function advance(): void {
 					if (state instanceof BaseState) {
-						const m1 = line.match(/^[^'"`{}/]+/g);
+						const m1 = line.match(new RegExp(regexp11));
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.Other);
 						}
-						if (/^['"`]/.test(line)) {
+						if (regexp12.test(line)) {
 							return generateToken(1, StandardTokenType.String, new StringState(line.charAt(0), state));
 						}
-						if (/^{/.test(line)) {
+						if (regexp13.test(line)) {
 							return generateToken(1, StandardTokenType.Other, new BaseState(state));
 						}
-						if (/^}/.test(line)) {
+						if (regexp14.test(line)) {
 							return generateToken(1, StandardTokenType.Other, state.parent || new BaseState());
 						}
-						if (/^\/\//.test(line)) {
+						if (regexp15.test(line)) {
 							return generateToken(line.length, StandardTokenType.Comment, state);
 						}
-						if (/^\/\*/.test(line)) {
+						if (regexp16.test(line)) {
 							return generateToken(2, StandardTokenType.Comment, new BlockCommentState(state));
 						}
 						return generateToken(1, StandardTokenType.Other, state);
 					} else if (state instanceof StringState) {
-						const m1 = line.match(/^[^\\'"`\$]+/g);
+						const m1 = line.match(new RegExp(regexp8));
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.String);
 						}
-						if (/^\\/.test(line)) {
+						if (regexp9.test(line)) {
 							return generateToken(2, StandardTokenType.String);
 						}
 						if (line.charAt(0) === state.char) {
 							return generateToken(1, StandardTokenType.String, state.parentState);
 						}
-						if (/^\$\{/.test(line)) {
+						if (regexp10.test(line)) {
 							return generateToken(2, StandardTokenType.Other, new BaseState(state));
 						}
 						return generateToken(1, StandardTokenType.Other, state);
 					} else if (state instanceof BlockCommentState) {
-						const m1 = line.match(/^[^*]+/g);
+						const m1 = line.match(new RegExp(regexp6));
 						if (m1) {
 							return generateToken(m1[0].length, StandardTokenType.String);
 						}
-						if (/^\*\//.test(line)) {
+						if (regexp7.test(line)) {
 							return generateToken(2, StandardTokenType.Comment, state.parentState);
 						}
 						return generateToken(1, StandardTokenType.Other, state);
@@ -3388,7 +3409,7 @@ suite('Editor Controller', () => {
 		disposables.add(languageService.registerLanguage({ id: languageId }));
 		disposables.add(languageConfigurationService.register(languageId, {
 			onEnterRules: [{
-				beforeText: /.*/,
+				beforeText: regexp5,
 				action: {
 					indentAction: IndentAction.Indent,
 					appendText: 'x'
@@ -4485,8 +4506,8 @@ suite('Editor Controller', () => {
 
 	test('type honors indentation rules: ruby keywords', () => {
 		const rubyLanguageId = setupIndentRulesLanguage('ruby', {
-			increaseIndentPattern: /^\s*((begin|class|def|else|elsif|ensure|for|if|module|rescue|unless|until|when|while)|(.*\sdo\b))\b[^\{;]*$/,
-			decreaseIndentPattern: /^\s*([}\]]([,)]?\s*(#|$)|\.[a-zA-Z_]\w*\b)|(end|rescue|ensure|else|elsif|when)\b)/
+			increaseIndentPattern: regexpBeginClassDef,
+			decreaseIndentPattern: regexpZAEndRescue
 		});
 		const model = createTextModel(
 			[
@@ -4627,8 +4648,8 @@ suite('Editor Controller', () => {
 
 	test('issue #57197: indent rules regex should be stateless', () => {
 		const languageId = setupIndentRulesLanguage('lang', {
-			decreaseIndentPattern: /^\s*}$/gm,
-			increaseIndentPattern: /^(?![^\S\n]*(?!--|––|——)(?:[-❍❑■⬜□☐▪▫–—≡→›✘xX✔✓☑+]|\[[ xX+-]?\])\s[^\n]*)[^\S\n]*(.+:)[^\S\n]*(?:(?=@[^\s*~(]+(?::\/\/[^\s*~(:]+)?(?:\([^)]*\))?)|$)/gm,
+			decreaseIndentPattern: new RegExp(regexp19),
+			increaseIndentPattern: new RegExp(regexpXXXX),
 		});
 		usingCursor({
 			text: [

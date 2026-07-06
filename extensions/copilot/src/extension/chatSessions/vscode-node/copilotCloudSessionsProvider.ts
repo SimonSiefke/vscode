@@ -45,6 +45,13 @@ import { TaskApiBackend, TaskApiHttpClient } from './taskApiBackend';
 import { resolvePullArtifact } from './pullArtifactResolver';
 import { IPullRequestFileChangesService } from './pullRequestFileChangesService';
 import MarkdownIt = require('markdown-it');
+const regexpMd = /\.md$/i;
+const regexpAgentMd = /\.agent\.md$/i;
+const regexpTITLE = /TITLE: \s*(.*)/i;
+const regexpCopilot = /@copilot\s*/gi;
+const regexpPull = /\/pull\/\d+$/;
+const regexp6 = /\n/g;
+
 
 const CLOUD_SESSIONS_AUTH_OPTIONS: AuthOptions = { createIfNone: { detail: l10n.t('Sign in to GitHub to access Copilot cloud sessions.') } };
 
@@ -914,7 +921,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 				}
 
 				// Extract agent name from filename (e.g., "my-agent.md" -> "my-agent" or "myagent.agent.md" -> "myagent")
-				const agentName = name.replace(/\.agent\.md$/i, '').replace(/\.md$/i, '');
+				const agentName = name.replace(regexpAgentMd, '').replace(regexpMd, '');
 
 				if (!agentName) {
 					continue;
@@ -1488,7 +1495,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 			} else {
 				summaryReference.complete(undefined);
 			}
-			const titleMatch = prompt.match(/TITLE: \s*(.*)/i);
+			const titleMatch = prompt.match(regexpTITLE);
 			if (titleMatch && titleMatch[1]) {
 				prompt = titleMatch[1].trim();
 			} else {
@@ -1497,7 +1504,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 					prompt = split[0].trim();
 				}
 			}
-			return prompt.replace(/@copilot\s*/gi, '').trim();
+			return prompt.replace(new RegExp(regexpCopilot), '').trim();
 		};
 		if (!pr) {
 			this.logService.error(`Session not found for ID: ${resource}`);
@@ -1868,7 +1875,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		const date = new Date(pr.createdAt);
 		const ownerName = `${pr.repository.owner.login}/${pr.repository.name}`;
 		// Derive repo URL from the PR URL to support both github.com and GHE
-		const repoUrl = pr.url.replace(/\/pull\/\d+$/, '');
+		const repoUrl = pr.url.replace(regexpPull, '');
 		markdown.appendMarkdown(
 			`[${ownerName}](${repoUrl}) on ${date.toLocaleString('default', {
 				day: 'numeric',
@@ -1890,7 +1897,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		const maxBodyLength = 200;
 		let body = this.plainTextRenderer.render(pr.body || '');
 		// Convert plain text newlines to markdown line breaks (two spaces + newline)
-		body = body.replace(/\n/g, '  \n');
+		body = body.replace(new RegExp(regexp6), '  \n');
 		body = body.length > maxBodyLength ? body.substring(0, maxBodyLength) + '...' : body;
 		markdown.appendMarkdown(body + '  \n');
 

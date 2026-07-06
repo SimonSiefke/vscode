@@ -6,6 +6,8 @@
 import { generateUuid } from '../../../base/common/uuid.js';
 import { ILogService } from '../../log/common/log.js';
 import { ICommonProperties } from '../../telemetry/common/telemetry.js';
+const regexp1 = /-/g;
+
 
 /**
  * Public GitHub Copilot telemetry ingestion keys. These are instrumentation keys, not
@@ -169,7 +171,7 @@ export class AgentHostRestrictedTelemetrySender implements IAgentHostRestrictedT
 		const name = eventName.includes('/') ? eventName : `${NAMESPACE}/${eventName}`;
 		const envelope = {
 			ver: 1,
-			name: `Microsoft.ApplicationInsights.${iKey.replace(/-/g, '')}.Event`,
+			name: `Microsoft.ApplicationInsights.${iKey.replace(new RegExp(regexp1), '')}.Event`,
 			time: new Date().toISOString(),
 			sampleRate: 100,
 			seq: '',

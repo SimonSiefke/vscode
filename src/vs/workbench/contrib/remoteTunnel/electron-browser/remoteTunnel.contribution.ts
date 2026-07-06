@@ -35,6 +35,8 @@ import { IExtensionService } from '../../../services/extensions/common/extension
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { IOutputService } from '../../../services/output/common/output.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
+const regexp1 = /\)/g;
+
 
 export const REMOTE_TUNNEL_CATEGORY = localize2('remoteTunnel.category', 'Remote Tunnels');
 
@@ -554,7 +556,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 				if (connectionInfo) {
 					const linkToOpen = that.getLinkToOpen(connectionInfo);
 					const remoteExtension = that.serverConfiguration.extension;
-					const linkToOpenForMarkdown = linkToOpen.toString(false).replace(/\)/g, '%29');
+					const linkToOpenForMarkdown = linkToOpen.toString(false).replace(new RegExp(regexp1), '%29');
 					notificationService.notify({
 						severity: Severity.Info,
 						message:

@@ -6,6 +6,8 @@
 import crypto from 'crypto';
 
 import { Hash, Host } from '../common/host';
+const regexpInspectDebugBrk = /^--(?:inspect|debug)(?:-brk)?(?:=\d+)?$/i;
+
 
 
 export class NodeHost implements Host {
@@ -17,6 +19,6 @@ export class NodeHost implements Host {
 	}
 
 	public isDebugging(): boolean {
-		return process.execArgv.some((arg) => /^--(?:inspect|debug)(?:-brk)?(?:=\d+)?$/i.test(arg));
+		return process.execArgv.some((arg) => regexpInspectDebugBrk.test(arg));
 	}
 }

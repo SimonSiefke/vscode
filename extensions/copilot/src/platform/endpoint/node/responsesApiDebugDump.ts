@@ -7,6 +7,8 @@ import * as fs from 'fs';
 import OpenAI from 'openai';
 import * as path from 'path';
 import { ILogService } from '../../log/common/logService';
+const regexp1 = /[:.]/g;
+
 
 /**
  * Set to `true` to dump every SSE event from the Responses API to a
@@ -59,7 +61,7 @@ export function createResponsesStreamDumper(requestId: string, logService: ILogS
 		const repoRoot = path.resolve(__dirname, '..', '..', '..');
 		const dumpDir = path.join(repoRoot, '.responses-stream-dumps');
 		fs.mkdirSync(dumpDir, { recursive: true });
-		const ts = new Date().toISOString().replace(/[:.]/g, '-');
+		const ts = new Date().toISOString().replace(new RegExp(regexp1), '-');
 		const filePath = path.join(dumpDir, `responses-stream-${ts}-${requestId.slice(0, 4)}.log`);
 		fs.writeFileSync(filePath, `# Responses API SSE stream dump\n# requestId=${requestId}\n# started=${new Date().toISOString()}\n\n`);
 		logService.info(`[responsesAPI] Dumping SSE stream to ${filePath}`);

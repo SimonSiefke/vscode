@@ -14,6 +14,8 @@ import { ssuite, stest } from '../../base/stest';
 import { simulateInlineChat } from '../inlineChatSimulator';
 import { assertSomeStrings, assertWorkspaceEdit, fromFixture } from '../stestUtil';
 import { getFileContent } from '../outcomeValidators';
+const regexp1 = /"""/g;
+
 
 ssuite({ title: '/tests', location: 'inline', language: 'python', }, () => {
 
@@ -88,7 +90,7 @@ ssuite({ title: '/tests', location: 'inline', language: 'python', }, () => {
 				validate: async (outcome, workspace, accessor) => {
 					// Here the outcome should include a docstring as requested in the query
 					assertWorkspaceEdit(outcome);
-					assert.strictEqual((getFileContent(outcome.files[0]).match(/"""/g) || []).length, 2, 'Expected 2 instances of """ in the test file for the doc string');
+					assert.strictEqual((getFileContent(outcome.files[0]).match(new RegExp(regexp1)) || []).length, 2, 'Expected 2 instances of """ in the test file for the doc string');
 				}
 			}],
 		});

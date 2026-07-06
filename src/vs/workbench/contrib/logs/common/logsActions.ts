@@ -17,6 +17,8 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IDefaultLogLevelsService } from '../../../services/log/common/defaultLogLevels.js';
+const regexp1 = /^\d{8}T\d{6}$/;
+
 
 type LogLevelQuickPickItem = IQuickPickItem & { level: LogLevel };
 type LogChannelQuickPickItem = IQuickPickItem & { id: string; channel: IOutputChannelDescriptor };
@@ -205,7 +207,7 @@ export class OpenWindowSessionLogFileAction extends Action {
 		const stat = await this.fileService.resolve(dirname(logsPath));
 		if (stat.children) {
 			result.push(...stat.children
-				.filter(stat => !isEqual(stat.resource, logsPath) && stat.isDirectory && /^\d{8}T\d{6}$/.test(stat.name))
+				.filter(stat => !isEqual(stat.resource, logsPath) && stat.isDirectory && regexp1.test(stat.name))
 				.sort()
 				.reverse()
 				.map(d => d.resource));

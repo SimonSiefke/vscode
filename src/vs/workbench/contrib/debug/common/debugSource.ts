@@ -16,6 +16,8 @@ import { IEditorPane } from '../../../common/editor.js';
 import { TextEditorSelectionRevealType } from '../../../../platform/editor/common/editor.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+const regexp1 = /^\/+/g;
+
 
 export const UNKNOWN_SOURCE_LABEL = nls.localize('unknownSource', "Unknown Source");
 
@@ -134,7 +136,7 @@ export function getUriFromSource(raw: DebugProtocol.Source, path: string | undef
 		if (typeof raw.sourceReference === 'number' && raw.sourceReference > 0) {
 			return URI.from({
 				scheme: DEBUG_SCHEME,
-				path: path?.replace(/^\/+/g, '/'), // #174054
+				path: path?.replace(new RegExp(regexp1), '/'), // #174054
 				query: `session=${sessionId}&ref=${raw.sourceReference}`
 			});
 		}

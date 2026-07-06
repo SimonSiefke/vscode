@@ -8,6 +8,10 @@ import { Code } from './code';
 import { QuickAccess } from './quickaccess';
 import { IElement } from './driver';
 import { wait } from './playwrightDriver';
+const regexp1 = /^\s*/;
+const regexp2 = /^[├┌└]\s*/;
+const regexp3 = /^[├└]/;
+
 
 export enum Selector {
 	TerminalView = `#terminal`,
@@ -202,7 +206,7 @@ export class Terminal {
 				const isSplit = terminalsInGroup > 1;
 				while (indexInGroup < terminalsInGroup) {
 					const instance = expectedGroups[groupIndex][indexInGroup];
-					const nameRegex = instance.name && isSplit ? new RegExp('\\s*[├┌└]\\s*' + instance.name) : instance.name ? new RegExp(/^\s*/ + instance.name) : undefined;
+					const nameRegex = instance.name && isSplit ? new RegExp('\\s*[├┌└]\\s*' + instance.name) : instance.name ? new RegExp(regexp1 + instance.name) : undefined;
 					await this.assertTabExpected(undefined, index, nameRegex, instance.icon, instance.color, instance.description);
 					indexInGroup++;
 					index++;
@@ -219,11 +223,11 @@ export class Terminal {
 			const description: IElement | undefined = await this.code.waitForElement(`${Selector.Tabs}[data-index="${i}"] ${Selector.TabsEntry} ${Selector.Description}`, () => true);
 
 			const label: TerminalLabel = {
-				name: title.textContent.replace(/^[├┌└]\s*/, ''),
+				name: title.textContent.replace(regexp2, ''),
 				description: description?.textContent
 			};
 			// It's a new group if the tab does not start with ├ or └
-			if (title.textContent.match(/^[├└]/)) {
+			if (title.textContent.match(regexp3)) {
 				groups[groups.length - 1].push(label);
 			} else {
 				groups.push([label]);

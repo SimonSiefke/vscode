@@ -28,6 +28,8 @@ import { IChatModel } from '../../../common/model/chatModel.js';
 import { LocalChatSessionUri, getChatSessionType } from '../../../common/model/chatUri.js';
 import { IClearEditingSessionConfirmationOptions } from '../../actions/chatActions.js';
 import type { IChatEditorOptions } from './chatEditor.js';
+const regexpChat = /chat-(\d+)/;
+
 
 const ChatEditorIcon = registerIcon('chat-editor-label-icon', Codicon.chatSparkle, nls.localize('chatEditorLabelIcon', 'Icon of the chat editor label.'));
 
@@ -340,7 +342,7 @@ namespace ChatEditorUri {
 			return undefined;
 		}
 
-		const match = resource.path.match(/chat-(\d+)/);
+		const match = resource.path.match(regexpChat);
 		const handleStr = match?.[1];
 		if (typeof handleStr !== 'string') {
 			return undefined;

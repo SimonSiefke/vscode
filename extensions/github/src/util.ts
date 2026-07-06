@@ -5,6 +5,10 @@
 
 import * as vscode from 'vscode';
 import type { Repository } from './typings/git.d.ts';
+const regexpHttpsGithubCom = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(\.git)?$/i;
+const regexpGitGithubCom = /^git@github\.com:([^/]+)\/([^/]+?)(\.git)?$/i;
+const regexp3 = /^([^/]+)\/([^/]+)$/i;
+
 
 export class DisposableStore {
 
@@ -63,13 +67,13 @@ export function groupBy<T>(data: ReadonlyArray<T>, compare: (a: T, b: T) => numb
 }
 
 export function getRepositoryFromUrl(url: string): { owner: string; repo: string } | undefined {
-	const match = /^https:\/\/github\.com\/([^/]+)\/([^/]+?)(\.git)?$/i.exec(url)
-		|| /^git@github\.com:([^/]+)\/([^/]+?)(\.git)?$/i.exec(url);
+	const match = regexpHttpsGithubCom.exec(url)
+		|| regexpGitGithubCom.exec(url);
 	return match ? { owner: match[1], repo: match[2] } : undefined;
 }
 
 export function getRepositoryFromQuery(query: string): { owner: string; repo: string } | undefined {
-	const match = /^([^/]+)\/([^/]+)$/i.exec(query);
+	const match = regexp3.exec(query);
 	return match ? { owner: match[1], repo: match[2] } : undefined;
 }
 

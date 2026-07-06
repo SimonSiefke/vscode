@@ -50,6 +50,9 @@ import { IProxyAuthService } from './auth.js';
 import { AuthInfo, Credentials, IRequestService } from '../../request/common/request.js';
 import { randomPath } from '../../../base/common/extpath.js';
 import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
+const regexp1 = /[\\"]/g;
+const regexp2 = /[\r\n]+/g;
+
 
 export interface INativeHostMainService extends AddFirstParameterToFunctions<ICommonNativeHostService, Promise<unknown> /* only methods, not events */, number | undefined /* window ID */> { }
 
@@ -936,7 +939,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 		// Sanitize the filename for multipart header safety: strip CR/LF (which would
 		// terminate the header / inject extra fields) and escape backslashes and double
 		// quotes (RFC 2616 quoted-string semantics).
-		const safeName = String(asset.name).replace(/[\r\n]+/g, ' ').replace(/[\\"]/g, '_');
+		const safeName = String(asset.name).replace(new RegExp(regexp2), ' ').replace(new RegExp(regexp1), '_');
 		multipartBody += `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${safeName}"\r\nContent-Type: ${contentType}\r\n\r\n`;
 		const epilogue = `\r\n--${boundary}--\r\n`;
 

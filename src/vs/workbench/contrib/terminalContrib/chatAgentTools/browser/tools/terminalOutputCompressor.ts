@@ -7,6 +7,48 @@ import { TerminalToolId } from '../../../../chat/common/tools/terminalToolIds.js
 import { IToolResultCompressor, IToolResultFilter, IToolResultFilterOutput } from '../../../../chat/common/tools/toolResultCompressor.js';
 import { ICommandSegment, parseCommand, parseCommandHead as _parseCommandHead, segmentHasFlag, segmentHead } from './terminalCommandParser.js';
 import { TerminalOutputCache } from './terminalOutputCache.js';
+const regexp1 = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
+const regexpPackageLockJson = /package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb|\.snap$/;
+const regexpUseGitAdd = /^\s*\(use "git add.*"\s+to.*\)\s*$/;
+const regexpUseGitRestore = /^\s*\(use "git restore.*"\s+to.*\)\s*$/;
+const regexpUseGitRm = /^\s*\(use "git rm --cached.*"\s+to.*\)\s*$/;
+const regexpUseGitPush = /^\s*\(use "git push" to publish.*\)\s*$/;
+const regexpCommitOrDiscard = /^\s*\(commit or discard.*\)\s*$/;
+const regexpDlcbpsDLCBPSRwxTTsS = /^[-dlcbpsDLCBPS][rwx\-tTsS@+.]{9,}\s+\d+\s+\S+\s+\S+\s+\d+\s+\S+\s+\S+\s+\S+\s+(.+)$/;
+const regexpPASS = /^\s*PASS\s+\S+/;
+const regexpOk = /^\s*ok\s+\d+\s+/;
+const regexp11 = /^\s*\u2713\s/;
+const regexpSSEFx = /^\s*[.sSEFx]{10,}\s*$/;
+const regexpTestOk = /^test\s.+ \.\.\. ok\s*$/;
+const regexpRunningTests = /^running \d+ tests?$/i;
+const regexpTestNextest = /^(test|nextest)$/;
+const regexpJestVitestPlaywright = /^(jest|vitest|playwright|mocha)$/;
+const regexpCompiling = /^\s*Compiling\s+\S+\s+v\S+/;
+const regexpDownloading = /^\s*Downloading\s+\S+/;
+const regexpDownloaded = /^\s*Downloaded\s+\S+/;
+const regexpUpdatingCratesIo = /^\s*Updating\s+crates\.io\s+index/;
+const regexpFinishedDevRelease = /^\s*Finished\s+(dev|release|test)/;
+const regexpMakeEnteringLeaving = /^make\[\d+\]: (Entering|Leaving) directory/;
+const regexpDownloadEdIng = /^Download(ed|ing) https?:/;
+const regexpINFODownloadingFrom = /^\[INFO\] Downloading from /;
+const regexpINFODownloadedFrom = /^\[INFO\] Downloaded from /;
+const regexpTask = /^> Task :/;
+const regexpBuildCheckClippy = /^(build|check|clippy)$/;
+const regexpSuccessNoIssues = /^\s*Success: no issues found\s*$/i;
+const regexpAllChecksPassed = /^\s*All checks passed\.?\s*$/i;
+const regexpSuccessErrors = /^\s*Success:\s*0 errors/i;
+const regexpEslintPrettierTsc = /^(eslint|prettier|tsc)$/;
+const regexpInstallCiAdd = /^(install|i|ci|add)$/;
+const regexpNpmWarnDeprecated = /^npm warn deprecated /i;
+const regexp34 = /^\s*\[#+>?\s*\] /;
+const regexpNpmHttp = /^npm http /i;
+const regexpNpmTiming = /^npm timing /i;
+const regexpNpmSill = /^npm sill /i;
+const regexpNpmVerb = /^npm verb /i;
+const regexpPackagesAreLooking = /^\s*\d+ packages? are looking for funding/i;
+const regexpRunNpmFund = /run `npm fund`/i;
+const regexpRunNpmAudit = /^Run `npm audit/i;
+
 
 /**
  * Input shape used by the core `run_in_terminal` tool. We only depend on the
@@ -102,7 +144,7 @@ export const gitDiffFilter: IToolResultFilter = {
 		let pendingOldLines = 0;
 		let pendingNewLines = 0;
 
-		const HUNK_RE = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
+		const HUNK_RE = regexp1;
 
 		const flushHunk = () => {
 			if (pendingHunkHeaderIndex < 0) {
@@ -124,7 +166,7 @@ export const gitDiffFilter: IToolResultFilter = {
 			if (line.startsWith('diff --git')) {
 				flushContextRun();
 				flushHunk();
-				inBinaryOrLock = /package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb|\.snap$/.test(line);
+				inBinaryOrLock = regexpPackageLockJson.test(line);
 				if (inBinaryOrLock) {
 					out.push(line);
 					out.push('... lockfile/snapshot diff omitted ...');
@@ -226,11 +268,11 @@ export const gitStatusFilter: IToolResultFilter = {
 	matches: (_toolId, input) => makeMatcher({ head: 'git', sub: 'status' })(input),
 	apply(text): IToolResultFilterOutput {
 		const HINT_PATTERNS = [
-			/^\s*\(use "git add.*"\s+to.*\)\s*$/,
-			/^\s*\(use "git restore.*"\s+to.*\)\s*$/,
-			/^\s*\(use "git rm --cached.*"\s+to.*\)\s*$/,
-			/^\s*\(use "git push" to publish.*\)\s*$/,
-			/^\s*\(commit or discard.*\)\s*$/,
+			regexpUseGitAdd,
+			regexpUseGitRestore,
+			regexpUseGitRm,
+			regexpUseGitPush,
+			regexpCommitOrDiscard,
 		];
 		const lines = text.split('\n');
 		const out: string[] = [];
@@ -279,7 +321,7 @@ export const lsFilter: IToolResultFilter = {
 	apply(text): IToolResultFilterOutput {
 		const lines = text.split('\n');
 		const out: string[] = [];
-		const longRe = /^[-dlcbpsDLCBPS][rwx\-tTsS@+.]{9,}\s+\d+\s+\S+\s+\S+\s+\d+\s+\S+\s+\S+\s+\S+\s+(.+)$/;
+		const longRe = regexpDlcbpsDLCBPSRwxTTsS;
 		for (const line of lines) {
 			if (!line.trim()) {
 				continue;
@@ -372,12 +414,12 @@ export const treeFilter: IToolResultFilter = {
 function compressTestRunnerOutput(text: string): IToolResultFilterOutput {
 	const lines = text.split('\n');
 	const dropPatterns: RegExp[] = [
-		/^\s*PASS\s+\S+/,
-		/^\s*ok\s+\d+\s+/,
-		/^\s*\u2713\s/,
-		/^\s*[.sSEFx]{10,}\s*$/,
-		/^test\s.+ \.\.\. ok\s*$/,
-		/^running \d+ tests?$/i,
+		regexpPASS,
+		regexpOk,
+		regexp11,
+		regexpSSEFx,
+		regexpTestOk,
+		regexpRunningTests,
 	];
 	const out: string[] = [];
 	for (const line of lines) {
@@ -409,7 +451,7 @@ export const testRunnerFilter: IToolResultFilter = {
 			if (head.head === 'pytest' || head.head === 'jest' || head.head === 'vitest' || head.head === 'playwright' || head.head === 'mocha') {
 				return true;
 			}
-			if (head.head === 'cargo' && head.sub && /^(test|nextest)$/.test(head.sub)) {
+			if (head.head === 'cargo' && head.sub && regexpTestNextest.test(head.sub)) {
 				return true;
 			}
 			if (head.head === 'go' && head.sub === 'test') {
@@ -418,7 +460,7 @@ export const testRunnerFilter: IToolResultFilter = {
 			if ((head.head === 'npm' || head.head === 'pnpm' || head.head === 'yarn') && head.sub === 'test') {
 				return true;
 			}
-			if (head.head === 'npx' && head.sub && /^(jest|vitest|playwright|mocha)$/.test(head.sub)) {
+			if (head.head === 'npx' && head.sub && regexpJestVitestPlaywright.test(head.sub)) {
 				return true;
 			}
 		}
@@ -433,16 +475,16 @@ export const testRunnerFilter: IToolResultFilter = {
 
 function compressBuildOutput(text: string): IToolResultFilterOutput {
 	const dropPatterns: RegExp[] = [
-		/^\s*Compiling\s+\S+\s+v\S+/,
-		/^\s*Downloading\s+\S+/,
-		/^\s*Downloaded\s+\S+/,
-		/^\s*Updating\s+crates\.io\s+index/,
-		/^\s*Finished\s+(dev|release|test)/,
-		/^make\[\d+\]: (Entering|Leaving) directory/,
-		/^Download(ed|ing) https?:/,
-		/^\[INFO\] Downloading from /,
-		/^\[INFO\] Downloaded from /,
-		/^> Task :/,
+		regexpCompiling,
+		regexpDownloading,
+		regexpDownloaded,
+		regexpUpdatingCratesIo,
+		regexpFinishedDevRelease,
+		regexpMakeEnteringLeaving,
+		regexpDownloadEdIng,
+		regexpINFODownloadingFrom,
+		regexpINFODownloadedFrom,
+		regexpTask,
 	];
 	const lines = text.split('\n');
 	const out: string[] = [];
@@ -472,7 +514,7 @@ export const buildToolFilter: IToolResultFilter = {
 			if (!head) {
 				continue;
 			}
-			if (head.head === 'cargo' && head.sub && /^(build|check|clippy)$/.test(head.sub)) {
+			if (head.head === 'cargo' && head.sub && regexpBuildCheckClippy.test(head.sub)) {
 				return true;
 			}
 			if (head.head === 'go' && (head.sub === 'build' || head.sub === 'vet')) {
@@ -497,9 +539,9 @@ export const buildToolFilter: IToolResultFilter = {
 function compressLinterOutput(text: string): IToolResultFilterOutput {
 	const lines = text.split('\n');
 	const dropPatterns: RegExp[] = [
-		/^\s*Success: no issues found\s*$/i,
-		/^\s*All checks passed\.?\s*$/i,
-		/^\s*Success:\s*0 errors/i,
+		regexpSuccessNoIssues,
+		regexpAllChecksPassed,
+		regexpSuccessErrors,
 	];
 	const out: string[] = [];
 	for (const line of lines) {
@@ -534,7 +576,7 @@ export const linterFilter: IToolResultFilter = {
 			if (head.head === 'cargo' && head.sub === 'clippy') {
 				return true;
 			}
-			if (head.head === 'npx' && head.sub && /^(eslint|prettier|tsc)$/.test(head.sub)) {
+			if (head.head === 'npx' && head.sub && regexpEslintPrettierTsc.test(head.sub)) {
 				return true;
 			}
 		}
@@ -568,7 +610,7 @@ export const npmInstallFilter: IToolResultFilter = {
 			if (!head) {
 				continue;
 			}
-			if (head.head === 'npm' && head.sub && /^(install|i|ci|add)$/.test(head.sub)) {
+			if (head.head === 'npm' && head.sub && regexpInstallCiAdd.test(head.sub)) {
 				return true;
 			}
 			if (head.head === 'yarn' || head.head === 'pnpm') {
@@ -586,15 +628,15 @@ export const npmInstallFilter: IToolResultFilter = {
 	apply(text): IToolResultFilterOutput {
 		const lines = text.split('\n');
 		const dropPatterns: RegExp[] = [
-			/^npm warn deprecated /i,
-			/^\s*\[#+>?\s*\] /,
-			/^npm http /i,
-			/^npm timing /i,
-			/^npm sill /i,
-			/^npm verb /i,
-			/^\s*\d+ packages? are looking for funding/i,
-			/run `npm fund`/i,
-			/^Run `npm audit/i,
+			regexpNpmWarnDeprecated,
+			regexp34,
+			regexpNpmHttp,
+			regexpNpmTiming,
+			regexpNpmSill,
+			regexpNpmVerb,
+			regexpPackagesAreLooking,
+			regexpRunNpmFund,
+			regexpRunNpmAudit,
 		];
 		const out: string[] = [];
 		for (const line of lines) {

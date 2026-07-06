@@ -5,6 +5,8 @@
 
 import { parse as parseUrl, Url } from 'url';
 import { isBoolean } from '../../../base/common/types.js';
+const regexpHttps = /^https?:$/;
+
 
 export type Agent = any;
 
@@ -33,7 +35,7 @@ export async function getProxyAgent(rawRequestURL: string, env: typeof process.e
 
 	const proxyEndpoint = parseUrl(proxyURL);
 
-	if (!/^https?:$/.test(proxyEndpoint.protocol || '')) {
+	if (!regexpHttps.test(proxyEndpoint.protocol || '')) {
 		return null;
 	}
 

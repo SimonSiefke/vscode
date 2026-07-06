@@ -7,6 +7,8 @@ import assert from 'assert';
 import * as sinon from 'sinon';
 import { memoize, throttle } from '../../common/decorators.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexpMemoize = /\$memoize\$/;
+
 
 suite('Decorators', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -112,7 +114,7 @@ suite('Decorators', () => {
 		const foo = new Foo();
 		assert.strictEqual(foo.answer, 42);
 
-		assert(!Object.keys(foo).some(k => /\$memoize\$/.test(k)));
+		assert(!Object.keys(foo).some(k => regexpMemoize.test(k)));
 	});
 
 	test('memoized property should not be writable', () => {

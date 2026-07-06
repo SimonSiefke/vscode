@@ -13,6 +13,8 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IChatEntitlementService } from '../../chat/common/chatEntitlementService.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
+const regexpZAZ0 = /\-[a-zA-Z0-9]+$/;
+
 
 export enum ExtensionsFilter {
 
@@ -204,7 +206,7 @@ export class CopilotAssignmentFilterProvider extends Disposable implements IExpe
 	 * @param version Version string to be trimmed.
 	*/
 	private static trimVersionSuffix(version: string): string {
-		const regex = /\-[a-zA-Z0-9]+$/;
+		const regex = regexpZAZ0;
 		const result = version.split(regex);
 
 		return result[0];

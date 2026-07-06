@@ -6,6 +6,11 @@
 import { platform } from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+const regexp1 = /\x1b\[\d+m/g;
+const regexp2 = /.\x08./g;
+const regexp3 = /.\x08/g;
+const regexp4 = /_\b/g;
+
 
 export const execAsync = promisify(exec);
 
@@ -14,20 +19,20 @@ export const execAsync = promisify(exec);
  */
 export function cleanupText(text: string): string {
 	// Remove ANSI escape codes
-	let cleanedText = text.replace(/\x1b\[\d+m/g, '');
+	let cleanedText = text.replace(new RegExp(regexp1), '');
 
 	// Remove backspace sequences (like a\bb which tries to print a, move back, print b)
 	// This regex looks for a character followed by a backspace and another character
-	const backspaceRegex = /.\x08./g;
+	const backspaceRegex = new RegExp(regexp2);
 	while (backspaceRegex.test(cleanedText)) {
 		cleanedText = cleanedText.replace(backspaceRegex, match => match.charAt(2));
 	}
 
 	// Remove any remaining backspaces and their preceding characters
-	cleanedText = cleanedText.replace(/.\x08/g, '');
+	cleanedText = cleanedText.replace(new RegExp(regexp3), '');
 
 	// Remove underscores that are used for formatting in some fish help output
-	cleanedText = cleanedText.replace(/_\b/g, '');
+	cleanedText = cleanedText.replace(new RegExp(regexp4), '');
 
 	return cleanedText;
 }

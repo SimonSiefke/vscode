@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\./g;
+const regexp2 = /\r\n|\r|\n/;
+const regexpReferenceLib = /\/\/\/\s*<reference\s*lib="([^"]+)"/;
+
 const path = require('path');
 const fs = require('fs');
 const child_process = require('child_process');
@@ -30,7 +34,7 @@ function importLibs(startLib) {
 		return (name === '' ? 'lib.d.ts' : `lib.${name}.d.ts`);
 	}
 	function getVariableName(name) {
-		return (name === '' ? 'lib_dts' : `lib_${name.replace(/\./g, '_')}_dts`);
+		return (name === '' ? 'lib_dts' : `lib_${name.replace(new RegExp(regexp1), '_')}_dts`);
 	}
 	function readLibFile(name) {
 		var srcPath = path.join(TYPESCRIPT_LIB_SOURCE, getFileName(name));
@@ -54,7 +58,7 @@ function importLibs(startLib) {
 	while (queue.length > 0) {
 		var name = queue.shift();
 		var contents = readLibFile(name);
-		var lines = contents.split(/\r\n|\r|\n/);
+		var lines = contents.split(regexp2);
 
 		var output = '';
 		var writeOutput = function (text) {
@@ -71,7 +75,7 @@ function importLibs(startLib) {
 		};
 		var deps = [];
 		for (let i = 0; i < lines.length; i++) {
-			let m = lines[i].match(/\/\/\/\s*<reference\s*lib="([^"]+)"/);
+			let m = lines[i].match(regexpReferenceLib);
 			if (m) {
 				flushOutputLines();
 				writeOutput(getVariableName(m[1]));

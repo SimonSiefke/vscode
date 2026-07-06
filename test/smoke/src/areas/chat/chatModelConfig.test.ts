@@ -6,6 +6,9 @@
 import * as assert from 'assert';
 import { Application, Chat, Logger } from '../../../../automation';
 import { dumpFailureDiagnostics, getCopilotSmokeTestEnv, getMockLlmServerPath, installAllHandlers, MockLlmServer, preseedChatExtensionEnablement } from '../../utils';
+const regexp1 = /\s+/g;
+const regexpKMTokens = /\/\s*([\d.]+[KM]?)\s*tokens/;
+
 
 /**
  * A chat request captured by the mock LLM server, exposed via
@@ -269,7 +272,7 @@ export function setup(logger: Logger) {
 					// selection (e.g. "High 200K").
 					const configLabel = await chat.getModelConfigLabel();
 					assert.strictEqual(
-						configLabel.replace(/\s+/g, ' ').trim(),
+						configLabel.replace(new RegExp(regexp1), ' ').trim(),
 						testCase.expectedConfigLabel,
 						`Expected model-config button label '${testCase.expectedConfigLabel}' for '${testCase.name}', got '${configLabel}'.`
 					);
@@ -309,7 +312,7 @@ export function setup(logger: Logger) {
 					// maxInputTokens(tier) + maxOutputTokens). The gauge renders once the
 					// response's token usage lands, so this reads the details popup.
 					const usageLabel = await chat.readContextUsageTokenLabel();
-					const contextWindowLabel = usageLabel.match(/\/\s*([\d.]+[KM]?)\s*tokens/)?.[1];
+					const contextWindowLabel = usageLabel.match(regexpKMTokens)?.[1];
 					assert.strictEqual(
 						contextWindowLabel,
 						testCase.expectedContextWindowLabel,

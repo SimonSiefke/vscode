@@ -14,6 +14,8 @@ import { getVirtualWorkspaceScheme } from '../../../../platform/workspace/common
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
+const regexp1 = /\\/g;
+
 
 export const IPathService = createDecorator<IPathService>('pathService');
 
@@ -188,7 +190,7 @@ export abstract class AbstractPathService implements IPathService {
 		// filename character, eg /f\oo/ba\r.txt
 		const os = await this.resolveOS;
 		if (os === OperatingSystem.Windows) {
-			_path = _path.replace(/\\/g, '/');
+			_path = _path.replace(new RegExp(regexp1), '/');
 		}
 
 		// check for authority as used in UNC shares

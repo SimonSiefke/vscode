@@ -9,6 +9,8 @@ import type { API, AvatarQuery, AvatarQueryCommit, Repository, SourceControlHist
 import { DisposableStore, getRepositoryDefaultRemote, getRepositoryDefaultRemoteUrl, getRepositoryFromUrl, groupBy, sequentialize } from './util.js';
 import { AuthenticationError, OctokitService } from './auth.js';
 import { getAvatarLink } from './links.js';
+const regexpUsersNoreplyGithub = /^([0-9]+)\+[^@]+@users\.noreply\.github\.com$/;
+
 
 const ISSUE_EXPRESSION = /(([A-Za-z0-9_.\-]+)\/([A-Za-z0-9_.\-]+))?(#|GH-)([1-9][0-9]*)($|\b)/g;
 
@@ -62,7 +64,7 @@ interface GitHubUser {
 }
 
 function getUserIdFromNoReplyEmail(email: string | undefined): string | undefined {
-	const match = email?.match(/^([0-9]+)\+[^@]+@users\.noreply\.github\.com$/);
+	const match = email?.match(regexpUsersNoreplyGithub);
 	return match?.[1];
 }
 

@@ -22,6 +22,8 @@ import {
 	parseGitHubCloneUrl,
 	resolveGitHubRefToSha,
 } from './githubRepoFetcher.js';
+const regexp9a = /^[0-9a-f]{40}$/i;
+
 
 /** Storage key for the per-target metadata index used by this service. */
 const BROWSER_CACHE_STORAGE_KEY = 'chat.plugins.browserCache.v1';
@@ -156,7 +158,7 @@ export class BrowserPluginGitCommandService implements IPluginGitService {
 		const requestedRef = treeish.trim();
 
 		// 40-hex SHA refs skip the resolveSha round-trip (clone pins to the SHA already).
-		const isFullSha = /^[0-9a-f]{40}$/i.test(requestedRef);
+		const isFullSha = regexp9a.test(requestedRef);
 		const requestedSha = isFullSha
 			? requestedRef.toLowerCase()
 			: await resolveGitHubRefToSha(this._requestService, repo, requestedRef, authToken, cancel);
@@ -186,7 +188,7 @@ export class BrowserPluginGitCommandService implements IPluginGitService {
 		}
 		// Reject unrelated SHAs so callers notice they got a cache hit instead of `git rev-parse`.
 		const trimmed = ref.trim();
-		const isFullSha = /^[0-9a-f]{40}$/i.test(trimmed);
+		const isFullSha = regexp9a.test(trimmed);
 		if (isFullSha && trimmed.toLowerCase() !== entry.sha.toLowerCase()) {
 			throw new Error(`Cannot resolve ref '${ref}' in tree-cached plugin: only HEAD/${entry.sha} is materialised`);
 		}

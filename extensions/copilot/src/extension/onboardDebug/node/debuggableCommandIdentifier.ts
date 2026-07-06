@@ -15,6 +15,8 @@ import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import * as path from '../../../util/vs/base/common/path';
 import { URI } from '../../../util/vs/base/common/uri';
 import { ILanguageToolsProvider } from './languageToolsProvider';
+const regexp1 = /\s*([^\s]+)/;
+
 
 export interface IDebuggableCommandIdentifier {
 	readonly _serviceBrand: undefined;
@@ -168,7 +170,7 @@ const DEBUGGABLE_COMMAND_STORAGE_KEY = 'chat.debuggableCommands';
 
 function extractCommandNameFromCLI(command: string) {
 	// todo: support less common cases of quoting and environment variables
-	const re = /\s*([^\s]+)/;
+	const re = regexp1;
 	const match = re.exec(command);
 	return match ? match[1] : command;
 }

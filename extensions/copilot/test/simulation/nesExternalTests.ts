@@ -13,6 +13,8 @@ import { Configuration, ISimulationTestRuntime, SimulationSuite, SimulationTest 
 import { loadFile } from './inlineEdit/fileLoading';
 import { EditNotScoredError, InlineEditTester } from './inlineEdit/inlineEditTester';
 import { nesOptionsToConfigurations } from './nesOptionsToConfigurations';
+const regexp1 = /^[A-Z]/;
+
 
 const RECORDING_BASENAME = 'recording.w.json';
 const RECORDING_FILE_SUFFIX = '.recording.w.json';
@@ -94,7 +96,7 @@ function computeTestNameFromFile(file: fs.Dirent<string>): string {
 		const parentBasename = pathChunks.at(-1);
 		assert(parentBasename !== undefined, `Expected recording's ${path.join(file.parentPath, file.name)} parent directory name to be defined`);
 
-		if (pathChunks.at(-2)?.[0].match(/^[A-Z]/)) { // if the recording is at `path/to/MustHave/MyAwesomeTest/recording.w.json` - test name should be `[MustHave] MyAwesomeTest`
+		if (pathChunks.at(-2)?.[0].match(regexp1)) { // if the recording is at `path/to/MustHave/MyAwesomeTest/recording.w.json` - test name should be `[MustHave] MyAwesomeTest`
 			return `[${pathChunks.at(-2)}] ${parentBasename}`;
 		}
 

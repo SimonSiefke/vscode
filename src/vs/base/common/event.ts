@@ -14,6 +14,8 @@ import { IObservable, IObservableWithChange, IObserver } from './observable.js';
 import { env } from './process.js';
 import { StopWatch } from './stopwatch.js';
 import { MicrotaskDelay } from './symbols.js';
+const regexp9a = /^[0-9a-f]+$/i;
+
 
 
 // -----------------------------------------------------------------------------------------------------------------------
@@ -1030,7 +1032,7 @@ class LeakageMonitor {
 			this._warnCountdown = threshold * 0.5;
 
 			const [topStack, topCount] = this.getMostFrequentStack()!;
-			const emitterName = /^[0-9a-f]+$/i.test(this.name) ? undefined : this.name;
+			const emitterName = regexp9a.test(this.name) ? undefined : this.name;
 			const message = `[${this.name}] potential listener LEAK detected, having ${listenerCount} listeners already. MOST frequent listener (${topCount}):`;
 			console.warn(message);
 			console.warn(topStack);

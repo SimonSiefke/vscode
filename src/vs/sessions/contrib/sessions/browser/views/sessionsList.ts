@@ -75,6 +75,8 @@ import { ElementsDragAndDropData, ListViewTargetSector } from '../../../../../ba
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { buildSessionHoverContent } from '../sessionHoverContent.js';
 import { SessionStatusIcon } from '../../../../browser/sessionStatusIcon.js';
+const regexp1 = /\r?\n/;
+
 
 const $ = DOM.$;
 
@@ -307,7 +309,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 	private static readonly _APPROVAL_ROW_OVERHEAD = 14;
 
 	static getApprovalRowHeight(label: string, maxLines: number = DEFAULT_APPROVAL_ROW_MAX_LINES): number {
-		const lineCount = Math.min(label.split(/\r?\n/).length, maxLines);
+		const lineCount = Math.min(label.split(regexp1).length, maxLines);
 		return lineCount * SessionItemRenderer._APPROVAL_ROW_LINE_HEIGHT + SessionItemRenderer._APPROVAL_ROW_OVERHEAD;
 	}
 

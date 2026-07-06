@@ -15,6 +15,8 @@ import { ChatPermissionLevel, isAutoApproveLevel } from '../../common/constants.
 import { IToolResult } from '../../common/tools/languageModelToolsService.js';
 import { createToolSimpleTextResult } from '../../common/tools/builtinTools/toolHelpers.js';
 import { WorkingDirectory } from '../../common/workingDirectory.js';
+const regexp1 = /\s+/;
+
 
 export interface ISymbolToolInput {
 	symbol: string;
@@ -98,7 +100,7 @@ export function getSandboxPrecheckInputsForToolInvocation(
  * @returns The 1-based line number, or `undefined` if not found.
  */
 export function findLineNumber(model: ITextModel, lineContent: string): number | undefined {
-	const parts = lineContent.trim().split(/\s+/);
+	const parts = lineContent.trim().split(regexp1);
 	const pattern = parts.map(escapeRegExpCharacters).join('\\s+');
 	const matches = model.findMatches(pattern, false, true, false, null, false, 1);
 	if (matches.length === 0) {

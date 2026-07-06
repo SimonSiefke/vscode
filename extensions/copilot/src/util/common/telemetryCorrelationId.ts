@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { generateUuid } from '../vs/base/common/uuid';
+const regexp1 = /[\u{0080}-\u{FFFF}]/gu;
+
 
 /**
  * Tracks a chain of calls for telemetry purposes.
@@ -24,7 +26,7 @@ export class CallTracker {
 	}
 
 	public toAscii(): string {
-		return this.value.replace(/[\u{0080}-\u{FFFF}]/gu, '');
+		return this.value.replace(new RegExp(regexp1), '');
 	}
 
 	public add(...parts: string[]): CallTracker {

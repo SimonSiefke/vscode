@@ -17,6 +17,95 @@ import type { Commit as ApiCommit, Ref, Branch, Remote, LogOptions, Change, Comm
 import { RefType, ForcePushMode, GitErrorCodes, Status } from './api/git.constants';
 import * as byline from 'byline';
 import { StringDecoder } from 'string_decoder';
+const regexpGitVersion = /^git version /;
+const regexpENOENT = /ENOENT/;
+const regexpIsAlreadyUsed = /is already used by worktree at/;
+const regexpFatalAlreadyExists = /fatal: '[^']+' already exists/;
+const regexpContainsModifiedOr = /contains modified or untracked files|use --force to delete it/;
+const regexpDetectedDubiousOwnership = /detected dubious ownership in repository at/;
+const regexpPleaseCommitYour = /Please,? commit your changes or stash them/;
+const regexpIsNotValid = /'.+' is not a valid branch name/;
+const regexpBranchNamedAlready = /A branch named '.+' already exists/;
+const regexpCouldnFindRemote = /Couldn\'t find remote ref/;
+const regexpBranchIsNot = /branch '.+' is not fully merged/;
+const regexpUnableToAccess = /unable to access/;
+const regexpRepositoryNotFound = /Repository not found/;
+const regexpCannotMakePipe = /cannot make pipe for command substitution|cannot create standard input pipe/;
+const regexpBadConfigFile = /bad config file/;
+const regexpNotGitRepository = /Not a git repository/i;
+const regexpAuthenticationFailed = /Authentication failed/i;
+const regexpAnotherGitProcess = /Another git process seems to be running in this repository|If no other git process is currently running/;
+const regexp19 = /^([a-z]):\\/i;
+const regexp20 = /\\/g;
+const regexpGit = /\.git$/;
+const regexp22 = /^.*[\/\\]/;
+const regexp23 = /[\/]+$/;
+const regexpResolvingDeltas = /Resolving deltas:\s*(\d+)%/i;
+const regexpReceivingObjects = /Receiving objects:\s*(\d+)%/i;
+const regexpCompressingObjects = /Compressing objects:\s*(\d+)%/i;
+const regexpCountingObjects = /Counting objects:\s*(\d+)%/i;
+const regexpCloning = /^Cloning.+$/m;
+const regexpERROR = /^ERROR:\s+/;
+const regexp30 = /[\r\n]+$/;
+const regexpZA = /^[\/]?([a-zA-Z])[:\/]/;
+const regexp32 = /\r?\n/;
+const regexp33 = /^\s*(\w+)\s*=\s*"?([^"]+)"?$/;
+const regexp34 = /^\s*\[\s*([^\]]+?)\s*(\"[^"]+\")*\]\s*$/;
+const regexp35 = /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/;
+const regexp36 = /^(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/;
+const regexp9a = /^([0-9a-f]{40})/gm;
+const regexpRefs9a9a = /^(refs\/[^\0]+)\0([0-9a-f]{40})\0([0-9a-f]{40})?(?:\0(.*))?$/gm;
+const regexpRefsHeads = /^refs\/heads\/([^ ]+)$/;
+const regexpRefsRemotes = /^refs\/remotes\/([^/]+)\/([^ ]+)$/;
+const regexpRefsTags = /^refs\/tags\/([^ ]+)$/;
+const regexpAheadBehindGone = /\[(?:ahead ([0-9]+))?[,\s]*(?:behind ([0-9]+))?]|\[gone]/;
+const regexp43 = /\r|\r\n|\n/;
+const regexpDoesNotHave = /does not have any commits yet/;
+const regexpExistsOnDisk = /exists on disk, but not in/;
+const regexpPatchDoesNot = /patch does not apply/;
+const regexpYouAreOn = /You are on a branch yet to be born/;
+const regexpAbortingCommitDue = /Aborting commit due to empty commit message/;
+const regexpNotPossibleBecause = /not possible because you have unmerged files/;
+const regexpCONFLICT = /^CONFLICT /m;
+const regexpDidNotMatch = /did not match any file\(s\) known to git\./;
+const regexpNeedsMerge = /([^:]+: needs merge\n)+/m;
+const regexpRejectedNonFast = /! \[rejected\].*\(non-fast-forward\)/m;
+const regexpCouldNotRead = /Could not read from remote repository/;
+const regexpNoRemoteRepository = /No remote repository specified\./;
+const regexpAlreadyUpTo = /Already up to date/i;
+const regexpRejectedWouldClobber = /! \[rejected\].*\(would clobber existing tag\)/m;
+const regexpCannotRebaseOnto = /cannot rebase onto multiple branches/i;
+const regexpCannotLockRef = /cannot lock ref|unable to update local ref/i;
+const regexpCannotPullWith = /Cannot pull with rebase: You have unstaged changes/i;
+const regexpPullIngIs = /Pull(?:ing)? is not possible because you have unmerged files|Cannot pull with rebase: You have unstaged changes|Your local changes to the following files would be overwritten|Please, commit your changes before you can merge/i;
+const regexpPleaseTellMe = /Please tell me who you are\./;
+const regexpCONFLICT1 = /^CONFLICT \([^)]+\): \b/m;
+const regexpFatalTheCurrent = /^fatal: The current branch .* has no upstream branch/;
+const regexpPermissionDenied = /Permission.*denied/;
+const regexpRejectedRemoteRef = /! \[rejected\].*\(remote ref updated since checkout\)/m;
+const regexpRejectedStaleInfo = /! \[rejected\].*\(stale info\)/m;
+const regexpErrorFailedTo = /^error: failed to push some refs to\b/m;
+const regexpThePreviousCherry = /The previous cherry-pick is now empty, possibly due to conflict resolution./;
+const regexpFatalNoSuch = /^fatal: no such path/;
+const regexpNoLocalChanges = /No local changes to save/;
+const regexpCONFLICT2 = /^CONFLICT/m;
+const regexpErrorYourLocal = /error: Your local changes to the following files would be overwritten/;
+const regexpNoStashFound = /No stash found/;
+const regexpRefRefsHeads = /^ref: refs\/heads\/(?<name>.*)$/m;
+const regexpCommit9a = /^(?<commit>[0-9a-f]{40})$/m;
+const regexp9aTrefsTags = /^([0-9a-f]{40})\trefs\/tags\/([^ ]+)$/;
+const regexp9aTrefsHeads = /^([0-9a-f]{40})\trefs\/heads\/([^ ]+)$/;
+const regexpRef = /^ref: /;
+const regexpGit1 = /\/.git.*$/;
+const regexpENOTDIR = /ENOTDIR/;
+const regexp82 = /\s/;
+const regexpPush = /push/i;
+const regexpFetch = /fetch/i;
+const regexpRefsHeadsRemotes = /^refs\/(heads|remotes)\//i;
+const regexp86 = /^\s*#.*$\n?/gm;
+const regexp87 = /^~([^\/]*)\//;
+const regexpFatalBadRevision = /^fatal: bad revision '.+'/;
+
 
 // https://github.com/microsoft/vscode/issues/65693
 const MAX_CLI_LENGTH = 30000;
@@ -74,7 +163,7 @@ export interface LogFileOptions {
 }
 
 function parseVersion(raw: string): string {
-	return raw.replace(/^git version /, '');
+	return raw.replace(regexpGitVersion, '');
 }
 
 function findSpecificGit(path: string, onValidate: (path: string) => boolean): Promise<IGit> {
@@ -188,7 +277,7 @@ export interface IExecutionResult<T extends string | Buffer> {
 
 function cpErrorHandler(cb: (reason?: any) => void): (reason?: any) => void {
 	return err => {
-		if (/ENOENT/.test(err.message)) {
+		if (regexpENOENT.test(err.message)) {
 			err = new GitError({
 				error: err,
 				message: 'Failed to execute git (ENOENT)',
@@ -327,37 +416,37 @@ export interface IGitOptions {
 }
 
 function getGitErrorCode(stderr: string): string | undefined {
-	if (/Another git process seems to be running in this repository|If no other git process is currently running/.test(stderr)) {
+	if (regexpAnotherGitProcess.test(stderr)) {
 		return GitErrorCodes.RepositoryIsLocked;
-	} else if (/Authentication failed/i.test(stderr)) {
+	} else if (regexpAuthenticationFailed.test(stderr)) {
 		return GitErrorCodes.AuthenticationFailed;
-	} else if (/Not a git repository/i.test(stderr)) {
+	} else if (regexpNotGitRepository.test(stderr)) {
 		return GitErrorCodes.NotAGitRepository;
-	} else if (/bad config file/.test(stderr)) {
+	} else if (regexpBadConfigFile.test(stderr)) {
 		return GitErrorCodes.BadConfigFile;
-	} else if (/cannot make pipe for command substitution|cannot create standard input pipe/.test(stderr)) {
+	} else if (regexpCannotMakePipe.test(stderr)) {
 		return GitErrorCodes.CantCreatePipe;
-	} else if (/Repository not found/.test(stderr)) {
+	} else if (regexpRepositoryNotFound.test(stderr)) {
 		return GitErrorCodes.RepositoryNotFound;
-	} else if (/unable to access/.test(stderr)) {
+	} else if (regexpUnableToAccess.test(stderr)) {
 		return GitErrorCodes.CantAccessRemote;
-	} else if (/branch '.+' is not fully merged/.test(stderr)) {
+	} else if (regexpBranchIsNot.test(stderr)) {
 		return GitErrorCodes.BranchNotFullyMerged;
-	} else if (/Couldn\'t find remote ref/.test(stderr)) {
+	} else if (regexpCouldnFindRemote.test(stderr)) {
 		return GitErrorCodes.NoRemoteReference;
-	} else if (/A branch named '.+' already exists/.test(stderr)) {
+	} else if (regexpBranchNamedAlready.test(stderr)) {
 		return GitErrorCodes.BranchAlreadyExists;
-	} else if (/'.+' is not a valid branch name/.test(stderr)) {
+	} else if (regexpIsNotValid.test(stderr)) {
 		return GitErrorCodes.InvalidBranchName;
-	} else if (/Please,? commit your changes or stash them/.test(stderr)) {
+	} else if (regexpPleaseCommitYour.test(stderr)) {
 		return GitErrorCodes.DirtyWorkTree;
-	} else if (/detected dubious ownership in repository at/.test(stderr)) {
+	} else if (regexpDetectedDubiousOwnership.test(stderr)) {
 		return GitErrorCodes.NotASafeGitRepository;
-	} else if (/contains modified or untracked files|use --force to delete it/.test(stderr)) {
+	} else if (regexpContainsModifiedOr.test(stderr)) {
 		return GitErrorCodes.WorktreeContainsChanges;
-	} else if (/fatal: '[^']+' already exists/.test(stderr)) {
+	} else if (regexpFatalAlreadyExists.test(stderr)) {
 		return GitErrorCodes.WorktreeAlreadyExists;
-	} else if (/is already used by worktree at/.test(stderr)) {
+	} else if (regexpIsAlreadyUsed.test(stderr)) {
 		return GitErrorCodes.WorktreeBranchAlreadyUsed;
 	}
 	return undefined;
@@ -366,11 +455,11 @@ function getGitErrorCode(stderr: string): string | undefined {
 // https://github.com/microsoft/vscode/issues/89373
 // https://github.com/git-for-windows/git/issues/2478
 function sanitizePath(path: string): string {
-	return path.replace(/^([a-z]):\\/i, (_, letter) => `${letter.toUpperCase()}:\\`);
+	return path.replace(regexp19, (_, letter) => `${letter.toUpperCase()}:\\`);
 }
 
 function sanitizeRelativePath(path: string): string {
-	return path.replace(/\\/g, '/');
+	return path.replace(new RegExp(regexp20), '/');
 }
 
 const COMMIT_FORMAT = '%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B';
@@ -434,7 +523,7 @@ export class Git {
 	}
 
 	async clone(url: string, options: ICloneOptions, cancellationToken?: CancellationToken): Promise<string> {
-		const baseFolderName = options.targetName || decodeURI(url).replace(/[\/]+$/, '').replace(/^.*[\/\\]/, '').replace(/\.git$/, '') || 'repository';
+		const baseFolderName = options.targetName || decodeURI(url).replace(regexp23, '').replace(regexp22, '').replace(regexpGit, '') || 'repository';
 		let folderName = baseFolderName;
 		let folderPath = path.join(options.parentPath, folderName);
 		let count = 1;
@@ -459,13 +548,13 @@ export class Git {
 			lineStream.on('data', (line: string) => {
 				let match: RegExpExecArray | null = null;
 
-				if (match = /Counting objects:\s*(\d+)%/i.exec(line)) {
+				if (match = regexpCountingObjects.exec(line)) {
 					totalProgress = Math.floor(parseInt(match[1]) * 0.1);
-				} else if (match = /Compressing objects:\s*(\d+)%/i.exec(line)) {
+				} else if (match = regexpCompressingObjects.exec(line)) {
 					totalProgress = 10 + Math.floor(parseInt(match[1]) * 0.1);
-				} else if (match = /Receiving objects:\s*(\d+)%/i.exec(line)) {
+				} else if (match = regexpReceivingObjects.exec(line)) {
 					totalProgress = 20 + Math.floor(parseInt(match[1]) * 0.4);
-				} else if (match = /Resolving deltas:\s*(\d+)%/i.exec(line)) {
+				} else if (match = regexpResolvingDeltas.exec(line)) {
 					totalProgress = 60 + Math.floor(parseInt(match[1]) * 0.4);
 				}
 
@@ -491,8 +580,8 @@ export class Git {
 			});
 		} catch (err) {
 			if (err.stderr) {
-				err.stderr = err.stderr.replace(/^Cloning.+$/m, '').trim();
-				err.stderr = err.stderr.replace(/^ERROR:\s+/, '').trim();
+				err.stderr = err.stderr.replace(regexpCloning, '').trim();
+				err.stderr = err.stderr.replace(regexpERROR, '').trim();
 			}
 
 			throw err;
@@ -505,7 +594,7 @@ export class Git {
 		const result = await this.exec(pathInsidePossibleRepository, ['rev-parse', '--show-toplevel']);
 
 		// Keep trailing spaces which are part of the directory name
-		const repositoryRootPath = path.normalize(result.stdout.trimStart().replace(/[\r\n]+$/, ''));
+		const repositoryRootPath = path.normalize(result.stdout.trimStart().replace(regexp30, ''));
 
 		// Handle symbolic links and UNC paths
 		// Git 2.31 added the `--path-format` flag to rev-parse which
@@ -515,7 +604,7 @@ export class Git {
 			!isDescendant(pathInsidePossibleRepository, repositoryRootPath) &&
 			this.compareGitVersionTo('2.31.0') !== -1) {
 			const relativePathResult = await this.exec(pathInsidePossibleRepository, ['rev-parse', '--path-format=relative', '--show-toplevel',]);
-			return path.resolve(pathInsidePossibleRepository, relativePathResult.stdout.trimStart().replace(/[\r\n]+$/, ''));
+			return path.resolve(pathInsidePossibleRepository, relativePathResult.stdout.trimStart().replace(regexp30, ''));
 		}
 
 		if (isWindows) {
@@ -525,7 +614,7 @@ export class Git {
 			const repoUri = Uri.file(repositoryRootPath);
 			const pathUri = Uri.file(pathInsidePossibleRepository);
 			if (repoUri.authority.length !== 0 && pathUri.authority.length === 0) {
-				const match = /^[\/]?([a-zA-Z])[:\/]/.exec(pathUri.path);
+				const match = regexpZA.exec(pathUri.path);
 				if (match !== null) {
 					const [, letter] = match;
 
@@ -781,10 +870,10 @@ interface GitConfigSection {
 }
 
 class GitConfigParser {
-	private static readonly _lineSeparator = /\r?\n/;
+	private static readonly _lineSeparator = regexp32;
 
-	private static readonly _propertyRegex = /^\s*(\w+)\s*=\s*"?([^"]+)"?$/;
-	private static readonly _sectionRegex = /^\s*\[\s*([^\]]+?)\s*(\"[^"]+\")*\]\s*$/;
+	private static readonly _propertyRegex = regexp33;
+	private static readonly _sectionRegex = regexp34;
 
 	static parse(raw: string): GitConfigSection[] {
 		const config: { sections: GitConfigSection[] } = { sections: [] };
@@ -1011,7 +1100,7 @@ export interface LsTreeElement {
 export function parseLsTree(raw: string): LsTreeElement[] {
 	return raw.split('\n')
 		.filter(l => !!l)
-		.map(line => /^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/.exec(line)!)
+		.map(line => regexp35.exec(line)!)
 		.filter(m => !!m)
 		.map(([, mode, type, object, size, file]) => ({ mode, type, object, size, file }));
 }
@@ -1026,7 +1115,7 @@ interface LsFilesElement {
 export function parseLsFiles(raw: string): LsFilesElement[] {
 	return raw.split('\n')
 		.filter(l => !!l)
-		.map(line => /^(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/.exec(line)!)
+		.map(line => regexp36.exec(line)!)
 		.filter(m => !!m)
 		.map(([, mode, object, stage, file]) => ({ mode, object, stage, file }));
 }
@@ -1217,8 +1306,8 @@ export interface BlameInformation {
 }
 
 function parseGitBlame(data: string): BlameInformation[] {
-	const lineSeparator = /\r?\n/;
-	const commitRegex = /^([0-9a-f]{40})/gm;
+	const lineSeparator = regexp32;
+	const commitRegex = new RegExp(regexp9a);
 
 	const blameInformation = new Map<string, BlameInformation>();
 
@@ -1278,12 +1367,12 @@ const REFS_FORMAT = '%(refname)%00%(objectname)%00%(*objectname)';
 const REFS_WITH_DETAILS_FORMAT = `${REFS_FORMAT}%00%(parent)%00%(*parent)%00%(authorname)%00%(*authorname)%00%(committerdate:unix)%00%(*committerdate:unix)%00%(subject)%00%(*subject)`;
 
 function parseRefs(data: string): (Ref | Branch)[] {
-	const refRegex = /^(refs\/[^\0]+)\0([0-9a-f]{40})\0([0-9a-f]{40})?(?:\0(.*))?$/gm;
+	const refRegex = new RegExp(regexpRefs9a9a);
 
-	const headRegex = /^refs\/heads\/([^ ]+)$/;
-	const remoteHeadRegex = /^refs\/remotes\/([^/]+)\/([^ ]+)$/;
-	const tagRegex = /^refs\/tags\/([^ ]+)$/;
-	const statusRegex = /\[(?:ahead ([0-9]+))?[,\s]*(?:behind ([0-9]+))?]|\[gone]/;
+	const headRegex = regexpRefsHeads;
+	const remoteHeadRegex = regexpRefsRemotes;
+	const tagRegex = regexpRefsTags;
+	const statusRegex = regexpAheadBehindGone;
 
 	let ref: string | undefined;
 	let commitHash: string | undefined;
@@ -1433,7 +1522,7 @@ export class Repository {
 		args.push('-l');
 
 		const result = await this.exec(args);
-		const lines = result.stdout.trim().split(/\r|\r\n|\n/);
+		const lines = result.stdout.trim().split(regexp43);
 
 		return lines.map(entry => {
 			const equalsIndex = entry.indexOf('=');
@@ -1549,7 +1638,7 @@ export class Repository {
 			return parseGitCommits(result.stdout);
 		} catch (err) {
 			// Repository has no commits yet
-			if (/does not have any commits yet/.test(err.stderr)) {
+			if (regexpDoesNotHave.test(err.stderr)) {
 				return [];
 			}
 
@@ -1584,7 +1673,7 @@ export class Repository {
 				exitCode
 			});
 
-			if (/exists on disk, but not in/.test(stderr)) {
+			if (regexpExistsOnDisk.test(stderr)) {
 				err.gitErrorCode = GitErrorCodes.WrongCase;
 			}
 
@@ -1726,7 +1815,7 @@ export class Repository {
 		try {
 			await this.exec(args);
 		} catch (err) {
-			if (/patch does not apply/.test(err.stderr)) {
+			if (regexpPatchDoesNot.test(err.stderr)) {
 				err.gitErrorCode = GitErrorCodes.PatchDoesNotApply;
 			}
 
@@ -2053,10 +2142,10 @@ export class Repository {
 				await this.exec(args);
 			}
 		} catch (err) {
-			if (/Please,? commit your changes or stash them/.test(err.stderr || '')) {
+			if (regexpPleaseCommitYour.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.DirtyWorkTree;
 				err.gitTreeish = treeish;
-			} else if (/You are on a branch yet to be born/.test(err.stderr || '')) {
+			} else if (regexpYouAreOn.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.BranchNotYetBorn;
 			}
 
@@ -2146,10 +2235,10 @@ export class Repository {
 
 
 	private async handleCommitError(commitErr: unknown): Promise<void> {
-		if (commitErr instanceof GitError && /not possible because you have unmerged files/.test(commitErr.stderr || '')) {
+		if (commitErr instanceof GitError && regexpNotPossibleBecause.test(commitErr.stderr || '')) {
 			commitErr.gitErrorCode = GitErrorCodes.UnmergedChanges;
 			throw commitErr;
-		} else if (commitErr instanceof GitError && /Aborting commit due to empty commit message/.test(commitErr.stderr || '')) {
+		} else if (commitErr instanceof GitError && regexpAbortingCommitDue.test(commitErr.stderr || '')) {
 			commitErr.gitErrorCode = GitErrorCodes.EmptyCommitMessage;
 			throw commitErr;
 		}
@@ -2212,7 +2301,7 @@ export class Repository {
 		try {
 			await this.exec(args);
 		} catch (err) {
-			if (/^CONFLICT /m.test(err.stdout || '')) {
+			if (regexpCONFLICT.test(err.stdout || '')) {
 				err.gitErrorCode = GitErrorCodes.Conflict;
 			}
 
@@ -2306,7 +2395,7 @@ export class Repository {
 		try {
 			await this.exec(['checkout', '--', '.']);
 		} catch (err) {
-			if (/did not match any file\(s\) known to git\./.test(err.stderr || '')) {
+			if (regexpDidNotMatch.test(err.stderr || '')) {
 				return;
 			}
 
@@ -2341,7 +2430,7 @@ export class Repository {
 		} catch (err) {
 			// In case there are merge conflicts to be resolved, git reset will output
 			// some "needs merge" data. We try to get around that.
-			if (/([^:]+: needs merge\n)+/m.test(err.stdout || '')) {
+			if (regexpNeedsMerge.test(err.stdout || '')) {
 				return;
 			}
 
@@ -2416,11 +2505,11 @@ export class Repository {
 		try {
 			await this.exec(args, spawnOptions);
 		} catch (err) {
-			if (/No remote repository specified\./.test(err.stderr || '')) {
+			if (regexpNoRemoteRepository.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoRemoteRepositorySpecified;
-			} else if (/Could not read from remote repository/.test(err.stderr || '')) {
+			} else if (regexpCouldNotRead.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.RemoteConnectionError;
-			} else if (/! \[rejected\].*\(non-fast-forward\)/m.test(err.stderr || '')) {
+			} else if (regexpRejectedNonFast.test(err.stderr || '')) {
 				// The local branch has outgoing changes and it cannot be fast-forwarded.
 				err.gitErrorCode = GitErrorCodes.BranchFastForwardRejected;
 			}
@@ -2478,22 +2567,22 @@ export class Repository {
 				cancellationToken: options.cancellationToken,
 				env: { 'GIT_HTTP_USER_AGENT': this.git.userAgent }
 			});
-			return !/Already up to date/i.test(result.stdout);
+			return !regexpAlreadyUpTo.test(result.stdout);
 		} catch (err) {
-			if (/^CONFLICT \([^)]+\): \b/m.test(err.stdout || '')) {
+			if (regexpCONFLICT1.test(err.stdout || '')) {
 				err.gitErrorCode = GitErrorCodes.Conflict;
-			} else if (/Please tell me who you are\./.test(err.stderr || '')) {
+			} else if (regexpPleaseTellMe.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoUserNameConfigured;
-			} else if (/Could not read from remote repository/.test(err.stderr || '')) {
+			} else if (regexpCouldNotRead.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.RemoteConnectionError;
-			} else if (/Pull(?:ing)? is not possible because you have unmerged files|Cannot pull with rebase: You have unstaged changes|Your local changes to the following files would be overwritten|Please, commit your changes before you can merge/i.test(err.stderr)) {
-				err.stderr = err.stderr.replace(/Cannot pull with rebase: You have unstaged changes/i, 'Cannot pull with rebase, you have unstaged changes');
+			} else if (regexpPullIngIs.test(err.stderr)) {
+				err.stderr = err.stderr.replace(regexpCannotPullWith, 'Cannot pull with rebase, you have unstaged changes');
 				err.gitErrorCode = GitErrorCodes.DirtyWorkTree;
-			} else if (/cannot lock ref|unable to update local ref/i.test(err.stderr || '')) {
+			} else if (regexpCannotLockRef.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.CantLockRef;
-			} else if (/cannot rebase onto multiple branches/i.test(err.stderr || '')) {
+			} else if (regexpCannotRebaseOnto.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.CantRebaseMultipleBranches;
-			} else if (/! \[rejected\].*\(would clobber existing tag\)/m.test(err.stderr || '')) {
+			} else if (regexpRejectedWouldClobber.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.TagConflict;
 			}
 
@@ -2509,9 +2598,9 @@ export class Repository {
 		try {
 			await this.exec(args, options);
 		} catch (err) {
-			if (/^CONFLICT \([^)]+\): \b/m.test(err.stdout || '')) {
+			if (regexpCONFLICT1.test(err.stdout || '')) {
 				err.gitErrorCode = GitErrorCodes.Conflict;
-			} else if (/cannot rebase onto multiple branches/i.test(err.stderr || '')) {
+			} else if (regexpCannotRebaseOnto.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.CantRebaseMultipleBranches;
 			}
 
@@ -2554,19 +2643,19 @@ export class Repository {
 		try {
 			await this.exec(args, { env: { 'GIT_HTTP_USER_AGENT': this.git.userAgent } });
 		} catch (err) {
-			if (/^error: failed to push some refs to\b/m.test(err.stderr || '')) {
-				if (forcePushMode === ForcePushMode.ForceWithLease && /! \[rejected\].*\(stale info\)/m.test(err.stderr || '')) {
+			if (regexpErrorFailedTo.test(err.stderr || '')) {
+				if (forcePushMode === ForcePushMode.ForceWithLease && regexpRejectedStaleInfo.test(err.stderr || '')) {
 					err.gitErrorCode = GitErrorCodes.ForcePushWithLeaseRejected;
-				} else if (forcePushMode === ForcePushMode.ForceWithLeaseIfIncludes && /! \[rejected\].*\(remote ref updated since checkout\)/m.test(err.stderr || '')) {
+				} else if (forcePushMode === ForcePushMode.ForceWithLeaseIfIncludes && regexpRejectedRemoteRef.test(err.stderr || '')) {
 					err.gitErrorCode = GitErrorCodes.ForcePushWithLeaseIfIncludesRejected;
 				} else {
 					err.gitErrorCode = GitErrorCodes.PushRejected;
 				}
-			} else if (/Permission.*denied/.test(err.stderr || '')) {
+			} else if (regexpPermissionDenied.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.PermissionDenied;
-			} else if (/Could not read from remote repository/.test(err.stderr || '')) {
+			} else if (regexpCouldNotRead.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.RemoteConnectionError;
-			} else if (/^fatal: The current branch .* has no upstream branch/.test(err.stderr || '')) {
+			} else if (regexpFatalTheCurrent.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoUpstreamBranch;
 			}
 
@@ -2578,7 +2667,7 @@ export class Repository {
 		try {
 			await this.exec(['cherry-pick', commitHash]);
 		} catch (err) {
-			if (/The previous cherry-pick is now empty, possibly due to conflict resolution./.test(err.stderr ?? '')) {
+			if (regexpThePreviousCherry.test(err.stderr ?? '')) {
 				// Abort cherry-pick
 				await this.cherryPickAbort();
 
@@ -2602,7 +2691,7 @@ export class Repository {
 			const result = await this.exec(args);
 			return result.stdout.trim();
 		} catch (err) {
-			if (/^fatal: no such path/.test(err.stderr || '')) {
+			if (regexpFatalNoSuch.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoPathFound;
 			}
 
@@ -2651,7 +2740,7 @@ export class Repository {
 
 			await this.exec(args);
 		} catch (err) {
-			if (/No local changes to save/.test(err.stderr || '')) {
+			if (regexpNoLocalChanges.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoLocalChanges;
 			}
 
@@ -2683,11 +2772,11 @@ export class Repository {
 
 			await this.exec(args);
 		} catch (err) {
-			if (/No stash found/.test(err.stderr || '')) {
+			if (regexpNoStashFound.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoStashFound;
-			} else if (/error: Your local changes to the following files would be overwritten/.test(err.stderr || '')) {
+			} else if (regexpErrorYourLocal.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.LocalChangesOverwritten;
-			} else if (/^CONFLICT/m.test(err.stdout || '')) {
+			} else if (regexpCONFLICT2.test(err.stdout || '')) {
 				err.gitErrorCode = GitErrorCodes.StashConflict;
 			}
 
@@ -2708,7 +2797,7 @@ export class Repository {
 		try {
 			await this.exec(args);
 		} catch (err) {
-			if (/No stash found/.test(err.stderr || '')) {
+			if (regexpNoStashFound.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.NoStashFound;
 			}
 
@@ -2727,7 +2816,7 @@ export class Repository {
 
 			return parseGitChanges(this.repositoryRoot, result.stdout.trim());
 		} catch (err) {
-			if (/No stash found/.test(err.stderr || '')) {
+			if (regexpNoStashFound.test(err.stderr || '')) {
 				return undefined;
 			}
 
@@ -2916,13 +3005,13 @@ export class Repository {
 		const raw = await fs.readFile(path.join(this.dotGit.path, 'HEAD'), 'utf8');
 
 		// Branch
-		const branchMatch = raw.match(/^ref: refs\/heads\/(?<name>.*)$/m);
+		const branchMatch = raw.match(regexpRefRefsHeads);
 		if (branchMatch?.groups?.name) {
 			return { name: branchMatch.groups.name, commit: undefined, type: RefType.Head };
 		}
 
 		// Detached
-		const commitMatch = raw.match(/^(?<commit>[0-9a-f]{40})$/m);
+		const commitMatch = raw.match(regexpCommit9a);
 		if (commitMatch?.groups?.commit) {
 			return { name: undefined, commit: commitMatch.groups.commit, type: RefType.Head };
 		}
@@ -2999,9 +3088,9 @@ export class Repository {
 		const fn = (line: string): Ref | null => {
 			let match: RegExpExecArray | null;
 
-			if (match = /^([0-9a-f]{40})\trefs\/heads\/([^ ]+)$/.exec(line)) {
+			if (match = regexp9aTrefsHeads.exec(line)) {
 				return { name: match[1], commit: match[2], type: RefType.Head };
-			} else if (match = /^([0-9a-f]{40})\trefs\/tags\/([^ ]+)$/.exec(line)) {
+			} else if (match = regexp9aTrefsTags.exec(line)) {
 				return { name: match[2], commit: match[1], type: RefType.Tag };
 			}
 
@@ -3038,7 +3127,7 @@ export class Repository {
 				result.push({
 					name: mainRepositoryWorktreeName,
 					path: path.dirname(mainRepositoryPath),
-					ref: headContent.replace(/^ref: /, ''),
+					ref: headContent.replace(regexpRef, ''),
 					detached: !headContent.startsWith('ref: '),
 					main: true
 				} satisfies Worktree);
@@ -3063,15 +3152,15 @@ export class Repository {
 					result.push({
 						name: dirent.name,
 						// Remove '/.git' suffix
-						path: gitdirContent.replace(/\/.git.*$/, ''),
+						path: gitdirContent.replace(regexpGit1, ''),
 						// Remove 'ref: ' prefix
-						ref: headContent.replace(/^ref: /, ''),
+						ref: headContent.replace(regexpRef, ''),
 						// Detached if HEAD does not start with 'ref: '
 						detached: !headContent.startsWith('ref: '),
 						main: false
 					});
 				} catch (err) {
-					if (/ENOENT/.test(err.message)) {
+					if (regexpENOENT.test(err.message)) {
 						continue;
 					}
 
@@ -3082,7 +3171,7 @@ export class Repository {
 			return result;
 		}
 		catch (err) {
-			if (/ENOENT/.test(err.message) || /ENOTDIR/.test(err.message)) {
+			if (regexpENOENT.test(err.message) || regexpENOTDIR.test(err.message)) {
 				return result;
 			}
 
@@ -3128,7 +3217,7 @@ export class Repository {
 		const lines = result.stdout.trim().split('\n').filter(l => !!l);
 
 		for (const line of lines) {
-			const parts = line.split(/\s/);
+			const parts = line.split(regexp82);
 			const [name, url, type] = parts;
 
 			let remote = remotes.find(r => r.name === name);
@@ -3138,9 +3227,9 @@ export class Repository {
 				remotes.push(remote);
 			}
 
-			if (/fetch/i.test(type)) {
+			if (regexpFetch.test(type)) {
 				remote.fetchUrl = url;
-			} else if (/push/i.test(type)) {
+			} else if (regexpPush.test(type)) {
 				remote.pushUrl = url;
 			} else {
 				remote.fetchUrl = url;
@@ -3175,7 +3264,7 @@ export class Repository {
 			args.push('--ignore-case');
 		}
 
-		if (/^refs\/(heads|remotes)\//i.test(name)) {
+		if (regexpRefsHeadsRemotes.test(name)) {
 			args.push(name);
 		} else {
 			args.push(`refs/heads/${name}`, `refs/remotes/${name}`);
@@ -3191,7 +3280,7 @@ export class Repository {
 
 				let ahead;
 				let behind;
-				const match = /\[(?:ahead ([0-9]+))?[,\s]*(?:behind ([0-9]+))?]|\[gone]/.exec(status);
+				const match = regexpAheadBehindGone.exec(status);
 				if (match) {
 					[, ahead, behind] = match;
 				}
@@ -3253,7 +3342,7 @@ export class Repository {
 
 	// TODO: Support core.commentChar
 	stripCommitMessageComments(message: string): string {
-		return message.replace(/^\s*#.*$\n?/gm, '').trim();
+		return message.replace(new RegExp(regexp86), '').trim();
 	}
 
 	async getSquashMessage(): Promise<string | undefined> {
@@ -3289,7 +3378,7 @@ export class Repository {
 			// https://github.com/git/git/blob/3a0f269e7c82aa3a87323cb7ae04ac5f129f036b/path.c#L612
 			const homedir = os.homedir();
 			let templatePath = result.stdout.trim()
-				.replace(/^~([^\/]*)\//, (_, user) => `${user ? path.join(path.dirname(homedir), user) : homedir}/`);
+				.replace(regexp87, (_, user) => `${user ? path.join(path.dirname(homedir), user) : homedir}/`);
 
 			if (!path.isAbsolute(templatePath)) {
 				templatePath = path.join(this.repositoryRoot, templatePath);
@@ -3316,7 +3405,7 @@ export class Repository {
 			const result = await this.exec(['log', '-p', '-n1', ref, '--']);
 			return result.stdout.trim();
 		} catch (err) {
-			if (/^fatal: bad revision '.+'/.test(err.stderr || '')) {
+			if (regexpFatalBadRevision.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.BadRevision;
 			}
 
@@ -3334,7 +3423,7 @@ export class Repository {
 			const result = await this.exec(args);
 			return result.stdout.trim();
 		} catch (err) {
-			if (/^fatal: bad revision '.+'/.test(err.stderr || '')) {
+			if (regexpFatalBadRevision.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.BadRevision;
 			}
 
@@ -3385,7 +3474,7 @@ export class Repository {
 			const gitmodulesRaw = await fs.readFile(gitmodulesPath, 'utf8');
 			return parseGitmodules(gitmodulesRaw);
 		} catch (err) {
-			if (/ENOENT/.test(err.message)) {
+			if (regexpENOENT.test(err.message)) {
 				return [];
 			}
 

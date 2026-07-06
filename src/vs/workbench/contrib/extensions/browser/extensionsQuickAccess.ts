@@ -12,6 +12,8 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IExtensionsWorkbenchService } from '../common/extensions.js';
+const regexp1 = /\./;
+
 
 export class InstallExtensionQuickAccessProvider extends PickerQuickAccessProvider<IPickerQuickAccessItem> {
 
@@ -42,7 +44,7 @@ export class InstallExtensionQuickAccessProvider extends PickerQuickAccessProvid
 		};
 
 		// Extension ID typed: try to find it
-		if (/\./.test(filter)) {
+		if (regexp1.test(filter)) {
 			return this.getPicksForExtensionId(filter, genericSearchPickItem, token);
 		}
 

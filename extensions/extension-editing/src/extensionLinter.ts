@@ -14,6 +14,8 @@ import { commands, languages, workspace, Disposable, TextDocument, Uri, Diagnost
 import { INormalizedVersion, normalizeVersion, parseVersion } from './extensionEngineValidation';
 import { JsonStringScanner } from './jsonReconstruct';
 import { implicitActivationEvent, redundantImplicitActivationEvent } from './constants';
+const regexp1 = /^\w[\w\d+.-]*:/;
+
 
 const product = JSON.parse(fs.readFileSync(path.join(env.appRoot, 'product.json'), { encoding: 'utf-8' }));
 const allowedBadgeProviders: string[] = (product.extensionAllowedBadgeProviders || []).map((s: string) => s.toLowerCase());
@@ -452,7 +454,7 @@ export class ExtensionLinter {
 	}
 
 	private addDiagnostics(diagnostics: Diagnostic[], document: TextDocument, begin: number, end: number, src: string, context: Context, info: PackageJsonInfo) {
-		const hasScheme = /^\w[\w\d+.-]*:/.test(src);
+		const hasScheme = regexp1.test(src);
 		const uri = parseUri(src, info.repository ? info.repository.toString() : document.uri.toString());
 		if (!uri) {
 			return;

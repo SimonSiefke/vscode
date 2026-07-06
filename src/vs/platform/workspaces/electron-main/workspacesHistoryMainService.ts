@@ -26,6 +26,8 @@ import { IWorkspacesManagementMainService } from './workspacesManagementMainServ
 import { ResourceMap } from '../../../base/common/map.js';
 import { IDialogMainService } from '../../dialogs/electron-main/dialogMainService.js';
 import { IEnvironmentMainService } from '../../environment/electron-main/environmentMainService.js';
+const regexpFolderFileUri = /^--(folder|file)-uri\s+"([^"]+)"$/;
+
 
 export const IWorkspacesHistoryMainService = createDecorator<IWorkspacesHistoryMainService>('workspacesHistoryMainService');
 
@@ -364,7 +366,7 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 			for (const item of app.getJumpListSettings().removedItems) {
 				const args = item.args;
 				if (args) {
-					const match = /^--(folder|file)-uri\s+"([^"]+)"$/.exec(args);
+					const match = regexpFolderFileUri.exec(args);
 					if (match) {
 						toRemove.push(URI.parse(match[2]));
 					}

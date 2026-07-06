@@ -57,6 +57,9 @@ import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform
 import { Attributes, CandidatePort, Tunnel, TunnelCloseReason, TunnelModel, TunnelSource, forwardedPortsViewEnabled, makeAddress, mapHasAddressLocalhostOrAllInterfaces, parseAddress } from '../../../services/remote/common/tunnelModel.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+const regexp1 = /\0/g;
+const regexp2 = /^[0-9]+$/;
+
 
 export const openPreviewEnabledContext = new RawContextKey<boolean>('openPreviewEnabled', false);
 
@@ -658,7 +661,7 @@ class TunnelItem implements ITunnelItem {
 				// This is a known process. Give it a friendly name.
 				description = this.remoteExplorerService.namedProcesses.get(this.pid)!;
 			} else {
-				description = this.runningProcess.replace(/\0/g, ' ').trim();
+				description = this.runningProcess.replace(new RegExp(regexp1), ' ').trim();
 			}
 			if (this.pid) {
 				description += ` (${this.pid})`;
@@ -1477,7 +1480,7 @@ namespace ChangeLocalPortAction {
 	export const LABEL = nls.localize('remote.tunnel.changeLocalPort', "Change Local Address Port");
 
 	function validateInput(tunnelService: ITunnelService, value: string, canElevate: boolean): { content: string; severity: Severity } | null {
-		if (!value.match(/^[0-9]+$/)) {
+		if (!value.match(regexp2)) {
 			return { content: nls.localize('remote.tunnelsView.portShouldBeNumber', "Local port should be a number."), severity: Severity.Error };
 		} else if (Number(value) >= maxPortNumber) {
 			return { content: invalidPortNumberString, severity: Severity.Error };

@@ -34,6 +34,8 @@ import { IMcpServerSamplingConfiguration } from './mcpConfiguration.js';
 import { McpServerRequestHandler } from './mcpServerRequestHandler.js';
 import { MCP } from './modelContextProtocol.js';
 import { UriTemplate } from '../../../../base/common/uriTemplate.js';
+const regexpZ0 = /[^a-z0-9_.-]/gi;
+
 
 export const extensionMcpCollectionPrefix = 'ext.';
 
@@ -472,7 +474,7 @@ export interface IMcpPrompt {
 	resolve(args: Record<string, string | undefined>, token?: CancellationToken): Promise<IMcpPromptMessage[]>;
 }
 
-export const mcpPromptReplaceSpecialChars = (s: string) => s.replace(/[^a-z0-9_.-]/gi, '_');
+export const mcpPromptReplaceSpecialChars = (s: string) => s.replace(new RegExp(regexpZ0), '_');
 
 export const mcpPromptPrefix = (definition: McpDefinitionReference) =>
 	`/mcp.` + mcpPromptReplaceSpecialChars(definition.label);

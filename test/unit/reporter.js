@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^([^=]+)=(.*)$/;
+
 const mocha = require('mocha');
 const FullJsonStreamReporter = require('./fullJsonStreamReporter');
 const path = require('path');
 
 function parseReporterOption(value) {
-	const r = /^([^=]+)=(.*)$/.exec(value);
+	const r = regexp1.exec(value);
 	return r ? { [r[1]]: r[2] } : {};
 }
 

@@ -6,6 +6,8 @@
 import { Color } from '../../../../base/common/color.js';
 import { IFontTokenOptions } from '../../../../platform/theme/common/themeService.js';
 import { LanguageId, FontStyle, ColorId, StandardTokenType, MetadataConsts } from '../../encodedTokenAttributes.js';
+const regexpZ0 = /[^a-z0-9_-]/gi;
+
 
 export interface ITokenThemeRule {
 	token: string;
@@ -464,5 +466,5 @@ function sanitizeFontFamilyForClassName(fontFamily: string): string {
 }
 
 function cleanClassName(className: string): string {
-	return className.replace(/[^a-z0-9_-]/gi, '-');
+	return className.replace(new RegExp(regexpZ0), '-');
 }

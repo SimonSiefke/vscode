@@ -7,6 +7,9 @@ import { IRemoteAgentHostService, IRemoteAgentHostSSHConnection, RemoteAgentHost
 import { ISessionsProvidersService } from '../services/sessions/browser/sessionsProvidersService.js';
 import { isAgentHostProvider } from '../common/agentHostSessionsProvider.js';
 import { encodeHex, VSBuffer } from '../../base/common/buffer.js';
+const regexp1 = /[A-Z/\\+]/;
+const regexpZAZ0 = /^[a-zA-Z0-9.:\-]+$/;
+
 
 /**
  * Resolves the VS Code remote authority for the given session provider,
@@ -50,7 +53,7 @@ export function resolveRemoteAuthority(
 export function sshAuthorityString(connection: IRemoteAgentHostSSHConnection): string {
 	const hostName = connection.hostName;
 	const needsEncoding = connection.user || connection.port
-		|| /[A-Z/\\+]/.test(hostName) || !/^[a-zA-Z0-9.:\-]+$/.test(hostName);
+		|| regexp1.test(hostName) || !regexpZAZ0.test(hostName);
 	if (!needsEncoding) {
 		return hostName;
 	}

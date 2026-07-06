@@ -12,6 +12,8 @@ import { Position } from '../../../../../util/vs/editor/common/core/position';
 import { INextEditDisplayLocation } from '../../../node/nextEditResult';
 import { IVSCodeObservableDocument } from '../../parts/vscodeWorkspace';
 import { Diagnostic, DiagnosticCompletionItem, DiagnosticInlineEditRequestLogContext, IDiagnosticCodeAction, IDiagnosticCompletionProvider, isDiagnosticWithinDistance, log, logList } from './diagnosticsCompletions';
+const regexp1 = /(["'])(.*?)\1/g;
+
 
 interface IAnyCodeAction extends IDiagnosticCodeAction {
 	type: string;
@@ -105,7 +107,7 @@ function doesCodeActionFixDiagnostics(action: CodeActionData, diagnostic: Diagno
 }
 
 function getSanitizedCodeActionTitle(action: CodeActionData): string {
-	return action.title.replace(/(["'])(.*?)\1/g, '$1...$1');
+	return action.title.replace(new RegExp(regexp1), '$1...$1');
 }
 
 function filterCodeActions(codeActionsWithEdit: CodeActionData[]): CodeActionData[] {

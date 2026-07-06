@@ -8,6 +8,11 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { FoldingMarkers } from '../../../../common/languages/languageConfiguration.js';
 import { computeRanges } from '../../browser/indentRangeProvider.js';
 import { createTextModel } from '../../../../test/common/testTextModel.js';
+const regexpRegion = /^\s*#region\b/g;
+const regexpEndregion = /^\s*#endregion\b/g;
+const regexpRegion1 = /^\s*#region\b/gi;
+const regexpEndregion1 = /^\s*#endregion\b/gi;
+
 
 interface ExpectedIndentRange {
 	startLineNumber: number;
@@ -338,8 +343,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#endregion',
 		], [r(1, 3, -1, true)], false, {
-			start: /^\s*#region\b/g,
-			end: /^\s*#endregion\b/g
+			start: new RegExp(regexpRegion),
+			end: new RegExp(regexpEndregion)
 		});
 
 		assertRanges([
@@ -347,8 +352,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#endregion',
 		], [r(1, 3, -1, true)], false, {
-			start: /^\s*#region\b/gi,
-			end: /^\s*#endregion\b/g
+			start: new RegExp(regexpRegion1),
+			end: new RegExp(regexpEndregion)
 		});
 
 		assertRanges([
@@ -356,8 +361,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#ENDREGION',
 		], [], false, {
-			start: /^\s*#region\b/gi,
-			end: /^\s*#endregion\b/g
+			start: new RegExp(regexpRegion1),
+			end: new RegExp(regexpEndregion)
 		});
 
 		assertRanges([
@@ -365,8 +370,8 @@ suite('Folding with regions', () => {
 		/* 2*/	'content',
 		/* 3*/	'#ENDREGION',
 		], [], false, {
-			start: /^\s*#region\b/g,
-			end: /^\s*#endregion\b/gi
+			start: new RegExp(regexpRegion),
+			end: new RegExp(regexpEndregion1)
 		});
 	});
 });

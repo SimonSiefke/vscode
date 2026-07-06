@@ -9,6 +9,9 @@ import { Code, findElement } from './code';
 import { Editors } from './editors';
 import { Editor } from './editor';
 import { IElement } from './driver';
+const regexpBfileName = /\bfile-name\b/;
+const regexpBlineNumber = /\bline-number\b/;
+
 
 const VIEWLET = 'div[id="workbench.view.debug"]';
 const DEBUG_VIEW = `${VIEWLET}`;
@@ -40,8 +43,8 @@ export interface IStackFrame {
 }
 
 function toStackFrame(element: IElement): IStackFrame {
-	const name = findElement(element, e => /\bfile-name\b/.test(e.className))!;
-	const line = findElement(element, e => /\bline-number\b/.test(e.className))!;
+	const name = findElement(element, e => regexpBfileName.test(e.className))!;
+	const line = findElement(element, e => regexpBlineNumber.test(e.className))!;
 	const lineNumber = line.textContent ? parseInt(line.textContent.split(':').shift() || '0') : 0;
 
 	return {

@@ -8,6 +8,8 @@ import { CancellationError } from '../../../base/common/errors.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import { IGitPullOptions, ILocalGitService } from '../common/localGitService.js';
 import { ILogService } from '../../log/common/log.js';
+const regexpNotPossibleTo = /not possible to fast-forward|non-fast-forward/i;
+
 
 export class LocalGitService implements ILocalGitService {
 	declare readonly _serviceBrand: undefined;
@@ -94,7 +96,7 @@ export class LocalGitService implements ILocalGitService {
 		}
 
 		const details = `${error.stderr ?? ''}\n${error.message ?? ''}`;
-		return /not possible to fast-forward|non-fast-forward/i.test(details);
+		return regexpNotPossibleTo.test(details);
 	}
 
 	private async _getSafeHardResetTarget(operationId: string, repoPath: string): Promise<string | undefined> {

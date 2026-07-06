@@ -10,6 +10,12 @@ import { CharCode } from '../../../../util/vs/base/common/charCode';
 import { BugIndicatingError } from '../../../../util/vs/base/common/errors';
 import { OffsetRange } from '../../../../util/vs/editor/common/core/ranges/offsetRange';
 import { Range } from '../../../../vscodeTypes';
+const regexp1 = /^\s*$/;
+const regexp2 = /\t/g;
+const regexp3 = /\n/g;
+const regexp4 = /\r/g;
+const regexp5 = /^\s*$/s;
+
 
 export function getAdjustedSelection<TDocument extends AbstractDocument>(
 	ast: OverlayNode,
@@ -70,7 +76,7 @@ function markSelectedNodes(root: LinkedOverlayNode, start: number, end: number) 
  */
 function moveTowardsContent(root: LinkedOverlayNode, initialStart: number, initialEnd: number): [number, number] {
 	const selectedText = root.text.substring(initialStart, initialEnd);
-	const selectedTextIsEmptyOrWhitespace = /^\s*$/.test(selectedText);
+	const selectedTextIsEmptyOrWhitespace = regexp1.test(selectedText);
 	if (!selectedTextIsEmptyOrWhitespace) {
 		return [initialStart, initialEnd];
 	}
@@ -226,7 +232,7 @@ function moveToEndOfLineOverWhitespace(root: LinkedOverlayNode, end: number): nu
 }
 
 function debugstr(str: string) {
-	return str.replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+	return str.replace(new RegExp(regexp4), '\\r').replace(new RegExp(regexp3), '\\n').replace(new RegExp(regexp2), '\\t');
 }
 
 /**
@@ -272,7 +278,7 @@ export class LinkedOverlayNode {
 	 */
 	public hasContentInRange(range: OffsetRange): boolean {
 		const content = this.textAt(range);
-		return !/^\s*$/s.test(content);
+		return !regexp5.test(content);
 	}
 
 	public toString(): string {
@@ -418,7 +424,7 @@ class LinkedOverlayNodeGap {
 	public hasSelectedContent(start: number, end: number): boolean {
 		const selectedGapRange = this.range.intersect(new OffsetRange(start, end));
 		const selectedGapText = selectedGapRange ? this._originalText.substring(selectedGapRange.start, selectedGapRange.endExclusive) : '';
-		return !/^\s*$/s.test(selectedGapText);
+		return !regexp5.test(selectedGapText);
 	}
 
 	public get firstNonWhitespaceIndex(): number {

@@ -16,6 +16,8 @@ import { IRange } from '../../../../../editor/common/core/range.js';
 import { SymbolKind } from '../../../../../editor/common/languages.js';
 import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+const regexp1 = /<h([1-6]).*>(.*)<\/h\1>/i;
+
 
 export const enum NotebookOutlineConstants {
 	NonHeaderOutlineLevel = 7,
@@ -34,7 +36,7 @@ function getMarkdownHeadersInCellFallbackToHtmlTags(fullContent: string) {
 		return headers;
 	}
 	// no markdown syntax headers, try to find html tags
-	const match = fullContent.match(/<h([1-6]).*>(.*)<\/h\1>/i);
+	const match = fullContent.match(regexp1);
 	if (match) {
 		const level = parseInt(match[1]);
 		const text = match[2].trim();

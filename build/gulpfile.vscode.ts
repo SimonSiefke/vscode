@@ -36,6 +36,11 @@ import globCallback from 'glob';
 import rceditCallback from 'rcedit';
 import { spawnTsgo } from './lib/tsgo.ts';
 import { runEsbuildTranspile, runEsbuildBundle } from './lib/esbuild.ts';
+const regexp1 = /=+$/;
+const regexpJs = /\.js$/;
+const regexp3 = /-\w+$/;
+const regexp4 = /-.*$/;
+
 
 
 const glob = promisify(globCallback);
@@ -229,7 +234,7 @@ function computeChecksum(filename: string): string {
 		.createHash('sha256')
 		.update(contents)
 		.digest('base64')
-		.replace(/=+$/, '');
+		.replace(regexp1, '');
 
 	return hash;
 }
@@ -326,7 +331,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 
 		const telemetry = gulp.src('.build/telemetry/**', { base: '.build/telemetry', dot: true });
 
-		const jsFilter = util.filter(data => !data.isDirectory() && /\.js$/.test(data.path));
+		const jsFilter = util.filter(data => !data.isDirectory() && regexpJs.test(data.path));
 		const root = path.resolve(path.join(import.meta.dirname, '..'));
 		const productionDependencies = getProductionDependencies(root);
 		const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat().concat('!**/*.mk');
@@ -498,7 +503,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 
 			if (quality === 'stable' || quality === 'insider') {
 				result = es.merge(result, gulp.src('.build/win32/appx/**', { base: '.build/win32' }));
-				const rawVersion = version.replace(/-\w+$/, '').split('.');
+				const rawVersion = version.replace(regexp3, '').split('.');
 				const appxVersion = `${rawVersion[0]}.0.${rawVersion[1]}.${rawVersion[2]}`;
 				result = es.merge(result, gulp.src('resources/win32/appx/AppxManifest.xml', { base: '.' })
 					.pipe(replace('@@AppxPackageName@@', product.win32AppUserModelId))
@@ -576,7 +581,7 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 		])).flatMap(o => o);
 		const packageJson = JSON.parse(await fs.promises.readFile(path.join(cwd, versionedResourcesFolder, 'resources', 'app', 'package.json'), 'utf8'));
 		const product = JSON.parse(await fs.promises.readFile(path.join(cwd, versionedResourcesFolder, 'resources', 'app', 'product.json'), 'utf8'));
-		const baseVersion = packageJson.version.replace(/-.*$/, '');
+		const baseVersion = packageJson.version.replace(regexp4, '');
 
 		const patchPromises = deps.map<Promise<unknown>>(async dep => {
 			const basename = path.basename(dep);

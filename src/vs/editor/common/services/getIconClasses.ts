@@ -11,6 +11,8 @@ import { ILanguageService } from '../languages/language.js';
 import { IModelService } from './model.js';
 import { FileKind } from '../../../platform/files/common/files.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
+const regexp1 = /[\s]/g;
+
 
 const fileIconDirectoryRegex = /(?:\/|^)(?:([^\/]+)\/)?([^\/]+)$/;
 
@@ -123,5 +125,5 @@ function detectLanguageId(modelService: IModelService, languageService: ILanguag
 }
 
 export function fileIconSelectorEscape(str: string): string {
-	return str.replace(/[\s]/g, '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
+	return str.replace(new RegExp(regexp1), '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
 }

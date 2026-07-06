@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /[-[\]{}()*+?.,\\^$|#\s]/g;
+
 export function escapeRegExp(text: string) {
-	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+	return text.replace(new RegExp(regexp1), '\\$&');
 }

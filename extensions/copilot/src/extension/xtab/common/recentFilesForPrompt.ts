@@ -18,6 +18,8 @@ import { expandRangeToPageRange } from './promptCrafting';
 import { countTokensForLines, toUniquePath } from './promptCraftingUtils';
 import { INeighborFileSnippet } from './similarFilesContextService';
 import { PromptTags } from './tags';
+const regexp1 = /\r?\n/;
+
 
 export function getRecentCodeSnippets(
 	activeDoc: StatelessNextEditDocument,
@@ -343,7 +345,7 @@ export function appendLanguageContextSnippets(
 				break;
 			}
 			const documentId = DocumentId.create(ctx.uri.toString());
-			snippets.push(formatCodeSnippet(documentId, langCtxSnippet.split(/\r?\n/), { truncated: false, includeLineNumbers, startLineOffset: 0 }));
+			snippets.push(formatCodeSnippet(documentId, langCtxSnippet.split(regexp1), { truncated: false, includeLineNumbers, startLineOffset: 0 }));
 			tokenBudget = potentialBudget;
 		}
 	}
@@ -411,7 +413,7 @@ export function appendNeighborFileSnippets(
 		const neighborSnippet = selected[i].snippet;
 		snippets.push(formatCodeSnippet(
 			DocumentId.create(neighborSnippet.uri),
-			neighborSnippet.snippet.split(/\r?\n/),
+			neighborSnippet.snippet.split(regexp1),
 			{ truncated: false, includeLineNumbers, startLineOffset: neighborSnippet.lineRange.startLine },
 		));
 	}

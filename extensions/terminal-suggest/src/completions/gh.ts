@@ -8,6 +8,10 @@
 import * as vscode from 'vscode';
 import { filepaths } from '../helpers/filepaths';
 import { keyValue } from '../helpers/keyvalue';
+const regexp1 = /\w+\//;
+const regexp2 = /\S+/g;
+const regexp3 = /(?:\r\n|\r|\n)/g;
+
 
 const filterMessages = (out: string): string => {
 	return out.startsWith("warning:") || out.startsWith("error:")
@@ -24,9 +28,9 @@ const postProcessRemoteBranches: Fig.Generator["postProcess"] = (out) => {
 
 	return output.split("\n").map((elm) => {
 		// Trim and remove the remote part of the branch name (origin/, fork/...)
-		let name = elm.trim().replace(/\w+\//, "");
+		let name = elm.trim().replace(regexp1, "");
 
-		const parts = elm.match(/\S+/g)!;
+		const parts = elm.match(new RegExp(regexp2))!;
 		if (parts.length > 1) {
 			if (parts[0] === "*") {
 				// We are in a detached HEAD state
@@ -161,7 +165,7 @@ const ghGenerators: Record<string, Fig.Generator> = {
 				 * compared to none paginating request this is a touch slower 300ms or so, but it fixes the over 100 repos issue!
 				 *
 				 */
-				const jsonifiedOutString = `[${out.replace(/(?:\r\n|\r|\n)/g, ",")}]`;
+				const jsonifiedOutString = `[${out.replace(new RegExp(regexp3), ",")}]`;
 				try {
 					const data: RepoDataType[] = JSON.parse(jsonifiedOutString);
 

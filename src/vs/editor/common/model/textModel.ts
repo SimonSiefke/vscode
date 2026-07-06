@@ -55,6 +55,8 @@ import { TokenizationFontDecorationProvider } from './tokens/tokenizationFontDec
 import { LineFontChangingDecoration, LineHeightChangingDecoration } from './decorationProvider.js';
 import { TokenizationTextModelPart } from './tokens/tokenizationTextModelPart.js';
 import { IViewModel } from '../viewModel.js';
+const regexpZ0 = /[^a-z0-9\-_]/gi;
+
 
 export function createTextBufferFactory(text: string): model.ITextBufferFactory {
 	const builder = new PieceTreeTextBufferBuilder();
@@ -2353,7 +2355,7 @@ class DecorationsTrees {
 }
 
 function cleanClassName(className: string): string {
-	return className.replace(/[^a-z0-9\-_]/gi, ' ');
+	return className.replace(new RegExp(regexpZ0), ' ');
 }
 
 class DecorationOptions implements model.IDecorationOptions {

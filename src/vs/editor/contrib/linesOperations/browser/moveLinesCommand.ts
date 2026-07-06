@@ -16,6 +16,8 @@ import { IndentConsts } from '../../../common/languages/supports/indentRules.js'
 import * as indentUtils from '../../indentation/common/indentUtils.js';
 import { getGoodIndentForLine, getIndentMetadata, IIndentConverter, IVirtualModel } from '../../../common/languages/autoIndent.js';
 import { getEnterAction } from '../../../common/languages/enterAction.js';
+const regexp1 = /^\s+/;
+
 
 export class MoveLinesCommand implements ICommand {
 
@@ -361,7 +363,7 @@ export class MoveLinesCommand implements ICommand {
 	}
 
 	private trimStart(str: string) {
-		return str.replace(/^\s+/, '');
+		return str.replace(regexp1, '');
 	}
 
 	private shouldAutoIndent(model: ITextModel, selection: Selection) {

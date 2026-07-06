@@ -23,6 +23,10 @@ import { GlyphRasterizer } from '../raster/glyphRasterizer.js';
 import { ViewGpuContext } from '../viewGpuContext.js';
 import { BaseRenderStrategy } from './baseRenderStrategy.js';
 import { InlineDecoration } from '../../../common/viewModel/inlineDecorations.js';
+const regexpPx = /^(\d+(?:\.\d+)?)px$/;
+const regexpVarInitialInherit = /^var\((--[^,]+),\s*(?:initial|inherit)\)$/;
+const regexp3 = /^\d+(?:\.\d*)/;
+
 
 const enum Constants {
 	IndicesPerCell = 6,
@@ -436,7 +440,7 @@ export class FullFileRenderStrategy extends BaseRenderStrategy {
 										break;
 									}
 									case 'text-decoration-thickness': {
-										const match = value.match(/^(\d+(?:\.\d+)?)px$/);
+										const match = value.match(regexpPx);
 										if (match) {
 											decorationStyleSetStrikethroughThickness = parseFloat(match[1]);
 										}
@@ -444,7 +448,7 @@ export class FullFileRenderStrategy extends BaseRenderStrategy {
 									}
 									case 'text-decoration-color': {
 										let colorValue = value;
-										const varMatch = value.match(/^var\((--[^,]+),\s*(?:initial|inherit)\)$/);
+										const varMatch = value.match(regexpVarInitialInherit);
 										if (varMatch) {
 											colorValue = ViewGpuContext.decorationCssRuleExtractor.resolveCssVariable(this._viewGpuContext.canvas.domNode, varMatch[1]);
 										}
@@ -581,7 +585,7 @@ function parseCssOpacity(value: string): number {
 	if (value.endsWith('%')) {
 		return parseFloat(value.substring(0, value.length - 1)) / 100;
 	}
-	if (value.match(/^\d+(?:\.\d*)/)) {
+	if (value.match(regexp3)) {
 		return parseFloat(value);
 	}
 	return 1;

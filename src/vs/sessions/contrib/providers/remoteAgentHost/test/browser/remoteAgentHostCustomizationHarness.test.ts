@@ -30,6 +30,8 @@ import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { IAgentHostCustomizationService } from '../../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostCustomizationService.js';
 import { AgentCustomizationItemProvider } from '../../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentCustomizationItemProvider.js';
+const regexpAgentHost = /^agent-host-/;
+
 
 class MockAgentConnection extends mock<IAgentConnection>() {
 
@@ -141,7 +143,7 @@ function createTestCustomAgentsService(connection: MockAgentConnection, rootCust
 		onDidChangeCustomizations,
 		getCustomAgents: () => [],
 		getCustomizations: (sessionResource: URI) => {
-			const provider = sessionResource.scheme.replace(/^agent-host-/, '');
+			const provider = sessionResource.scheme.replace(regexpAgentHost, '');
 			const sessionChannel = `${provider}:${sessionResource.path}`;
 			const sessionState = connection.getSubscriptionUnmanaged(StateComponents.Session, URI.parse(sessionChannel))?.value;
 			if (!sessionState || sessionState instanceof Error) {

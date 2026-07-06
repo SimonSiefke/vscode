@@ -21,6 +21,8 @@ import {
 import { IAgentHostOTelService } from '../../../common/otel/agentHostOTelService.js';
 import { AgentHostOTelService, readAgentHostOTelEnv } from '../../../node/otel/agentHostOTelService.js';
 import { AgentHostOTelSpansDbSubPath } from '../../../common/agentService.js';
+const regexp1 = /\\/g;
+
 
 interface IPostResponse {
 	statusCode: number;
@@ -233,7 +235,7 @@ suite('platform/agentHost - AgentHostOTelService (integration)', () => {
 			ok(dbPath, 'expected a db path in DB mode');
 			// Normalize separators since URI.fsPath uses '\\' on Windows but
 			// AgentHostOTelSpansDbSubPath is declared with POSIX separators.
-			ok(dbPath!.fsPath.replace(/\\/g, '/').endsWith(AgentHostOTelSpansDbSubPath));
+			ok(dbPath!.fsPath.replace(new RegExp(regexp1), '/').endsWith(AgentHostOTelSpansDbSubPath));
 
 			// Post a valid OTLP/JSON payload to the loopback endpoint.
 			const traceId = '1122334455667788aabbccddeeff0011';

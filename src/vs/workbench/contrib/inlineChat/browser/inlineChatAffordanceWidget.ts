@@ -30,6 +30,9 @@ import { IAccessibilityService } from '../../../../platform/accessibility/common
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ACTION_START, ACTION_ASK_IN_CHAT } from '../common/inlineChat.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+const regexp1 = /^\s*$|^\s+/;
+const regexp2 = /^\S\s*$/;
+
 
 class QuickFixActionViewItem extends MenuEntryActionViewItem {
 
@@ -260,7 +263,7 @@ export class InlineChatAffordanceWidget extends Disposable implements IContentWi
 		if (!lineHasSpace) {
 			const isLineEmptyOrIndented = (ln: number): boolean => {
 				const content = model.getLineContent(ln);
-				return /^\s*$|^\s+/.test(content);
+				return regexp1.test(content);
 			};
 
 			const lineCount = model.getLineCount();
@@ -271,7 +274,7 @@ export class InlineChatAffordanceWidget extends Disposable implements IContentWi
 			}
 		}
 
-		const effectiveColumnNumber = /^\S\s*$/.test(model.getLineContent(effectiveLineNumber)) ? 2 : 1;
+		const effectiveColumnNumber = regexp2.test(model.getLineContent(effectiveLineNumber)) ? 2 : 1;
 
 		this.#position = {
 			position: { lineNumber: effectiveLineNumber, column: effectiveColumnNumber },

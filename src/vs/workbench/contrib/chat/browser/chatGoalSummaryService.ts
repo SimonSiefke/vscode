@@ -7,6 +7,11 @@ import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { LRUCache } from '../../../../base/common/map.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ChatMessageRole, ILanguageModelsService } from '../common/languageModels.js';
+const regexp1 = /^["'`]+|["'`]+$/g;
+const regexpGoal = /^\s*goal\s*[:\-—]\s*/i;
+const regexp3 = /\s+/g;
+const regexp4 = /\s+\S*$/;
+
 
 export const IChatGoalSummaryService = createDecorator<IChatGoalSummaryService>('chatGoalSummaryService');
 
@@ -144,9 +149,9 @@ export function cleanGoalSummary(raw: string): string | undefined {
 		return undefined;
 	}
 	// Strip surrounding quotes and any leading "Goal:" the model may have added.
-	s = s.replace(/^["'`]+|["'`]+$/g, '');
-	s = s.replace(/^\s*goal\s*[:\-—]\s*/i, '');
-	s = s.replace(/\s+/g, ' ').trim();
+	s = s.replace(new RegExp(regexp1), '');
+	s = s.replace(regexpGoal, '');
+	s = s.replace(new RegExp(regexp3), ' ').trim();
 	// The summary model occasionally declines to summarize (e.g. content
 	// filtering) and replies with a refusal like "Sorry, I can't assist with
 	// that.". That is a refusal, not a goal, so suppress the banner entirely
@@ -155,7 +160,7 @@ export function cleanGoalSummary(raw: string): string | undefined {
 		return undefined;
 	}
 	if (s.length > MAX_SUMMARY_CHARS) {
-		s = s.slice(0, MAX_SUMMARY_CHARS - 1).replace(/\s+\S*$/, '') + '…';
+		s = s.slice(0, MAX_SUMMARY_CHARS - 1).replace(regexp4, '') + '…';
 	}
 	return s || undefined;
 }

@@ -21,6 +21,11 @@ import { IPostCommitCommandsProviderRegistry } from './postCommitCommands';
 import { IBranchProtectionProviderRegistry } from './branchProtection';
 import { ISourceControlHistoryItemDetailsProviderRegistry } from './historyItemDetailsProvider';
 import { RepositoryCache } from './repositoryCache';
+const regexpGit = /\/\.git/;
+const regexpGit1 = /\.git.*$/;
+const regexp3 = /^(<{7,}|={7,}|>{7,})/m;
+const regexpFatalDetectedDubious = /^fatal: detected dubious ownership in repository at \'([^']+)\'[\s\S]*git config --global --add safe\.directory '?([^'\n]+)'?$/m;
+
 
 class RepositoryPick implements QuickPickItem {
 	@memoize get label(): string {
@@ -302,7 +307,7 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 		this.disposables.push(fsWatcher);
 
 		const onWorkspaceChange = anyEvent(fsWatcher.onDidChange, fsWatcher.onDidCreate, fsWatcher.onDidDelete);
-		const onGitRepositoryChange = filterEvent(onWorkspaceChange, uri => /\/\.git/.test(uri.path));
+		const onGitRepositoryChange = filterEvent(onWorkspaceChange, uri => regexpGit.test(uri.path));
 		const onPossibleGitRepositoryChange = filterEvent(onGitRepositoryChange, uri => !this.getRepository(uri));
 		onPossibleGitRepositoryChange(this.onPossibleGitRepositoryChange, this, this.disposables);
 
@@ -450,7 +455,7 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 			return;
 		}
 
-		this.eventuallyScanPossibleGitRepository(uri.fsPath.replace(/\.git.*$/, ''));
+		this.eventuallyScanPossibleGitRepository(uri.fsPath.replace(regexpGit1, ''));
 	}
 
 	private eventuallyScanPossibleGitRepository(path: string) {
@@ -589,7 +594,7 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 			.find(resource => pathEquals(resource.resourceUri.fsPath, textEditor.document.uri.fsPath));
 		const mergeChangesResource = repository.mergeGroup.resourceStates
 			.find(resource => pathEquals(resource.resourceUri.fsPath, textEditor.document.uri.fsPath));
-		const hasMergeConflicts = mergeChangesResource ? /^(<{7,}|={7,}|>{7,})/m.test(textEditor.document.getText()) : false;
+		const hasMergeConflicts = mergeChangesResource ? regexp3.test(textEditor.document.getText()) : false;
 
 		commands.executeCommand('setContext', 'git.activeResourceHasStagedChanges', indexResource !== undefined);
 		commands.executeCommand('setContext', 'git.activeResourceHasUnstagedChanges', workingTreeResource !== undefined);
@@ -718,7 +723,7 @@ export class Model implements IRepositoryResolver, IBranchProtectionProviderRegi
 			return { repositoryRoot: Uri.file(rawRoot).fsPath, unsafeRepositoryMatch: null };
 		} catch (err) {
 			// Handle unsafe repository
-			const unsafeRepositoryMatch = /^fatal: detected dubious ownership in repository at \'([^']+)\'[\s\S]*git config --global --add safe\.directory '?([^'\n]+)'?$/m.exec(err.stderr);
+			const unsafeRepositoryMatch = regexpFatalDetectedDubious.exec(err.stderr);
 			if (unsafeRepositoryMatch && unsafeRepositoryMatch.length === 3) {
 				return { repositoryRoot: path.normalize(unsafeRepositoryMatch[1]), unsafeRepositoryMatch };
 			}

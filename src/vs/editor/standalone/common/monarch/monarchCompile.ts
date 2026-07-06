@@ -11,6 +11,16 @@
 import { isString } from '../../../../base/common/types.js';
 import * as monarchCommon from './monarchCommon.js';
 import { IMonarchLanguage, IMonarchLanguageBracket } from './monarchTypes.js';
+const regexp1 = /@@/g;
+const regexp2 = /@(\w+)/g;
+const regexp3 = /\x01/g;
+const regexpSS = /\$[sS](\d\d?)/g;
+const regexpSS1 = /^\$(([sS]?)(\d\d?)|#)(.*)$/;
+const regexp6 = /^(@|!@|~|!~|==|!=)(.*)$/;
+const regexp7 = /^\w*$/;
+const regexp8 = /^(\w|\|)*$/;
+const regexpPopPushPopall = /^(@pop|@push|@popall)$/;
+
 
 /*
  * Type helpers
@@ -89,13 +99,13 @@ function createKeywordMatcher(arr: string[], caseInsensitive: boolean = false): 
 function compileRegExp<S extends true | false>(lexer: monarchCommon.ILexerMin, str: string, handleSn: S): S extends true ? RegExp | DynamicRegExp : RegExp;
 function compileRegExp(lexer: monarchCommon.ILexerMin, str: string, handleSn: true | false): RegExp | DynamicRegExp {
 	// @@ must be interpreted as a literal @, so we replace all occurences of @@ with a placeholder character
-	str = str.replace(/@@/g, `\x01`);
+	str = str.replace(new RegExp(regexp1), `\x01`);
 
 	let n = 0;
 	let hadExpansion: boolean;
 	do {
 		hadExpansion = false;
-		str = str.replace(/@(\w+)/g, function (s, attr?) {
+		str = str.replace(new RegExp(regexp2), function (s, attr?) {
 			hadExpansion = true;
 			let sub = '';
 			if (typeof (lexer[attr]) === 'string') {
@@ -115,13 +125,13 @@ function compileRegExp(lexer: monarchCommon.ILexerMin, str: string, handleSn: tr
 	} while (hadExpansion && n < 5);
 
 	// handle escaped @@
-	str = str.replace(/\x01/g, '@');
+	str = str.replace(new RegExp(regexp3), '@');
 
 	const flags = (lexer.ignoreCase ? 'i' : '') + (lexer.unicode ? 'u' : '');
 
 	// handle $Sn
 	if (handleSn) {
-		const match = str.match(/\$[sS](\d\d?)/g);
+		const match = str.match(new RegExp(regexpSS));
 		if (match) {
 			let lastState: string | null = null;
 			let lastRegEx: RegExp | null = null;
@@ -166,7 +176,7 @@ function createGuard(lexer: monarchCommon.ILexerMin, ruleName: string, tkey: str
 	// get the scrutinee and pattern
 	let scrut = -1; // -1: $!, 0-99: $n, 100+n: $Sn
 	let oppat = tkey;
-	let matches = tkey.match(/^\$(([sS]?)(\d\d?)|#)(.*)$/);
+	let matches = tkey.match(regexpSS1);
 	if (matches) {
 		if (matches[3]) { // if digits
 			scrut = parseInt(matches[3]);
@@ -183,11 +193,11 @@ function createGuard(lexer: monarchCommon.ILexerMin, ruleName: string, tkey: str
 		op = '!=';
 		pat = '';
 	}
-	else if (/^\w*$/.test(pat)) {  // just a word
+	else if (regexp7.test(pat)) {  // just a word
 		op = '==';
 	}
 	else {
-		matches = oppat.match(/^(@|!@|~|!~|==|!=)(.*)$/);
+		matches = oppat.match(regexp6);
 		if (matches) {
 			op = matches[1];
 			pat = matches[2];
@@ -198,7 +208,7 @@ function createGuard(lexer: monarchCommon.ILexerMin, ruleName: string, tkey: str
 	let tester: (s: string, id: string, matches: string[], state: string, eos: boolean) => boolean;
 
 	// special case a regexp that matches just words
-	if ((op === '~' || op === '!~') && /^(\w|\|)*$/.test(pat)) {
+	if ((op === '~' || op === '!~') && regexp8.test(pat)) {
 		const inWords = createKeywordMatcher(pat.split('|'), lexer.ignoreCase);
 		tester = function (s) { return (op === '~' ? inWords(s) : !inWords(s)); };
 	}
@@ -298,7 +308,7 @@ function compileAction(lexer: monarchCommon.ILexerMin, ruleName: string, action:
 				}
 				else {
 					let next: string = action.next;
-					if (!/^(@pop|@push|@popall)$/.test(next)) {
+					if (!regexpPopPushPopall.test(next)) {
 						if (next[0] === '@') {
 							next = next.substr(1); // peel off starting @ sign
 						}

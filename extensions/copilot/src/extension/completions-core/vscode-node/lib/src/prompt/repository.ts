@@ -8,6 +8,11 @@ import { ServicesAccessor } from '../../../../../../util/vs/platform/instantiati
 import { FileIdentifier, ICompletionsFileSystemService } from '../fileSystem';
 import { LRUCacheMap } from '../helpers/cache';
 import { dirname, getFsUri, joinPath } from '../util/uri';
+const regexpRemote = /^\s*\[\s*remote\s+"((\\\\|\\"|[^\\"])+)"/;
+const regexpRemote1 = /^\s*\[remote.([^"\s]+)/;
+const regexpUrl = /^\s*url\s*=\s*([^\s#;]+)/;
+const regexp4 = /^\s*\[/;
+
 
 interface RepoInfo {
 	/**
@@ -169,13 +174,13 @@ function getRepoUrlFromConfigText(gitConfig: string): string | undefined {
 	// except for whitespace, they're [section "subsection"]
 	// where subsection can contain " by escaping \" and
 	// can escape \ by \\ (so that e.g. it can be the last character before the ")
-	const remoteSectionRegex = /^\s*\[\s*remote\s+"((\\\\|\\"|[^\\"])+)"/;
+	const remoteSectionRegex = regexpRemote;
 	// deprecated syntax: [section.subsection]
-	const deprecatedRemoteSectionRegex = /^\s*\[remote.([^"\s]+)/;
+	const deprecatedRemoteSectionRegex = regexpRemote1;
 	// extract the name of the remote -- assume it doesn't contain whitespace, and remember # and ; start comments
-	const setUrlRegex = /^\s*url\s*=\s*([^\s#;]+)/;
+	const setUrlRegex = regexpUrl;
 	// use the following to check whether the current section ended
-	const newSectionRegex = /^\s*\[/;
+	const newSectionRegex = regexp4;
 
 	let remoteUrl: string | undefined = undefined;
 	let remoteSection = undefined;

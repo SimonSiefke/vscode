@@ -8,6 +8,8 @@ import { IAuthenticationService } from '../../../../platform/authentication/comm
 import { IConfigurationService } from '../../../../platform/configuration/common/configurationService';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { Emitter } from '../../../../util/vs/base/common/event';
+const regexp1 = /\{(\d+)\}/g;
+
 
 // ---- vscode mock -----------------------------------------------------------
 
@@ -35,7 +37,7 @@ vi.mock('vscode', () => ({
 		get onDidChangeChatModels() { return onDidChangeChatModelsEmitter.event; },
 		selectChatModels: (...args: unknown[]) => selectChatModelsMock(...args),
 	},
-	l10n: { t: (str: string, ...args: unknown[]) => str.replace(/\{(\d+)\}/g, (_, i) => String(args[Number(i)])) },
+	l10n: { t: (str: string, ...args: unknown[]) => str.replace(new RegExp(regexp1), (_, i) => String(args[Number(i)])) },
 }));
 
 import { ByokUtilityModelNotificationContribution } from '../byokUtilityModel.contribution';

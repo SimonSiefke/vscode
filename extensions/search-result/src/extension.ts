@@ -5,6 +5,10 @@
 
 import * as vscode from 'vscode';
 import * as pathUtils from 'path';
+const regexpUntitled = /^[\\\/]Untitled-\d*$/;
+const regexp2 = /^(.*) • (.*)$/;
+const regexp3 = /\r?\n/;
+
 
 const FILE_LINE_REGEX = /^(\S.*):$/;
 const RESULT_LINE_REGEX = /^(\s+)(\d+)(: |  )(\s*)(.*)$/;
@@ -135,7 +139,7 @@ function relativePathToUri(path: string, resultsUri: vscode.Uri): vscode.Uri | u
 	}
 
 	if (pathUtils.isAbsolute(path)) {
-		if (/^[\\\/]Untitled-\d*$/.test(path)) {
+		if (regexpUntitled.test(path)) {
 			return vscode.Uri.file(path.slice(1)).with({ scheme: 'untitled', path: path.slice(1) });
 		}
 		return vscode.Uri.file(path);
@@ -150,7 +154,7 @@ function relativePathToUri(path: string, resultsUri: vscode.Uri): vscode.Uri | u
 		vscode.Uri.joinPath(folder.uri, path);
 
 	if (vscode.workspace.workspaceFolders) {
-		const multiRootFormattedPath = /^(.*) • (.*)$/.exec(path);
+		const multiRootFormattedPath = regexp2.exec(path);
 		if (multiRootFormattedPath) {
 			const [, workspaceName, workspacePath] = multiRootFormattedPath;
 			const folder = vscode.workspace.workspaceFolders.filter(wf => wf.name === workspaceName)[0];
@@ -187,7 +191,7 @@ function parseSearchResults(document: vscode.TextDocument, token?: vscode.Cancel
 		return cachedLastParse.parse;
 	}
 
-	const lines = document.getText().split(/\r?\n/);
+	const lines = document.getText().split(regexp3);
 	const links: ParsedSearchResults = [];
 
 	let currentTarget: vscode.Uri | undefined = undefined;

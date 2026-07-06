@@ -41,6 +41,8 @@ import { imageToHash, isImage } from '../../../../workbench/contrib/chat/browser
 import { CodeDataTransfers, containsDragType, extractEditorsDropData, getPathForFile } from '../../../../platform/dnd/browser/dnd.js';
 import { DataTransfers } from '../../../../base/browser/dnd.js';
 import { getExcludes, ISearchConfiguration, ISearchService, QueryType } from '../../../../workbench/services/search/common/search.js';
+const regexpPngJpgJpeg = /\.(png|jpg|jpeg|bmp|gif|tiff)$/i;
+
 
 /**
  * Manages context attachments for the sessions new-chat widget.
@@ -529,7 +531,7 @@ export class NewChatContextAttachments extends Disposable {
 			return;
 		}
 
-		if (/\.(png|jpg|jpeg|bmp|gif|tiff)$/i.test(uri.path)) {
+		if (regexpPngJpgJpeg.test(uri.path)) {
 			const readFile = await this.fileService.readFile(uri);
 			const resizedImage = await resizeImage(readFile.value.buffer);
 			this._addAttachments({

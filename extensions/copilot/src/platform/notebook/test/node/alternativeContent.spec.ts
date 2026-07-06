@@ -30,6 +30,14 @@ import * as path from '../../../../util/vs/base/common/path';
 import { NotebookCellData, NotebookCellKind, NotebookData, NotebookEdit, NotebookRange, Position, Range, TextEdit, Uri } from '../../../../vscodeTypes';
 import { LineOfText, notebookCellToCellData, summarize } from '../../common/helpers';
 import { fixture, loadFile, loadNotebook } from './utils';
+const regexp1 = /\r?\n/;
+const regexp2 = /\r?\n/g;
+const regexpId = /\[id=[^\]]+\]/g;
+const regexpId1 = /id="[^"]+"/g;
+const regexp5 = /\r\n/g;
+const regexpId2 = /"id": "[^"]+"/g;
+const regexpId3 = /id=[^"]+/g;
+
 
 describe('Alternative Content for Notebooks', () => {
 	[
@@ -92,7 +100,7 @@ describe('Alternative Content for Notebooks', () => {
 						const toReplace = provider.kind === 'xml' ? `<CELL_ID_${cell.index}>` : `CELL_ID_${cell.index}`;
 						alternativeContents = alternativeContents.replace(toReplace, cell.id);
 					});
-					const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(/\r?\n/)).map(l => new LineOfText(l));
+					const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(regexp1)).map(l => new LineOfText(l));
 					const edits = await getEditGenerator(provider).generateNotebookEdits(notebook, alternativeContentLines, undefined, CancellationToken.None);
 					const notebookEdits: NotebookEdit[] = [];
 					for await (const edit of edits) {
@@ -103,7 +111,7 @@ describe('Alternative Content for Notebooks', () => {
 					expect(notebookEdits.length).toBe(1);
 					expect(notebookEdits[0].newCells.length).toBe(1);
 					expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Markup);
-					expect(notebookEdits[0].newCells[0].value.split(/\r?\n/g)).toEqual([`# DataFrame Details`, ``, `This DataFrame contains two columns: 'Name' and 'Gender'. The 'Name' column has three entries: 'Hello', 'World', and 'Baz'. The 'Gender' column has three entries: 'F', 'M', and 'F'.`]);
+					expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual([`# DataFrame Details`, ``, `This DataFrame contains two columns: 'Name' and 'Gender'. The 'Name' column has three entries: 'Hello', 'World', and 'Baz'. The 'Gender' column has three entries: 'F', 'M', and 'F'.`]);
 					expect(notebookEdits[0].range.start).toBe(1);
 					expect(notebookEdits[0].range.end).toBe(1);
 
@@ -126,7 +134,7 @@ describe('Alternative Content for Notebooks', () => {
 						return;
 					}
 					const alternativeContents = 'import math\n\ndef circle_area(radius):\n    return math.pi * radius**2\n';
-					const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(/\r?\n/)).map(l => new LineOfText(l));
+					const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(regexp1)).map(l => new LineOfText(l));
 					const edits = await getEditGenerator(provider).generateNotebookEdits(Uri.file('newFile.ipynb'), alternativeContentLines, undefined, CancellationToken.None);
 					const notebookEdits: NotebookEdit[] = [];
 					for await (const edit of edits) {
@@ -137,7 +145,7 @@ describe('Alternative Content for Notebooks', () => {
 					expect(notebookEdits.length).toBe(1);
 					expect(notebookEdits[0].newCells.length).toBe(1);
 					expect(notebookEdits[0].newCells[0].kind).toBe(NotebookCellKind.Code);
-					expect(notebookEdits[0].newCells[0].value.split(/\r?\n/g)).toEqual(alternativeContents.split(/\r?\n/));
+					expect(notebookEdits[0].newCells[0].value.split(new RegExp(regexp2))).toEqual(alternativeContents.split(regexp1));
 				});
 
 				[
@@ -180,7 +188,7 @@ describe('Alternative Content for Notebooks', () => {
 							const toReplace = provider.kind === 'xml' ? `<CELL_ID_${cell.index}>` : `CELL_ID_${cell.index}`;
 							alternativeContents = alternativeContents.replace(toReplace, cell.id);
 						});
-						const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(/\r?\n/)).map(l => new LineOfText(l));
+						const alternativeContentLines = AsyncIterableObject.fromArray(alternativeContents.split(regexp1)).map(l => new LineOfText(l));
 						const edits = await getEditGenerator(provider).generateNotebookEdits(notebook, alternativeContentLines, undefined, CancellationToken.None);
 
 
@@ -232,7 +240,7 @@ describe('Alternative Content for Notebooks', () => {
 							if (provider.kind !== 'json' || pos.start.line === pos.end.line) {
 								expect(normatlizeContent(textFromAltDoc)).toBe(normatlizeContent(textFromCell));
 							} else {
-								expect(normatlizeContent(textFromAltDoc).split(/\r?\n/).join(EOL)).toBe([`\\"Hello from Python!\\")",`, `                "    print`].join(EOL));
+								expect(normatlizeContent(textFromAltDoc).split(regexp1).join(EOL)).toBe([`\\"Hello from Python!\\")",`, `                "    print`].join(EOL));
 							}
 
 							// Now try the reverse translation.
@@ -327,9 +335,9 @@ describe('Alternative Content for Notebooks', () => {
 
 						// Strip cell IDs to simulate LLM-generated content without IDs
 						if (provider.kind === 'xml') {
-							text = text.replace(/id="[^"]+"/g, 'id=""');
+							text = text.replace(new RegExp(regexpId1), 'id=""');
 						} else if (provider.kind === 'text') {
-							text = text.replace(/\[id=[^\]]+\]/g, '');
+							text = text.replace(new RegExp(regexpId), '');
 						}
 
 						// Rebuild from text without IDs
@@ -917,7 +925,7 @@ end
 
 				let alternativeContent = provider.getAlternativeDocument(notebook).getText();
 				alternativeContent = alternativeContent.replace('sys.executable', '"Hello World"');
-				alternativeContent = alternativeContent.split(/\r?\n/).join(EOL);
+				alternativeContent = alternativeContent.split(regexp1).join(EOL);
 				// Remove the line break and ensure end cell tag is on the same line as the last line of code.
 				alternativeContent = alternativeContent.replace(`print("Hello World")${EOL}</VSCode.Cell>`, `print("Hello World")</VSCode.Cell>`);
 
@@ -952,7 +960,7 @@ end
 
 				let alternativeContent = provider.getAlternativeDocument(notebook).getText();
 				alternativeContent = alternativeContent.replace('sys.executable', '"Hello World"');
-				alternativeContent = alternativeContent.split(/\r?\n/).join(EOL);
+				alternativeContent = alternativeContent.split(regexp1).join(EOL);
 				// Remove the line break and ensure end cell tag is on the same line as the last line of code.
 				alternativeContent = alternativeContent.replace(`${EOL}</VSCode.Cell>`, `</VSCode.Cell>`);
 
@@ -987,7 +995,7 @@ end
 
 				let alternativeContent = provider.getAlternativeDocument(notebook).getText();
 				alternativeContent = alternativeContent.replace('sys.executable', '"Hello World"');
-				alternativeContent = alternativeContent.split(/\r?\n/).join(EOL);
+				alternativeContent = alternativeContent.split(regexp1).join(EOL);
 				// Remove the line break and ensure end cell tag is on the same line as the last line of code.
 				alternativeContent = alternativeContent.replace(`${EOL}</VSCode.Cell>`, `</VSCode.Cell>`);
 
@@ -1075,7 +1083,7 @@ function assertDocumentsAreEqual(notebook: NotebookDocument, data: NotebookData,
 				"    return math.pi * radius**2"
 			]
 			 */
-			expect(normatlizeContent(cell.document.getText().split(/\r?\n/g).map(l => l.trim()).join('\n'))).toBe(normatlizeContent(cellData.value.split(/\r?\n/g).map(l => l.trim()).join('\n')));
+			expect(normatlizeContent(cell.document.getText().split(new RegExp(regexp2)).map(l => l.trim()).join('\n'))).toBe(normatlizeContent(cellData.value.split(new RegExp(regexp2)).map(l => l.trim()).join('\n')));
 		} else {
 			expect(normatlizeContent(cell.document.getText())).toBe(normatlizeContent(cellData.value));
 		}
@@ -1090,9 +1098,9 @@ function assertDocumentsAreEqual(notebook: NotebookDocument, data: NotebookData,
  */
 function normatlizeContent(content: string) {
 	return content.
-		replace(/id="[^"]+"/g, 'id=""'). // xml id
-		replace(/id=[^"]+/g, 'id='). // jupytext id
-		replace(/"id": "[^"]+"/g, '"id": ""'). // json id
-		replace(/\r\n/g, '\n'). // windows/unix newlines
+		replace(new RegExp(regexpId1), 'id=""'). // xml id
+		replace(new RegExp(regexpId3), 'id='). // jupytext id
+		replace(new RegExp(regexpId2), '"id": ""'). // json id
+		replace(new RegExp(regexp5), '\n'). // windows/unix newlines
 		trim();
 }

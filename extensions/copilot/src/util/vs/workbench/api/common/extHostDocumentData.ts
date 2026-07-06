@@ -16,6 +16,8 @@ import { equals } from '../../../base/common/arrays';
 import { EndOfLine } from './extHostTypes/textEdit';
 import { Position } from './extHostTypes/position';
 import { Range } from './extHostTypes/range';
+const regexp1 = /^(\s*)/;
+
 
 const _languageId2WordDefinition = new Map<string, RegExp>();
 export function setWordDefinitionFor(languageId: string, wordDefinition: RegExp | undefined): void {
@@ -305,7 +307,7 @@ export class ExtHostDocumentLine implements vscode.TextLine {
 
 	public get firstNonWhitespaceCharacterIndex(): number {
 		//TODO@api, rename to 'leadingWhitespaceLength'
-		return /^(\s*)/.exec(this._text)![1].length;
+		return regexp1.exec(this._text)![1].length;
 	}
 
 	public get isEmptyOrWhitespace(): boolean {

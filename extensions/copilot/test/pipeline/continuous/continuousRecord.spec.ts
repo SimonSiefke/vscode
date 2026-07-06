@@ -5,6 +5,9 @@
 
 import { describe, expect, it } from 'vitest';
 import { parseContinuousRecord } from './continuousRecord';
+const regexpMissingKey = /Missing key/;
+const regexpEntriesIsMissing = /entries is missing or empty/;
+
 
 const entries = [{ kind: 'documentEncountered', id: 0, time: 1, relativePath: 'a.ts' }];
 
@@ -21,16 +24,16 @@ describe('parseContinuousRecord', () => {
 	});
 
 	it('throws when the recording column is missing', () => {
-		expect(() => parseContinuousRecord({}, 0)).toThrow(/Missing key/);
+		expect(() => parseContinuousRecord({}, 0)).toThrow(regexpMissingKey);
 	});
 
 	it('throws when entries were dropped at send time (over cap)', () => {
 		const record = { recording: JSON.stringify({ entriesSize: 999999 }) };
-		expect(() => parseContinuousRecord(record, 0)).toThrow(/entries is missing or empty/);
+		expect(() => parseContinuousRecord(record, 0)).toThrow(regexpEntriesIsMissing);
 	});
 
 	it('throws when entries are empty', () => {
 		const record = { recording: JSON.stringify({ entries: [], entriesSize: 0 }) };
-		expect(() => parseContinuousRecord(record, 0)).toThrow(/entries is missing or empty/);
+		expect(() => parseContinuousRecord(record, 0)).toThrow(regexpEntriesIsMissing);
 	});
 });

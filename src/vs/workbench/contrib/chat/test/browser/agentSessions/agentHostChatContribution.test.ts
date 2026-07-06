@@ -87,6 +87,9 @@ import { convertBufferToScreenshotVariable } from '../../../browser/attachments/
 import { AgentHostCompletionReferenceKind, ChatPasteAttachmentMetadata, toAgentHostCompletionVariableEntry, type IChatRequestVariableEntry } from '../../../common/attachments/chatVariableEntries.js';
 import { messageAttachmentsToVariableData } from '../../../browser/agentSessions/agentHost/stateToProgressAdapter.js';
 import { AgentHostSessionReferenceAttachmentDisplayKind, AgentHostSessionReferenceAttachmentMetadataKey, AgentHostSessionReferenceTrajectoryAttachmentDisplayKind, toSessionReferenceModelRepresentation } from '../../../browser/agentSessions/agentHost/agentHostSessionReferenceAttachment.js';
+const regexpCreatedByThe = /created by the sessions provider/;
+const regexpDoNotSupport = /do not support direct chat requests/;
+
 
 // ---- Mock agent host service ------------------------------------------------
 
@@ -2544,7 +2547,7 @@ suite('AgentHostChatContribution', () => {
 
 			await assert.rejects(
 				() => sessionHandler.provideChatSessionContent(URI.from({ scheme: 'agent-host-copilot', path: '/untitled-abc123' }), CancellationToken.None),
-				/created by the sessions provider/
+				regexpCreatedByThe
 			);
 			assert.strictEqual(agentHostService.createSessionCalls.length, 0);
 			assert.strictEqual(chatAgentService.registeredAgents.has('agent-host-copilot'), true);
@@ -4828,7 +4831,7 @@ suite('AgentHostChatContribution', () => {
 		test('sendChatRequest throws', async () => {
 			const provider = disposables.add(new AgentHostLanguageModelProvider('agent-host-copilot', 'agent-host-copilot'));
 
-			await assert.rejects(() => provider.sendChatRequest(), /do not support direct chat requests/);
+			await assert.rejects(() => provider.sendChatRequest(), regexpDoNotSupport);
 		});
 	});
 

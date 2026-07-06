@@ -27,6 +27,8 @@ import { JSONL } from '../common/jsonlUtil';
 import { IRecordableEditorLogEntry, IRecordableLogEntry, IWorkspaceListenerService } from '../common/workspaceListenerService';
 import { ObservableVsCode, rangeToOffsetRange } from './utilsObservable';
 import { WorkspaceRecorder } from './workspaceRecorder';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 
 export class WorkspaceRecorderFeature extends Disposable {
@@ -270,7 +272,7 @@ class InitializedWorkspaceRecorderFeature extends Disposable {
 }
 
 function sanitizeFolderName(str: string): string {
-	return str.replaceAll(/[^a-zA-Z0-9_.-]/g, '');
+	return str.replaceAll(new RegExp(regexpZAZ0), '');
 }
 
 function documentUriFromTextDocument(textDocument: vscode.TextDocument): SerializedDocumentId {

@@ -7,6 +7,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
+const regexp1 = /\r{0,1}\n/;
+const regexpJake = /^jake\s+([^\s]+)\s/g;
+
 
 type AutoDetect = 'on' | 'off';
 
@@ -153,12 +156,12 @@ class FolderDetector {
 			}
 			const result: vscode.Task[] = [];
 			if (stdout) {
-				const lines = stdout.split(/\r{0,1}\n/);
+				const lines = stdout.split(regexp1);
 				for (const line of lines) {
 					if (line.length === 0) {
 						continue;
 					}
-					const regExp = /^jake\s+([^\s]+)\s/g;
+					const regExp = new RegExp(regexpJake);
 					const matches = regExp.exec(line);
 					if (matches && matches.length === 2) {
 						const taskName = matches[1];

@@ -13,6 +13,8 @@ import zlib from 'zlib';
 import { LockMap } from '../../src/util/common/lock';
 import { generateUuid } from '../../src/util/vs/base/common/uuid';
 import { CurrentTestRunInfo } from './simulationContext';
+const regexp9a9a9a = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.sqlite$/;
+
 
 const compress = promisify(zlib.brotliCompress);
 const decompress = promisify(zlib.brotliDecompress);
@@ -328,7 +330,7 @@ export class Cache extends EventEmitter {
 					if (statusStdout !== '') {
 						const layerDatabaseEntries = statusStdout.split('\0').filter(entry => entry.endsWith('.sqlite'));
 						if (layerDatabaseEntries.length > 0) {
-							const regex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.sqlite$/;
+							const regex = regexp9a9a9a;
 							const match = layerDatabaseEntries[0].match(regex);
 							if (match && this.layers.has(match[1])) {
 								return this.layers.get(match[1])!;

@@ -6,6 +6,9 @@
 import { CharCode } from '../../../../base/common/charCode.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
+const regexp1 = /./g;
+const regexp9a = /-([0-9a-f]{4})/g;
+
 
 export interface WebviewRemoteInfo {
 	readonly isRemote: boolean;
@@ -60,7 +63,7 @@ export function asWebviewUri(resource: URI, remoteInfo?: WebviewRemoteInfo): URI
 }
 
 function encodeAuthority(authority: string): string {
-	return authority.replace(/./g, char => {
+	return authority.replace(new RegExp(regexp1), char => {
 		const code = char.charCodeAt(0);
 		if (
 			(code >= CharCode.a && code <= CharCode.z)
@@ -74,5 +77,5 @@ function encodeAuthority(authority: string): string {
 }
 
 export function decodeAuthority(authority: string) {
-	return authority.replace(/-([0-9a-f]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
+	return authority.replace(new RegExp(regexp9a), (_, code) => String.fromCharCode(parseInt(code, 16)));
 }

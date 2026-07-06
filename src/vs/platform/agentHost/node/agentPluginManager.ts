@@ -11,6 +11,10 @@ import { ILogService } from '../../log/common/log.js';
 import { IAgentPluginManager, type ISyncedCustomization } from '../common/agentPluginManager.js';
 import { CustomizationLoadStatus, type ClientPluginCustomization, type PluginCustomization } from '../common/state/sessionState.js';
 import { toAgentClientUri } from '../common/agentClientUri.js';
+const regexp1 = /^-|-$/g;
+const regexp2 = /-+/g;
+const regexpZAZ0 = /[^a-zA-Z0-9]/g;
+
 
 const DEFAULT_MAX_PLUGINS = 20;
 
@@ -150,7 +154,7 @@ export class AgentPluginManager implements IAgentPluginManager {
 	}
 
 	private _sanitize(value: string): string {
-		return value.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 128);
+		return value.replace(new RegExp(regexpZAZ0), '-').replace(new RegExp(regexp2), '-').replace(new RegExp(regexp1), '').substring(0, 128);
 	}
 
 	/** Directory in which a specific `(uri, nonce)` revision is materialized. */

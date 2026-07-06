@@ -18,6 +18,9 @@ import { IFetcherService } from '../../networking/common/fetcherService';
 import { FetcherService } from '../../networking/vscode-node/fetcherServiceImpl';
 import { ITelemetryService } from '../common/telemetry';
 import { BaseExperimentationService, UserInfoStore } from '../node/baseExperimentationService';
+const regexpZa = /[^A-Za-z]/g;
+const regexp2 = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2})/;
+
 
 function getTargetPopulation(isPreRelease: boolean): TargetPopulation {
 	if (isPreRelease) {
@@ -79,7 +82,7 @@ class RelatedExtensionsFilterProvider implements IExperimentationFilterProvider 
 		const filters = new Map<string, string>();
 
 		for (const extension of this._getRelatedExtensions()) {
-			const filterName = CopilotRelatedPluginVersionPrefix + extension.name.replace(/[^A-Za-z]/g, '').toLowerCase();
+			const filterName = CopilotRelatedPluginVersionPrefix + extension.name.replace(new RegExp(regexpZa), '').toLowerCase();
 			if (!Object.values<string>(RelatedExtensionsFilter).includes(filterName)) {
 				this._logService.warn(`[RelatedExtensionsFilterProvider]::getFilters A filter could not be registered for the unrecognized related plugin "${extension.name}".`);
 				continue;
@@ -176,7 +179,7 @@ class PlatformAndReleaseDateFilterProvider implements IExperimentationFilterProv
 		if (!iso) {
 			return '';
 		}
-		const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2})/.exec(iso);
+		const match = regexp2.exec(iso);
 		if (!match) {
 			return '';
 		}

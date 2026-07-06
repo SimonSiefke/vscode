@@ -9,6 +9,9 @@ import { isUriComponents, URI, UriComponents } from '../../../util/vs/base/commo
 import { DEFAULT_WORD_REGEXP, getWordAtText } from '../../../util/vs/editor/common/core/wordHelper';
 import { Position, Range } from '../../../vscodeTypes';
 import { PositionOffsetTransformer } from './positionOffsetTransformer';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /^(\s*)/;
+
 
 export interface ITextDocumentSnapshotJSON {
 	readonly uri: UriComponents;
@@ -92,7 +95,7 @@ export class TextDocumentSnapshot {
 	private _lines: string[] | null = null;
 	get lines(): readonly string[] {
 		if (!this._lines) {
-			this._lines = this._text.split(/\r\n|\r|\n/g);
+			this._lines = this._text.split(new RegExp(regexp1));
 		}
 		return this._lines;
 	}
@@ -265,7 +268,7 @@ export class SnapshotDocumentLine implements TextLine {
 
 	public get firstNonWhitespaceCharacterIndex(): number {
 		//TODO@api, rename to 'leadingWhitespaceLength'
-		return /^(\s*)/.exec(this._text)![1].length;
+		return regexp2.exec(this._text)![1].length;
 	}
 
 	public get isEmptyOrWhitespace(): boolean {

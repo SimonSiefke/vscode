@@ -23,6 +23,14 @@ import { IUserDataProfileService } from '../../../services/userDataProfile/commo
 import { AGENTS_WINDOW_SETTING_TAG, ENABLE_EXTENSION_TOGGLE_SETTINGS, ENABLE_LANGUAGE_FILTER, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, compareTwoNullableNumbers, wordifyKey } from '../common/preferences.js';
 import { SettingsTarget } from './preferencesWidgets.js';
 import { ITOCEntry, tocData } from './settingsLayout.js';
+const regexp1 = /\\\*/g;
+const regexp2 = /[\.\/]/g;
+const regexp3 = /\//g;
+const regexpInsiders = /-?insiders$/i;
+const regexpInsiders1 = /insiders$/i;
+const regexp6 = /-/g;
+const regexpStable = /@stable/g;
+
 
 export const ONLINE_SERVICES_SETTING_TAG = 'usesOnlineServices';
 
@@ -574,7 +582,7 @@ export class SettingsTreeSettingElement extends SettingsTreeElement {
 
 function createSettingMatchRegExp(pattern: string): RegExp {
 	pattern = escapeRegExpCharacters(pattern)
-		.replace(/\\\*/g, '.*');
+		.replace(new RegExp(regexp1), '.*');
 
 	return new RegExp(`^${pattern}$`, 'i');
 }
@@ -774,7 +782,7 @@ export function inspectSetting(key: string, target: SettingsTarget, languageFilt
 }
 
 export function sanitizeId(id: string): string {
-	return id.replace(/[\.\/]/g, '_');
+	return id.replace(new RegExp(regexp2), '_');
 }
 
 export function settingKeyToDisplayFormat(key: string, groupId: string = '', isLanguageTagSetting: boolean = false): { category: string; label: string } {
@@ -785,7 +793,7 @@ export function settingKeyToDisplayFormat(key: string, groupId: string = '', isL
 		key = key.substring(lastDotIdx + 1);
 	}
 
-	groupId = groupId.replace(/\//g, '.');
+	groupId = groupId.replace(new RegExp(regexp3), '.');
 	category = trimCategoryForGroup(category, groupId);
 	category = wordifyKey(category);
 
@@ -809,14 +817,14 @@ export function settingKeyToDisplayFormat(key: string, groupId: string = '', isL
 function trimCategoryForGroup(category: string, groupId: string): string {
 	const doTrim = (forward: boolean) => {
 		// Remove the Insiders portion if the category doesn't use it.
-		if (!/insiders$/i.test(category)) {
-			groupId = groupId.replace(/-?insiders$/i, '');
+		if (!regexpInsiders1.test(category)) {
+			groupId = groupId.replace(regexpInsiders, '');
 		}
 		const parts = groupId.split('.')
 			.map(part => {
 				// Remove hyphens, but only if that results in a match with the category.
-				if (part.replace(/-/g, '').toLowerCase() === category.toLowerCase()) {
-					return part.replace(/-/g, '');
+				if (part.replace(new RegExp(regexp6), '').toLowerCase() === category.toLowerCase()) {
+					return part.replace(new RegExp(regexp6), '');
 				} else {
 					return part;
 				}
@@ -1245,7 +1253,7 @@ export function parseQuery(query: string): IParsedQuery {
 	});
 
 	// Handle @stable by excluding preview and experimental tags
-	query = query.replace(/@stable/g, () => {
+	query = query.replace(new RegExp(regexpStable), () => {
 		tags.push('stable');
 		return '';
 	});

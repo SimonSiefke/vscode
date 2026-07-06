@@ -64,6 +64,11 @@ import { IChatService } from '../../../../common/chatService/chatService.js';
 import { getChatSessionType } from '../../../../common/model/chatUri.js';
 import { computeCompletionRanges, escapeForCharClass, IChatCompletionRangeResult, isEmptyUpToCompletionWord } from './chatInputCompletionUtils.js';
 import { getAgentSessionProviderIcon, AgentSessionProviders } from '../../../agentSessions/agentSessions.js';
+const regexp1 = /@\w*/g;
+const regexp2 = /:/g;
+const regexp3 = /\/[\p{L}0-9_.-]*/gu;
+const regexp4 = /^(\/[\p{L}0-9_.:-]*)?$/u;
+
 
 /**
  * Regex matching a slash command word (e.g. `/foo`). Uses `\p{L}` for Unicode
@@ -179,7 +184,7 @@ class SlashCommandCompletions extends Disposable {
 					return null;
 				}
 
-				const range = computeCompletionRanges(model, position, /@\w*/g);
+				const range = computeCompletionRanges(model, position, new RegExp(regexp1));
 				if (!range) {
 					return null;
 				}
@@ -271,7 +276,7 @@ class SlashCommandCompletions extends Disposable {
 					suggestions: userInvocableCommands.map((c, i): CompletionItem => {
 						const colonLabel = `/${c.name}`;
 						const hasSubcommand = c.name.includes(':');
-						const displayLabel = hasSubcommand ? `/${c.name.replace(/:/g, ' ')}` : colonLabel;
+						const displayLabel = hasSubcommand ? `/${c.name.replace(new RegExp(regexp2), ' ')}` : colonLabel;
 						const description = c.description;
 						return {
 							label: { label: displayLabel, description },
@@ -303,7 +308,7 @@ class SlashCommandCompletions extends Disposable {
 				}
 
 				// regex is the opposite of `mcpPromptReplaceSpecialChars` found in `mcpTypes.ts`
-				const range = computeCompletionRanges(model, position, /\/[\p{L}0-9_.-]*/gu);
+				const range = computeCompletionRanges(model, position, new RegExp(regexp3));
 				if (!range) {
 					return null;
 				}
@@ -637,7 +642,7 @@ class AgentCompletions extends Disposable {
 
 		for (const partAfterAgent of parsedRequest.slice(usedAgentIdx + 1)) {
 			// Could allow text after 'position'
-			if (!(partAfterAgent instanceof ChatRequestTextPart) || !partAfterAgent.text.trim().match(/^(\/[\p{L}0-9_.:-]*)?$/u)) {
+			if (!(partAfterAgent instanceof ChatRequestTextPart) || !partAfterAgent.text.trim().match(regexp4)) {
 				// No text allowed between agent and subcommand
 				return;
 			}

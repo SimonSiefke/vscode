@@ -5,12 +5,15 @@
 
 import * as buffer from '../../../base/common/buffer.js';
 import { decodeUTF16LE } from './stringBuilder.js';
+const regexp1 = /\r/g;
+const regexp2 = /\n/g;
+
 
 function escapeNewLine(str: string): string {
 	return (
 		str
-			.replace(/\n/g, '\\n')
-			.replace(/\r/g, '\\r')
+			.replace(new RegExp(regexp2), '\\n')
+			.replace(new RegExp(regexp1), '\\r')
 	);
 }
 

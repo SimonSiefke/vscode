@@ -6,6 +6,9 @@
 import { Event } from '../../../base/common/event.js';
 import * as platform from '../../../base/common/platform.js';
 import type { IExperimentationFilterProvider } from 'tas-client';
+const regexpZAZ0 = /\-[a-zA-Z0-9]+$/;
+const regexp2 = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2})/;
+
 
 export const ASSIGNMENT_STORAGE_KEY = 'VSCode.ABExp.FeatureData';
 export const ASSIGNMENT_REFETCH_INTERVAL = 60 * 60 * 1000; // 1 hour
@@ -132,7 +135,7 @@ export class AssignmentFilterProvider implements IExperimentationFilterProvider 
 	 * @param version Version string to be trimmed.
 	*/
 	private static trimVersionSuffix(version: string): string {
-		const regex = /\-[a-zA-Z0-9]+$/;
+		const regex = regexpZAZ0;
 		const result = version.split(regex);
 
 		return result[0];
@@ -174,7 +177,7 @@ export class AssignmentFilterProvider implements IExperimentationFilterProvider 
 		}
 		// Remove separators and milliseconds: YYYY-MM-DDTHH:MM:SS.sssZ -> YYYYMMDDHH
 		// Trimmed to 10 digits to fit within int32 bounds (ExP requirement)
-		const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2})/.exec(iso);
+		const match = regexp2.exec(iso);
 		if (!match) {
 			return '';
 		}

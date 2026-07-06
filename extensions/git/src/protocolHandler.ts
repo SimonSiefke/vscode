@@ -6,6 +6,8 @@
 import { UriHandler, Uri, window, Disposable, commands, LogOutputChannel, l10n } from 'vscode';
 import { dispose, isWindows } from './util';
 import * as querystring from 'querystring';
+const regexpGit = /^(git@[^\/:]+)(:)/i;
+
 
 const schemes = isWindows ?
 	new Set(['git', 'http', 'https', 'ssh']) :
@@ -55,7 +57,7 @@ export class GitProtocolHandler implements UriHandler {
 
 			// Handle SSH Uri
 			// Ex: git@github.com:microsoft/vscode.git
-			rawUri = rawUri.replace(/^(git@[^\/:]+)(:)/i, 'ssh://$1/');
+			rawUri = rawUri.replace(regexpGit, 'ssh://$1/');
 
 			cloneUri = Uri.parse(rawUri, true);
 

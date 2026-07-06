@@ -6,6 +6,10 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ILogTarget, LogLevel, LogServiceImpl, LogTarget } from '../../common/logService';
 import { TestLogTarget } from './loggerHelpers';
+const regexpTestErrorTest = /test error.*\[Test\] error context/s;
+const regexpTestErrorTest1 = /test error.*\[Test\]/s;
+const regexpStringErrorTest = /string error.*\[Test\] error context/s;
+
 
 describe('SubLogger', () => {
 	let logTarget: TestLogTarget;
@@ -91,7 +95,7 @@ describe('SubLogger', () => {
 			subLogger.error(error, 'error context');
 			// The error method formats as: collectErrorMessages(error) + ': ' + prefixedMessage
 			// The 's' flag makes '.' match newlines
-			expect(logTarget.hasMessageMatching(LogLevel.Error, /test error.*\[Test\] error context/s)).toBe(true);
+			expect(logTarget.hasMessageMatching(LogLevel.Error, regexpTestErrorTest)).toBe(true);
 		});
 
 		test('error method without message uses prefix only', () => {
@@ -99,14 +103,14 @@ describe('SubLogger', () => {
 			const error = new Error('test error');
 			subLogger.error(error);
 			// The error method formats as: collectErrorMessages(error) + ': ' + prefix
-			expect(logTarget.hasMessageMatching(LogLevel.Error, /test error.*\[Test\]/s)).toBe(true);
+			expect(logTarget.hasMessageMatching(LogLevel.Error, regexpTestErrorTest1)).toBe(true);
 		});
 
 		test('error method with string error and message', () => {
 			const subLogger = logService.createSubLogger('Test');
 			subLogger.error('string error', 'error context');
 			// The error method formats as: error + ': ' + prefixedMessage
-			expect(logTarget.hasMessageMatching(LogLevel.Error, /string error.*\[Test\] error context/s)).toBe(true);
+			expect(logTarget.hasMessageMatching(LogLevel.Error, regexpStringErrorTest)).toBe(true);
 		});
 	});
 

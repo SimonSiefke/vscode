@@ -13,6 +13,37 @@ import { ITaskService } from '../../../../../tasks/common/taskService.js';
 import { ILinkLocation } from '../../taskHelpers.js';
 import { IExecution, IPollingResult, OutputMonitorState, PollingConsts } from './types.js';
 import { ITerminalLogService } from '../../../../../../../platform/terminal/common/terminal.js';
+const regexp1 = /[\r\n]+$/;
+const regexpSudo = /(?:^|\s)sudo\s+-S(?:\s|$)/;
+const regexpSudoPasswordFor = /^\[sudo\]\s+password for .+:\s*$/i;
+const regexpPasswordPassphraseToken = /(password|passphrase|token|api\s*key|secret|verification code|otp\b|one[\s-]?time (?:code|password)|2fa|mfa|pin\s*(?:code|number)?[: ]?\s*$|authentication code)/i;
+const regexp5 = /[.,:;]+$/;
+const regexp6 = /['"`]/g;
+const regexp7 = /\s+/;
+const regexpZaZ0 = /[A-Za-z0-9]+/;
+const regexpDefaultIs = /\s*(?:\[[^\]]\][^\[]*)+(?:\(default is\s+"[^"]+"\):)?\s+$/;
+const regexpEsEs = /(?:\(|\[)\s*(?:y(?:es)?\s*\/\s*n(?:o)?|n(?:o)?\s*\/\s*y(?:es)?)\s*(?:\]|\))\s+$/i;
+const regexpEs = /[?:]\s*(?:\(|\[)?\s*y(?:es)?\s*\/\s*n(?:o)?\s*(?:\]|\))?\s+$/i;
+const regexp12 = /\(y\) +$/i;
+const regexp13 = /:\s+\([^)]*\) +$/;
+const regexpEND = /\(END\)$/;
+const regexpPasswordFor = /password(?: for [^:]+)?:\s*$/i;
+const regexpPressNyKey = /press a(?:ny)? key/i;
+// allow-any-unicode-next-line
+const regexp17 = /^(?:\s|\x1b\[[0-9;]*m)*\?.*[›❯▸▶]\s*$/;
+const regexp18 = /: +$/;
+const regexp19 = /\? *(?:\([a-z\s]+\))? +$/i;
+const regexpPressEnterTo = /press [h?]\s*(?:\+\s*enter)?\s*to (?:show|open|display|get|see)\s*(?:available )?(?:help|commands|options)/i;
+const regexpPressOrEnter = /press h\s*(?:or\s*\?)?\s*(?:\+\s*enter)?\s*for (?:help|commands|options)/i;
+const regexpPressEnterTo1 = /press \?\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:help|commands|options|list)/i;
+const regexpTypeEnterFor = /type\s*[h?]\s*(?:\+\s*enter)?\s*(?:for|to see|to show)\s*(?:help|commands|options)/i;
+const regexpHitEnterFor = /hit\s*[h?]\s*(?:\+\s*enter)?\s*(?:for|to see|to show)\s*(?:help|commands|options)/i;
+const regexpPressEnterTo2 = /press o\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:open|launch)(?:\s*(?:the )?(?:app|application|browser)|\s+in\s+(?:the\s+)?browser)?/i;
+const regexpPressEnterTo3 = /press r\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:restart|reload|refresh)(?:\s*(?:the )?(?:server|dev server|service))?/i;
+const regexpPressEnterTo4 = /press q\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:quit|exit|stop)(?:\s*(?:the )?(?:server|app|process))?/i;
+const regexpPressEnterTo5 = /press u\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:show|print|display)\s*(?:the )?(?:server )?urls?/i;
+const regexp29 = /[\s.,:;!?"'`()[\]{}<>\-_/\\]+/g;
+
 
 export interface IOutputMonitor extends Disposable {
 	readonly pollingResult: IPollingResult & { pollDurationMs: number } | undefined;
@@ -48,7 +79,7 @@ export function getLastLine(output: string | undefined): string {
 	if (!output) {
 		return '';
 	}
-	const trimmedOutput = output.replace(/[\r\n]+$/, '');
+	const trimmedOutput = output.replace(regexp1, '');
 	if (!trimmedOutput) {
 		return '';
 	}
@@ -605,7 +636,7 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 }
 
 function isCanonicalSudoSPrompt(command: string, prompt: string): boolean {
-	return /(?:^|\s)sudo\s+-S(?:\s|$)/.test(command) && /^\[sudo\]\s+password for .+:\s*$/i.test(prompt);
+	return regexpSudo.test(command) && regexpSudoPasswordFor.test(prompt);
 }
 
 /**
@@ -616,11 +647,11 @@ function isCanonicalSudoSPrompt(command: string, prompt: string): boolean {
  * via UI to focus the terminal and type the secret directly.
  */
 export function detectsSensitiveInputPrompt(cursorLine: string): boolean {
-	return /(password|passphrase|token|api\s*key|secret|verification code|otp\b|one[\s-]?time (?:code|password)|2fa|mfa|pin\s*(?:code|number)?[: ]?\s*$|authentication code)/i.test(cursorLine);
+	return regexpPasswordPassphraseToken.test(cursorLine);
 }
 
 export function matchTerminalPromptOption(options: readonly string[], suggestedOption: string): { option: string | undefined; index: number } {
-	const normalize = (value: string) => value.replace(/['"`]/g, '').trim().replace(/[.,:;]+$/, '');
+	const normalize = (value: string) => value.replace(new RegExp(regexp6), '').trim().replace(regexp5, '');
 
 	const normalizedSuggestion = normalize(suggestedOption);
 	if (!normalizedSuggestion) {
@@ -628,11 +659,11 @@ export function matchTerminalPromptOption(options: readonly string[], suggestedO
 	}
 
 	const candidates: string[] = [normalizedSuggestion];
-	const firstWhitespaceToken = normalizedSuggestion.split(/\s+/)[0];
+	const firstWhitespaceToken = normalizedSuggestion.split(regexp7)[0];
 	if (firstWhitespaceToken && firstWhitespaceToken !== normalizedSuggestion) {
 		candidates.push(firstWhitespaceToken);
 	}
-	const firstAlphaNum = normalizedSuggestion.match(/[A-Za-z0-9]+/);
+	const firstAlphaNum = normalizedSuggestion.match(regexpZaZ0);
 	if (firstAlphaNum?.[0] && firstAlphaNum[0] !== normalizedSuggestion && firstAlphaNum[0] !== firstWhitespaceToken) {
 		candidates.push(firstAlphaNum[0]);
 	}
@@ -663,16 +694,16 @@ export function detectsHighConfidenceInputPattern(cursorLine: string): boolean {
 		// PowerShell-style multi-option line (supports [?] Help and optional default suffix) ending
 		// in whitespace.  Uses [^\[]* to match each label (everything up to the next bracket),
 		// ensuring linear-time matching with no nested quantifiers that could cause ReDoS.
-		/\s*(?:\[[^\]]\][^\[]*)+(?:\(default is\s+"[^"]+"\):)?\s+$/,
+		regexpDefaultIs,
 		// Bracketed/parenthesized yes/no pairs at end of line: (y/n), [Y/n], (yes/no), [no/yes]
-		/(?:\(|\[)\s*(?:y(?:es)?\s*\/\s*n(?:o)?|n(?:o)?\s*\/\s*y(?:es)?)\s*(?:\]|\))\s+$/i,
+		regexpEsEs,
 		// Same as above but allows a preceding '?' or ':' and optional wrappers e.g.
 		// "Continue? (y/n)" or "Overwrite: [yes/no]"
-		/[?:]\s*(?:\(|\[)?\s*y(?:es)?\s*\/\s*n(?:o)?\s*(?:\]|\))?\s+$/i,
+		regexpEs,
 		// Confirmation prompts ending with (y) followed by trailing space, e.g. "Ok to proceed? (y) "
 		// The trailing space indicates the cursor is positioned after the prompt awaiting input, as
 		// opposed to normal command output that happens to contain "(y)" followed by a newline.
-		/\(y\) +$/i,
+		regexp12,
 		// Prompt with parenthesized default value e.g. "package name: (test) " or "version: (1.0.0) ".
 		// REQUIRES at least one space between the colon and the opening paren (`\s+`, not `\s*`)
 		// so this rule does not match git-aware shell prompts like
@@ -682,16 +713,16 @@ export function detectsHighConfidenceInputPattern(cursorLine: string): boolean {
 		// where the colon abuts the paren with no separator. npm-init / yarn-init style
 		// prompts always render at least one space after the colon, so this stays specific
 		// without dropping the intended matches.
-		/:\s+\([^)]*\) +$/,
+		regexp13,
 		// Line contains (END) which is common in pagers
-		/\(END\)$/,
+		regexpEND,
 		// Password prompt. Requires a trailing colon (e.g. "Password:", "[sudo] password for user:")
 		// and tolerates zero or more trailing spaces — xterm's `translateToString(trimRight=true)`
 		// strips trailing whitespace from non-wrapped buffer lines, so a real `Password: ` prompt
 		// is captured from the buffer as `Password:` with no trailing space.
-		/password(?: for [^:]+)?:\s*$/i,
+		regexpPasswordFor,
 		// "Press a key" or "Press any key"
-		/press a(?:ny)? key/i,
+		regexpPressNyKey,
 		// Interactive prompt libraries (prompts, enquirer, inquirer) prefix the prompt with
 		// '? ' at the start of the line and end with a distinctive chevron character
 		// followed by optional trailing whitespace where the cursor is awaiting input.
@@ -703,7 +734,7 @@ export function detectsHighConfidenceInputPattern(cursorLine: string): boolean {
 		//   "? Do you want to install jsdom? <chevron>"  (prompts)
 		//   "? Pick a color <chevron> "                  (enquirer)
 		// allow-any-unicode-next-line
-		/^(?:\s|\x1b\[[0-9;]*m)*\?.*[›❯▸▶]\s*$/,
+		regexp17,
 	].some(e => e.test(cursorLine));
 }
 
@@ -752,26 +783,26 @@ export function detectsLikelyInputRequiredPattern(cursorLine: string): boolean {
 		// NOTE: This is a broad pattern — only use when the caller has independent evidence
 		// (e.g. `isActive === true`) that the command is still consuming stdin. On a finished
 		// command, log output like `Last Command: ` is indistinguishable from a real prompt.
-		/: +$/,
+		regexp18,
 		// Line ends with '?' followed by at least one space (optionally followed by a
 		// parenthesized hint like "Continue? (yes/no) "). Requiring trailing space avoids
 		// matching arbitrary command output where a line happens to end with '?'.
 		// NOTE: This is a broad pattern — same caller-side guard required as above.
-		/\? *(?:\([a-z\s]+\))? +$/i,
+		regexp19,
 	].some(e => e.test(cursorLine));
 }
 
 export function detectsNonInteractiveHelpPattern(cursorLine: string): boolean {
 	return [
-		/press [h?]\s*(?:\+\s*enter)?\s*to (?:show|open|display|get|see)\s*(?:available )?(?:help|commands|options)/i,
-		/press h\s*(?:or\s*\?)?\s*(?:\+\s*enter)?\s*for (?:help|commands|options)/i,
-		/press \?\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:help|commands|options|list)/i,
-		/type\s*[h?]\s*(?:\+\s*enter)?\s*(?:for|to see|to show)\s*(?:help|commands|options)/i,
-		/hit\s*[h?]\s*(?:\+\s*enter)?\s*(?:for|to see|to show)\s*(?:help|commands|options)/i,
-		/press o\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:open|launch)(?:\s*(?:the )?(?:app|application|browser)|\s+in\s+(?:the\s+)?browser)?/i,
-		/press r\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:restart|reload|refresh)(?:\s*(?:the )?(?:server|dev server|service))?/i,
-		/press q\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:quit|exit|stop)(?:\s*(?:the )?(?:server|app|process))?/i,
-		/press u\s*(?:\+\s*enter)?\s*(?:to|for)?\s*(?:show|print|display)\s*(?:the )?(?:server )?urls?/i
+		regexpPressEnterTo,
+		regexpPressOrEnter,
+		regexpPressEnterTo1,
+		regexpTypeEnterFor,
+		regexpHitEnterFor,
+		regexpPressEnterTo2,
+		regexpPressEnterTo3,
+		regexpPressEnterTo4,
+		regexpPressEnterTo5
 	].some(e => e.test(cursorLine));
 }
 
@@ -791,7 +822,7 @@ const taskFinishMessages = [
 ];
 
 const normalizedTaskFinishMessages = taskFinishMessages.map(msg =>
-	msg.replace(/[\s.,:;!?"'`()[\]{}<>\-_/\\]+/g, '').toLowerCase()
+	msg.replace(new RegExp(regexp29), '').toLowerCase()
 );
 
 /**
@@ -804,7 +835,7 @@ const normalizedTaskFinishMessages = taskFinishMessages.map(msg =>
  */
 export function detectsVSCodeTaskFinishMessage(cursorLine: string): boolean {
 	// Be tolerant to whitespace, punctuation, and line wrapping that can split words mid-word.
-	const compact = cursorLine.replace(/[\s.,:;!?"'`()[\]{}<>\-_/\\]+/g, '').toLowerCase();
+	const compact = cursorLine.replace(new RegExp(regexp29), '').toLowerCase();
 	return normalizedTaskFinishMessages.some(msg => compact.includes(msg));
 }
 
@@ -817,5 +848,5 @@ export function detectsGenericPressAnyKeyPattern(cursorLine: string): boolean {
 	if (detectsVSCodeTaskFinishMessage(cursorLine)) {
 		return false;
 	}
-	return /press a(?:ny)? key/i.test(cursorLine);
+	return regexpPressNyKey.test(cursorLine);
 }

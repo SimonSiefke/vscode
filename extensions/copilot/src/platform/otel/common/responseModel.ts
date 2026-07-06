@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\./g;
+
 /**
  * Normalizes `gen_ai.response.model` so it stays consistent with
  * `gen_ai.request.model` when they refer to the same logical model.
@@ -25,7 +27,7 @@ export function normalizeResponseModel(requestModel: string | undefined, respons
 	if (!requestModel) {
 		return responseModel;
 	}
-	const canonical = (s: string) => s.replace(/\./g, '-').toLowerCase();
+	const canonical = (s: string) => s.replace(new RegExp(regexp1), '-').toLowerCase();
 	const cReq = canonical(requestModel);
 	const cRes = canonical(responseModel);
 	if (cReq === cRes) {

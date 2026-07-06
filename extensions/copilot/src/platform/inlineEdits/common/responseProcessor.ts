@@ -5,6 +5,8 @@
 import { illegalArgument } from '../../../util/vs/base/common/errors';
 import { LineReplacement } from '../../../util/vs/editor/common/core/edits/lineEdit';
 import { LineRange } from '../../../util/vs/editor/common/core/ranges/lineRange';
+const regexpZAZ1 = /[a-zA-Z1-9]+/;
+
 
 
 export namespace ResponseProcessor {
@@ -136,7 +138,7 @@ export namespace ResponseProcessor {
 	}
 
 	function isSignificant(s: string) {
-		return !!s.match(/[a-zA-Z1-9]+/);
+		return !!s.match(regexpZAZ1);
 	}
 
 	/**

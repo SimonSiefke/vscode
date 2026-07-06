@@ -7,6 +7,15 @@ import { platform } from 'os';
 import { normalize } from 'path';
 import { dirname as VSCODE_dirname } from '../../../../../../util/vs/base/common/resources';
 import { URI } from '../../../../../../util/vs/base/common/uri';
+const regexpZaZaZ0 = /^[A-Za-z][A-Za-z0-9+.-]+:/;
+const regexpZa = /^[A-Za-z]:\\/;
+const regexp3 = /^(?:([^:/?#]+?:)?\/\/)(\/\/.*)$/;
+const regexpZa1 = /^\/[A-Za-z]:/;
+const regexp5 = /^[^/\\]*\\/;
+const regexp6 = /^.*[/:]/;
+const regexp7 = /\/$/;
+const regexp8 = /[#?].*$/;
+
 
 type URIContainer = { readonly uri: string };
 
@@ -31,7 +40,7 @@ function percentDecode(str: string): string {
 }
 
 export function makeFsUri(fsPath: string): string {
-	if (/^[A-Za-z][A-Za-z0-9+.-]+:/.test(fsPath)) {
+	if (regexpZaZaZ0.test(fsPath)) {
 		throw new Error('Path must not contain a scheme');
 	} else if (!fsPath) {
 		throw new Error('Path must not be empty');
@@ -41,12 +50,12 @@ export function makeFsUri(fsPath: string): string {
 
 function parseUri(uri: URIContainer | string): URI {
 	if (typeof uri !== 'string') { uri = uri.uri; }
-	if (/^[A-Za-z]:\\/.test(uri)) {
+	if (regexpZa.test(uri)) {
 		throw new Error(`Could not parse <${uri}>: Windows-style path`);
 	}
 	try {
 		// Based on the regexp vscode-uri uses for parsing
-		const match = uri.match(/^(?:([^:/?#]+?:)?\/\/)(\/\/.*)$/);
+		const match = uri.match(regexp3);
 		if (match) {
 			return URI.parse(match[1] + match[2], true);
 		} else {
@@ -96,7 +105,7 @@ export function fsPath(arg: URIContainer | string): string {
 
 		if (uri.authority) {
 			path = `//${uri.authority}${uri.path}`; // UNC path
-		} else if (/^\/[A-Za-z]:/.test(path)) {
+		} else if (regexpZa1.test(path)) {
 			// omit leading slash from paths with a drive letter
 			path = path.substring(1);
 		}
@@ -158,7 +167,7 @@ function pathToURIPath(fileSystemPath: string): string {
  *  - ../path/to/unusal\file.txt is not
  */
 function isWinPath(path: string): boolean {
-	return /^[^/\\]*\\/.test(path);
+	return regexp5.test(path);
 }
 
 /**
@@ -167,9 +176,9 @@ function isWinPath(path: string): boolean {
 export function basename(uri: URIContainer | string): string {
 	return percentDecode(
 		(typeof uri === 'string' ? uri : uri.uri)
-			.replace(/[#?].*$/, '')
-			.replace(/\/$/, '')
-			.replace(/^.*[/:]/, '')
+			.replace(regexp8, '')
+			.replace(regexp7, '')
+			.replace(regexp6, '')
 	);
 }
 

@@ -7,6 +7,9 @@ import assert from 'assert';
 import { _electron } from 'playwright';
 import { TestContext } from './context.js';
 import { UITest } from './uiTest.js';
+const regexpExtensionHostAgent = /Extension host agent listening on (\d+)/;
+const regexpWSL = /WSL/;
+
 
 export function setup(context: TestContext) {
 	context.test('wsl-server-arm64', ['windows', 'arm64', 'wsl'], async () => {
@@ -73,7 +76,7 @@ export function setup(context: TestContext) {
 				'--extensions-dir', context.createWslTempDir(),
 			],
 			async (line) => {
-				const port = /Extension host agent listening on (\d+)/.exec(line)?.[1];
+				const port = regexpExtensionHostAgent.exec(line)?.[1];
 				if (!port) {
 					return;
 				}
@@ -114,7 +117,7 @@ export function setup(context: TestContext) {
 				'--user-data-dir', context.createWslTempDir(),
 			],
 			async (line) => {
-				const port = /Extension host agent listening on (\d+)/.exec(line)?.[1];
+				const port = regexpExtensionHostAgent.exec(line)?.[1];
 				if (!port) {
 					return false;
 				}
@@ -172,7 +175,7 @@ export function setup(context: TestContext) {
 				await window.getByRole('button', { name: 'Install and Reload' }).click();
 
 				context.log('Waiting for WSL connection');
-				await window.getByText(/WSL/).waitFor();
+				await window.getByText(regexpWSL).waitFor();
 			} catch (error) {
 				await context.captureScreenshot(window);
 				throw error;

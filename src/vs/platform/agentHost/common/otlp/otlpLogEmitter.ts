@@ -6,6 +6,8 @@
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { AbstractMessageLogger, format, LogLevel } from '../../../log/common/log.js';
+const regexpAhpOtlpLogs = /^ahp-otlp:\/\/logs\/([^/?#]+)/i;
+
 
 /**
  * Channel URI template advertised by an agent host that has an
@@ -467,7 +469,7 @@ export function extractLevelFromOtlpLogsUri(uri: string): OtlpLogLevelName | und
 	// Strip the scheme + authority prefix; the level is the last path
 	// segment. We avoid `URI.parse` here so this helper can run in
 	// environments that haven't pulled in the URI module (e.g. tests).
-	const match = /^ahp-otlp:\/\/logs\/([^/?#]+)/i.exec(uri);
+	const match = regexpAhpOtlpLogs.exec(uri);
 	if (!match) {
 		return undefined;
 	}

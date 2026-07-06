@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^\d+$/;
+
 /**
  * Parser for Server-Sent Events (SSE) streams according to the HTML specification.
  * @see https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
@@ -185,7 +187,7 @@ export class SSEParser {
 
 			case 'retry':
 				// If the field value consists only of ASCII digits, set the reconnection time
-				if (/^\d+$/.test(value)) {
+				if (regexp1.test(value)) {
 					this.reconnectionTime = parseInt(value, 10);
 				}
 				break;

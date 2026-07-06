@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { npmScriptsGenerator, npmSearchGenerator } from './npm';
+const regexp1 = /\'/gi;
+
 
 export const yarnScriptParserDirectives: Fig.Arg['parserDirectives'] = {
 	alias: async (token, executeShellCommand) => {
@@ -124,7 +126,7 @@ const configList: Fig.Generator = {
 			// TODO: fix hacky code
 			// reason: JSON parse was not working without double quotes
 			output = output
-				.replace(/\'/gi, '\'')
+				.replace(new RegExp(regexp1), '\'')
 				.replace('lastUpdateCheck', '\'lastUpdateCheck\'')
 				.replace('registry', '\'lastUpdateCheck\'');
 			const configObject = JSON.parse(output);

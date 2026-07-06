@@ -20,6 +20,8 @@ import { IBuildPromptContext } from '../../prompt/common/intents';
 import { ExecutionSubagentToolCallingLoop, IBackgroundCommand } from '../../prompt/node/executionSubagentToolCallingLoop';
 import { ToolName } from '../common/toolNames';
 import { CopilotToolMode, ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
+const regexp1 = /^\s*/;
+
 
 export interface IExecutionSubagentParams {
 
@@ -178,6 +180,6 @@ function appendBackgroundCommandNotesToFinalAnswer(
 	}
 	const insertAt = closeIdx + closingTag.length;
 	const before = response.slice(0, insertAt);
-	const after = response.slice(insertAt).replace(/^\s*/, '');
+	const after = response.slice(insertAt).replace(regexp1, '');
 	return after.length > 0 ? `${before}\n${notes}\n${after}` : `${before}\n${notes}`;
 }

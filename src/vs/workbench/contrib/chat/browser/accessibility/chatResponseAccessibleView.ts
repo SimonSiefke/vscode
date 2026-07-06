@@ -23,6 +23,8 @@ import { isResponseVM } from '../../common/model/chatViewModel.js';
 import { IToolResultInputOutputDetails, IToolResultOutputDetails, isToolResultInputOutputDetails, isToolResultOutputDetails, toolContentToA11yString } from '../../common/tools/languageModelToolsService.js';
 import { ChatTreeItem, IChatWidget, IChatWidgetService } from '../chat.js';
 import { isLocation, Location } from '../../../../../editor/common/languages.js';
+const regexp1 = /\r?\n/;
+
 
 export class ChatResponseAccessibleView implements IAccessibleViewImplementation {
 	readonly priority = 100;
@@ -407,7 +409,7 @@ class ChatResponseAccessibleProvider extends Disposable implements IAccessibleVi
 	}
 
 	private _normalizeWhitespace(content: string): string {
-		const lines = content.split(/\r?\n/);
+		const lines = content.split(regexp1);
 		const normalized: string[] = [];
 		for (const line of lines) {
 			if (line.trim().length === 0) {

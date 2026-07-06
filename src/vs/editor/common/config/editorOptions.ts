@@ -16,6 +16,8 @@ import { USUAL_WORD_SEPARATORS } from '../core/wordHelper.js';
 import * as nls from '../../../nls.js';
 import { AccessibilitySupport } from '../../../platform/accessibility/common/accessibility.js';
 import { IConfigurationPropertySchema } from '../../../platform/configuration/common/configurationRegistry.js';
+const regexpCh = /^\d+(\.\d+)?ch$/;
+
 
 //#region typed options
 
@@ -3308,7 +3310,7 @@ class EditorLineDecorationsWidth extends BaseEditorOption<EditorOption.lineDecor
 	}
 
 	public validate(input: unknown): number {
-		if (typeof input === 'string' && /^\d+(\.\d+)?ch$/.test(input)) {
+		if (typeof input === 'string' && regexpCh.test(input)) {
 			const multiple = parseFloat(input.substring(0, input.length - 2));
 			return -multiple; // negative numbers signal a multiple
 		} else {

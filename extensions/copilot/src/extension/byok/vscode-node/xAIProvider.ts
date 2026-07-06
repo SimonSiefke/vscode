@@ -10,6 +10,9 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { BYOKKnownModels, BYOKModelCapabilities } from '../common/byokProvider';
 import { AbstractOpenAICompatibleLMProvider } from './abstractLanguageModelChatProvider';
 import { IBYOKStorageService } from './byokStorageService';
+const regexpGrok = /^grok-(\d+)/;
+const regexp2 = /^\d+$/;
+
 
 // https://docs.x.ai/docs/api-reference#list-language-models
 interface XAIModelData {
@@ -90,14 +93,14 @@ export class XAIBYOKLMProvider extends AbstractOpenAICompatibleLMProvider {
 	}
 
 	private parseXAIModelVersion(modelId: string): number | undefined {
-		const match = modelId.match(/^grok-(\d+)/);
+		const match = modelId.match(regexpGrok);
 		return match ? parseInt(match[1], 10) : undefined;
 	}
 
 	private humanizeXAIModelId(modelId: string): string {
 		const parts = modelId.split('-').filter(p => p.length > 0);
 		return parts.map(p => {
-			if (/^\d+$/.test(p)) {
+			if (regexp2.test(p)) {
 				return p; // keep pure numbers as-is
 			}
 			return p.charAt(0).toUpperCase() + p.slice(1);

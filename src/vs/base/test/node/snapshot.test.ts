@@ -11,6 +11,8 @@ import { SnapshotContext, assertSnapshot } from '../common/snapshot.js';
 import { URI } from '../../common/uri.js';
 import { join } from '../../common/path.js';
 import { assertThrowsAsync, ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
+const regexpHello = /hello/g;
+
 
 // tests for snapshot are in Node so that we can use native FS operations to
 // set up and validate things.
@@ -141,7 +143,7 @@ suite('snapshot', () => {
 			new Map([['hello', 1], ['goodbye', 2]]),
 			new Set([1, 2, 3]),
 			function helloWorld() { },
-			/hello/g,
+			new RegExp(regexpHello),
 			new Array(10).fill('long string'.repeat(10)),
 			{ [Symbol.for('debug.description')]() { return `Range [1 -> 5]`; } },
 		]);

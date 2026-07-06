@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type * as vscode from 'vscode';
+const regexp1 = /[#\w$][\w\d$]*/g;
+
 
 type FoundSymbol = {
 	symbol: vscode.SymbolInformation | vscode.DocumentSymbol;
@@ -89,5 +91,5 @@ export function findBestSymbolByPath(
 export function extractSymbolNamesInCode(inlineCode: string): string[] {
 	// TODO: this assumes the language is JS like.
 	// It won't handle symbol parts that include spaces or special characters
-	return Array.from(inlineCode.matchAll(/[#\w$][\w\d$]*/g), x => x[0]);
+	return Array.from(inlineCode.matchAll(new RegExp(regexp1)), x => x[0]);
 }

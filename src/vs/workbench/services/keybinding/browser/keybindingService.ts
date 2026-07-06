@@ -57,6 +57,9 @@ import { IUserKeybindingItem, KeybindingIO, OutputBuilder } from '../common/keyb
 import { IKeyboard, INavigatorWithKeyboard } from './navigatorKeyboard.js';
 import { getAllUnboundCommands } from './unboundCommands.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
+const regexp1 = /\s/;
+const regexp2 = /^_/;
+
 
 function isValidContributedKeyBinding(keyBinding: ContributedKeyBinding, rejects: string[]): boolean {
 	if (!keyBinding) {
@@ -732,7 +735,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 		if (!keyInfo) {
 			return false;
 		}
-		if (!keyInfo.value || /\s/.test(keyInfo.value)) {
+		if (!keyInfo.value || regexp1.test(keyInfo.value)) {
 			return false;
 		}
 		return true;
@@ -954,7 +957,7 @@ class KeybindingsJsonSchema {
 
 		const knownCommands = new Set<string>();
 		const addKnownCommand = (commandId: string, description?: string | ILocalizedString | undefined) => {
-			if (!/^_/.test(commandId)) {
+			if (!regexp2.test(commandId)) {
 				if (!knownCommands.has(commandId)) {
 					knownCommands.add(commandId);
 

@@ -11,6 +11,8 @@ import { CopilotFileScheme, CopilotWorkspaceScheme, CreateFileCommand, CreatePro
 import { NewWorkspacePreviewFileSystemProvider } from '../../intents/vscode-node/newWorkspacePreviewFileSystemProvider';
 import { NewWorkspaceTextDocumentProvider } from '../../intents/vscode-node/newWorkspaceTextDocumentProvider';
 import { listFilesInResponseFileTree } from '../../prompt/common/fileTreeParser';
+const regexp1 = /^\W+/;
+
 
 export function registerNewWorkspaceIntentCommand(previewContentManager: INewWorkspacePreviewContentManager, logService: ILogService, options: IConversationOptions) {
 	const copilotWorkspaceProvider = new NewWorkspacePreviewFileSystemProvider(previewContentManager);
@@ -194,7 +196,7 @@ export function isUriContained(parent: Uri, child: Uri): boolean {
 async function getUniqueProjectName(projectFolder: Uri, projectName: string): Promise<string> {
 	let i = 0;
 	let uniqueProjectNameNotFound = true;
-	let newProjectName = projectName.replace(/^\W+/, '');
+	let newProjectName = projectName.replace(regexp1, '');
 	while (uniqueProjectNameNotFound) {
 		try {
 			await workspace.fs.stat(Uri.joinPath(projectFolder, newProjectName));

@@ -25,6 +25,8 @@ import { ILogEntry, IOutputContentSource, LOG_MIME, OutputChannelUpdateMode } fr
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { TextModel } from '../../../../editor/common/model/textModel.js';
 import { binarySearch, sortedDiff } from '../../../../base/common/arrays.js';
+const regexp1 = /[\\/:\*\?"<>\|]/g;
+
 
 const LOG_ENTRY_REGEX = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s(\[(info|trace|debug|error|warning)\])\s(\[(.*?)\])?/;
 
@@ -803,13 +805,13 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 	) {
 		super();
 		this.outputChannelModel = this.createOutputChannelModel(id, modelUri, language, outputDir, outputDirCreationPromise);
-		const resource = resources.joinPath(outputDir, `${id.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
+		const resource = resources.joinPath(outputDir, `${id.replace(new RegExp(regexp1), '')}.log`);
 		this.source = { resource };
 	}
 
 	private async createOutputChannelModel(id: string, modelUri: URI, language: ILanguageSelection, outputDir: URI, outputDirPromise: Promise<void>): Promise<IOutputChannelModel> {
 		await outputDirPromise;
-		const file = resources.joinPath(outputDir, `${id.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
+		const file = resources.joinPath(outputDir, `${id.replace(new RegExp(regexp1), '')}.log`);
 		await this.fileService.createFile(file);
 		const outputChannelModel = this._register(this.instantiationService.createInstance(OutputChannelBackedByFile, id, modelUri, language, file));
 		this._register(outputChannelModel.onDispose(() => this._onDispose.fire()));

@@ -10,6 +10,8 @@ import * as paths from './path.js';
 import { isLinux, isWindows } from './platform.js';
 import { compare as strCompare, equalsIgnoreCase } from './strings.js';
 import { URI, uriToFsPath } from './uri.js';
+const regexpZA = /^[a-zA-Z]:(\/$|\\$)/;
+
 
 export function originalFSPath(uri: URI): string {
 	return uriToFsPath(uri, true);
@@ -287,7 +289,7 @@ export class ExtUri implements IExtUri {
 			return fsp.length > extpath.getRoot(fsp).length && fsp[fsp.length - 1] === sep;
 		} else {
 			const p = resource.path;
-			return (p.length > 1 && p.charCodeAt(p.length - 1) === CharCode.Slash) && !(/^[a-zA-Z]:(\/$|\\$)/.test(resource.fsPath)); // ignore the slash at offset 0
+			return (p.length > 1 && p.charCodeAt(p.length - 1) === CharCode.Slash) && !(regexpZA.test(resource.fsPath)); // ignore the slash at offset 0
 		}
 	}
 

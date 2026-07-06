@@ -48,6 +48,8 @@ import { SimulationLanguageFeaturesService } from './language/simulationLanguage
 import { IDiagnostic, IDiagnosticComparison, INLINE_CHANGED_DOC_TAG, INLINE_INITIAL_DOC_TAG, INLINE_STATE_TAG, IRange, IWorkspaceState, IWorkspaceStateFile } from './shared/sharedTypes';
 import { SimulationWorkspace, WORKSPACE_PATH, isNotebook } from './simulationWorkspace';
 import { DiagnosticProviderId, IFile, IInlineEdit, IOutcome, IScenario, IScenarioDiagnostic } from './types';
+const regexpIntentIdRestOfQuery = /\/(?<intentId>\w+)(?<restOfQuery>\s.*)?/s;
+
 
 export function setUpSimulationWorkspace(accessor: IServicesAccessor, files: IFile[], workspaceFolders?: Uri[]): SimulationWorkspace {
 	const workspace = new SimulationWorkspace(files, workspaceFolders);
@@ -210,7 +212,7 @@ export async function simulateInlineChat(
 			let command: string | undefined;
 			let prompt = query.query;
 			if (prompt.startsWith('/')) {
-				const groups = /\/(?<intentId>\w+)(?<restOfQuery>\s.*)?/s.exec(query.query)?.groups;
+				const groups = regexpIntentIdRestOfQuery.exec(query.query)?.groups;
 				command = groups?.intentId ?? undefined;
 				prompt = groups?.restOfQuery?.trim() ?? '';
 			}

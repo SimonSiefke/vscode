@@ -32,6 +32,9 @@ import { ClientCapabilities, ClientCapability, ExecConfig, ITypeScriptServiceCli
 import { Disposable, DisposableStore, disposeAll } from './utils/dispose';
 import { hash } from './utils/hash';
 import { isWeb, isWebAndHasSharedArrayBuffers } from './utils/platform';
+const regexp1 = /^\/([^\/]+)\/([^\/]*)\/(.+)$/;
+const regexp2 = /^\^\/([^\/]+)\/([^\/]*)\/(.+)$/;
+
 
 
 export interface TsDiagnostics {
@@ -808,7 +811,7 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 			if (filepath.startsWith('/lib.') && filepath.endsWith('.d.ts')) {
 				return vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'browser', 'typescript', filepath.slice(1));
 			}
-			const parts = filepath.match(/^\/([^\/]+)\/([^\/]*)\/(.+)$/);
+			const parts = filepath.match(regexp1);
 			if (parts) {
 				const resource = vscode.Uri.parse(parts[1] + '://' + (parts[2] === emptyAuthority ? '' : parts[2]) + '/' + parts[3]);
 				return this.bufferSyncSupport.toVsCodeResource(resource);
@@ -816,7 +819,7 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 		}
 
 		if (filepath.startsWith(inMemoryResourcePrefix)) {
-			const parts = filepath.match(/^\^\/([^\/]+)\/([^\/]*)\/(.+)$/);
+			const parts = filepath.match(regexp2);
 			if (parts) {
 				const resource = vscode.Uri.parse(parts[1] + '://' + (parts[2] === emptyAuthority ? '' : parts[2]) + '/' + parts[3]);
 				return this.bufferSyncSupport.toVsCodeResource(resource);

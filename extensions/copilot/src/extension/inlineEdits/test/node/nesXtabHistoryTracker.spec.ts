@@ -13,6 +13,8 @@ import { assert } from '../../../../util/vs/base/common/assert';
 import { observableValue } from '../../../../util/vs/base/common/observable';
 import * as path from '../../../../util/vs/base/common/path';
 import { IRecordingInformation, ObservableWorkspaceRecordingReplayer } from '../../common/observableWorkspaceRecordingReplayer';
+const regexp1 = /[^\S\n]+$/gm;
+
 
 
 describe('NesXtabHistoryTracker', () => {
@@ -35,7 +37,7 @@ describe('NesXtabHistoryTracker', () => {
 
 	/** Strip trailing whitespace from each line to avoid fragile snapshots. */
 	function stripTrailingWhitespace(s: string): string {
-		return s.replace(/[^\S\n]+$/gm, '');
+		return s.replace(new RegExp(regexp1), '');
 	}
 
 	it('1 line, 1 edit', () => {

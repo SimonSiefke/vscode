@@ -53,6 +53,8 @@ import { ResponsiveState } from './rpcProtocol.js';
 import { IExtensionActivationHost as IWorkspaceContainsActivationHost, checkActivateWorkspaceContainsExtension, checkGlobFileExists } from './workspaceContains.js';
 import { ILifecycleService, WillShutdownJoinerOrder } from '../../lifecycle/common/lifecycle.js';
 import { IExtensionHostExitInfo, IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
+const regexpWorkspaceContains = /^workspaceContains/;
+
 
 const hasOwnProperty = Object.hasOwnProperty;
 const NO_OP_VOID_PROMISE = Promise.resolve<void>(undefined);
@@ -417,7 +419,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				break;
 			}
 
-			if (/^workspaceContains/.test(activationEvent)) {
+			if (regexpWorkspaceContains.test(activationEvent)) {
 				hasWorkspaceContains = true;
 			}
 

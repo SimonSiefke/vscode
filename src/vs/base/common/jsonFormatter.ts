@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createScanner, ScanError, SyntaxKind } from './json.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export interface FormattingOptions {
 	/**
@@ -210,7 +212,7 @@ export function format(documentText: string, range: Range | undefined, options: 
 export function toFormattedString(obj: unknown, options: FormattingOptions) {
 	const content = JSON.stringify(obj, undefined, options.insertSpaces ? options.tabSize || 4 : '\t');
 	if (options.eol !== undefined) {
-		return content.replace(/\r\n|\r|\n/g, options.eol);
+		return content.replace(new RegExp(regexp1), options.eol);
 	}
 	return content;
 }

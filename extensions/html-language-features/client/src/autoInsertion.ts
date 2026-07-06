@@ -6,6 +6,8 @@
 import { window, workspace, Disposable, TextDocument, Position, SnippetString, TextDocumentChangeEvent, TextDocumentChangeReason, TextDocumentContentChangeEvent } from 'vscode';
 import { Runtime } from './htmlClient';
 import { LanguageParticipants } from './languageParticipants';
+const regexp1 = /\n/;
+
 
 export function activateAutoInsertion(provider: (kind: 'autoQuote' | 'autoClose', document: TextDocument, position: Position) => Thenable<string | null>, languageParticipants: LanguageParticipants, runtime: Runtime): Disposable {
 	const disposables: Disposable[] = [];
@@ -67,7 +69,7 @@ export function activateAutoInsertion(provider: (kind: 'autoQuote' | 'autoClose'
 	}
 
 	function isSingleLine(text: string): boolean {
-		return !/\n/.test(text);
+		return !regexp1.test(text);
 	}
 
 	function doAutoInsert(kind: 'autoQuote' | 'autoClose', document: TextDocument, lastChange: TextDocumentContentChangeEvent) {

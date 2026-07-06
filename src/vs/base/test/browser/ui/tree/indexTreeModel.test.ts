@@ -9,6 +9,11 @@ import { ITreeElement, ITreeFilter, ITreeNode, TreeVisibility } from '../../../.
 import { timeout } from '../../../../common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 import { DisposableStore, IDisposable } from '../../../../common/lifecycle.js';
+const regexpBuild = /build/;
+const regexpGulp = /gulp/;
+const regexpPlatinum = /platinum/;
+const regexp4 = /b/;
+
 
 function bindListToModel<T>(list: ITreeNode<T>[], model: IndexTreeModel<T>): IDisposable {
 	return model.onDidSpliceRenderedNodes(({ start, deleteCount, elements }) => {
@@ -674,7 +679,7 @@ suite('IndexTreeModel', () => {
 
 		assert.deepStrictEqual(list.length, 10);
 
-		query = /build/;
+		query = regexpBuild;
 		model.refilter();
 		assert.deepStrictEqual(toArray(list), ['vscode', '.build', 'github', 'build.js', 'build']);
 
@@ -762,7 +767,7 @@ suite('IndexTreeModel', () => {
 
 		assert.deepStrictEqual(list.length, 10);
 
-		query = /gulp/;
+		query = regexpGulp;
 		model.refilter();
 		assert.deepStrictEqual(toArray(list), ['vscode', 'build', 'gulpfile.js']);
 
@@ -811,7 +816,7 @@ suite('IndexTreeModel', () => {
 
 		assert.deepStrictEqual(toArray(list), ['vscode']);
 
-		query = /gulp/;
+		query = regexpGulp;
 		model.refilter();
 		assert.deepStrictEqual(toArray(list), ['vscode']);
 
@@ -914,7 +919,7 @@ suite('IndexTreeModel', () => {
 
 		assert.deepStrictEqual(toArray(list), ['silver', 'gold', 'platinum']);
 
-		query = /platinum/;
+		query = regexpPlatinum;
 		model.refilter();
 		assert.deepStrictEqual(toArray(list), ['platinum']);
 
@@ -954,7 +959,7 @@ suite('IndexTreeModel', () => {
 		assert.deepStrictEqual(model.getListIndex([1]), 2);
 		assert.deepStrictEqual(model.getListIndex([1, 0]), 3);
 
-		query = /b/;
+		query = regexp4;
 		model.refilter();
 		assert.deepStrictEqual(toArray(list), ['b', 'bb']);
 		assert.deepStrictEqual(model.getListIndex([0]), -1);

@@ -37,6 +37,10 @@ import { pipeline } from 'node:stream/promises';
 import yauzl from 'yauzl';
 import { e, requestAZDOAPI } from './publish.ts';
 import { retry } from './retry.ts';
+const regexp1 = /^#\/(\d+)\/(.+)$/;
+const regexp2 = /\/$/;
+const regexp3 = /\r?\n/;
+
 
 const ARTIFACT_NAME = 'notice_output';
 const QUALITY_JOB_NAMES = ['Quality Checks', 'Quality'];
@@ -136,13 +140,13 @@ async function getPipelineArtifacts(): Promise<NoticeArtifact[]> {
 // genuinely absent" from "could not check".
 async function listArtifactFiles(artifact: NoticeArtifact): Promise<string[] | undefined> {
 	// resource.data for a container artifact looks like: #/<containerId>/<rootPath>
-	const match = /^#\/(\d+)\/(.+)$/.exec(artifact.resource.data ?? '');
+	const match = regexp1.exec(artifact.resource.data ?? '');
 	if (!match) {
 		return undefined;
 	}
 
 	const [, containerId, itemPath] = match;
-	const collectionUri = e('SYSTEM_COLLECTIONURI').replace(/\/$/, '');
+	const collectionUri = e('SYSTEM_COLLECTIONURI').replace(regexp2, '');
 	const url = `${collectionUri}/_apis/resources/Containers/${containerId}?itemPath=${encodeURIComponent(itemPath)}&isShallow=false&api-version=4.1-preview.4`;
 
 	const res = await retry(() => fetch(url, getAzdoFetchOptions()));
@@ -185,7 +189,7 @@ async function unzip(zipPath: string, outputPath: string): Promise<string[]> {
 
 			const result: string[] = [];
 			zipfile!.on('entry', entry => {
-				if (/\/$/.test(entry.fileName)) {
+				if (regexp2.test(entry.fileName)) {
 					zipfile!.readEntry();
 				} else {
 					zipfile!.openReadStream(entry, (err, istream) => {
@@ -371,7 +375,7 @@ async function main(): Promise<void> {
 	// Log provenance for legal traceability: which build/commit produced this NOTICE.
 	if (notice.metaFile) {
 		log('NOTICE provenance:');
-		for (const line of fs.readFileSync(notice.metaFile, 'utf8').split(/\r?\n/)) {
+		for (const line of fs.readFileSync(notice.metaFile, 'utf8').split(regexp3)) {
 			if (line.trim()) {
 				log(`    ${line}`);
 			}

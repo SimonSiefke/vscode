@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from './uri.js';
+const regexpAtZA = /at [^\/]*((?:(?:[a-zA-Z]+:)|(?:[\/])|(?:\\\\))(?:.+)):(\d+):(\d+)/;
+
 
 export interface IRemoteConsoleLog {
 	type: string;
@@ -73,7 +75,7 @@ export function getFirstFrame(arg0: IRemoteConsoleLog | string | undefined): ISt
 		// (?:(?:[a-zA-Z]+:)|(?:[\/])|(?:\\\\) => windows drive letter OR unix root OR unc root
 		// (?:.+) => simple pattern for the path, only works because of the line/col pattern after
 		// :(?:\d+):(?:\d+) => :line:column data
-		const matches = /at [^\/]*((?:(?:[a-zA-Z]+:)|(?:[\/])|(?:\\\\))(?:.+)):(\d+):(\d+)/.exec(topFrame || '');
+		const matches = regexpAtZA.exec(topFrame || '');
 		if (matches && matches.length === 4) {
 			return {
 				uri: URI.file(matches[1]),

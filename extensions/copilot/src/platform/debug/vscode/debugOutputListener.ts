@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DebugAdapterTracker, DebugAdapterTrackerFactory, DebugSession, Disposable, ProviderResult, debug } from 'vscode';
+const regexpZA = /(:?\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~]/g;
+
 
 const debugOutput: string[] = [];
 
@@ -51,7 +53,7 @@ class DebugSessionTracker implements DebugAdapterTracker {
 
 // taken from https://github.com/microsoft/vscode/blob/499fb52ae8c985485e6503669f3711ee0d6f31dc/src/vs/base/common/strings.ts#L731
 function removeAnsiEscapeCodes(str: string): string {
-	const CSI_SEQUENCE = /(:?\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~]/g;
+	const CSI_SEQUENCE = new RegExp(regexpZA);
 	if (str) {
 		str = str.replace(CSI_SEQUENCE, '');
 	}

@@ -31,6 +31,9 @@ import { ICommonModel, WorkerTextModelSyncServer } from './textModelSync/textMod
 import { ISerializedStringEdit, StringEdit } from '../core/edits/stringEdit.js';
 import { StringText } from '../core/text/abstractText.js';
 import { ensureDependenciesAreSet } from '../core/text/positionToOffset.js';
+const regexp1 = /\r\n|\n|\r/g;
+const regexp2 = /\r\n|\n|\r/;
+
 
 export interface IMirrorModel extends IMirrorTextModel {
 	readonly uri: URI;
@@ -259,7 +262,7 @@ export class EditorWorker implements IDisposable, IWorkerTextModelSyncChannelSer
 			}
 
 			const original = model.getValueInRange(range);
-			text = text.replace(/\r\n|\n|\r/g, model.eol);
+			text = text.replace(new RegExp(regexp1), model.eol);
 
 			if (original === text) {
 				// noop
@@ -328,7 +331,7 @@ export class EditorWorker implements IDisposable, IWorkerTextModelSyncChannelSer
 			}
 
 			const original = model.getValueInRange(range);
-			text = text.replace(/\r\n|\n|\r/g, model.eol);
+			text = text.replace(new RegExp(regexp1), model.eol);
 
 			if (original === text) {
 				// noop
@@ -343,8 +346,8 @@ export class EditorWorker implements IDisposable, IWorkerTextModelSyncChannelSer
 
 			// compute diff between original and edit.text
 
-			const originalLines = original.split(/\r\n|\n|\r/);
-			const modifiedLines = text.split(/\r\n|\n|\r/);
+			const originalLines = original.split(regexp2);
+			const modifiedLines = text.split(regexp2);
 
 			const diff = linesDiffComputers.getDefault().computeDiff(originalLines, modifiedLines, options);
 

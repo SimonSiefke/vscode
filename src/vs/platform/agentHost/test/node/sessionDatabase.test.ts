@@ -15,6 +15,8 @@ import type { Database } from '@vscode/sqlite3';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { join } from '../../../../base/common/path.js';
 import { URI } from '../../../../base/common/uri.js';
+const regexpDisposed = /disposed/;
+
 
 suite('SessionDatabase', () => {
 
@@ -493,7 +495,7 @@ suite('SessionDatabase', () => {
 
 			await assert.rejects(
 				() => db!.createTurn('turn-1'),
-				/disposed/,
+				regexpDisposed,
 			);
 		});
 
@@ -534,7 +536,7 @@ suite('SessionDatabase', () => {
 		test('dispose during open rejects subsequent calls', async () => {
 			db = new SessionDatabase(':memory:');
 			await db.close();
-			await assert.rejects(() => db!.createTurn('turn-1'), /disposed/);
+			await assert.rejects(() => db!.createTurn('turn-1'), regexpDisposed);
 		});
 	});
 

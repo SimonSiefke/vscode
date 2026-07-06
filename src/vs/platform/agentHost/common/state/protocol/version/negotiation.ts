@@ -4,13 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { compareProtocolVersions } from './registry.js';
+const regexp1 = /^(\d+)\.(\d+)\.(\d+)$/;
+
 
 /**
  * Parses a `MAJOR.MINOR.PATCH` SemVer string. Returns `undefined` if the
  * string is not well-formed. Pre-release / build metadata are not allowed.
  */
 function tryParseSemver(version: string): readonly [number, number, number] | undefined {
-	const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+	const match = regexp1.exec(version);
 	if (!match) {
 		return undefined;
 	}

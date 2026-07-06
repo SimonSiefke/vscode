@@ -10,6 +10,8 @@ import { IReviewService } from '../../../platform/review/common/reviewService';
 import { extractImageAttributes } from '../../../util/common/imageUtils';
 import * as path from '../../../util/vs/base/common/path';
 import { Intent } from '../../common/constants';
+const regexp1 = /^\s*$/g;
+
 
 class AICodeAction extends vscode.CodeAction {
 	override readonly isAI = true;
@@ -236,12 +238,12 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 
 		if (range.isEmpty) {
 			const textAtLine = doc.lineAt(range.start.line).text;
-			if (range.end.character === textAtLine.length && /^\s*$/g.test(textAtLine)) {
+			if (range.end.character === textAtLine.length && new RegExp(regexp1).test(textAtLine)) {
 				codeActionTitle = vscode.l10n.t('Generate');
 			}
 		} else {
 			const textInSelection = doc.getText(range);
-			if (!/^\s*$/g.test(textInSelection)) {
+			if (!new RegExp(regexp1).test(textInSelection)) {
 				codeActionTitle = vscode.l10n.t('Modify');
 			}
 		}

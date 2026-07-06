@@ -12,6 +12,9 @@ import { IWorkspaceFolder } from '../../../../platform/workspace/common/workspac
 import { PANEL_BACKGROUND, SIDE_BAR_BACKGROUND } from '../../../common/theme.js';
 import { ansiColorIdentifiers } from '../../terminal/common/terminalColorRegistry.js';
 import { DebugLinkHoverBehaviorTypeData, ILinkDetector } from './linkDetector.js';
+const regexpABCDHIJKfhmpsu = /^[ABCDHIJKfhmpsu]$/;
+const regexp2 = /^(?:[34][0-8]|9[0-7]|10[0-7]|[0-9]|2[1-5,7-9]|[34]9|5[8,9]|1[0-9])(?:;[349][0-7]|10[0-7]|[013]|[245]|[34]9)?(?:;[012]?[0-9]?[0-9])*;?m$/;
+
 
 /**
  * @param text The content to stylize.
@@ -51,7 +54,7 @@ export function handleANSIOutput(text: string, linkDetector: ILinkDetector, work
 				currentPos++;
 
 				// Look for a known sequence terminating character.
-				if (char.match(/^[ABCDHIJKfhmpsu]$/)) {
+				if (char.match(regexpABCDHIJKfhmpsu)) {
 					sequenceFound = true;
 					break;
 				}
@@ -70,7 +73,7 @@ export function handleANSIOutput(text: string, linkDetector: ILinkDetector, work
 				 * Certain ranges that are matched here do not contain real graphics rendition sequences. For
 				 * the sake of having a simpler expression, they have been included anyway.
 				 */
-				if (ansiSequence.match(/^(?:[34][0-8]|9[0-7]|10[0-7]|[0-9]|2[1-5,7-9]|[34]9|5[8,9]|1[0-9])(?:;[349][0-7]|10[0-7]|[013]|[245]|[34]9)?(?:;[012]?[0-9]?[0-9])*;?m$/)) {
+				if (ansiSequence.match(regexp2)) {
 
 					const styleCodes: number[] = ansiSequence.slice(0, -1) // Remove final 'm' character.
 						.split(';')										   // Separate style codes.

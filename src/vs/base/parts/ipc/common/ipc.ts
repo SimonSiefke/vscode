@@ -15,6 +15,9 @@ import { DisposableStore, dispose, IDisposable, toDisposable } from '../../../co
 import { revive } from '../../../common/marshalling.js';
 import * as strings from '../../../common/strings.js';
 import { isFunction, isUndefinedOrNull } from '../../../common/types.js';
+const regexpOnDynamic = /^onDynamic/;
+const regexp2 = /\($/;
+
 
 /**
  * An `IChannel` is an abstraction over a collection of commands.
@@ -1277,7 +1280,7 @@ export namespace ProxyChannel {
 
 	function propertyIsDynamicEvent(name: string): boolean {
 		// Assume a property is a dynamic event (a method that returns an event) if it has a form of "onDynamicSomething"
-		return /^onDynamic/.test(name) && strings.isUpperAsciiLetter(name.charCodeAt(9));
+		return regexpOnDynamic.test(name) && strings.isUpperAsciiLetter(name.charCodeAt(9));
 	}
 }
 
@@ -1312,7 +1315,7 @@ function logWithColors(direction: string, totalLength: number, msgLength: number
 	const colorTable = colorTables[initiator];
 	const color = colorTable[req % colorTable.length];
 	let args = [`%c[${direction}]%c[${String(totalLength).padStart(7, ' ')}]%c[len: ${String(msgLength).padStart(5, ' ')}]%c${String(req).padStart(5, ' ')} - ${str}`, 'color: darkgreen', 'color: grey', 'color: grey', `color: ${color}`];
-	if (/\($/.test(str)) {
+	if (regexp2.test(str)) {
 		args = args.concat(data);
 		args.push(')');
 	} else {

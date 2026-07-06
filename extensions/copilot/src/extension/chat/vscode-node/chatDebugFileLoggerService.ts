@@ -20,6 +20,9 @@ import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { extUriBiasedIgnorePathCase } from '../../../util/vs/base/common/resources';
 import { URI } from '../../../util/vs/base/common/uri';
 import { IExtensionContribution } from '../../common/contributions';
+const regexp1 = /\.\./g;
+const regexp2 = /[/\\:*?"<>|\x00-\x1f]/g;
+
 
 const DEBUG_LOGS_DIR_NAME = 'debug-logs';
 const DEFAULT_MAX_RETAINED_LOGS = 50;
@@ -330,7 +333,7 @@ export class ChatDebugFileLoggerService extends Disposable implements IChatDebug
 			// live under a different storage root than the current write root when
 			// the parent was resumed from history.
 			sessionDir = this._resolveParentSessionDir(childInfo.parentSessionId, dir);
-			const safeLabel = childInfo.label.replace(/[/\\:*?"<>|\x00-\x1f]/g, '_').replace(/\.\./g, '_');
+			const safeLabel = childInfo.label.replace(new RegExp(regexp2), '_').replace(new RegExp(regexp1), '_');
 			const fileName = `${safeLabel}-${sessionId}.jsonl`;
 			fileUri = URI.joinPath(sessionDir, fileName);
 

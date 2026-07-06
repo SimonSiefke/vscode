@@ -47,6 +47,8 @@ import { disposableTimeout } from '../../../../../base/common/async.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/contextkeys.js';
 import { Schemas } from '../../../../../base/common/network.js';
+const regexpHtml = /\.html?$/i;
+
 
 const CONTEXT_BROWSER_EDITOR_OPEN = new RawContextKey<boolean>('browserEditorOpen', false, localize('browser.editorOpen', "Whether any browser editor is currently open"));
 
@@ -342,7 +344,7 @@ class OpenFileInIntegratedBrowserAction extends Action2 {
 	constructor() {
 		const IS_LOCAL_HTML_FILE = ContextKeyExpr.and(
 			ResourceContextKey.Scheme.isEqualTo(Schemas.file),
-			ContextKeyExpr.regex(ResourceContextKey.Extension.key, /\.html?$/i),
+			ContextKeyExpr.regex(ResourceContextKey.Extension.key, regexpHtml),
 		);
 		super({
 			id: BrowserViewCommandId.OpenFile,

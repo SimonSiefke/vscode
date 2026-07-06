@@ -20,6 +20,8 @@ import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IWorkspace, IWorkspaceContextService, toWorkspaceFolder } from '../../../../../platform/workspace/common/workspace.js';
 import { Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { toWorkspaceFolders } from '../../../../../platform/workspaces/common/workspaces.js';
+const regexp1 = /\/|\\/g;
+
 
 suite('Snippet Variables Resolver', function () {
 
@@ -106,7 +108,7 @@ suite('Snippet Variables Resolver', function () {
 
 		const labelService = new class extends mock<ILabelService>() {
 			override getUriLabel(uri: URI) {
-				return uri.fsPath.replace(/\/|\\/g, '|');
+				return uri.fsPath.replace(new RegExp(regexp1), '|');
 			}
 		};
 

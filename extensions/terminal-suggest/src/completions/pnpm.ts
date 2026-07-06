@@ -7,6 +7,9 @@
 
 import { npmScriptsGenerator, npmSearchGenerator } from './npm';
 import { dependenciesGenerator, nodeClis } from './yarn';
+const regexp1 = /\S+/g;
+const regexp2 = /\s/;
+
 
 const filterMessages = (out: string): string => {
 	return out.startsWith('warning:') || out.startsWith('error:')
@@ -25,7 +28,7 @@ const searchBranches: Fig.Generator = {
 
 		return output.split('\n').map((elm) => {
 			let name = elm.trim();
-			const parts = elm.match(/\S+/g);
+			const parts = elm.match(new RegExp(regexp1));
 			if (parts && parts.length > 1) {
 				if (parts[0] === '*') {
 					// Current branch.
@@ -81,7 +84,7 @@ const generatorInstalledPackages: Fig.Generator = {
 					!item.toLowerCase().includes('dependencies') &&
 					!item.includes('link:')
 			)
-			.map((item) => item.replace(/\s/, '@')); // typescript 4.7.4 -> typescript@4.7.4
+			.map((item) => item.replace(regexp2, '@')); // typescript 4.7.4 -> typescript@4.7.4
 
 		return output.map((pkg) => {
 			return {

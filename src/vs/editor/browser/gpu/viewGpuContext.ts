@@ -26,6 +26,9 @@ import { Event } from '../../../base/common/event.js';
 import { EditorOption, type IEditorOptions } from '../../common/config/editorOptions.js';
 import { DecorationStyleCache } from './css/decorationStyleCache.js';
 import { InlineDecorationType } from '../../common/viewModel/inlineDecorations.js';
+const regexpVarInitialInherit = /^var\(--[^,]+,\s*(?:initial|inherit)\)$/;
+const regexpPx = /^\d+(\.\d+)?px$/;
+
 
 export class ViewGpuContext extends Disposable {
 	/**
@@ -286,7 +289,7 @@ function supportsCssRule(rule: string, style: CSSStyleDeclaration) {
 		case 'text-decoration-color': {
 			const value = style.getPropertyValue(rule);
 			// Support var(--something, initial/inherit) which falls back to currentcolor
-			if (/^var\(--[^,]+,\s*(?:initial|inherit)\)$/.test(value)) {
+			if (regexpVarInitialInherit.test(value)) {
 				return true;
 			}
 			// Support parsed color values
@@ -300,7 +303,7 @@ function supportsCssRule(rule: string, style: CSSStyleDeclaration) {
 		case 'text-decoration-thickness': {
 			const value = style.getPropertyValue(rule);
 			// Only pixel values and 'initial' are supported
-			return value === 'initial' || /^\d+(\.\d+)?px$/.test(value);
+			return value === 'initial' || regexpPx.test(value);
 		}
 		default: return true;
 	}

@@ -26,12 +26,17 @@ import { ExtHostTunnelService } from '../common/extHostTunnelService.js';
 import { CandidatePort, parseAddress } from '../../services/remote/common/tunnelModel.js';
 import * as vscode from 'vscode';
 import { IExtHostConfiguration } from '../common/extHostConfiguration.js';
+const regexpProcFdSocket = /\/proc\/(\d+)\/fd\/\d+ -> socket:\[(\d+)\]/;
+const regexp2 = /\s+/;
+const regexpVscodeServerZA = /.*\.vscode-server-[a-zA-Z]+\/bin.*/;
+const regexpRoot = /^\d+\s+\D+\s+root\s+(\d+)\s+(\d+).+\d+\:\d+\:\d+\s+(.+)$/;
+
 
 export function getSockets(stdout: string): Record<string, { pid: number; socket: number }> {
 	const lines = stdout.trim().split('\n');
 	const mapped: { pid: number; socket: number }[] = [];
 	lines.forEach(line => {
-		const match = /\/proc\/(\d+)\/fd\/\d+ -> socket:\[(\d+)\]/.exec(line)!;
+		const match = regexpProcFdSocket.exec(line)!;
 		if (match && match.length >= 3) {
 			mapped.push({
 				pid: parseInt(match[1], 10),
@@ -96,9 +101,9 @@ export function parseIpAddress(hex: string): string {
 
 export function loadConnectionTable(stdout: string): Record<string, string>[] {
 	const lines = stdout.trim().split('\n');
-	const names = lines.shift()!.trim().split(/\s+/)
+	const names = lines.shift()!.trim().split(regexp2)
 		.filter(name => name !== 'rx_queue' && name !== 'tm->when');
-	const table = lines.map(line => line.trim().split(/\s+/).reduce((obj: Record<string, string>, value, i) => {
+	const table = lines.map(line => line.trim().split(regexp2).reduce((obj: Record<string, string>, value, i) => {
 		obj[names[i] || i] = value;
 		return obj;
 	}, {}));
@@ -109,7 +114,7 @@ function knownExcludeCmdline(command: string): boolean {
 	if (command.length > 500) {
 		return false;
 	}
-	return !!command.match(/.*\.vscode-server-[a-zA-Z]+\/bin.*/)
+	return !!command.match(regexpVscodeServerZA)
 		|| (command.indexOf('out/server-main.js') !== -1)
 		|| (command.indexOf('_productName=VSCode') !== -1);
 }
@@ -118,7 +123,7 @@ export function getRootProcesses(stdout: string) {
 	const lines = stdout.trim().split('\n');
 	const mapped: { pid: number; cmd: string; ppid: number }[] = [];
 	lines.forEach(line => {
-		const match = /^\d+\s+\D+\s+root\s+(\d+)\s+(\d+).+\d+\:\d+\:\d+\s+(.+)$/.exec(line)!;
+		const match = regexpRoot.exec(line)!;
 		if (match && match.length >= 4) {
 			mapped.push({
 				pid: parseInt(match[1], 10),

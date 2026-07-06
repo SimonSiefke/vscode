@@ -28,6 +28,9 @@ import { BaseWindow } from '../../../browser/window.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { IHostService } from '../../host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../layout/browser/layoutService.js';
+const regexp9aFA9a = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const regexpScriptSrc = /(script-src[^\;]*)/;
+
 
 export const IAuxiliaryWindowService = createDecorator<IAuxiliaryWindowService>('auxiliaryWindowService');
 
@@ -372,7 +375,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 			options?.transparent ? 'window-transparent=yes' : undefined,
 			options?.notResizable ? 'window-not-resizable=yes' : undefined,
 			options?.noBackgroundThrottling ? 'window-no-background-throttling=yes' : undefined,
-			options?.backgroundColor && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(options.backgroundColor) ? `window-background-color=${options.backgroundColor}` : undefined,
+			options?.backgroundColor && regexp9aFA9a.test(options.backgroundColor) ? `window-background-color=${options.backgroundColor}` : undefined,
 		]);
 
 		const auxiliaryWindow = mainWindow.open(isFirefox ? '' /* FF immediately fires an unload event if using about:blank */ : 'about:blank', undefined, features.join(','));
@@ -426,7 +429,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 				if (metaTag === 'meta[http-equiv="Content-Security-Policy"]') {
 					const content = clonedMetaElement.getAttribute('content');
 					if (content) {
-						clonedMetaElement.setAttribute('content', content.replace(/(script-src[^\;]*)/, `script-src 'none'`));
+						clonedMetaElement.setAttribute('content', content.replace(regexpScriptSrc, `script-src 'none'`));
 					}
 				}
 			}

@@ -6,6 +6,8 @@
 import { createMarkdownCommandLink, IMarkdownString, MarkdownString } from '../../../../../../../base/common/htmlContent.js';
 import { localize } from '../../../../../../../nls.js';
 import { ConfirmedReason, IChatToolInvocation, IChatToolInvocationSerialized, ToolConfirmKind } from '../../../../common/chatService/chatService.js';
+const regexp1 = /\\[\\`*_{}\[\]()#+\-!~]/g;
+
 
 export function isMcpToolInvocation(toolInvocation: IChatToolInvocation | IChatToolInvocationSerialized): boolean {
 	return toolInvocation.source?.type === 'mcp' || toolInvocation.toolId.toLowerCase().includes('mcp');
@@ -29,7 +31,7 @@ export function shouldShimmerForTool(toolInvocation: IChatToolInvocation | IChat
 function getMarkdownValue(content: string | IMarkdownString | undefined): string | undefined {
 	return (typeof content === 'string' ? content : content?.value)
 		?.replaceAll('&nbsp;', ' ')
-		.replace(/\\[\\`*_{}\[\]()#+\-!~]/g, escaped => escaped.slice(1));
+		.replace(new RegExp(regexp1), escaped => escaped.slice(1));
 }
 
 /**

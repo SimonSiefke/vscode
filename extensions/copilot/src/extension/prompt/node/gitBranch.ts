@@ -15,6 +15,14 @@ import { IInstantiationService } from '../../../util/vs/platform/instantiation/c
 import { ChatRequestTurn } from '../../../vscodeTypes';
 import { renderPromptElement } from '../../prompts/node/base/promptRenderer';
 import { GitBranchPrompt } from '../../prompts/node/panel/gitBranch';
+const regexp1 = /^\/+/;
+const regexp2 = /^".*"$/;
+const regexpZAZ0 = /[^a-zA-Z0-9\-]/g;
+const regexp4 = /\.{2,}/g;
+const regexp5 = /^[-.]+/;
+const regexp6 = /[./]+$/;
+const regexpLock = /\.lock$/;
+
 
 export class GitBranchNameGenerator {
 
@@ -42,7 +50,7 @@ export class GitBranchNameGenerator {
 		const parentChatSessionId = sessionResource ? sessionResourceToId(URI.from(sessionResource)) : undefined;
 
 		const endpoint = await this.endpointProvider.getChatEndpoint('copilot-utility-small');
-		const normalizedCommand = firstRequest.command?.trim().replace(/^\/+/, '') ?? '';
+		const normalizedCommand = firstRequest.command?.trim().replace(regexp1, '') ?? '';
 		const command = normalizedCommand ? `/${normalizedCommand} ` : '';
 		const userRequest = `${command}${firstRequest.prompt}`;
 		const { messages } = await renderPromptElement(this.instantiationService, endpoint, GitBranchPrompt, { userRequest });
@@ -77,7 +85,7 @@ export class GitBranchNameGenerator {
 
 		if (response.type === ChatFetchResponseType.Success) {
 			let branchName = response.value.trim();
-			if (branchName.match(/^".*"$/)) {
+			if (branchName.match(regexp2)) {
 				branchName = branchName.slice(1, -1);
 			}
 			if (branchName.includes('can\'t assist with that')) {
@@ -100,15 +108,15 @@ export class GitBranchNameGenerator {
 
 export function normalizeBranchName(branchName: string): string {
 	// Only support alphanumeric characters and dashes for simplicity.
-	let normalized = branchName.replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase();
+	let normalized = branchName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
 	// Collapse consecutive dots (..) into a single dot
-	normalized = normalized.replace(/\.{2,}/g, '.');
+	normalized = normalized.replace(new RegExp(regexp4), '.');
 	// Strip leading '-' or '.'
-	normalized = normalized.replace(/^[-.]+/, '');
+	normalized = normalized.replace(regexp5, '');
 	// Strip trailing '.' or '/'
-	normalized = normalized.replace(/[./]+$/, '');
+	normalized = normalized.replace(regexp6, '');
 	// Strip trailing .lock
-	normalized = normalized.replace(/\.lock$/, '');
+	normalized = normalized.replace(regexpLock, '');
 
 	return normalized;
 }

@@ -16,6 +16,8 @@ import { OpenAIEndpoint } from '../node/openAIEndpoint';
 import { AbstractOpenAICompatibleLMProvider, LanguageModelChatConfiguration, OpenAICompatibleLanguageModelChatInformation } from './abstractLanguageModelChatProvider';
 import { byokKnownModelToAPIInfoWithEffort } from './byokModelInfo';
 import { IBYOKStorageService } from './byokStorageService';
+const regexp1 = /\/v\d+$/;
+
 
 export function resolveCustomOAIUrl(modelId: string, url: string): string {
 	// The fully resolved url was already passed in
@@ -32,7 +34,7 @@ export function resolveCustomOAIUrl(modelId: string, url: string): string {
 	const defaultApiPath = '/chat/completions';
 
 	// Check if URL already contains any version pattern like /v1, /v2, etc
-	const versionPattern = /\/v\d+$/;
+	const versionPattern = regexp1;
 	if (versionPattern.test(url)) {
 		return `${url}${defaultApiPath}`;
 	}

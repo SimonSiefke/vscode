@@ -41,6 +41,8 @@ import { shouldPotentiallyIndexFile } from '../workspaceFileIndex';
 import { CodeSearchRepoStatus, TriggerIndexingError, TriggerRemoteIndexingError } from './codeSearchRepo';
 import { computeCheckpointHash, ExternalIngestFile, ExternalIngestFileSet, ExternalIngestRequestError, IExternalIngestClient } from './externalIngestClient';
 import { WorkspaceFolderIdMap } from './workspaceFolderIdMap';
+const regexp1 = /\/?$/;
+
 
 const debug = false;
 
@@ -1031,7 +1033,7 @@ export class ExternalIngestIndex extends Disposable {
 	}
 
 	private deleteFolder(folder: URI): void {
-		const folderKey = folder.toString().replace(/\/?$/, '/');
+		const folderKey = folder.toString().replace(regexp1, '/');
 		this._db.prepare('DELETE FROM Files WHERE path LIKE ?').run(`${folderKey}%`);
 	}
 

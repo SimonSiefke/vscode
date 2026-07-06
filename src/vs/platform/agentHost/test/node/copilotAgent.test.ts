@@ -58,6 +58,11 @@ import { createNullSessionDataService } from '../common/sessionTestHelpers.js';
 import { ActiveClientToolSet } from '../../node/activeClientState.js';
 import { ByokLmBridgeRegistry, IByokLmBridgeRegistry } from '../../node/byokLmBridgeRegistry.js';
 import { ICopilotApiService, type ICopilotApiServiceRequestOptions, type ICopilotUtilityChatCompletionRequest } from '../../node/shared/copilotApiService.js';
+const regexpBoom = /boom/;
+const regexpUnknownChat = /unknown chat/;
+const regexpFirstFailed = /first failed/;
+const regexpSessionFileIs = /Session file is corrupted/;
+
 
 /**
  * Test helpers for the single `_sessions` container. All chats (default + peers)
@@ -2287,7 +2292,7 @@ suite('CopilotAgent', () => {
 				await agent.authenticate('https://api.github.com', 'token');
 
 				const session = AgentSession.uri('copilotcli', 'persisted-session-2');
-				await assert.rejects(() => agent.disposeSession(session), /boom/);
+				await assert.rejects(() => agent.disposeSession(session), regexpBoom);
 			} finally {
 				await disposeAgent(agent);
 			}
@@ -2824,7 +2829,7 @@ suite('CopilotAgent', () => {
 				const chatUri = URI.parse(buildChatUri(session, 'ghost'));
 				await assert.rejects(
 					() => agent.chats.sendMessage(chatUri, 'hi'),
-					/unknown chat/,
+					regexpUnknownChat,
 				);
 			} finally {
 				await disposeAgent(agent);
@@ -3459,7 +3464,7 @@ suite('CopilotAgent', () => {
 				return makeFakeSession();
 			};
 			try {
-				await assert.rejects(() => internals._resumeSession('s1'), /first failed/);
+				await assert.rejects(() => internals._resumeSession('s1'), regexpFirstFailed);
 				await internals._resumeSession('s1');
 				assert.strictEqual(attempt, 2);
 			} finally {
@@ -3574,7 +3579,7 @@ suite('CopilotAgent', () => {
 			const internals = agent as unknown as AgentInternals;
 			try {
 				await agent.authenticate(GITHUB_COPILOT_PROTECTED_RESOURCE.resource, 'token');
-				await assert.rejects(() => internals._resumeSession('s1'), /Session file is corrupted/);
+				await assert.rejects(() => internals._resumeSession('s1'), regexpSessionFileIs);
 				assert.strictEqual(getCreateSessionCalls(), 0);
 			} finally {
 				await disposeAgent(agent);

@@ -14,6 +14,14 @@ import { mock } from '../../../../base/test/common/mock.js';
 import * as perfData from './extHostDocumentData.test.perf-data.js';
 import { setDefaultGetWordAtTextConfig } from '../../../../editor/common/core/wordHelper.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+const regexp1 = /.*/;
+const regexp2 = /[a-z+]+/;
+const regexpYy = /yy/;
+const regexp4 = /\/\*.+\*\//;
+const regexp5 = /("|').*\1/;
+const regexpHttpsGithubCom = /(https?:\/\/github\.com\/(([^\s]+)\/([^\s]+))\/([^\s]+\/)?(issues|pull)\/([0-9]+))|(([^\s]+)\/([^\s]+))?#([1-9][0-9]*)($|[\s\:\;\-\(\=])/;
+const regexp7 = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\$\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
+
 
 suite('ExtHostDocumentData', () => {
 
@@ -271,21 +279,21 @@ suite('ExtHostDocumentData', () => {
 		assert.strictEqual(range.end.character, 4);
 
 		// ignore bad regular expresson /.*/
-		assert.throws(() => data.document.getWordRangeAtPosition(new Position(0, 2), /.*/)!);
+		assert.throws(() => data.document.getWordRangeAtPosition(new Position(0, 2), regexp1)!);
 
-		range = data.document.getWordRangeAtPosition(new Position(0, 5), /[a-z+]+/)!;
+		range = data.document.getWordRangeAtPosition(new Position(0, 5), regexp2)!;
 		assert.strictEqual(range.start.line, 0);
 		assert.strictEqual(range.start.character, 5);
 		assert.strictEqual(range.end.line, 0);
 		assert.strictEqual(range.end.character, 14);
 
-		range = data.document.getWordRangeAtPosition(new Position(0, 17), /[a-z+]+/)!;
+		range = data.document.getWordRangeAtPosition(new Position(0, 17), regexp2)!;
 		assert.strictEqual(range.start.line, 0);
 		assert.strictEqual(range.start.character, 15);
 		assert.strictEqual(range.end.line, 0);
 		assert.strictEqual(range.end.character, 18);
 
-		range = data.document.getWordRangeAtPosition(new Position(0, 11), /yy/)!;
+		range = data.document.getWordRangeAtPosition(new Position(0, 11), regexpYy)!;
 		assert.strictEqual(range, undefined);
 	});
 
@@ -298,19 +306,19 @@ suite('ExtHostDocumentData', () => {
 			'}'
 		], '\n', 1, 'text', false, 'utf8');
 
-		let range = data.document.getWordRangeAtPosition(new Position(0, 0), /\/\*.+\*\//);
+		let range = data.document.getWordRangeAtPosition(new Position(0, 0), regexp4);
 		assert.strictEqual(range, undefined);
 
-		range = data.document.getWordRangeAtPosition(new Position(1, 0), /\/\*.+\*\//)!;
+		range = data.document.getWordRangeAtPosition(new Position(1, 0), regexp4)!;
 		assert.strictEqual(range.start.line, 1);
 		assert.strictEqual(range.start.character, 0);
 		assert.strictEqual(range.end.line, 1);
 		assert.strictEqual(range.end.character, 14);
 
-		range = data.document.getWordRangeAtPosition(new Position(3, 0), /("|').*\1/);
+		range = data.document.getWordRangeAtPosition(new Position(3, 0), regexp5);
 		assert.strictEqual(range, undefined);
 
-		range = data.document.getWordRangeAtPosition(new Position(3, 1), /("|').*\1/)!;
+		range = data.document.getWordRangeAtPosition(new Position(3, 1), regexp5)!;
 		assert.strictEqual(range.start.line, 3);
 		assert.strictEqual(range.start.character, 1);
 		assert.strictEqual(range.end.line, 3);
@@ -320,7 +328,7 @@ suite('ExtHostDocumentData', () => {
 
 	test('getWordRangeAtPosition can freeze the extension host #95319', function () {
 
-		const regex = /(https?:\/\/github\.com\/(([^\s]+)\/([^\s]+))\/([^\s]+\/)?(issues|pull)\/([0-9]+))|(([^\s]+)\/([^\s]+))?#([1-9][0-9]*)($|[\s\:\;\-\(\=])/;
+		const regex = regexpHttpsGithubCom;
 
 		data = new ExtHostDocumentData(undefined!, URI.file(''), [
 			perfData._$_$_expensive
@@ -346,7 +354,7 @@ suite('ExtHostDocumentData', () => {
 
 	test('Rename popup sometimes populates with text on the left side omitted #96013', function () {
 
-		const regex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\$\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
+		const regex = new RegExp(regexp7);
 		const line = 'int abcdefhijklmnopqwvrstxyz;';
 
 		data = new ExtHostDocumentData(undefined!, URI.file(''), [

@@ -49,6 +49,11 @@ import { compareIgnoreCase } from '../../../../base/common/strings.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
+const regexpId = /^@id:(.+)$/;
+const regexpSettingsJson = /\/(\d+\/)?settings\.json$/;
+const regexpWorkspaceSettingsJson = /\/(\d+\/)?workspaceSettings\.json$/;
+const regexpResourceSettingsJson = /\/(\d+\/)?resourceSettings\.json$/;
+
 
 const emptyEditableSettingsContent = '{\n}';
 
@@ -251,7 +256,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 
 		if (options.jsonEditor && options.query && !options.revealSetting) {
 			const query = options.query.trim();
-			const idMatch = query.match(/^@id:(.+)$/);
+			const idMatch = query.match(regexpId);
 			let key: string | undefined;
 			if (idMatch) {
 				key = idMatch[1].trim();
@@ -460,15 +465,15 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 	}
 
 	private isDefaultUserSettingsResource(uri: URI): boolean {
-		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(/\/(\d+\/)?settings\.json$/);
+		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(regexpSettingsJson);
 	}
 
 	private isDefaultWorkspaceSettingsResource(uri: URI): boolean {
-		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(/\/(\d+\/)?workspaceSettings\.json$/);
+		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(regexpWorkspaceSettingsJson);
 	}
 
 	private isDefaultFolderSettingsResource(uri: URI): boolean {
-		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(/\/(\d+\/)?resourceSettings\.json$/);
+		return uri.authority === 'defaultsettings' && uri.scheme === network.Schemas.vscode && !!uri.path.match(regexpResourceSettingsJson);
 	}
 
 	private getDefaultSettingsResource(configurationTarget: ConfigurationTarget): URI {

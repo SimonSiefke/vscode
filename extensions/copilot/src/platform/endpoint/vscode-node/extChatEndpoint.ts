@@ -28,6 +28,9 @@ import { CustomDataPartMimeTypes } from '../common/endpointTypes';
 import { decodeStatefulMarker, encodeStatefulMarker, rawPartAsStatefulMarker } from '../common/statefulMarkerContainer';
 import { rawPartAsThinkingData } from '../common/thinkingDataContainer';
 import { ExtensionContributedChatTokenizer } from './extChatTokenizer';
+const regexp1 = /^\d+$/;
+const regexpDataBase64 = /^data:([^;]+);base64,(.*)$/;
+
 
 enum ChatImageMimeType {
 	PNG = 'image/png',
@@ -315,7 +318,7 @@ function getTelemetryTurnFromProperties(telemetryProperties: IMakeChatRequestOpt
 		return undefined;
 	}
 
-	if (!/^\d+$/.test(telemetryProperties.turnIndex)) {
+	if (!regexp1.test(telemetryProperties.turnIndex)) {
 		return undefined;
 	}
 
@@ -334,7 +337,7 @@ export function convertToApiChatMessage(messages: Raw.ChatMessage[]): Array<vsco
 			} else if (contentPart.type === Raw.ChatCompletionContentPartKind.Image) {
 				// Handle base64 encoded images
 				if (contentPart.imageUrl.url.startsWith('data:')) {
-					const dataUrlRegex = /^data:([^;]+);base64,(.*)$/;
+					const dataUrlRegex = regexpDataBase64;
 					const match = contentPart.imageUrl.url.match(dataUrlRegex);
 
 					if (match) {

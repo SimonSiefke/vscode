@@ -13,6 +13,8 @@ import { debugGetObservableGraph } from '../logging/debugGetDependencyGraph';
 import { getLogger, logObservable } from '../logging/logging';
 import type { keepObserved, recomputeInitiallyAndOnChange } from '../utils/utils';
 import { derivedOpts } from './derived';
+const regexpZAZAZA = /^\s*\(?\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*\)?\s*=>\s*\1(?:\??)\.([a-zA-Z_$][a-zA-Z_$0-9]*)\s*$/;
+
 
 let _derived: typeof derivedOpts;
 /**
@@ -76,7 +78,7 @@ export abstract class ConvenientObservable<T, TChange> implements IObservableWit
 					}
 
 					// regexp to match `x => x.y` or `x => x?.y` where x and y can be arbitrary identifiers (uses backref):
-					const regexp = /^\s*\(?\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*\)?\s*=>\s*\1(?:\??)\.([a-zA-Z_$][a-zA-Z_$0-9]*)\s*$/;
+					const regexp = regexpZAZAZA;
 					const match = regexp.exec(fn.toString());
 					if (match) {
 						return `${this.debugName}.${match[2]}`;

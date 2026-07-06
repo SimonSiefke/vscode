@@ -38,6 +38,9 @@ import { ICommandService } from '../../../../../../platform/commands/common/comm
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { ITerminalChatService } from '../../../../terminal/browser/terminal.js';
 import './media/chatQuestionCarousel.css';
+const regexp1 = /[:\s]+$/;
+const regexp2 = /^\d{4}-\d{2}-\d{2}$/;
+
 
 const PREVIOUS_QUESTION_ACTION_ID = 'workbench.action.chat.previousQuestion';
 const NEXT_QUESTION_ACTION_ID = 'workbench.action.chat.nextQuestion';
@@ -1602,7 +1605,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 			const questionRow = dom.$('div.chat-question-summary-label');
 			const questionText = question.message ?? question.title;
 			let labelText = typeof questionText === 'string' ? questionText : questionText.value;
-			labelText = labelText.replace(/[:\s]+$/, '');
+			labelText = labelText.replace(regexp1, '');
 			questionRow.textContent = localize('chat.questionCarousel.summaryQuestion', 'Q: {0}', labelText);
 			summaryItem.appendChild(questionRow);
 
@@ -1747,7 +1750,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 					}
 					break;
 				case 'date': {
-					const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+					const dateRegex = regexp2;
 					if (!dateRegex.test(value) || isNaN(new Date(value).getTime())) {
 						return localize('chat.questionCarousel.validation.date', 'Please enter a valid date (YYYY-MM-DD)');
 					}

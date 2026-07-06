@@ -7,10 +7,13 @@ import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { Application, Logger } from '../../../../automation';
 import { installAllHandlers } from '../../utils';
+const regexp1 = /\\/g;
+const regexpSmoketestWorkspace = /smoketest \(Workspace\)/i;
+
 
 function toUri(path: string): string {
 	if (process.platform === 'win32') {
-		return `${path.replace(/\\/g, '/')}`;
+		return `${path.replace(new RegExp(regexp1), '/')}`;
 	}
 
 	return `${path}`;
@@ -72,7 +75,7 @@ export function setup(logger: Logger) {
 		it('shows workspace name in title', async function () {
 			const app = this.app as Application;
 
-			await app.code.waitForTitle(title => /smoketest \(Workspace\)/i.test(title));
+			await app.code.waitForTitle(title => regexpSmoketestWorkspace.test(title));
 		});
 	});
 }

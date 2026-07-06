@@ -54,6 +54,8 @@ import { ChatEditingNotebookDiffEditorIntegration, ChatEditingNotebookEditorInte
 import { ChatEditingNotebookFileSystemProvider } from './notebook/chatEditingNotebookFileSystemProvider.js';
 import { adjustCellDiffAndOriginalModelBasedOnCellAddDelete, adjustCellDiffAndOriginalModelBasedOnCellMovements, adjustCellDiffForKeepingAnInsertedCell, adjustCellDiffForRevertingADeletedCell, adjustCellDiffForRevertingAnInsertedCell, calculateNotebookRewriteRatio, getCorrespondingOriginalCellIndex, isTransientIPyNbExtensionEvent } from './notebook/helpers.js';
 import { countChanges, ICellDiffInfo, sortCellChanges } from './notebook/notebookCellChanges.js';
+const regexp1 = /\r?\n/;
+
 
 
 const SnapshotLanguageId = 'VSCodeChatNotebookSnapshotLanguage';
@@ -730,7 +732,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 	}
 	createInsertedCellDiffInfo(modifiedCellIndex: number): ICellDiffInfo {
 		const cell = this.modifiedModel.cells[modifiedCellIndex];
-		const lines = cell.getValue().split(/\r?\n/);
+		const lines = cell.getValue().split(regexp1);
 		const originalRange = new Range(1, 0, 1, 0);
 		const modifiedRange = new Range(1, 0, lines.length, lines[lines.length - 1].length);
 		const innerChanges = new RangeMapping(originalRange, modifiedRange);

@@ -21,6 +21,9 @@ import { CopilotConfigPrefix } from '../../lib/src/constants';
 import { Logger } from '../../lib/src/logger';
 import { transformEvent } from '../../lib/src/util/event';
 import { Schemas } from '../../../../../util/vs/base/common/network';
+const regexpInsiders = /-insiders$/;
+const regexpInsiders1 = / - Insiders$/;
+
 
 const logger = new Logger('extensionConfig');
 
@@ -86,7 +89,7 @@ export class VSCodeEditorInfo implements ICompletionsEditorAndPluginInfo {
 	getEditorInfo() {
 		let devName = vscode.env.uriScheme;
 		if (vscode.version.endsWith('-insider')) {
-			devName = devName.replace(/-insiders$/, '');
+			devName = devName.replace(regexpInsiders, '');
 		}
 		const remoteName = vscode.env.remoteName;
 		if (remoteName) {
@@ -94,7 +97,7 @@ export class VSCodeEditorInfo implements ICompletionsEditorAndPluginInfo {
 		}
 		return {
 			name: 'vscode',
-			readableName: vscode.env.appName.replace(/ - Insiders$/, ''),
+			readableName: vscode.env.appName.replace(regexpInsiders1, ''),
 			devName: devName,
 			version: vscode.version,
 			root: vscode.env.appRoot,

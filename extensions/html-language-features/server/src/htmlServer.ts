@@ -30,6 +30,9 @@ import { fetchHTMLDataProviders } from './customData.js';
 import { getSelectionRanges } from './modes/selectionRanges.js';
 import { SemanticTokenProvider, newSemanticTokenProvider } from './modes/semanticTokens.js';
 import { FileSystemProvider, getFileSystemProvider } from './requests.js';
+const regexpBstyle = /\bstyle\b/;
+const regexpBscript = /\bscript\b/;
+
 
 namespace CustomDataChangedNotification {
 	export const type: NotificationType<string[]> = new NotificationType('html/customDataChanged');
@@ -412,7 +415,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 				settings = globalSettings;
 			}
 			const unformattedTags: string = settings && settings.html && settings.html.format && settings.html.format.unformatted || '';
-			const enabledModes = { css: !unformattedTags.match(/\bstyle\b/), javascript: !unformattedTags.match(/\bscript\b/) };
+			const enabledModes = { css: !unformattedTags.match(regexpBstyle), javascript: !unformattedTags.match(regexpBscript) };
 
 			const edits = await format(languageModes, document, range ?? getFullRange(document), options, settings, enabledModes);
 			if (edits.length > formatterMaxNumberOfEdits) {

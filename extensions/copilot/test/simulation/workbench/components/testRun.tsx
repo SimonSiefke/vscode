@@ -21,6 +21,9 @@ import { ErrorComparison } from './errorComparison';
 import { OutputView } from './output';
 import { RequestView } from './request';
 import { TestCaseSummary } from './testCaseSummary';
+const regexp1 = /\x1b\[[0-9;]*m/g;
+const regexp2 = /\.\w+/;
+
 
 type TestRunViewProps = {
 	readonly test: ISimulationTest;
@@ -519,7 +522,7 @@ const ErrorMessageBar = mobxlite.observer(({ error }: { error: string }) => {
 });
 
 function stripAnsiiColors(str: string) {
-	return str.replace(/\x1b\[[0-9;]*m/g, '');
+	return str.replace(new RegExp(regexp1), '');
 }
 
 type ExpectedDiffProps = {
@@ -535,7 +538,7 @@ const ExpectedDiff = mobxlite.observer(
 						Expected diff [{details.path}]
 					</div>
 					<DiffEditor
-						languageId={details.path.match(/\.\w+/)?.[0].substring(1) ?? 'plaintext'}
+						languageId={details.path.match(regexp2)?.[0].substring(1) ?? 'plaintext'}
 						modified={details.modified}
 						original={details.original} />
 				</div>;

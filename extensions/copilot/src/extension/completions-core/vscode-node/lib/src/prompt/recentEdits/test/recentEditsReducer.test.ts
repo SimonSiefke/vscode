@@ -23,6 +23,9 @@ import {
 	unifiedDiff,
 	updateEdits,
 } from '../recentEditsReducer';
+const regexp1 = /\n {12}/g;
+const regexpSubLinear = /^(sub)?linear$/;
+
 
 // Note, that this configuration is only used in testing, and is different from the one used in production.
 const config: RecentEditsConfig = {
@@ -624,7 +627,7 @@ suite('recentEditsReducer', function () {
  L53
  L54
 		`
-				.replace(/\n {12}/g, '\n')
+				.replace(new RegExp(regexp1), '\n')
 				.trim() + '\n'
 		);
 	});
@@ -965,7 +968,7 @@ suite('recentEditsReducer performance', function () {
 		const { model } = determineTimeComplexity(complexityData);
 		assert.match(
 			model.type,
-			/^(sub)?linear$/,
+			regexpSubLinear,
 			`Time complexity must be linear or sublinear. Got ${model.name} which is ${model.type}`
 		);
 	});

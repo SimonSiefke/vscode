@@ -5,6 +5,8 @@
 
 //@ts-check
 'use strict';
+const regexp1 = /[^\w]/g;
+
 
 // mocha disables running through electron by default. Note that this must
 // come before any mocha imports.
@@ -402,7 +404,7 @@ app.on('ready', () => {
 			new MochaJUnitReporter(runner, {
 				reporterOptions: {
 					testsuitesTitle: `${args.tfs} ${process.platform}`,
-					mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${args.tfs.toLowerCase().replace(/[^\w]/g, '-')}-results.xml`) : undefined
+					mochaFile: testResultsRoot ? path.join(testResultsRoot, `test-results/${process.platform}-${process.arch}-${args.tfs.toLowerCase().replace(new RegExp(regexp1), '-')}-results.xml`) : undefined
 				}
 			}),
 		);

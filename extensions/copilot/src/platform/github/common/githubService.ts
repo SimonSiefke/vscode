@@ -12,6 +12,8 @@ import { ILogService } from '../../log/common/logService';
 import { IFetcherService } from '../../networking/common/fetcherService';
 import { ITelemetryService } from '../../telemetry/common/telemetry';
 import { addPullRequestCommentGraphQLRequest, AssignableActor, closePullRequest, getPullRequestFromGlobalId, makeGitHubAPIRequest, makeSearchGraphQLRequest, PullRequestComment, PullRequestSearchItem, SessionInfo } from './githubAPI';
+const regexp1 = /\n/g;
+
 
 /**
  * Options for controlling authentication behavior in OctoKit service methods.
@@ -646,7 +648,7 @@ export class BaseOctoKitService {
 		const typedResponse = response as GitHubContentResponse;
 
 		if (typedResponse.content && typedResponse.encoding === 'base64') {
-			return decodeBase64(typedResponse.content.replace(/\n/g, '')).toString();
+			return decodeBase64(typedResponse.content.replace(new RegExp(regexp1), '')).toString();
 		}
 
 		if (typedResponse.sha) {
@@ -824,7 +826,7 @@ export class BaseOctoKitService {
 
 		const typedBlob = blobResponse as GitHubBlobResponse;
 		if (typedBlob.content && typedBlob.encoding === 'base64') {
-			return decodeBase64(typedBlob.content.replace(/\n/g, '')).toString();
+			return decodeBase64(typedBlob.content.replace(new RegExp(regexp1), '')).toString();
 		}
 
 		return undefined;

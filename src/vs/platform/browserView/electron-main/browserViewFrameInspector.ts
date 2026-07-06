@@ -8,6 +8,8 @@ import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../
 import { IElementData, IElementAncestor, IBrowserViewTheme } from '../common/browserView.js';
 import { collapseToShorthands, formatMatchedStyles, keyComputedProperties, type IMatchedStyles } from '../common/cssHelpers.js';
 import { ICDPConnection } from '../common/cdp/types.js';
+const regexp1 = /\s+/;
+
 
 export interface IFrameElementHandle extends IDisposable {
 	addToChat(): Promise<void>;
@@ -421,7 +423,7 @@ export async function extractNodeData(connection: ICDPConnection, id: { backendN
 		ancestors.unshift({
 			tagName: currentNode.localName,
 			id: attributes.id,
-			classNames: attributes.class?.trim().split(/\s+/).filter(Boolean)
+			classNames: attributes.class?.trim().split(regexp1).filter(Boolean)
 		});
 		currentNode = currentNode.parentId ? discoveredNodesByNodeId[currentNode.parentId] : undefined;
 	}

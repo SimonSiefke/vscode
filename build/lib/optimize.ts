@@ -15,6 +15,14 @@ import fancyLog from 'fancy-log';
 import ansiColors from 'ansi-colors';
 import { getTargetStringFromTsConfig } from './tsconfigUtils.ts';
 import { createRequire } from 'module';
+const regexp1 = /\.[^/.]+$/;
+const regexpJs = /\.js$/;
+const regexp3 = /\\/g;
+const regexpMinimist = /^minimist$/;
+const regexpJsCss = /\.(js|css)$/;
+const regexpJsCssMap = /\.(js|css)\.map$/;
+const regexp7 = /[^\x00-\xFF]+/g;
+
 
 const require = createRequire(import.meta.url);
 
@@ -84,7 +92,7 @@ function bundleESMTask(opts: IBundleESMTaskOpts): NodeJS.ReadWriteStream {
 			fancyLog(`Bundled entry point: ${ansiColors.yellow(entryPoint.name)}...`);
 
 			// support for 'dest' via esbuild#in/out
-			const dest = entryPoint.dest?.replace(/\.[^/.]+$/, '') ?? entryPoint.name;
+			const dest = entryPoint.dest?.replace(regexp1, '') ?? entryPoint.name;
 
 			// banner contents
 			const banner = {
@@ -101,7 +109,7 @@ function bundleESMTask(opts: IBundleESMTaskOpts): NodeJS.ReadWriteStream {
 			const contentsMapper: esbuild.Plugin = {
 				name: 'contents-mapper',
 				setup(build) {
-					build.onLoad({ filter: /\.js$/ }, async ({ path }) => {
+					build.onLoad({ filter: regexpJs }, async ({ path }) => {
 						const contents = await fs.promises.readFile(path, 'utf-8');
 
 						// TS Boilerplate
@@ -113,7 +121,7 @@ function bundleESMTask(opts: IBundleESMTaskOpts): NodeJS.ReadWriteStream {
 						}
 
 						// File Content Mapper
-						const mapper = opts.fileContentMapper?.(path.replace(/\\/g, '/'));
+						const mapper = opts.fileContentMapper?.(path.replace(new RegExp(regexp3), '/'));
 						if (mapper) {
 							newContents = await mapper(newContents);
 						}
@@ -128,7 +136,7 @@ function bundleESMTask(opts: IBundleESMTaskOpts): NodeJS.ReadWriteStream {
 				setup(build) {
 					// We inline selected modules that are we depend on on startup without
 					// a conditional `await import(...)` by hooking into the resolution.
-					build.onResolve({ filter: /^minimist$/ }, () => {
+					build.onResolve({ filter: regexpMinimist }, () => {
 						return { path: path.join(REPO_ROOT_PATH, 'node_modules', 'minimist', 'index.js'), external: false };
 					});
 				},
@@ -247,11 +255,11 @@ export function minifyTask(src: string, sourceMapBaseUrl?: string): (cb: any) =>
 					target: [target],
 					write: false,
 				}).then(res => {
-					const jsOrCSSFile = res.outputFiles.find(f => /\.(js|css)$/.test(f.path))!;
-					const sourceMapFile = res.outputFiles.find(f => /\.(js|css)\.map$/.test(f.path))!;
+					const jsOrCSSFile = res.outputFiles.find(f => regexpJsCss.test(f.path))!;
+					const sourceMapFile = res.outputFiles.find(f => regexpJsCssMap.test(f.path))!;
 
 					const contents = Buffer.from(jsOrCSSFile.contents);
-					const unicodeMatch = contents.toString().match(/[^\x00-\xFF]+/g);
+					const unicodeMatch = contents.toString().match(new RegExp(regexp7));
 					if (unicodeMatch) {
 						cb(new Error(`Found non-ascii character ${unicodeMatch[0]} in the minified output of ${f.path}. Non-ASCII characters in the output can cause performance problems when loading. Please review if you have introduced a regular expression that esbuild is not automatically converting and convert it to using unicode escape sequences.`));
 					} else {

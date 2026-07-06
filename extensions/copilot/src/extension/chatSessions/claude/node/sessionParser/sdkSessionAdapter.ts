@@ -28,6 +28,9 @@ import {
 	vAssistantMessageContent,
 	vUserMessageContent,
 } from './claudeSessionSchema';
+const regexpSystemReminderSystem = /<system-reminder>[\s\S]*?<\/system-reminder>\s*/g;
+const regexp2 = /\s+/g;
+
 
 // #region Label Helpers
 
@@ -36,7 +39,7 @@ import {
  * The SDK includes raw system-reminder blocks in `summary` and `firstPrompt` fields.
  */
 function stripSystemReminders(text: string): string {
-	return text.replace(/<system-reminder>[\s\S]*?<\/system-reminder>\s*/g, '').trim();
+	return text.replace(new RegExp(regexpSystemReminderSystem), '').trim();
 }
 
 /**
@@ -64,7 +67,7 @@ function computeSessionLabel(info: SDKSessionInfo): string {
 const MAX_LABEL_LENGTH = 50;
 
 function truncateLabel(text: string): string {
-	const singleLine = text.replace(/\s+/g, ' ');
+	const singleLine = text.replace(new RegExp(regexp2), ' ');
 	if (singleLine.length <= MAX_LABEL_LENGTH) {
 		return singleLine;
 	}

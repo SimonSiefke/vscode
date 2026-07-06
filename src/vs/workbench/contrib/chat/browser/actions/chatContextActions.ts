@@ -53,6 +53,8 @@ import { resizeImage } from '../chatImageUtils.js';
 import { registerPromptActions } from '../promptSyntax/promptFileActions.js';
 import { CHAT_CATEGORY } from './chatActions.js';
 import { registerCreatePluginAction } from './createPluginAction.js';
+const regexpPngJpgJpeg = /\.(png|jpg|jpeg|bmp|gif|tiff)$/i;
+
 
 export function registerChatContextActions(): DisposableStore {
 	const store = new DisposableStore();
@@ -613,7 +615,7 @@ export class AttachContextAction extends Action2 {
 		const toAttach: IChatRequestVariableEntry[] = [];
 
 		if (isIQuickPickItemWithResource(pick) && pick.resource) {
-			if (/\.(png|jpg|jpeg|bmp|gif|tiff)$/i.test(pick.resource.path)) {
+			if (regexpPngJpgJpeg.test(pick.resource.path)) {
 				// checks if the file is an image
 				if (URI.isUri(pick.resource)) {
 					// read the image and attach a new file context.

@@ -38,6 +38,9 @@ import { Menus } from '../../../browser/menus.js';
 import { INonSessionTaskEntry, ISessionsTasksService, ISessionTaskWithTarget, ITaskEntry, TaskStorageTarget } from './sessionsTasksService.js';
 import { IsAuxiliaryWindowContext } from '../../../../workbench/common/contextkeys.js';
 import { IRunScriptCustomTaskWidgetResult, RunScriptCustomTaskWidget } from './runScriptCustomTaskWidget.js';
+const regexpWww = /^www\./i;
+const regexpHttps = /^https?:\/\//i;
+
 
 
 // Menu IDs - exported for use in auxiliary bar part
@@ -87,7 +90,7 @@ function formatBrowserUrlDescription(url: string | undefined, maxLength: number)
 	if (!url) {
 		return undefined;
 	}
-	const stripped = url.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+	const stripped = url.replace(regexpHttps, '').replace(regexpWww, '');
 	if (stripped.length <= maxLength) {
 		return stripped;
 	}

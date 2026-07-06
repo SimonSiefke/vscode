@@ -30,6 +30,8 @@ import { RawObjectReplElement, ReplEvaluationInput, ReplEvaluationResult, ReplGr
 import { AbstractExpressionsRenderer, IExpressionTemplateData, IInputBoxOptions } from './baseDebugView.js';
 import { DebugExpressionRenderer } from './debugExpressionRenderer.js';
 import { debugConsoleEvaluationInput } from './debugIcons.js';
+const regexp1 = /\n/g;
+
 
 const $ = dom.$;
 
@@ -344,7 +346,7 @@ export class ReplDelegate extends CachedListVirtualDelegate<IReplElement> {
 	 */
 	protected estimateHeight(element: IReplElement, ignoreValueLength = false): number {
 		const lineHeight = this.replOptions.replConfiguration.lineHeight;
-		const countNumberOfLines = (str: string) => str.match(/\n/g)?.length ?? 0;
+		const countNumberOfLines = (str: string) => str.match(new RegExp(regexp1))?.length ?? 0;
 		const hasValue = (e: any): e is { value: string } => typeof e.value === 'string';
 
 		if (hasValue(element) && !isNestedVariable(element)) {

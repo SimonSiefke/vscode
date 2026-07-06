@@ -11,6 +11,8 @@ import { URI } from 'vscode-uri';
 import { Logger, measureAndLog } from './logger';
 import type { LaunchOptions } from './code';
 import { PlaywrightDriver } from './playwrightDriver';
+const regexpWebUIAvailable = /Web UI available at (.+)/;
+
 
 const root = join(__dirname, '..', '..', '..');
 
@@ -194,7 +196,7 @@ function waitForEndpoint(server: ChildProcess, logger: Logger): Promise<string> 
 				logger.log(`[server] stdout: ${data}`); // log until endpoint found to diagnose issues
 			}
 
-			const matches = data.toString('ascii').match(/Web UI available at (.+)/);
+			const matches = data.toString('ascii').match(regexpWebUIAvailable);
 			if (matches !== null) {
 				endpointFound = true;
 

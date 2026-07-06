@@ -7,6 +7,12 @@ import { win32 } from '../../../base/common/path.js';
 import { URI } from '../../../base/common/uri.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import type { IWindowsMxcConfig, IWindowsMxcPolicyContainment, IWindowsMxcSandboxPolicy } from './sandboxHelperService.js';
+const regexpZA = /^\/[a-zA-Z]:/;
+const regexp2 = /\//g;
+const regexp3 = /'/g;
+const regexp4 = /\\+$/g;
+const regexp5 = /(\\*)"/g;
+
 
 export interface IWindowsMxcConfigOptions {
 	command: string;
@@ -108,7 +114,7 @@ export class WindowsMxcTerminalSandboxRuntime implements IWindowsMxcTerminalSand
 		let value: string;
 		if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
 			value = `\\\\${uri.authority}${uri.path}`;
-		} else if (/^\/[a-zA-Z]:/.test(uri.path)) {
+		} else if (regexpZA.test(uri.path)) {
 			value = uri.path.slice(1);
 		} else {
 			value = uri.fsPath;
@@ -117,7 +123,7 @@ export class WindowsMxcTerminalSandboxRuntime implements IWindowsMxcTerminalSand
 	}
 
 	private _normalizeWindowsPath(path: string): string {
-		return path.replace(/\//g, '\\');
+		return path.replace(new RegExp(regexp2), '\\');
 	}
 
 	private _createNetworkPolicy(allowNetwork: boolean): NonNullable<IWindowsMxcSandboxPolicy['network']> {
@@ -127,10 +133,10 @@ export class WindowsMxcTerminalSandboxRuntime implements IWindowsMxcTerminalSand
 	}
 
 	private _quotePowerShellArgument(value: string): string {
-		return `'${value.replace(/'/g, `''`)}'`;
+		return `'${value.replace(new RegExp(regexp3), `''`)}'`;
 	}
 
 	private _quoteWindowsCommandLineArgument(value: string): string {
-		return `"${value.replace(/(\\*)"/g, '$1$1\\"').replace(/\\+$/g, '$&$&')}"`;
+		return `"${value.replace(new RegExp(regexp5), '$1$1\\"').replace(new RegExp(regexp4), '$&$&')}"`;
 	}
 }

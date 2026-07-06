@@ -28,6 +28,22 @@ import type { CreateTerminalParams } from '../../common/state/protocol/commands.
 import { TerminalClaimKind, type TerminalClaim, type TerminalInfo } from '../../common/state/protocol/state.js';
 import { formatTerminalText, IAgentHostTerminalManager, type ICommandFinishedEvent, type ISendTextOptions } from '../../node/agentHostTerminalManager.js';
 import { createShellTools, type IUnsandboxedCommandConfirmationRequest, isMultilineCommand, ShellManager, prefixForHistorySuppression, shellTypeForExecutable } from '../../node/copilot/copilotShellTools.js';
+const regexpPersistentZshTerminal = /persistent zsh terminal session/;
+const regexpZshGlobbingFeatures = /zsh globbing features/;
+const regexpBareOr = /bare == or ===/;
+const regexpStatusAsVariable = /status as a variable name/;
+const regexpBangHistory = /bang history/;
+const regexpComments = /# comments/;
+const regexpEchoCOPILOTSENTINEL = /^echo "<<<COPILOT_SENTINEL_[a-f0-9]+_EXIT_\$\?>>>"\r$/;
+const regexpCOPILOTSENTINELF0 = /<<<COPILOT_SENTINEL_([a-f0-9]+)_EXIT_\$\?>>/;
+const regexpExitCode = /Exit code: 0/;
+const regexpMOCKEDAGENTHOST = /MOCKED_AGENT_HOST_SANDBOX_RESPONSE/;
+const regexpOpenedTheAlternate = /opened the alternate buffer/;
+const regexpContinueThisCommand = /continue this command in the background/;
+const regexpVscodeSandboxSettings = /vscode-sandbox-settings-.*\.json$/;
+const regexpDeclined = /declined/i;
+const regexpAllowUnsandboxedCommands = /allowUnsandboxedCommands/;
+
 
 class TestAgentHostTerminalManager implements IAgentHostTerminalManager {
 	declare readonly _serviceBrand: undefined;
@@ -298,12 +314,12 @@ suite('CopilotShellTools', () => {
 		assert.strictEqual(bashTool.name, 'bash');
 		assert.ok(bashTool.description);
 		const description = bashTool.description;
-		assert.match(description, /persistent zsh terminal session/);
-		assert.match(description, /zsh globbing features/);
-		assert.match(description, /bare == or ===/);
-		assert.match(description, /status as a variable name/);
-		assert.doesNotMatch(description, /bang history/);
-		assert.doesNotMatch(description, /# comments/);
+		assert.match(description, regexpPersistentZshTerminal);
+		assert.match(description, regexpZshGlobbingFeatures);
+		assert.match(description, regexpBareOr);
+		assert.match(description, regexpStatusAsVariable);
+		assert.doesNotMatch(description, regexpBangHistory);
+		assert.doesNotMatch(description, regexpComments);
 	});
 
 	test('getOrCreateShell reuses an idle shell after the reference is disposed', async () => {
@@ -387,7 +403,7 @@ suite('CopilotShellTools', () => {
 		assert.strictEqual(terminalManager.sentTexts[0].options.bracketedPasteMode, true);
 		assert.strictEqual(terminalManager.sentTexts[1].options.bracketedPasteMode, undefined);
 		assert.strictEqual(terminalManager.writes[0].data, ' echo first\recho second\r');
-		assert.match(terminalManager.writes[1].data, /^echo "<<<COPILOT_SENTINEL_[a-f0-9]+_EXIT_\$\?>>>"\r$/);
+		assert.match(terminalManager.writes[1].data, regexpEchoCOPILOTSENTINEL);
 	});
 
 	test('primary shell tool ignores echoed sentinel command text', async () => {
@@ -407,7 +423,7 @@ suite('CopilotShellTools', () => {
 		const resultPromise = bashTool.handler!({ command: 'echo MOCKED_AGENT_HOST_SANDBOX_RESPONSE', timeout: 1000 }, invocation) as Promise<ToolResultObject>;
 		await waitForSentTexts(terminalManager, 2);
 
-		const sentinelMatch = terminalManager.writes[1].data.match(/<<<COPILOT_SENTINEL_([a-f0-9]+)_EXIT_\$\?>>/);
+		const sentinelMatch = terminalManager.writes[1].data.match(regexpCOPILOTSENTINELF0);
 		assert.ok(sentinelMatch, 'sentinel marker should be present');
 		const sentinelId = sentinelMatch[1];
 		const content = [
@@ -421,8 +437,8 @@ suite('CopilotShellTools', () => {
 
 		const result = await resultPromise;
 		assert.strictEqual(result.resultType, 'success');
-		assert.match(result.textResultForLlm, /Exit code: 0/);
-		assert.match(result.textResultForLlm, /MOCKED_AGENT_HOST_SANDBOX_RESPONSE/);
+		assert.match(result.textResultForLlm, regexpExitCode);
+		assert.match(result.textResultForLlm, regexpMOCKEDAGENTHOST);
 	});
 
 	test('primary shell tool forces bracketed paste with shell integration', async () => {
@@ -471,7 +487,7 @@ suite('CopilotShellTools', () => {
 
 		assert.strictEqual(result.resultType, 'failure');
 		assert.strictEqual(result.error, 'alternateBuffer');
-		assert.match(result.textResultForLlm, /opened the alternate buffer/);
+		assert.match(result.textResultForLlm, regexpOpenedTheAlternate);
 	});
 
 	test('primary shell tool returns alternateBuffer when sentinel fallback enters alt buffer', async () => {
@@ -494,7 +510,7 @@ suite('CopilotShellTools', () => {
 
 		assert.strictEqual(result.resultType, 'failure');
 		assert.strictEqual(result.error, 'alternateBuffer');
-		assert.match(result.textResultForLlm, /opened the alternate buffer/);
+		assert.match(result.textResultForLlm, regexpOpenedTheAlternate);
 	});
 
 	test('alt-buffer shell is released when command finishes', async () => {
@@ -575,7 +591,7 @@ suite('CopilotShellTools', () => {
 		terminalManager.fireClaimChanged({ kind: TerminalClaimKind.Session, session: 'copilot:/session-1', turnId: 'turn-1' });
 		const result = await resultPromise;
 		assert.strictEqual(result.resultType, 'success');
-		assert.match(result.textResultForLlm, /continue this command in the background/);
+		assert.match(result.textResultForLlm, regexpContinueThisCommand);
 		markCreatedTerminalsExist(terminalManager);
 		const shell = shellManager.listShells()[0];
 
@@ -796,7 +812,7 @@ suite('CopilotShellTools', () => {
 		};
 		await bashTool.handler!({ command: 'echo hello', timeout: 1 }, invocation);
 
-		const sandboxConfigEntry = [...createdFiles.entries()].find(([path]) => /vscode-sandbox-settings-.*\.json$/.test(path));
+		const sandboxConfigEntry = [...createdFiles.entries()].find(([path]) => regexpVscodeSandboxSettings.test(path));
 		assert.ok(sandboxConfigEntry, `Expected a sandbox config file to be written. Files: ${[...createdFiles.keys()].join(', ')}`);
 		const config = JSON.parse(sandboxConfigEntry[1]);
 		const writablePaths: string[] = platform.isWindows ? config.filesystem.readwritePaths : config.filesystem.allowWrite;
@@ -829,7 +845,7 @@ suite('CopilotShellTools', () => {
 		};
 		await bashTool.handler!({ command: 'echo hello', timeout: 1 }, invocation);
 
-		const sandboxConfigEntry = [...createdFiles.entries()].find(([path]) => /vscode-sandbox-settings-.*\.json$/.test(path));
+		const sandboxConfigEntry = [...createdFiles.entries()].find(([path]) => regexpVscodeSandboxSettings.test(path));
 		assert.ok(sandboxConfigEntry, `Expected a sandbox config file to be written. Files: ${[...createdFiles.keys()].join(', ')}`);
 		const config = JSON.parse(sandboxConfigEntry[1]);
 		const readablePaths: string[] = platform.isWindows ? config.filesystem.readonlyPaths : config.filesystem.allowRead;
@@ -903,7 +919,7 @@ suite('CopilotShellTools', () => {
 
 		assert.strictEqual(result.resultType, 'failure');
 		assert.strictEqual(result.error, 'sandbox_blocked');
-		assert.match(result.textResultForLlm ?? '', /declined/i);
+		assert.match(result.textResultForLlm ?? '', regexpDeclined);
 		assert.strictEqual(terminalManager.sentTexts.length, 0);
 	});
 
@@ -939,7 +955,7 @@ suite('CopilotShellTools', () => {
 		assert.strictEqual(confirmationRequests[0]?.reason, 'sandbox blocked required syscall');
 		assert.strictEqual(result.resultType, 'failure');
 		assert.strictEqual(result.error, 'sandbox_blocked');
-		assert.match(result.textResultForLlm ?? '', /declined/i);
+		assert.match(result.textResultForLlm ?? '', regexpDeclined);
 		assert.strictEqual(terminalManager.sentTexts.length, 0);
 	});
 
@@ -975,7 +991,7 @@ suite('CopilotShellTools', () => {
 
 		assert.strictEqual(result.resultType, 'failure');
 		assert.strictEqual(result.error, 'unsandboxed_disabled');
-		assert.match(result.textResultForLlm ?? '', /allowUnsandboxedCommands/);
+		assert.match(result.textResultForLlm ?? '', regexpAllowUnsandboxedCommands);
 		assert.strictEqual(confirmationRequests.length, 0, 'No confirmation should have been requested');
 		assert.strictEqual(terminalManager.sentTexts.length, 0, 'Disallowed command should not be sent to the terminal');
 	});

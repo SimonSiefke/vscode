@@ -20,6 +20,8 @@ import { Color } from '../../../../base/common/color.js';
 import type { IChatTerminalToolInvocationData } from '../../chat/common/chatService/chatService.js';
 import type { IColorTheme } from '../../../../platform/theme/common/themeService.js';
 import { ICurrentPartialCommand } from '../../../../platform/terminal/common/capabilities/commandDetection/terminalCommand.js';
+const regexp1 = /\r/g;
+
 
 function getChatTerminalBackgroundColor(theme: IColorTheme, contextKeyService: IContextKeyService, storedBackground?: string): Color | undefined {
 	if (storedBackground) {
@@ -702,7 +704,7 @@ export class DetachedTerminalSnapshotMirror extends Disposable {
 		if (!text) {
 			return 0;
 		}
-		const sanitized = text.replace(/\r/g, '');
+		const sanitized = text.replace(new RegExp(regexp1), '');
 		const segments = sanitized.split('\n');
 		const count = sanitized.endsWith('\n') ? segments.length - 1 : segments.length;
 		return Math.max(count, 1);

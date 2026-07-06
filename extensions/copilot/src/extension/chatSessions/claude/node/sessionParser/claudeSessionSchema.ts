@@ -45,6 +45,8 @@ import {
 	vUnion,
 	vUnknown,
 } from '../../../../../platform/configuration/common/validator';
+const regexp1 = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+
 
 // Re-export validator utilities for convenience
 export { IValidator, ValidationError, ValidatorType };
@@ -62,7 +64,7 @@ export function vIsoTimestamp(): IValidator<string> {
 				return { content: undefined, error: { message: `Expected ISO timestamp string, got ${typeof content}` } };
 			}
 			// Basic ISO 8601 format check (YYYY-MM-DDTHH:MM:SS with optional fractional seconds and Z)
-			const isoPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+			const isoPattern = regexp1;
 			if (!isoPattern.test(content)) {
 				return { content: undefined, error: { message: `Invalid ISO timestamp format: ${content}` } };
 			}

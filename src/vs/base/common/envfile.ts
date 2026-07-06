@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\r\n?/g;
+const regexp2 = /\\r/g;
+const regexp3 = /\\n/g;
+
 /**
  * Parses a standard .env/.envrc file into a map of the environment variables
  * it defines.
@@ -15,7 +19,7 @@ export function parseEnvFile(src: string) {
 	const result = new Map<string, string>();
 
 	// Normalize line breaks
-	const normalizedSrc = src.replace(/\r\n?/g, '\n');
+	const normalizedSrc = src.replace(new RegExp(regexp1), '\n');
 	const lines = normalizedSrc.split('\n');
 
 	for (let line of lines) {
@@ -68,7 +72,7 @@ export function parseEnvFile(src: string) {
 
 				// Handle escaped characters in double quotes
 				if (firstChar === '"') {
-					value = value.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+					value = value.replace(new RegExp(regexp3), '\n').replace(new RegExp(regexp2), '\r');
 				}
 			}
 		}

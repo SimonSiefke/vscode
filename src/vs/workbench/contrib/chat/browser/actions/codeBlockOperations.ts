@@ -38,6 +38,8 @@ import { ICodeMapperCodeBlock, ICodeMapperRequest, ICodeMapperResponse, ICodeMap
 import { ChatUserAction, IChatService } from '../../common/chatService/chatService.js';
 import { IChatRequestViewModel, isRequestVM, isResponseVM } from '../../common/model/chatViewModel.js';
 import { ICodeBlockActionContext } from '../widget/chatContentParts/codeBlockPart.js';
+const regexp1 = /(\S[^\n]*)\n/;
+
 
 export class InsertCodeBlockOperation {
 	constructor(
@@ -412,7 +414,7 @@ export class ApplyCodeBlockOperation {
 	}
 
 	private tryToRevealCodeBlock(codeEditor: IActiveCodeEditor, codeBlock: string): void {
-		const match = codeBlock.match(/(\S[^\n]*)\n/); // substring that starts with a non-whitespace character and ends with a newline
+		const match = codeBlock.match(regexp1); // substring that starts with a non-whitespace character and ends with a newline
 		if (match && match[1].length > 10) {
 			const findMatch = codeEditor.getModel().findNextMatch(match[1], { lineNumber: 1, column: 1 }, false, false, null, false);
 			if (findMatch) {

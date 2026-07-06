@@ -12,6 +12,8 @@ import { Position } from '../core/position.js';
 import { ICommand } from '../editorCommon.js';
 import { ITextModel } from '../model.js';
 import { AutoClosingOpenCharTypeOperation, AutoClosingOvertypeOperation, AutoClosingOvertypeWithInterceptorsOperation, AutoIndentOperation, CompositionOperation, CompositionEndOvertypeOperation, EnterOperation, InterceptorElectricCharOperation, PasteOperation, shiftIndent, shouldSurroundChar, SimpleCharacterTypeOperation, SurroundSelectionOperation, TabOperation, TypeWithoutInterceptorsOperation, unshiftIndent } from './cursorTypeEditOperations.js';
+const regexp1 = /^[ \t]+$/;
+
 
 export class TypeOperations {
 
@@ -117,7 +119,7 @@ export class TypeOperations {
 					// more text was deleted than was selected, so this could not have been a surround selection
 					return null;
 				}
-				if (/^[ \t]+$/.test(composition.deletedText)) {
+				if (regexp1.test(composition.deletedText)) {
 					// deleted text was only whitespace
 					return null;
 				}

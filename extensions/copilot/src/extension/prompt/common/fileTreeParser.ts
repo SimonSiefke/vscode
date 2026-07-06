@@ -6,6 +6,12 @@
 import type * as vscode from 'vscode';
 import { URI } from '../../../util/vs/base/common/uri';
 import { ChatResponseFileTreePart } from '../../../vscodeTypes';
+const regexp1 = /│   /g;
+const regexp2 = /\|   /g;
+const regexp3 = /    /g;
+const regexp4 = /├── /g;
+const regexp5 = /└── /g;
+
 
 /**
  * Converts a markdown-style file tree into a ChatResponseFileTreePart.
@@ -83,11 +89,11 @@ export function listFilesInResponseFileTree(tree: vscode.ChatResponseFileTree[])
 }
 
 function calculateDepth(inputString: string): number {
-	let depth = (inputString.match(/│   /g) || []).length;
-	depth += (inputString.match(/\|   /g) || []).length;
-	depth += (inputString.match(/    /g) || []).length;
-	depth += (inputString.match(/├── /g) || []).length;
-	depth += (inputString.match(/└── /g) || []).length;
+	let depth = (inputString.match(new RegExp(regexp1)) || []).length;
+	depth += (inputString.match(new RegExp(regexp2)) || []).length;
+	depth += (inputString.match(new RegExp(regexp3)) || []).length;
+	depth += (inputString.match(new RegExp(regexp4)) || []).length;
+	depth += (inputString.match(new RegExp(regexp5)) || []).length;
 
 	return depth;
 }

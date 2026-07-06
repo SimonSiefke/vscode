@@ -7,6 +7,8 @@ import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { URI } from '../../../base/common/uri.js';
 import { ISharedWebContentExtractorService } from '../common/webContentExtractor.js';
+const regexpWebpJpgJpeg = /(webp|jpg|jpeg|gif|png|bmp)$/i;
+
 
 export class SharedWebContentExtractorService implements ISharedWebContentExtractorService {
 	_serviceBrand: undefined;
@@ -24,7 +26,7 @@ export class SharedWebContentExtractorService implements ISharedWebContentExtrac
 				}
 			});
 			const contentType = response.headers.get('content-type');
-			if (!response.ok || !contentType?.startsWith('image/') || !/(webp|jpg|jpeg|gif|png|bmp)$/i.test(contentType)) {
+			if (!response.ok || !contentType?.startsWith('image/') || !regexpWebpJpgJpeg.test(contentType)) {
 				return undefined;
 			}
 

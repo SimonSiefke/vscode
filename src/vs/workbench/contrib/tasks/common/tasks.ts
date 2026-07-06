@@ -19,6 +19,8 @@ import { ConfigurationTarget } from '../../../../platform/configuration/common/c
 import { TerminalExitReason } from '../../../../platform/terminal/common/terminal.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+const regexp1 = /,/g;
+
 
 
 
@@ -1346,7 +1348,7 @@ export namespace KeyedTaskIdentifier {
 			if (stringified instanceof Object) {
 				stringified = sortedStringify(stringified as Record<string, unknown>);
 			} else if (typeof stringified === 'string') {
-				stringified = stringified.replace(/,/g, ',,');
+				stringified = stringified.replace(new RegExp(regexp1), ',,');
 			}
 			result += key + ',' + stringified + ',';
 		}

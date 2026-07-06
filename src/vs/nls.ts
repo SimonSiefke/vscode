@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\{(\d+)\}/g;
+const regexpAouei = /[aouei]/g;
+
 export function getNLSMessages(): string[] {
 	return globalThis._VSCODE_NLS_MESSAGES;
 }
@@ -30,7 +33,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 	if (args.length === 0) {
 		result = message;
 	} else {
-		result = message.replace(/\{(\d+)\}/g, (match, rest) => {
+		result = message.replace(new RegExp(regexp1), (match, rest) => {
 			const index = rest[0];
 			const arg = args[index];
 			let result = match;
@@ -45,7 +48,7 @@ function _format(message: string, args: (string | number | boolean | undefined |
 
 	if (isPseudo) {
 		// FF3B and FF3D is the Unicode zenkaku representation for [ and ]
-		result = '\uFF3B' + result.replace(/[aouei]/g, '$&$&') + '\uFF3D';
+		result = '\uFF3B' + result.replace(new RegExp(regexpAouei), '$&$&') + '\uFF3D';
 	}
 
 	return result;

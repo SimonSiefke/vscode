@@ -11,6 +11,12 @@ import { escapeRegExpCharacters, regExpLeadsToEndlessLoop } from '../../../base/
 import { URI } from '../../../base/common/uri.js';
 import { ILogService } from '../../log/common/log.js';
 import type { AgentHostTerminalAutoApproveRuleValue, AgentHostTerminalAutoApproveRules } from '../common/agentHostSchema.js';
+const regexp1 = /^&[0-9]+-?$/;
+const regexp2 = /(?:[0-9]+|&)?>>?\|?\s*(.+)$/;
+const regexpPatternFlagsDgimsuvy = /^\/(?<pattern>.+)\/(?<flags>[dgimsuvy]*)$/;
+const regexp4 = /[/\\]/g;
+const regexpPATHSEP = /%%PATH_SEP%%*/g;
+
 
 /**
  * Redirect destinations that do not result in a write to an arbitrary file
@@ -39,7 +45,7 @@ function isSafeRedirectDestination(dest: string): boolean {
 		cleaned = cleaned.slice(1, -1);
 	}
 	// File-descriptor duplication: `&N`, optionally followed by `-` to close.
-	if (/^&[0-9]+-?$/.test(cleaned)) {
+	if (regexp1.test(cleaned)) {
 		return true;
 	}
 	return SAFE_REDIRECT_TARGETS.has(cleaned);
@@ -62,7 +68,7 @@ function classifyFileRedirect(redirectText: string): FileRedirectClassification 
 	if (!redirectText.includes('>')) {
 		return { kind: 'read' };
 	}
-	const destMatch = redirectText.match(/(?:[0-9]+|&)?>>?\|?\s*(.+)$/);
+	const destMatch = redirectText.match(regexp2);
 	if (!destMatch) {
 		return { kind: 'unsafeWrite', dest: undefined };
 	}
@@ -400,7 +406,7 @@ export class CommandAutoApprover extends Disposable {
 
 function convertAutoApproveEntryToRegex(value: string): RegExp {
 	// If wrapped in `/`, treat as regex
-	const regexMatch = value.match(/^\/(?<pattern>.+)\/(?<flags>[dgimsuvy]*)$/);
+	const regexMatch = value.match(regexpPatternFlagsDgimsuvy);
 	const regexPattern = regexMatch?.groups?.pattern;
 	if (regexPattern) {
 		let flags = regexMatch.groups?.flags;
@@ -431,9 +437,9 @@ function convertAutoApproveEntryToRegex(value: string): RegExp {
 
 	// Match both path separators if it looks like a path
 	if (value.includes('/') || value.includes('\\')) {
-		let pattern = value.replace(/[/\\]/g, '%%PATH_SEP%%');
+		let pattern = value.replace(new RegExp(regexp4), '%%PATH_SEP%%');
 		pattern = escapeRegExpCharacters(pattern);
-		pattern = pattern.replace(/%%PATH_SEP%%*/g, '[/\\\\]');
+		pattern = pattern.replace(new RegExp(regexpPATHSEP), '[/\\\\]');
 		sanitizedValue = `^(?:\\.[/\\\\])?${pattern}`;
 	} else {
 		sanitizedValue = escapeRegExpCharacters(value);

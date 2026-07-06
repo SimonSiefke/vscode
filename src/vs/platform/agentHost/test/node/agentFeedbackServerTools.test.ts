@@ -24,6 +24,10 @@ import {
 	resolveCommentsToolName,
 	viewUnreviewedCommentsToolName,
 } from '../../node/shared/agentFeedbackServerTools.js';
+const regexpUnknownFeedbackServer = /Unknown feedback server tool/;
+const regexpRangeMustBe = /range must be an object/;
+const regexpResourceUriMustBe = /resourceUri must be a non-empty string/;
+
 
 suite('AgentFeedbackServerTools', () => {
 
@@ -119,7 +123,7 @@ suite('AgentFeedbackServerTools', () => {
 	});
 
 	test('unknown tool name throws', () => {
-		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, 'nope', {}), /Unknown feedback server tool/);
+		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, 'nope', {}), regexpUnknownFeedbackServer);
 	});
 
 	test('listComments adds no note when there are no unreviewed reviewable comments', () => {
@@ -185,8 +189,8 @@ suite('AgentFeedbackServerTools', () => {
 	});
 
 	test('addComment rejects invalid arguments', () => {
-		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, addCommentToolName, { resourceUri: fileUri, text: 'x' }), /range must be an object/);
-		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, addCommentToolName, { resourceUri: '', range: {}, text: 'x' }), /resourceUri must be a non-empty string/);
+		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, addCommentToolName, { resourceUri: fileUri, text: 'x' }), regexpRangeMustBe);
+		assert.throws(() => applyFeedbackTool(stateWith(), sessionResource, addCommentToolName, { resourceUri: '', range: {}, text: 'x' }), regexpResourceUriMustBe);
 	});
 
 	test('ignores annotations that do not carry feedback metadata', () => {

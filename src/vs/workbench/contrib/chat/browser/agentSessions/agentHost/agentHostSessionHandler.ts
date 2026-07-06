@@ -90,6 +90,8 @@ import { toolDataToDefinition } from './agentHostToolUtils.js';
 import { IAgentHostUntitledProvisionalSessionService } from './agentHostUntitledProvisionalSessionService.js';
 import { activeTurnToProgress, completedToolCallToEditParts, completedToolCallToSerialized, finalizeToolInvocation, formatTurnResponseDetails, getTerminalContentUri, isSubagentTool, makeAhpTerminalToolSessionId, messageAttachmentsToVariableData, messageToVariableData, parseAhpTerminalToolSessionId, rawMarkdownToString, rewriteAgentHostLinkTarget, stringOrMarkdownToString, systemNotificationToChatPart, toolCallStateToInvocation, turnsToHistory, updateRunningToolSpecificData, usageInfoToChatUsage, usageInfoToQuotas, type IToolCallFileEdit, type TurnModelLookup } from './stateToProgressAdapter.js';
 import { resolveMcpServerAuthentication, agentHostMcpServerId } from './agentHostAuth.js';
+const regexp1 = /-(\d+)$/;
+
 export { toolDataToDefinition };
 
 /**
@@ -3757,7 +3759,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 		// then the fallback (picked) id. Only the last path sets resolvedFromRaw=false so the caller
 		// can surface billedModelId (e.g. "Auto (raptor-mini)") when the billed model is unregistered.
 		const lookupModel = (rawModelId: string | undefined): { model: ILanguageModelChatMetadata; resolvedFromRaw: boolean } | undefined => {
-			const normalizedRaw = rawModelId?.replace(/-(\d+)$/, '.$1');
+			const normalizedRaw = rawModelId?.replace(regexp1, '.$1');
 			for (const candidate of [rawModelId, normalizedRaw !== rawModelId ? normalizedRaw : undefined]) {
 				const modelId = this._toLanguageModelId(sessionResource, candidate);
 				if (!modelId) { continue; }

@@ -13,6 +13,8 @@ import { isWindows } from '../../../../base/common/platform.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IWebWorkerServerRequestHandler, IWebWorkerServer } from '../../../../base/common/worker/webWorker.js';
 import { WorkerTextModelSyncServer, ICommonModel } from '../../../../editor/common/services/textModelSync/textModelSync.impl.js';
+const regexp1 = /\\/g;
+
 
 export interface IResourceCreator {
 	toResource: (folderRelativePath: string) => URI | null;
@@ -131,7 +133,7 @@ export class OutputLinkComputer implements IWebWorkerServerRequestHandler {
 			while ((match = pattern.exec(line)) !== null) {
 
 				// Convert the relative path information to a resource that we can use in links
-				const folderRelativePath = strings.rtrim(match[1], '.').replace(/\\/g, '/'); // remove trailing "." that likely indicate end of sentence
+				const folderRelativePath = strings.rtrim(match[1], '.').replace(new RegExp(regexp1), '/'); // remove trailing "." that likely indicate end of sentence
 				let resourceString: string | undefined;
 				try {
 					const resource = resourceCreator.toResource(folderRelativePath);

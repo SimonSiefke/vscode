@@ -9,11 +9,13 @@ import * as mobxlite from 'mobx-react-lite';
 import * as path from 'path';
 import * as React from 'react';
 import { ISimulationTest } from '../stores/simulationTestsProvider';
+const regexpCase = /case-\d+/;
+
 
 
 export const OpenInVSCodeButton = mobxlite.observer(({ test }: { test: ISimulationTest }) => {
 	const simulationInputPath = test.simulationInputPath;
-	const matchResult = test.name.match(/case-\d+/);
+	const matchResult = test.name.match(regexpCase);
 	if (!simulationInputPath || !matchResult) {
 		return null;
 	}

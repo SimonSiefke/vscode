@@ -51,6 +51,8 @@ import { getSimpleEditorOptions } from '../../codeEditor/browser/simpleEditorOpt
 import { AccessibilityCommandId } from '../common/accessibilityCommands.js';
 import { AccessibilityVerbositySettingId, AccessibilityWorkbenchSettingId, accessibilityHelpIsShown, accessibleViewContainsCodeBlocks, accessibleViewCurrentProviderId, accessibleViewGoToSymbolSupported, accessibleViewHasAssignedKeybindings, accessibleViewHasUnassignedKeybindings, accessibleViewInCodeBlock, accessibleViewIsShown, accessibleViewOnLastLine, accessibleViewSupportsNavigation, accessibleViewVerbosityEnabled } from './accessibilityConfiguration.js';
 import { resolveContentAndKeybindingItems } from './accessibleViewKeybindingResolver.js';
+const regexpKeyDigitEqual = /^(Key[A-Z]|Digit[0-9]|Equal|Comma|Period|Slash|Quote|Backquote|Backslash|Minus|Semicolon|Space|Enter)$/;
+
 
 const enum DIMENSIONS {
 	MAX_WIDTH = 900,
@@ -1052,5 +1054,5 @@ function shouldHide(event: KeyboardEvent, keybindingService: IKeybindingService,
 }
 
 function shouldHandleKey(event: KeyboardEvent): boolean {
-	return !!event.code.match(/^(Key[A-Z]|Digit[0-9]|Equal|Comma|Period|Slash|Quote|Backquote|Backslash|Minus|Semicolon|Space|Enter)$/);
+	return !!event.code.match(regexpKeyDigitEqual);
 }

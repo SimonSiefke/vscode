@@ -18,6 +18,11 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { gettingStartedContentRegistry } from '../common/gettingStartedContent.js';
+const regexpMd = /\.md$/;
+const regexp2 = /-.*$/;
+const regexp3 = /!\[([^\]]*)\]\(([^)]*)\)/g;
+const regexpSrc = /src="([^"]*)"/g;
+
 
 
 export class GettingStartedDetailsRenderer {
@@ -281,10 +286,10 @@ export class GettingStartedDetailsRenderer {
 		} catch { }
 
 		try {
-			const localizedPath = path.with({ path: path.path.replace(/\.md$/, `.nls.${language}.md`) });
+			const localizedPath = path.with({ path: path.path.replace(regexpMd, `.nls.${language}.md`) });
 
-			const generalizedLocale = language?.replace(/-.*$/, '');
-			const generalizedLocalizedPath = path.with({ path: path.path.replace(/\.md$/, `.nls.${generalizedLocale}.md`) });
+			const generalizedLocale = language?.replace(regexp2, '');
+			const generalizedLocalizedPath = path.with({ path: path.path.replace(regexpMd, `.nls.${generalizedLocale}.md`) });
 
 			const fileExists = (file: URI) => this.fileService
 				.stat(file)
@@ -317,11 +322,11 @@ const transformUri = (src: string, base: URI) => {
 };
 
 const transformUris = (content: string, base: URI): string => content
-	.replace(/src="([^"]*)"/g, (_, src: string) => {
+	.replace(new RegExp(regexpSrc), (_, src: string) => {
 		if (src.startsWith('https://')) { return `src="${src}"`; }
 		return `src="${transformUri(src, base)}"`;
 	})
-	.replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (_, title: string, src: string) => {
+	.replace(new RegExp(regexp3), (_, title: string, src: string) => {
 		if (src.startsWith('https://')) { return `![${title}](${src})`; }
 		return `![${title}](${transformUri(src, base)})`;
 	});

@@ -3,10 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { env, UIKind, Uri } from 'vscode';
+const regexpHttps = /^https?$/i;
+const regexpVscodeDev = /(?:^|\.)vscode\.dev$/;
+const regexpGithubDev = /(?:^|\.)github\.dev$/;
+const regexpGithubLocalhost = /(?:^|\.)github\.localhost$/;
+
 
 const LOCALHOST_ADDRESSES = ['localhost', '127.0.0.1', '0:0:0:0:0:0:0:1', '::1'];
 function isLocalhost(uri: Uri): boolean {
-	if (!/^https?$/i.test(uri.scheme)) {
+	if (!regexpHttps.test(uri.scheme)) {
 		return false;
 	}
 	const host = uri.authority.split(':')[0];
@@ -28,10 +33,10 @@ export function isSupportedEnvironment(uri: Uri): boolean {
 
 	return (
 		// vscode.dev & insiders.vscode.dev
-		/(?:^|\.)vscode\.dev$/.test(uri.authority) ||
+		regexpVscodeDev.test(uri.authority) ||
 		// github.dev & codespaces
-		/(?:^|\.)github\.dev$/.test(uri.authority) ||
+		regexpGithubDev.test(uri.authority) ||
 		// github.dev/codespaces local setup (github.localhost)
-		/(?:^|\.)github\.localhost$/.test(uri.authority)
+		regexpGithubLocalhost.test(uri.authority)
 	);
 }

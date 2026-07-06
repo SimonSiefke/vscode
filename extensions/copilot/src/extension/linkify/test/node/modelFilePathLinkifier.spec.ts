@@ -14,6 +14,8 @@ import { Location, Position, Range } from '../../../../vscodeTypes';
 import { LinkifyLocationAnchor } from '../../common/linkifiedText';
 import { LinkifyService } from '../../common/linkifyService';
 import { assertPartsEqual, createTestLinkifierService, linkify, workspaceFile } from './util';
+const regexp1 = /\\/g;
+
 
 suite('Model File Path Linkifier', () => {
 	test('Should linkify model generated file references with line range', async () => {
@@ -121,7 +123,7 @@ suite('Model File Path Linkifier', () => {
 		const absolutePath = workspaceFile('src/file.ts').fsPath;
 		const service = createTestLinkifierService('src/file.ts');
 		// Simulate model-generated path with forward slashes (e.g., c:/Repos/...)
-		const pathWithForwardSlashes = absolutePath.replace(/\\/g, '/');
+		const pathWithForwardSlashes = absolutePath.replace(new RegExp(regexp1), '/');
 		const result = await linkify(service, `[line 67](${pathWithForwardSlashes}#L67)`);
 		const anchor = result.parts[0] as LinkifyLocationAnchor;
 		const expected = new LinkifyLocationAnchor(new Location(workspaceFile('src/file.ts'), new Range(new Position(66, 0), new Position(66, 0))));

@@ -19,6 +19,8 @@ import { parseRemoteAgentHostInput, RemoteAgentHostConnectionStatus, RemoteAgent
 import { AGENT_HOST_SCHEME, agentHostAuthority } from '../../common/agentHostUri.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
 import { InMemoryStorageService, IStorageService } from '../../../storage/common/storage.js';
+const regexpNotEnabled = /not enabled/;
+
 
 // ---- Mock transport ---------------------------------------------------------
 
@@ -451,7 +453,7 @@ suite('RemoteAgentHostService', () => {
 
 		await assert.rejects(
 			() => service.addRemoteAgentHost({ name: 'Host 1', connection: { type: RemoteAgentHostEntryType.WebSocket, address: 'host1:8080' } }),
-			/not enabled/,
+			regexpNotEnabled,
 		);
 	});
 
@@ -571,7 +573,7 @@ suite('RemoteAgentHostService', () => {
 
 			await assert.rejects(
 				() => addManaged('Managed', 'managed:1234'),
-				/not enabled/,
+				regexpNotEnabled,
 			);
 		});
 

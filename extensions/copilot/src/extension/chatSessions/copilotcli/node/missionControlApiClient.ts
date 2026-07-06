@@ -8,6 +8,8 @@ import { INTEGRATION_ID } from '../../../../platform/endpoint/common/licenseAgre
 import { PermissiveAuthRequiredError } from '../../../../platform/github/common/githubService';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { IFetcherService } from '../../../../platform/networking/common/fetcherService';
+const regexp1 = /\/+$/;
+
 
 /** Base path for Mission Control (agent session) endpoints. */
 const SESSIONS_PATH = '/agents/sessions';
@@ -214,7 +216,7 @@ export class MissionControlApiClient {
 			throw new Error('Copilot API endpoint is not available');
 		}
 
-		const url = `${baseUrl.replace(/\/+$/, '')}${path}`;
+		const url = `${baseUrl.replace(regexp1, '')}${path}`;
 		const headers: Record<string, string> = {
 			'Authorization': `Bearer ${session.accessToken}`,
 			'Copilot-Integration-Id': INTEGRATION_ID,

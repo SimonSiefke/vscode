@@ -15,6 +15,8 @@ import { IInstantiationService } from '../../../../util/vs/platform/instantiatio
 import { Uri } from '../../../../vscodeTypes';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { GitDiffService } from '../gitDiffService';
+const regexp1 = /^\+[^+]/m;
+
 
 class TestIgnoreService extends NullIgnoreService {
 	private readonly _ignoredUris = new Set<string>();
@@ -407,7 +409,7 @@ describe('GitDiffService', () => {
 			// No range header for empty files
 			expect(patch).not.toContain('@@');
 			// No content lines
-			expect(patch).not.toMatch(/^\+[^+]/m);
+			expect(patch).not.toMatch(regexp1);
 		});
 
 		it('should handle file with single blank line', async () => {

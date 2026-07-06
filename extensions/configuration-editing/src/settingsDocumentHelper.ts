@@ -6,6 +6,8 @@
 import * as vscode from 'vscode';
 import { getLocation, Location, parse } from 'jsonc-parser';
 import { provideInstalledExtensionProposals } from './extensionsProposals';
+const regexp1 = /\$\{[^"\}]*\}?/;
+
 
 const OVERRIDE_IDENTIFIER_REGEX = /\[([^\[\]]*)\]/g;
 
@@ -99,7 +101,7 @@ export class SettingsDocument {
 			return completions;
 		}
 
-		let range = this.document.getWordRangeAtPosition(pos, /\$\{[^"\}]*\}?/);
+		let range = this.document.getWordRangeAtPosition(pos, regexp1);
 		if (!range || range.start.isEqual(pos) || range.end.isEqual(pos) && this.document.getText(range).endsWith('}')) {
 			range = new vscode.Range(pos, pos);
 		}
@@ -138,7 +140,7 @@ export class SettingsDocument {
 			return completions;
 		}
 
-		let range = this.document.getWordRangeAtPosition(pos, /\$\{[^"\}]*\}?/);
+		let range = this.document.getWordRangeAtPosition(pos, regexp1);
 		if (!range || range.start.isEqual(pos) || range.end.isEqual(pos) && this.document.getText(range).endsWith('}')) {
 			range = new vscode.Range(pos, pos);
 		}

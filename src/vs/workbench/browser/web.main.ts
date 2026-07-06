@@ -98,6 +98,8 @@ import { INotificationService, Severity } from '../../platform/notification/comm
 import { IDefaultAccountService } from '../../platform/defaultAccount/common/defaultAccount.js';
 import { DefaultAccountService } from '../services/accounts/browser/defaultAccount.js';
 import { AccountPolicyService, IAccountPolicyGateService } from '../services/policies/common/accountPolicyService.js';
+const regexp1 = /-|:|\.\d+Z$/g;
+
 
 export interface IBrowserMainWorkbench {
 	startup(): IInstantiationService;
@@ -289,7 +291,7 @@ export class BrowserMain extends Disposable {
 		serviceCollection.set(IProductService, productService);
 
 		// Environment
-		const logsPath = URI.file(toLocalISOString(new Date()).replace(/-|:|\.\d+Z$/g, '')).with({ scheme: 'vscode-log' });
+		const logsPath = URI.file(toLocalISOString(new Date()).replace(new RegExp(regexp1), '')).with({ scheme: 'vscode-log' });
 		const environmentService = new BrowserWorkbenchEnvironmentService(workspace.id, logsPath, this.configuration, productService);
 		serviceCollection.set(IBrowserWorkbenchEnvironmentService, environmentService);
 

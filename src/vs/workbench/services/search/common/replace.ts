@@ -7,6 +7,10 @@ import * as strings from '../../../../base/common/strings.js';
 import { IPatternInfo } from './search.js';
 import { CharCode } from '../../../../base/common/charCode.js';
 import { buildReplaceStringWithCasePreserved } from '../../../../base/common/search.js';
+const regexpUUlL = /([\s\S]*?)((?:\\[uUlL])+?|)(\$[0-9]+)([\s\S]*?)/g;
+const regexpUUlL1 = /\\[uUlL]/;
+const regexp3 = /\\/g;
+
 
 export class ReplacePattern {
 
@@ -39,7 +43,7 @@ export class ReplacePattern {
 			this._regExp = strings.createRegExp(this._regExp.source, true, { matchCase: !this._regExp.ignoreCase, wholeWord: false, multiline: this._regExp.multiline, global: false });
 		}
 
-		this._caseOpsRegExp = new RegExp(/([\s\S]*?)((?:\\[uUlL])+?|)(\$[0-9]+)([\s\S]*?)/g);
+		this._caseOpsRegExp = new RegExp(new RegExp(regexpUUlL));
 	}
 
 	get hasParameters(): boolean {
@@ -86,7 +90,7 @@ export class ReplacePattern {
 	 */
 	private replaceWithCaseOperations(text: string, regex: RegExp, replaceString: string): string {
 		// Short-circuit the common path.
-		if (!/\\[uUlL]/.test(replaceString)) {
+		if (!regexpUUlL1.test(replaceString)) {
 			return text.replace(regex, replaceString);
 		}
 		// Store the values of the search parameters.
@@ -119,7 +123,7 @@ export class ReplacePattern {
 			const replacementLen = replacement.length;
 
 			newReplaceString += patMatch[1]; // prefix
-			caseOps = caseOps.replace(/\\/g, '');
+			caseOps = caseOps.replace(new RegExp(regexp3), '');
 			let i = 0;
 			for (; i < caseOps.length; i++) {
 				switch (caseOps[i]) {

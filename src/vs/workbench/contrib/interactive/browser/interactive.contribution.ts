@@ -62,6 +62,8 @@ import { IWorkingCopyEditorHandler, IWorkingCopyEditorService } from '../../../s
 import { isReplEditorControl, ReplEditorControl } from '../../replNotebook/browser/replEditor.js';
 import { InlineChatController } from '../../inlineChat/browser/inlineChatController.js';
 import { IsLinuxContext, IsWindowsContext } from '../../../../platform/contextkey/common/contextkeys.js';
+const regexpInteractive = /\/Interactive-(\d+)/;
+
 
 const interactiveWindowCategory: ILocalizedString = localize2('interactiveWindow', "Interactive Window");
 
@@ -223,7 +225,7 @@ class InteractiveInputContentProvider implements ITextModelContentProvider {
 }
 
 function createEditor(resource: URI, instantiationService: IInstantiationService): EditorInput {
-	const counter = /\/Interactive-(\d+)/.exec(resource.path);
+	const counter = regexpInteractive.exec(resource.path);
 	const inputBoxPath = counter && counter[1] ? `/InteractiveInput-${counter[1]}` : 'InteractiveInput';
 	const inputUri = URI.from({ scheme: Schemas.vscodeInteractiveInput, path: inputBoxPath });
 	const editorInput = InteractiveEditorInput.create(instantiationService, resource, inputUri);

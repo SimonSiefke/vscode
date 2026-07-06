@@ -12,6 +12,8 @@ import { PieceTreeBase, StringBuffer } from './pieceTreeBase.js';
 import { countEOL, StringEOL } from '../../core/misc/eolCounter.js';
 import { TextChange } from '../../core/textChange.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export interface IValidatedEditOperation {
 	sortIndex: number;
@@ -282,7 +284,7 @@ export class PieceTreeTextBuffer extends Disposable implements ITextBuffer {
 				if (strEOL === StringEOL.Unknown || strEOL === expectedStrEOL) {
 					validText = op.text;
 				} else {
-					validText = op.text.replace(/\r\n|\r|\n/g, bufferEOL);
+					validText = op.text.replace(new RegExp(regexp1), bufferEOL);
 				}
 			}
 

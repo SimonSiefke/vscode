@@ -15,6 +15,11 @@ import { ensureDependenciesAreSet } from '../../../../util/vs/editor/common/core
 import { DiagnosticSeverity, Range } from '../../../../vscodeTypes';
 import { LintErrors } from '../../common/lintErrors';
 import { CurrentDocument } from '../../common/xtabCurrentDocument';
+const regexpError = /Error \d/g;
+const regexpCurrentFileError = /Current file error/g;
+const regexpOtherError = /Other error/g;
+const regexpCurrentLine = /current line 0/g;
+
 
 describe('LintErrors', () => {
 	let diagnosticsService: TestLanguageDiagnosticsService;
@@ -378,7 +383,7 @@ describe('LintErrors', () => {
 			const result = lintErrors.getFormattedLintErrors(optionsMaxLints);
 			// Should include Error 3 (closest to cursor at line 2) and one other
 			// but not all three
-			const errorCount = (result.match(/Error \d/g) || []).length;
+			const errorCount = (result.match(new RegExp(regexpError)) || []).length;
 			expect(errorCount).toBe(2);
 		});
 
@@ -1092,7 +1097,7 @@ describe('LintErrors', () => {
 
 			const result = lintErrors.getFormattedLintErrors({ ...defaultLintOptions, nRecentFiles: 1 });
 			// Should only contain the error once (from current file processing, not from recent files)
-			const errorCount = (result.match(/Current file error/g) || []).length;
+			const errorCount = (result.match(new RegExp(regexpCurrentFileError)) || []).length;
 			expect(errorCount).toBe(1);
 		});
 
@@ -1216,7 +1221,7 @@ describe('LintErrors', () => {
 
 			const result = lintErrors.getFormattedLintErrors({ ...defaultLintOptions, nRecentFiles: 2 });
 			// Should only include the diagnostic once
-			const errorCount = (result.match(/Other error/g) || []).length;
+			const errorCount = (result.match(new RegExp(regexpOtherError)) || []).length;
 			expect(errorCount).toBe(1);
 		});
 
@@ -1254,7 +1259,7 @@ describe('LintErrors', () => {
 			// Recent file diagnostic should NOT show current file lines as code context
 			expect(result).toContain('Other error');
 			// Only one occurrence of current file content (from the current file diagnostic, not from recent)
-			const currentLineCount = (result.match(/current line 0/g) || []).length;
+			const currentLineCount = (result.match(new RegExp(regexpCurrentLine)) || []).length;
 			expect(currentLineCount).toBe(1);
 		});
 	});

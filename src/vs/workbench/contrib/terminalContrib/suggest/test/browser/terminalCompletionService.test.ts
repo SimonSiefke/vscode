@@ -23,6 +23,9 @@ import { gitBashToWindowsPath, windowsToGitBashPath } from '../../browser/termin
 import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { TerminalSuggestSettingId } from '../../common/terminalSuggestConfiguration.js';
 import { TestPathService, workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
+const regexp1 = /\/+$/;
+const regexp2 = /\/$/;
+
 
 const pathSeparator = isWindows ? '\\' : '/';
 
@@ -104,7 +107,7 @@ suite('TerminalCompletionService', () => {
 		instantiationService = workbenchInstantiationService({
 			pathService: () => new TestPathService(URI.file(homeDir ?? '/')),
 		}, store);
-		const normalizePath = (path: string) => path === '/' ? path : path.replace(/\/+$/, '');
+		const normalizePath = (path: string) => path === '/' ? path : path.replace(regexp1, '');
 		const doesResourceExist = (resource: URI) => validResources.some(e => normalizePath(e.path) === normalizePath(resource.path)) || childResources.some(e => normalizePath(e.resource.path) === normalizePath(resource.path));
 		configurationService = new TestConfigurationService();
 		instantiationService.stub(ITerminalLogService, new NullLogService());
@@ -121,8 +124,8 @@ suite('TerminalCompletionService', () => {
 					throw new Error('Doesn\'t exist');
 				}
 				const children = childResources.filter(child => {
-					const childFsPath = child.resource.path.replace(/\/$/, '');
-					const parentFsPath = resource.path.replace(/\/$/, '');
+					const childFsPath = child.resource.path.replace(regexp2, '');
+					const parentFsPath = resource.path.replace(regexp2, '');
 					return (
 						childFsPath.startsWith(parentFsPath) &&
 						count(childFsPath, '/') === count(parentFsPath, '/') + 1

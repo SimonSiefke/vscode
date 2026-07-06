@@ -39,6 +39,12 @@ import { getActiveDocument } from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+const regexp1 = /\\/g;
+const regexpZA = /^[a-zA-Z]:$/;
+const regexp3 = /\n/g;
+const regexp4 = /\//g;
+const regexp5 = /[\/\\]$/;
+
 
 export namespace OpenLocalFileCommand {
 	export const ID = 'workbench.action.files.openLocalFile';
@@ -259,7 +265,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 
 	private remoteUriFrom(path: string, hintUri?: URI): URI {
 		if (!path.startsWith('\\\\')) {
-			path = path.replace(/\\/g, '/');
+			path = path.replace(new RegExp(regexp1), '/');
 		}
 		// When scoped to a specific authority (e.g. agenthost://host/...),
 		// construct the URI directly with the authority to avoid
@@ -707,7 +713,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					const currentFolderWithoutSep = resources.removeTrailingPathSeparator(resources.addTrailingPathSeparator(this.currentFolder));
 					const inputUriDirnameWithoutSep = resources.removeTrailingPathSeparator(resources.addTrailingPathSeparator(inputUriDirname));
 					if (!resources.extUriIgnorePathCase.isEqual(currentFolderWithoutSep, inputUriDirnameWithoutSep)
-						&& (!/^[a-zA-Z]:$/.test(this.filePickBox.value)
+						&& (!regexpZA.test(this.filePickBox.value)
 							|| !equalsIgnoreCase(this.pathFromUri(this.currentFolder).substring(0, this.filePickBox.value.length), this.filePickBox.value))) {
 						let statWithoutTrailing: IFileStatWithPartialMetadata | undefined;
 						try {
@@ -1046,14 +1052,14 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 		// of fsPath, which would prepend the authority as a UNC prefix.
 		let result: string;
 		if (this.scopedAuthority) {
-			result = uri.path.replace(/\n/g, '');
+			result = uri.path.replace(new RegExp(regexp3), '');
 		} else {
-			result = normalizeDriveLetter(uri.fsPath, this.isWindows).replace(/\n/g, '');
+			result = normalizeDriveLetter(uri.fsPath, this.isWindows).replace(new RegExp(regexp3), '');
 		}
 		if (this.separator === '/') {
-			result = result.replace(/\\/g, this.separator);
+			result = result.replace(new RegExp(regexp1), this.separator);
 		} else {
-			result = result.replace(/\//g, this.separator);
+			result = result.replace(new RegExp(regexp4), this.separator);
 		}
 		if (endWithSeparator && !this.endsWithSlash(result)) {
 			result = result + this.separator;
@@ -1080,7 +1086,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 	}
 
 	private endsWithSlash(s: string) {
-		return /[\/\\]$/.test(s);
+		return regexp5.test(s);
 	}
 
 	private basenameWithTrailingSlash(fullPath: URI): string {

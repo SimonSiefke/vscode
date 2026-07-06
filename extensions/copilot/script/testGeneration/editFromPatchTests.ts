@@ -5,6 +5,8 @@
 import { promises as fs } from 'fs';
 import minimist from 'minimist';
 import * as path from 'path';
+const regexpOut = /^out-\d{8}-\d{6}$/;
+
 
 const fixturesRootsFolder = path.join(__dirname, '../../src/extension/test/node/fixtures/patch');
 const simulationsRootFolder = path.join(__dirname, '../../.simulation');
@@ -95,7 +97,7 @@ async function main(simulationFolder: string | undefined, all: boolean | undefin
 
 async function findLastRun(simulationsRootFolder: string): Promise<string | undefined> {
 	const entries = await fs.readdir(simulationsRootFolder);
-	return entries.filter(entry => entry.match(/^out-\d{8}-\d{6}$/)).sort().pop();
+	return entries.filter(entry => entry.match(regexpOut)).sort().pop();
 }
 
 async function checkExists(filePath: string): Promise<boolean> {

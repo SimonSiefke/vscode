@@ -17,6 +17,9 @@ import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { ILogService } from '../../log/common/log.js';
 import { ITunnelProxyInfo } from '../common/tunnelProxy.js';
 import { generateSelfSignedCert } from './selfSignedCert.js';
+const regexpHostPort = /^\[(?<host>[^\]]+)\]:(?<port>\d+)$/;
+const regexpHost = /^\[(?<host>[^\]]+)\]$/;
+
 
 /**
  * Maximum number of tunnel connections we establish through the remote
@@ -470,12 +473,12 @@ export class TunnelProxy extends Disposable {
 		let port: number;
 
 		// Handle IPv6 bracket notation [::1]:port
-		const bracketMatch = /^\[(?<host>[^\]]+)\]:(?<port>\d+)$/.exec(address);
+		const bracketMatch = regexpHostPort.exec(address);
 		if (bracketMatch?.groups) {
 			host = bracketMatch.groups['host'];
 			port = parseInt(bracketMatch.groups['port'], 10);
 		} else {
-			const bracketOnly = /^\[(?<host>[^\]]+)\]$/.exec(address);
+			const bracketOnly = regexpHost.exec(address);
 			if (bracketOnly?.groups) {
 				host = bracketOnly.groups['host'];
 				port = defaultPort;

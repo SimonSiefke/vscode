@@ -15,6 +15,9 @@ import { ResourceUnifiedConfigValue } from '../../utils/configuration';
 import { conditionalRegistration, requireHasModifiedUnifiedConfig, requireSomeCapability } from '../util/dependentRegistration';
 import { ReferencesCodeLens, TypeScriptBaseCodeLensProvider, getSymbolRange } from './baseCodeLensProvider';
 import { ExecutionTarget } from '../../tsServer/server';
+const regexpBabstract = /\babstract\b/;
+const regexpBprivate = /\bprivate\b/;
+
 
 const Config = Object.freeze({
 	enabled: 'implementationsCodeLens.enabled',
@@ -120,7 +123,7 @@ export default class TypeScriptImplementationsCodeLensProvider extends TypeScrip
 				item.kind === PConst.Kind.memberVariable ||
 				item.kind === PConst.Kind.memberGetAccessor ||
 				item.kind === PConst.Kind.memberSetAccessor) &&
-			/\babstract\b/.test(item.kindModifiers ?? '')
+			regexpBabstract.test(item.kindModifiers ?? '')
 		) {
 			return getSymbolRange(document, item);
 		}
@@ -142,7 +145,7 @@ export default class TypeScriptImplementationsCodeLensProvider extends TypeScrip
 			this._showOnAllClassMethods.getValue(document)
 		) {
 			// But not private ones as these can never be overridden
-			if (/\bprivate\b/.test(item.kindModifiers ?? '')) {
+			if (regexpBprivate.test(item.kindModifiers ?? '')) {
 				return undefined;
 			}
 			return getSymbolRange(document, item);

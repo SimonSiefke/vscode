@@ -38,6 +38,8 @@ import {
 	openFileCommand,
 } from './view/treeNodes/fileChangeNode';
 import { PRNode } from './view/treeNodes/pullRequestNode';
+const regexp1 = /^#?(\d*)$/;
+
 
 const _onDidUpdatePR = new vscode.EventEmitter<PullRequest | void>();
 export const onDidUpdatePR: vscode.Event<PullRequest | void> = _onDidUpdatePR.event;
@@ -1083,7 +1085,7 @@ ${contents}
 			if (!githubRepo) {
 				return;
 			}
-			const prNumberMatcher = /^#?(\d*)$/;
+			const prNumberMatcher = regexp1;
 			const prNumber = await vscode.window.showInputBox({
 				ignoreFocusOut: true, prompt: vscode.l10n.t('Enter the pull request number'),
 				validateInput: (input: string) => {

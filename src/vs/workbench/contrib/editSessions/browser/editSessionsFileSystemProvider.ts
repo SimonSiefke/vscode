@@ -9,6 +9,8 @@ import { URI } from '../../../../base/common/uri.js';
 import { FilePermission, FileSystemProviderCapabilities, FileSystemProviderErrorCode, FileType, IFileDeleteOptions, IFileOverwriteOptions, IFileSystemProviderWithFileReadWriteCapability, IStat, IWatchOptions } from '../../../../platform/files/common/files.js';
 import { ChangeType, decodeEditSessionFileContent, EDIT_SESSIONS_SCHEME, EditSession, IEditSessionsStorageService } from '../common/editSessions.js';
 import { NotSupportedError } from '../../../../base/common/errors.js';
+const regexpRefFolderNameFilePath = /(?<ref>[^/]+)\/(?<folderName>[^/]+)\/(?<filePath>.*)/;
+
 
 export class EditSessionsFileSystemProvider implements IFileSystemProviderWithFileReadWriteCapability {
 
@@ -21,7 +23,7 @@ export class EditSessionsFileSystemProvider implements IFileSystemProviderWithFi
 	readonly capabilities: FileSystemProviderCapabilities = FileSystemProviderCapabilities.Readonly + FileSystemProviderCapabilities.FileReadWrite;
 
 	async readFile(resource: URI): Promise<Uint8Array> {
-		const match = /(?<ref>[^/]+)\/(?<folderName>[^/]+)\/(?<filePath>.*)/.exec(resource.path.substring(1));
+		const match = regexpRefFolderNameFilePath.exec(resource.path.substring(1));
 		if (!match?.groups) {
 			throw FileSystemProviderErrorCode.FileNotFound;
 		}

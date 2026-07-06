@@ -59,6 +59,8 @@ import { isMacintosh } from '../../../../base/common/platform.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { ResolvedKeybinding } from '../../../../base/common/keybindings.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+const regexp1 = /(.*)\[(.+)\]\s*\((.+)\)(.*)/;
+
 
 export const shieldIcon = registerIcon('workspace-trust-banner', Codicon.shield, localize('shieldIcon', 'Icon for workspace trust ion the banner.'));
 
@@ -1134,6 +1136,6 @@ export class WorkspaceTrustEditor extends EditorPane {
 
 // Highly scoped fix for #126614
 function fixBadLocalizedLinks(badString: string): string {
-	const regex = /(.*)\[(.+)\]\s*\((.+)\)(.*)/; // markdown link match with spaces
+	const regex = regexp1; // markdown link match with spaces
 	return badString.replace(regex, '$1[$2]($3)$4');
 }

@@ -33,6 +33,8 @@ import { ILanguageStatusService } from '../../../services/languageStatus/common/
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
+const regexp1 = /\s/;
+
 
 type FormattingEditProvider = DocumentFormattingEditProvider | DocumentRangeFormattingEditProvider;
 
@@ -132,7 +134,7 @@ export class DefaultFormatter extends Disposable implements IWorkbenchContributi
 	}
 
 	static _maybeQuotes(s: string): string {
-		return s.match(/\s/) ? `'${s}'` : s;
+		return s.match(regexp1) ? `'${s}'` : s;
 	}
 
 	private async _analyzeFormatter<T extends FormattingEditProvider>(kind: FormattingKind, formatter: T[], document: ITextModel): Promise<T | string> {

@@ -5,6 +5,8 @@
 
 import { TestContext } from './context.js';
 import { UITest } from './uiTest.js';
+const regexpExtensionHostAgent = /Extension host agent listening on (\d+)/;
+
 
 export function setup(context: TestContext) {
 	context.test('server-web-alpine-arm64', ['alpine', 'arm64', 'browser'], async () => {
@@ -78,7 +80,7 @@ export function setup(context: TestContext) {
 				'--user-data-dir', test.userDataDir
 			],
 			async (line) => {
-				const port = /Extension host agent listening on (\d+)/.exec(line)?.[1];
+				const port = regexpExtensionHostAgent.exec(line)?.[1];
 				if (!port) {
 					return false;
 				}

@@ -12,6 +12,9 @@ import * as util from './util.ts';
 import { getVersion } from './getVersion.ts';
 import { downloadFeedPackage } from './azureFeed.ts';
 import electron from '@vscode/gulp-electron';
+const regexp1 = /<%=\s*([^\s]+)\s*%>/g;
+const regexpZip = /\.zip$/;
+
 
 type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
 type DarwinDocumentType = {
@@ -35,7 +38,7 @@ const versionedResourcesFolder = useVersionedUpdate ? commit!.substring(0, 10) :
 
 function createTemplate(input: string): (params: Record<string, string>) => string {
 	return (params: Record<string, string>) => {
-		return input.replace(/<%=\s*([^\s]+)\s*%>/g, (match, key) => {
+		return input.replace(new RegExp(regexp1), (match, key) => {
 			return params[key] || match;
 		});
 	};
@@ -122,7 +125,7 @@ function feedPackageName(fileName: string): string | undefined {
 	if (fileName.endsWith('-symbols.zip')) {
 		return undefined;
 	}
-	return fileName.replace(/\.zip$/, '');
+	return fileName.replace(regexpZip, '');
 }
 
 const electronAssetResolver = electronFeed

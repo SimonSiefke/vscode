@@ -17,6 +17,8 @@ import { IInstantiationService } from '../../../platform/instantiation/common/in
 import { ExtensionPaths, IExtHostExtensionService } from './extHostExtensionService.js';
 import { ILogService } from '../../../platform/log/common/log.js';
 import { escapeRegExpCharacters } from '../../../base/common/strings.js';
+const regexp1 = /\\/g;
+
 
 
 interface LoadFunction {
@@ -137,7 +139,7 @@ class NodeModuleAliasingModuleFactory implements IAlternativeModuleProvider {
 	}
 
 	private forceForwardSlashes(str: string) {
-		return str.replace(/\\/g, '/');
+		return str.replace(new RegExp(regexp1), '/');
 	}
 }
 

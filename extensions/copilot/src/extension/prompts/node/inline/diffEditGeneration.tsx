@@ -10,6 +10,8 @@ import { TextEdit } from '../../../../vscodeTypes';
 import { OutcomeAnnotation } from '../../../inlineChat/node/promptCraftingTypes';
 import { createEditsFromPseudoDiff } from '../../../prompt/node/editFromDiffGeneration';
 import { LineRange, Lines, LinesEdit } from '../../../prompt/node/editGeneration';
+const regexp1 = /^.+/;
+
 
 export class EditGenerationRules extends PromptElement {
 	render() {
@@ -69,7 +71,7 @@ export type ReplyProcessorResult = { edits?: TextEdit[]; content?: string; annot
 export function getReplyProcessor(): ReplyProcessor {
 	return {
 		getFirstSentence(text: string): string {
-			return text.split('```', 1)[0].match(/^.+/)?.[0] ?? '';
+			return text.split('```', 1)[0].match(regexp1)?.[0] ?? '';
 		},
 		process(replyText: string, documentText: string, lineRange: LineRange): ReplyProcessorResult {
 			const annotations: OutcomeAnnotation[] = [];

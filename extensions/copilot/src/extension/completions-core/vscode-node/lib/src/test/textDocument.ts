@@ -15,6 +15,8 @@ import {
 } from '../textDocumentManager';
 import { Emitter } from '../util/event';
 import { basename, validateUri } from '../util/uri';
+const regexp1 = /#.*/;
+
 
 export function createTextDocument(
 	uri: string,
@@ -56,7 +58,7 @@ interface JupyterNotebook {
 export function parseNotebook(doc: ITextDocument): INotebookDocument {
 	const notebook: JupyterNotebook = JSON.parse(doc.getText()) as JupyterNotebook;
 	const cells: INotebookCell[] = notebook.cells.map((cell, index) => {
-		const cellUri = `${doc.uri.replace(/#.*/, '')}#${index}`;
+		const cellUri = `${doc.uri.replace(regexp1, '')}#${index}`;
 		const cellText = Array.isArray(cell.source) ? cell.source.join('') : cell.source;
 
 		const languageId =
@@ -139,11 +141,11 @@ export class SimpleTestTextDocumentManager extends TextDocumentManager {
 
 	setNotebookDocument(doc: ITextDocument, notebook: INotebookDocument) {
 		// Document URIs in the same notebook differ only by fragment
-		this._notebookDocuments.set(doc.uri.replace(/#.*/, ''), notebook);
+		this._notebookDocuments.set(doc.uri.replace(regexp1, ''), notebook);
 	}
 
 	findNotebook({ uri }: { uri: string }): INotebookDocument | undefined {
-		return this._notebookDocuments.get(uri.replace(/#.*/, ''));
+		return this._notebookDocuments.get(uri.replace(regexp1, ''));
 	}
 
 	getWorkspaceFolders() {

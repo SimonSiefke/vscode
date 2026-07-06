@@ -28,6 +28,9 @@ import { computeSHA256 } from './hash';
 import { CacheMode } from './simulationContext';
 import { FetchRequestCollector } from './spyingChatMLFetcher';
 import { drainStdoutAndExit } from './stdout';
+const regexpKeyAlreadyExists = /Key already exists/;
+const regexp2 = /\n/g;
+
 
 export class CacheableCompletionRequest {
 	readonly hash: string;
@@ -173,7 +176,7 @@ export class CachingCompletionsFetchService extends CompletionsFetchService {
 			try {
 				this.requests.set(options.requestId, { request, hitsCache: false });
 			} catch (err) {
-				if (/Key already exists/.test(err.message)) {
+				if (regexpKeyAlreadyExists.test(err.message)) {
 					prettyPrintJsonEncodedObject(options.body);
 					console.log(`\n✗ ${err.message}`);
 					await drainStdoutAndExit(1);
@@ -291,7 +294,7 @@ function prettyPrintJsonEncodedObject(obj: string) {
 		JSON.stringify(
 			JSON.parse(obj, (key, value) => {
 				if (typeof value === 'string') {
-					const split = value.split(/\n/g);
+					const split = value.split(new RegExp(regexp2));
 					return split.length > 1 ? split : value;
 				}
 				return value;

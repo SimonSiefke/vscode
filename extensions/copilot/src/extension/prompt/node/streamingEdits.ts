@@ -12,6 +12,11 @@ import { looksLikeCode } from '../common/codeGuesser';
 import { isImportStatement } from '../common/importStatement';
 import { EditStrategy, Lines, trimLeadingWhitespace } from './editGeneration';
 import { computeIndentLevel2, guessIndentation, normalizeIndentation } from './indentationGuesser';
+const regexp1 = /^\s*$/;
+const regexp2 = /\r\n|\r|\n/g;
+const regexp3 = /^```/;
+const regexp4 = /\r$/;
+
 
 export interface IStreamingEditsStrategy {
 	processStream(stream: AsyncIterable<LineOfText>): Promise<StreamingEditsResult>;
@@ -87,7 +92,7 @@ export class InsertOrReplaceStreamingEdits implements IStreamingEditsStrategy {
 		if (this.initialSelection.isEmpty) {
 			const cursorLineContent = this.myDocument.getLine(firstRangeLine).content;
 			if (
-				/^\s*$/.test(cursorLineContent)
+				regexp1.test(cursorLineContent)
 				|| fixedLine.adjustedContent.startsWith(cursorLineContent)
 			) {
 				// Cursor sitting on an empty or whitespace only line or the reply continues the line
@@ -258,7 +263,7 @@ export class InsertionStreamingEdits implements IStreamingEditsStrategy {
 		const cursorLineContent = this._myDocument.getLine(firstRangeLine).content;
 
 		// Cursor sitting on an empty or whitespace only line or the reply continues the line
-		const shouldLineBeReplaced = /^\s*$/.test(cursorLineContent) || replyLine.trimStart().startsWith(cursorLineContent.trimStart());
+		const shouldLineBeReplaced = regexp1.test(cursorLineContent) || replyLine.trimStart().startsWith(cursorLineContent.trimStart());
 
 		const lineNumForIndentGuessing = shouldLineBeReplaced // @ulugbekna: if we are insert line "after" (ie using `insertLineAfter`) we should guess indentation starting from where we insert the line
 			? firstRangeLine
@@ -503,7 +508,7 @@ export class StreamingWorkingCopyDocument implements IStreamingWorkingCopyDocume
 		// console.info(`---------\nNEW StreamingWorkingCopyDocument`);
 		this.indentStyle = IndentUtils.getDocumentIndentStyle(sourceCode, fileIndentInfo);
 
-		this._originalLines = sourceCode.split(/\r\n|\r|\n/g);
+		this._originalLines = sourceCode.split(new RegExp(regexp2));
 		for (let i = 0; i < this._originalLines.length; i++) {
 			this.lines[i] = new DocumentLine(this._originalLines[i], this.indentStyle);
 		}
@@ -770,13 +775,13 @@ export class LineFilters {
 		let state = State.BeforeCodeBlock;
 		return (line: LineOfText) => {
 			if (state === State.BeforeCodeBlock) {
-				if (/^```/.test(line.value)) {
+				if (regexp3.test(line.value)) {
 					state = State.InCodeBlock;
 				}
 				return false;
 			}
 			if (state === State.InCodeBlock) {
-				if (/^```/.test(line.value)) {
+				if (regexp3.test(line.value)) {
 					state = State.AfterCodeBlock;
 					return false;
 				}
@@ -797,7 +802,7 @@ export class LineOfText {
 	constructor(
 		value: string
 	) {
-		this.value = value.replace(/\r$/, '');
+		this.value = value.replace(regexp4, '');
 	}
 }
 

@@ -36,6 +36,8 @@ import { AnythingQuickAccessProvider } from '../../../search/browser/anythingQui
 import { ISymbolQuickPickItem, SymbolsQuickAccessProvider } from '../../../search/browser/symbolsQuickAccess.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ActiveEditorContext } from '../../../../common/contextkeys.js';
+const regexp1 = /\$\([^\)]+\)\s*(.+)/;
+
 
 export function registerChatContextActions() {
 	registerAction2(AttachContextAction);
@@ -373,7 +375,7 @@ class AttachContextAction extends Action2 {
 			if (!label) {
 				return '';
 			}
-			const match = label.match(/\$\([^\)]+\)\s*(.+)/);
+			const match = label.match(regexp1);
 			return match ? match[1] : label;
 		}
 

@@ -5,6 +5,8 @@
 
 import { ITextSearchMatch, ITextSearchPreviewOptions, ITextSearchResult } from './search.js';
 import { Range } from '../../../../editor/common/core/range.js';
+const regexp1 = /\r?\n/g;
+
 
 export const getFileResults = (
 	bytes: Uint8Array,
@@ -48,7 +50,7 @@ export const getFileResults = (
 
 		let prevLineEnd = 0;
 		let lineEndingMatch: RegExpExecArray | null = null;
-		const lineEndRegex = /\r?\n/g;
+		const lineEndRegex = new RegExp(regexp1);
 		while ((lineEndingMatch = lineEndRegex.exec(text))) {
 			lineRanges.push({ start: prevLineEnd, end: lineEndingMatch.index });
 			prevLineEnd = lineEndingMatch.index + lineEndingMatch[0].length;

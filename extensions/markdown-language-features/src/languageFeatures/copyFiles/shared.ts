@@ -12,6 +12,10 @@ import { Schemes } from '../../util/schemes';
 import { UriList } from '../../util/uriList';
 import { resolveSnippet } from './snippets';
 import { mediaFileExtensions, MediaKind } from '../../util/mimes';
+const regexp1 = /[\[\]]/g;
+const regexp2 = /\s|[\u007F\u0000-\u001f]/;
+const regexp3 = /[\(\)]/;
+
 
 /** Base kind for any sort of markdown link, including both path and media links */
 export const baseLinkEditKind = vscode.DocumentDropOrPasteEditKind.Empty.append('markdown', 'link');
@@ -302,18 +306,18 @@ function escapeMarkdownLinkPath(mdPath: string): string {
 }
 
 function escapeBrackets(value: string): string {
-	value = value.replace(/[\[\]]/g, '\\$&'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+	value = value.replace(new RegExp(regexp1), '\\$&'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
 	return value;
 }
 
 function needsBracketLink(mdPath: string): boolean {
 	// Links with whitespace or control characters must be enclosed in brackets
-	if (mdPath.startsWith('<') || /\s|[\u007F\u0000-\u001f]/.test(mdPath)) {
+	if (mdPath.startsWith('<') || regexp2.test(mdPath)) {
 		return true;
 	}
 
 	// Check if the link has mis-matched parens
-	if (!/[\(\)]/.test(mdPath)) {
+	if (!regexp3.test(mdPath)) {
 		return false;
 	}
 

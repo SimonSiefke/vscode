@@ -9,6 +9,23 @@ import { glob } from 'glob';
 import * as jsonc from 'jsonc-parser';
 import * as path from 'path';
 import { promisify } from 'util';
+const regexp1 = /\/\*$/;
+const regexp2 = /^\.\//;
+const regexpJsxImportSource = /\/\*\*\s+@jsxImportSource\s+\S+/;
+const regexp4 = /'/g;
+const regexp5 = /"/g;
+const regexpImportTypeExport = /(?:import(?:\s+type)?|export)\s+(?:(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?|\w+)\s+from\s+)?['"](\.\.?\/[^'"]*)['"]/g;
+const regexpImportTypeExport1 = /(?:import(?:\s+type)?|export)\s+(?:(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?|\w+)\s+from\s+)?['"]([#][^'"]*)['"]/g;
+const regexpJsxImportSource1 = /\/\*\*\s+@jsxImportSource\s+(\.\.?\/\S+)\s+\*\//g;
+const regexp9 = /\\/g;
+const regexpSrc = /^src\//;
+const regexpFromNodeChatLibMain = /(from\s+['"])\.\.\/\.\.\/node\/chatLibMain(['"])/g;
+const regexpImportFrom = /import\s+([^'"]*)\s+from\s+['"](\.\/[^'"]*|\.\.\/[^'"]*)['"]/g;
+const regexpImportTypeFrom = /^(\s*import\s+)(?!type\s+)([^'"]*)\s+from\s+['"]vscode['"];?\s*$/gm;
+const regexpImportTypeFrom1 = /^(\s*import\s+)(?!type\s+)([^'"]*)\s+from\s+['"]([^'"]*\/vscodeTypes)['"];?\s*$/gm;
+const regexp15 = /^\.\.\/\.\.\//;
+const regexpReferencePath = /\/\/\/\s*<reference\s+path="([^"]+)"\s*\/>/g;
+
 
 const REPO_ROOT = path.join(__dirname, '..', '..');
 const CHAT_LIB_DIR = path.join(REPO_ROOT, 'chat-lib');
@@ -86,8 +103,8 @@ class ChatLibExtractor {
 				if (Array.isArray(targets) && targets.length > 0) {
 					const target = targets[0]; // Use the first target
 					// Remove leading './' and trailing '/*' if present
-					const cleanTarget = target.replace(/^\.\//, '').replace(/\/\*$/, '');
-					const cleanAlias = alias.replace(/\/\*$/, '');
+					const cleanTarget = target.replace(regexp2, '').replace(regexp1, '');
+					const cleanAlias = alias.replace(regexp1, '');
 					this.pathMappings.set(cleanAlias, cleanTarget);
 				}
 			}
@@ -158,7 +175,7 @@ class ChatLibExtractor {
 			// Track block comments
 			if (line.trim().startsWith('/*')) {
 				// preserve pragmas in tsx files
-				if (!(filePath.endsWith('.tsx') && line.match(/\/\*\*\s+@jsxImportSource\s+\S+/))) {
+				if (!(filePath.endsWith('.tsx') && line.match(regexpJsxImportSource))) {
 					inBlockComment = true;
 				}
 			}
@@ -186,8 +203,8 @@ class ChatLibExtractor {
 				if (commentIndex !== -1) {
 					// Check if // is inside a string by counting quotes before it
 					const beforeComment = line.substring(0, commentIndex);
-					const singleQuotes = (beforeComment.match(/'/g) || []).length;
-					const doubleQuotes = (beforeComment.match(/"/g) || []).length;
+					const singleQuotes = (beforeComment.match(new RegExp(regexp4)) || []).length;
+					const doubleQuotes = (beforeComment.match(new RegExp(regexp5)) || []).length;
 					// If even number of quotes, the comment is outside strings
 					if (singleQuotes % 2 === 0 && doubleQuotes % 2 === 0) {
 						processedLine = beforeComment;
@@ -206,7 +223,7 @@ class ChatLibExtractor {
 		// - export ... from './path'
 		// - export { ... } from './path'
 		// Updated regex to match all relative imports (including multiple ../ segments)
-		const relativeImportRegex = /(?:import(?:\s+type)?|export)\s+(?:(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?|\w+)\s+from\s+)?['"](\.\.?\/[^'"]*)['"]/g;
+		const relativeImportRegex = new RegExp(regexpImportTypeExport);
 		let match;
 
 		while ((match = relativeImportRegex.exec(activeContent)) !== null) {
@@ -220,7 +237,7 @@ class ChatLibExtractor {
 
 		// Also match path alias imports like: import ... from '#lib/...' or '#types'
 		// We need to resolve these to follow their dependencies
-		const aliasImportRegex = /(?:import(?:\s+type)?|export)\s+(?:(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?|\w+)\s+from\s+)?['"]([#][^'"]*)['"]/g;
+		const aliasImportRegex = new RegExp(regexpImportTypeExport1);
 
 		while ((match = aliasImportRegex.exec(activeContent)) !== null) {
 			const importPath = match[1];
@@ -233,7 +250,7 @@ class ChatLibExtractor {
 
 		// For tsx files process JSX imports as well
 		if (filePath.endsWith('.tsx')) {
-			const jsxRelativeImportRegex = /\/\*\*\s+@jsxImportSource\s+(\.\.?\/\S+)\s+\*\//g;
+			const jsxRelativeImportRegex = new RegExp(regexpJsxImportSource1);
 
 			while ((match = jsxRelativeImportRegex.exec(activeContent)) !== null) {
 				const importPath = match[1];
@@ -369,13 +386,13 @@ class ChatLibExtractor {
 
 	private normalizePath(filePath: string): string {
 		// Normalize path separators to forward slashes for consistency across platforms
-		return filePath.replace(/\\/g, '/');
+		return filePath.replace(new RegExp(regexp9), '/');
 	}
 
 	private getDestinationPath(filePath: string): string {
 		// Normalize the input path first, then convert src/... to _internal/...
 		const normalizedPath = this.normalizePath(filePath);
-		const relativePath = normalizedPath.replace(/^src\//, '_internal/');
+		const relativePath = normalizedPath.replace(regexpSrc, '_internal/');
 		return path.join(TARGET_DIR, relativePath);
 	}
 
@@ -416,7 +433,7 @@ class ChatLibExtractor {
 		// Rewrite imports in test files: '../../node/chatLibMain' -> '../../../../main'
 		if (normalizedFilePath.startsWith('src/lib/vscode-node/test/')) {
 			transformed = transformed.replace(
-				/(from\s+['"])\.\.\/\.\.\/node\/chatLibMain(['"])/g,
+				new RegExp(regexpFromNodeChatLibMain),
 				'$1../../../../main$2'
 			);
 		}
@@ -424,7 +441,7 @@ class ChatLibExtractor {
 		// Only rewrite relative imports for main.ts (chatLibMain.ts)
 		if (normalizedFilePath === 'src/lib/node/chatLibMain.ts') {
 			transformed = transformed.replace(
-				/import\s+([^'"]*)\s+from\s+['"](\.\/[^'"]*|\.\.\/[^'"]*)['"]/g,
+				new RegExp(regexpImportFrom),
 				(match, importClause, importPath) => {
 					const rewrittenPath = this.rewriteImportPath(filePath, importPath);
 					return `import ${importClause} from '${rewrittenPath}'`;
@@ -449,7 +466,7 @@ class ChatLibExtractor {
 		// But NOT type-only imports like:
 		// - import type { Uri } from 'vscode'
 		// - import type * as vscode from 'vscode'
-		const vscodeImportRegex = /^(\s*import\s+)(?!type\s+)([^'"]*)\s+from\s+['"]vscode['"];?\s*$/gm;
+		const vscodeImportRegex = new RegExp(regexpImportTypeFrom);
 
 		return content.replace(vscodeImportRegex, (match, importPrefix, importClause) => {
 			// Calculate the relative path to vscodeTypesShim based on the current file location
@@ -475,7 +492,7 @@ class ChatLibExtractor {
 		// - import * as vscodeTypes from '../../../vscodeTypes'
 		// But NOT type-only imports like:
 		// - import type { ChatErrorLevel } from '../../../vscodeTypes'
-		const vscodeTypesImportRegex = /^(\s*import\s+)(?!type\s+)([^'"]*)\s+from\s+['"]([^'"]*\/vscodeTypes)['"];?\s*$/gm;
+		const vscodeTypesImportRegex = new RegExp(regexpImportTypeFrom1);
 
 		return content.replace(vscodeTypesImportRegex, (match, importPrefix, importClause, importPath) => {
 			// Calculate the relative path to vscodeTypesShim based on the current file location
@@ -495,7 +512,7 @@ class ChatLibExtractor {
 		// Files are placed in: _internal/<original_path_without_src>
 
 		// Remove 'src/' prefix and calculate depth
-		const relativePath = filePath.replace(/^src\//, '');
+		const relativePath = filePath.replace(regexpSrc, '');
 		const pathSegments = relativePath.split('/');
 		const depth = pathSegments.length - 1; // -1 because the last segment is the filename
 
@@ -510,7 +527,7 @@ class ChatLibExtractor {
 			// Convert ../../extension/... to ./_internal/extension/...
 			// Convert ../../platform/... to ./_internal/platform/...
 			// Convert ../../util/... to ./_internal/util/...
-			return importPath.replace(/^\.\.\/\.\.\//, './_internal/');
+			return importPath.replace(regexp15, './_internal/');
 		}
 
 		// For other files, don't change the import path
@@ -588,7 +605,7 @@ class ChatLibExtractor {
 			// Convert from root paths like "src/extension/completions-core/lib/src"
 			// to chat-lib paths like "./src/_internal/extension/completions-core/lib/src"
 			// Remove the "src/" prefix from targetPath since it's already part of the _internal structure
-			const pathWithoutSrc = targetPath.replace(/^src\//, '');
+			const pathWithoutSrc = targetPath.replace(regexpSrc, '');
 			const chatLibPath = `./src/_internal/${pathWithoutSrc}`;
 
 			let aliasWithWildcard = alias;
@@ -597,7 +614,7 @@ class ChatLibExtractor {
 			// Check if the original mapping had a wildcard
 			if (rootTsconfig.compilerOptions?.paths) {
 				for (const key of Object.keys(rootTsconfig.compilerOptions.paths)) {
-					const keyWithoutWildcard = key.replace(/\/\*$/, '');
+					const keyWithoutWildcard = key.replace(regexp1, '');
 					if (keyWithoutWildcard === alias && key.endsWith('/*')) {
 						aliasWithWildcard = alias + '/*';
 						pathWithWildcard = chatLibPath + '/*';
@@ -650,7 +667,7 @@ class ChatLibExtractor {
 		const content = await fs.promises.readFile(vscodeApiSrcPath, 'utf-8');
 
 		// Parse all /// <reference path="..." /> directives
-		const refRegex = /\/\/\/\s*<reference\s+path="([^"]+)"\s*\/>/g;
+		const refRegex = new RegExp(regexpReferencePath);
 		let match;
 		const referencedFiles: { refPath: string; fileName: string }[] = [];
 
@@ -678,7 +695,7 @@ class ChatLibExtractor {
 
 		// Copy vscode-api.d.ts itself, updating reference paths
 		const updatedContent = content.replace(
-			/\/\/\/\s*<reference\s+path="([^"]+)"\s*\/>/g,
+			new RegExp(regexpReferencePath),
 			(_match, refPath: string) => {
 				const fileName = path.basename(refPath);
 				return `/// <reference path="./vscode-dts/${fileName}" />`;

@@ -8,6 +8,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomBytes } from 'crypto';
 import { env } from 'vscode';
+const regexp1 = / /g;
+
 
 function sendFile(res: http.ServerResponse, filepath: string) {
 	const isSvg = filepath.endsWith('.svg');
@@ -103,7 +105,7 @@ export class LoopbackAuthServer implements ILoopbackServer {
 			const reqUrl = new URL(req.url!, `http://${req.headers.host}`);
 			switch (reqUrl.pathname) {
 				case '/signin': {
-					const receivedNonce = (reqUrl.searchParams.get('nonce') ?? '').replace(/ /g, '+');
+					const receivedNonce = (reqUrl.searchParams.get('nonce') ?? '').replace(new RegExp(regexp1), '+');
 					if (receivedNonce !== this.nonce) {
 						res.writeHead(302, { location: `/?error=${encodeURIComponent('Nonce does not match.')}${appNameQueryParam}` });
 						res.end();
@@ -115,7 +117,7 @@ export class LoopbackAuthServer implements ILoopbackServer {
 				case '/callback': {
 					const code = reqUrl.searchParams.get('code') ?? undefined;
 					const state = reqUrl.searchParams.get('state') ?? undefined;
-					const nonce = (reqUrl.searchParams.get('nonce') ?? '').replace(/ /g, '+');
+					const nonce = (reqUrl.searchParams.get('nonce') ?? '').replace(new RegExp(regexp1), '+');
 					if (!code || !state || !nonce) {
 						res.writeHead(400);
 						res.end();

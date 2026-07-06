@@ -29,6 +29,8 @@ import {
 	PromptsStorage,
 	SKILL_PROVIDER_ACTIVATION_EVENT,
 } from './promptsService.js';
+const regexp1 = /<[^>]+>/g;
+
 
 /**
  * Event payload emitted by {@link ExtensionPromptFileService.onDidChange}.
@@ -371,7 +373,7 @@ export class ExtensionPromptFileService extends Disposable {
 
 	private _sanitizeAgentSkillText(text: string): string {
 		// Remove XML tags
-		return text.replace(/<[^>]+>/g, '');
+		return text.replace(new RegExp(regexp1), '');
 	}
 
 	private _truncateAgentSkillName(name: string, uri: URI): string {

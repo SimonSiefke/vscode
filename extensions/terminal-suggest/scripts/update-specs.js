@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /-([a-z])/g;
+
 // @ts-check
 
 const fs = require('fs');
@@ -220,7 +222,7 @@ for (const spec of upstreamSpecs) {
 
 // Generate upstreamSpecs.ts with re-exports
 function specToExportName(spec) {
-	return spec.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+	return spec.replace(new RegExp(regexp1), (_, c) => c.toUpperCase());
 }
 
 function specToReExport(spec) {

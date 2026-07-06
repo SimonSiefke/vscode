@@ -23,6 +23,10 @@ import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { isNumber, isObject, isString } from '../../../../base/common/types.js';
 import { deepClone } from '../../../../base/common/objects.js';
 import { IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+const regexpZAZ0ZA = /^([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*:)?([0-9]+)$/;
+const regexp2 = /^(\d+)\-(\d+)$/;
+const regexpZ0 = /^([a-z0-9\-]+):(\d{1,5})$/;
+
 
 const MISMATCH_LOCAL_PORT_COOLDOWN = 10 * 1000; // 10 seconds
 const TUNNELS_TO_RESTORE = 'remote.tunnels.toRestore';
@@ -66,7 +70,7 @@ export interface Tunnel {
 }
 
 export function parseAddress(address: string): { host: string; port: number } | undefined {
-	const matches = address.match(/^([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*:)?([0-9]+)$/);
+	const matches = address.match(regexpZAZ0ZA);
 	if (!matches) {
 		return undefined;
 	}
@@ -192,8 +196,8 @@ export function isCandidatePort(candidate: any): candidate is CandidatePort {
 export class PortsAttributes extends Disposable {
 	private static SETTING = 'remote.portsAttributes';
 	private static DEFAULTS = 'remote.otherPortsAttributes';
-	private static RANGE = /^(\d+)\-(\d+)$/;
-	private static HOST_AND_PORT = /^([a-z0-9\-]+):(\d{1,5})$/;
+	private static RANGE = regexp2;
+	private static HOST_AND_PORT = regexpZ0;
 	private portsAttributes: PortAttributes[] = [];
 	private defaultPortAttributes: Attributes | undefined;
 	private _onDidChangeAttributes = this._register(new Emitter<void>());

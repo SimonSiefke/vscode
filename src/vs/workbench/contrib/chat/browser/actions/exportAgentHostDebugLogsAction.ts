@@ -30,6 +30,12 @@ import { IPathService } from '../../../../services/path/common/pathService.js';
 import { IChatWidgetService } from '../chat.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { buildLocalCopilotLogsUri, buildRemoteCopilotLogsUri, COPILOT_CLI_LOCAL_AH_SCHEME, getCopilotCliSessionRawId, parseRemoteAuthorityFromScheme, resolveEventsUri } from '../copilotCliEventsUri.js';
+const regexp1 = /[/\\:*?"<>|]/g;
+const regexp2 = /^-+|-+$/g;
+const regexp3 = /[/\\:*?"<>|\s]+/g;
+const regexp4 = /[\\/:\*\?"<>|\s]+/g;
+const regexp5 = /\\/g;
+
 
 /** Output channel ID for the agent host process logger (forwarded via RemoteLoggerChannelClient). */
 const AGENT_HOST_LOGGER_CHANNEL_ID = AGENT_HOST_LOG_OUTPUT_CHANNEL_ID;
@@ -164,7 +170,7 @@ export async function collectAgentHostDebugLogs(
 		}
 		const modelRef = await textModelService.createModelReference(channel.uri);
 		try {
-			const filename = `${descriptor.label.replace(/[/\\:*?"<>|]/g, '-')}.log`;
+			const filename = `${descriptor.label.replace(new RegExp(regexp1), '-')}.log`;
 			files.push({ path: filename, contents: modelRef.object.textEditorModel.getValue() });
 		} finally {
 			modelRef.dispose();
@@ -229,7 +235,7 @@ export async function collectAgentHostDebugLogs(
 	}
 
 	const titleSlug = activeSession?.title
-		? `-${activeSession.title.replace(/[/\\:*?"<>|\s]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)}`
+		? `-${activeSession.title.replace(new RegExp(regexp3), '-').replace(new RegExp(regexp2), '').slice(0, 40)}`
 		: '';
 	return { files, exportName: `ah-logs${titleSlug}` };
 }
@@ -409,7 +415,7 @@ function getRemoteConnectionForSession(sessionResource: URI, connections: readon
 }
 
 function sanitizeFilePart(value: string): string {
-	return value.replace(/[\\/:\*\?"<>|\s]+/g, '-').replace(/^-+|-+$/g, '') || 'connection';
+	return value.replace(new RegExp(regexp4), '-').replace(new RegExp(regexp2), '') || 'connection';
 }
 
 async function exportFilesToLocalFolder(
@@ -451,12 +457,12 @@ async function exportFilesToLocalFolder(
 
 function toSafeRelativePathSegments(path: string): string[] {
 	return path
-		.replace(/\\/g, '/')
+		.replace(new RegExp(regexp5), '/')
 		.split('/')
 		.filter(segment => {
 			return segment.length > 0 && segment !== '.' && segment !== '..';
 		})
-		.map(segment => segment.replace(/[/\\:*?"<>|]/g, '-'));
+		.map(segment => segment.replace(new RegExp(regexp1), '-'));
 }
 
 /**

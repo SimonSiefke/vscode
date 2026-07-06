@@ -35,6 +35,8 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ISearchTreeMatch, isSearchTreeMatch, RenderableMatch, ITextSearchHeading, ISearchTreeFolderMatch, ISearchTreeFileMatch, isSearchTreeFileMatch, isSearchTreeFolderMatch, isTextSearchHeading, ISearchModel, isSearchTreeFolderMatchWorkspaceRoot, isSearchTreeFolderMatchNoRoot, isPlainTextSearchHeading } from './searchTreeModel/searchTreeCommon.js';
 import { isSearchTreeAIFileMatch } from './AISearch/aiSearchModelBase.js';
+const regexpInline = /^inline/;
+
 
 interface IFolderMatchTemplate {
 	label: IResourceLabel;
@@ -130,7 +132,7 @@ export class TextSearchResultRenderer extends Disposable implements ICompressibl
 			highlightToggledItems: true,
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {
-				primaryGroup: (g: string) => /^inline/.test(g),
+				primaryGroup: (g: string) => regexpInline.test(g),
 			},
 		}));
 		return { label, disposables, actions, contextKeyService: contextKeyServiceMain };
@@ -233,7 +235,7 @@ export class FolderMatchRenderer extends Disposable implements ICompressibleTree
 			},
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {
-				primaryGroup: (g: string) => /^inline/.test(g),
+				primaryGroup: (g: string) => regexpInline.test(g),
 			},
 		}));
 
@@ -334,7 +336,7 @@ export class FileMatchRenderer extends Disposable implements ICompressibleTreeRe
 			},
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {
-				primaryGroup: (g: string) => /^inline/.test(g),
+				primaryGroup: (g: string) => regexpInline.test(g),
 			},
 		}));
 
@@ -428,7 +430,7 @@ export class MatchRenderer extends Disposable implements ICompressibleTreeRender
 			},
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {
-				primaryGroup: (g: string) => /^inline/.test(g),
+				primaryGroup: (g: string) => regexpInline.test(g),
 			},
 		}));
 

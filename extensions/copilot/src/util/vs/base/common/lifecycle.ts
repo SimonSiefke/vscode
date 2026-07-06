@@ -12,6 +12,9 @@ import { URI } from './uri';
 import { createSingleCallFunction } from './functional';
 import { Iterable } from './iterator';
 import { BugIndicatingError, onUnexpectedError } from './errors';
+const regexpTrackDisposable = /^trackDisposable \(.*\)$/;
+const regexpDisposableTrackerTrackDisposable = /^DisposableTracker.trackDisposable \(.*\)$/;
+
 
 // #region Disposable Tracking
 
@@ -177,7 +180,7 @@ export class DisposableTracker implements IDisposableTracker {
 			}
 
 			const lines = leaking.source!.split('\n').map(p => p.trim().replace('at ', '')).filter(l => l !== '');
-			removePrefix(lines, ['Error', /^trackDisposable \(.*\)$/, /^DisposableTracker.trackDisposable \(.*\)$/]);
+			removePrefix(lines, ['Error', regexpTrackDisposable, regexpDisposableTrackerTrackDisposable]);
 			return lines.reverse();
 		}
 

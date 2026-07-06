@@ -22,6 +22,8 @@ import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 import { AvailableForDownload, DisablementReason, IUpdateService, State, StateType, UpdateType } from '../common/update.js';
+const regexp1 = /^(\d+\.\d+)/;
+
 
 const LAST_KNOWN_VERSION_STORAGE_KEY = 'abstractUpdateService/lastKnownVersion';
 
@@ -60,7 +62,7 @@ export function getUpdateRequestHeaders(productVersion: string): Record<string, 
 	}
 
 	if (isWindows) {
-		const match = getWindowsReleaseSync().match(/^(\d+\.\d+)/);
+		const match = getWindowsReleaseSync().match(regexp1);
 		if (match) {
 			return {
 				'User-Agent': `Code/${productVersion} Electron/${process.versions.electron} Windows NT ${match[1]}`

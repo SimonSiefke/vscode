@@ -11,6 +11,8 @@ import { getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
 import { renderLabelWithIcons } from '../iconLabel/iconLabels.js';
 import { Disposable } from '../../../common/lifecycle.js';
 import * as objects from '../../../common/objects.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 /**
  * A range to be highlighted.
@@ -141,7 +143,7 @@ export class HighlightedLabel extends Disposable {
 		let total = 0;
 		let extra = 0;
 
-		return text.replace(/\r\n|\r|\n/g, (match, offset) => {
+		return text.replace(new RegExp(regexp1), (match, offset) => {
 			extra = match === '\r\n' ? -1 : 0;
 			offset += total;
 

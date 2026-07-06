@@ -8,6 +8,9 @@ import * as vscode from 'vscode';
 import { SettingsDocument } from './settingsDocumentHelper';
 import { provideInstalledExtensionProposals } from './extensionsProposals';
 import './importExportProfiles';
+const regexp1 = /\$\{[^"\}]*\}?/;
+const regexpZA = /[a-zA-Z.]+/;
+
 
 export function activate(context: vscode.ExtensionContext): void {
 	//settings.json suggestions
@@ -46,7 +49,7 @@ function registerVariableCompletions(pattern: string): vscode.Disposable {
 					return [];
 				}
 
-				let range = document.getWordRangeAtPosition(position, /\$\{[^"\}]*\}?/);
+				let range = document.getWordRangeAtPosition(position, regexp1);
 				if (!range || range.start.isEqual(position) || range.end.isEqual(position) && document.getText(range).endsWith('}')) {
 					range = new vscode.Range(position, position);
 				}
@@ -221,7 +224,7 @@ function registerContextKeyCompletions(): vscode.Disposable {
 					return;
 				}
 
-				const replacing = document.getWordRangeAtPosition(position, /[a-zA-Z.]+/) || new vscode.Range(position, position);
+				const replacing = document.getWordRangeAtPosition(position, regexpZA) || new vscode.Range(position, position);
 				const inserting = replacing.with(undefined, position);
 
 				const data = await vscode.commands.executeCommand<ContextKeyInfo[]>('getContextKeyInfo');

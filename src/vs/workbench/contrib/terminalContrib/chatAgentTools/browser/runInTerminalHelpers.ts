@@ -13,13 +13,30 @@ import type { TerminalNewAutoApproveButtonData } from '../../../chat/browser/wid
 import type { ToolConfirmationAction } from '../../../chat/common/tools/languageModelToolsService.js';
 import type { ICommandApprovalResultWithReason } from './tools/commandLineAnalyzer/autoApprove/commandLineAutoApprover.js';
 import { isAutoApproveRule } from './tools/commandLineAnalyzer/commandLineAnalyzer.js';
+const regexpExe = /\.exe$/i;
+const regexpPowershellPwshPreview = /^(?:powershell|pwsh)(?:-preview)?$/i;
+const regexpPowershellPwshPreview1 = /^(?:powershell|pwsh)(?:-preview)?$/;
+const regexpZshExe = /^zsh(?:\.exe)?$/i;
+const regexpZsh = /^zsh$/;
+const regexpBashExe = /^bash(?:\.exe)?$/i;
+const regexpBash = /^bash$/;
+const regexpFishExe = /^fish(?:\.exe)?$/i;
+const regexpFish = /^fish$/;
+const regexp10 = /\\(["'\/])/g;
+const regexp11 = /\r\n|\r|\n/g;
+const regexp12 = /\r\n|\r/g;
+const regexp13 = /(?<!\\)\n/;
+const regexp14 = /\s+/;
+const regexpCdDirSuffix = /^cd (?<dir>[^\s]+) &&\s+(?<suffix>.+)$/;
+const regexpCdSetLocation = /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>[^\s]+) ?(?:&&|;)\s+(?<suffix>.+)$/i;
+
 
 export function isPowerShell(envShell: string, os: OperatingSystem): boolean {
 	if (os === OperatingSystem.Windows) {
-		return /^(?:powershell|pwsh)(?:-preview)?$/i.test(pathWin32.basename(envShell).replace(/\.exe$/i, ''));
+		return regexpPowershellPwshPreview.test(pathWin32.basename(envShell).replace(regexpExe, ''));
 
 	}
-	return /^(?:powershell|pwsh)(?:-preview)?$/.test(pathPosix.basename(envShell));
+	return regexpPowershellPwshPreview1.test(pathPosix.basename(envShell));
 }
 
 export function isWindowsPowerShell(envShell: string): boolean {
@@ -28,23 +45,23 @@ export function isWindowsPowerShell(envShell: string): boolean {
 
 export function isZsh(envShell: string, os: OperatingSystem): boolean {
 	if (os === OperatingSystem.Windows) {
-		return /^zsh(?:\.exe)?$/i.test(pathWin32.basename(envShell));
+		return regexpZshExe.test(pathWin32.basename(envShell));
 	}
-	return /^zsh$/.test(pathPosix.basename(envShell));
+	return regexpZsh.test(pathPosix.basename(envShell));
 }
 
 export function isBash(envShell: string, os: OperatingSystem): boolean {
 	if (os === OperatingSystem.Windows) {
-		return /^bash(?:\.exe)?$/i.test(pathWin32.basename(envShell));
+		return regexpBashExe.test(pathWin32.basename(envShell));
 	}
-	return /^bash$/.test(pathPosix.basename(envShell));
+	return regexpBash.test(pathPosix.basename(envShell));
 }
 
 export function isFish(envShell: string, os: OperatingSystem): boolean {
 	if (os === OperatingSystem.Windows) {
-		return /^fish(?:\.exe)?$/i.test(pathWin32.basename(envShell));
+		return regexpFishExe.test(pathWin32.basename(envShell));
 	}
-	return /^fish$/.test(pathPosix.basename(envShell));
+	return regexpFish.test(pathPosix.basename(envShell));
 }
 
 export const TRUNCATION_MESSAGE = '\n\n[... PREVIOUS OUTPUT TRUNCATED ...]\n\n';
@@ -67,7 +84,7 @@ export function truncateOutputKeepingTail(output: string, maxLength: number): st
  * escaping artifacts (for example: \" \' \/) commonly produced in streamed tool-call JSON.
  */
 export function normalizeTerminalCommandForDisplay(commandLine: string): string {
-	return commandLine.replace(/\\(["'\/])/g, '$1');
+	return commandLine.replace(new RegExp(regexp10), '$1');
 }
 
 /**
@@ -75,7 +92,7 @@ export function normalizeTerminalCommandForDisplay(commandLine: string): string 
  * Normalizes escape artifacts, collapses newlines to spaces, and truncates to 80 characters.
  */
 export function buildCommandDisplayText(command: string): string {
-	const normalized = normalizeTerminalCommandForDisplay(command).replace(/\r\n|\r|\n/g, ' ');
+	const normalized = normalizeTerminalCommandForDisplay(command).replace(new RegExp(regexp11), ' ');
 	return normalized.length > 80 ? normalized.substring(0, 77) + '...' : normalized;
 }
 
@@ -84,7 +101,7 @@ export function buildCommandDisplayText(command: string): string {
  * This prevents multi-line input from being sent as multiple commands via sendText.
  */
 export function normalizeCommandForExecution(command: string): string {
-	return command.replace(/\r\n|\r|\n/g, ' ').trim();
+	return command.replace(new RegExp(regexp11), ' ').trim();
 }
 
 /**
@@ -100,8 +117,8 @@ export function normalizeCommandForExecution(command: string): string {
 export function isMultilineCommand(command: string): boolean {
 	// Normalize all line-ending variants to \n, then check for a newline
 	// that is not preceded by a backslash (i.e. not a line continuation).
-	const normalized = command.replace(/\r\n|\r/g, '\n');
-	return /(?<!\\)\n/.test(normalized);
+	const normalized = command.replace(new RegExp(regexp12), '\n');
+	return regexp13.test(normalized);
 }
 
 export function generateAutoApproveActions(commandLine: string, subCommands: string[], autoApproveResult: { subCommandResults: ICommandApprovalResultWithReason[]; commandLineResult: ICommandApprovalResultWithReason }): ToolConfirmationAction[] {
@@ -158,7 +175,7 @@ export function generateAutoApproveActions(commandLine: string, subCommands: str
 		// would suggest `mvn -DskipIT test` as that's more useful than only suggesting the exact
 		// command line.
 		const subCommandsToSuggest = Array.from(new Set(coalesce(unapprovedSubCommands.map(command => {
-			const parts = command.trim().split(/\s+/);
+			const parts = command.trim().split(regexp14);
 			const baseCommand = parts[0].toLowerCase();
 
 			// Security check: Never suggest auto-approval for dangerous interpreter commands
@@ -344,8 +361,8 @@ export function extractCdPrefix(commandLine: string, shell: string, os: Operatin
 
 	const cdPrefixMatch = commandLine.match(
 		isPwsh
-			? /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>[^\s]+) ?(?:&&|;)\s+(?<suffix>.+)$/i
-			: /^cd (?<dir>[^\s]+) &&\s+(?<suffix>.+)$/
+			? regexpCdSetLocation
+			: regexpCdDirSuffix
 	);
 	const cdDir = cdPrefixMatch?.groups?.dir;
 	const cdSuffix = cdPrefixMatch?.groups?.suffix;

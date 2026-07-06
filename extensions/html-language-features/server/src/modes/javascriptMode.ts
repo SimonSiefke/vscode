@@ -16,6 +16,10 @@ import { HTMLDocumentRegions } from './embeddedSupport.js';
 
 import * as ts from 'typescript';
 import { getSemanticTokens, getSemanticTokenLegend } from './javascriptSemanticTokens.js';
+const regexpEndRegion = /^\s*\/(?:(\/\s*#(?:end)?region\b)|(\*|\/))/;
+const regexp2 = /^(\S+)\s*-?\s*(.*)$/s;
+const regexp3 = /\r\n|\n/g;
+
 
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
@@ -420,7 +424,7 @@ export function getJavaScriptMode(documentRegions: LanguageModelCache<HTMLDocume
 				const endLine = curr.end.line;
 				if (startLine < endLine) {
 					const foldingRange: FoldingRange = { startLine, endLine };
-					const match = document.getText(curr).match(/^\s*\/(?:(\/\s*#(?:end)?region\b)|(\*|\/))/);
+					const match = document.getText(curr).match(regexpEndRegion);
 					if (match) {
 						foldingRange.kind = match[1] ? FoldingRangeKind.Region : FoldingRangeKind.Comment;
 					}
@@ -462,7 +466,7 @@ function tagToMarkdown(tag: ts.JSDocTagInfo): string {
 		case 'augments':
 		case 'extends': {
 			// Parse out the parameter name, e.g. "name - description" or "name description"
-			const match = text.match(/^(\S+)\s*-?\s*(.*)$/s);
+			const match = text.match(regexp2);
 			if (match) {
 				const param = match[1];
 				const doc = match[2];
@@ -470,7 +474,7 @@ function tagToMarkdown(tag: ts.JSDocTagInfo): string {
 				if (!doc) {
 					return label;
 				}
-				return label + (doc.match(/\r\n|\n/g) ? '  \n' + doc : ` — ${doc}`);
+				return label + (doc.match(new RegExp(regexp3)) ? '  \n' + doc : ` — ${doc}`);
 			}
 			break;
 		}
@@ -480,7 +484,7 @@ function tagToMarkdown(tag: ts.JSDocTagInfo): string {
 	if (!text) {
 		return label;
 	}
-	return label + (text.match(/\r\n|\n/g) ? '  \n' + text : ` — ${text}`);
+	return label + (text.match(new RegExp(regexp3)) ? '  \n' + text : ` — ${text}`);
 }
 
 function tagsToMarkdown(tags: ts.JSDocTagInfo[] | undefined): string {

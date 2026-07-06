@@ -3,6 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^-?\d+(\.\d+)?$/;
+const regexpVscodeTestVscode = /vscode-test\/vscode-[^/]*?-(\d+\.\d+\.\d+)/;
+const regexpBaseline = /^baseline-/;
+const regexpMinorScaveng = /Minor|Scaveng/i;
+const regexpMajorMarkCompactMSC = /Major|MarkCompact|MSC|MC|IncrementalMarking|FinalizeMC/i;
+const regexp9a = /^[0-9a-f]{7,40}$/;
+const regexp7 = /^\d+\.\d+\.\d+/;
+const regexp8 = /[:.]/g;
+
 // @ts-check
 
 /**
@@ -91,7 +100,7 @@ function parseArgs() {
 				const key = kv.slice(0, eq);
 				const raw = kv.slice(eq + 1);
 				// Parse booleans and numbers, keep rest as strings
-				const val = raw === 'true' ? true : raw === 'false' ? false : /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
+				const val = raw === 'true' ? true : raw === 'false' ? false : regexp1.test(raw) ? Number(raw) : raw;
 				const flag = args[i - 1];
 				if (flag === '--test-setting') { opts.testSettingsOverrides[key] = val; }
 				else if (flag === '--baseline-setting') { opts.baselineSettingsOverrides[key] = val; }
@@ -377,7 +386,7 @@ async function runOnce(electronPath, scenario, mockServer, verbose, runIndex, ru
 	// Production:   ../VSCode-darwin-arm64/Code - OSS.app/.../Code - OSS → "production"
 	let buildLabel = 'dev';
 	if (!isDevBuild) {
-		const vscodeTestMatch = electronPath.match(/vscode-test\/vscode-[^/]*?-(\d+\.\d+\.\d+)/);
+		const vscodeTestMatch = electronPath.match(regexpVscodeTestVscode);
 		if (vscodeTestMatch) {
 			buildLabel = vscodeTestMatch[1];
 		} else if (electronPath.includes('VSCode-')) {
@@ -397,7 +406,7 @@ async function runOnce(electronPath, scenario, mockServer, verbose, runIndex, ru
 	}
 
 	// Create a per-run diagnostics directory: <runDir>/<role>-<build>/<scenario>-<i>/
-	const runDiagDir = path.join(runDir, `${role}-${buildLabel}`, runIndex.replace(/^baseline-/, ''));
+	const runDiagDir = path.join(runDir, `${role}-${buildLabel}`, runIndex.replace(regexpBaseline, ''));
 	fs.mkdirSync(runDiagDir, { recursive: true });
 
 	const tracePath = path.join(runDiagDir, 'trace.json');
@@ -891,8 +900,8 @@ async function runOnce(electronPath, scenario, mockServer, verbose, runIndex, ru
 		// avoid double-counting begin/end pairs.
 		if (event.ph && event.ph !== 'X' && event.ph !== 'B') { continue; }
 		const name = event.name || '';
-		if (/Major|MarkCompact|MSC|MC|IncrementalMarking|FinalizeMC/i.test(name)) { majorGCs++; }
-		else if (/Minor|Scaveng/i.test(name)) { minorGCs++; }
+		if (regexpMajorMarkCompactMSC.test(name)) { majorGCs++; }
+		else if (regexpMinorScaveng.test(name)) { minorGCs++; }
 		else { minorGCs++; } // default unknown GC events to minor
 		if (event.dur) { gcDurationMs += event.dur / 1000; }
 	}
@@ -960,11 +969,11 @@ const GITHUB_REPO = 'https://github.com/microsoft/vscode';
  * @returns {string}
  */
 function formatBuildLink(label) {
-	if (/^[0-9a-f]{7,40}$/.test(label)) {
+	if (regexp9a.test(label)) {
 		const short = label.substring(0, 7);
 		return `[\`${short}\`](${GITHUB_REPO}/commit/${label})`;
 	}
-	if (/^\d+\.\d+\.\d+/.test(label)) {
+	if (regexp7.test(label)) {
 		return `[\`${label}\`](${GITHUB_REPO}/releases/tag/${label})`;
 	}
 	return `\`${label}\``;
@@ -978,7 +987,7 @@ function formatBuildLink(label) {
  * @returns {string}
  */
 function formatCompareLink(base, test) {
-	const isRef = (/** @type {string} */ v) => /^[0-9a-f]{7,40}$/.test(v) || /^\d+\.\d+\.\d+/.test(v);
+	const isRef = (/** @type {string} */ v) => regexp9a.test(v) || regexp7.test(v);
 	if (!isRef(base) || !isRef(test)) {
 		return '';
 	}
@@ -1505,7 +1514,7 @@ async function main() {
 	const isMismatchedBuildMode = baselineBuildMode !== undefined && testBuildMode !== baselineBuildMode;
 
 	// Create a timestamped run directory for all output
-	const runTimestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+	const runTimestamp = new Date().toISOString().replace(new RegExp(regexp8), '-').slice(0, 19);
 	const runDir = path.join(DATA_DIR, runTimestamp);
 	fs.mkdirSync(runDir, { recursive: true });
 	console.log(`[chat-simulation] Output: ${runDir}`);

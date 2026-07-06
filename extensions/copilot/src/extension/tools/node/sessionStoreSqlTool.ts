@@ -20,6 +20,12 @@ import { IFetcherService } from '../../../platform/networking/common/fetcherServ
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { ToolName } from '../common/toolNames';
 import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
+const regexp1 = /^\s+/;
+const regexp2 = /^--[^\n]*\n?/;
+const regexp3 = /^\/\*[\s\S]*?\*\//;
+const regexp4 = /;+\s*$/;
+const regexpSELECTWITH = /^(SELECT|WITH)\b/i;
+
 
 /** Max rows to return to avoid blowing up the context window. */
 const MAX_ROWS = 100;
@@ -46,9 +52,9 @@ function stripLeadingCommentsAndWhitespace(sql: string): string {
 	let prev: string;
 	do {
 		prev = s;
-		s = s.replace(/^\s+/, '');
-		s = s.replace(/^--[^\n]*\n?/, '');
-		s = s.replace(/^\/\*[\s\S]*?\*\//, '');
+		s = s.replace(regexp1, '');
+		s = s.replace(regexp2, '');
+		s = s.replace(regexp3, '');
 	} while (s !== prev);
 	return s;
 }
@@ -104,7 +110,7 @@ class SessionStoreSqlTool implements ICopilotTool<SessionStoreSqlParams> {
 	}
 	private async _invokeQuery(rawQuery: string, subcommand: SessionStoreSqlParams['subcommand'], token: CancellationToken): Promise<vscode.LanguageModelToolResult> {
 		// Strip trailing semicolons — models often append them
-		const sql = rawQuery.trim().replace(/;+\s*$/, '');
+		const sql = rawQuery.trim().replace(regexp4, '');
 
 		if (!sql) {
 			return new LanguageModelToolResult([new LanguageModelTextPart('Error: Empty query provided.')]);
@@ -123,7 +129,7 @@ class SessionStoreSqlTool implements ICopilotTool<SessionStoreSqlParams> {
 		// Allowlist: model-supplied SQL must be a SELECT or WITH (CTE) statement. Strip leading
 		// comments first so a comment prefix cannot smuggle a non-query past the check.
 		const firstKeywordSrc = stripLeadingCommentsAndWhitespace(sql);
-		if (!/^(SELECT|WITH)\b/i.test(firstKeywordSrc)) {
+		if (!regexpSELECTWITH.test(firstKeywordSrc)) {
 			this._sendTelemetry({ command: 'query', subcommand, target: 'local', blocked: true, rowCount: 0, durationMs: 0, success: false, error: 'blocked_not_select_or_with' });
 			return new LanguageModelToolResult([
 				new LanguageModelTextPart('Error: Blocked SQL statement. Only SELECT or WITH queries are allowed.'),

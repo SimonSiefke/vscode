@@ -10,6 +10,10 @@ import type { ChatSimpleToolResultData, ChatTerminalToolInvocationData } from 'v
 import { URI } from '../../../../util/vs/base/common/uri';
 import { ChatSubagentToolInvocationData, ChatToolInvocationPart, MarkdownString } from '../../../../vscodeTypes';
 import { ClaudeToolNames, ExitPlanModeInput, LSInput } from './claudeTools';
+const regexpExitCodeExited = /(?:exit code|exited with)[:=\s]*(\d+)/i;
+const regexpExitCodeExited1 = /(?:exit code|exited with)[:=\s]*\d+\s*$/i;
+const regexp3 = /\n/g;
+
 
 // #region Tool Result Content Extraction
 
@@ -84,17 +88,17 @@ function completeBashInvocation(
 	resultContent: string
 ): void {
 	// Parse exit code from the end of the result (format: "Exit code: X" or similar patterns)
-	const exitCodeMatch = /(?:exit code|exited with)[:=\s]*(\d+)/i.exec(resultContent);
+	const exitCodeMatch = regexpExitCodeExited.exec(resultContent);
 	const exitCode = exitCodeMatch ? parseInt(exitCodeMatch[1], 10) : undefined;
 
 	// Remove exit code line from output for cleaner display
 	let text = resultContent;
 	if (exitCode !== undefined) {
-		text = resultContent.replace(/(?:exit code|exited with)[:=\s]*\d+\s*$/i, '').trimEnd();
+		text = resultContent.replace(regexpExitCodeExited1, '').trimEnd();
 	}
 
 	// Convert \n to \r\n for proper terminal display
-	text = text.replace(/\n/g, '\r\n');
+	text = text.replace(new RegExp(regexp3), '\r\n');
 
 	const toolSpecificData: ChatTerminalToolInvocationData = {
 		commandLine: {

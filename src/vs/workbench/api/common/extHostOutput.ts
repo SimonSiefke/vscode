@@ -21,6 +21,9 @@ import { FileSystemProviderErrorCode, toFileSystemProviderErrorCode } from '../.
 import { Emitter } from '../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../base/common/map.js';
+const regexp1 = /-|:|\.\d+Z$/g;
+const regexp2 = /[\\/:\*\?"<>\|]/g;
+
 
 class ExtHostOutputChannel extends AbstractMessageLogger implements vscode.LogOutputChannel {
 
@@ -120,7 +123,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		@ILogService private readonly logService: ILogService,
 	) {
 		this.proxy = extHostRpc.getProxy(MainContext.MainThreadOutputService);
-		this.outputsLocation = this.extHostFileSystemInfo.extUri.joinPath(initData.logsLocation, `output_logging_${toLocalISOString(new Date()).replace(/-|:|\.\d+Z$/g, '')}`);
+		this.outputsLocation = this.extHostFileSystemInfo.extUri.joinPath(initData.logsLocation, `output_logging_${toLocalISOString(new Date()).replace(new RegExp(regexp1), '')}`);
 	}
 
 	$setVisibleChannel(visibleChannelId: string | null): void {
@@ -147,7 +150,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		let logFile: URI | undefined;
 		if (log) {
 			const extensionLogDirectory = this.extHostFileSystemInfo.extUri.joinPath(this.initData.logsLocation, extension.identifier.value);
-			logFile = this.extHostFileSystemInfo.extUri.joinPath(extensionLogDirectory, `${name.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
+			logFile = this.extHostFileSystemInfo.extUri.joinPath(extensionLogDirectory, `${name.replace(new RegExp(regexp2), '')}.log`);
 			const existingOutputChannel = this.logOutputChannels.get(logFile);
 			if (existingOutputChannel) {
 				return existingOutputChannel;
@@ -187,7 +190,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 			this.outputDirectoryPromise = this.extHostFileSystem.value.createDirectory(this.outputsLocation).then(() => this.outputsLocation);
 		}
 		const outputDir = await this.outputDirectoryPromise;
-		const file = this.extHostFileSystemInfo.extUri.joinPath(outputDir, `${this.namePool++}-${name.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
+		const file = this.extHostFileSystemInfo.extUri.joinPath(outputDir, `${this.namePool++}-${name.replace(new RegExp(regexp2), '')}.log`);
 		const logger = channelDisposables.add(this.loggerService.createLogger(file, { logLevel: 'always', donotRotate: true, donotUseFormatters: true, hidden: true }));
 		const id = await this.proxy.$register(name, file, languageId, extension.identifier.value);
 		channelDisposables.add(toDisposable(() => this.loggerService.deregisterLogger(file)));

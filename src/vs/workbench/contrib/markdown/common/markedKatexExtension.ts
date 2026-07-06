@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 import type * as marked from '../../../../base/common/marked/marked.js';
 import { htmlAttributeEncodeValue } from '../../../../base/common/strings.js';
+const regexp1 = /^\$+/;
+
 
 export const mathInlineRegExp = /(?<![a-zA-Z0-9])(?<dollars>\${1,2})(?!\.|\(["'])((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\k<dollars>(?![a-zA-Z0-9])/; // Non-standard, but ensure opening $ is not preceded and closing $ is not followed by word/number characters, opening $ not followed by ., (", ('
 export const katexContainerClassName = 'vscode-katex-container';
@@ -70,7 +72,7 @@ export namespace MarkedKatexExtension {
 						return index;
 					}
 
-					indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, '');
+					indexSrc = indexSrc.substring(index + 1).replace(regexp1, '');
 				}
 				return;
 			},

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+const regexpZA = /^[a-zA-Z]:[\/\\]/;
+
 
 export async function exists(resource: vscode.Uri): Promise<boolean> {
 	try {
@@ -16,5 +18,5 @@ export async function exists(resource: vscode.Uri): Promise<boolean> {
 }
 
 export function looksLikeAbsoluteWindowsPath(path: string): boolean {
-	return /^[a-zA-Z]:[\/\\]/.test(path);
+	return regexpZA.test(path);
 }

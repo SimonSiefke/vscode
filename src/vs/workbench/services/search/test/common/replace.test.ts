@@ -5,6 +5,13 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ReplacePattern } from '../../common/replace.js';
+const regexpAbc = /abc/;
+const regexpAbc1 = /abc/g;
+const regexpTestrege = /Testrege(\w*)/;
+const regexpTESTREGE = /TESTREGE(\w*)/;
+const regexpTestRege = /Test_Rege(\w*)/;
+const regexpTestRege1 = /Test-Rege(\w*)/;
+
 
 suite('Replace Pattern test', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -79,18 +86,18 @@ suite('Replace Pattern test', () => {
 	});
 
 	test('create pattern by passing regExp', () => {
-		let expected = /abc/;
+		let expected = regexpAbc;
 		let actual = new ReplacePattern('hello', false, expected).regExp;
 		assert.deepStrictEqual(actual, expected);
 
-		expected = /abc/;
-		actual = new ReplacePattern('hello', false, /abc/g).regExp;
+		expected = regexpAbc;
+		actual = new ReplacePattern('hello', false, new RegExp(regexpAbc1)).regExp;
 		assert.deepStrictEqual(actual, expected);
 
-		let testObject = new ReplacePattern('hello$0', false, /abc/g);
+		let testObject = new ReplacePattern('hello$0', false, new RegExp(regexpAbc1));
 		assert.strictEqual(testObject.hasParameters, false);
 
-		testObject = new ReplacePattern('hello$0', true, /abc/g);
+		testObject = new ReplacePattern('hello$0', true, new RegExp(regexpAbc1));
 		assert.strictEqual(testObject.hasParameters, true);
 	});
 
@@ -243,19 +250,19 @@ suite('Replace Pattern test', () => {
 		actual = testObject.getReplaceString('this is a bla text');
 		assert.strictEqual(actual, 'blaah');
 
-		testObject = new ReplacePattern('newrege$1', true, /Testrege(\w*)/);
+		testObject = new ReplacePattern('newrege$1', true, regexpTestrege);
 		actual = testObject.getReplaceString('Testregex', true);
 		assert.strictEqual(actual, 'Newregex');
 
-		testObject = new ReplacePattern('newrege$1', true, /TESTREGE(\w*)/);
+		testObject = new ReplacePattern('newrege$1', true, regexpTESTREGE);
 		actual = testObject.getReplaceString('TESTREGEX', true);
 		assert.strictEqual(actual, 'NEWREGEX');
 
-		testObject = new ReplacePattern('new_rege$1', true, /Test_Rege(\w*)/);
+		testObject = new ReplacePattern('new_rege$1', true, regexpTestRege);
 		actual = testObject.getReplaceString('Test_Regex', true);
 		assert.strictEqual(actual, 'New_Regex');
 
-		testObject = new ReplacePattern('new-rege$1', true, /Test-Rege(\w*)/);
+		testObject = new ReplacePattern('new-rege$1', true, regexpTestRege1);
 		actual = testObject.getReplaceString('Test-Regex', true);
 		assert.strictEqual(actual, 'New-Regex');
 	});

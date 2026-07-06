@@ -21,6 +21,11 @@ import { isEmptyObject, isString } from '../../../../base/common/types.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
 import { ExtensionIdentifier, ExtensionIdentifierMap, IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+const regexpSourceDefault = /@source:\s*default/i;
+const regexpSourceSystem = /@source:\s*system/i;
+const regexpSourceUser = /@source:\s*user/i;
+const regexpSourceExtension = /@source:\s*extension/i;
+
 
 export const KEYBINDING_ENTRY_TEMPLATE_ID = 'keybinding.entry.template';
 
@@ -117,13 +122,13 @@ export class KeybindingsEditorModel extends EditorModel {
 	}
 
 	private filterBySource(keybindingItems: IKeybindingItem[], searchValue: string): IKeybindingItem[] {
-		if (/@source:\s*default/i.test(searchValue) || /@source:\s*system/i.test(searchValue)) {
+		if (regexpSourceDefault.test(searchValue) || regexpSourceSystem.test(searchValue)) {
 			return keybindingItems.filter(k => k.source === SOURCE_SYSTEM);
 		}
-		if (/@source:\s*user/i.test(searchValue)) {
+		if (regexpSourceUser.test(searchValue)) {
 			return keybindingItems.filter(k => k.source === SOURCE_USER);
 		}
-		if (/@source:\s*extension/i.test(searchValue)) {
+		if (regexpSourceExtension.test(searchValue)) {
 			return keybindingItems.filter(k => !isString(k.source) || k.source === SOURCE_EXTENSION);
 		}
 		return keybindingItems;

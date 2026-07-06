@@ -27,6 +27,8 @@ import { IChatWidgetService } from '../../chat.js';
 import { ChatAgentHover, getChatAgentHoverOptions } from '../chatAgentHover.js';
 import { IChatMarkdownAnchorService } from './chatMarkdownAnchorService.js';
 import { InlineAnchorWidget } from './chatInlineAnchorWidget.js';
+const regexpCommand = /command:([^\)]+)/;
+
 
 /** For rendering slash commands, variables */
 const decorationRefUrl = `http://_vscodedecoration_`;
@@ -261,7 +263,7 @@ export class ChatMarkdownDecorationsRenderer {
 	}
 
 	private injectKeybindingHint(a: HTMLAnchorElement, href: string, keybindingService: IKeybindingService): void {
-		const command = href.match(/command:([^\)]+)/)?.[1];
+		const command = href.match(regexpCommand)?.[1];
 		if (command) {
 			a.textContent = keybindingService.appendKeybinding(a.textContent || '', command);
 		}

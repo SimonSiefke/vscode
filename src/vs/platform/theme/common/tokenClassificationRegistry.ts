@@ -12,6 +12,8 @@ import * as nls from '../../../nls.js';
 import { Extensions as JSONExtensions, IJSONContributionRegistry } from '../../jsonschemas/common/jsonContributionRegistry.js';
 import * as platform from '../../registry/common/platform.js';
 import { IColorTheme } from './themeService.js';
+const regexpItalicBoldUnderline = /italic|bold|underline|strikethrough/g;
+
 
 const TOKEN_TYPE_WILDCARD = '*';
 const TOKEN_CLASSIFIER_LANGUAGE_SEPARATOR = ':';
@@ -110,7 +112,7 @@ export namespace TokenStyle {
 		}
 		if (fontStyle !== undefined) {
 			bold = italic = underline = strikethrough = false;
-			const expression = /italic|bold|underline|strikethrough/g;
+			const expression = new RegExp(regexpItalicBoldUnderline);
 			let match;
 			while ((match = expression.exec(fontStyle))) {
 				switch (match[0]) {

@@ -31,6 +31,11 @@ import { ToolName } from '../common/toolNames';
 import { CopilotToolMode, ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
 import { checkCancellation, InputGlobResult, inputGlobToPattern, patternContainsWorkspaceFolderPath } from './toolUtils';
 import { IExperimentationService } from '../../../lib/node/chatLibMain';
+const regexp1 = /`+/g;
+const regexp2 = /\n$/;
+const regexp3 = /\r\n|\r|\n/g;
+const regexp4 = /\B(?=(\d{3})+(?!\d))/g;
+
 
 interface IFindTextInFilesToolParams {
 	query: string;
@@ -411,7 +416,7 @@ Then if you want to include those files you can call the tool again by setting "
 	 * and pads with a space when the content begins or ends with a backtick as per CommonMark.
 	 */
 	private formatCodeSpan(text: string): string {
-		const matches = text.match(/`+/g);
+		const matches = text.match(new RegExp(regexp1));
 		const maxRun = matches ? matches.reduce((m, s) => Math.max(m, s.length), 0) : 0;
 		const fence = '`'.repeat(maxRun + 1);
 		const needsPadding = text.startsWith('`') || text.endsWith('`');
@@ -502,7 +507,7 @@ export class FindTextInFilesResult extends PromptElement<FindTextInFilesResultPr
 			{<TextChunk priority={20}>{numResultsText}{maxResultsText}{maxResultsTooLargeText}</TextChunk>}
 			{textMatches.flatMap(result => {
 				// The result preview line always ends in a newline, I think that makes sense but don't display an extra empty line
-				const previewText = result.previewText.replace(/\n$/, '');
+				const previewText = result.previewText.replace(regexp2, '');
 				return result.ranges.map((rangeInfo, i) => {
 					return <FindMatch
 						passPriority
@@ -652,7 +657,7 @@ export class FindTextInFilesGrepResult extends PromptElement<FindTextInFilesGrep
 	 * the full line and can read the file for the rest. The result is always a single line.
 	 */
 	private static boundMatchPreview(textMatch: vscode.TextSearchMatch2): string {
-		const preview = textMatch.previewText.replace(/\n$/, '').trimEnd();
+		const preview = textMatch.previewText.replace(regexp2, '').trimEnd();
 		if (preview.length <= this.MAX_LINE_CHARS) {
 			return this.collapseToSingleLine(preview);
 		}
@@ -680,12 +685,12 @@ export class FindTextInFilesGrepResult extends PromptElement<FindTextInFilesGrep
 
 	/** Collapses any newlines so a value always renders on a single physical line. */
 	private static collapseToSingleLine(text: string): string {
-		return text.replace(/\r\n|\r|\n/g, ' ');
+		return text.replace(new RegExp(regexp3), ' ');
 	}
 
 	/** Formats a number with thousands separators, e.g. `48210` becomes `48,210`. */
 	private static formatCharCount(count: number): string {
-		return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		return count.toString().replace(new RegExp(regexp4), ',');
 	}
 }
 

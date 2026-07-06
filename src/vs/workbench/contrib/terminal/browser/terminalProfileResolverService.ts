@@ -23,6 +23,9 @@ import { deepClone } from '../../../../base/common/objects.js';
 import { ITerminalInstanceService } from './terminal.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { isString, type SingleOrMany } from '../../../../base/common/types.js';
+const regexpZshBash = /(zsh|bash)/;
+const regexp2 = /\//g;
+
 
 export interface IProfileContextProvider {
 	getDefaultSystemShell(remoteAuthority: string | undefined, os: OperatingSystem): Promise<string>;
@@ -254,7 +257,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 
 		// Finally fallback to a generated profile
 		let args: SingleOrMany<string> | undefined;
-		if (options.os === OperatingSystem.Macintosh && path.parse(executable).name.match(/(zsh|bash)/)) {
+		if (options.os === OperatingSystem.Macintosh && path.parse(executable).name.match(regexpZshBash)) {
 			// macOS should launch a login shell by default
 			args = ['--login'];
 		} else {
@@ -318,7 +321,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 			const isWoW64 = !!env.hasOwnProperty('PROCESSOR_ARCHITEW6432');
 			const windir = env.windir;
 			if (!isWoW64 && windir) {
-				const sysnativePath = path.join(windir, 'Sysnative').replace(/\//g, '\\').toLowerCase();
+				const sysnativePath = path.join(windir, 'Sysnative').replace(new RegExp(regexp2), '\\').toLowerCase();
 				if (profile.path && profile.path.toLowerCase().indexOf(sysnativePath) === 0) {
 					profile.path = path.join(windir, 'System32', profile.path.substr(sysnativePath.length + 1));
 				}
@@ -326,7 +329,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 
 			// Convert / to \ on Windows for convenience
 			if (profile.path) {
-				profile.path = profile.path.replace(/\//g, '\\');
+				profile.path = profile.path.replace(new RegExp(regexp2), '\\');
 			}
 		}
 

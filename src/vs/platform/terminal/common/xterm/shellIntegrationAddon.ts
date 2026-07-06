@@ -20,6 +20,11 @@ import { sanitizeCwd } from '../terminalEnvironment.js';
 import { removeAnsiEscapeCodesFromPrompt } from '../../../../base/common/strings.js';
 import { ShellEnvDetectionCapability } from '../capabilities/shellEnvDetectionCapability.js';
 import { PromptTypeDetectionCapability } from '../capabilities/promptTypeDetectionCapability.js';
+const regexp1 = /\x1b\[[0-9;]*m/g;
+const regexpFile = /^file:\/\/.*\//;
+const regexp9a = /\\(\\|x([0-9a-f]{2}))/gi;
+const regexp4 = /[\\;\x00-\x20]/g;
+
 
 // Shell integration is a feature that enhances the terminal's understanding of what's happening
 // in the shell by injecting special sequences into the shell's prompt using the "Set Text
@@ -599,7 +604,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 					}
 					case 'Prompt': {
 						// Remove escape sequences from the user's prompt
-						const sanitizedValue = value.replace(/\x1b\[[0-9;]*m/g, '');
+						const sanitizedValue = value.replace(new RegExp(regexp1), '');
 						this._updatePromptTerminator(sanitizedValue);
 						return true;
 					}
@@ -724,7 +729,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 		const [command] = data.split(';');
 		this._markSequenceSeen(`${ShellIntegrationOscPs.SetCwd};${command}`);
 
-		if (command.match(/^file:\/\/.*\//)) {
+		if (command.match(regexpFile)) {
 			const uri = URI.parse(command);
 			if (uri.path && uri.path.length > 0) {
 				// The `OSC 7 ; scheme://cwd ST` protocol has no nonce, so cwd updates received
@@ -812,7 +817,7 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 export function deserializeVSCodeOscMessage(message: string): string {
 	return message.replaceAll(
 		// Backslash ('\') followed by an escape operator: either another '\', or 'x' and two hex chars.
-		/\\(\\|x([0-9a-f]{2}))/gi,
+		new RegExp(regexp9a),
 		// If it's a hex value, parse it to a character.
 		// Otherwise the operator is '\', which we return literally, now unescaped.
 		(_match: string, op: string, hex?: string) => hex ? String.fromCharCode(parseInt(hex, 16)) : op);
@@ -821,7 +826,7 @@ export function deserializeVSCodeOscMessage(message: string): string {
 export function serializeVSCodeOscMessage(message: string): string {
 	return message.replace(
 		// Match backslash ('\'), semicolon (';'), or characters 0x20 and below
-		/[\\;\x00-\x20]/g,
+		new RegExp(regexp4),
 		(char: string) => {
 			// Escape backslash as '\\'
 			if (char === '\\') {

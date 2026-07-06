@@ -7,6 +7,10 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../../log/common/log.js';
 import { AgentHostOctoKitService, type FetchFunction } from '../../../node/shared/agentHostOctoKitService.js';
+const regexpUnprocessableEntityMessage = /422 Unprocessable Entity - {"message":"Validation Failed"}/;
+const regexpFailedToCreate = /Failed to create pull request for o\/r/;
+const regexpGitHubGraphQLRequest = /GitHub GraphQL request failed: Pull request is in clean status/;
+
 
 type Captured = { url: string; init: RequestInit | undefined };
 
@@ -111,7 +115,7 @@ suite('AgentHostOctoKitService', () => {
 
 		await assert.rejects(
 			() => service.createPullRequest('o', 'r', 't', 'b', 'h', 'b', false, 'tok', signal()),
-			/422 Unprocessable Entity - {"message":"Validation Failed"}/,
+			regexpUnprocessableEntityMessage,
 		);
 	});
 
@@ -129,7 +133,7 @@ suite('AgentHostOctoKitService', () => {
 
 		await assert.rejects(
 			() => service.createPullRequest('o', 'r', 't', 'b', 'h', 'b', false, 'tok', signal()),
-			/Failed to create pull request for o\/r/,
+			regexpFailedToCreate,
 		);
 	});
 
@@ -159,7 +163,7 @@ suite('AgentHostOctoKitService', () => {
 
 		await assert.rejects(
 			() => service.enablePullRequestAutoMerge('PR_node_42', 'MERGE', 'tok', signal()),
-			/GitHub GraphQL request failed: Pull request is in clean status/,
+			regexpGitHubGraphQLRequest,
 		);
 	});
 });

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^["']|["']$/g;
+
 export type OTelExporterType = 'otlp-grpc' | 'otlp-http' | 'console' | 'file';
 
 export type OTelEnabledVia = 'policy' | 'envVar' | 'setting' | 'otlpEndpointEnvVar' | 'dbSpanExporterOnly' | 'disabled';
@@ -74,7 +76,7 @@ function parseOtlpEndpoint(raw: string | undefined, protocol: 'grpc' | 'http'): 
 	if (!raw) {
 		return undefined;
 	}
-	const trimmed = raw.replace(/^["']|["']$/g, '');
+	const trimmed = raw.replace(new RegExp(regexp1), '');
 	try {
 		const url = new URL(trimmed);
 		return protocol === 'grpc' ? url.origin : url.href;

@@ -6,6 +6,12 @@
 import { URI } from '../../../../../base/common/uri.js';
 import { localize } from '../../../../../nls.js';
 import { ITerminalQuickFixInternalOptions, ITerminalCommandMatchResult, ITerminalQuickFixTerminalCommandAction, TerminalQuickFixActionInternal, TerminalQuickFixType } from './quickFix.js';
+const regexpGit = /git\s+[^\s]+/;
+const regexp2 = /.+/;
+const regexpTheMostSimilar = /The most similar commands are: (?<values>.+)./;
+const regexpYouAlsoHave = /You also have .+ installed, you can run '(?<command>.+)' instead./;
+const regexpCommandNotFound = /Command '.+' not found, but can be installed with:/;
+
 
 export const GitCommandLineRegex = /git/;
 export const GitFastForwardPullOutputRegex = /and can be fast-forwarded/;
@@ -50,7 +56,7 @@ export function gitSimilar(): ITerminalQuickFixInternalOptions {
 					actions.push({
 						id: 'Git Similar',
 						type: TerminalQuickFixType.TerminalCommand,
-						terminalCommand: matchResult.commandLine.replace(/git\s+[^\s]+/, () => `git ${fixedCommand}`),
+						terminalCommand: matchResult.commandLine.replace(regexpGit, () => `git ${fixedCommand}`),
 						shouldExecute: true,
 						source: QuickFixSource.Builtin
 					});
@@ -116,7 +122,7 @@ export function freePort(runCallback: (port: string, commandLine: string) => Pro
 	return {
 		id: 'Free Port',
 		type: 'internal',
-		commandLineMatcher: /.+/,
+		commandLineMatcher: regexp2,
 		outputMatcher: {
 			lineMatcher: FreePortOutputRegex,
 			anchor: 'bottom',
@@ -259,7 +265,7 @@ export function pwshGeneralError(): ITerminalQuickFixInternalOptions {
 	return {
 		id: 'Pwsh General Error',
 		type: 'internal',
-		commandLineMatcher: /.+/,
+		commandLineMatcher: regexp2,
 		outputMatcher: {
 			lineMatcher: PwshGeneralErrorOutputRegex,
 			anchor: 'bottom',
@@ -286,7 +292,7 @@ export function pwshGeneralError(): ITerminalQuickFixInternalOptions {
 				return;
 			}
 
-			const suggestions = lines[i + 1].match(/The most similar commands are: (?<values>.+)./)?.groups?.values?.split(', ');
+			const suggestions = lines[i + 1].match(regexpTheMostSimilar)?.groups?.values?.split(', ');
 			if (!suggestions) {
 				return;
 			}
@@ -308,7 +314,7 @@ export function pwshUnixCommandNotFoundError(): ITerminalQuickFixInternalOptions
 	return {
 		id: 'Unix Command Not Found',
 		type: 'internal',
-		commandLineMatcher: /.+/,
+		commandLineMatcher: regexp2,
 		outputMatcher: {
 			lineMatcher: PwshUnixCommandNotFoundErrorOutputRegex,
 			anchor: 'bottom',
@@ -343,7 +349,7 @@ export function pwshUnixCommandNotFoundError(): ITerminalQuickFixInternalOptions
 				if (line.length === 0) {
 					break;
 				}
-				const installCommand = line.match(/You also have .+ installed, you can run '(?<command>.+)' instead./)?.groups?.command;
+				const installCommand = line.match(regexpYouAlsoHave)?.groups?.command;
 				if (installCommand) {
 					result.push({
 						id: 'Pwsh Unix Command Not Found Error',
@@ -354,7 +360,7 @@ export function pwshUnixCommandNotFoundError(): ITerminalQuickFixInternalOptions
 					inSuggestions = false;
 					continue;
 				}
-				if (line.match(/Command '.+' not found, but can be installed with:/)) {
+				if (line.match(regexpCommandNotFound)) {
 					inSuggestions = true;
 					continue;
 				}

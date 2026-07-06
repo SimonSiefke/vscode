@@ -8,6 +8,8 @@ import { getCellMetadata, getVSCodeCellLanguageId, removeVSCodeCellLanguageId, s
 import { CellMetadata } from './common';
 import type * as nbformat from '@jupyterlab/nbformat';
 import { generateUuid } from './helper';
+const regexp1 = /-/g;
+
 
 const noop = () => {
 	//
@@ -242,7 +244,7 @@ function generateCellId(notebook: NotebookDocument) {
 	while (true) {
 		// Details of the id can be found here https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#adding-an-id-field,
 		// & here https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#updating-older-formats
-		const id = generateUuid().replace(/-/g, '').substring(0, 8);
+		const id = generateUuid().replace(new RegExp(regexp1), '').substring(0, 8);
 		let duplicate = false;
 		for (let index = 0; index < notebook.cellCount; index++) {
 			const cell = notebook.cellAt(index);

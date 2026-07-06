@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\s/g;
+
 export interface ISlug {
 	readonly value: string;
 	equals(other: ISlug): boolean;
@@ -60,7 +62,7 @@ export const githubSlugifier: ISlugifier = new class implements ISlugifier {
 		const slugifiedHeading = heading.trim()
 			.toLowerCase()
 			.replace(githubSlugReplaceRegex, '')
-			.replace(/\s/g, '-'); // Replace whitespace with -
+			.replace(new RegExp(regexp1), '-'); // Replace whitespace with -
 
 		return new GithubSlug(slugifiedHeading);
 	}

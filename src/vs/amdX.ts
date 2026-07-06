@@ -8,6 +8,9 @@ import * as platform from './base/common/platform.js';
 import { IProductConfiguration } from './base/common/product.js';
 import { URI } from './base/common/uri.js';
 import { generateUuid } from './base/common/uuid.js';
+const regexp1 = /^#!.*/;
+const regexp2 = /^\w[\w\d+.-]*:\/\//;
+
 
 export const canASAR = false; // TODO@esm: ASAR disabled in ESM
 
@@ -183,7 +186,7 @@ class AMDModuleImporter {
 
 			const filePath = URI.parse(scriptSrc).fsPath;
 			const content = fs.readFileSync(filePath).toString();
-			const scriptSource = module.wrap(content.replace(/^#!.*/, ''));
+			const scriptSource = module.wrap(content.replace(regexp1, ''));
 			const script = new vm.Script(scriptSource);
 			const compileWrapper = script.runInThisContext();
 			compileWrapper.apply();
@@ -213,7 +216,7 @@ export async function importAMDNodeModule<T>(nodeModuleName: string, pathInsideN
 		return cache.get(nodeModulePath)!;
 	}
 	let scriptSrc: string;
-	if (/^\w[\w\d+.-]*:\/\//.test(nodeModulePath)) {
+	if (regexp2.test(nodeModulePath)) {
 		// looks like a URL
 		// bit of a special case for: src/vs/workbench/services/languageDetection/browser/languageDetectionWebWorker.ts
 		scriptSrc = nodeModulePath;

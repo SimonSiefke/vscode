@@ -5,6 +5,9 @@
 
 // Increase max listeners for event emitters
 import { EventEmitter } from 'events';
+const regexpExtensions = /^(.*\/)?extensions\//i;
+const regexp2 = /\//g;
+
 EventEmitter.defaultMaxListeners = 100;
 
 import es from 'event-stream';
@@ -113,12 +116,12 @@ function rewriteTsgoSourceMappingUrlsIfNeeded(build: boolean, out: string, baseU
 
 const tasks = compilations.map(function (tsconfigFile) {
 	const absolutePath = path.join(root, tsconfigFile);
-	const relativeDirname = path.dirname(tsconfigFile.replace(/^(.*\/)?extensions\//i, ''));
+	const relativeDirname = path.dirname(tsconfigFile.replace(regexpExtensions, ''));
 
 	const overrideOptions: { sourceMap?: boolean; inlineSources?: boolean; base?: string } = {};
 	overrideOptions.sourceMap = true;
 
-	const name = relativeDirname.replace(/\//g, '-');
+	const name = relativeDirname.replace(new RegExp(regexp2), '-');
 
 	const srcRoot = path.dirname(tsconfigFile);
 	const srcBase = path.join(srcRoot, 'src');

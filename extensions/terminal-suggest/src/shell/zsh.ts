@@ -8,6 +8,8 @@ import type { ICompletionResource } from '../types';
 import { execHelper, getAliasesHelper } from './common';
 import { type ExecOptionsWithStringEncoding } from 'node:child_process';
 import { zshBuiltinsCommandDescriptionsCache } from './zshBuiltinsCache';
+const regexpAliasZAZ0 = /^(?<alias>[a-zA-Z0-9\._:-]+)=(?<quote>['"]?)(?<resolved>.+?)\k<quote>$/;
+
 
 const commandDescriptionsCache: Map<string, { shortDescription?: string; description: string; args: string | undefined }> | undefined = parseCache(zshBuiltinsCommandDescriptionsCache);
 
@@ -20,7 +22,7 @@ export async function getZshGlobals(options: ExecOptionsWithStringEncoding, exis
 
 async function getAliases(options: ExecOptionsWithStringEncoding): Promise<ICompletionResource[]> {
 	const args = process.platform === 'darwin' ? ['-icl', 'alias'] : ['-ic', 'alias'];
-	return getAliasesHelper('zsh', args, /^(?<alias>[a-zA-Z0-9\._:-]+)=(?<quote>['"]?)(?<resolved>.+?)\k<quote>$/, options);
+	return getAliasesHelper('zsh', args, regexpAliasZAZ0, options);
 }
 
 async function getBuiltins(

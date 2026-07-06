@@ -19,6 +19,9 @@
 import ts from 'typescript';
 import path from 'path';
 import fs from 'fs';
+const regexpJs = /\.js$/;
+const regexp2 = /\r\n/g;
+
 
 /**
  * Extract extension point names registered via `registerExtensionPoint` from
@@ -120,7 +123,7 @@ export function extractExtensionPointNamesFromFile(sourceFile: ts.SourceFile): s
 				const modulePath = stmt.moduleSpecifier.text;
 				const resolvedPath = path.resolve(
 					path.dirname(sourceFile.fileName),
-					modulePath.replace(/\.js$/, '.ts')
+					modulePath.replace(regexpJs, '.ts')
 				);
 				try {
 					const content = fs.readFileSync(resolvedPath, 'utf-8');
@@ -212,7 +215,7 @@ function scanDirectory(dir: string): string[] {
 }
 
 function normalize(s: string): string {
-	return s.replace(/\r\n/g, '\n');
+	return s.replace(new RegExp(regexp2), '\n');
 }
 
 function main(): void {

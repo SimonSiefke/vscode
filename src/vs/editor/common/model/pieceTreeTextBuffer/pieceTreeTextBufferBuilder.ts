@@ -9,6 +9,9 @@ import * as strings from '../../../../base/common/strings.js';
 import { DefaultEndOfLine, ITextBuffer, ITextBufferBuilder, ITextBufferFactory } from '../../model.js';
 import { StringBuffer, createLineStarts, createLineStartsFast } from './pieceTreeBase.js';
 import { PieceTreeTextBuffer } from './pieceTreeTextBuffer.js';
+const regexp1 = /\r\n|\r|\n/g;
+const regexp2 = /\r\n|\r|\n/;
+
 
 class PieceTreeTextBufferFactory implements ITextBufferFactory {
 
@@ -49,7 +52,7 @@ class PieceTreeTextBufferFactory implements ITextBufferFactory {
 		) {
 			// Normalize pieces
 			for (let i = 0, len = chunks.length; i < len; i++) {
-				const str = chunks[i].buffer.replace(/\r\n|\r|\n/g, eol);
+				const str = chunks[i].buffer.replace(new RegExp(regexp1), eol);
 				const newLineStart = createLineStartsFast(str);
 				chunks[i] = new StringBuffer(str, newLineStart);
 			}
@@ -60,7 +63,7 @@ class PieceTreeTextBufferFactory implements ITextBufferFactory {
 	}
 
 	public getFirstLineText(lengthLimit: number): string {
-		return this._chunks[0].buffer.substr(0, lengthLimit).split(/\r\n|\r|\n/)[0];
+		return this._chunks[0].buffer.substr(0, lengthLimit).split(regexp2)[0];
 	}
 }
 

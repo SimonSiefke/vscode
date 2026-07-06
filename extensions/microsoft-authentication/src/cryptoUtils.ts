@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { base64Encode } from './node/buffer';
+const regexp1 = /=+$/;
+const regexp2 = /\//g;
+const regexp3 = /\+/g;
+
 
 export function randomUUID() {
 	return crypto.randomUUID();
@@ -32,9 +36,9 @@ function base64urlencode(a: ArrayBuffer) {
 		str += String.fromCharCode(bytes[i]);
 	}
 	return base64Encode(str)
-		.replace(/\+/g, '-')
-		.replace(/\//g, '_')
-		.replace(/=+$/, '');
+		.replace(new RegExp(regexp3), '-')
+		.replace(new RegExp(regexp2), '_')
+		.replace(regexp1, '');
 }
 
 export async function generateCodeChallenge(v: string) {

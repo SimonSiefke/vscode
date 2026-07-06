@@ -7,6 +7,8 @@ import type * as nbformat from '@jupyterlab/nbformat';
 import { extensions, NotebookCellData, NotebookCellExecutionSummary, NotebookCellKind, NotebookCellOutput, NotebookCellOutputItem, NotebookData } from 'vscode';
 import { CellMetadata, CellOutputMetadata } from './common';
 import { textMimeTypes } from './constants';
+const regexp1 = /\r\n/g;
+
 
 const jupyterLanguageToMonacoLanguageMapping = new Map([
 	['c#', 'csharp'],
@@ -96,7 +98,7 @@ function sortOutputItemsBasedOnDisplayOrder(outputItems: NotebookCellOutputItem[
  * Same is done in serializer as well.
  */
 function concatMultilineCellSource(source: string | string[]): string {
-	return concatMultilineString(source).replace(/\r\n/g, '\n');
+	return concatMultilineString(source).replace(new RegExp(regexp1), '\n');
 }
 
 function concatMultilineString(str: string | string[]): string {

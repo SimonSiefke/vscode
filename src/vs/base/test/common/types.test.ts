@@ -7,6 +7,8 @@ import assert from 'assert';
 import * as types from '../../common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 import { assertDefined, isOneOf, typeCheck } from '../../common/types.js';
+const regexpTest = /test/;
+
 
 suite('Types', () => {
 
@@ -22,7 +24,7 @@ suite('Types', () => {
 		assert(!types.isFunction([1, 2, '3']));
 		assert(!types.isFunction({}));
 		assert(!types.isFunction({ foo: 'bar' }));
-		assert(!types.isFunction(/test/));
+		assert(!types.isFunction(regexpTest));
 		assert(!types.isFunction(new RegExp('')));
 		assert(!types.isFunction(new Date()));
 
@@ -40,7 +42,7 @@ suite('Types', () => {
 		assert(!types.areFunctions([1, 2, '3']));
 		assert(!types.areFunctions({}));
 		assert(!types.areFunctions({ foo: 'bar' }));
-		assert(!types.areFunctions(/test/));
+		assert(!types.areFunctions(regexpTest));
 		assert(!types.areFunctions(new RegExp('')));
 		assert(!types.areFunctions(new Date()));
 		assert(!types.areFunctions(assert, ''));
@@ -58,7 +60,7 @@ suite('Types', () => {
 		assert(!types.isObject(true));
 		assert(!types.isObject([]));
 		assert(!types.isObject([1, 2, '3']));
-		assert(!types.isObject(/test/));
+		assert(!types.isObject(regexpTest));
 		assert(!types.isObject(new RegExp('')));
 		assert(!types.isFunction(new Date()));
 		assert.strictEqual(types.isObject(assert), false);
@@ -76,7 +78,7 @@ suite('Types', () => {
 		assert(!types.isEmptyObject(true));
 		assert(!types.isEmptyObject([]));
 		assert(!types.isEmptyObject([1, 2, '3']));
-		assert(!types.isEmptyObject(/test/));
+		assert(!types.isEmptyObject(regexpTest));
 		assert(!types.isEmptyObject(new RegExp('')));
 		assert(!types.isEmptyObject(new Date()));
 		assert.strictEqual(types.isEmptyObject(assert), false);
@@ -94,7 +96,7 @@ suite('Types', () => {
 		assert(!types.isString([1, 2, '3']));
 		assert(!types.isString(true));
 		assert(!types.isString({}));
-		assert(!types.isString(/test/));
+		assert(!types.isString(regexpTest));
 		assert(!types.isString(new RegExp('')));
 		assert(!types.isString(new Date()));
 		assert(!types.isString(assert));
@@ -111,7 +113,7 @@ suite('Types', () => {
 		assert(!types.isStringArray('foo'));
 		assert(!types.isStringArray(true));
 		assert(!types.isStringArray({}));
-		assert(!types.isStringArray(/test/));
+		assert(!types.isStringArray(regexpTest));
 		assert(!types.isStringArray(new RegExp('')));
 		assert(!types.isStringArray(new Date()));
 		assert(!types.isStringArray(assert));
@@ -137,7 +139,7 @@ suite('Types', () => {
 		assert(!types.isArrayOf('foo', types.isString));
 		assert(!types.isArrayOf(true, types.isString));
 		assert(!types.isArrayOf({}, types.isString));
-		assert(!types.isArrayOf(/test/, types.isString));
+		assert(!types.isArrayOf(regexpTest, types.isString));
 		assert(!types.isArrayOf(new RegExp(''), types.isString));
 		assert(!types.isArrayOf(new Date(), types.isString));
 		assert(!types.isArrayOf(assert, types.isString));
@@ -191,7 +193,7 @@ suite('Types', () => {
 		assert(!types.isNumber([1, 2, '3']));
 		assert(!types.isNumber(true));
 		assert(!types.isNumber({}));
-		assert(!types.isNumber(/test/));
+		assert(!types.isNumber(regexpTest));
 		assert(!types.isNumber(new RegExp('')));
 		assert(!types.isNumber(new Date()));
 		assert(!types.isNumber(assert));
@@ -209,7 +211,7 @@ suite('Types', () => {
 		assert(!types.isUndefined([1, 2, '3']));
 		assert(!types.isUndefined(true));
 		assert(!types.isUndefined({}));
-		assert(!types.isUndefined(/test/));
+		assert(!types.isUndefined(regexpTest));
 		assert(!types.isUndefined(new RegExp('')));
 		assert(!types.isUndefined(new Date()));
 		assert(!types.isUndefined(assert));
@@ -225,7 +227,7 @@ suite('Types', () => {
 		assert(!types.isUndefinedOrNull([1, 2, '3']));
 		assert(!types.isUndefinedOrNull(true));
 		assert(!types.isUndefinedOrNull({}));
-		assert(!types.isUndefinedOrNull(/test/));
+		assert(!types.isUndefinedOrNull(regexpTest));
 		assert(!types.isUndefinedOrNull(new RegExp('')));
 		assert(!types.isUndefinedOrNull(new Date()));
 		assert(!types.isUndefinedOrNull(assert));

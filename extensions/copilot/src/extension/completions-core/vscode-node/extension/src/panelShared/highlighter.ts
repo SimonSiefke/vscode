@@ -10,6 +10,8 @@ import getWasmInlined from 'shiki/wasm';
 import { ColorThemeKind, window, workspace } from 'vscode';
 import * as languages from './languages';
 import * as themes from './themes';
+const regexp1 = /[&<>"]/g;
+
 
 export class Highlighter {
 	private constructor(
@@ -58,7 +60,7 @@ export class Highlighter {
 }
 
 function escapeHtml(text: string): string {
-	return text.replace(/[&<>"]/g, char => {
+	return text.replace(new RegExp(regexp1), char => {
 		switch (char) {
 			case '&': return '&amp;';
 			case '<': return '&lt;';

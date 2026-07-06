@@ -12,6 +12,8 @@ import {
 	OpenAiTranslationError,
 	type IOpenAiChatRequest,
 } from '../../node/copilot/byokOpenAiTranslation.js';
+const regexpData = /^data: /;
+
 
 suite('byokOpenAiTranslation', () => {
 
@@ -75,7 +77,7 @@ suite('byokOpenAiTranslation', () => {
 
 		function parseFrames(frames: string[]): unknown[] {
 			return frames
-				.map(frame => frame.replace(/^data: /, '').trim())
+				.map(frame => frame.replace(regexpData, '').trim())
 				.filter(payload => payload !== '[DONE]')
 				.map(payload => JSON.parse(payload));
 		}

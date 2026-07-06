@@ -50,6 +50,8 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { VIEW_ID as EXPLORER_VIEW_ID } from '../../files/common/files.js';
 import { IExtensionGalleryManifest, IExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
+const regexpRestartReload = /restart|reload/i;
+
 
 export abstract class ExtensionWidget extends Disposable implements IExtensionContainer {
 	private _extension: IExtension | null = null;
@@ -720,7 +722,7 @@ export class ExtensionRestartRequiredWidget extends ExtensionWidget {
 
 		// Only show "Restart Required" when the runtime state reason clearly indicates
 		// a restart or reload is needed, to avoid mislabeling other runtime actions.
-		if (runtimeState && /restart|reload/i.test(reason)) {
+		if (runtimeState && regexpRestartReload.test(reason)) {
 			const element = append(this.container, $('span.extension-restart-required' + ThemeIcon.asCSSSelector(restartRequiredIcon)));
 			append(this.container, $('span.extension-restart-required-label', undefined, localize('restart required', "Restart Required")));
 			this.disposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), element, reason));

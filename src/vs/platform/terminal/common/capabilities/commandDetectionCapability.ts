@@ -14,6 +14,12 @@ import { ITerminalOutputMatcher } from '../terminal.js';
 import { ICurrentPartialCommand, isFullTerminalCommand, PartialTerminalCommand, TerminalCommand } from './commandDetection/terminalCommand.js';
 import { PromptInputModel, type IPromptInputModel } from './commandDetection/promptInputModel.js';
 import type { IBuffer, IDisposable, IMarker, Terminal } from '@xterm/headless';
+const regexpPromptPS = /(?<prompt>(\(.+\)\s)?(?:PS.+>\s?))/;
+const regexp2 = /.*\u276f(?=[^\u276f]*$)/g;
+const regexpPrompt = /^(?<prompt>\$)/;
+const regexpPrompt1 = /^(?<prompt>>>> )/g;
+const regexpPrompt2 = /^(?<prompt>(\(.+\)\s)?(?:[A-Z]:\\.*>))/;
+
 
 interface ITerminalDimensions {
 	cols: number;
@@ -956,7 +962,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// PowerShell
-		const pwshPrompt = lineText.match(/(?<prompt>(\(.+\)\s)?(?:PS.+>\s?))/)?.groups?.prompt;
+		const pwshPrompt = lineText.match(regexpPromptPS)?.groups?.prompt;
 		if (pwshPrompt) {
 			const adjustedPrompt = this._adjustPrompt(pwshPrompt, lineText, '>');
 			if (adjustedPrompt) {
@@ -968,7 +974,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Custom prompts like starship end in the common \u276f character
-		const customPrompt = lineText.match(/.*\u276f(?=[^\u276f]*$)/g)?.[0];
+		const customPrompt = lineText.match(new RegExp(regexp2))?.[0];
 		if (customPrompt) {
 			const adjustedPrompt = this._adjustPrompt(customPrompt, lineText, '\u276f');
 			if (adjustedPrompt) {
@@ -977,7 +983,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Bash Prompt
-		const bashPrompt = lineText.match(/^(?<prompt>\$)/)?.groups?.prompt;
+		const bashPrompt = lineText.match(regexpPrompt)?.groups?.prompt;
 		if (bashPrompt) {
 			const adjustedPrompt = this._adjustPrompt(bashPrompt, lineText, '$');
 			if (adjustedPrompt) {
@@ -986,7 +992,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Python Prompt
-		const pythonPrompt = lineText.match(/^(?<prompt>>>> )/g)?.groups?.prompt;
+		const pythonPrompt = lineText.match(new RegExp(regexpPrompt1))?.groups?.prompt;
 		if (pythonPrompt) {
 			return {
 				prompt: pythonPrompt,
@@ -1003,7 +1009,7 @@ class WindowsPtyHeuristics extends Disposable {
 		}
 
 		// Command Prompt
-		const cmdMatch = lineText.match(/^(?<prompt>(\(.+\)\s)?(?:[A-Z]:\\.*>))/);
+		const cmdMatch = lineText.match(regexpPrompt2);
 		return cmdMatch?.groups?.prompt ? {
 			prompt: cmdMatch.groups.prompt,
 			likelySingleLine: true

@@ -73,6 +73,10 @@ import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearch
 import { AbstractSettingRenderer, createTocTreeForExtensionSettings, HeightChangeParams, ISettingLinkClickEvent, resolveConfiguredUntrustedSettings, resolveSettingsTree, SettingsTree, SettingTreeRenderers } from './settingsTree.js';
 import { ISettingsEditorViewState, parseQuery, SearchResultIdx, SearchResultModel, SettingsTreeElement, SettingsTreeGroupChild, SettingsTreeGroupElement, SettingsTreeModel, SettingsTreeSettingElement } from './settingsTreeModels.js';
 import { createTOCIterator, TOCTree, TOCTreeModel } from './tocTree.js';
+const regexp1 = /\s/g;
+const regexp2 = /\u203A/g;
+const regexpZA = /"([a-zA-Z.]+)": /;
+
 
 export const enum SettingsFocusContext {
 	Search,
@@ -815,7 +819,7 @@ export class SettingsEditor2 extends EditorPane {
 				provideResults: (query: string) => {
 					// Based on testing, the trigger character is always at the end of the query.
 					// for the ':' trigger, only return suggestions if there was a '@' before it in the same word.
-					const queryParts = query.split(/\s/g);
+					const queryParts = query.split(new RegExp(regexp1));
 					if (queryParts[queryParts.length - 1].startsWith(`@${LANGUAGE_SETTING_TAG}`)) {
 						const sortedLanguages = this.languageService.getRegisteredLanguageIds().map(languageId => {
 							return `@${LANGUAGE_SETTING_TAG}${languageId} `;
@@ -1818,7 +1822,7 @@ export class SettingsEditor2 extends EditorPane {
 			this.updateSearchPlaceholder();
 			this.saveSearchHistory();
 		}
-		await this.triggerSearch(query.replace(/\u203A/g, ' '), expandResults);
+		await this.triggerSearch(query.replace(new RegExp(regexp2), ' '), expandResults);
 	}
 
 	private loadSearchHistory(): string[] {
@@ -1847,7 +1851,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private parseSettingFromJSON(query: string): string | null {
-		const match = query.match(/"([a-zA-Z.]+)": /);
+		const match = query.match(regexpZA);
 		return match && match[1];
 	}
 

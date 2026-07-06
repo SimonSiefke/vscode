@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /,/;
+const regexp2 = / /;
+
 export interface IColorTheme {
 	readonly tokenColors: ITokenColorizationRule[];
 }
@@ -43,7 +46,7 @@ function findMatchingThemeRule2(theme: IColorTheme, scope: string, parentScopes:
 
 		let selectors: string[];
 		if (typeof rule.scope === 'string') {
-			selectors = rule.scope.split(/,/).map(scope => scope.trim());
+			selectors = rule.scope.split(regexp1).map(scope => scope.trim());
 		} else if (Array.isArray(rule.scope)) {
 			selectors = rule.scope;
 		} else {
@@ -74,7 +77,7 @@ export class ThemeRule {
 	constructor(rawSelector: string, settings: ITokenColorizationSetting) {
 		this.rawSelector = rawSelector;
 		this.settings = settings;
-		const rawSelectorPieces = this.rawSelector.split(/ /);
+		const rawSelectorPieces = this.rawSelector.split(regexp2);
 		this.scope = rawSelectorPieces[rawSelectorPieces.length - 1];
 		this.parentScopes = rawSelectorPieces.slice(0, rawSelectorPieces.length - 1);
 	}

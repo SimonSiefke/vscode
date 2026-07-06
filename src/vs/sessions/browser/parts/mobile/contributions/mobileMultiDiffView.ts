@@ -22,6 +22,9 @@ import { generateTokensCSSForColorMap } from '../../../../../editor/common/langu
 import { IFileDiffViewData } from './mobileDiffView.js';
 import { computeUnifiedDiff, hasMultipleTokenClasses, type IDiffHunk, type IDiffLine, regexTokenizeLines, resolveMobileDiffLanguageId, tokenizeFileLines } from './mobileDiffHelpers.js';
 import { computeMobileMultiDiffItemHeight, computeMobileMultiDiffVirtualLayout, type IMobileMultiDiffVirtualItem, type IMobileMultiDiffVirtualItemLayout, type IMobileMultiDiffVirtualizerMetrics } from './mobileMultiDiffVirtualizer.js';
+const regexp1 = /^\/+/;
+const regexp2 = /[&<>"']/g;
+
 
 const $ = DOM.$;
 
@@ -216,7 +219,7 @@ export class MobileMultiDiffView extends Disposable {
 		// Take the last 2 directory segments of the parent path to provide
 		// context without overwhelming the header on narrow phone widths.
 		const parent = dirname(uri);
-		const parentPath = parent.path.replace(/^\/+/, '');
+		const parentPath = parent.path.replace(regexp1, '');
 		if (!parentPath || parentPath === '.') {
 			return '';
 		}
@@ -987,7 +990,7 @@ export class MobileMultiDiffView extends Disposable {
 	}
 
 	private escapeHtml(value: string): string {
-		return value.replace(/[&<>"']/g, char => {
+		return value.replace(new RegExp(regexp2), char => {
 			switch (char) {
 				case '&': return '&amp;';
 				case '<': return '&lt;';

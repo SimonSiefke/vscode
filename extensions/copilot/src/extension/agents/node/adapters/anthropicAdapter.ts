@@ -11,6 +11,8 @@ import { APIUsage } from '../../../../platform/networking/common/openai';
 import { coalesce } from '../../../../util/vs/base/common/arrays';
 import { anthropicMessagesToRawMessages } from '../../../byok/common/anthropicMessageConverter';
 import { IAgentStreamBlock, IParsedRequest, IProtocolAdapter, IProtocolAdapterFactory, IStreamEventData, IStreamingContext } from './types';
+const regexp1 = /\n/g;
+
 
 export class AnthropicAdapterFactory implements IProtocolAdapterFactory {
 	createAdapter(): IProtocolAdapter {
@@ -306,6 +308,6 @@ class AnthropicAdapter implements IProtocolAdapter {
 	}
 
 	private formatEventData(data: unknown): string {
-		return JSON.stringify(data).replace(/\n/g, '\\n');
+		return JSON.stringify(data).replace(new RegExp(regexp1), '\\n');
 	}
 }

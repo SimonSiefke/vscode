@@ -21,6 +21,9 @@ import { Workspace } from '../../../../../platform/workspace/test/common/testWor
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ITaskDefinitionRegistry } from '../../common/taskDefinitionRegistry.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+const regexpAbc = /abc/;
+const regexp2 = /.*/;
+
 
 const workspaceFolder: WorkspaceFolder = new WorkspaceFolder({
 	uri: URI.file('/workspace/folderOne'),
@@ -1056,7 +1059,7 @@ suite('Tasks version 0.1.0', () => {
 		const builder = new ConfigurationBuilder();
 		builder.task('taskName', 'tsc').
 			command().args(['$name']).parent.
-			problemMatcher().pattern(/abc/);
+			problemMatcher().pattern(regexpAbc);
 		testConfiguration(external, builder);
 	});
 
@@ -1078,7 +1081,7 @@ suite('Tasks version 0.1.0', () => {
 		const builder = new ConfigurationBuilder();
 		builder.task('taskName', 'tsc').
 			command().args(['$name']).parent.
-			problemMatcher().pattern(/.*/);
+			problemMatcher().pattern(regexp2);
 		testConfiguration(external, builder);
 	});
 
@@ -1110,7 +1113,7 @@ suite('Tasks version 0.1.0', () => {
 			severity(Severity.Warning).
 			fileLocation(FileLocationKind.Absolute).
 			filePrefix(undefined!).
-			pattern(/abc/);
+			pattern(regexpAbc);
 		testConfiguration(external, builder);
 	});
 
@@ -1136,7 +1139,7 @@ suite('Tasks version 0.1.0', () => {
 			problemMatcher().
 			fileLocation(FileLocationKind.Relative).
 			filePrefix('myPath').
-			pattern(/abc/);
+			pattern(regexpAbc);
 		testConfiguration(external, builder);
 	});
 
@@ -1164,7 +1167,7 @@ suite('Tasks version 0.1.0', () => {
 		builder.task('taskName', 'tsc').
 			command().args(['$name']).parent.
 			problemMatcher().
-			pattern(/abc/).file(10).message(11).location(12).severity(13).code(14);
+			pattern(regexpAbc).file(10).message(11).location(12).severity(13).code(14);
 		testConfiguration(external, builder);
 	});
 
@@ -1195,7 +1198,7 @@ suite('Tasks version 0.1.0', () => {
 		builder.task('taskName', 'tsc').
 			command().args(['$name']).parent.
 			problemMatcher().
-			pattern(/abc/).file(10).message(11).
+			pattern(regexpAbc).file(10).message(11).
 			line(12).character(13).endLine(14).endCharacter(15).
 			severity(16).code(17);
 		testConfiguration(external, builder);

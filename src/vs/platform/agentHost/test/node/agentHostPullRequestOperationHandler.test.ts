@@ -19,6 +19,11 @@ import type { AutoMergeMethod, CreatedPullRequest, IAgentHostOctoKitService } fr
 import type { ICopilotApiService, ICopilotApiServiceRequestOptions, ICopilotUtilityChatCompletionRequest } from '../../node/shared/copilotApiService.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { CCAModel } from '@vscode/copilot-api';
+const regexpNoBranchChanges = /no branch changes/;
+const regexpCouldNotCompute = /Could not compute branch changes/;
+const regexpCreateFailed = /create failed/;
+const regexpPullRequestOperation = /Pull request operation was cancelled/;
+
 
 class TestCopilotApiService implements ICopilotApiService {
 	declare readonly _serviceBrand: undefined;
@@ -267,7 +272,7 @@ suite('AgentHostPullRequestOperationHandler', () => {
 
 		await assert.rejects(
 			() => handler.invoke({ channel: buildSessionChangesetUri(session.toString()), operationId: AgentHostPullRequestOperationHandler.OPERATION_CREATE_PR }, CancellationToken.None),
-			/no branch changes/,
+			regexpNoBranchChanges,
 		);
 		assert.deepStrictEqual(octoKitService.calls, []);
 	});
@@ -280,7 +285,7 @@ suite('AgentHostPullRequestOperationHandler', () => {
 
 		await assert.rejects(
 			() => handler.invoke({ channel: buildSessionChangesetUri(session.toString()), operationId: AgentHostPullRequestOperationHandler.OPERATION_CREATE_PR }, CancellationToken.None),
-			/Could not compute branch changes/,
+			regexpCouldNotCompute,
 		);
 
 		assert.deepStrictEqual({ gitCalls: gitService.calls, octoCalls: octoKitService.calls }, {
@@ -314,7 +319,7 @@ suite('AgentHostPullRequestOperationHandler', () => {
 
 		await assert.rejects(
 			() => handler.invoke({ channel: buildSessionChangesetUri(session.toString()), operationId: AgentHostPullRequestOperationHandler.OPERATION_CREATE_PR }, CancellationToken.None),
-			/create failed/,
+			regexpCreateFailed,
 		);
 	});
 
@@ -328,7 +333,7 @@ suite('AgentHostPullRequestOperationHandler', () => {
 
 		await assert.rejects(
 			() => handler.invoke({ channel: buildSessionChangesetUri(session.toString()), operationId: AgentHostPullRequestOperationHandler.OPERATION_CREATE_PR }, cts.token),
-			/Pull request operation was cancelled/,
+			regexpPullRequestOperation,
 		);
 
 		assert.deepStrictEqual({ gitCalls: gitService.calls, octoCalls: octoKitService.calls, createdEvents }, {

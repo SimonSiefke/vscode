@@ -5,6 +5,11 @@
 
 import { ILogService } from '../../log/common/log.js';
 import { createRemoteAgentHostState, parseRemoteAgentHostState } from '../common/remoteAgentHostMetadata.js';
+const regexpZAZ0 = /^[a-zA-Z0-9._-]+$/;
+const regexp9a = /^[0-9a-f]{40}$/;
+const regexp3 = /'/g;
+const regexpTkn = /\?tkn=[^\s&]+/g;
+
 
 const LOG_PREFIX = '[SSHRemoteAgentHost]';
 
@@ -15,7 +20,7 @@ const LOG_PREFIX = '[SSHRemoteAgentHost]';
  * prefix requires shell expansion, so we cannot single-quote the entire path).
  */
 export function validateShellToken(value: string, label: string): string {
-	if (!/^[a-zA-Z0-9._-]+$/.test(value)) {
+	if (!regexpZAZ0.test(value)) {
 		throw new Error(`Unsafe ${label} value for shell interpolation: ${JSON.stringify(value)}`);
 	}
 	return value;
@@ -35,7 +40,7 @@ export function validateShellToken(value: string, label: string): string {
  */
 export function validateCommit(commit: string): string {
 	const normalized = commit.toLowerCase();
-	if (!/^[0-9a-f]{40}$/.test(normalized)) {
+	if (!regexp9a.test(normalized)) {
 		throw new Error(`Unsafe commit value (expected 40-char hex SHA): ${JSON.stringify(commit)}`);
 	}
 	return normalized;
@@ -109,7 +114,7 @@ export function getRemoteCLIBin(serverDataFolderName: string, quality: string, c
 /** Escape a string for use as a single shell argument (single-quote wrapping). */
 export function shellEscape(s: string): string {
 	// Wrap in single quotes; escape embedded single quotes as: '\''
-	const escaped = s.replace(/'/g, '\'\\\'\'');
+	const escaped = s.replace(new RegExp(regexp3), '\'\\\'\'');
 	return `'${escaped}'`;
 }
 
@@ -256,14 +261,14 @@ export function isValidFallbackCLIPath(candidate: string, serverDataFolderName: 
 	const pinnedPrefix = `${root}/${archive}-`;
 	if (candidate.startsWith(pinnedPrefix)) {
 		const suffix = candidate.slice(pinnedPrefix.length);
-		return /^[0-9a-f]{40}$/.test(suffix);
+		return regexp9a.test(suffix);
 	}
 	return false;
 }
 
 /** Redact connection tokens from log output. */
 export function redactToken(text: string): string {
-	return text.replace(/\?tkn=[^\s&]+/g, '?tkn=***');
+	return text.replace(new RegExp(regexpTkn), '?tkn=***');
 }
 
 /**

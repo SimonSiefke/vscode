@@ -11,6 +11,9 @@ import { getTerminalLinkType } from './terminalLocalLinkDetector.js';
 import type { IBufferLine, Terminal } from '@xterm/xterm';
 import { ITerminalProcessManager } from '../../../terminal/common/terminal.js';
 import { ITerminalBackend, ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
+const regexp1 = /^\s*\d/;
+const regexpPath = /\+\+\+ b\/(?<path>.+)/;
+
 
 const enum Constants {
 	/**
@@ -103,7 +106,7 @@ export class TerminalMultiLineLinkDetector implements ITerminalLinkDetector {
 					continue;
 				}
 				const text = getXtermLineContent(this.xterm.buffer.active, index, index, this.xterm.cols);
-				if (!text.match(/^\s*\d/)) {
+				if (!text.match(regexp1)) {
 					possiblePath = text;
 					break;
 				}
@@ -174,7 +177,7 @@ export class TerminalMultiLineLinkDetector implements ITerminalLinkDetector {
 						continue;
 					}
 					const text = getXtermLineContent(this.xterm.buffer.active, index, index, this.xterm.cols);
-					const match = text.match(/\+\+\+ b\/(?<path>.+)/);
+					const match = text.match(regexpPath);
 					if (match) {
 						possiblePath = match.groups?.path;
 						break;

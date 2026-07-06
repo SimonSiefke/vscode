@@ -9,6 +9,9 @@ import { decodeBase64 } from '../../../../../base/common/buffer.js';
 import { Disposable, DisposableStore, type IDisposable } from '../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../nls.js';
 import { NotificationPriority, Severity, type INotification, type INotificationHandle } from '../../../../../platform/notification/common/notification.js';
+const regexpZAZ0 = /[^a-zA-Z0-9_\-+.]/g;
+const regexp2 = /\[([^\]]+)\]\(([^)]+)\)/g;
+
 
 const enum Osc99PayloadType {
 	Title = 'title',
@@ -182,12 +185,12 @@ export class TerminalNotificationHandler extends Disposable {
 		if (!rawId) {
 			return undefined;
 		}
-		const sanitized = rawId.replace(/[^a-zA-Z0-9_\-+.]/g, '');
+		const sanitized = rawId.replace(new RegExp(regexpZAZ0), '');
 		return sanitized.length > 0 ? sanitized : undefined;
 	}
 
 	private _sanitizeOsc99MessageText(text: string): string {
-		return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1');
+		return text.replace(new RegExp(regexp2), '$1');
 	}
 
 	private _getOrCreateOsc99State(id: string | undefined): IOsc99NotificationState {

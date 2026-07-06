@@ -14,6 +14,8 @@ import assert from 'assert';
 import path from 'path';
 import type * as protocol from '../../common/protocol';
 import type * as testing from './testing';
+const regexp1 = /\/\/\/\/\s(\{.*\})/g;
+
 
 let create: typeof testing.create;
 let prepareNesRename: typeof testing.prepareNesRename;
@@ -91,7 +93,7 @@ function computeNesRenameTestCases(filePath: string): NesRenameTestCase[] {
 	const text = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest);
 	const result: NesRenameTestCase[] = [];
-	const regex = /\/\/\/\/\s(\{.*\})/g;
+	const regex = new RegExp(regexp1);
 	let match: RegExpExecArray | null;
 	while ((match = regex.exec(text)) !== null) {
 		try {
@@ -120,7 +122,7 @@ function computePostRenameTestCases(filePath: string): PostRenameTestCase[] {
 	const text = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.Latest);
 	const result: PostRenameTestCase[] = [];
-	const regex = /\/\/\/\/\s(\{.*\})/g;
+	const regex = new RegExp(regexp1);
 
 	type ParsedAnnotation = {
 		annotation: TrackedRenameAnnotation | TestAnnotation;

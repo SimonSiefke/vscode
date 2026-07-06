@@ -8,6 +8,9 @@
 
 // Only `import type` is allowed in preload scripts — Electron preloads cannot resolve module imports at runtime.
 import type { IBrowserViewTheme, IBrowserViewRect } from '../common/browserView.js';
+const regexp1 = /^F\d+$/;
+const regexpNumpad = /^Numpad\d+$/;
+
 
 /**
  * Preload script for pages loaded in Integrated Browser
@@ -58,7 +61,7 @@ function init() {
 
 		const isNonEditingKey =
 			event.key === 'Escape' ||
-			/^F\d+$/.test(event.key) ||
+			regexp1.test(event.key) ||
 			event.key.startsWith('Audio') || event.key.startsWith('Media') || event.key.startsWith('Browser');
 
 		// Only forward if there's a command modifier or it's a non-editing key
@@ -76,7 +79,7 @@ function init() {
 
 		// Alt+Key special character handling (Alt + Numpad keys on Windows/Linux, Alt + any key on Mac)
 		if (event.altKey && !event.ctrlKey && !event.metaKey) {
-			if (isMac || /^Numpad\d+$/.test(event.code)) {
+			if (isMac || regexpNumpad.test(event.code)) {
 				return;
 			}
 		}

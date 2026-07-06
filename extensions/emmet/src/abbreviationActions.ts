@@ -7,6 +7,15 @@ import * as vscode from 'vscode';
 import { Node, HtmlNode, Rule, Property, Stylesheet } from 'EmmetFlatNode';
 import { getEmmetHelper, getFlatNode, getHtmlFlatNode, getMappingForIncludedLanguages, validate, getEmmetConfiguration, isStyleSheet, getEmmetMode, parsePartialStylesheet, isStyleAttribute, getEmbeddedCssNodeIfAny, allowedMimeTypesInScriptTag, toLSTextDocument, isOffsetInsideOpenOrCloseTag } from './util';
 import { getRootNode as parseDocument } from './parseDocument';
+const regexp1 = /^(\s*)/;
+const regexp2 = /(\$\d)/g;
+const regexp3 = /\\\$/g;
+const regexp4 = /\$\{[\d]*:([^}]*)\}/g;
+const regexp5 = /\$\{[\d]*\}/g;
+const regexp6 = /<(\w+)$/;
+const regexp7 = /\s/;
+const regexp8 = /\$\{/g;
+
 
 const trimRegex = /[\u00a0]*[\d#\-\*\u2022]+\.?/;
 const hexColorRegex = /^#[\da-fA-F]{0,6}$/;
@@ -114,14 +123,14 @@ export async function wrapWithAbbreviation(args: any): Promise<boolean> {
 		// the following assumes all the lines are indented the same way as the first
 		// this assumption helps with applyPreview later
 		const wholeFirstLine = document.lineAt(rangeToReplace.start).text;
-		const otherMatches = wholeFirstLine.match(/^(\s*)/);
+		const otherMatches = wholeFirstLine.match(regexp1);
 		const baseIndent = otherMatches ? otherMatches[1] : '';
 		textToWrapInPreview = rangeToReplace.isSingleLine ?
 			[textToReplace] :
 			textToReplace.split('\n' + baseIndent).map(x => x.trimEnd());
 
 		// escape $ characters, fixes #52640
-		textToWrapInPreview = textToWrapInPreview.map(e => e.replace(/(\$\d)/g, '\\$1'));
+		textToWrapInPreview = textToWrapInPreview.map(e => e.replace(new RegExp(regexp2), '\\$1'));
 
 		return {
 			previewRange: rangeToReplace,
@@ -162,9 +171,9 @@ export async function wrapWithAbbreviation(args: any): Promise<boolean> {
 				// the text in the preview range with that new text
 				const oldPreviewRange = rangesToReplace[i].previewRange;
 				const newText = expandedText
-					.replace(/\$\{[\d]*\}/g, '|') // Removing Tabstops
-					.replace(/\$\{[\d]*:([^}]*)\}/g, (_, placeholder) => placeholder) // Replacing Placeholders
-					.replace(/\\\$/g, '$'); // Remove backslashes before $
+					.replace(new RegExp(regexp5), '|') // Removing Tabstops
+					.replace(new RegExp(regexp4), (_, placeholder) => placeholder) // Replacing Placeholders
+					.replace(new RegExp(regexp3), '$'); // Remove backslashes before $
 				builder.replace(oldPreviewRange, newText);
 
 				// calculate the new preview range to use for future previews
@@ -328,7 +337,7 @@ export function expandEmmetAbbreviation(args: any): Thenable<boolean | undefined
 		// Expand cases like <div to <div></div> explicitly
 		// else we will end up with <<div></div>
 		if (syntax === 'html') {
-			const matches = textTillPosition.match(/<(\w+)$/);
+			const matches = textTillPosition.match(regexp6);
 			if (matches) {
 				abbr = matches[1];
 				rangeToReplace = new vscode.Range(position.translate(0, -(abbr.length + 1)), position);
@@ -580,7 +589,7 @@ export function isValidLocationForEmmetAbbreviation(document: vscode.TextDocumen
 	while (i >= 0) {
 		const char = textToBackTrack[i];
 		i--;
-		if (!foundSpace && /\s/.test(char)) {
+		if (!foundSpace && regexp7.test(char)) {
 			foundSpace = true;
 			continue;
 		}
@@ -590,7 +599,7 @@ export function isValidLocationForEmmetAbbreviation(document: vscode.TextDocumen
 		}
 		// Fix for https://github.com/microsoft/vscode/issues/55411
 		// A space is not a valid character right after < in a tag name.
-		if (/\s/.test(char) && textToBackTrack[i] === startAngle) {
+		if (regexp7.test(char) && textToBackTrack[i] === startAngle) {
 			i--;
 			continue;
 		}
@@ -664,7 +673,7 @@ function expandAbbr(input: ExpandAbbreviationInput): string | undefined {
 
 	if (input.textToWrap) {
 		// escape ${ sections, fixes #122231
-		input.textToWrap = input.textToWrap.map(e => e.replace(/\$\{/g, '\\\$\{'));
+		input.textToWrap = input.textToWrap.map(e => e.replace(new RegExp(regexp8), '\\\$\{'));
 		if (input.filter && input.filter.includes('t')) {
 			input.textToWrap = input.textToWrap.map(line => {
 				return line.replace(trimRegex, '').trim();

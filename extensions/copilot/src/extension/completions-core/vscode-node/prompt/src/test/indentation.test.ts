@@ -31,6 +31,8 @@ import {
 	visitTreeConditionally,
 } from '../indentation';
 import { compareTreeWithSpec } from './testHelpers';
+const regexp1 = /\n*$/;
+
 
 function doParseTest<T>(source: string, expectedTree: IndentationTree<T>) {
 	const tree = clearLabels(parseTree(source, 'python'));
@@ -324,12 +326,12 @@ suite('Test core functions: other', function () {
 	const tree = parseTree(SOURCE.source, 'python');
 	test('deparseTree should give same output as source input', function () {
 		// Assert that the tree is the same as the source, ignoring trailing newlines
-		assert.strictEqual(deparseTree(tree).replace(/\n*$/, ''), SOURCE.source.replace(/\n*$/, ''));
+		assert.strictEqual(deparseTree(tree).replace(regexp1, ''), SOURCE.source.replace(regexp1, ''));
 	});
 	test('deparseTree should give same output as source input with an extra blank line', function () {
 		const treeLonger = parseTree(`${SOURCE.source}\n`, 'python');
 		// Assert that the tree is the same as the source, ignoring trailing newlines
-		assert.strictEqual(deparseTree(treeLonger).replace(/\n*$/, ''), SOURCE.source.replace(/\n*$/, ''));
+		assert.strictEqual(deparseTree(treeLonger).replace(regexp1, ''), SOURCE.source.replace(regexp1, ''));
 	});
 	test('deparseAndCutTree cuts at labels', function () {
 		const source = dedent`

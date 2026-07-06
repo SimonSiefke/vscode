@@ -23,6 +23,8 @@ import { StoredValue } from '../common/storedValue.js';
 import { ITestExplorerFilterState, TestFilterTerm } from '../common/testExplorerFilterState.js';
 import { ITestService } from '../common/testService.js';
 import { denamespaceTestTag } from '../common/testTypes.js';
+const regexp1 = /(["\\])/g;
+
 
 const testFilterDescriptions: { [K in TestFilterTerm]: string } = {
 	[TestFilterTerm.Failed]: localize('testing.filters.showOnlyFailed', "Show Only Failed Tests"),
@@ -90,7 +92,7 @@ export class TestingExplorerFilter extends BaseActionViewItem {
 						return ({
 							label: `@${ctrlId}:${tagId}`,
 							detail: this.testService.collection.getNodeById(ctrlId)?.item.label,
-							insertText: tagId.includes(' ') ? `@${ctrlId}:"${tagId.replace(/(["\\])/g, '\\$1')}"` : insertText,
+							insertText: tagId.includes(' ') ? `@${ctrlId}:"${tagId.replace(new RegExp(regexp1), '\\$1')}"` : insertText,
 						});
 					}),
 				].filter(r => !this.state.text.value.includes(r.label)),

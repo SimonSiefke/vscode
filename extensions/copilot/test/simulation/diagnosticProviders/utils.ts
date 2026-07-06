@@ -16,6 +16,8 @@ import { CacheScope, ICachingResourceFetcher } from '../../base/simulationContex
 import { CACHING_DIAGNOSTICS_PROVIDER_CACHE_SALT } from '../../cacheSalt';
 import { cleanTempDirWithRetry, createTempDir } from '../stestUtil';
 import { DiagnosticsProvider, IFile, ITestDiagnostic } from './diagnosticsProvider';
+const regexp1 = /\\/g;
+
 
 /**
  * Abstract class which finds diagnostics for a set of files and stores them in a cache path
@@ -30,7 +32,7 @@ export abstract class CachingDiagnosticsProvider extends DiagnosticsProvider {
 
 	override async getDiagnostics(accessor: ITestingServicesAccessor, files: IFile[]): Promise<ITestDiagnostic[]> {
 		// Always use / as separators in file names to avoid cache misses on Windows
-		files = files.map(f => ({ ...f, fileName: f.fileName.replace(/\\/g, '/') }));
+		files = files.map(f => ({ ...f, fileName: f.fileName.replace(new RegExp(regexp1), '/') }));
 
 		// Keep files stable and maximize cache hits by sorting them by file name
 		files.sort((a, b) => a.fileName.localeCompare(b.fileName));

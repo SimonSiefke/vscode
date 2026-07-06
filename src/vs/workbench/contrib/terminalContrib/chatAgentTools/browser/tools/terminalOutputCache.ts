@@ -6,6 +6,9 @@
 import { IToolResultCache, IToolResultCacheHit } from '../../../../chat/common/tools/toolResultCompressor.js';
 import { TerminalToolId } from '../../../../chat/common/tools/terminalToolIds.js';
 import { parseCommand, segmentHead } from './terminalCommandParser.js';
+const regexpAddCommitPush = /^(add|commit|push|pull|fetch|merge|rebase|reset|checkout|switch|restore|cherry-pick|revert|stash|tag|branch|am|apply|clean|rm|mv)$/;
+const regexpTestNextestCheck = /^(test|nextest|check|build)$/;
+
 
 /**
  * Session-memory dedup cache for `run_in_terminal` output. Keyed on
@@ -80,7 +83,7 @@ function classifySingleHead(head: { head: string; sub: string | undefined }): IC
 	switch (head.head) {
 		case 'git': {
 			// Mutations clear all cached `git ...` results in this cwd.
-			if (head.sub && /^(add|commit|push|pull|fetch|merge|rebase|reset|checkout|switch|restore|cherry-pick|revert|stash|tag|branch|am|apply|clean|rm|mv)$/.test(head.sub)) {
+			if (head.sub && regexpAddCommitPush.test(head.sub)) {
 				return { cls: undefined, invalidates: ['git'] };
 			}
 			if (head.sub === 'status' || head.sub === 'diff' || head.sub === 'show' || head.sub === 'blame') {
@@ -113,7 +116,7 @@ function classifySingleHead(head: { head: string; sub: string | undefined }): IC
 		case 'jest':
 		case 'vitest':
 		case 'cargo':
-			if (head.head === 'cargo' && head.sub && /^(test|nextest|check|build)$/.test(head.sub)) {
+			if (head.head === 'cargo' && head.sub && regexpTestNextestCheck.test(head.sub)) {
 				return { cls: CacheClass.Medium, invalidates: [] };
 			}
 			if (head.head !== 'cargo') {

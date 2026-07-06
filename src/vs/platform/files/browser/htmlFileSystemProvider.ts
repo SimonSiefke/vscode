@@ -18,6 +18,8 @@ import { createFileSystemProviderError, IFileDeleteOptions, IFileOverwriteOption
 import { FileSystemObserverRecord, WebFileSystemAccess, WebFileSystemObserver } from './webFileSystemAccess.js';
 import { IndexedDB } from '../../../base/browser/indexedDB.js';
 import { ILogService, LogLevel } from '../../log/common/log.js';
+const regexp1 = /\/$/;
+
 
 export class HTMLFileSystemProvider extends Disposable implements IFileSystemProviderWithFileReadWriteCapability, IFileSystemProviderWithFileReadStreamCapability {
 
@@ -465,7 +467,7 @@ export class HTMLFileSystemProvider extends Disposable implements IFileSystemPro
 			return undefined;
 		}
 
-		const handleId = resource.path.replace(/\/$/, ''); // remove potential slash from the end of the path
+		const handleId = resource.path.replace(regexp1, ''); // remove potential slash from the end of the path
 
 		// First: check if we have a known handle stored in memory
 		const inMemoryHandle = this._files.get(handleId) ?? this._directories.get(handleId);

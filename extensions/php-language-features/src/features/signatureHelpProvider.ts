@@ -6,6 +6,8 @@
 import { SignatureHelpProvider, SignatureHelp, SignatureInformation, CancellationToken, TextDocument, Position, workspace } from 'vscode';
 import * as phpGlobals from './phpGlobals';
 import * as phpGlobalFunctions from './phpGlobalFunctions';
+const regexpVoid = /\w*\s+\&?\$[\w_\.]+|void/g;
+
 
 const _NL = '\n'.charCodeAt(0);
 const _TAB = '\t'.charCodeAt(0);
@@ -93,7 +95,7 @@ export default class PHPSignatureHelpProvider implements SignatureHelpProvider {
 		const paramsString = entry.signature.substring(0, entry.signature.lastIndexOf(')') + 1);
 		const signatureInfo = new SignatureInformation(ident + paramsString, entry.description);
 
-		const re = /\w*\s+\&?\$[\w_\.]+|void/g;
+		const re = new RegExp(regexpVoid);
 		let match: RegExpExecArray | null = null;
 		while ((match = re.exec(paramsString)) !== null) {
 			signatureInfo.parameters.push({ label: match[0], documentation: '' });

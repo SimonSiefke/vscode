@@ -11,6 +11,8 @@ import { URI } from '../../src/util/vs/base/common/uri';
 import { generateUuid } from '../../src/util/vs/base/common/uuid';
 import { SIMULATION_FOLDER_NAME } from './shared/sharedTypes';
 import { IConversationalOutcome, IEmptyOutcome, IInlineEditOutcome, IOutcome, IWorkspaceEditOutcome } from './types';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export function forEachModel(models: readonly string[], func: (model: string) => void) {
 	return () => models.forEach(func);
@@ -157,8 +159,8 @@ export function assertWorkspaceEdit(outcome: IOutcome): asserts outcome is IWork
  * returns null if the files are identical
  */
 export function extractInlineReplaceEdits(outcome: IInlineEditOutcome): IInlineReplaceEdit | null {
-	const originalLines = outcome.originalFileContents.split(/\r\n|\r|\n/g);
-	const modifiedLines = outcome.fileContents.split(/\r\n|\r|\n/g);
+	const originalLines = outcome.originalFileContents.split(new RegExp(regexp1));
+	const modifiedLines = outcome.fileContents.split(new RegExp(regexp1));
 
 	let ostart = 0;
 	let mstart = 0;
@@ -210,7 +212,7 @@ export function assertInlineEditShape(outcome: IOutcome, _expected: IInlineEditS
 		originalLength: actual.originalEndLine - actual.originalStartLine + 1,
 		modifiedLength: actual.modifiedEndLine - actual.modifiedStartLine + 1,
 	};
-	const originalLineCount = outcome.originalFileContents.split(/\r\n|\r|\n/g).length;
+	const originalLineCount = outcome.originalFileContents.split(new RegExp(regexp1)).length;
 	const _expectedArr = Array.isArray(_expected) ? _expected : [_expected];
 	const expectedArr = _expectedArr.map((expected) => {
 		const line = (

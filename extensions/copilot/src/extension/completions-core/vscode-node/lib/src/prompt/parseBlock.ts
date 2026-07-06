@@ -5,6 +5,8 @@
 
 import { getNodeStart, isBlockBodyFinished, isEmptyBlockStart } from '../../../prompt/src/parseBlock';
 import { IPosition, LocationFactory, TextDocumentContents } from '../textDocument';
+const regexp1 = /^(\s*)([^]*)$/;
+
 
 export function parsingBlockFinished(
 	doc: TextDocumentContents,
@@ -91,7 +93,7 @@ function indentationOfLine(line: string): number | undefined {
 	// a file containing Windows newlines.
 	// TODO this is a bit of hack and ideally we would be using the "right" newline character at the
 	// point where we split/join lines.
-	const match = /^(\s*)([^]*)$/.exec(line);
+	const match = regexp1.exec(line);
 	if (match && match[2] && match[2].length > 0) {
 		return match[1].length;
 	} else {

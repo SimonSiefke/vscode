@@ -14,6 +14,9 @@ import {
 	JsonRpcErrorCode,
 	type ICodexAppServerTransport,
 } from '../../../node/codex/codexAppServerClient.js';
+const regexpOverloaded = /overloaded/;
+const regexpBoom = /boom/;
+
 
 // #region In-memory fake transport
 //
@@ -160,7 +163,7 @@ suite('CodexAppServerClient', () => {
 			await assert.rejects(responsePromise, (err: unknown) => {
 				assert.ok(err instanceof JsonRpcError, 'expected JsonRpcError');
 				assert.strictEqual(err.code, -32001);
-				assert.match(err.message, /overloaded/);
+				assert.match(err.message, regexpOverloaded);
 				return true;
 			});
 		} finally {
@@ -283,7 +286,7 @@ suite('CodexAppServerClient', () => {
 			peer.push({ id: 8, method: 'item/tool/requestUserInput', params: { questions: [] } });
 			const reply = await readNextMessage(peer.outbound) as { id: number; error: { code: number; message: string } };
 			assert.strictEqual(reply.error.code, JsonRpcErrorCode.InternalError);
-			assert.match(reply.error.message, /boom/);
+			assert.match(reply.error.message, regexpBoom);
 			handle.dispose();
 		} finally {
 			client.dispose();

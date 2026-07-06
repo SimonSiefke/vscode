@@ -10,6 +10,8 @@ import { RepoContext } from '../common/gitService';
 import { coalesce } from '../../../util/vs/base/common/arrays';
 import { ResourceSet } from '../../../util/vs/base/common/map';
 import { isEqual, relativePath } from '../../../util/vs/base/common/resources';
+const regexp1 = /\\/g;
+
 
 export function parseGitChangesRaw(repositoryRoot: string, raw: string): DiffChange[] {
 	const changes: Change[] = [];
@@ -118,7 +120,7 @@ export function getUncommittedFilePaths(repository: RepoContext): string[] {
 		.map(uri => relativePath(repository.rootUri, uri)));
 
 	// Git expects forward slashes even on Windows
-	return relativePaths.map(p => p.replace(/\\/g, '/'));
+	return relativePaths.map(p => p.replace(new RegExp(regexp1), '/'));
 }
 
 export function buildTempIndexEnv(repository: RepoContext, indexFile: string): Record<string, string> {

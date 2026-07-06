@@ -36,6 +36,8 @@ import { EditorIntegrationRules } from '../../../prompts/node/panel/editorIntegr
 import { WorkspaceStructure } from '../../../prompts/node/panel/workspace/workspaceStructure';
 import { SetupTestFileScheme } from '../../../testing/common/files';
 import { SetupTestsFrameworkQueryInvocationRaw } from './setupTestsFrameworkQueryInvocation';
+const regexp1 = /^\[.+\]$/;
+
 
 
 export class SetupTestsInvocation implements IIntentInvocation {
@@ -233,7 +235,7 @@ export class SetupTestsInvocation implements IIntentInvocation {
 
 		// Handle a root '[project-name]' or similar fake root node
 		const first = chatResponseTree.value[0];
-		if (chatResponseTree.value.length === 1 && /^\[.+\]$/.test(first.name) && first.children) {
+		if (chatResponseTree.value.length === 1 && regexp1.test(first.name) && first.children) {
 			chatResponseTree.value = first.children!;
 		}
 

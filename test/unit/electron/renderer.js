@@ -3,6 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpSrc = /^src[\\/]/;
+const regexpJt = /\.[jt]s$/;
+const regexpJs = /\.js$/;
+const regexpTheVmModule = /The vm module of Node\.js is deprecated in the renderer process and will be removed./;
+const regexpCreatingNewSnapshot = /Creating new snapshot in/;
+const regexpDeletingOldSnapshots = /Deleting [0-9]+ old snapshots/;
+
 /*eslint-env mocha*/
 
 // @ts-check
@@ -163,15 +170,15 @@ async function loadTestModules(opts) {
 	if (opts.run) {
 		const files = Array.isArray(opts.run) ? opts.run : [opts.run];
 		const modules = files.map(file => {
-			file = file.replace(/^src[\\/]/, '');
-			return file.replace(/\.[jt]s$/, '');
+			file = file.replace(regexpSrc, '');
+			return file.replace(regexpJt, '');
 		});
 		return loadModules(modules);
 	}
 
 	const pattern = opts.runGlob || _tests_glob;
 	const files = await globAsync(pattern, { cwd: loadFn._out });
-	let modules = files.map(file => file.replace(/\.js$/, ''));
+	let modules = files.map(file => file.replace(regexpJs, ''));
 	if (opts.testSplit) {
 		const [i, n] = opts.testSplit.split('/').map(Number);
 		const chunkSize = Math.floor(modules.length / n);
@@ -190,13 +197,13 @@ async function loadTests(opts) {
 	//#region Unexpected Output
 
 	const _allowedTestOutput = [
-		/The vm module of Node\.js is deprecated in the renderer process and will be removed./,
+		regexpTheVmModule,
 	];
 
 	// allow snapshot mutation messages locally
 	if (!IS_CI) {
-		_allowedTestOutput.push(/Creating new snapshot in/);
-		_allowedTestOutput.push(/Deleting [0-9]+ old snapshots/);
+		_allowedTestOutput.push(regexpCreatingNewSnapshot);
+		_allowedTestOutput.push(regexpDeletingOldSnapshots);
 	}
 
 	const perTestCoverage = opts['per-test-coverage'] ? await PerTestCoverage.init() : undefined;

@@ -15,6 +15,8 @@ import { ClientCapability, ITypeScriptServiceClient } from '../../typescriptServ
 import { ResourceUnifiedConfigValue } from '../../utils/configuration';
 import { conditionalRegistration, requireHasModifiedUnifiedConfig, requireSomeCapability } from '../util/dependentRegistration';
 import { ReferencesCodeLens, TypeScriptBaseCodeLensProvider, getSymbolRange } from './baseCodeLensProvider';
+const regexpBexport = /\bexport\b/;
+
 
 const Config = Object.freeze({
 	enabled: 'referencesCodeLens.enabled',
@@ -103,7 +105,7 @@ export class TypeScriptReferencesCodeLensProvider extends TypeScriptBaseCodeLens
 			case PConst.Kind.let:
 			case PConst.Kind.variable:
 				// Only show references for exported variables
-				if (/\bexport\b/.test(item.kindModifiers)) {
+				if (regexpBexport.test(item.kindModifiers)) {
 					return getSymbolRange(document, item);
 				}
 				break;

@@ -7,6 +7,8 @@ import type { LanguageModelChat } from 'vscode';
 import { getCachedSha256Hash } from '../../../util/common/crypto';
 import { ConfigKey, IConfigurationService } from '../../configuration/common/configurationService';
 import type { IChatEndpoint } from '../../networking/common/networking';
+const regexp1 = /\./g;
+
 
 const HIDDEN_MODEL_A_HASHES = [
 	'a99dd17dfee04155d863268596b7f6dd36d0a6531cd326348dbe7416142a21a3',
@@ -467,7 +469,7 @@ export function modelSupportsToolSearch(model: LanguageModelChat | IChatEndpoint
 	const family = typeof model === 'string' ? model : model.family;
 	const isGpt56Model: boolean = isGpt56(model);
 	const matches = (s: string) => {
-		const n = s.toLowerCase().replace(/\./g, '-');
+		const n = s.toLowerCase().replace(new RegExp(regexp1), '-');
 		// OpenAI models with client-side tool search.
 		if (n === 'gpt-5-4' || n === 'gpt-5-5' || isGpt56Model) {
 			return true;
@@ -513,7 +515,7 @@ export function modelSupportsToolSearch(model: LanguageModelChat | IChatEndpoint
 export function modelSupportsContextEditing(model: LanguageModelChat | IChatEndpoint | string): boolean {
 	const id = typeof model === 'string' ? model : getModelId(model);
 	const family = typeof model === 'string' ? model : model.family;
-	const normalize = (s: string) => s.toLowerCase().replace(/\./g, '-');
+	const normalize = (s: string) => s.toLowerCase().replace(new RegExp(regexp1), '-');
 	const normalizedId = normalize(id);
 	const normalizedFamily = normalize(family);
 	// The 1M context variant doesn't need context editing. Check id and family

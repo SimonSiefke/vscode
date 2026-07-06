@@ -12,6 +12,11 @@ import { TelemetryWithExp } from '../../telemetry';
 import { ICompletionsTextDocumentManagerService } from '../../textDocumentManager';
 import { OpenTabFiles } from './openTabFiles';
 import { getRelatedFilesAndTraits, relatedFilesLogger, RelatedFileTrait } from './relatedFiles';
+const regexp1 = /^.*[/:]/;
+const regexp2 = /[#?].*$/;
+const regexp3 = /\/?$/;
+const regexp4 = /[#?].*/;
+
 
 // There is a limitation of the number of the neighbor files. So I use the next strategies to pick the most relevant cursor focused files.
 export enum NeighboringFileType {
@@ -167,7 +172,7 @@ export class NeighborSource {
 	}
 
 	static basename(uri: string): string {
-		return decodeURIComponent(uri.replace(/[#?].*$/, '').replace(/^.*[/:]/, ''));
+		return decodeURIComponent(uri.replace(regexp2, '').replace(regexp1, ''));
 	}
 
 	/**
@@ -177,8 +182,8 @@ export class NeighborSource {
 	static getRelativePath(fileUri: string, baseUri: string): string | undefined {
 		const parentURI = baseUri
 			.toString()
-			.replace(/[#?].*/, '')
-			.replace(/\/?$/, '/');
+			.replace(regexp4, '')
+			.replace(regexp3, '/');
 		if (fileUri.toString().startsWith(parentURI)) {
 			return fileUri.toString().slice(parentURI.length);
 		}

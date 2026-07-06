@@ -16,6 +16,11 @@ import { readSessionGitState, type ISessionFileDiff, type SessionState } from '.
 import { ILogService } from '../../log/common/log.js';
 import { IAgentHostGitService } from '../common/agentHostGitService.js';
 import { CopilotApiError, ICopilotApiService } from './shared/copilotApiService.js';
+const regexp1 = /\r\n/g;
+const regexpTextGitcommit = /^```(?:text|gitcommit)?\s*([\s\S]*?)\s*```$/i;
+const regexp3 = /\b(401|403)\b/;
+const regexpAuthAuthorizationUnauthorized = /\b(auth|authorization|unauthorized|forbidden|token|copilot endpoint discovery|copilot session token mint)\b/i;
+
 
 const MAX_CHANGE_SUMMARY_PROMPT_CHARS = 20_000;
 
@@ -188,8 +193,8 @@ export class AgentHostCommitOperationHandler implements IChangesetOperationHandl
 	}
 
 	private _cleanCommitMessage(raw: string): string {
-		let text = raw.trim().replace(/\r\n/g, '\n');
-		const fenced = /^```(?:text|gitcommit)?\s*([\s\S]*?)\s*```$/i.exec(text);
+		let text = raw.trim().replace(new RegExp(regexp1), '\n');
+		const fenced = regexpTextGitcommit.exec(text);
 		if (fenced) {
 			text = fenced[1].trim();
 		}
@@ -201,8 +206,8 @@ export class AgentHostCommitOperationHandler implements IChangesetOperationHandl
 			return err.status === 401 || err.status === 403;
 		}
 		const message = err instanceof Error ? err.message : String(err);
-		return /\b(401|403)\b/.test(message)
-			&& /\b(auth|authorization|unauthorized|forbidden|token|copilot endpoint discovery|copilot session token mint)\b/i.test(message);
+		return regexp3.test(message)
+			&& regexpAuthAuthorizationUnauthorized.test(message);
 	}
 
 	private _throwIfCancelled(token: CancellationToken): void {

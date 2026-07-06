@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type MarkdownIt from 'markdown-it';
+const regexp1 = /\n+$/;
+const regexp2 = />/g;
+const regexp3 = /</g;
+const regexp4 = /&/g;
+const regexp5 = /[.*+?^${}()|[\]\\]/g;
+
 
 const mermaidLanguageId = 'mermaid';
 const containerTokenName = 'mermaidContainer';
@@ -140,13 +146,13 @@ export function extendMarkdownItWithMermaid(md: MarkdownIt, config: { languageId
 
 function preProcess(source: string): string {
 	return source
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/\n+$/, '')
+		.replace(new RegExp(regexp4), '&amp;')
+		.replace(new RegExp(regexp3), '&lt;')
+		.replace(new RegExp(regexp2), '&gt;')
+		.replace(regexp1, '')
 		.trimStart();
 }
 
 function escapeRegExp(string: string): string {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	return string.replace(new RegExp(regexp5), '\\$&');
 }

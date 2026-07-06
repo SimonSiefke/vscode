@@ -5,6 +5,10 @@
 
 import { extUriBiasedIgnorePathCase } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
+const regexpCdDirSuffix = /^cd (?<dir>"[^"]*"|[^\s]+) *(?:&&|\r?\n)\s*(?<suffix>[\s\S]+)$/;
+const regexpCdSetLocation = /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>"[^"]*"|[^\s]+) *(?:&&|;|\r?\n)\s*(?<suffix>[\s\S]+)$/i;
+const regexp3 = /[\\/]+$/;
+
 
 /**
  * Result of {@link extractCdPrefix}: the directory the `cd` jumps to and the
@@ -38,8 +42,8 @@ export interface IExtractedCdPrefix {
 export function extractCdPrefix(commandLine: string, isPowerShell: boolean): IExtractedCdPrefix | undefined {
 	const cdPrefixMatch = commandLine.match(
 		isPowerShell
-			? /^(?:cd(?: \/d)?|Set-Location(?: -Path)?) (?<dir>"[^"]*"|[^\s]+) *(?:&&|;|\r?\n)\s*(?<suffix>[\s\S]+)$/i
-			: /^cd (?<dir>"[^"]*"|[^\s]+) *(?:&&|\r?\n)\s*(?<suffix>[\s\S]+)$/
+			? regexpCdSetLocation
+			: regexpCdDirSuffix
 	);
 	const cdDir = cdPrefixMatch?.groups?.dir;
 	const cdSuffix = cdPrefixMatch?.groups?.suffix;
@@ -108,7 +112,7 @@ function sameDirectory(extractedDir: string, workingDirectory: URI): boolean {
 	// matches `/repo/project`. Without this, URI.file would preserve the
 	// trailing slash and the URIs would not compare equal. We do this for
 	// both sides because the working directory may also end in a separator.
-	const trim = (p: string) => p.replace(/[\\/]+$/, '');
+	const trim = (p: string) => p.replace(regexp3, '');
 	const trimmedExtracted = trim(extractedDir);
 	const trimmedWd = trim(workingDirectory.fsPath);
 	if (!trimmedExtracted || !trimmedWd) {

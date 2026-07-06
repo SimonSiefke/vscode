@@ -11,6 +11,8 @@ import { IAgentHostCheckpointService, META_CHECKPOINT_BASE_REF, buildCheckpointR
 import { AgentSession } from '../common/agentService.js';
 import { ISessionDatabase, ISessionDataService } from '../common/sessionDataService.js';
 import { IAgentHostGitService } from '../common/agentHostGitService.js';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 /**
  * `session_metadata` key under which the working directory used for
@@ -267,6 +269,6 @@ export class AgentHostCheckpointService extends Disposable implements IAgentHost
 	}
 
 	private _sanitizedSessionId(sessionUri: URI): string {
-		return AgentSession.id(sessionUri).replace(/[^a-zA-Z0-9_.-]/g, '-');
+		return AgentSession.id(sessionUri).replace(new RegExp(regexpZAZ0), '-');
 	}
 }

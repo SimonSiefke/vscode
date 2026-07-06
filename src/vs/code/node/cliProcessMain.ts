@@ -77,6 +77,8 @@ import { AllowedMcpServersService } from '../../platform/mcp/common/allowedMcpSe
 import { IMcpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifest.js';
 import { McpGalleryManifestService } from '../../platform/mcp/common/mcpGalleryManifestService.js';
 import { LINUX_SYSTEM_POLICY_FILE_PATH } from '../../base/common/policy.js';
+const regexpVsix = /\.vsix$/i;
+
 
 class CliMain extends Disposable {
 
@@ -349,7 +351,7 @@ class CliMain extends Disposable {
 	}
 
 	private asExtensionIdOrVSIX(inputs: string[]): (string | URI)[] {
-		return inputs.map(input => /\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
+		return inputs.map(input => regexpVsix.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
 	}
 }
 

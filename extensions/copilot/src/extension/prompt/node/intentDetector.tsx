@@ -37,6 +37,8 @@ import { addHistoryToConversation } from './chatParticipantRequestHandler';
 import { IDocumentContext } from './documentContext';
 import { IIntent } from './intents';
 import { ConversationalBaseTelemetryData } from './telemetry';
+const regexpFunctionIdResponse = /function id:|response:/i;
+
 
 export class IntentDetector implements ChatParticipantDetectionProvider {
 
@@ -310,7 +312,7 @@ export class IntentDetector implements ChatParticipantDetectionProvider {
 				.trimStart()
 				.split('\n')[0]
 				.replaceAll('```', '')
-				.replace(/function id:|response:/i, '')
+				.replace(regexpFunctionIdResponse, '')
 				.trim());
 
 		cleanedIntentResponses = cleanedIntentResponses.filter(i => i !== UnknownIntent.ID);

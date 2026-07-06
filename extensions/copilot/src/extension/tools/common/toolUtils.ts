@@ -5,6 +5,8 @@
 
 import { URI } from '../../../util/vs/base/common/uri';
 import { Location } from '../../../vscodeTypes';
+const regexp1 = /\/(\?|#)/;
+
 
 type FileUriMetadata = {
 	vscodeLinkType: 'skill';
@@ -45,7 +47,7 @@ export function encodeUrlHostname(url: string): { encoded: string; isDifferent: 
 	const hasNoPath = !url.includes('/', url.indexOf('://') + 3);
 	if (hasNoPath) {
 		// Remove slash before query or hash that was added by URL constructor
-		encodedUrl = encodedUrl.replace(/\/(\?|#)/, '$1');
+		encodedUrl = encodedUrl.replace(regexp1, '$1');
 		// Remove trailing slash if added at end
 		if (encodedUrl.endsWith('/') && !url.endsWith('/')) {
 			encodedUrl = encodedUrl.slice(0, -1);

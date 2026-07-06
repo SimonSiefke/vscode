@@ -5,6 +5,8 @@
 
 import fs from 'fs';
 import path from 'path';
+const regexpOutSrcGit = /(^\/out)|(^\/src$)|(^\/.git$)|(^\/.build$)/;
+
 
 if (process.argv.length !== 3) {
 	console.error('Usage: node listNodeModules.ts OUTPUT_FILE');
@@ -18,7 +20,7 @@ function findNodeModulesFiles(location: string, inNodeModules: boolean, result: 
 	for (const entry of entries) {
 		const entryPath = `${location}/${entry}`;
 
-		if (/(^\/out)|(^\/src$)|(^\/.git$)|(^\/.build$)/.test(entryPath)) {
+		if (regexpOutSrcGit.test(entryPath)) {
 			continue;
 		}
 

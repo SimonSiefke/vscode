@@ -21,6 +21,8 @@ import { IIntent, IIntentInvocation, IIntentInvocationContext, IIntentSlashComma
 import { PseudoStopStartResponseProcessor } from '../../prompt/node/pseudoStartStopConversationCallback';
 import { PromptRenderer, RendererIntentInvocation } from '../../prompts/node/base/promptRenderer';
 import { SearchPrompt } from '../../prompts/node/panel/search';
+const regexp1 = /\|/g;
+
 
 
 export interface FindInFilesArgs {
@@ -84,7 +86,7 @@ function jsonToTable(args: any): string[] {
 		let nonEscapeValue = value;
 		if (typeof value === 'string' || value instanceof String) {
 			// CodeQL [SM02383] Since this is inside of a markdown table cell, only a `|` pipe character would interfere with formatting.
-			nonEscapeValue = value.replace(/\|/g, '\\|');
+			nonEscapeValue = value.replace(new RegExp(regexp1), '\\|');
 		}
 		table.push(`| ${key} | \`${nonEscapeValue}\` |\n`);
 	}

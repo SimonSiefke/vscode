@@ -7,6 +7,8 @@ import { IAuthenticationService } from '../../../platform/authentication/common/
 import { ICopilotTokenManager } from '../../../platform/authentication/common/copilotTokenManager';
 import { INTEGRATION_ID } from '../../../platform/endpoint/common/licenseAgreement';
 import { IFetcherService } from '../../../platform/networking/common/fetcherService';
+const regexp1 = /\/+$/;
+
 
 /** Cloud query endpoint path. */
 const QUERY_PATH = '/agents/analytics/query';
@@ -72,7 +74,7 @@ export class CloudSessionStoreClient {
 			const githubToken = this._authService.anyGitHubSession?.accessToken;
 			const bearerToken = githubToken ?? copilotToken.token;
 
-			const url = `${baseUrl.replace(/\/+$/, '')}${QUERY_PATH}`;
+			const url = `${baseUrl.replace(regexp1, '')}${QUERY_PATH}`;
 
 			const res = await this._fetcherService.fetch(url, {
 				callSite: 'chronicle.cloudQuery',

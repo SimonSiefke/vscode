@@ -16,6 +16,9 @@ import { OvertypingCapturer } from '../../suggest/browser/suggestOvertypingCaptu
 import * as nls from '../../../../nls.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { WORKSPACE_EXTENSION, isSingleFolderWorkspaceIdentifier, toWorkspaceIdentifier, IWorkspaceContextService, ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier, isEmptyWorkspaceIdentifier } from '../../../../platform/workspace/common/workspace.js';
+const regexp1 = /(\r\n|\r|\n)(.*)/g;
+const regexp2 = /\r\n|\n|\r/;
+
 
 export const KnownSnippetVariableNames = Object.freeze<{ [key: string]: true }>({
 	'CURRENT_YEAR': true,
@@ -126,7 +129,7 @@ export class SelectionBasedVariableResolver implements VariableResolver {
 				const whitespaceCommonLength = commonPrefixLength(varLeadingWhitespace, lineLeadingWhitespace);
 
 				value = value.replace(
-					/(\r\n|\r|\n)(.*)/g,
+					new RegExp(regexp1),
 					(m, newline, rest) => `${newline}${varLeadingWhitespace.substr(whitespaceCommonLength)}${rest}`
 				);
 			}
@@ -234,7 +237,7 @@ export class ClipboardBasedVariableResolver implements VariableResolver {
 		// text whenever there the line count equals the cursor count
 		// and when enabled
 		if (this._spread) {
-			const lines = clipboardText.split(/\r\n|\n|\r/).filter(s => !isFalsyOrWhitespace(s));
+			const lines = clipboardText.split(regexp2).filter(s => !isFalsyOrWhitespace(s));
 			if (lines.length === this._selectionCount) {
 				return lines[this._selectionIdx];
 			}

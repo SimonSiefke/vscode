@@ -17,6 +17,8 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { StoredValue } from './storedValue.js';
 import { HydratedTestResult, ITestResult } from './testResult.js';
 import { ISerializedTestResults } from './testTypes.js';
+const regexp1 = /\.[a-z]+$/;
+
 
 export const RETAIN_MAX_RESULTS = 128;
 const RETAIN_MIN_RESULTS = 16;
@@ -285,7 +287,7 @@ export class TestResultStorage extends BaseTestResultStorage {
 
 		await Promise.all(
 			children
-				.filter(child => !stored.has(child.name.replace(/\.[a-z]+$/, '')))
+				.filter(child => !stored.has(child.name.replace(regexp1, '')))
 				.map(child => this.fileService.del(child.resource).catch(() => undefined))
 		);
 	}

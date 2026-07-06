@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^-?\d+(\.\d+)?$/;
+
 // @ts-check
 
 /**
@@ -76,7 +78,7 @@ function parseArgs() {
 				if (eq === -1) { console.error(`--setting requires key=value, got: ${kv}`); process.exit(1); }
 				const key = kv.slice(0, eq);
 				const raw = kv.slice(eq + 1);
-				const val = raw === 'true' ? true : raw === 'false' ? false : /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
+				const val = raw === 'true' ? true : raw === 'false' ? false : regexp1.test(raw) ? Number(raw) : raw;
 				opts.settingsOverrides[key] = val;
 				break;
 			}

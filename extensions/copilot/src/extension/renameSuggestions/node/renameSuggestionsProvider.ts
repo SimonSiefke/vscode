@@ -21,6 +21,10 @@ import { NewSymbolName, NewSymbolNameTag, NewSymbolNameTriggerKind } from '../..
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { enforceNamingConvention, guessNamingConvention, NamingConvention } from '../common/namingConvention';
 import { RenameSuggestionsPrompt } from './renameSuggestionsPrompt';
+const regexp1 = /\[.*?\]/gs;
+const regexp2 = /(?:\d+[\.|\)]|[\*\-])\s*(.*)/g;
+const regexp3 = /^([\\.\\$\\_]+)/;
+
 
 /**
  * The format of the reply from the model.
@@ -323,7 +327,7 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 	/** try extracting from JSON string array */
 	private static _parseReplyAsJSONStringArray(reply: string) {
 
-		const jsonArrayRe = /\[.*?\]/gs; // `s` regex flag allows matching newlines using `.`
+		const jsonArrayRe = new RegExp(regexp1); // `s` regex flag allows matching newlines using `.`
 
 		const matches = [...reply.matchAll(jsonArrayRe)];
 
@@ -349,7 +353,7 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 
 	private static _parseReplyAsList(reply: string) {
 		// try extracting from an ordered or unordered list
-		const listLineRe = /(?:\d+[\.|\)]|[\*\-])\s*(.*)/g;
+		const listLineRe = new RegExp(regexp2);
 		const matches = reply.matchAll(listLineRe);
 
 		const symbolNames: string[] = [];
@@ -461,7 +465,7 @@ export class RenameSuggestionsProvider implements vscode.NewSymbolNamesProvider 
 	}
 
 	public static _determinePrefix(name: string): string | undefined {
-		const prefix = name.match(/^([\\.\\$\\_]+)/)?.[0];
+		const prefix = name.match(regexp3)?.[0];
 		return prefix;
 	}
 }

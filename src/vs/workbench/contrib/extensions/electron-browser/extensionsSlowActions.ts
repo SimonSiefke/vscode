@@ -21,6 +21,9 @@ import { Utils } from '../../../../platform/profiling/common/profiling.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { IRequestContext } from '../../../../base/parts/request/common/request.js';
+const regexpIssues = /\/([^/]+)\/([^/]+)\/issues\/?$/;
+const regexpGit = /\/([^/]+)\/([^/]+)(\.git)?$/;
+
 
 abstract class RepoInfo {
 	abstract get base(): string;
@@ -34,7 +37,7 @@ abstract class RepoInfo {
 		// scheme:auth/OWNER/REPO/issues/
 		if (desc.bugs && typeof desc.bugs.url === 'string') {
 			const base = URI.parse(desc.bugs.url);
-			const match = /\/([^/]+)\/([^/]+)\/issues\/?$/.exec(desc.bugs.url);
+			const match = regexpIssues.exec(desc.bugs.url);
 			if (match) {
 				result = {
 					base: base.with({ path: null, fragment: null, query: null }).toString(true),
@@ -46,7 +49,7 @@ abstract class RepoInfo {
 		// scheme:auth/OWNER/REPO.git
 		if (!result && desc.repository && typeof desc.repository.url === 'string') {
 			const base = URI.parse(desc.repository.url);
-			const match = /\/([^/]+)\/([^/]+)(\.git)?$/.exec(desc.repository.url);
+			const match = regexpGit.exec(desc.repository.url);
 			if (match) {
 				result = {
 					base: base.with({ path: null, fragment: null, query: null }).toString(true),

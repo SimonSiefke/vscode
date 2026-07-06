@@ -31,6 +31,10 @@ import { ChatToolReferences, ChatVariablesAndQuery } from './chatVariables';
 import { ConversationHistoryWithTools, HistoryWithInstructions } from './conversationHistory';
 import { ChatToolCalls } from './toolCalling';
 import { UnsafeCodeBlock } from './unsafeElements';
+const regexpReleaseNotesSpec = /release_notes(?:@(?<spec>[A-Za-z0-9._-]+))?/i;
+const regexpQuestionOtherQuestion = /#+\s*(Question|Other Question)\n(?<question>.+)/si;
+const regexp3 = /^(\d+)\.(\d+)$/;
+
 
 export interface VscodePromptProps extends BasePromptElementProps {
 	promptContext: IBuildPromptContext;
@@ -109,7 +113,7 @@ export class VscodePrompt extends PromptElement<VscodePromptProps, VscodePromptS
 		const currentSanitized = sanitizeVSCodeVersion(this.envService.getEditorInfo().version); // major.minor
 		if (fetchReleaseNotes) {
 			// Determine which versions to fetch based on meta response
-			const rnMatch = fetchResult.type === ChatFetchResponseType.Success ? fetchResult.value.match(/release_notes(?:@(?<spec>[A-Za-z0-9._-]+))?/i) : undefined;
+			const rnMatch = fetchResult.type === ChatFetchResponseType.Success ? fetchResult.value.match(regexpReleaseNotesSpec) : undefined;
 			const spec = rnMatch?.groups?.['spec']?.toLowerCase();
 
 			let versionsToFetch: string[];
@@ -496,7 +500,7 @@ class VscodeMetaPrompt extends PromptElement<VscodeMetaPromptProps> {
 }
 
 function parseMetaPromptResponse(originalQuestion: string, response: string): string {
-	const match = response.match(/#+\s*(Question|Other Question)\n(?<question>.+)/si);
+	const match = response.match(regexpQuestionOtherQuestion);
 	if (!match?.groups) {
 		return originalQuestion.trim();
 	}
@@ -504,7 +508,7 @@ function parseMetaPromptResponse(originalQuestion: string, response: string): st
 }
 
 function getLastNMinorVersions(current: string, n: number): string[] {
-	const m = /^(\d+)\.(\d+)$/.exec(current);
+	const m = regexp3.exec(current);
 	if (!m) {
 		return [current];
 	}

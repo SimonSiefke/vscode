@@ -5,6 +5,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+const regexp1 = /[.*+?^${}()|[\]\\]/g;
+
 
 function showHelp(): void {
 	console.log(`
@@ -64,7 +66,7 @@ function stripTimestamp(line: string): string {
 }
 
 function escapeRegExp(value: string): string {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	return value.replace(new RegExp(regexp1), '\\$&');
 }
 
 function filterLogByTopic(content: string, topic: string): string {

@@ -13,6 +13,12 @@ import {
 	parseLocalizeKeyOrValue
 } from '../lib/nls-analysis.ts';
 import type { TextEdit } from './private-to-property.ts';
+const regexpNLS = /["']%%NLS:([^%]+)%%["'](\s*,\s*)(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g;
+const regexpNLS2 = /["']%%NLS2:([^%]+)%%["']/g;
+const regexpNLS21 = /["']%%NLS2?:([^%]+)%%["']/g;
+const regexpTs = /\.ts$/;
+const regexp5 = /\\/g;
+
 
 // ============================================================================
 // Types
@@ -322,7 +328,7 @@ function replaceInOutput(
 	const pending: PendingEdit[] = [];
 
 	if (preserveEnglish) {
-		const re = /["']%%NLS2?:([^%]+)%%["']/g;
+		const re = new RegExp(regexpNLS21);
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(content)) !== null) {
 			const inner = m[1];
@@ -338,7 +344,7 @@ function replaceInOutput(
 		}
 	} else {
 		// NLS (localize): replace placeholder with index AND replace message with null
-		const reNLS = /["']%%NLS:([^%]+)%%["'](\s*,\s*)(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)/g;
+		const reNLS = new RegExp(regexpNLS);
 		let m: RegExpExecArray | null;
 		while ((m = reNLS.exec(content)) !== null) {
 			const inner = m[1];
@@ -351,7 +357,7 @@ function replaceInOutput(
 		}
 
 		// NLS2 (localize2): replace only key, keep message
-		const reNLS2 = /["']%%NLS2:([^%]+)%%["']/g;
+		const reNLS2 = new RegExp(regexpNLS2);
 		while ((m = reNLS2.exec(content)) !== null) {
 			const inner = m[1];
 			const placeholder = `%%NLS2:${inner}%%`;
@@ -400,7 +406,7 @@ export function nlsPlugin(options: NLSPluginOptions): esbuild.Plugin {
 		name: 'nls',
 		setup(build) {
 			// Transform TypeScript files to replace localize() calls with placeholders
-			build.onLoad({ filter: /\.ts$/ }, async (args) => {
+			build.onLoad({ filter: regexpTs }, async (args) => {
 				// Skip .d.ts files
 				if (args.path.endsWith('.d.ts')) {
 					return undefined;
@@ -411,8 +417,8 @@ export function nlsPlugin(options: NLSPluginOptions): esbuild.Plugin {
 				// Compute module ID (e.g., "vs/editor/editor" from "src/vs/editor/editor.ts")
 				const relativePath = path.relative(options.baseDir, args.path);
 				const moduleId = relativePath
-					.replace(/\\/g, '/')
-					.replace(/\.ts$/, '');
+					.replace(new RegExp(regexp5), '/')
+					.replace(regexpTs, '');
 
 				// Transform localize() calls to placeholders
 				const { code, entries: fileEntries, edits } = transformToPlaceholders(source, moduleId);

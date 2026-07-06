@@ -23,6 +23,19 @@ import { IWindowsMxcTerminalSandboxRuntime } from './terminalSandboxMxcRuntime.j
 import { getTerminalSandboxReadAllowListForCommands } from './terminalSandboxReadAllowList.js';
 import { getTerminalSandboxRuntimeConfigurationForCommands } from './terminalSandboxRuntimeConfigurationPerOperation.js';
 import { ITerminalSandboxCommand, ITerminalSandboxFileAccessCheckResult, ITerminalSandboxPrecheckInputs, ITerminalSandboxPrerequisiteCheckResult, ITerminalSandboxResolvedNetworkDomains, ITerminalSandboxWrapResult, TerminalSandboxFileAccessPermission, TerminalSandboxPrerequisiteCheck, TerminalSandboxPreCheckRemediation } from './terminalSandboxService.js';
+const regexpHttpsWss = /(?:https?|wss?):\/\/[^\s'"`|&;<>]+/gi;
+const regexpZAZ0ZA = /(?:^|[\s'"`])(?:[^\s@:'"`]+@)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?::[^\s'"`|&;<>]+)(?=$|[\s'"`|&;<>])/gi;
+const regexpZAZ0ZA1 = /(?:^|[\s'"`(=])([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?::\d+)?(?=(?:\/[^\s'"`|&;<>]*)?(?:$|[\s'"`)\]|,;|&<>]))/gi;
+const regexp4 = /'/g;
+const regexp5 = /\\/g;
+const regexpZA = /^\/[a-zA-Z]:($|\/)/;
+const regexp7 = /\/+$/;
+const regexpZA1 = /^[a-zA-Z]:\/$/;
+const regexp9 = /[*?{\[]/;
+const regexp10 = /\//g;
+const regexp11 = /^\/\/[^/]/;
+const regexpZA2 = /^[a-zA-Z]:($|\/)/;
+
 
 interface ITerminalSandboxFileSystemSetting {
 	denyRead?: string[];
@@ -115,9 +128,9 @@ export interface ITerminalSandboxEngineHost {
  * (chat elicitation, lifecycle hooks, …) on top.
  */
 export class TerminalSandboxEngine extends Disposable {
-	private static readonly _urlRegex = /(?:https?|wss?):\/\/[^\s'"`|&;<>]+/gi;
-	private static readonly _sshRemoteRegex = /(?:^|[\s'"`])(?:[^\s@:'"`]+@)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?::[^\s'"`|&;<>]+)(?=$|[\s'"`|&;<>])/gi;
-	private static readonly _hostRegex = /(?:^|[\s'"`(=])([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?::\d+)?(?=(?:\/[^\s'"`|&;<>]*)?(?:$|[\s'"`)\]|,;|&<>]))/gi;
+	private static readonly _urlRegex = new RegExp(regexpHttpsWss);
+	private static readonly _sshRemoteRegex = new RegExp(regexpZAZ0ZA);
+	private static readonly _hostRegex = new RegExp(regexpZAZ0ZA1);
 
 	private readonly _sandboxSettingsId: string = generateUuid();
 	private _runtimeResolved = false;
@@ -448,7 +461,7 @@ export class TerminalSandboxEngine extends Disposable {
 	}
 
 	private _quoteShellArgument(value: string): string {
-		return `'${value.replace(/'/g, `'\\''`)}'`;
+		return `'${value.replace(new RegExp(regexp4), `'\\''`)}'`;
 	}
 
 	private _getSandboxCommandWithPreservedCwd(command: string, cwd: URI | undefined): string {
@@ -808,21 +821,21 @@ export class TerminalSandboxEngine extends Disposable {
 	 *   pattern intact for `globMatch`.
 	 */
 	private _normalizeFileSystemAccessPath(path: string, preserveGlob: boolean = false): string {
-		let normalizedPath = this._os === OperatingSystem.Windows ? path.replace(/\\/g, '/') : path;
-		if (this._os === OperatingSystem.Windows && /^\/[a-zA-Z]:($|\/)/.test(normalizedPath)) {
+		let normalizedPath = this._os === OperatingSystem.Windows ? path.replace(new RegExp(regexp5), '/') : path;
+		if (this._os === OperatingSystem.Windows && regexpZA.test(normalizedPath)) {
 			normalizedPath = normalizedPath.slice(1);
 		}
 		if (!preserveGlob || !this._containsGlobPattern(normalizedPath)) {
 			normalizedPath = posix.normalize(normalizedPath);
 		}
-		if (normalizedPath.length > 1 && normalizedPath.endsWith('/') && !/^[a-zA-Z]:\/$/.test(normalizedPath)) {
-			normalizedPath = normalizedPath.replace(/\/+$/, '');
+		if (normalizedPath.length > 1 && normalizedPath.endsWith('/') && !regexpZA1.test(normalizedPath)) {
+			normalizedPath = normalizedPath.replace(regexp7, '');
 		}
 		return normalizedPath;
 	}
 
 	private _containsGlobPattern(path: string): boolean {
-		return /[*?{\[]/.test(path);
+		return regexp9.test(path);
 	}
 
 	private readonly _buildSandboxPayload = (commandLine: string, policy: IWindowsMxcSandboxPolicy, workingDirectory?: string, containerName?: string, containment?: IWindowsMxcPolicyContainment): Promise<IWindowsMxcConfig | undefined> => {
@@ -934,7 +947,7 @@ export class TerminalSandboxEngine extends Disposable {
 	}
 
 	private _getFileSystemPathComparisonKey(path: string): string {
-		return this._os === OperatingSystem.Windows ? path.replace(/\//g, '\\').toLowerCase() : path;
+		return this._os === OperatingSystem.Windows ? path.replace(new RegExp(regexp10), '\\').toLowerCase() : path;
 	}
 
 	private async _resolveFileSystemPath(path: string): Promise<string[]> {
@@ -967,9 +980,9 @@ export class TerminalSandboxEngine extends Disposable {
 
 	private _toWindowsFileSystemResource(path: string): URI {
 		// Normalize Windows separators for URI parsing, e.g. `C:\Users\me` becomes `C:/Users/me`.
-		const normalizedPath = path.replace(/\\/g, '/');
+		const normalizedPath = path.replace(new RegExp(regexp5), '/');
 		// Match UNC paths, e.g. `//server/share/folder` becomes `file://server/share/folder`.
-		if (/^\/\/[^/]/.test(normalizedPath)) {
+		if (regexp11.test(normalizedPath)) {
 			const firstPathSeparator = normalizedPath.indexOf('/', 2);
 			if (firstPathSeparator === -1) {
 				return URI.from({ scheme: 'file', authority: normalizedPath.slice(2), path: '/' });
@@ -977,11 +990,11 @@ export class TerminalSandboxEngine extends Disposable {
 			return URI.from({ scheme: 'file', authority: normalizedPath.slice(2, firstPathSeparator), path: normalizedPath.slice(firstPathSeparator) || '/' });
 		}
 		// Match drive-letter paths, e.g. `C:/Users/me` becomes `file:///c:/Users/me`.
-		if (/^[a-zA-Z]:($|\/)/.test(normalizedPath)) {
+		if (regexpZA2.test(normalizedPath)) {
 			return URI.from({ scheme: 'file', path: `/${normalizedPath[0].toLowerCase()}${normalizedPath.slice(1)}` });
 		}
 		// Match URI-shaped drive paths, e.g. `/C:/Users/me` becomes `file:///c:/Users/me`.
-		if (/^\/[a-zA-Z]:($|\/)/.test(normalizedPath)) {
+		if (regexpZA.test(normalizedPath)) {
 			return URI.from({ scheme: 'file', path: `/${normalizedPath[1].toLowerCase()}${normalizedPath.slice(2)}` });
 		}
 		return URI.from({ scheme: 'file', path: normalizedPath });

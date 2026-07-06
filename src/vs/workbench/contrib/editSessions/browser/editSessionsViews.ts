@@ -24,6 +24,8 @@ import { joinPath } from '../../../../base/common/resources.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { basename } from '../../../../base/common/path.js';
 import { createCommandUri } from '../../../../base/common/htmlContent.js';
+const regexpEditSession = /edit-session/i;
+
 
 const EDIT_SESSIONS_COUNT_KEY = 'editSessionsCount';
 const EDIT_SESSIONS_COUNT_CONTEXT_KEY = new RawContextKey<number>(EDIT_SESSIONS_COUNT_KEY, 0);
@@ -77,7 +79,7 @@ export class EditSessionsDataViews extends Disposable {
 					icon: Codicon.desktopDownload,
 					menu: {
 						id: MenuId.ViewItemContext,
-						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', /edit-session/i)),
+						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', regexpEditSession)),
 						group: 'inline'
 					}
 				});
@@ -115,7 +117,7 @@ export class EditSessionsDataViews extends Disposable {
 					icon: Codicon.trash,
 					menu: {
 						id: MenuId.ViewItemContext,
-						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', /edit-session/i)),
+						when: ContextKeyExpr.and(ContextKeyExpr.equals('view', viewId), ContextKeyExpr.regex('viewItem', regexpEditSession)),
 						group: 'inline'
 					}
 				});

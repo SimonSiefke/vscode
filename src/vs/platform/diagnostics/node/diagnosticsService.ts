@@ -21,6 +21,49 @@ import { ByteSize } from '../../files/common/files.js';
 import { IProductService } from '../../product/common/productService.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 import { IWorkspace } from '../../workspace/common/workspace.js';
+const regexpGruntfileJs = /^gruntfile\.js$/i;
+const regexpGulpfileJs = /^gulpfile\.js$/i;
+const regexpTsconfigJson = /^tsconfig\.json$/i;
+const regexpPackageJson = /^package\.json$/i;
+const regexpJsconfigJson = /^jsconfig\.json$/i;
+const regexpTslintJson = /^tslint\.json$/i;
+const regexpEslintJson = /^eslint\.json$/i;
+const regexpTasksJson = /^tasks\.json$/i;
+const regexpLaunchJson = /^launch\.json$/i;
+const regexpMcpJson = /^mcp\.json$/i;
+const regexpSettingsJson = /^settings\.json$/i;
+const regexpWebpackConfigJs = /^webpack\.config\.js$/i;
+const regexpProjectJson = /^project\.json$/i;
+const regexpMakefile = /^makefile$/i;
+const regexpSln = /^.+\.sln$/i;
+const regexpCsproj = /^.+\.csproj$/i;
+const regexpCmake = /^.+\.cmake$/i;
+const regexpYaMl = /^.+\.ya?ml$/i;
+const regexpGithubWorkflows = /^\.github(?:\/|\\)workflows$/i;
+const regexpDevcontainerJson = /^devcontainer\.json$/i;
+const regexpDockerfileDockerCompose = /^(dockerfile|docker\-compose\.ya?ml)$/i;
+const regexpCursorrules = /^\.cursorrules$/i;
+const regexpMdc = /\.mdc$/i;
+const regexpCursorRules = /^\.cursor[\/\\]rules$/i;
+const regexpInstructionsMd = /\.instructions\.md$/i;
+const regexpGithubInstructions = /^\.github[\/\\]instructions$/i;
+const regexpPromptMd = /\.prompt\.md$/i;
+const regexpGithubPrompts = /^\.github[\/\\]prompts$/i;
+const regexpClinerules = /^\.clinerules$/i;
+const regexpMd = /\.md$/i;
+const regexpAgentMd = /^agent\.md$/i;
+const regexpAgentsMd = /^agents\.md$/i;
+const regexpClaudeMd = /^claude\.md$/i;
+const regexpClaude = /^\.claude$/i;
+const regexpSettingsLocalJson = /^settings\.local\.json$/i;
+const regexpClaudeCommands = /^\.claude[\/\\]commands$/i;
+const regexpSKILLMd = /^SKILL\.md$/i;
+const regexpClaudeSkills = /^\.claude[\/\\]skills[\/\\]/i;
+const regexpClaudeRules = /^\.claude[\/\\]rules$/i;
+const regexpGeminiMd = /^gemini\.md$/i;
+const regexpCopilotInstructionsMd = /^copilot\-instructions\.md$/i;
+const regexpGithub = /^\.github$/i;
+
 
 interface ConfigFilePatterns {
 	tag: string;
@@ -48,43 +91,43 @@ export async function collectWorkspaceStats(folder: string, filter: string[], op
 	}
 
 	const configFilePatterns: ConfigFilePatterns[] = [
-		{ tag: 'grunt.js', filePattern: /^gruntfile\.js$/i },
-		{ tag: 'gulp.js', filePattern: /^gulpfile\.js$/i },
-		{ tag: 'tsconfig.json', filePattern: /^tsconfig\.json$/i },
-		{ tag: 'package.json', filePattern: /^package\.json$/i },
-		{ tag: 'jsconfig.json', filePattern: /^jsconfig\.json$/i },
-		{ tag: 'tslint.json', filePattern: /^tslint\.json$/i },
-		{ tag: 'eslint.json', filePattern: /^eslint\.json$/i },
-		{ tag: 'tasks.json', filePattern: /^tasks\.json$/i },
-		{ tag: 'launch.json', filePattern: /^launch\.json$/i },
-		{ tag: 'mcp.json', filePattern: /^mcp\.json$/i },
-		{ tag: 'settings.json', filePattern: /^settings\.json$/i },
-		{ tag: 'webpack.config.js', filePattern: /^webpack\.config\.js$/i },
-		{ tag: 'project.json', filePattern: /^project\.json$/i },
-		{ tag: 'makefile', filePattern: /^makefile$/i },
-		{ tag: 'sln', filePattern: /^.+\.sln$/i },
-		{ tag: 'csproj', filePattern: /^.+\.csproj$/i },
-		{ tag: 'cmake', filePattern: /^.+\.cmake$/i },
-		{ tag: 'github-actions', filePattern: /^.+\.ya?ml$/i, relativePathPattern: /^\.github(?:\/|\\)workflows$/i },
-		{ tag: 'devcontainer.json', filePattern: /^devcontainer\.json$/i },
-		{ tag: 'dockerfile', filePattern: /^(dockerfile|docker\-compose\.ya?ml)$/i },
-		{ tag: 'cursorrules', filePattern: /^\.cursorrules$/i },
-		{ tag: 'cursorrules-dir', filePattern: /\.mdc$/i, relativePathPattern: /^\.cursor[\/\\]rules$/i },
-		{ tag: 'github-instructions-dir', filePattern: /\.instructions\.md$/i, relativePathPattern: /^\.github[\/\\]instructions$/i },
-		{ tag: 'github-prompts-dir', filePattern: /\.prompt\.md$/i, relativePathPattern: /^\.github[\/\\]prompts$/i },
-		{ tag: 'clinerules', filePattern: /^\.clinerules$/i },
-		{ tag: 'clinerules-dir', filePattern: /\.md$/i, relativePathPattern: /^\.clinerules$/i },
-		{ tag: 'agent.md', filePattern: /^agent\.md$/i },
-		{ tag: 'agents.md', filePattern: /^agents\.md$/i },
-		{ tag: 'claude.md', filePattern: /^claude\.md$/i },
-		{ tag: 'claude-settings', filePattern: /^settings\.json$/i, relativePathPattern: /^\.claude$/i },
-		{ tag: 'claude-settings-local', filePattern: /^settings\.local\.json$/i, relativePathPattern: /^\.claude$/i },
-		{ tag: 'claude-mcp', filePattern: /^mcp\.json$/i, relativePathPattern: /^\.claude$/i },
-		{ tag: 'claude-commands-dir', filePattern: /\.md$/i, relativePathPattern: /^\.claude[\/\\]commands$/i },
-		{ tag: 'claude-skills-dir', filePattern: /^SKILL\.md$/i, relativePathPattern: /^\.claude[\/\\]skills[\/\\]/i },
-		{ tag: 'claude-rules-dir', filePattern: /\.md$/i, relativePathPattern: /^\.claude[\/\\]rules$/i },
-		{ tag: 'gemini.md', filePattern: /^gemini\.md$/i },
-		{ tag: 'copilot-instructions.md', filePattern: /^copilot\-instructions\.md$/i, relativePathPattern: /^\.github$/i },
+		{ tag: 'grunt.js', filePattern: regexpGruntfileJs },
+		{ tag: 'gulp.js', filePattern: regexpGulpfileJs },
+		{ tag: 'tsconfig.json', filePattern: regexpTsconfigJson },
+		{ tag: 'package.json', filePattern: regexpPackageJson },
+		{ tag: 'jsconfig.json', filePattern: regexpJsconfigJson },
+		{ tag: 'tslint.json', filePattern: regexpTslintJson },
+		{ tag: 'eslint.json', filePattern: regexpEslintJson },
+		{ tag: 'tasks.json', filePattern: regexpTasksJson },
+		{ tag: 'launch.json', filePattern: regexpLaunchJson },
+		{ tag: 'mcp.json', filePattern: regexpMcpJson },
+		{ tag: 'settings.json', filePattern: regexpSettingsJson },
+		{ tag: 'webpack.config.js', filePattern: regexpWebpackConfigJs },
+		{ tag: 'project.json', filePattern: regexpProjectJson },
+		{ tag: 'makefile', filePattern: regexpMakefile },
+		{ tag: 'sln', filePattern: regexpSln },
+		{ tag: 'csproj', filePattern: regexpCsproj },
+		{ tag: 'cmake', filePattern: regexpCmake },
+		{ tag: 'github-actions', filePattern: regexpYaMl, relativePathPattern: regexpGithubWorkflows },
+		{ tag: 'devcontainer.json', filePattern: regexpDevcontainerJson },
+		{ tag: 'dockerfile', filePattern: regexpDockerfileDockerCompose },
+		{ tag: 'cursorrules', filePattern: regexpCursorrules },
+		{ tag: 'cursorrules-dir', filePattern: regexpMdc, relativePathPattern: regexpCursorRules },
+		{ tag: 'github-instructions-dir', filePattern: regexpInstructionsMd, relativePathPattern: regexpGithubInstructions },
+		{ tag: 'github-prompts-dir', filePattern: regexpPromptMd, relativePathPattern: regexpGithubPrompts },
+		{ tag: 'clinerules', filePattern: regexpClinerules },
+		{ tag: 'clinerules-dir', filePattern: regexpMd, relativePathPattern: regexpClinerules },
+		{ tag: 'agent.md', filePattern: regexpAgentMd },
+		{ tag: 'agents.md', filePattern: regexpAgentsMd },
+		{ tag: 'claude.md', filePattern: regexpClaudeMd },
+		{ tag: 'claude-settings', filePattern: regexpSettingsJson, relativePathPattern: regexpClaude },
+		{ tag: 'claude-settings-local', filePattern: regexpSettingsLocalJson, relativePathPattern: regexpClaude },
+		{ tag: 'claude-mcp', filePattern: regexpMcpJson, relativePathPattern: regexpClaude },
+		{ tag: 'claude-commands-dir', filePattern: regexpMd, relativePathPattern: regexpClaudeCommands },
+		{ tag: 'claude-skills-dir', filePattern: regexpSKILLMd, relativePathPattern: regexpClaudeSkills },
+		{ tag: 'claude-rules-dir', filePattern: regexpMd, relativePathPattern: regexpClaudeRules },
+		{ tag: 'gemini.md', filePattern: regexpGeminiMd },
+		{ tag: 'copilot-instructions.md', filePattern: regexpCopilotInstructionsMd, relativePathPattern: regexpGithub },
 	];
 
 	const fileTypes = new Map<string, number>();

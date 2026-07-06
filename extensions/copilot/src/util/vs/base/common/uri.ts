@@ -9,6 +9,10 @@ import { CharCode } from './charCode';
 import { MarshalledId } from './marshallingIds';
 import * as paths from './path';
 import { isWindows } from './platform';
+const regexp1 = /[^\w\d+.-]/gu;
+const regexp2 = /\\/g;
+const regexp3 = /\//g;
+
 
 const _schemePattern = /^\w[\w\d+.-]*$/;
 const _singleSlashStart = /^\//;
@@ -24,7 +28,7 @@ function _validateUri(ret: URI, _strict?: boolean): void {
 	// scheme, https://tools.ietf.org/html/rfc3986#section-3.1
 	// ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 	if (ret.scheme && !_schemePattern.test(ret.scheme)) {
-		const matches = [...ret.scheme.matchAll(/[^\w\d+.-]/gu)];
+		const matches = [...ret.scheme.matchAll(new RegExp(regexp1))];
 		const detail = matches.length > 0
 			? ` Found '${matches[0][0]}' at index ${matches[0].index} (${matches.length} total)`
 			: '';
@@ -314,7 +318,7 @@ export class URI implements UriComponents {
 		// on other systems bwd-slashes are valid
 		// filename character, eg /f\oo/ba\r.txt
 		if (isWindows) {
-			path = path.replace(/\\/g, _slash);
+			path = path.replace(new RegExp(regexp2), _slash);
 		}
 
 		// check for authority as used in UNC shares
@@ -647,7 +651,7 @@ export function uriToFsPath(uri: URI, keepDriveLetterCasing: boolean): string {
 		value = uri.path;
 	}
 	if (isWindows) {
-		value = value.replace(/\//g, '\\');
+		value = value.replace(new RegExp(regexp3), '\\');
 	}
 	return value;
 }

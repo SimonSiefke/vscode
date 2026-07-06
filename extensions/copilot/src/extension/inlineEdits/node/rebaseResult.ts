@@ -8,6 +8,10 @@ import { StringEdit, StringReplacement } from '../../../util/vs/editor/common/co
 import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRange';
 import { NesRebaseConfigs } from '../common/editRebase';
 import { CachedOrRebasedEdit } from './nextEditCache';
+const regexp1 = /\$\{/g;
+const regexp2 = /`/g;
+const regexp3 = /\\/g;
+
 
 export interface RebaseResult {
 	readonly edit: CachedOrRebasedEdit | undefined;
@@ -138,6 +142,6 @@ export class RebaseFailureInfo implements MarkdownLoggable {
 }
 
 function toBacktickLiteral(value: string): string {
-	const escaped = value.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+	const escaped = value.replace(new RegExp(regexp3), '\\\\').replace(new RegExp(regexp2), '\\`').replace(new RegExp(regexp1), '\\${');
 	return '`' + escaped + '`';
 }

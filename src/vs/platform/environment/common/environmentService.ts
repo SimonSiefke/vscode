@@ -13,6 +13,9 @@ import { URI } from '../../../base/common/uri.js';
 import { NativeParsedArgs } from './argv.js';
 import { ExtensionKind, IExtensionHostDebugParams, INativeEnvironmentService } from './environment.js';
 import { IProductService } from '../../product/common/productService.js';
+const regexp1 = /-|:|\.\d+Z$/g;
+const regexp2 = /^[^:/?#]+?:\/\//;
+
 
 export const EXTENSION_IDENTIFIER_WITH_LOG_REGEX = /^([^.]+\..+)[:=](.+)$/;
 
@@ -72,7 +75,7 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 
 	get logsHome(): URI {
 		if (!this.args.logsPath) {
-			const key = toLocalISOString(new Date()).replace(/-|:|\.\d+Z$/g, '');
+			const key = toLocalISOString(new Date()).replace(new RegExp(regexp1), '');
 			this.args.logsPath = join(this.userDataPath, 'logs', key);
 		}
 
@@ -167,7 +170,7 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 		const extensionDevelopmentPaths = this.args.extensionDevelopmentPath;
 		if (Array.isArray(extensionDevelopmentPaths)) {
 			return extensionDevelopmentPaths.map(extensionDevelopmentPath => {
-				if (/^[^:/?#]+?:\/\//.test(extensionDevelopmentPath)) {
+				if (regexp2.test(extensionDevelopmentPath)) {
 					return URI.parse(extensionDevelopmentPath);
 				}
 
@@ -187,7 +190,7 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 	get extensionTestsLocationURI(): URI | undefined {
 		const extensionTestsPath = this.args.extensionTestsPath;
 		if (extensionTestsPath) {
-			if (/^[^:/?#]+?:\/\//.test(extensionTestsPath)) {
+			if (regexp2.test(extensionTestsPath)) {
 				return URI.parse(extensionTestsPath);
 			}
 

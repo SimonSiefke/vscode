@@ -6,6 +6,9 @@
 import { Viewlet } from './viewlet';
 import { IElement } from './driver';
 import { findElement, findElements, Code } from './code';
+const regexpBlabelName = /\blabel-name\b/;
+const regexpBactionLabel = /\baction-label\b/;
+
 
 const VIEWLET = 'div[id="workbench.view.scm"]';
 const SCM_INPUT_NATIVE_EDIT_CONTEXT = `${VIEWLET} .scm-editor .native-edit-context`;
@@ -23,10 +26,10 @@ interface Change {
 }
 
 function toChange(element: IElement): Change {
-	const name = findElement(element, e => /\blabel-name\b/.test(e.className))!;
+	const name = findElement(element, e => regexpBlabelName.test(e.className))!;
 	const type = element.attributes['data-tooltip'] || '';
 
-	const actionElementList = findElements(element, e => /\baction-label\b/.test(e.className));
+	const actionElementList = findElements(element, e => regexpBactionLabel.test(e.className));
 	const actions = actionElementList.map(e => e.attributes['title']);
 
 	return {

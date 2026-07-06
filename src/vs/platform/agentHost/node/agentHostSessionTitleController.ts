@@ -13,6 +13,10 @@ import { isAhpChatChannel, isDefaultChatUri, type Turn, type URI as ProtocolURI 
 import { buildConversationContext, renderResponseMarkdown, truncateMiddle } from '../common/agentHostConversationContext.js';
 import { AgentHostStateManager } from './agentHostStateManager.js';
 import { ICopilotApiService, type ICopilotUtilityChatMessage } from './shared/copilotApiService.js';
+const regexp1 = /\s+/g;
+const regexp2 = /\r?\n/;
+const regexp3 = /[.!?]+$/;
+
 
 const MAX_TITLE_LENGTH = 200;
 
@@ -50,7 +54,7 @@ export class AgentHostSessionTitleController extends Disposable {
 	}
 
 	seedTitleFromFirstMessage(channel: ProtocolURI, userPrompt: string, chatChannel?: ProtocolURI): void {
-		const fallbackTitle = userPrompt.trim().replace(/\s+/g, ' ').slice(0, MAX_TITLE_LENGTH);
+		const fallbackTitle = userPrompt.trim().replace(new RegExp(regexp1), ' ').slice(0, MAX_TITLE_LENGTH);
 		if (fallbackTitle.length === 0) {
 			return;
 		}
@@ -339,12 +343,12 @@ export class AgentHostSessionTitleController extends Disposable {
 
 	private _cleanTitle(rawTitle: string): string | undefined {
 		let title = rawTitle.trim();
-		const firstLine = title.split(/\r?\n/).map(line => line.trim()).find(line => line.length > 0);
+		const firstLine = title.split(regexp2).map(line => line.trim()).find(line => line.length > 0);
 		title = firstLine ?? '';
 		if (title.startsWith('"') && title.endsWith('"') && title.length > 1) {
 			title = title.slice(1, -1).trim();
 		}
-		title = title.replace(/[.!?]+$/, '').trim();
+		title = title.replace(regexp3, '').trim();
 
 		if (!title || title.includes('can\'t assist with that')) {
 			return undefined;

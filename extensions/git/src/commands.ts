@@ -20,6 +20,25 @@ import { ApiRepository } from './api/api1';
 import { getRemoteSourceActions, pickRemoteSource } from './remoteSource';
 import { RemoteSourceAction } from './typings/git-base';
 import { CloneManager } from './cloneManager';
+const regexp1 = /^<{7}\s|^={7}$|^>{7}\s/;
+const regexpLockLock = /^\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$|\[|\]$/g;
+const regexp3 = /^-+/;
+const regexpHEAD = /^HEAD ->/;
+const regexpCancelled = /Cancelled/;
+const regexp6 = /\//g;
+const regexpFatalIsAlready = /fatal: '([^']+)' is already used by worktree at '([^']+)'/;
+const regexpFatal = /fatal: '([^']+)'/;
+const regexp9 = /\^{}$/;
+const regexpCancelled1 = /Cancelled/i;
+const regexpYouDoNot = /You do not have the initial commit yet/;
+const regexpStash = /^stash@{(\d+)}$/;
+const regexpLockLock1 = /^\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$/g;
+const regexpStash1 = /^stash@\{(\d+)\}$/;
+const regexpAuthenticationFailedFor = /Authentication failed for '(.*)'/i;
+const regexp16 = /[\r\n]/;
+const regexpHusky = /^> husky.*$/mi;
+const regexpError = /^error: /mi;
+
 
 abstract class CheckoutCommandItem implements QuickPickItem {
 	abstract get label(): string;
@@ -398,7 +417,7 @@ async function categorizeResourceByResolution(resources: Resource[]): Promise<{ 
 	const isBothAddedOrModified = (s: Resource) => s.type === Status.BOTH_MODIFIED || s.type === Status.BOTH_ADDED;
 	const isAnyDeleted = (s: Resource) => s.type === Status.DELETED_BY_THEM || s.type === Status.DELETED_BY_US;
 	const possibleUnresolved = merge.filter(isBothAddedOrModified);
-	const promises = possibleUnresolved.map(s => grep(s.resourceUri.fsPath, /^<{7}\s|^={7}$|^>{7}\s/));
+	const promises = possibleUnresolved.map(s => grep(s.resourceUri.fsPath, regexp1));
 	const unresolvedBothModified = await Promise.all<boolean>(promises);
 	const resolved = possibleUnresolved.filter((_s, i) => !unresolvedBothModified[i]);
 	const deletionConflicts = merge.filter(s => isAnyDeleted(s));
@@ -648,12 +667,12 @@ function compareRepositoryLabel(repositoryRoot1: string, repositoryRoot2: string
 }
 
 function sanitizeBranchName(name: string, whitespaceChar: string): string {
-	return name ? name.trim().replace(/^-+/, '').replace(/^\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$|\[|\]$/g, whitespaceChar) : name;
+	return name ? name.trim().replace(regexp3, '').replace(new RegExp(regexpLockLock), whitespaceChar) : name;
 }
 
 function sanitizeRemoteName(name: string) {
 	name = name.trim();
-	return name && name.replace(/^\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$|\[|\]$/g, '-');
+	return name && name.replace(new RegExp(regexpLockLock), '-');
 }
 
 enum PushType {
@@ -888,7 +907,7 @@ export class CommandCenter {
 			const theirsDiffFile = theirsDiff?.find(diff => diff.uri.fsPath === uri.fsPath);
 
 			// ours (current branch and commit)
-			current.detail = head.refNames.map(s => s.replace(/^HEAD ->/, '')).join(', ');
+			current.detail = head.refNames.map(s => s.replace(regexpHEAD, '')).join(', ');
 			current.description = '$(git-commit) ' + head.hash.substring(0, 7);
 			if (theirsDiffFile) {
 				// use the original uri in case the file was renamed by theirs
@@ -1552,7 +1571,7 @@ export class CommandCenter {
 				}
 			});
 		} catch (err) {
-			if (/Cancelled/.test(err.message)) {
+			if (regexpCancelled.test(err.message)) {
 				return;
 			}
 
@@ -1647,7 +1666,7 @@ export class CommandCenter {
 				await this._stageDeletionConflict(repository, deletionConflict.resourceUri);
 			}
 		} catch (err) {
-			if (/Cancelled/.test(err.message)) {
+			if (regexpCancelled.test(err.message)) {
 				return;
 			}
 
@@ -3535,8 +3554,8 @@ export class CommandCenter {
 
 		const { commitish, branch } = worktreeDetails;
 		const worktreeName = ((branch ?? commitish).startsWith(branchPrefix)
-			? (branch ?? commitish).substring(branchPrefix.length).replace(/\//g, '-')
-			: (branch ?? commitish).replace(/\//g, '-'));
+			? (branch ?? commitish).substring(branchPrefix.length).replace(new RegExp(regexp6), '-')
+			: (branch ?? commitish).replace(new RegExp(regexp6), '-'));
 
 		// Get path for the new worktree
 		const worktreePath = await this.getWorktreePath(repository, worktreeName);
@@ -3705,7 +3724,7 @@ export class CommandCenter {
 	}
 
 	private async handleWorktreeBranchAlreadyUsed(err: GitError): Promise<void> {
-		const match = err.stderr?.match(/fatal: '([^']+)' is already used by worktree at '([^']+)'/);
+		const match = err.stderr?.match(regexpFatalIsAlready);
 
 		if (!match) {
 			return;
@@ -3717,7 +3736,7 @@ export class CommandCenter {
 	}
 
 	private async handleWorktreeAlreadyExists(err: GitError): Promise<void> {
-		const match = err.stderr?.match(/fatal: '([^']+)'/);
+		const match = err.stderr?.match(regexpFatal);
 
 		if (!match) {
 			return;
@@ -3848,7 +3867,7 @@ export class CommandCenter {
 			const remoteTags: Ref[] = [];
 
 			for (const tag of remoteTagsRaw) {
-				const tagName = (tag.name ?? '').replace(/\^{}$/, '');
+				const tagName = (tag.name ?? '').replace(regexp9, '');
 				if (!remoteTagNames.has(tagName)) {
 					remoteTags.push({ ...tag, name: tagName });
 					remoteTagNames.add(tagName);
@@ -4308,7 +4327,7 @@ export class CommandCenter {
 		try {
 			await this._sync(repository, rebase);
 		} catch (err) {
-			if (/Cancelled/i.test(err && (err.message || err.stderr || ''))) {
+			if (regexpCancelled1.test(err && (err.message || err.stderr || ''))) {
 				return;
 			}
 
@@ -4337,7 +4356,7 @@ export class CommandCenter {
 		try {
 			await this._sync(repository, true);
 		} catch (err) {
-			if (/Cancelled/i.test(err && (err.message || err.stderr || ''))) {
+			if (regexpCancelled1.test(err && (err.message || err.stderr || ''))) {
 				return;
 			}
 
@@ -4530,7 +4549,7 @@ export class CommandCenter {
 			await repository.createStash(message, includeUntracked, staged);
 			return true;
 		} catch (err) {
-			if (/You do not have the initial commit yet/.test(err.stderr || '')) {
+			if (regexpYouDoNot.test(err.stderr || '')) {
 				window.showInformationMessage(l10n.t('The repository does not have any commits. Please make an initial commit before creating a stash.'));
 				return false;
 			}
@@ -4727,7 +4746,7 @@ export class CommandCenter {
 		}
 
 		// Stash
-		const regex = /^stash@{(\d+)}$/;
+		const regex = regexpStash;
 		const match = regex.exec(stashUri.ref);
 		if (!match) {
 			return undefined;
@@ -5286,7 +5305,7 @@ export class CommandCenter {
 			ignoreFocusOut: true
 		});
 
-		const name = inputTagName.replace(/^\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$/g, '-');
+		const name = inputTagName.replace(new RegExp(regexpLockLock1), '-');
 		await repository.tag({ name, message: inputMessage, ref });
 	}
 
@@ -5329,7 +5348,7 @@ export class CommandCenter {
 		}
 
 		// Extract stash index from artifact id
-		const regex = /^stash@\{(\d+)\}$/;
+		const regex = regexpStash1;
 		const match = regex.exec(artifact.id);
 		if (!match) {
 			return;
@@ -5351,7 +5370,7 @@ export class CommandCenter {
 		}
 
 		// Extract stash index from artifact id (format: "stash@{index}")
-		const regex = /^stash@\{(\d+)\}$/;
+		const regex = regexpStash1;
 		const match = regex.exec(artifact.id);
 		if (!match) {
 			return;
@@ -5368,7 +5387,7 @@ export class CommandCenter {
 		}
 
 		// Extract stash index from artifact id (format: "stash@{index}")
-		const regex = /^stash@\{(\d+)\}$/;
+		const regex = regexpStash1;
 		const match = regex.exec(artifact.id);
 		if (!match) {
 			return;
@@ -5385,7 +5404,7 @@ export class CommandCenter {
 		}
 
 		// Extract stash index from artifact id
-		const regex = /^stash@\{(\d+)\}$/;
+		const regex = regexpStash1;
 		const match = regex.exec(artifact.id);
 		if (!match) {
 			return;
@@ -5612,7 +5631,7 @@ export class CommandCenter {
 						options.modal = false;
 						break;
 					case GitErrorCodes.AuthenticationFailed: {
-						const regex = /Authentication failed for '(.*)'/i;
+						const regex = regexpAuthenticationFailedFor;
 						const match = regex.exec(err.stderr || String(err));
 
 						message = match
@@ -5645,9 +5664,9 @@ export class CommandCenter {
 						break;
 					default: {
 						const hintLines = (err.stderr || err.stdout || err.message || String(err))
-							.replace(/^error: /mi, '')
-							.replace(/^> husky.*$/mi, '')
-							.split(/[\r\n]/)
+							.replace(regexpError, '')
+							.replace(regexpHusky, '')
+							.split(regexp16)
 							.filter((line: string) => !!line);
 
 						message = hintLines.length > 0

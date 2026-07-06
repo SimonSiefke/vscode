@@ -21,6 +21,9 @@ import { EmbeddingType } from '../../../embeddings/common/embeddingsComputer';
 import { githubHeaders, IGithubApiFetcherService } from '../../../github/common/githubApiFetcherService';
 import { ILogService } from '../../../log/common/logService';
 import { ITelemetryService } from '../../../telemetry/common/telemetry';
+const regexp1 = /\//g;
+const regexp2 = /^\//;
+
 
 
 export interface ExternalIngestFile {
@@ -136,7 +139,7 @@ export class ExternalIngestClient extends Disposable implements IExternalIngestC
 	}
 
 	private async makeRequest(authToken: string, method: 'GET' | 'POST' | 'DELETE', path: string, body: unknown | undefined, options: { retriesOn500?: number; retriesOnRateLimiting?: number }, callTracker: CallTracker, token: CancellationToken): Promise<Response> {
-		const pathId = path.replace(/^\//, '').replace(/\//g, '-');
+		const pathId = path.replace(regexp2, '').replace(new RegExp(regexp1), '-');
 		const url = `${ExternalIngestClient.baseUrl}${path}`;
 
 		const retriesOn500 = options.retriesOn500 ?? (method === 'GET' ? 3 : 0);

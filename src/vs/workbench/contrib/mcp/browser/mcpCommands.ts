@@ -71,6 +71,8 @@ import { McpAddConfigurationCommand, McpInstallFromManifestCommand } from './mcp
 import { McpResourceQuickAccess, McpResourceQuickPick } from './mcpResourceQuickAccess.js';
 import './media/mcpServerAction.css';
 import { openPanelChatAndGetWidget } from './openPanelChatAndGetWidget.js';
+const regexpVscodeMcpJson = /\.vscode[/\\]mcp\.json$/;
+
 
 // acroynms do not get localized
 const category: ILocalizedString = {
@@ -919,7 +921,7 @@ export class AddConfigurationAction extends Action2 {
 			menu: {
 				id: MenuId.EditorContent,
 				when: ContextKeyExpr.and(
-					ContextKeyExpr.regex(ResourceContextKey.Path.key, /\.vscode[/\\]mcp\.json$/),
+					ContextKeyExpr.regex(ResourceContextKey.Path.key, regexpVscodeMcpJson),
 					ActiveEditorContext.isEqualTo(TEXT_FILE_EDITOR_ID),
 					ContextKeyExpr.and(ChatContextKeys.Setup.hidden.negate(), ChatContextKeys.Setup.disabledInWorkspace.negate()),
 				)

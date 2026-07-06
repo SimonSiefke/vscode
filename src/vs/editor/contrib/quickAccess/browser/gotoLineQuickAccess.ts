@@ -17,6 +17,8 @@ import { IPosition } from '../../../common/core/position.js';
 import { IRange } from '../../../common/core/range.js';
 import { IEditor, ScrollType } from '../../../common/editorCommon.js';
 import { AbstractEditorNavigationQuickAccessProvider, IQuickAccessTextEditorContext } from './editorNavigationQuickAccess.js';
+const regexp1 = /,|:|#/;
+
 
 interface IGotoLineQuickPickItem extends IQuickPickItem, Partial<IPosition> { }
 
@@ -199,7 +201,7 @@ export abstract class AbstractGotoLineQuickAccessProvider extends AbstractEditor
 			}
 		} else {
 			// Support line-col formats of `line,col`, `line:col`, `line#col`
-			const parts = value.split(/,|:|#/);
+			const parts = value.split(regexp1);
 
 			const maxLine = model.getLineCount();
 			let lineNumber = parseInt(parts[0]?.trim(), 10);

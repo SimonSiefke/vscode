@@ -21,6 +21,8 @@ import { IResourceNode, ResourceTree } from '../../../../base/common/resourceTre
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { SCMArtifactGroupTreeElement, SCMArtifactTreeElement } from '../common/artifact.js';
+const regexpGitRemoteHub = /^(?:git\.|remoteHub\.)/;
+
 
 export function isSCMViewService(element: unknown): element is ISCMViewService {
 	return Array.isArray((element as ISCMViewService).repositories) && Array.isArray((element as ISCMViewService).visibleRepositories);
@@ -216,7 +218,7 @@ export function getStatusBarCommandGenericName(command: Command): string | undef
 			: command.arguments[0];
 
 		genericName = genericName
-			.replace(/^(?:git\.|remoteHub\.)/, '')
+			.replace(regexpGitRemoteHub, '')
 			.trim();
 
 		if (genericName.length === 0) {

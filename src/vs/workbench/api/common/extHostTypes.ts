@@ -31,6 +31,9 @@ import { SymbolKind, SymbolTag } from './extHostTypes/symbolInformation.js';
 import { TextEdit } from './extHostTypes/textEdit.js';
 import { WorkspaceEdit } from './extHostTypes/workspaceEdit.js';
 import { HookTypeValue } from '../../contrib/chat/common/promptSyntax/hookTypes.js';
+const regexp9AZa = /^[0-9A-Za-z_\-]+$/;
+const regexp2 = /,/g;
+
 
 export { CodeActionKind } from './extHostTypes/codeActionKind.js';
 export {
@@ -92,7 +95,7 @@ export class Disposable {
 }
 
 const validateConnectionToken = (connectionToken: string) => {
-	if (typeof connectionToken !== 'string' || connectionToken.length === 0 || !/^[0-9A-Za-z_\-]+$/.test(connectionToken)) {
+	if (typeof connectionToken !== 'string' || connectionToken.length === 0 || !regexp9AZa.test(connectionToken)) {
 		throw illegalArgument('connectionToken');
 	}
 };
@@ -1100,7 +1103,7 @@ export class TaskGroup implements vscode.TaskGroup {
 function computeTaskExecutionId(values: string[]): string {
 	let id: string = '';
 	for (let i = 0; i < values.length; i++) {
-		id += values[i].replace(/,/g, ',,') + ',';
+		id += values[i].replace(new RegExp(regexp2), ',,') + ',';
 	}
 	return id;
 }

@@ -6,6 +6,13 @@
 import { describe, expect, it } from 'vitest';
 import { ImportChanges } from '../../common/dataTypes/importFilteringOptions';
 import { applyStrategyConfig, DEFAULT_OPTIONS, GlobalBudgetOptions, IncludeLineNumbersOption, MODEL_CONFIGURATION_VALIDATOR, ModelConfiguration, PromptingStrategy } from '../../common/dataTypes/xtabPromptOptions';
+const regexpDuplicatePartLanguageContext = /duplicate part 'languageContext'/;
+const regexpMissingEntryFor = /missing entry for 'currentFile'/;
+const regexpSharesAcrossOrder = /shares across order must sum to ~1/;
+const regexpMustPlaceRecentlyViewedDocuments = /must place 'recentlyViewedDocuments' before 'neighborFiles'/;
+const regexpTotalTokensMustBe = /totalTokens must be a finite, non-negative number/;
+const regexpMustBeFinite = /must be a finite, non-negative number/;
+
 
 function baseConfig(overrides: Partial<ModelConfiguration> = {}): ModelConfiguration {
 	return {
@@ -165,29 +172,29 @@ describe('GlobalBudgetOptions', () => {
 		it('throws on a duplicate part in order', () => {
 			expect(() => GlobalBudgetOptions.validate(gb({
 				order: ['languageContext', 'languageContext', 'recentlyViewedDocuments', 'neighborFiles', 'diffHistory'],
-			}))).toThrow(/duplicate part 'languageContext'/);
+			}))).toThrow(regexpDuplicatePartLanguageContext);
 		});
 
 		it('throws when shares omit currentFile', () => {
 			expect(() => GlobalBudgetOptions.validate(gb({
 				shares: { languageContext: 0.25, recentlyViewedDocuments: 0.25, neighborFiles: 0.25, diffHistory: 0.25 } as GlobalBudgetOptions['shares'],
-			}))).toThrow(/missing entry for 'currentFile'/);
+			}))).toThrow(regexpMissingEntryFor);
 		});
 
 		it('throws when shares do not sum to ~1 across order plus currentFile', () => {
 			expect(() => GlobalBudgetOptions.validate(gb({
 				shares: { ...GlobalBudgetOptions.DEFAULT_SHARES, currentFile: 0.9 },
-			}))).toThrow(/shares across order must sum to ~1/);
+			}))).toThrow(regexpSharesAcrossOrder);
 		});
 
 		it('throws when neighborFiles is ordered before recentlyViewedDocuments', () => {
 			expect(() => GlobalBudgetOptions.validate(gb({
 				order: ['languageContext', 'neighborFiles', 'recentlyViewedDocuments', 'diffHistory'],
-			}))).toThrow(/must place 'recentlyViewedDocuments' before 'neighborFiles'/);
+			}))).toThrow(regexpMustPlaceRecentlyViewedDocuments);
 		});
 
 		it('throws on a negative totalTokens', () => {
-			expect(() => GlobalBudgetOptions.validate(gb({ totalTokens: -1 }))).toThrow(/totalTokens must be a finite, non-negative number/);
+			expect(() => GlobalBudgetOptions.validate(gb({ totalTokens: -1 }))).toThrow(regexpTotalTokensMustBe);
 		});
 
 		it('throws on a negative share (which would break budget conservation)', () => {
@@ -196,13 +203,13 @@ describe('GlobalBudgetOptions', () => {
 			// over-allocate past the pool. Must be rejected.
 			expect(() => GlobalBudgetOptions.validate(gb({
 				shares: { currentFile: 0.25, languageContext: -0.25, recentlyViewedDocuments: 1.0, neighborFiles: 0, diffHistory: 0 },
-			}))).toThrow(/must be a finite, non-negative number/);
+			}))).toThrow(regexpMustBeFinite);
 		});
 
 		it('throws on a non-finite share', () => {
 			expect(() => GlobalBudgetOptions.validate(gb({
 				shares: { ...GlobalBudgetOptions.DEFAULT_SHARES, currentFile: Number.NaN },
-			}))).toThrow(/must be a finite, non-negative number/);
+			}))).toThrow(regexpMustBeFinite);
 		});
 	});
 

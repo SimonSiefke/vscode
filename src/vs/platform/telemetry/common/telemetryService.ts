@@ -18,6 +18,9 @@ import { Registry } from '../../registry/common/platform.js';
 import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck } from './gdprTypings.js';
 import { ITelemetryData, ITelemetryService, TelemetryConfiguration, TelemetryLevel, TELEMETRY_CRASH_REPORTER_SETTING_ID, TELEMETRY_OLD_SETTING_ID, TELEMETRY_SECTION_ID, TELEMETRY_SETTING_ID, ICommonProperties } from './telemetry.js';
 import { cleanData, getTelemetryLevel, ITelemetryAppender, TelemetryTrustedValue } from './telemetryUtils.js';
+const regexpVscodeFileResources = /(vscode-)?file:\/\/.*?\/resources\/app\//gi;
+const regexp2 = /\\/g;
+
 
 export interface ITelemetryServiceConfig {
 	appenders: ITelemetryAppender[];
@@ -95,13 +98,13 @@ export class TelemetryService implements ITelemetryService {
 		this._meteredConnectionService = config.meteredConnectionService;
 
 		// static cleanup pattern for: `vscode-file:///DANGEROUS/PATH/resources/app/Useful/Information`
-		this._cleanupPatterns = [/(vscode-)?file:\/\/.*?\/resources\/app\//gi];
+		this._cleanupPatterns = [new RegExp(regexpVscodeFileResources)];
 
 		for (const piiPath of this._piiPaths) {
 			this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath), 'gi'));
 
 			if (piiPath.indexOf('\\') >= 0) {
-				this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath.replace(/\\/g, '/')), 'gi'));
+				this._cleanupPatterns.push(new RegExp(escapeRegExpCharacters(piiPath.replace(new RegExp(regexp2), '/')), 'gi'));
 			}
 		}
 

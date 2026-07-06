@@ -7,6 +7,8 @@ import { URI } from '../../../util/vs/base/common/uri';
 import { isEqualOrParent, relativePath } from '../../../util/vs/base/common/resources';
 import { getOrderedRepoInfosFromContext, type IGitService, normalizeFetchUrl, type RepoContext } from '../../git/common/gitService';
 import { CopilotChatAttr, GitHubCopilotAttr } from './genAiAttributes';
+const regexpGithubCom = /github\.com[/:]([^/]+)\/[^/]+\/?$/i;
+
 
 export interface WorkspaceOTelMetadata {
 	readonly headBranchName?: string;
@@ -91,6 +93,6 @@ export function workspaceMetadataToOTelAttributes(
 function extractGitHubOrg(remoteUrl: string): string | undefined {
 	// Match `(https://|git@)<host>[:/]<owner>/<repo>` — normalizeFetchUrl already
 	// strips credentials and `.git` suffixes.
-	const m = remoteUrl.match(/github\.com[/:]([^/]+)\/[^/]+\/?$/i);
+	const m = remoteUrl.match(regexpGithubCom);
 	return m?.[1];
 }

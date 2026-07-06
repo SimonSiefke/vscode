@@ -45,6 +45,8 @@ import { IChatEntitlementService } from '../../../../../services/chat/common/cha
 import { IChatWidgetService } from '../../chat.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { ITitleService } from '../../../../../services/title/browser/titleService.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 // Telemetry types
 type AgentStatusClickAction =
@@ -1390,7 +1392,7 @@ export class AgentTitleBarStatusWidget extends BaseActionViewItem {
 			label = localize('label2', "{0} {1}", label, suffix);
 		}
 
-		return label.replaceAll(/\r\n|\r|\n/g, '\u23CE');
+		return label.replaceAll(new RegExp(regexp1), '\u23CE');
 	}
 
 	// #endregion

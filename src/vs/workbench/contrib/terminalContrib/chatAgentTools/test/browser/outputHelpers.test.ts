@@ -8,6 +8,8 @@ import type { IMarker as IXtermMarker } from '@xterm/xterm';
 import type { ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import { getOutput, MAX_OUTPUT_LENGTH, truncateLargeOutput } from '../../browser/outputHelpers.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
+const regexp1 = /\s+$/g;
+
 
 suite('outputHelpers', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -21,7 +23,7 @@ suite('outputHelpers', () => {
 				}
 				return {
 					isWrapped: !!line.isWrapped,
-					translateToString: (trimRight?: boolean) => trimRight ? line.text.replace(/\s+$/g, '') : line.text
+					translateToString: (trimRight?: boolean) => trimRight ? line.text.replace(new RegExp(regexp1), '') : line.text
 				};
 			}
 		};

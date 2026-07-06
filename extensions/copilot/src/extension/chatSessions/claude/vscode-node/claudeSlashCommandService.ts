@@ -9,6 +9,8 @@ import { CancellationToken } from '../../../../util/vs/base/common/cancellation'
 import { Disposable } from '../../../../util/vs/base/common/lifecycle';
 import { createDecorator, IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { getClaudeSlashCommandRegistry, IClaudeSlashCommandHandler } from './slashCommands/claudeSlashCommandRegistry';
+const regexp1 = /^\/(\w+)(?:\s+(.*))?$/;
+
 
 export interface IClaudeSlashCommandRequest {
 	readonly prompt: string;
@@ -81,7 +83,7 @@ export class ClaudeSlashCommandService extends Disposable implements IClaudeSlas
 		}
 
 		// 2. Fall back to parsing /command from the prompt text
-		const match = request.prompt.trim().match(/^\/(\w+)(?:\s+(.*))?$/);
+		const match = request.prompt.trim().match(regexp1);
 		if (!match) {
 			return { handled: false };
 		}

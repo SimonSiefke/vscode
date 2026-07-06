@@ -40,6 +40,8 @@ import { IServerEnvironmentService, ServerParsedArgs } from './serverEnvironment
 import { IServerLifetimeService } from './serverLifetimeService.js';
 import { setupServerServices, SocketServer } from './serverServices.js';
 import { CacheControl, serveError, serveFile, WebClientServer } from './webClientServer.js';
+const regexpUnexpectedErrorHandler = /unexpectedErrorHandler/;
+
 const require = createRequire(import.meta.url);
 
 declare namespace vsda {
@@ -609,7 +611,7 @@ export async function createServer(address: string | net.AddressInfo | null, arg
 			// In some circumstances, console.error will throw an asynchronous error. This asynchronous error
 			// will end up here, and then it will be logged again, thus creating an endless asynchronous loop.
 			// Here we try to break the loop by ignoring EPIPE errors that include our own unexpected error handler in the stack.
-			if (isSigPipeError(err) && err.stack && /unexpectedErrorHandler/.test(err.stack)) {
+			if (isSigPipeError(err) && err.stack && regexpUnexpectedErrorHandler.test(err.stack)) {
 				return;
 			}
 			handler(err);

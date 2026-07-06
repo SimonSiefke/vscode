@@ -15,6 +15,8 @@ import { TS_SERVER_DIAGNOSTICS_PROVIDER_CACHE_SALT } from '../../cacheSalt';
 import { cleanTempDirWithRetry, createTempDir } from '../stestUtil';
 import { IFile, ITSDiagnosticRelatedInformation, ITestDiagnostic } from './diagnosticsProvider';
 import { CachingDiagnosticsProvider, setupTemporaryWorkspace } from './utils';
+const regexpZAZAZ0 = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
+
 
 /**
  * Class which finds TS Server diagnostics after compilation of TS files
@@ -270,7 +272,7 @@ declare module '*'  {
 }
 
 function addIdentifiersToSet(content: string, result: Set<string>): void {
-	const regex = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
+	const regex = new RegExp(regexpZAZAZ0);
 	let match: RegExpExecArray | null;
 	while ((match = regex.exec(content)) !== null) {
 		result.add(match[0]);

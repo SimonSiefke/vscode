@@ -19,6 +19,8 @@ import { IChatService, IChatToolInvocation, ToolConfirmKind } from '../common/ch
 import { migrateLegacyTerminalToolSpecificData } from '../common/chat.js';
 import { ChatConfiguration, ChatNotificationMode } from '../common/constants.js';
 import { IChatWidgetService } from './chat.js';
+const regexp1 = /`/g;
+
 
 /**
  * Observes all live chat models and triggers OS notifications when any model
@@ -188,7 +190,7 @@ export class ChatWindowNotifier extends Disposable implements IWorkbenchContribu
 	}
 
 	private _sanitizeOSToastText(text: string): string {
-		return text.replace(/`/g, '\''); // convert backticks to single quotes
+		return text.replace(new RegExp(regexp1), '\''); // convert backticks to single quotes
 	}
 
 	private _clearNotification(sessionResource: URI): void {

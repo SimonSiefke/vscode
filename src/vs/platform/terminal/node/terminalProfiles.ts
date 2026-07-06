@@ -18,6 +18,8 @@ import { ILogService } from '../../log/common/log.js';
 import { ITerminalEnvironment, ITerminalExecutable, ITerminalProfile, ITerminalProfileSource, ITerminalUnsafePath, ProfileSource, TerminalIcon, TerminalSettingId } from '../common/terminal.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { getWindowsBuildNumberAsync } from '../../../base/node/windowsVersion.js';
+const regexp1 = /\r?\n/;
+
 
 const enum Constants {
 	UnixShellsPath = '/etc/shells'
@@ -359,7 +361,7 @@ async function getWslProfiles(wslPath: string, defaultProfileName: string | unde
 	if (!distroOutput) {
 		return [];
 	}
-	const distroNames = distroOutput.split(/\r?\n/).filter(t => t.trim().length > 0);
+	const distroNames = distroOutput.split(regexp1).filter(t => t.trim().length > 0);
 	for (const distroName of distroNames) {
 		// Skip empty lines
 		if (distroName === '') {

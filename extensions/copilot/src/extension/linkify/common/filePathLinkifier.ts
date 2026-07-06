@@ -16,6 +16,9 @@ import { Uri } from '../../../vscodeTypes';
 import { coalesceParts, LinkifiedPart, LinkifiedText, LinkifyLocationAnchor } from './linkifiedText';
 import { IContributedLinkifier, LinkifierContext } from './linkifyService';
 import { IStatCache } from './statCache';
+const regexp1 = /^([a-z]+):/i;
+const regexp2 = /[${}()]/;
+
 
 // Create a single regex which runs different regexp parts in a big `|` expression.
 const pathMatchRe = new RegExp(
@@ -101,7 +104,7 @@ export class FilePathLinkifier implements IContributedLinkifier {
 		}
 
 		// Handle paths that look like uris
-		const scheme = pathText.match(/^([a-z]+):/i)?.[1];
+		const scheme = pathText.match(regexp1)?.[1];
 		if (scheme) {
 			try {
 				const uri = Uri.parse(pathText);
@@ -127,7 +130,7 @@ export class FilePathLinkifier implements IContributedLinkifier {
 		// specified a path like `./node_modules/cli.js`, we shouldn't match a reference
 		// with a completely different path just because the basename matches.
 		// Also skip if text contains code-like characters that are rarely in real filenames.
-		if (!pathText.includes('/') && !pathText.includes('\\') && !/[${}()]/.test(pathText)) {
+		if (!pathText.includes('/') && !pathText.includes('\\') && !regexp2.test(pathText)) {
 			const name = path.basename(pathText);
 			const refUri = context.references
 				.map(ref => {

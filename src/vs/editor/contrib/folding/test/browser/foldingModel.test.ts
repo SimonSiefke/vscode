@@ -16,6 +16,11 @@ import { FoldingModel, getNextFoldLine, getParentFoldLine, getPreviousFoldLine, 
 import { FoldingRegion } from '../../browser/foldingRanges.js';
 import { computeRanges } from '../../browser/indentRangeProvider.js';
 import { createTextModel } from '../../../../test/common/testTextModel.js';
+const regexpRegion = /^\/\/#region$/;
+const regexpEndregion = /^\/\/#endregion$/;
+const regexpRegion1 = /^\s*\/\/#region$/;
+const regexpEndregion1 = /^\s*\/\/#endregion$/;
+
 
 
 interface ExpectedRegion {
@@ -355,7 +360,7 @@ suite('Folding Model', () => {
 
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -405,7 +410,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 10, false);
@@ -451,7 +456,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -507,7 +512,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\s*\/\/#region$/, end: /^\s*\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion1, end: regexpEndregion1 });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -563,7 +568,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -615,7 +620,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -662,7 +667,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);
@@ -707,7 +712,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 3, false);
@@ -747,7 +752,7 @@ suite('Folding Model', () => {
 		try {
 			const foldingModel = new FoldingModel(textModel, new TestDecorationProvider(textModel));
 
-			const ranges = computeRanges(textModel, false, { start: /^\/\/#region$/, end: /^\/\/#endregion$/ });
+			const ranges = computeRanges(textModel, false, { start: regexpRegion, end: regexpEndregion });
 			foldingModel.update(ranges);
 
 			const r1 = r(1, 2, false);

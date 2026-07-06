@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { RefType } from './api/git.constants';
 import { Model } from './model';
+const regexpGit = /^(git@[^\/:]+)(:)/i;
+
 
 export class GitEditSessionIdentityProvider implements vscode.EditSessionIdentityProvider, vscode.Disposable {
 
@@ -41,7 +43,7 @@ export class GitEditSessionIdentityProvider implements vscode.EditSessionIdentit
 			return undefined;
 		}
 
-		const remoteUrl = repository.remotes.find((remote) => remote.name === repository.HEAD?.upstream?.remote)?.pushUrl?.replace(/^(git@[^\/:]+)(:)/i, 'ssh://$1/');
+		const remoteUrl = repository.remotes.find((remote) => remote.name === repository.HEAD?.upstream?.remote)?.pushUrl?.replace(regexpGit, 'ssh://$1/');
 		const remote = remoteUrl ? await vscode.workspace.getCanonicalUri(vscode.Uri.parse(remoteUrl), { targetScheme: 'https' }, token) : null;
 
 		return JSON.stringify({

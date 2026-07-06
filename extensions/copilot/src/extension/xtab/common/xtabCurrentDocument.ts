@@ -7,6 +7,8 @@ import { BugIndicatingError } from '../../../util/vs/base/common/errors';
 import { Position } from '../../../util/vs/editor/common/core/position';
 import { StringText } from '../../../util/vs/editor/common/core/text/abstractText';
 import { PositionOffsetTransformer } from '../../../util/vs/editor/common/core/text/positionToOffsetImpl';
+const regexp1 = /^\s*$/;
+
 
 /**
  * Represents the current document state along with the cursor position within it.
@@ -63,7 +65,7 @@ export class CurrentDocument {
 	isCursorAtEndOfLine(): boolean {
 		// checks if there's any non-whitespace character after the cursor in the line
 		const afterCursor = this.textAfterCursor();
-		const isAtEndOfLine = afterCursor.match(/^\s*$/) !== null;
+		const isAtEndOfLine = afterCursor.match(regexp1) !== null;
 		return isAtEndOfLine;
 	}
 }

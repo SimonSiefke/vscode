@@ -14,6 +14,8 @@ import {
 	CompletionRequestDocument,
 	isCompletionRequestData,
 } from '../completionsPromptFactory/componentsCompletionsPromptFactory';
+const regexp1 = /^.*/;
+
 
 /** The maximum number of tokens that is used for calculate edit distance. */
 export const MAX_EDIT_DISTANCE_LENGTH = 50;
@@ -113,7 +115,7 @@ export function AfterCursor(
 	}
 
 	// Start the suffix at the beginning of the next line. This allows for consistent reconciliation of trailing punctuation.
-	const trimmedSuffix = suffix.replace(/^.*/, '').trimStart();
+	const trimmedSuffix = suffix.replace(regexp1, '').trimStart();
 	if (trimmedSuffix === '') {
 		return <Text />;
 	}

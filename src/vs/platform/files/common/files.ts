@@ -20,6 +20,8 @@ import { isWeb } from '../../../base/common/platform.js';
 import { Schemas } from '../../../base/common/network.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
 import { Lazy } from '../../../base/common/lazy.js';
+const regexpFileSystemError = /^(.+) \(FileSystemError\)$/;
+
 
 //#region file service & providers
 
@@ -874,7 +876,7 @@ export function toFileSystemProviderErrorCode(error: Error | undefined | null): 
 
 	// Any other error, check for name match by assuming that the error
 	// went through the markAsFileSystemProviderError() method
-	const match = /^(.+) \(FileSystemError\)$/.exec(error.name);
+	const match = regexpFileSystemError.exec(error.name);
 	if (!match) {
 		return FileSystemProviderErrorCode.Unknown;
 	}

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^\s*$/;
+
 export function getWordAtText(text: string, offset: number, wordDefinition: RegExp): { start: number; length: number } {
 	let lineStart = offset;
 	while (lineStart > 0 && !isNewlineCharacter(text.charCodeAt(lineStart - 1))) {
@@ -64,7 +66,7 @@ export function repeat(value: string, count: number) {
 }
 
 export function isWhitespaceOnly(str: string) {
-	return /^\s*$/.test(str);
+	return regexp1.test(str);
 }
 
 export function isEOL(content: string, offset: number) {

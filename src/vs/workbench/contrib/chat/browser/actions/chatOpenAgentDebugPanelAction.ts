@@ -27,6 +27,10 @@ import { ChatDebugEditorInput } from '../chatDebug/chatDebugEditorInput.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { IChatDebugEditorOptions } from '../chatDebug/chatDebugTypes.js';
 import { LocalChatSessionUri } from '../../common/model/chatUri.js';
+const regexp1 = /^\//;
+const regexp2 = /^_+|_+$/g;
+const regexp3 = /[/\\:*?"<>|.]+/g;
+
 
 /**
  * Registers the Open Agent Debug Logs and Show Agent Debug Logs actions.
@@ -144,8 +148,8 @@ export function registerChatOpenAgentDebugPanelAction() {
 			}
 
 			const localSessionId = LocalChatSessionUri.parseLocalSessionId(sessionResource);
-			const rawIdentifier = localSessionId ?? (sessionResource.path.replace(/^\//, '') || sessionResource.authority);
-			const sessionIdentifier = rawIdentifier?.replace(/[/\\:*?"<>|.]+/g, '_').replace(/^_+|_+$/g, '');
+			const rawIdentifier = localSessionId ?? (sessionResource.path.replace(regexp1, '') || sessionResource.authority);
+			const sessionIdentifier = rawIdentifier?.replace(new RegExp(regexp3), '_').replace(new RegExp(regexp2), '');
 			const exportFileName = sessionIdentifier ? `agent-debug-log-${sessionIdentifier}.json` : defaultDebugLogFileName;
 			const defaultUri = joinPath(await fileDialogService.defaultFilePath(), exportFileName);
 			const outputPath = await fileDialogService.showSaveDialog({ defaultUri, filters: debugLogFilters });

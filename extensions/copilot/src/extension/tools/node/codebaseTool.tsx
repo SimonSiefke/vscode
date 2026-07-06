@@ -28,6 +28,8 @@ import { ToolCallResultWrapper } from '../../prompts/node/panel/toolCalling';
 import { WorkspaceContext, WorkspaceContextProps } from '../../prompts/node/panel/workspace/workspaceContext';
 import { ToolName } from '../common/toolNames';
 import { ToolRegistry } from '../common/toolsRegistry';
+const regexpCodebase = /^\s*#codebase\s+/;
+
 
 export interface ICodebaseToolParams {
 	query: string;
@@ -59,7 +61,7 @@ export class CodebaseTool implements vscode.LanguageModelTool<ICodebaseToolParam
 			throw new Error('Invalid input');
 		}
 
-		const query = options.input.query.replace(/^\s*#codebase\s+/, '').trim();
+		const query = options.input.query.replace(regexpCodebase, '').trim();
 
 		let references: PromptReference[] = [];
 		const id = generateUuid();

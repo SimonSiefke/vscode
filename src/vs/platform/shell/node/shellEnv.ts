@@ -18,6 +18,9 @@ import { ILogService } from '../../log/common/log.js';
 import { Promises } from '../../../base/common/async.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { clamp } from '../../../base/common/numbers.js';
+const regexp1 = /-/g;
+const regexpPwshPowershellPreview = /^(?:pwsh|powershell)(?:-preview)?$/;
+
 
 let unixShellEnvPromise: Promise<typeof process.env> | undefined = undefined;
 
@@ -106,7 +109,7 @@ async function doResolveUnixShellEnv(logService: ILogService, token: Cancellatio
 	const noAttach = process.env['ELECTRON_NO_ATTACH_CONSOLE'];
 	logService.trace('getUnixShellEnvironment#noAttach', noAttach);
 
-	const mark = generateUuid().replace(/-/g, '').substr(0, 12);
+	const mark = generateUuid().replace(new RegExp(regexp1), '').substr(0, 12);
 	const regex = new RegExp(mark + '({.*})' + mark);
 
 	const env = {
@@ -129,7 +132,7 @@ async function doResolveUnixShellEnv(logService: ILogService, token: Cancellatio
 		const name = basename(systemShellUnix);
 		let command: string, shellArgs: Array<string>;
 		const extraArgs = '';
-		if (/^(?:pwsh|powershell)(?:-preview)?$/.test(name)) {
+		if (regexpPwshPowershellPreview.test(name)) {
 			// Older versions of PowerShell removes double quotes sometimes so we use "double single quotes" which is how
 			// you escape single quotes inside of a single quoted string.
 			command = `& '${process.execPath}' ${extraArgs} -p '''${mark}'' + JSON.stringify(process.env) + ''${mark}'''`;

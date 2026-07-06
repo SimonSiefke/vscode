@@ -13,6 +13,10 @@ import { IFileService } from '../../../../../platform/files/common/files.js';
 import { IPath, posix, win32 } from '../../../../../base/common/path.js';
 import { ITerminalBackend } from '../../../../../platform/terminal/common/terminal.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
+const regexpWslLocalhost = /^(?:\/\/|\\\\)wsl(?:\$|\.localhost)(\/|\\)/;
+const regexpMnt = /^\/mnt\/[a-z]/i;
+const regexp3 = /^\\\\\?\\/;
+
 
 export class TerminalLinkResolver implements ITerminalLinkResolver {
 	// Link cache could be shared across all terminals, but that could lead to weird results when
@@ -74,11 +78,11 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 
 		// If the link looks like a /mnt/ WSL path and this is a Windows frontend, use the backend
 		// to get the resolved path from the wslpath util.
-		if (isWindows && link.match(/^\/mnt\/[a-z]/i) && processManager.backend) {
+		if (isWindows && link.match(regexpMnt) && processManager.backend) {
 			linkUrl = await processManager.backend.getWslPath(linkUrl, 'unix-to-win');
 		}
 		// Skip preprocessing if it looks like a special Windows -> WSL link
-		else if (isWindows && link.match(/^(?:\/\/|\\\\)wsl(?:\$|\.localhost)(\/|\\)/)) {
+		else if (isWindows && link.match(regexpWslLocalhost)) {
 			// No-op, it's already the right format
 		}
 		// Handle all non-WSL links
@@ -141,7 +145,7 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 				} else {
 					// Remove \\?\ from paths so that they share the same underlying
 					// uri and don't open multiple tabs for the same file
-					link = link.replace(/^\\\\\?\\/, '');
+					link = link.replace(regexp3, '');
 				}
 			} else {
 				if (!initialCwd) {

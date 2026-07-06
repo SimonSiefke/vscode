@@ -45,6 +45,8 @@ import { AgentUserMessage, AgentUserMessageCustomizations, getUserMessagePropsFr
 import { buildCompactionToolOpts, resolveCompactionEndpoint } from './compactionEndpoint';
 import { DefaultOpenAIKeepGoingReminder } from './openai/defaultOpenAIPrompt';
 import { SimpleSummarizedHistory } from './simpleSummarizedHistoryPrompt';
+const regexpContextLengthExceeded = /context[_ ]length[_ ]exceeded|prompt.*too long|maximum context length/i;
+
 
 export interface ConversationHistorySummarizationPromptProps extends SummarizedAgentHistoryProps {
 	readonly simpleMode?: boolean;
@@ -779,7 +781,7 @@ class ConversationHistorySummarizer {
 			return true;
 		}
 		const message = e instanceof Error ? e.message : String(e);
-		return /context[_ ]length[_ ]exceeded|prompt.*too long|maximum context length/i.test(message);
+		return regexpContextLengthExceeded.test(message);
 	}
 
 	private async _getSummary(mode: SummaryMode, propsInfo: ISummarizedConversationHistoryInfo): Promise<SummarizationResult> {

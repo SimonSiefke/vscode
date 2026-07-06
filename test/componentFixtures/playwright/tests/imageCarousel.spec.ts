@@ -5,6 +5,8 @@
 
 import { test, expect } from '@playwright/test';
 import { openFixture } from './utils.js';
+const regexpActive = /active/;
+
 
 test.describe('Image Carousel', () => {
 
@@ -86,7 +88,7 @@ test.describe('Image Carousel', () => {
 		await expect(counter).toHaveText('3 / 5');
 
 		// The clicked thumbnail should be active
-		await expect(thumbnails.nth(2)).toHaveClass(/active/);
+		await expect(thumbnails.nth(2)).toHaveClass(regexpActive);
 	});
 
 	test('keyboard left/right arrow navigation works', async ({ page }) => {

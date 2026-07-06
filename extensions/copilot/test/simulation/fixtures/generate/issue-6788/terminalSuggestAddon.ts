@@ -26,6 +26,10 @@ import { ShellIntegrationOscPs } from 'vs/platform/terminal/common/xterm/shellIn
 import { getListStyles } from 'vs/platform/theme/browser/defaultStyles';
 import type { IXtermCore } from 'vs/workbench/contrib/terminal/browser/xterm-private';
 import { terminalSuggestConfigSection, type ITerminalSuggestConfiguration } from 'vs/workbench/contrib/terminalContrib/suggest/common/terminalSuggestConfiguration';
+const regexp1 = /([\s\[])[^\s]$/;
+const regexp2 = /[\\\/\-]/;
+const regexp3 = /\.[^\.]+$/;
+
 
 export const enum VSCodeSuggestOscPt {
 	Completions = 'Completions',
@@ -194,7 +198,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			if (!this._terminalSuggestWidgetVisibleContextKey.get()) {
 				if (config.quickSuggestions) {
 					const completionPrefix = promptInputState.value.substring(0, promptInputState.cursorIndex);
-					if (promptInputState.cursorIndex === 1 || completionPrefix.match(/([\s\[])[^\s]$/)) {
+					if (promptInputState.cursorIndex === 1 || completionPrefix.match(regexp1)) {
 						// Never request completions if the last key sequence was up or down as the user was likely
 						// navigating history
 						if (this._lastUserData !== /*up*/'\x1b[A' && this._lastUserData !== /*down*/'\x1b[B') {
@@ -208,7 +212,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			// Trigger characters - this happens even if the widget is showing
 			if (config.suggestOnTriggerCharacters && !sent) {
 				const lastChar = promptInputState.value.at(promptInputState.cursorIndex - 1);
-				if (lastChar?.match(/[\\\/\-]/)) {
+				if (lastChar?.match(regexp2)) {
 					this._requestCompletions();
 					sent = true;
 				}
@@ -537,7 +541,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 				case 'exactMatchIgnoreExtension': {
 					runOnEnter = replacementText.toLowerCase() === completionText.toLowerCase();
 					if (completion.icon === Codicon.symbolFile || completion.icon === Codicon.symbolMethod) {
-						runOnEnter ||= replacementText.toLowerCase() === completionText.toLowerCase().replace(/\.[^\.]+$/, '');
+						runOnEnter ||= replacementText.toLowerCase() === completionText.toLowerCase().replace(regexp3, '');
 					}
 					break;
 				}

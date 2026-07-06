@@ -53,6 +53,8 @@ import { EXISTING_CODE_MARKER } from '../panel/codeBlockFormattingRules';
 import { CodeMapperFullRewritePrompt, CodeMapperPatchRewritePrompt, CodeMapperPromptProps } from './codeMapperPrompt';
 import { ICodeMapperTelemetryInfo } from './codeMapperService';
 import { findEdit, getCodeBlock, iterateSectionsForResponse, Marker, Patch, Section } from './patchEditGeneration';
+const regexp1 = /\r$/g;
+
 
 
 export type ICodeMapperDocument = TextDocumentSnapshot | NotebookDocumentSnapshot;
@@ -794,7 +796,7 @@ function readLineByLine(source: AsyncIterable<string>, token: CancellationToken)
 			if (token.isCancellationRequested) {
 				break;
 			}
-			const line = (await reader.readLine()).replace(/\r$/g, '');
+			const line = (await reader.readLine()).replace(new RegExp(regexp1), '');
 
 			if (previousLineWasEmpty) {
 				// Emit the previous held back empty line

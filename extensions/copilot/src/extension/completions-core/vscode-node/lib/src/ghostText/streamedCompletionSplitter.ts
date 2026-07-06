@@ -7,6 +7,8 @@ import { IInstantiationService } from '../../../../../../util/vs/platform/instan
 import { FinishedCallback, RequestDelta, SolutionDecision } from '../openai/fetch';
 import { APIChoice, convertToAPIChoice } from '../openai/openai';
 import { TerseBlockTrimmer } from './blockTrimmer';
+const regexp1 = /\r?\n/g;
+
 
 class StreamingCompletion {
 	startOffset = 0;
@@ -46,7 +48,7 @@ class StreamingCompletion {
 	 * terminator. Returns -1 if a suitable line ending was not found.
 	 */
 	get firstNewlineOffset(): number {
-		const matches = [...this.text.matchAll(/\r?\n/g)];
+		const matches = [...this.text.matchAll(new RegExp(regexp1))];
 		if (matches.length > 0 && matches[0].index === 0) {
 			matches.shift();
 		}

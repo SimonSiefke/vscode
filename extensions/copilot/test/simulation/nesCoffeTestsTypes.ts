@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as yaml from 'yaml';
+const regexp1 = /-([a-z])/g;
+
 
 /**
  * Types for CoffE completion stests.
@@ -38,7 +40,7 @@ export namespace CompletionStests {
 					const converted: Record<string, any> = {};
 					for (const prop in value) {
 						if (Object.prototype.hasOwnProperty.call(value, prop)) {
-							const camelKey = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+							const camelKey = prop.replace(new RegExp(regexp1), (_, letter) => letter.toUpperCase());
 							converted[camelKey] = (value as Record<string, any>)[prop];
 						}
 					}

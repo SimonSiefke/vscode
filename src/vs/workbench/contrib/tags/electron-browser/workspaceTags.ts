@@ -18,6 +18,9 @@ import { AllowedSecondLevelDomains, getDomainsOfRemotes } from '../../../../plat
 import { INativeHostService } from '../../../../platform/native/common/native.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { hashAsync } from '../../../../base/common/hash.js';
+const regexpAzure = /azure/i;
+const regexp2 = /\s+/;
+
 
 export async function getHashedRemotesFromConfig(text: string, stripEndingDotGit: boolean = false): Promise<string[]> {
 	return baseGetHashedRemotesFromConfig(text, stripEndingDotGit, hashAsync);
@@ -144,7 +147,7 @@ export class WorkspaceTags implements IWorkbenchContribution {
 		return this.fileService.resolveAll(uris.map(resource => ({ resource }))).then(
 			results => {
 				const names = (<IFileStat[]>[]).concat(...results.map(result => result.success ? (result.stat!.children || []) : [])).map(c => c.name);
-				const referencesAzure = WorkspaceTags.searchArray(names, /azure/i);
+				const referencesAzure = WorkspaceTags.searchArray(names, regexpAzure);
 				if (referencesAzure) {
 					tags['node'] = true;
 				}
@@ -173,7 +176,7 @@ export class WorkspaceTags implements IWorkbenchContribution {
 					return false;
 				}
 				return this.textFileService.read(uri, { acceptTextOnly: true }).then(
-					content => !!content.value.match(/azure/i),
+					content => !!content.value.match(regexpAzure),
 					err => false
 				);
 			});
@@ -220,7 +223,7 @@ export class WorkspaceTags implements IWorkbenchContribution {
 		}
 		this.requestService.resolveProxy(downloadUrl)
 			.then(proxy => {
-				let type = proxy ? String(proxy).trim().split(/\s+/, 1)[0] : 'EMPTY';
+				let type = proxy ? String(proxy).trim().split(regexp2, 1)[0] : 'EMPTY';
 				if (['DIRECT', 'PROXY', 'HTTPS', 'SOCKS', 'EMPTY'].indexOf(type) === -1) {
 					type = 'UNKNOWN';
 				}

@@ -10,6 +10,12 @@ import { generateUuid } from '../../../../base/common/uuid.js';
 import { ILogService } from '../../../log/common/log.js';
 import { TerminalClaimKind } from '../../common/state/protocol/state.js';
 import { IAgentHostTerminalManager } from '../agentHostTerminalManager.js';
+const regexpExe = /\.exe$/;
+const regexp2 = /\r\n|\r/g;
+const regexp3 = /(?<!\\)\n/;
+const regexp4 = /-/g;
+const regexp5 = /^-?\d+$/;
+
 
 /**
  * Maximum scrollback content (in bytes) returned to the model / caller in
@@ -42,7 +48,7 @@ export type ShellType = 'bash' | 'powershell';
 export function shellTypeForExecutable(shellPath: string): ShellType {
 	// Strip path on either separator and the .exe suffix.
 	const lastSep = Math.max(shellPath.lastIndexOf('/'), shellPath.lastIndexOf('\\'));
-	const base = shellPath.slice(lastSep + 1).toLowerCase().replace(/\.exe$/, '');
+	const base = shellPath.slice(lastSep + 1).toLowerCase().replace(regexpExe, '');
 	switch (base) {
 		// PowerShell
 		case 'pwsh':
@@ -87,8 +93,8 @@ export function prefixForHistorySuppression(shellType: ShellType): string {
 }
 
 export function isMultilineCommand(command: string): boolean {
-	const normalized = command.replace(/\r\n|\r/g, '\n');
-	return /(?<!\\)\n/.test(normalized);
+	const normalized = command.replace(new RegExp(regexp2), '\n');
+	return regexp3.test(normalized);
 }
 
 function shouldUseBracketedPasteMode(command: string): boolean {
@@ -96,7 +102,7 @@ function shouldUseBracketedPasteMode(command: string): boolean {
 }
 
 function makeSentinelId(): string {
-	return generateUuid().replace(/-/g, '');
+	return generateUuid().replace(new RegExp(regexp4), '');
 }
 
 function buildSentinelCommand(sentinelId: string, shellType: ShellType): string {
@@ -115,7 +121,7 @@ function parseSentinel(content: string, sentinelId: string): { found: boolean; e
 		const endIdx = afterMarker.indexOf('>>>');
 		if (endIdx !== -1) {
 			const exitCodeStr = afterMarker.substring(0, endIdx).trim();
-			if (/^-?\d+$/.test(exitCodeStr)) {
+			if (regexp5.test(exitCodeStr)) {
 				return {
 					found: true,
 					exitCode: parseInt(exitCodeStr, 10),

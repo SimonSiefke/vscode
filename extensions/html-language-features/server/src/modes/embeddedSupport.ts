@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TextDocument, Position, LanguageService, TokenType, Range } from './languageModes.js';
+const regexpTextTypescript = /["']text\/typescript["']/;
+const regexpModuleTextApplication = /["'](module|(text|application)\/(java|ecma)script|text\/babel)["']/;
+const regexpQuot = /(&quot;|&#34;)/g;
+const regexpStyleOn = /^(style)$|^(on\w+)$/i;
+
 
 export interface LanguageRange extends Range {
 	languageId: string | undefined;
@@ -57,9 +62,9 @@ export function getDocumentRegions(languageService: LanguageService, document: T
 					importedScripts.push(value);
 				} else if (lastAttributeName === 'type' && lastTagName.toLowerCase() === 'script') {
 					const token = scanner.getTokenText();
-					if (/["'](module|(text|application)\/(java|ecma)script|text\/babel)["']/.test(token) || token === 'module') {
+					if (regexpModuleTextApplication.test(token) || token === 'module') {
 						languageIdFromType = 'javascript';
-					} else if (/["']text\/typescript["']/.test(token)) {
+					} else if (regexpTextTypescript.test(token)) {
 						languageIdFromType = 'typescript';
 					} else {
 						languageIdFromType = undefined;
@@ -200,7 +205,7 @@ function updateContent(c: EmbeddedRegion, content: string): string {
 		return content.replace(`<!--`, `/* `).replace(`-->`, ` */`);
 	}
 	if (c.languageId === 'css') {
-		const quoteEscape = /(&quot;|&#34;)/g;
+		const quoteEscape = new RegExp(regexpQuot);
 		return content.replace(quoteEscape, (match, _, offset) => {
 			const spaces = ' '.repeat(match.length - 1);
 			const afterChar = content[offset + match.length];
@@ -243,7 +248,7 @@ function append(result: string, str: string, n: number): string {
 }
 
 function getAttributeLanguage(attributeName: string): string | null {
-	const match = attributeName.match(/^(style)$|^(on\w+)$/i);
+	const match = attributeName.match(regexpStyleOn);
 	if (!match) {
 		return null;
 	}

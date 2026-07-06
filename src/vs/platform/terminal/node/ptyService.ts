@@ -34,6 +34,10 @@ import pkg from '@xterm/headless';
 import { AutoRepliesPtyServiceContribution } from './terminalContrib/autoReplies/autoRepliesContribController.js';
 import { hasKey, isFunction, isNumber, isString } from '../../../base/common/types.js';
 import { getWindowsBuildNumberAsync } from '../../../base/node/windowsVersion.js';
+const regexp1 = /\r?\n/;
+const regexp2 = /\s+(\d+)(?:\s+|$)/;
+const regexp3 = /\\/g;
+
 
 type XtermTerminal = pkg.Terminal;
 const { Terminal: XtermTerminal } = pkg;
@@ -210,9 +214,9 @@ export class PtyService extends Disposable implements IPtyService {
 				resolve(stdout);
 			});
 		});
-		const processesForPort = stdout.split(/\r?\n/).filter(s => !!s.trim());
+		const processesForPort = stdout.split(regexp1).filter(s => !!s.trim());
 		if (processesForPort.length >= 1) {
-			const capturePid = /\s+(\d+)(?:\s+|$)/;
+			const capturePid = regexp2;
 			const processId = processesForPort[0].match(capturePid)?.[1];
 			if (processId) {
 				try {
@@ -512,7 +516,7 @@ export class PtyService extends Disposable implements IPtyService {
 				return original;
 			}
 			if (await getWindowsBuildNumberAsync() < 17063) {
-				return original.replace(/\\/g, '/');
+				return original.replace(new RegExp(regexp3), '/');
 			}
 			const wslExecutable = await this._getWSLExecutablePath();
 			if (!wslExecutable) {

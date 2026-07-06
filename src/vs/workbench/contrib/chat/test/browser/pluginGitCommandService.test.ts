@@ -19,6 +19,17 @@ import { InMemoryStorageService } from '../../../../../platform/storage/common/s
 import { AuthenticationSession, IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
 import { BrowserPluginGitCommandService } from '../../browser/pluginGitCommandService.js';
 import { parseGitHubCloneUrl } from '../../browser/githubRepoFetcher.js';
+const regexpCanOnlyBe = /can only be installed from GitHub HTTPS URLs/;
+const regexpCommitsMain = /\/commits\/main$/;
+const regexpSignInTo = /Sign in to GitHub/;
+const regexpGitTreesSha2 = /\/git\/trees\/sha2/;
+const regexpGitTreesSha1 = /\/git\/trees\/sha1/;
+const regexpGitBlobsReadme = /\/git\/blobs\/b-readme$/;
+const regexpNoCachedMetadata = /no cached metadata/;
+const regexpGitBlobsSafe = /\/git\/blobs\/b-safe$/;
+const regexpOnlyHEAD = /only HEAD/;
+const regexp10 = /[.*+?^${}()|[\]\\]/g;
+
 
 suite('BrowserPluginGitCommandService', () => {
 
@@ -80,12 +91,12 @@ suite('BrowserPluginGitCommandService', () => {
 		test('rejects non-GitHub clone URLs with an actionable message', async () => {
 			await assert.rejects(
 				() => service.cloneRepository('https://gitlab.com/foo/bar.git', targetDir),
-				/can only be installed from GitHub HTTPS URLs/,
+				regexpCanOnlyBe,
 			);
 		});
 
 		test('downloads tree + blobs and persists SHA metadata', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'deadbeef' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'deadbeef' }));
 			queueRepoFetch(requestStub, 'deadbeef', {
 				'README.md': 'hello\n',
 				'src/index.js': 'console.log(1);',
@@ -103,16 +114,16 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('surfaces a sign-in message on 401 when auth is unavailable', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, plainResponse(401));
+			requestStub.queue('GET', regexpCommitsMain, plainResponse(401));
 
 			await assert.rejects(
 				() => service.cloneRepository('https://github.com/octocat/Private.git', targetDir, 'main'),
-				/Sign in to GitHub/,
+				regexpSignInTo,
 			);
 		});
 
 		test('surfaces a GitHubRateLimitError on 403 with X-RateLimit-Remaining: 0', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, plainResponse(403, VSBuffer.fromString('rate limit'), {
+			requestStub.queue('GET', regexpCommitsMain, plainResponse(403, VSBuffer.fromString('rate limit'), {
 				'x-ratelimit-remaining': '0',
 				'retry-after': '60',
 			}));
@@ -137,8 +148,8 @@ suite('BrowserPluginGitCommandService', () => {
 				stubAuthenticationService({ createdAccessToken: 'repo-token', state }),
 			);
 
-			requestStub.queue('GET', /\/commits\/main$/, plainResponse(403));
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, plainResponse(403));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'private.txt': 'secret' });
 
 			await service.cloneRepository('https://github.com/octocat/Private.git', targetDir, 'main');
@@ -157,7 +168,7 @@ suite('BrowserPluginGitCommandService', () => {
 				stubAuthenticationService({ sessions: [createAuthenticationSession('signed-in-token')] }),
 			);
 
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'auth.txt': 'authed' });
 
 			await service.cloneRepository('https://github.com/octocat/Private.git', targetDir, 'main');
@@ -177,8 +188,8 @@ suite('BrowserPluginGitCommandService', () => {
 				stubAuthenticationService({ sessions: [createAuthenticationSession('sso-blocked-token')], state }),
 			);
 
-			requestStub.queue('GET', /\/commits\/main$/, plainResponse(403));
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, plainResponse(403));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'public.txt': 'public' });
 
 			await service.cloneRepository('https://github.com/octocat/Public.git', targetDir, 'main');
@@ -193,13 +204,13 @@ suite('BrowserPluginGitCommandService', () => {
 
 		test('failed extraction leaves the previous targetDir intact', async () => {
 			// First install: succeeds.
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'keep.txt': 'preserved' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
 			// Second install: tree fetch returns 500 -> aborts before touching the staged dir.
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha2' }));
-			requestStub.queue('GET', /\/git\/trees\/sha2/, plainResponse(500, VSBuffer.fromString('boom')));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha2' }));
+			requestStub.queue('GET', regexpGitTreesSha2, plainResponse(500, VSBuffer.fromString('boom')));
 
 			await assert.rejects(() => service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main'));
 
@@ -210,8 +221,8 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('skips symlink and submodule entries', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
-			requestStub.queue('GET', /\/git\/trees\/sha1/, jsonResponse(200, {
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpGitTreesSha1, jsonResponse(200, {
 				sha: 'sha1',
 				truncated: false,
 				tree: [
@@ -220,7 +231,7 @@ suite('BrowserPluginGitCommandService', () => {
 					{ path: 'subrepo', mode: '160000', type: 'commit', sha: 'b-sub' },
 				],
 			}));
-			requestStub.queue('GET', /\/git\/blobs\/b-readme$/, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('hi\n')), encoding: 'base64' }));
+			requestStub.queue('GET', regexpGitBlobsReadme, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('hi\n')), encoding: 'base64' }));
 
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
@@ -234,21 +245,21 @@ suite('BrowserPluginGitCommandService', () => {
 
 	suite('pull', () => {
 		test('returns false when upstream SHA is unchanged', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'a.txt': 'a' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 
 			assert.strictEqual(await service.pull(targetDir), false);
 		});
 
 		test('re-downloads tree and returns true when SHA moves', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', { 'a.txt': 'old' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha2' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha2' }));
 			queueRepoFetch(requestStub, 'sha2', { 'a.txt': 'new' });
 
 			assert.strictEqual(await service.pull(targetDir), true);
@@ -258,18 +269,18 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('throws when called for a target with no cached metadata', async () => {
-			await assert.rejects(() => service.pull(targetDir), /no cached metadata/);
+			await assert.rejects(() => service.pull(targetDir), regexpNoCachedMetadata);
 		});
 
 		test('clears stale files from a prior extraction', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
 			queueRepoFetch(requestStub, 'sha1', {
 				'keep.txt': 'k1',
 				'removed.txt': 'will be deleted',
 			});
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha2' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha2' }));
 			queueRepoFetch(requestStub, 'sha2', { 'keep.txt': 'k2' });
 			assert.strictEqual(await service.pull(targetDir), true);
 
@@ -279,8 +290,8 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('rejects path-traversal entries in the tree', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
-			requestStub.queue('GET', /\/git\/trees\/sha1/, jsonResponse(200, {
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpGitTreesSha1, jsonResponse(200, {
 				sha: 'sha1',
 				truncated: false,
 				tree: [
@@ -288,7 +299,7 @@ suite('BrowserPluginGitCommandService', () => {
 					{ path: '../escaped.txt', mode: '100644', type: 'blob', sha: 'b-escape', size: 4 },
 				],
 			}));
-			requestStub.queue('GET', /\/git\/blobs\/b-safe$/, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('safe')), encoding: 'base64' }));
+			requestStub.queue('GET', regexpGitBlobsSafe, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('safe')), encoding: 'base64' }));
 
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
@@ -301,8 +312,8 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('rejects backslash-traversal entries (Windows path separator)', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'sha1' }));
-			requestStub.queue('GET', /\/git\/trees\/sha1/, jsonResponse(200, {
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'sha1' }));
+			requestStub.queue('GET', regexpGitTreesSha1, jsonResponse(200, {
 				sha: 'sha1',
 				truncated: false,
 				tree: [
@@ -310,7 +321,7 @@ suite('BrowserPluginGitCommandService', () => {
 					{ path: '..\\..\\escaped.txt', mode: '100644', type: 'blob', sha: 'b-escape', size: 4 },
 				],
 			}));
-			requestStub.queue('GET', /\/git\/blobs\/b-safe$/, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('safe')), encoding: 'base64' }));
+			requestStub.queue('GET', regexpGitBlobsSafe, jsonResponse(200, { content: encodeBase64(new TextEncoder().encode('safe')), encoding: 'base64' }));
 
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
@@ -326,7 +337,7 @@ suite('BrowserPluginGitCommandService', () => {
 
 	suite('checkout', () => {
 		test('no-ops when the requested SHA matches the cached SHA', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'aabbccddeeff00112233445566778899aabbccdd' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'aabbccddeeff00112233445566778899aabbccdd' }));
 			queueRepoFetch(requestStub, 'aabbccddeeff00112233445566778899aabbccdd', { 'a.txt': 'a' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
@@ -336,7 +347,7 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('re-extracts when the SHA differs', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: '1111111111111111111111111111111111111111' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: '1111111111111111111111111111111111111111' }));
 			queueRepoFetch(requestStub, '1111111111111111111111111111111111111111', { 'a.txt': 'old' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
@@ -350,7 +361,7 @@ suite('BrowserPluginGitCommandService', () => {
 		});
 
 		test('throws when called for a target with no cached metadata', async () => {
-			await assert.rejects(() => service.checkout(targetDir, 'abc'), /no cached metadata/);
+			await assert.rejects(() => service.checkout(targetDir, 'abc'), regexpNoCachedMetadata);
 		});
 	});
 
@@ -358,14 +369,14 @@ suite('BrowserPluginGitCommandService', () => {
 
 	suite('revParse', () => {
 		test('throws when asked for an unrelated full SHA', async () => {
-			requestStub.queue('GET', /\/commits\/main$/, jsonResponse(200, { sha: 'aabbccddeeff00112233445566778899aabbccdd' }));
+			requestStub.queue('GET', regexpCommitsMain, jsonResponse(200, { sha: 'aabbccddeeff00112233445566778899aabbccdd' }));
 			queueRepoFetch(requestStub, 'aabbccddeeff00112233445566778899aabbccdd', { 'a.txt': 'a' });
 			await service.cloneRepository('https://github.com/octocat/Hello-World.git', targetDir, 'main');
 
 			// Querying the cached SHA still works
 			assert.strictEqual(await service.revParse(targetDir, 'aabbccddeeff00112233445566778899aabbccdd'), 'aabbccddeeff00112233445566778899aabbccdd');
 			// Querying an unrelated SHA must not silently lie
-			await assert.rejects(() => service.revParse(targetDir, '1111111111111111111111111111111111111111'), /only HEAD/);
+			await assert.rejects(() => service.revParse(targetDir, '1111111111111111111111111111111111111111'), regexpOnlyHEAD);
 		});
 	});
 
@@ -459,7 +470,7 @@ function encodeBase64(bytes: Uint8Array): string {
 }
 
 function escapeForRegExp(value: string): string {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	return value.replace(new RegExp(regexp10), '\\$&');
 }
 
 interface IStubAuthenticationServiceOptions {

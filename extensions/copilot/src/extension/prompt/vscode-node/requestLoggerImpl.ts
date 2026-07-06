@@ -30,6 +30,11 @@ import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { renderDataPartToString, renderToolResultToStringNoBudget } from './requestLoggerToolResult';
 import { WorkspaceEditRecorder } from './workspaceEditRecorder';
+const regexp1 = /(?<!\\)\\t/g;
+const regexp2 = /(?<!\\)\\n/g;
+const regexp3 = /(?!=\\)\\t/g;
+const regexp4 = /\\n/g;
+
 
 // Utility function to process deltas into a message string
 function processDeltasToMessage(deltas: IResponseDelta[]): string {
@@ -50,8 +55,8 @@ function processDeltasToMessage(deltas: IResponseDelta[]): string {
 				try {
 					const parsedArgs = JSON.parse(c.arguments);
 					argsStr = JSON.stringify(parsedArgs, undefined, 2)
-						.replace(/(?<!\\)\\n/g, '\n')
-						.replace(/(?<!\\)\\t/g, '\t');
+						.replace(new RegExp(regexp2), '\n')
+						.replace(new RegExp(regexp1), '\t');
 				} catch (e) { }
 				return `🛠️ ${c.name} (${c.id}) ${argsStr}`;
 			}).join('\n');
@@ -551,8 +556,8 @@ export class RequestLogger extends AbstractRequestLogger {
 		if (typeof entry.args === 'string') {
 			try {
 				args = JSON.stringify(JSON.parse(entry.args), undefined, 2)
-					.replace(/\\n/g, '\n')
-					.replace(/(?!=\\)\\t/g, '\t');
+					.replace(new RegExp(regexp4), '\n')
+					.replace(new RegExp(regexp3), '\t');
 			} catch {
 				args = entry.args;
 			}

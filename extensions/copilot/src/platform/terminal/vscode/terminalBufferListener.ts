@@ -7,6 +7,8 @@ import { Disposable, Terminal, TerminalExecutedCommand, window } from 'vscode';
 import { basename } from '../../../util/vs/base/common/path';
 import { platform } from '../../../util/vs/base/common/process';
 import { removeAnsiEscapeCodes } from '../../../util/vs/base/common/strings';
+const regexp1 = /\..+/;
+
 
 const terminalBuffers: Map<Terminal, string[]> = new Map();
 const terminalCommands: Map<Terminal, TerminalExecutedCommand[]> = new Map();
@@ -73,7 +75,7 @@ export function getActiveTerminalShellType(): string {
 			if (shellFile === 'bash.exe') {
 				candidateShellType = 'Git Bash';
 			} else {
-				const shellFileWithoutExtension = shellFile.replace(/\..+/, '');
+				const shellFileWithoutExtension = shellFile.replace(regexp1, '');
 				switch (shellFileWithoutExtension) {
 					case 'pwsh':
 					case 'powershell':

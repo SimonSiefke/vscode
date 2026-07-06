@@ -11,6 +11,9 @@ import { createLibTestingContext } from '../../test/context';
 import { makeFsUri } from '../../util/uri';
 import { extractRepoInfo } from '../repository';
 import { IInstantiationService } from '../../../../../../../util/vs/platform/instantiation/common/instantiation';
+const regexpGithubComOrg = /github\.com[:/](?<org>[^/]+)\/(?<repo>[^/.]+)/;
+const regexpFile = /^file:/;
+
 
 function findGitRoot(startDir: string): string {
 	let dir = startDir;
@@ -26,7 +29,7 @@ function findGitRoot(startDir: string): string {
 
 function getOriginInfo(gitRoot: string): { org: string; repo: string } {
 	const originUrl = execSync('git config --get remote.origin.url', { cwd: gitRoot, encoding: 'utf-8' }).trim();
-	const match = originUrl.match(/github\.com[:/](?<org>[^/]+)\/(?<repo>[^/.]+)/);
+	const match = originUrl.match(regexpGithubComOrg);
 	if (!match?.groups) {
 		throw new Error(`Could not parse origin URL: ${originUrl}`);
 	}
@@ -70,7 +73,7 @@ suite('Extract repo info tests', function () {
 	});
 
 	test('Extract repo info - Jupyter Notebook vscode-notebook-cell ', async function () {
-		const cellUri = baseFolder.uri.replace(/^file:/, 'vscode-notebook-cell:');
+		const cellUri = baseFolder.uri.replace(regexpFile, 'vscode-notebook-cell:');
 		assert.ok(cellUri.startsWith('vscode-notebook-cell:'));
 		const accessor = createLibTestingContext().createTestingAccessor();
 		const instantiationService = accessor.get(IInstantiationService);

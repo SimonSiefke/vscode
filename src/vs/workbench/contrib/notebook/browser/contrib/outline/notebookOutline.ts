@@ -54,6 +54,8 @@ import { INotebookCellOutlineDataSourceFactory } from '../../viewModel/notebookO
 import { INotebookExecutionStateService, NotebookExecutionType } from '../../../common/notebookExecutionStateService.js';
 import { ILanguageFeaturesService } from '../../../../../../editor/common/services/languageFeatures.js';
 import { safeIntl } from '../../../../../../base/common/date.js';
+const regexpInline = /^inline/;
+
 
 class NotebookOutlineTemplate {
 
@@ -254,7 +256,7 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 }
 
 function getOutlineToolbarActions(menu: IMenu, args?: NotebookOutlineEntryArgs): { primary: IAction[]; secondary: IAction[] } {
-	return getActionBarActions(menu.getActions({ shouldForwardArgs: true, arg: args }), g => /^inline/.test(g));
+	return getActionBarActions(menu.getActions({ shouldForwardArgs: true, arg: args }), g => regexpInline.test(g));
 }
 
 class NotebookOutlineAccessibility implements IListAccessibilityProvider<OutlineEntry> {

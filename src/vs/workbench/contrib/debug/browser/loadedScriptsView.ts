@@ -42,6 +42,10 @@ import { CONTEXT_LOADED_SCRIPTS_ITEM_TYPE, IDebugService, IDebugSession, LOADED_
 import { DebugContentProvider } from '../common/debugContentProvider.js';
 import { Source } from '../common/debugSource.js';
 import { renderViewTree } from './baseDebugView.js';
+const regexpHttps = /^(https?:\/\/[^/]+)(\/.*)$/;
+const regexp2 = /^<.+>$/;
+const regexp3 = /[\/\\]/;
+
 
 const NEW_STYLE_COMPRESS = true;
 
@@ -262,7 +266,7 @@ class RootTreeItem extends BaseTreeItem {
 
 class SessionTreeItem extends BaseTreeItem {
 
-	private static readonly URL_REGEXP = /^(https?:\/\/[^/]+)(\/.*)$/;
+	private static readonly URL_REGEXP = regexpHttps;
 
 	private _session: IDebugSession;
 	private _map = new Map<string, BaseTreeItem>();
@@ -308,7 +312,7 @@ class SessionTreeItem extends BaseTreeItem {
 
 		// <...> come at the very end
 		const l = item.getLabel();
-		if (l && /^<.+>$/.test(l)) {
+		if (l && regexp2.test(l)) {
 			return 1000;
 		}
 
@@ -363,7 +367,7 @@ class SessionTreeItem extends BaseTreeItem {
 		}
 
 		let leaf: BaseTreeItem = this;
-		path.split(/[\/\\]/).forEach((segment, i) => {
+		path.split(regexp3).forEach((segment, i) => {
 			if (i === 0 && folder) {
 				const f = folder;
 				leaf = leaf.createIfNeeded(folder.name, parent => new RootFolderTreeItem(parent, f));

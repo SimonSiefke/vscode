@@ -68,6 +68,8 @@ import { IWorkbenchEnvironmentService } from '../../../../../services/environmen
 import { ChatConfiguration, type IChatDefaultConfiguration } from '../../../common/constants.js';
 import { IChatService } from '../../../common/chatService/chatService.js';
 import { IAgentHostNewSessionFolderService } from './agentHostNewSessionFolderService.js';
+const regexp1 = /^\//;
+
 
 export const IAgentHostUntitledProvisionalSessionService =
 	createDecorator<IAgentHostUntitledProvisionalSessionService>('agentHostUntitledProvisionalSessionService');
@@ -503,7 +505,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 	 * to the agent-host backend URI (`PROVIDER:/<id>`).
 	 */
 	private _toBackendUri(sessionResource: URI, provider: string): URI {
-		const rawId = sessionResource.path.replace(/^\//, '');
+		const rawId = sessionResource.path.replace(regexp1, '');
 		return URI.from({ scheme: provider, path: `/${rawId}` });
 	}
 

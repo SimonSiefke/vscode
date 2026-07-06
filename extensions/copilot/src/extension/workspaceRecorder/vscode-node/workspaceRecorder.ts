@@ -16,6 +16,8 @@ import { StringEdit } from '../../../util/vs/editor/common/core/edits/stringEdit
 import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRange';
 import { FlushableJSONFile, FlushableSafeJSONLFile, getFileSize } from './safeFileWriteUtils';
 import { computeShortSha } from './utils';
+const regexp1 = /:/g;
+
 
 interface IWorkspaceRecorderContext {
 	isIgnoredDocument(documentUri: string): Promise<boolean>;
@@ -127,7 +129,7 @@ export class WorkspaceRecorderImpl extends Disposable {
 			const date = new Date();
 
 			function formatDateFileNameSafe(date: Date): string {
-				return date.toISOString().replace(/:/g, '-');
+				return date.toISOString().replace(new RegExp(regexp1), '-');
 			}
 
 			await rename(logFilePath, path.join(recordingDirPath, `${state.value.logCount}.${formatDateFileNameSafe(date)}.workspaceRecording.jsonl`));

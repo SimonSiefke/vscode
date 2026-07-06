@@ -2,13 +2,15 @@
  *  Copyright (c) Microsoft Corporation and GitHub. All rights reserved.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /^(\d\d-\w+)-[^.]+$/;
+
 const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 
 
 fs.readdirSync(__dirname).forEach(function (file) {
-	const match = file.match(/^(\d\d-\w+)-[^.]+$/);
+	const match = file.match(regexp1);
 	if (match) {
 
 		const originalName = match[1];

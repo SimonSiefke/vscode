@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { Uri } from 'vscode';
+const regexpVscodeDev = /(?:^|\.)vscode\.dev$/;
+const regexpGithubDev = /(?:^|\.)github\.dev$/;
+const regexpLocalhost = /^localhost:\d+$/;
+const regexp4 = /^127\.0\.0\.1:\d+$/;
+
 
 export const DEFAULT_REDIRECT_URI = 'https://vscode.dev/redirect';
 
@@ -24,12 +29,12 @@ export function isSupportedClient(uri: Uri): boolean {
 	return (
 		VALID_DESKTOP_CALLBACK_SCHEMES.includes(uri.scheme) ||
 		// vscode.dev & insiders.vscode.dev
-		/(?:^|\.)vscode\.dev$/.test(uri.authority) ||
+		regexpVscodeDev.test(uri.authority) ||
 		// github.dev & codespaces
-		/(?:^|\.)github\.dev$/.test(uri.authority) ||
+		regexpGithubDev.test(uri.authority) ||
 		// localhost
-		/^localhost:\d+$/.test(uri.authority) ||
+		regexpLocalhost.test(uri.authority) ||
 		// 127.0.0.1
-		/^127\.0\.0\.1:\d+$/.test(uri.authority)
+		regexp4.test(uri.authority)
 	);
 }

@@ -15,6 +15,8 @@ import { ILogService } from '../../../platform/log/common/logService';
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
 import { Disposable, DisposableStore, IDisposable } from '../../../util/vs/base/common/lifecycle';
 import { createDecorator } from '../../../util/vs/platform/instantiation/common/instantiation';
+const regexpZ0 = /[^a-z0-9_-]/gi;
+
 
 export interface IGitHubOrgChatResourcesService extends IDisposable {
 	/**
@@ -260,7 +262,7 @@ export class GitHubOrgChatResourcesService extends Disposable implements IGitHub
 	}
 
 	private sanitizeFilename(name: string): string {
-		return name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+		return name.replace(new RegExp(regexpZ0), '_').toLowerCase();
 	}
 
 	private async ensureCacheDir(orgName: string, type: PromptsType): Promise<void> {

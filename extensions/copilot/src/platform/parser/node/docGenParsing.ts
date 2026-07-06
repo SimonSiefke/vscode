@@ -9,6 +9,8 @@ import { _parse } from './parserWithCaching';
 import { _getNodeMatchingSelection } from './selectionParsing';
 import { WASMLanguage } from './treeSitterLanguages';
 import { extractIdentifier, isDocumentableNode, unwrapPythonDecoratedDefinition } from './util';
+const regexpIdentifier = /identifier/;
+
 
 
 export type NodeToDocumentContext = {
@@ -96,7 +98,7 @@ export async function _getDocumentableNodeIfOnIdentifier(
 
 		const smallestNodeContainingRange = treeRef.tree.rootNode.descendantForIndex(range.startIndex, range.endIndex);
 
-		if (smallestNodeContainingRange.type.match(/identifier/) &&
+		if (smallestNodeContainingRange.type.match(regexpIdentifier) &&
 			(smallestNodeContainingRange.parent === null || isDocumentableNode(smallestNodeContainingRange.parent, language))
 		) {
 			const parent = smallestNodeContainingRange.parent === null

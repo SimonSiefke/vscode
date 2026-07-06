@@ -93,6 +93,22 @@ import type { IProgressState } from '@xterm/addon-progress';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { PromptInputState } from '../../../../platform/terminal/common/capabilities/commandDetection/promptInputModel.js';
 import { hasKey, isNumber, isString } from '../../../../base/common/types.js';
+const regexp1 = /\r?\n/g;
+const regexpSeq = /(?<seq>\x1b\][16]33;(?:C|D(?:;\d+)?)\x07)/g;
+const regexpZAZA = /^[a-zA-Z]:\\.+\.[a-zA-Z]{1,3}/;
+const regexp4 = /^\d+$/;
+const regexp5 = /[\n\r\t]/g;
+const regexpErrorCode = /.*error code:\s*(\d+).*$/;
+const regexpJulia = /^julia$/;
+const regexpNode = /^node$/;
+const regexpNu = /^nu$/;
+const regexpPwshPreviewPowershell = /^pwsh(-preview)?|powershell$/;
+const regexpPyThon = /^py(?:thon)?$/;
+const regexpXonsh = /^xonsh/;
+const regexpCmd = /^cmd$/;
+const regexpBash = /^bash$/;
+const regexpWsl = /^wsl$/;
+
 
 const enum Constants {
 	/**
@@ -1382,7 +1398,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		}
 
 		// Normalize line endings to 'enter' press.
-		text = text.replace(/\r?\n/g, '\r');
+		text = text.replace(new RegExp(regexp1), '\r');
 		if (shouldExecute && !text.endsWith('\r')) {
 			text += '\r';
 		}
@@ -1652,7 +1668,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		// a listener for when individual data events are parsed, only `onWriteParsed` which fires
 		// when the write buffer is flushed.
 		const leadingSegmentedData: string[] = [];
-		const matches = ev.data.matchAll(/(?<seq>\x1b\][16]33;(?:C|D(?:;\d+)?)\x07)/g);
+		const matches = ev.data.matchAll(new RegExp(regexpSeq));
 		let i = 0;
 		for (const match of matches) {
 			if (match.groups?.seq === undefined) {
@@ -2147,7 +2163,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				// absolute Windows file path
 				this._sequence = title;
 				if (this._processManager.os === OperatingSystem.Windows &&
-					title.match(/^[a-zA-Z]:\\.+\.[a-zA-Z]{1,3}/)) {
+					title.match(regexpZAZA)) {
 					this._sequence = path.win32.parse(title).name;
 				}
 				break;
@@ -2174,7 +2190,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		const cols = await this._quickInputService.input({
 			title: nls.localize('setTerminalDimensionsColumn', "Set Fixed Dimensions: Column"),
 			placeHolder: 'Enter a number of columns or leave empty for automatic width',
-			validateInput: async (text) => text.length > 0 && !text.match(/^\d+$/) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
+			validateInput: async (text) => text.length > 0 && !text.match(regexp4) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
 		});
 		if (cols === undefined) {
 			return;
@@ -2185,7 +2201,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		const rows = await this._quickInputService.input({
 			title: nls.localize('setTerminalDimensionsRow', "Set Fixed Dimensions: Row"),
 			placeHolder: 'Enter a number of rows or leave empty for automatic height',
-			validateInput: async (text) => text.length > 0 && !text.match(/^\d+$/) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
+			validateInput: async (text) => text.length > 0 && !text.match(regexp4) ? { content: 'Enter a number or leave empty size automatically', severity: Severity.Error } : undefined
 		});
 		if (rows === undefined) {
 			return;
@@ -2774,7 +2790,7 @@ export class TerminalLabelComputer extends Disposable {
 			return labelType === TerminalLabelType.Title ? (instance.processName || '') : '';
 		}
 		if (!reset && instance.staticTitle && labelType === TerminalLabelType.Title) {
-			return instance.staticTitle.replace(/[\n\r\t]/g, '') || templateProperties.process?.replace(/[\n\r\t]/g, '') || '';
+			return instance.staticTitle.replace(new RegExp(regexp5), '') || templateProperties.process?.replace(new RegExp(regexp5), '') || '';
 		}
 		const detection = instance.capabilities.has(TerminalCapability.CwdDetection) || instance.capabilities.has(TerminalCapability.NaiveCwdDetection);
 		const folders = this._workspaceContextService.getWorkspace().folders;
@@ -2801,7 +2817,7 @@ export class TerminalLabelComputer extends Disposable {
 		}
 
 		// Remove special characters that could mess with rendering
-		const label = template(labelTemplate, (templateProperties as unknown) as { [key: string]: string | ISeparator | undefined | null }).replace(/[\n\r\t]/g, '').trim();
+		const label = template(labelTemplate, (templateProperties as unknown) as { [key: string]: string | ISeparator | undefined | null }).replace(new RegExp(regexp5), '').trim();
 		return label === '' && labelType === TerminalLabelType.Title ? (instance.processName || '') : label;
 	}
 
@@ -2867,7 +2883,7 @@ export function parseExitResult(
 			}
 			// Convert conpty code-based failures into human friendly messages
 			let innerMessage = exitCodeOrError.message;
-			const conptyError = exitCodeOrError.message.match(/.*error code:\s*(\d+).*$/);
+			const conptyError = exitCodeOrError.message.match(regexpErrorCode);
 			if (conptyError) {
 				const errorCode = conptyError.length > 1 ? parseInt(conptyError[1]) : undefined;
 				switch (errorCode) {
@@ -2917,12 +2933,12 @@ export class TerminalInstanceColorProvider implements IXtermColorProvider {
 function guessShellTypeFromExecutable(os: OperatingSystem, executable: string): TerminalShellType | undefined {
 	const exeBasename = path.basename(executable);
 	const generalShellTypeMap: Map<TerminalShellType, RegExp> = new Map([
-		[GeneralShellType.Julia, /^julia$/],
-		[GeneralShellType.Node, /^node$/],
-		[GeneralShellType.NuShell, /^nu$/],
-		[GeneralShellType.PowerShell, /^pwsh(-preview)?|powershell$/],
-		[GeneralShellType.Python, /^py(?:thon)?$/],
-		[GeneralShellType.Xonsh, /^xonsh/]
+		[GeneralShellType.Julia, regexpJulia],
+		[GeneralShellType.Node, regexpNode],
+		[GeneralShellType.NuShell, regexpNu],
+		[GeneralShellType.PowerShell, regexpPwshPreviewPowershell],
+		[GeneralShellType.Python, regexpPyThon],
+		[GeneralShellType.Xonsh, regexpXonsh]
 	]);
 	for (const [shellType, pattern] of generalShellTypeMap) {
 		if (exeBasename.match(pattern)) {
@@ -2932,9 +2948,9 @@ function guessShellTypeFromExecutable(os: OperatingSystem, executable: string): 
 
 	if (os === OperatingSystem.Windows) {
 		const windowsShellTypeMap: Map<TerminalShellType, RegExp> = new Map([
-			[WindowsShellType.CommandPrompt, /^cmd$/],
-			[WindowsShellType.GitBash, /^bash$/],
-			[WindowsShellType.Wsl, /^wsl$/]
+			[WindowsShellType.CommandPrompt, regexpCmd],
+			[WindowsShellType.GitBash, regexpBash],
+			[WindowsShellType.Wsl, regexpWsl]
 		]);
 		for (const [shellType, pattern] of windowsShellTypeMap) {
 			if (exeBasename.match(pattern)) {

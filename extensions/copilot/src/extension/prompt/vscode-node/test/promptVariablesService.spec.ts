@@ -16,6 +16,10 @@ import { IInstantiationService } from '../../../../util/vs/platform/instantiatio
 import { Uri } from '../../../../vscodeTypes';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { PromptVariablesServiceImpl } from '../promptVariablesService';
+const regexpLogsTargetLogs = /\/logs\/target-1, \/logs\/target-2/;
+const regexpVSCODETARGETSESSION = /VSCODE_TARGET_SESSION_LOG:\s*$/m;
+const regexpPrompts = /prompts/;
+
 
 class MockChatDebugFileLoggerService extends NullChatDebugFileLoggerService {
 	private readonly _sessionDirs = new Map<string, URI>();
@@ -153,7 +157,7 @@ describe('PromptVariablesServiceImpl', () => {
 			expect(result).toContain('/logs/target-1');
 			expect(result).toContain('/logs/target-2');
 			// Both paths joined with comma
-			expect(result).toMatch(/\/logs\/target-1, \/logs\/target-2/);
+			expect(result).toMatch(regexpLogsTargetLogs);
 		});
 
 		test('skips debugTargetSessionIds whose session dirs are missing', () => {
@@ -180,7 +184,7 @@ describe('PromptVariablesServiceImpl', () => {
 			// The resolver returns '' (empty string) when all dirs are missing, not undefined,
 			// so the variable is still present in the output with an empty value.
 			expect(result).toContain('VSCODE_TARGET_SESSION_LOG');
-			expect(result).toMatch(/VSCODE_TARGET_SESSION_LOG:\s*$/m);
+			expect(result).toMatch(regexpVSCODETARGETSESSION);
 		});
 
 		test('includes VSCODE_USER_PROMPTS_FOLDER derived from global storage URI', () => {
@@ -191,7 +195,7 @@ describe('PromptVariablesServiceImpl', () => {
 			const result = svc.buildTemplateVariablesContext(undefined);
 			expect(result).toContain('VSCODE_USER_PROMPTS_FOLDER');
 			// The path should end with /prompts
-			expect(result).toMatch(/prompts/);
+			expect(result).toMatch(regexpPrompts);
 		});
 
 		test('returns empty string when sessionId has no session dir and no debugTargetSessionIds', () => {

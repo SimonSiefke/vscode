@@ -30,6 +30,29 @@ import https from 'https';
 import { fetchUriText } from './apply-overrides.js';
 import { parseNoticeFile } from './parse-notices.js';
 import { parseArgs } from './utils.js';
+const regexpLicenseMdTxt = /^license(\.md|\.txt|\.mit|\.bsd|\.apache)?$/i;
+const regexpLicenceMdTxt = /^licence(\.md|\.txt)?$/i;
+const regexpGithubComGit = /github\.com[/:]([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/#?].*)?$/i;
+const regexp4 = /^\.{1,2}\//;
+const regexpPackage = /^\s*\[\[package\]\]\s*$/m;
+const regexpNameVersionSource = /^(name|version|source)\s*=\s*"([^"]*)"/;
+const regexp7 = /\n/;
+// allow-any-unicode-next-line
+const regexpCopyrightPermissionRedistribution = /copyright|permission|redistribution|warranty|\(c\)|©/i;
+const regexp9 = /\s+/g;
+const regexp10 = /[()]/g;
+const regexpZaZ0OR = /^[A-Za-z0-9.+-]+(?:\s*(?:\/|\s+(?:OR|AND|WITH)\s+)\s*[A-Za-z0-9.+-]+)*$/;
+const regexpORANDWITH = /\s*\/\s*|\s+(?:OR|AND|WITH)\s+/;
+const regexpZa = /[A-Za-z]/;
+const regexpLICENSE = /\.\/LICENSE/i;
+const regexpLicenSc = /^#+\s*licen[sc]e\b/i;
+const regexpAtYourOption = /at your option|licensing (of|in)|\bLICENSE-[A-Z]/i;
+const regexpBAND = /\bAND\b/;
+const regexpGit = /\.git$/;
+const regexpGit1 = /^git\+/;
+const regexpGnuMuslMsvc = /-(gnu|musl|msvc|glibc|gnueabihf|eabihf|androideabi)$/;
+const regexp21 = /^[/-]/;
+
 
 interface LicenseEntry {
 	name: string;
@@ -66,8 +89,8 @@ function findLicenseFile(pkgDir: string): string | undefined {
 	try {
 		const files = fs.readdirSync(pkgDir);
 		const licenseFile = files.find(f =>
-			/^license(\.md|\.txt|\.mit|\.bsd|\.apache)?$/i.test(f) ||
-			/^licence(\.md|\.txt)?$/i.test(f)
+			regexpLicenseMdTxt.test(f) ||
+			regexpLicenceMdTxt.test(f)
 		);
 		return licenseFile ? path.join(pkgDir, licenseFile) : undefined;
 	} catch {
@@ -85,7 +108,7 @@ function findLicenseFile(pkgDir: string): string | undefined {
  * is GitHub-hosted. Other hosts return [] and fall through to a warning.
  */
 function githubRawLicenseCandidates(repositoryUrl: string, commitHash: string): string[] {
-	const m = repositoryUrl.match(/github\.com[/:]([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/#?].*)?$/i);
+	const m = repositoryUrl.match(regexpGithubComGit);
 	if (!m) {
 		return [];
 	}
@@ -119,7 +142,7 @@ export async function fetchLicenseFromGitRepo(repositoryUrl: string, commitHash:
 		}
 		const trimmed = text.trim();
 		// Reject symlink-target stubs (short relative paths) and empty bodies.
-		if (trimmed.length > MIN_LICENSE_BODY_LENGTH && !/^\.{1,2}\//.test(trimmed)) {
+		if (trimmed.length > MIN_LICENSE_BODY_LENGTH && !regexp4.test(trimmed)) {
 			return trimmed;
 		}
 	}
@@ -158,7 +181,7 @@ export interface CargoPackage {
 export function parseCargoLock(content: string): CargoPackage[] {
 	const packages: CargoPackage[] = [];
 	// Split on the [[package]] table header. Each block holds key = "value" lines.
-	const blocks = content.split(/^\s*\[\[package\]\]\s*$/m);
+	const blocks = content.split(regexpPackage);
 	// blocks[0] is the file preamble (version = 3, etc.) -- skip it.
 	for (let i = 1; i < blocks.length; i++) {
 		const block = blocks[i];
@@ -171,7 +194,7 @@ export function parseCargoLock(content: string): CargoPackage[] {
 			if (line.startsWith('[')) {
 				break;
 			}
-			const m = line.match(/^(name|version|source)\s*=\s*"([^"]*)"/);
+			const m = line.match(regexpNameVersionSource);
 			if (!m) {
 				continue;
 			}
@@ -242,13 +265,13 @@ export function isSpdxStub(body: string): boolean {
 		return false;
 	}
 	// Gate 2: single logical line -- real license texts are multi-line.
-	if (trimmed.split(/\n/).filter(l => l.trim()).length > 1) {
+	if (trimmed.split(regexp7).filter(l => l.trim()).length > 1) {
 		return false;
 	}
 	// Gate 3: no license-prose words. A real license
 	// always has at least one; an SPDX stub never does. (Case-insensitive.)
 	// allow-any-unicode-next-line
-	if (/copyright|permission|redistribution|warranty|\(c\)|©/i.test(trimmed)) {
+	if (regexpCopyrightPermissionRedistribution.test(trimmed)) {
 		return false;
 	}
 	// Gate 4: SPDX-expression shape. Tokens separated by uppercase OR/AND/WITH
@@ -257,19 +280,19 @@ export function isSpdxStub(body: string): boolean {
 	// expression from prose like "Permission is granted...". Parens are stripped
 	// first (mirroring gate 5) so compound expressions with INTERNAL parens like
 	// "(MIT OR Apache-2.0) AND BSD-3-Clause" (e.g. encoding_rs) are still detected.
-	const deparen = trimmed.replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
-	const spdxShape = /^[A-Za-z0-9.+-]+(?:\s*(?:\/|\s+(?:OR|AND|WITH)\s+)\s*[A-Za-z0-9.+-]+)*$/;
+	const deparen = trimmed.replace(new RegExp(regexp10), ' ').replace(new RegExp(regexp9), ' ').trim();
+	const spdxShape = regexpZaZ0OR;
 	if (!spdxShape.test(deparen)) {
 		return false;
 	}
 	// Gate 5: token sanity -- every non-operator/non-separator token must contain
 	// a letter (guards against a punctuation-only body sneaking through).
 	const tokens = trimmed
-		.replace(/[()]/g, ' ')
-		.split(/\s*\/\s*|\s+(?:OR|AND|WITH)\s+/)
+		.replace(new RegExp(regexp10), ' ')
+		.split(regexpORANDWITH)
 		.map(t => t.trim())
 		.filter(t => t.length > 0);
-	if (tokens.length === 0 || !tokens.every(t => /[A-Za-z]/.test(t))) {
+	if (tokens.length === 0 || !tokens.every(t => regexpZa.test(t))) {
 		return false;
 	}
 	return true;
@@ -339,7 +362,7 @@ async function runWithConcurrency(tasks: Array<() => Promise<void>>, limit: numb
 
 /** Extract {owner, repo} from a GitHub repository URL, or undefined if not GitHub. */
 function githubOwnerRepo(repositoryUrl: string): { owner: string; repo: string } | undefined {
-	const m = repositoryUrl.match(/github\.com[/:]([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/#?].*)?$/i);
+	const m = repositoryUrl.match(regexpGithubComGit);
 	return m ? { owner: m[1], repo: m[2] } : undefined;
 }
 
@@ -354,11 +377,11 @@ function isRealLicenseBody(text: string): boolean {
 	if (t.length <= MIN_LICENSE_BODY_LENGTH) {
 		return false;
 	}
-	if (/^\.{1,2}\//.test(t)) {
+	if (regexp4.test(t)) {
 		return false;
 	}
 	// Pointer/aggregate docs reference other license files by relative path.
-	if (/\.\/LICENSE/i.test(t)) {
+	if (regexpLICENSE.test(t)) {
 		return false;
 	}
 	// Aggregate "# License" pointer docs (e.g. objc2's LICENSE.md) start with a
@@ -366,7 +389,7 @@ function isRealLicenseBody(text: string): boolean {
 	// real per-license files, rather than being actual license text. Real
 	// licenses start with "MIT License", "Copyright", "Apache License",
 	// "Permission...", etc. -- never a "# License" heading -- so this is safe.
-	if (/^#+\s*licen[sc]e\b/i.test(t) && /at your option|licensing (of|in)|\bLICENSE-[A-Z]/i.test(t)) {
+	if (regexpLicenSc.test(t) && regexpAtYourOption.test(t)) {
 		return false;
 	}
 	return true;
@@ -386,9 +409,9 @@ const SPDX_LICENSE_FILENAMES: { [id: string]: string[] } = {
 /** Split an SPDX expression into its license ids (drop OR/AND/WITH and `/`). */
 export function spdxLicenseIds(expr: string): string[] {
 	const ids: string[] = [];
-	for (const raw of (expr || '').split(/\s*\/\s*|\s+(?:OR|AND|WITH)\s+/)) {
-		const id = raw.replace(/[()]/g, '').trim();
-		if (id.length > 0 && /[A-Za-z]/.test(id) && ids.indexOf(id) === -1) {
+	for (const raw of (expr || '').split(regexpORANDWITH)) {
+		const id = raw.replace(new RegExp(regexp10), '').trim();
+		if (id.length > 0 && regexpZa.test(id) && ids.indexOf(id) === -1) {
 			ids.push(id);
 		}
 	}
@@ -404,7 +427,7 @@ export function spdxLicenseIds(expr: string): string[] {
  * presence detection -- an `AND` anywhere makes at least one conjunction.
  */
 export function hasSpdxAnd(expr: string): boolean {
-	return /\bAND\b/.test(expr || '');
+	return regexpBAND.test(expr || '');
 }
 
 /** Candidate file paths (relative to repo root) for a given SPDX license id. */
@@ -482,7 +505,7 @@ function readPkgJson(pkgDir: string): { name: string; version: string; license: 
 			name: pkg.name || '',
 			version: pkg.version || '',
 			license: typeof pkg.license === 'string' ? pkg.license : '',
-			repository: repo.replace(/^git\+/, '').replace(/\.git$/, ''),
+			repository: repo.replace(regexpGit1, '').replace(regexpGit, ''),
 		};
 	} catch {
 		return undefined;
@@ -702,7 +725,7 @@ export function builtInExtensionLockfileUrl(repo: string, version: string): stri
 	if (!repo || !version) {
 		return undefined;
 	}
-	const m = repo.match(/github\.com[/:]([^/]+)\/([^/#?]+?)(?:\.git)?(?:[/#?].*)?$/i);
+	const m = repo.match(regexpGithubComGit);
 	if (!m) {
 		return undefined;
 	}
@@ -779,7 +802,7 @@ export function isShippedArch(name: string): boolean {
 		return false;
 	}
 	// Remove the leading separator and any trailing ABI qualifier
-	const suffix = m[0].replace(/^[/-]/, '').replace(/-(gnu|musl|msvc|glibc|gnueabihf|eabihf|androideabi)$/, '');
+	const suffix = m[0].replace(regexp21, '').replace(regexpGnuMuslMsvc, '');
 	return _buildShippedSuffixes().has(suffix);
 }
 
@@ -821,7 +844,7 @@ function normalizeRepoUrl(repo: unknown): string {
 	} else if (repo && typeof repo === 'object' && typeof (repo as { url?: unknown }).url === 'string') {
 		url = (repo as { url: string }).url;
 	}
-	return url.replace(/^git\+/, '').replace(/\.git$/, '');
+	return url.replace(regexpGit1, '').replace(regexpGit, '');
 }
 
 /** Read and JSON-parse a package's package.json, returning the raw object (or undefined). */

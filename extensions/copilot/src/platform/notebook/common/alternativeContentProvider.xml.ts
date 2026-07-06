@@ -10,6 +10,9 @@ import { EndOfLine, NotebookCellKind, Position } from '../../../vscodeTypes';
 import { BaseAlternativeNotebookContentProvider } from './alternativeContentProvider';
 import { AlternativeNotebookDocument } from './alternativeNotebookDocument';
 import { EOL, getCellIdMap, getDefaultLanguage, LineOfCellText, LineOfText, summarize, SummaryCell } from './helpers';
+const regexpId = /id="([^"]+)"/;
+const regexpLanguage = /language="([^"]+)"/;
+
 
 const StartDelimter = `<VSCode.Cell `;
 const StartEmptyCellDelimter = `<VSCode.Cell>`;
@@ -224,8 +227,8 @@ export class AlternativeXmlNotebookContentProvider extends BaseAlternativeNotebo
 
 
 function extractCellParts(line: string, defaultLanguage: string | undefined): { id: string; language: string } {
-	const idMatch = line.match(/id="([^"]+)"/);
-	const languageMatch = line.match(/language="([^"]+)"/);
+	const idMatch = line.match(regexpId);
+	const languageMatch = line.match(regexpLanguage);
 	if (!languageMatch) {
 		if (isXmlContent(line) && typeof defaultLanguage === 'string') {
 			// If we have a cell marker but no language, we assume the default language.

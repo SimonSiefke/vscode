@@ -31,6 +31,8 @@ import { FileVariable } from './fileVariable';
 import { ProjectLabels } from './projectLabels';
 import { workspaceVisualFileTree } from './workspace/visualFileTree';
 import { MultirootWorkspaceStructure, WorkspaceStructureMetadata } from './workspace/workspaceStructure';
+const regexp1 = /`(.*?)`/;
+
 
 export const enum StartDebuggingType {
 	UserQuery,
@@ -318,7 +320,7 @@ export class StartDebuggingPrompt extends PromptElement<StartDebuggingPromptProp
 		}
 
 		// The model likes to return text like "You should use `node", so detect backticks
-		return /`(.*?)`/.exec(fetchResult.value)?.[1] || fetchResult.value;
+		return regexp1.exec(fetchResult.value)?.[1] || fetchResult.value;
 	}
 
 	private getAllDebuggerTypes(): string[] {

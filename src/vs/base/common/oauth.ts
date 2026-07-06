@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { decodeBase64 } from './buffer.js';
+const regexp1 = /^"|"$/g;
+
 
 const WELL_KNOWN_ROUTE = '/.well-known';
 export const AUTH_PROTECTED_RESOURCE_METADATA_DISCOVERY_PATH = `${WELL_KNOWN_ROUTE}/oauth-protected-resource`;
@@ -1071,7 +1073,7 @@ export function parseWWWAuthenticateHeader(wwwAuthenticateHeaderValue: string): 
 					const equalIndex = afterSpace.indexOf('=');
 					if (equalIndex > 0) {
 						const key = afterSpace.substring(0, equalIndex).trim();
-						const value = afterSpace.substring(equalIndex + 1).trim().replace(/^"|"$/g, '');
+						const value = afterSpace.substring(equalIndex + 1).trim().replace(new RegExp(regexp1), '');
 						if (key && value !== undefined) {
 							currentChallenge.params[key] = value;
 						}
@@ -1085,7 +1087,7 @@ export function parseWWWAuthenticateHeader(wwwAuthenticateHeaderValue: string): 
 				const equalIndex = token.indexOf('=');
 				if (equalIndex > 0) {
 					const key = token.substring(0, equalIndex).trim();
-					const value = token.substring(equalIndex + 1).trim().replace(/^"|"$/g, '');
+					const value = token.substring(equalIndex + 1).trim().replace(new RegExp(regexp1), '');
 					if (key && value !== undefined) {
 						currentChallenge.params[key] = value;
 					}

@@ -22,6 +22,8 @@ import { ToolRegistry } from '../../common/toolsRegistry';
 
 // Side-effect registration
 import '../sessionStoreSqlTool';
+const regexpChronicleSkill = /\*\*chronicle\*\* skill/;
+
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -463,7 +465,7 @@ describe('SessionStoreSqlTool', () => {
 			const prompts = ['chronicle-tips.prompt.md', 'chronicle-cost-tips.prompt.md', 'chronicle-standup.prompt.md', 'chronicle-search.prompt.md'];
 			const missing = prompts.filter(name => {
 				const body = fs.readFileSync(path.join(promptDir, name), 'utf-8');
-				return !/\*\*chronicle\*\* skill/.test(body);
+				return !regexpChronicleSkill.test(body);
 			});
 			expect(missing).toEqual([]);
 		});

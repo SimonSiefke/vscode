@@ -57,6 +57,8 @@ import {
 } from './aiCustomizationManagement.js';
 import { AICustomizationManagementEditor } from './aiCustomizationManagementEditor.js';
 import { AICustomizationManagementEditorInput } from './aiCustomizationManagementEditorInput.js';
+const regexp1 = /^([^[]+)\[(\d+)\]$/;
+
 
 //#region Telemetry
 
@@ -200,7 +202,7 @@ function parseHookItemId(itemId: string): { originalId: string; index: number } 
 		return undefined;
 	}
 	const fragment = itemId.substring(hashIndex + 1);
-	const match = /^([^[]+)\[(\d+)\]$/.exec(fragment);
+	const match = regexp1.exec(fragment);
 	if (!match) {
 		return undefined;
 	}

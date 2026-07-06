@@ -10,6 +10,8 @@ import Logger from '../common/logger';
 import { agent } from '../env/node/net';
 import { getEnterpriseUri } from '../github/utils';
 import { HostHelper } from './configuration';
+const regexpGistGithubCom = /gist[.]github[.]com/;
+
 
 export class GitHubManager {
 	private static readonly _githubDotComServers = new Set<string>().add('github.com').add('ssh.github.com');
@@ -30,7 +32,7 @@ export class GitHubManager {
 		}
 
 		// .wiki/.git repos are not supported
-		if (host.path.endsWith('.wiki') || host.authority.match(/gist[.]github[.]com/)) {
+		if (host.path.endsWith('.wiki') || host.authority.match(regexpGistGithubCom)) {
 			return GitHubServerType.None;
 		}
 

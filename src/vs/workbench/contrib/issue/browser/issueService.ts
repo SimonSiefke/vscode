@@ -24,6 +24,8 @@ import { IWorkbenchExtensionEnablementService } from '../../../services/extensio
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IIntegrityService } from '../../../services/integrity/common/integrity.js';
+const regexpHttpsGithubCom = /^https?:\/\/github\.com\/(.*)/;
+
 
 
 export class BrowserIssueService implements IWorkbenchIssueService {
@@ -157,9 +159,9 @@ export class BrowserIssueService implements IWorkbenchIssueService {
 		const extensionUrl = extension?.repository?.url;
 
 		// If given, try to match the extension's bug url
-		if (bugsUrl && bugsUrl.match(/^https?:\/\/github\.com\/(.*)/)) {
+		if (bugsUrl && bugsUrl.match(regexpHttpsGithubCom)) {
 			repositoryUrl = normalizeGitHubUrl(bugsUrl);
-		} else if (extensionUrl && extensionUrl.match(/^https?:\/\/github\.com\/(.*)/)) {
+		} else if (extensionUrl && extensionUrl.match(regexpHttpsGithubCom)) {
 			repositoryUrl = normalizeGitHubUrl(extensionUrl);
 		}
 

@@ -2,6 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+const regexp1 = /^@([^/]+)\/([^/]+)$/;
+
 /// Utilities copied from ts.JsTyping internals
 
 export const enum NameValidationResult {
@@ -49,7 +51,7 @@ export function validatePackageNameWorker(packageName: string, supportScopedPack
 	// check if name is scope package like: starts with @ and has one '/' in the middle
 	// scoped packages are not currently supported
 	if (supportScopedPackage) {
-		const matches = /^@([^/]+)\/([^/]+)$/.exec(packageName);
+		const matches = regexp1.exec(packageName);
 		if (matches) {
 			const scopeResult = validatePackageNameWorker(matches[1], /*supportScopedPackage*/ false);
 			if (scopeResult !== NameValidationResult.Ok) {

@@ -24,6 +24,10 @@ import { ITelemetryService } from '../../../telemetry/common/telemetry';
 import { ITokenizerProvider } from '../../../tokenizer/node/tokenizer';
 import { ChatEndpoint } from '../chatEndpoint';
 import { CopilotChatEndpoint } from '../copilotChatEndpoint';
+const regexpMaximumOfImages = /maximum of 10 images/;
+const regexpMaximumOfImages1 = /maximum of 20 images/;
+const regexpTooManyImages = /Too many images/;
+
 
 // Test fixtures for thinking content
 const createThinkingMessage = (thinkingId: string, thinkingText: string): Raw.ChatMessage => ({
@@ -431,13 +435,13 @@ describe('ChatEndpoint - Image Count Validation', () => {
 		it('should throw using the hardcoded Gemini limit of 10 when the current turn exceeds it', () => {
 			const endpoint = createEndpoint(createGeminiModelMetadata(1));
 			const options = createTestOptions([createImageMessage(11)]);
-			expect(() => endpoint.createRequestBody(options)).toThrow(/maximum of 10 images/);
+			expect(() => endpoint.createRequestBody(options)).toThrow(regexpMaximumOfImages);
 		});
 
 		it('should throw using the hardcoded Anthropic Messages limit of 20 when the current turn exceeds it', () => {
 			const endpoint = createEndpoint(createAnthropicMessagesModelMetadata());
 			const options = createTestOptions([createImageMessage(21)]);
-			expect(() => endpoint.createRequestBody(options)).toThrow(/maximum of 20 images/);
+			expect(() => endpoint.createRequestBody(options)).toThrow(regexpMaximumOfImages1);
 		});
 
 		it('should throw a clear error when the current turn alone exceeds the limit', () => {
@@ -448,7 +452,7 @@ describe('ChatEndpoint - Image Count Validation', () => {
 				createAssistantMessage(),
 				createImageMessage(5),
 			];
-			expect(() => filterImages(endpoint, messages, 2)).toThrow(/Too many images/);
+			expect(() => filterImages(endpoint, messages, 2)).toThrow(regexpTooManyImages);
 		});
 	});
 });

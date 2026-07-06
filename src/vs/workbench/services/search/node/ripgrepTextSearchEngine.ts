@@ -20,6 +20,14 @@ import { anchorGlob, IOutputChannel, Maybe, rangeToSearchRange, searchRangeToRan
 import type { RipgrepTextSearchOptions } from '../common/searchExtTypesInternal.js';
 import { newToOldPreviewOptions } from '../common/searchExtConversionTypes.js';
 import { rgDiskPath } from '../../../../base/node/ripgrep.js';
+const regexp1 = /^-/;
+const regexpGrepConfigError = /grep config error: unknown encoding: (.*)/;
+const regexp3 = /\r?\n$/;
+const regexp4 = /\n/g;
+const regexp5 = /\\\//g;
+const regexpZ0 = /((?:[^\\]|^)(?:\\\\)*)\\u([a-z0-9]{4})/gi;
+const regexpZ01 = /((?:[^\\]|^)(?:\\\\)*)\\u\{([a-z0-9]{4})\}/gi;
+
 
 export class RipgrepTextSearchEngine {
 
@@ -71,7 +79,7 @@ export class RipgrepTextSearchEngine {
 			const cwd = options.folderOptions.folder.fsPath;
 
 			const escapedArgs = rgArgs
-				.map(arg => arg.match(/^-/) ? arg : `'${arg}'`)
+				.map(arg => arg.match(regexp1) ? arg : `'${arg}'`)
 				.join(' ');
 			this.outputChannel.appendLine(`${resolvedRgDiskPath} ${escapedArgs}\n - cwd: ${cwd}`);
 
@@ -167,7 +175,7 @@ function rgErrorMsgForDisplay(msg: string): Maybe<SearchError> {
 		return new SearchError(buildRegexParseError(lines), SearchErrorCode.regexParseError);
 	}
 
-	const match = firstLine.match(/grep config error: unknown encoding: (.*)/);
+	const match = firstLine.match(regexpGrepConfigError);
 	if (match) {
 		return new SearchError(`Unknown encoding: ${match[1]}`, SearchErrorCode.unknownEncoding);
 	}
@@ -369,7 +377,7 @@ export class RipgrepParser extends EventEmitter {
 		const text = bytesOrTextToString(data.lines);
 		const startLine = data.line_number;
 		return text
-			.replace(/\r?\n$/, '')
+			.replace(regexp3, '')
 			.split('\n')
 			.map((line, i) => new TextSearchContext2(uri, line, startLine + i));
 	}
@@ -386,7 +394,7 @@ function bytesOrTextToString(obj: any): string {
 }
 
 function getNumLinesAndLastNewlineLength(text: string): { numLines: number; lastLineLength: number } {
-	const re = /\n/g;
+	const re = new RegExp(regexp4);
 	let numLines = 0;
 	let lastNewlineIdx = -1;
 	let match: ReturnType<typeof re.exec>;
@@ -493,7 +501,7 @@ export function getRgArgs(query: TextSearchQuery2, options: RipgrepTextSearchOpt
 	let searchPatternAfterDoubleDashes: Maybe<string>;
 	if (query.isWordMatch) {
 		const regexp = createRegExp(query.pattern, !!query.isRegExp, { wholeWord: query.isWordMatch });
-		const regexpStr = regexp.source.replace(/\\\//g, '/'); // RegExp.source arbitrarily returns escaped slashes. Search and destroy.
+		const regexpStr = regexp.source.replace(new RegExp(regexp5), '/'); // RegExp.source arbitrarily returns escaped slashes. Search and destroy.
 		args.push('--regexp', regexpStr);
 	} else if (query.isRegExp) {
 		let fixedRegexpQuery = fixRegexNewline(query.pattern);
@@ -548,7 +556,7 @@ function spreadGlobComponents(globComponent: string): string[] {
 
 export function unicodeEscapesToPCRE2(pattern: string): string {
 	// Match \u1234
-	const unicodePattern = /((?:[^\\]|^)(?:\\\\)*)\\u([a-z0-9]{4})/gi;
+	const unicodePattern = new RegExp(regexpZ0);
 
 	while (pattern.match(unicodePattern)) {
 		pattern = pattern.replace(unicodePattern, `$1\\x{$2}`);
@@ -556,7 +564,7 @@ export function unicodeEscapesToPCRE2(pattern: string): string {
 
 	// Match \u{1234}
 	// \u with 5-6 characters will be left alone because \x only takes 4 characters.
-	const unicodePatternWithBraces = /((?:[^\\]|^)(?:\\\\)*)\\u\{([a-z0-9]{4})\}/gi;
+	const unicodePatternWithBraces = new RegExp(regexpZ01);
 	while (pattern.match(unicodePatternWithBraces)) {
 		pattern = pattern.replace(unicodePatternWithBraces, `$1\\x{$2}`);
 	}
@@ -673,7 +681,7 @@ export function fixRegexNewline(pattern: string): string {
 }
 
 export function fixNewline(pattern: string): string {
-	return pattern.replace(/\n/g, '\\r?\\n');
+	return pattern.replace(new RegExp(regexp4), '\\r?\\n');
 }
 
 // brace expansion for ripgrep

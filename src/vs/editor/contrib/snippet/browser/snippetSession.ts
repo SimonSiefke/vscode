@@ -24,6 +24,8 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { Choice, Marker, Placeholder, SnippetParser, Text, TextmateSnippet, Variable } from './snippetParser.js';
 import { ClipboardBasedVariableResolver, CommentBasedVariableResolver, CompositeSnippetVariableResolver, ModelBasedVariableResolver, RandomBasedVariableResolver, SelectionBasedVariableResolver, TimeBasedVariableResolver, WorkspaceBasedVariableResolver } from './snippetVariables.js';
 import { EditSources, TextModelEditSource } from '../../../common/textModelEditSource.js';
+const regexp1 = /\r\n|\r|\n/;
+
 
 export class OneSnippet {
 
@@ -110,7 +112,7 @@ export class OneSnippet {
 					const range = id ? model.getDecorationRange(id) : null;
 					if (range) {
 						const currentValue = model.getValueInRange(range);
-						const transformedValueLines = placeholder.transform.resolve(currentValue).split(/\r\n|\r|\n/);
+						const transformedValueLines = placeholder.transform.resolve(currentValue).split(regexp1);
 						// fix indentation for transformed lines
 						for (let i = 1; i < transformedValueLines.length; i++) {
 							transformedValueLines[i] = model.normalizeIndentation(this._snippetLineLeadingWhitespace + transformedValueLines[i]);
@@ -442,7 +444,7 @@ export class SnippetSession {
 				return true;
 			}
 
-			const lines = marker.value.split(/\r\n|\r|\n/);
+			const lines = marker.value.split(regexp1);
 
 			if (adjustIndentation) {
 				// adjust indentation of snippet test

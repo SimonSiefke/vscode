@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import type { ICompletionResource } from '../types';
 import { type ExecOptionsWithStringEncoding } from 'node:child_process';
 import { execHelper, getAliasesHelper } from './common';
+const regexpAliasAliasZA = /^alias (?<alias>[a-zA-Z0-9\.:-]+)='(?<resolved>.+)'$/;
+
 
 export async function getBashGlobals(options: ExecOptionsWithStringEncoding, existingCommands?: Set<string>): Promise<(string | ICompletionResource)[]> {
 	return [
@@ -17,7 +19,7 @@ export async function getBashGlobals(options: ExecOptionsWithStringEncoding, exi
 
 async function getAliases(options: ExecOptionsWithStringEncoding): Promise<ICompletionResource[]> {
 	const args = process.platform === 'darwin' ? ['-icl', 'alias'] : ['-ic', 'alias'];
-	return getAliasesHelper('bash', args, /^alias (?<alias>[a-zA-Z0-9\.:-]+)='(?<resolved>.+)'$/, options);
+	return getAliasesHelper('bash', args, regexpAliasAliasZA, options);
 }
 
 export async function getBuiltins(

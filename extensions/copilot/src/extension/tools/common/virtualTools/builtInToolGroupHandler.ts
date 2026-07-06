@@ -9,6 +9,8 @@ import { groupBy } from '../../../../util/vs/base/common/collections';
 import { getToolsForCategory, toolCategories, ToolCategory, ToolName } from '../toolNames';
 import { VIRTUAL_TOOL_NAME_PREFIX, VirtualTool } from './virtualTool';
 import * as Constant from './virtualToolsConstants';
+const regexp1 = /\s+/g;
+
 
 const BUILT_IN_GROUP = 'builtin';
 const SUMMARY_PREFIX = 'Call this tool when you need access to a new category of tools. The category of tools is described as follows:\n\n';
@@ -63,7 +65,7 @@ export class BuiltInToolGroupHandler {
 			}
 
 			return new VirtualTool(
-				VIRTUAL_TOOL_NAME_PREFIX + category.toLowerCase().replace(/\s+/g, '_'),
+				VIRTUAL_TOOL_NAME_PREFIX + category.toLowerCase().replace(new RegExp(regexp1), '_'),
 				SUMMARY_PREFIX + getCategorySummary(category as ToolCategory) + SUMMARY_SUFFIX,
 				0,
 				{

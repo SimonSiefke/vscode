@@ -7,6 +7,8 @@ import { CompletionItem, CompletionItemKind, ExtensionContext, languages, Positi
 import { Disposable, LanguageClientOptions, ProvideCompletionItemsSignature, NotificationType, BaseLanguageClient, DocumentRangeFormattingParams, DocumentRangeFormattingRequest } from 'vscode-languageclient';
 import { getCustomDataSource } from './customData';
 import { RequestService, serveFileSystemRequests } from './requests';
+const regexp1 = /^(\s*)(\/(\*\s*(#\w*)?)?)?$/;
+
 
 namespace CustomDataChangedNotification {
 	export const type: NotificationType<string[]> = new NotificationType('css/customDataChanged');
@@ -120,7 +122,7 @@ export async function startClient(context: ExtensionContext, newLanguageClient: 
 	context.subscriptions.push(initCompletionProvider());
 
 	function initCompletionProvider(): Disposable {
-		const regionCompletionRegExpr = /^(\s*)(\/(\*\s*(#\w*)?)?)?$/;
+		const regionCompletionRegExpr = regexp1;
 
 		return languages.registerCompletionItemProvider(documentSelector, {
 			provideCompletionItems(doc: TextDocument, pos: Position) {

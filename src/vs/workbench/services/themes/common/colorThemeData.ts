@@ -26,6 +26,9 @@ import { ThemeConfiguration } from './themeConfiguration.js';
 import { ColorScheme, ThemeTypeSelector } from '../../../../platform/theme/common/theme.js';
 import { ColorId, FontStyle, MetadataConsts } from '../../../../editor/common/encodedTokenAttributes.js';
 import { toStandardTokenType } from '../../../../editor/common/languages/supports/tokenization.js';
+const regexpZAZ0 = /[^_a-zA-Z0-9-]/g;
+const regexp2 = /[0-9-]/;
+
 
 const colorRegistry = Registry.as<IColorRegistry>(ColorRegistryExtensions.ColorContribution);
 
@@ -734,8 +737,8 @@ function toCSSSelector(extensionId: string, path: string) {
 	let str = `${extensionId}-${path}`;
 
 	//remove all characters that are not allowed in css
-	str = str.replace(/[^_a-zA-Z0-9-]/g, '-');
-	if (str.charAt(0).match(/[0-9-]/)) {
+	str = str.replace(new RegExp(regexpZAZ0), '-');
+	if (str.charAt(0).match(regexp2)) {
 		str = '_' + str;
 	}
 	return str;

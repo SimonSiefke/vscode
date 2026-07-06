@@ -9,6 +9,8 @@ import { Emitter, Event } from '../event.js';
 import { Disposable, IDisposable } from '../lifecycle.js';
 import { isWeb } from '../platform.js';
 import * as strings from '../strings.js';
+const regexpOnDynamic = /^onDynamic/;
+
 
 const DEFAULT_CHANNEL = 'default';
 const INITIALIZE = '$initialize';
@@ -422,7 +424,7 @@ function propertyIsEvent(name: string): boolean {
 
 function propertyIsDynamicEvent(name: string): boolean {
 	// Assume a property is a dynamic event (a method that returns an event) if it has a form of "onDynamicSomething"
-	return /^onDynamic/.test(name) && strings.isUpperAsciiLetter(name.charCodeAt(9));
+	return regexpOnDynamic.test(name) && strings.isUpperAsciiLetter(name.charCodeAt(9));
 }
 
 export interface IWebWorkerServerRequestHandler {

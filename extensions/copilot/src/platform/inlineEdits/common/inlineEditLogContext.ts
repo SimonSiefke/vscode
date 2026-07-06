@@ -21,6 +21,10 @@ import { ISerializedNextEditRequest, StatelessNextEditRequest } from './stateles
 import { stringifyChatMessages } from './utils/stringifyChatMessages';
 import { Icon, now } from './utils/utils';
 import { HistoryContext } from './workspaceEditTracker/historyContextProvider';
+const regexpMs = /^\[\s*(\d+)ms\]/;
+const regexpMs1 = /^\[\s*\d+ms\]\s*/;
+const regexp3 = /^\[([^\]]+)\]/;
+
 
 export interface MarkdownLoggable {
 	toMarkdown(): string;
@@ -576,15 +580,15 @@ export class InlineEditRequestLogContext {
 
 		// Parse trace lines into structured data
 		const parsedTraces = this._trace.map(line => {
-			const timeMatch = line.match(/^\[\s*(\d+)ms\]/);
+			const timeMatch = line.match(regexpMs);
 			const timestamp = timeMatch ? parseInt(timeMatch[1], 10) : 0;
 
 			// Extract the bracketed path segments and the message
-			const afterTime = line.replace(/^\[\s*\d+ms\]\s*/, '');
+			const afterTime = line.replace(regexpMs1, '');
 			const segments: string[] = [];
 			let remaining = afterTime;
 			let bracketMatch;
-			while ((bracketMatch = remaining.match(/^\[([^\]]+)\]/))) {
+			while ((bracketMatch = remaining.match(regexp3))) {
 				segments.push(bracketMatch[1]);
 				remaining = remaining.slice(bracketMatch[0].length);
 			}

@@ -10,6 +10,9 @@ import { OffsetRange } from '../../core/ranges/offsetRange';
 import { ISequence, OffsetPair, SequenceDiff } from './algorithms/diffAlgorithm';
 import { LineSequence } from './lineSequence';
 import { LinesSliceCharSequence } from './linesSliceCharSequence';
+const regexp1 = /\s/g;
+const regexp2 = /\r\n|\r|\n/;
+
 
 export function optimizeSequenceDiffs(sequence1: ISequence, sequence2: ISequence, sequenceDiffs: SequenceDiff[]): SequenceDiff[] {
 	let result = sequenceDiffs;
@@ -347,7 +350,7 @@ export function removeVeryShortMatchingLinesBetweenDiffs(sequence1: LineSequence
 				const unchangedRange = new OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
 
 				const unchangedText = sequence1.getText(unchangedRange);
-				const unchangedTextWithoutWs = unchangedText.replace(/\s/g, '');
+				const unchangedTextWithoutWs = unchangedText.replace(new RegExp(regexp1), '');
 				if (unchangedTextWithoutWs.length <= 4
 					&& (before.seq1Range.length + before.seq2Range.length > 5 || after.seq1Range.length + after.seq2Range.length > 5)) {
 					return true;
@@ -399,7 +402,7 @@ export function removeVeryShortMatchingTextBetweenLongDiffs(sequence1: LinesSlic
 				}
 
 				const unchangedText = sequence1.getText(unchangedRange).trim();
-				if (unchangedText.length > 20 || unchangedText.split(/\r\n|\r|\n/).length > 1) {
+				if (unchangedText.length > 20 || unchangedText.split(regexp2).length > 1) {
 					return false;
 				}
 

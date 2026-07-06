@@ -6,6 +6,8 @@
 import * as l10n from '@vscode/l10n';
 import * as vscode from 'vscode';
 import { ILogService } from '../../../platform/log/common/logService';
+const regexpLine = /\s*\(\S+,\s*line\s*\d+\)/;
+
 
 const ERROR_OUTPUT_MIME_TYPE = 'application/vnd.code.notebook.error';
 export class NotebookExectionStatusBarItemProvider implements vscode.NotebookCellStatusBarItemProvider {
@@ -81,7 +83,7 @@ export class NotebookExectionStatusBarItemProvider implements vscode.NotebookCel
 
 			const title = l10n.t('Fix using Copilot');
 			// remove the file and line number from the error message as they are in-memory
-			const joinedMessage = [err.name, err.message].filter(Boolean).join(': ').replace(/\s*\(\S+,\s*line\s*\d+\)/, '');
+			const joinedMessage = [err.name, err.message].filter(Boolean).join(': ').replace(regexpLine, '');
 
 			return [
 				{

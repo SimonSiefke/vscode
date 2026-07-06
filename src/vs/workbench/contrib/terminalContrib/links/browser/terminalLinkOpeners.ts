@@ -26,6 +26,15 @@ import { ISearchService } from '../../../../services/search/common/search.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { detectLinks, getLinkSuffix } from './terminalLinkParsing.js';
 import { ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
+const regexpFile = /^file:\/\/\/?/;
+const regexp2 = /^(\.+[\\/])+/;
+const regexp3 = /:\d{2}:\d{2}[+-]\d{2}:\d{2}\.[a-z]+/;
+const regexp4 = /:[^\\/\d][^\d]*$/;
+const regexp5 = /\.$/;
+const regexp6 = /\\/g;
+const regexp7 = /[a-z]:/i;
+const regexp8 = /:\d+(:\d+)?$/;
+
 
 export class TerminalLocalFileLinkOpener implements ITerminalLinkOpener {
 	constructor(
@@ -103,8 +112,8 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 		const pathSeparator = osPath.sep;
 
 		// Remove file:/// and any leading ./ or ../ since quick access doesn't understand that format
-		let text = link.text.replace(/^file:\/\/\/?/, '');
-		text = osPath.normalize(text).replace(/^(\.+[\\/])+/, '');
+		let text = link.text.replace(regexpFile, '');
+		text = osPath.normalize(text).replace(regexp2, '');
 
 		// Try extract any trailing line and column numbers by matching the text against parsed
 		// links. This will give a search link `foo` on a line like `"foo", line 10` to open the
@@ -113,7 +122,7 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 		// This also normalizes the path to remove suffixes like :10 or :5.0-4
 		if (link.contextLine) {
 			// Skip suffix parsing if the text looks like it contains an ISO 8601 timestamp format
-			const iso8601Pattern = /:\d{2}:\d{2}[+-]\d{2}:\d{2}\.[a-z]+/;
+			const iso8601Pattern = regexp3;
 			if (!iso8601Pattern.test(link.text)) {
 				const parsedLinks = detectLinks(link.contextLine, this._getOS());
 				// Optimistically check that the link _starts with_ the parsed link text. If so,
@@ -138,14 +147,14 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 		// - Grep output: <link>:<result line>
 		// This only happens when the colon is _not_ followed by a forward- or back-slash as that
 		// would break absolute Windows paths (eg. `C:/Users/...`).
-		text = text.replace(/:[^\\/\d][^\d]*$/, '');
+		text = text.replace(regexp4, '');
 
 		// Remove any trailing periods after the line/column numbers, to prevent breaking the search feature, #200257
 		// Examples:
 		// "Check your code Test.tsx:12:45." -> Test.tsx:12:45
 		// "Check your code Test.tsx:12." -> Test.tsx:12
 
-		text = text.replace(/\.$/, '');
+		text = text.replace(regexp5, '');
 
 		// If any of the names of the folders in the workspace matches
 		// a prefix of the link, remove that prefix and continue
@@ -192,8 +201,8 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 		if (absolutePath) {
 			let normalizedAbsolutePath: string = absolutePath;
 			if (os === OperatingSystem.Windows) {
-				normalizedAbsolutePath = absolutePath.replace(/\\/g, '/');
-				if (normalizedAbsolutePath.match(/[a-z]:/i)) {
+				normalizedAbsolutePath = absolutePath.replace(new RegExp(regexp6), '/');
+				if (normalizedAbsolutePath.match(regexp7)) {
 					normalizedAbsolutePath = `/${normalizedAbsolutePath}`;
 				}
 			}
@@ -251,14 +260,14 @@ export class TerminalSearchLinkOpener implements ITerminalLinkOpener {
 	}
 
 	private async _tryOpenExactLink(text: string, link: ITerminalSimpleLink): Promise<boolean> {
-		const sanitizedLink = text.replace(/:\d+(:\d+)?$/, '');
+		const sanitizedLink = text.replace(regexp8, '');
 		try {
 			const result = await this._getExactMatch(sanitizedLink);
 			if (result) {
 				const { uri, isDirectory } = result;
 				const linkToOpen = {
 					// Use the absolute URI's path here so the optional line/col get detected
-					text: result.uri.path + (text.match(/:\d+(:\d+)?$/)?.[0] || ''),
+					text: result.uri.path + (text.match(regexp8)?.[0] || ''),
 					uri,
 					bufferRange: link.bufferRange,
 					type: link.type

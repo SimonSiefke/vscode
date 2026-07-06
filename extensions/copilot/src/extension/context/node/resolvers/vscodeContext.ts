@@ -6,6 +6,8 @@ import * as l10n from '@vscode/l10n';
 import type { Command } from 'vscode';
 import { IWorkbenchService } from '../../../../platform/workbench/common/workbenchService';
 import { extractCodeBlocks } from '../../../../util/common/markdown';
+const regexp1 = /,\s*([\]}])/g;
+
 
 export interface VSCodeParticipantMetadata {
 	commandToRun?: Command;
@@ -27,7 +29,7 @@ export async function parseSettingsAndCommands(workbenchService: IWorkbenchServi
 
 		let parsed: ParsedItem[] = [];
 		try {
-			const removeTrailingCommas = block.code.replace(/,\s*([\]}])/g, '$1');
+			const removeTrailingCommas = block.code.replace(new RegExp(regexp1), '$1');
 			parsed = JSON.parse(removeTrailingCommas);
 		} catch (error) {
 			return [];

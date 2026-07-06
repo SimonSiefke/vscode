@@ -56,6 +56,9 @@ import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IExtensionGalleryManifestService } from '../common/extensionGalleryManifest.js';
+const regexpReadmeTxtMd = /^readme(\.txt|\.md|)$/i;
+const regexpChangelogTxtMd = /^changelog(\.txt|\.md|)$/i;
+
 
 export const INativeServerExtensionManagementService = refineServiceDecorator<IExtensionManagementService, INativeServerExtensionManagementService>(IExtensionManagementService);
 export interface INativeServerExtensionManagementService extends IExtensionManagementService {
@@ -894,8 +897,8 @@ export class ExtensionsScanner extends Disposable {
 		let readmeUrl: URI | undefined;
 		let changelogUrl: URI | undefined;
 		if (stat?.children) {
-			readmeUrl = stat.children.find(({ name }) => /^readme(\.txt|\.md|)$/i.test(name))?.resource;
-			changelogUrl = stat.children.find(({ name }) => /^changelog(\.txt|\.md|)$/i.test(name))?.resource;
+			readmeUrl = stat.children.find(({ name }) => regexpReadmeTxtMd.test(name))?.resource;
+			changelogUrl = stat.children.find(({ name }) => regexpChangelogTxtMd.test(name))?.resource;
 		}
 		return {
 			identifier: extension.identifier,

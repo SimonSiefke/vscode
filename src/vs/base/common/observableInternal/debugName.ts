@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpDescription = /\/\*\*\s*@description\s*([^*]*)\*\//;
+
 export interface IDebugNameData {
 	/**
 	 * The owner object of an observable.
@@ -141,7 +143,7 @@ export function getClassName(obj: object): string | undefined {
 export function getFunctionName(fn: Function): string | undefined {
 	const fnSrc = fn.toString();
 	// Pattern: /** @description ... */
-	const regexp = /\/\*\*\s*@description\s*([^*]*)\*\//;
+	const regexp = regexpDescription;
 	const match = regexp.exec(fnSrc);
 	const result = match ? match[1] : undefined;
 	return result?.trim();

@@ -6,13 +6,15 @@ import assert from 'assert';
 import { parse, stringify } from '../../common/marshalling.js';
 import { URI } from '../../common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexpFoo = /foo/img;
+
 
 suite('Marshalling', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('RegExp', () => {
-		const value = /foo/img;
+		const value = new RegExp(regexpFoo);
 		const raw = stringify(value);
 		const clone = <RegExp>parse(raw);
 

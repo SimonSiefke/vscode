@@ -145,6 +145,10 @@ import { NativeWebContentExtractorService } from '../../platform/webContentExtra
 import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../platform/networkFilter/common/networkFilterService.js';
 import { ITerminalSandboxService, NullTerminalSandboxService } from '../../platform/sandbox/common/terminalSandboxService.js';
 import ErrorTelemetry from '../../platform/telemetry/electron-main/errorTelemetry.js';
+const regexp1 = /:[\d]+$/;
+const regexpVscodeRemoteResource = /^vscode-remote-resource:/;
+const regexpEnableCrashReporter = /"enable-crash-reporter": .*,/;
+
 
 /**
  * The main VS Code application. There will only ever be one instance,
@@ -942,7 +946,7 @@ export class CodeApplication extends Disposable {
 				return { workspaceUri: remoteUri };
 			}
 
-			if (/:[\d]+$/.test(path)) {
+			if (regexp1.test(path)) {
 				// path with :line:column syntax
 				return { fileUri: remoteUri };
 			}
@@ -1534,7 +1538,7 @@ export class CodeApplication extends Disposable {
 		// Remote Authorities
 		protocol.registerHttpProtocol(Schemas.vscodeRemoteResource, (request, callback) => {
 			callback({
-				url: request.url.replace(/^vscode-remote-resource:/, 'http:'),
+				url: request.url.replace(regexpVscodeRemoteResource, 'http:'),
 				method: request.method
 			});
 		});
@@ -1759,7 +1763,7 @@ export class CodeApplication extends Disposable {
 
 			// Subsequent startup: update crash reporter value if changed
 			else {
-				const newArgvString = argvString.replace(/"enable-crash-reporter": .*,/, `"enable-crash-reporter": ${enableCrashReporter},`);
+				const newArgvString = argvString.replace(regexpEnableCrashReporter, `"enable-crash-reporter": ${enableCrashReporter},`);
 				if (newArgvString !== argvString) {
 					await this.fileService.writeFile(this.environmentMainService.argvResource, VSBuffer.fromString(newArgvString));
 				}

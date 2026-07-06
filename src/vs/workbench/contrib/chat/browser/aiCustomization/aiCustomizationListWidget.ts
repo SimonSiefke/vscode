@@ -48,6 +48,8 @@ import { ICustomizationHarnessService } from '../../common/customizationHarnessS
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IAICustomizationListItem } from './aiCustomizationItemSource.js';
 import { IAICustomizationItemsModel, ItemsModelSection } from './aiCustomizationItemsModel.js';
+const regexpMd = /\.md$/i;
+
 
 export { truncateToFirstLine } from './aiCustomizationListWidgetUtils.js';
 
@@ -222,7 +224,7 @@ function promptTypeToIcon(type: PromptsType): ThemeIcon {
  * with how they appear in agent dropdowns and error messages.
  */
 export function formatDisplayName(name: string): string {
-	return name.replace(/\.md$/i, '');
+	return name.replace(regexpMd, '');
 }
 
 /**

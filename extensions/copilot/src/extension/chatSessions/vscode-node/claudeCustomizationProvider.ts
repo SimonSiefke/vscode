@@ -15,6 +15,8 @@ import { URI } from '../../../util/vs/base/common/uri';
 import { IClaudeRuntimeDataService } from '../claude/common/claudeRuntimeDataService';
 import { ClaudeSessionUri } from '../claude/common/claudeSessionUri';
 import { IPromptsService } from '../../../platform/promptFiles/common/promptsService';
+const regexpMd = /\.md$/i;
+
 
 // TODO: Consider reporting Claude slash commands (from Query.supportedCommands()) when appropriate
 // TODO: Report MCP servers when ChatSessionCustomizationType.Mcp is available (use Query.mcpServerStatus())
@@ -215,7 +217,7 @@ export class ClaudeCustomizationProvider extends Disposable implements vscode.Ch
 
 		for (const { uri, source } of candidates) {
 			if (await this.fileExists(uri)) {
-				const name = basename(uri).replace(/\.md$/i, '');
+				const name = basename(uri).replace(regexpMd, '');
 				items.push({
 					uri,
 					type: vscode.ChatSessionCustomizationType.Instructions,

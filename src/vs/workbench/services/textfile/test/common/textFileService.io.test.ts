@@ -14,6 +14,8 @@ import { ITextSnapshot, DefaultEndOfLine } from '../../../../../editor/common/mo
 import { isWindows } from '../../../../../base/common/platform.js';
 import { createTextBufferFactoryFromStream } from '../../../../../editor/common/model/textModel.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+const regexp1 = /\r\n/;
+
 
 export interface Params {
 	setup(): Promise<{
@@ -234,7 +236,7 @@ export default function createSuite(params: Params) {
 	test('write - use encoding (cp1252)', async () => {
 		const filePath = join(testDir, 'some_cp1252.txt');
 		const contents = await readFile(filePath, 'utf8');
-		const eol = /\r\n/.test(contents) ? '\r\n' : '\n';
+		const eol = regexp1.test(contents) ? '\r\n' : '\n';
 		await testEncodingKeepsData(URI.file(filePath), 'cp1252', ['ObjectCount = LoadObjects("Öffentlicher Ordner");', '', 'Private = "Persönliche Information"', ''].join(eol));
 	});
 

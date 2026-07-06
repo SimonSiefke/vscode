@@ -46,6 +46,10 @@ import { RuntimeExtensionsInput } from '../common/runtimeExtensionsInput.js';
 import { errorIcon, warningIcon } from './extensionsIcons.js';
 import { ExtensionIconWidget } from './extensionsWidgets.js';
 import './media/runtimeExtensionsEditor.css';
+const regexpOnLanguage = /^onLanguage:/;
+const regexpWorkspaceContainsTimeout = /^workspaceContainsTimeout:/;
+const regexpWorkspaceContains = /^workspaceContains:/;
+
 
 interface IExtensionProfileInformation {
 	/**
@@ -315,7 +319,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 								'{0} will be an extension identifier'
 							]
 						}, "Activated by {0} on start-up", activationId);
-					} else if (/^workspaceContains:/.test(activationEvent)) {
+					} else if (regexpWorkspaceContains.test(activationEvent)) {
 						const fileNameOrGlob = activationEvent.substr('workspaceContains:'.length);
 						if (fileNameOrGlob.indexOf('*') >= 0 || fileNameOrGlob.indexOf('?') >= 0) {
 							title = nls.localize({
@@ -334,7 +338,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 								]
 							}, "Activated by {1} because file {0} exists in your workspace", fileNameOrGlob, activationId);
 						}
-					} else if (/^workspaceContainsTimeout:/.test(activationEvent)) {
+					} else if (regexpWorkspaceContainsTimeout.test(activationEvent)) {
 						const glob = activationEvent.substr('workspaceContainsTimeout:'.length);
 						title = nls.localize({
 							key: 'workspaceContainsTimeout',
@@ -350,7 +354,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 								'This refers to an extension. {0} will be an activation event.'
 							]
 						}, "Activated by {0} after start-up finished", activationId);
-					} else if (/^onLanguage:/.test(activationEvent)) {
+					} else if (regexpOnLanguage.test(activationEvent)) {
 						const language = activationEvent.substr('onLanguage:'.length);
 						title = nls.localize('languageActivation', "Activated by {1} because you opened a {0} file", language, activationId);
 					} else {

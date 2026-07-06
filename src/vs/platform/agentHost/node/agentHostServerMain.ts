@@ -7,6 +7,8 @@
 // Start with: node out/vs/platform/agentHost/node/agentHostServerMain.js [--port <port>] [--host <host>] [--connection-token <token>] [--connection-token-file <path>] [--without-connection-token] [--enable-mock-agent] [--claude-sdk-root <path>] [--codex-sdk-root <path>] [--quiet] [--log <level>]
 
 import { fileURLToPath } from 'url';
+const regexp1 = /\r?\n$/;
+
 
 // This standalone process isn't bootstrapped via bootstrap-esm.ts, so we must
 // set _VSCODE_FILE_ROOT ourselves so that FileAccess can resolve module paths.
@@ -152,7 +154,7 @@ function parseServerOptions(): IServerOptions {
 			process.exit(1);
 		}
 		try {
-			connectionToken = fs.readFileSync(tokenFilePath).toString().replace(/\r?\n$/, '');
+			connectionToken = fs.readFileSync(tokenFilePath).toString().replace(regexp1, '');
 		} catch {
 			log(`Error: Unable to read connection token file at '${tokenFilePath}'`);
 			process.exit(1);

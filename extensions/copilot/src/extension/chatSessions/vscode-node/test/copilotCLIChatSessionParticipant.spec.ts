@@ -58,6 +58,9 @@ import { CopilotCLIChatSessionContentProvider, CopilotCLIChatSessionItemProvider
 import { CopilotCloudSessionsProvider } from '../copilotCloudSessionsProvider';
 import { CopilotCLIFolderRepositoryManager } from '../folderRepositoryManagerImpl';
 import { MockPromptsService } from '../../../../platform/promptFiles/test/common/mockPromptsService';
+const regexpUntitled = /^untitled[:-]/;
+const regexpPrMetadataUri = /<pr_metadata uri="pr:\/\/1"/;
+
 
 // Mock terminal integration to avoid importing PowerShell asset (.ps1) which Vite cannot parse during tests
 vi.mock('../copilotCLITerminalIntegration', () => {
@@ -243,7 +246,7 @@ function createChatContext(sessionId: string, isUntitled: boolean, ...requests: 
 	// that prefix to decide whether to spawn a new SDK session vs. resume an
 	// existing one (see `getOrCreateSession`).
 	const normalizedSessionId = isUntitled && !sessionId.startsWith('untitled-')
-		? `untitled-${sessionId.replace(/^untitled[:-]/, '')}`
+		? `untitled-${sessionId.replace(regexpUntitled, '')}`
 		: sessionId;
 	const resource = vscode.Uri.from({ scheme: 'copilotcli', path: `/${normalizedSessionId}` });
 	for (const request of requests) {
@@ -1006,7 +1009,7 @@ describe('CopilotCLIChatSessionParticipant.handleRequest', () => {
 		// Uncommitted changes warning surfaced
 		// Warning should appear (we emitted stream.warning). The mock stream only records markdown.
 		// Delegate path adds assistant PR metadata; ensure output contains PR metadata tag instead of relying on warning capture.
-		expect(sdkSession.emittedEvents[1].content).toMatch(/<pr_metadata uri="pr:\/\/1"/);
+		expect(sdkSession.emittedEvents[1].content).toMatch(regexpPrMetadataUri);
 		expect(cloudProvider.delegate).toHaveBeenCalled();
 	});
 
@@ -1069,7 +1072,7 @@ describe('CopilotCLIChatSessionParticipant.handleRequest', () => {
 		expect(sdkSession.emittedEvents[1].content).toContain('pr://1');
 		// Warning should appear (we emitted stream.warning). The mock stream only records markdown.
 		// Delegate path adds assistant PR metadata; ensure output contains PR metadata tag instead of relying on warning capture.
-		expect(sdkSession.emittedEvents[1].content).toMatch(/<pr_metadata uri="pr:\/\/1"/);
+		expect(sdkSession.emittedEvents[1].content).toMatch(regexpPrMetadataUri);
 	});
 
 	it('starts a new chat session and submits the request', async () => {

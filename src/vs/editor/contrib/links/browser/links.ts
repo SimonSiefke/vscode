@@ -30,6 +30,10 @@ import { getLinks, Link, LinksList } from './getLinks.js';
 import * as nls from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+const regexpCommand = /^command:/i;
+const regexpCommand1 = /^command:([^?#]+)/;
+const regexp3 = / /g;
+
 
 export class LinkDetector extends Disposable implements IEditorContribution {
 
@@ -360,7 +364,7 @@ class LinkOccurrence {
 }
 
 function getHoverMessage(link: Link, useMetaKey: boolean): MarkdownString {
-	const executeCmd = link.url && /^command:/i.test(link.url.toString());
+	const executeCmd = link.url && regexpCommand.test(link.url.toString());
 
 	const label = link.tooltip
 		? link.tooltip
@@ -378,16 +382,16 @@ function getHoverMessage(link: Link, useMetaKey: boolean): MarkdownString {
 
 	if (link.url) {
 		let nativeLabel = '';
-		if (/^command:/i.test(link.url.toString())) {
+		if (regexpCommand.test(link.url.toString())) {
 			// Don't show complete command arguments in the native tooltip
-			const match = link.url.toString().match(/^command:([^?#]+)/);
+			const match = link.url.toString().match(regexpCommand1);
 			if (match) {
 				const commandId = match[1];
 				nativeLabel = nls.localize('tooltip.explanation', "Execute command {0}", commandId);
 			}
 		}
 		const hoverMessage = new MarkdownString('', true)
-			.appendLink(link.url.toString(true).replace(/ /g, '%20'), label, nativeLabel)
+			.appendLink(link.url.toString(true).replace(new RegExp(regexp3), '%20'), label, nativeLabel)
 			.appendMarkdown(` (${kb})`);
 		return hoverMessage;
 	} else {

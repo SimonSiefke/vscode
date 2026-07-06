@@ -32,6 +32,13 @@ import { canExecutePythonCodeWithoutErrors, isValidPythonFile } from './diagnost
 import { simulateInlineChat } from './inlineChatSimulator';
 import { fromFixture, getFixturesDir } from './stestUtil';
 import { DiagnosticProviderId, IOutcome, IScenario } from './types';
+const regexpPrintSecondsIn = /print\(seconds_in_a_week/;
+const regexpPltFigurePlt = /(plt\.figure)|(plt\.gcf)/g;
+const regexpSetIndex = /set\_index/g;
+const regexpDataFrame = /DataFrame/g;
+const regexpGroupby = /groupby/g;
+const regexp6 = /\`\`\`/g;
+
 
 export function fromNotebookFixture(pathOrDirnameWithinFixturesDir: string, activeCell?: number /** when provided, code in other cells will be emptied */) {
 	const filePath: string = path.join(getFixturesDir(), pathOrDirnameWithinFixturesDir);
@@ -73,7 +80,7 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 					expectedIntent: 'edit',
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
-						assert.ok(/print\(seconds_in_a_week/.test(outcome.fileContents));
+						assert.ok(regexpPrintSecondsIn.test(outcome.fileContents));
 					}
 				}
 			]
@@ -179,7 +186,7 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 							|| outcome.fileContents.includes('plt.gcf')
 						);
 						// check if 'plt.figure' only shows up once
-						const matches = outcome.fileContents.match(/(plt\.figure)|(plt\.gcf)/g);
+						const matches = outcome.fileContents.match(new RegExp(regexpPltFigurePlt));
 						assert.strictEqual(matches?.length, 1);
 					}
 				}
@@ -200,8 +207,8 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('.set_index'));
-						assert.strictEqual(outcome.fileContents.match(/set\_index/g)?.length, 1);
-						assert.strictEqual(outcome.fileContents.match(/DataFrame/g)?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpSetIndex))?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpDataFrame))?.length, 1);
 					}
 				}
 			]
@@ -221,8 +228,8 @@ ssuite({ title: 'notebook', subtitle: 'edit', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('regiment.groupby'));
-						assert.strictEqual(outcome.fileContents.match(/groupby/g)?.length, 1);
-						assert.strictEqual(outcome.fileContents.match(/DataFrame/g)?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpGroupby))?.length, 1);
+						assert.strictEqual(outcome.fileContents.match(new RegExp(regexpDataFrame))?.length, 1);
 					}
 				}
 			]
@@ -276,7 +283,7 @@ ssuite({ title: 'notebook', subtitle: 'generate', location: 'inline' }, () => {
 					validate: async (outcome, workspace, accessor) => {
 						assert.strictEqual(outcome.type, 'inlineEdit');
 						assert.ok(outcome.fileContents.includes('```'));
-						const matches = outcome.fileContents.match(/\`\`\`/g);
+						const matches = outcome.fileContents.match(new RegExp(regexp6));
 						assert.ok(matches && matches.length > 0 && matches.length % 2 === 0);
 					}
 				}

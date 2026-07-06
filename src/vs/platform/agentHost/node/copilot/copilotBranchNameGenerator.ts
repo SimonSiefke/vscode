@@ -6,6 +6,16 @@
 import { ILogService } from '../../../log/common/log.js';
 import { createDecorator } from '../../../instantiation/common/instantiation.js';
 import { ICopilotApiService, type ICopilotUtilityChatMessage } from '../shared/copilotApiService.js';
+const regexp1 = /^".*"$/;
+const regexp2 = /-+$/g;
+const regexpZAZ0 = /[^a-zA-Z0-9\-]/g;
+const regexp4 = /\.{2,}/g;
+const regexp5 = /^[-.]+/;
+const regexp6 = /[./]+$/;
+const regexpLock = /\.lock$/;
+const regexp8 = /^-+|-+$/g;
+const regexpZ0 = /[^a-z0-9]+/g;
+
 
 export const COPILOT_BRANCH_PREFIX = 'agents/';
 const COPILOT_BRANCH_SESSION_ID_SUFFIX_LENGTH = 8;
@@ -63,14 +73,14 @@ export class CopilotBranchNameGenerator implements ICopilotBranchNameGenerator {
 			}
 
 			let branchName = rawBranchName.trim();
-			if (branchName.match(/^".*"$/)) {
+			if (branchName.match(regexp1)) {
 				branchName = branchName.slice(1, -1);
 			}
 			if (branchName.includes('can\'t assist with that')) {
 				return undefined;
 			}
 
-			branchName = normalizeCopilotBranchName(branchName).slice(0, MAX_BRANCH_NAME_HINT_LENGTH).replace(/-+$/g, '');
+			branchName = normalizeCopilotBranchName(branchName).slice(0, MAX_BRANCH_NAME_HINT_LENGTH).replace(new RegExp(regexp2), '');
 			if (branchName.length < MIN_GENERATED_BRANCH_NAME_LENGTH) {
 				this._logService.warn('Generated branch name is too short after normalization, discarding.');
 				return undefined;
@@ -123,15 +133,15 @@ export class CopilotBranchNameGenerator implements ICopilotBranchNameGenerator {
 
 export function normalizeCopilotBranchName(branchName: string): string {
 	// Only support alphanumeric characters and dashes for simplicity.
-	let normalized = branchName.replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase();
+	let normalized = branchName.replace(new RegExp(regexpZAZ0), '').toLowerCase();
 	// Collapse consecutive dots (..) into a single dot
-	normalized = normalized.replace(/\.{2,}/g, '.');
+	normalized = normalized.replace(new RegExp(regexp4), '.');
 	// Strip leading '-' or '.'
-	normalized = normalized.replace(/^[-.]+/, '');
+	normalized = normalized.replace(regexp5, '');
 	// Strip trailing '.' or '/'
-	normalized = normalized.replace(/[./]+$/, '');
+	normalized = normalized.replace(regexp6, '');
 	// Strip trailing .lock
-	normalized = normalized.replace(/\.lock$/, '');
+	normalized = normalized.replace(regexpLock, '');
 
 	return normalized;
 }
@@ -144,11 +154,11 @@ export function getCopilotBranchNameHintFromMessage(message: string): string | u
 	const words = message
 		.toLowerCase()
 		.normalize('NFKD')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '')
+		.replace(new RegExp(regexpZ0), '-')
+		.replace(new RegExp(regexp8), '')
 		.split('-')
 		.filter(word => word.length > 0)
 		.slice(0, 8);
-	const hint = words.join('-').slice(0, MAX_BRANCH_NAME_HINT_LENGTH).replace(/-+$/g, '');
+	const hint = words.join('-').slice(0, MAX_BRANCH_NAME_HINT_LENGTH).replace(new RegExp(regexp2), '');
 	return hint.length > 0 ? hint : undefined;
 }

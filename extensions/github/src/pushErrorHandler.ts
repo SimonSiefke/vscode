@@ -10,6 +10,11 @@ import { GitErrorCodes } from './typings/git.constants.js';
 import type { PushErrorHandler, Remote, Repository } from './typings/git.d.ts';
 import * as path from 'path';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
+const regexpHttpsGithubCom = /^(?:https:\/\/github\.com\/|git@github\.com:)([^\/]+)\/([^\/.]+)/i;
+const regexp2 = /^:/;
+const regexpGH009SecretsDetected = /GH009: Secrets detected!/i;
+const regexp4 = /^([^:]*):([^:]*)$/;
+
 
 
 
@@ -117,12 +122,12 @@ export class GithubPushErrorHandler implements PushErrorHandler {
 			return false;
 		}
 
-		const match = /^(?:https:\/\/github\.com\/|git@github\.com:)([^\/]+)\/([^\/.]+)/i.exec(remoteUrl);
+		const match = regexpHttpsGithubCom.exec(remoteUrl);
 		if (!match) {
 			return false;
 		}
 
-		if (/^:/.test(refspec)) {
+		if (regexp2.test(refspec)) {
 			return false;
 		}
 
@@ -143,7 +148,7 @@ export class GithubPushErrorHandler implements PushErrorHandler {
 		}
 
 		// Push protection
-		if (/GH009: Secrets detected!/i.test(error.stderr)) {
+		if (regexpGH009SecretsDetected.test(error.stderr)) {
 			await this.handlePushProtectionError(owner, repo, error.stderr);
 
 			/* __GDPR__
@@ -178,7 +183,7 @@ export class GithubPushErrorHandler implements PushErrorHandler {
 			return;
 		}
 
-		const match = /^([^:]*):([^:]*)$/.exec(refspec);
+		const match = regexp4.exec(refspec);
 		const localName = match ? match[1] : refspec;
 		let remoteName = match ? match[2] : refspec;
 

@@ -9,6 +9,9 @@ import { IProcessEnvironment, isWindows } from '../../../base/common/platform.js
 import { localize } from '../../../nls.js';
 import { NativeParsedArgs } from '../common/argv.js';
 import { ErrorReporter, NATIVE_CLI_COMMANDS, OPTIONS, parseArgs } from './argv.js';
+const regexp1 = /^(\w:)?[^:]+(:\d*){0,2}:?$/;
+const regexp2 = /^-/;
+
 
 function parseAndValidate(cmdLineArgs: string[], reportWarnings: boolean): NativeParsedArgs {
 	const onMultipleValues = (id: string, val: string) => {
@@ -43,14 +46,14 @@ function parseAndValidate(cmdLineArgs: string[], reportWarnings: boolean): Nativ
 
 	const args = parseArgs(cmdLineArgs, OPTIONS, reportWarnings ? errorReporter : undefined);
 	if (args.goto) {
-		args._.forEach(arg => assert(/^(\w:)?[^:]+(:\d*){0,2}:?$/.test(arg), localize('gotoValidation', "Arguments in `--goto` mode should be in the format of `FILE(:LINE(:CHARACTER))`.")));
+		args._.forEach(arg => assert(regexp1.test(arg), localize('gotoValidation', "Arguments in `--goto` mode should be in the format of `FILE(:LINE(:CHARACTER))`.")));
 	}
 
 	return args;
 }
 
 function stripAppPath(argv: string[]): string[] | undefined {
-	const index = argv.findIndex(a => !/^-/.test(a));
+	const index = argv.findIndex(a => !regexp2.test(a));
 
 	if (index > -1) {
 		return [...argv.slice(0, index), ...argv.slice(index + 1)];

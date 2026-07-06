@@ -11,6 +11,8 @@ import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { ResourceMap } from '../../../util/vs/base/common/map';
 import { URI } from '../../../util/vs/base/common/uri';
 import { FileTree, IChatDiskSessionResources } from '../common/chatDiskSessionResources';
+const regexpZAZ0 = /[^a-zA-Z0-9_.-]/g;
+
 
 /**
  * Directory name for session resources storage within extension storage.
@@ -32,7 +34,7 @@ const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
  * This prevents path injection attacks.
  */
 function sanitizePathComponent(str: string): string {
-	return str.replace(/[^a-zA-Z0-9_.-]/g, '_');
+	return str.replace(new RegExp(regexpZAZ0), '_');
 }
 
 export class ChatDiskSessionResources extends Disposable implements IChatDiskSessionResources {

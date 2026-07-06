@@ -9,6 +9,8 @@ import type { LanguageModelChat } from 'vscode';
 import { IExperimentationService } from '../../telemetry/common/nullExperimentationService';
 import { ChatLocation } from '../../chat/common/commonTypes';
 import { IChatEndpoint } from './networking';
+const regexp1 = /\./g;
+
 
 /**
  * Types for Anthropic Messages API
@@ -94,7 +96,7 @@ export interface ContextManagementResponse {
  */
 export function modelSupportsInterleavedThinking(modelId: string): boolean {
 	// Normalize: lowercase and replace dots with dashes so "4.5" matches "4-5"
-	const normalized = modelId.toLowerCase().replace(/\./g, '-');
+	const normalized = modelId.toLowerCase().replace(new RegExp(regexp1), '-');
 	return normalized.startsWith('claude-sonnet-4-5') ||
 		normalized.startsWith('claude-sonnet-4') ||
 		normalized.startsWith('claude-haiku-4-5') ||
@@ -117,7 +119,7 @@ export function modelSupportsMemory(model: LanguageModelChat | IChatEndpoint | s
 	const id = typeof model === 'string' ? model : getModelId(model);
 	const family = typeof model === 'string' ? model : model.family;
 	const matches = (s: string) => {
-		const n = s.toLowerCase().replace(/\./g, '-');
+		const n = s.toLowerCase().replace(new RegExp(regexp1), '-');
 		return n.startsWith('claude-fable-5') ||
 			n.startsWith('claude-haiku-4-5') ||
 			n.startsWith('claude-sonnet-4-6') ||
@@ -165,7 +167,7 @@ export function modelSupportsExtendedCacheTtl(model: LanguageModelChat | IChatEn
 	const id = typeof model === 'string' ? model : getModelId(model);
 	const family = typeof model === 'string' ? model : model.family;
 	const matches = (s: string) => {
-		const n = s.toLowerCase().replace(/\./g, '-');
+		const n = s.toLowerCase().replace(new RegExp(regexp1), '-');
 		return n.startsWith('claude-fable-5') ||
 			n.startsWith('claude-opus-4-8') ||
 			n.startsWith('claude-opus-4-7') ||

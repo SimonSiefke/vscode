@@ -30,6 +30,11 @@ import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
 import { NewWorkspaceGithubContentMetadata, NewWorkspacePrompt } from '../../prompts/node/panel/newWorkspace/newWorkspace';
 import { NewWorkspaceContentsPromptProps } from '../../prompts/node/panel/newWorkspace/newWorkspaceContents';
 import { FileContentsGenerator, ProjectSpecificationGenerator } from './generateNewWorkspaceContent';
+const regexpFiletree = /```filetree\n/;
+const regexp2 = /(?:.*\n){1,}/;
+const regexpFiletree1 = /```filetree\n([\s\S]+?)\n```/;
+const regexp4 = /```/;
+
 
 
 interface FileTreeDataWithContent extends vscode.ChatResponseFileTree {
@@ -480,7 +485,7 @@ class NewWorkspaceResponseProcessor {
 
 		let isBufferingFileTree = false;
 		let projectStructure = '';
-		const fileTreeStartRegex = /```filetree\n/;
+		const fileTreeStartRegex = regexpFiletree;
 		const chatMessages = messages.filter(message => message.role !== Raw.ChatRole.System); // Exclude system messages as we want to use a different identity for the additional prompts we run
 		let hasReportingStarted = false;
 
@@ -501,7 +506,7 @@ class NewWorkspaceResponseProcessor {
 				this._appliedText += incomingText;
 				if (!this._appliedText.startsWith('#')) {
 					const userPrompt = turn.request.message;
-					const hasWholeCodeBlock = this._appliedText.match(/```filetree\n([\s\S]+?)\n```/);
+					const hasWholeCodeBlock = this._appliedText.match(regexpFiletree1);
 					if (hasWholeCodeBlock && (isBufferingFileTree || !hasReportingStarted)) {
 						isBufferingFileTree = false;
 						const [before, after] = this._appliedText.split(hasWholeCodeBlock[0]);
@@ -527,11 +532,11 @@ class NewWorkspaceResponseProcessor {
 						outputStream.progress(l10n.t('Generating workspace preview...'));
 					} else if (isBufferingFileTree) {
 						projectStructure += incomingText;
-					} else if (!isBufferingFileTree && (!this._appliedText.match(/```/))) {
+					} else if (!isBufferingFileTree && (!this._appliedText.match(regexp4))) {
 						hasReportingStarted = true;
 						outputStream.markdown(incomingText);
 					}
-				} else if (/(?:.*\n){1,}/.test(this._appliedText)) {
+				} else if (regexp2.test(this._appliedText)) {
 					outputStream.markdown(incomingText);
 				}
 				return this._appliedText;

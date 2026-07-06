@@ -7,6 +7,9 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { basename } from '../../../../../base/common/path.js';
 import { CompletionItem, CompletionItemKind, CompletionItemProvider } from '../../../../../editor/common/languages.js';
 import { ISimpleCompletion, SimpleCompletionItem } from '../../../../services/suggest/browser/simpleCompletionItem.js';
+const regexp1 = /\/$/;
+const regexp2 = /^[\[\]\{\}\(\)\.,;:!?\/\\\-_@#~*%^=$]+$/;
+
 
 export enum TerminalCompletionItemKind {
 	// Extension host kinds
@@ -165,7 +168,7 @@ export class TerminalCompletionItem extends SimpleCompletionItem {
 				this.labelLowNormalizedPath = this.labelLow.replaceAll('\\', '/');
 			}
 			if (completion.kind === TerminalCompletionItemKind.Folder) {
-				this.labelLowNormalizedPath = this.labelLowNormalizedPath.replace(/\/$/, '');
+				this.labelLowNormalizedPath = this.labelLowNormalizedPath.replace(regexp1, '');
 			}
 		}
 
@@ -215,5 +218,5 @@ function isFile(completion: ITerminalCompletion): boolean {
 }
 
 function shouldPenalizeForPunctuation(label: string): boolean {
-	return basename(label).startsWith('_') || /^[\[\]\{\}\(\)\.,;:!?\/\\\-_@#~*%^=$]+$/.test(label);
+	return basename(label).startsWith('_') || regexp2.test(label);
 }

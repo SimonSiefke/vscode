@@ -59,6 +59,8 @@ import { IAuxiliaryWindow } from '../../auxiliaryWindow/electron-main/auxiliaryW
 import { ICSSDevelopmentService } from '../../cssDev/node/cssDevService.js';
 import { ResourceSet } from '../../../base/common/map.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
+const regexpZAZAZ0 = /^[a-zA-Z][a-zA-Z0-9\+\-\.]+:/;
+
 
 //#region Helper Interfaces
 
@@ -1442,7 +1444,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 		let remoteAuthority = openConfig.remoteAuthority;
 		for (const extensionDevelopmentPath of extensionDevelopmentPaths) {
-			if (extensionDevelopmentPath.match(/^[a-zA-Z][a-zA-Z0-9\+\-\.]+:/)) {
+			if (extensionDevelopmentPath.match(regexpZAZAZ0)) {
 				const url = URI.parse(extensionDevelopmentPath);
 				const extensionDevelopmentPathRemoteAuthority = getRemoteAuthority(url);
 				if (extensionDevelopmentPathRemoteAuthority) {

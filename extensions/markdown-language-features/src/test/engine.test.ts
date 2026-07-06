@@ -8,6 +8,9 @@ import 'mocha';
 import * as vscode from 'vscode';
 import { InMemoryDocument } from '../client/inMemoryDocument';
 import { createNewMarkdownEngine } from './engine';
+const regexpPreClassFrontmatter = /<pre[^>]*class="[^"]*frontmatter[^"]*"[^>]*>[\s\S]*<\/pre>/;
+const regexpDivClassFrontmatter = /<div class="frontmatter-error"[\s\S]*<\/div>/;
+
 
 
 const testFileName = vscode.Uri.file('test.md');
@@ -81,7 +84,7 @@ suite('markdown.engine', () => {
 			await setStyle('codeBlock');
 			const engine = createNewMarkdownEngine();
 			const html = (await engine.render(input)).html;
-			assert.match(html, /<pre[^>]*class="[^"]*frontmatter[^"]*"[^>]*>[\s\S]*<\/pre>/);
+			assert.match(html, regexpPreClassFrontmatter);
 			assert.ok(html.includes('title'), `Expected frontmatter content to be rendered. Got: ${html}`);
 			assert.ok(html.includes('<h1 data-line="4"'), `Expected body to render after frontmatter. Got: ${html}`);
 		});
@@ -100,7 +103,7 @@ suite('markdown.engine', () => {
 			await setStyle('table');
 			const engine = createNewMarkdownEngine();
 			const html = (await engine.render('---\nfoo: [unclosed\n---\n\n# Body')).html;
-			assert.match(html, /<div class="frontmatter-error"[\s\S]*<\/div>/);
+			assert.match(html, regexpDivClassFrontmatter);
 			assert.ok(html.includes('<h1 data-line="4"'), `Expected body to render after error. Got: ${html}`);
 		});
 

@@ -15,6 +15,8 @@ import { readUnifiedConfig } from '../utils/configuration';
 import FileConfigurationManager from './fileConfigurationManager';
 import { conditionalRegistration, requireSomeCapability } from './util/dependentRegistration';
 import { LanguageDescription } from '../configuration/languageDescription';
+const regexp1 = /\<\/?\s*[\w\d_$.]*$/;
+
 
 type RenameResponse = {
 	readonly type: 'rename';
@@ -147,7 +149,7 @@ class TypeScriptRenameProvider implements vscode.RenameProvider {
 		}
 
 		const prefix = document.getText(new vscode.Range(position.line, 0, position.line, position.character));
-		return /\<\/?\s*[\w\d_$.]*$/.test(prefix);
+		return regexp1.test(prefix);
 	}
 
 	private updateLocs(

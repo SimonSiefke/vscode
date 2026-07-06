@@ -6,6 +6,8 @@
 import { LineEdit, LineReplacement } from '../../../util/vs/editor/common/core/edits/lineEdit';
 import { StringEdit } from '../../../util/vs/editor/common/core/edits/stringEdit';
 import { StatelessNextEditDocument } from './statelessNextEditProvider';
+const regexp1 = /\s/g;
+
 
 export class IgnoreEmptyLineAndLeadingTrailingWhitespaceChanges {
 	public static filterEdit(resultDocument: StatelessNextEditDocument, singleEdits: readonly LineReplacement[]): readonly LineReplacement[] {
@@ -53,8 +55,8 @@ export class IgnoreWhitespaceOnlyChanges {
 	 * @remarks public only for testing
 	 */
 	public static _isFormattingOnlyChange(baseLines: string[], singleEdit: LineReplacement): boolean {
-		const originalLines = singleEdit.lineRange.toOffsetRange().slice(baseLines).join('').replace(/\s/g, '');
-		const newLines = singleEdit.newLines.join('').replace(/\s/g, '');
+		const originalLines = singleEdit.lineRange.toOffsetRange().slice(baseLines).join('').replace(new RegExp(regexp1), '');
+		const newLines = singleEdit.newLines.join('').replace(new RegExp(regexp1), '');
 		return originalLines === newLines;
 	}
 }

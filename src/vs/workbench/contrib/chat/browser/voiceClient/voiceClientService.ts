@@ -21,6 +21,8 @@ import {
 	IVoiceFeedbackPayload,
 } from '../../common/voiceClient/voiceClientService.js';
 import { InstantiationType, registerSingleton } from '../../../../../platform/instantiation/common/extensions.js';
+const regexpRealtimeVoice = /\/realtime\/voice$/;
+
 
 const PING_INTERVAL_MS = 25_000;
 const PONG_TIMEOUT_MS = 10_000;
@@ -521,7 +523,7 @@ export class VoiceClientService extends Disposable implements IVoiceClientServic
 		const httpUrl = this._getWsUrl()
 			.replace('wss://', 'https://')
 			.replace('ws://', 'http://')
-			.replace(/\/realtime\/voice$/, '/feedback');
+			.replace(regexpRealtimeVoice, '/feedback');
 		const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 		if (this._authToken) {
 			headers['Authorization'] = `Bearer ${this._authToken}`;

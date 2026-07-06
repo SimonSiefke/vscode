@@ -30,6 +30,8 @@ import { TokenizationTextModelPart } from '../../../../editor/common/model/token
 import { TreeSitterSyntaxTokenBackend } from '../../../../editor/common/model/tokens/treeSitter/treeSitterSyntaxTokenBackend.js';
 import { TreeSitterTokenizationImpl } from '../../../../editor/common/model/tokens/treeSitter/treeSitterTokenizationImpl.js';
 import { waitForState } from '../../../../base/common/observable.js';
+const regexp1 = /\r/g;
+
 
 interface IToken {
 	c: string; // token
@@ -325,7 +327,7 @@ class Snapper {
 				} else {
 					const capture = tokenizationModel.captureAtRangeTree(range);
 					tokens.push({
-						c: currentCursor.currentNode.text.replace(/\r/g, ''),
+						c: currentCursor.currentNode.text.replace(new RegExp(regexp1), ''),
 						t: capture?.map(cap => cap.name).join(' ') ?? '',
 						r: {
 							dark_plus: undefined,

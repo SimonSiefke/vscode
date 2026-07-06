@@ -14,6 +14,9 @@ import { ExtensionHost, GitHubSocialSignInProvider, GitHubTarget, getFlows } fro
 import { CANCELLATION_ERROR, NETWORK_ERROR, USER_CANCELLATION_ERROR } from './common/errors';
 import { Config } from './config';
 import { base64Encode } from './node/buffer';
+const regexpInsidersVscodeGithub = /^((insiders\.)?vscode|github)\./;
+const regexpLocalhost = /^localhost/;
+
 
 const REDIRECT_URL_STABLE = 'https://vscode.dev/redirect';
 const REDIRECT_URL_INSIDERS = 'https://insiders.vscode.dev/redirect';
@@ -83,7 +86,7 @@ export class GitHubServer implements IGitHubServer {
 			return this._isNoCorsEnvironment;
 		}
 		const uri = await vscode.env.asExternalUri(vscode.Uri.parse(`${vscode.env.uriScheme}://vscode.github-authentication/dummy`));
-		this._isNoCorsEnvironment = (uri.scheme === 'https' && /^((insiders\.)?vscode|github)\./.test(uri.authority)) || (uri.scheme === 'http' && /^localhost/.test(uri.authority));
+		this._isNoCorsEnvironment = (uri.scheme === 'https' && regexpInsidersVscodeGithub.test(uri.authority)) || (uri.scheme === 'http' && regexpLocalhost.test(uri.authority));
 		return this._isNoCorsEnvironment;
 	}
 

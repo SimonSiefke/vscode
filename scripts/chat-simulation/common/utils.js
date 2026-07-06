@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexp1 = /\/\*[\s\S]*?\*\//g;
+const regexp2 = /\/\/.*/g;
+const regexp3 = /^\d+\.\d+\.\d+/;
+const regexp9a = /^[0-9a-f]{7,40}$/;
+
 // @ts-check
 
 /**
@@ -25,7 +30,7 @@ const DATA_DIR = path.join(ROOT, '.chat-simulation-data');
 // -- Config loading ----------------------------------------------------------
 
 /** @param {string} text */
-function stripJsoncComments(text) { return text.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, ''); }
+function stripJsoncComments(text) { return text.replace(new RegExp(regexp2), '').replace(new RegExp(regexp1), ''); }
 
 /**
  * Load a namespaced section from config.jsonc.
@@ -77,8 +82,8 @@ function getElectronPath() {
  */
 function isVersionString(value) {
 	if (value === 'insiders' || value === 'stable') { return true; }
-	if (/^\d+\.\d+\.\d+/.test(value)) { return true; }
-	if (/^[0-9a-f]{7,40}$/.test(value)) { return true; }
+	if (regexp3.test(value)) { return true; }
+	if (regexp9a.test(value)) { return true; }
 	return false;
 }
 

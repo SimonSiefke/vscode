@@ -23,6 +23,9 @@ import { ILayoutService } from '../../../../../../platform/layout/browser/layout
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
 import { ACTION_ID_NEW_CHAT, CHAT_OPEN_ACTION_ID, IChatViewOpenOptions } from '../../actions/chatActions.js';
+const regexp1 = /^>+/;
+const regexp2 = /^<+/;
+
 
 /** Marker ID for the "send to agent" quick pick item */
 const SEND_TO_AGENT_ID = 'unified-quick-access-send-to-agent';
@@ -573,11 +576,11 @@ export class UnifiedQuickAccess extends Disposable {
 			// Handle shortcut transitions - ensure only one shortcut char is shown
 			if (this._arrivedViaShortcut === '<' && tab.id === 'agentSessions') {
 				// Strip any leading "<" chars and set just one
-				filterText = filterText.replace(/^<+/, '');
+				filterText = filterText.replace(regexp2, '');
 				picker.value = '<' + filterText;
 			} else if (this._arrivedViaShortcut === '>' && tab.id === 'commands') {
 				// Strip any leading ">" chars and set just one
-				filterText = filterText.replace(/^>+/, '');
+				filterText = filterText.replace(regexp1, '');
 				picker.value = '>' + filterText;
 			} else {
 				// Normal prefix-based switching

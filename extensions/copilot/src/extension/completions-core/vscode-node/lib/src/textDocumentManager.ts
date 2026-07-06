@@ -17,6 +17,9 @@ import {
 import { isDocumentValid } from './util/documentEvaluation';
 import { Event } from './util/event';
 import { basename, normalizeUri } from './util/uri';
+const regexp1 = /\/?$/;
+const regexp2 = /[#?].*/;
+
 
 /**
  * An interface describing an individual change in the text of a document.
@@ -271,8 +274,8 @@ export abstract class TextDocumentManager implements ICompletionsTextDocumentMan
 		const uri = normalizeUri(doc.uri);
 		for (const folder of this.getWorkspaceFolders()) {
 			const parentURI = normalizeUri(folder.uri)
-				.replace(/[#?].*/, '')
-				.replace(/\/?$/, '/');
+				.replace(regexp2, '')
+				.replace(regexp1, '/');
 			if (uri.startsWith(parentURI)) {
 				return uri.slice(parentURI.length);
 			}

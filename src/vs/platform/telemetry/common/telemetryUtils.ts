@@ -14,6 +14,10 @@ import { IProductService } from '../../product/common/productService.js';
 import { getRemoteName } from '../../remote/common/remoteHosts.js';
 import { verifyMicrosoftInternalDomain } from './commonProperties.js';
 import { ICustomEndpointTelemetryService, ITelemetryData, ITelemetryEndpoint, ITelemetryService, TelemetryConfiguration, TelemetryLevel, TELEMETRY_CRASH_REPORTER_SETTING_ID, TELEMETRY_OLD_SETTING_ID, TELEMETRY_SETTING_ID } from './telemetry.js';
+const regexpNodeModulesNode = /(?:^|[\\\/])((node_modules|node_modules\.asar)[\\\/].*)$/;
+const regexpVscodeResourcesApp = /^(.*?)((?:\.vscode(?:-[a-z]+)*|resources[\\\/]app)[\\\/]extensions[\\\/].*)$/i;
+const regexpFileZA = /(file:\/\/)?([a-zA-Z]:(\\\\|\\|\/)|(\\\\|\\|\/))?([\w\-\._@]+(\\\\|\\|\/))+[\w\-\._@]*/g;
+
 
 /**
  * A special class used to denoting a telemetry value which should not be clean.
@@ -311,13 +315,13 @@ function anonymizeFilePaths(stack: string, cleanupPatterns: RegExp[]): string {
 	}
 
 	// Match node_modules or node_modules.asar at any position in the path, capturing the node_modules/... suffix
-	const nodeModulesRegex = /(?:^|[\\\/])((node_modules|node_modules\.asar)[\\\/].*)$/;
+	const nodeModulesRegex = regexpNodeModulesNode;
 	// Match VS Code extension paths:
 	// 1. User extensions: .vscode/extensions/, .vscode-insiders/extensions/, .vscode-server/extensions/, .vscode-server-insiders/extensions/, etc.
 	// 2. Built-in extensions: resources/app/extensions/
 	// Capture everything from the vscode folder or resources/app/extensions onwards
-	const vscodeExtensionsPathRegex = /^(.*?)((?:\.vscode(?:-[a-z]+)*|resources[\\\/]app)[\\\/]extensions[\\\/].*)$/i;
-	const fileRegex = /(file:\/\/)?([a-zA-Z]:(\\\\|\\|\/)|(\\\\|\\|\/))?([\w\-\._@]+(\\\\|\\|\/))+[\w\-\._@]*/g;
+	const vscodeExtensionsPathRegex = regexpVscodeResourcesApp;
+	const fileRegex = new RegExp(regexpFileZA);
 	let lastIndex = 0;
 	updatedStack = '';
 

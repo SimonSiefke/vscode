@@ -5,6 +5,12 @@
 
 import { formatStackTrace } from '../stackTraceHelper';
 import * as assert from 'assert';
+const regexp1 = /\u001b\[.+?m/g;
+const regexpHref = /<a href=.*>/;
+const regexpHref1 = /<a href=.*>\d<\/a>/;
+const regexpHrefVscodeNotebook = /<a href='vscode-notebook-cell.*>/;
+const regexp5 = /4\d/;
+
 
 // The stack frames for these tests can be retreived by using the raw json for a notebook with an error
 suite('StackTraceHelper', () => {
@@ -19,7 +25,7 @@ suite('StackTraceHelper', () => {
 		assert.equal(formatStackTrace(stack, true).formattedStack, stack);
 	});
 
-	const formatSequence = /\u001b\[.+?m/g;
+	const formatSequence = new RegExp(regexp1);
 	function stripAsciiFormatting(text: string) {
 		return text.replace(formatSequence, '');
 	}
@@ -89,7 +95,7 @@ suite('StackTraceHelper', () => {
 			'\u001b[31mTypeError\u001b[39m: unsupported operand type(s) for +: "NoneType" and "int"\n';
 
 		const formattedLines = formatStackTrace(stack, false).formattedStack.split('\n');
-		formattedLines.forEach(line => assert.ok(!/<a href=.*>/.test(line), 'line should not contain a link: ' + line));
+		formattedLines.forEach(line => assert.ok(!regexpHref.test(line), 'line should not contain a link: ' + line));
 	});
 
 	test('IPython stack line numbers are linkified for IPython 8.3', () => {
@@ -133,7 +139,7 @@ suite('StackTraceHelper', () => {
 			'\u001b[1;31mException\u001b[0m\n:';
 
 		const formatted = formatStackTrace(stack, true).formattedStack;
-		assert.ok(!/<a href=.*>\d<\/a>/.test(formatted), formatted);
+		assert.ok(!regexpHref1.test(formatted), formatted);
 	});
 
 	test('IPython stack without line numbers are not linkified', () => {
@@ -148,8 +154,8 @@ suite('StackTraceHelper', () => {
 			'   1a  print(\n';
 
 		const formattedLines = formatStackTrace(stack, true).formattedStack.split('\n');
-		assert.ok(/<a href='vscode-notebook-cell.*>/.test(formattedLines[0]), 'line should contain a link: ' + formattedLines[0]);
-		formattedLines.slice(1).forEach(line => assert.ok(!/<a href=.*>/.test(line), 'line should not contain a link: ' + line));
+		assert.ok(regexpHrefVscodeNotebook.test(formattedLines[0]), 'line should contain a link: ' + formattedLines[0]);
+		formattedLines.slice(1).forEach(line => assert.ok(!regexpHref.test(line), 'line should not contain a link: ' + line));
 	});
 
 	test('background (40-49) ANSI colors are removed', () => {
@@ -157,8 +163,8 @@ suite('StackTraceHelper', () => {
 			'open\u001b[39;49m\u001b[43m(\u001b[49m\u001b[33;43m\'\u001b[39;49m\u001b[33;43minput.txt\u001b[39;49m\u001b[33;43m\'\u001b[39;49m\u001b[43m)\u001b[49m;';
 
 		const formattedLines = formatStackTrace(stack, true).formattedStack.split('\n');
-		assert.ok(!/4\d/.test(formattedLines[0]), 'should not contain background colors ' + formattedLines[0]);
-		formattedLines.slice(1).forEach(line => assert.ok(!/<a href=.*>/.test(line), 'line should not contain a link: ' + line));
+		assert.ok(!regexp5.test(formattedLines[0]), 'should not contain background colors ' + formattedLines[0]);
+		formattedLines.slice(1).forEach(line => assert.ok(!regexpHref.test(line), 'line should not contain a link: ' + line));
 	});
 
 });

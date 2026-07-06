@@ -50,6 +50,11 @@ import { AgentPluginEditorInput } from './agentPluginEditor/agentPluginEditorInp
 import { AgentPluginItemKind, IAgentPluginItem, IInstalledPluginItem, IMarketplacePluginItem } from './agentPluginEditor/agentPluginItems.js';
 import { getInstalledPluginContextMenuActions, InstallPluginAction, OpenPluginReadmeAction } from './agentPluginActions.js';
 import { InstalledAgentPluginsViewId, HasInstalledAgentPluginsContext } from './chat.js';
+const regexpAgentPlugins = /@agentPlugins/i;
+const regexpRecommended = /^@recommended$/i;
+const regexpInstalled = /(?:^|\s)@installed(?:\s|$)/i;
+const regexpInstalled1 = /(?:^|\s)@installed(?:\s|$)/gi;
+
 
 //#region Item model
 
@@ -410,10 +415,10 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 
 	async show(query: string): Promise<IPagedModel<IAgentPluginItem>> {
 		this.currentQuery = query;
-		const stripped = query.replace(/@agentPlugins/i, '').trim();
-		const isRecommended = /^@recommended$/i.test(stripped);
-		const isInstalled = /(?:^|\s)@installed(?:\s|$)/i.test(stripped);
-		const text = isRecommended ? '' : stripped.replace(/(?:^|\s)@installed(?:\s|$)/gi, ' ').trim().toLowerCase();
+		const stripped = query.replace(regexpAgentPlugins, '').trim();
+		const isRecommended = regexpRecommended.test(stripped);
+		const isInstalled = regexpInstalled.test(stripped);
+		const text = isRecommended ? '' : stripped.replace(new RegExp(regexpInstalled1), ' ').trim().toLowerCase();
 
 		let installed = this.queryInstalled();
 		if (text) {

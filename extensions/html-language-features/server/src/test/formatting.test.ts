@@ -11,6 +11,8 @@ import { getLanguageModes, TextDocument, Range, FormattingOptions, ClientCapabil
 
 import { format } from '../modes/formatting.js';
 import { getNodeFileFS } from '../node/nodeFs.js';
+const regexp1 = /\r\n/mg;
+
 
 suite('HTML Embedded Formatting', () => {
 
@@ -49,8 +51,8 @@ suite('HTML Embedded Formatting', () => {
 	}
 
 	async function assertFormatWithFixture(fixtureName: string, expectedPath: string, options?: any, formatOptions?: FormattingOptions): Promise<void> {
-		const input = fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'src', 'test', 'fixtures', 'inputs', fixtureName)).toString().replace(/\r\n/mg, '\n');
-		const expected = fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'src', 'test', 'fixtures', 'expected', expectedPath)).toString().replace(/\r\n/mg, '\n');
+		const input = fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'src', 'test', 'fixtures', 'inputs', fixtureName)).toString().replace(new RegExp(regexp1), '\n');
+		const expected = fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'src', 'test', 'fixtures', 'expected', expectedPath)).toString().replace(new RegExp(regexp1), '\n');
 		await assertFormat(input, expected, options, formatOptions, expectedPath);
 	}
 

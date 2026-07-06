@@ -9,6 +9,8 @@ import { getTextPart } from '../../../../platform/chat/common/globalStringUtils'
 import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
 import { IInstantiationService, ServicesAccessor } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { PromptRenderer } from '../../../prompts/node/base/promptRenderer';
+const regexp1 = /\\+/g;
+
 
 export async function toolResultToString(accessor: ServicesAccessor, result: vscode.LanguageModelToolResult) {
 	return renderElementToString(accessor, <ToolResult data={result} />);
@@ -28,5 +30,5 @@ export async function renderElementToString(accessor: ServicesAccessor, element:
 	const renderer = PromptRenderer.create(accessor.get(IInstantiationService), endpoint, clz, {});
 
 	const r = await renderer.render();
-	return r.messages.map(m => getTextPart(m.content)).join('\n').replace(/\\+/g, '/');
+	return r.messages.map(m => getTextPart(m.content)).join('\n').replace(new RegExp(regexp1), '/');
 }

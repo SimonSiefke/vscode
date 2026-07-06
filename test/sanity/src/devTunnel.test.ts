@@ -7,6 +7,9 @@ import { Page } from 'playwright';
 import { TestContext } from './context.js';
 import { GitHubAuth } from './githubAuth.js';
 import { UITest } from './uiTest.js';
+const regexpToGrantAccess = /To grant access .* use code ([A-Z0-9-]+)/;
+const regexpOpenThisLink = /Open this link in your browser (https?:\/\/[^\s]+)/;
+
 
 export function setup(context: TestContext) {
 	/*
@@ -100,14 +103,14 @@ export function setup(context: TestContext) {
 					'--verbose'
 				],
 				async (line) => {
-					const deviceCode = /To grant access .* use code ([A-Z0-9-]+)/.exec(line)?.[1];
+					const deviceCode = regexpToGrantAccess.exec(line)?.[1];
 					if (deviceCode) {
 						context.log(`Device code detected: ${deviceCode}, starting device flow authentication`);
 						await auth.runDeviceCodeFlow(page, deviceCode);
 						return;
 					}
 
-					const tunnelUrl = /Open this link in your browser (https?:\/\/[^\s]+)/.exec(line)?.[1];
+					const tunnelUrl = regexpOpenThisLink.exec(line)?.[1];
 					if (tunnelUrl) {
 						await connectToTunnel(tunnelUrl, page, test, auth);
 						await test.run(page);

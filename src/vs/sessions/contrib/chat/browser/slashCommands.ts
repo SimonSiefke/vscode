@@ -22,6 +22,11 @@ import { INewChatModelPickerService } from './newChatModelPicker.js';
 import { isAgentHostTarget } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../../workbench/contrib/chat/common/model/chatUri.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
+const regexp1 = /^\/([\w\p{L}\d_\-\.:]+)\s*(.*)/su;
+const regexp2 = /^\/([\w\p{L}\d_\-\.:]+)\s?/u;
+const regexp3 = /\/\w*/g;
+const regexp4 = /\/[\p{L}0-9_.:-]*/gu;
+
 /**
  * Static command ID used by completion items to trigger immediate slash command execution,
  * mirroring the pattern of core's `ChatSubmitAction` for `executeImmediately` commands.
@@ -97,7 +102,7 @@ export class SlashCommandHandler extends Disposable {
 	 * Returns `true` if a command was handled.
 	 */
 	tryExecuteSlashCommand(query: string): boolean {
-		const match = query.match(/^\/([\w\p{L}\d_\-\.:]+)\s*(.*)/su);
+		const match = query.match(regexp1);
 		if (!match) {
 			return false;
 		}
@@ -161,7 +166,7 @@ export class SlashCommandHandler extends Disposable {
 	private _updateDecorations(): void {
 		const model = this._editor.getModel();
 		const value = model?.getValue() ?? '';
-		const match = value.match(/^\/([\w\p{L}\d_\-\.:]+)\s?/u);
+		const match = value.match(regexp2);
 
 		if (!match) {
 			this._commandDecorations.clear();
@@ -215,7 +220,7 @@ export class SlashCommandHandler extends Disposable {
 			_debugDisplayName: 'sessionsSlashCommands',
 			triggerCharacters: ['/'],
 			provideCompletionItems: (model: ITextModel, position: Position, _context: CompletionContext, _token: CancellationToken) => {
-				const range = this._computeCompletionRanges(model, position, /\/\w*/g);
+				const range = this._computeCompletionRanges(model, position, new RegExp(regexp3));
 				if (!range) {
 					return null;
 				}
@@ -256,7 +261,7 @@ export class SlashCommandHandler extends Disposable {
 					return null;
 				}
 
-				const range = this._computeCompletionRanges(model, position, /\/[\p{L}0-9_.:-]*/gu);
+				const range = this._computeCompletionRanges(model, position, new RegExp(regexp4));
 				if (!range) {
 					return null;
 				}

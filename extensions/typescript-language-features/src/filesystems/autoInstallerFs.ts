@@ -10,6 +10,9 @@ import { URI } from 'vscode-uri';
 import { Disposable } from '../utils/dispose';
 import { MemFs } from './memFs';
 import { Logger } from '../logging/logger';
+const regexpNodeModules = /^(.*?)\/node_modules/;
+const regexp2 = /^\/([^\/]+)\/([^\/]*)(?:\/(.+))?$/;
+
 
 const TEXT_DECODER = new TextDecoder('utf-8');
 const TEXT_ENCODER = new TextEncoder();
@@ -204,7 +207,7 @@ export class AutoInstallerFs extends Disposable implements vscode.FileSystemProv
 
 	private async getProjectRoot(incomingUri: URI): Promise<string | undefined> {
 		const vsfs = vscode.workspace.fs;
-		const pkgPath = incomingUri.path.match(/^(.*?)\/node_modules/);
+		const pkgPath = incomingUri.path.match(regexpNodeModules);
 		const ret = pkgPath?.[1];
 		if (!ret) {
 			return;
@@ -225,7 +228,7 @@ class MappedUri {
 	constructor(uri: vscode.Uri) {
 		this.raw = uri;
 
-		const parts = uri.path.match(/^\/([^\/]+)\/([^\/]*)(?:\/(.+))?$/);
+		const parts = uri.path.match(regexp2);
 		if (!parts) {
 			throw new Error(`Invalid uri: ${uri.toString()}, ${uri.path}`);
 		}

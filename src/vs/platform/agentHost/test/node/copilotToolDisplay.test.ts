@@ -7,6 +7,8 @@ import assert from 'assert';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { getEditFilePath, getEditFilePaths, getInvocationMessage, getPastTenseMessage, getPermissionDisplay, getShellIntention, getShellLanguage, getToolDisplayName, getToolInputString, getToolKind, getToolMarkdownContent, isEditTool, isHiddenTool, isMarkdownRenderedTool, synthesizeSkillToolCall, type ITypedPermissionRequest } from '../../node/copilot/copilotToolDisplay.js';
+const regexpSandbox = /sandbox/i;
+
 
 suite('copilotToolDisplay — friendly tool names', () => {
 
@@ -208,7 +210,7 @@ suite('getPermissionDisplay — cd-prefix stripping', () => {
 		} as ITypedPermissionRequest, wd);
 
 		assert.notStrictEqual(bypass.confirmationTitle, sandboxed.confirmationTitle);
-		assert.ok(/sandbox/i.test(bypass.confirmationTitle), `expected title to mention the sandbox, got: ${bypass.confirmationTitle}`);
+		assert.ok(regexpSandbox.test(bypass.confirmationTitle), `expected title to mention the sandbox, got: ${bypass.confirmationTitle}`);
 	});
 
 	test('confirmation title reflects sandbox bypass for custom-tool shell requests', () => {
@@ -220,7 +222,7 @@ suite('getPermissionDisplay — cd-prefix stripping', () => {
 		} as ITypedPermissionRequest, wd);
 
 		assert.strictEqual(bypass.permissionKind, 'shell');
-		assert.ok(/sandbox/i.test(bypass.confirmationTitle), `expected title to mention the sandbox, got: ${bypass.confirmationTitle}`);
+		assert.ok(regexpSandbox.test(bypass.confirmationTitle), `expected title to mention the sandbox, got: ${bypass.confirmationTitle}`);
 	});
 
 });

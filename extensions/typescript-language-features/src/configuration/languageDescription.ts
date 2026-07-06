@@ -6,6 +6,11 @@
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import * as languageIds from './languageIds';
+const regexpTsconfigJson = /^tsconfig\.(.+\.)?json$/i;
+const regexpJtSconfigJson = /^[jt]sconfig\.(.+\.)?json$/i;
+const regexpTsxMtsCts = /\.(tsx?|mts|cts)$/i;
+const regexpJsxMjsCjs = /\.(jsx?|mjs|cjs)$/i;
+
 
 export const enum DiagnosticLanguage {
 	JavaScript,
@@ -58,17 +63,17 @@ export const standardLanguageDescriptions: LanguageDescription[] = [
 ];
 
 export function isTsConfigFileName(fileName: string): boolean {
-	return /^tsconfig\.(.+\.)?json$/i.test(basename(fileName));
+	return regexpTsconfigJson.test(basename(fileName));
 }
 
 export function isJsConfigOrTsConfigFileName(fileName: string): boolean {
-	return /^[jt]sconfig\.(.+\.)?json$/i.test(basename(fileName));
+	return regexpJtSconfigJson.test(basename(fileName));
 }
 
 export function doesResourceLookLikeATypeScriptFile(resource: vscode.Uri): boolean {
-	return /\.(tsx?|mts|cts)$/i.test(resource.fsPath);
+	return regexpTsxMtsCts.test(resource.fsPath);
 }
 
 export function doesResourceLookLikeAJavaScriptFile(resource: vscode.Uri): boolean {
-	return /\.(jsx?|mjs|cjs)$/i.test(resource.fsPath);
+	return regexpJsxMjsCjs.test(resource.fsPath);
 }

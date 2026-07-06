@@ -14,6 +14,8 @@ import * as path from '../../../../util/vs/base/common/path';
 import { FlushableJSONFile, FlushableSafeJSONLFile, getFileSize } from '../../../workspaceRecorder/vscode-node/safeFileWriteUtils';
 import { INextEditResult } from '../../node/nextEditResult';
 import { InlineEditLogger } from '../parts/inlineEditLogger';
+const regexp1 = /:/g;
+
 
 export class LogContextRecorder extends Disposable {
 
@@ -141,7 +143,7 @@ class LogContextRecorderImpl extends Disposable {
 			const date = new Date();
 
 			function formatDateFileNameSafe(date: Date): string {
-				return date.toISOString().replace(/:/g, '-');
+				return date.toISOString().replace(new RegExp(regexp1), '-');
 			}
 
 			await rename(logFilePath, path.join(recordingDirPath, `${state.value.logCount}.${formatDateFileNameSafe(date)}${LogContextRecorder.fileSuffix}`));

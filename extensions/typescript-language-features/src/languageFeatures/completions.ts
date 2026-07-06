@@ -22,6 +22,13 @@ import { applyCodeAction } from './util/codeAction';
 import { conditionalRegistration, requireSomeCapability } from './util/dependentRegistration';
 import { snippetForFunctionCall } from './util/snippetForFunctionCall';
 import * as Previewer from './util/textRendering';
+const regexp1 = /^[a-z_$0-9]*\s*\(/gi;
+const regexp2 = /<\s*[\w]*$/gi;
+const regexp3 = /^#/;
+const regexpThis = /^this\.#/;
+const regexp5 = /^\[['"](.+)[['"]\]$/;
+const regexp6 = /\??\.\s*$/;
+
 
 
 interface DotAccessorContext {
@@ -301,13 +308,13 @@ class MyCompletionItem extends vscode.CompletionItem {
 		// https://github.com/microsoft/vscode/issues/18131
 
 		const after = line.text.slice(position.character);
-		if (after.match(/^[a-z_$0-9]*\s*\(/gi)) {
+		if (after.match(new RegExp(regexp1))) {
 			return false;
 		}
 
 		// Don't complete function call if it looks like a jsx tag.
 		const before = line.text.slice(0, position.character);
-		if (before.match(/<\s*[\w]*$/gi)) {
+		if (before.match(new RegExp(regexp2))) {
 			return false;
 		}
 
@@ -396,12 +403,12 @@ class MyCompletionItem extends vscode.CompletionItem {
 			const wordStart = wordRange ? line.charAt(wordRange.start.character) : undefined;
 			if (insertText) {
 				if (insertText.startsWith('this.#')) {
-					return wordStart === '#' ? insertText : insertText.replace(/^this\.#/, '');
+					return wordStart === '#' ? insertText : insertText.replace(regexpThis, '');
 				} else {
 					return insertText;
 				}
 			} else {
-				return wordStart === '#' ? undefined : this.tsEntry.name.replace(/^#/, '');
+				return wordStart === '#' ? undefined : this.tsEntry.name.replace(regexp3, '');
 			}
 		}
 
@@ -418,7 +425,7 @@ class MyCompletionItem extends vscode.CompletionItem {
 		// In which case we want to insert a bracket accessor but should use `.abc` as the filter text instead of
 		// the bracketed insert text.
 		else if (insertText?.startsWith('[')) {
-			return insertText.replace(/^\[['"](.+)[['"]\]$/, '.$1');
+			return insertText.replace(regexp5, '.$1');
 		}
 
 		// In all other cases, fallback to using the insertText
@@ -770,7 +777,7 @@ class TypeScriptCompletionItemProvider implements vscode.CompletionItemProvider<
 		const isNewIdentifierLocation = response.body.isNewIdentifierLocation;
 		const isMemberCompletion = response.body.isMemberCompletion;
 		if (isMemberCompletion) {
-			const dotMatch = line.text.slice(0, position.character).match(/\??\.\s*$/) || undefined;
+			const dotMatch = line.text.slice(0, position.character).match(regexp6) || undefined;
 			if (dotMatch) {
 				const range = new vscode.Range(position.translate({ characterDelta: -dotMatch[0].length }), position);
 				const text = document.getText(range);

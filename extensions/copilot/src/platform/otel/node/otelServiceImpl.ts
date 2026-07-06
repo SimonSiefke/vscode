@@ -16,6 +16,8 @@ import type { BatchLogRecordProcessor, LogRecordExporter } from '@opentelemetry/
 import type { PeriodicExportingMetricReader, PushMetricExporter } from '@opentelemetry/sdk-metrics';
 import type { BatchSpanProcessor, ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-node';
 import type { OTelSqliteStore } from './sqlite/otelSqliteStore';
+const regexp1 = /\/$/;
+
 
 interface ExporterSet {
 	spanExporter: SpanExporter;
@@ -260,7 +262,7 @@ export class NodeOTelService implements IOTelService {
 				import('@opentelemetry/exporter-logs-otlp-proto'),
 				import('@opentelemetry/exporter-metrics-otlp-proto'),
 			]);
-			const base = config.otlpEndpoint.replace(/\/$/, '');
+			const base = config.otlpEndpoint.replace(regexp1, '');
 			return {
 				spanExporter: new OTLPTraceExporter({ url: `${base}/v1/traces`, headers: config.headers }),
 				logExporter: new OTLPLogExporter({ url: `${base}/v1/logs`, headers: config.headers }),
@@ -287,7 +289,7 @@ export class NodeOTelService implements IOTelService {
 			import('@opentelemetry/exporter-logs-otlp-http'),
 			import('@opentelemetry/exporter-metrics-otlp-http'),
 		]);
-		const base = config.otlpEndpoint.replace(/\/$/, '');
+		const base = config.otlpEndpoint.replace(regexp1, '');
 		return {
 			spanExporter: new OTLPTraceExporter({ url: `${base}/v1/traces`, headers: config.headers }),
 			logExporter: new OTLPLogExporter({ url: `${base}/v1/logs`, headers: config.headers }),

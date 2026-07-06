@@ -11,6 +11,8 @@ import { StopWatch } from '../../../base/common/stopwatch.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ILogService } from '../../log/common/log.js';
+const regexp1 = /\\/g;
+
 
 export const ICSSDevelopmentService = createDecorator<ICSSDevelopmentService>('ICSSDevelopmentService');
 
@@ -63,7 +65,7 @@ export class CSSDevelopmentService implements ICSSDevelopmentService {
 			});
 			process.on('close', () => {
 				const data = Buffer.concat(chunks).toString('utf8');
-				const result = data.split('\n').filter(Boolean).map(path => relative(basePath, path).replace(/\\/g, '/')).filter(Boolean).sort();
+				const result = data.split('\n').filter(Boolean).map(path => relative(basePath, path).replace(new RegExp(regexp1), '/')).filter(Boolean).sort();
 				if (result.some(path => path.indexOf('vs/') !== 0)) {
 					this.logService.error(`[CSS_DEV] Detected invalid paths in css modules, raw output: ${data}`);
 				}

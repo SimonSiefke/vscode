@@ -7,10 +7,12 @@ import { parentPort } from 'worker_threads';
 import { DefaultLinesDiffComputer } from '../../../editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js';
 import type { ILinesDiffComputerOptions } from '../../../editor/common/diff/linesDiffComputer.js';
 import type { IDiffCountResult } from '../common/diffComputeService.js';
+const regexp1 = /\r\n|\r|\n/;
+
 
 export function computeDiffCounts(originalText: string, modifiedText: string, timeoutMs: number): IDiffCountResult {
-	const originalLines = originalText.split(/\r\n|\r|\n/);
-	const modifiedLines = modifiedText.split(/\r\n|\r|\n/);
+	const originalLines = originalText.split(regexp1);
+	const modifiedLines = modifiedText.split(regexp1);
 	const diffComputer = new DefaultLinesDiffComputer();
 	const options: ILinesDiffComputerOptions = {
 		ignoreTrimWhitespace: true,

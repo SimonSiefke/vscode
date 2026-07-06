@@ -8,6 +8,8 @@ import { IDisposable } from '../../../base/common/lifecycle.js';
 import { URI } from '../../../base/common/uri.js';
 import { IEditorOptions, ITextEditorSelection } from '../../editor/common/editor.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
+const regexp1 = /^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/;
+
 
 export const IOpenerService = createDecorator<IOpenerService>('openerService');
 
@@ -140,7 +142,7 @@ export function withSelection(uri: URI, selection: ITextEditorSelection): URI {
  */
 export function extractSelection(uri: URI): { selection: ITextEditorSelection | undefined; uri: URI } {
 	let selection: ITextEditorSelection | undefined = undefined;
-	const match = /^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/.exec(uri.fragment);
+	const match = regexp1.exec(uri.fragment);
 	if (match) {
 		selection = {
 			startLineNumber: parseInt(match[1]),

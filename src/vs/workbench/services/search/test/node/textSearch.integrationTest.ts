@@ -12,6 +12,8 @@ import { URI } from '../../../../../base/common/uri.js';
 import { flakySuite } from '../../../../../base/test/node/testUtils.js';
 import { deserializeSearchError, IFolderQuery, ISearchRange, ISerializedFileMatch, ITextQuery, ITextSearchContext, ITextSearchMatch, QueryType, SearchErrorCode } from '../../common/search.js';
 import { TextSearchEngineAdapter } from '../../node/textSearchAdapter.js';
+const regexp1 = /\\/g;
+
 
 const TEST_FIXTURES = path.normalize(FileAccess.asFileUri('vs/workbench/services/search/test/node/fixtures').fsPath);
 const EXAMPLES_FIXTURES = path.join(TEST_FIXTURES, 'examples');
@@ -416,7 +418,7 @@ flakySuite('TextSearch-integration', function () {
 function makeExpression(...patterns: string[]): glob.IExpression {
 	return patterns.reduce((glob, pattern) => {
 		// glob.ts needs forward slashes
-		pattern = pattern.replace(/\\/g, '/');
+		pattern = pattern.replace(new RegExp(regexp1), '/');
 		glob[pattern] = true;
 		return glob;
 	}, Object.create(null));

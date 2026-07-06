@@ -9,6 +9,8 @@ import { sep } from '../../common/path.js';
 import { isLinux, isMacintosh, isWindows } from '../../common/platform.js';
 import { URI } from '../../common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
+const regexp1 = /\//g;
+
 
 suite('Glob', () => {
 
@@ -1019,7 +1021,7 @@ suite('Glob', () => {
 	}
 
 	function nativeSep(slashPath: string): string {
-		return slashPath.replace(/\//g, sep);
+		return slashPath.replace(new RegExp(regexp1), sep);
 	}
 
 	test('relative pattern - glob star', function () {

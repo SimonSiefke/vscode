@@ -6,6 +6,8 @@
 import { $, getActiveDocument, getActiveWindow } from '../../../../base/browser/dom.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import './media/decorationCssRuleExtractor.css';
+const regexp1 = /[ :.]/;
+
 
 /**
  * Extracts CSS rules that would be applied to certain decoration classes.
@@ -85,7 +87,7 @@ export class DecorationCssRuleExtractor extends Disposable {
 					const index = rule.selectorText.indexOf(searchTerm);
 					if (index !== -1) {
 						const endOfResult = index + searchTerm.length;
-						if (rule.selectorText.length === endOfResult || rule.selectorText.substring(endOfResult, endOfResult + 1).match(/[ :.]/)) {
+						if (rule.selectorText.length === endOfResult || rule.selectorText.substring(endOfResult, endOfResult + 1).match(regexp1)) {
 							result.push(rule);
 							break; // Don't add the same rule multiple times
 						}

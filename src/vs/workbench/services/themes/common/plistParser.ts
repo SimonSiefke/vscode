@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const regexpAmpLtGt = /&amp;|&lt;|&gt;|&quot;|&apos;/g;
+const regexp9a = /&#x([0-9a-f]+);/g;
+const regexp3 = /&#([0-9]+);/g;
+const regexpPlist = /^plist/;
+
 const enum ChCode {
 	BOM = 65279,
 
@@ -325,11 +330,11 @@ function _parse(content: string, filename: string | null, locationKeyName: strin
 	}
 
 	function escapeVal(str: string): string {
-		return str.replace(/&#([0-9]+);/g, function (_: string, m0: string) {
+		return str.replace(new RegExp(regexp3), function (_: string, m0: string) {
 			return String.fromCodePoint(parseInt(m0, 10));
-		}).replace(/&#x([0-9a-f]+);/g, function (_: string, m0: string) {
+		}).replace(new RegExp(regexp9a), function (_: string, m0: string) {
 			return String.fromCodePoint(parseInt(m0, 16));
-		}).replace(/&amp;|&lt;|&gt;|&quot;|&apos;/g, function (_: string) {
+		}).replace(new RegExp(regexpAmpLtGt), function (_: string) {
 			switch (_) {
 				case '&amp;': return '&';
 				case '&lt;': return '<';
@@ -481,7 +486,7 @@ function _parse(content: string, filename: string | null, locationKeyName: strin
 				continue;
 		}
 
-		if (/^plist/.test(tag.name)) {
+		if (regexpPlist.test(tag.name)) {
 			continue;
 		}
 

@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import { TelemetryReporter } from '../logging/telemetry';
 import { isImplicitProjectConfigFile, openOrCreateConfig, ProjectType } from '../tsconfig';
 import { ITypeScriptServiceClient } from '../typescriptService';
+const regexpTsconfigJson = /tsconfig\.?.*\.json/;
+
 
 
 interface Hint {
@@ -98,7 +100,7 @@ function onConfigureExcludesSelected(
 		if (root) {
 			openOrCreateConfig(
 				client.apiVersion,
-				/tsconfig\.?.*\.json/.test(configFileName) ? ProjectType.TypeScript : ProjectType.JavaScript,
+				regexpTsconfigJson.test(configFileName) ? ProjectType.TypeScript : ProjectType.JavaScript,
 				root,
 				client.configuration);
 		}

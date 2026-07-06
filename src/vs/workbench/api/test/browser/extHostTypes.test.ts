@@ -12,6 +12,8 @@ import { assertType } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import * as types from '../../common/extHostTypes.js';
+const regexp1 = /\//g;
+
 
 function assertToJSON(a: any, expected: any) {
 	const raw = JSON.stringify(a);
@@ -37,7 +39,7 @@ suite('ExtHostTypes', function () {
 			$mid: MarshalledId.Uri,
 			scheme: 'file',
 			path: '/path/test.file',
-			fsPath: '/path/test.file'.replace(/\//g, isWindows ? '\\' : '/'),
+			fsPath: '/path/test.file'.replace(new RegExp(regexp1), isWindows ? '\\' : '/'),
 			_sep: isWindows ? 1 : undefined,
 		});
 
@@ -46,7 +48,7 @@ suite('ExtHostTypes', function () {
 			$mid: MarshalledId.Uri,
 			scheme: 'file',
 			path: '/path/test.file',
-			fsPath: '/path/test.file'.replace(/\//g, isWindows ? '\\' : '/'),
+			fsPath: '/path/test.file'.replace(new RegExp(regexp1), isWindows ? '\\' : '/'),
 			_sep: isWindows ? 1 : undefined,
 			external: 'file:///path/test.file'
 		});

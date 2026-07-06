@@ -10,6 +10,8 @@ import { gulp } from '../lib/gulp/facade.ts';
 import vfs from 'vinyl-fs';
 import rimraf from 'rimraf';
 import minimist from 'minimist';
+const regexp1 = /^\w{2,3}(-\w+)?$/;
+
 
 interface Options {
 	_: string[];
@@ -49,7 +51,7 @@ function update(options: Options) {
 		throw new Error(`${externalExtensionsLocation} doesn't exist.`);
 	}
 	let locExtFolder: string = idOrPath;
-	if (/^\w{2,3}(-\w+)?$/.test(idOrPath)) {
+	if (regexp1.test(idOrPath)) {
 		locExtFolder = path.join('..', 'vscode-loc', 'i18n', `vscode-language-pack-${idOrPath}`);
 	}
 	const locExtStat = fs.statSync(locExtFolder);

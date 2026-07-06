@@ -5,6 +5,9 @@
 
 import type * as Proto from './protocol/protocol';
 import { TypeScriptVersion } from './versionProvider';
+const regexpBBADCLIENT = /\bBADCLIENT\b/;
+const regexpBtsserverTsTsx = /(\btsserver)?(\.(?:ts|tsx|js|jsx)(?::\d+(?::\d+)?)?)\)?$/igm;
+
 
 
 export class TypeScriptServerError extends Error {
@@ -51,7 +54,7 @@ export class TypeScriptServerError extends Error {
 			command: this.serverCommand,
 			serverid: this.serverId,
 			sanitizedstack: this.sanitizedStack || '',
-			badclient: /\bBADCLIENT\b/.test(this.stack || ''),
+			badclient: regexpBBADCLIENT.test(this.stack || ''),
 		} as const;
 	}
 
@@ -87,7 +90,7 @@ export class TypeScriptServerError extends Error {
 		if (!message) {
 			return '';
 		}
-		const regex = /(\btsserver)?(\.(?:ts|tsx|js|jsx)(?::\d+(?::\d+)?)?)\)?$/igm;
+		const regex = new RegExp(regexpBtsserverTsTsx);
 		let serverStack = '';
 		while (true) {
 			const match = regex.exec(message);

@@ -6,6 +6,9 @@
 import * as vscode from 'vscode';
 import { ATTACHMENT_CLEANUP_COMMANDID, JUPYTER_NOTEBOOK_MARKDOWN_SELECTOR } from './constants';
 import { deepClone, objectEquals, Delayer } from './helper';
+const regexpIpynb = /\.ipynb$/;
+const regexpAttachmentFilename = /!\[.*?\]\(<?attachment:(?<filename>.*?)>?\)/gm;
+
 
 interface AttachmentCleanRequest {
 	notebook: vscode.NotebookDocument;
@@ -114,7 +117,7 @@ export class AttachmentCleaner implements vscode.CodeActionProvider {
 		}));
 
 		this._disposables.push(vscode.workspace.onWillRenameFiles(e => {
-			const re = /\.ipynb$/;
+			const re = regexpIpynb;
 			for (const file of e.files) {
 				if (!re.exec(file.oldUri.toString())) {
 					continue;
@@ -365,7 +368,7 @@ export class AttachmentCleaner implements vscode.CodeActionProvider {
 	private getAttachmentNames(document: vscode.TextDocument) {
 		const source = document.getText();
 		const filenames: Map<string, { valid: boolean; ranges: vscode.Range[] }> = new Map();
-		const re = /!\[.*?\]\(<?attachment:(?<filename>.*?)>?\)/gm;
+		const re = new RegExp(regexpAttachmentFilename);
 
 		let match;
 		while ((match = re.exec(source))) {

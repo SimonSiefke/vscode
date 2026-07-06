@@ -19,6 +19,10 @@ import { AgentHostStateManager } from '../../node/agentHostStateManager.js';
 import type { IAgentHostGitStateService } from '../../common/agentHostGitStateService.js';
 import { AgentHostChangesetSubscriptionService } from '../../node/agentHostChangesetSubscriptionService.js';
 import { URI } from '../../../../base/common/uri.js';
+const regexpIsDisabled = /is disabled/;
+const regexpDisabledWhileTurn = /disabled while a turn is active/;
+const regexpBoom = /Boom/;
+
 
 const testOperationId = 'test-operation';
 
@@ -154,7 +158,7 @@ suite('AgentHostChangesetOperationService', () => {
 
 		const error = await service.invokeChangesetOperation({ channel: changesetUri, operationId: testOperationId }).then(undefined, error => error);
 
-		assert.match(error.message, /is disabled/);
+		assert.match(error.message, regexpIsDisabled);
 		assert.strictEqual(handler.calls, 0);
 		assert.strictEqual(stateManager.getChangesetState(changesetUri)?.operations?.[0].status, ChangesetOperationStatus.Disabled);
 	});
@@ -192,7 +196,7 @@ suite('AgentHostChangesetOperationService', () => {
 
 		const error = await service.invokeChangesetOperation({ channel: changesetUri, operationId: testOperationId }).then(undefined, error => error);
 
-		assert.match(error.message, /disabled while a turn is active/);
+		assert.match(error.message, regexpDisabledWhileTurn);
 		assert.strictEqual(handler.calls, 0);
 		assert.strictEqual(stateManager.getChangesetState(changesetUri)?.operations?.[0].status, ChangesetOperationStatus.Idle);
 	});
@@ -216,7 +220,7 @@ suite('AgentHostChangesetOperationService', () => {
 		const failure = invocation.then(undefined, error => error);
 		handler.fail(new Error('Boom'));
 		const error = await failure;
-		assert.match(error.message, /Boom/);
+		assert.match(error.message, regexpBoom);
 		assert.strictEqual(stateManager.getChangesetState(changesetUri)?.operations?.[0].status, ChangesetOperationStatus.Error);
 		assert.strictEqual(stateManager.getChangesetState(changesetUri)?.operations?.[0].error?.message, 'Boom');
 	});

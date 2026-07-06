@@ -81,6 +81,9 @@ import { registerPendingEditContentProvider } from './copilot/pendingEditContent
 import { join } from '../../../base/common/path.js';
 import { createAgentHostTelemetryService } from './agentHostTelemetryService.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
+const regexp1 = /-/g;
+const regexp2 = /^\/+/;
+
 
 // Entry point for the agent host utility process.
 // Sets up IPC, logging, and registers agent providers (Copilot).
@@ -338,8 +341,8 @@ async function startAgentHost(): Promise<void> {
 			}
 
 			const socketPath = isWindows
-				? `\\\\.\\pipe\\vscode-agent-host-${generateUuid().replace(/-/g, '')}`
-				: join(os.tmpdir(), `vscode-agent-host-${generateUuid().replace(/-/g, '')}.sock`);
+				? `\\\\.\\pipe\\vscode-agent-host-${generateUuid().replace(new RegExp(regexp1), '')}`
+				: join(os.tmpdir(), `vscode-agent-host-${generateUuid().replace(new RegExp(regexp1), '')}.sock`);
 
 			const wsServer = disposables.add(await WebSocketProtocolServer.create(
 				{ socketPath },
@@ -388,7 +391,7 @@ async function startAgentHost(): Promise<void> {
 				}
 
 				const port = Number(parsedUrl.port);
-				const auth = parsedUrl.pathname.replace(/^\/+/, '');
+				const auth = parsedUrl.pathname.replace(regexp2, '');
 				if (!Number.isInteger(port) || !auth) {
 					logService.warn(`[AgentHost] Unexpected inspector URL: ${url}`);
 					return undefined;

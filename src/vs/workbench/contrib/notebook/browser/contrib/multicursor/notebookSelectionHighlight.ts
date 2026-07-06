@@ -12,6 +12,8 @@ import { FindMatch, IModelDeltaDecoration, ITextModel } from '../../../../../../
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { IActiveNotebookEditor, ICellViewModel, INotebookEditor, INotebookEditorContribution } from '../../notebookBrowser.js';
 import { registerNotebookContribution } from '../../notebookEditorExtensions.js';
+const regexp1 = /\r\n/g;
+
 
 class NotebookSelectionHighlighter extends Disposable implements INotebookEditorContribution {
 
@@ -162,7 +164,7 @@ class NotebookSelectionHighlighter extends Disposable implements INotebookEditor
 	}
 
 	private getSearchText(selection: Selection, model: ITextModel): string {
-		return model.getValueInRange(selection).replace(/\r\n/g, '\n');
+		return model.getValueInRange(selection).replace(new RegExp(regexp1), '\n');
 	}
 
 	override dispose(): void {

@@ -17,6 +17,8 @@ import { getDefaultHoverDelegate } from '../../../../../../../base/browser/ui/ho
 import { IToolRiskAssessment, ToolRiskLevel } from '../../../tools/chatToolRiskAssessmentService.js';
 
 import './media/toolRiskBadge.css';
+const regexp1 = /\$\([^)]+\)\s?/g;
+
 
 const RISK_BADGE_CLASS = 'tool-risk-badge';
 
@@ -142,7 +144,7 @@ export class ToolRiskBadgeWidget extends Disposable {
 	private _refreshDetailsHover(): void {
 		this._detailsHoverStore.clear();
 		const md = this._buildDetailsMarkdown();
-		const fallback = md.value.replace(/\$\([^)]+\)\s?/g, '');
+		const fallback = md.value.replace(new RegExp(regexp1), '');
 		this._detailsHoverStore.add(this._hoverService.setupManagedHover(
 			getDefaultHoverDelegate('element'),
 			this._detailsIconEl,

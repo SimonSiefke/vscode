@@ -6,6 +6,8 @@
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+const regexpRefsHeads = /^refs\/heads\/(.+)$/;
+
 
 const root = path.dirname(path.dirname(path.dirname(import.meta.dirname)));
 
@@ -51,7 +53,7 @@ async function checkDistroCommit(): Promise<void> {
 	// Get the current branch from Azure DevOps
 	// BUILD_SOURCEBRANCH is in format refs/heads/main or refs/heads/release/1.90
 	const sourceBranch = getEnv('BUILD_SOURCEBRANCH');
-	const branchMatch = sourceBranch.match(/^refs\/heads\/(.+)$/);
+	const branchMatch = sourceBranch.match(regexpRefsHeads);
 
 	if (!branchMatch) {
 		console.log(`Cannot determine branch from BUILD_SOURCEBRANCH: ${sourceBranch}, skipping check`);

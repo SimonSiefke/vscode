@@ -4,9 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isBasicASCII } from '../../../util/vs/base/common/strings';
+const regexp1 = /\r?\n/;
+const regexp2 = /^\s/;
+const regexp3 = /^[;{}()\[\]`~?]/;
+const regexp4 = /[A-Z]/;
+
 
 export function looksLikeCode(text: string): boolean {
-	const lines = text.split(/\r?\n/);
+	const lines = text.split(regexp1);
 	const lineTypes = lines.map(guessLineType);
 	const codeLineCount = lineTypes.filter(type => type === GuessedLineType.Code).length;
 	const naturalLanguageLineCount = lineTypes.filter(type => type === GuessedLineType.NaturalLanguage).length;
@@ -33,14 +38,14 @@ function guessLineType(line: string): GuessedLineType {
 	}
 
 	// If a line starts with whitespace or syntactical characters, it's probably code
-	if (line.match(/^\s/) || line.match(/^[;{}()\[\]`~?]/)) {
+	if (line.match(regexp2) || line.match(regexp3)) {
 		return GuessedLineType.Code;
 	}
 
 	// Natural Language Hints
 	{
 		// if the first character is upper-case
-		if (line.charAt(0).match(/[A-Z]/)) {
+		if (line.charAt(0).match(regexp4)) {
 			naturalLanguageScore += 1;
 		}
 		// if the line ends with a period
@@ -56,11 +61,11 @@ function guessLineType(line: string): GuessedLineType {
 	// Code Hints
 	{
 		// if the first character is ASCII but not upper-case
-		if (isBasicASCII(line.charAt(0)) && !line.charAt(0).match(/[A-Z]/)) {
+		if (isBasicASCII(line.charAt(0)) && !line.charAt(0).match(regexp4)) {
 			codeScore += 1;
 		}
 		// if the line starts with tabs or spaces
-		if (line.match(/^\s/)) {
+		if (line.match(regexp2)) {
 			codeScore += 1;
 		}
 		// if the line contains common characters used for programming

@@ -8,6 +8,9 @@ import path from 'path';
 
 import type tt from 'typescript';
 import TS from '../../common/typescript';
+const regexp1 = /\\/g;
+const regexp2 = /^[a-z]:/;
+
 const ts = TS();
 
 import { ComputeContextSession, type Logger } from '../../common/contextProvider';
@@ -17,8 +20,8 @@ import { LanguageServiceProxy } from './languageServerProxy';
 const isWindows = process.platform === 'win32';
 function _normalizePath(value: string): string {
 	if (isWindows) {
-		value = value.replace(/\\/g, '/');
-		if (/^[a-z]:/.test(value)) {
+		value = value.replace(new RegExp(regexp1), '/');
+		if (regexp2.test(value)) {
 			value = value.charAt(0).toUpperCase() + value.substring(1);
 		}
 	}

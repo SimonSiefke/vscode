@@ -23,6 +23,13 @@ import { LintErrors } from '../../common/lintErrors';
 import { constructTaggedFile, createTaggedCurrentFileContentUsingPagedClipping, expandRangeToPageRange, getUserPrompt, PromptPieces, runGlobalBudgetCascade } from '../../common/promptCrafting';
 import { PromptTags } from '../../common/tags';
 import { CurrentDocument } from '../../common/xtabCurrentDocument';
+const regexp1 = /^```/;
+const regexpRecentlyViewedDocumentsBeforeNeighborFiles = /'recentlyViewedDocuments' before 'neighborFiles'/;
+const regexpDuplicatePartRecentlyViewedDocuments = /duplicate part 'recentlyViewedDocuments'/;
+const regexpSharesAcrossOrder = /shares across order must sum to ~1/;
+const regexpSharesIsMissing = /shares is missing entry for 'diffHistory'/;
+const regexpSharesIsMissing1 = /shares is missing entry for 'currentFile'/;
+
 
 function nLines(n: number): StringText {
 	return new StringText(new Array(n).fill(0).map((_, i) => `${i + 1}`).join('\n'));
@@ -673,7 +680,7 @@ describe('getUserPrompt', () => {
 		expect(prompt).not.toContain('<area>');
 
 		// Not wrapped in backticks
-		expect(prompt).not.toMatch(/^```/);
+		expect(prompt).not.toMatch(regexp1);
 
 		// Includes postscript (includePostScript defaults to true)
 		expect(prompt).toContain('developer was working on a section of code');
@@ -687,7 +694,7 @@ describe('getUserPrompt', () => {
 		expect(prompt).toContain(PromptTags.CURSOR_LOCATION.end);
 		expect(prompt).toContain(PromptTags.CURSOR);
 		expect(prompt).not.toContain('<area>');
-		expect(prompt).not.toMatch(/^```/);
+		expect(prompt).not.toMatch(regexp1);
 
 		// No postscript
 		expect(prompt).not.toContain('developer was working');
@@ -699,7 +706,7 @@ describe('getUserPrompt', () => {
 
 		expect(prompt).not.toContain(PromptTags.CURSOR_LOCATION.start);
 		expect(prompt).not.toContain('<area>');
-		expect(prompt).not.toMatch(/^```/);
+		expect(prompt).not.toMatch(regexp1);
 	});
 
 	test('default strategy appends areaAroundCodeToEdit and wraps in backticks', () => {
@@ -707,7 +714,7 @@ describe('getUserPrompt', () => {
 		const { prompt } = getUserPrompt(pieces);
 
 		expect(prompt).toContain('<area>some code</area>');
-		expect(prompt).toMatch(/^```/);
+		expect(prompt).toMatch(regexp1);
 		expect(prompt).not.toContain(PromptTags.CURSOR_LOCATION.start);
 	});
 
@@ -898,7 +905,7 @@ describe('getUserPrompt — globalBudget cascade', () => {
 			order: ['neighborFiles', 'recentlyViewedDocuments', 'languageContext', 'diffHistory'],
 			shares: GlobalBudgetOptions.DEFAULT_SHARES,
 		});
-		expect(() => getUserPrompt(pieces)).toThrow(/'recentlyViewedDocuments' before 'neighborFiles'/);
+		expect(() => getUserPrompt(pieces)).toThrow(regexpRecentlyViewedDocumentsBeforeNeighborFiles);
 	});
 
 	test('throws on duplicate part in order', () => {
@@ -907,7 +914,7 @@ describe('getUserPrompt — globalBudget cascade', () => {
 			order: ['recentlyViewedDocuments', 'recentlyViewedDocuments', 'neighborFiles', 'languageContext', 'diffHistory'],
 			shares: GlobalBudgetOptions.DEFAULT_SHARES,
 		});
-		expect(() => getUserPrompt(pieces)).toThrow(/duplicate part 'recentlyViewedDocuments'/);
+		expect(() => getUserPrompt(pieces)).toThrow(regexpDuplicatePartRecentlyViewedDocuments);
 	});
 
 	test('throws when shares do not sum to ~1', () => {
@@ -922,7 +929,7 @@ describe('getUserPrompt — globalBudget cascade', () => {
 				diffHistory: 0.5,
 			},
 		});
-		expect(() => getUserPrompt(pieces)).toThrow(/shares across order must sum to ~1/);
+		expect(() => getUserPrompt(pieces)).toThrow(regexpSharesAcrossOrder);
 	});
 
 	test('throws when shares is missing an entry for a part in order', () => {
@@ -937,7 +944,7 @@ describe('getUserPrompt — globalBudget cascade', () => {
 				neighborFiles: 0.2,
 			} as Record<'currentFile' | 'languageContext' | 'recentlyViewedDocuments' | 'neighborFiles' | 'diffHistory', number>,
 		});
-		expect(() => getUserPrompt(pieces)).toThrow(/shares is missing entry for 'diffHistory'/);
+		expect(() => getUserPrompt(pieces)).toThrow(regexpSharesIsMissing);
 	});
 
 	test('throws when shares is missing an entry for currentFile', () => {
@@ -952,7 +959,7 @@ describe('getUserPrompt — globalBudget cascade', () => {
 				diffHistory: 0.25,
 			} as Record<'currentFile' | 'languageContext' | 'recentlyViewedDocuments' | 'neighborFiles' | 'diffHistory', number>,
 		});
-		expect(() => getUserPrompt(pieces)).toThrow(/shares is missing entry for 'currentFile'/);
+		expect(() => getUserPrompt(pieces)).toThrow(regexpSharesIsMissing1);
 	});
 
 	function runCascade(globalBudget: GlobalBudgetOptions, extra?: { langCtx?: LanguageContextResponse }) {

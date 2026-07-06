@@ -24,6 +24,9 @@ import {
 	visitTree,
 } from '../indentation';
 import { compareTreeWithSpec } from './testHelpers';
+const regexp1 = /^{$/;
+const regexp2 = /^}$/;
+
 
 /**
  * Parse a tree according to indentation, where lines
@@ -559,7 +562,7 @@ A
     stmt
   }
 `);
-		labelLines(tree, buildLabelRules({ opener: /^{$/, closer: /^}$/ }));
+		labelLines(tree, buildLabelRules({ opener: regexp1, closer: regexp2 }));
 		tree = combineClosersAndOpeners(tree);
 		compareTreeWithSpec(
 			tree,
@@ -582,7 +585,7 @@ B
 
 end
 `);
-		labelLines(tree, buildLabelRules({ opener: /^{$/, closer: /^}$/ }));
+		labelLines(tree, buildLabelRules({ opener: regexp1, closer: regexp2 }));
 		tree = combineClosersAndOpeners(tree);
 		tree = flattenVirtual(tree);
 		compareTreeWithSpec(
@@ -608,7 +611,7 @@ C
 
 }
 `);
-		labelLines(tree, buildLabelRules({ opener: /^{$/, closer: /^}$/ }));
+		labelLines(tree, buildLabelRules({ opener: regexp1, closer: regexp2 }));
 		tree = combineClosersAndOpeners(tree);
 		tree = flattenVirtual(tree);
 		compareTreeWithSpec(
@@ -634,7 +637,7 @@ D
     }
 }
 `);
-		labelLines(tree, buildLabelRules({ opener: /^{$/, closer: /^}$/ }));
+		labelLines(tree, buildLabelRules({ opener: regexp1, closer: regexp2 }));
 		tree = combineClosersAndOpeners(tree);
 		tree = flattenVirtual(tree);
 		compareTreeWithSpec(

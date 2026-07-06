@@ -19,6 +19,8 @@ import { InternalModelContentChangeEvent, ModelInjectedTextChangedEvent, ModelRa
 import { createModelServices, createTextModel, instantiateTextModel } from '../testTextModel.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { IViewModel } from '../../../common/viewModel.js';
+const regexp1 = /(#?-?\d*\.\d\w*%?)|(::?[\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\w-?]+%?|[@#!.])/g;
+
 
 // --------- utils
 
@@ -482,7 +484,7 @@ suite('Editor Model - Words', () => {
 
 		disposables.add(languageService.registerLanguage({ id: MODE_ID }));
 		disposables.add(languageConfigurationService.register(MODE_ID, {
-			wordPattern: /(#?-?\d*\.\d\w*%?)|(::?[\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\w-?]+%?|[@#!.])/g
+			wordPattern: new RegExp(regexp1)
 		}));
 
 		const thisModel = disposables.add(instantiateTextModel(instantiationService, '.🐷-a-b', MODE_ID));

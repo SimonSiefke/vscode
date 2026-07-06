@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Code } from './code';
+const regexp1 = /\n/g;
+
 
 const CHAT_VIEW = 'div[id="workbench.panel.chat"]';
 const CHAT_EDITOR = '.editor-instance .interactive-session';
@@ -68,7 +70,7 @@ export class Chat {
 		// keypresses so suggestion widgets (e.g. the `[`-triggered chat reference
 		// picker) cannot intercept characters and corrupt the prompt.
 		// Newlines are replaced with spaces since Enter submits in chat input.
-		const sanitizedMessage = message.replace(/\n/g, ' ');
+		const sanitizedMessage = message.replace(new RegExp(regexp1), ' ');
 		await this.code.waitForTypeInEditor(this.chatInputSelector, sanitizedMessage);
 
 		// Wait for the send button to be enabled before clicking. The send
@@ -86,7 +88,7 @@ export class Chat {
 		// Insert via Monaco's executeEdits rather than character-by-character
 		// keypresses so suggestion widgets (e.g. the `[`-triggered chat reference
 		// picker) cannot intercept characters and corrupt the prompt.
-		const sanitizedMessage = message.replace(/\n/g, ' ');
+		const sanitizedMessage = message.replace(new RegExp(regexp1), ' ');
 		await this.code.waitForTypeInEditor(this.chatEditorInputSelector, sanitizedMessage);
 
 		// Wait for the send button to be enabled before clicking. The send

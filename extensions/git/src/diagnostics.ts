@@ -6,6 +6,8 @@
 import { CodeAction, CodeActionKind, CodeActionProvider, Diagnostic, DiagnosticCollection, DiagnosticSeverity, Disposable, Range, Selection, TextDocument, Uri, WorkspaceEdit, l10n, languages, workspace } from 'vscode';
 import { mapEvent, filterEvent, dispose } from './util';
 import { Model } from './model';
+const regexp1 = /^\s+$/;
+
 
 export enum DiagnosticCodes {
 	empty_message = 'empty_message',
@@ -67,7 +69,7 @@ export class GitCommitInputBoxDiagnosticsManager {
 			return;
 		}
 
-		if (/^\s+$/.test(document.getText())) {
+		if (regexp1.test(document.getText())) {
 			const documentRange = new Range(document.lineAt(0).range.start, document.lineAt(document.lineCount - 1).range.end);
 			const diagnostic = new Diagnostic(documentRange, l10n.t('Current commit message only contains whitespace characters'), this.severity);
 			diagnostic.code = DiagnosticCodes.empty_message;

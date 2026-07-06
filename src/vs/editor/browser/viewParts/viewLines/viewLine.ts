@@ -21,6 +21,8 @@ import { ViewGpuContext } from '../../gpu/viewGpuContext.js';
 import { OffsetRange } from '../../../common/core/ranges/offsetRange.js';
 import { InlineDecorationType } from '../../../common/viewModel/inlineDecorations.js';
 import { TextDirection } from '../../../common/model.js';
+const regexp1 = /^\s*$/;
+
 
 const canUseFastRenderedViewLine = (function () {
 	if (platform.isNative) {
@@ -497,7 +499,7 @@ class RenderedViewLine implements IRenderedViewLine {
 		this.domNode = domNode;
 		this.input = renderLineInput;
 		this._characterMapping = characterMapping;
-		this._isWhitespaceOnly = /^\s*$/.test(renderLineInput.lineContent);
+		this._isWhitespaceOnly = regexp1.test(renderLineInput.lineContent);
 		this._containsForeignElements = containsForeignElements;
 		this._cachedWidth = -1;
 

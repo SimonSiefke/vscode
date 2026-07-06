@@ -6,6 +6,8 @@
 import fs from 'fs';
 import path from 'path';
 import { dirs } from '../../npm/dirs.ts';
+const regexpBuildDistroNpm = /^.build\/distro\/npm/;
+
 
 function log(...args: unknown[]): void {
 	console.log(`[${new Date().toLocaleTimeString('en', { hour12: false })}]`, '[distro]', ...args);
@@ -33,7 +35,7 @@ function mixin(mixinPath: string) {
 function main() {
 	log(`Mixing in distro npm dependencies...`);
 
-	const mixinPaths = dirs.filter(d => /^.build\/distro\/npm/.test(d));
+	const mixinPaths = dirs.filter(d => regexpBuildDistroNpm.test(d));
 
 	for (const mixinPath of mixinPaths) {
 		mixin(mixinPath);

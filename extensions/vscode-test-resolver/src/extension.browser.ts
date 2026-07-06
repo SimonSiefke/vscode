@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+const regexpGETHTTP = /GET\s+(\S+)\s+HTTP/;
+const regexpSkipWebSocketFramesTrue = /skipWebSocketFrames=true/;
+
 
 export function activate(_context: vscode.ExtensionContext) {
 	vscode.workspace.registerRemoteAuthorityResolver('test', {
@@ -52,7 +55,7 @@ class InitialManagedMessagePassing implements vscode.ManagedMessagePassing {
 		const str = decoder.decode(d);
 
 		// example str GET ws://localhost/oss-dev?reconnectionToken=4354a323-a45a-452c-b5d7-d8d586e1cd5c&reconnection=false&skipWebSocketFrames=true HTTP/1.1
-		const match = str.match(/GET\s+(\S+)\s+HTTP/);
+		const match = str.match(regexpGETHTTP);
 		if (!match) {
 			console.error(`Coult not parse ${str}`);
 			this.closeEmitter.fire(new Error(`Coult not parse ${str}`));
@@ -88,7 +91,7 @@ class OpeningManagedMessagePassing {
 		closeEmitter: vscode.EventEmitter<Error | undefined>,
 		_endEmitter: vscode.EventEmitter<void>
 	) {
-		this.socket = new WebSocket(`ws://localhost:9888${url.pathname}${url.search.replace(/skipWebSocketFrames=true/, 'skipWebSocketFrames=false')}`);
+		this.socket = new WebSocket(`ws://localhost:9888${url.pathname}${url.search.replace(regexpSkipWebSocketFramesTrue, 'skipWebSocketFrames=false')}`);
 		this.socket.addEventListener('close', () => closeEmitter.fire(undefined));
 		this.socket.addEventListener('error', (e) => closeEmitter.fire(new Error(String(e))));
 		this.socket.addEventListener('message', async (e) => {

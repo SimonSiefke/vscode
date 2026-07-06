@@ -26,6 +26,12 @@ import { NullFilesConfigurationService, TestFileService } from '../../../../test
 import { IExplorerService } from '../../browser/files.js';
 import { ExplorerFindProvider, FilesFilter } from '../../browser/views/explorerViewer.js';
 import { ExplorerItem } from '../../common/explorerModel.js';
+const regexp1 = /[A-Z]/g;
+const regexp2 = /\]/g;
+const regexp3 = /\[/g;
+const regexp4 = /\*/g;
+const regexp5 = /\//g;
+
 
 function find(element: ExplorerItem, id: string): ExplorerItem | undefined {
 	if (element.name === id) {
@@ -178,11 +184,11 @@ suite('Find Provider - ExplorerView', () => {
 		});
 		instantiationService.stub(ISearchService, {
 			fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete> {
-				const filePattern = query.filePattern?.replace(/\//g, '')
-					.replace(/\*/g, '')
-					.replace(/\[/g, '')
-					.replace(/\]/g, '')
-					.replace(/[A-Z]/g, '') ?? '';
+				const filePattern = query.filePattern?.replace(new RegExp(regexp5), '')
+					.replace(new RegExp(regexp4), '')
+					.replace(new RegExp(regexp3), '')
+					.replace(new RegExp(regexp2), '')
+					.replace(new RegExp(regexp1), '') ?? '';
 				const fileMatches: IFileMatch[] = (searchMappings.get(filePattern) ?? []).map(u => ({ resource: u }));
 				return Promise.resolve({ results: fileMatches, messages: [] });
 			},

@@ -18,6 +18,8 @@ import { ILanguageService } from '../../../../editor/common/languages/language.j
 import { getIconClasses } from '../../../../editor/common/services/getIconClasses.js';
 import { URI } from '../../../../base/common/uri.js';
 import { FileKind } from '../../../../platform/files/common/files.js';
+const regexp1 = /\r\n|\r|\n/g;
+
 
 export function getAriaId(index: number): string {
 	return `simple-suggest-aria-id-${index}`;
@@ -217,7 +219,7 @@ export class SimpleSuggestWidgetItemRenderer implements IListRenderer<SimpleComp
 }
 
 function stripNewLines(str: string): string {
-	return str.replace(/\r\n|\r|\n/g, '');
+	return str.replace(new RegExp(regexp1), '');
 }
 
 const LEADING_PUNCTUATION_OR_SPACE = /^[\s()[\]{}<>"'`~!@#$%^&*+=,.:;?/\\|-]/;

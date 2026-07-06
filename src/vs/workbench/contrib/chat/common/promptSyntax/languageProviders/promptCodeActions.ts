@@ -20,6 +20,8 @@ import { MARKERS_OWNER_ID, PromptValidatorMarkerCode } from './promptValidator.j
 import { IMarkerData, IMarkerService } from '../../../../../../platform/markers/common/markers.js';
 import { CodeActionKind } from '../../../../../../editor/contrib/codeAction/common/types.js';
 import { getTarget, isVSCodeOrDefaultTarget } from './promptFileAttributes.js';
+const regexp1 = /^['"]|['"]$/g;
+
 
 export class PromptCodeActionProvider implements CodeActionProvider {
 	/**
@@ -113,7 +115,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 				));
 			} else if (markerCode === PromptValidatorMarkerCode.UnknownExtensionReference) {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
-				const extensionId = reference.split('/')[0].replace(/^['"]|['"]$/g, '');
+				const extensionId = reference.split('/')[0].replace(new RegExp(regexp1), '');
 				if (extensionId) {
 					result.push(this.createCodeAction(
 						model,
@@ -125,7 +127,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 				}
 			} else if (markerCode === PromptValidatorMarkerCode.UnknownMcpServerReference) {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
-				const serverId = reference.replace(/^['"]|['"]$/g, '');
+				const serverId = reference.replace(new RegExp(regexp1), '');
 				if (serverId) {
 					result.push(this.createCodeAction(
 						model,
@@ -138,7 +140,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 			} else {
 				const reference = model.getValueInRange(new Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)).trim();
 				if (reference) {
-					const extensionId = reference.split('/')[0].replace(/^['"]|['"]$/g, '');
+					const extensionId = reference.split('/')[0].replace(new RegExp(regexp1), '');
 					result.push(this.createCodeAction(
 						model,
 						range,
@@ -146,7 +148,7 @@ export class PromptCodeActionProvider implements CodeActionProvider {
 						undefined,
 						{ id: 'workbench.extensions.search', title: '', arguments: [`@id:${extensionId}`] }
 					));
-					const serverId = reference.replace(/^['"]|['"]$/g, '');
+					const serverId = reference.replace(new RegExp(regexp1), '');
 					result.push(this.createCodeAction(
 						model,
 						range,

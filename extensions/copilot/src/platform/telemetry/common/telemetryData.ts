@@ -8,6 +8,8 @@ import { IConfigurationService } from '../../configuration/common/configurationS
 import { IEnvService } from '../../env/common/envService';
 import { RequestId } from '../../networking/common/fetch';
 import { ITelemetryUserConfig, TelemetryEventProperties, TelemetryProperties } from './telemetry';
+const regexp1 = /\./g;
+
 
 export class TelemetryData {
 
@@ -150,7 +152,7 @@ export class TelemetryData {
 		const returnValue: { [key: string]: any } = {};
 		// Iterate over all keys in the map and replace dots with underscores
 		for (const key in map) {
-			const newKey = TelemetryData.keysExemptedFromSanitization.includes(key) ? key : key.replace(/\./g, '_');
+			const newKey = TelemetryData.keysExemptedFromSanitization.includes(key) ? key : key.replace(new RegExp(regexp1), '_');
 			returnValue[newKey] = map[key];
 		}
 		return returnValue;

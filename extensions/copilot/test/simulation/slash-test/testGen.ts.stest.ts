@@ -15,6 +15,10 @@ import { generateScenarioTestRunner } from '../../e2e/scenarioTest';
 import { forInline, simulateInlineChatWithStrategy } from '../inlineChatSimulator';
 import { assertContainsAllSnippets, assertNoSyntacticDiagnosticsAsync, getFileContent } from '../outcomeValidators';
 import { assertInlineEdit, assertInlineEditShape, assertNoStrings, assertSomeStrings, assertWorkspaceEdit, fromFixture } from '../stestUtil';
+const regexpTit = /\n\tit/g;
+const regexp2 = /\r\n|\r|\n/g;
+const regexpTestFindScrollWidgetState = /test\(.*findScrollWidgetState/;
+
 
 
 forInline((strategy, nonExtensionConfigurations, suffix) => {
@@ -38,9 +42,9 @@ forInline((strategy, nonExtensionConfigurations, suffix) => {
 
 							const changedFile = outcome.files.at(0);
 							assert.ok(changedFile);
-							assert([...getFileContent(changedFile).matchAll(/\n\tit/g)].length > 1);
+							assert([...getFileContent(changedFile).matchAll(new RegExp(regexpTit))].length > 1);
 
-							const sixthLine = getFileContent(changedFile).split(/\r\n|\r|\n/g).at(6);
+							const sixthLine = getFileContent(changedFile).split(new RegExp(regexp2)).at(6);
 
 							assert(sixthLine !== '});', `new tests are inserted within the existing suite: expected NOT '});'`);
 						},
@@ -64,7 +68,7 @@ forInline((strategy, nonExtensionConfigurations, suffix) => {
 						validate: async (outcome, workspace, accessor) => {
 							assertWorkspaceEdit(outcome);
 							assertType(outcome.files[0]);
-							assert([...getFileContent(outcome.files[0]).matchAll(/\n\tit/g)].length > 1);
+							assert([...getFileContent(outcome.files[0]).matchAll(new RegExp(regexpTit))].length > 1);
 						},
 					},
 				],
@@ -157,7 +161,7 @@ forInline((strategy, nonExtensionConfigurations, suffix) => {
 						assertInlineEdit(outcome);
 
 						assert.ok(outcome.appliedEdits.length >= 1);
-						assert.ok(outcome.appliedEdits.some(edit => edit.newText.match(/test\(.*findScrollWidgetState/)));
+						assert.ok(outcome.appliedEdits.some(edit => edit.newText.match(regexpTestFindScrollWidgetState)));
 					}
 				}]
 			});
@@ -223,7 +227,7 @@ forInline((strategy, nonExtensionConfigurations) => {
 						expectedIntent: Intent.Tests,
 						validate: async (outcome, workspace, accessor) => {
 							assert.strictEqual(outcome.type, 'inlineEdit');
-							const lines = outcome.fileContents.split(/\r\n|\r|\n/g);
+							const lines = outcome.fileContents.split(new RegExp(regexp2));
 							assert.ok(lines.length >= 132 + 276);
 							// remove first 132 lines
 							lines.splice(0, 132);

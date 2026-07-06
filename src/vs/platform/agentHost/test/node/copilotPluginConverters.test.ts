@@ -18,6 +18,8 @@ import { McpServerType } from '../../../mcp/common/mcpPlatformTypes.js';
 import { toSdkInstructionDirectories, toSdkMcpServers, toSdkCustomAgents, toSdkSessionCustomAgents, toSdkSkillDirectories, parsedPluginsEqual, toSdkHooks, type IPluginAgentsForSdk } from '../../node/copilot/copilotPluginConverters.js';
 import type { IMcpServerDefinition, INamedPluginResource, IParsedHookGroup, IParsedPlugin, IParsedSkill } from '../../../agentPlugins/common/pluginParsers.js';
 import { CustomizationType, McpServerStatus, type HookCustomization, type McpServerCustomization, type SkillCustomization } from '../../common/state/protocol/state.js';
+const regexp1 = /[\\/]$/;
+
 
 function stubMcpCustomization(name = 'test'): McpServerCustomization {
 	return { type: CustomizationType.McpServer, id: `mcp:${name}`, uri: 'file:///plugin', name, enabled: true, state: { kind: McpServerStatus.Starting } };
@@ -372,7 +374,7 @@ suite('copilotPluginConverters', () => {
 			const json = JSON.stringify(value);
 			// fileURLToPath(new URL('.', import.meta.url)) is the Node ESM equivalent
 			// of __dirname and works on Node 12+, unlike import.meta.dirname (Node 21.2+).
-			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(/[\\/]$/, '');
+			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(regexp1, '');
 			const filePath = `${dir}/vscode-test-hook-${Date.now()}.js`;
 			writeFileSync(filePath, `process.stdout.write(${JSON.stringify(json)});\n`);
 			// Do NOT quote the path: cmd.exe /c "node path" strips the outer quotes,
@@ -397,7 +399,7 @@ suite('copilotPluginConverters', () => {
 
 		test('onPostToolUse returns undefined when output is non-JSON', async () => {
 			// Use a script file so there are no cmd.exe quoting issues on Windows.
-			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(/[\\/]$/, '');
+			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(regexp1, '');
 			const filePath = `${dir}/vscode-test-hook-nonjson-${Date.now()}.js`;
 			writeFileSync(filePath, `process.stdout.write('not-json');\n`);
 			try {
@@ -412,7 +414,7 @@ suite('copilotPluginConverters', () => {
 		});
 
 		test('onPostToolUse returns undefined when command fails', async () => {
-			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(/[\\/]$/, '');
+			const dir = fileURLToPath(new URL('.', import.meta.url)).replace(regexp1, '');
 			const filePath = `${dir}/vscode-test-hook-fail-${Date.now()}.js`;
 			writeFileSync(filePath, `process.exit(1);\n`);
 			try {

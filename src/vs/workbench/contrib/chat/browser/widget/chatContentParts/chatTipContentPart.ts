@@ -25,6 +25,8 @@ import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { CHAT_SETUP_ACTION_ID } from '../../actions/chatActions.js';
 import { IChatTip, IChatTipService } from '../../chatTipService.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
+const regexp1 = /\[.*?\]\(.*?\)/;
+
 
 const $ = dom.$;
 
@@ -132,7 +134,7 @@ export class ChatTipContentPart extends Disposable {
 		this.domNode.appendChild(toolbarContainer);
 
 		const textContent = markdownContent.element.textContent ?? localize('chatTip', "Chat tip");
-		const hasLink = /\[.*?\]\(.*?\)/.test(tip.content.value);
+		const hasLink = regexp1.test(tip.content.value);
 		const ariaLabel = hasLink
 			? localize('chatTipWithAction', "{0} Tab to reach the action.", textContent)
 			: textContent;

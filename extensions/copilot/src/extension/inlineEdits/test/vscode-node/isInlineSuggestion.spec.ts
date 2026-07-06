@@ -7,6 +7,8 @@ import { assert, suite, test } from 'vitest';
 import { Position, Range, Uri } from 'vscode';
 import { createTextDocumentData } from '../../../../util/common/test/shims/textDocument';
 import { toInlineSuggestion } from '../../vscode-node/isInlineSuggestion';
+const regexp1 = /\r?\n$/;
+
 
 suite('toInlineSuggestion', () => {
 
@@ -103,7 +105,7 @@ suite('toInlineSuggestion', () => {
 		assert.deepStrictEqual(result!.range, new Range(1, 15, 1, 15));
 		// Text is prepended with the newline between cursor and original range,
 		// and the trailing newline is dropped so we don't introduce a blank line.
-		assert.strictEqual(result!.newText, '\n' + replaceText.replace(/\r?\n$/, ''));
+		assert.strictEqual(result!.newText, '\n' + replaceText.replace(regexp1, ''));
 	});
 
 	test('should not use ghost text when inserting on next line when none empty', () => {
@@ -151,7 +153,7 @@ suite('toInlineSuggestion', () => {
 		assert.isDefined(result);
 		assert.deepStrictEqual(result!.range, new Range(0, 13, 0, 13));
 		// Trailing '\n' is dropped to avoid a spurious blank line.
-		assert.strictEqual(result!.newText, '\n' + replaceText.replace(/\r?\n$/, ''));
+		assert.strictEqual(result!.newText, '\n' + replaceText.replace(regexp1, ''));
 	});
 
 	test('multi-line insertion without trailing newline rejected when target line has content', () => {

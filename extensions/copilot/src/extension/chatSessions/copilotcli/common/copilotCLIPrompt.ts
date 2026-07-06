@@ -12,6 +12,27 @@ import { URI } from '../../../../util/vs/base/common/uri';
 import { Range as EditorRange } from '../../../../util/vs/editor/common/core/range';
 import { ChatReferenceDiagnostic, Diagnostic, DiagnosticSeverity, Location, Range } from '../../../../vscodeTypes';
 import { PromptFileIdPrefix } from '../../../prompt/common/chatVariablesCollection';
+const regexpAttachmentsAttachments = /<attachments>([\s\S]*?)<\/attachments>/i;
+const regexpAttachment = /<attachment\b[\s\S]*?\/>\s*$/i;
+const regexpError = /^<error\b/i;
+const regexpAttachmentIdPrompt = /<attachment\s+id="(prompt:[^"]+)"[\s\S]*?>/i;
+const regexpAttachment1 = /^<attachment\b/i;
+const regexp6 = /(\w+)\s*=\s*"([^"]*)"/g;
+const regexpAttachment2 = /^<attachment\s+[^>]*\/>$/i;
+const regexpAttachment3 = /<attachment\s+([^>]*)>/i;
+const regexpBid = /\bid\s*=\s*"([^"]+)"/;
+const regexp10 = /```([^\n`]+)\n([\s\S]*?)```/;
+const regexp11 = /\r?\n/;
+const regexpFilepath = /[#\/]\s*filepath:\s*(\S+)/;
+const regexpExcerptFromLines = /Excerpt from ([^,]+),\s*lines\s+(\d+)\s+to\s+(\d+)/i;
+const regexpExcerptFromLines1 = /Excerpt from [^,]+,\s*lines\s+(\d+)\s+to\s+(\d+)/i;
+const regexpAttachmentAttachment = /<attachment[\s\S]*?>([\s\S]*?)<\/attachment>/i;
+const regexpFilepath1 = /^\s*\/\/+\s*filepath:\s*(.+?)(?:\r?\n|$)/im;
+const regexpFilepath2 = /^\s*#\s*filepath:\s*(.+?)(?:\r?\n|$)/im;
+const regexpErrorError = /<error\s+([^>]+)>([\s\S]*?)<\/error>/i;
+const regexp19 = /(\w+)="([^"]*)"/g;
+const regexp20 = /(\w+)=([0-9]+)/g;
+
 
 /**
  * Parse the raw user prompt and extract diagnostics and file/line location references
@@ -26,7 +47,7 @@ import { PromptFileIdPrefix } from '../../../prompt/common/chatVariablesCollecti
  */
 export function extractChatPromptReferences(prompt: string): ChatPromptReference[] {
 	// Preserve order of items as they appear inside <attachments>...
-	const attachmentsBlockMatch = prompt.match(/<attachments>([\s\S]*?)<\/attachments>/i);
+	const attachmentsBlockMatch = prompt.match(regexpAttachmentsAttachments);
 	if (!attachmentsBlockMatch) {
 		return [];
 	}
@@ -56,7 +77,7 @@ export function extractChatPromptReferences(prompt: string): ChatPromptReference
 			if (openEnd === -1) { break; }
 			const openingTagText = text.slice(next, openEnd + 1);
 			// Self-closing?
-			const isSelfClosing = /<attachment\b[\s\S]*?\/>\s*$/i.test(openingTagText);
+			const isSelfClosing = regexpAttachment.test(openingTagText);
 			if (isSelfClosing) {
 				results.push(openingTagText);
 				i = openEnd + 1;
@@ -92,14 +113,14 @@ export function extractChatPromptReferences(prompt: string): ChatPromptReference
 	// Collect all tags with their positions, then delegate to specific extractors per tag
 	const ordered: ChatPromptReference[] = [];
 	for (const tagText of collectOrderedTags(block)) {
-		if (/^<attachment\b/i.test(tagText)) {
+		if (regexpAttachment1.test(tagText)) {
 			// Distinguish prompt attachments vs resource attachments
-			const promptIdMatch = tagText.match(/<attachment\s+id="(prompt:[^"]+)"[\s\S]*?>/i);
+			const promptIdMatch = tagText.match(regexpAttachmentIdPrompt);
 			const ref = promptIdMatch ? extractPromptReferencesFromTag(prompt, tagText) : extractResourcesFromTag(prompt, tagText);
 			if (ref) {
 				ordered.push(ref);
 			}
-		} else if (/^<error\b/i.test(tagText)) {
+		} else if (regexpError.test(tagText)) {
 			const ref = extractDiagnosticsFromTag(tagText);
 			if (!ref) {
 				continue;
@@ -136,9 +157,9 @@ function severityToString(severity: DiagnosticSeverity): string {
 // Single-tag extractors used by ordered parsing
 function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptReference | undefined {
 	// Self-closing attachment
-	if (/^<attachment\s+[^>]*\/>$/i.test(tagText.trim())) {
+	if (regexpAttachment2.test(tagText.trim())) {
 		const attrs: Record<string, string> = {};
-		for (const attrMatch of tagText.matchAll(/(\w+)\s*=\s*"([^"]*)"/g)) {
+		for (const attrMatch of tagText.matchAll(new RegExp(regexp6))) {
 			attrs[attrMatch[1]] = attrMatch[2];
 		}
 		const isFolder = attrs['folderPath'] !== undefined && attrs['folderPath'] !== '' && attrs['filePath'] === undefined;
@@ -171,10 +192,10 @@ function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptRef
 		return githubPRIssue;
 	}
 
-	const openingTagMatch = content.match(/<attachment\s+([^>]*)>/i);
+	const openingTagMatch = content.match(regexpAttachment3);
 	if (openingTagMatch) {
 		const attrsStr = openingTagMatch[1];
-		const idAttrMatch = attrsStr.match(/\bid\s*=\s*"([^"]+)"/);
+		const idAttrMatch = attrsStr.match(regexpBid);
 		if (idAttrMatch) {
 			providedId = idAttrMatch[1];
 		}
@@ -183,30 +204,30 @@ function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptRef
 		return undefined; // prompt attachments handled elsewhere
 	}
 	const isUntitledFile = providedId?.startsWith('file:untitled-') || false;
-	const fenceMatch = content.match(/```([^\n`]+)\n([\s\S]*?)```/);
+	const fenceMatch = content.match(regexp10);
 	const fencedLanguage = fenceMatch ? fenceMatch[1].trim() : undefined;
 	const codeBlockBody = fenceMatch ? fenceMatch[2] : undefined;
 	if (codeBlockBody) {
 		const re = createFilepathRegexp(fencedLanguage);
-		for (const line of codeBlockBody.split(/\r?\n/)) {
+		for (const line of codeBlockBody.split(regexp11)) {
 			const lineMatch = re.exec(line);
 			if (lineMatch && lineMatch[1]) { filePath = lineMatch[1].trim(); break; }
 		}
 	}
 	if (!filePath) {
-		const simpleMatch = content.match(/[#\/]\s*filepath:\s*(\S+)/);
+		const simpleMatch = content.match(regexpFilepath);
 		if (simpleMatch) { filePath = simpleMatch[1]; }
 	}
 	if (!filePath) {
-		const excerptMatch = content.match(/Excerpt from ([^,]+),\s*lines\s+(\d+)\s+to\s+(\d+)/i);
+		const excerptMatch = content.match(regexpExcerptFromLines);
 		if (excerptMatch) { filePath = excerptMatch[1].trim(); }
 	}
-	const linesMatch = content.match(/Excerpt from [^,]+,\s*lines\s+(\d+)\s+to\s+(\d+)/i);
+	const linesMatch = content.match(regexpExcerptFromLines1);
 	if (!filePath) {
 		// Possible this is an SCM item
 		try {
 			const attrs: Record<string, string> = {};
-			for (const attrMatch of tagText.matchAll(/(\w+)\s*=\s*"([^"]*)"/g)) {
+			for (const attrMatch of tagText.matchAll(new RegExp(regexp6))) {
 				attrs[attrMatch[1]] = attrMatch[2];
 			}
 			if (typeof attrs['filePath'] === 'string') {
@@ -248,17 +269,17 @@ function extractResourcesFromTag(prompt: string, tagText: string): ChatPromptRef
 }
 
 function extractPromptReferencesFromTag(prompt: string, tagText: string): ChatPromptReference | undefined {
-	const idAttrMatch = tagText.match(/<attachment\s+id="(prompt:[^"]+)"[\s\S]*?>/i);
+	const idAttrMatch = tagText.match(regexpAttachmentIdPrompt);
 	if (!idAttrMatch) { return undefined; }
 	const idAttr = idAttrMatch[1];
-	const contentMatch = tagText.match(/<attachment[\s\S]*?>([\s\S]*?)<\/attachment>/i);
+	const contentMatch = tagText.match(regexpAttachmentAttachment);
 	const content = contentMatch ? contentMatch[1] : '';
 
 	let filePath: string | undefined;
-	const filepathMatch = content.match(/^\s*\/\/+\s*filepath:\s*(.+?)(?:\r?\n|$)/im);
+	const filepathMatch = content.match(regexpFilepath1);
 	if (filepathMatch) { filePath = filepathMatch[1].trim(); }
 	if (!filePath) {
-		const hashMatch = content.match(/^\s*#\s*filepath:\s*(.+?)(?:\r?\n|$)/im);
+		const hashMatch = content.match(regexpFilepath2);
 		if (hashMatch) { filePath = hashMatch[1].trim(); }
 	}
 	if (!filePath) { return undefined; }
@@ -270,13 +291,13 @@ function extractPromptReferencesFromTag(prompt: string, tagText: string): ChatPr
 }
 
 function extractDiagnosticsFromTag(tagText: string): ChatPromptReference | undefined {
-	const m = tagText.match(/<error\s+([^>]+)>([\s\S]*?)<\/error>/i);
+	const m = tagText.match(regexpErrorError);
 	if (!m) { return undefined; }
 	const attrText = m[1];
 	const message = m[2].trim();
 	const attrs: Record<string, string> = {};
-	for (const attrMatch of attrText.matchAll(/(\w+)="([^"]*)"/g)) { attrs[attrMatch[1]] = attrMatch[2]; }
-	for (const attrMatch of attrText.matchAll(/(\w+)=([0-9]+)/g)) { if (!attrs[attrMatch[1]]) { attrs[attrMatch[1]] = attrMatch[2]; } }
+	for (const attrMatch of attrText.matchAll(new RegExp(regexp19))) { attrs[attrMatch[1]] = attrMatch[2]; }
+	for (const attrMatch of attrText.matchAll(new RegExp(regexp20))) { if (!attrs[attrMatch[1]]) { attrs[attrMatch[1]] = attrMatch[2]; } }
 	const filePath = attrs['path'];
 	const lineStr = attrs['line'];
 	if (!filePath || !lineStr) { return undefined; }
@@ -298,18 +319,18 @@ function extractDiagnosticsFromTag(tagText: string): ChatPromptReference | undef
 }
 
 function extractGitHubIssueOrPRChatReference(content: string): ChatPromptReference | undefined {
-	const openingTagMatch = content.match(/<attachment\s+([^>]*)>/i);
+	const openingTagMatch = content.match(regexpAttachment3);
 	if (!openingTagMatch) {
 		return;
 	}
 	const attrsStr = openingTagMatch[1];
-	const idAttrMatch = attrsStr.match(/\bid\s*=\s*"([^"]+)"/);
+	const idAttrMatch = attrsStr.match(regexpBid);
 	if (!idAttrMatch) {
 		return;
 	}
 	let providedId = idAttrMatch[1];
 	// If only id attribute is present and inner content is pure JSON, treat as JSON reference
-	const innerMatch = content.match(/<attachment[\s\S]*?>([\s\S]*?)<\/attachment>/i);
+	const innerMatch = content.match(regexpAttachmentAttachment);
 	const innerText = innerMatch ? innerMatch[1].trim() : '';
 	if (!providedId || !innerText.startsWith('{') || !innerText.endsWith('}')) {
 		return;

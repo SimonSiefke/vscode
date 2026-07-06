@@ -27,6 +27,8 @@ import { IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from '
 import { IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
+const regexp1 = /[-:]/g;
+
 
 const enum AgentHostProfileState {
 	None = 'none',
@@ -216,7 +218,7 @@ class AgentHostProfileService extends Disposable implements IAgentHostProfileSer
 		let profileUri = await this.fileDialogService.showSaveDialog({
 			title: localize('profileAgentHost.saveDialogTitle', "Save Agent Host Profile"),
 			availableFileSystems: [Schemas.file],
-			defaultUri: joinPath(await this.fileDialogService.defaultFilePath(), `AgentHost-CPU-${new Date().toISOString().replace(/[-:]/g, '')}.cpuprofile`),
+			defaultUri: joinPath(await this.fileDialogService.defaultFilePath(), `AgentHost-CPU-${new Date().toISOString().replace(new RegExp(regexp1), '')}.cpuprofile`),
 			filters: [{
 				name: localize('profileAgentHost.cpuProfiles', "CPU Profiles"),
 				extensions: ['cpuprofile', 'txt'],

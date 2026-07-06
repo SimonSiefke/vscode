@@ -19,6 +19,8 @@ import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { Schemas } from '../../../../base/common/network.js';
+const regexp1 = /^--(.+)=(.+)$/;
+
 
 /**
  * This interface represents a single command line argument split into a "prefix" and a "path" half.
@@ -733,7 +735,7 @@ export class RawDebugSession implements IDisposable {
 
 		for (const arg of vscodeArgs.args) {
 			const a2 = (arg.prefix || '') + (arg.path || '');
-			const match = /^--(.+)=(.+)$/.exec(a2);
+			const match = regexp1.exec(a2);
 			if (match && match.length === 3) {
 				const key = match[1];
 				let value = match[2];
