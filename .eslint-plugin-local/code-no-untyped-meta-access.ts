@@ -57,13 +57,15 @@ export default new class NoUntypedMetaAccess implements eslint.Rule.RuleModule {
 		}
 
 		return {
-			'MemberExpression': (node: TSESTree.MemberExpression) => {
-				if (isMetaAccess(node.object)) {
+			'MemberExpression': (node: any) => {
+				const memberExpression = node as TSESTree.MemberExpression;
+				if (isMetaAccess(memberExpression.object)) {
 					context.report({ node, messageId: 'noMetaFieldAccess' });
 				}
 			},
-			'TSAsExpression, TSTypeAssertion': (node: TSESTree.TSAsExpression | TSESTree.TSTypeAssertion) => {
-				if (isMetaAccess(node.expression)) {
+			'TSAsExpression, TSTypeAssertion': (node: any) => {
+				const assertion = node as TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
+				if (isMetaAccess(assertion.expression)) {
 					context.report({ node, messageId: 'noMetaCast' });
 				}
 			},
