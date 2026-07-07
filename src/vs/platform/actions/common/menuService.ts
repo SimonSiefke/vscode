@@ -500,29 +500,44 @@ class MenuImpl implements IMenu {
 	}
 }
 
-function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, states: PersistedMenuHideState): IMenuItemHide {
+class MenuItemHide implements IMenuItemHide {
 
+	private _hide: IAction | undefined;
+	private _toggle: IAction | undefined;
+
+	constructor(
+		private readonly _menu: MenuId,
+		private readonly _id: string,
+		private readonly _title: string,
+		private readonly _states: PersistedMenuHideState
+	) { }
+
+	get isHidden(): boolean {
+		return this._states.isHidden(this._menu, this._id);
+	}
+
+	get hide(): IAction {
+		return this._hide ??= toAction({
+			id: `hide/${this._menu.id}/${this._id}`,
+			label: localize('hide.label', 'Hide \'{0}\'', this._title),
+			run: () => this._states.updateHidden(this._menu, this._id, true)
+		});
+	}
+
+	get toggle(): IAction {
+		return this._toggle ??= toAction({
+			id: `toggle/${this._menu.id}/${this._id}`,
+			label: this._title,
+			checked: !this.isHidden,
+			run: () => this._states.updateHidden(this._menu, this._id, !this.isHidden)
+		});
+	}
+}
+
+function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, states: PersistedMenuHideState): IMenuItemHide {
 	const id = isISubmenuItem(command) ? command.submenu.id : command.id;
 	const title = typeof command.title === 'string' ? command.title : command.title.value;
-
-	const hide = toAction({
-		id: `hide/${menu.id}/${id}`,
-		label: localize('hide.label', 'Hide \'{0}\'', title),
-		run() { states.updateHidden(menu, id, true); }
-	});
-
-	const toggle = toAction({
-		id: `toggle/${menu.id}/${id}`,
-		label: title,
-		get checked() { return !states.isHidden(menu, id); },
-		run() { states.updateHidden(menu, id, !!this.checked); }
-	});
-
-	return {
-		hide,
-		toggle,
-		get isHidden() { return !toggle.checked; },
-	};
+	return new MenuItemHide(menu, id, title, states);
 }
 
 export function createConfigureKeybindingAction(commandService: ICommandService, keybindingService: IKeybindingService, commandId: string, when: ContextKeyExpression | undefined = undefined, enabled = true): IAction {
