@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
-import { VSBuffer } from '../../../common/buffer.js';
-import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer } from '../common/ipc.js';
+import { ClientConnectionEvent, IChannelMessagePassingProtocol, IPCMessage, IPCServer } from '../common/ipc.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { assertType } from '../../../common/types.js';
 
@@ -13,23 +12,18 @@ import { assertType } from '../../../common/types.js';
  * The MessagePort `Protocol` leverages MessagePortMain style IPC communication
  * for the implementation of the `IMessagePassingProtocol`.
  */
-class Protocol implements IMessagePassingProtocol {
+class Protocol implements IChannelMessagePassingProtocol {
 
 	readonly onMessage;
 
 	constructor(private port: MessagePortMain) {
-		this.onMessage = Event.fromNodeEventEmitter<VSBuffer>(this.port, 'message', (e: MessageEvent) => {
-			if (e.data) {
-				return VSBuffer.wrap(e.data as Uint8Array);
-			}
-			return VSBuffer.alloc(0);
-		});
+		this.onMessage = Event.fromNodeEventEmitter<IPCMessage>(this.port, 'message', (e: MessageEvent) => e.data as IPCMessage);
 		// we must call start() to ensure messages are flowing
 		port.start();
 	}
 
-	send(message: VSBuffer): void {
-		this.port.postMessage(message.buffer);
+	send(message: IPCMessage): void {
+		this.port.postMessage(message);
 	}
 
 	disconnect(): void {

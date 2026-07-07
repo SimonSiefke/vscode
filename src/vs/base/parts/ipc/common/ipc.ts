@@ -96,9 +96,20 @@ interface IHandler {
 	(response: IRawResponse): void;
 }
 
+export type IPCMessage = unknown;
+
 export interface IMessagePassingProtocol {
 	send(buffer: VSBuffer): void;
 	readonly onMessage: Event<VSBuffer>;
+	/**
+	 * Wait for the write buffer (if applicable) to become empty.
+	 */
+	drain?(): Promise<void>;
+}
+
+export interface IChannelMessagePassingProtocol {
+	send(message: IPCMessage): void;
+	readonly onMessage: Event<IPCMessage>;
 	/**
 	 * Wait for the write buffer (if applicable) to become empty.
 	 */
@@ -324,6 +335,169 @@ export function deserialize(reader: IReader): any {
 	}
 }
 
+function isUint8Array(value: unknown): value is Uint8Array {
+	return value instanceof Uint8Array;
+}
+
+function toPlainUint8Array(value: Uint8Array): Uint8Array {
+	if (VSBuffer.isNativeBuffer(value)) {
+		return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+	}
+	return value;
+}
+
+function normalizeIPCMessageValue(value: unknown, seen: WeakSet<object>): IPCMessage {
+	if (typeof value === 'undefined' || value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+		return value;
+	}
+
+	if (value instanceof VSBuffer) {
+		return toPlainUint8Array(value.buffer);
+	}
+
+	if (VSBuffer.isNativeBuffer(value)) {
+		return toPlainUint8Array(value as Uint8Array);
+	}
+
+	if (isUint8Array(value)) {
+		return toPlainUint8Array(value);
+	}
+
+	if (Array.isArray(value)) {
+		if (seen.has(value)) {
+			throw new TypeError('Converting circular structure to IPC message');
+		}
+		seen.add(value);
+		try {
+			return value.map(element => normalizeIPCMessageValue(element, seen));
+		} finally {
+			seen.delete(value);
+		}
+	}
+
+	if (typeof value === 'object') {
+		if (seen.has(value)) {
+			throw new TypeError('Converting circular structure to IPC message');
+		}
+		seen.add(value);
+		try {
+			const candidate = value as { toJSON?: () => unknown };
+			if (typeof candidate.toJSON === 'function') {
+				return normalizeIPCMessageValue(candidate.toJSON(), seen);
+			}
+
+			const result: { [key: string]: IPCMessage } = {};
+			for (const key in value) {
+				if (Object.hasOwnProperty.call(value, key)) {
+					result[key] = normalizeIPCMessageValue((value as { [key: string]: unknown })[key], seen);
+				}
+			}
+			return result;
+		} finally {
+			seen.delete(value);
+		}
+	}
+
+	return value;
+}
+
+export function normalizeIPCMessage(message: IPCMessage): IPCMessage {
+	return normalizeIPCMessageValue(message, new WeakSet<object>());
+}
+
+function reviveIPCMessageValue(value: unknown, depth = 0): unknown {
+	if (!value || depth > 200) {
+		return value;
+	}
+
+	if (value instanceof VSBuffer) {
+		return value;
+	}
+
+	if (isUint8Array(value)) {
+		return VSBuffer.wrap(value);
+	}
+
+	if (Array.isArray(value)) {
+		for (let i = 0; i < value.length; i++) {
+			value[i] = reviveIPCMessageValue(value[i], depth + 1);
+		}
+		return value;
+	}
+
+	if (typeof value === 'object') {
+		for (const key in value) {
+			if (Object.hasOwnProperty.call(value, key)) {
+				(value as { [key: string]: unknown })[key] = reviveIPCMessageValue((value as { [key: string]: unknown })[key], depth + 1);
+			}
+		}
+		return revive(value);
+	}
+
+	return value;
+}
+
+export function reviveIPCMessage(message: IPCMessage): IPCMessage {
+	return reviveIPCMessageValue(message);
+}
+
+const enum EncodedIPCMessageType {
+	Uint8Array = 'Uint8Array'
+}
+
+export function encodeIPCMessageToBuffer(message: IPCMessage): VSBuffer {
+	const normalized = normalizeIPCMessage(message);
+	return VSBuffer.fromString(JSON.stringify(normalized, (_key, value) => {
+		if (isUint8Array(value)) {
+			return {
+				$ipcType: EncodedIPCMessageType.Uint8Array,
+				data: Array.from(value)
+			};
+		}
+		return value;
+	}));
+}
+
+export function decodeIPCMessageFromBuffer(buffer: VSBuffer): IPCMessage {
+	return JSON.parse(buffer.toString(), (_key, value) => {
+		if (value?.$ipcType === EncodedIPCMessageType.Uint8Array && Array.isArray(value.data)) {
+			return Uint8Array.from(value.data);
+		}
+		return value;
+	});
+}
+
+function getIPCMessageLength(message: IPCMessage): number {
+	if (typeof message === 'undefined' || message === null) {
+		return 0;
+	}
+	if (typeof message === 'string') {
+		return message.length;
+	}
+	if (typeof message === 'number' || typeof message === 'boolean') {
+		return 8;
+	}
+	if (message instanceof VSBuffer) {
+		return message.byteLength;
+	}
+	if (isUint8Array(message)) {
+		return message.byteLength;
+	}
+	if (Array.isArray(message)) {
+		return message.reduce((length, value) => length + getIPCMessageLength(value), 0);
+	}
+	if (typeof message === 'object') {
+		let length = 0;
+		for (const key in message) {
+			if (Object.hasOwnProperty.call(message, key)) {
+				length += key.length + getIPCMessageLength((message as { [key: string]: unknown })[key]);
+			}
+		}
+		return length;
+	}
+	return 0;
+}
+
 interface PendingRequest {
 	request: IRawPromiseRequest | IRawEventListenRequest;
 	timeoutTimer: Timeout;
@@ -339,7 +513,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	// They will timeout after `timeoutDelay`.
 	private pendingRequests = new Map<string, PendingRequest[]>();
 
-	constructor(private protocol: IMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
+	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
 		this.protocolListener = this.protocol.onMessage(msg => this.onRawMessage(msg));
 		this.sendResponse({ type: ResponseType.Initialize });
 	}
@@ -354,7 +528,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	private sendResponse(response: IRawResponse): void {
 		switch (response.type) {
 			case ResponseType.Initialize: {
-				const msgLength = this.send([response.type]);
+				const msgLength = this.send(response);
 				this.logger?.logOutgoing(msgLength, 0, RequestInitiator.OtherSide, responseTypeToStr(response.type));
 				return;
 			}
@@ -363,53 +537,41 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 			case ResponseType.PromiseError:
 			case ResponseType.EventFire:
 			case ResponseType.PromiseErrorObj: {
-				const msgLength = this.send([response.type, response.id], response.data);
+				const msgLength = this.send(response);
 				this.logger?.logOutgoing(msgLength, response.id, RequestInitiator.OtherSide, responseTypeToStr(response.type), response.data);
 				return;
 			}
 		}
 	}
 
-	private send(header: unknown, body: any = undefined): number {
-		const writer = new BufferWriter();
+	private send(message: IRawResponse): number {
 		try {
-			serialize(writer, header);
-			serialize(writer, body);
-			return this.sendBuffer(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
-	}
-
-	private sendBuffer(message: VSBuffer): number {
-		try {
-			this.protocol.send(message);
-			return message.byteLength;
+			const normalized = normalizeIPCMessage(message);
+			this.protocol.send(normalized);
+			return getIPCMessageLength(normalized);
 		} catch (err) {
 			// noop
 			return 0;
 		}
 	}
 
-	private onRawMessage(message: VSBuffer): void {
-		const reader = new BufferReader(message);
-		const header = deserialize(reader);
-		const body = deserialize(reader);
-		const type = header[0] as RequestType;
+	private onRawMessage(message: IPCMessage): void {
+		const request = reviveIPCMessage(message) as IRawRequest;
+		const type = request.type;
 
 		switch (type) {
 			case RequestType.Promise:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
-				return this.onPromise({ type, id: header[1], channelName: header[2], name: header[3], arg: body });
+				this.logger?.logIncoming(getIPCMessageLength(message), request.id, RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${request.channelName}.${request.name}`, request.arg);
+				return this.onPromise(request);
 			case RequestType.EventListen:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
-				return this.onEventListen({ type, id: header[1], channelName: header[2], name: header[3], arg: body });
+				this.logger?.logIncoming(getIPCMessageLength(message), request.id, RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${request.channelName}.${request.name}`, request.arg);
+				return this.onEventListen(request);
 			case RequestType.PromiseCancel:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
-				return this.disposeActiveRequest({ type, id: header[1] });
+				this.logger?.logIncoming(getIPCMessageLength(message), request.id, RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
+				return this.disposeActiveRequest(request);
 			case RequestType.EventDispose:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
-				return this.disposeActiveRequest({ type, id: header[1] });
+				this.logger?.logIncoming(getIPCMessageLength(message), request.id, RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
+				return this.disposeActiveRequest(request);
 		}
 	}
 
@@ -552,7 +714,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	private readonly _onDidInitialize = new Emitter<void>();
 	readonly onDidInitialize = this._onDidInitialize.event;
 
-	constructor(private protocol: IMessagePassingProtocol, logger: IIPCLogger | null = null) {
+	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
 		this.protocolListener = this.protocol.onMessage(msg => this.onBuffer(msg));
 		this.logger = logger;
 	}
@@ -716,58 +878,44 @@ export class ChannelClient implements IChannelClient, IDisposable {
 		switch (request.type) {
 			case RequestType.Promise:
 			case RequestType.EventListen: {
-				const msgLength = this.send([request.type, request.id, request.channelName, request.name], request.arg);
+				const msgLength = this.send(request);
 				this.logger?.logOutgoing(msgLength, request.id, RequestInitiator.LocalSide, `${requestTypeToStr(request.type)}: ${request.channelName}.${request.name}`, request.arg);
 				return;
 			}
 
 			case RequestType.PromiseCancel:
 			case RequestType.EventDispose: {
-				const msgLength = this.send([request.type, request.id]);
+				const msgLength = this.send(request);
 				this.logger?.logOutgoing(msgLength, request.id, RequestInitiator.LocalSide, requestTypeToStr(request.type));
 				return;
 			}
 		}
 	}
 
-	private send(header: unknown, body: any = undefined): number {
-		const writer = new BufferWriter();
+	private send(message: IRawRequest): number {
 		try {
-			serialize(writer, header);
-			serialize(writer, body);
-			return this.sendBuffer(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
-	}
-
-	private sendBuffer(message: VSBuffer): number {
-		try {
-			this.protocol.send(message);
-			return message.byteLength;
+			const normalized = normalizeIPCMessage(message);
+			this.protocol.send(normalized);
+			return getIPCMessageLength(normalized);
 		} catch (err) {
-			// noop
-			return 0;
+			throw err;
 		}
 	}
 
-	private onBuffer(message: VSBuffer): void {
-		const reader = new BufferReader(message);
-		const header = deserialize(reader);
-		const body = deserialize(reader);
-		const type: ResponseType = header[0];
+	private onBuffer(message: IPCMessage): void {
+		const response = reviveIPCMessage(message) as IRawResponse;
 
-		switch (type) {
+		switch (response.type) {
 			case ResponseType.Initialize:
-				this.logger?.logIncoming(message.byteLength, 0, RequestInitiator.LocalSide, responseTypeToStr(type));
-				return this.onResponse({ type: header[0] });
+				this.logger?.logIncoming(getIPCMessageLength(message), 0, RequestInitiator.LocalSide, responseTypeToStr(response.type));
+				return this.onResponse(response);
 
 			case ResponseType.PromiseSuccess:
 			case ResponseType.PromiseError:
 			case ResponseType.EventFire:
 			case ResponseType.PromiseErrorObj:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.LocalSide, responseTypeToStr(type), body);
-				return this.onResponse({ type: header[0], id: header[1], data: body });
+				this.logger?.logIncoming(getIPCMessageLength(message), response.id, RequestInitiator.LocalSide, responseTypeToStr(response.type), response.data);
+				return this.onResponse(response);
 		}
 	}
 
@@ -809,7 +957,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 }
 
 export interface ClientConnectionEvent {
-	protocol: IMessagePassingProtocol;
+	protocol: IChannelMessagePassingProtocol;
 	readonly onDidClientDisconnect: Event<void>;
 }
 
@@ -852,8 +1000,7 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 			const connectionDisposables = new DisposableStore();
 
 			const onFirstMessageDisposable = onFirstMessage(msg => {
-				const reader = new BufferReader(msg);
-				const ctx = deserialize(reader) as TContext;
+				const ctx = reviveIPCMessage(msg) as TContext;
 
 				const channelServer = new ChannelServer(protocol, ctx, ipcLogger, timeoutDelay);
 				const channelClient = new ChannelClient(protocol, ipcLogger);
@@ -1018,14 +1165,8 @@ export class IPCClient<TContext = string> implements IChannelClient, IChannelSer
 	private channelClient: ChannelClient;
 	private channelServer: ChannelServer<TContext>;
 
-	constructor(protocol: IMessagePassingProtocol, ctx: TContext, ipcLogger: IIPCLogger | null = null) {
-		const writer = new BufferWriter();
-		try {
-			serialize(writer, ctx);
-			protocol.send(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
+	constructor(protocol: IChannelMessagePassingProtocol, ctx: TContext, ipcLogger: IIPCLogger | null = null) {
+		protocol.send(normalizeIPCMessage(ctx));
 
 		this.channelClient = new ChannelClient(protocol, ipcLogger);
 		this.channelServer = new ChannelServer(protocol, ctx, ipcLogger);

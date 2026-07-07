@@ -12,15 +12,15 @@ import { Emitter, Event } from '../../../../common/event.js';
 import { DisposableStore } from '../../../../common/lifecycle.js';
 import { isEqual } from '../../../../common/resources.js';
 import { URI } from '../../../../common/uri.js';
-import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, ProxyChannel, serialize } from '../../common/ipc.js';
+import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, decodeIPCMessageFromBuffer, deserialize, encodeIPCMessageToBuffer, IChannel, IChannelMessagePassingProtocol, IPCClient, IPCMessage, IPCServer, IServerChannel, ProxyChannel, serialize } from '../../common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
 
-class QueueProtocol implements IMessagePassingProtocol {
+class QueueProtocol implements IChannelMessagePassingProtocol {
 
 	private buffering = true;
-	private buffers: VSBuffer[] = [];
+	private buffers: IPCMessage[] = [];
 
-	private readonly _onMessage = new Emitter<VSBuffer>({
+	private readonly _onMessage = new Emitter<IPCMessage>({
 		onDidAddFirstListener: () => {
 			for (const buffer of this.buffers) {
 				this._onMessage.fire(buffer);
@@ -37,20 +37,20 @@ class QueueProtocol implements IMessagePassingProtocol {
 	readonly onMessage = this._onMessage.event;
 	other!: QueueProtocol;
 
-	send(buffer: VSBuffer): void {
-		this.other.receive(buffer);
+	send(message: IPCMessage): void {
+		this.other.receive(message);
 	}
 
-	protected receive(buffer: VSBuffer): void {
+	protected receive(message: IPCMessage): void {
 		if (this.buffering) {
-			this.buffers.push(buffer);
+			this.buffers.push(message);
 		} else {
-			this._onMessage.fire(buffer);
+			this._onMessage.fire(message);
 		}
 	}
 }
 
-function createProtocolPair(): [IMessagePassingProtocol, IMessagePassingProtocol] {
+function createProtocolPair(): [IChannelMessagePassingProtocol, IChannelMessagePassingProtocol] {
 	const one = new QueueProtocol();
 	const other = new QueueProtocol();
 	one.other = other;
@@ -64,7 +64,7 @@ class TestIPCClient extends IPCClient<string> {
 	private readonly _onDidDisconnect = new Emitter<void>();
 	readonly onDidDisconnect = this._onDidDisconnect.event;
 
-	constructor(protocol: IMessagePassingProtocol, id: string) {
+	constructor(protocol: IChannelMessagePassingProtocol, id: string) {
 		super(protocol, id);
 	}
 
@@ -226,17 +226,17 @@ suite('Base IPC', function () {
 	test('createProtocolPair', async function () {
 		const [clientProtocol, serverProtocol] = createProtocolPair();
 
-		const b1 = VSBuffer.alloc(0);
-		clientProtocol.send(b1);
+		const m1 = { hello: 'server', payload: new Uint8Array([1, 2, 3]) };
+		clientProtocol.send(m1);
 
-		const b3 = VSBuffer.alloc(0);
-		serverProtocol.send(b3);
+		const m3 = ['hello client', 42];
+		serverProtocol.send(m3);
 
-		const b2 = await Event.toPromise(serverProtocol.onMessage);
-		const b4 = await Event.toPromise(clientProtocol.onMessage);
+		const m2 = await Event.toPromise(serverProtocol.onMessage);
+		const m4 = await Event.toPromise(clientProtocol.onMessage);
 
-		assert.strictEqual(b1, b2);
-		assert.strictEqual(b3, b4);
+		assert.strictEqual(m1, m2);
+		assert.strictEqual(m3, m4);
 	});
 
 	suite('one to one', function () {
@@ -325,6 +325,15 @@ suite('Base IPC', function () {
 			return assert.strictEqual(r, 5);
 		});
 
+		test('byte adapter preserves nested buffers', function () {
+			const input = { buffers: [VSBuffer.alloc(2), VSBuffer.alloc(3)] };
+			const decoded = decodeIPCMessageFromBuffer(encodeIPCMessageToBuffer(input)) as { buffers: Uint8Array[] };
+
+			assert.ok(decoded.buffers[0] instanceof Uint8Array);
+			assert.strictEqual(decoded.buffers[0].byteLength, 2);
+			assert.strictEqual(decoded.buffers[1].byteLength, 3);
+		});
+
 		test('round trips numbers', () => {
 			const input = [
 				0,
@@ -360,15 +369,15 @@ suite('Base IPC', function () {
 			// path, a permanently pending promise). We make a call *before* the
 			// client is initialized so the request is deferred until init; when it
 			// finally serializes, a circular argument makes `JSON.stringify` throw.
-			const clientIncoming = store.add(new Emitter<VSBuffer>());
-			const clientProtocol: IMessagePassingProtocol = {
+			const clientIncoming = store.add(new Emitter<IPCMessage>());
+			const clientProtocol: IChannelMessagePassingProtocol = {
 				onMessage: clientIncoming.event,
 				send: () => { /* client outbound is irrelevant to this test */ }
 			};
-			const serverOutbox: VSBuffer[] = [];
-			const serverProtocol: IMessagePassingProtocol = {
+			const serverOutbox: IPCMessage[] = [];
+			const serverProtocol: IChannelMessagePassingProtocol = {
 				onMessage: Event.None,
-				send: buffer => serverOutbox.push(buffer)
+				send: message => serverOutbox.push(message)
 			};
 
 			const channelClient = store.add(new ChannelClient(clientProtocol));

@@ -14,7 +14,7 @@ import { dispose, IDisposable, toDisposable } from '../../../common/lifecycle.js
 import { deepClone } from '../../../common/objects.js';
 import { createQueuedSender } from '../../../node/processes.js';
 import { removeDangerousEnvVariables } from '../../../common/processes.js';
-import { ChannelClient as IPCClient, ChannelServer as IPCServer, IChannel, IChannelClient } from '../common/ipc.js';
+import { ChannelClient as IPCClient, ChannelServer as IPCServer, decodeIPCMessageFromBuffer, encodeIPCMessageToBuffer, IChannel, IChannelClient, IPCMessage } from '../common/ipc.js';
 
 /**
  * This implementation doesn't perform well since it uses base64 encoding for buffers.
@@ -26,10 +26,10 @@ export class Server<TContext extends string> extends IPCServer<TContext> {
 		super({
 			send: r => {
 				try {
-					process.send?.((<Buffer>r.buffer).toString('base64'));
+					process.send?.((<Buffer>encodeIPCMessageToBuffer(r).buffer).toString('base64'));
 				} catch (e) { /* not much to do */ }
 			},
-			onMessage: Event.fromNodeEventEmitter(process, 'message', msg => VSBuffer.wrap(Buffer.from(msg, 'base64')))
+			onMessage: Event.fromNodeEventEmitter(process, 'message', msg => decodeIPCMessageFromBuffer(VSBuffer.wrap(Buffer.from(msg, 'base64'))))
 		}, ctx);
 
 		process.once('disconnect', () => this.dispose());
@@ -205,7 +205,7 @@ export class Client implements IChannelClient, IDisposable {
 
 			this.child = fork(this.modulePath, args, forkOpts);
 
-			const onMessageEmitter = new Emitter<VSBuffer>();
+			const onMessageEmitter = new Emitter<IPCMessage>();
 			const onRawMessage = Event.fromNodeEventEmitter(this.child, 'message', msg => msg);
 
 			const rawMessageDisposable = onRawMessage(msg => {
@@ -217,11 +217,11 @@ export class Client implements IChannelClient, IDisposable {
 				}
 
 				// Anything else goes to the outside
-				onMessageEmitter.fire(VSBuffer.wrap(Buffer.from(msg, 'base64')));
+				onMessageEmitter.fire(decodeIPCMessageFromBuffer(VSBuffer.wrap(Buffer.from(msg, 'base64'))));
 			});
 
 			const sender = this.options.useQueue ? createQueuedSender(this.child) : this.child;
-			const send = (r: VSBuffer) => this.child?.connected && sender.send((<Buffer>r.buffer).toString('base64'));
+			const send = (r: IPCMessage) => this.child?.connected && sender.send((<Buffer>encodeIPCMessageToBuffer(r).buffer).toString('base64'));
 			const onMessage = onMessageEmitter.event;
 			const protocol = { send, onMessage };
 

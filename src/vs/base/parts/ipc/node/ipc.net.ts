@@ -16,7 +16,7 @@ import { join } from '../../../common/path.js';
 import { Platform, platform } from '../../../common/platform.js';
 import { generateUuid } from '../../../common/uuid.js';
 import { ClientConnectionEvent, IPCServer } from '../common/ipc.js';
-import { ChunkStream, Client, ISocket, Protocol, SocketCloseEvent, SocketCloseEventType, SocketDiagnostics, SocketDiagnosticsEventType } from '../common/ipc.net.js';
+import { ChunkStream, Client, ISocket, Protocol, SocketCloseEvent, SocketCloseEventType, SocketDiagnostics, SocketDiagnosticsEventType, toSocketMessagePassingProtocol } from '../common/ipc.net.js';
 
 export function upgradeToISocket(req: http.IncomingMessage, socket: Socket, {
 	debugLabel,
@@ -967,10 +967,13 @@ export class Server extends IPCServer {
 	private static toClientConnectionEvent(server: NetServer): Event<ClientConnectionEvent> {
 		const onConnection = Event.fromNodeEventEmitter<Socket>(server, 'connection');
 
-		return Event.map(onConnection, socket => ({
-			protocol: new Protocol(new NodeSocket(socket, 'ipc-server-connection')),
-			onDidClientDisconnect: Event.once(Event.fromNodeEventEmitter<void>(socket, 'close'))
-		}));
+		return Event.map(onConnection, socket => {
+			const protocol = new Protocol(new NodeSocket(socket, 'ipc-server-connection'));
+			return {
+				protocol: toSocketMessagePassingProtocol(protocol),
+				onDidClientDisconnect: Event.once(Event.fromNodeEventEmitter<void>(socket, 'close'))
+			};
+		});
 	}
 
 	private server: NetServer | null;

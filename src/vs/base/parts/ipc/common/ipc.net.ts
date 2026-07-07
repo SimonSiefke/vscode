@@ -6,7 +6,7 @@
 import { VSBuffer } from '../../../common/buffer.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../common/lifecycle.js';
-import { IIPCLogger, IMessagePassingProtocol, IPCClient } from './ipc.js';
+import { decodeIPCMessageFromBuffer, encodeIPCMessageToBuffer, IChannelMessagePassingProtocol, IIPCLogger, IMessagePassingProtocol, IPCClient, IPCMessage } from './ipc.js';
 
 export const enum SocketDiagnosticsEventType {
 	Created = 'created',
@@ -544,7 +544,13 @@ class ProtocolWriter {
  *
  * Only Regular messages are counted, other messages are not counted, nor acknowledged.
  */
-export class Protocol extends Disposable implements IMessagePassingProtocol {
+interface IByteMessageProtocol extends IDisposable {
+	readonly onMessage: Event<VSBuffer>;
+	send(buffer: VSBuffer): void;
+	drain(): Promise<void>;
+}
+
+export class Protocol extends Disposable implements IByteMessageProtocol, IMessagePassingProtocol {
 
 	private _socket: ISocket;
 	private _socketWriter: ProtocolWriter;
@@ -588,6 +594,27 @@ export class Protocol extends Disposable implements IMessagePassingProtocol {
 	}
 }
 
+class SocketMessagePassingProtocol implements IChannelMessagePassingProtocol {
+
+	readonly onMessage: Event<IPCMessage>;
+
+	constructor(private readonly protocol: IByteMessageProtocol) {
+		this.onMessage = Event.map(this.protocol.onMessage, message => decodeIPCMessageFromBuffer(message));
+	}
+
+	send(message: IPCMessage): void {
+		this.protocol.send(encodeIPCMessageToBuffer(message));
+	}
+
+	drain(): Promise<void> {
+		return this.protocol.drain();
+	}
+}
+
+export function toSocketMessagePassingProtocol(protocol: Protocol | PersistentProtocol): IChannelMessagePassingProtocol {
+	return new SocketMessagePassingProtocol(protocol);
+}
+
 export class Client<TContext = string> extends IPCClient<TContext> {
 
 	static fromSocket<TContext = string>(socket: ISocket, id: TContext): Client<TContext> {
@@ -597,7 +624,7 @@ export class Client<TContext = string> extends IPCClient<TContext> {
 	get onDidDispose(): Event<void> { return this.protocol.onDidDispose; }
 
 	constructor(private protocol: Protocol | PersistentProtocol, id: TContext, ipcLogger: IIPCLogger | null = null) {
-		super(protocol, id, ipcLogger);
+		super(toSocketMessagePassingProtocol(protocol), id, ipcLogger);
 	}
 
 	override dispose(): void {
@@ -813,7 +840,7 @@ export interface PersistentProtocolOptions {
  * Same as Protocol, but will actually track messages and acks.
  * Moreover, it will ensure no messages are lost if there are no event listeners.
  */
-export class PersistentProtocol implements IMessagePassingProtocol {
+export class PersistentProtocol implements IByteMessageProtocol, IMessagePassingProtocol {
 
 	private _isReconnecting: boolean;
 	private _didSendDisconnect?: boolean;

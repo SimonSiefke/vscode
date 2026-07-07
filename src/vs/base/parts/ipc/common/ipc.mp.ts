@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VSBuffer } from '../../../common/buffer.js';
 import { Event } from '../../../common/event.js';
 import { IDisposable } from '../../../common/lifecycle.js';
-import { IMessagePassingProtocol, IPCClient } from './ipc.js';
+import { IChannelMessagePassingProtocol, IPCClient, IPCMessage } from './ipc.js';
 
 /**
  * Declare minimal `MessageEvent` and `MessagePort` interfaces here
@@ -15,12 +14,7 @@ import { IMessagePassingProtocol, IPCClient } from './ipc.js';
  */
 
 export interface MessageEvent {
-
-	/**
-	 * For our use we only consider `Uint8Array` a valid data transfer
-	 * via message ports because our protocol implementation is buffer based.
-	 */
-	data: Uint8Array;
+	data: IPCMessage;
 }
 
 export interface MessagePort {
@@ -28,7 +22,7 @@ export interface MessagePort {
 	addEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
 	removeEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
 
-	postMessage(message: Uint8Array): void;
+	postMessage(message: IPCMessage): void;
 
 	start(): void;
 	close(): void;
@@ -39,23 +33,18 @@ export interface MessagePort {
  * for the implementation of the `IMessagePassingProtocol`. That style of API
  * is a simple `onmessage` / `postMessage` pattern.
  */
-export class Protocol implements IMessagePassingProtocol {
+export class Protocol implements IChannelMessagePassingProtocol {
 
 	readonly onMessage;
 
 	constructor(private port: MessagePort) {
-		this.onMessage = Event.fromDOMEventEmitter<VSBuffer>(this.port, 'message', (e: MessageEvent) => {
-			if (e.data) {
-				return VSBuffer.wrap(e.data);
-			}
-			return VSBuffer.alloc(0);
-		});
+		this.onMessage = Event.fromDOMEventEmitter<IPCMessage>(this.port, 'message', (e: MessageEvent) => e.data);
 		// we must call start() to ensure messages are flowing
 		port.start();
 	}
 
-	send(message: VSBuffer): void {
-		this.port.postMessage(message.buffer);
+	send(message: IPCMessage): void {
+		this.port.postMessage(message);
 	}
 
 	disconnect(): void {
