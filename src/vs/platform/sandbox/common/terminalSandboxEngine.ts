@@ -18,7 +18,7 @@ import { ILogService } from '../../log/common/log.js';
 import { matchesDomainPattern, normalizeDomain } from '../../networkFilter/common/domainMatcher.js';
 import { AgentNetworkDomainSettingId } from '../../networkFilter/common/settings.js';
 import { ISandboxDependencyStatus, type IWindowsMxcConfig, IWindowsMxcFilesystemPolicy, type IWindowsMxcPolicyContainment, type IWindowsMxcSandboxPolicy } from './sandboxHelperService.js';
-import { AgentSandboxEnabledValue, AgentSandboxSettingId } from './settings.js';
+import { AgentSandboxEnabledValue, AgentSandboxSettingId, isAgentSandboxEnabledValue, normalizeAgentSandboxEnabledValue, type AgentSandboxEnabledSettingValue } from './settings.js';
 import { IWindowsMxcTerminalSandboxRuntime } from './terminalSandboxMxcRuntime.js';
 import { getTerminalSandboxReadAllowListForCommands } from './terminalSandboxReadAllowList.js';
 import { getTerminalSandboxRuntimeConfigurationForCommands } from './terminalSandboxRuntimeConfigurationPerOperation.js';
@@ -583,10 +583,11 @@ export class TerminalSandboxEngine extends Disposable {
 		}
 		await this.getOS();
 		if (this._os === OperatingSystem.Windows) {
-			return this._getSandboxConfiguredWindowsEnabledValue() === AgentSandboxEnabledValue.AllowNetwork;
+			const value = this._getSandboxConfiguredWindowsEnabledValue();
+			return isAgentSandboxEnabledValue(value);
 		}
 		const value = this._getSandboxConfiguredEnabledValue();
-		return value === AgentSandboxEnabledValue.On || value === AgentSandboxEnabledValue.AllowNetwork;
+		return isAgentSandboxEnabledValue(value);
 	}
 
 	private async _resolveRuntimeInfo(): Promise<void> {
@@ -680,7 +681,7 @@ export class TerminalSandboxEngine extends Disposable {
 		};
 		if (this._os !== OperatingSystem.Windows) {
 			const sandboxRuntimeSettings = sandboxSettings as Record<string, unknown>;
-			this._mergeAdditionalSandboxConfigProperties(sandboxRuntimeSettings, allowNetwork ? this._withoutNetworkRuntimeSetting(runtimeSetting) : runtimeSetting);
+			this._mergeAdditionalSandboxConfigProperties(sandboxRuntimeSettings, runtimeSetting);
 			this._mergeAdditionalSandboxConfigProperties(sandboxRuntimeSettings, commandRuntimeSetting);
 			if (this._os === OperatingSystem.Macintosh) {
 				sandboxRuntimeSettings.allowPty ??= true;
@@ -840,12 +841,6 @@ export class TerminalSandboxEngine extends Disposable {
 		}
 
 		return paths.filter((path): path is string => typeof path === 'string');
-	}
-
-	private _withoutNetworkRuntimeSetting(runtimeSetting: Record<string, unknown>): Record<string, unknown> {
-		const sanitizedRuntimeSetting = { ...runtimeSetting };
-		delete sanitizedRuntimeSetting.network;
-		return sanitizedRuntimeSetting;
 	}
 
 	private _mergeAdditionalSandboxConfigProperties(target: Record<string, unknown>, additional: Record<string, unknown>): void {
@@ -1041,14 +1036,21 @@ export class TerminalSandboxEngine extends Disposable {
 	}
 
 	private _getSandboxConfiguredEnabledValue(): AgentSandboxEnabledValue {
-		return this._getSettingValue<AgentSandboxEnabledValue>(AgentSandboxSettingId.AgentSandboxEnabled) ?? AgentSandboxEnabledValue.Off;
+		return this._normalizeSandboxEnabledValue(this._getSettingValue<AgentSandboxEnabledSettingValue>(AgentSandboxSettingId.AgentSandboxEnabled));
 	}
 
 	private _getSandboxConfiguredWindowsEnabledValue(): AgentSandboxEnabledValue {
-		return this._getSettingValue<AgentSandboxEnabledValue>(AgentSandboxSettingId.AgentSandboxWindowsEnabled) ?? AgentSandboxEnabledValue.Off;
+		return this._normalizeSandboxEnabledValue(this._getSettingValue<AgentSandboxEnabledSettingValue>(AgentSandboxSettingId.AgentSandboxWindowsEnabled));
+	}
+
+	private _normalizeSandboxEnabledValue(value: AgentSandboxEnabledSettingValue | undefined): AgentSandboxEnabledValue {
+		return value === undefined ? AgentSandboxEnabledValue.Off : normalizeAgentSandboxEnabledValue(value);
 	}
 
 	private _isSandboxAllowNetworkConfigured(): boolean {
+		if (this._getSettingValue<boolean>(AgentSandboxSettingId.AgentSandboxAllowNetwork) === true) {
+			return true;
+		}
 		if (this._os === OperatingSystem.Windows) {
 			return this._getSandboxConfiguredWindowsEnabledValue() === AgentSandboxEnabledValue.AllowNetwork;
 		}
