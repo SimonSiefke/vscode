@@ -107,12 +107,14 @@ export function fillInActionBarActions(
 	fillInActions(groups, target, false, isPrimaryAction, shouldInlineSubmenu, useSeparatorsInPrimaryActions);
 }
 
+const neverInlineSubmenu = () => false;
+
 function fillInActions(
 	groups: ReadonlyArray<[string, ReadonlyArray<MenuItemAction | SubmenuItemAction>]>,
 	target: IAction[] | PrimaryAndSecondaryActions,
 	useAlternativeActions: boolean,
 	isPrimaryAction: (actionGroup: string) => boolean = actionGroup => actionGroup === 'navigation',
-	shouldInlineSubmenu: (action: SubmenuAction, group: string, groupSize: number) => boolean = () => false,
+	shouldInlineSubmenu: (action: SubmenuAction, group: string, groupSize: number) => boolean = neverInlineSubmenu,
 	useSeparatorsInPrimaryActions: boolean = false
 ): void {
 
@@ -126,7 +128,8 @@ function fillInActions(
 		secondaryBucket = target.secondary;
 	}
 
-	const submenuInfo = new Set<{ group: string; action: SubmenuAction; index: number }>();
+	const canInlineSubmenus = shouldInlineSubmenu !== neverInlineSubmenu;
+	let submenuInfo: { group: string; action: SubmenuAction; index: number }[] | undefined;
 
 	for (const [group, actions] of groups) {
 
@@ -149,14 +152,17 @@ function fillInActions(
 			}
 			const newLen = target.push(action);
 			// keep submenu info for later inlining
-			if (action instanceof SubmenuAction) {
-				submenuInfo.add({ group, action, index: newLen - 1 });
+			if (canInlineSubmenus && action instanceof SubmenuAction) {
+				(submenuInfo ??= []).push({ group, action, index: newLen - 1 });
 			}
 		}
 	}
 
 	// ask the outside if submenu should be inlined or not. only ask when
 	// there would be enough space
+	if (!submenuInfo) {
+		return;
+	}
 	for (const { group, action, index } of submenuInfo) {
 		const target = isPrimaryAction(group) ? primaryBucket : secondaryBucket;
 
