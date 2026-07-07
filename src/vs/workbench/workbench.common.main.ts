@@ -106,7 +106,7 @@ import './services/userDataProfile/browser/userDataProfileImportExportService.js
 import './services/userDataProfile/browser/userDataProfileManagement.js';
 import './services/userDataProfile/common/remoteUserDataProfiles.js';
 import './services/remote/common/remoteExplorerService.js';
-import './services/remote/common/remoteExtensionsScanner.js';
+import './services/remote/browser/remoteExtensionsScanner.js';
 import './services/terminal/common/embedderTerminalService.js';
 import './services/workingCopy/common/workingCopyService.js';
 import './services/workingCopy/common/workingCopyFileService.js';
