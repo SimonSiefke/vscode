@@ -309,7 +309,7 @@ class MenuInfo extends MenuInfoSnapshot {
 					const menuHide = options?.skipMenuHideActions ? undefined : createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
 					if (isMenuItem) {
 						// MenuItemAction
-						const menuKeybinding = options?.skipConfigureKeybindingAction ? undefined : createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
+						const menuKeybinding = options?.skipConfigureKeybindingAction ? undefined : () => createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
 						(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, this._contextKeyService, this._commandService));
 					} else {
 						// SubmenuItemAction

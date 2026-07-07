@@ -599,16 +599,18 @@ export class MenuItemAction implements IAction {
 	readonly class: string | undefined;
 	readonly enabled: boolean;
 	readonly checked?: boolean;
+	private _menuKeybinding: IAction | (() => IAction) | undefined;
 
 	constructor(
 		item: ICommandAction,
 		alt: ICommandAction | undefined,
 		options: IMenuActionOptions | undefined,
 		readonly hideActions: IMenuItemHide | undefined,
-		readonly menuKeybinding: IAction | undefined,
+		menuKeybinding: IAction | (() => IAction) | undefined,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@ICommandService private _commandService: ICommandService
 	) {
+		this._menuKeybinding = menuKeybinding;
 		this.id = item.id;
 		this.label = MenuItemAction.label(item, options);
 		this.tooltip = (typeof item.tooltip === 'string' ? item.tooltip : item.tooltip?.value) ?? '';
@@ -644,6 +646,13 @@ export class MenuItemAction implements IAction {
 		this._options = options;
 		this.class = icon && ThemeIcon.asClassName(icon);
 
+	}
+
+	get menuKeybinding(): IAction | undefined {
+		if (typeof this._menuKeybinding === 'function') {
+			this._menuKeybinding = this._menuKeybinding();
+		}
+		return this._menuKeybinding;
 	}
 
 	run(...args: unknown[]): Promise<void> {
