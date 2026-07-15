@@ -13,7 +13,7 @@ import { stripRedundantCdPrefix } from '../../common/commandLineHelpers.js';
 import { toToolCallMeta } from '../../common/meta/agentToolCallMeta.js';
 import { IFileEditRecord, ISessionDatabase } from '../../common/sessionDataService.js';
 import { MessageAttachmentKind, type MessageAttachment } from '../../common/state/protocol/state.js';
-import { MessageKind, ResponsePartKind, ToolCallConfirmationReason, ToolCallStatus, ToolResultContentType, TurnState, buildSubagentSessionUri, type AgentSelection, type Message, type ModelSelection, type ResponsePart, type StringOrMarkdown, type ToolCallCompletedState, type ToolResultContent, type Turn } from '../../common/state/sessionState.js';
+import { MessageKind, ResponsePartKind, ToolCallConfirmationReason, ToolCallStatus, ToolResultContentType, TurnState, buildSubagentSessionUri, type AgentSelection, type Message, type ModelSelection, type ResponsePart, type StringOrMarkdown, type ToolCallCompletedState, type ToolResultContent, type Turn, type UsageInfo } from '../../common/state/sessionState.js';
 import { getInvocationMessage, getPastTenseMessage, getShellIntention, getShellLanguage, getSubagentMetadata, getTaskCompleteMarkdown, getToolDisplayName, getToolInputString, getToolKind, isEditTool, isHiddenTool, isTaskCompleteTool, synthesizeSkillToolCall } from './copilotToolDisplay.js';
 import { buildSessionDbUri } from '../shared/fileEditTracker.js';
 import { getMediaMime } from '../../../../base/common/mime.js';
@@ -48,12 +48,11 @@ export function appendSdkToolResultContent(content: ToolResultContent[], sdkCont
 		switch (sdkContent.type) {
 			case 'shell_exit':
 				content.push({
-					type: ToolResultContentType.ShellExit,
-					shellId: sdkContent.shellId,
+					type: ToolResultContentType.TerminalComplete,
 					exitCode: sdkContent.exitCode,
-					...(sdkContent.cwd !== undefined ? { cwd: sdkContent.cwd } : {}),
-					...(sdkContent.outputPreview !== undefined ? { outputPreview: sdkContent.outputPreview } : {}),
-					...(sdkContent.outputTruncated !== undefined ? { outputTruncated: sdkContent.outputTruncated } : {}),
+					...(sdkContent.cwd !== undefined ? { cwd: URI.file(sdkContent.cwd).toString() } : {}),
+					...(sdkContent.outputPreview !== undefined ? { preview: sdkContent.outputPreview } : {}),
+					...(sdkContent.outputTruncated !== undefined ? { truncated: sdkContent.outputTruncated } : {}),
 				});
 				break;
 		}
@@ -96,6 +95,7 @@ interface ITurnBuilder {
 	id: string;
 	message: Message;
 	readonly responseParts: ResponsePart[];
+	usage: UsageInfo | undefined;
 	/** Tool starts seen but not yet completed in this turn, keyed by toolCallId. */
 	readonly pendingTools: Map<string, IToolStartInfo>;
 }
@@ -114,7 +114,7 @@ function newTurnBuilder(id: string, text: string, options?: { attachments?: Mess
 		...(options?.model ? { model: options.model } : {}),
 		...(options?.agent ? { agent: options.agent } : {}),
 	};
-	return { id, message, responseParts: [], pendingTools: new Map() };
+	return { id, message, responseParts: [], usage: undefined, pendingTools: new Map() };
 }
 
 function makeToolStartInfo(toolName: string, rawArguments: unknown, parentToolCallId: string | undefined, workingDirectory: URI | undefined): IToolStartInfo | undefined {
@@ -154,7 +154,7 @@ function finalizeTurn(builder: ITurnBuilder, state: TurnState): Turn {
 		id: builder.id,
 		message: builder.message,
 		responseParts: builder.responseParts,
-		usage: undefined,
+		usage: builder.usage,
 		state,
 	};
 }
@@ -263,6 +263,7 @@ export async function mapSessionEvents(
 	let parentTurnState = TurnState.Cancelled;
 	let parentTurnAborted = false;
 	let rootAssistantTurnActive = false;
+	let pendingAutoModeResolved: Extract<SessionEvent, { type: 'session.auto_mode_resolved' }>['data'] | undefined;
 
 	const flushParent = (): void => {
 		if (!parentBuilder) {
@@ -326,6 +327,12 @@ export async function mapSessionEvents(
 				currentModel = { id: e.data.newModel };
 				break;
 			}
+			case 'session.auto_mode_resolved': {
+				if (!e.agentId) {
+					pendingAutoModeResolved = e.data;
+				}
+				break;
+			}
 			case 'subagent.deselected': {
 				if (!e.agentId) {
 					currentAgent = undefined;
@@ -368,6 +375,13 @@ export async function mapSessionEvents(
 					flushParent();
 					const turnId = e.id ?? messageId;
 					parentBuilder = newTurnBuilder(turnId, content, { attachments, model: currentModel, agent: currentAgent });
+					if (pendingAutoModeResolved) {
+						parentBuilder.usage = {
+							model: pendingAutoModeResolved.chosenModel,
+							_meta: { autoModeResolved: pendingAutoModeResolved },
+						};
+						pendingAutoModeResolved = undefined;
+					}
 				}
 				break;
 			}

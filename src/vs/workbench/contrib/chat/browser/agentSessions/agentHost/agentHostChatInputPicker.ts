@@ -15,16 +15,18 @@ import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposab
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { localize } from '../../../../../../nls.js';
+import { IActionListOptions, ActionListItemKind, IActionListDelegate, IActionListItem } from '../../../../../../platform/actionWidget/browser/actionList.js';
+import { IActionWidgetService } from '../../../../../../platform/actionWidget/browser/actionWidget.js';
+import { getCodexApprovalsPickerListOptions } from '../../../../../../platform/agentHost/browser/codexApprovalsPicker.js';
 import { IAgentHostService } from '../../../../../../platform/agentHost/common/agentService.js';
 import { KNOWN_AUTO_APPROVE_VALUES, SessionConfigKey } from '../../../../../../platform/agentHost/common/sessionConfigKeys.js';
 import { ClaudeSessionConfigKey } from '../../../../../../platform/agentHost/common/claudeSessionConfigKeys.js';
+import { CodexSessionConfigKey } from '../../../../../../platform/agentHost/common/codexSessionConfigKeys.js';
 import { ActionType } from '../../../../../../platform/agentHost/common/state/protocol/actions.js';
 import type { ResolveSessionConfigResult, SessionConfigPropertySchema, SessionConfigValueItem } from '../../../../../../platform/agentHost/common/state/protocol/commands.js';
 import type { SessionState } from '../../../../../../platform/agentHost/common/state/protocol/state.js';
 import { StateComponents } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { type IAgentSubscription } from '../../../../../../platform/agentHost/common/state/agentSubscription.js';
-import { ActionListItemKind, IActionListDelegate, IActionListItem } from '../../../../../../platform/actionWidget/browser/actionList.js';
-import { IActionWidgetService } from '../../../../../../platform/actionWidget/browser/actionWidget.js';
 import { IHoverService } from '../../../../../../platform/hover/browser/hover.js';
 import { IOpenerService } from '../../../../../../platform/opener/common/opener.js';
 import { IDialogService } from '../../../../../../platform/dialogs/common/dialogs.js';
@@ -34,8 +36,10 @@ import { IConfigurationService } from '../../../../../../platform/configuration/
 import { IWorkspaceContextService } from '../../../../../../platform/workspace/common/workspace.js';
 import type { IChatWidget } from '../../chat.js';
 import { ChatConfiguration, ChatPermissionLevel, isChatPermissionLevel } from '../../../common/constants.js';
+import { isAutoApprovePolicyRestricted, normalizeSessionConfigValue } from '../../../common/agentHostConfigPolicy.js';
 import { maybeConfirmElevatedPermissionLevel } from '../../../common/chatPermissionWarnings.js';
 import { isUntitledChatSession } from '../../../common/model/chatUri.js';
+import { withChatInputPickerMotion } from '../../widget/input/chatInputPickerActionItem.js';
 import { IAgentHostSessionWorkingDirectoryResolver } from './agentHostSessionWorkingDirectoryResolver.js';
 import { IAgentHostNewSessionFolderService } from './agentHostNewSessionFolderService.js';
 import { IAgentHostUntitledProvisionalSessionService } from './agentHostUntitledProvisionalSessionService.js';
@@ -44,7 +48,8 @@ import { toAgentHostBackendSessionUri } from './agentHostSessionUri.js';
 const FILTER_THRESHOLD = 10;
 
 const LEARN_MORE_VALUE = '__agentHostChatInputPicker.learnMore__';
-const PERMISSION_MODE_LEARN_MORE_URL = 'https://aka.ms/vscode/docs/permissions';
+const PERMISSIONS_LEARN_MORE_URL = 'https://aka.ms/vscode/docs/permissions';
+const CODEX_APPROVALS_LEARN_MORE_URL = 'https://developers.openai.com/codex/concepts/sandboxing#how-you-control-it';
 
 interface IConfigPickerItem {
 	readonly value: string;
@@ -79,20 +84,14 @@ function getConfigIcon(property: string, value: unknown | undefined): ThemeIcon 
 			case 'bypassPermissions': return Codicon.warning;
 		}
 	}
-	return undefined;
-}
-
-function isAutoApprovePolicyRestricted(configurationService: IConfigurationService): boolean {
-	return configurationService.inspect<boolean>(ChatConfiguration.GlobalAutoApprove).policyValue === false;
-}
-
-function normalizeConfigValue(property: string, value: string, policyRestricted: boolean): string {
-	// Assisted, Bypass, and (legacy) Autopilot all auto-approve at least some
-	// tool calls, so clamp anything but Default when policy disables auto-approve.
-	if (property === SessionConfigKey.AutoApprove && policyRestricted && value !== 'default') {
-		return 'default';
+	if (property === CodexSessionConfigKey.PermissionsPreset && typeof value === 'string') {
+		switch (value) {
+			case 'default': return Codicon.shield;
+			case 'auto-review': return Codicon.sparkle;
+			case 'full-access': return Codicon.warning;
+		}
 	}
-	return value;
+	return undefined;
 }
 
 function toActionItems(property: string, items: readonly IConfigPickerItem[], currentValue: unknown | undefined, policyRestricted = false): IActionListItem<IConfigPickerItem>[] {
@@ -139,6 +138,9 @@ function getEnumValueDescription(schema: SessionConfigPropertySchema, value: unk
 }
 
 export function getConfigPickerTriggerHover(property: string, schema: SessionConfigPropertySchema, value: unknown | undefined, isReadOnly: boolean): string {
+	if (property === CodexSessionConfigKey.PermissionsPreset) {
+		return getEnumValueDescription(schema, value) ?? schema.description ?? schema.title;
+	}
 	if (property !== SessionConfigKey.AutoApprove) {
 		return schema.description ?? schema.title;
 	}
@@ -158,6 +160,22 @@ export function getConfigPickerItemHover(property: string, item: IConfigPickerIt
 		return getAutoApproveHover(item.value, item.description);
 	}
 	return undefined;
+}
+
+function getPermissionsLearnMoreUrl(property: string): string | undefined {
+	if (property === CodexSessionConfigKey.PermissionsPreset) {
+		return CODEX_APPROVALS_LEARN_MORE_URL;
+	}
+	if (property === ClaudeSessionConfigKey.PermissionMode || property === SessionConfigKey.AutoApprove) {
+		return PERMISSIONS_LEARN_MORE_URL;
+	}
+	return undefined;
+}
+
+export function getConfigPickerListOptions(property: string): IActionListOptions | undefined {
+	return property === CodexSessionConfigKey.PermissionsPreset
+		? getCodexApprovalsPickerListOptions()
+		: undefined;
 }
 
 function renderPickerTrigger(slot: HTMLElement, disabled: boolean, disposables: DisposableStore, onOpen: () => void): HTMLElement {
@@ -212,6 +230,11 @@ export function isWellKnownAutoApproveSchema(schema: SessionConfigPropertySchema
  *
  * `Permissions` has no chip — it is surfaced through other UI — but is
  * included so the generic lane does not invent a chip for it.
+ *
+ * `WorktreeBranchPrefix` likewise has no chip: it is a carrier value seeded by
+ * the client (from `git.branchPrefix`) and consumed by the agent for worktree
+ * isolation, never edited by the user. Including it here keeps the generic lane
+ * from surfacing it as a chip in the chat input.
  */
 export const WELL_KNOWN_PICKER_PROPERTIES: ReadonlySet<string> = new Set<string>([
 	SessionConfigKey.Mode,
@@ -219,7 +242,10 @@ export const WELL_KNOWN_PICKER_PROPERTIES: ReadonlySet<string> = new Set<string>
 	SessionConfigKey.Isolation,
 	SessionConfigKey.Branch,
 	SessionConfigKey.Permissions,
+	SessionConfigKey.WorktreeBranchPrefix,
+	SessionConfigKey.WorktreeIncludeFiles,
 	ClaudeSessionConfigKey.PermissionMode,
+	CodexSessionConfigKey.PermissionsPreset,
 ]);
 
 /**
@@ -539,7 +565,8 @@ export class AgentHostChatInputPicker extends Disposable {
 		const currentValue = ctx.value;
 		const policyRestricted = isAutoApprovePolicyRestricted(this._configurationService);
 		const actionItems = toActionItems(this._property, items, currentValue, policyRestricted);
-		if (this._property === ClaudeSessionConfigKey.PermissionMode || this._property === SessionConfigKey.AutoApprove) {
+		const permissionsLearnMoreUrl = getPermissionsLearnMoreUrl(this._property);
+		if (permissionsLearnMoreUrl) {
 			const learnMoreLabel = localize('agentHostChatInputPicker.learnMorePermissions', "Learn more about permissions");
 			actionItems.push({
 				kind: ActionListItemKind.Separator,
@@ -557,7 +584,9 @@ export class AgentHostChatInputPicker extends Disposable {
 			onSelect: item => {
 				this._actionWidgetService.hide();
 				if (item.value === LEARN_MORE_VALUE) {
-					void this._openerService.open(URI.parse(PERMISSION_MODE_LEARN_MORE_URL));
+					if (permissionsLearnMoreUrl) {
+						void this._openerService.open(URI.parse(permissionsLearnMoreUrl));
+					}
 					return;
 				}
 				void this._confirmAndSetValue(ctx.backendSession, item.value);
@@ -586,9 +615,12 @@ export class AgentHostChatInputPicker extends Disposable {
 				getAriaLabel: item => item.label ?? '',
 				getWidgetAriaLabel: () => localize('agentHostChatInputPicker.ariaLabel', "{0} Picker", ctx.schema.title),
 			},
-			actionItems.length > FILTER_THRESHOLD || ctx.schema.enumDynamic
-				? { showFilter: true, filterPlaceholder: localize('agentHostChatInputPicker.filter', "Filter...") }
-				: undefined,
+			withChatInputPickerMotion({
+				...getConfigPickerListOptions(this._property),
+				...(actionItems.length > FILTER_THRESHOLD || ctx.schema.enumDynamic
+					? { showFilter: true, filterPlaceholder: localize('agentHostChatInputPicker.filter', "Filter...") }
+					: {}),
+			}),
 		);
 	}
 
@@ -682,7 +714,7 @@ export class AgentHostChatInputPicker extends Disposable {
 		const ctx = this._readContext();
 		const normalizedValue = ctx?.schema.type === 'boolean'
 			? value === 'true'
-			: normalizeConfigValue(this._property, value, isAutoApprovePolicyRestricted(this._configurationService));
+			: normalizeSessionConfigValue(this._property, value, isAutoApprovePolicyRestricted(this._configurationService));
 		const partial = { [this._property]: normalizedValue };
 		const nextConfig = { ...(this._readCurrentValues() ?? {}), ...partial };
 

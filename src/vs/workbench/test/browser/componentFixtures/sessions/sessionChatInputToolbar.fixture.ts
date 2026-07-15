@@ -14,7 +14,7 @@ import { SessionChatInputToolbar } from '../../../../../sessions/contrib/chat/br
 // eslint-disable-next-line local/code-import-patterns
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../../sessions/common/agentHostSessionsProvider.js';
 // eslint-disable-next-line local/code-import-patterns
-import { ISessionChangeset, ISessionFileChange, SessionStatus, TURN_CHANGES_CHANGESET_ID } from '../../../../../sessions/services/sessions/common/session.js';
+import { ISessionFileChange, IChat, SessionStatus } from '../../../../../sessions/services/sessions/common/session.js';
 // eslint-disable-next-line local/code-import-patterns
 import { IActiveSession } from '../../../../../sessions/services/sessions/common/sessionsManagement.js';
 import { ComponentFixtureContext, createEditorServices, defineComponentFixture, defineThemedFixtureGroup } from '../fixtureUtils.js';
@@ -27,45 +27,52 @@ import { IFixtureMessage, renderChatWidget } from '../chat/chatWidget.fixture.js
 
 /** A file created during the turn (no original => classified as "created"). */
 function createdFile(name: string, insertions: number, deletions: number): ISessionFileChange {
-	return { modifiedUri: URI.file(`/repo/${name}`), insertions, deletions };
+	return { uri: URI.file(`/repo/${name}`), modifiedUri: URI.file(`/repo/${name}`), insertions, deletions };
 }
 
 /** A file edited during the turn (has an original => classified as "modified"). */
 function editedFile(name: string, insertions: number, deletions: number): ISessionFileChange {
 	const uri = URI.file(`/repo/${name}`);
-	return { modifiedUri: uri, originalUri: uri, insertions, deletions };
-}
-
-/** A single "Last Turn Changes" changeset carrying the given file changes. */
-function turnChangeset(changes: readonly ISessionFileChange[]): ISessionChangeset {
-	return new class extends mock<ISessionChangeset>() {
-		override readonly id = TURN_CHANGES_CHANGESET_ID;
-		override readonly changes: IObservable<readonly ISessionFileChange[]> = constObservable(changes);
-	}();
+	return { uri, modifiedUri: uri, originalUri: uri, insertions, deletions };
 }
 
 interface ISessionSpec {
 	readonly providerId?: string;
-	/** File changes in the current turn; omit for a session with no turn changeset. */
+	readonly status?: SessionStatus;
+	/** File changes in the last turn; omit for a chat with no last-turn changes. */
 	readonly turnChanges?: readonly ISessionFileChange[];
+	/** URL of the last browser tool call in the turn; omit for a chat with none. */
+	readonly browserUrl?: string;
 }
 
-function createMockSession(spec: ISessionSpec): IActiveSession {
-	const changesets = spec.turnChanges !== undefined ? [turnChangeset(spec.turnChanges)] : [];
-	return new class extends mock<IActiveSession>() {
+/** A mock session + its viewed chat, as the toolbar consumes them. */
+interface IMockSessionAndChat {
+	readonly session: IActiveSession;
+	readonly chat: IChat;
+}
+
+function createMockSession(spec: ISessionSpec): IMockSessionAndChat {
+	const chat = new class extends mock<IChat>() {
+		override readonly resource = URI.parse('chat:1');
+		// Pills above the input show while the chat has an active turn.
+		override readonly status: IObservable<SessionStatus> = constObservable(spec.status ?? SessionStatus.InProgress);
+		override readonly lastTurnChanges: IObservable<readonly ISessionFileChange[]> | undefined =
+			spec.turnChanges !== undefined ? constObservable(spec.turnChanges) : undefined;
+		override readonly lastTurnBrowserUrl: IObservable<string | undefined> | undefined =
+			spec.browserUrl !== undefined ? constObservable(spec.browserUrl) : undefined;
+	}();
+	const session = new class extends mock<IActiveSession>() {
 		override readonly resource = URI.parse('session:1');
 		override readonly providerId = spec.providerId ?? LOCAL_AGENT_HOST_PROVIDER_ID;
-		// Pills above the input only show while a turn is actively in progress.
-		override readonly status: IObservable<SessionStatus> = constObservable(SessionStatus.InProgress);
-		override readonly changesets: IObservable<readonly ISessionChangeset[] | undefined> = constObservable(changesets);
 	}();
+	return { session, chat };
 }
 
 // ============================================================================
 // Render helpers
 // ============================================================================
 
-function renderPills(ctx: ComponentFixtureContext, session: IActiveSession): void {
+function renderPills(ctx: ComponentFixtureContext, mock: IMockSessionAndChat): void {
 	const { container, disposableStore } = ctx;
 
 	const instantiationService = createEditorServices(disposableStore, {
@@ -79,27 +86,27 @@ function renderPills(ctx: ComponentFixtureContext, session: IActiveSession): voi
 		},
 	});
 
-	// Both pills are off by default; enable them so the fixture renders.
-	(instantiationService.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(ChatConfiguration.TurnStatusPills, { changes: true, preview: true });
+	// All pills are off by default; enable them so the fixture renders.
+	(instantiationService.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(ChatConfiguration.TurnStatusPills, { changes: true, preview: true, browser: true });
 
 	const pills = disposableStore.add(instantiationService.createInstance(SessionChatInputToolbar));
-	pills.setSession(session);
+	pills.setSession(mock.session, mock.chat);
 	container.appendChild(pills.element);
 
 	container.style.padding = '12px';
 	container.style.backgroundColor = 'var(--vscode-sideBar-background)';
 }
 
-async function renderChatViewWithPills(ctx: ComponentFixtureContext, session: IActiveSession, messages: IFixtureMessage[]): Promise<void> {
+async function renderChatViewWithPills(ctx: ComponentFixtureContext, mock: IMockSessionAndChat, messages: IFixtureMessage[]): Promise<void> {
 	await renderChatWidget(ctx, {
 		messages,
 		decorateInputPart: (inputPart, instantiationService) => {
-			// Both pills are off by default; enable them so the fixture renders.
+			// All pills are off by default; enable them so the fixture renders.
 			instantiationService.invokeFunction(accessor => {
-				(accessor.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(ChatConfiguration.TurnStatusPills, { changes: true, preview: true });
+				(accessor.get(IConfigurationService) as TestConfigurationService).setUserConfiguration(ChatConfiguration.TurnStatusPills, { changes: true, preview: true, browser: true });
 			});
 			const pills = ctx.disposableStore.add(instantiationService.createInstance(SessionChatInputToolbar));
-			pills.setSession(session);
+			pills.setSession(mock.session, mock.chat);
 			// Mount above the input, mirroring the sessions ChatView.
 			inputPart.element.insertBefore(pills.element, inputPart.element.firstChild);
 		},
@@ -151,6 +158,7 @@ export default defineThemedFixtureGroup({ path: 'sessions/' }, {
 
 	SessionChatPills_PreviewMarkdown: defineComponentFixture({
 		render: (ctx) => renderPills(ctx, createMockSession({
+			status: SessionStatus.NeedsInput,
 			turnChanges: [createdFile('README.md', 20, 0), editedFile('app.ts', 8, 3)],
 		})),
 	}),
@@ -175,6 +183,20 @@ export default defineThemedFixtureGroup({ path: 'sessions/' }, {
 	SessionChatPills_PreviewMultiple_PrimaryEdited: defineComponentFixture({
 		render: (ctx) => renderPills(ctx, createMockSession({
 			turnChanges: [editedFile('docs.md', 10, 2), editedFile('page.html', 4, 1)],
+		})),
+	}),
+
+	// --- Live Browser pill --------------------------------------------------
+
+	SessionChatPills_LiveBrowser: defineComponentFixture({
+		render: (ctx) => renderPills(ctx, createMockSession({ browserUrl: 'https://localhost:3000/' })),
+	}),
+
+	SessionChatPills_LiveBrowserWithChanges: defineComponentFixture({
+		render: (ctx) => renderPills(ctx, createMockSession({
+			status: SessionStatus.NeedsInput,
+			turnChanges: [createdFile('index.html', 30, 4), editedFile('app.ts', 8, 3)],
+			browserUrl: 'https://example.com/preview',
 		})),
 	}),
 
