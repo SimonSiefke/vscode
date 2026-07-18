@@ -4,20 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import {
 	ILocalTranscriptionModelStatus,
+	ILocalTranscriptionProxyConfig,
 	ILocalTranscriptionResult,
 	ILocalTranscriptionService,
 	LocalTranscriptionModelState,
 } from '../common/localTranscription.js';
+import { NemotronTranscriber } from './nemotronTranscriber.js';
 
 /** Sample rate (Hz) the Whisper models expect; the renderer captures at this rate. */
 const SAMPLE_RATE = 16000;
 
-/** Default downloaded model. `base` balances quality and size (~faster than small). */
-const DEFAULT_MODEL = 'onnx-community/whisper-base';
+/** Default downloaded model when the setting is unset. Nemotron matches the GitHub Copilot app and is multilingual. */
+const DEFAULT_MODEL = 'onnx-community/nemotron-3.5-asr-streaming-0.6b-onnx-int4';
 
 /**
  * Precision of the ONNX weights downloaded and run on device. Whisper is an
@@ -110,6 +112,8 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 	private _pipeline: ASRPipeline | undefined;
 	private _pipelinePromise: Promise<ASRPipeline> | undefined;
 	private _loadedModel: string | undefined;
+	/** The streaming RNN-T transducer, set when the Nemotron model is selected. */
+	private _nemotron: NemotronTranscriber | undefined;
 
 	/** Accumulated Float32 PCM for the active session (mono, 16 kHz). */
 	private _samples: Float32Array[] = [];
@@ -129,6 +133,22 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 	private _interimTimer: ReturnType<typeof setTimeout> | undefined;
 	private _lastText = '';
 
+	/**
+	 * Set when a session is torn down while an inference is still awaiting an
+	 * ONNX run: resetting the transducer's streaming state right then would race
+	 * with the in-flight call (which would resume and write cache/LSTM/token
+	 * results into the freshly-reset state, contaminating the next session). The
+	 * reset is deferred until that inference finishes instead.
+	 */
+	private _pendingStreamReset = false;
+
+	constructor() {
+		super();
+		// Release the ~800MB of native ONNX allocations when the service (and its
+		// utility process) goes away, rather than leaking them for its lifetime.
+		this._register(toDisposable(() => { void this._nemotron?.release(); this._nemotron = undefined; }));
+	}
+
 	async getModelStatus(): Promise<ILocalTranscriptionModelStatus> {
 		return this._status;
 	}
@@ -138,14 +158,24 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 		this._onDidChangeModelStatus.fire(status);
 	}
 
-	async start(options: { cacheDir: string; model?: string; language?: string }): Promise<void> {
+	async start(options: { cacheDir: string; model?: string; language?: string; proxy?: ILocalTranscriptionProxyConfig }): Promise<void> {
 		this._resetSession();
 		this._language = options.language;
 		this._sessionActive = true;
 		// Kick off (or reuse) model loading; do not block starting capture on it.
-		this._ensurePipeline(options.cacheDir, options.model ?? DEFAULT_MODEL).catch(() => { /* status already reported */ });
+		this._ensurePipeline(options.cacheDir, options.model ?? DEFAULT_MODEL, options.proxy).catch(() => { /* status already reported */ });
 	}
-	private async _ensurePipeline(cacheDir: string, model: string): Promise<ASRPipeline> {
+
+	/**
+	 * Download (if needed) and load the selected model, returning a uniform
+	 * `ASRPipeline` call shape regardless of backend. Idempotent: a load already
+	 * in flight (or the same model already loaded) is reused. Whisper runs via
+	 * transformers.js; Nemotron is an RNN-T transducer driven directly through
+	 * onnxruntime-node (transformers.js cannot run it). `proxy` carries the
+	 * renderer's `http.*` settings so a first-use download can traverse a
+	 * corporate proxy.
+	 */
+	private async _ensurePipeline(cacheDir: string, model: string, proxy: ILocalTranscriptionProxyConfig | undefined): Promise<ASRPipeline> {
 		if (this._pipeline && this._loadedModel === model) {
 			return this._pipeline;
 		}
@@ -156,6 +186,25 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 		this._loadedModel = model;
 		this._pipelinePromise = (async () => {
 			try {
+				this._setStatus({ state: LocalTranscriptionModelState.Downloading, progress: 0 });
+
+				// The NeMo Nemotron export is an RNN-T transducer that transformers.js
+				// cannot run; drive it through a dedicated onnxruntime-node transcriber
+				// and expose it behind the same ASRPipeline call shape as Whisper.
+				if (NemotronTranscriber.isNemotronModel(model)) {
+					this._pipeline = await this._loadNemotron(cacheDir, proxy);
+					this._setStatus({ state: LocalTranscriptionModelState.Ready });
+					return this._pipeline;
+				}
+
+				// Selecting Whisper after a Nemotron session: release the transducer's
+				// native ONNX allocations before loading the Whisper pipeline.
+				if (this._nemotron) {
+					const previous = this._nemotron;
+					this._nemotron = undefined;
+					await previous.release();
+				}
+
 				if (!this._transformers) {
 					this._transformers = await import('@huggingface/transformers');
 				}
@@ -169,10 +218,9 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 				// callbacks for files it actually fetches from the network; a
 				// fully-cached model loads without any of them. Track that so we
 				// can distinguish a first-use download from a cache hit (the
-				// unconditional `Downloading` state below is a UI signal only and
+				// unconditional `Downloading` state above is a UI signal only and
 				// fires even for cached loads, so it cannot be used for this).
 				let didDownload = false;
-				this._setStatus({ state: LocalTranscriptionModelState.Downloading, progress: 0 });
 				const pipe = await pipeline('automatic-speech-recognition', model, {
 					dtype: DEFAULT_DTYPE,
 					progress_callback: (p: { status?: string; progress?: number }) => {
@@ -195,12 +243,47 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 				this._pipeline = undefined;
 				this._pipelinePromise = undefined;
 				this._loadedModel = undefined;
+				this._nemotron = undefined;
 				const message = String(err instanceof Error ? err.message : err);
 				this._setStatus({ state: LocalTranscriptionModelState.Error, error: message, errorCode: classifyModelError(message) });
 				throw err;
 			}
 		})();
 		return this._pipelinePromise;
+	}
+
+	/**
+	 * Download + load the Nemotron RNN-T transducer and wrap it in the same
+	 * `ASRPipeline` call shape Whisper uses, so `_runInference` stays agnostic to
+	 * which backend is active. Whisper-only options (chunking, task) are ignored.
+	 */
+	private async _loadNemotron(cacheDir: string, proxy: ILocalTranscriptionProxyConfig | undefined): Promise<ASRPipeline> {
+		// Switching to Nemotron from a previously-loaded Nemotron session: release
+		// the prior transducer's ~800MB of native ONNX allocations before opening
+		// the replacement rather than leaking them.
+		if (this._nemotron) {
+			const previous = this._nemotron;
+			this._nemotron = undefined;
+			await previous.release();
+		}
+		const transcriber = new NemotronTranscriber();
+		try {
+			await transcriber.prepare(cacheDir, proxy, ({ downloaded, progress }) => {
+				if (downloaded) {
+					this._setStatus({ state: LocalTranscriptionModelState.Loading });
+				} else {
+					this._setStatus({ state: LocalTranscriptionModelState.Downloading, progress: progress ?? 0 });
+				}
+			});
+		} catch (err) {
+			// Release anything the failed load left open before rethrowing.
+			await transcriber.release();
+			throw err;
+		}
+		this._nemotron = transcriber;
+		// `_runInference` calls the streaming API directly; this wrapper only
+		// serves as the truthy `_pipeline` sentinel and a one-shot fallback.
+		return async (audio: Float32Array): Promise<ASRResult> => ({ text: await transcriber.transcribeStreaming(audio, true) });
 	}
 
 	async pushAudio(chunk: VSBuffer): Promise<void> {
@@ -243,21 +326,30 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 		this._inferenceInFlight = true;
 		try {
 			const audio = this._mergedSamples();
-			// Pad the final pass with trailing silence so Whisper reliably emits
-			// the last word even when the user stops speaking abruptly.
-			const input = isFinal ? this._withTrailingSilence(audio, FINAL_PASS_TRAILING_SILENCE_SECONDS) : audio;
-			const result = await pipe(input, {
-				chunk_length_s: 30,
-				stride_length_s: 5,
-				language: this._language,
-				task: 'transcribe',
-			});
+			let text: string;
+			if (this._nemotron) {
+				// Streaming transducer: feed the cumulative buffer; only the newly
+				// appended samples are processed and prior tokens are carried
+				// forward, so the tail is flushed on the final pass (no trailing
+				// silence needed).
+				text = (await this._nemotron.transcribeStreaming(audio, isFinal)).trim();
+			} else {
+				// Pad the final pass with trailing silence so Whisper reliably emits
+				// the last word even when the user stops speaking abruptly.
+				const input = isFinal ? this._withTrailingSilence(audio, FINAL_PASS_TRAILING_SILENCE_SECONDS) : audio;
+				const result = await pipe(input, {
+					chunk_length_s: 30,
+					stride_length_s: 5,
+					language: this._language,
+					task: 'transcribe',
+				});
+				text = (Array.isArray(result) ? result.map(r => r.text).join(' ') : result.text ?? '').trim();
+			}
 			// The session may have been cancelled/replaced while this inference
 			// was running; drop the result so it can't leak into a later session.
 			if (generation !== this._generation) {
 				return this._lastText;
 			}
-			const text = (Array.isArray(result) ? result.map(r => r.text).join(' ') : result.text ?? '').trim();
 			this._lastText = text;
 			if (this._sessionActive || isFinal) {
 				this._onDidTranscribe.fire({ text, isFinal });
@@ -265,6 +357,13 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 			return text;
 		} finally {
 			this._inferenceInFlight = false;
+			// A session torn down mid-inference deferred its stream reset to avoid
+			// racing this call; now that it has finished mutating the transducer's
+			// streaming state, apply the reset so the next session starts clean.
+			if (this._pendingStreamReset) {
+				this._pendingStreamReset = false;
+				this._nemotron?.resetStream();
+			}
 		}
 	}
 
@@ -336,6 +435,16 @@ export class LocalTranscriptionService extends Disposable implements ILocalTrans
 		this._sampleCount = 0;
 		this._lastText = '';
 		this._language = undefined;
+		// Drop the streaming transducer's per-session state (caches, LSTM state,
+		// emitted tokens) so the next session starts from a clean slate. If an
+		// inference is still awaiting an ONNX run, resetting now would race it
+		// (it would resume and write results into the reset state); defer the
+		// reset until that call finishes instead.
+		if (this._inferenceInFlight) {
+			this._pendingStreamReset = true;
+		} else {
+			this._nemotron?.resetStream();
+		}
 	}
 }
 
