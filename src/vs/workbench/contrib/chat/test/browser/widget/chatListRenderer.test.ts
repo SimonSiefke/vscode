@@ -7,7 +7,8 @@ import assert from 'assert';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { buildPlanReviewProgressContent, getWorkingProgressRelevantParts, isWaitingForMcpServers, renderChatRequestTimestamp, renderChatResponseDetails, shouldCreateGroupedThinkingPart, shouldHideChatUserIdentity, shouldPinToolInvocationToThinking, shouldRenderInitialProgressiveContentImmediately, shouldScheduleInitialHeightChange, shouldStartNewCollapsedThinkingGroup } from '../../../browser/widget/chatListRenderer.js';
+import { buildPlanReviewProgressContent, getWorkingProgressRelevantParts, isWaitingForMcpServers, renderChatRequestTimestamp, renderChatResponseDetails, shouldCreateGroupedThinkingPart, shouldHideChatUserIdentity, shouldPinToolInvocationToThinking, shouldRenderInitialProgressiveContentImmediately, shouldScheduleInitialHeightChange, shouldShowFileChangesSummaryForSettings, shouldShowPillsSummaryForSettings, shouldStartNewCollapsedThinkingGroup } from '../../../browser/widget/chatListRenderer.js';
+import { isChatTurnStatusPillsEnabled } from '../../../browser/widget/chatTurnPills.js';
 import { IChatMcpServersStartingSlow, IChatToolInvocation, IChatToolInvocationSerialized, ToolConfirmKind } from '../../../common/chatService/chatService.js';
 import { formatChatRequestTimestamp, formatChatResponseDetails, formatElapsedTime } from '../../../common/chatProgressFormatting.js';
 import { CollapsedToolsDisplayMode, ThinkingDisplayMode } from '../../../common/constants.js';
@@ -85,50 +86,6 @@ suite('ChatListRenderer', () => {
 		});
 	});
 
-	suite('shouldPinToolInvocationToThinking', () => {
-		test('keeps tool invocations requiring user input outside Thinking', () => {
-			assert.deepStrictEqual({
-				executionConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForConfirmation, false),
-				resultApproval: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForPostApproval, false),
-				authentication: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForAuthentication, false),
-				executingWithConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Executing, true),
-				executingWithoutConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Executing, false),
-			}, {
-				executionConfirmation: false,
-				resultApproval: false,
-				authentication: false,
-				executingWithConfirmation: false,
-				executingWithoutConfirmation: true,
-			});
-		});
-	});
-
-	suite('shouldHideChatUserIdentity', () => {
-		test('hides local Copilot and Agent Host Copilot response identity', () => {
-			assert.deepStrictEqual([
-				shouldHideChatUserIdentity('GitHub Copilot', URI.from({ scheme: 'vscode-chat-editor' }), true, false, false),
-				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'agent-host-copilotcli' }), true, false, false),
-				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'agent-host-copilotcli' }), false, false, false),
-				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'remote-test-authority-copilotcli' }), true, false, false),
-				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'remote-test-authority-copilotcli' }), false, false, false),
-				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'remote-test-authority-claude' }), true, false, false),
-				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'agent-host-claude' }), true, false, false),
-				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'agent-host-claude' }), true, true, false),
-				shouldHideChatUserIdentity('User', URI.from({ scheme: 'vscode-chat-editor' }), false, false, true),
-			], [
-				true,
-				true,
-				false,
-				true,
-				false,
-				false,
-				false,
-				true,
-				true,
-			]);
-		});
-	});
-
 	suite('formatChatResponseDetails', () => {
 		test('formats completion metadata for the footer', () => {
 			assert.deepStrictEqual([
@@ -201,7 +158,7 @@ suite('ChatListRenderer', () => {
 				alternateEndsWithElapsed: container.querySelector('.chat-response-alternate')?.textContent?.endsWith(' \u2022 24s'),
 				hasAlternate: container.querySelector('.chat-response-timing')?.classList.contains('has-alternate'),
 			}, {
-				compact: '1d',
+				compact: '1 day',
 				alternateEndsWithElapsed: true,
 				hasAlternate: true,
 			});
@@ -230,8 +187,8 @@ suite('ChatListRenderer', () => {
 				formatChatRequestTimestamp(Date.now() - 25 * 60 * 60 * 1000)?.text,
 				formatChatRequestTimestamp(Date.now() - 49 * 60 * 60 * 1000)?.text,
 			], [
-				'1d',
-				'2d',
+				'1 day',
+				'2 days',
 			]);
 		});
 
@@ -248,12 +205,99 @@ suite('ChatListRenderer', () => {
 				focusable: rendered?.element.tabIndex,
 				managedHoverText: rendered?.hoverText,
 			}, {
-				compact: '1d',
+				compact: '1 day',
 				fullDate: formatChatRequestTimestamp(timestamp)?.fullText,
 				hasAlternate: true,
 				focusable: 0,
 				managedHoverText: undefined,
 			});
+		});
+	});
+
+	suite('turn status pills setting', () => {
+		test('normalizes boolean and legacy object values', () => {
+			assert.deepStrictEqual([
+				isChatTurnStatusPillsEnabled(undefined),
+				isChatTurnStatusPillsEnabled(false),
+				isChatTurnStatusPillsEnabled(true),
+				isChatTurnStatusPillsEnabled({}),
+				isChatTurnStatusPillsEnabled({ changes: false, preview: false, browser: false }),
+				isChatTurnStatusPillsEnabled({ changes: true }),
+				isChatTurnStatusPillsEnabled({ preview: true }),
+				isChatTurnStatusPillsEnabled({ browser: true }),
+			], [false, false, true, false, false, true, true, true]);
+		});
+
+		test('computes pill and legacy file summaries independently', () => {
+			assert.deepStrictEqual({
+				fileSummary: shouldShowFileChangesSummaryForSettings(true, true, true),
+				fileSummaryIncomplete: shouldShowFileChangesSummaryForSettings(false, true, true),
+				fileSummaryNonLocal: shouldShowFileChangesSummaryForSettings(true, false, true),
+				fileSummaryDisabled: shouldShowFileChangesSummaryForSettings(true, true, false),
+				pillsSummary: shouldShowPillsSummaryForSettings(true, true, true),
+				pillsSummaryLegacy: shouldShowPillsSummaryForSettings(true, true, { preview: true }),
+				pillsSummaryIncomplete: shouldShowPillsSummaryForSettings(false, true, true),
+				pillsSummaryNonAgentHost: shouldShowPillsSummaryForSettings(true, false, true),
+				pillsSummaryDisabled: shouldShowPillsSummaryForSettings(true, true, false),
+			}, {
+				fileSummary: true,
+				fileSummaryIncomplete: false,
+				fileSummaryNonLocal: false,
+				fileSummaryDisabled: false,
+				pillsSummary: true,
+				pillsSummaryLegacy: true,
+				pillsSummaryIncomplete: false,
+				pillsSummaryNonAgentHost: false,
+				pillsSummaryDisabled: false,
+			});
+		});
+	});
+
+	suite('shouldPinToolInvocationToThinking', () => {
+		test('keeps tool invocations requiring user input or MCP apps outside Thinking', () => {
+			assert.deepStrictEqual({
+				executionConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForConfirmation, false, false),
+				resultApproval: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForPostApproval, false, false),
+				authentication: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.WaitingForAuthentication, false, false),
+				executingWithConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Executing, true, false),
+				executingWithoutConfirmation: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Executing, false, false),
+				executingWithMcpApp: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Executing, false, true),
+				streamingWithMcpApp: shouldPinToolInvocationToThinking(IChatToolInvocation.StateKind.Streaming, false, true),
+			}, {
+				executionConfirmation: false,
+				resultApproval: false,
+				authentication: false,
+				executingWithConfirmation: false,
+				executingWithoutConfirmation: true,
+				executingWithMcpApp: false,
+				streamingWithMcpApp: false,
+			});
+		});
+	});
+
+	suite('shouldHideChatUserIdentity', () => {
+		test('hides local Copilot and Agent Host Copilot response identity', () => {
+			assert.deepStrictEqual([
+				shouldHideChatUserIdentity('GitHub Copilot', URI.from({ scheme: 'vscode-chat-editor' }), true, false, false),
+				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'agent-host-copilotcli' }), true, false, false),
+				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'agent-host-copilotcli' }), false, false, false),
+				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'remote-test-authority-copilotcli' }), true, false, false),
+				shouldHideChatUserIdentity('Copilot', URI.from({ scheme: 'remote-test-authority-copilotcli' }), false, false, false),
+				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'remote-test-authority-claude' }), true, false, false),
+				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'agent-host-claude' }), true, false, false),
+				shouldHideChatUserIdentity('Claude', URI.from({ scheme: 'agent-host-claude' }), true, true, false),
+				shouldHideChatUserIdentity('User', URI.from({ scheme: 'vscode-chat-editor' }), false, false, true),
+			], [
+				true,
+				true,
+				false,
+				true,
+				false,
+				false,
+				false,
+				true,
+				true,
+			]);
 		});
 	});
 

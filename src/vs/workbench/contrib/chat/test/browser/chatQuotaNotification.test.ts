@@ -239,7 +239,7 @@ suite('ChatQuotaNotificationContribution', () => {
 		const vendor = modelOpts?.vendor ?? 'copilot';
 		const selectedModelId = modelOpts?.selectedModelId ?? `${vendor}/test-model`;
 		// Persist model selection in storage (used by getSelectedModelVendor)
-		storageService.store('chat.currentLanguageModel.panel', selectedModelId, StorageScope.APPLICATION, StorageTarget.USER);
+		storageService.store('chat.currentLanguageModel.panel', selectedModelId, StorageScope.PROFILE, StorageTarget.USER);
 		const modelIds = ['copilot/auto', selectedModelId];
 		const languageModelsService = {
 			_serviceBrand: undefined,
@@ -657,6 +657,15 @@ suite('ChatQuotaNotificationContribution', () => {
 	// --- Quota trajectory warning --------------------------------------------
 
 	suite('quota trajectory warning', () => {
+		let clock: sinon.SinonFakeTimers;
+
+		setup(() => {
+			clock = sinon.useFakeTimers({
+				now: new Date('2026-06-25T00:00:00Z'),
+				toFake: ['Date'],
+			});
+		});
+
 		test('does not show when experiment treatment is disabled', async () => {
 			const { notificationMock } = createContribution({
 				quotas: {
@@ -777,6 +786,49 @@ suite('ChatQuotaNotificationContribution', () => {
 			await flushPromises();
 
 			assert.strictEqual(notificationMock.getNotification(), undefined);
+		});
+
+		test('counts the first billing day for 31-day and 28-day cycles', async () => {
+			const results = [];
+			for (const [now, resetDate] of [
+				['2026-01-01T00:00:00Z', '2026-02-01T00:00:00Z'],
+				['2026-02-01T00:00:00Z', '2026-03-01T00:00:00Z'],
+			]) {
+				clock.setSystemTime(new Date(now));
+				const telemetryService = new TestTelemetryService();
+				const { notificationMock } = createContribution({
+					entitlement: ChatEntitlement.Pro,
+					quotas: {
+						resetDate,
+						usageBasedBilling: true,
+						premiumChat: makeQuotaSnapshot(88),
+					},
+				}, { trajectoryTreatment: true, telemetryService });
+
+				await flushPromises();
+
+				results.push({
+					events: telemetryService.events,
+					notificationShown: notificationMock.getNotification() !== undefined,
+				});
+			}
+
+			assert.deepStrictEqual(results, [
+				{
+					events: [{
+						name: 'chatQuotaTrajectoryNudgeEnrolled',
+						data: { treatment: true, entitlement: 'Pro', averageDailyUsage: 12, percentUsed: 12 },
+					}],
+					notificationShown: true,
+				},
+				{
+					events: [{
+						name: 'chatQuotaTrajectoryNudgeEnrolled',
+						data: { treatment: true, entitlement: 'Pro', averageDailyUsage: 12, percentUsed: 12 },
+					}],
+					notificationShown: true,
+				},
+			]);
 		});
 
 		test('shows trajectory nudge only after treatment resolves', async () => {
@@ -1089,7 +1141,7 @@ suite('ChatQuotaNotificationContribution', () => {
 			const contextKeyService = store.add(new MockContextKeyService());
 			const storageService = store.add(new InMemoryStorageService());
 			// Start with BYOK model
-			storageService.store('chat.currentLanguageModel.panel', 'customendpoint/ANT/claude-sonnet-4-6', StorageScope.APPLICATION, StorageTarget.USER);
+			storageService.store('chat.currentLanguageModel.panel', 'customendpoint/ANT/claude-sonnet-4-6', StorageScope.PROFILE, StorageTarget.USER);
 			// Registry returns undefined — vendor detection relies on prefix extraction
 			const languageModelsService = {
 				_serviceBrand: undefined,
@@ -1120,7 +1172,7 @@ suite('ChatQuotaNotificationContribution', () => {
 			assert.strictEqual(notificationMock.getNotification(), undefined);
 
 			// Switch to Copilot model via storage — triggers storage listener
-			storageService.store('chat.currentLanguageModel.panel', 'copilot/gpt-4.1', StorageScope.APPLICATION, StorageTarget.USER);
+			storageService.store('chat.currentLanguageModel.panel', 'copilot/gpt-4.1', StorageScope.PROFILE, StorageTarget.USER);
 
 			assert.strictEqual(notificationMock.getNotification()?.message, 'Credit Limit Reached');
 		});
