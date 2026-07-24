@@ -2627,6 +2627,37 @@ suite('RunInTerminalTool', () => {
 			strictEqual(runInTerminalTool.sessionTerminalAssociations.size, 0, 'No associations should exist after handling non-existent session');
 		});
 
+		test('should dispose the execution registration when the terminal is disposed after the active execution is removed', () => {
+			const terminalDisposedEmitter = store.add(new Emitter<ITerminalInstance>());
+			const terminal = {
+				instanceId: 1,
+				onDisposed: terminalDisposedEmitter.event,
+			} as unknown as ITerminalInstance;
+			type TestExecution = { dispose(): void; instance: ITerminalInstance };
+			const execution: TestExecution = {
+				dispose: () => { },
+				instance: terminal,
+			};
+			const termId = 'disposed-execution-registration';
+			const tool = runInTerminalTool as unknown as {
+				_executionRegistrations: { size: number };
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				_setActiveExecution(termId: string, execution: TestExecution): void;
+			};
+			const activeExecutions = (runInTerminalTool.constructor as unknown as {
+				_activeExecutions: Map<string, TestExecution>;
+			})._activeExecutions;
+
+			tool._setActiveExecution(termId, execution);
+			strictEqual(tool._executionRegistrations.size, 1);
+
+			// The active execution may be removed before the terminal's disposal event is delivered.
+			activeExecutions.delete(termId);
+			terminalDisposedEmitter.fire(terminal);
+
+			strictEqual(tool._executionRegistrations.size, 0);
+		});
+
 		test('should not reuse a disposed cached terminal', () => {
 			const sessionResource = LocalChatSessionUri.forSession('disposed-terminal-session');
 			const disposedTerminal = {

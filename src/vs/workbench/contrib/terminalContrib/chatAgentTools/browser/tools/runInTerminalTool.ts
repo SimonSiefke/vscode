@@ -712,7 +712,18 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 	private _setActiveExecution(termId: string, execution: IActiveTerminalExecution & { dispose(): void }): void {
 		RunInTerminalTool._activeExecutions.set(termId, execution);
-		this._executionRegistrations.set(termId, this._terminalChatService.registerTerminalInstanceWithExecutionId(termId, execution.instance));
+		const store = new DisposableStore();
+		store.add(this._terminalChatService.registerTerminalInstanceWithExecutionId(termId, execution.instance));
+		store.add(Event.once(execution.instance.onDisposed)(() => {
+			if (RunInTerminalTool._activeExecutions.get(termId) === execution) {
+				execution.dispose();
+				RunInTerminalTool._activeExecutions.delete(termId);
+			}
+			if (this._executionRegistrations.get(termId) === store) {
+				this._executionRegistrations.deleteAndDispose(termId);
+			}
+		}));
+		this._executionRegistrations.set(termId, store);
 	}
 
 	private _deleteActiveExecution(termId: string): boolean {
