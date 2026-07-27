@@ -15,7 +15,7 @@ import { IEditor } from '../../../../editor/common/editorCommon.js';
 import { AbstractEditorCommandsQuickAccessProvider } from '../../../../editor/contrib/quickAccess/browser/commandsQuickAccess.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { isLocalizedString } from '../../../../platform/action/common/action.js';
-import { Action2, IMenuService, MenuId, MenuItemAction, SubmenuItemAction } from '../../../../platform/actions/common/actions.js';
+import { Action2, IMenuService, MenuId, MenuItemAction } from '../../../../platform/actions/common/actions.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationChangeEvent, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -226,42 +226,44 @@ export class CommandsQuickAccessProvider extends AbstractEditorCommandsQuickAcce
 	private getGlobalCommandPicks(): ICommandQuickPick[] {
 		const globalCommandPicks: ICommandQuickPick[] = [];
 		const scopedContextKeyService = this.editorService.activeEditorPane?.scopedContextKeyService || this.editorGroupService.activeGroup.scopedContextKeyService;
-		const globalCommandsMenu = this.menuService.getMenuActions(MenuId.CommandPalette, scopedContextKeyService);
-		const globalCommandsMenuActions = globalCommandsMenu
-			.reduce((r, [, actions]) => [...r, ...actions], <Array<MenuItemAction | SubmenuItemAction | string>>[])
-			.filter(action => action instanceof MenuItemAction && action.enabled) as MenuItemAction[];
+		const globalCommandsMenu = this.menuService.getMenuActions(MenuId.CommandPalette, scopedContextKeyService, { skipMenuHideActions: true, skipConfigureKeybindingAction: true });
 
-		for (const action of globalCommandsMenuActions) {
+		for (const [, actions] of globalCommandsMenu) {
+			for (const action of actions) {
+				if (!(action instanceof MenuItemAction) || !action.enabled) {
+					continue;
+				}
 
-			// Label
-			let label = (typeof action.item.title === 'string' ? action.item.title : action.item.title.value) || action.item.id;
+				// Label
+				let label = (typeof action.item.title === 'string' ? action.item.title : action.item.title.value) || action.item.id;
 
-			// Category
-			const category = typeof action.item.category === 'string' ? action.item.category : action.item.category?.value;
-			if (category) {
-				label = localize('commandWithCategory', "{0}: {1}", category, label);
+				// Category
+				const category = typeof action.item.category === 'string' ? action.item.category : action.item.category?.value;
+				if (category) {
+					label = localize('commandWithCategory', "{0}: {1}", category, label);
+				}
+
+				// Alias
+				const aliasLabel = typeof action.item.title !== 'string' ? action.item.title.original : undefined;
+				const aliasCategory = (category && action.item.category && typeof action.item.category !== 'string') ? action.item.category.original : undefined;
+				const commandAlias = (aliasLabel && category) ?
+					aliasCategory ? `${aliasCategory}: ${aliasLabel}` : `${category}: ${aliasLabel}` :
+					aliasLabel;
+
+				const metadataDescription = action.item.metadata?.description;
+				const commandDescription = metadataDescription === undefined || isLocalizedString(metadataDescription)
+					? metadataDescription
+					// TODO: this type will eventually not be a string and when that happens, this should simplified.
+					: { value: metadataDescription, original: metadataDescription };
+				globalCommandPicks.push({
+					commandId: action.item.id,
+					commandWhen: action.item.precondition?.serialize(),
+					commandAlias,
+					label: stripIcons(label),
+					commandDescription,
+					commandCategory: category,
+				});
 			}
-
-			// Alias
-			const aliasLabel = typeof action.item.title !== 'string' ? action.item.title.original : undefined;
-			const aliasCategory = (category && action.item.category && typeof action.item.category !== 'string') ? action.item.category.original : undefined;
-			const commandAlias = (aliasLabel && category) ?
-				aliasCategory ? `${aliasCategory}: ${aliasLabel}` : `${category}: ${aliasLabel}` :
-				aliasLabel;
-
-			const metadataDescription = action.item.metadata?.description;
-			const commandDescription = metadataDescription === undefined || isLocalizedString(metadataDescription)
-				? metadataDescription
-				// TODO: this type will eventually not be a string and when that happens, this should simplified.
-				: { value: metadataDescription, original: metadataDescription };
-			globalCommandPicks.push({
-				commandId: action.item.id,
-				commandWhen: action.item.precondition?.serialize(),
-				commandAlias,
-				label: stripIcons(label),
-				commandDescription,
-				commandCategory: category,
-			});
 		}
 
 		return globalCommandPicks;
