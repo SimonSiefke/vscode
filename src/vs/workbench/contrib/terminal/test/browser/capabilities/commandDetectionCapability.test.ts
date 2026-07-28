@@ -3,18 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual, ok } from 'assert';
 import type { Terminal } from '@xterm/xterm';
-import { CommandDetectionCapability } from 'vs/platform/terminal/common/capabilities/commandDetectionCapability';
-import { NullLogService } from 'vs/platform/log/common/log';
-import { ITerminalCommand } from 'vs/platform/terminal/common/capabilities/capabilities';
-import { IContextMenuService } from 'vs/platform/contextview/browser/contextView';
-import { TestInstantiationService } from 'vs/platform/instantiation/test/common/instantiationServiceMock';
-import { IContextMenuDelegate } from 'vs/base/browser/contextmenu';
-import { importAMDNodeModule } from 'vs/amdX';
-import { writeP } from 'vs/workbench/contrib/terminal/browser/terminalTestHelpers';
-import { ensureNoDisposablesAreLeakedInTestSuite } from 'vs/base/test/common/utils';
-import { DisposableStore } from 'vs/base/common/lifecycle';
+import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { importAMDNodeModule } from '../../../../../../amdX.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
+import { ITerminalCommand } from '../../../../../../platform/terminal/common/capabilities/capabilities.js';
+import { CommandDetectionCapability } from '../../../../../../platform/terminal/common/capabilities/commandDetectionCapability.js';
+import { writeP } from '../../../browser/terminalTestHelpers.js';
+import { TestXtermLogger } from '../../../../../../platform/terminal/test/common/terminalTestHelpers.js';
+import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
 
 type TestTerminalCommandMatch = Pick<ITerminalCommand, 'command' | 'cwd' | 'exitCode'> & { marker: { line: number } };
 
@@ -25,12 +22,11 @@ class TestCommandDetectionCapability extends CommandDetectionCapability {
 }
 
 suite('CommandDetectionCapability', () => {
-	let disposables: DisposableStore;
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	let xterm: Terminal;
 	let capability: TestCommandDetectionCapability;
 	let addEvents: ITerminalCommand[];
-	let instantiationService: TestInstantiationService;
 
 	function assertCommands(expectedCommands: TestTerminalCommandMatch[]) {
 		deepStrictEqual(capability.commands.map(e => e.command), expectedCommands.map(e => e.command));
@@ -40,6 +36,7 @@ suite('CommandDetectionCapability', () => {
 		// Ensure timestamps are set and were captured recently
 		for (const command of capability.commands) {
 			ok(Math.abs(Date.now() - command.timestamp) < 2000);
+			ok(command.id, 'Expected command to have an assigned id');
 		}
 		deepStrictEqual(addEvents, capability.commands);
 		// Clear the commands to avoid re-asserting past commands
@@ -68,21 +65,15 @@ suite('CommandDetectionCapability', () => {
 
 
 	setup(async () => {
-		disposables = new DisposableStore();
 		const TerminalCtor = (await importAMDNodeModule<typeof import('@xterm/xterm')>('@xterm/xterm', 'lib/xterm.js')).Terminal;
 
-		xterm = new TerminalCtor({ allowProposedApi: true, cols: 80 });
-		instantiationService = disposables.add(new TestInstantiationService());
-		instantiationService.stub(IContextMenuService, { showContextMenu(delegate: IContextMenuDelegate): void { } } as Partial<IContextMenuService>);
-		capability = disposables.add(new TestCommandDetectionCapability(xterm, new NullLogService()));
+		xterm = store.add(new TerminalCtor({ allowProposedApi: true, cols: 80, logger: TestXtermLogger }));
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		capability = store.add(instantiationService.createInstance(TestCommandDetectionCapability, xterm));
 		addEvents = [];
-		capability.onCommandFinished(e => addEvents.push(e));
+		store.add(capability.onCommandFinished(e => addEvents.push(e)));
 		assertCommands([]);
 	});
-
-	teardown(() => disposables.dispose());
-
-	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('should not add commands when no capability methods are triggered', async () => {
 		await writeP(xterm, 'foo\r\nbar\r\n');
@@ -141,5 +132,17 @@ suite('CommandDetectionCapability', () => {
 				{ command: 'echo bar', exitCode: 0, cwd: '/home', marker: { line: 2 } }
 			]);
 		});
+	});
+
+	test('should preserve explicit newlines at 80-column wrap boundaries in command output', async () => {
+		const boundaryWidthLine = 'A'.repeat(80);
+		await printStandardCommand('$ ', 'cat content.txt', `${boundaryWidthLine}\r\nafter`, undefined, 0);
+		await printCommandStart('$ ');
+
+		strictEqual(capability.commands.length, 1);
+		const output = capability.commands[0].getOutput();
+		ok(!!output);
+		ok(output.includes(`${boundaryWidthLine}\nafter\n`));
+		ok(!output.includes(`${boundaryWidthLine}after`));
 	});
 });

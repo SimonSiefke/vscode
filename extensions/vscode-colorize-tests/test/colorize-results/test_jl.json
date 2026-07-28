@@ -10,7 +10,9 @@
 			"hc_black": "comment: #7CA668",
 			"dark_modern": "comment: #6A9955",
 			"hc_light": "comment: #515151",
-			"light_modern": "comment: #008000"
+			"light_modern": "comment: #008000",
+			"2026-dark": "punctuation.definition.comment: #8B949E",
+			"2026-light": "punctuation.definition.comment: #6E7781"
 		}
 	},
 	{
@@ -24,7 +26,9 @@
 			"hc_black": "comment: #7CA668",
 			"dark_modern": "comment: #6A9955",
 			"hc_light": "comment: #515151",
-			"light_modern": "comment: #008000"
+			"light_modern": "comment: #008000",
+			"2026-dark": "comment: #8B949E",
+			"2026-light": "comment: #6E7781"
 		}
 	},
 	{
@@ -38,7 +42,9 @@
 			"hc_black": "keyword: #569CD6",
 			"dark_modern": "keyword: #569CD6",
 			"hc_light": "keyword: #0F4A85",
-			"light_modern": "keyword: #0000FF"
+			"light_modern": "keyword: #0000FF",
+			"2026-dark": "keyword: #FF7B72",
+			"2026-light": "keyword: #CF222E"
 		}
 	},
 	{
@@ -52,7 +58,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -66,7 +74,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -80,7 +90,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -94,7 +106,9 @@
 			"hc_black": "support.type: #4EC9B0",
 			"dark_modern": "support.type: #4EC9B0",
 			"hc_light": "support.type: #185E73",
-			"light_modern": "support.type: #267F99"
+			"light_modern": "support.type: #267F99",
+			"2026-dark": "support.type: #4EC9B0",
+			"2026-light": "support.type: #267F99"
 		}
 	},
 	{
@@ -108,7 +122,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -122,7 +138,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -136,7 +154,9 @@
 			"hc_black": "support.type: #4EC9B0",
 			"dark_modern": "support.type: #4EC9B0",
 			"hc_light": "support.type: #185E73",
-			"light_modern": "support.type: #267F99"
+			"light_modern": "support.type: #267F99",
+			"2026-dark": "support.type: #4EC9B0",
+			"2026-light": "support.type: #267F99"
 		}
 	},
 	{
@@ -150,7 +170,9 @@
 			"hc_black": "keyword.control: #C586C0",
 			"dark_modern": "keyword.control: #C586C0",
 			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
 		}
 	},
 	{
@@ -164,7 +186,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -178,11 +202,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "queena, queenb",
+		"c": "queena",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -192,12 +218,14 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": ")",
-		"t": "source.julia meta.bracket.julia",
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
 			"light_plus": "default: #000000",
@@ -206,91 +234,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "=",
-		"t": "source.julia keyword.operator.update.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " queena",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": ".",
-		"t": "source.julia keyword.operator.dots.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": "x ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "==",
-		"t": "source.julia keyword.operator.relation.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -304,7 +250,73 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ")",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "=",
+		"t": "source.julia keyword.operator.update.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " queena",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -318,7 +330,73 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": "x ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "==",
+		"t": "source.julia keyword.operator.relation.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " queenb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ".",
+		"t": "source.julia keyword.operator.dots.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -332,7 +410,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -346,7 +426,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -360,11 +442,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "queena, queenb",
+		"c": "queena",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -374,7 +458,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " queenb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -388,7 +506,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -402,7 +522,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -416,7 +538,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -430,7 +554,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -444,7 +570,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -458,7 +586,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -472,7 +602,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -486,7 +618,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -500,7 +634,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -514,7 +650,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -528,7 +666,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -542,11 +682,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "queena, queenb",
+		"c": "queena",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -556,7 +698,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " queenb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -570,7 +746,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -584,7 +762,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -598,7 +778,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -612,7 +794,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -626,7 +810,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -640,7 +826,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -654,7 +842,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -668,7 +858,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -682,7 +874,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -696,7 +890,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -710,7 +906,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -724,7 +922,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -738,7 +938,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -752,7 +954,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -766,7 +970,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -780,7 +986,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -794,7 +1002,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -808,7 +1018,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -822,7 +1034,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -836,7 +1050,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -850,7 +1066,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -864,7 +1082,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -878,7 +1098,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -892,7 +1114,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -906,7 +1130,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -920,7 +1146,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -934,7 +1162,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -948,7 +1178,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -962,11 +1194,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "qa, qb",
+		"c": "qa",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -976,7 +1210,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " qb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -990,7 +1258,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1004,7 +1274,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1018,7 +1290,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -1032,7 +1306,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1046,7 +1322,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -1060,11 +1338,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "qa, qb",
+		"c": "qa",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1074,7 +1354,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " qb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1088,7 +1402,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1102,7 +1418,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1116,7 +1434,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -1130,7 +1450,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1144,7 +1466,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -1158,11 +1482,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "qa, qb",
+		"c": "qa",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1172,7 +1498,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " qb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1186,7 +1546,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1200,7 +1562,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1214,7 +1578,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -1228,7 +1594,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1242,7 +1610,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -1256,11 +1626,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "qa, qb",
+		"c": "qa",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1270,7 +1642,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " qb",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1284,7 +1690,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1298,7 +1706,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -1312,11 +1722,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "testqueen, queens",
+		"c": "testqueen",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1326,7 +1738,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " queens",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1340,7 +1786,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1354,7 +1802,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1368,7 +1818,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -1382,7 +1834,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1396,7 +1850,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -1410,7 +1866,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1424,7 +1882,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1438,7 +1898,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -1452,7 +1914,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1466,7 +1930,9 @@
 			"hc_black": "support.function: #DCDCAA",
 			"dark_modern": "support.function: #DCDCAA",
 			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
 		}
 	},
 	{
@@ -1480,11 +1946,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "testqueen, q",
+		"c": "testqueen",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1494,7 +1962,41 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " q",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1508,11 +2010,29 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": ", queens",
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " queens",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1522,7 +2042,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1536,7 +2058,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1550,7 +2074,9 @@
 			"hc_black": "keyword: #569CD6",
 			"dark_modern": "keyword: #569CD6",
 			"hc_light": "keyword: #0F4A85",
-			"light_modern": "keyword: #0000FF"
+			"light_modern": "keyword: #0000FF",
+			"2026-dark": "keyword: #FF7B72",
+			"2026-light": "keyword: #CF222E"
 		}
 	},
 	{
@@ -1564,7 +2090,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1578,7 +2106,9 @@
 			"hc_black": "entity.name.function: #DCDCAA",
 			"dark_modern": "entity.name.function: #DCDCAA",
 			"hc_light": "entity.name.function: #5E2CBC",
-			"light_modern": "entity.name.function: #795E26"
+			"light_modern": "entity.name.function: #795E26",
+			"2026-dark": "entity.name.function: #D2A8FF",
+			"2026-light": "entity.name.function: #8250DF"
 		}
 	},
 	{
@@ -1592,287 +2122,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "nsquaresx, nsquaresy, nqueens, presqueens ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "=",
-		"t": "source.julia keyword.operator.update.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "())",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "    nqueens ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "==",
-		"t": "source.julia keyword.operator.relation.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "0",
-		"t": "source.julia constant.numeric.julia",
-		"r": {
-			"dark_plus": "constant.numeric: #B5CEA8",
-			"light_plus": "constant.numeric: #098658",
-			"dark_vs": "constant.numeric: #B5CEA8",
-			"light_vs": "constant.numeric: #098658",
-			"hc_black": "constant.numeric: #B5CEA8",
-			"dark_modern": "constant.numeric: #B5CEA8",
-			"hc_light": "constant.numeric: #096D48",
-			"light_modern": "constant.numeric: #098658"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "&&",
-		"t": "source.julia keyword.operator.boolean.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "return",
-		"t": "source.julia keyword.control.julia",
-		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
-		}
-	},
-	{
-		"c": " presqueens",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "    ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "for",
-		"t": "source.julia keyword.control.julia",
-		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
-		}
-	},
-	{
-		"c": " xsquare ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "in",
-		"t": "source.julia keyword.operator.relation.in.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "1",
-		"t": "source.julia constant.numeric.julia",
-		"r": {
-			"dark_plus": "constant.numeric: #B5CEA8",
-			"light_plus": "constant.numeric: #098658",
-			"dark_vs": "constant.numeric: #B5CEA8",
-			"light_vs": "constant.numeric: #098658",
-			"hc_black": "constant.numeric: #B5CEA8",
-			"dark_modern": "constant.numeric: #B5CEA8",
-			"hc_light": "constant.numeric: #096D48",
-			"light_modern": "constant.numeric: #098658"
-		}
-	},
-	{
-		"c": ":",
-		"t": "source.julia keyword.operator.range.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -1886,11 +2138,29 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "        ",
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " nsquaresy",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1900,25 +2170,29 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "for",
-		"t": "source.julia keyword.control.julia",
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
 		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": " ysquare ",
+		"c": " nqueens",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1928,25 +2202,29 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "in",
-		"t": "source.julia keyword.operator.relation.in.julia",
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
 		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": " ",
+		"c": " presqueens ",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -1956,63 +2234,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "1",
-		"t": "source.julia constant.numeric.julia",
-		"r": {
-			"dark_plus": "constant.numeric: #B5CEA8",
-			"light_plus": "constant.numeric: #098658",
-			"dark_vs": "constant.numeric: #B5CEA8",
-			"light_vs": "constant.numeric: #098658",
-			"hc_black": "constant.numeric: #B5CEA8",
-			"dark_modern": "constant.numeric: #B5CEA8",
-			"hc_light": "constant.numeric: #096D48",
-			"light_modern": "constant.numeric: #098658"
-		}
-	},
-	{
-		"c": ":",
-		"t": "source.julia keyword.operator.range.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": "nsquaresy",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "            testqueen ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2026,7 +2250,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -2040,25 +2266,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "Queen",
-		"t": "source.julia support.function.julia",
-		"r": {
-			"dark_plus": "support.function: #DCDCAA",
-			"light_plus": "support.function: #795E26",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "support.function: #DCDCAA",
-			"dark_modern": "support.function: #DCDCAA",
-			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
-		}
-	},
-	{
-		"c": "(",
+		"c": "())",
 		"t": "source.julia meta.bracket.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -2068,11 +2282,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "xsquare, ysquare",
+		"c": "    nqueens ",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -2082,417 +2298,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": ")",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "            ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "if",
-		"t": "source.julia keyword.control.julia",
-		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "!",
-		"t": "source.julia keyword.operator.boolean.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": "hitsany",
-		"t": "source.julia support.function.julia",
-		"r": {
-			"dark_plus": "support.function: #DCDCAA",
-			"light_plus": "support.function: #795E26",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "support.function: #DCDCAA",
-			"dark_modern": "support.function: #DCDCAA",
-			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
-		}
-	},
-	{
-		"c": "(",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "testqueen, presqueens",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": ")",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "                tryqueens ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "=",
-		"t": "source.julia keyword.operator.update.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "(",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "presqueens",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "...",
-		"t": "source.julia keyword.operator.dots.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": ", testqueen",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": ")",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "                maybesol ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "=",
-		"t": "source.julia keyword.operator.update.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "trysolve",
-		"t": "source.julia support.function.julia",
-		"r": {
-			"dark_plus": "support.function: #DCDCAA",
-			"light_plus": "support.function: #795E26",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "support.function: #DCDCAA",
-			"dark_modern": "support.function: #DCDCAA",
-			"hc_light": "support.function: #5E2CBC",
-			"light_modern": "support.function: #795E26"
-		}
-	},
-	{
-		"c": "(",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "nsquaresx, nsquaresy, nqueens ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "-",
-		"t": "source.julia keyword.operator.arithmetic.julia",
-		"r": {
-			"dark_plus": "keyword.operator: #D4D4D4",
-			"light_plus": "keyword.operator: #000000",
-			"dark_vs": "keyword.operator: #D4D4D4",
-			"light_vs": "keyword.operator: #000000",
-			"hc_black": "keyword.operator: #D4D4D4",
-			"dark_modern": "keyword.operator: #D4D4D4",
-			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
-		}
-	},
-	{
-		"c": " ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "1",
-		"t": "source.julia constant.numeric.julia",
-		"r": {
-			"dark_plus": "constant.numeric: #B5CEA8",
-			"light_plus": "constant.numeric: #098658",
-			"dark_vs": "constant.numeric: #B5CEA8",
-			"light_vs": "constant.numeric: #098658",
-			"hc_black": "constant.numeric: #B5CEA8",
-			"dark_modern": "constant.numeric: #B5CEA8",
-			"hc_light": "constant.numeric: #096D48",
-			"light_modern": "constant.numeric: #098658"
-		}
-	},
-	{
-		"c": ", tryqueens",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": ")",
-		"t": "source.julia meta.bracket.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "                maybesol ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "!==",
+		"c": "==",
 		"t": "source.julia keyword.operator.relation.julia",
 		"r": {
 			"dark_plus": "keyword.operator: #D4D4D4",
@@ -2502,7 +2314,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -2516,21 +2330,25 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "nothing",
-		"t": "source.julia constant.language.julia",
+		"c": "0",
+		"t": "source.julia constant.numeric.julia",
 		"r": {
-			"dark_plus": "constant.language: #569CD6",
-			"light_plus": "constant.language: #0000FF",
-			"dark_vs": "constant.language: #569CD6",
-			"light_vs": "constant.language: #0000FF",
-			"hc_black": "constant.language: #569CD6",
-			"dark_modern": "constant.language: #569CD6",
-			"hc_light": "constant.language: #0F4A85",
-			"light_modern": "constant.language: #0000FF"
+			"dark_plus": "constant.numeric: #B5CEA8",
+			"light_plus": "constant.numeric: #098658",
+			"dark_vs": "constant.numeric: #B5CEA8",
+			"light_vs": "constant.numeric: #098658",
+			"hc_black": "constant.numeric: #B5CEA8",
+			"dark_modern": "constant.numeric: #B5CEA8",
+			"hc_light": "constant.numeric: #096D48",
+			"light_modern": "constant.numeric: #098658",
+			"2026-dark": "constant.numeric: #B5CEA8",
+			"2026-light": "constant.numeric: #098658"
 		}
 	},
 	{
@@ -2544,7 +2362,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2558,7 +2378,9 @@
 			"hc_black": "keyword.operator: #D4D4D4",
 			"dark_modern": "keyword.operator: #D4D4D4",
 			"hc_light": "keyword.operator: #000000",
-			"light_modern": "keyword.operator: #000000"
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -2572,7 +2394,9 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2586,11 +2410,13 @@
 			"hc_black": "keyword.control: #C586C0",
 			"dark_modern": "keyword.control: #C586C0",
 			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
 		}
 	},
 	{
-		"c": " maybesol",
+		"c": " presqueens",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -2600,11 +2426,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "            ",
+		"c": "    ",
 		"t": "source.julia",
 		"r": {
 			"dark_plus": "default: #D4D4D4",
@@ -2614,12 +2442,14 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "end",
-		"t": "source.julia keyword.control.end.julia",
+		"c": "for",
+		"t": "source.julia keyword.control.julia",
 		"r": {
 			"dark_plus": "keyword.control: #C586C0",
 			"light_plus": "keyword.control: #AF00DB",
@@ -2628,7 +2458,105 @@
 			"hc_black": "keyword.control: #C586C0",
 			"dark_modern": "keyword.control: #C586C0",
 			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": " xsquare ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "in",
+		"t": "source.julia keyword.operator.relation.in.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "1",
+		"t": "source.julia constant.numeric.julia",
+		"r": {
+			"dark_plus": "constant.numeric: #B5CEA8",
+			"light_plus": "constant.numeric: #098658",
+			"dark_vs": "constant.numeric: #B5CEA8",
+			"light_vs": "constant.numeric: #098658",
+			"hc_black": "constant.numeric: #B5CEA8",
+			"dark_modern": "constant.numeric: #B5CEA8",
+			"hc_light": "constant.numeric: #096D48",
+			"light_modern": "constant.numeric: #098658",
+			"2026-dark": "constant.numeric: #B5CEA8",
+			"2026-light": "constant.numeric: #098658"
+		}
+	},
+	{
+		"c": ":",
+		"t": "source.julia keyword.operator.range.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": "nsquaresx",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2642,67 +2570,13 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
-		"c": "end",
-		"t": "source.julia keyword.control.end.julia",
-		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
-		}
-	},
-	{
-		"c": "    ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "end",
-		"t": "source.julia keyword.control.end.julia",
-		"r": {
-			"dark_plus": "keyword.control: #C586C0",
-			"light_plus": "keyword.control: #AF00DB",
-			"dark_vs": "keyword.control: #569CD6",
-			"light_vs": "keyword.control: #0000FF",
-			"hc_black": "keyword.control: #C586C0",
-			"dark_modern": "keyword.control: #C586C0",
-			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
-		}
-	},
-	{
-		"c": "    ",
-		"t": "source.julia",
-		"r": {
-			"dark_plus": "default: #D4D4D4",
-			"light_plus": "default: #000000",
-			"dark_vs": "default: #D4D4D4",
-			"light_vs": "default: #000000",
-			"hc_black": "default: #FFFFFF",
-			"dark_modern": "default: #CCCCCC",
-			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
-		}
-	},
-	{
-		"c": "return",
+		"c": "for",
 		"t": "source.julia keyword.control.julia",
 		"r": {
 			"dark_plus": "keyword.control: #C586C0",
@@ -2712,7 +2586,41 @@
 			"hc_black": "keyword.control: #C586C0",
 			"dark_modern": "keyword.control: #C586C0",
 			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": " ysquare ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "in",
+		"t": "source.julia keyword.operator.relation.in.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
 		}
 	},
 	{
@@ -2726,7 +2634,825 @@
 			"hc_black": "default: #FFFFFF",
 			"dark_modern": "default: #CCCCCC",
 			"hc_light": "default: #292929",
-			"light_modern": "default: #3B3B3B"
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "1",
+		"t": "source.julia constant.numeric.julia",
+		"r": {
+			"dark_plus": "constant.numeric: #B5CEA8",
+			"light_plus": "constant.numeric: #098658",
+			"dark_vs": "constant.numeric: #B5CEA8",
+			"light_vs": "constant.numeric: #098658",
+			"hc_black": "constant.numeric: #B5CEA8",
+			"dark_modern": "constant.numeric: #B5CEA8",
+			"hc_light": "constant.numeric: #096D48",
+			"light_modern": "constant.numeric: #098658",
+			"2026-dark": "constant.numeric: #B5CEA8",
+			"2026-light": "constant.numeric: #098658"
+		}
+	},
+	{
+		"c": ":",
+		"t": "source.julia keyword.operator.range.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": "nsquaresy",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "            testqueen ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "=",
+		"t": "source.julia keyword.operator.update.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "Queen",
+		"t": "source.julia support.function.julia",
+		"r": {
+			"dark_plus": "support.function: #DCDCAA",
+			"light_plus": "support.function: #795E26",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "support.function: #DCDCAA",
+			"dark_modern": "support.function: #DCDCAA",
+			"hc_light": "support.function: #5E2CBC",
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
+		}
+	},
+	{
+		"c": "(",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "xsquare",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " ysquare",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ")",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "            ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "if",
+		"t": "source.julia keyword.control.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "!",
+		"t": "source.julia keyword.operator.boolean.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": "hitsany",
+		"t": "source.julia support.function.julia",
+		"r": {
+			"dark_plus": "support.function: #DCDCAA",
+			"light_plus": "support.function: #795E26",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "support.function: #DCDCAA",
+			"dark_modern": "support.function: #DCDCAA",
+			"hc_light": "support.function: #5E2CBC",
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
+		}
+	},
+	{
+		"c": "(",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "testqueen",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " presqueens",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ")",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "                tryqueens ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "=",
+		"t": "source.julia keyword.operator.update.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "(",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "presqueens",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "...",
+		"t": "source.julia keyword.operator.dots.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " testqueen",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ")",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "                maybesol ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "=",
+		"t": "source.julia keyword.operator.update.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "trysolve",
+		"t": "source.julia support.function.julia",
+		"r": {
+			"dark_plus": "support.function: #DCDCAA",
+			"light_plus": "support.function: #795E26",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "support.function: #DCDCAA",
+			"dark_modern": "support.function: #DCDCAA",
+			"hc_light": "support.function: #5E2CBC",
+			"light_modern": "support.function: #795E26",
+			"2026-dark": "support.function: #DCDCAA",
+			"2026-light": "support.function: #795E26"
+		}
+	},
+	{
+		"c": "(",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "nsquaresx",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " nsquaresy",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " nqueens ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "-",
+		"t": "source.julia keyword.operator.arithmetic.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "1",
+		"t": "source.julia constant.numeric.julia",
+		"r": {
+			"dark_plus": "constant.numeric: #B5CEA8",
+			"light_plus": "constant.numeric: #098658",
+			"dark_vs": "constant.numeric: #B5CEA8",
+			"light_vs": "constant.numeric: #098658",
+			"hc_black": "constant.numeric: #B5CEA8",
+			"dark_modern": "constant.numeric: #B5CEA8",
+			"hc_light": "constant.numeric: #096D48",
+			"light_modern": "constant.numeric: #098658",
+			"2026-dark": "constant.numeric: #B5CEA8",
+			"2026-light": "constant.numeric: #098658"
+		}
+	},
+	{
+		"c": ",",
+		"t": "source.julia punctuation.separator.comma.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": " tryqueens",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": ")",
+		"t": "source.julia meta.bracket.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "                maybesol ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "!=",
+		"t": "source.julia keyword.operator.relation.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": "=",
+		"t": "source.julia keyword.operator.update.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2740,7 +3466,105 @@
 			"hc_black": "constant.language: #569CD6",
 			"dark_modern": "constant.language: #569CD6",
 			"hc_light": "constant.language: #0F4A85",
-			"light_modern": "constant.language: #0000FF"
+			"light_modern": "constant.language: #0000FF",
+			"2026-dark": "constant.language: #569CD6",
+			"2026-light": "constant.language: #0000FF"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "&&",
+		"t": "source.julia keyword.operator.boolean.julia",
+		"r": {
+			"dark_plus": "keyword.operator: #D4D4D4",
+			"light_plus": "keyword.operator: #000000",
+			"dark_vs": "keyword.operator: #D4D4D4",
+			"light_vs": "keyword.operator: #000000",
+			"hc_black": "keyword.operator: #D4D4D4",
+			"dark_modern": "keyword.operator: #D4D4D4",
+			"hc_light": "keyword.operator: #000000",
+			"light_modern": "keyword.operator: #000000",
+			"2026-dark": "keyword.operator: #D4D4D4",
+			"2026-light": "keyword.operator: #000000"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "return",
+		"t": "source.julia keyword.control.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": " maybesol",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "            ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
 		}
 	},
 	{
@@ -2754,7 +3578,153 @@
 			"hc_black": "keyword.control: #C586C0",
 			"dark_modern": "keyword.control: #C586C0",
 			"hc_light": "keyword.control: #B5200D",
-			"light_modern": "keyword.control: #AF00DB"
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": "        ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "end",
+		"t": "source.julia keyword.control.end.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": "    ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "end",
+		"t": "source.julia keyword.control.end.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": "    ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "return",
+		"t": "source.julia keyword.control.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
+		}
+	},
+	{
+		"c": " ",
+		"t": "source.julia",
+		"r": {
+			"dark_plus": "default: #D4D4D4",
+			"light_plus": "default: #000000",
+			"dark_vs": "default: #D4D4D4",
+			"light_vs": "default: #000000",
+			"hc_black": "default: #FFFFFF",
+			"dark_modern": "default: #CCCCCC",
+			"hc_light": "default: #292929",
+			"light_modern": "default: #3B3B3B",
+			"2026-dark": "default: #BBBEBF",
+			"2026-light": "default: #202020"
+		}
+	},
+	{
+		"c": "nothing",
+		"t": "source.julia constant.language.julia",
+		"r": {
+			"dark_plus": "constant.language: #569CD6",
+			"light_plus": "constant.language: #0000FF",
+			"dark_vs": "constant.language: #569CD6",
+			"light_vs": "constant.language: #0000FF",
+			"hc_black": "constant.language: #569CD6",
+			"dark_modern": "constant.language: #569CD6",
+			"hc_light": "constant.language: #0F4A85",
+			"light_modern": "constant.language: #0000FF",
+			"2026-dark": "constant.language: #569CD6",
+			"2026-light": "constant.language: #0000FF"
+		}
+	},
+	{
+		"c": "end",
+		"t": "source.julia keyword.control.end.julia",
+		"r": {
+			"dark_plus": "keyword.control: #C586C0",
+			"light_plus": "keyword.control: #AF00DB",
+			"dark_vs": "keyword.control: #569CD6",
+			"light_vs": "keyword.control: #0000FF",
+			"hc_black": "keyword.control: #C586C0",
+			"dark_modern": "keyword.control: #C586C0",
+			"hc_light": "keyword.control: #B5200D",
+			"light_modern": "keyword.control: #AF00DB",
+			"2026-dark": "keyword.control: #C586C0",
+			"2026-light": "keyword.control: #AF00DB"
 		}
 	}
 ]

@@ -3,16 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { observableFromEvent } from 'vs/base/common/observable';
-import { localize } from 'vs/nls';
-import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
-import { IConfigurationNode } from 'vs/platform/configuration/common/configurationRegistry';
+import { observableFromEvent } from '../../../../base/common/observable.js';
+import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IConfigurationNode } from '../../../../platform/configuration/common/configurationRegistry.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
+import { ConfigurationKeyValuePairs, Extensions, IConfigurationMigrationRegistry } from '../../../common/configuration.js';
 
 export const enum TestingConfigKeys {
-	AutoRunDelay = 'testing.autoRun.delay',
 	AutoOpenPeekView = 'testing.automaticallyOpenPeekView',
 	AutoOpenPeekViewDuringContinuousRun = 'testing.automaticallyOpenPeekViewDuringAutoRun',
-	OpenTesting = 'testing.openTesting',
+	OpenResults = 'testing.automaticallyOpenTestResults',
 	FollowRunningTest = 'testing.followRunningTest',
 	DefaultGutterClickAction = 'testing.defaultGutterClickAction',
 	GutterEnabled = 'testing.gutterEnabled',
@@ -23,6 +24,9 @@ export const enum TestingConfigKeys {
 	CoveragePercent = 'testing.displayedCoveragePercent',
 	ShowCoverageInExplorer = 'testing.showCoverageInExplorer',
 	CoverageBarThresholds = 'testing.coverageBarThresholds',
+	CoverageToolbarEnabled = 'testing.coverageToolbarEnabled',
+	CoverageMinimapEnabled = 'testing.coverageMinimapEnabled',
+	ResultsViewLayout = 'testing.resultsView.layout',
 }
 
 export const enum AutoOpenTesting {
@@ -58,18 +62,17 @@ export const enum TestingDisplayedCoveragePercent {
 	Minimum = 'minimum',
 }
 
+export const enum TestingResultsViewLayout {
+	TreeLeft = 'treeLeft',
+	TreeRight = 'treeRight',
+}
+
 export const testingConfiguration: IConfigurationNode = {
 	id: 'testing',
 	order: 21,
 	title: localize('testConfigurationTitle', "Testing"),
 	type: 'object',
 	properties: {
-		[TestingConfigKeys.AutoRunDelay]: {
-			type: 'integer',
-			minimum: 0,
-			description: localize('testing.autoRun.delay', "How long to wait, in milliseconds, after a test is marked as outdated and starting a new run."),
-			default: 1000,
-		},
 		[TestingConfigKeys.AutoOpenPeekView]: {
 			description: localize('testing.automaticallyOpenPeekView', "Configures when the error Peek view is automatically opened."),
 			enum: [
@@ -77,7 +80,7 @@ export const testingConfiguration: IConfigurationNode = {
 				AutoOpenPeekViewWhen.FailureVisible,
 				AutoOpenPeekViewWhen.Never,
 			],
-			default: AutoOpenPeekViewWhen.FailureVisible,
+			default: AutoOpenPeekViewWhen.Never,
 			enumDescriptions: [
 				localize('testing.automaticallyOpenPeekView.failureAnywhere', "Open automatically no matter where the failure is."),
 				localize('testing.automaticallyOpenPeekView.failureInVisibleDocument', "Open automatically when a test fails in a visible document."),
@@ -113,7 +116,7 @@ export const testingConfiguration: IConfigurationNode = {
 		[TestingConfigKeys.FollowRunningTest]: {
 			description: localize('testing.followRunningTest', 'Controls whether the running test should be followed in the Test Explorer view.'),
 			type: 'boolean',
-			default: true,
+			default: false,
 		},
 		[TestingConfigKeys.DefaultGutterClickAction]: {
 			description: localize('testing.defaultGutterClickAction', 'Controls the action to take when left-clicking on a test decoration in the gutter.'),
@@ -141,7 +144,7 @@ export const testingConfiguration: IConfigurationNode = {
 			type: 'boolean',
 			default: true,
 		},
-		[TestingConfigKeys.OpenTesting]: {
+		[TestingConfigKeys.OpenResults]: {
 			enum: [
 				AutoOpenTesting.NeverOpen,
 				AutoOpenTesting.OpenOnTestStart,
@@ -158,7 +161,7 @@ export const testingConfiguration: IConfigurationNode = {
 			description: localize('testing.openTesting', "Controls when the testing view should open.")
 		},
 		[TestingConfigKeys.AlwaysRevealTestOnStateChange]: {
-			markdownDescription: localize('testing.alwaysRevealTestOnStateChange', "Always reveal the executed test when `#testing.followRunningTest#` is on. If this setting is turned off, only failed tests will be revealed."),
+			markdownDescription: localize('testing.alwaysRevealTestOnStateChange', "Always reveal the executed test when {0} is on. If this setting is turned off, only failed tests will be revealed.", '`#testing.followRunningTest#`'),
 			type: 'boolean',
 			default: false,
 		},
@@ -190,8 +193,38 @@ export const testingConfiguration: IConfigurationNode = {
 				green: { type: 'number', minimum: 0, maximum: 100, default: 90 },
 			},
 		},
+		[TestingConfigKeys.CoverageToolbarEnabled]: {
+			description: localize('testing.coverageToolbarEnabled', 'Controls whether the coverage toolbar is shown in the editor.'),
+			type: 'boolean',
+			default: false, // todo@connor4312: disabled by default until UI sync
+		},
+		[TestingConfigKeys.CoverageMinimapEnabled]: {
+			description: localize('testing.coverageMinimapEnabled', 'Controls whether coverage indicators are shown in the minimap.'),
+			type: 'boolean',
+			default: true,
+		},
+		[TestingConfigKeys.ResultsViewLayout]: {
+			description: localize('testing.resultsView.layout', 'Controls the layout of the Test Results view.'),
+			enum: [
+				TestingResultsViewLayout.TreeRight,
+				TestingResultsViewLayout.TreeLeft,
+			],
+			enumDescriptions: [
+				localize('testing.resultsView.layout.treeRight', 'Show the test run tree on the right side with details on the left.'),
+				localize('testing.resultsView.layout.treeLeft', 'Show the test run tree on the left side with details on the right.'),
+			],
+			default: TestingResultsViewLayout.TreeRight,
+		},
 	}
 };
+
+Registry.as<IConfigurationMigrationRegistry>(Extensions.ConfigurationMigration)
+	.registerConfigurationMigrations([{
+		key: 'testing.openTesting',
+		migrateFn: (value: AutoOpenTesting): ConfigurationKeyValuePairs => {
+			return [[TestingConfigKeys.OpenResults, { value }]];
+		}
+	}]);
 
 export interface ITestingCoverageBarThresholds {
 	red: number;
@@ -200,7 +233,6 @@ export interface ITestingCoverageBarThresholds {
 }
 
 export interface ITestingConfiguration {
-	[TestingConfigKeys.AutoRunDelay]: number;
 	[TestingConfigKeys.AutoOpenPeekView]: AutoOpenPeekViewWhen;
 	[TestingConfigKeys.AutoOpenPeekViewDuringContinuousRun]: boolean;
 	[TestingConfigKeys.CountBadge]: TestingCountBadge;
@@ -208,12 +240,15 @@ export interface ITestingConfiguration {
 	[TestingConfigKeys.DefaultGutterClickAction]: DefaultGutterClickAction;
 	[TestingConfigKeys.GutterEnabled]: boolean;
 	[TestingConfigKeys.SaveBeforeTest]: boolean;
-	[TestingConfigKeys.OpenTesting]: AutoOpenTesting;
+	[TestingConfigKeys.OpenResults]: AutoOpenTesting;
 	[TestingConfigKeys.AlwaysRevealTestOnStateChange]: boolean;
 	[TestingConfigKeys.ShowAllMessages]: boolean;
 	[TestingConfigKeys.CoveragePercent]: TestingDisplayedCoveragePercent;
 	[TestingConfigKeys.ShowCoverageInExplorer]: boolean;
 	[TestingConfigKeys.CoverageBarThresholds]: ITestingCoverageBarThresholds;
+	[TestingConfigKeys.CoverageToolbarEnabled]: boolean;
+	[TestingConfigKeys.CoverageMinimapEnabled]: boolean;
+	[TestingConfigKeys.ResultsViewLayout]: TestingResultsViewLayout;
 }
 
 export const getTestingConfiguration = <K extends TestingConfigKeys>(config: IConfigurationService, key: K) => config.getValue<ITestingConfiguration[K]>(key);
