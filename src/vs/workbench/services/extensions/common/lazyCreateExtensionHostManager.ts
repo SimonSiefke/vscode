@@ -17,7 +17,7 @@ import { IExtensionHostManager } from './extensionHostManagers.js';
 import { IExtensionDescriptionDelta } from './extensionHostProtocol.js';
 import { IResolveAuthorityResult } from './extensionHostProxy.js';
 import { ExtensionRunningLocation } from './extensionRunningLocation.js';
-import { ActivationKind, ExtensionActivationReason, ExtensionHostStartup, IExtensionHost, IInternalExtensionService } from './extensions.js';
+import { ActivationKind, ExtensionActivationReason, ExtensionHostStartup, IExtensionHost, IExtensionInspectInfo, IInternalExtensionService } from './extensions.js';
 import { ResponsiveState } from './rpcProtocol.js';
 
 /**
@@ -66,6 +66,13 @@ export class LazyCreateExtensionHostManager extends Disposable implements IExten
 		this._actual = null;
 	}
 
+	override dispose(): void {
+		if (!this._actual) {
+			this._extensionHost.dispose();
+		}
+		super.dispose();
+	}
+
 	private _createActual(reason: string): ExtensionHostManager {
 		this._logService.info(`Creating lazy extension host (${this.friendyName}). Reason: ${reason}`);
 		this._actual = this._register(this._instantiationService.createInstance(ExtensionHostManager, this._extensionHost, this._initialActivationEvents, this._internalExtensionService));
@@ -81,6 +88,10 @@ export class LazyCreateExtensionHostManager extends Disposable implements IExten
 		const actual = this._createActual(reason);
 		await actual.ready();
 		return actual;
+	}
+
+	public get isReady(): boolean {
+		return this._startCalled.isOpen() && (this._actual?.isReady ?? false);
 	}
 
 	public async ready(): Promise<void> {
@@ -146,7 +157,7 @@ export class LazyCreateExtensionHostManager extends Disposable implements IExten
 		return true;
 	}
 
-	public async getInspectPort(tryEnableInspector: boolean): Promise<{ port: number; host: string } | undefined> {
+	public async getInspectPort(tryEnableInspector: boolean): Promise<IExtensionInspectInfo | undefined> {
 		await this._startCalled.wait();
 		return this._actual?.getInspectPort(tryEnableInspector);
 	}

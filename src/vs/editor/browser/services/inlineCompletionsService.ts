@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WindowIntervalTimer } from '../../../base/browser/dom.js';
+import { TimeoutTimer } from '../../../base/common/async.js';
 import { BugIndicatingError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
@@ -21,7 +21,7 @@ export const IInlineCompletionsService = createDecorator<IInlineCompletionsServi
 export interface IInlineCompletionsService {
 	readonly _serviceBrand: undefined;
 
-	onDidChangeIsSnoozing: Event<boolean>;
+	readonly onDidChangeIsSnoozing: Event<boolean>;
 
 	/**
 	 * Get the remaining time (in ms) for which inline completions should be snoozed,
@@ -41,13 +41,18 @@ export interface IInlineCompletionsService {
 
 	/**
 	 * Check if inline completions are currently snoozed.
-	 */
+	*/
 	isSnoozing(): boolean;
 
 	/**
 	 * Cancel the current snooze.
-	 */
+	*/
 	cancelSnooze(): void;
+
+	/**
+	 * Report an inline completion.
+	 */
+	reportNewCompletion(requestUuid: string): void;
 }
 
 const InlineCompletionsSnoozing = new RawContextKey<boolean>('inlineCompletions.snoozed', false, localize('inlineCompletions.snoozed', "Whether inline completions are currently snoozed"));
@@ -68,7 +73,7 @@ export class InlineCompletionsService extends Disposable implements IInlineCompl
 		return Math.max(0, this._snoozeTimeEnd - Date.now());
 	}
 
-	private _timer: WindowIntervalTimer;
+	private _timer: TimeoutTimer;
 
 	constructor(
 		@IContextKeyService private _contextKeyService: IContextKeyService,
@@ -76,7 +81,7 @@ export class InlineCompletionsService extends Disposable implements IInlineCompl
 	) {
 		super();
 
-		this._timer = this._register(new WindowIntervalTimer());
+		this._timer = this._register(new TimeoutTimer());
 
 		const inlineCompletionsSnoozing = InlineCompletionsSnoozing.bindTo(this._contextKeyService);
 		this._register(this.onDidChangeIsSnoozing(() => inlineCompletionsSnoozing.set(this.isSnoozing())));
@@ -131,6 +136,17 @@ export class InlineCompletionsService extends Disposable implements IInlineCompl
 		}
 	}
 
+	private _lastCompletionId: string | undefined;
+	private _recentCompletionIds: string[] = [];
+	reportNewCompletion(requestUuid: string): void {
+		this._lastCompletionId = requestUuid;
+
+		this._recentCompletionIds.unshift(requestUuid);
+		if (this._recentCompletionIds.length > 5) {
+			this._recentCompletionIds.pop();
+		}
+	}
+
 	private _reportSnooze(deltaMs: number, totalMs: number): void {
 		const deltaSeconds = Math.round(deltaMs / 1000);
 		const totalSeconds = Math.round(totalMs / 1000);
@@ -139,12 +155,21 @@ export class InlineCompletionsService extends Disposable implements IInlineCompl
 			comment: 'Snooze duration for inline completions';
 			deltaSeconds: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The duration by which the snooze has changed, in seconds.' };
 			totalSeconds: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The total duration for which inline completions are snoozed, in seconds.' };
+			lastCompletionId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The ID of the last completion.' };
+			recentCompletionIds: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The IDs of the recent completions.' };
 		};
 		type WorkspaceStatsEvent = {
 			deltaSeconds: number;
 			totalSeconds: number;
+			lastCompletionId: string | undefined;
+			recentCompletionIds: string[];
 		};
-		this._telemetryService.publicLog2<WorkspaceStatsEvent, WorkspaceStatsClassification>('inlineCompletions.snooze', { deltaSeconds, totalSeconds });
+		this._telemetryService.publicLog2<WorkspaceStatsEvent, WorkspaceStatsClassification>('inlineCompletions.snooze', {
+			deltaSeconds,
+			totalSeconds,
+			lastCompletionId: this._lastCompletionId,
+			recentCompletionIds: this._recentCompletionIds,
+		});
 	}
 }
 
@@ -170,40 +195,84 @@ export class SnoozeInlineCompletion extends Action2 {
 		const inlineCompletionsService = accessor.get(IInlineCompletionsService);
 		const storageService = accessor.get(IStorageService);
 
-		let durationMinutes: number | undefined;
+		let durationMs: number | undefined;
 		if (args.length > 0 && typeof args[0] === 'number') {
-			durationMinutes = args[0];
+			durationMs = args[0] * 60_000;
 		}
 
-		if (!durationMinutes) {
-			durationMinutes = await this.getDurationFromUser(quickInputService, storageService);
+		if (!durationMs) {
+			durationMs = await this.getDurationFromUser(quickInputService, storageService);
 		}
 
-		if (durationMinutes) {
-			inlineCompletionsService.setSnoozeDuration(durationMinutes);
+		if (durationMs) {
+			inlineCompletionsService.setSnoozeDuration(durationMs);
 		}
 	}
 
 	private async getDurationFromUser(quickInputService: IQuickInputService, storageService: IStorageService): Promise<number | undefined> {
 		const lastSelectedDuration = storageService.getNumber(LAST_SNOOZE_DURATION_KEY, StorageScope.PROFILE, 300_000);
 
-		const items: (IQuickPickItem & { value: number })[] = [
-			{ label: '1 minute', id: '1', value: 60_000 },
-			{ label: '5 minutes', id: '5', value: 300_000 },
-			{ label: '10 minutes', id: '10', value: 600_000 },
-			{ label: '15 minutes', id: '15', value: 900_000 },
-			{ label: '30 minutes', id: '30', value: 1_800_000 },
-			{ label: '60 minutes', id: '60', value: 3_600_000 }
+		const predefinedItems: (IQuickPickItem & { value: number })[] = [
+			{ label: localize('snooze.1minute', "1 minute"), id: '1', value: 60_000 },
+			{ label: localize('snooze.5minutes', "5 minutes"), id: '5', value: 300_000 },
+			{ label: localize('snooze.10minutes', "10 minutes"), id: '10', value: 600_000 },
+			{ label: localize('snooze.15minutes', "15 minutes"), id: '15', value: 900_000 },
+			{ label: localize('snooze.30minutes', "30 minutes"), id: '30', value: 1_800_000 },
+			{ label: localize('snooze.60minutes', "60 minutes"), id: '60', value: 3_600_000 },
 		];
 
+		let items = predefinedItems;
+		if (lastSelectedDuration > 0 && !predefinedItems.some(item => item.value === lastSelectedDuration)) {
+			const minutes = lastSelectedDuration / 60_000;
+			const customItem: IQuickPickItem & { value: number } = {
+				label: localize('snooze.lastCustom', "{0} minutes (Last used)", minutes),
+				id: 'last-custom',
+				value: lastSelectedDuration,
+				description: localize('snooze.lastUsed', "Last used custom duration"),
+			};
+			const index = predefinedItems.findIndex(item => item.value > lastSelectedDuration);
+			if (index === -1) {
+				items = [...predefinedItems, customItem];
+			} else {
+				items = [...predefinedItems.slice(0, index), customItem, ...predefinedItems.slice(index)];
+			}
+		}
+
+		items.push({ label: localize('snooze.custom', "Custom..."), id: 'custom', value: -1 });
+
 		const picked = await quickInputService.pick(items, {
-			placeHolder: localize('snooze.placeholder', "Select snooze duration for Code completions and NES"),
+			placeHolder: localize('snooze.placeholder', "Select snooze duration for Inline Suggestions"),
 			activeItem: items.find(item => item.value === lastSelectedDuration),
 		});
 
 		if (picked) {
+			if (picked.id === 'custom') {
+				return this.getCustomDurationFromUser(quickInputService, storageService);
+			}
 			storageService.store(LAST_SNOOZE_DURATION_KEY, picked.value, StorageScope.PROFILE, StorageTarget.USER);
 			return picked.value;
+		}
+
+		return undefined;
+	}
+
+	private async getCustomDurationFromUser(quickInputService: IQuickInputService, storageService: IStorageService): Promise<number | undefined> {
+		const customMinutes = await quickInputService.input({
+			placeHolder: localize('snooze.customPlaceholder', "Duration in minutes (e.g. 90)"),
+			prompt: localize('snooze.customPrompt', "Enter snooze duration in minutes"),
+			validateInput: async (value) => {
+				const n = Number(value);
+				if (isNaN(n) || n <= 0 || !Number.isFinite(n)) {
+					return localize('snooze.invalidInput', "Please enter a positive number");
+				}
+				return undefined;
+			}
+		});
+
+		if (customMinutes) {
+			const ms = Number(customMinutes) * 60_000;
+			storageService.store(LAST_SNOOZE_DURATION_KEY, ms, StorageScope.PROFILE, StorageTarget.USER);
+			return ms;
 		}
 
 		return undefined;

@@ -44,6 +44,7 @@ import { KeyCode } from '../../../base/common/keyCodes.js';
 import { ACTIVITY_BAR_BADGE_BACKGROUND, ACTIVITY_BAR_BADGE_FOREGROUND } from '../../common/theme.js';
 import { IBaseActionViewItemOptions } from '../../../base/browser/ui/actionbar/actionViewItems.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
+import { WORKBENCH_MENU_MOTION_CLASS, workbenchMenuCloseAnimation } from '../actions/menuMotion.js';
 
 export class GlobalCompositeBar extends Disposable {
 
@@ -211,7 +212,9 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => event,
 				getActions: () => actions,
-				onHide: () => disposables.dispose()
+				getMenuClassName: () => WORKBENCH_MENU_MOTION_CLASS,
+				onHide: () => disposables.dispose(),
+				closeAnimation: workbenchMenuCloseAnimation
 			});
 		}));
 
@@ -244,8 +247,10 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			anchorAlignment,
 			anchorAxisAlignment,
 			getActions: () => actions,
+			getMenuClassName: () => WORKBENCH_MENU_MOTION_CLASS,
 			onHide: () => disposables.dispose(),
 			menuActionOptions: { renderShortTitle: true },
+			closeAnimation: workbenchMenuCloseAnimation
 		});
 
 	}
@@ -427,6 +432,15 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 			for (const providerId of dynamicProviders) {
 				const provider = this.authenticationService.getProvider(providerId);
 				const accounts = this.groupedAccounts.get(providerId);
+				// Provide _some_ discoverable way to manage dynamic authentication providers.
+				// This will either show up inside the account submenu or as a top-level menu item if there
+				// are no accounts.
+				const manageDynamicAuthProvidersAction = toAction({
+					id: 'manageDynamicAuthProviders',
+					label: localize('manageDynamicAuthProviders', "Manage Dynamic Authentication Providers..."),
+					enabled: true,
+					run: () => this.commandService.executeCommand('workbench.action.removeDynamicAuthenticationProviders')
+				});
 				if (!accounts) {
 					if (this.problematicProviders.has(providerId)) {
 						const providerUnavailableAction = disposables.add(new Action('providerUnavailable', localize('authProviderUnavailable', '{0} is currently unavailable', provider.label), undefined, false));
@@ -438,6 +452,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 							this.logService.error(e);
 						}
 					}
+					menus.push(manageDynamicAuthProvidersAction);
 					continue;
 				}
 
@@ -458,6 +473,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 						run: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel: account.label })
 					});
 					providerSubMenuActions.push(manageMCPAction);
+					providerSubMenuActions.push(manageDynamicAuthProvidersAction);
 					if (account.canSignOut) {
 						providerSubMenuActions.push(toAction({
 							id: 'signOut',

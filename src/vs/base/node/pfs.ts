@@ -72,7 +72,7 @@ async function rimrafMove(path: string, moveToPath = randomPath(tmpdir())): Prom
 		}
 
 		// Delete but do not return as promise
-		rimrafUnlink(moveToPath).catch(error => {/* ignore */ });
+		rimrafUnlink(moveToPath).catch(() => {/* ignore */ });
 	} catch (error) {
 		if (error.code !== 'ENOENT') {
 			throw error;
@@ -107,12 +107,13 @@ async function readdir(path: string, options?: { withFileTypes: true }): Promise
 	try {
 		return await doReaddir(path, options);
 	} catch (error) {
-		// TODO@bpasero workaround for #252361 that should be removed
-		// once the upstream issue in node.js is resolved
+		// Workaround for #252361 that should be removed once the upstream issue
+		// in node.js is resolved. Adds a trailing dot to a root drive letter path
+		// (G:\ => G:\.) as a workaround.
 		if (error.code === 'ENOENT' && isWindows && isRootOrDriveLetter(path)) {
 			try {
-				return await doReaddir(path.slice(0, -1), options);
-			} catch (e) {
+				return await doReaddir(`${path}.`, options);
+			} catch {
 				// ignore
 			}
 		}
@@ -128,7 +129,9 @@ async function safeReaddirWithFileTypes(path: string): Promise<IDirent[]> {
 	try {
 		return await fs.promises.readdir(path, { withFileTypes: true });
 	} catch (error) {
-		console.warn('[node.js fs] readdir with filetypes failed with error: ', error);
+		if (error.code !== 'ENOENT') {
+			console.warn('[node.js fs] readdir with filetypes failed with error: ', error);
+		}
 	}
 
 	// Fallback to manually reading and resolving each
@@ -151,7 +154,9 @@ async function safeReaddirWithFileTypes(path: string): Promise<IDirent[]> {
 			isDirectory = lstat.isDirectory();
 			isSymbolicLink = lstat.isSymbolicLink();
 		} catch (error) {
-			console.warn('[node.js fs] unexpected error from lstat after readdir: ', error);
+			if (error.code !== 'ENOENT') {
+				console.warn('[node.js fs] unexpected error from lstat after readdir: ', error);
+			}
 		}
 
 		result.push({
@@ -267,7 +272,7 @@ export namespace SymlinkSupport {
 			if (!lstats.isSymbolicLink()) {
 				return { stat: lstats };
 			}
-		} catch (error) {
+		} catch {
 			/* ignore - use stat() instead */
 		}
 
@@ -323,7 +328,7 @@ export namespace SymlinkSupport {
 			const { stat, symbolicLink } = await SymlinkSupport.stat(path);
 
 			return stat.isFile() && symbolicLink?.dangling !== true;
-		} catch (error) {
+		} catch {
 			// Ignore, path might not exist
 		}
 
@@ -345,7 +350,7 @@ export namespace SymlinkSupport {
 			const { stat, symbolicLink } = await SymlinkSupport.stat(path);
 
 			return stat.isDirectory() && symbolicLink?.dangling !== true;
-		} catch (error) {
+		} catch {
 			// Ignore, path might not exist
 		}
 
@@ -541,7 +546,7 @@ async function renameWithRetry(source: string, target: string, startTime: number
 				if (!stat.isFile()) {
 					abortRetry = true; // if target is not a file, EPERM error may be raised and we should not attempt to retry
 				}
-			} catch (error) {
+			} catch {
 				// Ignore
 			}
 
@@ -600,7 +605,7 @@ async function doCopy(source: string, target: string, payload: ICopyPayload): Pr
 		if (payload.options.preserveSymlinks) {
 			try {
 				return await doCopySymlink(source, target, payload);
-			} catch (error) {
+			} catch {
 				// in any case of an error fallback to normal copy via dereferencing
 			}
 		}
@@ -712,7 +717,7 @@ export async function realcase(path: string, token?: CancellationToken): Promise
 				}
 			}
 		}
-	} catch (error) {
+	} catch {
 		// silently ignore error
 	}
 
@@ -726,7 +731,7 @@ async function realpath(path: string): Promise<string> {
 		// drives to be resolved to their target on Windows
 		// https://github.com/microsoft/vscode/issues/118562
 		return await promisify(fs.realpath)(path);
-	} catch (error) {
+	} catch {
 
 		// We hit an error calling fs.realpath(). Since fs.realpath() is doing some path normalization
 		// we now do a similar normalization and then try again if we can access the path with read
@@ -747,7 +752,7 @@ async function realpath(path: string): Promise<string> {
 export function realpathSync(path: string): string {
 	try {
 		return fs.realpathSync(path);
-	} catch (error) {
+	} catch {
 
 		// We hit an error calling fs.realpathSync(). Since fs.realpathSync() is doing some path normalization
 		// we now do a similar normalization and then try again if we can access the path with read
