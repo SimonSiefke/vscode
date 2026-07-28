@@ -56,7 +56,7 @@ class EmbedderTerminalService implements IEmbedderTerminalService {
 	declare _serviceBrand: undefined;
 
 	private readonly _onDidCreateTerminal = new Emitter<IShellLaunchConfig>();
-	readonly onDidCreateTerminal = Event.buffer(this._onDidCreateTerminal.event);
+	readonly onDidCreateTerminal = Event.buffer(this._onDidCreateTerminal.event, 'onDidCreateTerminal');
 
 	createTerminal(options: IEmbedderTerminalOptions): void {
 		const slc: EmbedderTerminal = {
@@ -134,9 +134,6 @@ class EmbedderTerminalProcess extends Disposable implements ITerminalChildProces
 		// no-op, flow control not currently implemented
 	}
 	async setUnicodeVersion(): Promise<void> {
-		// no-op
-	}
-	async setNextCommandId(): Promise<void> {
 		// no-op
 	}
 	async getInitialCwd(): Promise<string> {
