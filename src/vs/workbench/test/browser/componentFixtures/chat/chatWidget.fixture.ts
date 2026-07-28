@@ -6,8 +6,10 @@
 import * as dom from '../../../../../base/browser/dom.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
+import { constObservable } from '../../../../../base/common/observable.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
 import { OffsetRange } from '../../../../../editor/common/core/ranges/offsetRange.js';
 import { Range } from '../../../../../editor/common/core/range.js';
@@ -17,34 +19,93 @@ import { ChatModel } from '../../../../contrib/chat/common/model/chatModel.js';
 import { ChatViewModel } from '../../../../contrib/chat/common/model/chatViewModel.js';
 import { ChatListWidget } from '../../../../contrib/chat/browser/widget/chatListWidget.js';
 import { ChatInputPart, IChatInputPartOptions, IChatInputStyles } from '../../../../contrib/chat/browser/widget/input/chatInputPart.js';
+import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IChatWidget, IChatWidgetService } from '../../../../contrib/chat/browser/chat.js';
-import { IChatService } from '../../../../contrib/chat/common/chatService/chatService.js';
+import { ElicitationState, IChatService } from '../../../../contrib/chat/common/chatService/chatService.js';
+import { ChatElicitationRequestPart } from '../../../../contrib/chat/common/model/chatProgressTypes/chatElicitationRequestPart.js';
 import { ChatToolInvocation } from '../../../../contrib/chat/common/model/chatProgressTypes/chatToolInvocation.js';
 import { ILanguageModelToolsService, IToolData, ToolDataSource } from '../../../../contrib/chat/common/tools/languageModelToolsService.js';
 import { IChatToolRiskAssessmentService, IToolRiskAssessment, ToolRiskLevel } from '../../../../contrib/chat/browser/tools/chatToolRiskAssessmentService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind } from '../../../../contrib/chat/common/constants.js';
+import { SessionType } from '../../../../contrib/chat/common/chatSessionsService.js';
+import { IEditSessionEntryDiff } from '../../../../contrib/chat/common/editing/chatEditingService.js';
+import { IChatResponseFileChangesService } from '../../../../contrib/chat/browser/chatResponseFileChangesService.js';
 import { MockChatService } from '../../../../contrib/chat/test/common/chatService/mockChatService.js';
 import { ComponentFixtureContext, createEditorServices, defineComponentFixture, defineThemedFixtureGroup } from '../fixtureUtils.js';
 import { FixtureMenuService, registerChatFixtureServices } from './chatFixtureUtils.js';
+import { ChatTurnStatusPillsSetting, isChatTurnStatusPillsEnabled } from '../../../../contrib/chat/browser/widget/chatTurnPills.js';
 
 import '../../../../contrib/chat/browser/widget/media/chat.css';
+
+export interface IFixtureFileChange {
+	readonly name: string;
+	readonly added: number;
+	readonly removed: number;
+	/** Whether the file was created (vs. edited) during the turn. */
+	readonly created: boolean;
+}
 
 export interface IFixtureMessage {
 	readonly user: string; // user prompt text
 	readonly assistant?: ReadonlyArray<
 		| { kind: 'markdown'; text: string }
 		| { kind: 'progress'; text: string }
-		| { kind: 'terminalConfirmation'; command: string; title?: string; riskAssessment?: { risk: ToolRiskLevel; explanation: string }; riskLoading?: boolean }
+		| { kind: 'terminalConfirmation'; command: string; title?: string; disclaimer?: string; requestUnsandboxedExecution?: boolean; requestUnsandboxedExecutionReason?: string; riskAssessment?: { risk: ToolRiskLevel; explanation: string }; riskLoading?: boolean; confirmation?: { commandLine: string; cwdLabel?: string; cdPrefix?: string } }
+		| { kind: 'elicitation'; title: string; message: string; confirmation?: { commandLine: string; cwdLabel?: string; cdPrefix?: string }; riskAssessment?: { risk: ToolRiskLevel; explanation: string }; riskLoading?: boolean }
 	>;
+	readonly details?: string;
 	readonly responseComplete?: boolean;
+	/**
+	 * Per-turn file changes surfaced via {@link IChatResponseFileChangesService},
+	 * used by the turn changes summary. Requires `turnStatusPills` on the fixture
+	 * options to be rendered.
+	 */
+	readonly fileChanges?: ReadonlyArray<IFixtureFileChange>;
 }
 
 export interface IChatWidgetFixtureOptions {
 	readonly messages: ReadonlyArray<IFixtureMessage>;
 	readonly width?: number;
 	readonly height?: number;
+	/** Whether to render the main chat input. Defaults to `true`. */
+	readonly inputVisible?: boolean;
+	/** Chat list rendering style. Defaults to compact for existing fixtures. */
+	readonly renderStyle?: 'default' | 'compact' | 'minimal';
+	/** Whether to populate the response footer with an action. */
+	readonly responseFooterAction?: boolean;
+	/** Whether to show request and response timing details. */
+	readonly verbose?: boolean;
+	/**
+	 * When `false`, registers a stub `IChatToolRiskAssessmentService` whose
+	 * `isEnabled()` returns `false`, exercising the "feature off" code path.
+	 * When omitted, behaves like today (auto-detected from message risk data).
+	 */
+	readonly riskAssessmentEnabled?: boolean;
+	/**
+	 * Optional hook invoked after the chat input part renders, e.g. to mount
+	 * widgets above the input. Receives the rendered input part and the fixture's
+	 * instantiation service so callers can create instances against the same
+	 * service graph.
+	 */
+	readonly decorateInputPart?: (inputPart: ChatInputPart, instantiationService: IInstantiationService) => void;
+	/**
+	 * When set, renders the chat as an agent host session and enables the turn
+	 * changes summary (`chat.turnStatusPills`), so completed turns with
+	 * {@link IFixtureMessage.fileChanges} show the summary/preview under the
+	 * response.
+	 */
+	readonly turnStatusPills?: ChatTurnStatusPillsSetting;
+}
+
+function makeFileDiff(change: IFixtureFileChange): IEditSessionEntryDiff {
+	// A created file has no before-content, so the agent host provider maps its
+	// `originalURI` to the `modifiedURI` (equal URIs); an edited file keeps a
+	// distinct original.
+	const modifiedURI = URI.file(`/repo/${change.name}`);
+	const originalURI = change.created ? modifiedURI : URI.file(`/repo/.original/${change.name}`);
+	return { originalURI, modifiedURI, added: change.added, removed: change.removed, quitEarly: false, identical: false, isFinal: true, isBusy: false };
 }
 
 function makeUserMessage(text: string) {
@@ -68,9 +129,15 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 
 	// Collect risk assessments from messages so the risk badge service can
 	// return them synchronously via getCached().
-	const hasRiskAssessment = options.messages.some(m => m.assistant?.some(p => p.kind === 'terminalConfirmation' && p.riskAssessment));
-	const hasRiskLoading = options.messages.some(m => m.assistant?.some(p => p.kind === 'terminalConfirmation' && p.riskLoading));
-	const needsRiskService = hasRiskAssessment || hasRiskLoading;
+	const hasRiskAssessment = options.messages.some(m => m.assistant?.some(p => (p.kind === 'terminalConfirmation' || p.kind === 'elicitation') && p.riskAssessment));
+	const hasRiskLoading = options.messages.some(m => m.assistant?.some(p => (p.kind === 'terminalConfirmation' || p.kind === 'elicitation') && p.riskLoading));
+	const riskFeatureExplicitlyDisabled = options.riskAssessmentEnabled === false;
+	const needsRiskService = hasRiskAssessment || hasRiskLoading || riskFeatureExplicitlyDisabled;
+
+	// Maps a completed turn's requestId to its per-turn file diffs, consumed by
+	// the turn changes summary via the stubbed IChatResponseFileChangesService.
+	const requestDiffs = new Map<string, readonly IEditSessionEntryDiff[]>();
+	const needsTurnPills = isChatTurnStatusPillsEnabled(options.turnStatusPills);
 
 	const instantiationService = createEditorServices(disposableStore, {
 		colorTheme: context.theme,
@@ -91,6 +158,14 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 				override register() { return { dispose() { } }; }
 			}());
 
+			if (needsTurnPills) {
+				reg.defineInstance(IChatResponseFileChangesService, new class extends mock<IChatResponseFileChangesService>() {
+					override getChangesForRequest(_sessionResource: URI, requestId: string) {
+						return constObservable(requestDiffs.get(requestId) ?? []);
+					}
+				}());
+			}
+
 			if (needsRiskService) {
 				reg.defineInstance(ILanguageModelToolsService, new class extends mock<ILanguageModelToolsService>() {
 					override onDidChangeTools = Event.None;
@@ -99,12 +174,12 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 					override getTool(id: string) { return id === fixtureToolData.id ? fixtureToolData : undefined; }
 				}());
 				reg.defineInstance(IChatToolRiskAssessmentService, new class extends mock<IChatToolRiskAssessmentService>() {
-					override isEnabled() { return true; }
+					override isEnabled() { return !riskFeatureExplicitlyDisabled; }
 					override getCached() {
 						// Return the first risk assessment found in the fixture messages.
 						for (const m of options.messages) {
 							for (const p of m.assistant ?? []) {
-								if (p.kind === 'terminalConfirmation' && p.riskAssessment) {
+								if ((p.kind === 'terminalConfirmation' || p.kind === 'elicitation') && p.riskAssessment) {
 									return p.riskAssessment;
 								}
 							}
@@ -124,36 +199,69 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 	});
 	configService.setUserConfiguration('editor', { fontFamily: 'monospace', fontLigatures: false });
 	configService.setUserConfiguration(ChatConfiguration.ToolConfirmationCarousel, true);
+	if (options.verbose !== undefined) {
+		configService.setUserConfiguration(ChatConfiguration.Verbose, options.verbose);
+	}
+	if (needsTurnPills) {
+		configService.setUserConfiguration(ChatConfiguration.TurnStatusPills, options.turnStatusPills);
+	}
 
 	// Build a real ChatModel populated with hand-crafted requests/responses, then drive a
 	// real ChatViewModel + ChatListWidget — the same components used in production.
+	// The turn changes summary only renders for agent host sessions, whose frontend
+	// resource uses the session type as the scheme (e.g. `agent-host-copilotcli:/…`),
+	// which is what `getChatSessionType` / `toAgentHostBackendSessionUri` recognize.
+	const sessionResource = needsTurnPills
+		? URI.from({ scheme: SessionType.AgentHostCopilot, path: '/turn-pills-session' })
+		: undefined;
 	const chatService = instantiationService.get(IChatService) as MockChatService;
 	const model = disposableStore.add(instantiationService.createInstance(
 		ChatModel,
 		undefined,
-		{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		{ initialLocation: ChatAgentLocation.Chat, canUseTools: true, resource: sessionResource }
 	));
 	chatService.addSession(model);
 
 	for (const message of options.messages) {
 		const request = model.addRequest(makeUserMessage(message.user), { variables: [] }, 0);
 		const response = request.response!;
+		if (message.fileChanges) {
+			requestDiffs.set(request.id, message.fileChanges.map(makeFileDiff));
+		}
 		for (const part of message.assistant ?? []) {
 			if (part.kind === 'markdown') {
 				model.acceptResponseProgress(request, { kind: 'markdownContent', content: new MarkdownString(part.text) });
 			} else if (part.kind === 'progress') {
 				model.acceptResponseProgress(request, { kind: 'progressMessage', content: new MarkdownString(part.text) });
+			} else if (part.kind === 'elicitation') {
+				const elicitation = new ChatElicitationRequestPart(
+					part.title,
+					part.message,
+					'',
+					'Continue',
+					'Cancel',
+					async () => ElicitationState.Accepted,
+					async () => ElicitationState.Rejected,
+					undefined,
+					undefined,
+					undefined,
+					part.riskAssessment || part.riskLoading ? { toolId: fixtureToolData.id, parameters: undefined } : undefined,
+				);
+				model.acceptResponseProgress(request, elicitation);
 			} else if (part.kind === 'terminalConfirmation') {
 				const title = part.title ?? `Run pwsh command?`;
 				const toolInvocation = new ChatToolInvocation(
 					{
 						invocationMessage: new MarkdownString(`Running \`${part.command}\``),
 						pastTenseMessage: new MarkdownString(`Ran \`${part.command}\``),
-						confirmationMessages: { title, message: new MarkdownString(`\`${part.command}\``) },
+						confirmationMessages: { title, message: new MarkdownString(`\`${part.command}\``), disclaimer: part.disclaimer ? new MarkdownString(part.disclaimer, { supportThemeIcons: true }) : undefined },
 						toolSpecificData: {
 							kind: 'terminal',
 							commandLine: { original: part.command },
 							language: 'pwsh',
+							requestUnsandboxedExecution: part.requestUnsandboxedExecution,
+							requestUnsandboxedExecutionReason: part.requestUnsandboxedExecutionReason,
+							confirmation: part.confirmation,
 						},
 					},
 					fixtureToolData,
@@ -163,6 +271,9 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 				);
 				model.acceptResponseProgress(request, toolInvocation);
 			}
+		}
+		if (message.details) {
+			response.setResult({ details: message.details });
 		}
 		if (message.responseComplete !== false) {
 			response.complete();
@@ -203,10 +314,14 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 	menuService.addItem(MenuId.ChatInput, { command: { id: 'workbench.action.chat.openModePicker', title: 'Agent' }, group: 'navigation', order: 1 });
 	menuService.addItem(MenuId.ChatInput, { command: { id: 'workbench.action.chat.openModelPicker', title: 'GPT-5.3-Codex' }, group: 'navigation', order: 3 });
 	menuService.addItem(MenuId.ChatInput, { command: { id: 'workbench.action.chat.configureTools', title: '', icon: Codicon.settingsGear }, group: 'navigation', order: 100 });
-	menuService.addItem(MenuId.ChatExecute, { command: { id: 'workbench.action.chat.submit', title: 'Send', icon: Codicon.arrowUp }, group: 'navigation', order: 4 });
+	menuService.addItem(MenuId.ChatExecute, { command: { id: 'workbench.action.chat.submit', title: 'Send', icon: Codicon.newLine }, group: 'navigation', order: 4 });
 	menuService.addItem(MenuId.ChatInputSecondary, { command: { id: 'workbench.action.chat.openSessionTargetPicker', title: 'Local' }, group: 'navigation', order: 0 });
 	menuService.addItem(MenuId.ChatInputSecondary, { command: { id: 'workbench.action.chat.openPermissionPicker', title: 'Default Approvals' }, group: 'navigation', order: 10 });
+	if (options.responseFooterAction) {
+		menuService.addItem(MenuId.ChatMessageFooter, { command: { id: 'workbench.action.chat.copyResponse', title: 'Copy', icon: Codicon.copy }, group: 'navigation', order: 1 });
+	}
 
+	const renderStyle = options.renderStyle === 'default' ? undefined : options.renderStyle ?? 'compact';
 	const inputOptions: IChatInputPartOptions = {
 		renderFollowups: false,
 		renderInputToolbarBelowInput: false,
@@ -236,6 +351,9 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 	inputPart.render(session, '', fixtureWidget);
 	inputPart.layout(width);
 
+	options.decorateInputPart?.(inputPart, instantiationService);
+	inputPart.element.classList.toggle('chat-input-hidden', options.inputVisible === false);
+
 	const listContainer = dom.$('.interactive-list');
 	listContainer.style.flex = '1 1 auto';
 	listContainer.style.minHeight = '0';
@@ -249,7 +367,7 @@ export async function renderChatWidget(context: ComponentFixtureContext, options
 		{
 			currentChatMode: () => ChatModeKind.Agent,
 			defaultElementHeight: 120,
-			renderStyle: 'compact',
+			renderStyle,
 			styles: {
 				listForeground: 'var(--vscode-foreground)',
 				listBackground: 'var(--vscode-editor-background)',
@@ -278,6 +396,70 @@ const SIMPLE_QA: IFixtureMessage[] = [
 	},
 ];
 
+const LAST_RESPONSE_HOVER: IFixtureMessage[] = [
+	{
+		user: 'Summarize the changes',
+		assistant: [
+			{ kind: 'markdown', text: 'The response content ends here. The remaining row height is reserved space.' },
+		],
+		details: 'Claude Opus 4.8 - 2 credits',
+	},
+];
+
+async function renderLastResponseHover(context: ComponentFixtureContext, target: 'content' | 'reserved-space'): Promise<void> {
+	await renderChatWidget(context, {
+		messages: LAST_RESPONSE_HOVER,
+		height: 600,
+		inputVisible: false,
+		renderStyle: 'default',
+		responseFooterAction: true,
+	});
+
+	const response = context.container.querySelector<HTMLElement>('.interactive-response.chat-most-recent-response');
+	const hoverTarget = target === 'content' ? response?.querySelector<HTMLElement>(':scope > .value') : response;
+	hoverTarget?.dispatchEvent(new MouseEvent('mouseenter'));
+}
+
+const KEYBOARD_FOCUS: IFixtureMessage[] = [
+	{
+		user: 'Summarize the changes',
+		assistant: [
+			{ kind: 'markdown', text: 'The first response has keyboard-accessible actions.' },
+		],
+		details: 'Claude Opus 4.8 - 2 credits',
+	},
+	{
+		user: 'What should I do next?',
+		assistant: [
+			{ kind: 'markdown', text: 'Run the tests and review the diff.' },
+		],
+		details: 'Claude Opus 4.8 - 1 credit',
+	},
+];
+
+async function renderKeyboardFocus(context: ComponentFixtureContext, target: 'response-action' | 'request-timestamp'): Promise<void> {
+	await renderChatWidget(context, {
+		messages: KEYBOARD_FOCUS,
+		height: 600,
+		inputVisible: false,
+		renderStyle: 'default',
+		responseFooterAction: true,
+		verbose: target === 'request-timestamp',
+	});
+
+	const selector = target === 'response-action'
+		? '.interactive-response:not(.chat-most-recent-response) .chat-footer-toolbar .action-label'
+		: '.interactive-request .chat-request-timestamp';
+	const focusTarget = context.container.querySelector<HTMLElement>(selector);
+	if (!focusTarget) {
+		throw new Error(`Missing keyboard focus target: ${target}`);
+	}
+	focusTarget.focus();
+	if (focusTarget.ownerDocument.activeElement !== focusTarget) {
+		throw new Error(`Could not focus keyboard target: ${target}`);
+	}
+}
+
 const PENDING_TOOL_APPROVAL: IFixtureMessage[] = [
 	{
 		user: 'run git init',
@@ -288,6 +470,26 @@ const PENDING_TOOL_APPROVAL: IFixtureMessage[] = [
 				riskAssessment: {
 					risk: ToolRiskLevel.Orange,
 					explanation: 'Initializes a new Git repository in the current directory. Reversible by removing the .git folder.',
+				},
+			},
+		],
+		responseComplete: false,
+	},
+];
+
+// https://github.com/microsoft/vscode/issues/309796
+const ISSUE_309796_MISSING_BACKSLASH: IFixtureMessage[] = [
+	{
+		user: 'install dependencies in the server directory',
+		assistant: [
+			{
+				kind: 'terminalConfirmation',
+				command: 'cd packages\\server && npm install',
+				title: 'Run `pwsh` command within `packages\\server`?',
+				confirmation: {
+					commandLine: 'npm install',
+					cwdLabel: 'packages\\server',
+					cdPrefix: 'cd packages\\server && ',
 				},
 			},
 		],
@@ -326,9 +528,48 @@ const MULTI_TURN: IFixtureMessage[] = [
 	},
 ];
 
+// Code blocks that follow or are nested in list items should have symmetric spacing
+// above and below. Covers the two DOM shapes markdown produces: a code block that is a
+// sibling after a list, and a code block nested inside a list item (indented fence).
+const CODE_BLOCK_IN_LIST: IFixtureMessage[] = [
+	{
+		user: 'How do I set up the project?',
+		assistant: [
+			{
+				kind: 'markdown', text: [
+					'Follow these steps:',
+					'',
+					'- Clone the repository',
+					'- Install the dependencies',
+					'',
+					'```bash',
+					'npm install',
+					'```',
+					'',
+					'- Then start the build watcher:',
+					'',
+					'  ```bash',
+					'  npm run watch',
+					'  ```',
+					'',
+					'- Finally, launch the app',
+				].join('\n')
+			},
+		],
+	},
+];
+
 export default defineThemedFixtureGroup({ path: 'chat/widget/' }, {
 	SimpleQA: defineComponentFixture({ render: ctx => renderChatWidget(ctx, { messages: SIMPLE_QA }) }),
 	Streaming: defineComponentFixture({ labels: { kind: 'animated' }, render: ctx => renderChatWidget(ctx, { messages: STREAMING }) }),
 	PendingToolApproval: defineComponentFixture({ render: ctx => renderChatWidget(ctx, { messages: PENDING_TOOL_APPROVAL }) }),
+	CodeBlockInList: defineComponentFixture({ render: ctx => renderChatWidget(ctx, { messages: CODE_BLOCK_IN_LIST }) }),
+	bugs: defineThemedFixtureGroup({
+		'issue-309796-missing-backslash': defineComponentFixture({ render: ctx => renderChatWidget(ctx, { messages: ISSUE_309796_MISSING_BACKSLASH }) }),
+	}),
 	MultiTurn: defineComponentFixture({ render: ctx => renderChatWidget(ctx, { messages: MULTI_TURN }) }),
+	LastResponseContentHover: defineComponentFixture({ render: ctx => renderLastResponseHover(ctx, 'content') }),
+	LastResponseReservedSpaceHover: defineComponentFixture({ render: ctx => renderLastResponseHover(ctx, 'reserved-space') }),
+	ResponseActionKeyboardFocus: defineComponentFixture({ render: ctx => renderKeyboardFocus(ctx, 'response-action') }),
+	RequestTimestampKeyboardFocus: defineComponentFixture({ render: ctx => renderKeyboardFocus(ctx, 'request-timestamp') }),
 });
