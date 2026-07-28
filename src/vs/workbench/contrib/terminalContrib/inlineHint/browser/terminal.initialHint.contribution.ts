@@ -27,7 +27,6 @@ import { ChatAgentLocation } from '../../../chat/common/constants.js';
 import { IDetachedTerminalInstance, ITerminalConfigurationService, ITerminalContribution, ITerminalInstance, IXtermTerminal } from '../../../terminal/browser/terminal.js';
 import { registerTerminalContribution, type IDetachedCompatibleTerminalContributionContext, type ITerminalContributionContext } from '../../../terminal/browser/terminalExtensions.js';
 import { TerminalInstance } from '../../../terminal/browser/terminalInstance.js';
-import { TerminalChatCommandId } from '../../chat/browser/terminalChat.js';
 import { TerminalInitialHintSettingId } from '../common/terminalInitialHintConfiguration.js';
 import './media/terminalInitialHint.css';
 import { TerminalSuggestCommandId } from '../../suggest/common/terminal.suggest.js';
@@ -97,8 +96,8 @@ export class TerminalInitialHintContribution extends Disposable implements ITerm
 	}
 
 	xtermOpen(xterm: IXtermTerminal & { raw: RawXtermTerminal }): void {
-		// Don't show is the terminal was launched by an extension or a feature like debug
-		if (hasKey(this._ctx.instance, { shellLaunchConfig: true }) && (this._ctx.instance.shellLaunchConfig.isExtensionOwnedTerminal || this._ctx.instance.shellLaunchConfig.isFeatureTerminal)) {
+		// Don't show if the terminal was launched by an extension or a feature like debug
+		if (hasKey(this._ctx.instance, { shellLaunchConfig: true }) && (this._ctx.instance.shellLaunchConfig.isExtensionOwnedTerminal || this._ctx.instance.shellLaunchConfig.isFeatureTerminal || this._ctx.instance.shellLaunchConfig.hideFromUser)) {
 			return;
 		}
 		// Don't show if disabled
@@ -124,7 +123,7 @@ export class TerminalInitialHintContribution extends Disposable implements ITerm
 	private _createHint(): void {
 		const instance = this._ctx.instance instanceof TerminalInstance ? this._ctx.instance : undefined;
 		const commandDetectionCapability = instance?.capabilities.get(TerminalCapability.CommandDetection);
-		if (!instance || !this._xterm || this._hintWidget || !commandDetectionCapability || commandDetectionCapability.promptInputModel.value || !!instance.shellLaunchConfig.attachPersistentProcess) {
+		if (!instance || !this._xterm || this._hintWidget || !commandDetectionCapability || commandDetectionCapability.promptInputModel.value || !!instance.shellLaunchConfig.attachPersistentProcess || commandDetectionCapability.commands.length > 0) {
 			return;
 		}
 
@@ -213,7 +212,6 @@ class TerminalInitialHintWidget extends Disposable {
 
 	constructor(
 		private readonly _instance: ITerminalInstance,
-		@IChatAgentService private readonly _chatAgentService: IChatAgentService,
 		@IChatEntitlementService private readonly _chatEntitlementService: IChatEntitlementService,
 		@ICommandService private readonly _commandService: ICommandService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -234,30 +232,28 @@ class TerminalInitialHintWidget extends Disposable {
 		}));
 	}
 
-	private _getHintInlineChat() {
+	/**
+	 * Creates wrapped hint elements with click listeners for responsive hint layouts.
+	 * Returns a before link and an after prose span containing a link.
+	 */
+	private _createWrappedHintElements(text: string, keybindingLabel: string, clickHandler: () => void): { before: HTMLAnchorElement; after: HTMLSpanElement } {
+		const [beforeText, afterText] = text.split(keybindingLabel);
+		const before = $('a', undefined, beforeText) as HTMLAnchorElement;
+		this._toDispose.add(dom.addDisposableListener(before, dom.EventType.CLICK, clickHandler));
+		const after = $('span.terminal-initial-hint-prose', undefined) as HTMLSpanElement;
+		const afterLink = $('a', undefined, afterText);
+		this._toDispose.add(dom.addDisposableListener(afterLink, dom.EventType.CLICK, clickHandler));
+		after.appendChild(afterLink);
+		return { before, after };
+	}
+
+	private _getHintContent() {
 		const ariaLabelParts: string[] = [];
 
-		const handleClick = () => {
-			this._telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
-				id: 'terminalInlineChat.hintAction',
-				from: 'hint'
-			});
-			this._commandService.executeCommand(TerminalChatCommandId.Start, { from: 'hint' });
-		};
 		const handleDontShowClick = () => {
 			this._configurationService.updateValue(TerminalInitialHintSettingId.Enabled, false);
 		};
 
-		const hintHandler: IContentActionHandler = {
-			disposables: this._toDispose,
-			callback: (index, _event) => {
-				switch (index) {
-					case '0':
-						handleClick();
-						break;
-				}
-			}
-		};
 		const dontShowHintHandler: IContentActionHandler = {
 			disposables: this._toDispose,
 			callback: (index, _event) => {
@@ -272,52 +268,33 @@ class TerminalInitialHintWidget extends Disposable {
 		const hintElement = $('div.terminal-initial-hint');
 		hintElement.style.display = 'block';
 
-		// Chat hint
-		if (!this._chatEntitlementService.sentiment.hidden) {
-			const keybindingHint = this._keybindingService.lookupKeybinding(TerminalChatCommandId.Start);
-			const keybindingHintLabel = keybindingHint?.getLabel();
+		const aiFeaturesHidden = this._chatEntitlementService.sentiment.hidden;
 
-			if (keybindingHint && keybindingHintLabel) {
-				const terminalAgents = this._chatAgentService.getActivatedAgents().filter(candidate => candidate.locations.includes(ChatAgentLocation.Terminal));
-				if (terminalAgents?.length) {
-					const actionPart = localize('emptyHintText', 'Open chat {0}. ', keybindingHintLabel);
-
-					const [before, after] = actionPart.split(keybindingHintLabel).map((fragment) => {
-						const hintPart = $('a', undefined, fragment);
-						this._toDispose.add(dom.addDisposableListener(hintPart, dom.EventType.CLICK, handleClick));
-						return hintPart;
-					});
-
-					hintElement.appendChild(before);
-
-					const label = hintHandler.disposables.add(new KeybindingLabel(hintElement, OS));
-					label.set(keybindingHint);
-					label.element.style.width = 'min-content';
-					label.element.style.display = 'inline';
-
-					label.element.style.cursor = 'pointer';
-					this._toDispose.add(dom.addDisposableListener(label.element, dom.EventType.CLICK, handleClick));
-
-					hintElement.appendChild(after);
-
-					ariaLabelParts.push(actionPart);
-				}
-			} else {
-				const hintMsg = localize({
-					key: 'inlineChatHint',
-					comment: [
-						'Preserve double-square brackets and their order',
-					]
-				}, '[[Open chat]] or start typing to dismiss.');
-				const rendered = renderFormattedText(hintMsg, { actionHandler: hintHandler });
-				hintElement.appendChild(rendered);
-
-				ariaLabelParts.push(localize('openChatHint', 'Open chat or start typing to dismiss.'));
-			}
+		// Copilot CLI hint (only shown when AI features are enabled)
+		if (!aiFeaturesHidden) {
+			const handleCopilotCliClick = () => {
+				this._telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
+					id: 'terminalCopilotCli.hintAction',
+					from: 'hint'
+				});
+				this._instance.sendText('copilot', false);
+			};
+			const copilotCliHint = localize({
+				key: 'copilotCliHint',
+				comment: [
+					'Preserve double-square brackets and their order',
+				]
+			}, "Type [[copilot]] to use Copilot CLI.");
+			const copilotCliHintHandler: IContentActionHandler = {
+				callback: () => handleCopilotCliClick(),
+				disposables: this._toDispose
+			};
+			hintElement.appendChild(renderFormattedText(copilotCliHint, { actionHandler: copilotCliHintHandler }));
+			ariaLabelParts.push(localize('copilotCliHintAriaLabel', "Type copilot to use Copilot CLI."));
 		}
 
-		// Suggest hint
-		const suggestEnabled = this._configurationService.getValue<boolean>(TerminalSuggestSettingId.Enabled);
+		// Suggest hint - only shown when AI features are hidden (otherwise the Copilot CLI hint takes precedence)
+		const suggestEnabled = aiFeaturesHidden && this._configurationService.getValue<boolean>(TerminalSuggestSettingId.Enabled);
 		const suggestKeybinding = suggestEnabled ? this._keybindingService.lookupKeybinding(TerminalSuggestCommandId.TriggerSuggest) : undefined;
 		const suggestKeybindingLabel = suggestKeybinding?.getLabel();
 		if (suggestKeybinding && suggestKeybindingLabel) {
@@ -327,15 +304,11 @@ class TerminalInitialHintWidget extends Disposable {
 				this._commandService.executeCommand(TerminalSuggestCommandId.TriggerSuggest);
 			};
 
-			const [suggestBefore, suggestAfter] = suggestActionPart.split(suggestKeybindingLabel).map((fragment) => {
-				const hintPart = $('a', undefined, fragment);
-				this._toDispose.add(dom.addDisposableListener(hintPart, dom.EventType.CLICK, handleSuggestClick));
-				return hintPart;
-			});
+			const { before: suggestBefore, after: suggestAfter } = this._createWrappedHintElements(suggestActionPart, suggestKeybindingLabel, handleSuggestClick);
 
 			hintElement.appendChild(suggestBefore);
 
-			const suggestLabel = hintHandler.disposables.add(new KeybindingLabel(hintElement, OS));
+			const suggestLabel = this._toDispose.add(new KeybindingLabel(hintElement, OS));
 			suggestLabel.set(suggestKeybinding);
 			suggestLabel.element.style.width = 'min-content';
 			suggestLabel.element.style.display = 'inline';
@@ -343,6 +316,8 @@ class TerminalInitialHintWidget extends Disposable {
 			this._toDispose.add(dom.addDisposableListener(suggestLabel.element, dom.EventType.CLICK, handleSuggestClick));
 
 			hintElement.appendChild(suggestAfter);
+			// Layout-only separator; visibility and spacing are controlled via CSS (including responsive breakpoints).
+			hintElement.appendChild($('span.terminal-initial-hint-separator'));
 
 			ariaLabelParts.push(suggestActionPart);
 		}
@@ -352,23 +327,38 @@ class TerminalInitialHintWidget extends Disposable {
 			return undefined;
 		}
 
+		// Dismiss hint - normal mode version
 		const typeToDismiss = localize({
 			key: 'hintTextDismiss',
 			comment: [
 				'Preserve double-square brackets and their order',
 			]
-		}, ' Start typing to dismiss or [[don\'t show]] this again.');
+		}, '[[don\'t show]] this again.');
 		const typeToDismissRendered = renderFormattedText(typeToDismiss, { actionHandler: dontShowHintHandler });
-		typeToDismissRendered.classList.add('detail');
+		typeToDismissRendered.classList.add('detail', 'terminal-initial-hint-prose');
+
+		const proseBefore = $('span.terminal-initial-hint-prose', undefined, localize('hintTextDismissProse', " Start typing to dismiss or "));
+		hintElement.appendChild(proseBefore);
 		hintElement.appendChild(typeToDismissRendered);
+
+		// Dismiss hint - compact mode version
+		const typeToDismissCompact = localize({
+			key: 'hintTextDismissCompact',
+			comment: [
+				'Preserve double-square brackets and their order',
+			]
+		}, '[[Don\'t show this again]]');
+		const typeToDismissCompactRendered = renderFormattedText(typeToDismissCompact, { actionHandler: dontShowHintHandler });
+		typeToDismissCompactRendered.classList.add('detail', 'terminal-initial-hint-compact');
+		hintElement.appendChild(typeToDismissCompactRendered);
 		ariaLabelParts.push(localize('hintTextDismissAriaLabel', 'Start typing to dismiss or don\'t show this again.'));
 
-		return { ariaLabel: ariaLabelParts.join(' '), hintHandler, hintElement };
+		return { ariaLabel: ariaLabelParts.join(' '), hintElement };
 	}
 
 	getDomNode(): HTMLElement | undefined {
 		if (!this._domNode) {
-			const result = this._getHintInlineChat();
+			const result = this._getHintContent();
 			if (!result) {
 				return undefined;
 			}
