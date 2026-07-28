@@ -120,12 +120,7 @@ class ExtHostEditorTabGroup {
 		this._dto = dto;
 		this._activeGroupIdGetter = activeGroupIdGetter;
 		// Construct all tabs from the given dto
-		for (const tabDto of dto.tabs) {
-			if (tabDto.isActive) {
-				this._activeTabId = tabDto.id;
-			}
-			this._tabs.push(new ExtHostEditorTab(tabDto, this, () => this.activeTabId()));
-		}
+		this._reconcileTabs(dto);
 	}
 
 	get apiObject(): vscode.TabGroup {
@@ -164,28 +159,37 @@ class ExtHostEditorTabGroup {
 		this._dto = dto;
 	}
 
-	acceptFullGroupDtoUpdate(dto: IEditorTabGroupDto) {
+	/**
+	 * Accepts a full group dto during a complete tab-model resync, reusing the
+	 * existing {@link ExtHostEditorTab} instances for tabs that still exist so
+	 * their (and this group's) frozen `apiObject` keeps a stable identity.
+	 * Extensions routinely key `Map`/`WeakMap`/`Set` collections by these
+	 * objects, so recreating them on every resync would break those lookups and
+	 * leak whatever they retain.
+	 */
+	acceptModelUpdate(dto: IEditorTabGroupDto) {
 		this._dto = dto;
+		this._reconcileTabs(dto);
+	}
+
+	private _reconcileTabs(dto: IEditorTabGroupDto) {
+		const existingTabsById = new Map<string, ExtHostEditorTab>();
+		for (const tab of this._tabs) {
+			existingTabsById.set(tab.tabId, tab);
+		}
+
 		this._activeTabId = '';
-		const existingTabsMap = new Map(this._tabs.map(tab => [tab.tabId, tab]));
-		const newTabs: ExtHostEditorTab[] = [];
-		for (const tabDto of dto.tabs) {
+		this._tabs = dto.tabs.map(tabDto => {
 			if (tabDto.isActive) {
 				this._activeTabId = tabDto.id;
 			}
-			const existingTab = existingTabsMap.get(tabDto.id);
-			if (existingTab) {
-				existingTab.acceptDtoUpdate(tabDto);
-				newTabs.push(existingTab);
-				existingTabsMap.delete(tabDto.id);
-			} else {
-				newTabs.push(new ExtHostEditorTab(tabDto, this, () => this.activeTabId()));
+			const existing = existingTabsById.get(tabDto.id);
+			if (existing) {
+				existing.acceptDtoUpdate(tabDto);
+				return existing;
 			}
-		}
-		this._tabs = newTabs;
-		if (this._apiObject) {
-			this._apiObject = undefined;
-		}
+			return new ExtHostEditorTab(tabDto, this, () => this.activeTabId());
+		});
 	}
 
 	acceptTabOperation(operation: TabOperation): ExtHostEditorTab {
@@ -312,23 +316,28 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 		const opened: vscode.TabGroup[] = [];
 		const changed: vscode.TabGroup[] = [];
 
-		const existingGroupsMap = new Map(this._extHostTabGroups.map(group => [group.groupId, group]));
-		const newGroups: ExtHostEditorTabGroup[] = [];
-
-		for (const tabGroupDto of tabGroups) {
-			const existingGroup = existingGroupsMap.get(tabGroupDto.groupId);
-			if (existingGroup) {
-				existingGroup.acceptFullGroupDtoUpdate(tabGroupDto);
-				changed.push(existingGroup.apiObject);
-				newGroups.push(existingGroup);
-			} else {
-				const group = new ExtHostEditorTabGroup(tabGroupDto, () => this._activeGroupId);
-				opened.push(group.apiObject);
-				newGroups.push(group);
-			}
+		// Reuse the existing group instances for groups that still exist so that
+		// the `vscode.TabGroup` (and nested `vscode.Tab`) objects keep a stable
+		// identity across a full model resync, matching the granular update
+		// paths. Without this, every resync (e.g. opening/closing an editor
+		// group) hands extensions brand-new objects, silently breaking and
+		// leaking any `Map`/`WeakMap`/`Set` keyed by tab groups or tabs.
+		const existingGroupsById = new Map<number, ExtHostEditorTabGroup>();
+		for (const group of this._extHostTabGroups) {
+			existingGroupsById.set(group.groupId, group);
 		}
 
-		this._extHostTabGroups = newGroups;
+		this._extHostTabGroups = tabGroups.map(tabGroup => {
+			const existing = existingGroupsById.get(tabGroup.groupId);
+			if (existing) {
+				existing.acceptModelUpdate(tabGroup);
+				changed.push(existing.apiObject);
+				return existing;
+			}
+			const group = new ExtHostEditorTabGroup(tabGroup, () => this._activeGroupId);
+			opened.push(group.apiObject);
+			return group;
+		});
 
 		// Set the active tab group id
 		const activeTabGroupId = assertReturnsDefined(tabGroups.find(group => group.isActive === true)?.groupId);
