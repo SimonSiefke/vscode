@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LogOutputChannel, SourceControlArtifactProvider, SourceControlArtifactGroup, SourceControlArtifact, Event, EventEmitter, ThemeIcon, l10n, workspace, Uri, Disposable, Command } from 'vscode';
-import { coalesce, dispose, filterEvent, IDisposable } from './util';
+import { coalesce, dispose, filterEvent, IDisposable, isCopilotWorktreeFolder } from './util';
 import { Repository } from './repository';
-import { Commit, Ref, RefType } from './api/git';
+import type { Ref, Worktree } from './api/git';
+import { RefType } from './api/git.constants';
 import { OperationKind } from './operation';
 
 /**
@@ -55,11 +56,14 @@ function sortRefByName(refA: Ref, refB: Ref): number {
 	return 0;
 }
 
-function sortByCommitDateDesc(a: { commitDetails?: Commit }, b: { commitDetails?: Commit }): number {
-	const aCommitDate = a.commitDetails?.commitDate?.getTime() ?? 0;
-	const bCommitDate = b.commitDetails?.commitDate?.getTime() ?? 0;
-
-	return bCommitDate - aCommitDate;
+function sortByWorktreeTypeAndNameAsc(a: Worktree, b: Worktree): number {
+	if (a.main && !b.main) {
+		return -1;
+	} else if (!a.main && b.main) {
+		return 1;
+	} else {
+		return a.name.localeCompare(b.name);
+	}
 }
 
 export class GitArtifactProvider implements SourceControlArtifactProvider, IDisposable {
@@ -77,7 +81,7 @@ export class GitArtifactProvider implements SourceControlArtifactProvider, IDisp
 			{ id: 'branches', name: l10n.t('Branches'), icon: new ThemeIcon('git-branch'), supportsFolders: true },
 			{ id: 'stashes', name: l10n.t('Stashes'), icon: new ThemeIcon('git-stash'), supportsFolders: false },
 			{ id: 'tags', name: l10n.t('Tags'), icon: new ThemeIcon('tag'), supportsFolders: true },
-			{ id: 'worktrees', name: l10n.t('Worktrees'), icon: new ThemeIcon('list-tree'), supportsFolders: false }
+			{ id: 'worktrees', name: l10n.t('Worktrees'), icon: new ThemeIcon('worktree'), supportsFolders: false }
 		];
 
 		this._disposables.push(this._onDidChangeArtifacts);
@@ -164,7 +168,7 @@ export class GitArtifactProvider implements SourceControlArtifactProvider, IDisp
 			} else if (group === 'worktrees') {
 				const worktrees = await this.repository.getWorktreeDetails();
 
-				return worktrees.sort(sortByCommitDateDesc).map(w => ({
+				return worktrees.sort(sortByWorktreeTypeAndNameAsc).map(w => ({
 					id: w.path,
 					name: w.name,
 					description: coalesce([
@@ -172,8 +176,11 @@ export class GitArtifactProvider implements SourceControlArtifactProvider, IDisp
 						w.commitDetails?.hash.substring(0, shortCommitLength),
 						w.commitDetails?.message.split('\n')[0]
 					]).join(' \u2022 '),
-					icon: new ThemeIcon('list-tree'),
-					timestamp: w.commitDetails?.commitDate?.getTime(),
+					icon: w.main
+						? new ThemeIcon('repo')
+						: isCopilotWorktreeFolder(w.path)
+							? new ThemeIcon('chat-sparkle')
+							: new ThemeIcon('worktree')
 				}));
 			}
 		} catch (err) {
