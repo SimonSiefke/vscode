@@ -15,9 +15,9 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { HighlightedLabel } from '../../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
 import { createMatches, FuzzyScore, IMatch } from '../../../../../base/common/filters.js';
-import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
-import { IObservable, IReader, autorun, observableSignalFromEvent, observableValue } from '../../../../../base/common/observable.js';
+import { IObservable, IReader, autorun, derived, observableSignalFromEvent, observableValue } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { fromNow } from '../../../../../base/common/date.js';
@@ -39,7 +39,7 @@ import { asCssVariable } from '../../../../../platform/theme/common/colorUtils.j
 import { chartsOrange } from '../../../../../platform/theme/common/colors/chartsColors.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { GITHUB_REMOTE_FILE_SCHEME, ISession, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
+import { getSessionWorkspaceKind, GITHUB_REMOTE_FILE_SCHEME, ISession, ISessionWorkspace, SessionStatus, SessionWorkspaceKind } from '../../../../services/sessions/common/session.js';
 import { AgentSessionApprovalModel, agentSessionApprovalId, IAgentSessionApprovalInfo } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionApprovalModel.js';
 import { IVoicePlaybackService } from '../../../../../workbench/contrib/chat/common/voicePlaybackService.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
@@ -148,11 +148,12 @@ export interface ISessionShowMore {
 	readonly remainingCount: number;
 }
 
-/** Synthetic muted row shown when a section (currently only "Chats") is empty. */
+/** Synthetic muted row shown when a section is empty. */
 export interface ISessionPlaceholder {
 	readonly placeholder: true;
 	readonly sectionId: string;
 	readonly label: string;
+	readonly hover?: string;
 }
 
 export type SessionListItem = ISession | ISessionSection | ISessionGroupItem | ISessionShowMore | ISessionPlaceholder;
@@ -552,10 +553,8 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			const isQuickChat = element.isQuickChat?.read(reader) ?? false;
 			const completedStateIcon = gitHubInfo?.pullRequest?.icon;
 
-			// The status icon (spinner vs. codicon, cross-fade, reduced-motion) is fully
-			// owned by the SessionStatusIcon widget; here we just feed it the latest state.
-			// Row recycling re-feeds the widget, which cross-fades to the new session's icon.
-			template.statusIcon.setStatus(sessionStatus, isRead, isArchived, completedStateIcon);
+			// The status icon widget snaps on row recycling and cross-fades real state changes.
+			template.statusIcon.setStatus(sessionStatus, isRead, isArchived, completedStateIcon, element.resource);
 			// The title shimmer (toggled by the `in-progress` class) is phase-aligned
 			// across rows via an `animationstart` handler on the title element, so no
 			// per-state work is needed here.
@@ -610,10 +609,8 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			// Type icon (folder/worktree/cloud) — regular sessions only. Quick
 			// chats show their chat icon on the status icon instead (see above).
 			if (sessionStatus !== SessionStatus.InProgress) {
-				const isWorkspaceSession = workspace &&
-					workspace.folders.length > 0 &&
-					workspace?.folders[0]?.gitRepository?.workTreeUri === undefined;
-				const icon = workspace?.isVirtualWorkspace ? Codicon.cloudCompact : isWorkspaceSession ? Codicon.folderCompact : Codicon.worktreeCompact;
+				const kind = getSessionWorkspaceKind(workspace, element.worktreePending?.read(reader));
+				const icon = kind === SessionWorkspaceKind.Virtual ? Codicon.cloudCompact : kind === SessionWorkspaceKind.Folder ? Codicon.folderCompact : Codicon.worktreeCompact;
 				const typeIconEl = DOM.append(template.detailsRow, $('span.session-details-icon'));
 				DOM.append(typeIconEl, $(`span${ThemeIcon.asCSSSelector(icon)}`));
 				parts.push(typeIconEl);
@@ -1185,24 +1182,43 @@ class SessionShowMoreRenderer implements ITreeRenderer<SessionListItem, FuzzySco
 	disposeTemplate(_template: HTMLElement): void { }
 }
 
-class SessionPlaceholderRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, HTMLElement> {
+interface ISessionPlaceholderTemplate {
+	readonly container: HTMLElement;
+	readonly label: HTMLElement;
+	readonly hover: MutableDisposable<IDisposable>;
+}
+
+class SessionPlaceholderRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, ISessionPlaceholderTemplate> {
 	static readonly TEMPLATE_ID = 'session-placeholder';
 	readonly templateId = SessionPlaceholderRenderer.TEMPLATE_ID;
 
-	renderTemplate(container: HTMLElement): HTMLElement {
+	constructor(
+		private readonly hoverService: IHoverService,
+	) { }
+
+	renderTemplate(container: HTMLElement): ISessionPlaceholderTemplate {
 		container.classList.add('session-placeholder');
-		return DOM.append(container, $('span.session-placeholder-label'));
+		return {
+			container,
+			label: DOM.append(container, $('span.session-placeholder-label')),
+			hover: new MutableDisposable(),
+		};
 	}
 
-	renderElement(node: ITreeNode<SessionListItem, FuzzyScore>, _index: number, template: HTMLElement): void {
+	renderElement(node: ITreeNode<SessionListItem, FuzzyScore>, _index: number, template: ISessionPlaceholderTemplate): void {
 		const element = node.element;
 		if (!isSessionPlaceholder(element)) {
 			return;
 		}
-		template.textContent = element.label;
+		template.label.textContent = element.label;
+		template.hover.value = element.hover
+			? this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), template.container, element.hover)
+			: undefined;
 	}
 
-	disposeTemplate(_template: HTMLElement): void { }
+	disposeTemplate(template: ISessionPlaceholderTemplate): void {
+		template.hover.dispose();
+	}
 }
 
 //#region Accessibility
@@ -1212,7 +1228,7 @@ class SessionsAccessibilityProvider {
 		return localize('sessionsList', "Sessions");
 	}
 
-	getAriaLabel(element: SessionListItem): string | null {
+	getAriaLabel(element: SessionListItem): string | IObservable<string> | null {
 		if (isSessionGroupItem(element)) {
 			return `${element.group.name}, ${element.sessions.length}`;
 		}
@@ -1232,11 +1248,17 @@ class SessionsAccessibilityProvider {
 				: localize('showMoreAria', "Show {0} more sessions", element.remainingCount);
 		}
 		if (isSessionPlaceholder(element)) {
-			return element.label;
+			return element.hover
+				? localize('sessionPlaceholderAria', "{0}. {1}", element.label, element.hover)
+				: element.label;
 		}
-		const title = element.title.get();
-		const updated = fromNow(element.updatedAt.get(), true);
-		return localize('sessionItemAria', "{0}, updated {1}", title, updated);
+		return derived(this, reader => {
+			const title = element.title.read(reader);
+			const updated = fromNow(element.updatedAt.read(reader), true);
+			return element.worktreePending?.read(reader)
+				? localize('sessionItemWorktreePendingAria', "{0}, creating worktree, updated {1}", title, updated)
+				: localize('sessionItemAria', "{0}, updated {1}", title, updated);
+		});
 	}
 }
 
@@ -1802,7 +1824,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 		);
 
 		const showMoreRenderer = new SessionShowMoreRenderer();
-		const placeholderRenderer = new SessionPlaceholderRenderer();
+		const placeholderRenderer = new SessionPlaceholderRenderer(hoverService);
 		const sectionRenderer = new SessionSectionRenderer(true /* hideSectionCount */, instantiationService, contextKeyService);
 		this._sectionRenderer = sectionRenderer;
 		const groupRenderer = new SessionGroupRenderer({
@@ -2322,7 +2344,14 @@ export class SessionsList extends Disposable implements ISessionsList {
 		const renderGroup = (groupItem: ISessionGroupItem): IObjectTreeElement<SessionListItem> => {
 			const sectionId = `group:${groupItem.group.id}`;
 			const groupChildren = groupItem.sessions.length === 0
-				? [{ element: { placeholder: true as const, sectionId, label: localize('noSessionInGroup', "No session") } }]
+				? [{
+					element: {
+						placeholder: true as const,
+						sectionId,
+						label: localize('noSessionInGroup', "No session"),
+						hover: localize('noSessionInGroupHover', "Use Add to Group from a session's context menu, or drag it into this group."),
+					}
+				}]
 				: renderSessionChildren(groupItem.sessions, sectionId, groupItem.group.name, !this.hasFindPattern && this.workspaceGroupCapped);
 			return {
 				element: groupItem,
