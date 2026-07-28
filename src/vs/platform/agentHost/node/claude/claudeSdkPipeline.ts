@@ -7,6 +7,7 @@ import type { AgentInfo, McpServerStatus, PermissionMode, Query, SDKUserMessage,
 import { CancellationError, isCancellationError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, IReference, toDisposable } from '../../../../base/common/lifecycle.js';
+import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IInstantiationService } from '../../../instantiation/common/instantiation.js';
 import { ILogService } from '../../../log/common/log.js';
@@ -115,6 +116,48 @@ export class ClaudeSdkPipeline extends Disposable {
 		return { commands, agents, mcpServers, plugins: this._initPlugins };
 	}
 
+	async startMcpServer(serverName: string): Promise<boolean> {
+		const query = await this._ensureQueryBound();
+		return this._applyMcpServerEnablement(query, serverName, true);
+	}
+
+	async stopMcpServer(serverName: string): Promise<boolean> {
+		const query = await this._ensureQueryBound();
+		return this._applyMcpServerEnablement(query, serverName, false);
+	}
+
+	async reconcileMcpServerEnablement(desired: ReadonlyMap<string, boolean>): Promise<boolean> {
+		const query = await this._ensureQueryBound();
+		const observed = new Map((await query.mcpServerStatus()).map(server => [server.name, server.status !== 'disabled']));
+		for (const [serverName, enabled] of desired) {
+			// `desired` is session-scoped state, so it can name servers this
+			// particular chat's query does not have (a peer chat that has not
+			// finished connecting its servers, or a chat created after the
+			// session state was published). Toggling one of those always fails
+			// with `Server not found: <name>` and would take the turn down with
+			// it, so only reconcile servers the live query actually reports.
+			const current = observed.get(serverName);
+			if (current === undefined || current === enabled) {
+				continue;
+			}
+			if (!await this._applyMcpServerEnablement(query, serverName, enabled)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private async _applyMcpServerEnablement(query: Query, serverName: string, enabled: boolean): Promise<boolean> {
+		if (!query.toggleMcpServer || (enabled && !query.reconnectMcpServer)) {
+			return false;
+		}
+		await query.toggleMcpServer(serverName, enabled);
+		if (enabled) {
+			await query.reconnectMcpServer!(serverName);
+		}
+		return true;
+	}
+
 	/**
 	 * Bind the SDK Query if needed, recovering a dead one first. Mirrors the
 	 * gate in {@link send}: if the pipeline is marked for rebind (after an
@@ -204,6 +247,7 @@ export class ClaudeSdkPipeline extends Disposable {
 	constructor(
 		readonly sessionId: string,
 		readonly sessionUri: URI,
+		readonly chatChannelUri: URI,
 		warm: WarmQuery,
 		abortController: AbortController,
 		dbRef: IReference<ISessionDatabase>,
@@ -222,12 +266,12 @@ export class ClaudeSdkPipeline extends Disposable {
 			() => this._abortController.signal,
 			(pendingId: string) => this._onDidProduceSignal.fire({
 				kind: 'steering_consumed',
-				session: this.sessionUri,
+				chat: this.chatChannelUri,
 				id: pendingId,
 			}),
 		));
 		this._router = this._register(instantiationService.createInstance(
-			ClaudeSdkMessageRouter, sessionUri, dbRef, subagents, clientToolOwner,
+			ClaudeSdkMessageRouter, sessionUri, chatChannelUri, dbRef, subagents, clientToolOwner,
 		));
 		this._register(this._router.onDidProduceSignal(s => this._onDidProduceSignal.fire(s)));
 		// Dispose chain → abort → SDK cleanup. Reads the *current*
@@ -242,6 +286,13 @@ export class ClaudeSdkPipeline extends Disposable {
 	get isResumed(): boolean { return this._isResumed; }
 
 	get isAborted(): boolean { return this._abortController.signal.aborted; }
+
+	/**
+	 * Whether a turn is currently in flight or queued. False between turns (the
+	 * warm query parks with a drained queue). Used by non-destructive idle
+	 * release to avoid tearing the pipeline down mid-turn.
+	 */
+	get hasActiveTurn(): boolean { return !this._queue.isEmpty; }
 
 	/**
 	 * Abort the live SDK subprocess and **await its actual exit**.
@@ -368,6 +419,7 @@ export class ClaudeSdkPipeline extends Disposable {
 			sdkMessage: prompt,
 			sdkUuid: typeof prompt.uuid === 'string' ? prompt.uuid : turnId,
 			turnId,
+			stopWatch: StopWatch.create(false),
 			deferred: new DeferredPromise<void>(),
 		};
 		return this._queue.push(entry);
@@ -403,6 +455,7 @@ export class ClaudeSdkPipeline extends Disposable {
 			sdkMessage: prompt,
 			sdkUuid,
 			turnId: parent.turnId,
+			stopWatch: parent.stopWatch,
 			deferred: new DeferredPromise<void>(),
 			steeringPendingId: pendingMessageId,
 		}).catch(() => { /* expected on abort/crash */ });
@@ -601,8 +654,9 @@ export class ClaudeSdkPipeline extends Disposable {
 					}
 				}
 				const turnId = this._queue.peekParent()?.turnId;
+				const turnDuration = this._queue.peekParent()?.stopWatch.elapsed();
 				try {
-					await this._router.handle(message, turnId);
+					await this._router.handle(message, turnId, turnDuration);
 				} catch (handlerErr) {
 					this._logService.warn(`[ClaudeSdkPipeline:${this.sessionId}] router threw, skipping: ${handlerErr}`);
 				}
@@ -615,10 +669,11 @@ export class ClaudeSdkPipeline extends Disposable {
 					if (completed && this._queue.isEmpty) {
 						this._onDidProduceSignal.fire({
 							kind: 'action',
-							session: this.sessionUri,
+							resource: this.chatChannelUri,
 							action: {
 								type: ActionType.ChatTurnComplete,
 								turnId: completed.turnId,
+								duration: Math.max(0, completed.stopWatch.elapsed()),
 							},
 						});
 					}

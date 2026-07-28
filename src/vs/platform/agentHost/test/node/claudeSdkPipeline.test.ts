@@ -20,6 +20,7 @@ import { ServiceCollection } from '../../../instantiation/common/serviceCollecti
 import { ILogService, NullLogService } from '../../../log/common/log.js';
 import { IDiffComputeService } from '../../common/diffComputeService.js';
 import { ISessionDatabase } from '../../common/sessionDataService.js';
+import { buildDefaultChatUri } from '../../common/state/sessionState.js';
 import { ClaudeSdkPipeline, IRematerializer } from '../../node/claude/claudeSdkPipeline.js';
 import { SubagentRegistry } from '../../node/claude/claudeSubagentRegistry.js';
 import { createZeroDiffComputeService, TestSessionDatabase } from '../common/sessionTestHelpers.js';
@@ -68,6 +69,7 @@ class ImmediatelyDoneQuery implements Query {
 	async [Symbol.asyncDispose](): Promise<void> { /* not exercised here */ }
 	setMaxThinkingTokens(): never { throw new Error('not modeled'); }
 	initializationResult(): never { throw new Error('not modeled'); }
+	reinitialize(): never { throw new Error('not modeled'); }
 	supportedCommands(): never { throw new Error('not modeled'); }
 	supportedModels(): never { throw new Error('not modeled'); }
 	supportedAgents(): never { throw new Error('not modeled'); }
@@ -209,6 +211,7 @@ function createPipeline(
 		ClaudeSdkPipeline,
 		'sess-1',
 		URI.parse('claude:/sess-1'),
+		URI.parse(buildDefaultChatUri('claude:/sess-1')),
 		warm,
 		controller,
 		dbRef,
@@ -280,6 +283,7 @@ suite('ClaudeSdkPipeline', () => {
 				ClaudeSdkPipeline,
 				'sess-2',
 				URI.parse('claude:/sess-2'),
+				URI.parse(buildDefaultChatUri('claude:/sess-2')),
 				warm,
 				controller,
 				dbRef,
