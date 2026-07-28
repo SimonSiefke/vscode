@@ -3,31 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { equals } from '../../../../../base/common/arrays.js';
 import { Throttler } from '../../../../../base/common/async.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
-import { observableValue } from '../../../../../base/common/observable.js';
+import { ISettableObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Location } from '../../../../../editor/common/languages.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
+import { ILogService } from '../../../../../platform/log/common/log.js';
 import { StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IWorkbenchLocalMcpServer } from '../../../../services/mcp/common/mcpWorkbenchManagementService.js';
 import { getMcpServerMapping } from '../mcpConfigFileUtils.js';
 import { mcpConfigurationSection } from '../mcpConfiguration.js';
 import { IMcpRegistry } from '../mcpRegistryTypes.js';
-import { IMcpConfigPath, IMcpWorkbenchService, McpServerDefinition, McpServerLaunch, McpServerTransportType, McpServerTrust } from '../mcpTypes.js';
+import { IMcpConfigPath, IMcpWorkbenchService, MCP_CONFIGURATION_COLLECTION_ID_PREFIX, McpCollectionDefinition, McpCollectionSortOrder, McpServerDefinition, McpServerLaunch, McpServerTransportType, McpServerTrust } from '../mcpTypes.js';
 import { IMcpDiscovery } from './mcpDiscovery.js';
+
+interface CollectionState extends IDisposable {
+	definition: McpCollectionDefinition;
+	serverDefinitions: ISettableObservable<readonly McpServerDefinition[]>;
+}
 
 export class InstalledMcpServersDiscovery extends Disposable implements IMcpDiscovery {
 
 	readonly fromGallery = true;
-	private readonly collectionDisposables = this._register(new DisposableMap<string, IDisposable>());
+	private readonly collections = this._register(new DisposableMap<string, CollectionState>());
 
 	constructor(
 		@IMcpWorkbenchService private readonly mcpWorkbenchService: IMcpWorkbenchService,
 		@IMcpRegistry private readonly mcpRegistry: IMcpRegistry,
 		@ITextModelService private readonly textModelService: ITextModelService,
+		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 	}
@@ -69,7 +77,7 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 
 				const config = server.config;
 				const mcpConfigPath = await mcpConfigPathPromise;
-				const collectionId = `mcp.config.${mcpConfigPath ? mcpConfigPath.id : 'unknown'}`;
+				const collectionId = `${MCP_CONFIGURATION_COLLECTION_ID_PREFIX}${mcpConfigPath ? mcpConfigPath.id : 'unknown'}`;
 
 				let definitions = collections.get(collectionId);
 				if (!definitions) {
@@ -81,6 +89,7 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 					type: McpServerTransportType.HTTP,
 					uri: URI.parse(config.url),
 					headers: Object.entries(config.headers || {}),
+					oauth: config.oauth,
 				} : {
 					type: McpServerTransportType.Stdio,
 					command: config.command,
@@ -88,12 +97,14 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 					env: config.env || {},
 					envFile: config.envFile,
 					cwd: config.cwd,
+					sandbox: server.rootSandbox
 				};
 
 				definitions[1].push({
 					id: `${collectionId}.${server.name}`,
 					label: server.name,
 					launch,
+					sandboxEnabled: config.type === 'http' ? undefined : config.sandboxEnabled,
 					cacheNonce: await McpServerLaunch.hash(launch),
 					roots: mcpConfigPath?.workspaceFolder ? [mcpConfigPath.workspaceFolder.uri] : undefined,
 					variableReplacement: {
@@ -109,30 +120,49 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 				});
 			}
 
-			for (const [id, [mcpConfigPath, serverDefinitions]] of collections) {
-				this.collectionDisposables.deleteAndDispose(id);
-				this.collectionDisposables.set(id, this.mcpRegistry.registerCollection({
-					id,
-					label: mcpConfigPath?.label ?? '',
-					presentation: {
-						order: serverDefinitions[0]?.presentation?.order,
-						origin: mcpConfigPath?.uri,
-					},
-					remoteAuthority: mcpConfigPath?.remoteAuthority ?? null,
-					serverDefinitions: observableValue(this, serverDefinitions),
-					trustBehavior: McpServerTrust.Kind.Trusted,
-					configTarget: mcpConfigPath?.target ?? ConfigurationTarget.USER,
-					scope: mcpConfigPath?.scope ?? StorageScope.PROFILE,
-				}));
-			}
-			for (const [id] of this.collectionDisposables) {
+			for (const [id] of this.collections) {
 				if (!collections.has(id)) {
-					this.collectionDisposables.deleteAndDispose(id);
+					this.collections.deleteAndDispose(id);
 				}
 			}
 
+			for (const [id, [mcpConfigPath, serverDefinitions]] of collections) {
+				const newServerDefinitions = observableValue<readonly McpServerDefinition[]>(this, serverDefinitions);
+				const newCollection: McpCollectionDefinition = {
+					id,
+					label: mcpConfigPath?.label ?? '',
+					order: mcpConfigPath?.order ?? McpCollectionSortOrder.User,
+					presentation: {
+						origin: mcpConfigPath?.uri,
+					},
+					remoteAuthority: mcpConfigPath?.remoteAuthority ?? null,
+					serverDefinitions: newServerDefinitions,
+					trustBehavior: McpServerTrust.Kind.Trusted,
+					configTarget: mcpConfigPath?.target ?? ConfigurationTarget.USER,
+					scope: mcpConfigPath?.scope ?? StorageScope.PROFILE,
+				};
+				const existingCollection = this.collections.get(id);
+
+				const collectionDefinitionsChanged = existingCollection ? !McpCollectionDefinition.equals(existingCollection.definition, newCollection) : true;
+				if (!collectionDefinitionsChanged) {
+					const serverDefinitionsChanged = existingCollection ? !equals(existingCollection.definition.serverDefinitions.get(), newCollection.serverDefinitions.get(), McpServerDefinition.equals) : true;
+					if (serverDefinitionsChanged) {
+						existingCollection?.serverDefinitions.set(serverDefinitions, undefined);
+					}
+					continue;
+				}
+
+				this.collections.deleteAndDispose(id);
+				const disposable = this.mcpRegistry.registerCollection(newCollection);
+				this.collections.set(id, {
+					definition: newCollection,
+					serverDefinitions: newServerDefinitions,
+					dispose: () => disposable.dispose()
+				});
+			}
+
 		} catch (error) {
-			this.collectionDisposables.clearAndDisposeAll();
+			this.logService.error(error);
 		}
 	}
 }

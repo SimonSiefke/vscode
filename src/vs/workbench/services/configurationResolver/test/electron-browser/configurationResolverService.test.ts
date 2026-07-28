@@ -706,6 +706,20 @@ suite('Configuration Resolver Service', () => {
 		});
 	});
 
+	test('contributed taskVar variable', () => {
+		const url = 'http://localhost:5678';
+		const variable = 'taskVar:componentExplorerUrl';
+		const configuration = {
+			'url': '${taskVar:componentExplorerUrl}/___explorer',
+		};
+		configurationResolverService!.contributeVariable(variable, async () => { return url; });
+		return configurationResolverService!.resolveWithInteractionReplace(workspace, configuration).then(result => {
+			assert.deepStrictEqual({ ...result }, {
+				'url': `${url}/___explorer`
+			});
+		});
+	});
+
 	test('resolveWithEnvironment', async () => {
 		const env = {
 			'VAR_1': 'VAL_1',
@@ -751,6 +765,23 @@ suite('Configuration Resolver Service', () => {
 
 			assert.strictEqual(0, mockCommandService.callCount);
 		});
+	});
+
+	test('canceled input', async () => {
+		stub(quickInputService, 'input').resolves(undefined);
+
+		const configuration = {
+			'name': 'Attach to Process',
+			'type': 'node',
+			'request': 'attach',
+			'processId': '${input:input1}',
+			'port': 5858,
+			'sourceMaps': false,
+			'outDir': null
+		};
+
+		const result = await configurationResolverService!.resolveWithInteractionReplace(workspace, configuration, 'tasks');
+		assert.strictEqual(result, undefined);
 	});
 });
 
@@ -1014,9 +1045,9 @@ suite('ConfigurationResolverExpression', () => {
 	test('resolves nested values 2 (#245798)', () => {
 		const expr = ConfigurationResolverExpression.parse({
 			env: {
-				SITE: "${input:site}",
-				TLD: "${input:tld}",
-				HOST: "${input:host}",
+				SITE: '${input:site}',
+				TLD: '${input:tld}',
+				HOST: '${input:host}',
 			},
 		});
 
@@ -1041,7 +1072,7 @@ suite('ConfigurationResolverExpression', () => {
 
 	test('out-of-order key resolution (#248550)', () => {
 		const expr = ConfigurationResolverExpression.parse({
-			'${input:key}': "${input:value}",
+			'${input:key}': '${input:value}',
 		});
 
 		for (const r of expr.unresolved()) {
