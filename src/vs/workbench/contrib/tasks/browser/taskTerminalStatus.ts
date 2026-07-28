@@ -18,10 +18,10 @@ import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../pl
 import { ITerminalStatus } from '../../terminal/common/terminal.js';
 
 interface ITerminalData extends IDisposable {
-	readonly terminal: ITerminalInstance;
-	readonly task: Task;
-	readonly status: ITerminalStatus;
-	readonly problemMatcher: AbstractProblemCollector;
+	terminal: ITerminalInstance;
+	task: Task;
+	status: ITerminalStatus;
+	problemMatcher: AbstractProblemCollector;
 	taskRunEnded: boolean;
 }
 
@@ -88,7 +88,7 @@ export class TaskTerminalStatus extends Disposable {
 	}
 
 	private terminalFromEvent(event: { terminalId: number | undefined }): ITerminalData | undefined {
-		if (!('terminalId' in event) || !event.terminalId) {
+		if (!Object.hasOwn(event, 'terminalId') || !event.terminalId) {
 			return undefined;
 		}
 		return this.terminalMap.get(event.terminalId);
