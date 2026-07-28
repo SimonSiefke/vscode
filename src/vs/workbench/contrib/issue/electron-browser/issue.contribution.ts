@@ -23,7 +23,7 @@ import { SyncDescriptor } from '../../../../platform/instantiation/common/descri
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { IssueQuickAccess } from '../browser/issueQuickAccess.js';
 import '../browser/issueTroubleshoot.js';
-import '../browser/issueReporterKeybindings.js';
+import './issueReporterKeybindings.js';
 import { BaseIssueContribution } from '../common/issue.contribution.js';
 import { IIssueFormService, IWorkbenchIssueService, IssueType } from '../common/issue.js';
 import { NativeIssueService } from './issueService.js';
@@ -34,7 +34,7 @@ import { IRecordingService } from '../browser/recordingService.js';
 import { NativeRecordingService } from './nativeRecordingService.js';
 import { IGitHubUploadService } from '../browser/githubUploadService.js';
 import { NativeGitHubUploadService } from './nativeGitHubUploadService.js';
-import { IssueReporterEditorPane } from '../browser/issueReporterEditorPane.js';
+import { IssueReporterEditorPane } from './issueReporterEditorPane.js';
 import { IssueReporterEditorInput } from '../browser/issueReporterEditorInput.js';
 
 //#region Issue Contribution
@@ -54,11 +54,13 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			type: 'boolean',
 			default: false,
 			description: localize('issueReporter.wizard.enabled', "Enable the new issue reporter wizard instead of the classic issue reporter."),
+			experiment: { mode: 'auto' }
 		},
 		'issueReporter.wizard.fullWorkspaceScan': {
 			type: 'boolean',
 			default: true,
 			description: localize('issueReporter.wizard.fullWorkspaceScan', "When auto-collecting performance diagnostics for the issue reporter wizard, walk the full workspace instead of stopping at the default 20,000-file cap. Set to false on very large workspaces if the scan slows the initial wizard render."),
+			experiment: { mode: 'auto' }
 		},
 	}
 });
