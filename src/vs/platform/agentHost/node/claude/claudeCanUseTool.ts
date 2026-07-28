@@ -5,11 +5,12 @@
 
 import type { PermissionResult, PermissionUpdate } from '@anthropic-ai/claude-agent-sdk';
 import { ClaudePermissionMode, ClaudeSessionConfigKey } from '../../common/claudeSessionConfigKeys.js';
-import { SessionInputResponseKind, ToolCallPendingConfirmationState, ToolCallStatus } from '../../common/state/protocol/state.js';
+import { ChatInputResponseKind, ToolCallPendingConfirmationState, ToolCallStatus } from '../../common/state/protocol/state.js';
 import { IAgentConfigurationService } from '../agentConfigurationService.js';
 import { ClaudeAgentSession } from './claudeAgentSession.js';
 import { buildAskUserSessionInputQuestions, buildExitPlanModeConfirmationState, flattenAskUserAnswers, parseAskUserQuestionInput } from './claudeInteractiveTools.js';
-import { getClaudeConfirmationTitle, getClaudePermissionKind, getClaudeToolDisplayName, getClaudeToolPath, INTERACTIVE_CLAUDE_TOOLS } from './claudeToolDisplay.js';
+import { CLAUDE_PLAN_DECLINED_MESSAGE, CLAUDE_QUESTION_CANCELLED_MESSAGE, CLAUDE_USER_DECLINED_MESSAGE } from './claudeToolDenial.js';
+import { getClaudeConfirmationTitle, getClaudeInvocationMessage, getClaudePermissionKind, getClaudeToolDisplayName, getClaudeToolInputString, getClaudeToolPath, INTERACTIVE_CLAUDE_TOOLS, buildClaudeToolMeta } from './claudeToolDisplay.js';
 
 /**
  * Dependencies for {@link handleCanUseTool}. Kept narrow: a session
@@ -61,7 +62,7 @@ export interface IClaudeCanUseToolOptions {
  *
  * Note: protocol-level auto-approve for write tools lives in
  * `agentSideEffects.ts:_handleToolReady`, which subscribes to the
- * `pending_confirmation` signal and synchronously calls
+ * `pending_confirmation` signal and calls
  * `respondToPermissionRequest`. The atomic register-then-fire
  * invariant lives inside {@link ClaudeAgentSession.requestPermission}
  * (via `PendingRequestRegistry.registerAndFire`).
@@ -89,7 +90,7 @@ export async function handleCanUseTool(
 	}
 	const abortHandler = () => {
 		session.respondToPermissionRequest(options.toolUseID, false);
-		session.respondToUserInputRequest(options.toolUseID, SessionInputResponseKind.Cancel);
+		session.respondToUserInputRequest(options.toolUseID, ChatInputResponseKind.Cancel);
 	};
 	options.signal.addEventListener('abort', abortHandler);
 	try {
@@ -115,7 +116,7 @@ async function dispatchCanUseTool(
 	// so it uses the standard `pending_confirmation` channel with
 	// custom button labels; `AskUserQuestion` is structured user
 	// input (a question carousel) so it routes through
-	// `requestUserInput` / `SessionInputRequested`.
+	// `requestUserInput` / `ChatInputRequested`.
 	if (INTERACTIVE_CLAUDE_TOOLS.has(toolName)) {
 		return handleInteractiveTool(deps, session, toolName, input, options);
 	}
@@ -123,15 +124,17 @@ async function dispatchCanUseTool(
 	const permissionKind = getClaudePermissionKind(toolName);
 	const displayName = getClaudeToolDisplayName(toolName);
 	const permissionPath = options.blockedPath ?? getClaudeToolPath(toolName, input);
-	const toolInputJson = JSON.stringify(input);
+	const toolInputString = getClaudeToolInputString(toolName, input);
+	const meta = buildClaudeToolMeta(toolName);
 	const state: ToolCallPendingConfirmationState = {
 		status: ToolCallStatus.PendingConfirmation,
 		toolCallId: options.toolUseID,
 		toolName,
 		displayName,
-		invocationMessage: displayName,
-		toolInput: toolInputJson,
+		invocationMessage: getClaudeInvocationMessage(toolName, displayName, input),
+		toolInput: toolInputString,
 		confirmationTitle: getClaudeConfirmationTitle(toolName),
+		...(meta ? { _meta: meta } : {}),
 	};
 
 	const parentToolCallId = resolveSubagentParent(session, options);
@@ -145,12 +148,12 @@ async function dispatchCanUseTool(
 	});
 	return approved
 		? { behavior: 'allow', updatedInput: input }
-		: { behavior: 'deny', message: 'User declined' };
+		: { behavior: 'deny', message: CLAUDE_USER_DECLINED_MESSAGE };
 }
 
 /**
  * Phase 12 step 5 — shared subagent-context resolution for every
- * `pending_confirmation` and `SessionInputRequested` emission. When the
+ * `pending_confirmation` and `ChatInputRequested` emission. When the
  * SDK delivers `options.agentID`, look up the parent spawn via the
  * session's registry and write the agentId back to it. The write is
  * **first-writer-wins** (a mismatched late agentID is silently dropped
@@ -236,12 +239,12 @@ async function handleExitPlanMode(
 		});
 		return { behavior: 'allow', updatedInput: input };
 	}
-	return { behavior: 'deny', message: 'The user declined the plan, maybe ask why?' };
+	return { behavior: 'deny', message: CLAUDE_PLAN_DECLINED_MESSAGE };
 }
 
 /**
  * `AskUserQuestion` (S3.5a): translate the SDK's question carousel
- * into a {@link SessionInputRequest}, await the workbench answer,
+ * into a {@link ChatInputRequest}, await the workbench answer,
  * and re-key answers by question text (matching the production
  * extension's `Record<question, value>` contract).
  */
@@ -262,13 +265,13 @@ async function handleAskUserQuestion(
 		id: toolUseID,
 		questions: buildAskUserSessionInputQuestions(askInput),
 	}, parentToolCallId);
-	if (answer.response !== SessionInputResponseKind.Accept || !answer.answers) {
-		return { behavior: 'deny', message: 'The user cancelled the question' };
+	if (answer.response !== ChatInputResponseKind.Accept || !answer.answers) {
+		return { behavior: 'deny', message: CLAUDE_QUESTION_CANCELLED_MESSAGE };
 	}
 
 	const answers = flattenAskUserAnswers(askInput, answer.answers);
 	if (Object.keys(answers).length === 0) {
-		return { behavior: 'deny', message: 'The user cancelled the question' };
+		return { behavior: 'deny', message: CLAUDE_QUESTION_CANCELLED_MESSAGE };
 	}
 	return { behavior: 'allow', updatedInput: { ...input, answers } };
 }
