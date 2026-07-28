@@ -252,6 +252,9 @@ export class ContentHoverWidgetWrapper extends Disposable implements IHoverWidge
 		if (isContentWidgetResizing) {
 			return true;
 		}
+		if (this._isMouseOnCodeActionWidget(mouseEvent)) {
+			return true;
+		}
 		const anchorCandidates: HoverAnchor[] = this._findHoverAnchorCandidates(mouseEvent);
 		const anchorCandidatesExist = anchorCandidates.length > 0;
 		if (!anchorCandidatesExist) {
@@ -294,6 +297,14 @@ export class ContentHoverWidgetWrapper extends Disposable implements IHoverWidge
 		}
 		anchorCandidates.sort((a, b) => b.priority - a.priority);
 		return anchorCandidates;
+	}
+
+	private _isMouseOnCodeActionWidget(mouseEvent: IEditorMouseEvent): boolean {
+		const target = mouseEvent.event.browserEvent.target;
+		if (target instanceof Element && !!target.closest('.action-widget')) {
+			return true;
+		}
+		return false;
 	}
 
 	private _onMouseLeave(e: MouseEvent): void {
