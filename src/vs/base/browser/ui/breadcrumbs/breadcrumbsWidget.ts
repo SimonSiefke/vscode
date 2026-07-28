@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dom from 'vs/base/browser/dom';
-import { IMouseEvent } from 'vs/base/browser/mouseEvent';
-import { DomScrollableElement } from 'vs/base/browser/ui/scrollbar/scrollableElement';
-import { commonPrefixLength } from 'vs/base/common/arrays';
-import { ThemeIcon } from 'vs/base/common/themables';
-import { Emitter, Event } from 'vs/base/common/event';
-import { DisposableStore, dispose, IDisposable } from 'vs/base/common/lifecycle';
-import { ScrollbarVisibility } from 'vs/base/common/scrollable';
-import 'vs/css!./breadcrumbsWidget';
+import * as dom from '../../dom.js';
+import * as domStylesheetsJs from '../../domStylesheets.js';
+import { IMouseEvent } from '../../mouseEvent.js';
+import { DomScrollableElement } from '../scrollbar/scrollableElement.js';
+import { commonPrefixLength } from '../../../common/arrays.js';
+import { ThemeIcon } from '../../../common/themables.js';
+import { Emitter, Event } from '../../../common/event.js';
+import { DisposableStore, dispose, IDisposable } from '../../../common/lifecycle.js';
+import { ScrollbarVisibility } from '../../../common/scrollable.js';
+import './breadcrumbsWidget.css';
 
 export abstract class BreadcrumbsItem {
 	abstract dispose(): void;
@@ -31,7 +32,7 @@ export interface IBreadcrumbsItemEvent {
 	type: 'select' | 'focus';
 	item: BreadcrumbsItem;
 	node: HTMLElement;
-	payload: any;
+	payload: unknown;
 }
 
 export class BreadcrumbsWidget {
@@ -64,6 +65,7 @@ export class BreadcrumbsWidget {
 	constructor(
 		container: HTMLElement,
 		horizontalScrollbarSize: number,
+		horizontalScrollbarVisibility: ScrollbarVisibility = ScrollbarVisibility.Auto,
 		separatorIcon: ThemeIcon,
 		styles: IBreadcrumbsWidgetStyles
 	) {
@@ -73,7 +75,7 @@ export class BreadcrumbsWidget {
 		this._domNode.setAttribute('role', 'list');
 		this._scrollable = new DomScrollableElement(this._domNode, {
 			vertical: ScrollbarVisibility.Hidden,
-			horizontal: ScrollbarVisibility.Auto,
+			horizontal: horizontalScrollbarVisibility,
 			horizontalScrollbarSize,
 			useShadows: false,
 			scrollYToX: true
@@ -83,7 +85,7 @@ export class BreadcrumbsWidget {
 		this._disposables.add(dom.addStandardDisposableListener(this._domNode, 'click', e => this._onClick(e)));
 		container.appendChild(this._scrollable.getDomNode());
 
-		const styleElement = dom.createStyleSheet(this._domNode);
+		const styleElement = domStylesheetsJs.createStyleSheet(this._domNode);
 		this._style(styleElement, styles);
 
 		const focusTracker = dom.trackFocus(this._domNode);
@@ -98,6 +100,12 @@ export class BreadcrumbsWidget {
 		});
 	}
 
+	setHorizontalScrollbarVisibility(visibility: ScrollbarVisibility) {
+		this._scrollable.updateOptions({
+			horizontal: visibility
+		});
+	}
+
 	dispose(): void {
 		this._disposables.dispose();
 		this._pendingLayout?.dispose();
@@ -106,6 +114,8 @@ export class BreadcrumbsWidget {
 		this._onDidFocusItem.dispose();
 		this._onDidChangeFocus.dispose();
 		this._domNode.remove();
+		dispose(this._items);
+		this._items.length = 0;
 		this._nodes.length = 0;
 		this._freeNodes.length = 0;
 	}
@@ -148,7 +158,7 @@ export class BreadcrumbsWidget {
 	private _style(styleElement: HTMLStyleElement, style: IBreadcrumbsWidgetStyles): void {
 		let content = '';
 		if (style.breadcrumbsBackground) {
-			content += `.monaco-breadcrumbs { background-color: ${style.breadcrumbsBackground}}`;
+			content += `.monaco-breadcrumbs { background-color: ${style.breadcrumbsBackground}}\n`;
 		}
 		if (style.breadcrumbsForeground) {
 			content += `.monaco-breadcrumbs .monaco-breadcrumb-item { color: ${style.breadcrumbsForeground}}\n`;
@@ -160,9 +170,9 @@ export class BreadcrumbsWidget {
 			content += `.monaco-breadcrumbs .monaco-breadcrumb-item.focused.selected { color: ${style.breadcrumbsFocusAndSelectionForeground}}\n`;
 		}
 		if (style.breadcrumbsHoverForeground) {
-			content += `.monaco-breadcrumbs:not(.disabled	) .monaco-breadcrumb-item:hover:not(.focused):not(.selected) { color: ${style.breadcrumbsHoverForeground}}\n`;
+			content += `.monaco-breadcrumbs:not(.disabled) .monaco-breadcrumb-item:hover:not(.focused):not(.selected) { color: ${style.breadcrumbsHoverForeground}}\n`;
 		}
-		styleElement.innerText = content;
+		styleElement.textContent = content;
 	}
 
 	setEnabled(value: boolean) {
@@ -191,13 +201,13 @@ export class BreadcrumbsWidget {
 		this._focus(this._items.indexOf(item!), payload);
 	}
 
-	focusPrev(payload?: any): any {
+	focusPrev(payload?: any): void {
 		if (this._focusedItemIdx > 0) {
 			this._focus(this._focusedItemIdx - 1, payload);
 		}
 	}
 
-	focusNext(payload?: any): any {
+	focusNext(payload?: any): void {
 		if (this._focusedItemIdx + 1 < this._nodes.length) {
 			this._focus(this._focusedItemIdx + 1, payload);
 		}
@@ -281,6 +291,7 @@ export class BreadcrumbsWidget {
 			removed = this._items.splice(prefix, this._items.length - prefix, ...items.slice(prefix));
 			this._render(prefix);
 			dispose(removed);
+			dispose(items.slice(0, prefix));
 			this._focus(-1, undefined);
 		} catch (e) {
 			const newError = new Error(`BreadcrumbsItem#setItems: newItems: ${items.length}, prefix: ${prefix}, removed: ${removed.length}`);
@@ -330,7 +341,7 @@ export class BreadcrumbsWidget {
 		try {
 			item.render(container);
 		} catch (err) {
-			container.innerText = '<<RENDER ERROR>>';
+			container.textContent = '<<RENDER ERROR>>';
 			console.error(err);
 		}
 		container.tabIndex = -1;

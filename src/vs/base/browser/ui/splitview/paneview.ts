@@ -3,21 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isFirefox } from 'vs/base/browser/browser';
-import { DataTransfers } from 'vs/base/browser/dnd';
-import { $, addDisposableListener, append, clearNode, EventHelper, EventType, getWindow, isHTMLElement, trackFocus } from 'vs/base/browser/dom';
-import { DomEmitter } from 'vs/base/browser/event';
-import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
-import { Gesture, EventType as TouchEventType } from 'vs/base/browser/touch';
-import { IBoundarySashes, Orientation } from 'vs/base/browser/ui/sash/sash';
-import { Color, RGBA } from 'vs/base/common/color';
-import { Emitter, Event } from 'vs/base/common/event';
-import { KeyCode } from 'vs/base/common/keyCodes';
-import { Disposable, DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
-import { ScrollEvent } from 'vs/base/common/scrollable';
-import 'vs/css!./paneview';
-import { localize } from 'vs/nls';
-import { IView, Sizing, SplitView } from './splitview';
+import { isFirefox } from '../../browser.js';
+import { DataTransfers } from '../../dnd.js';
+import { $, addDisposableListener, append, clearNode, EventHelper, EventType, getWindow, isHTMLElement, scheduleAtNextAnimationFrame, trackFocus } from '../../dom.js';
+import { DomEmitter } from '../../event.js';
+import { StandardKeyboardEvent } from '../../keyboardEvent.js';
+import { Gesture, EventType as TouchEventType } from '../../touch.js';
+import { IBoundarySashes, Orientation } from '../sash/sash.js';
+import { Color, RGBA } from '../../../common/color.js';
+import { Emitter, Event } from '../../../common/event.js';
+import { KeyCode } from '../../../common/keyCodes.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../common/lifecycle.js';
+import { ScrollEvent } from '../../../common/scrollable.js';
+import './paneview.css';
+import { localize } from '../../../../nls.js';
+import { IView, Sizing, SplitView } from './splitview.js';
+import { applyDragImage } from '../dnd/dnd.js';
 
 export interface IPaneOptions {
 	minimumBodySize?: number;
@@ -47,10 +48,14 @@ export interface IPaneStyles {
  */
 export abstract class Pane extends Disposable implements IView {
 
+	/**
+	 * Fallback header size (in px) used when the `--pane-header-size` CSS variable
+	 * is not resolvable (e.g. before the element is attached to the document).
+	 */
 	private static readonly HEADER_SIZE = 22;
 
 	readonly element: HTMLElement;
-	private header!: HTMLElement;
+	private header: HTMLElement | undefined;
 	private body!: HTMLElement;
 
 	protected _expanded: boolean;
@@ -72,6 +77,23 @@ export abstract class Pane extends Disposable implements IView {
 	};
 	private animationTimer: number | undefined = undefined;
 
+	/**
+	 * Cached result of {@link Pane.resolveHeaderSize}. Resolving reads a computed
+	 * style, which is comparatively expensive and runs on the layout hot path
+	 * (`minimumSize` / `maximumSize` / `layout` can each read it), so the value is
+	 * memoized and only re-read once per {@link Pane.layout} pass.
+	 */
+	private _headerSize: number | undefined = undefined;
+
+	/**
+	 * Deferred re-clamp scheduled when {@link Pane.layout} detects that the header
+	 * size changed between passes (e.g. the `--pane-header-size` CSS variable was
+	 * overridden at runtime). Fires {@link Pane.onDidChange} on the next frame so
+	 * the split view re-clamps the size it reserves for this pane without
+	 * reentering the current layout pass.
+	 */
+	private readonly _headerSizeRelayout = this._register(new MutableDisposable());
+
 	private readonly _onDidChange = this._register(new Emitter<number | undefined>());
 	readonly onDidChange: Event<number | undefined> = this._onDidChange.event;
 
@@ -84,10 +106,10 @@ export abstract class Pane extends Disposable implements IView {
 
 	set ariaHeaderLabel(newLabel: string) {
 		this._ariaHeaderLabel = newLabel;
-		this.header.setAttribute('aria-label', this.ariaHeaderLabel);
+		this.header?.setAttribute('aria-label', this.ariaHeaderLabel);
 	}
 
-	get draggableElement(): HTMLElement {
+	get draggableElement(): HTMLElement | undefined {
 		return this.header;
 	}
 
@@ -117,8 +139,23 @@ export abstract class Pane extends Disposable implements IView {
 		this._onDidChange.fire(undefined);
 	}
 
+	/**
+	 * Resolves the header size from the `--pane-header-size` CSS variable so it can
+	 * be overridden via CSS (e.g. by the `paneHeaders` style-override) without a
+	 * hard-coded constant. Falls back to {@link Pane.HEADER_SIZE} when the variable
+	 * is absent or unparseable. The result is cached and refreshed once per
+	 * {@link Pane.layout} pass.
+	 */
+	private resolveHeaderSize(): number {
+		if (this._headerSize === undefined) {
+			const size = parseInt(getWindow(this.element).getComputedStyle(this.element).getPropertyValue('--pane-header-size'), 10);
+			this._headerSize = isNaN(size) ? Pane.HEADER_SIZE : size;
+		}
+		return this._headerSize;
+	}
+
 	private get headerSize(): number {
-		return this.headerVisible ? Pane.HEADER_SIZE : 0;
+		return this.headerVisible ? this.resolveHeaderSize() : 0;
 	}
 
 	get minimumSize(): number {
@@ -139,11 +176,15 @@ export abstract class Pane extends Disposable implements IView {
 
 	orthogonalSize: number = 0;
 
+	protected getAriaHeaderLabel(title: string): string {
+		return localize('viewSection', "{0} Section", title);
+	}
+
 	constructor(options: IPaneOptions) {
 		super();
 		this._expanded = typeof options.expanded === 'undefined' ? true : !!options.expanded;
 		this._orientation = typeof options.orientation === 'undefined' ? Orientation.VERTICAL : options.orientation;
-		this._ariaHeaderLabel = localize('viewSection', "{0} Section", options.title);
+		this._ariaHeaderLabel = this.getAriaHeaderLabel(options.title);
 		this._minimumBodySize = typeof options.minimumBodySize === 'number' ? options.minimumBodySize : this._orientation === Orientation.HORIZONTAL ? 200 : 120;
 		this._maximumBodySize = typeof options.maximumBodySize === 'number' ? options.maximumBodySize : Number.POSITIVE_INFINITY;
 
@@ -252,8 +293,8 @@ export abstract class Pane extends Disposable implements IView {
 
 		const focusTracker = trackFocus(this.header);
 		this._register(focusTracker);
-		this._register(focusTracker.onDidFocus(() => this.header.classList.add('focused'), null));
-		this._register(focusTracker.onDidBlur(() => this.header.classList.remove('focused'), null));
+		this._register(focusTracker.onDidFocus(() => this.header?.classList.add('focused'), null));
+		this._register(focusTracker.onDidBlur(() => this.header?.classList.remove('focused'), null));
 
 		this.updateHeader();
 
@@ -269,8 +310,9 @@ export abstract class Pane extends Disposable implements IView {
 
 		this._register(Gesture.addTarget(this.header));
 
+		const header = this.header;
 		[EventType.CLICK, TouchEventType.Tap].forEach(eventType => {
-			this._register(addDisposableListener(this.header, eventType, e => {
+			this._register(addDisposableListener(header, eventType, e => {
 				if (!e.defaultPrevented) {
 					this.setExpanded(!this.isExpanded());
 				}
@@ -292,7 +334,22 @@ export abstract class Pane extends Disposable implements IView {
 	}
 
 	layout(size: number): void {
-		const headerSize = this.headerVisible ? Pane.HEADER_SIZE : 0;
+		// Re-read the header size from CSS once per layout pass; subsequent
+		// `minimumSize` / `maximumSize` reads within the pass reuse the cache.
+		const previousHeaderSize = this._headerSize;
+		this._headerSize = undefined;
+		const headerSize = this.headerSize;
+
+		// If the header size changed since the previous pass — e.g. the
+		// `--pane-header-size` CSS variable was overridden at runtime (a style
+		// override toggled) — the containing split view still reserves the old
+		// size for this pane, most visibly when it is collapsed. Refresh the
+		// header and, on the next frame, fire `onDidChange` so the split view
+		// re-clamps the reservation. Deferring avoids reentering this layout pass.
+		if (previousHeaderSize !== undefined && previousHeaderSize !== headerSize) {
+			this.updateHeader();
+			this._headerSizeRelayout.value = scheduleAtNextAnimationFrame(getWindow(this.element), () => this._onDidChange.fire(undefined));
+		}
 
 		const width = this._orientation === Orientation.VERTICAL ? this.orthogonalSize : size;
 		const height = this._orientation === Orientation.VERTICAL ? size - headerSize : this.orthogonalSize - headerSize;
@@ -315,6 +372,9 @@ export abstract class Pane extends Disposable implements IView {
 	}
 
 	protected updateHeader(): void {
+		if (!this.header) {
+			return;
+		}
 		const expanded = !this.headerVisible || this.isExpanded();
 
 		if (this.collapsible) {
@@ -358,8 +418,8 @@ class PaneDraggable extends Disposable {
 	constructor(private pane: Pane, private dnd: IPaneDndController, private context: IDndContext) {
 		super();
 
-		pane.draggableElement.draggable = true;
-		this._register(addDisposableListener(pane.draggableElement, 'dragstart', e => this.onDragStart(e)));
+		pane.draggableElement!.draggable = true;
+		this._register(addDisposableListener(pane.draggableElement!, 'dragstart', e => this.onDragStart(e)));
 		this._register(addDisposableListener(pane.dropTargetElement, 'dragenter', e => this.onDragEnter(e)));
 		this._register(addDisposableListener(pane.dropTargetElement, 'dragleave', e => this.onDragLeave(e)));
 		this._register(addDisposableListener(pane.dropTargetElement, 'dragend', e => this.onDragEnd(e)));
@@ -373,16 +433,16 @@ class PaneDraggable extends Disposable {
 			return;
 		}
 
+		const label = this.pane.draggableElement?.textContent || '';
+
 		e.dataTransfer.effectAllowed = 'move';
 
 		if (isFirefox) {
 			// Firefox: requires to set a text data transfer to get going
-			e.dataTransfer?.setData(DataTransfers.TEXT, this.pane.draggableElement.textContent || '');
+			e.dataTransfer?.setData(DataTransfers.TEXT, label);
 		}
 
-		const dragImage = append(this.pane.element.ownerDocument.body, $('.monaco-drag-image', {}, this.pane.draggableElement.textContent || ''));
-		e.dataTransfer.setDragImage(dragImage, -10, -10);
-		setTimeout(() => dragImage.remove(), 0);
+		applyDragImage(e, this.pane.element, label);
 
 		this.context.draggable = this;
 	}
@@ -648,6 +708,7 @@ export class PaneView extends Disposable {
 	}
 
 	private getPaneHeaderElements(): HTMLElement[] {
+		// eslint-disable-next-line no-restricted-syntax
 		return [...this.element.querySelectorAll('.pane-header')] as HTMLElement[];
 	}
 
