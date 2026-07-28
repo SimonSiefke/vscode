@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.tunnel-host-toggle {
+.monaco-action-bar .action-item.tunnel-host-toggle {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -37,7 +37,7 @@
 }
 
 .tunnel-host-toggle.sharing .tunnel-host-icon .codicon {
-	color: var(--vscode-problemsWarningIcon-foreground) !important;
+	color: var(--vscode-focusBorder) !important;
 }
 
 .tunnel-host-toggle.connecting .tunnel-host-icon .codicon {
