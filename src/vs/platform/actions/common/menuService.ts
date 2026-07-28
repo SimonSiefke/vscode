@@ -5,7 +5,7 @@
 
 import { RunOnceScheduler } from '../../../base/common/async.js';
 import { DebounceEmitter, Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { DisposableStore, Disposable, IDisposable } from '../../../base/common/lifecycle.js';
 import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuItem, IMenuItemHide, IMenuService, isIMenuItem, isISubmenuItem, ISubmenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
 import { ICommandAction, ILocalizedString } from '../../action/common/action.js';
 import { ICommandService } from '../../commands/common/commands.js';
@@ -16,7 +16,7 @@ import { removeFastWithoutKeepingOrder } from '../../../base/common/arrays.js';
 import { localize } from '../../../nls.js';
 import { IKeybindingService } from '../../keybinding/common/keybinding.js';
 
-export class MenuService implements IMenuService {
+export class MenuService extends Disposable implements IMenuService {
 
 	declare readonly _serviceBrand: undefined;
 
@@ -27,7 +27,8 @@ export class MenuService implements IMenuService {
 		@IKeybindingService private readonly _keybindingService: IKeybindingService,
 		@IStorageService storageService: IStorageService,
 	) {
-		this._hiddenStates = new PersistedMenuHideState(storageService);
+		super();
+		this._hiddenStates = this._register(new PersistedMenuHideState(storageService));
 	}
 
 	createMenu(id: MenuId, contextKeyService: IContextKeyService, options?: IMenuCreateOptions): IMenu {
@@ -51,7 +52,7 @@ export class MenuService implements IMenuService {
 	}
 }
 
-class PersistedMenuHideState {
+class PersistedMenuHideState implements IDisposable {
 
 	private static readonly _key = 'menu.hiddenCommands';
 
@@ -365,9 +366,10 @@ class MenuInfo extends MenuInfoSnapshot {
 	}
 }
 
-class MenuImpl extends Disposable implements IMenu {
+class MenuImpl implements IMenu {
 
 	private readonly _menuInfo: MenuInfo;
+	private readonly _disposables = new DisposableStore();
 
 	private readonly _onDidChange: Emitter<IMenuChangeEvent>;
 	readonly onDidChange: Event<IMenuChangeEvent>;
@@ -380,17 +382,17 @@ class MenuImpl extends Disposable implements IMenu {
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextKeyService contextKeyService: IContextKeyService
 	) {
-		super()
 		this._menuInfo = new MenuInfo(id, hiddenStates, options.emitEventsForSubmenuChanges, commandService, keybindingService, contextKeyService);
 
 		// Rebuild this menu whenever the menu registry reports an event for this MenuId.
 		// This usually happen while code and extensions are loaded and affects the over
 		// structure of the menu
-		const rebuildMenuSoon = this._register(new RunOnceScheduler(() => {
+		const rebuildMenuSoon = new RunOnceScheduler(() => {
 			this._menuInfo.refresh();
 			this._onDidChange.fire({ menu: this, isStructuralChange: true, isEnablementChange: true, isToggleChange: true });
-		}, options.eventDebounceDelay));
-		this._register(MenuRegistry.onDidChangeMenu(e => {
+		}, options.eventDebounceDelay);
+		this._disposables.add(rebuildMenuSoon);
+		this._disposables.add(MenuRegistry.onDidChangeMenu(e => {
 			for (const id of this._menuInfo.allMenuIds) {
 				if (e.has(id)) {
 					rebuildMenuSoon.schedule();
@@ -402,7 +404,7 @@ class MenuImpl extends Disposable implements IMenu {
 		// When context keys or storage state changes we need to check if the menu also has changed. However,
 		// we only do that when someone listens on this menu because (1) these events are
 		// firing often and (2) menu are often leaked
-		const lazyListener = this._register(new DisposableStore());
+		const lazyListener = this._disposables.add(new DisposableStore());
 
 		const merge = (events: IMenuChangeEvent[]): IMenuChangeEvent => {
 
@@ -438,13 +440,13 @@ class MenuImpl extends Disposable implements IMenu {
 			}));
 		};
 
-		this._onDidChange = this._register(new DebounceEmitter({
+		this._onDidChange = new DebounceEmitter({
 			// start/stop context key listener
 			onWillAddFirstListener: startLazyListener,
 			onDidRemoveLastListener: lazyListener.clear.bind(lazyListener),
 			delay: options.eventDebounceDelay,
 			merge
-		}));
+		});
 		this.onDidChange = this._onDidChange.event;
 	}
 
@@ -452,6 +454,10 @@ class MenuImpl extends Disposable implements IMenu {
 		return this._menuInfo.createActionGroups(options);
 	}
 
+	dispose(): void {
+		this._disposables.dispose();
+		this._onDidChange.dispose();
+	}
 }
 
 function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, states: PersistedMenuHideState): IMenuItemHide {
