@@ -6,6 +6,7 @@
 import * as nls from '../../../nls.js';
 import { addDisposableListener, getActiveWindow } from '../../../base/browser/dom.js';
 import { createFastDomNode, type FastDomNode } from '../../../base/browser/fastDomNode.js';
+import { Color } from '../../../base/common/color.js';
 import { BugIndicatingError } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
@@ -15,43 +16,39 @@ import { IInstantiationService } from '../../../platform/instantiation/common/in
 import { TextureAtlas } from './atlas/textureAtlas.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
 import { INotificationService, IPromptChoice, Severity } from '../../../platform/notification/common/notification.js';
+import { IThemeService } from '../../../platform/theme/common/themeService.js';
 import { GPULifecycle } from './gpuDisposable.js';
 import { ensureNonNullable, observeDevicePixelDimensions } from './gpuUtils.js';
 import { RectangleRenderer } from './rectangleRenderer.js';
 import type { ViewContext } from '../../common/viewModel/viewContext.js';
-import { DecorationCssRuleExtractor } from './decorationCssRuleExtractor.js';
+import { DecorationCssRuleExtractor } from './css/decorationCssRuleExtractor.js';
 import { Event } from '../../../base/common/event.js';
-import type { IEditorOptions } from '../../common/config/editorOptions.js';
-import { InlineDecorationType } from '../../common/viewModel.js';
-
-const enum GpuRenderLimits {
-	maxGpuLines = 3000,
-	maxGpuCols = 200,
-}
+import { EditorOption, type IEditorOptions } from '../../common/config/editorOptions.js';
+import { DecorationStyleCache } from './css/decorationStyleCache.js';
+import { InlineDecorationType } from '../../common/viewModel/inlineDecorations.js';
 
 export class ViewGpuContext extends Disposable {
 	/**
-	 * The temporary hard cap for lines rendered by the GPU renderer. This can be removed once more
-	 * dynamic allocation is implemented in https://github.com/microsoft/vscode/issues/227091
+	 * The hard cap for line columns rendered by the GPU renderer.
 	 */
-	readonly maxGpuLines = GpuRenderLimits.maxGpuLines;
-
-	/**
-	 * The temporary hard cap for line columns rendered by the GPU renderer. This can be removed
-	 * once more dynamic allocation is implemented in https://github.com/microsoft/vscode/issues/227108
-	 */
-	readonly maxGpuCols = GpuRenderLimits.maxGpuCols;
+	readonly maxGpuCols = 2000;
 
 	readonly canvas: FastDomNode<HTMLCanvasElement>;
 	readonly ctx: GPUCanvasContext;
 
-	readonly device: Promise<GPUDevice>;
+	static device: Promise<GPUDevice>;
+	static deviceSync: GPUDevice | undefined;
 
 	readonly rectangleRenderer: RectangleRenderer;
 
 	private static readonly _decorationCssRuleExtractor = new DecorationCssRuleExtractor();
 	static get decorationCssRuleExtractor(): DecorationCssRuleExtractor {
 		return ViewGpuContext._decorationCssRuleExtractor;
+	}
+
+	private static readonly _decorationStyleCache = new DecorationStyleCache();
+	static get decorationStyleCache(): DecorationStyleCache {
+		return ViewGpuContext._decorationStyleCache;
 	}
 
 	private static _atlas: TextureAtlas | undefined;
@@ -79,12 +76,14 @@ export class ViewGpuContext extends Disposable {
 
 	readonly canvasDevicePixelDimensions: IObservable<{ width: number; height: number }>;
 	readonly devicePixelRatio: IObservable<number>;
+	readonly contentLeft: IObservable<number>;
 
 	constructor(
 		context: ViewContext,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@INotificationService private readonly _notificationService: INotificationService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IThemeService private readonly _themeService: IThemeService,
 	) {
 		super();
 
@@ -102,20 +101,23 @@ export class ViewGpuContext extends Disposable {
 
 		this.ctx = ensureNonNullable(this.canvas.domNode.getContext('webgpu'));
 
-		this.device = GPULifecycle.requestDevice((message) => {
-			const choices: IPromptChoice[] = [{
-				label: nls.localize('editor.dom.render', "Use DOM-based rendering"),
-				run: () => this.configurationService.updateValue('editor.experimentalGpuAcceleration', 'off'),
-			}];
-			this._notificationService.prompt(Severity.Warning, message, choices);
-		}).then(ref => this._register(ref).object);
-		this.device.then(device => {
-			if (!ViewGpuContext._atlas) {
-				ViewGpuContext._atlas = this._instantiationService.createInstance(TextureAtlas, device.limits.maxTextureDimension2D, undefined);
-			}
-		});
-
-		this.rectangleRenderer = this._instantiationService.createInstance(RectangleRenderer, context, this.canvas.domNode, this.ctx, this.device);
+		// Request the GPU device, we only want to do this a single time per window as it's async
+		// and can delay the initial render.
+		if (!ViewGpuContext.device) {
+			ViewGpuContext.device = GPULifecycle.requestDevice((message) => {
+				const choices: IPromptChoice[] = [{
+					label: nls.localize('editor.dom.render', "Use DOM-based rendering"),
+					run: () => this.configurationService.updateValue('editor.experimentalGpuAcceleration', 'off'),
+				}];
+				this._notificationService.prompt(Severity.Warning, message, choices);
+			}).then(ref => {
+				ViewGpuContext.deviceSync = ref.object;
+				if (!ViewGpuContext._atlas) {
+					ViewGpuContext._atlas = this._instantiationService.createInstance(TextureAtlas, ref.object.limits.maxTextureDimension2D, undefined, ViewGpuContext.decorationStyleCache);
+				}
+				return ref.object;
+			});
+		}
 
 		const dprObs = observableValue(this, getActiveWindow().devicePixelRatio);
 		this._register(addDisposableListener(getActiveWindow(), 'resize', () => {
@@ -123,6 +125,12 @@ export class ViewGpuContext extends Disposable {
 		}));
 		this.devicePixelRatio = dprObs;
 		this._register(runOnChange(this.devicePixelRatio, () => ViewGpuContext.atlas?.clear()));
+
+		// Clear decoration CSS caches when theme changes as CSS variables may have different values
+		this._register(this._themeService.onDidColorThemeChange(() => {
+			ViewGpuContext.decorationCssRuleExtractor.clear();
+			ViewGpuContext.atlas?.clear();
+		}));
 
 		const canvasDevicePixelDimensions = observableValue(this, { width: this.canvas.domNode.width, height: this.canvas.domNode.height });
 		this._register(observeDevicePixelDimensions(
@@ -135,6 +143,14 @@ export class ViewGpuContext extends Disposable {
 			}
 		));
 		this.canvasDevicePixelDimensions = canvasDevicePixelDimensions;
+
+		const contentLeft = observableValue(this, 0);
+		this._register(this.configurationService.onDidChangeConfiguration(e => {
+			contentLeft.set(context.configuration.options.get(EditorOption.layoutInfo).contentLeft, undefined);
+		}));
+		this.contentLeft = contentLeft;
+
+		this.rectangleRenderer = this._register(this._instantiationService.createInstance(RectangleRenderer, context, this.contentLeft, this.devicePixelRatio, this.canvas.domNode, this.ctx, ViewGpuContext.device));
 	}
 
 	/**
@@ -148,9 +164,7 @@ export class ViewGpuContext extends Disposable {
 		// Check if the line has simple attributes that aren't supported
 		if (
 			data.containsRTL ||
-			data.maxColumn > GpuRenderLimits.maxGpuCols ||
-			data.continuesWithWrappedLine ||
-			lineNumber >= GpuRenderLimits.maxGpuLines
+			data.maxColumn > this.maxGpuCols
 		) {
 			return false;
 		}
@@ -170,7 +184,7 @@ export class ViewGpuContext extends Disposable {
 						return false;
 					}
 					for (const r of rule.style) {
-						if (!gpuSupportedDecorationCssRules.includes(r)) {
+						if (!supportsCssRule(r, rule.style)) {
 							return false;
 						}
 					}
@@ -195,11 +209,8 @@ export class ViewGpuContext extends Disposable {
 		if (data.containsRTL) {
 			reasons.push('containsRTL');
 		}
-		if (data.maxColumn > GpuRenderLimits.maxGpuCols) {
+		if (data.maxColumn > this.maxGpuCols) {
 			reasons.push('maxColumn > maxGpuCols');
-		}
-		if (data.continuesWithWrappedLine) {
-			reasons.push('continuesWithWrappedLine');
 		}
 		if (data.inlineDecorations.length > 0) {
 			let supported = true;
@@ -220,8 +231,9 @@ export class ViewGpuContext extends Disposable {
 						return false;
 					}
 					for (const r of rule.style) {
-						if (!gpuSupportedDecorationCssRules.includes(r)) {
-							problemRules.push(r);
+						if (!supportsCssRule(r, rule.style)) {
+							// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
+							problemRules.push(`${r}: ${rule.style[r as any]}`);
 							return false;
 						}
 					}
@@ -241,16 +253,55 @@ export class ViewGpuContext extends Disposable {
 				reasons.push(`inlineDecorations with unsupported CSS selectors (${problemSelectors.map(e => `\`${e}\``).join(', ')})`);
 			}
 		}
-		if (lineNumber >= GpuRenderLimits.maxGpuLines) {
-			reasons.push('lineNumber >= maxGpuLines');
-		}
 		return reasons;
 	}
 }
 
 /**
- * A list of fully supported decoration CSS rules that can be used in the GPU renderer.
+ * A list of supported decoration CSS rules that can be used in the GPU renderer.
  */
 const gpuSupportedDecorationCssRules = [
 	'color',
+	'font-weight',
+	'opacity',
+	'text-decoration',
+	'text-decoration-color',
+	'text-decoration-line',
+	'text-decoration-style',
+	'text-decoration-thickness',
 ];
+
+function supportsCssRule(rule: string, style: CSSStyleDeclaration) {
+	if (!gpuSupportedDecorationCssRules.includes(rule)) {
+		return false;
+	}
+	// Check for values that aren't supported
+	switch (rule) {
+		case 'text-decoration':
+		case 'text-decoration-line': {
+			const value = style.getPropertyValue(rule);
+			// Only line-through is supported currently
+			return value === 'line-through';
+		}
+		case 'text-decoration-color': {
+			const value = style.getPropertyValue(rule);
+			// Support var(--something, initial/inherit) which falls back to currentcolor
+			if (/^var\(--[^,]+,\s*(?:initial|inherit)\)$/.test(value)) {
+				return true;
+			}
+			// Support parsed color values
+			return Color.Format.CSS.parse(value) !== null;
+		}
+		case 'text-decoration-style': {
+			const value = style.getPropertyValue(rule);
+			// Only 'initial' (solid) is supported
+			return value === 'initial';
+		}
+		case 'text-decoration-thickness': {
+			const value = style.getPropertyValue(rule);
+			// Only pixel values and 'initial' are supported
+			return value === 'initial' || /^\d+(\.\d+)?px$/.test(value);
+		}
+		default: return true;
+	}
+}

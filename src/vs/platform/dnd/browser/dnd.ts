@@ -9,11 +9,12 @@ import { DragMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { coalesce } from '../../../base/common/arrays.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
+import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../base/common/map.js';
 import { parse } from '../../../base/common/marshalling.js';
 import { Schemas } from '../../../base/common/network.js';
 import { isNative, isWeb } from '../../../base/common/platform.js';
-import { URI } from '../../../base/common/uri.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
 import { localize } from '../../../nls.js';
 import { IDialogService } from '../../dialogs/common/dialogs.js';
 import { IBaseTextResourceEditorInput, ITextEditorSelection } from '../../editor/common/editor.js';
@@ -23,6 +24,7 @@ import { ByteSize, IFileService } from '../../files/common/files.js';
 import { IInstantiationService, ServicesAccessor } from '../../instantiation/common/instantiation.js';
 import { extractSelection } from '../../opener/common/opener.js';
 import { Registry } from '../../registry/common/platform.js';
+import { IMarker } from '../../markers/common/markers.js';
 
 
 //#region Editor / Resources DND
@@ -30,7 +32,10 @@ import { Registry } from '../../registry/common/platform.js';
 export const CodeDataTransfers = {
 	EDITORS: 'CodeEditors',
 	FILES: 'CodeFiles',
-	SYMBOLS: 'application/vnd.code.symbols'
+	SYMBOLS: 'application/vnd.code.symbols',
+	MARKERS: 'application/vnd.code.diagnostics',
+	NOTEBOOK_CELL_OUTPUT: 'notebook-cell-output',
+	SCM_HISTORY_ITEM: 'scm-history-item',
 };
 
 export interface IDraggedResourceEditorInput extends IBaseTextResourceEditorInput {
@@ -314,6 +319,16 @@ export interface IResourceStat {
 	readonly selection?: ITextEditorSelection;
 }
 
+export interface IResourceDropHandler {
+	/**
+	 * Handle a dropped resource.
+	 * @param resource The resource that was dropped
+	 * @param accessor Service accessor to get services
+	 * @returns true if handled, false otherwise
+	 */
+	handleDrop(resource: URI, accessor: ServicesAccessor): Promise<boolean>;
+}
+
 export interface IDragAndDropContributionRegistry {
 	/**
 	 * Registers a drag and drop contribution.
@@ -324,6 +339,20 @@ export interface IDragAndDropContributionRegistry {
 	 * Returns all registered drag and drop contributions.
 	 */
 	getAll(): IterableIterator<IDragAndDropContribution>;
+
+	/**
+	 * Register a handler for dropped resources.
+	 * @returns A disposable that unregisters the handler when disposed
+	 */
+	registerDropHandler(handler: IResourceDropHandler): IDisposable;
+
+	/**
+	 * Handle a dropped resource using registered handlers.
+	 * @param resource The resource that was dropped
+	 * @param accessor Service accessor to get services
+	 * @returns true if any handler handled the resource, false otherwise
+	 */
+	handleResourceDrop(resource: URI, accessor: ServicesAccessor): Promise<boolean>;
 }
 
 interface IDragAndDropContribution {
@@ -334,6 +363,7 @@ interface IDragAndDropContribution {
 
 class DragAndDropContributionRegistry implements IDragAndDropContributionRegistry {
 	private readonly _contributions = new Map<string, IDragAndDropContribution>();
+	private readonly _dropHandlers = new Set<IResourceDropHandler>();
 
 	register(contribution: IDragAndDropContribution): void {
 		if (this._contributions.has(contribution.dataFormatKey)) {
@@ -344,6 +374,20 @@ class DragAndDropContributionRegistry implements IDragAndDropContributionRegistr
 
 	getAll(): IterableIterator<IDragAndDropContribution> {
 		return this._contributions.values();
+	}
+
+	registerDropHandler(handler: IResourceDropHandler): IDisposable {
+		this._dropHandlers.add(handler);
+		return toDisposable(() => this._dropHandlers.delete(handler));
+	}
+
+	async handleResourceDrop(resource: URI, accessor: ServicesAccessor): Promise<boolean> {
+		for (const handler of this._dropHandlers) {
+			if (await handler.handleDrop(resource, accessor)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 
@@ -414,8 +458,16 @@ export interface DocumentSymbolTransferData {
 	kind: number;
 }
 
-export function extractSymbolDropData(e: DragEvent): DocumentSymbolTransferData[] {
-	const rawSymbolsData = e.dataTransfer?.getData(CodeDataTransfers.SYMBOLS);
+export interface NotebookCellOutputTransferData {
+	outputId: string;
+}
+
+function setDataAsJSON(e: DragEvent, kind: string, data: unknown) {
+	e.dataTransfer?.setData(kind, JSON.stringify(data));
+}
+
+function getDataAsJSON<T>(e: DragEvent, kind: string, defaultValue: T): T {
+	const rawSymbolsData = e.dataTransfer?.getData(kind);
 	if (rawSymbolsData) {
 		try {
 			return JSON.parse(rawSymbolsData);
@@ -424,11 +476,37 @@ export function extractSymbolDropData(e: DragEvent): DocumentSymbolTransferData[
 		}
 	}
 
-	return [];
+	return defaultValue;
+}
+
+export function extractSymbolDropData(e: DragEvent): DocumentSymbolTransferData[] {
+	return getDataAsJSON(e, CodeDataTransfers.SYMBOLS, []);
 }
 
 export function fillInSymbolsDragData(symbolsData: readonly DocumentSymbolTransferData[], e: DragEvent): void {
-	e.dataTransfer?.setData(CodeDataTransfers.SYMBOLS, JSON.stringify(symbolsData));
+	setDataAsJSON(e, CodeDataTransfers.SYMBOLS, symbolsData);
+}
+
+export type MarkerTransferData = IMarker | { uri: UriComponents };
+
+export function extractMarkerDropData(e: DragEvent): MarkerTransferData[] | undefined {
+	return getDataAsJSON(e, CodeDataTransfers.MARKERS, undefined);
+}
+
+export function fillInMarkersDragData(markerData: MarkerTransferData[], e: DragEvent): void {
+	setDataAsJSON(e, CodeDataTransfers.MARKERS, markerData);
+}
+
+export function extractNotebookCellOutputDropData(e: DragEvent): NotebookCellOutputTransferData | undefined {
+	return getDataAsJSON(e, CodeDataTransfers.NOTEBOOK_CELL_OUTPUT, undefined);
+}
+
+interface IElectronWebUtils {
+	vscode?: {
+		webUtils?: {
+			getPathForFile(file: File): string;
+		};
+	};
 }
 
 /**
@@ -436,8 +514,8 @@ export function fillInSymbolsDragData(symbolsData: readonly DocumentSymbolTransf
  * in a safe way without crashing the application when running in the web.
  */
 export function getPathForFile(file: File): string | undefined {
-	if (isNative && typeof (globalThis as any).vscode?.webUtils?.getPathForFile === 'function') {
-		return (globalThis as any).vscode.webUtils.getPathForFile(file);
+	if (isNative && typeof (globalThis as IElectronWebUtils).vscode?.webUtils?.getPathForFile === 'function') {
+		return (globalThis as IElectronWebUtils).vscode?.webUtils?.getPathForFile(file);
 	}
 
 	return undefined;

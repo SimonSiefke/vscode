@@ -5,7 +5,7 @@
 
 import { deepStrictEqual } from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { DecorationCssRuleExtractor } from '../../../browser/gpu/decorationCssRuleExtractor.js';
+import { DecorationCssRuleExtractor } from '../../../browser/gpu/css/decorationCssRuleExtractor.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { $, getActiveDocument } from '../../../../base/browser/dom.js';
 
@@ -90,5 +90,27 @@ suite('DecorationCssRulerExtractor', () => {
 		assertStyles(testClassName, [
 			`.${testClassName} { color: red; }`,
 		]);
+	});
+
+	test('should pick up styles with pseudo-class selectors', () => {
+		addStyleElement(`.${testClassName} { background-color: green; }`);
+		addStyleElement(`.${testClassName}:not(.other) { color: blue; }`);
+		const rules = extractor.getStyleRules(container, testClassName);
+		deepStrictEqual(rules.length, 2);
+		deepStrictEqual(rules[0].style.backgroundColor, 'green');
+		deepStrictEqual(rules[1].style.color, 'blue');
+	});
+
+	test('should pick up styles when className has multiple space-separated classes', () => {
+		const secondClassName = randomClass();
+		addStyleElement([
+			`.${testClassName} { color: red; }`,
+			`.${secondClassName} { opacity: 0.5; }`,
+			`.${testClassName}.${secondClassName} { font-weight: bold; }`,
+		].join('\n'));
+		// Pass space-separated classes like 'class1 class2'
+		const rules = extractor.getStyleRules(container, `${testClassName} ${secondClassName}`);
+		// Should find rules for both classes and the chained selector
+		deepStrictEqual(rules.length, 3);
 	});
 });

@@ -6,6 +6,7 @@
 import * as dom from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IAction } from '../../../../base/common/actions.js';
+import { raceCancellationError } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
@@ -25,6 +26,7 @@ import { IBulkEditResult, IBulkEditService } from '../../../browser/services/bul
 import { Range } from '../../../common/core/range.js';
 import { DocumentDropEdit, DocumentPasteEdit } from '../../../common/languages.js';
 import { TrackedRangeStickiness } from '../../../common/model.js';
+import { CodeEditorStateFlag, EditorStateCancellationTokenSource } from '../../editorState/browser/editorState.js';
 import { createCombinedWorkspaceEdit } from './edit.js';
 import './postEditWidget.css';
 
@@ -86,8 +88,7 @@ class PostEditWidget<T extends DocumentPasteEdit | DocumentDropEdit> extends Dis
 	}
 
 	private _updateButtonTitle() {
-		const binding = this._keybindingService.lookupKeybinding(this.showCommand.id)?.getLabel();
-		this.button.element.title = this.showCommand.label + (binding ? ` (${binding})` : '');
+		this.button.element.title = this._keybindingService.appendKeybinding(this.showCommand.label, this.showCommand.id);
 	}
 
 	private create(): void {
@@ -169,11 +170,11 @@ export class PostEditWidgetManager<T extends DocumentPasteEdit | DocumentDropEdi
 	}
 
 	public async applyEditAndShowIfNeeded(ranges: readonly Range[], edits: EditSet<T>, canShowWidget: boolean, resolve: (edit: T, token: CancellationToken) => Promise<T>, token: CancellationToken) {
-		const model = this._editor.getModel();
-		if (!model || !ranges.length) {
+		if (!ranges.length || !this._editor.hasModel()) {
 			return;
 		}
 
+		const model = this._editor.getModel();
 		const edit = edits.allEdits.at(edits.activeEditIndex);
 		if (!edit) {
 			return;
@@ -200,11 +201,14 @@ export class PostEditWidgetManager<T extends DocumentPasteEdit | DocumentDropEdi
 			}
 		};
 
+		const editorStateCts = new EditorStateCancellationTokenSource(this._editor, CodeEditorStateFlag.Value | CodeEditorStateFlag.Selection, undefined, token);
 		let resolvedEdit: T;
 		try {
-			resolvedEdit = await resolve(edit, token);
+			resolvedEdit = await raceCancellationError(resolve(edit, editorStateCts.token), editorStateCts.token);
 		} catch (e) {
 			return handleError(e, localize('resolveError', "Error resolving edit '{0}':\n{1}", edit.title, toErrorMessage(e)));
+		} finally {
+			editorStateCts.dispose();
 		}
 
 		if (token.isCancellationRequested) {
