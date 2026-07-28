@@ -22,11 +22,13 @@
 	z-index: 12;
 }
 
-.monaco-workbench .part > .title {
-	display: none; /* Parts have to opt in to show title area */
+.monaco-workbench .part > .title,
+.monaco-workbench .part > .header-or-footer {
+	display: none; /* Parts have to opt in to show area */
 }
 
-.monaco-workbench .part > .title {
+.monaco-workbench .part > .title,
+.monaco-workbench .part > .header-or-footer {
 	height: 35px;
 	display: flex;
 	box-sizing: border-box;
@@ -93,3 +95,4 @@
 	top: 33px; /* at the bottom of the 35px height title container */
 	z-index: 5; /* on top of things */
 }
+

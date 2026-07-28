@@ -6,7 +6,8 @@ There are several ways in which you can contribute, beyond writing code. The goa
 
 ## Asking Questions
 
-Have a question? Instead of opening an issue, please ask on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode) using the tag `vscode`.
+
+Have a question? Instead of opening an issue, please ask on [Stack Overflow](https://stackoverflow.com/questions/tagged/visual-studio-code) using the tag `visual-studio-code`.
 
 The active community will be eager to assist you. Your well-worded question will serve as a resource to others searching for help.
 
@@ -43,7 +44,7 @@ If you cannot find an existing issue that describes your bug or feature, create 
 
 File a single issue per problem and feature request. Do not enumerate multiple bugs or feature requests in the same issue.
 
-Do not add your issue as a comment to an existing issue unless it's for the identical input. Many issues look similar but have different causes.
+Do not add your issue as a comment to an existing issue unless it's for the identical issue. Many issues look similar but have different causes.
 
 The more information you can provide, the more likely someone will be successful at reproducing the issue and finding a fix.
 
