@@ -29,7 +29,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { ContextKeyExpr, IContextKeyService, RawContextKey, IContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { ITimelineService, TimelineChangeEvent, TimelineItem, TimelineOptions, TimelineProvidersChangeEvent, TimelineRequest, Timeline } from '../common/timeline.js';
+import { ITimelineService, TimelineChangeEvent, TimelineItem, TimelineOptions, TimelinePaneId, TimelineProvidersChangeEvent, TimelineRequest, Timeline } from '../common/timeline.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { SideBySideEditor, EditorResourceAccessor } from '../../../common/editor.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
