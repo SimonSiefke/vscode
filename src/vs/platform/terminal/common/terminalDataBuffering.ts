@@ -26,7 +26,7 @@ export class TerminalDataBufferer implements IDisposable {
 	}
 
 	startBuffering(id: number, event: Event<string | IProcessDataEvent>, throttleBy: number = 5): IDisposable {
-		let buffer = this._terminalBufferMap.get(id);
+		const buffer = this._terminalBufferMap.get(id);
 		if (buffer) {
 			return buffer;
 		}
@@ -44,19 +44,19 @@ export class TerminalDataBufferer implements IDisposable {
 			}
 		});
 
-		buffer = {
+		const newBuffer: TerminalDataBuffer = {
 			data: [],
 			timeoutId: undefined,
 			dispose: () => {
-				if (buffer.timeoutId) {
-					clearTimeout(buffer.timeoutId);
+				if (newBuffer.timeoutId) {
+					clearTimeout(newBuffer.timeoutId);
 				}
 				this.flushBuffer(id);
 				disposable.dispose();
 			}
 		};
-		this._terminalBufferMap.set(id, buffer);
-		return buffer;
+		this._terminalBufferMap.set(id, newBuffer);
+		return newBuffer;
 	}
 
 	stopBuffering(id: number) {
