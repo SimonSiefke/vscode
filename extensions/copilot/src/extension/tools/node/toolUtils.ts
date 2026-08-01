@@ -152,13 +152,17 @@ export function patternContainsWorkspaceFolderPath(pattern: string | undefined, 
 	return false;
 }
 
-export function resolveToolInputPath(path: string, promptPathRepresentationService: IPromptPathRepresentationService): URI {
+export function resolveToolInputPath(path: string, promptPathRepresentationService: IPromptPathRepresentationService, workingDirectory?: URI): URI {
 	const uri = promptPathRepresentationService.resolveFilePath(path);
-	if (!uri) {
-		throw new Error(`Invalid input path: ${path}. Be sure to use an absolute path.`);
+	if (uri) {
+		return uri;
 	}
 
-	return uri;
+	if (workingDirectory && !isAbsolute(path)) {
+		return normalizePath(URI.joinPath(workingDirectory, path));
+	}
+
+	throw new Error(`Invalid input path: ${path}. Be sure to use an absolute path.`);
 }
 
 export async function isFileOkForTool(accessor: ServicesAccessor, uri: URI, buildPromptContext?: IBuildPromptContext): Promise<boolean> {
