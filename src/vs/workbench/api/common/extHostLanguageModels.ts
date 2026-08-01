@@ -128,6 +128,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 	private readonly _pendingRequest = new Map<number, { languageModelId: string; res: LanguageModelResponse }>();
 	private readonly _pendingCancelCTS = new DisposableMap<number, CancellationTokenSource>();
 	private readonly _ignoredFileProviders = new Map<number, vscode.LanguageModelIgnoredFileProvider>();
+	private readonly _apiObjectCache = new Map<string, vscode.LanguageModelChat>();
 	private _languageModelProxyProvider: vscode.LanguageModelProxyProvider | undefined;
 
 	constructor(
@@ -160,13 +161,19 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 
 		return toDisposable(() => {
 			this._languageModelProviders.delete(vendor);
-			this._localModels.forEach((value, key) => {
-				if (value.metadata.vendor === vendor) {
-					this._localModels.delete(key);
-				}
-			});
+			this._clearModelCache(vendor);
 			providerChangeEventDisposable?.dispose();
 			this._proxy.$unregisterProvider(vendor);
+		});
+	}
+
+	// Helper function to clear the local cache for a specific vendor. There's no lookup, so this involves iterating over all models.
+	private _clearModelCache(vendor: string): void {
+		this._localModels.forEach((value, key) => {
+			if (value.metadata.vendor === vendor) {
+				this._localModels.delete(key);
+				this._apiObjectCache.delete(key);
+			}
 		});
 	}
 
@@ -260,6 +267,7 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 		this._localModels.forEach((value, key) => {
 			if (value.metadata.vendor === vendor && value.group === options.group) {
 				this._localModels.delete(key);
+				this._apiObjectCache.delete(key);
 			}
 		});
 
@@ -442,43 +450,49 @@ export class ExtHostLanguageModels implements ExtHostLanguageModelsShape {
 			await this._fakeAuthPopulate(model.metadata);
 		}
 
-		const that = this;
-		const apiObject: vscode.LanguageModelChat = {
-			id: model.info.id,
-			vendor: model.metadata.vendor,
-			family: model.info.family,
-			version: model.info.version,
-			name: model.info.name,
-			pricing: model.metadata.pricing,
-			inputCost: model.metadata.inputCost,
-			outputCost: model.metadata.outputCost,
-			cacheCost: model.metadata.cacheCost,
-			cacheWriteCost: model.metadata.cacheWriteCost,
-			longContextInputCost: model.metadata.longContextInputCost,
-			longContextOutputCost: model.metadata.longContextOutputCost,
-			longContextCacheCost: model.metadata.longContextCacheCost,
-			longContextCacheWriteCost: model.metadata.longContextCacheWriteCost,
-			priceCategory: model.metadata.priceCategory,
-			category: model.metadata.category,
-			capabilities: {
-				supportsImageToText: model.metadata.capabilities?.vision ?? false,
-				supportsToolCalling: !!model.metadata.capabilities?.toolCalling,
-				editToolsHint: model.metadata.capabilities?.editTools,
-			},
-			maxInputTokens: model.metadata.maxInputTokens,
-			countTokens(text, token) {
-				if (!that._localModels.has(modelId)) {
-					throw extHostTypes.LanguageModelError.NotFound(modelId);
+		let apiObject = this._apiObjectCache.get(modelId);
+		if (!apiObject) {
+			const that = this;
+			apiObject = {
+				id: model.info.id,
+				vendor: model.metadata.vendor,
+				family: model.info.family,
+				version: model.info.version,
+				name: model.info.name,
+				pricing: model.metadata.pricing,
+				inputCost: model.metadata.inputCost,
+				outputCost: model.metadata.outputCost,
+				cacheCost: model.metadata.cacheCost,
+				cacheWriteCost: model.metadata.cacheWriteCost,
+				longContextInputCost: model.metadata.longContextInputCost,
+				longContextOutputCost: model.metadata.longContextOutputCost,
+				longContextCacheCost: model.metadata.longContextCacheCost,
+				longContextCacheWriteCost: model.metadata.longContextCacheWriteCost,
+				priceCategory: model.metadata.priceCategory,
+				category: model.metadata.category,
+				capabilities: {
+					supportsImageToText: model.metadata.capabilities?.vision ?? false,
+					supportsToolCalling: !!model.metadata.capabilities?.toolCalling,
+					editToolsHint: model.metadata.capabilities?.editTools,
+				},
+				maxInputTokens: model.metadata.maxInputTokens,
+				countTokens(text, token) {
+					if (!that._localModels.has(modelId)) {
+						throw extHostTypes.LanguageModelError.NotFound(modelId);
+					}
+					return that._computeTokenLength(modelId, text, token ?? CancellationToken.None);
+				},
+				sendRequest(messages, options, token) {
+					if (!that._localModels.has(modelId)) {
+						throw extHostTypes.LanguageModelError.NotFound(modelId);
+					}
+					return that._sendChatRequest(extension, modelId, messages, options ?? {}, token ?? CancellationToken.None);
 				}
-				return that._computeTokenLength(modelId, text, token ?? CancellationToken.None);
-			},
-			sendRequest(messages, options, token) {
-				if (!that._localModels.has(modelId)) {
-					throw extHostTypes.LanguageModelError.NotFound(modelId);
-				}
-				return that._sendChatRequest(extension, modelId, messages, options ?? {}, token ?? CancellationToken.None);
-			}
-		};
+			};
+
+			Object.freeze(apiObject);
+			this._apiObjectCache.set(modelId, apiObject);
+		}
 
 		Object.freeze(apiObject);
 		return apiObject;
