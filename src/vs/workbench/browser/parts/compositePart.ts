@@ -186,20 +186,21 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 		// Instantiate composite from registry otherwise
 		const compositeDescriptor = this.registry.getComposite(id);
 		if (compositeDescriptor) {
+			const disposable = new DisposableStore();
 			const that = this;
-			const compositeProgressIndicator = new ScopedProgressIndicator(assertReturnsDefined(this.progressBar), this._register(new class extends AbstractProgressScope {
+			const compositeProgressScope = disposable.add(new class extends AbstractProgressScope {
 				constructor() {
 					super(compositeDescriptor!.id, !!isActive);
 					this._register(that.onDidCompositeOpen.event(e => this.onScopeOpened(e.composite.getId())));
 					this._register(that.onDidCompositeClose.event(e => this.onScopeClosed(e.getId())));
 				}
-			}()));
-			const compositeInstantiationService = this._register(this.instantiationService.createChild(new ServiceCollection(
+			}());
+			const compositeProgressIndicator = disposable.add(new ScopedProgressIndicator(assertReturnsDefined(this.progressBar), compositeProgressScope));
+			const compositeInstantiationService = this.instantiationService.createChild(new ServiceCollection(
 				[IEditorProgressService, compositeProgressIndicator] // provide the editor progress service for any editors instantiated within the composite
-			)));
+			));
 
 			const composite = compositeDescriptor.instantiate(compositeInstantiationService);
-			const disposable = new DisposableStore();
 
 			// Remember as Instantiated
 			this.instantiatedCompositeItems.set(id, { composite, disposable, progress: compositeProgressIndicator });
@@ -529,6 +530,10 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 
 	protected removeComposite(compositeId: string): boolean {
 		if (this.activeComposite?.getId() === compositeId) {
+			this.hideActiveComposite();
+		}
+
+		if (this.activeComposite?.getId() === compositeId) {
 			return false; // do not remove active composite
 		}
 
@@ -536,9 +541,12 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 		this.mapActionsBindingToComposite.delete(compositeId);
 		const compositeItem = this.instantiatedCompositeItems.get(compositeId);
 		if (compositeItem) {
-			compositeItem.composite.dispose();
-			dispose(compositeItem.disposable);
-			this.instantiatedCompositeItems.delete(compositeId);
+			try {
+				compositeItem.composite.dispose();
+			} finally {
+				dispose(compositeItem.disposable);
+				this.instantiatedCompositeItems.delete(compositeId);
+			}
 		}
 
 		return true;
@@ -549,8 +557,11 @@ export abstract class CompositePart<T extends Composite, MementoType extends obj
 		this.mapActionsBindingToComposite.clear();
 
 		this.instantiatedCompositeItems.forEach(compositeItem => {
-			compositeItem.composite.dispose();
-			dispose(compositeItem.disposable);
+			try {
+				compositeItem.composite.dispose();
+			} finally {
+				dispose(compositeItem.disposable);
+			}
 		});
 
 		this.instantiatedCompositeItems.clear();

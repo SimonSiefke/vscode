@@ -1047,6 +1047,10 @@ export class ViewPaneContainer<MementoType extends object = object> extends Comp
 			this.lastFocusedPane = undefined;
 		}
 
+		if (this.lastMergedCollapsedPane === pane) {
+			this.lastMergedCollapsedPane = undefined;
+		}
+
 		assertReturnsDefined(this.paneview).removePane(pane);
 		const [paneItem] = this.paneItems.splice(index, 1);
 		paneItem.disposable.dispose();
