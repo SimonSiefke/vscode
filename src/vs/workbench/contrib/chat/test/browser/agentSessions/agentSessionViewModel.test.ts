@@ -1601,6 +1601,29 @@ suite('AgentSessions', () => {
 			});
 		});
 
+		test('deletes state for a permanently removed session', async () => {
+			return runWithFakedTimers({}, async () => {
+				const { oldUri } = uris();
+				mockChatSessionsService.registerChatSessionItemController(
+					chatSessionTestType,
+					new StaticChatSessionItemController([makeItem(oldUri)]),
+				);
+				viewModel = disposables.add(instantiationService.createInstance(AgentSessionsModel));
+				await viewModel.resolve(undefined);
+
+				const session = viewModel.sessions[0];
+				session.setPinned(true);
+				session.setRead(false);
+				assert.strictEqual(session.isPinned(), true);
+				assert.strictEqual(session.isMarkedUnread(), true);
+
+				viewModel.deleteSessionState(oldUri);
+
+				assert.strictEqual(session.isPinned(), false);
+				assert.strictEqual(session.isMarkedUnread(), false);
+			});
+		});
+
 		test('migrates unread marker forward (read state, not just archived/pinned)', async () => {
 			return runWithFakedTimers({}, async () => {
 				const { oldUri, newUri } = uris();

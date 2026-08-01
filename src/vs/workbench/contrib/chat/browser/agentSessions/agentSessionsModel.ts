@@ -591,6 +591,16 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		return this._sessions.get(resource);
 	}
 
+	deleteSessionState(resource: URI): void {
+		const session = this._sessions.get(resource);
+		this.sessionStates.delete(resource);
+		if (session?.legacyResource) {
+			this.sessionStates.delete(session.legacyResource);
+		}
+		this._sessionObservables.delete(resource);
+		this._resolvedResources.delete(resource);
+	}
+
 	private _changedSignal: IObservable<void> | undefined;
 	private readonly _sessionObservables = new ResourceMap<IObservable<IAgentSession | undefined>>();
 	private readonly _resolvedResources = new ResourceSet();

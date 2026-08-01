@@ -6,7 +6,6 @@
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
-import { autorun, observableFromEvent } from '../../../../base/common/observable.js';
 import { isMacintosh } from '../../../../base/common/platform.js';
 import { PolicyCategory } from '../../../../base/common/policy.js';
 import '../../../../platform/agentHost/common/agentHostEnablementService.js';
@@ -50,7 +49,7 @@ import { CodeMapperService, ICodeMapperService } from '../common/editing/chatCod
 import '../common/widget/chatColors.js';
 import { IChatEditingService } from '../common/editing/chatEditingService.js';
 import { IChatLayoutService } from '../common/widget/chatLayoutService.js';
-import { ChatModeService, IChatMode, IChatModeService, IChatModes } from '../common/chatModes.js';
+import { ChatModeService, IChatModeService } from '../common/chatModes.js';
 import { ChatResponseResourceFileSystemProvider, ChatResponseResourceWorkbenchContribution, IChatResponseResourceFileSystemProvider } from '../common/widget/chatResponseResourceFileSystemProvider.js';
 import { IChatService } from '../common/chatService/chatService.js';
 import { ChatSideChatService, IChatSideChatService } from '../common/chatSideChatService.js';
@@ -97,7 +96,7 @@ import './voiceClient/voiceToolDispatchService.js';
 import './voiceClient/voiceSessionController.js';
 import { registerChatAccessibilityActions } from './actions/chatAccessibilityActions.js';
 import { AgentChatAccessibilityHelp, EditsChatAccessibilityHelp, PanelChatAccessibilityHelp, QuickChatAccessibilityHelp } from './actions/chatAccessibilityHelp.js';
-import { ModeOpenChatGlobalAction, registerChatActions } from './actions/chatActions.js';
+import { registerChatActions } from './actions/chatActions.js';
 import { CodeBlockActionRendering, registerChatCodeBlockActions, registerChatCodeCompareBlockActions } from './actions/chatCodeblockActions.js';
 import { ChatContextContributions } from './actions/chatContext.js';
 import { registerChatContextActions } from './actions/chatContextActions.js';
@@ -134,6 +133,7 @@ import { ChatDebugEditorInput, ChatDebugEditorInputSerializer } from './chatDebu
 import './agentSessions/agentSessions.contribution.js';
 
 import { ChatContextKeys } from '../common/actions/chatContextKeys.js';
+import { ChatAgentActionsContribution } from './chatAgentActionsContribution.js';
 
 import { ChatViewId, IChatAccessibilityService, IChatCodeBlockContextProviderService, IChatWidgetService, IQuickChatService, isIChatResourceViewContext, isIChatViewViewContext } from './chat.js';
 import { ChatAccessibilityService } from './accessibility/chatAccessibilityService.js';
@@ -2620,94 +2620,6 @@ class ChatForegroundSessionCountContribution extends Disposable implements IWork
 	}
 }
 
-
-/**
- * Given builtin and custom modes, returns only the custom mode IDs that should have actions registered.
- * Custom modes whose names conflict with builtin modes are excluded.
- * If there are name collisions among custom modes, the later mode in the list wins.
- */
-function getCustomModesWithUniqueNames(builtinModes: readonly IChatMode[], customModes: readonly IChatMode[]): Set<string> {
-	const customModeIds = new Set<string>();
-	const builtinNames = new Set(builtinModes.map(mode => mode.name.get()));
-	const customNameToId = new Map<string, string>();
-
-	for (const mode of customModes) {
-		const modeName = mode.name.get();
-
-		// Skip custom modes that conflict with builtin mode names
-		if (builtinNames.has(modeName)) {
-			continue;
-		}
-
-		// If there is a name collision among custom modes, the later one in the list wins
-		const existingId = customNameToId.get(modeName);
-		if (existingId) {
-			customModeIds.delete(existingId);
-		}
-
-		customNameToId.set(modeName, mode.id);
-		customModeIds.add(mode.id);
-	}
-
-	return customModeIds;
-}
-
-/**
- * Workbench contribution to register actions for custom chat modes via events
- */
-class ChatAgentActionsContribution extends Disposable implements IWorkbenchContribution {
-
-	static readonly ID = 'workbench.contrib.chatAgentActions';
-
-	private readonly _modeActionDisposables = new DisposableMap<string>();
-
-	constructor(
-		@IChatModeService _chatModeService: IChatModeService,
-		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
-	) {
-		super();
-		this._store.add(this._modeActionDisposables);
-
-		const focusedWidget = observableFromEvent(this, this.chatWidgetService.onDidChangeFocusedSession, () => this.chatWidgetService.lastFocusedWidget);
-		this._register(autorun(reader => {
-			const chatModes = focusedWidget.read(reader)?.input.currentChatModesObs.read(reader);
-			this._syncModeActions(chatModes);
-		}));
-	}
-
-	private _syncModeActions(chatModes: IChatModes | undefined): void {
-		if (!chatModes) {
-			this._modeActionDisposables.clearAndDisposeAll();
-			return;
-		}
-
-		const { builtin, custom } = chatModes;
-		const currentModeIds = getCustomModesWithUniqueNames(builtin, custom);
-
-		// Remove modes that no longer exist and those replaced by modes later in the list with same name.
-		for (const modeId of this._modeActionDisposables.keys()) {
-			if (!currentModeIds.has(modeId)) {
-				this._modeActionDisposables.deleteAndDispose(modeId);
-			}
-		}
-
-		// Register new modes.
-		for (const mode of custom) {
-			if (currentModeIds.has(mode.id) && !this._modeActionDisposables.has(mode.id)) {
-				this._registerModeAction(mode);
-			}
-		}
-	}
-
-	private _registerModeAction(mode: IChatMode): void {
-		const actionClass = class extends ModeOpenChatGlobalAction {
-			constructor() {
-				super(mode);
-			}
-		};
-		this._modeActionDisposables.set(mode.id, registerAction2(actionClass));
-	}
-}
 
 class HookSchemaAssociationContribution extends Disposable implements IWorkbenchContribution {
 
