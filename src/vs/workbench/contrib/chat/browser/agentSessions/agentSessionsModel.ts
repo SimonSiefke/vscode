@@ -741,6 +741,19 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		// Phase 2: Atomically update sessions (sync - reads latest this._sessions
 		// so concurrent updateItems calls for other providers don't lose data)
 
+		const removedResources: URI[] = [];
+		for (const [resource, session] of this._sessions) {
+			if (session.providerType === provider && !sessions.has(resource)) {
+				removedResources.push(resource);
+			}
+		}
+		const replacementsByLegacyResource = new Map<string, IInternalAgentSession>();
+		for (const session of sessions.values()) {
+			if (session.legacyResource) {
+				replacementsByLegacyResource.set(session.legacyResource.toString(), session);
+			}
+		}
+
 		for (const [, session] of this._sessions) {
 			if (
 				session.providerType !== provider &&
@@ -774,6 +787,17 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		for (const session of sessionsWithChangedArchivedState) {
 			this._onDidChangeSessionArchivedState.fire(session);
 		}
+
+		for (const removedResource of removedResources) {
+			const replacement = replacementsByLegacyResource.get(removedResource.toString());
+			if (replacement) {
+				this.resolveStateEntry(replacement);
+			}
+			this.sessionStates.delete(removedResource);
+			this._sessionObservables.delete(removedResource);
+			this._resolvedResources.delete(removedResource);
+		}
+
 		this._onDidChangeSessions.fire();
 	}
 
