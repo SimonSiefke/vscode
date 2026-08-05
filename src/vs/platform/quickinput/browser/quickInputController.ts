@@ -831,6 +831,7 @@ export class QuickInputController extends Disposable {
 		const container = this.ui?.container;
 		const focusChanged = container && !dom.isAncestorOfActiveElement(container);
 		this.controller = null;
+		this.dndController?.setEnabled(false);
 		this.onHideEmitter.fire();
 		if (container) {
 			if (!container.classList.contains(QUICK_INPUT_OVERLAY_CLASS) && dom.hasParentWithClass(container, QUICK_INPUT_MOTION_ANCESTOR_CLASSES)) {
@@ -1183,8 +1184,8 @@ class QuickInputDragAndDropController extends Disposable {
 		}
 
 		const state = this.dndViewState.get();
-		const dragAreaRect = this._quickInputContainer.getBoundingClientRect();
 		if (state?.top !== undefined && state?.left !== undefined) {
+			const dragAreaRect = this._quickInputContainer.getBoundingClientRect();
 			const a = Math.round(state.left * 1e2) / 1e2;
 			const b = dimension.width;
 			const c = dragAreaRect.width;
