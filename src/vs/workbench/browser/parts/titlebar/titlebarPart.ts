@@ -960,11 +960,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		this.element.style.setProperty('--zoom-factor', zoomFactor.toString());
 		this.rootContainer.classList.toggle('counter-zoom', this.preventZoom);
 
-		if (this.customMenubar.value) {
-			const menubarDimension = new Dimension(0, dimension.height);
-			this.customMenubar.value.layout(menubarDimension);
-		}
-
 		const hasCenter = this.isCommandCenterVisible || this.title.textContent !== '';
 		this.rootContainer.classList.toggle('has-center', hasCenter);
 	}

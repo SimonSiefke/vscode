@@ -87,6 +87,10 @@ export class MenuBar extends Disposable {
 
 	private numMenusShown: number = 0;
 	private overflowLayoutScheduled: IDisposable | undefined = undefined;
+	private menuWidths: readonly number[] | undefined;
+	private overflowMenuWidth: number = 0;
+	private overflowMenuActionsDirty: boolean = true;
+	private availableWidth: number | undefined;
 
 	private readonly menuDisposables = this._register(new DisposableStore());
 
@@ -116,6 +120,15 @@ export class MenuBar extends Disposable {
 		}));
 
 		this._register(DOM.ModifierKeyEmitter.getInstance().event(this.onModifierKeyToggled, this));
+
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver('MenuBar.overflow', entries => {
+			const entry = entries.at(-1);
+			if (entry) {
+				this.availableWidth = entry.borderBoxSize[0]?.inlineSize ?? entry.contentRect.width;
+				this.scheduleOverflowLayout();
+			}
+		}, DOM.getWindow(this.container)));
+		resizeObserver.observe(this.container);
 
 		this._register(DOM.addDisposableListener(this.container, DOM.EventType.KEY_DOWN, (e) => {
 			const event = new StandardKeyboardEvent(e);
@@ -202,6 +215,8 @@ export class MenuBar extends Disposable {
 
 	push(arg: MenuBarMenu | MenuBarMenu[]): void {
 		const menus: MenuBarMenu[] = asArray(arg);
+		this.menuWidths = undefined;
+		this.overflowMenuActionsDirty = true;
 
 		menus.forEach((menuBarMenu) => {
 			const menuIndex = this.menus.length;
@@ -312,6 +327,8 @@ export class MenuBar extends Disposable {
 				});
 			}
 		});
+
+		this.scheduleOverflowLayout();
 	}
 
 	createOverflowMenu(): void {
@@ -425,6 +442,8 @@ export class MenuBar extends Disposable {
 		const menuToUpdate = this.menus.filter(menuBarMenu => menuBarMenu.label === menu.label);
 		if (menuToUpdate && menuToUpdate.length) {
 			menuToUpdate[0].actions = menu.actions;
+			this.overflowMenuActionsDirty = true;
+			this.scheduleOverflowLayout();
 		}
 	}
 
@@ -477,46 +496,59 @@ export class MenuBar extends Disposable {
 		}
 
 		const overflowMenuOnlyClass = 'overflow-menu-only';
+		const wasOverflowMenuOnly = this.container.classList.contains(overflowMenuOnlyClass);
 
 		// Remove overflow only restriction to allow the most space
 		this.container.classList.toggle(overflowMenuOnlyClass, false);
 
-		const sizeAvailable = this.container.offsetWidth;
+		const sizeAvailable = this.availableWidth && this.availableWidth > 0 ? this.availableWidth : this.container.offsetWidth;
 		let currentSize = 0;
 		let full = this.isCompact;
 		const prevNumMenusShown = this.numMenusShown;
-		this.numMenusShown = 0;
+		let nextNumMenusShown = 0;
 
 		const showableMenus = this.menus.filter(menu => menu.buttonElement !== undefined && menu.titleElement !== undefined) as (MenuBarMenuWithElements & { titleElement: HTMLElement; buttonElement: HTMLElement })[];
-		for (const menuBarMenu of showableMenus) {
+		if (!this.menuWidths || this.menuWidths.length !== showableMenus.length) {
+			this.menuWidths = showableMenus.map(menu => menu.buttonElement.offsetWidth);
+			this.overflowMenuWidth = this.overflowMenu.buttonElement.offsetWidth;
+		}
+
+		for (let index = 0; index < showableMenus.length; index++) {
 			if (!full) {
-				const size = menuBarMenu.buttonElement.offsetWidth;
+				const size = this.menuWidths[index];
 				if (currentSize + size > sizeAvailable) {
 					full = true;
 				} else {
 					currentSize += size;
-					this.numMenusShown++;
-					if (this.numMenusShown > prevNumMenusShown) {
-						menuBarMenu.buttonElement.style.visibility = 'visible';
-					}
+					nextNumMenusShown++;
 				}
-			}
-
-			if (full) {
-				menuBarMenu.buttonElement.style.visibility = 'hidden';
 			}
 		}
 
-
 		// If below minimium menu threshold, show the overflow menu only as hamburger menu
-		if (this.numMenusShown - 1 <= showableMenus.length / 4) {
-			for (const menuBarMenu of showableMenus) {
-				menuBarMenu.buttonElement.style.visibility = 'hidden';
-			}
-
+		if (nextNumMenusShown - 1 <= showableMenus.length / 4) {
 			full = true;
-			this.numMenusShown = 0;
+			nextNumMenusShown = 0;
 			currentSize = 0;
+		}
+
+		if (!this.isCompact && full) {
+			// Can't fit the more button, need to remove more menus
+			while (currentSize + this.overflowMenuWidth > sizeAvailable && nextNumMenusShown > 0) {
+				nextNumMenusShown--;
+				currentSize -= this.menuWidths[nextNumMenusShown];
+			}
+		}
+
+		const overflowMenuOnly = nextNumMenusShown === 0;
+		if (nextNumMenusShown === prevNumMenusShown && !this.overflowMenuActionsDirty && wasOverflowMenuOnly === overflowMenuOnly) {
+			this.container.classList.toggle(overflowMenuOnlyClass, overflowMenuOnly);
+			return;
+		}
+
+		this.numMenusShown = nextNumMenusShown;
+		for (let index = 0; index < showableMenus.length; index++) {
+			showableMenus[index].buttonElement.style.visibility = index < this.numMenusShown ? 'visible' : 'hidden';
 		}
 
 		// Overflow
@@ -534,14 +566,6 @@ export class MenuBar extends Disposable {
 
 			this.overflowMenu.buttonElement.style.visibility = 'visible';
 		} else if (full) {
-			// Can't fit the more button, need to remove more menus
-			while (currentSize + this.overflowMenu.buttonElement.offsetWidth > sizeAvailable && this.numMenusShown > 0) {
-				this.numMenusShown--;
-				const size = showableMenus[this.numMenusShown].buttonElement.offsetWidth;
-				showableMenus[this.numMenusShown].buttonElement.style.visibility = 'hidden';
-				currentSize -= size;
-			}
-
 			this.overflowMenu.actions = [];
 			for (let idx = this.numMenusShown; idx < showableMenus.length; idx++) {
 				this.overflowMenu.actions.push(new SubmenuAction(`menubar.submenu.${showableMenus[idx].label}`, showableMenus[idx].label, showableMenus[idx].actions || []));
@@ -559,8 +583,10 @@ export class MenuBar extends Disposable {
 			this.overflowMenu.buttonElement.style.visibility = 'hidden';
 		}
 
+		this.overflowMenuActionsDirty = false;
+
 		// If we are only showing the overflow, add this class to avoid taking up space
-		this.container.classList.toggle(overflowMenuOnlyClass, this.numMenusShown === 0);
+		this.container.classList.toggle(overflowMenuOnlyClass, overflowMenuOnly);
 	}
 
 	private updateLabels(titleElement: HTMLElement, buttonElement: HTMLElement, label: string): void {
@@ -628,15 +654,21 @@ export class MenuBar extends Disposable {
 
 			this.updateLabels(menuBarMenu.titleElement, menuBarMenu.buttonElement, menuBarMenu.label);
 		});
+		this.menuWidths = undefined;
+		this.overflowMenuActionsDirty = true;
 
+		this.scheduleOverflowLayout();
+
+		this.setUnfocusedState();
+	}
+
+	private scheduleOverflowLayout(): void {
 		if (!this.overflowLayoutScheduled) {
 			this.overflowLayoutScheduled = DOM.scheduleAtNextAnimationFrame(DOM.getWindow(this.container), () => {
 				this.updateOverflowAction();
 				this.overflowLayoutScheduled = undefined;
 			});
 		}
-
-		this.setUnfocusedState();
 	}
 
 	private registerMnemonic(menuIndex: number, mnemonic: string): void {
