@@ -18,7 +18,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { TITLE_BAR_ACTIVE_BACKGROUND, TITLE_BAR_ACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_BACKGROUND, TITLE_BAR_BORDER, WORKBENCH_BACKGROUND } from '../../../common/theme.js';
 import { isMacintosh, isWindows, isLinux, isWeb, isNative, platformLocale } from '../../../../base/common/platform.js';
 import { Color } from '../../../../base/common/color.js';
-import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement } from '../../../../base/browser/dom.js';
+import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement, DisposableResizeObserver } from '../../../../base/browser/dom.js';
 import { CustomMenubarControl } from './menubarControl.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -515,6 +515,11 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 
 			// Re-evaluate fit when items change (e.g. the update indicator appears), see #303222.
 			this.centerAdjacentToolBarDisposable.add(centerAdjacentToolBar.onDidChangeMenuItems(() => this.updateCenterAdjacentToolBarOverflow()));
+
+			const overflowObserver = this.centerAdjacentToolBarDisposable.add(new DisposableResizeObserver('BrowserTitlebarPart.centerAdjacentToolbarOverflow', () => {
+				this.updateCenterAdjacentToolBarOverflow();
+			}, getWindow(this.rootContainer)));
+			overflowObserver.observe(this.rootContainer);
 		}
 
 		// Create Toolbar Actions
@@ -920,9 +925,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		this.updateLayout(new Dimension(width, height));
 
 		super.layoutContents(width, height);
-
-		// Run after `layoutContents` so the title bar reflects its new width when measuring overflow.
-		this.updateCenterAdjacentToolBarOverflow();
 	}
 
 	/**
