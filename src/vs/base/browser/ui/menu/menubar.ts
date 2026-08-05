@@ -128,7 +128,7 @@ export class MenuBar extends Disposable {
 				this.scheduleOverflowLayout();
 			}
 		}, DOM.getWindow(this.container)));
-		resizeObserver.observe(this.container);
+		this._register(resizeObserver.observe(this.container));
 
 		this._register(DOM.addDisposableListener(this.container, DOM.EventType.KEY_DOWN, (e) => {
 			const event = new StandardKeyboardEvent(e);

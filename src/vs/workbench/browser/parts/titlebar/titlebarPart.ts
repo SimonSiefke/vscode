@@ -519,7 +519,7 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 			const overflowObserver = this.centerAdjacentToolBarDisposable.add(new DisposableResizeObserver('BrowserTitlebarPart.centerAdjacentToolbarOverflow', () => {
 				this.updateCenterAdjacentToolBarOverflow();
 			}, getWindow(this.rootContainer)));
-			overflowObserver.observe(this.rootContainer);
+			this.centerAdjacentToolBarDisposable.add(overflowObserver.observe(this.rootContainer));
 		}
 
 		// Create Toolbar Actions
