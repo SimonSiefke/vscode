@@ -175,8 +175,10 @@ export class SuggestModel implements IDisposable {
 			this._updateTriggerCharacters();
 			this.cancel();
 		}));
-		this._toDispose.add(this._editor.onDidChangeConfiguration(() => {
-			this._updateTriggerCharacters();
+		this._toDispose.add(this._editor.onDidChangeConfiguration(e => {
+			if (e.hasChanged(EditorOption.readOnly) || e.hasChanged(EditorOption.suggestOnTriggerCharacters)) {
+				this._updateTriggerCharacters();
+			}
 		}));
 		this._toDispose.add(this._languageFeaturesService.completionProvider.onDidChange(() => {
 			this._updateTriggerCharacters();
