@@ -715,6 +715,7 @@ export class HoverService extends Disposable implements IHoverService {
 
 	public override dispose(): void {
 		this._managedHovers.forEach(hover => hover.dispose());
+		this._managedHovers.clear();
 		super.dispose();
 	}
 }
