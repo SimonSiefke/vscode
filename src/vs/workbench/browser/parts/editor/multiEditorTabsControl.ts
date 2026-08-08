@@ -136,7 +136,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	};
 
 	private readonly layoutScheduler = this._register(new MutableDisposable<IScheduledMultiEditorTabsControlLayout>());
-	private readonly revealActiveTabScheduler = this._register(new RunOnceScheduler(() => this.doLayoutTabsNonWrapping({ forceRevealActiveTab: true }), 50));
+	private readonly layoutTabsNonWrappingScheduler = this._register(new RunOnceScheduler(() => this.doLayoutTabsNonWrapping({ forceRevealActiveTab: true }), 50));
 	private blockRevealActiveTab: boolean | undefined;
 
 	private path: IPath = isWindows ? win32 : posix;
@@ -2092,6 +2092,15 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private doLayoutTabsNonWrapping(options?: IMultiEditorTabsControlLayoutOptions): void {
 		const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
+		if (!options?.forceRevealActiveTab && !this.blockRevealActiveTab) {
+			// CSS responds to intermediate dimensions without requiring any DOM
+			// reads. Defer scrollbar and reveal bookkeeping until resizing settles.
+			this.layoutTabsNonWrappingScheduler.schedule();
+			return;
+		}
+		if (options?.forceRevealActiveTab) {
+			this.layoutTabsNonWrappingScheduler.cancel();
+		}
 
 		//
 		// Synopsis
@@ -2144,26 +2153,15 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		assertReturnsDefined(this.stickyTabsBackground).style.width = `${stickyTabsWidth}px`;
 
 		// Update scrollbar
-		const { width: oldVisibleTabsWidth, scrollWidth: oldAllTabsWidth } = tabsScrollbar.getScrollDimensions();
 		tabsScrollbar.setScrollDimensions({
 			width: visibleTabsWidth,
 			scrollWidth: allTabsWidth
 		});
-		const dimensionsChanged = oldVisibleTabsWidth !== visibleTabsWidth || oldAllTabsWidth !== allTabsWidth;
 		if (this.blockRevealActiveTab) {
-			this.revealActiveTabScheduler.cancel();
+			this.layoutTabsNonWrappingScheduler.cancel();
 			this.blockRevealActiveTab = false;
 			return;
 		}
-		if (!options?.forceRevealActiveTab) {
-			if (dimensionsChanged) {
-				// Avoid forcing layout and scroll events for every intermediate
-				// dimension while the workbench is being resized.
-				this.revealActiveTabScheduler.schedule();
-			}
-			return;
-		}
-		this.revealActiveTabScheduler.cancel();
 
 		const activeTabAndIndex = this.tabsModel.activeEditor ? this.getTabAndIndex(this.tabsModel.activeEditor) : undefined;
 		const [activeTab, activeTabIndex] = activeTabAndIndex ?? [undefined, undefined];
