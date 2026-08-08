@@ -7,7 +7,7 @@ import './media/window.css';
 import { localize } from '../../nls.js';
 import { URI } from '../../base/common/uri.js';
 import { equals } from '../../base/common/objects.js';
-import { EventType, EventHelper, addDisposableListener, ModifierKeyEmitter, getActiveElement, hasWindow, getWindowById, getWindows, $ } from '../../base/browser/dom.js';
+import { EventType, EventHelper, addDisposableListener, addDisposableThrottledListener, ModifierKeyEmitter, getActiveElement, hasWindow, getWindowById, getWindows, $ } from '../../base/browser/dom.js';
 import { Action, Separator, WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../base/common/actions.js';
 import { IFileService } from '../../platform/files/common/files.js';
 import { EditorResourceAccessor, IUntitledTextResourceEditorInput, SideBySideEditor, pathsToEditors, IResourceDiffEditorInput, IUntypedEditorInput, IEditorPane, isResourceEditorInput, IResourceMergeEditorInput } from '../common/editor.js';
@@ -142,7 +142,10 @@ export class NativeWindow extends BaseWindow {
 	protected registerListeners(): void {
 
 		// Layout
-		this._register(addDisposableListener(mainWindow, EventType.RESIZE, () => this.layoutService.layout()));
+		// Native resize events can arrive faster than the workbench can perform a
+		// complete layout. Keep feedback responsive while coalescing dimensions
+		// that would never be painted.
+		this._register(addDisposableThrottledListener(mainWindow, EventType.RESIZE, () => this.layoutService.layout(), undefined, 32));
 
 		// React to editor input changes
 		this._register(this.editorService.onDidActiveEditorChange(() => this.updateTouchbarMenu()));
