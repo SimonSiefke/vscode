@@ -283,6 +283,7 @@ export class ChatService extends Disposable implements IChatService {
 			}
 		}));
 		this._register(this._sessionModels.onDidDisposeModel(model => {
+			this.cleanupSessionRequestState(model.sessionResource, model);
 			clearChatMarks(model.sessionResource);
 			this.chatDebugService.endSession(model.sessionResource);
 			this._sessionFollowupCancelTokens.get(model.sessionResource)?.cancel();
@@ -520,6 +521,7 @@ export class ChatService extends Disposable implements IChatService {
 
 	async removeHistoryEntry(sessionResource: URI): Promise<void> {
 		await this._chatSessionStore.deleteSession(this.toLocalSessionId(sessionResource));
+		this.cleanupSessionRequestState(sessionResource);
 		const model = this._sessionModels.get(sessionResource);
 		if (model) {
 			model.markDeleted();
@@ -527,7 +529,35 @@ export class ChatService extends Disposable implements IChatService {
 		this._onDidDisposeSession.fire({ sessionResources: [sessionResource], reason: 'cleared' });
 	}
 
+	private cleanupSessionRequestState(sessionResource: URI, modelArg?: ChatModel): void {
+		const pendingRequest = this._pendingRequests.get(sessionResource);
+		if (pendingRequest) {
+			pendingRequest.cancel();
+			this._pendingRequests.deleteAndDispose(sessionResource);
+		}
+
+		this._sessionFollowupCancelTokens.get(sessionResource)?.cancel();
+		this._sessionFollowupCancelTokens.deleteAndDispose(sessionResource);
+
+		const model = modelArg ?? this._sessionModels.get(sessionResource);
+		if (!model) {
+			return;
+		}
+
+		for (const pending of [...model.getPendingRequests()]) {
+			this.removePendingRequest(sessionResource, pending.request.id);
+		}
+	}
+
 	async clearAllHistoryEntries(): Promise<void> {
+		for (const model of this._sessionModels.values()) {
+			if (!this.shouldBeInHistory(model)) {
+				continue;
+			}
+
+			await this.removeHistoryEntry(model.sessionResource);
+		}
+
 		await this._chatSessionStore.clearAllSessions();
 	}
 
@@ -1809,6 +1839,7 @@ export class ChatService extends Disposable implements IChatService {
 		rawResponsePromise.finally(() => {
 			markChat(sessionResource, ChatPerfMark.RequestComplete);
 			clearChatMarks(sessionResource);
+			this._sessionFollowupCancelTokens.deleteAndDispose(sessionResource);
 			if (this._pendingRequests.get(model.sessionResource) === cancellableRequest) {
 				this._pendingRequests.deleteAndDispose(model.sessionResource);
 				this.telemetryService.publicLog2<ChatPendingRequestChangeEvent, ChatPendingRequestChangeClassification>(ChatPendingRequestChangeEventName, { action: 'remove', source: 'sendRequestComplete', requestId: cancellableRequest.requestId, chatSessionId: chatSessionResourceToId(model.sessionResource) });
