@@ -32,6 +32,8 @@ class SurroundWithSnippetCodeActionProvider implements CodeActionProvider {
 		},
 	};
 
+	readonly providedCodeActionKinds?: readonly string[] = [CodeActionKind.SurroundWith.value];
+
 	constructor(@ISnippetsService private readonly _snippetService: ISnippetsService) { }
 
 	async provideCodeActions(model: ITextModel, range: Range | Selection): Promise<CodeActionList | undefined> {
