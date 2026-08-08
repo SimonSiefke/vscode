@@ -164,6 +164,25 @@ class PersistedMenuHideState implements IDisposable {
 }
 
 type MenuItemGroup = [string, Array<IMenuItem | ISubmenuItem>];
+type MenuActionGroups = [string, Array<MenuItemAction | SubmenuItemAction>][];
+
+function getCacheKey(options: IMenuActionOptions | undefined): string | undefined {
+	if (!options) {
+		return '';
+	}
+	if (options.arg !== undefined || options.args !== undefined || options.shouldForwardArgs) {
+		return undefined;
+	}
+	return [
+		options.renderShortTitle ? 1 : 0,
+		options.skipMenuHideActions ? 1 : 0,
+		options.skipConfigureKeybindingAction ? 1 : 0
+	].join(',');
+}
+
+function cloneActionGroups(groups: MenuActionGroups): MenuActionGroups {
+	return groups.map(([group, actions]) => [group, actions.slice()]);
+}
 
 class MenuInfoSnapshot {
 	protected _menuGroups: MenuItemGroup[] = [];
@@ -253,9 +272,7 @@ class MenuInfoSnapshot {
 
 	private static _fillInKbExprKeys(exp: ContextKeyExpression | undefined, set: Set<string>): void {
 		if (exp) {
-			for (const key of exp.keys()) {
-				set.add(key);
-			}
+			exp.collectKeys(set);
 		}
 	}
 
@@ -289,10 +306,10 @@ class MenuInfo extends MenuInfoSnapshot {
 						this._hiddenStates.setDefaultState(this._id, item.command.id, !!item.isHiddenByDefault);
 					}
 
-					const menuHide = createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
+					const menuHide = options?.skipMenuHideActions ? undefined : createMenuHide(this._id, isMenuItem ? item.command : item, this._hiddenStates);
 					if (isMenuItem) {
 						// MenuItemAction
-						const menuKeybinding = createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
+						const menuKeybinding = options?.skipConfigureKeybindingAction ? undefined : () => createConfigureKeybindingAction(this._commandService, this._keybindingService, item.command.id, item.when);
 						(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, this._contextKeyService, this._commandService));
 					} else {
 						// SubmenuItemAction
@@ -370,6 +387,8 @@ class MenuImpl implements IMenu {
 
 	private readonly _menuInfo: MenuInfo;
 	private readonly _disposables = new DisposableStore();
+	private readonly _cachedActionGroups = new Map<string, MenuActionGroups>();
+	private _isChangeListenerActive = false;
 
 	private readonly _onDidChange: Emitter<IMenuChangeEvent>;
 	readonly onDidChange: Event<IMenuChangeEvent>;
@@ -389,6 +408,7 @@ class MenuImpl implements IMenu {
 		// structure of the menu
 		const rebuildMenuSoon = new RunOnceScheduler(() => {
 			this._menuInfo.refresh();
+			this._cachedActionGroups.clear();
 			this._onDidChange.fire({ menu: this, isStructuralChange: true, isEnablementChange: true, isToggleChange: true });
 		}, options.eventDebounceDelay);
 		this._disposables.add(rebuildMenuSoon);
@@ -426,24 +446,32 @@ class MenuImpl implements IMenu {
 		};
 
 		const startLazyListener = () => {
+			this._isChangeListenerActive = true;
 
 			lazyListener.add(contextKeyService.onDidChangeContext(e => {
 				const isStructuralChange = e.affectsSome(this._menuInfo.structureContextKeys);
 				const isEnablementChange = e.affectsSome(this._menuInfo.preconditionContextKeys);
 				const isToggleChange = e.affectsSome(this._menuInfo.toggledContextKeys);
 				if (isStructuralChange || isEnablementChange || isToggleChange) {
+					this._cachedActionGroups.clear();
 					this._onDidChange.fire({ menu: this, isStructuralChange, isEnablementChange, isToggleChange });
 				}
 			}));
 			lazyListener.add(hiddenStates.onDidChange(e => {
+				this._cachedActionGroups.clear();
 				this._onDidChange.fire({ menu: this, isStructuralChange: true, isEnablementChange: false, isToggleChange: false });
 			}));
+		};
+		const stopLazyListener = () => {
+			this._isChangeListenerActive = false;
+			this._cachedActionGroups.clear();
+			lazyListener.clear();
 		};
 
 		this._onDidChange = new DebounceEmitter({
 			// start/stop context key listener
 			onWillAddFirstListener: startLazyListener,
-			onDidRemoveLastListener: lazyListener.clear.bind(lazyListener),
+			onDidRemoveLastListener: stopLazyListener,
 			delay: options.eventDebounceDelay,
 			merge
 		});
@@ -451,7 +479,19 @@ class MenuImpl implements IMenu {
 	}
 
 	getActions(options?: IMenuActionOptions | undefined): [string, (MenuItemAction | SubmenuItemAction)[]][] {
-		return this._menuInfo.createActionGroups(options);
+		if (!this._isChangeListenerActive) {
+			return this._menuInfo.createActionGroups(options);
+		}
+		const cacheKey = getCacheKey(options);
+		if (cacheKey === undefined) {
+			return this._menuInfo.createActionGroups(options);
+		}
+		let cached = this._cachedActionGroups.get(cacheKey);
+		if (!cached) {
+			cached = this._menuInfo.createActionGroups(options);
+			this._cachedActionGroups.set(cacheKey, cached);
+		}
+		return cloneActionGroups(cached);
 	}
 
 	dispose(): void {
@@ -460,29 +500,44 @@ class MenuImpl implements IMenu {
 	}
 }
 
-function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, states: PersistedMenuHideState): IMenuItemHide {
+class MenuItemHide implements IMenuItemHide {
 
+	private _hide: IAction | undefined;
+	private _toggle: IAction | undefined;
+
+	constructor(
+		private readonly _menu: MenuId,
+		private readonly _id: string,
+		private readonly _title: string,
+		private readonly _states: PersistedMenuHideState
+	) { }
+
+	get isHidden(): boolean {
+		return this._states.isHidden(this._menu, this._id);
+	}
+
+	get hide(): IAction {
+		return this._hide ??= toAction({
+			id: `hide/${this._menu.id}/${this._id}`,
+			label: localize('hide.label', 'Hide \'{0}\'', this._title),
+			run: () => this._states.updateHidden(this._menu, this._id, true)
+		});
+	}
+
+	get toggle(): IAction {
+		return this._toggle ??= toAction({
+			id: `toggle/${this._menu.id}/${this._id}`,
+			label: this._title,
+			checked: !this.isHidden,
+			run: () => this._states.updateHidden(this._menu, this._id, !this.isHidden)
+		});
+	}
+}
+
+function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, states: PersistedMenuHideState): IMenuItemHide {
 	const id = isISubmenuItem(command) ? command.submenu.id : command.id;
 	const title = typeof command.title === 'string' ? command.title : command.title.value;
-
-	const hide = toAction({
-		id: `hide/${menu.id}/${id}`,
-		label: localize('hide.label', 'Hide \'{0}\'', title),
-		run() { states.updateHidden(menu, id, true); }
-	});
-
-	const toggle = toAction({
-		id: `toggle/${menu.id}/${id}`,
-		label: title,
-		get checked() { return !states.isHidden(menu, id); },
-		run() { states.updateHidden(menu, id, !!this.checked); }
-	});
-
-	return {
-		hide,
-		toggle,
-		get isHidden() { return !toggle.checked; },
-	};
+	return new MenuItemHide(menu, id, title, states);
 }
 
 export function createConfigureKeybindingAction(commandService: ICommandService, keybindingService: IKeybindingService, commandId: string, when: ContextKeyExpression | undefined = undefined, enabled = true): IAction {

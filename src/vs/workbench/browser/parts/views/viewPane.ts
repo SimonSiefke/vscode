@@ -262,7 +262,8 @@ class ViewWelcomeController {
 						const updateEnablement = () => button.enabled = this.contextKeyService.contextMatchesRules(precondition);
 						updateEnablement();
 
-						const keys = new Set(precondition.keys());
+						const keys = new Set<string>();
+						precondition.collectKeys(keys);
 						const onDidChangeContext = Event.filter(this.contextKeyService.onDidChangeContext, e => e.affectsSome(keys));
 						onDidChangeContext(updateEnablement, null, this.renderDisposables);
 					}
@@ -279,7 +280,8 @@ class ViewWelcomeController {
 								const updateEnablement = () => link.enabled = this.contextKeyService.contextMatchesRules(precondition);
 								updateEnablement();
 
-								const keys = new Set(precondition.keys());
+								const keys = new Set<string>();
+								precondition.collectKeys(keys);
 								const onDidChangeContext = Event.filter(this.contextKeyService.onDidChangeContext, e => e.affectsSome(keys));
 								onDidChangeContext(updateEnablement, null, this.renderDisposables);
 							}
