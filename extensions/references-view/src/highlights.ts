@@ -37,6 +37,7 @@ export class EditorHighlights<T> {
 		for (const editor of vscode.window.visibleTextEditors) {
 			editor.setDecorations(this._decorationType, []);
 		}
+		this._decorationType.dispose();
 	}
 
 	private _show(): void {
