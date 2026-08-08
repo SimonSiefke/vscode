@@ -145,7 +145,7 @@ export class NativeWindow extends BaseWindow {
 		// Native resize events can arrive faster than the workbench can perform a
 		// complete layout. Keep feedback responsive while coalescing dimensions
 		// that would never be painted.
-		this._register(addDisposableThrottledListener(mainWindow, EventType.RESIZE, () => this.layoutService.layout(), undefined, 32));
+		this._register(addDisposableThrottledListener(mainWindow, EventType.RESIZE, () => this.layoutService.layout(), undefined, 40));
 
 		// React to editor input changes
 		this._register(this.editorService.onDidActiveEditorChange(() => this.updateTouchbarMenu()));
