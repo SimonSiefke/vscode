@@ -17,10 +17,23 @@ export class Client extends IPCClient implements IDisposable {
 	private protocol: ElectronProtocol;
 
 	private static createProtocol(): ElectronProtocol {
+		const listeners = new Set<(header: unknown, body: unknown) => void>();
+		const handler = (_: unknown, header: unknown, body: unknown) => {
+			for (const listener of listeners) {
+				listener(header, body);
+			}
+		};
 		const onMessage = (listener: (header: unknown, body: unknown) => void): IDisposable => {
-			const handler = (_: unknown, header: unknown, body: unknown) => listener(header, body);
-			ipcRenderer.on('vscode:message', handler);
-			return toDisposable(() => ipcRenderer.removeListener('vscode:message', handler));
+			if (listeners.size === 0) {
+				ipcRenderer.on('vscode:message', handler);
+			}
+			listeners.add(listener);
+			return toDisposable(() => {
+				listeners.delete(listener);
+				if (listeners.size === 0) {
+					ipcRenderer.removeListener('vscode:message', handler);
+				}
+			});
 		};
 		ipcRenderer.send('vscode:hello');
 

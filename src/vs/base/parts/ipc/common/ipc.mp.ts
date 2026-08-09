@@ -36,6 +36,12 @@ export interface MessagePort {
 export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
+	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
+	private readonly messageListener = (event: MessageEvent) => {
+		for (const listener of this.listeners) {
+			listener(event.data.header, event.data.body);
+		}
+	};
 
 	constructor(private port: MessagePort) {
 		// we must call start() to ensure messages are flowing
@@ -43,9 +49,16 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 	}
 
 	onMessage(listener: (header: unknown, body: unknown) => void): IDisposable {
-		const handler = (event: MessageEvent) => listener(event.data.header, event.data.body);
-		this.port.addEventListener('message', handler);
-		return toDisposable(() => this.port.removeEventListener('message', handler));
+		if (this.listeners.size === 0) {
+			this.port.addEventListener('message', this.messageListener);
+		}
+		this.listeners.add(listener);
+		return toDisposable(() => {
+			this.listeners.delete(listener);
+			if (this.listeners.size === 0) {
+				this.port.removeEventListener('message', this.messageListener);
+			}
+		});
 	}
 
 	send(header: unknown, body?: unknown): void {

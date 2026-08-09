@@ -16,6 +16,13 @@ import { assertType } from '../../../common/types.js';
 class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
+	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
+	private readonly messageListener = (event: MessageEvent) => {
+		const message = event.data as IStructuredCloneMessage;
+		for (const listener of this.listeners) {
+			listener(message.header, message.body);
+		}
+	};
 
 	constructor(private port: MessagePortMain) {
 		// we must call start() to ensure messages are flowing
@@ -23,12 +30,16 @@ class Protocol implements IStructuredCloneMessagePassingProtocol {
 	}
 
 	onMessage(listener: (header: unknown, body: unknown) => void): IDisposable {
-		const handler = (event: MessageEvent) => {
-			const message = event.data as IStructuredCloneMessage;
-			listener(message.header, message.body);
-		};
-		this.port.on('message', handler);
-		return toDisposable(() => this.port.removeListener('message', handler));
+		if (this.listeners.size === 0) {
+			this.port.on('message', this.messageListener);
+		}
+		this.listeners.add(listener);
+		return toDisposable(() => {
+			this.listeners.delete(listener);
+			if (this.listeners.size === 0) {
+				this.port.removeListener('message', this.messageListener);
+			}
+		});
 	}
 
 	send(header: unknown, body?: unknown): void {

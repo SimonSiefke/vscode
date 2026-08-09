@@ -23,14 +23,25 @@ function createScopedOnMessageEvent(senderId: number, eventName: string): Event<
 }
 
 function createScopedOnMessage(senderId: number): IStructuredCloneMessagePassingProtocol['onMessage'] {
-	return listener => {
-		const handler = (event: { sender: WebContents }, header: unknown, body: unknown) => {
-			if (event.sender.id === senderId) {
+	const listeners = new Set<(header: unknown, body: unknown) => void>();
+	const handler = (event: { sender: WebContents }, header: unknown, body: unknown) => {
+		if (event.sender.id === senderId) {
+			for (const listener of listeners) {
 				listener(header, body);
 			}
-		};
-		validatedIpcMain.on('vscode:message', handler);
-		return toDisposable(() => validatedIpcMain.removeListener('vscode:message', handler));
+		}
+	};
+	return listener => {
+		if (listeners.size === 0) {
+			validatedIpcMain.on('vscode:message', handler);
+		}
+		listeners.add(listener);
+		return toDisposable(() => {
+			listeners.delete(listener);
+			if (listeners.size === 0) {
+				validatedIpcMain.removeListener('vscode:message', handler);
+			}
+		});
 	};
 }
 
