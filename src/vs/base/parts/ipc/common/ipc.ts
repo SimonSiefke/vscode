@@ -113,7 +113,7 @@ export interface IStructuredCloneMessage {
 
 export interface IStructuredCloneMessagePassingProtocol {
 	readonly type: 'structuredClone';
-	send(message: IStructuredCloneMessage): void;
+	send(header: unknown, body?: unknown): void;
 	readonly onMessage: Event<IStructuredCloneMessage>;
 }
 
@@ -121,7 +121,7 @@ export type IChannelMessagePassingProtocol = IMessagePassingProtocol | IStructur
 
 function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
 	if (protocol.type === 'structuredClone') {
-		protocol.send({ header, body });
+		protocol.send(header, body);
 		return 0;
 	}
 

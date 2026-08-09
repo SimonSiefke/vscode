@@ -7,7 +7,7 @@ import { Event } from '../../../common/event.js';
 import { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
 
 export interface Sender {
-	send(channel: string, msg: unknown): void;
+	send(channel: string, ...args: unknown[]): void;
 }
 
 /**
@@ -21,9 +21,13 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	constructor(private sender: Sender, readonly onMessage: Event<IStructuredCloneMessage>) { }
 
-	send(message: IStructuredCloneMessage): void {
+	send(header: unknown, body?: unknown): void {
 		try {
-			this.sender.send('vscode:message', message);
+			if (typeof body === 'undefined') {
+				this.sender.send('vscode:message', header);
+			} else {
+				this.sender.send('vscode:message', header, body);
+			}
 		} catch (e) {
 			// systems are going down
 		}

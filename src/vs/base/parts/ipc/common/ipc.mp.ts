@@ -46,8 +46,8 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 		port.start();
 	}
 
-	send(message: IStructuredCloneMessage): void {
-		this.port.postMessage(message);
+	send(header: unknown, body?: unknown): void {
+		this.port.postMessage({ header, body });
 	}
 
 	disconnect(): void {
