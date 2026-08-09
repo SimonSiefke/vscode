@@ -7,7 +7,7 @@ import { WebContents } from 'electron';
 import { validatedIpcMain } from './ipcMain.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
-import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage } from '../common/ipc.js';
+import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
 import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
 
 interface IIPCEvent {
@@ -20,6 +20,18 @@ function createScopedOnMessageEvent(senderId: number, eventName: string): Event<
 	const onMessageFromSender = Event.filter(onMessage, ({ event }) => event.sender.id === senderId);
 
 	return Event.map(onMessageFromSender, ({ message }) => message);
+}
+
+function createScopedOnMessage(senderId: number): IStructuredCloneMessagePassingProtocol['onMessage'] {
+	return listener => {
+		const handler = (event: { sender: WebContents }, header: unknown, body: unknown) => {
+			if (event.sender.id === senderId) {
+				listener(header, body);
+			}
+		};
+		validatedIpcMain.on('vscode:message', handler);
+		return toDisposable(() => validatedIpcMain.removeListener('vscode:message', handler));
+	};
 }
 
 /**
@@ -44,7 +56,7 @@ export class Server extends IPCServer {
 			});
 			Server.Clients.set(id, reconnectDisposable);
 
-			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<IStructuredCloneMessage>;
+			const onMessage = createScopedOnMessage(id);
 			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event);
 			Event.once(onDidClientDisconnect)(() => {
 				if (Server.Clients.get(id) === reconnectDisposable) {

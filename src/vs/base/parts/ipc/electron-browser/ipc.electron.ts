@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../common/event.js';
-import { IDisposable } from '../../../common/lifecycle.js';
-import { IPCClient, IStructuredCloneMessage } from '../common/ipc.js';
+import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
+import { IPCClient } from '../common/ipc.js';
 import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
 import { ipcRenderer } from '../../sandbox/electron-browser/globals.js';
 
@@ -18,7 +17,11 @@ export class Client extends IPCClient implements IDisposable {
 	private protocol: ElectronProtocol;
 
 	private static createProtocol(): ElectronProtocol {
-		const onMessage = Event.fromNodeEventEmitter<IStructuredCloneMessage>(ipcRenderer, 'vscode:message', (_, header, body) => ({ header, body }));
+		const onMessage = (listener: (header: unknown, body: unknown) => void): IDisposable => {
+			const handler = (_: unknown, header: unknown, body: unknown) => listener(header, body);
+			ipcRenderer.on('vscode:message', handler);
+			return toDisposable(() => ipcRenderer.removeListener('vscode:message', handler));
+		};
 		ipcRenderer.send('vscode:hello');
 
 		return new ElectronProtocol(ipcRenderer, onMessage);

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../common/event.js';
-import { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
+import { IDisposable } from '../../../common/lifecycle.js';
+import { IStructuredCloneMessagePassingProtocol } from './ipc.js';
 
 export interface Sender {
 	send(channel: string, ...args: unknown[]): void;
@@ -19,7 +19,7 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
 
-	constructor(private sender: Sender, readonly onMessage: Event<IStructuredCloneMessage>) { }
+	constructor(private sender: Sender, readonly onMessage: (listener: (header: unknown, body: unknown) => void) => IDisposable) { }
 
 	send(header: unknown, body?: unknown): void {
 		try {
