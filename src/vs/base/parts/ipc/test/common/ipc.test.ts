@@ -9,10 +9,11 @@ import { VSBuffer } from '../../../../common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../common/cancellation.js';
 import { canceled } from '../../../../common/errors.js';
 import { Emitter, Event } from '../../../../common/event.js';
-import { DisposableStore } from '../../../../common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable } from '../../../../common/lifecycle.js';
 import { isEqual } from '../../../../common/resources.js';
 import { URI } from '../../../../common/uri.js';
 import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol, ProxyChannel, serialize } from '../../common/ipc.js';
+import { Protocol as ElectronProtocol } from '../../common/ipc.electron.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
 
 class QueueProtocol implements IMessagePassingProtocol {
@@ -78,11 +79,14 @@ class StructuredCloneQueueProtocol implements IStructuredCloneMessagePassingProt
 		}
 	});
 
-	readonly onMessage = this._onMessage.event;
+	onMessage(listener: (header: unknown, body: unknown) => void): IDisposable {
+		return this._onMessage.event(message => listener(message.header, message.body));
+	}
 	other!: StructuredCloneQueueProtocol;
 	lastSent: IStructuredCloneMessage | undefined;
 
-	send(message: IStructuredCloneMessage): void {
+	send(header: unknown, body?: unknown): void {
+		const message = { header, body };
 		this.lastSent = message;
 		this.other.receive(structuredClone(message));
 	}
@@ -323,6 +327,23 @@ suite('Base IPC', function () {
 			map: 42,
 			cycle: true
 		});
+	});
+
+	test('electron structured clone protocol sends header and body as separate arguments', function () {
+		const sent: unknown[][] = [];
+		const protocol = new ElectronProtocol({
+			send: (channel, ...args) => sent.push([channel, ...args])
+		}, () => Disposable.None);
+		const header = [100, 1, 'channel', 'command'];
+		const body = { value: true };
+
+		protocol.send(header, body);
+		protocol.send([200]);
+
+		assert.deepStrictEqual(sent, [
+			['vscode:message', header, body],
+			['vscode:message', [200]]
+		]);
 	});
 
 	suite('one to one', function () {

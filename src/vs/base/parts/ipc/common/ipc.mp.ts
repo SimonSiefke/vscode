@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../common/event.js';
-import { IDisposable } from '../../../common/lifecycle.js';
+import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { IPCClient, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
 
 /**
@@ -37,17 +36,33 @@ export interface MessagePort {
 export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
-	readonly onMessage: Event<IStructuredCloneMessage>;
+	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
+	private readonly messageListener = (event: MessageEvent) => {
+		for (const listener of this.listeners) {
+			listener(event.data.header, event.data.body);
+		}
+	};
 
 	constructor(private port: MessagePort) {
-		const onMessage = Event.fromDOMEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data);
-		this.onMessage = Event.filter(onMessage, data => !!data);
 		// we must call start() to ensure messages are flowing
 		port.start();
 	}
 
-	send(message: IStructuredCloneMessage): void {
-		this.port.postMessage(message);
+	onMessage(listener: (header: unknown, body: unknown) => void): IDisposable {
+		if (this.listeners.size === 0) {
+			this.port.addEventListener('message', this.messageListener);
+		}
+		this.listeners.add(listener);
+		return toDisposable(() => {
+			this.listeners.delete(listener);
+			if (this.listeners.size === 0) {
+				this.port.removeEventListener('message', this.messageListener);
+			}
+		});
+	}
+
+	send(header: unknown, body?: unknown): void {
+		this.port.postMessage({ header, body });
 	}
 
 	disconnect(): void {
