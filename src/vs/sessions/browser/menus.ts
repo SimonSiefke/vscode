@@ -18,6 +18,7 @@ export const Menus = {
 	TitleBarCenterRight: new MenuId('SessionsTitleBarCenterRight'),
 	TitleBarSessionTitle: new MenuId('SessionsTitleBarSessionTitle'),
 	TitleBarSessionMenu: new MenuId('SessionsTitleBarSessionMenu'),
+	TitleBarUpdate: new MenuId('SessionsTitleBarUpdate'),
 	BlockedSessionsHeader: new MenuId('SessionsBlockedSessionsHeader'),
 	BlockedSessionsItem: new MenuId('SessionsBlockedSessionsItem'),
 	TitleBarRightLayout: new MenuId('SessionsTitleBarRightLayout'),
@@ -36,6 +37,11 @@ export const Menus = {
 	/** Header actions of the test custom view. */
 	CustomViewTest: new MenuId('SessionsCustomViewTest'),
 
+	/** Header actions of the Automations custom view. */
+	CustomViewAutomations: new MenuId('SessionsCustomViewAutomations'),
+	/** Unified toolbar for all session-backed Automation history rows. Actions are conditionally shown via sessionItem.status context key. */
+	AutomationsHistoryItem: new MenuId('SessionsAutomationsHistoryItem'),
+
 	NewSessionConfig: new MenuId('NewSessions.SessionConfigMenu'),
 	NewSessionControl: new MenuId('NewSessions.SessionControlMenu'),
 	NewSessionRepositoryConfig: new MenuId('NewSessions.RepositoryConfigMenu'),
@@ -45,6 +51,7 @@ export const Menus = {
 	SessionChatTab: new MenuId('SessionsSessionChatTab'),
 	SessionsEditorHeaderPrimary: new MenuId('SessionsEditorHeaderPrimary'),
 	SessionsEditorHeaderSecondary: new MenuId('SessionsEditorHeaderSecondary'),
+	SessionsEditorHeaderLayout: new MenuId('SessionsEditorHeaderLayout'),
 	SessionsEditorTitle: new MenuId('SessionsEditorTitle'),
 	SessionsEditorTabsBarContext: new MenuId('SessionsEditorTabsBarContext'),
 	SessionsEditorTabsBarAddTab: new MenuId('SessionsEditorTabsBarAddTab'),
