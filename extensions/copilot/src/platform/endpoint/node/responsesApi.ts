@@ -30,7 +30,7 @@ import { TelemetryData } from '../../telemetry/common/telemetryData';
 import { getVerbosityForModelSync, modelSupportCacheBreakPoints } from '../common/chatModelCapabilities';
 import { rawPartAsCompactionData } from '../common/compactionDataContainer';
 import { rawPartAsPhaseData } from '../common/phaseDataContainer';
-import { getIndexOfStatefulMarker, getStatefulMarkerAndIndex } from '../common/statefulMarkerContainer';
+import { getIndexOfStatefulMarker, getStatefulMarkerAndIndex, MISSING_STATEFUL_TOOL_RESULT } from '../common/statefulMarkerContainer';
 import { rawPartAsThinkingData } from '../common/thinkingDataContainer';
 import { createResponsesStreamDumper } from './responsesApiDebugDump';
 
@@ -96,7 +96,7 @@ export function createResponsesRequestBody(accessor: ServicesAccessor, options: 
 				...tool.function,
 				type: 'function',
 				strict: false,
-				parameters: (tool.function.parameters || {}) as Record<string, unknown>,
+				parameters: (tool.function.parameters || { type: 'object', properties: {} }) as Record<string, unknown>,
 			});
 		}
 	}
@@ -338,6 +338,14 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 		markerIndex = undefined;
 	}
 
+	let statefulToolCalls: Array<{ id: string; name: string }> = [];
+	if (markerIndex !== undefined) {
+		const markerMessage = messages[markerIndex];
+		if (markerMessage.role === Raw.ChatRole.Assistant && markerMessage.toolCalls?.length) {
+			statefulToolCalls = markerMessage.toolCalls.map(toolCall => ({ id: toolCall.id, name: toolCall.function.name }));
+		}
+	}
+
 	const toolSearchCallIds = new Set<string>();
 	const toolSearchLoadedTools = new Set<string>();
 	// Only pre-scan when history will be sliced (matches the slicing block below);
@@ -380,7 +388,33 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 		messages = messages.slice(latestCompactionMessageIndex);
 	}
 
+	// The server retains calls from previous_response_id even when prompt pruning removes
+	// their local results. Close every call absent from the final post-marker message slice.
+	const sentToolResultIds = new Set(messages
+		.filter((message): message is Raw.ToolChatMessage => message.role === Raw.ChatRole.Tool)
+		.map(message => message.toolCallId));
+	statefulToolCalls = statefulToolCalls.filter(toolCall => !sentToolResultIds.has(toolCall.id));
+
 	const input: OpenAI.Responses.ResponseInputItem[] = [];
+	for (const toolCall of statefulToolCalls) {
+		if (toolCall.name === CUSTOM_TOOL_SEARCH_NAME) {
+			input.push({
+				type: 'tool_search_output',
+				execution: 'client',
+				call_id: toolCall.id,
+				status: 'completed',
+				tools: [],
+			} satisfies ResponsesToolSearchOutputInput as unknown as OpenAI.Responses.ResponseInputItem);
+		} else {
+			input.push({
+				type: 'function_call_output',
+				call_id: toolCall.id,
+				output: supportsCacheBreakpoints
+					? [{ type: 'input_text', text: MISSING_STATEFUL_TOOL_RESULT }]
+					: MISSING_STATEFUL_TOOL_RESULT,
+			});
+		}
+	}
 	for (const message of messages) {
 		switch (message.role) {
 			case Raw.ChatRole.Assistant:
@@ -442,6 +476,15 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 							tools: loadedTools,
 						} satisfies ResponsesToolSearchOutputInput as unknown as OpenAI.Responses.ResponseInputItem);
 					} else {
+						if (supportsCacheBreakpoints) {
+							input.push({
+								type: 'function_call_output',
+								call_id: message.toolCallId,
+								output: rawContentToResponsesContentList(message.content, true),
+							});
+							break;
+						}
+
 						const asText = message.content
 							.filter(c => c.type === Raw.ChatCompletionContentPartKind.Text)
 							.map(c => c.text)
@@ -457,9 +500,9 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 							.filter((c): c is RawDocumentContentPart => c.type === Raw.ChatCompletionContentPartKind.Document)
 							.map(rawDocumentToResponsesInputFile)
 							.filter(isDefined);
-						applyPromptCacheBreakpointsToToolMedia(message.content, asImages, asFiles, supportsCacheBreakpoints);
 
-						// todod@connor4312: hack while responses API only supports text output from tools
+						// Preserve the legacy string output and synthetic media messages unless explicit
+						// prompt cache breakpoints are both enabled and supported by the model.
 						input.push({ type: 'function_call_output', call_id: message.toolCallId, output: asText });
 						if (asImages.length) {
 							input.push({ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'Image associated with the above tool call:' }, ...asImages] });
@@ -549,7 +592,9 @@ function rawDocumentToResponsesInputFile(part: RawDocumentContentPart): OpenAI.R
 	};
 }
 
-function rawContentToResponsesContent(part: Raw.ChatCompletionContentPart): OpenAI.Responses.ResponseInputContent | undefined {
+type ResponsesConvertibleContent = OpenAI.Responses.ResponseInputText | OpenAI.Responses.ResponseInputImage | OpenAI.Responses.ResponseInputFile;
+
+function rawContentToResponsesContent(part: Raw.ChatCompletionContentPart): ResponsesConvertibleContent | undefined {
 	switch (part.type) {
 		case Raw.ChatCompletionContentPartKind.Text:
 			return { type: 'input_text', text: part.text };
@@ -558,7 +603,7 @@ function rawContentToResponsesContent(part: Raw.ChatCompletionContentPart): Open
 		case Raw.ChatCompletionContentPartKind.Document:
 			return rawDocumentToResponsesInputFile(part);
 		case Raw.ChatCompletionContentPartKind.Opaque: {
-			const maybeCast = part.value as OpenAI.Responses.ResponseInputContent;
+			const maybeCast = part.value as ResponsesConvertibleContent;
 			if (maybeCast.type === 'input_text' || maybeCast.type === 'input_image' || maybeCast.type === 'input_file') {
 				return maybeCast;
 			}
@@ -579,13 +624,13 @@ interface ResponsesPromptCacheBreakpoint {
 	readonly mode: 'explicit';
 }
 
-type ResponsesCacheableContent = OpenAI.Responses.ResponseInputContent & {
+type ResponsesCacheableContent = ResponsesConvertibleContent & {
 	prompt_cache_breakpoint?: ResponsesPromptCacheBreakpoint;
 };
 
 const promptCacheBreakpoint: ResponsesPromptCacheBreakpoint = { mode: 'explicit' };
 
-function rawContentToResponsesContentList(parts: readonly Raw.ChatCompletionContentPart[], supportsCacheBreakpoints: boolean): OpenAI.Responses.ResponseInputContent[] {
+function rawContentToResponsesContentList(parts: readonly Raw.ChatCompletionContentPart[], supportsCacheBreakpoints: boolean): ResponsesConvertibleContent[] {
 	const content: ResponsesCacheableContent[] = [];
 	let target: ResponsesCacheableContent | undefined;
 	for (const part of parts) {
@@ -607,37 +652,6 @@ function rawContentToResponsesContentList(parts: readonly Raw.ChatCompletionCont
 	return content;
 }
 
-function applyPromptCacheBreakpointsToToolMedia(
-	parts: readonly Raw.ChatCompletionContentPart[],
-	images: OpenAI.Responses.ResponseInputImage[],
-	files: OpenAI.Responses.ResponseInputFile[],
-	supportsCacheBreakpoints: boolean,
-): void {
-	if (!supportsCacheBreakpoints) {
-		return;
-	}
-
-	let imageIndex = 0;
-	let fileIndex = 0;
-	let target: ResponsesCacheableContent | undefined;
-	for (const part of parts) {
-		switch (part.type) {
-			case Raw.ChatCompletionContentPartKind.Image:
-				target = images[imageIndex++];
-				break;
-			case Raw.ChatCompletionContentPartKind.Document:
-				target = part.documentData.mediaType === 'application/pdf' ? files[fileIndex++] : undefined;
-				break;
-			case Raw.ChatCompletionContentPartKind.CacheBreakpoint:
-				if (target) {
-					target.prompt_cache_breakpoint = promptCacheBreakpoint;
-				}
-				break;
-			default:
-				target = undefined;
-		}
-	}
-}
 /**
  * The Responses API rejects the entire request with
  * `400 invalid_request_body: Invalid 'input[N].id': '...'. Expected an ID that begins with 'rs'.`
@@ -1306,7 +1320,8 @@ export class OpenAIResponsesProcessor {
 				return onProgress({
 					text: '',
 					thinking: {
-						id: chunk.item_id
+						id: chunk.item_id,
+						metadata: { vscode_reasoning_summary_part_done: true },
 					}
 				});
 			case 'response.completed': {
