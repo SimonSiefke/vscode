@@ -2774,6 +2774,11 @@ suite('AgentSessions', () => {
 	suite('AgentSessionsViewModel - getAgentCanContinueIn', () => {
 		ensureNoDisposablesAreLeakedInTestSuite();
 
+		test('should return false for Local provider', () => {
+			const result = getAgentCanContinueIn(AgentSessionProviders.Local);
+			assert.strictEqual(result, false);
+		});
+
 		test('should return true for Cloud provider', () => {
 			const result = getAgentCanContinueIn(AgentSessionProviders.Cloud);
 			assert.strictEqual(result, true);
