@@ -57,6 +57,8 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 
 	private readonly commandsHistory: CommandsHistory;
 
+	private tfIdfCache: { key: string; calculator: TfIdfCalculator } | undefined;
+
 	protected override readonly options: ICommandsQuickAccessOptions;
 
 	constructor(
@@ -84,11 +86,7 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 		}
 
 		const runTfidf = createSingleCallFunction(() => {
-			const tfidf = new TfIdfCalculator();
-			tfidf.updateDocuments(allCommandPicks.map(commandPick => ({
-				key: commandPick.commandId,
-				textChunks: [this.getTfIdfChunk(commandPick)]
-			})));
+			const tfidf = this.getTfIdfCalculator(allCommandPicks);
 			const result = tfidf.calculateScores(filter, token);
 
 			return normalizeTfIdfScores(result)
@@ -99,6 +97,10 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 		// Filter
 		const filteredCommandPicks: ICommandQuickPick[] = [];
 		for (const commandPick of allCommandPicks) {
+			commandPick.highlights = undefined;
+			commandPick.description = undefined;
+			commandPick.tfIdfScore = undefined;
+
 			const labelHighlights = AbstractCommandsQuickAccessProvider.WORD_FILTER(filter, commandPick.label) ?? undefined;
 
 			let aliasHighlights: IMatch[] | undefined;
@@ -348,6 +350,38 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 			chunk += ` - ${commandDescription.value === commandDescription.original ? commandDescription.value : `${commandDescription.value} (${commandDescription.original})`}`;
 		}
 		return chunk;
+	}
+
+	private getTfIdfCalculator(commandPicks: ICommandQuickPick[]): TfIdfCalculator {
+		const key = this.getTfIdfCacheKey(commandPicks);
+		if (this.tfIdfCache?.key === key) {
+			return this.tfIdfCache.calculator;
+		}
+
+		const calculator = new TfIdfCalculator();
+		calculator.updateDocuments(commandPicks.map(commandPick => ({
+			key: commandPick.commandId,
+			textChunks: [this.getTfIdfChunk(commandPick)]
+		})));
+		this.tfIdfCache = { key, calculator };
+		return calculator;
+	}
+
+	private getTfIdfCacheKey(commandPicks: ICommandQuickPick[]): string {
+		let result = `${commandPicks.length}`;
+		for (const commandPick of commandPicks) {
+			result += '\n';
+			result += commandPick.commandId;
+			result += '\0';
+			result += commandPick.label;
+			result += '\0';
+			result += commandPick.commandAlias ?? '';
+			result += '\0';
+			result += commandPick.commandDescription?.value ?? '';
+			result += '\0';
+			result += commandPick.commandDescription?.original ?? '';
+		}
+		return result;
 	}
 
 	protected abstract getCommandPicks(token: CancellationToken): Promise<Array<ICommandQuickPick>>;

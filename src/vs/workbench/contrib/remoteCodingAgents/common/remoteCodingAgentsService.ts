@@ -69,9 +69,7 @@ export class RemoteCodingAgentsService extends Disposable implements IRemoteCodi
 		if (agent.when) {
 			const whenExpr = ContextKeyExpr.deserialize(agent.when);
 			if (whenExpr) {
-				for (const key of whenExpr.keys()) {
-					this.contextKeys.add(key);
-				}
+				whenExpr.collectKeys(this.contextKeys);
 			}
 		}
 
