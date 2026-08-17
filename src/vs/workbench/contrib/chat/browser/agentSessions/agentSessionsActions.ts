@@ -776,6 +776,7 @@ export class DeleteAgentSessionAction extends BaseAgentSessionAction {
 		const dialogService = accessor.get(IDialogService);
 		const widgetService = accessor.get(IChatWidgetService);
 		const commandService = accessor.get(ICommandService);
+		const agentSessionsService = accessor.get(IAgentSessionsService);
 
 		const confirmed = await dialogService.confirm({
 			message: sessions.length === 1
@@ -798,6 +799,7 @@ export class DeleteAgentSessionAction extends BaseAgentSessionAction {
 
 				// Remove from storage
 				await chatService.removeHistoryEntry(session.resource);
+				agentSessionsService.deleteSessionState(session.resource);
 
 				// Track session ID for cloud cleanup
 				const sessionId = LocalChatSessionUri.parseLocalSessionId(session.resource);
@@ -811,6 +813,7 @@ export class DeleteAgentSessionAction extends BaseAgentSessionAction {
 				try {
 					await chatSessionsService.deleteChatSessionItem(session.resource, CancellationToken.None);
 					await widgetService.getWidgetBySessionResource(session.resource)?.clear();
+					agentSessionsService.deleteSessionState(session.resource);
 				} catch (err) {
 					dialogService.error(localize('deleteSession.error', "Failed to delete chat session: {0}", toErrorMessage(err)));
 				}
@@ -842,15 +845,15 @@ export class DeleteAllLocalSessionsAction extends Action2 {
 		const dialogService = accessor.get(IDialogService);
 		const agentSessionsService = accessor.get(IAgentSessionsService);
 
-		const localSessionsCount = agentSessionsService.model.sessions.filter(session => isLocalAgentSessionItem(session)).length;
-		if (localSessionsCount === 0) {
+		const localSessions = agentSessionsService.model.sessions.filter(session => isLocalAgentSessionItem(session));
+		if (localSessions.length === 0) {
 			return;
 		}
 
 		const confirmed = await dialogService.confirm({
-			message: localSessionsCount === 1
+			message: localSessions.length === 1
 				? localize('deleteAllChats.confirmSingle', "Are you sure you want to delete 1 local workspace chat session?")
-				: localize('deleteAllChats.confirm', "Are you sure you want to delete {0} local workspace chat sessions?", localSessionsCount),
+				: localize('deleteAllChats.confirm', "Are you sure you want to delete {0} local workspace chat sessions?", localSessions.length),
 			detail: localize('deleteAllChats.detail', "This action cannot be undone."),
 			primaryButton: localize('deleteAllChats.button', "Delete All")
 		});
@@ -864,6 +867,9 @@ export class DeleteAllLocalSessionsAction extends Action2 {
 
 		// Remove from storage
 		await chatService.clearAllHistoryEntries();
+		for (const session of localSessions) {
+			agentSessionsService.deleteSessionState(session.resource);
+		}
 	}
 }
 
