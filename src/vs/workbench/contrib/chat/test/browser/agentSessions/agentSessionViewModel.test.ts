@@ -1479,6 +1479,23 @@ suite('AgentSessions', () => {
 			});
 		});
 
+		test('should discard local state for removed sessions', async () => {
+			return runWithFakedTimers({}, async () => {
+				const item = makeSimpleSessionItem('session-1');
+				mockChatSessionsService.registerChatSessionItemController(chatSessionTestType, new StaticChatSessionItemController([item]));
+				viewModel = disposables.add(instantiationService.createInstance(AgentSessionsModel));
+				await viewModel.resolve(undefined);
+				viewModel.sessions[0].setArchived(true);
+
+				mockChatSessionsService.registerChatSessionItemController(chatSessionTestType, new StaticChatSessionItemController([]));
+				await viewModel.resolve(undefined);
+				mockChatSessionsService.registerChatSessionItemController(chatSessionTestType, new StaticChatSessionItemController([item]));
+				await viewModel.resolve(undefined);
+
+				assert.strictEqual(viewModel.sessions[0].isArchived(), false);
+			});
+		});
+
 		test('should fire archive state changes only for effective provider transitions', async () => {
 			return runWithFakedTimers({}, async () => {
 				const item = makeSimpleSessionItem('session-1', { archived: false });
