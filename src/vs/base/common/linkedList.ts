@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { IDisposable } from './lifecycle.js';
+
+const removeNode = Symbol('removeNode');
+const detachNode = Symbol('detachNode');
+
 class Node<E> {
 
 	static readonly Undefined = new Node<unknown>(undefined);
@@ -15,6 +20,31 @@ class Node<E> {
 		this.element = element;
 		this.next = Node.Undefined;
 		this.prev = Node.Undefined;
+	}
+
+	[detachNode](): void { }
+}
+
+class DisposableNode<E> extends Node<E> implements IDisposable {
+
+	constructor(
+		element: E,
+		private _list: LinkedList<E> | undefined,
+	) {
+		super(element);
+	}
+
+	dispose(): void {
+		const list = this._list;
+		if (!list) {
+			return;
+		}
+		this._list = undefined;
+		list[removeNode](this);
+	}
+
+	override[detachNode](): void {
+		this._list = undefined;
 	}
 }
 
@@ -36,6 +66,7 @@ export class LinkedList<E> {
 		let node = this._first;
 		while (node !== Node.Undefined) {
 			const next = node.next;
+			node[detachNode]();
 			node.prev = Node.Undefined;
 			node.next = Node.Undefined;
 			node = next;
@@ -50,12 +81,38 @@ export class LinkedList<E> {
 		return this._insert(element, false);
 	}
 
+	unshiftDisposable(element: E): IDisposable {
+		return this._insertDisposable(element, false);
+	}
+
 	push(element: E): () => void {
 		return this._insert(element, true);
 	}
 
+	pushDisposable(element: E): IDisposable {
+		return this._insertDisposable(element, true);
+	}
+
 	private _insert(element: E, atTheEnd: boolean): () => void {
 		const newNode = new Node(element);
+		this._insertNode(newNode, atTheEnd);
+
+		let didRemove = false;
+		return () => {
+			if (!didRemove) {
+				didRemove = true;
+				this._remove(newNode);
+			}
+		};
+	}
+
+	private _insertDisposable(element: E, atTheEnd: boolean): IDisposable {
+		const newNode = new DisposableNode(element, this);
+		this._insertNode(newNode, atTheEnd);
+		return newNode;
+	}
+
+	private _insertNode(newNode: Node<E>, atTheEnd: boolean): void {
 		if (this._first === Node.Undefined) {
 			this._first = newNode;
 			this._last = newNode;
@@ -75,14 +132,10 @@ export class LinkedList<E> {
 			oldFirst.prev = newNode;
 		}
 		this._size += 1;
+	}
 
-		let didRemove = false;
-		return () => {
-			if (!didRemove) {
-				didRemove = true;
-				this._remove(newNode);
-			}
-		};
+	[removeNode](node: Node<E>): void {
+		this._remove(node);
 	}
 
 	shift(): E | undefined {
@@ -115,6 +168,7 @@ export class LinkedList<E> {
 	}
 
 	private _remove(node: Node<E> | typeof Node.Undefined): void {
+		node[detachNode]();
 		if (node.prev !== Node.Undefined && node.next !== Node.Undefined) {
 			// middle
 			const anchor = node.prev;
