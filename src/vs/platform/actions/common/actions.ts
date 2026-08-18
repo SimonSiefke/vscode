@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IAction, SubmenuAction } from '../../../base/common/actions.js';
-import { Event, MicrotaskEmitter } from '../../../base/common/event.js';
-import { DisposableStore, dispose, IDisposable, markAsSingleton, toDisposable } from '../../../base/common/lifecycle.js';
+import { Emitter, Event, MicrotaskEmitter } from '../../../base/common/event.js';
+import { DisposableStore, dispose, IDisposable, markAsDisposed, markAsSingleton, trackDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ICommandAction, ICommandActionTitle, Icon, ILocalizedString } from '../../action/common/action.js';
@@ -474,6 +474,50 @@ export interface IMenuRegistry {
 	getMenuItems(loc: MenuId): Array<IMenuItem | ISubmenuItem>;
 }
 
+class MenuCommandRegistration implements IDisposable {
+	private _isDisposed = false;
+
+	constructor(
+		private readonly _commands: Map<string, ICommandAction>,
+		private readonly _commandId: string,
+		private readonly _onDidChangeMenu: Emitter<IMenuRegistryChangeEvent>,
+	) {
+		trackDisposable(this);
+	}
+
+	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		markAsDisposed(this);
+		if (this._commands.delete(this._commandId)) {
+			this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(MenuId.CommandPalette));
+		}
+	}
+}
+
+class MenuItemRegistration implements IDisposable {
+	constructor(
+		private _registration: IDisposable | undefined,
+		private readonly _menuId: MenuId,
+		private readonly _onDidChangeMenu: Emitter<IMenuRegistryChangeEvent>,
+	) {
+		trackDisposable(this);
+	}
+
+	dispose(): void {
+		const registration = this._registration;
+		if (!registration) {
+			return;
+		}
+		this._registration = undefined;
+		markAsDisposed(this);
+		registration.dispose();
+		this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(this._menuId));
+	}
+}
+
 export const MenuRegistry: IMenuRegistry = new class implements IMenuRegistry {
 
 	private readonly _commands = new Map<string, ICommandAction>();
@@ -488,11 +532,7 @@ export const MenuRegistry: IMenuRegistry = new class implements IMenuRegistry {
 		this._commands.set(command.id, command);
 		this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(MenuId.CommandPalette));
 
-		return markAsSingleton(toDisposable(() => {
-			if (this._commands.delete(command.id)) {
-				this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(MenuId.CommandPalette));
-			}
-		}));
+		return markAsSingleton(new MenuCommandRegistration(this._commands, command.id, this._onDidChangeMenu));
 	}
 
 	getCommand(id: string): ICommandAction | undefined {
@@ -511,12 +551,9 @@ export const MenuRegistry: IMenuRegistry = new class implements IMenuRegistry {
 			list = new LinkedList();
 			this._menuItems.set(id, list);
 		}
-		const rm = list.push(item);
+		const registration = list.pushDisposable(item);
 		this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(id));
-		return markAsSingleton(toDisposable(() => {
-			rm();
-			this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(id));
-		}));
+		return markAsSingleton(new MenuItemRegistration(registration, id, this._onDidChangeMenu));
 	}
 
 	appendMenuItems(items: Iterable<{ id: MenuId; item: IMenuItem | ISubmenuItem }>): IDisposable {

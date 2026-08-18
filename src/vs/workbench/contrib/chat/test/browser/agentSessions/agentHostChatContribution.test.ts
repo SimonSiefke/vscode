@@ -52,7 +52,7 @@ import { IChatDebugService } from '../../../common/chatDebugService.js';
 import { IChatEditingService } from '../../../common/editing/chatEditingService.js';
 import { IChatResponseFileChangesService } from '../../../browser/chatResponseFileChangesService.js';
 import { IMarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { IChatSessionsService, type IChatSession, type IChatSessionItemController, type IChatSessionRequestHistoryItem, type IChatSessionServerRequest, type IChatSessionsExtensionPoint } from '../../../common/chatSessionsService.js';
+import { IChatSessionsService, type IChatSession, type IChatSessionContentProvider, type IChatSessionItemController, type IChatSessionRequestHistoryItem, type IChatSessionServerRequest, type IChatSessionsExtensionPoint } from '../../../common/chatSessionsService.js';
 import { ILanguageModelsService, type ILanguageModelChatMetadata } from '../../../common/languageModels.js';
 import { IProductService } from '../../../../../../platform/product/common/productService.js';
 import { IOpenerService } from '../../../../../../platform/opener/common/opener.js';
@@ -61,7 +61,8 @@ import { TestInstantiationService } from '../../../../../../platform/instantiati
 import { IOutputService } from '../../../../../services/output/common/output.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../../platform/workspace/common/workspace.js';
 import { IWorkspaceTrustRequestService } from '../../../../../../platform/workspace/common/workspaceTrust.js';
-import { AgentHostContribution, AgentHostSessionHandler } from '../../../browser/agentSessions/agentHost/agentHostChatContribution.js';
+import { AgentHostContribution } from '../../../browser/agentSessions/agentHost/agentHostChatContribution.js';
+import { AgentHostSessionHandler } from '../../../browser/agentSessions/agentHost/agentHostSessionHandler.js';
 import { AgentHostAuthTokenCache } from '../../../browser/agentSessions/agentHost/agentHostAuth.js';
 import { AgentHostLanguageModelProvider } from '../../../browser/agentSessions/agentHost/agentHostLanguageModelProvider.js';
 import { AgentHostSessionListContribution } from '../../../browser/agentSessions/agentHost/agentHostSessionListContribution.js';
@@ -160,6 +161,9 @@ class MockAgentHostService extends mock<IAgentHostService>() {
 	}
 
 	override readonly initializeResult = constObservable(undefined);
+	override getCompletionTriggerCharacters(): Promise<readonly string[]> {
+		return Promise.resolve(['/']);
+	}
 
 	// Track live subscriptions so fireAction can route to them. A subscription
 	// may hold a SessionState (for session channels) or a ChatState (for the
@@ -1214,6 +1218,27 @@ suite('AgentHostChatContribution', () => {
 			const { chatAgentService } = createContribution(disposables);
 
 			assert.ok(chatAgentService.registeredAgents.has('agent-host-copilot'));
+		});
+
+		test('defers creating the session handler until session content is requested', async () => {
+			let provider: IChatSessionContentProvider | undefined;
+			const { agentHostService } = createContribution(disposables, {
+				chatSessionsServiceOverride: {
+					registerChatSessionContentProvider: (_scheme, value) => {
+						provider = value;
+						return toDisposable(() => { });
+					},
+				},
+			});
+			agentHostService.setRootState({
+				agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+				activeSessions: 0,
+			});
+
+			assert.ok(provider);
+			assert.ok(!(provider instanceof AgentHostSessionHandler));
+			assert.deepStrictEqual(await provider.provideChatInputCompletionTriggerCharacters?.(), ['/']);
+			assert.notStrictEqual(provider.resolveChatResponseUri?.(URI.parse('agent-host-copilot:/session'), '/workspace/file.ts', 'link'), '/workspace/file.ts');
 		});
 	});
 
