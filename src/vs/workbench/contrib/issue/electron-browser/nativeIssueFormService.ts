@@ -24,7 +24,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IIssueFormService, IssueReporterData } from '../common/issue.js';
-import { IssueReporter } from './issueReporterService.js';
+import type { IssueReporter } from './issueReporterService.js';
 
 export class NativeIssueFormService extends IssueFormService implements IIssueFormService {
 
@@ -94,6 +94,7 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 		await this.openAuxIssueReporter(data, bounds);
 
 		if (this.issueReporterWindow) {
+			const { IssueReporter } = await import('./issueReporterService.js');
 			const issueReporter = this.instantiationService.createInstance(
 				IssueReporter,
 				!!this.environmentService.disableExtensions,

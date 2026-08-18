@@ -8,7 +8,7 @@ import { EditorInput, IEditorCloseHandler } from '../../../common/editor/editorI
 import { EditorInputCapabilities } from '../../../common/editor.js';
 import { ConfirmResult, IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IssueReporterData } from '../common/issue.js';
-import { IScreenshot } from './issueReporterOverlay.js';
+import type { IScreenshot } from './issueReporterOverlay.js';
 import { localize } from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';

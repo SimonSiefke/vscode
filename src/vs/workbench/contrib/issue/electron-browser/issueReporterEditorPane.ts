@@ -25,7 +25,7 @@ import { decodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
 import { URI } from '../../../../base/common/uri.js';
 import { FileAccess } from '../../../../base/common/network.js';
 import { IssueReporterEditorInput } from '../browser/issueReporterEditorInput.js';
-import { IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
+import type { IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
 import { IRecordingService, IRecordingData, RecordingState } from '../browser/recordingService.js';
 import { IScreenshotService } from '../browser/screenshotService.js';
 import { IIssueFormService } from '../common/issue.js';
@@ -171,6 +171,10 @@ export class IssueReporterEditorPane extends EditorPane {
 		}
 
 		// Create the wizard — renders inside this container
+		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
+		if (token.isCancellationRequested || !this.container) {
+			return;
+		}
 		this.wizard = new IssueReporterOverlay(
 			data,
 			this.recordingService.isSupported,
