@@ -286,16 +286,22 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 	public setOptions(options: ISelectOptionItem[], selected?: number): void {
 		if (!arrays.equals(this.options, options)) {
 			this.options = options;
-			this.selectElement.options.length = 0;
 			this._hasDetails = false;
 			this._cachedMaxDetailsHeight = undefined;
 
 			this.options.forEach((option, index) => {
-				this.selectElement.add(this.createOption(option.text, index, option.isDisabled));
+				const optionElement = this.selectElement.options.item(index);
+				if (optionElement) {
+					this.updateOption(optionElement, option.text, option.isDisabled);
+				} else {
+					this.selectElement.add(this.createOption(option.text, option.isDisabled));
+				}
 				if (typeof option.description === 'string') {
 					this._hasDetails = true;
 				}
 			});
+
+			this.selectElement.options.length = this.options.length;
 		}
 
 		if (selected !== undefined) {
@@ -440,13 +446,16 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 		this.selectList.style(this.styles);
 	}
 
-	private createOption(value: string, index: number, disabled?: boolean): HTMLOptionElement {
+	private createOption(value: string, disabled?: boolean): HTMLOptionElement {
 		const option = document.createElement('option');
+		this.updateOption(option, value, disabled);
+		return option;
+	}
+
+	private updateOption(option: HTMLOptionElement, value: string, disabled?: boolean): void {
 		option.value = value;
 		option.text = value;
 		option.disabled = !!disabled;
-
-		return option;
 	}
 
 	// ContextView dropdown methods
