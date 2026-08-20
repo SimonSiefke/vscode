@@ -154,7 +154,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 	}
 
 	private async _prepareEditsForFile(options: vscode.LanguageModelToolInvocationOptions<T> | vscode.LanguageModelToolInvocationPrepareOptions<T>, input: IAbstractReplaceStringInput, token: vscode.CancellationToken): Promise<IPrepareEdit> {
-		const uri = resolveToolInputPath(input.filePath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 
 		const disallowedUriError = getDisallowedEditUriError(uri, this._promptContext?.allowedEditUris, this.promptPathRepresentationService);
 		if (disallowedUriError) {
@@ -578,7 +578,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<T>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
 		// Extract all replace inputs from the tool input
 		const replaceInputs = this.extractReplaceInputs(options.input);
-		const allUris = replaceInputs.map(input => resolveToolInputPath(input.filePath, this.promptPathRepresentationService));
+		const allUris = replaceInputs.map(input => resolveToolInputPath(input.filePath, this.promptPathRepresentationService, options.workingDirectory));
 
 		return this.instantiationService.invokeFunction(
 			createEditConfirmation,
