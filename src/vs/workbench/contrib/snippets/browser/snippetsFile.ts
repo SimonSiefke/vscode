@@ -18,6 +18,7 @@ import { Iterable } from '../../../../base/common/iterator.js';
 import { WindowIdleValue, getActiveWindow } from '../../../../base/browser/dom.js';
 import { match as matchGlob } from '../../../../base/common/glob.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
 
 class SnippetBodyInsights {
 
@@ -99,9 +100,10 @@ class SnippetBodyInsights {
 	}
 }
 
-export class Snippet {
+export class Snippet implements IDisposable {
 
 	private readonly _bodyInsights: WindowIdleValue<SnippetBodyInsights>;
+	private _usesSelectionVariable: boolean | undefined;
 
 	readonly prefixLow: string;
 
@@ -140,7 +142,8 @@ export class Snippet {
 	}
 
 	get usesSelection(): boolean {
-		return this._bodyInsights.value.usesSelectionVariable;
+		this._usesSelectionVariable ??= snippetUsesSelectionVariable(this.body);
+		return this._usesSelectionVariable;
 	}
 
 	isFileIncluded(resourceUri: URI): boolean {
@@ -170,6 +173,28 @@ export class Snippet {
 
 		return true;
 	}
+
+	dispose(): void {
+		this._bodyInsights.dispose();
+	}
+}
+
+function snippetUsesSelectionVariable(body: string): boolean {
+	const textmateSnippet = new SnippetParser().parse(body, false);
+	const stack = [...textmateSnippet.children];
+	while (stack.length > 0) {
+		const marker = stack.shift()!;
+		if (marker instanceof Variable) {
+			switch (marker.name) {
+				case 'SELECTION':
+				case 'TM_SELECTED_TEXT':
+					return true;
+			}
+		} else {
+			stack.push(...marker.children);
+		}
+	}
+	return false;
 }
 
 
@@ -197,7 +222,7 @@ export const enum SnippetSource {
 	Extension = 3,
 }
 
-export class SnippetFile {
+export class SnippetFile implements IDisposable {
 
 	readonly data: Snippet[] = [];
 	readonly isGlobalSnippets: boolean;
@@ -289,7 +314,14 @@ export class SnippetFile {
 
 	reset(): void {
 		this._loadPromise = undefined;
+		this.dispose();
 		this.data.length = 0;
+	}
+
+	dispose(): void {
+		for (const snippet of this.data) {
+			snippet.dispose();
+		}
 	}
 
 	private _parseSnippet(name: string, snippet: JsonSerializedSnippet, bucket: Snippet[]): void {
