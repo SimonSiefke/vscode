@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { Emitter } from '../../common/event.js';
-import { DisposableSet, DisposableStore, dispose, IDisposable, markAsSingleton, ReferenceCollection, thenIfNotDisposed, toDisposable } from '../../common/lifecycle.js';
+import { combinedDisposable, DisposableSet, DisposableStore, dispose, IDisposable, markAsSingleton, ReferenceCollection, thenIfNotDisposed, toDisposable } from '../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, throwIfDisposablesAreLeaked } from './utils.js';
 
 class Disposable implements IDisposable {
@@ -107,6 +107,17 @@ suite('Lifecycle', () => {
 		const setValues = set.values();
 		const setValues2 = dispose(setValues);
 		assert.ok(setValues === setValues2);
+	});
+
+	test('combined disposable uses a shared dispose method', function () {
+		const first = new Disposable();
+		const second = new Disposable();
+		const combined = combinedDisposable(first, second);
+
+		assert.strictEqual(Object.values(combined).some(value => typeof value === 'function'), false);
+		combined.dispose();
+		combined.dispose();
+		assert.deepStrictEqual([first.isDisposed, second.isDisposed], [true, true]);
 	});
 });
 
