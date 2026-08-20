@@ -18,7 +18,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { TITLE_BAR_ACTIVE_BACKGROUND, TITLE_BAR_ACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_BACKGROUND, TITLE_BAR_BORDER, WORKBENCH_BACKGROUND } from '../../../common/theme.js';
 import { isMacintosh, isWindows, isLinux, isWeb, isNative, platformLocale } from '../../../../base/common/platform.js';
 import { Color } from '../../../../base/common/color.js';
-import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement } from '../../../../base/browser/dom.js';
+import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement, DisposableResizeObserver } from '../../../../base/browser/dom.js';
 import { CustomMenubarControl } from './menubarControl.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -517,6 +517,11 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 
 			// Re-evaluate fit when items change, see #303222.
 			this.centerAdjacentToolBarDisposable.add(centerAdjacentToolBar.onDidChangeMenuItems(() => this.updateTitleBarToolBarOverflow()));
+
+			const overflowObserver = this.centerAdjacentToolBarDisposable.add(new DisposableResizeObserver('BrowserTitlebarPart.centerAdjacentToolbarOverflow', () => {
+				this.updateTitleBarToolBarOverflow();
+			}, getWindow(this.rootContainer)));
+			this.centerAdjacentToolBarDisposable.add(overflowObserver.observe(this.rootContainer));
 		}
 
 		// Update Toolbar (before the right-aligned toolbar actions)
@@ -938,9 +943,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		this.updateLayout(new Dimension(width, height));
 
 		super.layoutContents(width, height);
-
-		// Run after `layoutContents` so the title bar reflects its new width when measuring overflow.
-		this.updateTitleBarToolBarOverflow();
 	}
 
 	/**
@@ -974,11 +976,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 
 		this.element.style.setProperty('--zoom-factor', zoomFactor.toString());
 		this.rootContainer.classList.toggle('counter-zoom', this.preventZoom);
-
-		if (this.customMenubar.value) {
-			const menubarDimension = new Dimension(0, dimension.height);
-			this.customMenubar.value.layout(menubarDimension);
-		}
 
 		const hasCenter = this.isCommandCenterVisible || this.title.textContent !== '';
 		this.rootContainer.classList.toggle('has-center', hasCenter);

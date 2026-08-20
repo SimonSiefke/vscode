@@ -780,10 +780,6 @@ export class CustomMenubarControl extends MenubarControl {
 		return this.container;
 	}
 
-	layout(dimension: Dimension) {
-		this.menubar?.update(this.getMenuBarOptions());
-	}
-
 	toggleFocus() {
 		this.menubar?.toggleFocus();
 	}

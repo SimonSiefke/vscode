@@ -9,7 +9,7 @@ import { unthemedInboxStyles } from '../../../../base/browser/ui/inputbox/inputB
 import { unthemedButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { unthemedListStyles } from '../../../../base/browser/ui/list/listWidget.js';
 import { unthemedToggleStyles } from '../../../../base/browser/ui/toggle/toggle.js';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter } from '../../../../base/common/event.js';
 import { raceTimeout } from '../../../../base/common/async.js';
 import { unthemedCountStyles } from '../../../../base/browser/ui/countBadge/countBadge.js';
 import { unthemedKeybindingLabelOptions } from '../../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
@@ -55,6 +55,7 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	let controller: QuickInputController;
 	let fixture: HTMLElement;
+	let layoutEmitter: Emitter<{ readonly container: HTMLElement; readonly dimension: { readonly height: number; readonly width: number } }>;
 
 	setup(() => {
 		fixture = document.createElement('div');
@@ -62,6 +63,7 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		store.add(toDisposable(() => fixture.remove()));
 
 		const instantiationService = new TestInstantiationService();
+		layoutEmitter = store.add(new Emitter());
 
 		// Stub the services the quick input controller needs to function
 		instantiationService.stub(IThemeService, new TestThemeService());
@@ -71,7 +73,8 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		instantiationService.stub(ILayoutService, {
 			_serviceBrand: undefined,
 			activeContainer: fixture,
-			onDidLayoutContainer: Event.None,
+			activeContainerOffset: { quickPickTop: 0, top: 0 },
+			onDidLayoutContainer: layoutEmitter.event,
 			getContainer: () => fixture,
 		});
 		instantiationService.stub(IContextViewService, store.add(instantiationService.createInstance(ContextViewService)));
@@ -220,6 +223,24 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 				inert: false,
 			},
 		});
+	});
+
+	test('hidden quick input skips drag-and-drop layout', () => {
+		const quickpick = store.add(controller.createQuickPick());
+		quickpick.show();
+		controller.setAlignment({ top: 0.2, left: 0.2 });
+
+		const widget = fixture.querySelector<HTMLElement>('.quick-input-widget')!;
+		const getBoundingClientRect = sinon.spy(widget, 'getBoundingClientRect');
+		const fireLayout = () => layoutEmitter.fire({ container: fixture, dimension: { height: 400, width: 600 } });
+
+		fireLayout();
+		const visibleCalls = getBoundingClientRect.callCount;
+		quickpick.hide();
+		getBoundingClientRect.resetHistory();
+		fireLayout();
+
+		assert.deepStrictEqual({ hidden: getBoundingClientRect.callCount, visible: visibleCalls }, { hidden: 0, visible: 1 });
 	});
 
 	test('pick - basecase', async () => {
