@@ -100,6 +100,10 @@ export class ViewsService extends Disposable implements IViewsService {
 	private onViewsRemoved(removed: IView[]): void {
 		for (const view of removed) {
 			this.onViewsVisibilityChanged(view, false);
+			if (this.focusedViewContextKey.get() === view.id) {
+				this.focusedViewContextKey.reset();
+				this._onDidChangeFocusedView.fire();
+			}
 		}
 	}
 
@@ -687,9 +691,14 @@ export class ViewsService extends Disposable implements IViewsService {
 
 	private createViewPaneContainer(element: HTMLElement, viewContainer: ViewContainer, viewContainerLocation: ViewContainerLocation, disposables: DisposableStore, instantiationService: IInstantiationService): ViewPaneContainer {
 		const viewPaneContainer: ViewPaneContainer = instantiationService.createInstance(viewContainer.ctorDescriptor.ctor, ...(viewContainer.ctorDescriptor.staticArguments || []));
+		const viewPaneContainerId = viewPaneContainer.getId();
 
-		this.viewPaneContainers.set(viewPaneContainer.getId(), viewPaneContainer);
-		disposables.add(toDisposable(() => this.viewPaneContainers.delete(viewPaneContainer.getId())));
+		this.viewPaneContainers.set(viewPaneContainerId, viewPaneContainer);
+		disposables.add(toDisposable(() => {
+			if (this.viewPaneContainers.get(viewPaneContainerId) === viewPaneContainer) {
+				this.viewPaneContainers.delete(viewPaneContainerId);
+			}
+		}));
 		disposables.add(viewPaneContainer.onDidAddViews(views => this.onViewsAdded(views)));
 		disposables.add(viewPaneContainer.onDidChangeViewVisibility(view => this.onViewsVisibilityChanged(view, view.isBodyVisible())));
 		disposables.add(viewPaneContainer.onDidRemoveViews(views => this.onViewsRemoved(views)));
