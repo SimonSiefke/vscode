@@ -565,13 +565,32 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		this._register(this.chatSessionsService.onDidChangeAvailability(() => this.resolve(undefined)));
 		this._register(this.chatSessionsService.onDidChangeSessionItems((delta) => {
 			const changedChatSessionTypes = new Set<string>();
+			const replacementsByLegacyResource = new Map<string, IChatSessionItem>();
 
 			for (const resource of delta.addedOrUpdated ?? []) {
 				changedChatSessionTypes.add(getChatSessionType(resource.resource));
+				if (resource.legacyResource) {
+					replacementsByLegacyResource.set(resource.legacyResource.toString(), resource);
+				}
 			}
 
+			let didRemoveSession = false;
 			for (const resource of delta.removed ?? []) {
 				changedChatSessionTypes.add(getChatSessionType(resource));
+				const replacement = replacementsByLegacyResource.get(resource.toString());
+				if (replacement) {
+					this.resolveStateEntry(replacement);
+				}
+				if (this._sessions.has(resource)) {
+					this._sessions.delete(resource);
+					didRemoveSession = true;
+				}
+				this.sessionStates.delete(resource);
+				this._sessionObservables.delete(resource);
+				this._resolvedResources.delete(resource);
+			}
+			if (didRemoveSession) {
+				this._onDidChangeSessions.fire();
 			}
 
 			for (const chatSessionType of changedChatSessionTypes) {
@@ -758,6 +777,19 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		// Phase 2: Atomically update sessions (sync - reads latest this._sessions
 		// so concurrent updateItems calls for other providers don't lose data)
 
+		const removedResources: URI[] = [];
+		for (const [resource, session] of this._sessions) {
+			if (session.providerType === provider && !sessions.has(resource)) {
+				removedResources.push(resource);
+			}
+		}
+		const replacementsByLegacyResource = new Map<string, IInternalAgentSession>();
+		for (const session of sessions.values()) {
+			if (session.legacyResource) {
+				replacementsByLegacyResource.set(session.legacyResource.toString(), session);
+			}
+		}
+
 		for (const [, session] of this._sessions) {
 			if (
 				session.providerType !== provider &&
@@ -791,6 +823,17 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		for (const session of sessionsWithChangedArchivedState) {
 			this._onDidChangeSessionArchivedState.fire(session);
 		}
+
+		for (const removedResource of removedResources) {
+			const replacement = replacementsByLegacyResource.get(removedResource.toString());
+			if (replacement) {
+				this.resolveStateEntry(replacement);
+			}
+			this.sessionStates.delete(removedResource);
+			this._sessionObservables.delete(removedResource);
+			this._resolvedResources.delete(removedResource);
+		}
+
 		this._onDidChangeSessions.fire();
 	}
 
@@ -821,7 +864,7 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 	 * the current resource key and removes the legacy entry). Returns undefined if
 	 * neither a current nor a legacy entry exists.
 	 */
-	private resolveStateEntry(session: IInternalAgentSessionData): IAgentSessionState | undefined {
+	private resolveStateEntry(session: Pick<IInternalAgentSessionData, 'resource' | 'legacyResource'>): IAgentSessionState | undefined {
 		const own = this.sessionStates.get(session.resource);
 		if (own !== undefined) {
 			return own;
