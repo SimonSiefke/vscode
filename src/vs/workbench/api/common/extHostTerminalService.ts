@@ -309,7 +309,7 @@ export class ExtHostTerminal extends Disposable {
 	}
 }
 
-class ExtHostPseudoterminal implements ITerminalChildProcess {
+class ExtHostPseudoterminal extends Disposable implements ITerminalChildProcess {
 	readonly id = 0;
 	readonly shouldPersist = false;
 
@@ -322,7 +322,9 @@ class ExtHostPseudoterminal implements ITerminalChildProcess {
 	private readonly _onProcessExit = new Emitter<number | undefined>();
 	public readonly onProcessExit: Event<number | undefined> = this._onProcessExit.event;
 
-	constructor(private readonly _pty: vscode.Pseudoterminal) { }
+	constructor(private readonly _pty: vscode.Pseudoterminal) {
+		super();
+	}
 
 	refreshProperty<T extends ProcessPropertyType>(property: ProcessPropertyType): Promise<IProcessPropertyMap[T]> {
 		throw new Error(`refreshProperty is not suppported in extension owned terminals. property: ${property}`);
@@ -380,18 +382,18 @@ class ExtHostPseudoterminal implements ITerminalChildProcess {
 
 	startSendingEvents(initialDimensions: ITerminalDimensionsDto | undefined): void {
 		// Attach the listeners
-		this._pty.onDidWrite(e => this._onProcessData.fire(e));
-		this._pty.onDidClose?.((e: number | void = undefined) => {
+		this._register(this._pty.onDidWrite(e => this._onProcessData.fire(e)));
+		this._register(this._pty.onDidClose?.((e: number | void = undefined) => {
 			this._onProcessExit.fire(e === void 0 ? undefined : e);
-		});
-		this._pty.onDidOverrideDimensions?.(e => {
+		}) ?? Disposable.None);
+		this._register(this._pty.onDidOverrideDimensions?.(e => {
 			if (e) {
 				this._onDidChangeProperty.fire({ type: ProcessPropertyType.OverrideDimensions, value: { cols: e.columns, rows: e.rows } });
 			}
-		});
-		this._pty.onDidChangeName?.(title => {
+		}) ?? Disposable.None);
+		this._register(this._pty.onDidChangeName?.(title => {
 			this._onDidChangeProperty.fire({ type: ProcessPropertyType.Title, value: title });
-		});
+		}) ?? Disposable.None);
 
 		this._pty.open(initialDimensions ? initialDimensions : undefined);
 
@@ -520,6 +522,9 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 		const terminal = new ExtHostTerminal(this._proxy, generateUuid(), options, options.name);
 		const p = new ExtHostPseudoterminal(options.pty);
 		terminal.createExtensionTerminal(options.location, internalOptions, this._serializeParentTerminal(options, internalOptions).resolvedExtHostIdentifier, asTerminalIcon(options.iconPath), asTerminalColor(options.color), options.shellIntegrationNonce, options.titleTemplate).then(id => {
+			if (!this.getTerminalById(id)) {
+				return;
+			}
 			const disposable = this._setupExtHostProcessListeners(id, p);
 			this._terminalProcessDisposables[id] = disposable;
 		});
@@ -613,6 +618,8 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	}
 
 	public async $acceptTerminalClosed(id: number, exitCode: number | undefined, exitReason: TerminalExitReason): Promise<void> {
+		this._cleanUpTerminalProcess(id);
+
 		// Release any cached terminal links and cancel in-flight link providers for this terminal
 		this._terminalLinkCache.delete(id);
 		const cancellationSource = this._terminalLinkCancellationSource.get(id);
@@ -696,11 +703,14 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 
 	protected _setupExtHostProcessListeners(id: number, p: ITerminalChildProcess): IDisposable {
 		const disposables = new DisposableStore();
+		if (p instanceof ExtHostPseudoterminal) {
+			disposables.add(p);
+		}
 		disposables.add(p.onProcessReady(e => this._proxy.$sendProcessReady(id, e.pid, e.cwd, e.windowsPty)));
 		disposables.add(p.onDidChangeProperty(property => this._proxy.$sendProcessProperty(id, property)));
 
 		// Buffer data events to reduce the amount of messages going to the renderer
-		this._bufferer.startBuffering(id, p.onProcessData);
+		disposables.add(this._bufferer.startBuffering(id, p.onProcessData));
 		disposables.add(p.onProcessExit(exitCode => this._onProcessExit(id, exitCode)));
 		this._terminalProcesses.set(id, p);
 
@@ -980,6 +990,13 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	}
 
 	private _onProcessExit(id: number, exitCode: number | undefined): void {
+		this._cleanUpTerminalProcess(id);
+
+		// Send exit event to main side
+		this._proxy.$sendProcessExit(id, exitCode);
+	}
+
+	private _cleanUpTerminalProcess(id: number): void {
 		this._bufferer.stopBuffering(id);
 
 		// Remove process reference
@@ -992,8 +1009,6 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 			processDiposable.dispose();
 			delete this._terminalProcessDisposables[id];
 		}
-		// Send exit event to main side
-		this._proxy.$sendProcessExit(id, exitCode);
 	}
 
 	public getTerminalById(id: number): ExtHostTerminal | null {

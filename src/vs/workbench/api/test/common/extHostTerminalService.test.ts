@@ -5,6 +5,7 @@
 
 import * as assert from 'assert';
 import type * as vscode from 'vscode';
+import { Emitter } from '../../../../base/common/event.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IShellLaunchConfigDto } from '../../../../platform/terminal/common/terminal.js';
@@ -77,5 +78,51 @@ suite('ExtHostTerminalService', () => {
 			{ providerTokenCancelled, firstLinks, linksAfterClose, handledAfterClose },
 			{ providerTokenCancelled: true, firstLinks: [], linksAfterClose: [], handledAfterClose: false }
 		);
+	});
+
+	test('$acceptTerminalClosed releases an extension terminal process', async () => {
+		const rpcProtocol = new TestRPCProtocol();
+		let processExitCalls = 0;
+		rpcProtocol.set(MainContext.MainThreadTerminalService, new class extends mock<MainThreadTerminalServiceShape>() {
+			override async $registerProcessSupport(): Promise<void> { }
+			override async $sendProcessExit(): Promise<void> { processExitCalls++; }
+			override async $sendProcessReady(): Promise<void> { }
+		});
+
+		const commands = new class extends mock<ExtHostCommands>() {
+			override registerArgumentProcessor(_processor: ArgumentProcessor): void { }
+		};
+		const initData = new class extends mock<IExtHostInitDataService>() {
+			override readonly remote = { authority: 'test+remote', isRemote: true, connectionData: null };
+		};
+		const service = store.add(new WorkerExtHostTerminalService(commands, rpcProtocol, initData));
+
+		const terminalId = 42;
+		service.$acceptTerminalOpened(terminalId, undefined, 'test', {} as IShellLaunchConfigDto);
+		const terminal = service.getTerminalById(terminalId)!;
+		store.add(terminal);
+
+		const writeEmitter = store.add(new Emitter<string>());
+		const closeEmitter = store.add(new Emitter<number | void>());
+		const inputs: string[] = [];
+		const pty: vscode.Pseudoterminal = {
+			onDidWrite: writeEmitter.event,
+			onDidClose: closeEmitter.event,
+			open(): void { },
+			close(): void { },
+			handleInput(data: string): void { inputs.push(data); }
+		};
+		service.attachPtyToTerminal(terminalId, pty);
+		await service.$startExtensionTerminal(terminalId, undefined);
+		await rpcProtocol.sync();
+
+		service.$acceptProcessInput(terminalId, 'before');
+		await service.$acceptTerminalClosed(terminalId, undefined, TerminalExitReason.Unknown);
+		service.$acceptProcessInput(terminalId, 'after');
+		closeEmitter.fire();
+		await rpcProtocol.sync();
+
+		assert.deepStrictEqual(inputs, ['before']);
+		assert.strictEqual(processExitCalls, 0);
 	});
 });
