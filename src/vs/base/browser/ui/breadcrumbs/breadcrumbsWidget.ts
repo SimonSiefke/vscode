@@ -12,6 +12,7 @@ import { ThemeIcon } from '../../../common/themables.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { DisposableStore, dispose, IDisposable, MutableDisposable } from '../../../common/lifecycle.js';
 import { ScrollbarVisibility } from '../../../common/scrollable.js';
+import { RunOnceScheduler } from '../../../common/async.js';
 import './breadcrumbsWidget.css';
 
 export abstract class BreadcrumbsItem {
@@ -62,6 +63,10 @@ export class BreadcrumbsWidget {
 	private _pendingLayout: IDisposable | undefined;
 	private readonly _pendingReveal = this._disposables.add(new MutableDisposable<IDisposable>());
 	private _dimension: dom.Dimension | undefined;
+	private readonly _updateScrollbarScheduler = this._disposables.add(new RunOnceScheduler(() => {
+		this._pendingLayout?.dispose();
+		this._pendingLayout = this._updateScrollbar();
+	}, 50));
 
 	constructor(
 		container: HTMLElement,
@@ -131,20 +136,19 @@ export class BreadcrumbsWidget {
 			this._pendingDimLayout?.dispose();
 			this._pendingDimLayout = this._updateDimensions(dim);
 		} else {
+			this._updateScrollbarScheduler.cancel();
 			this._pendingLayout?.dispose();
 			this._pendingLayout = this._updateScrollbar();
 		}
 	}
 
 	private _updateDimensions(dim: dom.Dimension): IDisposable {
-		const disposables = new DisposableStore();
-		disposables.add(dom.modify(dom.getWindow(this._domNode), () => {
+		return dom.modify(dom.getWindow(this._domNode), () => {
 			this._dimension = dim;
 			this._domNode.style.width = `${dim.width}px`;
 			this._domNode.style.height = `${dim.height}px`;
-			disposables.add(this._updateScrollbar());
-		}));
-		return disposables;
+			this._updateScrollbarScheduler.schedule();
+		});
 	}
 
 	private _updateScrollbar(): IDisposable {
