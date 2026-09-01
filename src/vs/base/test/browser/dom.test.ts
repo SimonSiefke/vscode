@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { $, h, trackAttributes, copyAttributes, disposableWindowInterval, getWindows, getWindowsCount, getWindowId, getWindowById, hasWindow, getWindow, getDocument, isHTMLElement, SafeTriangle, AnimationFrameScheduler, DisposableResizeObserver, getRecentDisposableResizeObserverContextForLoopError, findParentWithClass, hasParentWithClass } from '../../browser/dom.js';
+import { $, h, trackAttributes, copyAttributes, disposableWindowInterval, getWindows, getWindowsCount, getWindowId, getWindowById, hasWindow, getWindow, getDocument, isHTMLElement, SafeTriangle, AnimationFrameScheduler, DisposableResizeObserver, getRecentDisposableResizeObserverContextForLoopError, findParentWithClass, hasParentWithClass, ModifierKeyEmitter } from '../../browser/dom.js';
 import { asCssValueWithDefault } from '../../../base/browser/cssValue.js';
 import { ensureCodeWindow, isAuxiliaryWindow, mainWindow } from '../../browser/window.js';
 import { DeferredPromise, timeout } from '../../common/async.js';
@@ -13,6 +13,21 @@ import { runWithFakedTimers } from '../common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 
 suite('dom', () => {
+	test('ModifierKeyEmitter does not retain keyboard events after delivery', () => {
+		const emitter = ModifierKeyEmitter.getInstance();
+		const keyboardEvent = new KeyboardEvent('keydown', { altKey: true, bubbles: true, code: 'AltLeft', key: 'Alt' });
+		let deliveredEvent: KeyboardEvent | undefined;
+		const listener = emitter.event(status => deliveredEvent = status.event);
+
+		mainWindow.dispatchEvent(keyboardEvent);
+
+		assert.strictEqual(deliveredEvent, keyboardEvent);
+		assert.strictEqual(emitter.keyStatus.event, undefined);
+
+		listener.dispose();
+		ModifierKeyEmitter.disposeInstance();
+	});
+
 	test('hasClass', () => {
 
 		const element = document.createElement('div');
