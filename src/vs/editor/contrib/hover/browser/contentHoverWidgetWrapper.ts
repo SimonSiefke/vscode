@@ -228,6 +228,7 @@ export class ContentHoverWidgetWrapper extends Disposable implements IHoverWidge
 
 	private _hideHover(): void {
 		this._contentHoverWidget.hide();
+		this._renderedContentHover.clear();
 		this._participants.forEach(participant => participant.handleHide?.());
 	}
 
