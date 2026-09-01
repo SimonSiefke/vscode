@@ -86,8 +86,23 @@ interface ISimpleConnectionOptions<T extends RemoteConnection = RemoteConnection
 
 function createTimeoutCancellation(millis: number): CancellationToken {
 	const source = new CancellationTokenSource();
-	setTimeout(() => source.cancel(), millis);
-	return source.token;
+	let disposed = false;
+	const handle = setTimeout(() => {
+		if (!disposed) {
+			source.cancel();
+			source.dispose();
+			disposed = true;
+		}
+	}, millis);
+	const token = source.token;
+	token.onCancellationRequested(() => {
+		clearTimeout(handle);
+		if (!disposed) {
+			source.dispose();
+			disposed = true;
+		}
+	});
+	return token;
 }
 
 function combineTimeoutCancellation(a: CancellationToken, b: CancellationToken): CancellationToken {
@@ -95,9 +110,28 @@ function combineTimeoutCancellation(a: CancellationToken, b: CancellationToken):
 		return CancellationToken.Cancelled;
 	}
 	const source = new CancellationTokenSource();
-	a.onCancellationRequested(() => source.cancel());
-	b.onCancellationRequested(() => source.cancel());
-	return source.token;
+	let disposed = false;
+	const disposeOnce = () => {
+		if (!disposed) {
+			aListener.dispose();
+			bListener.dispose();
+			source.dispose();
+			disposed = true;
+		}
+	};
+	const aListener = a.onCancellationRequested(() => {
+		source.cancel();
+		disposeOnce();
+	});
+	const bListener = b.onCancellationRequested(() => {
+		source.cancel();
+		disposeOnce();
+	});
+	const token = source.token;
+	token.onCancellationRequested(() => {
+		disposeOnce();
+	});
+	return token;
 }
 
 class PromiseWithTimeout<T> {
