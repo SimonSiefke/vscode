@@ -9,7 +9,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { StandardKeyboardEvent } from '../../../../../base/browser/keyboardEvent.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { workbenchInstantiationService, registerTestEditor, TestFileEditorInput, createEditorParts } from '../../../../test/browser/workbenchTestServices.js';
-import { GroupsOrder, IEditorGroupsService } from '../../common/editorGroupsService.js';
+import { GroupsOrder, IEditorGroupsService, IModalEditorPart } from '../../common/editorGroupsService.js';
 import { EditorExtensions, EditorInputCapabilities, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -331,6 +331,7 @@ suite('Modal Editor Group', () => {
 		// Create first modal
 		const modalPart1 = await parts.createModalEditorPart();
 		const firstGroupId = modalPart1.activeGroup.id;
+		const firstPartId = (modalPart1 as IModalEditorPart & { getId(): string }).getId();
 
 		// Close it
 		await modalPart1.close();
@@ -338,8 +339,13 @@ suite('Modal Editor Group', () => {
 		// Create another modal - should be a new instance
 		const modalPart2 = await parts.createModalEditorPart();
 
-		// Should be a different group
-		assert.notStrictEqual(modalPart2.activeGroup.id, firstGroupId);
+		assert.deepStrictEqual({
+			samePartId: (modalPart2 as IModalEditorPart & { getId(): string }).getId() === firstPartId,
+			sameGroupId: modalPart2.activeGroup.id === firstGroupId,
+		}, {
+			samePartId: true,
+			sameGroupId: false,
+		});
 
 		await modalPart2.close();
 	});
