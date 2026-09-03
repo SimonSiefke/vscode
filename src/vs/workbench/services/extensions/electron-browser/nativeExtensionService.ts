@@ -743,7 +743,8 @@ export class NativeExtensionHostKindPicker implements IExtensionHostKindPicker {
 	}
 }
 
-class RestartExtensionHostAction extends Action2 {
+export class RestartExtensionHostAction extends Action2 {
+	private _restartPromise: Promise<void> | undefined;
 
 	constructor() {
 		super({
@@ -754,12 +755,20 @@ class RestartExtensionHostAction extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor): Promise<void> {
+	run(accessor: ServicesAccessor): Promise<void> {
 		const extensionService = accessor.get(IExtensionService);
+		if (!this._restartPromise) {
+			this._restartPromise = this._restart(extensionService).finally(() => {
+				this._restartPromise = undefined;
+			});
+		}
+		return this._restartPromise;
+	}
 
+	private async _restart(extensionService: IExtensionService): Promise<void> {
 		const stopped = await extensionService.stopExtensionHosts(nls.localize('restartExtensionHost.reason', "An explicit request"));
 		if (stopped) {
-			extensionService.startExtensionHosts();
+			await extensionService.startExtensionHosts();
 		}
 	}
 }
