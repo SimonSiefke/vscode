@@ -68,6 +68,31 @@ suite('LinkedList', function () {
 		assertElements(list, 0, 1);
 	});
 
+	test('Push/Disposable', () => {
+		const list = new LinkedList<number>();
+		const first = list.pushDisposable(1);
+		const second = list.pushDisposable(2);
+
+		assert.strictEqual(first.dispose, second.dispose);
+		assert.strictEqual(Object.values(first).some(value => typeof value === 'function'), false);
+		first.dispose();
+		first.dispose();
+		assertElements(list, 2);
+		second.dispose();
+	});
+
+	test('Push/Disposable after list removal', () => {
+		const list = new LinkedList<number>();
+		const first = list.pushDisposable(1);
+		const second = list.pushDisposable(2);
+
+		assert.strictEqual(list.shift(), 1);
+		first.dispose();
+		list.clear();
+		second.dispose();
+		assertElements(list);
+	});
+
 	test('Push/toArray', () => {
 		const list = new LinkedList<string>();
 		list.push('foo');
@@ -107,6 +132,16 @@ suite('LinkedList', function () {
 		disp = list.unshift(2);
 		disp();
 		assertElements(list, 1, 0);
+	});
+
+	test('unshift/Disposable', () => {
+		const list = new LinkedList<number>();
+		const first = list.unshiftDisposable(1);
+		const second = list.unshiftDisposable(2);
+
+		first.dispose();
+		assertElements(list, 2);
+		second.dispose();
 	});
 
 	test('unshift/toArray', () => {
