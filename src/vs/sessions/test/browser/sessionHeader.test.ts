@@ -13,19 +13,15 @@ import { URI } from '../../../base/common/uri.js';
 import { mock } from '../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
-import { Codicon } from '../../../base/common/codicons.js';
 import { IAccessibilityService } from '../../../platform/accessibility/common/accessibility.js';
-import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
-import { TestConfigurationService } from '../../../platform/configuration/test/common/testConfigurationService.js';
 import { workbenchInstantiationService } from '../../../workbench/test/browser/workbenchTestServices.js';
 import { SessionHeader } from '../../browser/parts/sessionHeader.js';
-import { SHOW_SESSION_METADATA_IN_CHAT_INPUT_SETTING } from '../../common/sessionConfig.js';
 import { ISessionsListModelService } from '../../services/sessions/browser/sessionsListModelService.js';
 import { ISessionsService } from '../../services/sessions/browser/sessionsService.js';
-import { IChat, ISessionCapabilities, ISessionWorkspace, SessionStatus } from '../../services/sessions/common/session.js';
+import { IChat, ISessionCapabilities, SessionStatus } from '../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsManagementService } from '../../services/sessions/common/sessionsManagement.js';
 
-function createHarness(disposables: Pick<DisposableStore, 'add'>, options?: { readonly showMetadataInChatInput?: boolean; readonly workspace?: ISessionWorkspace }) {
+function createHarness(disposables: Pick<DisposableStore, 'add'>, capabilities: ISessionCapabilities = { supportsMultipleChats: false }) {
 	const store = disposables.add(new DisposableStore());
 	const instantiationService = workbenchInstantiationService(undefined, store);
 
@@ -43,9 +39,6 @@ function createHarness(disposables: Pick<DisposableStore, 'add'>, options?: { re
 		override readonly onDidChangeSessions = Event.None;
 	}());
 	instantiationService.stub(ISessionsService, new class extends mock<ISessionsService>() { }());
-	instantiationService.stub(IConfigurationService, new TestConfigurationService({
-		[SHOW_SESSION_METADATA_IN_CHAT_INPUT_SETTING]: options?.showMetadataInChatInput ?? false,
-	}));
 
 	const mainChat = new class extends mock<IChat>() {
 		override readonly title: IObservable<string> = constObservable('Main Chat');
@@ -67,8 +60,7 @@ function createHarness(disposables: Pick<DisposableStore, 'add'>, options?: { re
 		override readonly closedChats: IObservable<readonly IChat[]> = constObservable([]);
 		override readonly visibleChatTabs: IObservable<readonly IChat[]> = constObservable([mainChat]);
 		override readonly shouldShowChatTabs: IObservable<boolean> = constObservable(false);
-		override readonly capabilities: IObservable<ISessionCapabilities> = constObservable({ supportsMultipleChats: false });
-		override readonly workspace: IObservable<ISessionWorkspace | undefined> = constObservable(options?.workspace);
+		override readonly capabilities: IObservable<ISessionCapabilities> = constObservable(capabilities);
 	}();
 
 	const header = store.add(instantiationService.createInstance(SessionHeader));
@@ -93,17 +85,6 @@ suite('Sessions - SessionHeader', () => {
 		return dragEvent;
 	}
 
-	test('a small pointer move over the meta row (e.g. the changed-files pill) does not start a session drag', () => {
-		const { header } = createHarness(disposables);
-
-		const metaRow = header.element.querySelector<HTMLElement>('.chat-composite-bar-meta-row');
-		assert.ok(metaRow, 'meta row should be rendered');
-
-		const dragEvent = simulateDragFrom(header, metaRow);
-
-		assert.strictEqual(dragEvent.defaultPrevented, true, 'drag-start originating in the meta row must be prevented so the underlying click is not swallowed');
-	});
-
 	test('a small pointer move over the title actions toolbar does not start a session drag', () => {
 		const { header } = createHarness(disposables);
 
@@ -123,36 +104,157 @@ suite('Sessions - SessionHeader', () => {
 		assert.strictEqual(dragEvent.defaultPrevented, false);
 	});
 
-	test('shows read-only workspace metadata beside the title and hides the second row when configured', () => {
-		const root = URI.file('C:\\Code\\vscode');
-		const workspace: ISessionWorkspace = {
-			uri: root,
-			label: 'vscode',
-			icon: Codicon.folder,
-			folders: [{
-				root,
-				workingDirectory: root,
-				name: 'vscode',
-				description: undefined,
-			}],
-			requiresWorkspaceTrust: false,
-			isVirtualWorkspace: false,
-		};
-		const { header } = createHarness(disposables, { showMetadataInChatInput: true, workspace });
+	test('hides the header while it is replaced by the single-group tabs row', () => {
+		const { header } = createHarness(disposables);
 
-		const workspaceMeta = header.element.querySelector<HTMLElement>('.chat-composite-bar-workspace-meta');
-		const metaRow = header.element.querySelector<HTMLElement>('.chat-composite-bar-meta-row');
+		header.setVisible(false);
+		const hiddenDisplay = header.element.style.display;
+		header.setVisible(true);
 
 		assert.deepStrictEqual({
-			workspaceText: workspaceMeta?.textContent,
-			workspaceHidden: workspaceMeta?.classList.contains('hidden'),
-			workspaceFocusable: workspaceMeta?.tabIndex,
-			metaRowDisplay: metaRow?.style.display,
+			hiddenDisplay,
+			restoredDisplay: header.element.style.display,
+			hasMetadataRow: header.element.querySelector('.chat-composite-bar-meta-row') !== null,
 		}, {
-			workspaceText: '·vscode',
-			workspaceHidden: false,
-			workspaceFocusable: -1,
-			metaRowDisplay: 'none',
+			hiddenDisplay: 'none',
+			restoredDisplay: '',
+			hasMetadataRow: false,
+		});
+	});
+
+	test('uses a full-width backing surface with centered content and no separator', () => {
+		const { header } = createHarness(disposables);
+		const container = header.element.parentElement!;
+		container.classList.add('agent-sessions-workbench', 'session-view');
+		container.style.setProperty('--vscode-spacing-size280', '28px');
+		container.style.setProperty('--vscode-spacing-size320', '32px');
+		container.style.setProperty('--session-view-centered-content-max-width', '950px');
+		container.style.setProperty('--session-view-content-horizontal-padding', '32px');
+		container.style.width = '1200px';
+		mainWindow.document.body.appendChild(container);
+
+		try {
+			const headerRow = header.element.querySelector<HTMLElement>('.chat-composite-bar-header')!;
+			const getGeometry = () => {
+				const barBounds = header.element.getBoundingClientRect();
+				const headerBounds = headerRow.getBoundingClientRect();
+				return {
+					barWidth: barBounds.width,
+					headerWidth: headerBounds.width,
+					barHeight: mainWindow.getComputedStyle(header.element).height,
+					headerHeight: mainWindow.getComputedStyle(headerRow).height,
+					headerInset: headerBounds.left - barBounds.left,
+					barPaddingInline: mainWindow.getComputedStyle(header.element).paddingInline,
+					headerPaddingInline: mainWindow.getComputedStyle(headerRow).paddingInline,
+					hasCompactClass: container.classList.contains('editor-tabs-compact-height'),
+				};
+			};
+
+			const defaultGeometry = getGeometry();
+			container.classList.add('editor-tabs-compact-height');
+			const compactGeometry = getGeometry();
+			container.classList.remove('editor-tabs-compact-height');
+			const restoredGeometry = getGeometry();
+			container.classList.add('hc-black');
+			const highContrastSeparatorStyle = mainWindow.getComputedStyle(headerRow).borderBottomStyle;
+
+			assert.deepStrictEqual({ defaultGeometry, compactGeometry, restoredGeometry, highContrastSeparatorStyle }, {
+				defaultGeometry: {
+					barWidth: 1200,
+					headerWidth: 950,
+					barHeight: '32px',
+					headerHeight: '32px',
+					headerInset: 125,
+					barPaddingInline: '0px',
+					headerPaddingInline: '32px',
+					hasCompactClass: false,
+				},
+				compactGeometry: {
+					barWidth: 1200,
+					headerWidth: 950,
+					barHeight: '28px',
+					headerHeight: '28px',
+					headerInset: 125,
+					barPaddingInline: '0px',
+					headerPaddingInline: '32px',
+					hasCompactClass: true,
+				},
+				restoredGeometry: {
+					barWidth: 1200,
+					headerWidth: 950,
+					barHeight: '32px',
+					headerHeight: '32px',
+					headerInset: 125,
+					barPaddingInline: '0px',
+					headerPaddingInline: '32px',
+					hasCompactClass: false,
+				},
+				highContrastSeparatorStyle: 'none',
+			});
+		} finally {
+			container.remove();
+		}
+	});
+
+	test('lets configured chat backgrounds show through without fading the header content', () => {
+		const { header } = createHarness(disposables);
+		const workbench = mainWindow.document.createElement('div');
+		workbench.classList.add('monaco-workbench', 'agent-sessions-workbench');
+		workbench.style.setProperty('--session-view-background', '#202020');
+		const part = mainWindow.document.createElement('div');
+		part.classList.add('part', 'sessionspart', 'has-chat-background');
+		part.appendChild(header.element.parentElement!);
+		workbench.appendChild(part);
+		mainWindow.document.body.appendChild(workbench);
+
+		try {
+			const backgroundStyle = mainWindow.getComputedStyle(header.element);
+			const backgroundColor = backgroundStyle.backgroundColor;
+			const opacity = backgroundStyle.opacity;
+			part.classList.remove('has-chat-background');
+			const plainBackgroundColor = mainWindow.getComputedStyle(header.element).backgroundColor;
+			part.classList.add('has-chat-background');
+			workbench.classList.add('hc-black');
+			const highContrastBackgroundColor = mainWindow.getComputedStyle(header.element).backgroundColor;
+
+			assert.deepStrictEqual({
+				backgroundColor,
+				opacity,
+				plainBackgroundColor,
+				highContrastBackgroundColor,
+			}, {
+				backgroundColor: 'color(srgb 0.12549 0.12549 0.12549 / 0.85)',
+				opacity: '1',
+				plainBackgroundColor: 'rgb(32, 32, 32)',
+				highContrastBackgroundColor: 'rgb(32, 32, 32)',
+			});
+		} finally {
+			workbench.remove();
+		}
+	});
+
+	test('reports whether the inline rename could be started', () => {
+		const renameable = createHarness(disposables, { supportsMultipleChats: false, supportsRename: true });
+		const notRenameable = createHarness(disposables);
+
+		const startedWhenVisible = renameable.header.startTitleEditing();
+		const hasInput = renameable.header.element.querySelector('.chat-composite-bar-session-title-input') !== null;
+		// The header is hidden while the single-group tabs row replaces it, so
+		// there is no title to rename inline.
+		renameable.header.setVisible(false);
+
+		assert.deepStrictEqual({
+			startedWhenVisible,
+			hasInput,
+			startedWhenHidden: renameable.header.startTitleEditing(),
+			startedWhenNotRenameable: notRenameable.header.startTitleEditing(),
+			hasInputWhenNotRenameable: notRenameable.header.element.querySelector('.chat-composite-bar-session-title-input') !== null,
+		}, {
+			startedWhenVisible: true,
+			hasInput: true,
+			startedWhenHidden: false,
+			startedWhenNotRenameable: false,
+			hasInputWhenNotRenameable: false,
 		});
 	});
 });
