@@ -19,6 +19,9 @@ interface IWidgetData {
 	preference: OverlayWidgetPositionPreference | IOverlayWidgetPositionCoordinates | null;
 	stack?: number;
 	domNode: FastDomNode<HTMLElement>;
+	width?: number;
+	height?: number;
+	resizeObserver: dom.DisposableResizeObserver;
 }
 
 interface IWidgetMap {
@@ -69,6 +72,9 @@ export class ViewOverlayWidgets extends ViewPart {
 
 	public override dispose(): void {
 		super.dispose();
+		for (const widgetData of Object.values(this._widgets)) {
+			widgetData.resizeObserver.dispose();
+		}
 		this._widgets = {};
 	}
 
@@ -100,12 +106,25 @@ export class ViewOverlayWidgets extends ViewPart {
 
 	public addWidget(widget: IOverlayWidget): void {
 		const domNode = createFastDomNode(widget.getDomNode());
-
-		this._widgets[widget.getId()] = {
+		const widgetId = widget.getId();
+		const resizeObserver = new dom.DisposableResizeObserver('ViewOverlayWidgets.widget', () => {
+			const widgetData = this._widgets[widgetId];
+			if (widgetData) {
+				// ResizeObserver runs after layout, so these preserve the exact client
+				// dimensions without forcing another synchronous layout.
+				widgetData.width = domNode.domNode.clientWidth;
+				widgetData.height = domNode.domNode.clientHeight;
+				this.setShouldRender();
+			}
+		}, dom.getWindow(domNode.domNode));
+		const widgetData: IWidgetData = {
 			widget: widget,
 			preference: null,
-			domNode: domNode
+			domNode,
+			resizeObserver
 		};
+		this._widgets[widgetId] = widgetData;
+		resizeObserver.observe(domNode.domNode);
 
 		// This is sync because a widget wants to be in the dom
 		domNode.setPosition('absolute');
@@ -143,6 +162,7 @@ export class ViewOverlayWidgets extends ViewPart {
 		if (this._widgets.hasOwnProperty(widgetId)) {
 			const widgetData = this._widgets[widgetId];
 			const domNode = widgetData.domNode.domNode;
+			widgetData.resizeObserver.dispose();
 			delete this._widgets[widgetId];
 
 			domNode.remove();
@@ -184,7 +204,7 @@ export class ViewOverlayWidgets extends ViewPart {
 
 			if (widgetData.stack !== undefined) {
 				domNode.setTop(stackCoordinates[widgetData.preference]);
-				stackCoordinates[widgetData.preference] += domNode.domNode.clientWidth;
+				stackCoordinates[widgetData.preference] += widgetData.width ?? domNode.domNode.clientWidth;
 			} else {
 				domNode.setRight(maxRight);
 			}
@@ -192,7 +212,7 @@ export class ViewOverlayWidgets extends ViewPart {
 			domNode.domNode.style.right = '50%';
 			if (widgetData.stack !== undefined) {
 				domNode.setTop(stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER]);
-				stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER] += domNode.domNode.clientHeight;
+				stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER] += widgetData.height ?? domNode.domNode.clientHeight;
 			} else {
 				domNode.setTop(0);
 			}
@@ -215,7 +235,15 @@ export class ViewOverlayWidgets extends ViewPart {
 	}
 
 	public prepareRender(ctx: RenderingContext): void {
-		this._viewDomNodeRect = dom.getDomNodePagePosition(this._viewDomNode.domNode);
+		const fixedOverflowWidgets = this._context.configuration.options.get(EditorOption.fixedOverflowWidgets);
+		if (fixedOverflowWidgets) {
+			for (const widgetData of Object.values(this._widgets)) {
+				if (widgetData.preference !== null && typeof widgetData.preference === 'object' && this._widgetCanOverflow(widgetData.widget)) {
+					this._viewDomNodeRect = dom.getDomNodePagePosition(this._viewDomNode.domNode);
+					break;
+				}
+			}
+		}
 	}
 
 	public render(ctx: RestrictedRenderingContext): void {
