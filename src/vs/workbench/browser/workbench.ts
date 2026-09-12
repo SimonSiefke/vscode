@@ -49,7 +49,6 @@ import { setProgressAccessibilitySignalScheduler } from '../../base/browser/ui/p
 import { AccessibleViewRegistry } from '../../platform/accessibility/browser/accessibleViewRegistry.js';
 import { NotificationAccessibleView } from './parts/notifications/notificationAccessibleView.js';
 import { IMarkdownRendererService } from '../../platform/markdown/browser/markdownRenderer.js';
-import { EditorMarkdownCodeBlockRenderer } from '../../editor/browser/widget/markdownRenderer/browser/editorMarkdownCodeBlockRenderer.js';
 
 export interface IWorkbenchOptions {
 
@@ -148,7 +147,10 @@ export class Workbench extends Layout {
 				const markdownRendererService = accessor.get(IMarkdownRendererService);
 
 				// Set code block renderer for markdown rendering
-				markdownRendererService.setDefaultCodeBlockRenderer(instantiationService.createInstance(EditorMarkdownCodeBlockRenderer));
+				markdownRendererService.setDefaultCodeBlockRenderer(async () => {
+					const { EditorMarkdownCodeBlockRenderer } = await import('../../editor/browser/widget/markdownRenderer/browser/editorMarkdownCodeBlockRenderer.js');
+					return instantiationService.createInstance(EditorMarkdownCodeBlockRenderer);
+				});
 
 				// Default Hover Delegate must be registered before creating any workbench/layout components
 				// as these possibly will use the default hover delegate

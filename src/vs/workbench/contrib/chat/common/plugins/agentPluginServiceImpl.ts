@@ -1147,9 +1147,7 @@ export class ExtensionAgentPluginDiscovery extends AbstractAgentPluginDiscovery 
 		this._whenKeys.clear();
 		for (const { when } of this._extensionPlugins.values()) {
 			if (when) {
-				for (const key of when.keys()) {
-					this._whenKeys.add(key);
-				}
+				when.collectKeys(this._whenKeys);
 			}
 		}
 	}

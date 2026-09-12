@@ -694,7 +694,10 @@ export class GettingStartedPage extends EditorPane {
 
 			if (serializedContextKeyExprs) {
 				const contextKeyExprs = coalesce(serializedContextKeyExprs.map(expr => ContextKeyExpr.deserialize(expr)));
-				const watchingKeys = new Set(contextKeyExprs.flatMap(expr => expr.keys()));
+				const watchingKeys = new Set<string>();
+				for (const expr of contextKeyExprs) {
+					expr.collectKeys(watchingKeys);
+				}
 
 				this.stepDisposables.add(this.contextService.onDidChangeContext(e => {
 					if (e.affectsSome(watchingKeys)) { postTrueKeysMessage(); }
@@ -1549,7 +1552,10 @@ export class GettingStartedPage extends EditorPane {
 
 		let renderedSteps: IResolvedWalkthroughStep[] | undefined = undefined;
 
-		const contextKeysToWatch = new Set(category.steps.flatMap(step => step.when.keys()));
+		const contextKeysToWatch = new Set<string>();
+		for (const step of category.steps) {
+			step.when.collectKeys(contextKeysToWatch);
+		}
 
 		const buildStepList = () => {
 

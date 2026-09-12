@@ -549,7 +549,10 @@ export class SetupAgent extends Disposable implements IChatAgentImplementation {
 			let descriptorKeys: Set<string> = new Set();
 			const updateDescriptorKeys = () => {
 				const descriptors = chatViewsWelcomeRegistry.get();
-				descriptorKeys = new Set(descriptors.flatMap(d => d.when.keys()));
+				descriptorKeys = new Set<string>();
+				for (const descriptor of descriptors) {
+					descriptor.when.collectKeys(descriptorKeys);
+				}
 			};
 			updateDescriptorKeys();
 
