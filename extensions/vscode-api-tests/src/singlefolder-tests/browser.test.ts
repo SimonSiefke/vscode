@@ -5,6 +5,7 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -29,6 +30,65 @@ import { assertNoRpc, closeAllEditors } from '../utils';
 	});
 
 	// #endregion
+
+	(vscode.env.remoteName ? test.skip : test)('refreshes a favicon after it is replaced', async function () {
+		this.timeout(20_000);
+		const red = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="red"/></svg>';
+		const green = red.replace('red', 'green');
+		const blue = red.replace('red', 'blue');
+		const asDataUrl = (svg: string) => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+		let phase = 0;
+		let favicon = red;
+		const server = http.createServer((request, response) => {
+			response.setHeader('Cache-Control', 'no-store');
+			if (request.url === '/phase') {
+				response.end(String(phase));
+			} else if (request.url === '/icon.svg') {
+				response.setHeader('Content-Type', 'image/svg+xml');
+				response.end(favicon);
+			} else {
+				response.setHeader('Content-Type', 'text/html');
+				response.end(`<!doctype html><title>Favicon cache</title><link rel="icon" href="/icon.svg"><script>
+					let previous = '0';
+					setInterval(async () => {
+						const phase = await (await fetch('/phase')).text();
+						if (phase !== previous) {
+							previous = phase;
+							document.querySelector('link').href = phase === '1' ? ${JSON.stringify(asDataUrl(blue))} : '/icon.svg';
+						}
+					}, 50);
+				</script>`);
+			}
+		});
+		let tab: vscode.BrowserTab | undefined;
+		try {
+			await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+			const address = server.address();
+			assert.ok(address && typeof address !== 'string');
+			tab = await window.openBrowserTab(`http://127.0.0.1:${address.port}/`);
+			const waitForIcon = async (svg: string): Promise<void> => {
+				const expected = vscode.Uri.parse(asDataUrl(svg)).toString();
+				const deadline = Date.now() + 5000;
+				while (Date.now() < deadline) {
+					if (tab?.icon instanceof vscode.Uri && tab.icon.toString() === expected) {
+						return;
+					}
+					await new Promise(resolve => setTimeout(resolve, 50));
+				}
+				assert.strictEqual(tab?.icon instanceof vscode.Uri ? tab.icon.toString() : tab?.icon, expected);
+			};
+			await waitForIcon(red);
+			phase = 1;
+			await waitForIcon(blue);
+			favicon = green;
+			phase = 2;
+			await waitForIcon(green);
+		} finally {
+			await tab?.close();
+			server.closeAllConnections();
+			await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+		}
+	});
 
 	// #region openBrowserTab
 
