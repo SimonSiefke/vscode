@@ -16,7 +16,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { combinedDisposable, Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { combinedDisposable, Disposable, DisposableMap, DisposableStore, dispose, IDisposable, isDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
@@ -697,7 +697,14 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				getAnchor: () => e.anchor,
 				getActions: () => actions,
 				getActionsContext: () => provider,
-				onHide: () => disposables.dispose()
+				onHide: () => {
+					for (const action of actions) {
+						if (isDisposable(action)) {
+							action.dispose();
+						}
+					}
+					disposables.dispose();
+				}
 			});
 		} else if (isSCMArtifactTreeElement(e.element)) {
 			// Artifact
@@ -711,7 +718,14 @@ export class SCMRepositoriesViewPane extends ViewPane {
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => e.anchor,
 				getActions: () => actions,
-				getActionsContext: () => artifact
+				getActionsContext: () => artifact,
+				onHide: () => {
+					for (const action of actions) {
+						if (isDisposable(action)) {
+							action.dispose();
+						}
+					}
+				}
 			});
 		}
 	}
