@@ -726,7 +726,6 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	private modelWidget: ModelPickerActionItem | undefined;
 	private modeWidget: ModePickerActionItem | undefined;
 	private permissionWidget: PermissionPickerActionItem | undefined;
-	private readonly permissionWidgetDisposeListener = this._register(new MutableDisposable<IDisposable>());
 	private readonly overflowPickerWidget = this._register(new MutableDisposable<IDisposable>());
 	private sessionTargetWidget: SessionTypePickerActionItem | undefined;
 	private delegationWidget: DelegationSessionPickerActionItem | undefined;
@@ -3887,11 +3886,10 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 					secondaryOverflowPickerHandlers.set(action.id, anchor => showOverflowPicker(createPicker, anchor));
 					const widget = createPicker();
 					this.permissionWidget = widget;
-					this.permissionWidgetDisposeListener.value = widget.onDidDispose(() => {
+					Event.once(widget.onDidDispose)(() => {
 						if (this.permissionWidget === widget) {
 							this.permissionWidget = undefined;
 						}
-						this.permissionWidgetDisposeListener.clear();
 					});
 					return widget;
 				} else if (agentHostPickerProperty && action instanceof MenuItemAction) {
