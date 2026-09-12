@@ -341,11 +341,11 @@ export class PlainTextSearchHeadingImpl extends TextSearchHeadingImpl<ITextQuery
 			folderMatch = store.add(this.createNoRootWorkspaceImpl(id, index, query));
 		}
 		store.add(folderMatch.onChange((event) => this._onChange.fire(event)));
-		store.add(folderMatch.onDispose(() => {
-			this._store.delete(store)
-			store.dispose()
+		store.add(Event.once(folderMatch.onDispose)(() => {
+			this._store.delete(store);
+			store.dispose();
 		}));
-		this._store.add(store)
+		this._store.add(store);
 		return folderMatch;
 	}
 
