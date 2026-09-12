@@ -133,10 +133,6 @@ export class GlobalCompositeBar extends Disposable {
 		this.globalActivityActionBar.focus(true);
 	}
 
-	size(): number {
-		return this.globalActivityActionBar.viewItems.length;
-	}
-
 	getContextMenuActions(): IAction[] {
 		return [new ToggleAccountsVisibilityAction(this.storageService)];
 	}
