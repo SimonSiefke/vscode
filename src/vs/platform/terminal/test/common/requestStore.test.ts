@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { fail, strictEqual } from 'assert';
+import { rejects, strictEqual } from 'assert';
+import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { TestInstantiationService } from '../../../instantiation/test/common/instantiationServiceMock.js';
 import { ConsoleLogger, ILogService } from '../../../log/common/log.js';
@@ -33,16 +34,17 @@ suite('RequestStore', () => {
 	});
 
 	test('should reject the promise when the request times out', async () => {
+		let warnings = 0;
+		instantiationService.stub(ILogService, new class extends mock<ILogService>() {
+			override warn(): void {
+				warnings++;
+			}
+		});
 		const requestStore: RequestStore<{ data: string }, { arg: string }> = store.add(instantiationService.createInstance(RequestStore<{ data: string }, { arg: string }>, 1));
 		const request = requestStore.createRequest({ arg: 'foo' });
-		let threw = false;
-		try {
-			await request;
-		} catch (e) {
-			threw = true;
-		}
-		if (!threw) {
-			fail();
-		}
+		await rejects(request);
+
+		requestStore.acceptReply(1, { data: 'bar' });
+		strictEqual(warnings, 1);
 	});
 });
