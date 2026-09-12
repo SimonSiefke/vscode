@@ -798,6 +798,11 @@ export class ViewDescriptorService extends Disposable implements IViewDescriptor
 	private onDidDeregisterViewContainer(viewContainer: ViewContainer): void {
 		this.viewContainerModels.deleteAndDispose(viewContainer);
 		this.viewsVisibilityActionDisposables.deleteAndDispose(viewContainer);
+
+		const defaultViewContainerLocationContextKeyId = `${viewContainer.id}.defaultViewContainerLocation`;
+		const defaultViewContainerLocationContextKey = this.defaultViewContainerLocationContextKeys.get(defaultViewContainerLocationContextKeyId);
+		defaultViewContainerLocationContextKey?.reset();
+		this.defaultViewContainerLocationContextKeys.delete(defaultViewContainerLocationContextKeyId);
 	}
 
 	private onDidChangeActiveViews({ added, removed }: { added: ReadonlyArray<IViewDescriptor>; removed: ReadonlyArray<IViewDescriptor> }): void {

@@ -214,4 +214,14 @@ suite('MenuService', function () {
 		assert.throws(() => new MenuId(id));
 		assert.ok(menu === MenuId.for(id));
 	});
+
+	test('getMenuContexts does not throw for menu items', function () {
+
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
+			command: { id: 'a', title: 'aaa', precondition: undefined },
+			when: undefined,
+		}));
+
+		assert.deepStrictEqual([...menuService.getMenuContexts(testMenuId)], []);
+	});
 });
