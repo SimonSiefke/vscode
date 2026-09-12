@@ -105,7 +105,7 @@ import '../workbench/services/userDataProfile/browser/userDataProfileImportExpor
 import '../workbench/services/userDataProfile/browser/userDataProfileManagement.js';
 import '../workbench/services/userDataProfile/common/remoteUserDataProfiles.js';
 import '../workbench/services/remote/common/remoteExplorerService.js';
-import '../workbench/services/remote/common/remoteExtensionsScanner.js';
+import '../workbench/services/remote/browser/remoteExtensionsScanner.js';
 import '../workbench/services/terminal/common/embedderTerminalService.js';
 import '../workbench/services/workingCopy/common/workingCopyService.js';
 import '../workbench/services/workingCopy/common/workingCopyFileService.js';

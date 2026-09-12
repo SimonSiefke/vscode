@@ -194,6 +194,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	 * All system extensions bundled with the product
 	 */
 	private async readSystemExtensions(): Promise<IExtension[]> {
+		const start = Date.now();
 		const systemExtensions = await this.builtinExtensionsScannerService.scanBuiltinExtensions();
 		const cachedSystemExtensions = await Promise.all((await this.readSystemExtensionsCache()).map(e => this.toScannedExtension(e, true, ExtensionType.System)));
 
@@ -208,6 +209,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			}
 			result.set(extension.identifier.id.toLowerCase(), extension);
 		}
+		this.logService.trace('Web extensions readSystemExtensions', `${result.size} extensions`, `${Date.now() - start}ms`);
 		return [...result.values()];
 	}
 
@@ -467,6 +469,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	}
 
 	async scanUserExtensions(profileLocation: URI, scanOptions?: ScanOptions): Promise<IScannedExtension[]> {
+		const start = Date.now();
 		const extensions = new Map<string, IScannedExtension>();
 
 		// Custom builtin extensions defined through `additionalBuiltinExtensions` API
@@ -481,6 +484,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			extensions.set(extension.identifier.id.toLowerCase(), extension);
 		}
 
+		this.logService.trace('Web extensions scanUserExtensions', profileLocation.toString(), `${extensions.size} extensions`, `${Date.now() - start}ms`);
 		return [...extensions.values()];
 	}
 
@@ -735,8 +739,10 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	}
 
 	private async toScannedExtension(webExtension: IWebExtension, isBuiltin: boolean, type: ExtensionType = ExtensionType.User): Promise<IScannedExtension> {
+		const start = Date.now();
 		const validations: [Severity, string][] = [];
 		let manifest: IRelaxedExtensionManifest | undefined = webExtension.manifest;
+		const hadManifest = !!manifest;
 
 		if (!manifest) {
 			try {
@@ -780,7 +786,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			manifest.enabledApiProposals = parseEnabledApiProposalNames([...manifest.enabledApiProposals]);
 		}
 
-		return {
+		const scannedExtension = {
 			identifier: { id: webExtension.identifier.id, uuid: webExtension.identifier.uuid || uuid },
 			location: webExtension.location,
 			manifest,
@@ -794,6 +800,8 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			isValid,
 			preRelease: !!webExtension.metadata?.preRelease,
 		};
+		this.logService.trace('Web extensions toScannedExtension', webExtension.identifier.id, hadManifest ? 'manifest-present' : 'manifest-fetched', `${Date.now() - start}ms`);
+		return scannedExtension;
 	}
 
 	private async listExtensionResources(extensionLocation: URI): Promise<string[]> {
@@ -818,9 +826,12 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	}
 
 	private async getExtensionManifest(location: URI): Promise<IExtensionManifest> {
+		const start = Date.now();
 		const url = joinPath(location, 'package.json');
 		const content = await this.extensionResourceLoaderService.readExtensionResource(url);
-		return JSON.parse(content);
+		const manifest = JSON.parse(content);
+		this.logService.trace('Web extensions getExtensionManifest', url.toString(), `${content.length} bytes`, `${Date.now() - start}ms`);
+		return manifest;
 	}
 
 	private async getTranslations(nlsUrl: URI): Promise<ITranslations | undefined> {
