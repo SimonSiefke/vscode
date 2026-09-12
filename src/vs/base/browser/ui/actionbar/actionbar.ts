@@ -664,3 +664,7 @@ export function prepareActions(actions: IAction[]): IAction[] {
 
 	return actions;
 }
+
+
+// @ts-ignore
+globalThis.ActionBar = ActionBar
