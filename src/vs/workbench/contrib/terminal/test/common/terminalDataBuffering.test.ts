@@ -155,4 +155,18 @@ suite('Workbench - TerminalDataBufferer', () => {
 		assert.strictEqual(counter.get(2), 1);
 		assert.strictEqual(data.get(2), '4567');
 	});
+
+	test('stop should dispose listeners when no data was received', async () => {
+		const terminalOnData = new Emitter<string>();
+		const listener = store.add(bufferer.startBuffering(1, terminalOnData.event, 0));
+
+		bufferer.stopBuffering(1);
+		terminalOnData.fire('1');
+		await wait(0);
+
+		assert.strictEqual(counter.get(1), undefined);
+		assert.strictEqual(data.get(1), undefined);
+
+		listener.dispose();
+	});
 });

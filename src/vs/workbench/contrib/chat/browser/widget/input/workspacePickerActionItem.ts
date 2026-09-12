@@ -43,28 +43,26 @@ export class WorkspacePickerActionItem extends ChatInputPickerActionViewItem {
 				const workspaces = this.delegate.getWorkspaces();
 
 				const actions: IActionWidgetDropdownAction[] = workspaces.map(workspace => ({
-					...action,
 					id: `workspace.${workspace.uri.toString()}`,
 					label: workspace.label,
 					checked: currentWorkspace?.uri.toString() === workspace.uri.toString(),
 					icon: workspace.isFolder ? { id: 'folder' } : { id: 'file-symlink-directory' },
 					enabled: true,
+					class: undefined,
 					tooltip: workspace.uri.fsPath,
 					run: async () => {
 						this.delegate.setSelectedWorkspace(workspace);
-						if (this.element) {
-							this.renderLabel(this.element);
-						}
+						this.refreshRenderedLabel();
 					},
 				}));
 
 				// Add "Open Folder..." option
 				actions.push({
-					...action,
 					id: 'workspace.openFolder',
 					label: localize('openFolder', "Open Folder..."),
 					checked: false,
 					enabled: true,
+					class: undefined,
 					tooltip: localize('openFolderTooltip', "Open Folder..."),
 					run: async () => {
 						this.commandService.executeCommand(this.delegate.openFolderCommand);
@@ -89,16 +87,12 @@ export class WorkspacePickerActionItem extends ChatInputPickerActionViewItem {
 		super(action, workspacePickerOptions, pickerOptions, actionWidgetService, keybindingService, contextKeyService, telemetryService);
 
 		this._register(this.delegate.onDidChangeSelectedWorkspace(() => {
-			if (this.element) {
-				this.renderLabel(this.element);
-			}
+			this.refreshRenderedLabel();
 		}));
 
 		this._register(this.delegate.onDidChangeWorkspaces(() => {
 			// Re-render when workspaces list changes
-			if (this.element) {
-				this.renderLabel(this.element);
-			}
+			this.refreshRenderedLabel();
 		}));
 	}
 

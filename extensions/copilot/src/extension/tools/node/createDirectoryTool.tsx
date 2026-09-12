@@ -30,10 +30,7 @@ export class CreateDirectoryTool implements ICopilotTool<ICreateDirectoryParams>
 	) { }
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<ICreateDirectoryParams>, token: vscode.CancellationToken) {
-		const uri = this.promptPathRepresentationService.resolveFilePath(options.input.dirPath);
-		if (!uri) {
-			throw new Error(`Invalid directory path`);
-		}
+		const uri = resolveToolInputPath(options.input.dirPath, this.promptPathRepresentationService, options.workingDirectory);
 
 		await this.fileSystemService.createDirectory(uri);
 
@@ -45,7 +42,7 @@ export class CreateDirectoryTool implements ICopilotTool<ICreateDirectoryParams>
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<ICreateDirectoryParams>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
-		const uri = resolveToolInputPath(options.input.dirPath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.dirPath, this.promptPathRepresentationService, options.workingDirectory);
 
 		const confirmation = await this.instantiationService.invokeFunction(
 			createEditConfirmation,
