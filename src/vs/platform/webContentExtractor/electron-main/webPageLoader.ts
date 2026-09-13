@@ -96,16 +96,24 @@ export class WebPageLoader extends Disposable {
 			.on('will-redirect', this.onRedirect.bind(this))
 			.on('select-client-certificate', (event) => event.preventDefault());
 
-		this._window.webContents.session.webRequest.onBeforeRequest(
+		const session = this._window.webContents.session;
+		session.webRequest.onBeforeRequest(
 			this.onBeforeRequest.bind(this));
 
-		this._window.webContents.session.webRequest.onBeforeSendHeaders(
+		session.webRequest.onBeforeSendHeaders(
 			this.onBeforeSendHeaders.bind(this));
 
-		this._window.webContents.session.webRequest.onHeadersReceived(
+		session.webRequest.onHeadersReceived(
 			this.onHeadersReceived.bind(this));
 
-		this._window.webContents.session.on('will-download', this.onDownload.bind(this));
+		const onDownload = this.onDownload.bind(this);
+		session.on('will-download', onDownload);
+		this._register(toDisposable(() => {
+			session.webRequest.onBeforeRequest(null);
+			session.webRequest.onBeforeSendHeaders(null);
+			session.webRequest.onHeadersReceived(null);
+			session.removeListener('will-download', onDownload);
+		}));
 	}
 
 	private trace(message: string) {
