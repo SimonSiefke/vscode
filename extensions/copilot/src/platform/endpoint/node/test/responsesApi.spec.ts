@@ -20,8 +20,9 @@ import { TelemetryData } from '../../../telemetry/common/telemetryData';
 import { SpyingTelemetryService } from '../../../telemetry/node/spyingTelemetryService';
 import { createFakeStreamResponse } from '../../../test/node/fetcher';
 import { createPlatformServices } from '../../../test/node/services';
-import type { ThinkingData } from '../../../thinking/common/thinking';
+import type { ThinkingData, ThinkingOriginApi } from '../../../thinking/common/thinking';
 import { CacheType, CustomDataPartMimeTypes } from '../../common/endpointTypes';
+import { MISSING_STATEFUL_TOOL_RESULT } from '../../common/statefulMarkerContainer';
 import { createResponsesRequestBody, getResponsesApiCompactionThresholdFromBody, OpenAIResponsesProcessor, processResponseFromChatEndpoint, responseApiInputToRawMessagesForLogging } from '../responsesApi';
 
 const testEndpoint: IChatEndpoint = {
@@ -100,12 +101,12 @@ const createCompactionAssistantMessage = (compaction: OpenAIContextManagementRes
 	}]
 });
 
-const createThinkingAssistantMessage = (thinking: ThinkingData): Raw.ChatMessage => ({
+const createThinkingAssistantMessage = (thinking: ThinkingData, originApi?: ThinkingOriginApi): Raw.ChatMessage => ({
 	role: Raw.ChatRole.Assistant,
 	content: [
 		{
 			type: Raw.ChatCompletionContentPartKind.Opaque,
-			value: { type: CustomDataPartMimeTypes.ThinkingData, thinking },
+			value: { type: CustomDataPartMimeTypes.ThinkingData, thinking, originApi },
 		},
 		{ type: Raw.ChatCompletionContentPartKind.Text, text: 'answer' },
 	],
@@ -378,29 +379,73 @@ describe('createResponsesRequestBody', () => {
 		})).toBe(1234);
 	});
 
-	it('round-trips a genuine Responses reasoning item (id begins with "rs")', () => {
+	it.each(['rs_abc123', 'CzDhIBSZ31VSyW6rYILnFerwKDkArecaC'])('round-trips Responses reasoning regardless of ID format: %s', id => {
+		// Regression: CAPI's production /responses endpoint issues reasoning ids that are long
+		// opaque blobs with no `rs` prefix. Gating the round-trip on the id silently dropped that
+		// reasoning between tool calls, so the model re-derived work it had already done.
 		const services = createPlatformServices();
 		const accessor = services.createTestingAccessor();
 		const instantiationService = accessor.get(IInstantiationService);
-		const messages = [createThinkingAssistantMessage({ id: 'rs_abc123', text: 'reasoning', encrypted: 'enc_blob' })];
+		const messages = [createThinkingAssistantMessage(
+			{ id, text: 'reasoning', encrypted: 'enc_blob' },
+			'responses',
+		)];
 
 		const body = instantiationService.invokeFunction(servicesAccessor => createResponsesRequestBody(servicesAccessor, createRequestOptions(messages, false), testEndpoint.model, testEndpoint));
 
-		expect(body.input).toContainEqual({ type: 'reasoning', id: 'rs_abc123', summary: [], encrypted_content: 'enc_blob' });
+		expect(body.input).toContainEqual({ type: 'reasoning', id, summary: [], encrypted_content: 'enc_blob' });
 
 		accessor.dispose();
 		services.dispose();
 	});
 
-	it('drops foreign thinking (Messages API "thinking_N" id) so it cannot 400 the Responses request', () => {
-		// Reproduces "400 invalid_request_body: Invalid 'input[N].id': 'thinking_0'. Expected an
-		// ID that begins with 'rs'." Anthropic Messages-API thinking leaks into a Responses
-		// request (e.g. via the vscode.lm path); its id and encrypted payload are foreign and
-		// must not be round-tripped.
+	it.each(['messages', 'chatCompletions'] as const)('drops %s thinking even when its id looks like a Responses reasoning id', originApi => {
+		// Provenance decides, not the id: an Anthropic signature is not a valid Responses
+		// reasoning blob regardless of what the id happens to look like.
 		const services = createPlatformServices();
 		const accessor = services.createTestingAccessor();
 		const instantiationService = accessor.get(IInstantiationService);
-		const messages = [createThinkingAssistantMessage({ id: 'thinking_0', text: '', encrypted: 'sig_from_anthropic' })];
+		const messages = [createThinkingAssistantMessage(
+			{ id: 'rs_looks_legit', text: '', encrypted: 'sig_from_anthropic' },
+			originApi,
+		)];
+
+		const body = instantiationService.invokeFunction(servicesAccessor => createResponsesRequestBody(servicesAccessor, createRequestOptions(messages, false), testEndpoint.model, testEndpoint));
+
+		expect(body.input?.some(item => item.type === 'reasoning')).toBe(false);
+
+		accessor.dispose();
+		services.dispose();
+	});
+
+	it('preserves the legacy ID-prefix behavior when the API type is unset', () => {
+		const services = createPlatformServices();
+		const accessor = services.createTestingAccessor();
+		const instantiationService = accessor.get(IInstantiationService);
+		const messages = [
+			createThinkingAssistantMessage({ id: 'rs_abc123', text: 'reasoning', encrypted: 'enc_blob' }),
+			createThinkingAssistantMessage({ id: 'thinking_0', text: '', encrypted: 'sig_from_anthropic' }),
+			createThinkingAssistantMessage({ id: 'rs_summary', text: 'summary only' }),
+		];
+
+		const body = instantiationService.invokeFunction(servicesAccessor => createResponsesRequestBody(servicesAccessor, createRequestOptions(messages, false), testEndpoint.model, testEndpoint));
+
+		expect(body.input?.filter(item => item.type === 'reasoning')).toEqual([
+			{ type: 'reasoning', id: 'rs_abc123', summary: [], encrypted_content: 'enc_blob' },
+		]);
+
+		accessor.dispose();
+		services.dispose();
+	});
+
+	it('drops thinking that carries no encrypted payload', () => {
+		const services = createPlatformServices();
+		const accessor = services.createTestingAccessor();
+		const instantiationService = accessor.get(IInstantiationService);
+		const messages = [createThinkingAssistantMessage(
+			{ id: 'rs_abc123', text: 'summary only' },
+			'responses',
+		)];
 
 		const body = instantiationService.invokeFunction(servicesAccessor => createResponsesRequestBody(servicesAccessor, createRequestOptions(messages, false), testEndpoint.model, testEndpoint));
 
@@ -765,6 +810,56 @@ describe('createResponsesRequestBody', () => {
 			type: 'message',
 			role: 'user',
 			content: [{ type: 'input_text', text: 'after marker' }],
+		});
+
+		accessor.dispose();
+		services.dispose();
+	});
+
+	it('synthesizes outputs for calls missing after a reused HTTP stateful marker', () => {
+		const services = createPlatformServices();
+		const accessor = services.createTestingAccessor();
+		const instantiationService = accessor.get(IInstantiationService);
+		const completedCallId = 'call-completed';
+		const missingCallIds = ['call-missing-1', 'call-missing-2'];
+		const markerMessage: Raw.AssistantChatMessage = {
+			...createStatefulMarkerMessage(testEndpoint.model, 'resp-prev') as Raw.AssistantChatMessage,
+			toolCalls: [completedCallId, ...missingCallIds].map(id => ({
+				id,
+				type: 'function',
+				function: { name: 'test_tool', arguments: '{}' },
+			})),
+		};
+		const messages: Raw.ChatMessage[] = [
+			markerMessage,
+			{
+				role: Raw.ChatRole.Tool,
+				toolCallId: completedCallId,
+				content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: 'completed output' }],
+			},
+			{
+				role: Raw.ChatRole.User,
+				content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: 'continue' }],
+			},
+		];
+
+		const body = instantiationService.invokeFunction(servicesAccessor => createResponsesRequestBody(servicesAccessor, createRequestOptions(messages, false), testEndpoint.model, testEndpoint));
+		const outputs = body.input
+			?.filter(item => item.type === 'function_call_output')
+			.map(item => {
+				const output = item as OpenAI.Responses.ResponseInputItem.FunctionCallOutput;
+				return { callId: output.call_id, output: output.output };
+			});
+
+		expect({
+			previousResponseId: body.previous_response_id,
+			outputs,
+		}).toEqual({
+			previousResponseId: 'resp-prev',
+			outputs: [
+				...missingCallIds.map(callId => ({ callId, output: MISSING_STATEFUL_TOOL_RESULT })),
+				{ callId: completedCallId, output: 'completed output' },
+			],
 		});
 
 		accessor.dispose();
@@ -1180,6 +1275,29 @@ describe('createResponsesRequestBody prompt_cache_breakpoint markers', () => {
 
 		expect(body.prompt_cache_options).toBeUndefined();
 		expect((body.input?.[0] as { content: unknown[] }).content[0]).not.toHaveProperty('prompt_cache_breakpoint');
+	});
+
+	it('does not leak markers through opaque content into subsequent implicit or unsupported requests', () => {
+		const inputText = { type: 'input_text', text: 'replayed user input' };
+		const messages: Raw.ChatMessage[] = [{
+			role: Raw.ChatRole.User,
+			content: [
+				{ type: Raw.ChatCompletionContentPartKind.Opaque, value: inputText },
+				cacheBreakpoint(),
+			],
+		}];
+
+		expect(buildBody(messages).input?.[0]).toMatchObject({
+			content: [{ ...inputText, prompt_cache_breakpoint: expectedPromptCacheBreakpoint }],
+		});
+		expect(inputText).not.toHaveProperty('prompt_cache_breakpoint');
+		for (const body of [buildBody(messages, cacheBreakpointEndpoint, false), buildBody(messages, testEndpoint)]) {
+			expect(body.input?.[0]).toEqual({
+				type: 'message',
+				role: 'user',
+				content: [{ type: 'input_text', text: 'replayed user input' }],
+			});
+		}
 	});
 });
 
@@ -1949,7 +2067,92 @@ describe('processResponseFromChatEndpoint terminal events', () => {
 		expect(completion.error).toEqual({
 			code: 0,
 			message: 'something broke',
-			metadata: { code: 'internal_error' },
+			metadata: { code: 'internal_error', responseId: 'resp_failed' },
+		});
+	});
+
+	// Regression for https://github.com/microsoft/vscode/issues/330408
+	//
+	// A provider can terminate a Responses stream with `response.failed` while sending an
+	// error object that omits the `code`/`message` the API contract requires. Serializing
+	// that struct verbatim produced `{"code":0,"message":"","metadata":{}}`, which the BYOK
+	// endpoint surfaces as the entire user-facing reason — leaving no way to tell an outage
+	// from a malformed request. The failure must still be described and correlatable.
+	it('issue #330408: describes a response.failed event whose error omits code and message', async () => {
+		const failedEvent = {
+			type: 'response.failed',
+			response: {
+				id: 'resp_failed',
+				model: 'gpt-5-mini',
+				created_at: 123,
+				status: 'failed',
+				error: {},
+				output: [],
+			},
+		};
+
+		const [completion] = await runStream(`data: ${JSON.stringify(failedEvent)}\n\n`);
+
+		expect({
+			finishReason: completion.finishReason,
+			error: completion.error,
+		}).toEqual({
+			finishReason: FinishedCompletionReason.ServerError,
+			error: {
+				code: 0,
+				message: `The model provider reported a failed response without any error details (event: response.failed, status: failed, response: resp_failed).`,
+				metadata: { responseId: 'resp_failed' },
+			},
+		});
+	});
+
+	it('issue #330408: describes a terminal error that carries a code but no message', async () => {
+		const failedEvent = {
+			type: 'response.failed',
+			response: {
+				id: 'resp_failed',
+				model: 'gpt-5-mini',
+				created_at: 123,
+				status: 'failed',
+				error: { code: 'server_error' },
+				output: [],
+			},
+		};
+
+		const [completion] = await runStream(`data: ${JSON.stringify(failedEvent)}\n\n`);
+
+		expect(completion.error).toEqual({
+			code: 0,
+			message: `The model provider reported a failed response with code 'server_error' and no error message (event: response.failed, status: failed, response: resp_failed).`,
+			metadata: { code: 'server_error', responseId: 'resp_failed' },
+		});
+	});
+
+	it('issue #330408: describes a response.incomplete event whose error omits code and message', async () => {
+		const incompleteEvent = {
+			type: 'response.incomplete',
+			response: {
+				id: 'resp_incomplete',
+				model: 'gpt-5-mini',
+				created_at: 123,
+				status: 'incomplete',
+				error: {},
+				output: [],
+			},
+		};
+
+		const [completion] = await runStream(`data: ${JSON.stringify(incompleteEvent)}\n\n`);
+
+		expect({
+			finishReason: completion.finishReason,
+			error: completion.error,
+		}).toEqual({
+			finishReason: FinishedCompletionReason.ServerError,
+			error: {
+				code: 0,
+				message: `The model provider reported a failed response without any error details (event: response.incomplete, status: incomplete, response: resp_incomplete).`,
+				metadata: { responseId: 'resp_incomplete' },
+			},
 		});
 	});
 
@@ -1963,6 +2166,7 @@ describe('processResponseFromChatEndpoint terminal events', () => {
 				new SpyingTelemetryService(),
 				'req-1',
 				'gh-req-1',
+				'svc-req-1',
 				'',
 				undefined,
 			);

@@ -7,7 +7,7 @@ import { DeferredPromise } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { autorun } from '../../../../base/common/observable.js';
+import { autorun, IReader, observableSignal } from '../../../../base/common/observable.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -71,6 +71,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 
 	/** Resolved experiment treatment state, keyed by scenario id. */
 	private readonly _experimentStates = new Map<string, IExperimentState>();
+	private readonly _experimentStatesChanged = observableSignal(this);
 
 	/**
 	 * Assignment-context ids whose telemetry gate is open. While an onboarding id is *not* in
@@ -170,9 +171,20 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 		return this._hasBeenShownKey(scenario ? this._seenKey(scenario) : id, id);
 	}
 
+	shouldShowNudge(id: string, reader?: IReader): boolean {
+		this._experimentStatesChanged.read(reader);
+		const scenario = onboardingScenarioRegistry.getScenario(id);
+		if (!scenario) {
+			throw new Error(`Unknown onboarding scenario '${id}'.`);
+		}
+		return this._enabled && !this._stopped && this._isAutoEligible(scenario, true) && this._shouldShow(scenario);
+	}
+
 	reset(id: string): void {
 		const scenario = onboardingScenarioRegistry.getScenario(id);
-		delete this._state[scenario ? this._seenKey(scenario) : id];
+		const key = scenario ? this._seenKey(scenario) : id;
+		delete this._state[key];
+		this._shownSinceStart.delete(key);
 		this._memento.saveMemento();
 	}
 
@@ -219,6 +231,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 	 * moment: the telemetry gate is opened for the experiment's assignment-context id
 	 * (in both arms), and then only the treatment arm is enqueued to actually show the
 	 * tour. Control opens the gate but renders nothing and is not marked as shown.
+	 * A pre-tour nudge opens the same gate earlier, at its own would-show moment.
 	 *
 	 * Developer mode is the exception: it shows the tour unconditionally and never
 	 * opens the telemetry gate, so a local preview can never affect the experiment
@@ -255,18 +268,8 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 				continue;
 			}
 
-			const experiment = scenario.experiment ? this._experimentStates.get(scenario.id) : undefined;
-			if (experiment?.active && !this._isDeveloperMode(scenario.id)) {
-				// Would-show reached: start emitting the assignment-context id from now on.
-				// Skipped entirely in developer mode so a local preview never opens the
-				// telemetry gate and never affects the experiment scorecard (the tour is
-				// shown unconditionally below instead).
-				this._openGate(experiment.assignmentContextId);
-				if (!experiment.behavior) {
-					// Control arm: the identifier now flows, but no tour is shown and the
-					// scenario is left un-shown so the user stays eligible to see it later.
-					continue;
-				}
+			if (!this._shouldShow(scenario)) {
+				continue;
 			}
 
 			this._enqueue(scenario);
@@ -276,7 +279,17 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 		}
 	}
 
-	private _isAutoEligible(scenario: IOnboardingScenario): boolean {
+	private _shouldShow(scenario: IOnboardingScenario): boolean {
+		const experiment = scenario.experiment ? this._experimentStates.get(scenario.id) : undefined;
+		if (experiment?.active && !this._isDeveloperMode(scenario.id)) {
+			// Record the would-show moment in both arms, before any onboarding UI changes user behavior.
+			this._openGate(experiment.assignmentContextId);
+			return experiment.behavior;
+		}
+		return true;
+	}
+
+	private _isAutoEligible(scenario: IOnboardingScenario, ignoreTrigger = false): boolean {
 		// `command` triggers never run automatically.
 		if (scenario.trigger.kind === 'command') {
 			return false;
@@ -306,7 +319,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 			return false;
 		}
 
-		if (scenario.trigger.kind === 'observable' && scenario.trigger.signal.get() !== true) {
+		if (!ignoreTrigger && scenario.trigger.kind === 'observable' && scenario.trigger.signal.get() !== true) {
 			return false;
 		}
 
@@ -388,8 +401,18 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 		const abort = new Emitter<void>();
 		this._activeAbort = abort;
 		const startTime = Date.now();
+		let didReportShown = false;
 		try {
-			const result = await presentation.run(scenario, { targetWindow: mainWindow, onAbort: abort.event });
+			const result = await presentation.run(scenario, {
+				targetWindow: mainWindow,
+				onAbort: abort.event,
+				onDidShow: () => {
+					if (!didReportShown) {
+						didReportShown = true;
+						this._reportShown(scenario);
+					}
+				}
+			});
 			this._recordOutcome(this._seenKey(scenario), result.outcome);
 			// Only emit outcome telemetry when a tour was genuinely displayed; a degenerate
 			// run that rendered nothing (no steps / all steps skipped) must not pollute metrics.
@@ -401,6 +424,29 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 			this._activeAbort = undefined;
 			abort.dispose();
 		}
+	}
+
+	/** Emit an impression when a presentation has rendered visible onboarding UI. */
+	private _reportShown(scenario: IOnboardingScenario): void {
+		const experimentState = scenario.experiment ? this._experimentStates.get(scenario.id) : undefined;
+
+		type OnboardingScenarioShownEvent = {
+			scenarioId: string;
+			experimentActive: boolean;
+			experimentAssignmentContextId: string | undefined;
+		};
+		type OnboardingScenarioShownClassification = {
+			owner: 'benibenj';
+			comment: 'Reports a rendered onboarding tour impression. The scenario and experiment assignment identifiers are bounded product categories, not user content.';
+			scenarioId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The stable identifier of the onboarding scenario that rendered.' };
+			experimentActive: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether a valid experiment treatment selected the rendered scenario.' };
+			experimentAssignmentContextId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The bounded experiment assignment-context identifier for the rendered scenario, when active.' };
+		};
+		this.telemetryService.publicLog2<OnboardingScenarioShownEvent, OnboardingScenarioShownClassification>('onboarding.scenarioShown', {
+			scenarioId: scenario.id,
+			experimentActive: experimentState?.active === true,
+			experimentAssignmentContextId: experimentState?.active ? experimentState.assignmentContextId : undefined,
+		});
 	}
 
 	/** Emit per-tour telemetry. Only called when a tour was actually shown. */
@@ -492,6 +538,7 @@ export class OnboardingScenarioService extends Disposable implements IOnboarding
 					behavior: behavior === true,
 					assignmentContextId: active ? assignmentContextId! : ''
 				});
+				this._experimentStatesChanged.trigger(undefined);
 				if (active) {
 					this._evaluate();
 				}

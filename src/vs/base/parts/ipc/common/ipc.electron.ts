@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../common/event.js';
-import { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
+import { IDisposable } from '../../../common/lifecycle.js';
+import { IStructuredCloneMessagePassingProtocol } from './ipc.js';
 
 export interface Sender {
-	send(channel: string, msg: unknown): void;
+	send(channel: string, ...args: unknown[]): void;
 }
 
 /**
@@ -19,11 +19,15 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
 
-	constructor(private sender: Sender, readonly onMessage: Event<IStructuredCloneMessage>) { }
+	constructor(private sender: Sender, readonly onMessage: (listener: (header: unknown, body: unknown) => void) => IDisposable) { }
 
-	send(message: IStructuredCloneMessage): void {
+	send(header: unknown, body?: unknown): void {
 		try {
-			this.sender.send('vscode:message', message);
+			if (typeof body === 'undefined') {
+				this.sender.send('vscode:message', header);
+			} else {
+				this.sender.send('vscode:message', header, body);
+			}
 		} catch (e) {
 			// systems are going down
 		}

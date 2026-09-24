@@ -17,10 +17,12 @@ export class MockChatService implements IChatService {
 	private readonly _chatModels: ISettableObservable<Iterable<IChatModel>> = observableValue('chatModels', []);
 	readonly chatModels = this._chatModels;
 	requestInProgressObs = observableValue('name', false);
+	getPendingRequestSessionTypes(): readonly string[] { return []; }
 	_serviceBrand: undefined;
 	editingSessions = [];
 	transferredSessionResource = undefined;
 	readonly onDidSubmitRequest = Event.None;
+	readonly onDidAcceptRequest = Event.None;
 
 	private readonly _onDidCreateModel = new Emitter<IChatModel>();
 	readonly onDidCreateModel = this._onDidCreateModel.event;
@@ -121,7 +123,7 @@ export class MockChatService implements IChatService {
 		throw new Error('Method not implemented.');
 	}
 
-	resendRequest(_request: IChatRequestModel, _options?: IChatSendRequestOptions): Promise<void> {
+	resendRequest(_request: IChatRequestModel, _options?: IChatSendRequestOptions, _preserveRequestId?: boolean): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 

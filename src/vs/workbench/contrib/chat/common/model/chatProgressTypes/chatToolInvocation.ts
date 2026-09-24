@@ -8,7 +8,7 @@ import { IMarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { IObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { localize } from '../../../../../../nls.js';
-import { ConfirmedReason, IChatAgentFeedbackReviewConfirmationData, IChatAutomationConfigurationData, IChatAutomationConfiguredData, IChatExtensionsContent, IChatModifiedFilesConfirmationData, IChatSearchToolInvocationData, IChatSessionCreatedData, IChatSimpleToolInvocationData, IChatSubagentToolInvocationData, IChatTodoListContent, IChatToolInputInvocationData, IChatToolInvocation, IChatToolInvocationOtherClientData, IChatToolInvocationSerialized, ToolConfirmKind, type IChatMcpAuthenticationRequiredServer, type IChatTerminalToolInvocationData } from '../../chatService/chatService.js';
+import { ConfirmedReason, IChatAgentFeedbackReviewConfirmationData, IChatAutomationConfigurationData, IChatAutomationConfiguredData, IChatExtensionsContent, IChatGeneratedImageData, IChatModifiedFilesConfirmationData, IChatSearchToolInvocationData, IChatSessionCreatedData, IChatSimpleToolInvocationData, IChatSubagentToolInvocationData, IChatTodoListContent, IChatToolInputInvocationData, IChatToolInvocation, IChatToolInvocationOtherClientData, IChatToolInvocationSerialized, ToolConfirmKind, type IChatMcpAuthenticationRequiredServer, type IChatTerminalToolInvocationData } from '../../chatService/chatService.js';
 import { IPreparedToolInvocation, isToolResultOutputDetails, IToolConfirmationMessages, IToolData, IToolProgressStep, IToolResult, ToolDataSource } from '../../tools/languageModelToolsService.js';
 
 export interface IStreamingToolCallOptions {
@@ -23,7 +23,7 @@ export class ChatToolInvocation implements IChatToolInvocation {
 	public readonly kind: 'toolInvocation' = 'toolInvocation';
 
 	public invocationMessage: string | IMarkdownString;
-	public readonly originMessage: string | IMarkdownString | undefined;
+	public originMessage: string | IMarkdownString | undefined;
 	public pastTenseMessage: string | IMarkdownString | undefined;
 	public confirmationMessages: IToolConfirmationMessages | undefined;
 	public presentation: IPreparedToolInvocation['presentation'];
@@ -37,7 +37,7 @@ export class ChatToolInvocation implements IChatToolInvocation {
 	public isAttachedToThinking: boolean = false;
 	public otherClientToolCall?: IChatToolInvocationOtherClientData;
 
-	private _toolSpecificData?: IChatTerminalToolInvocationData | IChatToolInputInvocationData | IChatExtensionsContent | IChatTodoListContent | IChatSubagentToolInvocationData | IChatSimpleToolInvocationData | IChatSearchToolInvocationData | IChatModifiedFilesConfirmationData | IChatAgentFeedbackReviewConfirmationData | IChatSessionCreatedData | IChatAutomationConfigurationData | IChatAutomationConfiguredData;
+	private _toolSpecificData?: IChatTerminalToolInvocationData | IChatToolInputInvocationData | IChatExtensionsContent | IChatTodoListContent | IChatSubagentToolInvocationData | IChatSimpleToolInvocationData | IChatSearchToolInvocationData | IChatModifiedFilesConfirmationData | IChatAgentFeedbackReviewConfirmationData | IChatSessionCreatedData | IChatGeneratedImageData | IChatAutomationConfigurationData | IChatAutomationConfiguredData;
 	private readonly _toolSpecificDataKind = observableValue<string | undefined>(this, undefined);
 	public readonly toolSpecificDataKind: IObservable<string | undefined> = this._toolSpecificDataKind;
 
@@ -294,6 +294,7 @@ export class ChatToolInvocation implements IChatToolInvocation {
 		if (preparedInvocation.invocationMessage) {
 			this.invocationMessage = preparedInvocation.invocationMessage;
 		}
+		this.originMessage = preparedInvocation.originMessage ?? this.originMessage;
 		this.pastTenseMessage = preparedInvocation.pastTenseMessage;
 		this.confirmationMessages = preparedInvocation.confirmationMessages;
 		this.presentation = preparedInvocation.presentation;
@@ -316,6 +317,7 @@ export class ChatToolInvocation implements IChatToolInvocation {
 		if (preparedInvocation.invocationMessage) {
 			this.invocationMessage = preparedInvocation.invocationMessage;
 		}
+		this.originMessage = preparedInvocation.originMessage ?? this.originMessage;
 		this.pastTenseMessage = preparedInvocation.pastTenseMessage;
 		this.confirmationMessages = preparedInvocation.confirmationMessages;
 		this.presentation = preparedInvocation.presentation;

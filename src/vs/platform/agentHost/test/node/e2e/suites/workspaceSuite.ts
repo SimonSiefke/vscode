@@ -9,11 +9,11 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } fro
 import { tmpdir } from 'os';
 import { URI } from '../../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
-import { SubscribeResult } from '../../../../common/state/protocol/commands.js';
+import { type ListSessionsResult, SubscribeResult } from '../../../../common/state/protocol/commands.js';
 import { PROTOCOL_VERSION } from '../../../../common/state/protocol/version/registry.js';
 import { ActionType, NotificationType, type IToolCallContentChangedAction, type IToolCallStartAction } from '../../../../common/state/sessionActions.js';
 import type { SessionAddedParams } from '../../../../common/state/protocol/notifications.js';
-import { buildDefaultChatUri, ROOT_STATE_URI, type SessionState, type TerminalState, type ToolResultContent } from '../../../../common/state/sessionState.js';
+import { buildDefaultChatUri, readSessionGitState, ROOT_STATE_URI, type SessionState, type TerminalState, type ToolResultContent } from '../../../../common/state/sessionState.js';
 import { CopilotCliConfigKey } from '../../../../common/copilotCliConfig.js';
 import {
 	dispatchTurn,
@@ -150,6 +150,10 @@ export function defineWorkspaceTests(context: IAgentHostE2ETestContext): void {
 			});
 		}
 
+		const addedNotification = context.client.waitForNotification(n =>
+			n.method === NotificationType.SessionAdded,
+			60_000,
+		);
 		const sessionUri = URI.from({ scheme: config.scheme, path: `/${generateUuid()}` }).toString();
 		await context.client.call('createSession', {
 			channel: sessionUri, provider: config.provider, workingDirectories: [workingDirUri],
@@ -184,10 +188,7 @@ export function defineWorkspaceTests(context: IAgentHostE2ETestContext): void {
 		dispatchTurn(context.client, sessionUri, 'turn-wt',
 			'What is your current working directory? Reply with just the absolute path and nothing else.', 2);
 
-		const addedNotif = await context.client.waitForNotification(n =>
-			n.method === NotificationType.SessionAdded,
-			60_000,
-		);
+		const addedNotif = await addedNotification;
 		const addedSummary = (addedNotif.params as SessionAddedParams).summary;
 
 		const addedWorkingDirectory = addedSummary.workingDirectories?.[0];
@@ -209,6 +210,35 @@ export function defineWorkspaceTests(context: IAgentHostE2ETestContext): void {
 			errors.length > 0
 				? `Session error during turn (worktree path lost on resume): ${(getActionEnvelope(errors[0]).action as { error?: { message?: string } }).error?.message}`
 				: '');
+
+		const materializationActions = context.client.receivedNotifications(n =>
+			isActionNotification(n, ActionType.SessionReady)
+			|| isActionNotification(n, ActionType.SessionWorkingDirectoryReplaced)
+			|| isActionNotification(n, ActionType.ChatTurnComplete))
+			.map(n => getActionEnvelope(n))
+			.filter(envelope => envelope.channel === sessionUri || envelope.channel === buildDefaultChatUri(sessionUri))
+			.map(({ action }) => action.type === ActionType.SessionWorkingDirectoryReplaced
+				? { type: action.type, directory: action.directory, replacement: action.replacement }
+				: { type: action.type });
+		const subscribed = await context.client.call<SubscribeResult>('subscribe', { channel: sessionUri });
+		const catalog = await context.client.call<ListSessionsResult>('listSessions', { channel: ROOT_STATE_URI });
+		const listed = catalog.items.find(summary => summary.resource === sessionUri);
+		const worktreeBranch = execSync('git branch --show-current', { cwd: resolvedWorkingDirectoryPath, encoding: 'utf8' }).trim();
+		assert.deepStrictEqual({
+			materializationActions,
+			subscribedDirectories: (subscribed.snapshot!.state as SessionState).workingDirectories,
+			listedDirectories: listed?.workingDirectories,
+			announcedBranch: readSessionGitState(addedSummary._meta)?.branchName,
+		}, {
+			materializationActions: [
+				{ type: ActionType.SessionReady },
+				{ type: ActionType.SessionWorkingDirectoryReplaced, directory: workingDirUri, replacement: addedWorkingDirectory },
+				{ type: ActionType.ChatTurnComplete },
+			],
+			subscribedDirectories: [addedWorkingDirectory],
+			listedDirectories: [addedWorkingDirectory],
+			announcedBranch: worktreeBranch,
+		});
 
 		const responseParts = context.client.receivedNotifications(n => isActionNotification(n, 'chat/responsePart'));
 		assert.ok(responseParts.length > 0, 'should have received at least one response part after session refresh');
