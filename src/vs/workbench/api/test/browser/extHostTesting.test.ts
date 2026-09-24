@@ -26,7 +26,7 @@ import * as convert from '../../common/extHostTypeConverters.js';
 import { Location, Position, Range, TestMessage, TestRunProfileKind, TestRunRequest as TestRunRequestImpl, TestTag } from '../../common/extHostTypes.js';
 import { AnyCallRPCProtocol } from '../common/testRPCProtocol.js';
 import { TestId } from '../../../contrib/testing/common/testId.js';
-import { TestDiffOpType, TestItemExpandState, TestMessageType, TestsDiff } from '../../../contrib/testing/common/testTypes.js';
+import { TestDiffOpType, TestItemExpandState, TestMessageType, TestRunProfileBitset, TestsDiff } from '../../../contrib/testing/common/testTypes.js';
 import { nullExtensionDescription } from '../../../services/extensions/common/extensions.js';
 import type { TestController, TestItem, TestRunProfile, TestRunRequest } from 'vscode';
 
@@ -924,6 +924,27 @@ suite('ExtHost Testing', () => {
 				}),
 				new ExtHostDocumentsAndEditors(rpcProtocol, new NullLogService()),
 			));
+		});
+
+		test('removes disposed runs from published results', async () => {
+			const onResultsChanged = sinon.spy();
+			ds.add(ctrl.onResultsChanged(onResultsChanged));
+			ctrl.$publishTestResults([{
+				id: 'run-id',
+				completedAt: 1,
+				items: [],
+				name: 'run',
+				request: { group: TestRunProfileBitset.Run, targets: [] },
+				tasks: [],
+			}]);
+
+			assert.strictEqual(ctrl.results.length, 1);
+			sinon.assert.calledOnce(onResultsChanged);
+
+			await ctrl.$disposeRun('run-id');
+
+			assert.strictEqual(ctrl.results.length, 0);
+			sinon.assert.calledTwice(onResultsChanged);
 		});
 
 		test('exposes active profiles correctly', async () => {
