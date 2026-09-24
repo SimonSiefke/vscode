@@ -21,7 +21,7 @@ import { IUserDataProfilesService } from '../../platform/userDataProfile/common/
 import { IServerEnvironmentService } from './serverEnvironmentService.js';
 import { dedupExtensions } from '../../workbench/services/extensions/common/extensionsUtil.js';
 import { Schemas } from '../../base/common/network.js';
-import { IRemoteExtensionsScannerService } from '../../platform/remote/common/remoteExtensionsScanner.js';
+import { getRemoteExtensionsScanContentHash, IRemoteExtensionsScannerService } from '../../platform/remote/common/remoteExtensionsScanner.js';
 import { ILanguagePackService } from '../../platform/languagePacks/common/languagePacks.js';
 import { areSameExtensions } from '../../platform/extensionManagement/common/extensionManagementUtil.js';
 
@@ -352,6 +352,28 @@ export class RemoteExtensionsScannerChannel implements IServerChannel {
 					languagePackId
 				);
 				return extensions.map(extension => transformOutgoingURIs(extension, uriTransformer));
+			}
+
+			case 'scanExtensionsWithCache': {
+				const language = args[0];
+				const profileLocation = args[1] ? URI.revive(uriTransformer.transformIncoming(args[1])) : undefined;
+				const workspaceExtensionLocations = Array.isArray(args[2]) ? args[2].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
+				const extensionDevelopmentPath = Array.isArray(args[3]) ? args[3].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
+				const languagePackId: string | undefined = args[4];
+				const knownContentHash: string | undefined = typeof args[5] === 'string' ? args[5] : undefined;
+				const extensions = await this.service.scanExtensions(
+					language,
+					profileLocation,
+					workspaceExtensionLocations,
+					extensionDevelopmentPath,
+					languagePackId
+				);
+				const transformedExtensions = extensions.map(extension => transformOutgoingURIs(extension, uriTransformer));
+				const contentHash = await getRemoteExtensionsScanContentHash(transformedExtensions);
+				if (knownContentHash === contentHash) {
+					return { type: 'hit', contentHash };
+				}
+				return { type: 'miss', contentHash, extensions: transformedExtensions };
 			}
 		}
 		throw new Error('Invalid call');
