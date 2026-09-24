@@ -4651,7 +4651,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			existing.addToolInvocation(tool, subAgentInvocationId, subagentTitle, revealSubagent, revealSubagentLabel, toolPart, factory);
 			this.updateToolConfirmationCarouselMaxHeight();
 		} else {
-			this.renderToolConfirmationCarousel(tool, factory, subAgentInvocationId, subagentTitle, revealSubagent, revealSubagentLabel, toolPart, factory);
+			this.renderToolConfirmationCarousel(tool, factory, subAgentInvocationId, subagentTitle, revealSubagent, revealSubagentLabel, toolPart);
 		}
 	}
 
