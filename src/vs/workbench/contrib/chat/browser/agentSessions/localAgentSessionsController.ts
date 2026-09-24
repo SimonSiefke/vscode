@@ -88,6 +88,10 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 		}
 	}
 
+	async deleteChatSessionItem(resource: URI, _token: CancellationToken): Promise<void> {
+		await this.chatService.removeHistoryEntry(resource);
+	}
+
 	private registerListeners(): void {
 		const addModelListeners = async (model: IChatModel) => {
 			if (getChatSessionType(model.sessionResource) !== this.chatSessionType) {
