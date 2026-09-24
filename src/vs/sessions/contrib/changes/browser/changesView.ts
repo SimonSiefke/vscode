@@ -2070,7 +2070,6 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 				const selectedChangeset = changesViewService.activeSessionChangesetObs.get();
 
 				return changesets.map(changeset => ({
-					...action,
 					id: `agents.changes.changeset.${changeset.id}`,
 					label: changeset.label,
 					detail: changeset.description,
@@ -2081,6 +2080,8 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 						order: 0
 					},
 					enabled: changeset.isEnabled.get(),
+					class: undefined,
+					tooltip: changeset.description ?? changeset.label,
 					run: async () => {
 						changesViewService.setChangesetId(changeset.id);
 						logChangesViewVersionModeChange(this.telemetryService, changeset.id);
@@ -2109,7 +2110,7 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 			this._summaryObs?.read(reader);
 
 			if (this.element) {
-				this.renderLabel(this.element);
+				this.refreshRenderedLabel();
 				this.updateTooltip();
 			}
 		}));
