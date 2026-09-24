@@ -142,6 +142,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	};
 
 	private readonly layoutScheduler = this._register(new MutableDisposable<IScheduledMultiEditorTabsControlLayout>());
+	private readonly layoutTabsNonWrappingScheduler = this._register(new RunOnceScheduler(() => this.doLayoutTabsNonWrapping({ forceRevealActiveTab: true }), 50));
 	private blockRevealActiveTab: boolean | undefined;
 
 	private path: IPath = isWindows ? win32 : posix;
@@ -2301,6 +2302,16 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private doLayoutTabsNonWrapping(options?: IMultiEditorTabsControlLayoutOptions): void {
 		const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
+		if (!options?.forceRevealActiveTab && !this.blockRevealActiveTab && !this.connectedTabLabels && !this.connectedTabBounds) {
+			// CSS responds to intermediate dimensions without requiring any DOM
+			// reads. Defer scrollbar and reveal bookkeeping until resizing settles.
+			// Connected tabs need current geometry to clip their curved edges.
+			this.layoutTabsNonWrappingScheduler.schedule();
+			return;
+		}
+		if (options?.forceRevealActiveTab) {
+			this.layoutTabsNonWrappingScheduler.cancel();
+		}
 
 		//
 		// Synopsis
@@ -2338,13 +2349,6 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			}
 		}
 
-		const activeTabAndIndex = this.tabsModel.activeEditor ? this.getTabAndIndex(this.tabsModel.activeEditor) : undefined;
-		const [activeTab, activeTabIndex] = activeTabAndIndex ?? [undefined, undefined];
-
-		// Figure out if active tab is positioned static which has an
-		// impact on whether to reveal the tab or not later
-		let activeTabPositionStatic = this.groupsView.partOptions.pinnedTabSizing !== 'normal' && typeof activeTabIndex === 'number' && this.tabsModel.isSticky(activeTabIndex);
-
 		// Special case: we have sticky tabs but the available space for showing tabs
 		// is little enough that we need to disable sticky tabs sticky positioning
 		// so that tabs can be scrolled at naturally.
@@ -2354,11 +2358,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 			availableTabsContainerWidth = visibleTabsWidth;
 			stickyTabsWidth = 0;
-			activeTabPositionStatic = false;
 		} else {
 			tabsContainer.classList.remove('disable-sticky-tabs');
 		}
 		assertReturnsDefined(this.stickyTabsBackground).style.width = `${stickyTabsWidth}px`;
+
+		const activeTabAndIndex = this.tabsModel.activeEditor ? this.getTabAndIndex(this.tabsModel.activeEditor) : undefined;
+		const [activeTab, activeTabIndex] = activeTabAndIndex ?? [undefined, undefined];
+		const activeTabPositionStatic = this.groupsView.partOptions.pinnedTabSizing !== 'normal' && typeof activeTabIndex === 'number' && this.tabsModel.isSticky(activeTabIndex) && stickyTabsWidth > 0;
 
 		this.clearConnectedTabClipping();
 		const activeTabFill = activeTab?.firstElementChild;
@@ -2403,16 +2410,20 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		});
 		this.updateConnectedTabClipping(tabsScrollbar.getScrollPosition().scrollLeft);
 		const dimensionsChanged = oldVisibleTabsWidth !== visibleTabsWidth || oldAllTabsWidth !== allTabsWidth;
+		if (this.blockRevealActiveTab) {
+			this.layoutTabsNonWrappingScheduler.cancel();
+			this.blockRevealActiveTab = false;
+			return;
+		}
+
 
 		// Revealing the active tab is skipped under some conditions:
 		if (
-			this.blockRevealActiveTab ||							// explicitly disabled
 			typeof activeTabPosX !== 'number' ||					// invalid dimension
 			typeof activeTabWidth !== 'number' ||					// invalid dimension
 			activeTabPositionStatic ||								// static tab (sticky)
-			(!dimensionsChanged && !options?.forceRevealActiveTab) 	// dimensions did not change and we have low layout priority (https://github.com/microsoft/vscode/issues/133631)
+			(!dimensionsChanged && !options?.forceRevealActiveTab)	// dimensions did not change
 		) {
-			this.blockRevealActiveTab = false;
 			return;
 		}
 

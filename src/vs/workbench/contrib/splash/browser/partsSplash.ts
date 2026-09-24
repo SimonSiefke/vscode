@@ -5,6 +5,7 @@
 
 import { onDidChangeFullscreen, isFullscreen } from '../../../../base/browser/browser.js';
 import * as dom from '../../../../base/browser/dom.js';
+import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Color } from '../../../../base/common/color.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -48,9 +49,10 @@ export class PartsSplash {
 		}, undefined, this._disposables);
 
 		const lastIdleSchedule = this._disposables.add(new MutableDisposable());
-		const savePartsSplashSoon = () => {
+		const savePartsSplashScheduler = this._disposables.add(new RunOnceScheduler(() => {
 			lastIdleSchedule.value = dom.runWhenWindowIdle(mainWindow, () => this._savePartsSplash(), 2500);
-		};
+		}, 100));
+		const savePartsSplashSoon = () => savePartsSplashScheduler.schedule();
 		lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			Event.any(Event.filter(onDidChangeFullscreen, windowId => windowId === mainWindow.vscodeWindowId), editorGroupsService.mainPart.onDidLayout, _themeService.onDidColorThemeChange)(savePartsSplashSoon, undefined, this._disposables);
 			savePartsSplashSoon();
