@@ -1943,8 +1943,7 @@ export class ModifierKeyEmitter extends event.Emitter<IModifierKeyStatus> {
 			this._keyStatus.shiftKey = e.shiftKey;
 
 			if (this._keyStatus.lastKeyPressed) {
-				this._keyStatus.event = e;
-				this.fire(this._keyStatus);
+				this.fireModifierKeyEvent(e);
 			}
 		}, true));
 
@@ -1975,8 +1974,7 @@ export class ModifierKeyEmitter extends event.Emitter<IModifierKeyStatus> {
 			this._keyStatus.shiftKey = e.shiftKey;
 
 			if (this._keyStatus.lastKeyReleased) {
-				this._keyStatus.event = e;
-				this.fire(this._keyStatus);
+				this.fireModifierKeyEvent(e);
 			}
 		}, true));
 
@@ -2005,6 +2003,15 @@ export class ModifierKeyEmitter extends event.Emitter<IModifierKeyStatus> {
 
 	get isModifierPressed(): boolean {
 		return hasModifierKeys(this._keyStatus);
+	}
+
+	private fireModifierKeyEvent(keyboardEvent: KeyboardEvent): void {
+		this._keyStatus.event = keyboardEvent;
+		try {
+			this.fire(this._keyStatus);
+		} finally {
+			this._keyStatus.event = undefined;
+		}
 	}
 
 	/**
