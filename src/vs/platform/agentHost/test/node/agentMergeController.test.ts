@@ -27,6 +27,7 @@ import { IPullRequestResources } from '../../../github/common/pullRequestResourc
 import { AgentConfigurationService } from '../../node/agentConfigurationService.js';
 import { AgentHostGitHubEndpointService } from '../../node/agentHostGitHubEndpointService.js';
 import { AgentMergeController, firstCredentialFailure, isSamlEnforcementError, parsePullRequestUrl } from '../../node/agentMergeController.js';
+import { AgentMergeTools } from '../../node/agentMergeTools.js';
 import type { IAgentHostProviderService } from '../../node/agentHostProviderService.js';
 import { AgentHostStateManager } from '../../node/agentHostStateManager.js';
 import { IAgentHostChatContributionContext } from '../../common/agentHostChatContributionsService.js';
@@ -146,6 +147,53 @@ suite('AgentMergeController', () => {
 				agentMerge: { enabled: false },
 			},
 			rootEnabled: true,
+		});
+	});
+
+	test('tool enablement preserves autonomous configuration injection and restoration', () => {
+		const { stateManager, configurationService, session } = createControllerHarness(disposables);
+		const tools = disposables.add(new AgentMergeTools(
+			() => configurationService.getRootValue(agentMergeRootConfigSchema, AgentMergeConfigKey.Enabled) === true,
+			() => undefined,
+			new class extends mock<IGitHubService>() { }(),
+			new NullLogService(),
+			stateManager,
+			configurationService,
+		));
+		configurationService.updateSessionConfig(session, {
+			[SessionConfigKey.Mode]: 'interactive',
+			[SessionConfigKey.AutoApprove]: 'default',
+			[SessionConfigKey.AgentMerge]: { enabled: false, overrides: { fixCI: false } },
+		});
+		stateManager.dispatchServerAction(session, { type: ActionType.SessionReady });
+
+		tools.setEnabled(session, true);
+		const enabled = configurationService.getSessionConfigValues(session);
+		tools.setEnabled(session, false);
+		const disabled = configurationService.getSessionConfigValues(session);
+
+		assert.deepStrictEqual({
+			enabled: {
+				mode: enabled?.[SessionConfigKey.Mode],
+				autoApprove: enabled?.[SessionConfigKey.AutoApprove],
+				agentMerge: enabled?.[SessionConfigKey.AgentMerge],
+			},
+			disabled: {
+				mode: disabled?.[SessionConfigKey.Mode],
+				autoApprove: disabled?.[SessionConfigKey.AutoApprove],
+				agentMerge: readAgentMergeSessionState(disabled),
+			},
+		}, {
+			enabled: {
+				mode: 'autopilot',
+				autoApprove: 'assisted',
+				agentMerge: { enabled: true, overrides: { fixCI: false } },
+			},
+			disabled: {
+				mode: 'interactive',
+				autoApprove: 'default',
+				agentMerge: { enabled: false, overrides: { fixCI: false } },
+			},
 		});
 	});
 
@@ -586,6 +634,7 @@ suite('AgentMergeController', () => {
 			const { stateManager, configurationService, session, notices } = createControllerHarness(disposables, snapshot);
 			stateManager.setSessionMeta(session, withSessionGitHubState(
 				withSessionGitState(undefined, { branchName: 'feature', baseBranchName: 'main' }),
+				REPOSITORY,
 				{ pullRequestUrls: [pullRequestUrl], pullRequestBranchName: 'feature' },
 			));
 			const disabled = new Promise<void>(resolve => {
@@ -650,6 +699,7 @@ suite('AgentMergeController', () => {
 		});
 		stateManager.setSessionMeta(session, withSessionGitHubState(
 			withSessionGitState(undefined, { branchName: 'feature', baseBranchName: 'main' }),
+			REPOSITORY,
 			{
 				pullRequestUrls: ['https://github.com/octo/repo/pull/1'],
 				pullRequestBranchName: 'other',
@@ -698,6 +748,7 @@ suite('AgentMergeController', () => {
 		const pullRequestUrl = 'https://github.com/octo/repo/pull/1';
 		stateManager.setSessionMeta(session, withSessionGitHubState(
 			withSessionGitState(undefined, { branchName: 'feature', baseBranchName: 'main' }),
+			REPOSITORY,
 			{
 				pullRequestUrls: [pullRequestUrl],
 				pullRequestBranchName: 'feature',
@@ -913,6 +964,8 @@ suite('AgentMergeController', () => {
 	});
 });
 
+const REPOSITORY = 'file:///repo';
+
 function summary(resource: string): SessionSummary {
 	const now = new Date().toISOString();
 	return {
@@ -922,5 +975,6 @@ function summary(resource: string): SessionSummary {
 		status: SessionStatus.Idle,
 		createdAt: now,
 		modifiedAt: now,
+		workingDirectories: [REPOSITORY],
 	};
 }
