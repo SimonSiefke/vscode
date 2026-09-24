@@ -369,9 +369,29 @@ export function disposeIfDisposable<T extends IDisposable | object>(disposables:
  * Combine multiple disposable values into a single {@link IDisposable}.
  */
 export function combinedDisposable(...disposables: IDisposable[]): IDisposable {
-	const parent = toDisposable(() => dispose(disposables));
-	setParentOfDisposables(disposables, parent);
-	return parent;
+	return new CombinedDisposable(disposables);
+}
+
+class CombinedDisposable implements IDisposable {
+	private _isDisposed = false;
+	private _disposables: IDisposable[];
+
+	constructor(disposables: IDisposable[]) {
+		this._disposables = disposables;
+		trackDisposable(this);
+		setParentOfDisposables(disposables, this);
+	}
+
+	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		markAsDisposed(this);
+		const disposables = this._disposables;
+		this._disposables = [];
+		dispose(disposables);
+	}
 }
 
 class FunctionDisposable implements IDisposable {

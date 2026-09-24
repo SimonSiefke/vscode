@@ -12,7 +12,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { IScreenshot } from './issueReporterOverlay.js';
+import type { IScreenshot } from './issueReporterOverlay.js';
 
 const enum AnnotationTool {
 	Select = 'select',
