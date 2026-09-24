@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
+import { generateUuid } from '../../../base/common/uuid.js';
 import { localize } from '../../../nls.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { ILogService } from '../../log/common/log.js';
 import type { IChangesetOperationContribution, IChangesetOperationContext, IChangesetOperationRegistry } from '../common/agentHostChangesetOperationService.js';
 import { IAgentHostGitStateService } from '../common/agentHostGitStateService.js';
+import { SessionArtifactType, stringifySessionArtifacts } from '../common/sessionArtifacts.js';
+import { ISessionDataService } from '../common/sessionDataService.js';
 import { SessionConfigKey } from '../common/sessionConfigKeys.js';
-import { ChangesetOperationScope, ChangesetOperationStatus, hasSessionPullRequestForBranch, readSessionGitHubState, SessionLifecycle, withMostRecentRelatedSessionPullRequest, type ChangesetOperation } from '../common/state/sessionState.js';
+import { ChangesetOperationScope, ChangesetOperationStatus, hasSessionPullRequestForBranch, readFolderGitHubState, SessionLifecycle, withMostRecentRelatedSessionPullRequest, type ChangesetOperation } from '../common/state/sessionState.js';
+import { resolveGitHubStateFolder } from './agentHostBranchChangesetScope.js';
 import { AgentHostPullRequestOperationHandler, type PullRequestCreatedEvent } from './agentHostPullRequestOperationHandler.js';
 import { AgentHostPullRequestLifecycleOperationHandler } from './agentHostPullRequestLifecycleOperationHandler.js';
 import { IAgentHostPullRequestStatusService } from './agentHostPullRequestStatusService.js';
@@ -19,6 +23,8 @@ import { AgentMergeConfigKey, agentMergeRootConfigSchema, readAgentMergeSessionS
 import { IAgentConfigurationService } from './agentConfigurationService.js';
 import { ActionType } from '../common/state/sessionActions.js';
 import { PREPARE_PULL_REQUEST_OPERATION_ID } from '../common/meta/agentPullRequestOperationMeta.js';
+import { SESSION_ARTIFACTS_KEY, persistSessionMetadataValues } from './shared/persistSessionMetadata.js';
+import { SessionArtifacts } from './shared/sessionArtifacts.js';
 
 export class AgentHostPullRequestOperationContribution extends Disposable implements IChangesetOperationContribution {
 
@@ -33,6 +39,7 @@ export class AgentHostPullRequestOperationContribution extends Disposable implem
 		@IAgentHostGitStateService private readonly _gitStateService: IAgentHostGitStateService,
 		@IAgentHostPullRequestStatusService private readonly _pullRequestStatusService: IAgentHostPullRequestStatusService,
 		@IAgentConfigurationService private readonly _configurationService: IAgentConfigurationService,
+		@ISessionDataService private readonly _sessionDataService: ISessionDataService,
 		@ILogService private readonly _logService: ILogService,
 	) {
 		super();
@@ -44,7 +51,7 @@ export class AgentHostPullRequestOperationContribution extends Disposable implem
 		const store = new DisposableStore();
 		const getSessionState = (sessionKey: string) => this._stateManager.getSessionState(sessionKey);
 		const resolveBaseBranchName = (sessionKey: string) => this._gitStateService.resolveSessionBaseBranchName(sessionKey);
-		const onCreated = (event: PullRequestCreatedEvent) => this._onPullRequestCreated(event);
+		const onCreated = (event: PullRequestCreatedEvent) => this.recordCreatedPullRequest(event);
 		const createPrHandler = this._instantiationService.createInstance(AgentHostPullRequestOperationHandler, false, undefined, false, getSessionState, resolveBaseBranchName, onCreated);
 		const createDraftPrHandler = this._instantiationService.createInstance(AgentHostPullRequestOperationHandler, true, undefined, false, getSessionState, resolveBaseBranchName, onCreated);
 		const createAutoMergePrHandler = this._instantiationService.createInstance(AgentHostPullRequestOperationHandler, false, 'MERGE', false, getSessionState, resolveBaseBranchName, onCreated);
@@ -98,7 +105,7 @@ export class AgentHostPullRequestOperationContribution extends Disposable implem
 		return operations;
 	}
 
-	private _computeOperations({ sessionKey, gitState, gitHubState }: IChangesetOperationContext): ChangesetOperation[] | undefined {
+	private _computeOperations({ sessionKey, ownerKey, gitState, gitHubState }: IChangesetOperationContext): ChangesetOperation[] | undefined {
 		// New Session
 		const state = this._stateManager.getSessionState(sessionKey);
 		if (state?.lifecycle === SessionLifecycle.Creating) {
@@ -111,9 +118,13 @@ export class AgentHostPullRequestOperationContribution extends Disposable implem
 			return undefined;
 		}
 
-		// Pull request already exists for the currently checked out branch
+		// Pull request already exists for the currently checked out branch.
+		// Lifecycle status is tracked for the session's pull request only, so
+		// other folders offer no lifecycle operations yet.
 		if (hasSessionPullRequestForBranch(gitHubState, gitState?.branchName)) {
-			return this._getPullRequestLifecycleOperations(sessionKey);
+			return ownerKey === undefined || resolveGitHubStateFolder(this._stateManager, ownerKey).isSessionFolder
+				? this._getPullRequestLifecycleOperations(sessionKey)
+				: undefined;
 		}
 
 		const hasBranchChanges = gitState?.hasBaseBranchChanges ?? (gitState?.outgoingChanges ?? 0) > 0;
@@ -251,13 +262,27 @@ export class AgentHostPullRequestOperationContribution extends Disposable implem
 		this._logService.info(`[AgentHostPullRequestOperationContribution] Advertised operations changed: session=${sessionKey}, primary=${primary}, operations=[${advertised}]`);
 	}
 
-	private _onPullRequestCreated(event: PullRequestCreatedEvent): void {
+	async recordCreatedPullRequest(event: PullRequestCreatedEvent): Promise<void> {
 		const sessionKey = event.sessionKey;
 
-		this._registry?.onDidChangeOperations(sessionKey);
-		this._registry?.refreshSessionGitState(sessionKey);
+		const artifacts = new SessionArtifacts(this._stateManager, sessionKey, async (session, entries) => {
+			await persistSessionMetadataValues(this._sessionDataService, session, {
+				[SESSION_ARTIFACTS_KEY]: stringifySessionArtifacts(entries),
+			});
+		});
+		// The pull request belongs to the folder it was created from.
+		const folder = resolveGitHubStateFolder(this._stateManager, event.ownerUri);
+		await artifacts.mutate(collection => collection.addOrPromoteArtifact({
+			type: SessionArtifactType.PullRequest,
+			label: event.pullRequestTitle ?? '',
+			isArtifact: true,
+			link: event.pullRequestUrl,
+		}, generateUuid));
 
-		const gitHubState = readSessionGitHubState(this._stateManager.getSessionState(sessionKey)?._meta);
-		this._gitStateService.setSessionGitHubState(sessionKey, withMostRecentRelatedSessionPullRequest(gitHubState, event.pullRequestUrl, event.branchName));
+		const gitHubState = readFolderGitHubState(this._stateManager.getSessionState(sessionKey)?._meta, folder.folderKey);
+		await this._gitStateService.setSessionGitHubState(event.ownerUri, withMostRecentRelatedSessionPullRequest(gitHubState, event.pullRequestUrl, event.branchName));
+
+		this._registry?.onDidChangeOperations(sessionKey);
+		void this._registry?.refreshSessionGitState(event.ownerUri);
 	}
 }
