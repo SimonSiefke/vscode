@@ -284,6 +284,12 @@ export class BrowserView extends Disposable {
 
 		// Favicon events
 		webContents.on('page-favicon-updated', async (_event, favicons) => {
+			for (const url of this._faviconRequestCache.keys()) {
+				if (!favicons.includes(url)) {
+					this._faviconRequestCache.delete(url);
+				}
+			}
+
 			// try each url in order until one works
 			for (const url of favicons) {
 				if (!this._faviconRequestCache.has(url)) {
