@@ -348,6 +348,9 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 						commandItems.splice(index, 1);
 					}
 				}
+				if (commandItems.length === 0) {
+					this._registeredMenuItems.delete(command);
+				}
 			}
 		});
 	}
