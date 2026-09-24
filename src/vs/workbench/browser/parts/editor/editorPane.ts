@@ -196,6 +196,7 @@ export abstract class EditorPane<MementoType extends object = object> extends Co
 	}
 
 	override dispose(): void {
+		console.log('dispose editor pane')
 		this._input = undefined;
 		this._options = undefined;
 
