@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'assert';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -28,6 +29,7 @@ import { UserDataProfilesMainService } from '../../../userDataProfile/electron-m
 import { TestLifecycleMainService } from '../../../test/electron-main/workbenchTestServices.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ICodeWindow } from '../../../window/electron-main/window.js';
 
 suite('StorageMainService', function () {
 
@@ -151,6 +153,32 @@ suite('StorageMainService', function () {
 		const storageMainService = createStorageService();
 
 		return testStorage(storageMainService.workspaceStorage(workspace), StorageScope.WORKSPACE);
+	});
+
+	test('workspace storage closed with window', async function () {
+		const onBeforeCloseWindow = disposables.add(new Emitter<ICodeWindow>());
+		const lifecycleMainService = new TestLifecycleMainService();
+		lifecycleMainService.onBeforeCloseWindow = onBeforeCloseWindow.event;
+		const storageMainService = createStorageService(lifecycleMainService);
+		await Promise.all([
+			storageMainService.applicationStorage.init(),
+			storageMainService.applicationSharedStorage.init(),
+		]);
+		const workspace = { id: generateUuid() };
+		const workspaceStorage = storageMainService.workspaceStorage(workspace);
+		const didClose = Event.toPromise(workspaceStorage.onDidCloseStorage);
+		const window: ICodeWindow = Object.create(null);
+		Object.defineProperties(window, {
+			openedWorkspace: { value: workspace },
+			isExtensionDevelopmentHost: { value: false },
+		});
+
+		onBeforeCloseWindow.fire(window);
+		await didClose;
+
+		const workspaceStorage2 = storageMainService.workspaceStorage(workspace);
+		notStrictEqual(workspaceStorage2, workspaceStorage);
+		await workspaceStorage2.close();
 	});
 
 	test('storage channel compareAndSwap isolates keys and storage scopes', async function () {
