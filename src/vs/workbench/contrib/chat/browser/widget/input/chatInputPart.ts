@@ -4657,7 +4657,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	removeToolFromConfirmationCarousel(tool: IChatToolInvocation, sessionResource: URI): void {
-		this._chatToolConfirmationCarousels.get(sessionResource.toString())?.removeToolInvocation(tool);
+		this._chatToolConfirmationCarousels.get(sessionResource.toString())?.part.removeToolInvocation(tool);
 	}
 
 	get activeConfirmationSubagentId(): string | undefined {
