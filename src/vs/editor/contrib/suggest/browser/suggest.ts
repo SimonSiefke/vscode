@@ -44,6 +44,8 @@ export const Context = {
 
 export const suggestWidgetStatusbarMenu = new MenuId('suggestWidgetStatusBar');
 
+const emptyPromise = Promise.resolve();
+
 export class CompletionItem {
 
 	_brand!: 'ISuggestionItem';
@@ -122,7 +124,7 @@ export class CompletionItem {
 
 		// create the suggestion resolver
 		if (typeof provider.resolveCompletionItem !== 'function') {
-			this._resolveCache = Promise.resolve();
+			this._resolveCache = emptyPromise;
 			this._resolveDuration = 0;
 		}
 	}
