@@ -327,6 +327,16 @@ export class RequestLogger extends AbstractRequestLogger {
 		return [...this._entries];
 	}
 
+	override dispose(): void {
+		this._workspaceEditRecorder?.dispose();
+		this._workspaceEditRecorder = undefined;
+		for (const disposable of this._entryDisposables.values()) {
+			disposable.dispose();
+		}
+		this._entryDisposables.clear();
+		super.dispose();
+	}
+
 	public getRequestById(id: string): LoggedInfo | undefined {
 		return this._entries.find(e => e.id === id);
 	}
@@ -425,7 +435,15 @@ export class RequestLogger extends AbstractRequestLogger {
 								treeRefreshTimeout = undefined;
 							}, 200);
 						});
-						this._entryDisposables.set(id, subscription);
+						this._entryDisposables.set(id, {
+							dispose: () => {
+								subscription.dispose();
+								if (treeRefreshTimeout !== undefined) {
+									clearTimeout(treeRefreshTimeout);
+									treeRefreshTimeout = undefined;
+								}
+							}
+						});
 					}
 
 					let extraData: string;
