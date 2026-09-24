@@ -1903,7 +1903,10 @@ export class SCMViewPane extends ViewPane {
 			getAnchor: () => e.anchor,
 			getActions: () => actions,
 			getActionsContext: () => context,
-			onHide: () => disposables.dispose()
+			onHide: () => {
+				dispose(actions);
+				disposables.dispose();
+			}
 		});
 	}
 
