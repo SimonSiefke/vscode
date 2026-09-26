@@ -1029,7 +1029,7 @@ class MutationLogger<T> {
 	}
 }
 
-class XtermSerializer implements ITerminalSerializer {
+export class XtermSerializer implements ITerminalSerializer {
 	private readonly _xterm: XtermTerminal;
 	private readonly _shellIntegrationAddon: ShellIntegrationAddon;
 	private _unicodeAddon?: XtermUnicode11Addon;
@@ -1082,29 +1082,33 @@ class XtermSerializer implements ITerminalSerializer {
 	async generateReplayEvent(normalBufferOnly?: boolean, restoreToLastReviveBuffer?: boolean): Promise<IPtyHostProcessReplayEvent> {
 		const serialize = new (await this._getSerializeConstructor());
 		this._xterm.loadAddon(serialize);
-		const options: ISerializeOptions = {
-			scrollback: this._xterm.options.scrollback
-		};
-		if (normalBufferOnly) {
-			options.excludeAltBuffer = true;
-			options.excludeModes = true;
+		try {
+			const options: ISerializeOptions = {
+				scrollback: this._xterm.options.scrollback
+			};
+			if (normalBufferOnly) {
+				options.excludeAltBuffer = true;
+				options.excludeModes = true;
+			}
+			let serialized: string;
+			if (restoreToLastReviveBuffer && this._rawReviveBuffer) {
+				serialized = this._rawReviveBuffer;
+			} else {
+				serialized = serialize.serialize(options);
+			}
+			return {
+				events: [
+					{
+						cols: this._xterm.cols,
+						rows: this._xterm.rows,
+						data: serialized
+					}
+				],
+				commands: this._shellIntegrationAddon.serialize()
+			};
+		} finally {
+			serialize.dispose();
 		}
-		let serialized: string;
-		if (restoreToLastReviveBuffer && this._rawReviveBuffer) {
-			serialized = this._rawReviveBuffer;
-		} else {
-			serialized = serialize.serialize(options);
-		}
-		return {
-			events: [
-				{
-					cols: this._xterm.cols,
-					rows: this._xterm.rows,
-					data: serialized
-				}
-			],
-			commands: this._shellIntegrationAddon.serialize()
-		};
 	}
 
 	async setUnicodeVersion(version: '6' | '11'): Promise<void> {
