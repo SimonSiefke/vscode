@@ -312,7 +312,10 @@ export class ActionBar extends Disposable implements IActionRunner {
 		this._actionRunnerDisposables.clear();
 		this._actionRunnerDisposables.add(this._actionRunner.onDidRun(e => this._onDidRun.fire(e)));
 		this._actionRunnerDisposables.add(this._actionRunner.onWillRun(e => this._onWillRun.fire(e)));
-		this.viewItems.forEach(item => item.actionRunner = actionRunner);
+		this.viewItems.forEach(item => {
+			item.actionRunner.dispose()
+			item.actionRunner = actionRunner
+		});
 	}
 
 	getContainer(): HTMLElement {
@@ -365,6 +368,7 @@ export class ActionBar extends Disposable implements IActionRunner {
 				item = this.options.actionViewItemProvider(action, viewItemOptions);
 			}
 
+
 			if (!item) {
 				item = new ActionViewItem(this.context, action, viewItemOptions);
 			}
@@ -376,6 +380,7 @@ export class ActionBar extends Disposable implements IActionRunner {
 				}));
 			}
 
+			item.actionRunner.dispose()
 			item.actionRunner = this._actionRunner;
 			item.setActionContext(this.context);
 			item.render(actionViewItemElement);
