@@ -575,6 +575,7 @@ export class PtyService extends Disposable implements IPtyService {
 
 	@traceRpc
 	async getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
+		performance.clearMarks('code/willGetTerminalLayoutInfo');
 		performance.mark('code/willGetTerminalLayoutInfo');
 		const layout = this._workspaceLayoutInfos.get(args.workspaceId);
 		if (layout) {
@@ -582,9 +583,11 @@ export class PtyService extends Disposable implements IPtyService {
 			const expandedTabs = await Promise.all(layout.tabs.map(async tab => this._expandTerminalTab(args.workspaceId, tab, doneSet)));
 			const tabs = expandedTabs.filter(t => t.terminals.length > 0);
 			const expandedBackground = (await Promise.all(layout.background?.map(b => this._expandTerminalInstance(args.workspaceId, b, doneSet)) ?? [])).filter(b => b.terminal !== null).map(b => b.terminal);
+			performance.clearMarks('code/didGetTerminalLayoutInfo');
 			performance.mark('code/didGetTerminalLayoutInfo');
 			return { tabs, background: expandedBackground };
 		}
+		performance.clearMarks('code/didGetTerminalLayoutInfo');
 		performance.mark('code/didGetTerminalLayoutInfo');
 		return undefined;
 	}
@@ -636,7 +639,7 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	private async _buildProcessDetails(id: number, persistentProcess: PersistentTerminalProcess, wasRevived: boolean = false): Promise<IProcessDetails> {
-		performance.mark(`code/willBuildProcessDetails/${id}`);
+		persistentProcess.markPerformance(`code/willBuildProcessDetails/${id}`);
 		// If the process was just revived, don't do the orphan check as it will
 		// take some time
 		const [cwd, isOrphan] = await Promise.all([persistentProcess.getCwd(), wasRevived ? true : persistentProcess.isOrphaned()]);
@@ -662,7 +665,7 @@ export class PtyService extends Disposable implements IPtyService {
 			shellIntegrationNonce: persistentProcess.processLaunchOptions.options.shellIntegration.nonce,
 			tabActions: persistentProcess.shellLaunchConfig.tabActions
 		};
-		performance.mark(`code/didBuildProcessDetails/${id}`);
+		persistentProcess.markPerformance(`code/didBuildProcessDetails/${id}`);
 		return result;
 	}
 
@@ -689,6 +692,7 @@ class PersistentTerminalProcess extends Disposable {
 	private readonly _bufferer: TerminalDataBufferer;
 
 	private readonly _pendingCommands = new Map<number, { resolve: (data: unknown) => void; reject: (err: unknown) => void }>();
+	private readonly _performanceMarkNames = new Set<string>();
 
 	private _isStarted: boolean = false;
 	private _interactionState: MutationLogger<InteractionState>;
@@ -779,6 +783,12 @@ class PersistentTerminalProcess extends Disposable {
 		fixedDimensions?: IFixedTerminalDimensions
 	) {
 		super();
+		this._register(toDisposable(() => {
+			for (const name of this._performanceMarkNames) {
+				performance.clearMarks(name);
+			}
+			this._performanceMarkNames.clear();
+		}));
 		this._interactionState = new MutationLogger(`Persistent process "${this._persistentProcessId}" interaction state`, InteractionState.None, this._logService);
 		this._wasRevived = reviveBuffer !== undefined;
 		this._serializer = new XtermSerializer(
@@ -821,6 +831,16 @@ class PersistentTerminalProcess extends Disposable {
 
 		// Data recording for reconnect
 		this._register(this.onProcessData(e => this._serializer.handleData(e)));
+	}
+
+	/** Keeps the latest sample for this process and removes it when the process is disposed. */
+	markPerformance(name: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._performanceMarkNames.add(name);
+		performance.clearMarks(name);
+		performance.mark(name);
 	}
 
 	async attach(): Promise<void> {
