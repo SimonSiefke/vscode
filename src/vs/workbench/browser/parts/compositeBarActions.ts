@@ -513,6 +513,7 @@ export class CompositeOverflowActivityActionViewItem extends CompositeBarActionV
 }
 
 export class CompositeActionViewItem extends CompositeBarActionViewItem {
+	private readonly configureKeybindingAction: IAction | undefined;
 
 	constructor(
 		options: ICompositeBarActionViewItemOptions,
@@ -540,6 +541,8 @@ export class CompositeActionViewItem extends CompositeBarActionViewItem {
 			configurationService,
 			keybindingService
 		);
+
+		this.configureKeybindingAction = this.compositeBarActionItem.keybindingId ? createConfigureKeybindingAction(this.commandService, this.keybindingService, this.compositeBarActionItem.keybindingId) : undefined;
 	}
 
 	override render(container: HTMLElement): void {
@@ -637,8 +640,8 @@ export class CompositeActionViewItem extends CompositeBarActionViewItem {
 	private showContextMenu(container: HTMLElement): void {
 		const actions: IAction[] = [];
 
-		if (this.compositeBarActionItem.keybindingId) {
-			actions.push(createConfigureKeybindingAction(this.commandService, this.keybindingService, this.compositeBarActionItem.keybindingId));
+		if (this.configureKeybindingAction) {
+			actions.push(this.configureKeybindingAction);
 		}
 
 		actions.push(this.toggleCompositePinnedAction, this.toggleCompositeBadgeAction);

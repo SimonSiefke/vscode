@@ -91,6 +91,7 @@ export class NotebookCellLinkifier extends Disposable implements IDisposable, IC
 		if (this.initialized) {
 			return;
 		}
+		this.initialized = true;
 		const updateNbCellIds = (notebook: NotebookDocument) => {
 			const ids = this.notebookCellIds.get(notebook) ?? new Set<string>();
 			ids.forEach(id => this.cells.delete(id));
