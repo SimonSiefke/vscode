@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, EventType } from '../../base/browser/dom.js';
+import { numberHash } from '../../base/common/hash.js';
 import { raceTimeout } from '../../base/common/async.js';
 import { DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../base/common/lifecycle.js';
 import { LRUCache } from '../../base/common/map.js';
@@ -100,7 +101,7 @@ function createImageThumbnail(data: Uint8Array, maxSize: number, mimeType: strin
 }
 
 function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, maxSize: number, mimeType: string): Promise<Blob | undefined> {
-	const key = `${cacheKey}:${maxSize}:${data.byteLength}:${mimeType}`;
+	const key = `${cacheKey}:${maxSize}:${data.byteLength}:${mimeType}:${hashImageBytes(data)}`;
 	const cached = thumbnailCache.get(key);
 	if (cached) {
 		return cached;
@@ -113,4 +114,12 @@ function getOrCreateImageThumbnail(cacheKey: string, data: Uint8Array, maxSize: 
 	});
 	thumbnailCache.set(key, thumbnail);
 	return thumbnail;
+}
+
+function hashImageBytes(data: Uint8Array): number {
+	let result = 0;
+	for (const value of data) {
+		result = numberHash(value, result);
+	}
+	return result;
 }
