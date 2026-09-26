@@ -32,6 +32,7 @@ export interface IMarkdownCodeBlockRenderer {
 	renderCodeBlock(languageAlias: string | undefined, value: string, options: IMarkdownRendererExtraOptions): Promise<HTMLElement>;
 }
 
+export type MarkdownCodeBlockRendererFactory = () => Promise<IMarkdownCodeBlockRenderer>;
 
 export const IMarkdownRendererService = createDecorator<IMarkdownRendererService>('markdownRendererService');
 
@@ -48,14 +49,15 @@ export interface IMarkdownRendererService extends IMarkdownRenderer {
 
 	render(markdown: IMarkdownString, options?: MarkdownRenderOptions & IMarkdownRendererExtraOptions, outElement?: HTMLElement): IRenderedMarkdown;
 
-	setDefaultCodeBlockRenderer(renderer: IMarkdownCodeBlockRenderer): void;
+	setDefaultCodeBlockRenderer(renderer: IMarkdownCodeBlockRenderer | MarkdownCodeBlockRendererFactory): void;
 }
 
 
 export class MarkdownRendererService implements IMarkdownRendererService {
 	declare readonly _serviceBrand: undefined;
 
-	private _defaultCodeBlockRenderer: IMarkdownCodeBlockRenderer | undefined;
+	private _defaultCodeBlockRenderer: IMarkdownCodeBlockRenderer | MarkdownCodeBlockRendererFactory | undefined;
+	private _defaultCodeBlockRendererPromise: Promise<IMarkdownCodeBlockRenderer> | undefined;
 
 	constructor(
 		@IOpenerService private readonly _openerService: IOpenerService,
@@ -72,7 +74,7 @@ export class MarkdownRendererService implements IMarkdownRendererService {
 
 		if (!resolvedOptions.codeBlockRenderer) {
 			resolvedOptions.codeBlockRenderer = (alias, value) => {
-				return this._defaultCodeBlockRenderer?.renderCodeBlock(alias, value, resolvedOptions ?? {}) ?? Promise.resolve(document.createElement('span'));
+				return this._renderCodeBlock(alias, value, resolvedOptions ?? {});
 			};
 		}
 
@@ -81,8 +83,29 @@ export class MarkdownRendererService implements IMarkdownRendererService {
 		return rendered;
 	}
 
-	setDefaultCodeBlockRenderer(renderer: IMarkdownCodeBlockRenderer): void {
+	setDefaultCodeBlockRenderer(renderer: IMarkdownCodeBlockRenderer | MarkdownCodeBlockRendererFactory): void {
 		this._defaultCodeBlockRenderer = renderer;
+		this._defaultCodeBlockRendererPromise = undefined;
+	}
+
+	private async _renderCodeBlock(languageAlias: string | undefined, value: string, options: IMarkdownRendererExtraOptions): Promise<HTMLElement> {
+		const renderer = await this._getDefaultCodeBlockRenderer();
+		return renderer?.renderCodeBlock(languageAlias, value, options) ?? document.createElement('span');
+	}
+
+	private async _getDefaultCodeBlockRenderer(): Promise<IMarkdownCodeBlockRenderer | undefined> {
+		if (!this._defaultCodeBlockRenderer) {
+			return undefined;
+		}
+
+		if (typeof this._defaultCodeBlockRenderer !== 'function') {
+			return this._defaultCodeBlockRenderer;
+		}
+
+		this._defaultCodeBlockRendererPromise ??= this._defaultCodeBlockRenderer();
+		const renderer = await this._defaultCodeBlockRendererPromise;
+		this._defaultCodeBlockRenderer = renderer;
+		return renderer;
 	}
 }
 

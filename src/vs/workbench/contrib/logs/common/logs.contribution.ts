@@ -53,6 +53,7 @@ registerAction2(class extends Action2 {
 class LogOutputChannels extends Disposable implements IWorkbenchContribution {
 
 	private readonly contextKeys = new CounterSet<string>();
+	private readonly contextKeyRemover = { add: (key: string) => this.contextKeys.delete(key) };
 	private readonly outputChannelRegistry = Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels);
 
 	constructor(
@@ -93,9 +94,7 @@ class LogOutputChannels extends Disposable implements IWorkbenchContribution {
 			if (logger.when) {
 				const contextKeyExpr = ContextKeyExpr.deserialize(logger.when);
 				if (contextKeyExpr) {
-					for (const key of contextKeyExpr.keys()) {
-						this.contextKeys.add(key);
-					}
+					contextKeyExpr.collectKeys(this.contextKeys);
 					if (!this.contextKeyService.contextMatchesRules(contextKeyExpr)) {
 						continue;
 					}
@@ -125,9 +124,7 @@ class LogOutputChannels extends Disposable implements IWorkbenchContribution {
 			if (logger.when) {
 				const contextKeyExpr = ContextKeyExpr.deserialize(logger.when);
 				if (contextKeyExpr) {
-					for (const key of contextKeyExpr.keys()) {
-						this.contextKeys.delete(key);
-					}
+					contextKeyExpr.collectKeys(this.contextKeyRemover);
 				}
 			}
 			this.deregisterLogChannel(logger);

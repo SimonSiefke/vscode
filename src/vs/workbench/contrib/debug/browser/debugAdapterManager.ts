@@ -124,7 +124,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 							existing.merge(rawAdapter, added.description);
 						} else {
 							const dbg = this.instantiationService.createInstance(Debugger, this, rawAdapter, added.description);
-							dbg.when?.keys().forEach(key => this.debuggerWhenKeys.add(key));
+							dbg.when?.collectKeys(this.debuggerWhenKeys);
 							this.debuggers.push(dbg);
 						}
 					}
