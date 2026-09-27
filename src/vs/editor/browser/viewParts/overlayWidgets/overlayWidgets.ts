@@ -12,6 +12,7 @@ import { ViewContext } from '../../../common/viewModel/viewContext.js';
 import * as viewEvents from '../../../common/viewEvents.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
 import * as dom from '../../../../base/browser/dom.js';
+import { combinedDisposable, IDisposable } from '../../../../base/common/lifecycle.js';
 
 
 interface IWidgetData {
@@ -21,7 +22,7 @@ interface IWidgetData {
 	domNode: FastDomNode<HTMLElement>;
 	width?: number;
 	height?: number;
-	resizeObserver: dom.DisposableResizeObserver;
+	resizeObserver: IDisposable;
 }
 
 interface IWidgetMap {
@@ -72,8 +73,13 @@ export class ViewOverlayWidgets extends ViewPart {
 
 	public override dispose(): void {
 		super.dispose();
+		// Widgets outlive the view, so detach their dom nodes to not keep this view's DOM alive (#146841)
 		for (const widgetData of Object.values(this._widgets)) {
 			widgetData.resizeObserver.dispose();
+			const domNode = widgetData.domNode.domNode;
+			if (domNode.parentElement === this._domNode.domNode || domNode.parentElement === this.overflowingOverlayWidgetsDomNode.domNode) {
+				domNode.remove();
+			}
 		}
 		this._widgets = {};
 	}
@@ -121,10 +127,9 @@ export class ViewOverlayWidgets extends ViewPart {
 			widget: widget,
 			preference: null,
 			domNode,
-			resizeObserver
+			resizeObserver: combinedDisposable(resizeObserver, resizeObserver.observe(domNode.domNode))
 		};
 		this._widgets[widgetId] = widgetData;
-		resizeObserver.observe(domNode.domNode);
 
 		// This is sync because a widget wants to be in the dom
 		domNode.setPosition('absolute');
