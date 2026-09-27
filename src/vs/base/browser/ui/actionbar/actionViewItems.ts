@@ -269,6 +269,7 @@ export class BaseActionViewItem extends Disposable implements IActionViewItem {
 			this.element = undefined;
 		}
 		this._context = undefined;
+		this._actionRunner = undefined
 		super.dispose();
 	}
 }
