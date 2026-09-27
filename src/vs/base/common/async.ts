@@ -264,8 +264,8 @@ export class Throttler implements IDisposable {
 					return result;
 				};
 
-				this.queuedPromise = new Promise(resolve => {
-					this.activePromise!.then(onComplete, onComplete).then(resolve);
+				this.queuedPromise = new Promise((resolve, reject) => {
+					this.activePromise!.then(onComplete, onComplete).then(resolve, reject);
 				});
 			}
 
@@ -289,6 +289,7 @@ export class Throttler implements IDisposable {
 
 	dispose(): void {
 		this.cancellationTokenSource.cancel();
+		this.queuedPromiseFactory = null;
 	}
 }
 
@@ -395,8 +396,7 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
 	};
 };
 
-
-const cancelValue = {}
+const cancelValue = {};
 
 /**
  * A helper to delay (debounce) execution of a task that is being requested often.
@@ -441,23 +441,29 @@ export class Delayer<T> implements IDisposable {
 
 		if (!this.completionPromise) {
 			const { resolve, promise } = promiseWithResolvers();
-			this.doResolve = resolve
+			this.doResolve = resolve;
 
-			this.completionPromise = promise.then((value) => {
+			const completionPromise = promise.then(value => {
+				if (this.completionPromise !== completionPromise) {
+					// A canceled callback must not clear a subsequently triggered task.
+					throw new CancellationError();
+				}
+
 				this.completionPromise = null;
 				this.doResolve = null;
 				const task = this.task;
 				this.task = null;
 				if (value === cancelValue) {
-					this.deferred?.dispose()
-					this.deferred = null
-					throw new CancellationError()
+					this.deferred?.dispose();
+					this.deferred = null;
+					throw new CancellationError();
 				}
 				if (task) {
 					return task();
 				}
 				return undefined;
-			})
+			});
+			this.completionPromise = completionPromise;
 		}
 
 		const fn = () => {
@@ -476,6 +482,7 @@ export class Delayer<T> implements IDisposable {
 
 	cancel(): void {
 		this.cancelTimeout();
+		this.task = null;
 
 		if (this.completionPromise) {
 			this.doResolve?.(cancelValue);
