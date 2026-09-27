@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RunOnceScheduler } from '../../../base/common/async.js';
 import { parse } from '../../../base/common/path.js';
-import { debounce, throttle } from '../../../base/common/decorators.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { ProcessItem } from '../../../base/common/processes.js';
@@ -48,6 +48,13 @@ export class ChildProcessMonitor extends Disposable {
 	 */
 	readonly onDidChangeHasChildProcesses = this._onDidChangeHasChildProcesses.event;
 
+	private readonly _refreshActiveScheduler = this._register(new RunOnceScheduler(() => this._refreshActive(), Constants.ActiveDebounceDuration));
+	private readonly _refreshInactiveScheduler = this._register(new RunOnceScheduler(() => {
+		this._lastInactiveRefresh = Date.now();
+		this._refreshActiveScheduler.schedule();
+	}, Constants.InactiveThrottleDuration));
+	private _lastInactiveRefresh = -Infinity;
+
 	constructor(
 		private _pid: number,
 		@ILogService private readonly _logService: ILogService
@@ -67,17 +74,23 @@ export class ChildProcessMonitor extends Disposable {
 	 * Input was triggered on the process.
 	 */
 	handleInput() {
-		this._refreshActive();
+		this._refreshActiveScheduler.schedule();
 	}
 
 	/**
 	 * Output was triggered on the process.
 	 */
 	handleOutput() {
-		this._refreshInactive();
+		const now = Date.now();
+		const nextRefresh = this._lastInactiveRefresh + Constants.InactiveThrottleDuration;
+		if (nextRefresh <= now) {
+			this._lastInactiveRefresh = now;
+			this._refreshActiveScheduler.schedule();
+		} else if (!this._refreshInactiveScheduler.isScheduled()) {
+			this._refreshInactiveScheduler.schedule(nextRefresh - now);
+		}
 	}
 
-	@debounce(Constants.ActiveDebounceDuration)
 	private async _refreshActive(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
@@ -88,11 +101,6 @@ export class ChildProcessMonitor extends Disposable {
 		} catch (e) {
 			this._logService.debug('ChildProcessMonitor: Fetching process tree failed', e);
 		}
-	}
-
-	@throttle(Constants.InactiveThrottleDuration)
-	private _refreshInactive(): void {
-		this._refreshActive();
 	}
 
 	private _processContainsChildren(processItem: ProcessItem): boolean {
