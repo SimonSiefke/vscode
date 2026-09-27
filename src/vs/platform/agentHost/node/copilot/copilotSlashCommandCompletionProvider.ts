@@ -12,11 +12,12 @@ import { getCopilotConfigSlashCommandItems, ICopilotConfigSlashCommandState, isC
 import { CompletionTriggerCharacter, IAgentHostCompletionItemProvider } from '../agentHostCompletions.js';
 import { extractLeadingSlashToken, extractWhitespaceDelimitedSlashToken, matchesSlashCompletion } from '../agentHostSlashCompletion.js';
 import { SYNCED_CUSTOMIZATION_SCHEME } from '../../common/agentHostFileSystemService.js';
-import type { CopilotSession } from '@github/copilot-sdk';
+import { isCustomizationEnabled, isSkillEligibleForUserInvocation } from '../../common/customizationEnablement.js';
+import type { RuntimeSlashCommandInfo } from './copilotSlashCommand.js';
 
 export { parseLeadingSlashCommand } from '../../common/agentHostSlashCommand.js';
 
-const HIDDEN_RUNTIME_COMMANDS = new Set<string>(['agent', 'app', 'changelog', 'context', 'copy', 'exit', 'extensions', 'feedback', 'help', 'ide', 'instructions', 'login', 'logout', 'mcp', 'model', 'new', 'plugin', 'rename', 'restart', 'resume', 'sandbox', 'session', 'settings', 'skills', 'statusline', 'streamer-mode', 'subagents', 'tasks', 'terminal-setup', 'theme', 'undo', 'update', 'user', 'voice', 'worktree', 'autopilot', 'yolo', 'cd', 'cwd', 'after', 'before', 'add-dir', 'allow-all', 'list-dirs', 'reset-allowed-tools']);
+const HIDDEN_RUNTIME_COMMANDS = new Set<string>(['agent', 'app', 'changelog', 'context', 'copy', 'exit', 'extensions', 'feedback', 'help', 'ide', 'instructions', 'login', 'logout', 'model', 'new', 'rename', 'restart', 'resume', 'sandbox', 'session', 'settings', 'statusline', 'streamer-mode', 'subagents', 'tasks', 'terminal-setup', 'theme', 'undo', 'update', 'user', 'voice', 'worktree', 'autopilot', 'yolo', 'cd', 'cwd', 'after', 'before', 'add-dir', 'allow-all', 'list-dirs', 'reset-allowed-tools']);
 
 export const DEFAULT_RUNTIME_SLASH_COMMAND_COMPLETION_WAIT_MS = 300;
 
@@ -89,14 +90,14 @@ export class CopilotSlashCommandCompletionProvider implements IAgentHostCompleti
 		const syncedContainerNames = new Set<string>();
 		const customizations = await this._sessionInfo.getSessionCustomizations(sessionId) ?? [];
 		for (const c of customizations) {
-			if (c.type === CustomizationType.McpServer || !c.enabled || !c.children) {
+			if (c.type === CustomizationType.McpServer || (c.type === CustomizationType.Plugin ? !isCustomizationEnabled(c) : !c.enabled) || !c.children) {
 				continue;
 			}
 			if (c.type === CustomizationType.Plugin && isSyncedCustomization(c)) {
 				syncedContainerNames.add(c.name.toLowerCase());
 			}
 			for (const child of c.children) {
-				if (child.type === CustomizationType.Skill) {
+				if (child.type === CustomizationType.Skill && isSkillEligibleForUserInvocation(child)) {
 					known.add(this._toSlashCommandCandidate(c, child).toLowerCase());
 				}
 			}
@@ -220,6 +221,7 @@ export class CopilotSlashCommandCompletionProvider implements IAgentHostCompleti
 									label: insertText,
 									_meta: toCommandCompletionAttachmentMeta({
 										command: command.name,
+										...(command.kind === 'skill' ? { isSkill: true } : {}),
 										...(description !== undefined ? { description } : {}),
 										...(argumentHint !== undefined ? { argumentHint } : {})
 									}),
@@ -262,7 +264,7 @@ export class CopilotSlashCommandCompletionProvider implements IAgentHostCompleti
 	}
 }
 
-export type ICopilotRuntimeSlashCommandInfo = Awaited<ReturnType<CopilotSession['rpc']['commands']['list']>>['commands'][number];
+export type ICopilotRuntimeSlashCommandInfo = RuntimeSlashCommandInfo;
 
 function isSyncedCustomization(container: PluginCustomization): boolean {
 	return container.uri.startsWith(SYNCED_CUSTOMIZATION_SCHEME + ':');

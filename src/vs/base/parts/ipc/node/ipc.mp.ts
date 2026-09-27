@@ -6,6 +6,7 @@
 import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
 import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
 import { Emitter, Event } from '../../../common/event.js';
+import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { assertType } from '../../../common/types.js';
 
 /**
@@ -15,17 +16,34 @@ import { assertType } from '../../../common/types.js';
 class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
-	readonly onMessage: Event<IStructuredCloneMessage>;
+	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
+	private readonly messageListener = (event: MessageEvent) => {
+		const message = event.data as IStructuredCloneMessage;
+		for (const listener of this.listeners) {
+			listener(message.header, message.body);
+		}
+	};
 
 	constructor(private port: MessagePortMain) {
-		const onMessage = Event.fromNodeEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data as IStructuredCloneMessage);
-		this.onMessage = Event.filter(onMessage, data => !!data);
 		// we must call start() to ensure messages are flowing
 		port.start();
 	}
 
-	send(message: IStructuredCloneMessage): void {
-		this.port.postMessage(message);
+	onMessage(listener: (header: unknown, body: unknown) => void): IDisposable {
+		if (this.listeners.size === 0) {
+			this.port.on('message', this.messageListener);
+		}
+		this.listeners.add(listener);
+		return toDisposable(() => {
+			this.listeners.delete(listener);
+			if (this.listeners.size === 0) {
+				this.port.removeListener('message', this.messageListener);
+			}
+		});
+	}
+
+	send(header: unknown, body?: unknown): void {
+		this.port.postMessage({ header, body });
 	}
 
 	disconnect(): void {
