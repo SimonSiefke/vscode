@@ -49,6 +49,7 @@ export class EditSurvivalTrackerService implements IEditSurvivalTrackerService {
 	initialize(document: vscode.TextDocument): IEditSurvivalTrackingSession {
 		const editCollector = this._instantiationService.createInstance(EditCollector, document.getText());
 		let reporter: EditSurvivalReporter | undefined;
+		let isCancelled = false;
 		return {
 			collectAIEdits: (edits: vscode.TextEdit | vscode.TextEdit[]) => {
 				try {
@@ -63,13 +64,19 @@ export class EditSurvivalTrackerService implements IEditSurvivalTrackerService {
 					try {
 						const [aiEdits, userEditsResult] = await Promise.all([editCollector.getEdits(), userEditComputer.compute()]);
 						const userEdits = userEditsResult.getEditsSinceInitial();
-						reporter = this._instantiationService.createInstance(EditSurvivalReporter, document, editCollector.initialText, aiEdits, userEdits, {}, sendTelemetryEvent);
+						const createdReporter = this._instantiationService.createInstance(EditSurvivalReporter, document, editCollector.initialText, aiEdits, userEdits, {}, sendTelemetryEvent);
+						if (isCancelled) {
+							createdReporter.cancel();
+							return;
+						}
+						reporter = createdReporter;
 					} finally {
 						userEditComputer.dispose();
 					}
 				})();
 			},
 			cancel: () => {
+				isCancelled = true;
 				reporter?.cancel();
 			}
 		};

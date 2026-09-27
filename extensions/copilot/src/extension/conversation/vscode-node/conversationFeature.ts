@@ -271,6 +271,7 @@ export class ConversationFeature implements IExtensionContribution {
 
 	private registerCommands(options: IConversationOptions): IDisposable {
 		const disposables = new DisposableStore();
+		const notebookCellLinkifier = disposables.add(this.instantiationService.createInstance(NotebookCellLinkifier));
 
 		[
 			vscode.commands.registerCommand('github.copilot.interactiveSession.feedback', () => vscode.commands.executeCommand('github.copilot.report', 'Copilot chat feedback')),
@@ -341,7 +342,7 @@ export class ConversationFeature implements IExtensionContribution {
 				create: () => this.instantiationService.createInstance(SymbolLinkifier)
 			}),
 			this.linkifyService.registerGlobalLinkifier({
-				create: () => disposables.add(this.instantiationService.createInstance(NotebookCellLinkifier))
+				create: () => notebookCellLinkifier
 			}),
 			this.instantiationService.invokeFunction(registerInlineChatCommands),
 			this.registerTerminalQuickFixProviders(),
