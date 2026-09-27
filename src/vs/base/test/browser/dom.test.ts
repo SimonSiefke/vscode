@@ -752,5 +752,21 @@ suite('dom', () => {
 		});
 	});
 
+	suite('ModifierKeyEmitter', () => {
+		test('exposes the keyboard event only while notifying listeners', () => {
+			const emitter = ModifierKeyEmitter.getInstance();
+			const received: (string | undefined)[] = [];
+			const listener = emitter.event(status => received.push(status.event?.type));
+			try {
+				mainWindow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true }));
+				mainWindow.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control', ctrlKey: false }));
+			} finally {
+				listener.dispose();
+			}
+
+			assert.deepStrictEqual({ received, retained: emitter.keyStatus.event }, { received: ['keydown', 'keyup'], retained: undefined });
+		});
+	});
+
 	ensureNoDisposablesAreLeakedInTestSuite();
 });
