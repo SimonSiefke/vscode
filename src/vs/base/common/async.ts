@@ -396,6 +396,8 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
 	};
 };
 
+const cancelValue = {};
+
 /**
  * A helper to delay (debounce) execution of a task that is being requested often.
  *
@@ -424,14 +426,12 @@ export class Delayer<T> implements IDisposable {
 	private deferred: IScheduledLater | null;
 	private completionPromise: Promise<any> | null;
 	private doResolve: ((value?: any | Promise<any>) => void) | null;
-	private doReject: ((err: unknown) => void) | null;
 	private task: ITask<T | Promise<T>> | null;
 
 	constructor(public defaultDelay: number | typeof MicrotaskDelay) {
 		this.deferred = null;
 		this.completionPromise = null;
 		this.doResolve = null;
-		this.doReject = null;
 		this.task = null;
 	}
 
@@ -440,19 +440,28 @@ export class Delayer<T> implements IDisposable {
 		this.cancelTimeout();
 
 		if (!this.completionPromise) {
-			const completionPromise: Promise<any> = new Promise((resolve, reject) => {
-				this.doResolve = resolve;
-				this.doReject = reject;
-			}).then(() => {
+			const { resolve, promise } = promiseWithResolvers();
+			this.doResolve = resolve;
+
+			const completionPromise = promise.then(value => {
 				if (this.completionPromise !== completionPromise) {
-					// canceled after the delay elapsed, possibly followed by a new trigger
+					// A canceled callback must not clear a subsequently triggered task.
 					throw new CancellationError();
 				}
+
 				this.completionPromise = null;
 				this.doResolve = null;
-				const task = this.task!;
+				const task = this.task;
 				this.task = null;
-				return task();
+				if (value === cancelValue) {
+					this.deferred?.dispose();
+					this.deferred = null;
+					throw new CancellationError();
+				}
+				if (task) {
+					return task();
+				}
+				return undefined;
 			});
 			this.completionPromise = completionPromise;
 		}
@@ -476,7 +485,7 @@ export class Delayer<T> implements IDisposable {
 		this.task = null;
 
 		if (this.completionPromise) {
-			this.doReject?.(new CancellationError());
+			this.doResolve?.(cancelValue);
 			this.completionPromise = null;
 		}
 	}
