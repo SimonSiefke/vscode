@@ -349,6 +349,12 @@ export class ExtHostTesting extends Disposable implements ExtHostTestingShape {
 	 */
 	async $disposeRun(runId: string) {
 		this.runTracker.disposeTestRun(runId);
+
+		const remainingResults = this.results.filter(result => testResultInternalIDs.get(result) !== runId);
+		if (remainingResults.length !== this.results.length) {
+			this.results = Object.freeze(remainingResults);
+			this.resultsChangedEmitter.fire();
+		}
 	}
 
 	/** @inheritdoc */
