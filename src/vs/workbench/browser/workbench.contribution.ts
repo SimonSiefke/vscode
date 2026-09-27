@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './containment.js';
+
 import { isStandalone } from '../../base/browser/browser.js';
 import { isLinux, isMacintosh, isNative, isWeb, isWindows } from '../../base/common/platform.js';
 import { localize } from '../../nls.js';
