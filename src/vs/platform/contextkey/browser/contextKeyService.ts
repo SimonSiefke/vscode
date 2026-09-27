@@ -452,7 +452,7 @@ export class ContextKeyService extends AbstractContextKeyService implements ICon
 					this.inputFocusedContext.set(activeElementIsInput());
 				}
 
-				tracker.dispose();
+				disposables.clear();
 			}, undefined, disposables);
 		}
 	}
