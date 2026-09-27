@@ -8,7 +8,7 @@ import { OperatingSystem, OS } from '../../../base/common/platform.js';
 import { CommandsRegistry, ICommandHandler, ICommandMetadata } from '../../commands/common/commands.js';
 import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
 import { Registry } from '../../registry/common/platform.js';
-import { combinedDisposable, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { combinedDisposable, DisposableStore, IDisposable, markAsDisposed, trackDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
 
 export interface IKeybindingItem {
@@ -81,6 +81,28 @@ export interface IKeybindingsRegistry {
 	getDefaultKeybindingsForOS(os: OperatingSystem): IKeybindingItem[];
 }
 
+const invalidateKeybindingCache = Symbol('invalidateKeybindingCache');
+
+class DefaultKeybindingRegistration implements IDisposable {
+	constructor(
+		private _registration: IDisposable | undefined,
+		private readonly _registry: KeybindingsRegistryImpl,
+	) {
+		trackDisposable(this);
+	}
+
+	dispose(): void {
+		const registration = this._registration;
+		if (!registration) {
+			return;
+		}
+		this._registration = undefined;
+		markAsDisposed(this);
+		registration.dispose();
+		this._registry[invalidateKeybindingCache]();
+	}
+}
+
 /**
  * Stores all built-in and extension-provided keybindings (but not ones that user defines themselves)
  */
@@ -143,8 +165,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 			}
 		}
 
-		const removeRule = this._coreKeybindingRules.push(rule);
-		result.add(toDisposable(() => { removeRule(); }));
+		result.add(this._coreKeybindingRules.pushDisposable(rule));
 
 		return result;
 	}
@@ -179,7 +200,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 	}
 
 	private _registerDefaultKeybinding(keybinding: Keybinding, commandId: string, commandArgs: any, weight1: number, weight2: number, when: ContextKeyExpression | null | undefined): IDisposable {
-		const remove = this._coreKeybindings.push({
+		const registration = this._coreKeybindings.pushDisposable({
 			keybinding: keybinding,
 			command: commandId,
 			commandArgs: commandArgs,
@@ -191,10 +212,11 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 		});
 		this._cachedMergedKeybindings = null;
 
-		return toDisposable(() => {
-			remove();
-			this._cachedMergedKeybindings = null;
-		});
+		return new DefaultKeybindingRegistration(registration, this);
+	}
+
+	[invalidateKeybindingCache](): void {
+		this._cachedMergedKeybindings = null;
 	}
 
 	public getDefaultKeybindings(): IKeybindingItem[] {

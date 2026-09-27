@@ -23,6 +23,16 @@ suite('Command Tests', function () {
 		assert.ok(CommandsRegistry.getCommand('foo') === undefined);
 	});
 
+	test('registrations do not allocate disposal callbacks', () => {
+		const first = CommandsRegistry.registerCommand('first', () => { });
+		const second = CommandsRegistry.registerCommand('second', () => { });
+
+		assert.strictEqual(first.dispose, second.dispose);
+		assert.strictEqual(Object.values(first).some(value => typeof value === 'function'), false);
+		first.dispose();
+		second.dispose();
+	});
+
 	test('register/register/dispose', () => {
 		const command1 = function () { };
 		const command2 = function () { };
