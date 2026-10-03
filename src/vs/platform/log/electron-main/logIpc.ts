@@ -5,23 +5,17 @@
 
 import { Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
-import { ResourceMap } from '../../../base/common/map.js';
 import { URI } from '../../../base/common/uri.js';
 import { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { ILogger, ILoggerOptions, isLogLevel, log, LogLevel } from '../common/log.js';
-import { ILoggerMainService } from './loggerService.js';
+import { ILoggerMainService, ILoggerReference } from './loggerService.js';
 
 export class LoggerChannel extends Disposable implements IServerChannel {
 
-	private readonly loggers = new ResourceMap<ILogger>();
+	private readonly loggers = new Map<string, ILoggerReference<ILogger | URI>>();
 
 	constructor(private readonly loggerService: ILoggerMainService) {
 		super();
-		this._register(this.loggerService.onDidChangeLoggers(({ removed }) => {
-			for (const loggerResource of removed) {
-				this.loggers.delete(loggerResource.resource);
-			}
-		}));
 	}
 
 	listen(_: unknown, event: string, windowId?: number): Event<any> {
@@ -35,20 +29,51 @@ export class LoggerChannel extends Disposable implements IServerChannel {
 
 	async call(_: unknown, command: string, arg?: any): Promise<any> {
 		switch (command) {
-			case 'createLogger': this.createLogger(URI.revive(arg[0]), arg[1], arg[2]); return;
-			case 'log': return this.log(URI.revive(arg[0]), arg[1]);
+			case 'createLogger': this.createLogger(arg[3], URI.revive(arg[0]), arg[1], arg[2]); return;
+			case 'log': return this.log(arg[0], arg[1]);
 			case 'consoleLog': return this.consoleLog(arg[0], arg[1]);
 			case 'setLogLevel': return isLogLevel(arg[0]) ? this.loggerService.setLogLevel(arg[0]) : this.loggerService.setLogLevel(URI.revive(arg[0]), arg[1]);
 			case 'setVisibility': return this.loggerService.setVisibility(URI.revive(arg[0]), arg[1]);
-			case 'registerLogger': return this.loggerService.registerLogger({ ...arg[0], resource: URI.revive(arg[0].resource) }, arg[1]);
-			case 'deregisterLogger': return this.loggerService.deregisterLogger(URI.revive(arg[0]));
+			case 'registerLogger': {
+				const reference = this.loggers.get(arg[2]);
+				if (!reference || reference.isDisposed) {
+					this.addReference(arg[2], this.loggerService.acquireLoggerResource({ ...arg[0], resource: URI.revive(arg[0].resource) }, arg[1]));
+				}
+				return;
+			}
+			case 'deregisterLogger': {
+				const reference = this.loggers.get(arg[0]);
+				this.loggers.delete(arg[0]);
+				reference?.dispose();
+				return;
+			}
 		}
 
 		throw new Error(`Call not found: ${command}`);
 	}
 
-	private createLogger(file: URI, options: ILoggerOptions, windowId: number | undefined): void {
-		this.loggers.set(file, this.loggerService.createLogger(file, options, windowId));
+	private createLogger(id: string, file: URI, options: ILoggerOptions, windowId: number | undefined): void {
+		const previous = this.loggers.get(id);
+		const reference = this.loggerService.acquireLogger(file, options, windowId);
+		this.addReference(id, reference);
+		previous?.dispose();
+	}
+
+	private addReference(id: string, reference: ILoggerReference<ILogger | URI>): void {
+		this.loggers.set(id, reference);
+		Event.once(reference.onDidDispose)(() => {
+			if (this.loggers.get(id) === reference) {
+				this.loggers.delete(id);
+			}
+		});
+	}
+
+	override dispose(): void {
+		for (const reference of this.loggers.values()) {
+			reference.dispose();
+		}
+		this.loggers.clear();
+		super.dispose();
 	}
 
 	private consoleLog(level: LogLevel, args: any[]): void {
@@ -69,14 +94,14 @@ export class LoggerChannel extends Disposable implements IServerChannel {
 		consoleFn.call(console, ...args);
 	}
 
-	private log(file: URI, messages: [LogLevel, string][]): void {
-		const logger = this.loggers.get(file);
-		if (!logger) {
+	private log(id: string, messages: [LogLevel, string][]): void {
+		const reference = this.loggers.get(id);
+		if (!reference || reference.isDisposed || URI.isUri(reference.object)) {
 			// Logger may have been removed while IPC messages were still in flight
 			return;
 		}
 		for (const [level, message] of messages) {
-			log(logger, level, message);
+			log(reference.object, level, message);
 		}
 	}
 }
