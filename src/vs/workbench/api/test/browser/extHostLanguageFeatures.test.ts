@@ -71,6 +71,7 @@ suite('ExtHostLanguageFeatures', function () {
 	let languageFeaturesService: ILanguageFeaturesService;
 	let originalErrorHandler: (e: any) => any;
 	let instantiationService: TestInstantiationService;
+	let commands: ExtHostCommands;
 
 	setup(() => {
 
@@ -120,7 +121,7 @@ suite('ExtHostLanguageFeatures', function () {
 		const extHostDocuments = new ExtHostDocuments(rpcProtocol, extHostDocumentsAndEditors);
 		rpcProtocol.set(ExtHostContext.ExtHostDocuments, extHostDocuments);
 
-		const commands = new ExtHostCommands(rpcProtocol, new NullLogService(), new class extends mock<IExtHostTelemetry>() {
+		commands = new ExtHostCommands(rpcProtocol, new NullLogService(), new class extends mock<IExtHostTelemetry>() {
 			override onExtensionError(): boolean {
 				return true;
 			}
@@ -153,6 +154,38 @@ suite('ExtHostLanguageFeatures', function () {
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	for (const throws of [false, true]) {
+		test(`Inline completion list is released when its lifetime callback throws: ${throws}`, async () => {
+			let ended = 0;
+			let rejected = 0;
+			const command: vscode.Command = { command: 'test.inline', title: 'Test', arguments: [{ value: 'original' }] };
+			disposables.add(extHost.registerInlineCompletionsProvider({ ...defaultExtension, enabledApiProposals: ['inlineCompletionsAdditions'] }, defaultSelector, {
+				provideInlineCompletionItems: () => ({ items: [{ insertText: 'completion', command }] }),
+				handleDidRejectCompletionItem: () => { rejected++; },
+				handleListEndOfLifetime: () => {
+					ended++;
+					if (throws) {
+						throw new Error('Expected lifetime callback failure');
+					}
+				}
+			}, undefined));
+			await rpcProtocol.sync();
+			const provider = languageFeaturesService.inlineCompletionsProvider.all(model)[0];
+			const result = await provider.provideInlineCompletions(model, new Position(1, 1), {
+				triggerKind: languages.InlineCompletionTriggerKind.Explicit, selectedSuggestionInfo: undefined, requestUuid: 'lifetime-test', includeInlineEdits: false,
+				includeInlineCompletions: true, requestIssuedDateTime: 0, earliestShownDateTime: 0
+			}, CancellationToken.None);
+			assert.ok(result);
+			assert.ok(result.items[0].command);
+			assert.strictEqual(commands.converter.fromInternal(result.items[0].command), command);
+			provider.disposeInlineCompletions(result, { kind: 'other' });
+			await rpcProtocol.sync();
+			await provider.handleRejection?.(result, result.items[0]);
+			await rpcProtocol.sync();
+			assert.deepStrictEqual({ ended, rejected, command: commands.converter.fromInternal(result.items[0].command) }, { ended: 1, rejected: 0, command: undefined });
+		});
+	}
 
 	test('DocumentDropEdits does not cache an empty edit array without release IDs', async () => {
 		disposables.add(extHost.registerDocumentOnDropEditProvider(defaultExtension, defaultSelector, {
