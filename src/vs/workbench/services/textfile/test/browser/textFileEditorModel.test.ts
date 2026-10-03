@@ -20,6 +20,7 @@ import { isEqual } from '../../../../../base/common/resources.js';
 import { UTF16be } from '../../common/encoding.js';
 import { isWeb } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { clearMarks, getMarks } from '../../../../../base/common/performance.js';
 
 suite('Files - TextFileEditorModel', () => {
 
@@ -80,6 +81,24 @@ suite('Files - TextFileEditorModel', () => {
 		await model.revert();
 
 		assert.strictEqual(onDidChangeDirtyCounter, 2);
+	});
+
+	test('keeps only the latest resolve performance marks', async function () {
+		const willResolveMark = 'code/willResolveTextFileEditorModel';
+		const didResolveMark = 'code/didResolveTextFileEditorModel';
+		clearMarks(willResolveMark);
+		clearMarks(didResolveMark);
+		disposables.add(toDisposable(() => {
+			clearMarks(willResolveMark);
+			clearMarks(didResolveMark);
+		}));
+
+		const model = disposables.add(instantiationService.createInstance(TextFileEditorModel, toResource.call(this, '/path/index_async.txt'), 'utf8', undefined));
+		await model.resolve();
+		await model.resolve();
+
+		assert.strictEqual(getMarks().filter(mark => mark.name === willResolveMark).length, 1);
+		assert.strictEqual(getMarks().filter(mark => mark.name === didResolveMark).length, 1);
 	});
 
 	test('isTextFileEditorModel', async function () {
