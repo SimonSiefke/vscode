@@ -7,30 +7,56 @@ import { CONTEXT_MENU_CHANNEL, CONTEXT_MENU_CLOSE_CHANNEL, IContextMenuEvent, IC
 import { ipcRenderer } from '../../sandbox/electron-browser/globals.js';
 
 let contextMenuIdPool = 0;
+let activeCleanup: (() => void) | undefined;
 
 export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide?: () => void): void {
+	activeCleanup?.();
+
 	const processedItems: IContextMenuItem[] = [];
 
 	const contextMenuId = contextMenuIdPool++;
 	const onClickChannel = `vscode:onContextMenu${contextMenuId}`;
+	let didDispose = false;
+	function cleanup(): void {
+		if (didDispose) {
+			return;
+		}
+
+		didDispose = true;
+		if (activeCleanup === cleanupActive) {
+			activeCleanup = undefined;
+		}
+		ipcRenderer.removeListener(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
+		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
+		processedItems.length = 0;
+	}
+	function cleanupActive(): void {
+		cleanup();
+		onHide?.();
+	}
+	activeCleanup = cleanupActive;
+
 	const onClickChannelHandler = (_event: unknown, ...args: unknown[]) => {
 		const itemId = args[0] as number;
 		const context = args[1] as IContextMenuEvent;
 		const item = processedItems[itemId];
-		item.click?.(context);
+		const click = item.click;
+		cleanup();
+		click?.(context);
 	};
 
 	ipcRenderer.once(onClickChannel, onClickChannelHandler);
-	ipcRenderer.once(CONTEXT_MENU_CLOSE_CHANNEL, (_event: unknown, ...args: unknown[]) => {
+	const onCloseChannelHandler = (_event: unknown, ...args: unknown[]) => {
 		const closedContextMenuId = args[0] as number;
 		if (closedContextMenuId !== contextMenuId) {
 			return;
 		}
 
-		ipcRenderer.removeListener(onClickChannel, onClickChannelHandler);
+		cleanup();
 
 		onHide?.();
-	});
+	};
+	ipcRenderer.on(CONTEXT_MENU_CLOSE_CHANNEL, onCloseChannelHandler);
 
 	ipcRenderer.send(CONTEXT_MENU_CHANNEL, contextMenuId, items.map(item => createItem(item, processedItems)), onClickChannel, options);
 }

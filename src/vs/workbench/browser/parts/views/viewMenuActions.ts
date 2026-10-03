@@ -18,17 +18,18 @@ export interface IViewMenuActionsOptions {
 export class ViewMenuActions extends Disposable {
 
 	private readonly menu: IMenu;
+	private readonly contextMenu: IMenu | undefined;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
 	readonly onDidChange = this._onDidChange.event;
 
 	constructor(
 		readonly menuId: MenuId,
-		private readonly contextMenuId: MenuId | undefined,
+		contextMenuId: MenuId | undefined,
 		private readonly options: IMenuActionOptions | undefined,
 		private readonly menuActionsOptions: IViewMenuActionsOptions | undefined,
-		@IContextKeyService private readonly contextKeyService: IContextKeyService,
-		@IMenuService private readonly menuService: IMenuService,
+		@IContextKeyService contextKeyService: IContextKeyService,
+		@IMenuService menuService: IMenuService,
 	) {
 		super();
 		this.menu = this._register(menuService.createMenu(menuId, contextKeyService, { emitEventsForSubmenuChanges: true }));
@@ -36,9 +37,17 @@ export class ViewMenuActions extends Disposable {
 			this.actions = undefined;
 			this._onDidChange.fire();
 		}));
+		this.contextMenu = contextMenuId ? this._register(menuService.createMenu(contextMenuId, contextKeyService, { emitEventsForSubmenuChanges: true })) : undefined;
+		if (this.contextMenu) {
+			this._register(this.contextMenu.onDidChange(() => {
+				this.contextMenuActions = undefined;
+				this._onDidChange.fire();
+			}));
+		}
 	}
 
 	private actions: PrimaryAndSecondaryActions | undefined;
+	private contextMenuActions: IAction[] | undefined;
 	private getActions(): PrimaryAndSecondaryActions {
 		if (!this.actions) {
 			this.actions = getActionBarActions(this.menu.getActions(this.options), group => this.isPrimaryActionGroup(group), undefined, true);
@@ -67,9 +76,11 @@ export class ViewMenuActions extends Disposable {
 	}
 
 	getContextMenuActions(): IAction[] {
-		if (this.contextMenuId) {
-			const menu = this.menuService.getMenuActions(this.contextMenuId, this.contextKeyService, this.options);
-			return getActionBarActions(menu).secondary;
+		if (this.contextMenu) {
+			if (!this.contextMenuActions) {
+				this.contextMenuActions = getActionBarActions(this.contextMenu.getActions(this.options)).secondary;
+			}
+			return this.contextMenuActions;
 		}
 		return [];
 	}
