@@ -141,6 +141,26 @@ suite('ContextKeyService', () => {
 		event.dispose();
 	});
 
+	test('suppress composite parent update event without materializing child context values', () => {
+		const root = testDisposables.add(new ContextKeyService(new TestConfigurationService()));
+		const child = testDisposables.add(root.createScoped(document.createElement('div')));
+
+		root.createKey('testA', 1);
+		root.createKey('testB', 2);
+		child.createKey('testA', 10);
+		child.createKey('testB', 20);
+
+		let fired = false;
+		const event = testDisposables.add(child.onDidChangeContext(() => fired = true));
+		root.bufferChangeEvents(() => {
+			root.setContext('testA', 11);
+			root.setContext('testB', 21);
+		});
+
+		assert.strictEqual(fired, false, 'Should not fire when a composite parent event only changes locally overridden keys');
+		event.dispose();
+	});
+
 	test('pass through update event from parent when one key is not overridden by child', () => {
 		const root = testDisposables.add(new ContextKeyService(new TestConfigurationService()));
 		const child = testDisposables.add(root.createScoped(document.createElement('div')));
