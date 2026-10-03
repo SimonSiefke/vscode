@@ -60,6 +60,9 @@ suite('Diff editor input', () => {
 			counter++;
 		}));
 
+		disposables.add(input.acquire());
+		disposables.add(otherInput.acquire());
+
 		const diffInput = instantiationService.createInstance(DiffEditorInput, 'name', 'description', input, otherInput, undefined);
 
 		assert.ok(isDiffEditorInput(diffInput));
