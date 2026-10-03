@@ -5,14 +5,15 @@
 
 import { Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
+import { ISharedResourceReference } from '../../../base/common/sharedResourceMap.js';
 import { URI } from '../../../base/common/uri.js';
 import { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { ILogger, ILoggerOptions, isLogLevel, log, LogLevel } from '../common/log.js';
-import { ILoggerMainService, ILoggerReference } from './loggerService.js';
+import { ILoggerMainService } from './loggerService.js';
 
 export class LoggerChannel extends Disposable implements IServerChannel {
 
-	private readonly loggers = new Map<string, ILoggerReference<ILogger | URI>>();
+	private readonly loggers = new Map<string, ISharedResourceReference<ILogger | URI>>();
 
 	constructor(private readonly loggerService: ILoggerMainService) {
 		super();
@@ -59,7 +60,7 @@ export class LoggerChannel extends Disposable implements IServerChannel {
 		previous?.dispose();
 	}
 
-	private addReference(id: string, reference: ILoggerReference<ILogger | URI>): void {
+	private addReference(id: string, reference: ISharedResourceReference<ILogger | URI>): void {
 		this.loggers.set(id, reference);
 		Event.once(reference.onDidDispose)(() => {
 			if (this.loggers.get(id) === reference) {
