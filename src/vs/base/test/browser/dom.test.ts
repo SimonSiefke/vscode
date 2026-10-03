@@ -13,6 +13,21 @@ import { runWithFakedTimers } from '../common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 
 suite('dom', () => {
+	test('ModifierKeyEmitter does not retain keyboard events after delivery', () => {
+		const emitter = ModifierKeyEmitter.getInstance();
+		const keyboardEvent = new KeyboardEvent('keydown', { altKey: true, bubbles: true, code: 'AltLeft', key: 'Alt' });
+		let deliveredEvent: KeyboardEvent | undefined;
+		const listener = emitter.event(status => deliveredEvent = status.event);
+
+		mainWindow.dispatchEvent(keyboardEvent);
+
+		assert.strictEqual(deliveredEvent, keyboardEvent);
+		assert.strictEqual(emitter.keyStatus.event, undefined);
+
+		listener.dispose();
+		ModifierKeyEmitter.disposeInstance();
+	});
+
 	test('hasClass', () => {
 
 		const element = document.createElement('div');
