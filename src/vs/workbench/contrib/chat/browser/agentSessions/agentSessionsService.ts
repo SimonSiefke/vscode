@@ -18,6 +18,7 @@ export interface IAgentSessionsService {
 	readonly onDidChangeSessionArchivedState: Event<IAgentSession>;
 
 	getSession(resource: URI): IAgentSession | undefined;
+	deleteSessionState(resource: URI): void;
 }
 
 export class AgentSessionsService extends Disposable implements IAgentSessionsService {
@@ -26,8 +27,8 @@ export class AgentSessionsService extends Disposable implements IAgentSessionsSe
 	private readonly _onDidChangeSessionArchivedState = this._register(new Emitter<IAgentSession>());
 	readonly onDidChangeSessionArchivedState = this._onDidChangeSessionArchivedState.event;
 
-	private _model: IAgentSessionsModel | undefined;
-	get model(): IAgentSessionsModel {
+	private _model: AgentSessionsModel | undefined;
+	get model(): AgentSessionsModel {
 		if (!this._model) {
 			this._model = this._register(this.instantiationService.createInstance(AgentSessionsModel));
 			this._register(this._model.onDidChangeSessionArchivedState(session => {
@@ -52,6 +53,10 @@ export class AgentSessionsService extends Disposable implements IAgentSessionsSe
 
 	getSession(resource: URI): IAgentSession | undefined {
 		return this.model.getSession(resource);
+	}
+
+	deleteSessionState(resource: URI): void {
+		this.model.deleteSessionState(resource);
 	}
 }
 
