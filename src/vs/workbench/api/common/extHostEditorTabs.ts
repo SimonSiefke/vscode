@@ -114,7 +114,8 @@ class ExtHostEditorTabGroup {
 	private _dto: IEditorTabGroupDto;
 	private _tabs: ExtHostEditorTab[] = [];
 	private _activeTabId: string = '';
-	private _activeGroupIdGetter: () => number | undefined;
+	private readonly _activeGroupIdGetter: () => number | undefined;
+	private readonly _activeTabIdGetter = () => this._activeTabId;
 
 	constructor(dto: IEditorTabGroupDto, activeGroupIdGetter: () => number | undefined) {
 		this._dto = dto;
@@ -188,14 +189,14 @@ class ExtHostEditorTabGroup {
 				existing.acceptDtoUpdate(tabDto);
 				return existing;
 			}
-			return new ExtHostEditorTab(tabDto, this, () => this.activeTabId());
+			return new ExtHostEditorTab(tabDto, this, this._activeTabIdGetter);
 		});
 	}
 
 	acceptTabOperation(operation: TabOperation): ExtHostEditorTab {
 		// In the open case we add the tab to the group
 		if (operation.kind === TabModelOperationKind.TAB_OPEN) {
-			const tab = new ExtHostEditorTab(operation.tabDto, this, () => this.activeTabId());
+			const tab = new ExtHostEditorTab(operation.tabDto, this, this._activeTabIdGetter);
 			// Insert tab at editor index
 			this._tabs.splice(operation.index, 0, tab);
 			if (operation.tabDto.isActive) {
@@ -239,10 +240,6 @@ class ExtHostEditorTabGroup {
 		return tab;
 	}
 
-	// Not a getter since it must be a function to be used as a callback for the tabs
-	activeTabId(): string {
-		return this._activeTabId;
-	}
 }
 
 export class ExtHostEditorTabs implements IExtHostEditorTabs {
@@ -254,6 +251,7 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 
 	// Have to use ! because this gets initialized via an RPC proxy
 	private _activeGroupId!: number;
+	private readonly _activeGroupIdGetter = () => this._activeGroupId;
 
 	private _extHostTabGroups: ExtHostEditorTabGroup[] = [];
 
@@ -334,7 +332,7 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 				changed.push(existing.apiObject);
 				return existing;
 			}
-			const group = new ExtHostEditorTabGroup(tabGroup, () => this._activeGroupId);
+			const group = new ExtHostEditorTabGroup(tabGroup, this._activeGroupIdGetter);
 			opened.push(group.apiObject);
 			return group;
 		});
