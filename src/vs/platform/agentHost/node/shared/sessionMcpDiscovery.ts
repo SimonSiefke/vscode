@@ -5,8 +5,8 @@
 
 import { Sequencer } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ResourceMap } from '../../../../base/common/map.js';
+import { Disposable, IReference } from '../../../../base/common/lifecycle.js';
+import { SharedResourceMap } from '../../../../base/common/sharedResourceMap.js';
 import { URI } from '../../../../base/common/uri.js';
 import { makeMcpServerCustomization, normalizeMcpServerConfiguration, readJsonFile, resolveMcpServersMap, type IMcpServerDefinition } from '../../../agentPlugins/common/pluginParsers.js';
 import type { IFileService } from '../../../files/common/files.js';
@@ -95,42 +95,22 @@ class RootMcpDiscovery extends Disposable {
 	}
 }
 
-interface ISharedRootMcpDiscovery {
-	readonly discovery: RootMcpDiscovery;
-	refCount: number;
-}
+const sharedRootDiscoveries = new WeakMap<IFileService, SharedResourceMap<URI, RootMcpDiscovery, undefined>>();
 
-const sharedRootDiscoveries = new WeakMap<IFileService, ResourceMap<ISharedRootMcpDiscovery>>();
-
-function acquireRootMcpDiscovery(root: URI, fileService: IFileService): { readonly discovery: RootMcpDiscovery; dispose(): void } {
+function acquireRootMcpDiscovery(root: URI, fileService: IFileService): IReference<RootMcpDiscovery> {
 	let byRoot = sharedRootDiscoveries.get(fileService);
 	if (!byRoot) {
-		byRoot = new ResourceMap();
+		const discoveries: SharedResourceMap<URI, RootMcpDiscovery, undefined> = new SharedResourceMap(root => new RootMcpDiscovery(root, fileService), (_root, discovery) => {
+			discovery.dispose();
+			if (discoveries.size === 0) {
+				sharedRootDiscoveries.delete(fileService);
+				discoveries.dispose();
+			}
+		}, root => root.toString());
+		byRoot = discoveries;
 		sharedRootDiscoveries.set(fileService, byRoot);
 	}
-	let entry = byRoot.get(root);
-	if (!entry) {
-		entry = { discovery: new RootMcpDiscovery(root, fileService), refCount: 0 };
-		byRoot.set(root, entry);
-	}
-	entry.refCount++;
-	let isDisposed = false;
-	return {
-		discovery: entry.discovery,
-		dispose: () => {
-			if (isDisposed) {
-				return;
-			}
-			isDisposed = true;
-			if (--entry.refCount === 0) {
-				byRoot.delete(root);
-				entry.discovery.dispose();
-				if (byRoot.size === 0) {
-					sharedRootDiscoveries.delete(fileService);
-				}
-			}
-		},
-	};
+	return byRoot.acquire(root, undefined);
 }
 
 export class SessionMcpDiscovery extends Disposable {
@@ -161,10 +141,10 @@ export class SessionMcpDiscovery extends Disposable {
 		super();
 		this._roots = workingDirectories.map(root => {
 			const acquired = this._register(acquireRootMcpDiscovery(root, fileService));
-			this._register(acquired.discovery.onDidChange(() => {
+			this._register(acquired.object.onDidChange(() => {
 				void this._refreshFromSnapshots();
 			}));
-			return { root, discovery: acquired.discovery };
+			return { root, discovery: acquired.object };
 		});
 	}
 

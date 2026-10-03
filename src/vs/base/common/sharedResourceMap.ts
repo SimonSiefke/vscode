@@ -26,25 +26,28 @@ export class SharedResourceMap<K, T, Owner> extends Disposable {
 	private readonly entries = new Map<unknown, Entry<K, T, Owner>>();
 
 	constructor(
-		private readonly createObject: (key: K) => T,
+		private readonly createObject: ((key: K) => T) | undefined,
 		private readonly destroyObject: (key: K, object: T) => void,
 		private readonly keyOf: (key: K) => unknown = key => key,
 	) {
 		super();
 	}
 
-	acquire(key: K, owner: Owner): ISharedResourceReference<T> {
+	acquire(key: K, owner: Owner, createObject = this.createObject): ISharedResourceReference<T> {
 		if (this._store.isDisposed) {
 			throw new Error('Cannot acquire a resource after disposal');
 		}
 		const mapKey = this.keyOf(key);
 		let entry = this.entries.get(mapKey);
 		if (!entry) {
-			entry = { key, object: this.createObject(key), references: new Set() };
+			if (!createObject) {
+				throw new Error('A factory is required for a new resource');
+			}
+			entry = { key, object: createObject(key), references: new Set() };
 			this.entries.set(mapKey, entry);
 		}
 		const current = entry;
-		const onDidDispose = new Emitter<void>();
+		let onDidDispose: Emitter<void> | undefined;
 		let isDisposed = false;
 		const disposable = toDisposable(() => {
 			isDisposed = true;
@@ -52,17 +55,42 @@ export class SharedResourceMap<K, T, Owner> extends Disposable {
 			try {
 				if (current.references.size === 0) {
 					// Remove before destruction so a new acquisition gets a fresh object.
-					this.entries.delete(mapKey);
+					if (this.entries.get(mapKey) === current) {
+						this.entries.delete(mapKey);
+					}
 					this.destroyObject(current.key, current.object);
 				}
 			} finally {
-				onDidDispose.fire();
-				onDidDispose.dispose();
+				onDidDispose?.fire();
+				onDidDispose?.dispose();
 			}
 		});
 		const reference = { owner, dispose: () => disposable.dispose() };
 		current.references.add(reference);
-		return { object: current.object, get isDisposed() { return isDisposed; }, onDidDispose: onDidDispose.event, dispose: reference.dispose };
+		return { object: current.object, get isDisposed() { return isDisposed; }, get onDidDispose() { return isDisposed ? Event.None : (onDidDispose ??= new Emitter<void>()).event; }, dispose: reference.dispose };
+	}
+
+	get size(): number {
+		return this.entries.size;
+	}
+
+	get(key: K): T | undefined {
+		return this.entries.get(this.keyOf(key))?.object;
+	}
+
+	*values(): IterableIterator<T> {
+		for (const entry of this.entries.values()) {
+			yield entry.object;
+		}
+	}
+
+	delete(key: K): void {
+		const mapKey = this.keyOf(key);
+		const entry = this.entries.get(mapKey);
+		if (entry) {
+			this.entries.delete(mapKey);
+			dispose([...entry.references]);
+		}
 	}
 
 	has(key: K): boolean {

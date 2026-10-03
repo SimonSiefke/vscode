@@ -53,6 +53,23 @@ suite('AgentHostFileMonitorService', () => {
 		});
 	});
 
+
+	test('duplicate callback acquisitions remain active until both handles are released', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const fileService = new TestFileService();
+		const monitor = disposables.add(new AgentHostFileMonitorService(fileService.service, new NullLogService()));
+		let calls = 0;
+		const callback = () => calls++;
+		const first = disposables.add(acquire(monitor, URI.file('/repo'), callback, { debounceMs: 10 }));
+		const second = disposables.add(acquire(monitor, URI.file('/repo'), callback, { debounceMs: 10 }));
+		first.dispose();
+		fileService.fire(URI.file('/repo/file.ts'));
+		await timeout(11);
+		assert.strictEqual(calls, 1);
+		assert.deepStrictEqual(fileService.snapshot(), { watches: 1, disposed: 0 });
+		second.dispose();
+		assert.deepStrictEqual(fileService.snapshot(), { watches: 1, disposed: 1 });
+	}));
+
 	test('filters known repository metadata noise before debouncing', () => {
 		return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {
 			const fileService = new TestFileService();

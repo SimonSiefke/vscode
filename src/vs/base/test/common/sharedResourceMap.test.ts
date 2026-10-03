@@ -136,4 +136,19 @@ suite('SharedResourceMap', () => {
 		map.dispose();
 		assert.strictEqual(destroyed.length, 2);
 	});
+
+	test('force deletion releases all old handles without removing a replacement', () => {
+		const { map, destroyed } = setup();
+		const first = map.acquire('resource', 1);
+		const second = map.acquire('resource', 2);
+		store.add(Event.once(first.onDidDispose)(() => map.acquire('resource', 3)));
+		map.delete('resource');
+		assert.ok(first.isDisposed && second.isDisposed);
+		assert.ok(map.hasOwner('resource', 3));
+		assert.strictEqual(destroyed.length, 1);
+		first.dispose();
+		second.dispose();
+		assert.strictEqual(destroyed.length, 1);
+	});
+
 });
