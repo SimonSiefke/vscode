@@ -37,7 +37,13 @@ export namespace ThemeIcon {
 
 	const ThemeIconIdRegex = new RegExp(`^(${iconNameExpression})(${iconModifierExpression})?$`);
 
+	const classNameCache = Object.create(null)
+
 	export function asClassNameArray(icon: ThemeIcon): string[] {
+		const cachedClass=classNameCache[icon.id]
+		if(cachedClass){
+			return cachedClass
+		}
 		const match = ThemeIconIdRegex.exec(icon.id);
 		if (!match) {
 			return asClassNameArray(Codicon.error);
@@ -47,6 +53,7 @@ export namespace ThemeIcon {
 		if (modifier) {
 			classNames.push('codicon-modifier-' + modifier.substring(1));
 		}
+		classNameCache[icon.id]=classNames;
 		return classNames;
 	}
 
