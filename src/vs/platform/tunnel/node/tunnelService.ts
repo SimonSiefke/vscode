@@ -192,13 +192,7 @@ export class BaseTunnelService extends AbstractTunnelService {
 		return isPortPrivileged(port, this.defaultTunnelHost, OS, os.release());
 	}
 
-	protected retainOrCreateTunnel(addressOrTunnelProvider: IAddressProvider | ITunnelProvider, remoteHost: string, remotePort: number, localHost: string, localPort: number | undefined, elevateIfNeeded: boolean, privacy?: string, protocol?: string): Promise<RemoteTunnel | string | undefined> | undefined {
-		const existing = this.getTunnelFromMap(remoteHost, remotePort);
-		if (existing) {
-			++existing.refcount;
-			return existing.value;
-		}
-
+	protected createTunnel(addressOrTunnelProvider: IAddressProvider | ITunnelProvider, remoteHost: string, remotePort: number, localHost: string, localPort: number | undefined, elevateIfNeeded: boolean, privacy?: string, protocol?: string): Promise<RemoteTunnel | string | undefined> | undefined {
 		if (isTunnelProvider(addressOrTunnelProvider)) {
 			return this.createWithProvider(addressOrTunnelProvider, remoteHost, remotePort, localPort, elevateIfNeeded, privacy, protocol);
 		} else {
@@ -215,7 +209,6 @@ export class BaseTunnelService extends AbstractTunnelService {
 
 			const tunnel = createRemoteTunnel(options, localHost, remoteHost, remotePort, localPort);
 			this.logService.trace('ForwardedPorts: (TunnelService) Tunnel created without provider.');
-			this.addTunnelToMap(remoteHost, remotePort, tunnel);
 			return tunnel;
 		}
 	}
