@@ -19,7 +19,7 @@ import { VSBuffer } from '../../../base/common/buffer.js';
 import { isString } from '../../../base/common/types.js';
 import { FileSystemProviderErrorCode, toFileSystemProviderErrorCode } from '../../../platform/files/common/files.js';
 import { Emitter } from '../../../base/common/event.js';
-import { DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../base/common/map.js';
 
 class ExtHostOutputChannel extends AbstractMessageLogger implements vscode.LogOutputChannel {
@@ -164,8 +164,13 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		}
 
 		extHostOutputChannelPromise.then(channel => {
+			if (channelDisposables.isDisposed) {
+				channel.dispose();
+				return;
+			}
 			this.channels.set(channel.id, channel);
 			channel.visible = channel.id === this.visibleChannelId;
+			channelDisposables.add(channel);
 			channelDisposables.add(toDisposable(() => {
 				this.channels.delete(channel.id);
 				if (logFile) {
@@ -188,18 +193,26 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		}
 		const outputDir = await this.outputDirectoryPromise;
 		const file = this.extHostFileSystemInfo.extUri.joinPath(outputDir, `${this.namePool++}-${name.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
-		const logger = channelDisposables.add(this.loggerService.createLogger(file, { logLevel: 'always', donotRotate: true, donotUseFormatters: true, hidden: true }));
+		const logger = this.addChannelDisposable(channelDisposables, this.loggerService.createLogger(file, { logLevel: 'always', donotRotate: true, donotUseFormatters: true, hidden: true }));
 		const id = await this.proxy.$register(name, file, languageId, extension.identifier.value);
-		channelDisposables.add(toDisposable(() => this.loggerService.deregisterLogger(file)));
+		this.addChannelDisposable(channelDisposables, toDisposable(() => this.loggerService.deregisterLogger(file)));
 		return new ExtHostOutputChannel(id, name, logger, this.proxy, extension);
 	}
 
 	private async doCreateLogOutputChannel(name: string, file: URI, logLevel: LogLevel | undefined, extension: IExtensionDescription, channelDisposables: DisposableStore): Promise<ExtHostLogOutputChannel> {
 		await this.createExtensionLogDirectory(file);
 		const id = `${extension.identifier.value}.${this.extHostFileSystemInfo.extUri.basename(file)}`;
-		const logger = channelDisposables.add(this.loggerService.createLogger(file, { id, name, logLevel, extensionId: extension.identifier.value }));
-		channelDisposables.add(toDisposable(() => this.loggerService.deregisterLogger(file)));
+		const logger = this.addChannelDisposable(channelDisposables, this.loggerService.createLogger(file, { id, name, logLevel, extensionId: extension.identifier.value }));
+		this.addChannelDisposable(channelDisposables, toDisposable(() => this.loggerService.deregisterLogger(file)));
 		return new ExtHostLogOutputChannel(id, name, logger, this.proxy, extension);
+	}
+
+	private addChannelDisposable<T extends IDisposable>(store: DisposableStore, disposable: T): T {
+		if (store.isDisposed) {
+			disposable.dispose();
+			return disposable;
+		}
+		return store.add(disposable);
 	}
 
 	private createExtensionLogDirectory(file: URI): Thenable<void> {
@@ -225,7 +238,6 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 				throw new Error('Channel has been closed');
 			}
 		};
-		channelPromise.then(channel => channelDisposables.add(channel));
 		return {
 			get name(): string { return name; },
 			append(value: string): void {
@@ -273,7 +285,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 			if (channel.logLevel !== logLevel) {
 				setLogLevel(channel.logLevel);
 			}
-			channelDisposables.add(channel.onDidChangeLogLevel(e => setLogLevel(e)));
+			this.addChannelDisposable(channelDisposables, channel.onDidChangeLogLevel(e => setLogLevel(e)));
 		});
 		return {
 			...this.createExtHostOutputChannel(name, channelPromise, channelDisposables),
