@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { Emitter } from '../../../../../../../base/common/event.js';
-import { DisposableMap, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
+import { combinedDisposable, DisposableMap, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../base/test/common/utils.js';
 import { ChatInputPart } from '../../../../browser/widget/input/chatInputPart.js';
 
@@ -14,27 +14,24 @@ suite('ChatInputPart', () => {
 
 	test('disposes confirmation carousel listeners with the carousel', () => {
 		const carousels = store.add(new DisposableMap<string>());
-		const carouselListeners = store.add(new DisposableMap<string, DisposableStore>());
 		const event = store.add(new Emitter<void>());
+		const activeSubagent = store.add(new Emitter<string | undefined>());
 		const key = 'session';
 		let carouselDisposed = false;
 		let eventCount = 0;
 
-		carousels.set(key, toDisposable(() => carouselDisposed = true));
-		const listeners = new DisposableStore();
-		listeners.add(event.event(() => eventCount++));
-		carouselListeners.set(key, listeners);
-
-		const disposeToolConfirmationCarousel = Reflect.get(ChatInputPart.prototype, '_disposeToolConfirmationCarousel') as (this: object, key: string) => void;
-		disposeToolConfirmationCarousel.call({
+		carousels.set(key, combinedDisposable(
+			toDisposable(() => carouselDisposed = true),
+			event.event(() => eventCount++),
+		));
+		ChatInputPart.prototype.clearToolConfirmationCarousel.call({
+			_currentSessionKey: key,
 			_chatToolConfirmationCarousels: carousels,
-			_chatToolConfirmationCarouselListeners: carouselListeners,
-		}, key);
+			_onDidChangeActiveConfirmationSubagent: activeSubagent,
+			chatToolConfirmationCarouselContainer: document.createElement('div'),
+		} as ChatInputPart);
 		event.fire();
 
-		assert.strictEqual(carouselDisposed, true);
-		assert.strictEqual(eventCount, 0);
-		assert.strictEqual(carousels.has(key), false);
-		assert.strictEqual(carouselListeners.has(key), false);
+		assert.deepStrictEqual({ carouselDisposed, eventCount, retained: carousels.has(key) }, { carouselDisposed: true, eventCount: 0, retained: false });
 	});
 });
