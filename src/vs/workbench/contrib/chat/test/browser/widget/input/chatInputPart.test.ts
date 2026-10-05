@@ -29,7 +29,7 @@ suite('ChatInputPart', () => {
 			_chatToolConfirmationCarousels: carousels,
 			_onDidChangeActiveConfirmationSubagent: activeSubagent,
 			chatToolConfirmationCarouselContainer: document.createElement('div'),
-		} as ChatInputPart);
+		});
 		event.fire();
 
 		assert.deepStrictEqual({ carouselDisposed, eventCount, retained: carousels.has(key) }, { carouselDisposed: true, eventCount: 0, retained: false });
