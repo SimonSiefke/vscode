@@ -18225,7 +18225,7 @@ suite('AgentHostChatContribution', () => {
 			const { instantiationService, agentHostService, chatAgentService, commandService } = createTestServices(disposables, undefined, authService);
 			commandService.result = { success: false, dialogSkipped: false, error: new Error('Bad credentials') };
 			let provider: IChatSessionContentProvider | undefined;
-			instantiationService.stub(IChatSessionsService, 'registerChatSessionContentProvider', (_scheme, value) => {
+			instantiationService.stub(IChatSessionsService, 'registerChatSessionContentProvider', (_scheme: string, value: IChatSessionContentProvider) => {
 				provider = value;
 				return toDisposable(() => { });
 			});
