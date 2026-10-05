@@ -14,7 +14,7 @@ import { isEqual } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
 import type { IAgentServerToolHost } from './agentServerTools.js';
 import type { AgentHostClientType } from './agentHostClientInfo.js';
-import type { IAgentHostClientTelemetryContext, IAgentProviderSendStageRecorder, IAgentProviderTurnTelemetryContext } from './agentHostTelemetry.js';
+import type { CodexModelProvider, IAgentTurnTelemetryCorrelation, IAgentHostClientTelemetryContext, IAgentProviderSendStageRecorder, IAgentProviderTurnTelemetryContext } from './agentHostTelemetry.js';
 import type { AgentPermissionDecisionSource } from './meta/agentPermissionResponseMeta.js';
 import type { ResolveSessionConfigResult, SessionConfigCompletionsResult } from './state/protocol/commands.js';
 import type { CanvasState } from './state/protocol/channels-canvas/state.js';
@@ -193,6 +193,8 @@ export interface IAgentSessionChatMetadata {
 	readonly origin?: ChatOrigin;
 	readonly interactivity?: ChatInteractivity;
 	readonly archived?: boolean;
+	/** Exact chat read state when known; absence means the provider did not supply it. */
+	readonly isRead?: boolean;
 	readonly changes?: ChangesSummary;
 }
 
@@ -505,6 +507,9 @@ export interface IAgentChatContext {
 	readonly clientTelemetryContext?: IAgentHostClientTelemetryContext;
 	/** The owning turn's immutable admission snapshot, supplied only for its send. */
 	readonly turnTelemetryContext?: IAgentProviderTurnTelemetryContext;
+	readonly turnTelemetryCorrelation?: IAgentTurnTelemetryCorrelation;
+	/** Records provider-owned dispatch facts on the addressed turn, before progress can complete it. */
+	readonly reportCodexModelProvider?: (provider: CodexModelProvider) => void;
 	/**
 	 * The addressed chat's origin, taken verbatim from the host-owned chat
 	 * catalog, and exhaustive across every way a chat comes into existence:
@@ -1044,6 +1049,9 @@ export interface IAgentToolPendingConfirmationSignal {
 
 export type AgentSubagentTaskModelSource = 'task_argument' | 'subagent_configuration' | 'custom_agent_definition' | 'unset';
 
+/** `task` is a delegated subagent; `fusionPhase` is a presentation-only chat for one HydraFusion phase of the parent turn. */
+export type AgentSubagentKind = 'task' | 'fusionPhase';
+
 /**
  * A subagent was spawned by a tool call. The host creates a child session
  * silently and routes subsequent inner-tool events to it.
@@ -1059,6 +1067,10 @@ export interface IAgentSubagentStartedSignal {
 	readonly agentDisplayName: string;
 	readonly agentDescription?: string;
 	readonly taskModelSource?: AgentSubagentTaskModelSource;
+	/** Absent means `task`. */
+	readonly subagentKind?: AgentSubagentKind;
+	/** For telemetry, when the chat reports no usage of its own. */
+	readonly model?: string;
 	/**
 	 * The spawning Task tool's short (typically 3-5 word) `description`
 	 * input, e.g. "Review package.json structure". Distinct from
@@ -1319,6 +1331,9 @@ export interface IAgent {
 	 * not advertise the capability MUST reject the call.
 	 */
 	setWorkingDirectory(chat: URI, context: URI | IAgentChatContext, workingDirectory: URI): Promise<void>;
+
+	/** Changes the addressed chat's backing. Shared roots may change only under the host's single-chat catalog lock. */
+	setChatWorkingDirectory?(chat: URI, context: IAgentChatContext, workingDirectory: URI, options?: { readonly replaceSessionWorkspace: boolean }): Promise<void>;
 
 	/** Return bounded diagnostics for an in-flight turn when supported. */
 	getTurnDiagnosticSnapshot?(chat: URI, turnId: string): IAgentTurnDiagnosticSnapshot | undefined;
