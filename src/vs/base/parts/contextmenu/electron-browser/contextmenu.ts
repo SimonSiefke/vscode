@@ -40,7 +40,7 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 		const itemId = args[0] as number;
 		const context = args[1] as IContextMenuEvent;
 		const item = processedItems[itemId];
-		const click = item.click;
+		const click = item?.click;
 		cleanup();
 		click?.(context);
 	};
