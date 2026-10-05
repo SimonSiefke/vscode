@@ -180,6 +180,7 @@ export class IssueReporterEditorPane extends EditorPane {
 			this.recordingService.isSupported,
 			this.container,
 			this.contextViewService,
+			(repo, title, signal) => this.issueFormService.searchGitHubIssues(repo, title, signal),
 			this.contextMenuService,
 			this.markdownRendererService,
 			true,
