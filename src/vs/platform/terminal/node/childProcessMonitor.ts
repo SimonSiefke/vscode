@@ -25,8 +25,8 @@ const enum Constants {
 export const ignoreProcessNames: string[] = [];
 
 /**
- * Monitors a process for child processes, checking at differing times depending on input and output
- * calls into the monitor.
+ * Monitors child processes at different intervals after input and output.
+ * Pending checks are canceled when the monitor is disposed.
  */
 export class ChildProcessMonitor extends Disposable {
 	private _hasChildProcesses: boolean = false;
@@ -49,11 +49,8 @@ export class ChildProcessMonitor extends Disposable {
 	readonly onDidChangeHasChildProcesses = this._onDidChangeHasChildProcesses.event;
 
 	private readonly _refreshActiveScheduler = this._register(new RunOnceScheduler(() => this._refreshActive(), Constants.ActiveDebounceDuration));
-	private readonly _refreshInactiveScheduler = this._register(new RunOnceScheduler(() => {
-		this._lastInactiveRefresh = Date.now();
-		this._refreshActiveScheduler.schedule();
-	}, Constants.InactiveThrottleDuration));
-	private _lastInactiveRefresh = -Infinity;
+	private readonly _refreshInactiveScheduler = this._register(new RunOnceScheduler(() => this._refreshInactive(), Constants.InactiveThrottleDuration));
+	private _lastInactiveRefreshTime = -Number.MAX_VALUE;
 
 	constructor(
 		private _pid: number,
@@ -74,20 +71,23 @@ export class ChildProcessMonitor extends Disposable {
 	 * Input was triggered on the process.
 	 */
 	handleInput() {
-		this._refreshActiveScheduler.schedule();
+		if (!this._store.isDisposed) {
+			this._refreshActiveScheduler.schedule();
+		}
 	}
 
 	/**
 	 * Output was triggered on the process.
 	 */
 	handleOutput() {
-		const now = Date.now();
-		const nextRefresh = this._lastInactiveRefresh + Constants.InactiveThrottleDuration;
-		if (nextRefresh <= now) {
-			this._lastInactiveRefresh = now;
-			this._refreshActiveScheduler.schedule();
-		} else if (!this._refreshInactiveScheduler.isScheduled()) {
-			this._refreshInactiveScheduler.schedule(nextRefresh - now);
+		if (this._store.isDisposed || this._refreshInactiveScheduler.isScheduled()) {
+			return;
+		}
+		const delay = this._lastInactiveRefreshTime + Constants.InactiveThrottleDuration - Date.now();
+		if (delay <= 0) {
+			this._refreshInactive();
+		} else {
+			this._refreshInactiveScheduler.schedule(delay);
 		}
 	}
 
@@ -101,6 +101,11 @@ export class ChildProcessMonitor extends Disposable {
 		} catch (e) {
 			this._logService.debug('ChildProcessMonitor: Fetching process tree failed', e);
 		}
+	}
+
+	private _refreshInactive(): void {
+		this._lastInactiveRefreshTime = Date.now();
+		this._refreshActiveScheduler.schedule();
 	}
 
 	private _processContainsChildren(processItem: ProcessItem): boolean {
