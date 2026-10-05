@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { TestConfigurationService } from '../../../configuration/test/common/testConfigurationService.js';
 import { NullLogService } from '../../../log/common/log.js';
 import { IAddressProvider } from '../../../remote/common/remoteAgentConnection.js';
+import { WebSocketRemoteConnection } from '../../../remote/common/remoteAuthorityResolver.js';
 import { AbstractTunnelService, ITunnelProvider, RemoteTunnel, TunnelPrivacyId, isTunnelProvider } from '../../common/tunnel.js';
 
 class TestTunnelService extends AbstractTunnelService {
@@ -25,7 +26,7 @@ class TestTunnelService extends AbstractTunnelService {
 
 suite('Tunnel lifecycle', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	const addressProvider: IAddressProvider = { getAddress: async () => ({ host: 'localhost', port: 8000 }) };
+	const addressProvider: IAddressProvider = { getAddress: async () => ({ connectTo: new WebSocketRemoteConnection('localhost', 8000), connectionToken: undefined }) };
 
 	function setup() {
 		const configuration = new TestConfigurationService();
