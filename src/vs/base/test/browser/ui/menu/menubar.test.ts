@@ -67,36 +67,48 @@ suite('Menubar', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	const container = $('.container');
 
-	test('expands again after resizing an overflow-only menubar', async () => {
-		const parent = document.createElement('div');
-		parent.style.cssText = 'display: flex; width: 600px; height: 30px;';
-		const element = parent.appendChild($('.menubar'));
-		document.body.appendChild(parent);
-		disposables.add(toDisposable(() => parent.remove()));
-		disposables.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
-		const menubar = disposables.add(new MenuBar(element, { visibility: 'visible' }, unthemedMenuStyles));
-		const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
-		menubar.push(labels.map(label => ({ label, actions: [] })));
-		const settle = async () => {
-			for (let frame = 0; frame < 4; frame++) {
-				await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+	for (const resizedElement of ['container', 'sibling'] as const) {
+		test(`expands automatically when its ${resizedElement} releases space`, async () => {
+			const parent = document.createElement('div');
+			parent.style.cssText = 'display: flex; width: 600px; height: 30px; font: 13px sans-serif;';
+			const menuContainer = parent.appendChild(document.createElement('div'));
+			menuContainer.style.cssText = 'display: flex; flex: 1; min-width: 0;';
+			const sibling = parent.appendChild(document.createElement('div'));
+			sibling.style.cssText = 'width: 0; flex-shrink: 0;';
+			const element = menuContainer.appendChild($('.menubar'));
+			document.body.appendChild(parent);
+			disposables.add(toDisposable(() => parent.remove()));
+			disposables.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
+			const menubar = disposables.add(new MenuBar(element, { visibility: 'visible' }, unthemedMenuStyles));
+			const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
+			menubar.push(labels.map(label => ({ label, actions: [] })));
+			const settle = async () => {
+				for (let frame = 0; frame < 4; frame++) {
+					await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+				}
+			};
+			const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), labels);
+
+			if (resizedElement === 'container') {
+				parent.style.width = '70px';
+			} else {
+				sibling.style.width = '530px';
 			}
-		};
-		const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
-		await settle();
-		assert.deepStrictEqual(visibleMenus(), labels);
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), []);
 
-		parent.style.width = '70px';
-		menubar.update();
-		await settle();
-		assert.deepStrictEqual(visibleMenus(), []);
-
-		parent.style.width = '600px';
-		menubar.update();
-		await settle();
-		assert.deepStrictEqual(visibleMenus(), labels);
-		assert.strictEqual(element.classList.contains('overflow-menu-only'), false);
-	});
+			if (resizedElement === 'container') {
+				parent.style.width = '600px';
+			} else {
+				sibling.style.width = '0';
+			}
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), labels);
+			assert.strictEqual(element.classList.contains('overflow-menu-only'), false);
+		});
+	}
 
 	const withMenuMenubar = (callback: (menubar: MenuBar) => void) => {
 		const menubar = new MenuBar(container, {

@@ -124,6 +124,10 @@ export class MenuBar extends Disposable {
 			this.scheduleOverflowLayout();
 		}, DOM.getWindow(this.container)));
 		this._register(resizeObserver.observe(this.container));
+		if (this.container.parentElement) {
+			// The parent can grow while an overflow-only menubar stays width-constrained.
+			this._register(resizeObserver.observe(this.container.parentElement));
+		}
 
 		this._register(DOM.addDisposableListener(this.container, DOM.EventType.KEY_DOWN, (e) => {
 			const event = new StandardKeyboardEvent(e);
