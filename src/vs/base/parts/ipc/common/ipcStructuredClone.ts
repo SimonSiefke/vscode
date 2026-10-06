@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { SerializedError, transformErrorForSerialization, transformErrorFromSerialization } from '../../../common/errors.js';
 import { VSBuffer } from '../../../common/buffer.js';
 import { URI, UriComponents } from '../../../common/uri.js';
 
@@ -10,12 +11,14 @@ interface ISerializedValue {
 	readonly value: unknown;
 	readonly buffers: readonly Uint8Array[];
 	readonly uris: readonly UriComponents[];
+	readonly errors: readonly SerializedError[];
 }
 
 /** Preserves VS Code value types while leaving native cloneable values in their native form. */
 export function serializeStructuredClone(value: unknown): ISerializedValue {
 	const buffers: Uint8Array[] = [];
 	const uris: UriComponents[] = [];
+	const errors: SerializedError[] = [];
 	const result = transform(value, value => {
 		if (value instanceof VSBuffer) {
 			const buffer = value.buffer.subarray(0);
@@ -27,21 +30,30 @@ export function serializeStructuredClone(value: unknown): ISerializedValue {
 			uris.push(uri);
 			return uri;
 		}
+		if (value instanceof Error) {
+			const error = transformErrorForSerialization(value);
+			errors.push(error);
+			return error;
+		}
 		return undefined;
 	});
-	return { value: result, buffers, uris };
+	return { value: result, buffers, uris, errors };
 }
 
 export function deserializeStructuredClone(value: unknown): unknown {
 	const data = value as ISerializedValue;
 	const buffers = new Set<object>(data.buffers);
 	const uris = new Set<object>(data.uris);
+	const errors = new Set<object>(data.errors);
 	return transform(data.value, value => {
 		if (buffers.has(value)) {
 			return VSBuffer.wrap(value as Uint8Array);
 		}
 		if (uris.has(value)) {
 			return URI.revive(value as UriComponents);
+		}
+		if (errors.has(value)) {
+			return transformErrorFromSerialization(value as SerializedError);
 		}
 		return undefined;
 	});

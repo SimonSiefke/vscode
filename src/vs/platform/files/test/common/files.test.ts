@@ -7,12 +7,63 @@ import assert from 'assert';
 import { isEqual, isEqualOrParent } from '../../../../base/common/extpath.js';
 import { isLinux, isMacintosh, isWindows } from '../../../../base/common/platform.js';
 import { URI } from '../../../../base/common/uri.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { Event } from '../../../../base/common/event.js';
+import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { ChannelClient, ChannelServer } from '../../../../base/parts/ipc/common/ipc.js';
+import { Protocol } from '../../../../base/parts/ipc/common/ipc.electron.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../base/test/common/utils.js';
-import { decodeIPCFileData, encodeIPCFileData } from '../../common/diskFileSystemProviderClient.js';
-import { FileChangesEvent, FileChangeType, IFileChange, isParent } from '../../common/files.js';
+import { decodeIPCFileData, DiskFileSystemProviderClient, encodeIPCFileData } from '../../common/diskFileSystemProviderClient.js';
+import { createFileSystemProviderError, FileChangesEvent, FileChangeType, FileSystemProviderErrorCode, IFileChange, IFileSystemProviderError, isParent, toFileSystemProviderErrorCode } from '../../common/files.js';
 
 suite('Files', () => {
+
+	for (const code of [FileSystemProviderErrorCode.FileNotFound, FileSystemProviderErrorCode.NoPermissions]) {
+		test(`IPC file stream preserves ${code} error classification`, async () => {
+			const disposables = new DisposableStore();
+			try {
+				const listeners = [new Set<(header: unknown, body: unknown) => void>(), new Set<(header: unknown, body: unknown) => void>()];
+				const protocols = listeners.map((_listeners, index) => new Protocol({
+					send: (_channel, ...args) => {
+						const [header, body] = structuredClone(args);
+						queueMicrotask(() => {
+							for (const listener of listeners[1 - index]) {
+								listener(header, body);
+							}
+						});
+					}
+				}, listener => {
+					listeners[index].add(listener);
+					return toDisposable(() => listeners[index].delete(listener));
+				}));
+				const server = disposables.add(new ChannelServer(protocols[0], 'renderer'));
+				const sourceError = createFileSystemProviderError('Cannot read file', code);
+				sourceError.cause = createFileSystemProviderError('Underlying cause', FileSystemProviderErrorCode.Unavailable);
+				server.registerChannel('disk', {
+					call: async () => { throw new Error('Unexpected call'); },
+					listen: <T>(_context: string, event: string): Event<T> => event === 'readFileStream' ? listener => {
+						queueMicrotask(() => listener(sourceError as T));
+						return toDisposable(() => { });
+					} : Event.None
+				});
+				const client = disposables.add(new ChannelClient(protocols[1]));
+				const provider = disposables.add(new DiskFileSystemProviderClient(client.getChannel('disk'), {}));
+				const stream = provider.readFileStream(URI.file('/missing.txt'), {}, CancellationToken.None);
+				const received = await new Promise<Error>(resolve => {
+					stream.on('error', resolve);
+					stream.on('data', () => { });
+				});
+				assert.deepStrictEqual({
+					name: received.name, message: received.message,
+					code: (received as IFileSystemProviderError).code, classified: toFileSystemProviderErrorCode(received),
+					cause: toFileSystemProviderErrorCode(received.cause as Error)
+				}, { name: sourceError.name, message: 'Cannot read file', code, classified: code, cause: FileSystemProviderErrorCode.Unavailable });
+			} finally {
+				disposables.dispose();
+			}
+		});
+	}
 
 	test('IPC file data uses strings only for ordinary UTF-8', () => {
 		const utf8 = VSBuffer.fromString('Hello 🌍').buffer;
