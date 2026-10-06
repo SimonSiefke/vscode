@@ -136,7 +136,7 @@ export class ToolBar extends Disposable {
 							actionViewItemProvider: this.options.actionViewItemProvider,
 							actionRunner: this.actionRunner,
 							keybindingProvider: this.options.getKeyBinding,
-							classNames: [...ThemeIcon.asClassNameArray(options.moreIcon ?? Codicon.toolBarMore)],
+							classNames: ThemeIcon.asClassNameArray(options.moreIcon ?? Codicon.toolBarMore),
 							menuClassName: this.options.dropdownMenuClassName,
 							closeAnimation: this.options.dropdownMenuCloseAnimation,
 							anchorAlignmentProvider: this.options.anchorAlignmentProvider,
