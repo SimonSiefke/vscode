@@ -7,6 +7,8 @@ import assert from 'assert';
 import { $, ModifierKeyEmitter } from '../../../../browser/dom.js';
 import { unthemedMenuStyles } from '../../../../browser/ui/menu/menu.js';
 import { MenuBar } from '../../../../browser/ui/menu/menubar.js';
+import { mainWindow } from '../../../../browser/window.js';
+import { toDisposable } from '../../../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 function getButtonElementByAriaLabel(menubarElement: HTMLElement, ariaLabel: string): HTMLElement | null {
@@ -62,8 +64,39 @@ function validateMenuBarItem(menubar: MenuBar, menubarContainer: HTMLElement, la
 }
 
 suite('Menubar', () => {
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	const container = $('.container');
+
+	test('expands again after resizing an overflow-only menubar', async () => {
+		const parent = document.createElement('div');
+		parent.style.cssText = 'display: flex; width: 600px; height: 30px;';
+		const element = parent.appendChild($('.menubar'));
+		document.body.appendChild(parent);
+		disposables.add(toDisposable(() => parent.remove()));
+		disposables.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
+		const menubar = disposables.add(new MenuBar(element, { visibility: 'visible' }, unthemedMenuStyles));
+		const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
+		menubar.push(labels.map(label => ({ label, actions: [] })));
+		const settle = async () => {
+			for (let frame = 0; frame < 4; frame++) {
+				await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+			}
+		};
+		const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
+		await settle();
+		assert.deepStrictEqual(visibleMenus(), labels);
+
+		parent.style.width = '70px';
+		menubar.update();
+		await settle();
+		assert.deepStrictEqual(visibleMenus(), []);
+
+		parent.style.width = '600px';
+		menubar.update();
+		await settle();
+		assert.deepStrictEqual(visibleMenus(), labels);
+		assert.strictEqual(element.classList.contains('overflow-menu-only'), false);
+	});
 
 	const withMenuMenubar = (callback: (menubar: MenuBar) => void) => {
 		const menubar = new MenuBar(container, {

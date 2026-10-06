@@ -34,7 +34,6 @@ import { OffsetRange } from '../../../../common/core/ranges/offsetRange.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { inputLatency } from '../../../../../base/browser/performance.js';
 import { ViewportData } from '../../../../common/viewLayout/viewLinesViewportData.js';
-import { RunOnceScheduler } from '../../../../../base/common/async.js';
 
 // Corresponds to classes in nativeEditContext.css
 enum CompositionClassName {
@@ -65,10 +64,6 @@ export class NativeEditContext extends AbstractEditContext {
 	// Overflow guard container
 	private readonly _parent: HTMLElement;
 	private _parentBounds: DOMRect | null = null;
-	private readonly _updateParentBoundsScheduler = this._register(new RunOnceScheduler(() => {
-		this._parentBounds = this._parent.getBoundingClientRect();
-		this._updateSelectionAndControlBounds();
-	}, 50));
 	private _decorations: string[] = [];
 	private _primarySelection: Selection = new Selection(1, 1, 1, 1);
 
@@ -292,11 +287,8 @@ export class NativeEditContext extends AbstractEditContext {
 	}
 
 	public override onBeforeRender(viewportData: ViewportData): void {
-		if (!this._parentBounds) {
-			// Read the initial position before touching the DOM so the synchronous
-			// layout is cheap. Subsequent layout changes are refreshed below.
-			this._parentBounds = this._parent.getBoundingClientRect();
-		}
+		// The editor can move without changing its layout dimensions.
+		this._parentBounds = this._parent.getBoundingClientRect();
 	}
 
 	public override prepareRender(ctx: RenderingContext): void {
@@ -318,12 +310,6 @@ export class NativeEditContext extends AbstractEditContext {
 
 	public override onConfigurationChanged(e: ViewConfigurationChangedEvent): boolean {
 		this._screenReaderSupport.onConfigurationChanged(e);
-		if (e.hasChanged(EditorOption.layoutInfo)) {
-			// Avoid forcing layout for every intermediate window dimension. The
-			// native input bounds may lag briefly while resizing and are refreshed
-			// once the editor's position has settled.
-			this._updateParentBoundsScheduler.schedule();
-		}
 		if (e.hasChanged(EditorOption.tabIndex)) {
 			this._updateDomAttributes();
 		}

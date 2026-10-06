@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import sinon from 'sinon';
+import { mainWindow } from '../../../../base/browser/window.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { CodeEditorWidget } from '../../../browser/widget/codeEditor/codeEditorWidget.js';
@@ -21,7 +23,35 @@ import { TestNotificationService } from '../../../../platform/notification/test/
 
 suite('CodeEditorWidget', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('updates native input bounds when the editor moves without resizing', function () {
+		if (!Reflect.has(mainWindow, 'EditContext')) {
+			this.skip();
+		}
+		const container = document.createElement('div');
+		container.style.cssText = 'position: absolute; left: 0; top: 0; width: 600px; height: 300px;';
+		document.body.appendChild(container);
+		disposables.add(toDisposable(() => container.remove()));
+		const instantiationService = createCodeEditorServices(disposables);
+		const editor = disposables.add(instantiationService.createInstance(CodeEditorWidget, container, { editContext: true }, { contributions: [] }));
+		const model = disposables.add(createTextModel('hello world'));
+		editor.setModel(model);
+		editor.render(true);
+		const editContext = container.querySelector<HTMLElement>('.native-edit-context')?.editContext;
+		assert.ok(editContext);
+		const updateSelectionBounds = sinon.spy(editContext, 'updateSelectionBounds');
+		disposables.add(toDisposable(() => updateSelectionBounds.restore()));
+		editor.render(true);
+		const initialBounds = updateSelectionBounds.lastCall.args[0];
+
+		container.style.transform = 'translateX(200px)';
+		editor.render(true);
+		const movedBounds = updateSelectionBounds.lastCall.args[0];
+		assert.strictEqual(movedBounds.left - initialBounds.left, 200);
+		assert.strictEqual(movedBounds.top, initialBounds.top);
+		assert.strictEqual(movedBounds.width, initialBounds.width);
+	});
 
 	test('preserves the documentation link when the cursor limit is reached', () => {
 		const prompts: Parameters<INotificationService['prompt']>[] = [];

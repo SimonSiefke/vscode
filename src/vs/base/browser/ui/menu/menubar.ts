@@ -90,7 +90,6 @@ export class MenuBar extends Disposable {
 	private menuWidths: readonly number[] | undefined;
 	private overflowMenuWidth: number = 0;
 	private overflowMenuActionsDirty: boolean = true;
-	private availableWidth: number | undefined;
 
 	private readonly menuDisposables = this._register(new DisposableStore());
 
@@ -121,12 +120,8 @@ export class MenuBar extends Disposable {
 
 		this._register(DOM.ModifierKeyEmitter.getInstance().event(this.onModifierKeyToggled, this));
 
-		const resizeObserver = this._register(new DOM.DisposableResizeObserver('MenuBar.overflow', entries => {
-			const entry = entries.at(-1);
-			if (entry) {
-				this.availableWidth = entry.borderBoxSize[0]?.inlineSize ?? entry.contentRect.width;
-				this.scheduleOverflowLayout();
-			}
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver('MenuBar.overflow', () => {
+			this.scheduleOverflowLayout();
 		}, DOM.getWindow(this.container)));
 		this._register(resizeObserver.observe(this.container));
 
@@ -501,7 +496,7 @@ export class MenuBar extends Disposable {
 		// Remove overflow only restriction to allow the most space
 		this.container.classList.toggle(overflowMenuOnlyClass, false);
 
-		const sizeAvailable = this.availableWidth && this.availableWidth > 0 ? this.availableWidth : this.container.offsetWidth;
+		const sizeAvailable = this.container.offsetWidth;
 		let currentSize = 0;
 		let full = this.isCompact;
 		const prevNumMenusShown = this.numMenusShown;
