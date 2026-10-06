@@ -49,6 +49,29 @@ suite('ContextKeyExpr', () => {
 		assert(a.equals(b), 'expressions should be equal');
 	});
 
+	test('key arrays are owned by their expression', () => {
+		const key = 'scmRepositoryVisible:scm123';
+		const first = ContextKeyExpr.has(key)!;
+		const second = ContextKeyExpr.has(key)!;
+		const firstKeys = first.keys();
+		firstKeys.push('other');
+		const emptyKeys = ContextKeyExpr.true().keys();
+		emptyKeys.push('other');
+		assert.deepStrictEqual({
+			first: first.keys(),
+			second: second.keys(),
+			cached: firstKeys === first.keys(),
+			constant: ContextKeyExpr.true().keys(),
+			falseConstant: ContextKeyExpr.false().keys()
+		}, {
+			first: [key, 'other'],
+			second: [key],
+			cached: true,
+			constant: [],
+			falseConstant: []
+		});
+	});
+
 	test('collectKeys matches keys', () => {
 		const expressions = [
 			'true',

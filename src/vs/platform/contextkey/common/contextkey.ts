@@ -73,18 +73,6 @@ export interface IContextKeyCollector {
 	add(key: string): unknown;
 }
 
-const EMPTY_KEYS: string[] = [];
-const SINGLE_KEY_ARRAYS = new Map<string, string[]>();
-
-function getSingleKeyArray(key: string): string[] {
-	let result = SINGLE_KEY_ARRAYS.get(key);
-	if (!result) {
-		result = [key];
-		SINGLE_KEY_ARRAYS.set(key, result);
-	}
-	return result;
-}
-
 export interface IContextKeyExpression {
 	cmp(other: ContextKeyExpression): number;
 	equals(other: ContextKeyExpression): boolean;
@@ -727,7 +715,7 @@ export class ContextKeyFalseExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return EMPTY_KEYS;
+		return [];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -772,7 +760,7 @@ export class ContextKeyTrueExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return EMPTY_KEYS;
+		return [];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -837,7 +825,7 @@ export class ContextKeyDefinedExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -914,7 +902,7 @@ export class ContextKeyEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1147,7 +1135,7 @@ export class ContextKeyNotEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1216,7 +1204,7 @@ export class ContextKeyNotExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1293,7 +1281,7 @@ export class ContextKeyGreaterExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1357,7 +1345,7 @@ export class ContextKeyGreaterEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1422,7 +1410,7 @@ export class ContextKeySmallerExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1487,7 +1475,7 @@ export class ContextKeySmallerEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1570,7 +1558,7 @@ export class ContextKeyRegexExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._keys ??= getSingleKeyArray(this.key);
+		return this._keys ??= [this.key];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
