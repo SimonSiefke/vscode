@@ -89,7 +89,7 @@ class RemoteExtensionsScannerService extends Disposable implements IRemoteExtens
 					try {
 						const knownContentHash = await this.scanCache.getContentHash(scopeKey);
 						const result = await channel.call<RemoteExtensionsScanCacheResult>('scanExtensionsWithCache', [...scanArgs, knownContentHash]);
-						if (result.type === 'hit') {
+						if (isRemoteExtensionsScanCacheResult(result) && result.type === 'hit') {
 							const cached = await this.scanCache.getExtensions(result.contentHash);
 							if (cached) {
 								this.logService.trace('Remote extensions scan cache hit', result.contentHash);
@@ -98,20 +98,23 @@ class RemoteExtensionsScannerService extends Disposable implements IRemoteExtens
 							}
 							this.logService.trace('Remote extensions scan cache miss: content not found', result.contentHash);
 							const repairedResult = await channel.call<RemoteExtensionsScanCacheResult>('scanExtensionsWithCache', [...scanArgs, undefined]);
-							if (repairedResult.type === 'miss') {
+							if (isRemoteExtensionsScanCacheResult(repairedResult) && repairedResult.type === 'miss') {
 								const scannedExtensions = repairedResult.extensions as readonly StoredRemoteExtensionDescription[];
 								await this.scanCache.store(scopeKey, repairedResult.contentHash, scannedExtensions);
 								this.logService.trace('Remote extensions scan cache repaired', repairedResult.contentHash);
 								return reviveExtensions(scannedExtensions);
 							}
-						} else {
+						} else if (isRemoteExtensionsScanCacheResult(result) && result.type === 'miss') {
 							const scannedExtensions = result.extensions as readonly StoredRemoteExtensionDescription[];
 							await this.scanCache.store(scopeKey, result.contentHash, scannedExtensions);
 							this.logService.trace('Remote extensions scan cache stored', result.contentHash);
 							return reviveExtensions(scannedExtensions);
 						}
 					} catch (error) {
-						this.logService.debug('Remote extensions scan cache failed, falling back to full scan', error);
+						if (!(error instanceof Error) || error.message !== 'Invalid call') {
+							throw error;
+						}
+						this.logService.debug('Remote extensions scan cache protocol unavailable, falling back to full scan', error);
 					}
 
 					const scannedExtensions = await channel.call<StoredRemoteExtensionDescription[]>('scanExtensions', scanArgs);
@@ -132,6 +135,19 @@ class RemoteExtensionsScannerService extends Disposable implements IRemoteExtens
 		}
 		return connection.withChannel(RemoteExtensionsScannerChannelName, (channel) => callback(channel));
 	}
+}
+
+function isRemoteExtensionsScanCacheResult(value: unknown): value is RemoteExtensionsScanCacheResult {
+	const result = value as RemoteExtensionsScanCacheResult | undefined;
+	return typeof result?.contentHash === 'string'
+		&& (result.type === 'hit' || result.type === 'miss' && Array.isArray(result.extensions) && result.extensions.every(isStoredExtensionDescription));
+}
+
+function isStoredExtensionDescription(value: unknown): value is StoredRemoteExtensionDescription {
+	const extension = value as Partial<StoredRemoteExtensionDescription> | undefined;
+	return typeof extension?.identifier?.value === 'string'
+		&& typeof extension.name === 'string' && typeof extension.publisher === 'string' && typeof extension.version === 'string'
+		&& typeof extension.extensionLocation?.scheme === 'string';
 }
 
 function reviveExtensions(scannedExtensions: readonly StoredRemoteExtensionDescription[]): IExtensionDescription[] {
@@ -155,42 +171,64 @@ class RemoteExtensionsScanIndexedDBCache extends Disposable {
 	}
 
 	async getContentHash(scopeKey: string): Promise<string | undefined> {
-		const db = await this.getDatabase();
-		if (!db) {
+		try {
+			const db = await this.getDatabase();
+			if (!db) {
+				return undefined;
+			}
+			return await db.runInTransaction<string | undefined>(RemoteExtensionsScanCacheStore.Scopes, 'readonly', store => store.get(scopeKey));
+		} catch (error) {
+			this.logService.debug('Remote extensions scan cache getContentHash failed', error);
 			return undefined;
 		}
-		return db.runInTransaction<string | undefined>(RemoteExtensionsScanCacheStore.Scopes, 'readonly', store => store.get(scopeKey));
 	}
 
 	async getExtensions(contentHash: string): Promise<readonly StoredRemoteExtensionDescription[] | undefined> {
-		const db = await this.getDatabase();
-		if (!db) {
+		try {
+			const db = await this.getDatabase();
+			if (!db) {
+				return undefined;
+			}
+			const entry = await db.runInTransaction<IRemoteExtensionsScanCacheEntry | undefined>(RemoteExtensionsScanCacheStore.Contents, 'readonly', store => store.get(contentHash));
+			if (!entry || entry.contentHash !== contentHash || !Array.isArray(entry.extensions) || !entry.extensions.every(isStoredExtensionDescription)) {
+				return undefined;
+			}
+			try {
+				await this.touch(contentHash, entry);
+			} catch (error) {
+				this.logService.debug('Remote extensions scan cache touch failed', error);
+			}
+			return entry.extensions;
+		} catch (error) {
+			this.logService.debug('Remote extensions scan cache getExtensions failed', error);
 			return undefined;
 		}
-		const entry = await db.runInTransaction<IRemoteExtensionsScanCacheEntry | undefined>(RemoteExtensionsScanCacheStore.Contents, 'readonly', store => store.get(contentHash));
-		if (!entry || entry.contentHash !== contentHash || !Array.isArray(entry.extensions)) {
-			return undefined;
-		}
-		await this.touch(contentHash, entry);
-		return entry.extensions;
 	}
 
 	async updateScope(scopeKey: string, contentHash: string): Promise<void> {
-		const db = await this.getDatabase();
-		if (!db) {
-			return;
+		try {
+			const db = await this.getDatabase();
+			if (!db) {
+				return;
+			}
+			await db.runInTransaction(RemoteExtensionsScanCacheStore.Scopes, 'readwrite', store => store.put(contentHash, scopeKey));
+		} catch (error) {
+			this.logService.debug('Remote extensions scan cache updateScope failed', error);
 		}
-		await db.runInTransaction(RemoteExtensionsScanCacheStore.Scopes, 'readwrite', store => store.put(contentHash, scopeKey));
 	}
 
 	async store(scopeKey: string, contentHash: string, extensions: readonly StoredRemoteExtensionDescription[]): Promise<void> {
-		const db = await this.getDatabase();
-		if (!db) {
-			return;
+		try {
+			const db = await this.getDatabase();
+			if (!db) {
+				return;
+			}
+			await db.runInTransaction(RemoteExtensionsScanCacheStore.Contents, 'readwrite', store => store.put({ contentHash, extensions, lastUsed: Date.now() }, contentHash));
+			await this.updateScope(scopeKey, contentHash);
+			await this.prune();
+		} catch (error) {
+			this.logService.debug('Remote extensions scan cache store failed', error);
 		}
-		await db.runInTransaction(RemoteExtensionsScanCacheStore.Contents, 'readwrite', store => store.put({ contentHash, extensions, lastUsed: Date.now() }, contentHash));
-		await this.updateScope(scopeKey, contentHash);
-		await this.prune();
 	}
 
 	private async touch(contentHash: string, entry: IRemoteExtensionsScanCacheEntry): Promise<void> {
