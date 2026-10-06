@@ -9,6 +9,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { CodeEditorWidget } from '../../../browser/widget/codeEditor/codeEditorWidget.js';
+import { IOverlayWidget, OverlayWidgetPositionPreference } from '../../../browser/editorBrowser.js';
 import { Range } from '../../../common/core/range.js';
 import { Selection } from '../../../common/core/selection.js';
 import { ILanguageService } from '../../../common/languages/language.js';
@@ -24,6 +25,39 @@ import { TestNotificationService } from '../../../../platform/notification/test/
 suite('CodeEditorWidget', () => {
 
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	for (const [position, preference] of [['center', OverlayWidgetPositionPreference.TOP_CENTER], ['right', OverlayWidgetPositionPreference.TOP_RIGHT_CORNER]] as const) {
+		test(`refreshes ${position} overlay stack dimensions during a forced render`, async () => {
+			const container = document.createElement('div');
+			container.style.cssText = 'position: absolute; left: 0; top: 0; width: 600px; height: 300px;';
+			document.body.appendChild(container);
+			disposables.add(toDisposable(() => container.remove()));
+			const instantiationService = createCodeEditorServices(disposables);
+			const editor = disposables.add(instantiationService.createInstance(CodeEditorWidget, container, {}, { contributions: [] }));
+			editor.setModel(disposables.add(createTextModel('hello world')));
+			const nodes = [document.createElement('div'), document.createElement('div')];
+			for (const [index, node] of nodes.entries()) {
+				node.style.cssText = 'width: 20px; height: 20px;';
+				const widget: IOverlayWidget = {
+					getId: () => `test.overlay.${index}`,
+					getDomNode: () => node,
+					getPosition: () => ({ preference, stackOrdinal: index }),
+				};
+				editor.addOverlayWidget(widget);
+				disposables.add(toDisposable(() => editor.removeOverlayWidget(widget)));
+			}
+			editor.render(true);
+			for (let frame = 0; frame < 4; frame++) {
+				await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+			}
+			assert.strictEqual(nodes[1].style.top, '20px');
+
+			nodes[0].style.width = '60px';
+			nodes[0].style.height = '60px';
+			editor.render(true);
+			assert.strictEqual(nodes[1].style.top, '60px');
+		});
+	}
 
 	test('updates native input bounds when the editor moves without resizing', function () {
 		if (!Reflect.has(mainWindow, 'EditContext')) {

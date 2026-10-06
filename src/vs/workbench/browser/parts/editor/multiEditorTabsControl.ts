@@ -143,7 +143,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	};
 
 	private readonly layoutScheduler = this._register(new MutableDisposable<IScheduledMultiEditorTabsControlLayout>());
-	private readonly layoutTabsNonWrappingScheduler = this._register(new RunOnceScheduler(() => this.doLayoutTabsNonWrapping({ forceRevealActiveTab: true }), 50));
+	private readonly layoutTabsNonWrappingScheduler = this._register(new RunOnceScheduler(() => this.doLayoutTabsNonWrapping(), 50));
 	private blockRevealActiveTab: boolean | undefined;
 
 	private path: IPath = isWindows ? win32 : posix;
@@ -2117,8 +2117,9 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		assertReturnsDefined(this.tabsContainer).style.overflow = overflow;
 		assertReturnsDefined(this.tabsScrollbar).getDomNode().style.overflow = overflow;
 		if (!tabsWrapMultiLine) {
-			this.doLayoutTabsNonWrapping(options);
+			this.layoutTabsNonWrapping(options);
 		} else {
+			this.layoutTabsNonWrappingScheduler.cancel();
 			assertReturnsDefined(this.stickyTabsBackground).style.width = '0px';
 			this.clearConnectedTabClipping();
 		}
@@ -2330,18 +2331,18 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		return tabsWrapMultiLine;
 	}
 
-	private doLayoutTabsNonWrapping(options?: IMultiEditorTabsControlLayoutOptions): void {
-		const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
+	private layoutTabsNonWrapping(options?: IMultiEditorTabsControlLayoutOptions): void {
 		if (!options?.forceRevealActiveTab && !this.blockRevealActiveTab && !this.connectedTabLabels && !this.connectedTabBounds) {
-			// CSS responds to intermediate dimensions without requiring any DOM
-			// reads. Defer scrollbar and reveal bookkeeping until resizing settles.
 			// Connected tabs need current geometry to clip their curved edges.
 			this.layoutTabsNonWrappingScheduler.schedule();
 			return;
 		}
-		if (options?.forceRevealActiveTab) {
-			this.layoutTabsNonWrappingScheduler.cancel();
-		}
+		this.layoutTabsNonWrappingScheduler.cancel();
+		this.doLayoutTabsNonWrapping(options);
+	}
+
+	private doLayoutTabsNonWrapping(options?: IMultiEditorTabsControlLayoutOptions): void {
+		const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
 
 		//
 		// Synopsis

@@ -12,7 +12,6 @@ import { ViewContext } from '../../../common/viewModel/viewContext.js';
 import * as viewEvents from '../../../common/viewEvents.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
 import * as dom from '../../../../base/browser/dom.js';
-import { combinedDisposable, IDisposable } from '../../../../base/common/lifecycle.js';
 
 
 interface IWidgetData {
@@ -20,9 +19,6 @@ interface IWidgetData {
 	preference: OverlayWidgetPositionPreference | IOverlayWidgetPositionCoordinates | null;
 	stack?: number;
 	domNode: FastDomNode<HTMLElement>;
-	width?: number;
-	height?: number;
-	resizeObserver: IDisposable;
 }
 
 interface IWidgetMap {
@@ -75,7 +71,6 @@ export class ViewOverlayWidgets extends ViewPart {
 		super.dispose();
 		// Widgets outlive the view, so detach their dom nodes to not keep this view's DOM alive (#146841)
 		for (const widgetData of Object.values(this._widgets)) {
-			widgetData.resizeObserver.dispose();
 			const domNode = widgetData.domNode.domNode;
 			if (domNode.parentElement === this._domNode.domNode || domNode.parentElement === this.overflowingOverlayWidgetsDomNode.domNode) {
 				domNode.remove();
@@ -112,24 +107,12 @@ export class ViewOverlayWidgets extends ViewPart {
 
 	public addWidget(widget: IOverlayWidget): void {
 		const domNode = createFastDomNode(widget.getDomNode());
-		const widgetId = widget.getId();
-		const resizeObserver = new dom.DisposableResizeObserver('ViewOverlayWidgets.widget', () => {
-			const widgetData = this._widgets[widgetId];
-			if (widgetData) {
-				// ResizeObserver runs after layout, so these preserve the exact client
-				// dimensions without forcing another synchronous layout.
-				widgetData.width = domNode.domNode.clientWidth;
-				widgetData.height = domNode.domNode.clientHeight;
-				this.setShouldRender();
-			}
-		}, dom.getWindow(domNode.domNode));
-		const widgetData: IWidgetData = {
+
+		this._widgets[widget.getId()] = {
 			widget: widget,
 			preference: null,
-			domNode,
-			resizeObserver: combinedDisposable(resizeObserver, resizeObserver.observe(domNode.domNode))
+			domNode: domNode
 		};
-		this._widgets[widgetId] = widgetData;
 
 		// This is sync because a widget wants to be in the dom
 		domNode.setPosition('absolute');
@@ -167,7 +150,6 @@ export class ViewOverlayWidgets extends ViewPart {
 		if (this._widgets.hasOwnProperty(widgetId)) {
 			const widgetData = this._widgets[widgetId];
 			const domNode = widgetData.domNode.domNode;
-			widgetData.resizeObserver.dispose();
 			delete this._widgets[widgetId];
 
 			domNode.remove();
@@ -209,7 +191,7 @@ export class ViewOverlayWidgets extends ViewPart {
 
 			if (widgetData.stack !== undefined) {
 				domNode.setTop(stackCoordinates[widgetData.preference]);
-				stackCoordinates[widgetData.preference] += widgetData.width ?? domNode.domNode.clientWidth;
+				stackCoordinates[widgetData.preference] += domNode.domNode.clientWidth;
 			} else {
 				domNode.setRight(maxRight);
 			}
@@ -217,7 +199,7 @@ export class ViewOverlayWidgets extends ViewPart {
 			domNode.domNode.style.right = '50%';
 			if (widgetData.stack !== undefined) {
 				domNode.setTop(stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER]);
-				stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER] += widgetData.height ?? domNode.domNode.clientHeight;
+				stackCoordinates[OverlayWidgetPositionPreference.TOP_CENTER] += domNode.domNode.clientHeight;
 			} else {
 				domNode.setTop(0);
 			}
