@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
+import sinon from 'sinon';
 import { timeout } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { dirname, joinPath } from '../../../../base/common/resources.js';
@@ -88,6 +89,31 @@ suite('NativeExtensionsScanerService Test', () => {
 		instantiationService.stub(IExtensionsProfileScannerService, disposables.add(new ExtensionsProfileScannerService(environmentService, fileService, userDataProfilesService, uriIdentityService, logService)));
 		await fileService.createFolder(systemExtensionsLocation);
 		await fileService.createFolder(userExtensionsLocation);
+	});
+
+	test('concurrent system scans share reads and keep separate results', async () => {
+		const extensionLocation = await aSystemExtension(anExtensionManifest({ name: 'name', publisher: 'pub' }));
+		const testObject: IExtensionsScannerService = disposables.add(instantiationService.createInstance(ExtensionsScannerService));
+		const fileService = instantiationService.get(IFileService);
+		const readFile = sinon.spy(fileService, 'readFile');
+		try {
+			const [first, second] = await Promise.all([testObject.scanSystemExtensions({}), testObject.scanSystemExtensions({})]);
+			const manifestReads = readFile.getCalls().filter(call => call.args[0].toString() === joinPath(extensionLocation, 'package.json').toString()).length;
+			first[0].manifest.version = 'modified';
+			await fileService.writeFile(joinPath(extensionLocation, 'package.json'), VSBuffer.fromString(JSON.stringify(anExtensionManifest({ name: 'name', publisher: 'pub', version: '2.0.0' }))));
+			const later = await testObject.scanSystemExtensions({});
+			assert.deepStrictEqual({ manifestReads, secondVersion: second[0].manifest.version, laterVersion: later[0].manifest.version }, {
+				manifestReads: 1, secondVersion: '1.0.0', laterVersion: '2.0.0'
+			});
+		} finally {
+			readFile.restore();
+		}
+	});
+
+	test('system scans still validate invalid manifests', async () => {
+		await aSystemExtension({ name: 'invalid', publisher: 'pub', version: '1.0.0' });
+		const testObject: IExtensionsScannerService = disposables.add(instantiationService.createInstance(ExtensionsScannerService));
+		assert.deepStrictEqual(await testObject.scanSystemExtensions({}), []);
 	});
 
 	test('scan system extension', async () => {
