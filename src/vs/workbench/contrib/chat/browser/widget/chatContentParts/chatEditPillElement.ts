@@ -58,7 +58,7 @@ export class ChatEditPillElement extends Disposable {
 	private _uri: URI | undefined;
 	get uri(): URI | undefined { return this._uri; }
 
-	private _statusIconClasses: string[] = [];
+	private _statusIconClasses: readonly string[] = [];
 	private _pillIconClasses: string[] = [];
 
 	private _labelAddedEl: HTMLElement | undefined;
