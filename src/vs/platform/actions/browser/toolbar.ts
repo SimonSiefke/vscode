@@ -379,7 +379,6 @@ export class MenuWorkbenchToolBar extends WorkbenchToolBar {
 			? {
 				...options.menuOptions,
 				skipMenuHideActions: true,
-				skipConfigureKeybindingAction: true,
 			}
 			: options?.menuOptions;
 		this._toolbarOptions = options?.toolbarOptions;

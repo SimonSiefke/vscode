@@ -246,6 +246,8 @@ class MenuInfoSnapshot {
 	private _structureContextKeys: Set<string> = new Set();
 	private _preconditionContextKeys: Set<string> = new Set();
 	private _toggledContextKeys: Set<string> = new Set();
+	readonly cacheContextKeys = new Set<string>();
+	readonly cacheMenuIds = new Set<MenuId>();
 
 	constructor(
 		protected readonly _id: MenuId,
@@ -286,6 +288,35 @@ class MenuInfoSnapshot {
 			this._collectContextKeysAndSubmenuIds(item);
 		}
 		this._allMenuIds.add(this._id);
+		this.refreshCacheDependencies(menuItems);
+	}
+
+	refreshCacheDependencies(menuItems = MenuRegistry.getMenuItems(this._id)): void {
+		this.cacheContextKeys.clear();
+		this.cacheMenuIds.clear();
+		const collect = (id: MenuId, items: (IMenuItem | ISubmenuItem)[]) => {
+			if (this.cacheMenuIds.has(id)) {
+				return;
+			}
+			this.cacheMenuIds.add(id);
+			for (const item of items) {
+				MenuInfoSnapshot._fillInKbExprKeys(item.when, this.cacheContextKeys);
+				if (isIMenuItem(item)) {
+					for (const command of [item.command, item.alt]) {
+						if (command) {
+							MenuInfoSnapshot._fillInKbExprKeys(command.precondition, this.cacheContextKeys);
+							const toggled = command.toggled;
+							if (toggled) {
+								MenuInfoSnapshot._fillInKbExprKeys((toggled as { condition: ContextKeyExpression }).condition || toggled, this.cacheContextKeys);
+							}
+						}
+					}
+				} else {
+					collect(item.submenu, MenuRegistry.getMenuItems(item.submenu));
+				}
+			}
+		};
+		collect(this._id, menuItems);
 	}
 
 	protected _sort(menuItems: (IMenuItem | ISubmenuItem)[]) {
@@ -432,6 +463,13 @@ class MenuImpl implements IMenu {
 		}, options.eventDebounceDelay);
 		this._disposables.add(rebuildMenuSoon);
 		this._disposables.add(MenuRegistry.onDidChangeMenu(e => {
+			for (const id of this._menuInfo.cacheMenuIds) {
+				if (e.has(id)) {
+					this._cachedActionGroups.clear();
+					this._menuInfo.refreshCacheDependencies();
+					break;
+				}
+			}
 			for (const id of this._menuInfo.allMenuIds) {
 				if (e.has(id)) {
 					rebuildMenuSoon.schedule();
@@ -468,6 +506,9 @@ class MenuImpl implements IMenu {
 			this._isChangeListenerActive = true;
 
 			lazyListener.add(contextKeyService.onDidChangeContext(e => {
+				if (e.affectsSome(this._menuInfo.cacheContextKeys)) {
+					this._cachedActionGroups.clear();
+				}
 				const isStructuralChange = e.affectsSome(this._menuInfo.structureContextKeys);
 				const isEnablementChange = e.affectsSome(this._menuInfo.preconditionContextKeys);
 				const isToggleChange = e.affectsSome(this._menuInfo.toggledContextKeys);
