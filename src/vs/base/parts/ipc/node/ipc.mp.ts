@@ -13,12 +13,15 @@ import { assertType } from '../../../common/types.js';
  * The MessagePort `Protocol` leverages MessagePortMain style IPC communication
  * for the implementation of the `IMessagePassingProtocol`.
  */
-class Protocol implements IStructuredCloneMessagePassingProtocol {
+export class Protocol implements IStructuredCloneMessagePassingProtocol {
 
 	readonly type = 'structuredClone';
 	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
 	private readonly messageListener = (event: MessageEvent) => {
-		const message = event.data as IStructuredCloneMessage;
+		const message = event.data as IStructuredCloneMessage | null | undefined;
+		if (!message) {
+			return;
+		}
 		for (const listener of this.listeners) {
 			listener(message.header, message.body);
 		}

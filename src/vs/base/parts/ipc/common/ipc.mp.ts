@@ -14,7 +14,7 @@ import { IPCClient, IStructuredCloneMessage, IStructuredCloneMessagePassingProto
 
 export interface MessageEvent {
 
-	data: IStructuredCloneMessage;
+	data: IStructuredCloneMessage | null | undefined;
 }
 
 export interface MessagePort {
@@ -38,8 +38,12 @@ export class Protocol implements IStructuredCloneMessagePassingProtocol {
 	readonly type = 'structuredClone';
 	private readonly listeners = new Set<(header: unknown, body: unknown) => void>();
 	private readonly messageListener = (event: MessageEvent) => {
+		const message = event.data;
+		if (!message) {
+			return;
+		}
 		for (const listener of this.listeners) {
-			listener(event.data.header, event.data.body);
+			listener(message.header, message.body);
 		}
 	};
 

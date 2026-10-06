@@ -7,9 +7,36 @@ import assert from 'assert';
 import { CancellationToken } from '../../../../common/cancellation.js';
 import { Event } from '../../../../common/event.js';
 import { Client as MessagePortClient } from '../../browser/ipc.mp.js';
+import { Protocol } from '../../common/ipc.mp.js';
+import { toDisposable } from '../../../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
 
 suite('IPC, MessagePorts', () => {
+
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('ignores empty frames before dispatching structured clone messages', async () => {
+		const { port1, port2 } = new MessageChannel();
+		const protocol = new Protocol(port1);
+		disposables.add(toDisposable(() => {
+			protocol.disconnect();
+			port2.close();
+		}));
+		const received: { header: unknown; body: unknown }[] = [];
+		const delivered = new Promise<void>(resolve => {
+			disposables.add(protocol.onMessage((header, body) => {
+				received.push({ header, body });
+				resolve();
+			}));
+		});
+
+		port2.postMessage(null);
+		port2.postMessage(undefined);
+		port2.postMessage({ header: [200, 1], body: 'ready' });
+		await delivered;
+
+		assert.deepStrictEqual(received, [{ header: [200, 1], body: 'ready' }]);
+	});
 
 	test('message passing', async () => {
 		const { port1, port2 } = new MessageChannel();
@@ -57,5 +84,4 @@ suite('IPC, MessagePorts', () => {
 		client2.dispose();
 	});
 
-	ensureNoDisposablesAreLeakedInTestSuite();
 });
