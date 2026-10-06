@@ -27,6 +27,7 @@ import { UriIdentityService } from '../../../uriIdentity/common/uriIdentityServi
 import { IUserDataProfilesService, UserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
 
 let translations: Translations = Object.create(null);
+let translationsError: Error | undefined;
 const ROOT = URI.file('/ROOT');
 
 // Comfortably longer than the throttle the scanner uses before it validates a cache hit
@@ -53,6 +54,9 @@ class ExtensionsScannerService extends AbstractExtensionsScannerService implemen
 	}
 
 	protected async getTranslations(language: string): Promise<Translations> {
+		if (translationsError) {
+			throw translationsError;
+		}
 		return translations;
 	}
 
@@ -65,6 +69,7 @@ suite('NativeExtensionsScanerService Test', () => {
 
 	setup(async () => {
 		translations = {};
+		translationsError = undefined;
 		instantiationService = disposables.add(new TestInstantiationService());
 		const logService = new NullLogService();
 		const fileService = disposables.add(new FileService(logService));
@@ -105,6 +110,31 @@ suite('NativeExtensionsScanerService Test', () => {
 			assert.deepStrictEqual({ manifestReads, secondVersion: second[0].manifest.version, laterVersion: later[0].manifest.version }, {
 				manifestReads: 1, secondVersion: '1.0.0', laterVersion: '2.0.0'
 			});
+		} finally {
+			readFile.restore();
+		}
+	});
+
+	test('failed concurrent system scans can be retried', async () => {
+		await aSystemExtension(anExtensionManifest({ name: 'name', publisher: 'pub' }));
+		const testObject: IExtensionsScannerService = disposables.add(instantiationService.createInstance(ExtensionsScannerService));
+		translationsError = new Error('translations unavailable');
+		await Promise.all([
+			assert.rejects(testObject.scanSystemExtensions({}), /translations unavailable/),
+			assert.rejects(testObject.scanSystemExtensions({}), /translations unavailable/)
+		]);
+		translationsError = undefined;
+		assert.deepStrictEqual((await testObject.scanSystemExtensions({})).map(extension => extension.identifier.id), ['pub.name']);
+	});
+
+	test('concurrent system scans keep languages separate', async () => {
+		const extensionLocation = await aSystemExtension(anExtensionManifest({ name: 'name', publisher: 'pub' }));
+		const testObject: IExtensionsScannerService = disposables.add(instantiationService.createInstance(ExtensionsScannerService));
+		const fileService = instantiationService.get(IFileService);
+		const readFile = sinon.spy(fileService, 'readFile');
+		try {
+			await Promise.all([testObject.scanSystemExtensions({ language: 'en' }), testObject.scanSystemExtensions({ language: 'de' })]);
+			assert.strictEqual(readFile.getCalls().filter(call => call.args[0].toString() === joinPath(extensionLocation, 'package.json').toString()).length, 2);
 		} finally {
 			readFile.restore();
 		}
