@@ -14,6 +14,7 @@ import { createSingleCallFunction } from '../../../common/functional.js';
 import { DisposableStore, dispose, IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { revive } from '../../../common/marshalling.js';
 import * as strings from '../../../common/strings.js';
+import { deserializeStructuredClone, serializeStructuredClone } from './ipcStructuredClone.js';
 import { isFunction, isUndefinedOrNull } from '../../../common/types.js';
 
 /**
@@ -136,7 +137,7 @@ function onceStructuredCloneMessage(protocol: IStructuredCloneMessagePassingProt
 
 function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
 	if (protocol.type === 'structuredClone') {
-		protocol.send(header, body);
+		protocol.send(serializeStructuredClone(header), serializeStructuredClone(body));
 		return 0;
 	}
 
@@ -401,7 +402,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 
 	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
 		this.protocolListener = protocol.type === 'structuredClone'
-			? protocol.onMessage((header, body) => this.onMessage(header, body, 0))
+			? protocol.onMessage((header, body) => this.onMessage(deserializeStructuredClone(header), deserializeStructuredClone(body), 0))
 			: protocol.onMessage(message => this.onRawMessage(message));
 		this.sendResponse({ type: ResponseType.Initialize });
 	}
@@ -603,7 +604,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 
 	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
 		this.protocolListener = protocol.type === 'structuredClone'
-			? protocol.onMessage((header, body) => this.onMessage(header, body, 0))
+			? protocol.onMessage((header, body) => this.onMessage(deserializeStructuredClone(header), deserializeStructuredClone(body), 0))
 			: protocol.onMessage(message => this.onBuffer(message));
 		this.logger = logger;
 	}
@@ -887,7 +888,7 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 			const connectionDisposables = new DisposableStore();
 
 			const onFirstMessageDisposable = (protocol.type === 'structuredClone'
-				? onceStructuredCloneMessage(protocol, header => this.initializeConnection(protocol, header as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay))
+				? onceStructuredCloneMessage(protocol, header => this.initializeConnection(protocol, deserializeStructuredClone(header) as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay))
 				: Event.once(protocol.onMessage)(message => {
 					const reader = new BufferReader(message);
 					this.initializeConnection(protocol, deserialize(reader) as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay);

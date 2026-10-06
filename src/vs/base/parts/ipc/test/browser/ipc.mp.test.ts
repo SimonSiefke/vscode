@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { VSBuffer } from '../../../../common/buffer.js';
+import { URI } from '../../../../common/uri.js';
 import { CancellationToken } from '../../../../common/cancellation.js';
 import { Event } from '../../../../common/event.js';
 import { Client as MessagePortClient } from '../../browser/ipc.mp.js';
@@ -36,6 +38,22 @@ suite('IPC, MessagePorts', () => {
 		await delivered;
 
 		assert.deepStrictEqual(received, [{ header: [200, 1], body: 'ready' }]);
+	});
+
+	test('real MessagePorts preserve native values in nested request and response payloads', async () => {
+		const { port1, port2 } = new MessageChannel();
+		const one = disposables.add(new MessagePortClient(port1, 'one'));
+		const two = disposables.add(new MessagePortClient(port2, 'two'));
+		one.registerChannel('values', {
+			call: async (_context, _command, value) => {
+				assert.ok(value.nested.uri instanceof URI && value.nested.bytes instanceof VSBuffer);
+				return value;
+			},
+			listen: () => Event.None
+		});
+		const input = { uri: URI.file('/tmp/port.txt'), bytes: VSBuffer.wrap(Uint8Array.from([0, 1, 2, 3]).subarray(1, 3)) };
+		const result = await two.getChannel('values').call<{ nested: typeof input }>('echo', { nested: input });
+		assert.deepStrictEqual({ uri: result.nested.uri.with({ path: '/changed' }).toString(), bytes: [...result.nested.bytes.buffer] }, { uri: 'file:///changed', bytes: [1, 2] });
 	});
 
 	test('message passing', async () => {

@@ -299,7 +299,7 @@ suite('Base IPC', function () {
 		assert.strictEqual(b3, b4);
 	});
 
-	test('structured clone protocol sends plain envelopes without pre-processing data', async function () {
+	test('structured clone protocol preserves native cloneable values', async function () {
 		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
 		const channelDisposables = store.add(new DisposableStore());
 		const server = store.add(new ChannelServer(serverProtocol, 'ctx'));
@@ -320,7 +320,7 @@ suite('Base IPC', function () {
 		const result = await service.echo(input) as typeof input;
 
 		assert.deepStrictEqual({
-			headerIsArray: Array.isArray(clientProtocol.lastSent?.header),
+			headerIsArray: Array.isArray(clientProtocol.lastSent?.header) || Array.isArray((clientProtocol.lastSent?.header as { value?: unknown })?.value),
 			messageIsBuffer: clientProtocol.lastSent instanceof VSBuffer,
 			regexp: result.regexp.toString(),
 			bytesIsUint8Array: result.bytes instanceof Uint8Array,
@@ -336,6 +336,52 @@ suite('Base IPC', function () {
 			map: 42,
 			cycle: true
 		});
+	});
+
+	test('structured clone channels preserve nested VSBuffer and URI arguments, results and events', async () => {
+		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+		const emitter = store.add(new Emitter<{ bytes: VSBuffer; uri: URI }>());
+		const server = store.add(new ChannelServer(serverProtocol, 'ctx'));
+		server.registerChannel('values', {
+			call: async (_context, _command, value) => {
+				assert.ok(value.bytes instanceof VSBuffer && value.uri instanceof URI);
+				assert.strictEqual(value.bytes.toString(), 'clipboard');
+				return value;
+			},
+			listen: <T>() => emitter.event as Event<T>
+		});
+		const client = store.add(new ChannelClient(clientProtocol));
+		const channel = client.getChannel('values');
+		const bytes = VSBuffer.fromString('clipboard');
+		const uri = URI.file('/tmp/copied-file.txt');
+		const input = { bytes, uri, alias: bytes, raw: bytes.buffer, map: new Map([[uri, bytes]]), set: new Set([uri]) };
+		const result = await channel.call<typeof input>('echo', input);
+		const pending = Event.toPromise(channel.listen<{ bytes: VSBuffer; uri: URI }>('onValues'));
+		emitter.fire({ bytes, uri });
+		const event = await pending;
+		assert.deepStrictEqual({
+			buffer: result.bytes.toString(), alias: result.bytes === result.alias,
+			raw: result.raw instanceof Uint8Array && !(result.raw instanceof VSBuffer),
+			uri: result.uri.with({ path: '/changed' }).toString(),
+			map: result.map.get(result.uri) === result.bytes, set: result.set.has(result.uri),
+			eventBuffer: event.bytes.toString(), eventUri: event.uri.with({ path: '/event' }).toString()
+		}, {
+			buffer: 'clipboard', alias: true, raw: true, uri: 'file:///changed', map: true, set: true,
+			eventBuffer: 'clipboard', eventUri: 'file:///event'
+		});
+	});
+
+	test('structured clone connection context preserves VSBuffer and URI', async () => {
+		const connect = store.add(new Emitter<ClientConnectionEvent>());
+		const server = store.add(new IPCServer<{ bytes: VSBuffer; uri: URI }>(connect.event));
+		server.registerChannel('context', {
+			call: async <T>(context: { bytes: VSBuffer; uri: URI }) => ({ text: context.bytes.toString(), uri: context.uri.with({ path: '/context' }).toString() }) as T,
+			listen: () => Event.None
+		});
+		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+		connect.fire({ protocol: serverProtocol, onDidClientDisconnect: Event.None });
+		const client = store.add(new IPCClient(clientProtocol, { bytes: VSBuffer.fromString('context'), uri: URI.file('/original') }));
+		assert.deepStrictEqual(await client.getChannel('context').call('read'), { text: 'context', uri: 'file:///context' });
 	});
 
 	test('electron structured clone protocol sends header and body as separate arguments', function () {
