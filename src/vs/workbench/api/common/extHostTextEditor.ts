@@ -23,12 +23,13 @@ export class TextEditorDecorationType {
 
 	readonly value: vscode.TextEditorDecorationType;
 
-	constructor(proxy: MainThreadTextEditorsShape, extension: IExtensionDescription, options: vscode.DecorationRenderOptions) {
+	constructor(proxy: MainThreadTextEditorsShape, extension: IExtensionDescription, options: vscode.DecorationRenderOptions, onDispose: (key: string) => void) {
 		const key = TextEditorDecorationType._Keys.nextId();
 		proxy.$registerTextEditorDecorationType(extension.identifier, key, TypeConverters.DecorationRenderOptions.from(options));
 		this.value = Object.freeze({
 			key,
 			dispose() {
+				onDispose(key);
 				proxy.$removeTextEditorDecorationType(key);
 			}
 		});
@@ -589,6 +590,10 @@ export class ExtHostTextEditor {
 	}
 
 	// --- incoming: extension host MUST accept what the renderer says
+
+	_acceptDecorationTypeRemoved(key: string): void {
+		this._hasDecorationsForKey.delete(key);
+	}
 
 	_acceptOptions(options: IResolvedTextEditorConfiguration): void {
 		ok(!this._disposed);
