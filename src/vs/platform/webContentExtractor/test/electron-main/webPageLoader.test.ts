@@ -51,7 +51,8 @@ class MockWebContents {
 			onBeforeSendHeaders: sinon.stub(),
 			onHeadersReceived: sinon.stub()
 		},
-		on: sinon.stub()
+		on: sinon.stub(),
+		removeListener: sinon.stub()
 	};
 
 	constructor() {
@@ -155,6 +156,46 @@ suite('WebPageLoader', () => {
 		disposables.add(loader);
 		return loader;
 	}
+
+	test('session callbacks are released on disposal', () => {
+		const loader = createWebPageLoader(URI.parse('https://example.com/page'));
+		const session = window.webContents.session;
+		const downloadListener = session.on.firstCall.args[1];
+		loader.dispose();
+		loader.dispose();
+		assert.deepStrictEqual({
+			request: session.webRequest.onBeforeRequest.lastCall.args,
+			headers: session.webRequest.onBeforeSendHeaders.lastCall.args,
+			response: session.webRequest.onHeadersReceived.lastCall.args,
+			download: session.removeListener.args,
+		}, { request: [null], headers: [null], response: [null], download: [['will-download', downloadListener]] });
+	});
+
+	test('session cleanup preserves another active loader', () => {
+		const first = createWebPageLoader(URI.parse('https://example.com/first'));
+		const firstSession = window.webContents.session;
+		createWebPageLoader(URI.parse('https://example.com/second'));
+		const secondSession = window.webContents.session;
+		first.dispose();
+		assert.deepStrictEqual({
+			first: firstSession.webRequest.onBeforeRequest.lastCall.args,
+			second: [
+				typeof secondSession.webRequest.onBeforeRequest.lastCall.args[0],
+				typeof secondSession.webRequest.onBeforeSendHeaders.lastCall.args[0],
+				typeof secondSession.webRequest.onHeadersReceived.lastCall.args[0],
+			],
+			secondRemoved: secondSession.removeListener.callCount,
+		}, { first: [null], second: ['function', 'function', 'function'], secondRemoved: 0 });
+	});
+
+	test('session callbacks are released when loading fails', async () => {
+		const loader = createWebPageLoader(URI.parse('https://example.com/page'));
+		const session = window.webContents.session;
+		const request = loader.load();
+		window.webContents.emit('did-fail-load', {}, -6, 'ERR_CONNECTION_REFUSED');
+		const result = await request;
+		assert.deepStrictEqual({ status: result.status, request: session.webRequest.onBeforeRequest.lastCall.args }, { status: 'error', request: [null] });
+	});
 
 	function createMockAXNodes(): AXNode[] {
 		return [
