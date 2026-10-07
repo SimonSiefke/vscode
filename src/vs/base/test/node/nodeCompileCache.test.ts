@@ -58,8 +58,15 @@ suite('Node compile cache', () => {
 		assert.strictEqual(fs.existsSync(join(root, 'main', '.ready')), false);
 	});
 
-	posixTest('records readiness from another helper module instance', () => {
-		assert.deepStrictEqual(run({ VSCODE_NODE_COMPILE_CACHE_KIND: 'extension-host' }, true), { generating: false, enabled: true, runtimeCache: true, status: 'enabled' });
+	test('records readiness from another helper module instance', () => {
+		const environment = {
+			VSCODE_NODE_COMPILE_CACHE_KIND: 'extension-host',
+			VSCODE_NODE_COMPILE_CACHE_ROOT: join(testDirectory, 'packaged')
+		};
+		const expected = process.platform === 'win32'
+			? { generating: false, enabled: false, runtimeCache: false, status: 'missing' }
+			: { generating: false, enabled: true, runtimeCache: true, status: 'enabled' };
+		assert.deepStrictEqual(run(environment, true), expected);
 	});
 
 	posixTest('respects the Node compile cache opt-out', () => {
