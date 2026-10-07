@@ -254,6 +254,8 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 
 	// Have to use ! because this gets initialized via an RPC proxy
 	private _activeGroupId!: number;
+	// Keep this outside model updates so it cannot retain maps of old groups.
+	private readonly _activeGroupIdGetter = () => this._activeGroupId;
 
 	private _extHostTabGroups: ExtHostEditorTabGroup[] = [];
 
@@ -334,7 +336,7 @@ export class ExtHostEditorTabs implements IExtHostEditorTabs {
 				changed.push(existing.apiObject);
 				return existing;
 			}
-			const group = new ExtHostEditorTabGroup(tabGroup, () => this._activeGroupId);
+			const group = new ExtHostEditorTabGroup(tabGroup, this._activeGroupIdGetter);
 			opened.push(group.apiObject);
 			return group;
 		});
