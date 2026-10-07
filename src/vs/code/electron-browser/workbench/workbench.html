@@ -74,6 +74,9 @@
 
 		<!-- Prepare the workbench bundle while window configuration is resolved. -->
 		<link rel="modulepreload" href="../../../workbench/workbench.desktop.main.js">
+
+		<!-- Load the icon font before the first workbench layout. -->
+		<link rel="preload" href="../../../../media/codicon.ttf" as="font" type="font/ttf" crossorigin="anonymous">
 	</head>
 
 	<body aria-label="">
