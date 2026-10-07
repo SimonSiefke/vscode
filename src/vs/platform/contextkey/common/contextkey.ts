@@ -1746,9 +1746,10 @@ export class ContextKeyAndExpr implements IContextKeyExpression {
 
 		// resolve false AND expressions
 		if (extraRedundantCheck) {
-			for (let i = 0; i < expr.length; i++) {
+			for (let i = 0; i < expr.length - 1; i++) {
+				const negatedExpr = expr[i].negate();
 				for (let j = i + 1; j < expr.length; j++) {
-					if (expr[i].negate().equals(expr[j])) {
+					if (negatedExpr.equals(expr[j])) {
 						// A && !A case
 						return ContextKeyFalseExpr.INSTANCE;
 					}
@@ -1916,9 +1917,10 @@ export class ContextKeyOrExpr implements IContextKeyExpression {
 
 		// resolve true OR expressions
 		if (extraRedundantCheck) {
-			for (let i = 0; i < expr.length; i++) {
+			for (let i = 0; i < expr.length - 1; i++) {
+				const negatedExpr = expr[i].negate();
 				for (let j = i + 1; j < expr.length; j++) {
-					if (expr[i].negate().equals(expr[j])) {
+					if (negatedExpr.equals(expr[j])) {
 						// A || !A case
 						return ContextKeyTrueExpr.INSTANCE;
 					}
