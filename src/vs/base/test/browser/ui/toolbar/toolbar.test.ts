@@ -55,6 +55,33 @@ suite('ToolBar', () => {
 		container.remove();
 	});
 
+	test('does not measure an empty responsive toolbar', () => {
+		const measurements: boolean[] = [];
+		const toolbar = store.add(new ToolBar(container, contextMenuProvider, {
+			responsiveBehavior: {
+				enabled: true,
+				kind: 'all',
+				minItems: 1,
+				getAvailableWidth: () => {
+					measurements.push(toolbar.isEmpty());
+					return 273;
+				}
+			}
+		}));
+		const action = store.add(new Action('action', 'Action'));
+
+		toolbar.setActions([]);
+		toolbar.relayout();
+		toolbar.setActions([action]);
+		toolbar.relayout();
+		toolbar.setActions([], [action]);
+		toolbar.relayout();
+		toolbar.setActions([]);
+		toolbar.relayout();
+
+		assert.deepStrictEqual(measurements, [false, false, false, false]);
+	});
+
 	test('keeps the last primary action shrinkable when overflow is inserted', () => {
 		const widths = new Map<string, number>([
 			['workbench.action.chat.attachContext', 22],

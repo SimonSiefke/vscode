@@ -197,7 +197,7 @@ export class ToolBar extends Disposable {
 			this.element.style.setProperty(ACTION_MIN_WIDTH_VAR, `${this.getConfiguredActionMinWidth()}px`);
 
 			const observer = new ResizeObserver(() => {
-				this.updateActions(this.getAvailableWidth());
+				this.updateActions();
 			});
 			observer.observe(this.options.responsiveBehavior?.observedElement ?? this.element);
 			this._store.add(toDisposable(() => observer.disconnect()));
@@ -297,8 +297,7 @@ export class ToolBar extends Disposable {
 	 */
 	relayout(): void {
 		if (this.options.responsiveBehavior?.enabled) {
-			const width = this.getAvailableWidth();
-			this.updateActions(width);
+			this.updateActions();
 		}
 	}
 
@@ -360,7 +359,7 @@ export class ToolBar extends Disposable {
 			}
 
 			// Update toolbar actions to fit with container width
-			this.updateActions(this.getAvailableWidth());
+			this.updateActions();
 		}
 	}
 
@@ -445,12 +444,13 @@ export class ToolBar extends Disposable {
 		}
 	}
 
-	private updateActions(containerWidth: number) {
+	private updateActions() {
 		// Actions bar is empty
 		if (this.actionBar.isEmpty()) {
 			return;
 		}
 
+		let containerWidth = this.getAvailableWidth();
 		this.applyResponsiveActionMinWidths();
 
 		// Ensure that the container width respects the minimum width of the
