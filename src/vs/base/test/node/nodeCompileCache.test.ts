@@ -22,7 +22,7 @@ suite('Node compile cache', () => {
 		fs.rmSync(testDirectory, { recursive: true, force: true });
 	});
 
-	function run(environment: NodeJS.ProcessEnv = {}): { generating: boolean; enabled: boolean; runtimeCache: boolean; status: string } {
+	function run(environment: NodeJS.ProcessEnv = {}, separateHelper = false): { generating: boolean; enabled: boolean; runtimeCache: boolean; status: string } {
 		const env = { ...process.env };
 		for (const name of Object.keys(env)) {
 			if (name.startsWith('NODE_COMPILE_CACHE') || name.startsWith('VSCODE_NODE_COMPILE_CACHE') || name === 'NODE_DISABLE_COMPILE_CACHE' || name === 'VSCODE_DEV' || name === 'VSCODE_GENERATE_NODE_COMPILE_CACHE') {
@@ -31,11 +31,12 @@ suite('Node compile cache', () => {
 		}
 		const moduleUrl = new URL('../../node/nodeCompileCache.js', import.meta.url).href;
 		const script = `
-			import { enableNodeCompileCache, markNodeCompileCacheReady } from ${JSON.stringify(moduleUrl)};
+			import { enableNodeCompileCache } from ${JSON.stringify(moduleUrl)};
 			import { getCompileCacheDir } from 'node:module';
 			import { readFileSync } from 'node:fs';
 			const generating = enableNodeCompileCache('main');
-			markNodeCompileCacheReady(() => {});
+			const helper = await import(${JSON.stringify(moduleUrl + (separateHelper ? '?readiness' : ''))});
+			helper.markNodeCompileCacheReady(() => {});
 			const status = JSON.parse(readFileSync(process.env.VSCODE_NODE_COMPILE_CACHE_MEASUREMENTS + '/main.json', 'utf8')).nodeCompileCache;
 			console.log(JSON.stringify({ generating, enabled: !!getCompileCacheDir(), runtimeCache: !!status.isRuntimeCacheEnabled, status: status.status }));
 		`;
@@ -49,6 +50,16 @@ suite('Node compile cache', () => {
 
 	posixTest('enables a writable cache without entering packaged-cache generation', () => {
 		assert.deepStrictEqual(run(), { generating: false, enabled: true, runtimeCache: true, status: 'enabled' });
+	});
+
+	posixTest('does not generate a packaged cache on POSIX', () => {
+		const root = join(testDirectory, 'packaged');
+		assert.deepStrictEqual(run({ VSCODE_GENERATE_NODE_COMPILE_CACHE: '1', VSCODE_NODE_COMPILE_CACHE_ROOT: root }), { generating: false, enabled: false, runtimeCache: false, status: 'disabled' });
+		assert.strictEqual(fs.existsSync(join(root, 'main', '.ready')), false);
+	});
+
+	posixTest('records readiness from another helper module instance', () => {
+		assert.deepStrictEqual(run({ VSCODE_NODE_COMPILE_CACHE_KIND: 'extension-host' }, true), { generating: false, enabled: true, runtimeCache: true, status: 'enabled' });
 	});
 
 	posixTest('respects the Node compile cache opt-out', () => {

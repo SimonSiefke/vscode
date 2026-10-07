@@ -160,12 +160,12 @@ export function logNodeCompileCacheStatus(log: (message: string) => void = conso
 export function markNodeCompileCacheReady(log?: (message: string) => void): void {
 	logNodeCompileCacheStatus(log);
 
-	const kind = enabledKind ?? process.env['VSCODE_NODE_COMPILE_CACHE_KIND'] as NodeCompileCacheKind | undefined;
+	const kind = enabledKind ?? processWithNodeCompileCacheStatus._vscodeNodeCompileCacheStatus?.kind ?? process.env['VSCODE_NODE_COMPILE_CACHE_KIND'] as NodeCompileCacheKind | undefined;
 	if (!kind || !nodeCompileCacheKinds.includes(kind)) {
 		return;
 	}
 
-	if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1') {
+	if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1' && processWithNodeCompileCacheStatus._vscodeNodeCompileCacheStatus?.isPackagedCacheEnabled) {
 		flushCompileCache();
 		fs.writeFileSync(getNodeCompileCacheReadyMarkerPath(kind), '');
 	}
