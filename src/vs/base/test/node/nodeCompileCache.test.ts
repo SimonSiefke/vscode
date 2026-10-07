@@ -42,7 +42,7 @@ suite('Node compile cache', () => {
 		`;
 		return JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', script], {
 			encoding: 'utf8',
-			env: { ...env, TMPDIR: testDirectory, VSCODE_NODE_COMPILE_CACHE_MEASUREMENTS: join(testDirectory, 'measurements'), ...environment }
+			env: { ...env, ELECTRON_RUN_AS_NODE: '1', TMPDIR: testDirectory, VSCODE_NODE_COMPILE_CACHE_MEASUREMENTS: join(testDirectory, 'measurements'), ...environment }
 		}));
 	}
 
