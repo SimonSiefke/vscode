@@ -28,6 +28,7 @@ interface INodeCompileCacheStatus {
 	readonly configuredDirectory: string;
 	readonly activeDirectory?: string;
 	readonly isPackagedCacheEnabled: boolean;
+	readonly isRuntimeCacheEnabled?: boolean;
 	readonly message?: string;
 }
 
@@ -61,13 +62,27 @@ export function enableNodeCompileCache(kind: NodeCompileCacheKind): boolean {
 		return false;
 	}
 
-	// TODO: Re-enable POSIX caches once the runtime fixes portable caching with eager/read-only options.
+	// Portable, eager, read-only caches remain disabled on POSIX. A writable,
+	// non-portable cache can still be populated by normal application launches.
 	if (process.platform !== 'win32') {
+		if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1') {
+			setNodeCompileCacheStatus({ kind, status: 'disabled', configuredDirectory: cacheDirectory, isPackagedCacheEnabled: false });
+			return false;
+		}
+
+		const result = enableCompileCache();
+		const activeDirectory = getCompileCacheDir() ?? result.directory;
+		const isRuntimeCacheEnabled = result.status === constants.compileCacheStatus.ENABLED || result.status === constants.compileCacheStatus.ALREADY_ENABLED;
 		setNodeCompileCacheStatus({
 			kind,
-			status: 'disabled',
-			configuredDirectory: cacheDirectory,
-			isPackagedCacheEnabled: false
+			status: result.status === constants.compileCacheStatus.ENABLED ? 'enabled'
+				: result.status === constants.compileCacheStatus.ALREADY_ENABLED ? 'already-enabled'
+					: result.status === constants.compileCacheStatus.DISABLED ? 'disabled' : 'failed',
+			configuredDirectory: activeDirectory ?? cacheDirectory,
+			activeDirectory,
+			isPackagedCacheEnabled: false,
+			isRuntimeCacheEnabled,
+			message: result.message
 		});
 		return false;
 	}
@@ -139,7 +154,7 @@ export function logNodeCompileCacheStatus(log: (message: string) => void = conso
 
 	didLogNodeCompileCacheStatus = true;
 	const status = nodeCompileCacheStatus;
-	log(`[node-compile-cache] ${status.kind}: ${status.isPackagedCacheEnabled ? 'packaged cache enabled' : 'packaged cache inactive'} (status: ${status.status}, configured: ${status.configuredDirectory}, active: ${status.activeDirectory ?? 'none'})`);
+	log(`[node-compile-cache] ${status.kind}: ${status.isPackagedCacheEnabled ? 'packaged cache enabled' : status.isRuntimeCacheEnabled ? 'runtime cache enabled' : 'packaged cache inactive'} (status: ${status.status}, configured: ${status.configuredDirectory}, active: ${status.activeDirectory ?? 'none'})`);
 }
 
 export function markNodeCompileCacheReady(log?: (message: string) => void): void {
