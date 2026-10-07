@@ -283,6 +283,12 @@ export interface IGlobOptions {
 	 * Whether glob pattern matching should be case insensitive.
 	 */
 	ignoreCase?: boolean;
+
+	/**
+	 * Whether parsed patterns should be cached. Disable this when the caller
+	 * owns the parsed pattern for its entire lifetime. Defaults to `true`.
+	 */
+	useCache?: boolean;
 }
 
 interface IGlobOptionsInternal extends IGlobOptions {
@@ -360,7 +366,7 @@ function parsePattern(arg1: string | IRelativePattern, options: IGlobOptions, ca
 
 	// Check cache
 	const patternKey = `${cacheKey === undefined ? `default:${ignoreCase ? pattern.toLowerCase() : pattern}` : `custom:${cacheKey}`}_${!!options.trimForExclusions}_${ignoreCase}`;
-	let parsedPattern = CACHE.get(patternKey);
+	let parsedPattern = options.useCache === false ? undefined : CACHE.get(patternKey);
 	if (parsedPattern) {
 		return wrapRelativePattern(parsedPattern, arg1, internalOptions);
 	}
@@ -385,7 +391,9 @@ function parsePattern(arg1: string | IRelativePattern, options: IGlobOptions, ca
 	}
 
 	// Cache
-	CACHE.set(patternKey, parsedPattern);
+	if (options.useCache !== false) {
+		CACHE.set(patternKey, parsedPattern);
+	}
 
 	return wrapRelativePattern(parsedPattern, arg1, internalOptions);
 }
