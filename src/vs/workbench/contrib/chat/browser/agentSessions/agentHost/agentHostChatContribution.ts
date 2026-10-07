@@ -117,8 +117,10 @@ class LazyAgentHostSessionHandler extends Disposable implements IChatSessionCont
 	}
 
 	private _getHandler(): Promise<AgentHostSessionHandler> {
+		this._throwIfDisposed();
 		if (!this._handler) {
 			this._handler = import('./agentHostSessionHandler.js').then(({ AgentHostSessionHandler }) => {
+				this._throwIfDisposed();
 				const handler = this._instantiationService.createInstance(AgentHostSessionHandler, this._config);
 				if (this._store.isDisposed) {
 					handler.dispose();
@@ -130,15 +132,26 @@ class LazyAgentHostSessionHandler extends Disposable implements IChatSessionCont
 		return this._handler;
 	}
 
+	private _throwIfDisposed(): void {
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
+	}
+
 	async provideChatSessionContent(sessionResource: URI, token: CancellationToken): Promise<IChatSession> {
-		return (await this._getHandler()).provideChatSessionContent(sessionResource, token);
+		const handler = await this._getHandler();
+		this._throwIfDisposed();
+		return handler.provideChatSessionContent(sessionResource, token);
 	}
 
 	async provideChatInputCompletions(sessionResource: URI, params: IChatInputCompletionsParams, token: CancellationToken): Promise<IChatInputCompletionsResult | undefined> {
-		return (await this._getHandler()).provideChatInputCompletions(sessionResource, params, token);
+		const handler = await this._getHandler();
+		this._throwIfDisposed();
+		return handler.provideChatInputCompletions(sessionResource, params, token);
 	}
 
 	async provideChatInputCompletionTriggerCharacters(): Promise<readonly string[]> {
+		this._throwIfDisposed();
 		return this._config.connection.getCompletionTriggerCharacters();
 	}
 

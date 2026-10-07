@@ -1466,6 +1466,43 @@ suite('AgentHostChatContribution', () => {
 			assert.ok(chatAgentService.registeredAgents.has('agent-host-copilot'));
 		});
 
+		for (const warm of [false, true]) {
+			test(`disposing a lazy provider cancels pending calls before delegation (warm=${warm})`, async () => {
+				let provider: IChatSessionContentProvider | undefined;
+				const { contribution, agentHostService, instantiationService } = createContribution(disposables, {
+					chatSessionsServiceOverride: {
+						registerChatSessionContentProvider: (_scheme, value) => {
+							provider = value;
+							return toDisposable(() => { });
+						},
+					},
+				});
+				let contentCalls = 0;
+				let completionCalls = 0;
+				instantiationService.stubInstance(AgentHostSessionHandler, {
+					provideChatSessionContent: async () => { contentCalls++; throw new Error('warmup'); },
+					provideChatInputCompletions: async () => { completionCalls++; return undefined; },
+					dispose: () => { },
+				});
+				agentHostService.setRootState({
+					agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+					activeSessions: 0,
+				});
+				assert.ok(provider);
+				const resource = URI.parse('agent-host-copilot:/session');
+				const creations = sinon.spy(instantiationService, 'createInstance');
+				disposables.add(toDisposable(() => creations.restore()));
+				if (warm) {
+					await assert.rejects(provider.provideChatSessionContent(resource, CancellationToken.None), /warmup/);
+				}
+				const content = provider.provideChatSessionContent(resource, CancellationToken.None);
+				const completions = provider.provideChatInputCompletions!(resource, { text: '', offset: 0 }, CancellationToken.None);
+				contribution.dispose();
+				await Promise.all([assert.rejects(content, isCancellationError), assert.rejects(completions, isCancellationError)]);
+				assert.deepStrictEqual({ contentCalls, completionCalls, handlerCreations: creations.getCalls().filter(call => call.args[0] === AgentHostSessionHandler).length }, { contentCalls: warm ? 1 : 0, completionCalls: 0, handlerCreations: warm ? 1 : 0 });
+			});
+		}
+
 		test('lazy response links use the editor remote connection resource mapper', () => {
 			let provider: IChatSessionContentProvider | undefined;
 			const { agentHostService } = createContribution(disposables, {
