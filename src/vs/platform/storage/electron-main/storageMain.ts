@@ -243,6 +243,10 @@ abstract class BaseStorageMain extends Disposable implements IStorageMain {
 
 		// Signal as event
 		this._onDidCloseStorage.fire();
+
+		// Release listeners and the underlying storage after all close listeners
+		// had a chance to observe the final state.
+		this.dispose();
 	}
 
 	private async logSlowClose(watch: StopWatch) {
