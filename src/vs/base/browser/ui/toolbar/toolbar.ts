@@ -6,7 +6,7 @@
 import { IContextMenuProvider } from '../../contextmenu.js';
 import * as DOM from '../../dom.js';
 import { ActionBar, ActionsOrientation, IActionViewItem, IActionViewItemProvider } from '../actionbar/actionbar.js';
-import { BaseActionViewItem } from '../actionbar/actionViewItems.js';
+import { ActionViewItem, BaseActionViewItem } from '../actionbar/actionViewItems.js';
 import { AnchorAlignment, IContextViewCloseAnimation } from '../contextview/contextview.js';
 import { DropdownMenuActionViewItem } from '../dropdown/dropdownActionViewItem.js';
 import { Action, IAction, IActionRunner, Separator, SubmenuAction } from '../../../common/actions.js';
@@ -127,6 +127,10 @@ export class ToolBar extends Disposable {
 			highlightToggledItems: options.highlightToggledItems,
 			hoverDelegate: options.hoverDelegate,
 			actionViewItemProvider: (action, viewItemOptions) => {
+				if (!Object.hasOwn(viewItemOptions, 'keybinding')) {
+					viewItemOptions = { ...viewItemOptions, keybinding: this.getKeybindingLabel(action) };
+				}
+
 				if (action.id === ToggleMenuAction.ID) {
 					this.toggleMenuActionViewItem = new DropdownMenuActionViewItem(
 						action,
@@ -185,7 +189,7 @@ export class ToolBar extends Disposable {
 					return result;
 				}
 
-				return undefined;
+				return new ActionViewItem(this.actionBar.context, action, viewItemOptions);
 			}
 		}));
 
@@ -321,9 +325,9 @@ export class ToolBar extends Disposable {
 			primaryActionsToSet.push(new Separator());
 		}
 
-		primaryActionsToSet.forEach(action => {
-			this.actionBar.push(action, { icon: this.options.icon ?? true, label: this.options.label ?? false, keybinding: this.getKeybindingLabel(action) });
-		});
+		if (primaryActionsToSet.length > 0) {
+			this.actionBar.push(primaryActionsToSet, { icon: this.options.icon ?? true, label: this.options.label ?? false });
+		}
 
 		this.updateOverflowClassName();
 		this.applyResponsiveActionMinWidths();

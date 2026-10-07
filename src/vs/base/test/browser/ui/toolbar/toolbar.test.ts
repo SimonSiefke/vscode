@@ -7,10 +7,11 @@ import assert from 'assert';
 import { IContextMenuProvider } from '../../../../browser/contextmenu.js';
 import { addDisposableListener } from '../../../../browser/dom.js';
 import { ActionBar } from '../../../../browser/ui/actionbar/actionbar.js';
-import { BaseActionViewItem } from '../../../../browser/ui/actionbar/actionViewItems.js';
+import { ActionViewItem, BaseActionViewItem } from '../../../../browser/ui/actionbar/actionViewItems.js';
 import { ActionWithDropdownActionViewItem } from '../../../../browser/ui/dropdown/dropdownActionViewItem.js';
 import { ToggleMenuAction, ToolBar } from '../../../../browser/ui/toolbar/toolbar.js';
-import { Action, IAction, Separator } from '../../../../common/actions.js';
+import { Action, IAction, Separator, SubmenuAction } from '../../../../common/actions.js';
+import { ResolvedChord, ResolvedKeybinding } from '../../../../common/keybindings.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 class FixedWidthActionViewItem extends BaseActionViewItem {
@@ -31,7 +32,7 @@ class FixedWidthActionViewItem extends BaseActionViewItem {
 }
 
 class TestToolBar extends ToolBar {
-	get actionBarForTest(): Pick<ActionBar, 'getWidth' | 'getAction'> {
+	get actionBarForTest(): Pick<ActionBar, 'getWidth' | 'getAction' | 'push'> {
 		return this.actionBar;
 	}
 }
@@ -53,6 +54,58 @@ suite('ToolBar', () => {
 
 	teardown(() => {
 		container.remove();
+	});
+
+	test('preserves keybindings, custom items and focus when replacing actions', () => {
+		let label = 'Ctrl+K';
+		const binding: ResolvedKeybinding = {
+			getLabel: () => label,
+			getAriaLabel: () => label,
+			getElectronAccelerator: () => 'Ctrl+K',
+			getUserSettingsLabel: () => 'ctrl+k',
+			isWYSIWYG: () => true,
+			hasMultipleChords: () => false,
+			getChords: () => [new ResolvedChord(true, false, false, false, 'K', 'K')],
+			getDispatchChords: () => ['ctrl+K'],
+			getSingleModifierDispatchChords: () => [null]
+		};
+		const lookups: string[] = [];
+		const provided: { id: string; keybinding: string | null | undefined; icon: boolean | undefined; label: boolean | undefined }[] = [];
+		const toolbar = store.add(new ToolBar(container, contextMenuProvider, {
+			icon: false,
+			label: true,
+			getKeyBinding: action => {
+				lookups.push(action.id);
+				return action.id === 'first' || action.id === 'custom' ? binding : undefined;
+			},
+			actionViewItemProvider: (action, options) => {
+				provided.push({ id: action.id, keybinding: options.keybinding, icon: options.icon, label: options.label });
+				return action.id === 'custom' ? new ActionViewItem(undefined, action, options) : undefined;
+			}
+		}));
+		const first = store.add(new Action('first', 'First'));
+		const custom = store.add(new Action('custom', 'Custom'));
+		const secondary = store.add(new Action('secondary', 'Secondary'));
+		const submenu = new SubmenuAction('submenu', 'Submenu', [secondary]);
+		const actions = [first, new Separator(), custom, submenu];
+
+		toolbar.setActions(actions, [secondary]);
+		toolbar.focus(2);
+		label = 'Ctrl+J';
+		toolbar.setActions(actions, [secondary]);
+
+		assert.deepStrictEqual(lookups, [...actions.map(action => action.id), ToggleMenuAction.ID, ...actions.map(action => action.id), ToggleMenuAction.ID]);
+		assert.deepStrictEqual(provided, ['Ctrl+K', 'Ctrl+J'].flatMap(keybinding => [
+			{ id: 'first', keybinding, icon: false, label: true },
+			{ id: Separator.ID, keybinding: undefined, icon: false, label: true },
+			{ id: 'custom', keybinding, icon: false, label: true },
+			{ id: 'submenu', keybinding: undefined, icon: false, label: true }
+		]));
+		assert.deepStrictEqual(Array.from(toolbar.getElement().querySelectorAll('.keybinding'), element => element.textContent), ['Ctrl+J', 'Ctrl+J']);
+		assert.strictEqual(document.activeElement, toolbar.getItemElement(2)?.querySelector('.action-label'));
+		assert.strictEqual(toolbar.getItemAction(1)?.id, Separator.ID);
+		assert.strictEqual(toolbar.getItemAction(3)?.id, 'submenu');
+		assert.strictEqual(toolbar.getItemAction(4)?.id, ToggleMenuAction.ID);
 	});
 
 	test('does not measure an empty responsive toolbar', () => {
@@ -919,4 +972,21 @@ suite('ToolBar', () => {
 			});
 		}
 	}
+	test('preserves explicit keybindings without resolving them again', () => {
+		const lookups: string[] = [];
+		const toolbar = store.add(new TestToolBar(container, contextMenuProvider, {
+			getKeyBinding: action => {
+				lookups.push(action.id);
+				return undefined;
+			}
+		}));
+		for (const [index, keybinding] of [undefined, null, 'Alt+K'].entries()) {
+			const action = store.add(new Action(`action-${index}`, `Action ${index}`));
+			toolbar.actionBarForTest.push(action, { icon: false, label: true, keybinding });
+		}
+
+		assert.deepStrictEqual(lookups, []);
+		assert.deepStrictEqual(Array.from(toolbar.getElement().querySelectorAll('.keybinding'), element => element.textContent), ['Alt+K']);
+	});
+
 });
