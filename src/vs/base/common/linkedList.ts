@@ -5,9 +5,6 @@
 
 import type { IDisposable } from './lifecycle.js';
 
-const removeNode = Symbol('removeNode');
-const detachNode = Symbol('detachNode');
-
 class Node<E> {
 
 	static readonly Undefined = new Node<unknown>(undefined);
@@ -22,7 +19,7 @@ class Node<E> {
 		this.prev = Node.Undefined;
 	}
 
-	[detachNode](): void { }
+	_detachNode(): void { }
 }
 
 class DisposableNode<E> extends Node<E> implements IDisposable {
@@ -40,10 +37,10 @@ class DisposableNode<E> extends Node<E> implements IDisposable {
 			return;
 		}
 		this._list = undefined;
-		list[removeNode](this);
+		list._removeNode(this);
 	}
 
-	override[detachNode](): void {
+	override _detachNode(): void {
 		this._list = undefined;
 	}
 }
@@ -66,7 +63,7 @@ export class LinkedList<E> {
 		let node = this._first;
 		while (node !== Node.Undefined) {
 			const next = node.next;
-			node[detachNode]();
+			node._detachNode();
 			node.prev = Node.Undefined;
 			node.next = Node.Undefined;
 			node = next;
@@ -134,7 +131,7 @@ export class LinkedList<E> {
 		this._size += 1;
 	}
 
-	[removeNode](node: Node<E>): void {
+	_removeNode(node: Node<E>): void {
 		this._remove(node);
 	}
 
@@ -168,7 +165,7 @@ export class LinkedList<E> {
 	}
 
 	private _remove(node: Node<E> | typeof Node.Undefined): void {
-		node[detachNode]();
+		node._detachNode();
 		if (node.prev !== Node.Undefined && node.next !== Node.Undefined) {
 			// middle
 			const anchor = node.prev;

@@ -92,11 +92,11 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 	 * window on the active window via `getActiveWindowPosition()`.
 	 */
 	override async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueReporter } = await import('./issueReporterService.js');
 		const bounds = await this.nativeHostService.getActiveWindowPosition();
 		await this.openAuxIssueReporter(data, bounds);
 
 		if (this.issueReporterWindow) {
-			const { IssueReporter } = await import('./issueReporterService.js');
 			const issueReporter = this.instantiationService.createInstance(
 				IssueReporter,
 				!!this.environmentService.disableExtensions,

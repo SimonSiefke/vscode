@@ -1466,6 +1466,34 @@ suite('AgentHostChatContribution', () => {
 			assert.ok(chatAgentService.registeredAgents.has('agent-host-copilot'));
 		});
 
+		test('lazy response links use the editor remote connection resource mapper', () => {
+			let provider: IChatSessionContentProvider | undefined;
+			const { agentHostService } = createContribution(disposables, {
+				chatSessionsServiceOverride: {
+					registerChatSessionContentProvider: (_scheme, value) => {
+						provider = value;
+						return toDisposable(() => { });
+					},
+				},
+			});
+			agentHostService.resourceUris = createAgentHostResourceUriMapper('editor-remote');
+			agentHostService.setRootState({
+				agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+				activeSessions: 0,
+			});
+			assert.ok(provider);
+			const resource = URI.parse('agent-host-copilot:/session');
+			assert.deepStrictEqual([
+				provider.resolveChatResponseUri?.(resource, '/workspace/file.ts', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'file:///workspace/file.ts#L10', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'https://example.com/image.png', 'image'),
+			], [
+				agentHostService.resourceUris.fromAgentHost(URI.file('/workspace/file.ts')).toString(),
+				agentHostService.resourceUris.fromAgentHost(URI.file('/workspace/file.ts').with({ fragment: 'L10' })).toString(),
+				'https://example.com/image.png',
+			]);
+		});
+
 		test('defers creating the session handler until session content is requested', async () => {
 			let provider: IChatSessionContentProvider | undefined;
 			const { agentHostService } = createContribution(disposables, {
@@ -1484,7 +1512,16 @@ suite('AgentHostChatContribution', () => {
 			assert.ok(provider);
 			assert.ok(!(provider instanceof AgentHostSessionHandler));
 			assert.deepStrictEqual(await provider.provideChatInputCompletionTriggerCharacters?.(), ['/']);
-			assert.notStrictEqual(provider.resolveChatResponseUri?.(URI.parse('agent-host-copilot:/session'), '/workspace/file.ts', 'link'), '/workspace/file.ts');
+			const resource = URI.parse('agent-host-copilot:/session');
+			assert.deepStrictEqual([
+				provider.resolveChatResponseUri?.(resource, '/workspace/file.ts', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'file:///workspace/file.ts#L10', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'https://example.com/image.png', 'image'),
+			], [
+				URI.file('/workspace/file.ts').toString(),
+				URI.file('/workspace/file.ts').with({ fragment: 'L10' }).toString(),
+				'https://example.com/image.png',
+			]);
 		});
 	});
 

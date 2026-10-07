@@ -471,10 +471,10 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 	/** Opens the classic non-wizard reporter in an auxiliary window. */
 	async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueWebReporter } = await import('./issueReporterService.js');
 		const disposables = await this.openAuxIssueReporter(data);
 
 		if (this.issueReporterWindow) {
-			const { IssueWebReporter } = await import('./issueReporterService.js');
 			const issueReporter = disposables.add(this.instantiationService.createInstance(IssueWebReporter, false, data, { type: this.type, arch: this.arch, release: this.release }, product, this.issueReporterWindow));
 			issueReporter.render();
 		}

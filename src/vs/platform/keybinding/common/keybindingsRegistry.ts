@@ -81,8 +81,6 @@ export interface IKeybindingsRegistry {
 	getDefaultKeybindingsForOS(os: OperatingSystem): IKeybindingItem[];
 }
 
-const invalidateKeybindingCache = Symbol('invalidateKeybindingCache');
-
 class DefaultKeybindingRegistration implements IDisposable {
 	constructor(
 		private _registration: IDisposable | undefined,
@@ -99,7 +97,7 @@ class DefaultKeybindingRegistration implements IDisposable {
 		this._registration = undefined;
 		markAsDisposed(this);
 		registration.dispose();
-		this._registry[invalidateKeybindingCache]();
+		this._registry._invalidateKeybindingCache();
 	}
 }
 
@@ -215,7 +213,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 		return new DefaultKeybindingRegistration(registration, this);
 	}
 
-	[invalidateKeybindingCache](): void {
+	_invalidateKeybindingCache(): void {
 		this._cachedMergedKeybindings = null;
 	}
 
