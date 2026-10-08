@@ -810,10 +810,14 @@ suite('LanguageModels - Model Change Events', function () {
 
 	let languageModelsService: LanguageModelsService;
 	let storageService: TestStorageService;
+	let providerGroups: ILanguageModelsProviderGroup[];
+	let onReadProviderGroups: (() => void) | undefined;
 	const disposables = new DisposableStore();
 
 	setup(async function () {
 		storageService = new TestStorageService();
+		providerGroups = [];
+		onReadProviderGroups = undefined;
 
 		languageModelsService = new LanguageModelsService(
 			new class extends mock<IExtensionService>() {
@@ -827,7 +831,8 @@ suite('LanguageModels - Model Change Events', function () {
 			new class extends mock<ILanguageModelsConfigurationService>() {
 				override onDidChangeLanguageModelGroups = Event.None;
 				override getLanguageModelsProviderGroups() {
-					return [];
+					onReadProviderGroups?.();
+					return providerGroups;
 				}
 			},
 			new class extends mock<IQuickInputService>() { },
@@ -897,6 +902,40 @@ suite('LanguageModels - Model Change Events', function () {
 			registration.dispose();
 			await result.complete([model('disposed')]);
 			await selection;
+			assertUnresolved();
+		});
+
+		test('does not start group discovery after disposal during initial discovery', async () => {
+			providerGroups = [{ vendor: 'test-vendor', name: 'configured' }];
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			let calls = 0;
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				calls++;
+				void started.complete();
+				return result.p;
+			})));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			registration.dispose();
+			await result.complete([]);
+			await selection;
+
+			assert.strictEqual(calls, 1);
+			assertUnresolved();
+		});
+
+		test('does not start group discovery after disposal while resolving configuration', async () => {
+			providerGroups = [{ vendor: 'test-vendor', name: 'configured' }];
+			let calls = 0;
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				calls++;
+				return [];
+			})));
+			onReadProviderGroups = () => queueMicrotask(() => registration.dispose());
+			await languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+
+			assert.strictEqual(calls, 1);
 			assertUnresolved();
 		});
 

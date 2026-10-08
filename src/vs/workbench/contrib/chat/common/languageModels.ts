@@ -1342,6 +1342,10 @@ export class LanguageModelsService implements ILanguageModelsService {
 				});
 			}
 
+			if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
+				return;
+			}
+
 			const groups = this._languageModelsConfigurationService.getLanguageModelsProviderGroups();
 			const perModelConfigurations = new Map<string, IStringDictionary<unknown>>();
 			for (const group of groups) {
@@ -1368,6 +1372,9 @@ export class LanguageModelsService implements ILanguageModelsService {
 				}
 
 				const configuration = await this._resolveConfiguration(group, vendor.configuration);
+				if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
+					return;
+				}
 
 				try {
 					const models = await provider.provideLanguageModelChatInfo({ group: group.name, silent, configuration }, CancellationToken.None);
