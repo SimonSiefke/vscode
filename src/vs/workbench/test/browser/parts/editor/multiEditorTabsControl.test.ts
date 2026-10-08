@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { $, Dimension, EventType, ModifierKeyEmitter, reset, scheduleAtNextAnimationFrame } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
+import { timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -125,6 +126,37 @@ suite('MultiEditorTabsControl', () => {
 	teardown(() => {
 		container.remove();
 		disposables.dispose();
+	});
+
+	test('preserves user tab scrolling when only the available height changes', async () => {
+		const group = connectedGroup();
+		group.closest('.monaco-workbench')!.classList.remove('modern-ui-tabs', 'modern-ui-connected-editor-tabs');
+		const oldOptions = partOptions;
+		partOptions = { ...partOptions, tabSizing: 'fixed', tabSizingFixedMinWidth: 160, tabSizingFixedMaxWidth: 160, editorActionsLocation: 'hidden' };
+		control.updateOptions(oldOptions, partOptions);
+		for (let index = 2; index < 6; index++) {
+			const input = disposables.add(new TestFileEditorInput(URI.file(`/path/file${index}.txt`), 'testEditorInput'));
+			model.openEditor(input, { pinned: true, active: false });
+		}
+		control.openEditors(model.getEditors(EditorsOrder.SEQUENTIAL));
+		await layoutConnectedGroup(group, 200);
+		await timeout(100);
+		const tabs = container.querySelector<HTMLElement>('.tabs-container')!;
+		tabs.classList.add('scroll');
+		tabs.scrollLeft = tabs.scrollWidth - tabs.clientWidth;
+		tabs.dispatchEvent(new UIEvent(EventType.SCROLL));
+		tabs.classList.remove('scroll');
+		const scrollLeft = tabs.scrollLeft;
+		assert.ok(scrollLeft > 0);
+
+		const dimensions = { container: new Dimension(200, 33), available: new Dimension(200, 400) };
+		control.layout(dimensions);
+		await timeout(100);
+		assert.strictEqual(tabs.scrollLeft, scrollLeft);
+
+		control.layout(dimensions, { forceRevealActiveTab: true });
+		await new Promise<void>(resolve => disposables.add(scheduleAtNextAnimationFrame(mainWindow, () => resolve())));
+		assert.strictEqual(tabs.scrollLeft, 0);
 	});
 
 	function tabActions(): string[] {
