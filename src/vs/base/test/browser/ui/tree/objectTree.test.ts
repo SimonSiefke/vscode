@@ -539,6 +539,96 @@ suite('ObjectTree', function () {
 		}
 	}
 
+	suite('Anchor lifecycle', () => {
+		const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+		function createTree(identityProvider?: IIdentityProvider<number>): ObjectTree<number> {
+			const container = document.createElement('div');
+			container.style.width = '200px';
+			container.style.height = '200px';
+			const tree = store.add(new ObjectTree<number>('test', container, new Delegate(), [new Renderer()], { identityProvider }));
+			tree.layout(200);
+			return tree;
+		}
+
+		test('releases a mouse-selected anchor when its model is cleared', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 0 }, { element: 1 }]);
+			clickElement(tree.getHTMLElement().querySelector<HTMLElement>('.monaco-list-row[data-index="1"]')!);
+			assert.strictEqual(tree.getAnchor(), 1);
+			tree.setChildren(null, []);
+			assert.strictEqual(tree.getAnchor(), undefined);
+		});
+
+		test('releases a programmatic anchor when its node is removed', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 0 }, { element: 1 }]);
+			tree.setAnchor(1);
+			tree.setChildren(null, [{ element: 0 }]);
+			assert.strictEqual(tree.getAnchor(), undefined);
+		});
+
+		test('releases an anchored descendant when its parent is removed', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 0 }, { element: 1, children: [{ element: 11 }] }]);
+			tree.setAnchor(11);
+			tree.setChildren(null, [{ element: 0 }]);
+			assert.strictEqual(tree.getAnchor(), undefined);
+		});
+
+		test('retargets the anchor when a visible replacement has the same identity', () => {
+			const tree = createTree(new IdentityProvider());
+			tree.setChildren(null, [{ element: 0 }, { element: 1 }]);
+			tree.setAnchor(1);
+			tree.setChildren(null, [{ element: 100 }, { element: 101 }]);
+			assert.strictEqual(tree.getAnchor(), 101);
+		});
+
+		test('releases an identity-backed anchor when the model is cleared', () => {
+			const tree = createTree(new IdentityProvider());
+			tree.setChildren(null, [{ element: 0 }, { element: 1 }]);
+			tree.setAnchor(1);
+			tree.setChildren(null, []);
+			assert.strictEqual(tree.getAnchor(), undefined);
+		});
+
+		test('preserves an anchor when an unrelated child list changes', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 0 }, { element: 1, children: [{ element: 11 }] }]);
+			tree.setAnchor(0);
+			tree.setChildren(1, [{ element: 12 }]);
+			assert.strictEqual(tree.getAnchor(), 0);
+		});
+
+		test('preserves a current anchor while its parent is collapsed', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 1, collapsed: false, children: [{ element: 11 }] }]);
+			tree.setAnchor(11);
+			tree.collapse(1);
+			assert.strictEqual(tree.getAnchor(), 11);
+		});
+
+		test('explicitly clearing a live anchor remains supported', () => {
+			const tree = createTree();
+			tree.setChildren(null, [{ element: 0 }]);
+			tree.setAnchor(0);
+			tree.setAnchor(undefined);
+			assert.strictEqual(tree.getAnchor(), undefined);
+		});
+
+		test('does not retain anchors across repeated model replacements', () => {
+			const tree = createTree();
+			const anchors: (number | null | undefined)[] = [];
+			for (let iteration = 0; iteration < 3; iteration++) {
+				tree.setChildren(null, [{ element: iteration }]);
+				tree.setAnchor(iteration);
+				tree.setChildren(null, []);
+				anchors.push(tree.getAnchor());
+			}
+			assert.deepStrictEqual(anchors, [undefined, undefined, undefined]);
+		});
+	});
+
 	test('traits are preserved according to string identity', function () {
 		const container = document.createElement('div');
 		container.style.width = '200px';
