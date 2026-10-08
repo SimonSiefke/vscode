@@ -49,6 +49,7 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 		private _sessions = new Map<number, ExtHostQuickInput>();
 
 		private _instances = 0;
+		private _inputInstance = 0;
 
 		constructor(workspace: IExtHostWorkspaceProvider, commands: ExtHostCommands) {
 			this._workspace = workspace;
@@ -139,6 +140,10 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 				proxy.$setError(instance, err);
 
 				return Promise.reject(err);
+			}).finally(() => {
+				if (instance === this._instances) {
+					this._onDidSelectItem = undefined;
+				}
 			});
 		}
 
@@ -149,6 +154,7 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 		// ---- input
 
 		showInput(options?: InputBoxOptions, token: CancellationToken = CancellationToken.None): Promise<string | undefined> {
+			const instance = ++this._inputInstance;
 
 			// global validate fn used in callback below
 			this._validateInput = options?.validateInput;
@@ -160,6 +166,10 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 					}
 
 					return Promise.reject(err);
+				}).finally(() => {
+					if (instance === this._inputInstance) {
+						this._validateInput = undefined;
+					}
 				});
 		}
 
