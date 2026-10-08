@@ -70,6 +70,220 @@ suite('EditorService', () => {
 		return disposables.add(new TestFileEditorInput(resource, typeId));
 	}
 
+	test('unused matching inputs release their opener reference', async () => {
+		const [part, service] = await createEditorService();
+		const original = createTestFileEditorInput(URI.parse('my://ownership'), TEST_EDITOR_INPUT_ID);
+		await service.openEditor(original, { pinned: true });
+		for (let iteration = 0; iteration < 37; iteration++) {
+			const duplicate = createTestFileEditorInput(original.resource, TEST_EDITOR_INPUT_ID);
+			await service.openEditor(duplicate, { pinned: true });
+			assert.strictEqual(duplicate.isDisposed(), true);
+		}
+		assert.strictEqual(part.activeGroup.activeEditor, original);
+		assert.strictEqual(original.isDisposed(), false);
+	});
+
+	test('a caller reference preserves an unused candidate until the caller releases it', async () => {
+		const [, service] = await createEditorService();
+		const original = createTestFileEditorInput(URI.parse('my://ownership'), TEST_EDITOR_INPUT_ID);
+		await service.openEditor(original, { pinned: true });
+		const duplicate = createTestFileEditorInput(original.resource, TEST_EDITOR_INPUT_ID);
+		const owner = disposables.add(duplicate.acquire());
+		await service.openEditor(duplicate, { pinned: true });
+		assert.strictEqual(duplicate.isDisposed(), false);
+		owner.dispose();
+		assert.strictEqual(duplicate.isDisposed(), true);
+		assert.strictEqual(original.isDisposed(), false);
+	});
+
+	test('a split group holds its own reference', async () => {
+		const [part, service] = await createEditorService();
+		const input = createTestFileEditorInput(URI.parse('my://split-ownership'), TEST_EDITOR_INPUT_ID);
+		await service.openEditor(input, { pinned: true });
+		const first = part.activeGroup;
+		const second = part.copyGroup(first, first, GroupDirection.RIGHT);
+		await first.closeEditor(input);
+		assert.strictEqual(input.isDisposed(), false);
+		await second.closeEditor(input);
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('pending open references survive closing the previous final group', async () => {
+		const [part, service] = await createEditorService();
+		const input = createTestFileEditorInput(URI.parse('my://pending-ownership'), TEST_EDITOR_INPUT_ID);
+		await service.openEditor(input, { pinned: true });
+		const first = part.activeGroup;
+		const second = part.addGroup(first, GroupDirection.RIGHT);
+		disposables.add(service.onWillOpenEditor(event => {
+			if (event.groupId === second.id) {
+				first.closeAllEditors({ excludeConfirming: true });
+			}
+		}));
+		await service.openEditor(input, { pinned: true }, second);
+		assert.strictEqual(second.activeEditor, input);
+		assert.strictEqual(input.isDisposed(), false);
+		await second.closeEditor(input);
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('failed batch resolution releases earlier candidates', async () => {
+		const [part, service, accessor] = await createEditorService();
+		const input = createTestFileEditorInput(URI.file('/first.ownership'), TEST_EDITOR_INPUT_ID);
+		disposables.add(accessor.editorResolverService.registerEditor('*.ownership',
+			{ id: TEST_EDITOR_INPUT_ID, label: 'Ownership', priority: RegisteredEditorPriority.exclusive }, {}, {
+			createEditorInput: ({ resource }) => {
+				if (resource.toString().includes('fail')) {
+					throw new Error('resolution failed');
+				}
+				return { editor: input };
+			}
+		}));
+		await assert.rejects(service.openEditors([{ resource: input.resource }, { resource: URI.file('/fail.ownership') }]), /resolution failed/);
+		assert.strictEqual(input.isDisposed(), true);
+		assert.strictEqual(part.activeGroup.isEmpty, true);
+	});
+
+	test('failed side by side resolution releases the first resolved child', async () => {
+		const [, service, accessor] = await createEditorService();
+		const input = createTestFileEditorInput(URI.file('/first.ownership'), TEST_EDITOR_INPUT_ID);
+		disposables.add(accessor.editorResolverService.registerEditor('*.ownership',
+			{ id: TEST_EDITOR_INPUT_ID, label: 'Ownership', priority: RegisteredEditorPriority.exclusive }, {}, {
+			createEditorInput: ({ resource }) => {
+				if (resource.toString().includes('fail')) {
+					throw new Error('resolution failed');
+				}
+				return { editor: input };
+			}
+		}));
+		await assert.rejects(service.openEditor({ primary: { resource: input.resource }, secondary: { resource: URI.file('/fail.ownership') } }), /resolution failed/);
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('an unused replacement releases its reference when the source is missing', async () => {
+		const [part, service] = await createEditorService();
+		const source = createTestFileEditorInput(URI.parse('my://missing'), TEST_EDITOR_INPUT_ID);
+		const replacement = createTestFileEditorInput(URI.parse('my://replacement'), TEST_EDITOR_INPUT_ID);
+		await service.replaceEditors([{ editor: source, replacement }], part.activeGroup);
+		assert.strictEqual(replacement.isDisposed(), true);
+	});
+
+	test('disposing an unused diff releases its children without closing shared inputs', async () => {
+		const [part, service, accessor] = await createEditorService();
+		const original = createTestFileEditorInput(URI.parse('my://original'), TEST_EDITOR_INPUT_ID);
+		const modified = createTestFileEditorInput(URI.parse('my://modified'), TEST_EDITOR_INPUT_ID);
+		const first = disposables.add(accessor.instantiationService.createInstance(SideBySideEditorInput, undefined, undefined, original, modified));
+		await service.openEditor(first, { pinned: true });
+		const duplicate = disposables.add(accessor.instantiationService.createInstance(SideBySideEditorInput, undefined, undefined, original, modified));
+		await service.openEditor(duplicate, { pinned: true });
+		assert.strictEqual(duplicate.isDisposed(), true);
+		assert.strictEqual(original.isDisposed(), false);
+		assert.strictEqual(modified.isDisposed(), false);
+		await part.activeGroup.closeEditor(first);
+		assert.strictEqual(original.isDisposed(), true);
+		assert.strictEqual(modified.isDisposed(), true);
+	});
+
+	test('saveAs preserves a typed replacement across groups when the destination is already open', async () => {
+		const [part, service] = await createEditorService();
+		const firstGroup = part.activeGroup;
+		const destination = createTestFileEditorInput(URI.parse('my://target.code-search'), TEST_EDITOR_INPUT_ID);
+		const replacement = createTestFileEditorInput(destination.resource, TEST_EDITOR_INPUT_ID);
+		const untitled = disposables.add(new class extends TestFileEditorInput {
+			override async saveAs(): Promise<EditorInput> {
+				this.dirty = false;
+				return replacement;
+			}
+		}(URI.parse('untitled://search'), TEST_EDITOR_INPUT_ID));
+		untitled.capabilities = EditorInputCapabilities.Untitled;
+		await service.openEditor(untitled, { pinned: true }, firstGroup);
+		const secondGroup = part.copyGroup(firstGroup, firstGroup, GroupDirection.RIGHT);
+		await service.openEditor(destination, { pinned: true }, firstGroup);
+
+		const result = await service.save({ groupId: firstGroup.id, editor: untitled }, { saveAs: true });
+
+		assert.deepStrictEqual({
+			success: result.success,
+			returnedEditorIsDestination: result.editors[0] === destination,
+			replacementIsDisposed: replacement.isDisposed(),
+			returnedEditorIsLive: result.editors[0] instanceof EditorInput && !result.editors[0].isDisposed(),
+			firstGroupHasDestination: firstGroup.contains(destination),
+			secondGroupHasDestination: secondGroup.contains(destination),
+			secondGroupHasUntitled: secondGroup.contains(untitled)
+		}, {
+			success: true,
+			returnedEditorIsDestination: true,
+			replacementIsDisposed: true,
+			returnedEditorIsLive: true,
+			firstGroupHasDestination: true,
+			secondGroupHasDestination: true,
+			secondGroupHasUntitled: false
+		});
+	});
+
+
+	test('typed batch references survive closing the final group during workspace trust', async () => {
+		const [part, service, accessor] = await createEditorService();
+		const input = createTestFileEditorInput(URI.parse('my://trust-ownership'), TEST_EDITOR_INPUT_ID);
+		await service.openEditor(input, { pinned: true });
+		const first = part.activeGroup;
+		const second = part.addGroup(first, GroupDirection.RIGHT);
+		const oldHandler = accessor.workspaceTrustRequestService.requestOpenUrisHandler;
+		try {
+			accessor.workspaceTrustRequestService.requestOpenUrisHandler = async () => {
+				await first.closeEditor(input);
+				assert.strictEqual(input.isDisposed(), false);
+				return WorkspaceTrustUriResponse.Open;
+			};
+			await service.openEditors([{ editor: input, options: { pinned: true } }], second, { validateTrust: true });
+			assert.strictEqual(second.activeEditor, input);
+			await second.closeEditor(input);
+			assert.strictEqual(input.isDisposed(), true);
+		} finally {
+			accessor.workspaceTrustRequestService.requestOpenUrisHandler = oldHandler;
+		}
+	});
+
+	test('canceled typed batch opening releases an otherwise unowned input', async () => {
+		const [, service, accessor] = await createEditorService();
+		const input = createTestFileEditorInput(URI.parse('my://canceled-ownership'), TEST_EDITOR_INPUT_ID);
+		const oldHandler = accessor.workspaceTrustRequestService.requestOpenUrisHandler;
+		try {
+			accessor.workspaceTrustRequestService.requestOpenUrisHandler = async () => WorkspaceTrustUriResponse.Cancel;
+			await service.openEditors([{ editor: input }], undefined, { validateTrust: true });
+			assert.strictEqual(input.isDisposed(), true);
+		} finally {
+			accessor.workspaceTrustRequestService.requestOpenUrisHandler = oldHandler;
+		}
+	});
+
+	test('untyped Save As results preserve editor resolution when destination types differ', async () => {
+		const [part, service, accessor] = await createEditorService();
+		const resource = URI.file('/target.saveAs-ownership');
+		const unrelated = createTestFileEditorInput(resource, 'unrelated-editor');
+		const destination = createTestFileEditorInput(resource, TEST_EDITOR_INPUT_ID);
+		const saved: IUntypedEditorInput = { resource };
+		class UntitledOwnershipInput extends EditorInput {
+			readonly resource = URI.parse('untitled:/source');
+			override get typeId() { return 'untitled-ownership'; }
+			override get capabilities() { return EditorInputCapabilities.Untitled; }
+			override async saveAs(): Promise<IUntypedEditorInput> { return saved; }
+		}
+		disposables.add(registerTestEditor('UntitledOwnershipEditor', [new SyncDescriptor(UntitledOwnershipInput)]));
+		const untitled = disposables.add(new UntitledOwnershipInput());
+		disposables.add(accessor.editorResolverService.registerEditor('*.saveAs-ownership',
+			{ id: TEST_EDITOR_INPUT_ID, label: 'Destination', priority: RegisteredEditorPriority.exclusive }, {},
+			{ createEditorInput: () => ({ editor: destination }) }));
+		const first = part.activeGroup;
+		await service.openEditor(unrelated, { pinned: true }, first);
+		await service.openEditor(destination, { pinned: true }, first);
+		await service.openEditor(untitled, { pinned: true }, first);
+		const second = part.addGroup(first, GroupDirection.RIGHT);
+		await service.openEditor(untitled, { pinned: true }, second);
+		const result = await service.save({ groupId: first.id, editor: untitled }, { saveAs: true });
+		assert.deepStrictEqual({ returned: result.editors[0], active: second.activeEditor, wrongTypeOpened: second.contains(unrelated) },
+			{ returned: saved, active: destination, wrongTypeOpened: false });
+	});
+
 	test('openEditor() - basics', async () => {
 		const [, service, accessor] = await createEditorService();
 
@@ -1542,6 +1756,11 @@ suite('EditorService', () => {
 		const input3 = createTestFileEditorInput(URI.parse('my://resource3-openEditors'), TEST_EDITOR_INPUT_ID);
 		const input4 = createTestFileEditorInput(URI.parse('my://resource4-openEditors'), TEST_EDITOR_INPUT_ID);
 		const sideBySideInput = new SideBySideEditorInput('side by side', undefined, input3, input4, service);
+
+		// This caller reuses the inputs across canceled opening requests.
+		for (const input of [input1, input2, sideBySideInput]) {
+			disposables.add(input.acquire());
+		}
 
 		const oldHandler = accessor.workspaceTrustRequestService.requestOpenUrisHandler;
 

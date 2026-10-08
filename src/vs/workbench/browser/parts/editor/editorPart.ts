@@ -1529,41 +1529,52 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	private async doApplyState(state: IEditorPartUIState, options?: IEditorGroupViewOptions): Promise<void> {
 		const groups = await this.doPrepareApplyState();
 
-		// Pause add/remove events for groups during the duration of applying the state
-		// This ensures that we can do this transition atomically with the new state
-		// being ready when the events are fired. This is important because usually there
-		// is never the state where no groups are present, but for this transition we
-		// need to temporarily dispose all groups to restore the new set.
-
-		this._onDidAddGroup.pause();
-		this._onDidRemoveGroup.pause();
-
-		this.disposeGroups();
-
-		// MRU
-		this.mostRecentActiveGroups = state.mostRecentActiveGroups;
-
-		// Grid Widget
+		const references = new DisposableStore();
 		try {
-			this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, options);
-		} finally {
-			// It is very important to keep this order: first resume the events for
-			// removed groups and then for added groups. Many listeners may store
-			// groups in sets by their identifier and groups can have the same
-			// identifier before and after.
-			this._onDidRemoveGroup.resume();
-			this._onDidAddGroup.resume();
-		}
+			for (const group of groups) {
+				for (const editor of group.editors) {
+					references.add(editor.acquire());
+				}
+			}
 
-		// Restore editors that were not closed before and are now opened now
-		await this.activeGroup.openEditors(
-			groups
-				.flatMap(group => group.editors)
-				.filter(editor => this.editorPartsView.groups.every(groupView => !groupView.contains(editor)))
-				.map(editor => ({
-					editor, options: { pinned: true, preserveFocus: true, inactive: true }
-				}))
-		);
+			// Pause add/remove events for groups during the duration of applying the state
+			// This ensures that we can do this transition atomically with the new state
+			// being ready when the events are fired. This is important because usually there
+			// is never the state where no groups are present, but for this transition we
+			// need to temporarily dispose all groups to restore the new set.
+
+			this._onDidAddGroup.pause();
+			this._onDidRemoveGroup.pause();
+
+			this.disposeGroups();
+
+			// MRU
+			this.mostRecentActiveGroups = state.mostRecentActiveGroups;
+
+			// Grid Widget
+			try {
+				this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, options);
+			} finally {
+				// It is very important to keep this order: first resume the events for
+				// removed groups and then for added groups. Many listeners may store
+				// groups in sets by their identifier and groups can have the same
+				// identifier before and after.
+				this._onDidRemoveGroup.resume();
+				this._onDidAddGroup.resume();
+			}
+
+			// Restore editors that were not closed before and are now opened now
+			await this.activeGroup.openEditors(
+				groups
+					.flatMap(group => group.editors)
+					.filter(editor => this.editorPartsView.groups.every(groupView => !groupView.contains(editor)))
+					.map(editor => ({
+						editor, options: { pinned: true, preserveFocus: true, inactive: true }
+					}))
+			);
+		} finally {
+			references.dispose();
+		}
 	}
 
 	private async doApplyEmptyState(): Promise<void> {
