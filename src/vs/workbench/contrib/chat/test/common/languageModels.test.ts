@@ -1296,10 +1296,12 @@ suite('LanguageModels - Per-Model Configuration', function () {
 	let receivedOptions: { [name: string]: unknown } | undefined;
 	let registerProvider: () => void;
 	let configurationUpdate: DeferredPromise<ILanguageModelsProviderGroup> | undefined;
+	let savedTemperature: number;
 
 	setup(async function () {
 		receivedOptions = undefined;
 		configurationUpdate = undefined;
+		savedTemperature = 0.7;
 
 		languageModelsService = new LanguageModelsService(
 			new class extends mock<IExtensionService>() {
@@ -1320,7 +1322,7 @@ suite('LanguageModels - Per-Model Configuration', function () {
 						vendor: 'config-vendor',
 						name: 'default',
 						settings: {
-							'model-a': { temperature: 0.7, reasoningEffort: 'high' },
+							'model-a': { temperature: savedTemperature, reasoningEffort: 'high' },
 							'model-b': { temperature: 0.2 }
 						}
 					}];
@@ -1461,6 +1463,25 @@ suite('LanguageModels - Per-Model Configuration', function () {
 			models: languageModelsService.getLanguageModelIds(),
 			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a')
 		}, { models: [], configuration: undefined });
+	});
+
+	test('configuration saves still notify after a live model refresh', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		savedTemperature = 0.9;
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+		const changes: string[] = [];
+		disposables.add(languageModelsService.onDidChangeLanguageModels(vendor => changes.push(vendor)));
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+
+		assert.deepStrictEqual({
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a'),
+			changes
+		}, {
+			configuration: { temperature: 0.9, reasoningEffort: 'high', maxTokens: 4096 },
+			changes: ['config-vendor']
+		});
 	});
 
 	test('a late configuration save cannot overwrite a replacement model cache', async function () {

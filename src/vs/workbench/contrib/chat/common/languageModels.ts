@@ -1719,7 +1719,11 @@ export class LanguageModelsService implements ILanguageModelsService {
 		}
 
 		// The model may have been removed or replaced while saving its configuration.
-		if (this._modelCache.get(modelId) !== metadata) {
+		const currentMetadata = this._modelCache.get(modelId);
+		if (currentMetadata !== metadata) {
+			if (currentMetadata) {
+				this._onLanguageModelChange.fire(currentMetadata.vendor);
+			}
 			return;
 		}
 
