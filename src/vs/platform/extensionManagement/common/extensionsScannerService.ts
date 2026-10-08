@@ -439,7 +439,24 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 		return [...result.values()];
 	}
 
-	private async scanDefaultSystemExtensions(language: string | undefined): Promise<IRelaxedScannedExtension[]> {
+	private readonly pendingSystemExtensionScans = new Map<string | undefined, Promise<IRelaxedScannedExtension[]>>();
+
+	private scanDefaultSystemExtensions(language: string | undefined): Promise<IRelaxedScannedExtension[]> {
+		let pending = this.pendingSystemExtensionScans.get(language);
+		if (!pending) {
+			pending = this.doScanDefaultSystemExtensions(language).finally(() => this.pendingSystemExtensionScans.delete(language));
+			this.pendingSystemExtensionScans.set(language, pending);
+		}
+		return pending.then(extensions => extensions.map(extension => ({
+			...extension,
+			identifier: { ...extension.identifier },
+			manifest: objects.deepClone(extension.manifest),
+			metadata: objects.deepClone(extension.metadata),
+			validations: objects.deepClone(extension.validations)
+		})));
+	}
+
+	private async doScanDefaultSystemExtensions(language: string | undefined): Promise<IRelaxedScannedExtension[]> {
 		this.logService.trace('Started scanning system extensions');
 		const extensionsScannerInput = await this.createExtensionScannerInput(this.systemExtensionsLocation, false, ExtensionType.System, language, true, undefined, this.getProductVersion());
 		const extensionsScanner = extensionsScannerInput.devMode ? this.extensionsScanner : this.systemExtensionsCachedScanner;
