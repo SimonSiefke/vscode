@@ -1296,11 +1296,15 @@ suite('LanguageModels - Per-Model Configuration', function () {
 	let receivedOptions: { [name: string]: unknown } | undefined;
 	let registerProvider: () => void;
 	let configurationUpdate: DeferredPromise<ILanguageModelsProviderGroup> | undefined;
+	let configurationChanges: Emitter<readonly ILanguageModelsProviderGroup[]>;
+	let discoveryUpdate: DeferredPromise<void> | undefined;
 	let savedTemperature: number;
 
 	setup(async function () {
 		receivedOptions = undefined;
 		configurationUpdate = undefined;
+		configurationChanges = disposables.add(new Emitter<readonly ILanguageModelsProviderGroup[]>());
+		discoveryUpdate = undefined;
 		savedTemperature = 0.7;
 
 		languageModelsService = new LanguageModelsService(
@@ -1313,7 +1317,7 @@ suite('LanguageModels - Per-Model Configuration', function () {
 			new TestStorageService(),
 			new MockContextKeyService(),
 			new class extends mock<ILanguageModelsConfigurationService>() {
-				override onDidChangeLanguageModelGroups = Event.None;
+				override onDidChangeLanguageModelGroups = configurationChanges.event;
 				override async updateLanguageModelsProviderGroup(_from: ILanguageModelsProviderGroup, to: ILanguageModelsProviderGroup) {
 					return configurationUpdate ? configurationUpdate.p : to;
 				}
@@ -1344,6 +1348,7 @@ suite('LanguageModels - Per-Model Configuration', function () {
 		const provider: ILanguageModelChatProvider = {
 			onDidChange: Event.None,
 			provideLanguageModelChatInfo: async (options) => {
+				await discoveryUpdate?.p;
 				if (options.group) {
 					return [{
 						metadata: {
@@ -1482,6 +1487,29 @@ suite('LanguageModels - Per-Model Configuration', function () {
 			configuration: { temperature: 0.9, reasoningEffort: 'high', maxTokens: 4096 },
 			changes: ['config-vendor']
 		});
+	});
+
+	test('configuration saves notify with updated preferences after an overlapping refresh', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+
+		let notifiedConfiguration = languageModelsService.getModelConfiguration('config-vendor/default/model-a');
+		disposables.add(languageModelsService.onDidChangeLanguageModels(() => {
+			notifiedConfiguration = languageModelsService.getModelConfiguration('config-vendor/default/model-a');
+		}));
+		discoveryUpdate = new DeferredPromise<void>();
+		savedTemperature = 0.9;
+		configurationChanges.fire([{ name: 'default', vendor: 'config-vendor' }]);
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+		await discoveryUpdate.complete();
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+
+		assert.deepStrictEqual({
+			temperature: languageModelsService.getModelConfiguration('config-vendor/default/model-a')?.temperature,
+			notifiedTemperature: notifiedConfiguration?.temperature
+		}, { temperature: 0.9, notifiedTemperature: 0.9 });
 	});
 
 	test('a late configuration save cannot overwrite a replacement model cache', async function () {
