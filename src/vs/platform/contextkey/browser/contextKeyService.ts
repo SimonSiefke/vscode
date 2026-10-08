@@ -39,6 +39,10 @@ export class Context implements IContext {
 		return { ...this._value };
 	}
 
+	public hasValue(key: string): boolean {
+		return key in this._value;
+	}
+
 	public setValue(key: string, value: any): boolean {
 		// console.log('SET ' + key + ' = ' + value + ' ON ' + this._id);
 		if (!equals(this._value[key], value)) {
@@ -231,6 +235,9 @@ class SimpleContextKeyChangeEvent implements IContextKeyChangeEvent {
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.affectsSome(keys);
 	}
+	allKeysContainedInContext(context: Context): boolean {
+		return context.hasValue(this.key);
+	}
 }
 
 class ArrayContextKeyChangeEvent implements IContextKeyChangeEvent {
@@ -245,6 +252,9 @@ class ArrayContextKeyChangeEvent implements IContextKeyChangeEvent {
 	}
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.keys.every(key => keys.has(key));
+	}
+	allKeysContainedInContext(context: Context): boolean {
+		return this.keys.every(key => context.hasValue(key));
 	}
 }
 
@@ -261,10 +271,16 @@ class CompositeContextKeyChangeEvent implements IContextKeyChangeEvent {
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.events.every(evt => evt.allKeysContainedIn(keys));
 	}
+	allKeysContainedInContext(context: Context): boolean {
+		return this.events.every(evt => allEventKeysInContext(evt, context));
+	}
 }
 
-function allEventKeysInContext(event: IContextKeyChangeEvent, context: Record<string, any>): boolean {
-	return event.allKeysContainedIn(new Set(Object.keys(context)));
+function allEventKeysInContext(event: IContextKeyChangeEvent, context: Context): boolean {
+	if ('allKeysContainedInContext' in event && typeof event.allKeysContainedInContext === 'function') {
+		return event.allKeysContainedInContext(context);
+	}
+	return event.allKeysContainedIn({ has: key => context.hasValue(key) });
 }
 
 export abstract class AbstractContextKeyService extends Disposable implements IContextKeyService {
@@ -496,9 +512,8 @@ class ScopedContextKeyService extends AbstractContextKeyService {
 		// Forward parent events to this listener. Parent will change.
 		this._parentChangeListener.value = this._parent.onDidChangeContext(e => {
 			const thisContainer = this._parent.getContextValuesContainer(this._myContextId);
-			const thisContextValues = thisContainer.value;
 
-			if (!allEventKeysInContext(e, thisContextValues)) {
+			if (!allEventKeysInContext(e, thisContainer)) {
 				this._onDidChangeContext.fire(e);
 			}
 		});

@@ -27,6 +27,17 @@ import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 import { renderAsPlaintext } from '../../../base/browser/markdownRenderer.js';
 import { stripIcons } from '../../../base/common/iconLabels.js';
 
+const defaultButtonBarMenuOptions: IMenuActionOptions = {
+	skipMenuHideActions: true,
+	skipConfigureKeybindingAction: true
+};
+
+function getButtonBarMenuOptions(options: IMenuWorkbenchButtonBarOptions | undefined): IMenuActionOptions {
+	return options?.menuOptions
+		? { ...defaultButtonBarMenuOptions, ...options.menuOptions }
+		: defaultButtonBarMenuOptions;
+}
+
 export interface IButtonConfig {
 	showIcon?: boolean;
 	showLabel?: boolean;
@@ -312,7 +323,7 @@ export class MenuWorkbenchButtonBar extends WorkbenchButtonBar {
 			this.clear();
 
 			const actions = getActionBarActions(
-				menu.getActions(options?.menuOptions),
+				menu.getActions(getButtonBarMenuOptions(options)),
 				options?.toolbarOptions?.primaryGroup
 			);
 
