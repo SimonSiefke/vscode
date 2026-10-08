@@ -661,6 +661,9 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 				inputState = result;
 			}
 		}
+		if (this._chatSessionContentProviders.get(handle) !== provider) {
+			throw new CancellationError();
+		}
 		inputState ??= this._createInputStateFromOptions(
 			controllerData?.optionGroups ?? [], context.initialSessionOptions
 		);
@@ -681,7 +684,8 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 		const session = await provider.provider.provideChatSessionContent(sessionResource, token, {
 			inputState,
 		});
-		if (token.isCancellationRequested) {
+		// Unregistration can dispose the renderer session while this callback is pending.
+		if (token.isCancellationRequested || this._chatSessionContentProviders.get(handle) !== provider) {
 			throw new CancellationError();
 		}
 
