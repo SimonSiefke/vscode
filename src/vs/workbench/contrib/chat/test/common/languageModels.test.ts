@@ -852,6 +852,147 @@ suite('LanguageModels - Model Change Events', function () {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	suite('provider disposal', () => {
+		function model(id: string): ILanguageModelChatMetadataAndIdentifier {
+			return {
+				identifier: `test-vendor/${id}`,
+				metadata: {
+					extension: nullExtensionDescription.identifier,
+					name: id,
+					vendor: 'test-vendor',
+					family: 'test-family',
+					version: '1',
+					id,
+					maxInputTokens: 100,
+					maxOutputTokens: 100,
+					isDefaultForLocation: {}
+				}
+			};
+		}
+
+		function provider(discover: () => Promise<ILanguageModelChatMetadataAndIdentifier[]>) {
+			return {
+				onDidChange: Event.None,
+				provideLanguageModelChatInfo: discover,
+				sendChatRequest: async () => { throw new Error('Not used'); },
+				provideTokenCount: async () => { throw new Error('Not used'); }
+			};
+		}
+
+		function assertUnresolved(): void {
+			assert.deepStrictEqual(languageModelsService.getLanguageModelIds(), []);
+			assert.deepStrictEqual(languageModelsService.getLanguageModelGroups('test-vendor'), []);
+			assert.strictEqual(languageModelsService.hasResolvedVendor('test-vendor'), false);
+		}
+
+		test('does not retain late discovery results after registration disposal', async () => {
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				void started.complete();
+				return result.p;
+			})));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			registration.dispose();
+			await result.complete([model('disposed')]);
+			await selection;
+			assertUnresolved();
+		});
+
+		test('does not invoke queued discovery after registration disposal', async () => {
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			let calls = 0;
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				if (++calls === 1) {
+					void started.complete();
+				}
+				return result.p;
+			})));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			const queued = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			registration.dispose();
+			await result.complete([model('disposed')]);
+			await Promise.all([selection, queued]);
+			assert.strictEqual(calls, 1);
+			assertUnresolved();
+		});
+
+		test('does not retain late discovery results after vendor removal', async () => {
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				void started.complete();
+				return result.p;
+			})));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			languageModelsService.deltaLanguageModelChatProviderDescriptors([], [{ vendor: 'test-vendor', displayName: 'Test Vendor', configuration: undefined, managementCommand: undefined, when: undefined }]);
+			await result.complete([model('removed')]);
+			await selection;
+			assertUnresolved();
+		});
+
+		test('does not publish an old discovery into a replacement registration', async () => {
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => {
+				void started.complete();
+				return result.p;
+			})));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			registration.dispose();
+			disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => [model('replacement')])));
+			await result.complete([model('disposed')]);
+			await selection;
+			assertUnresolved();
+			assert.deepStrictEqual(await languageModelsService.selectLanguageModels({ vendor: 'test-vendor' }), ['test-vendor/replacement']);
+		});
+
+		test('distinguishes registrations that reuse the same provider instance', async () => {
+			const started = new DeferredPromise<void>();
+			const result = new DeferredPromise<ILanguageModelChatMetadataAndIdentifier[]>();
+			let calls = 0;
+			const reused = provider(async () => {
+				if (++calls === 1) {
+					void started.complete();
+					return result.p;
+				}
+				return [model('replacement')];
+			});
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', reused));
+			const selection = languageModelsService.selectLanguageModels({ vendor: 'test-vendor' });
+			await started.p;
+			registration.dispose();
+			disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', reused));
+			await result.complete([model('disposed')]);
+			await selection;
+			assertUnresolved();
+			assert.deepStrictEqual(await languageModelsService.selectLanguageModels({ vendor: 'test-vendor' }), ['test-vendor/replacement']);
+		});
+
+		test('an old registration cannot remove a replacement after vendor removal', async () => {
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => [model('old')])));
+			const descriptor = { vendor: 'test-vendor', displayName: 'Test Vendor', configuration: undefined, managementCommand: undefined, when: undefined };
+			languageModelsService.deltaLanguageModelChatProviderDescriptors([], [descriptor]);
+			languageModelsService.deltaLanguageModelChatProviderDescriptors([descriptor], []);
+			disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => [model('replacement')])));
+			registration.dispose();
+			assert.deepStrictEqual(await languageModelsService.selectLanguageModels({ vendor: 'test-vendor' }), ['test-vendor/replacement']);
+		});
+
+		test('live discovery still publishes models and disposal clears them', async () => {
+			const registration = disposables.add(languageModelsService.registerLanguageModelProvider('test-vendor', provider(async () => [model('live')])));
+			assert.deepStrictEqual(await languageModelsService.selectLanguageModels({ vendor: 'test-vendor' }), ['test-vendor/live']);
+			assert.strictEqual(languageModelsService.hasResolvedVendor('test-vendor'), true);
+			registration.dispose();
+			assertUnresolved();
+		});
+	});
+
 	test('fires onChange event when new models are added', async function () {
 		// Create a promise that resolves when the event fires
 		const eventPromise = new Promise<string>((resolve) => {
