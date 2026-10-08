@@ -5,7 +5,8 @@
 
 import { disposableTimeout } from '../../../base/common/async.js';
 import { IExpression, ParsedExpression, parse } from '../../../base/common/glob.js';
-import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { SharedResourceMap } from '../../../base/common/sharedResourceMap.js';
 import { extUriBiasedIgnorePathCase } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
 import { FileChangesEvent, IFileService } from '../../files/common/files.js';
@@ -61,7 +62,7 @@ export class AgentHostFileMonitorService extends Disposable implements IAgentHos
 
 	private static readonly _DEFAULT_DEBOUNCE_MS = 750;
 
-	private readonly _entries = this._register(new DisposableMap<string, IMonitorEntry>());
+	private readonly _entries = this._register(new SharedResourceMap<string, IMonitorEntry, () => void>(undefined, (_key, entry) => entry.dispose()));
 
 	constructor(
 		@IFileService private readonly _fileService: IFileService,
@@ -80,31 +81,22 @@ export class AgentHostFileMonitorService extends Disposable implements IAgentHos
 		const debounceMs = options.debounceMs ?? AgentHostFileMonitorService._DEFAULT_DEBOUNCE_MS;
 		const key = this._key(canonicalFolder, excludes, debounceMs);
 
-		let entry = this._entries.get(key);
-		if (!entry) {
-			try {
-				entry = this._createEntry(key, canonicalFolder, excludes, debounceMs);
-			} catch (err) {
-				this._logService.warn(`[AgentHostFileMonitorService] Failed to watch ${canonicalFolder.toString()}`, err);
-				return undefined;
-			}
-			this._entries.set(key, entry);
+		try {
+			const reference = this._entries.acquire(key, callback, () => this._createEntry(canonicalFolder, excludes, debounceMs));
+			reference.object.callbacks.add(callback);
+			return toDisposable(() => {
+				reference.dispose();
+				if (!this._entries.hasOwner(key, callback)) {
+					reference.object.callbacks.delete(callback);
+				}
+			});
+		} catch (err) {
+			this._logService.warn(`[AgentHostFileMonitorService] Failed to watch ${canonicalFolder.toString()}`, err);
+			return undefined;
 		}
-
-		entry.callbacks.add(callback);
-		return toDisposable(() => {
-			const current = this._entries.get(key);
-			if (!current) {
-				return;
-			}
-			current.callbacks.delete(callback);
-			if (current.callbacks.size === 0) {
-				this._entries.deleteAndDispose(key);
-			}
-		});
 	}
 
-	private _createEntry(_key: string, folder: URI, excludes: readonly string[], debounceMs: number): IMonitorEntry {
+	private _createEntry(folder: URI, excludes: readonly string[], debounceMs: number): IMonitorEntry {
 		const disposable = new DisposableStore();
 		try {
 			const debounce = disposable.add(new MutableDisposable<IDisposable>());
@@ -119,14 +111,13 @@ export class AgentHostFileMonitorService extends Disposable implements IAgentHos
 	}
 
 	private _onDidFilesChange(event: FileChangesEvent): void {
-		for (const key of this._entries.keys()) {
-			this._onDidFilesChangeEntry(key, event);
+		for (const entry of this._entries.values()) {
+			this._onDidFilesChangeEntry(entry, event);
 		}
 	}
 
-	private _onDidFilesChangeEntry(key: string, event: FileChangesEvent): void {
-		const entry = this._entries.get(key);
-		if (!entry || entry.callbacks.size === 0) {
+	private _onDidFilesChangeEntry(entry: IMonitorEntry, event: FileChangesEvent): void {
+		if (entry.callbacks.size === 0) {
 			return;
 		}
 		if (!event.affects(entry.folder) || !this._hasRelevantRawChange(entry, event)) {
