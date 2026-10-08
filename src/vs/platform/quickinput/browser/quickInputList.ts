@@ -22,7 +22,7 @@ import { equals } from '../../../base/common/arrays.js';
 import { disposableTimeout, ThrottledDelayer } from '../../../base/common/async.js';
 import { compareAnything } from '../../../base/common/comparers.js';
 import { memoize } from '../../../base/common/decorators.js';
-import { isCancellationError } from '../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event, EventBufferer, IValueWithChangeEvent } from '../../../base/common/event.js';
 import { IMatch } from '../../../base/common/filters.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
@@ -983,10 +983,24 @@ export class QuickInputList extends Disposable {
 
 	private _registerHoverListeners() {
 		const delayer = this._register(new ThrottledDelayer(typeof this.hoverDelegate.delay === 'function' ? this.hoverDelegate.delay() : this.hoverDelegate.delay));
-		this._register(this._tree.onMouseOver(async e => {
+		let hoverElement: QuickPickItemElement | undefined;
+		const showHover = () => {
+			if (hoverElement) {
+				this.showHover(hoverElement);
+			}
+			return Promise.resolve();
+		};
+		const handleHoverError = (error: unknown) => {
+			// Ignore cancellation errors due to mouse out
+			if (!isCancellationError(error)) {
+				onUnexpectedError(error);
+			}
+		};
+		this._register(this._tree.onMouseOver(e => {
 			// If we hover over an anchor element, we don't want to show the hover because
 			// the anchor may have a tooltip that we want to show instead.
 			if (dom.isHTMLAnchorElement(e.browserEvent.target)) {
+				hoverElement = undefined;
 				delayer.cancel();
 				return;
 			}
@@ -998,18 +1012,8 @@ export class QuickInputList extends Disposable {
 			) {
 				return;
 			}
-			try {
-				await delayer.trigger(async () => {
-					if (e.element instanceof QuickPickItemElement) {
-						this.showHover(e.element);
-					}
-				});
-			} catch (e) {
-				// Ignore cancellation errors due to mouse out
-				if (!isCancellationError(e)) {
-					throw e;
-				}
-			}
+			hoverElement = e.element instanceof QuickPickItemElement ? e.element : undefined;
+			void delayer.trigger(showHover).catch(handleHoverError);
 		}));
 		this._register(this._tree.onMouseOut(e => {
 			// onMouseOut triggers every time a new element has been moused over
@@ -1018,6 +1022,7 @@ export class QuickInputList extends Disposable {
 			if (dom.isAncestor(e.browserEvent.relatedTarget as Node, e.element?.element as Node)) {
 				return;
 			}
+			hoverElement = undefined;
 			delayer.cancel();
 		}));
 	}
