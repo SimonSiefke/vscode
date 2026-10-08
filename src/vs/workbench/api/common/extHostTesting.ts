@@ -214,6 +214,9 @@ export class ExtHostTesting extends Disposable implements ExtHostTestingShape {
 				return collection.resolveHandler as undefined | ((item?: vscode.TestItem) => void);
 			},
 			dispose: () => {
+				for (const profile of profiles.values()) {
+					profile.dispose();
+				}
 				disposable.dispose();
 			},
 		};
@@ -1225,7 +1228,8 @@ const updateProfile = (impl: TestRunProfileImpl, proxy: MainThreadTestingShape, 
 export class TestRunProfileImpl extends TestRunProfileBase implements vscode.TestRunProfile {
 	readonly #proxy: MainThreadTestingShape;
 	readonly #activeProfiles: Set<number>;
-	readonly #onDidChangeDefaultProfiles: Event<DefaultProfileChangeEvent>;
+	readonly #disposables = new DisposableStore();
+	readonly onDidChangeDefault: Event<boolean>;
 	#initialPublish?: ITestRunProfile;
 	#profiles?: Map<number, vscode.TestRunProfile>;
 	private _configureHandler?: (() => void);
@@ -1294,13 +1298,6 @@ export class TestRunProfileImpl extends TestRunProfileBase implements vscode.Tes
 		}
 	}
 
-	public get onDidChangeDefault() {
-		return Event.chain(this.#onDidChangeDefaultProfiles, $ => $
-			.map(ev => ev.get(this.controllerId)?.get(this.profileId))
-			.filter(isDefined)
-		);
-	}
-
 	constructor(
 		proxy: MainThreadTestingShape,
 		profiles: Map<number, vscode.TestRunProfile>,
@@ -1320,7 +1317,11 @@ export class TestRunProfileImpl extends TestRunProfileBase implements vscode.Tes
 		this.#proxy = proxy;
 		this.#profiles = profiles;
 		this.#activeProfiles = activeProfiles;
-		this.#onDidChangeDefaultProfiles = onDidChangeActiveProfiles;
+		this.onDidChangeDefault = Event.filter<boolean, undefined>(
+			Event.map(onDidChangeActiveProfiles, ev => ev.get(this.controllerId)?.get(this.profileId), this.#disposables),
+			isDefined,
+			this.#disposables
+		);
 		profiles.set(profileId, this);
 
 		const groupBitset = Convert.TestRunProfileKind.from(kind);
@@ -1350,6 +1351,7 @@ export class TestRunProfileImpl extends TestRunProfileBase implements vscode.Tes
 	}
 
 	dispose(): void {
+		this.#disposables.dispose();
 		if (this.#profiles?.delete(this.profileId)) {
 			this.#profiles = undefined;
 			this.#proxy.$removeTestProfile(this.controllerId, this.profileId);

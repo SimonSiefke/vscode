@@ -651,7 +651,7 @@ suite('ExtHost Testing', () => {
 			cts = new CancellationTokenSource();
 			c = new TestRunCoordinator(proxy, new NullLogService());
 
-			configuration = new TestRunProfileImpl(mockObject<MainThreadTestingShape>()(), new Map(), new Set(), Event.None, 'ctrlId', 42, 'Do Run', TestRunProfileKind.Run, () => { }, false);
+			configuration = ds.add(new TestRunProfileImpl(mockObject<MainThreadTestingShape>()(), new Map(), new Set(), Event.None, 'ctrlId', 42, 'Do Run', TestRunProfileKind.Run, () => { }, false));
 
 			await single.expand(single.root.id, Infinity);
 			single.collectDiff();
@@ -924,6 +924,60 @@ suite('ExtHost Testing', () => {
 				}),
 				new ExtHostDocumentsAndEditors(rpcProtocol, new NullLogService()),
 			));
+		});
+
+		test('disposed profiles do not receive default changes for their replacement', () => {
+			const controller = ds.add(ctrl.createTestController(nullExtensionDescription, 'profile-lifetime', 'Profile lifetime'));
+			const retired = ds.add(controller.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			const retiredChanges: boolean[] = [];
+			ds.add(retired.onDidChangeDefault(value => retiredChanges.push(value)));
+			retired.dispose();
+			const replacement = ds.add(controller.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			const replacementChanges: boolean[] = [];
+			ds.add(replacement.onDidChangeDefault(value => replacementChanges.push(value)));
+
+			ctrl.$setDefaultRunProfiles({ [controller.id]: [ctrl.getProfileInternalId(controller, replacement)] });
+			assert.deepStrictEqual({ retiredChanges, replacementChanges }, { retiredChanges: [], replacementChanges: [true] });
+		});
+
+		test('disposing a controller stops default events for its profiles', () => {
+			const retiredController = ds.add(ctrl.createTestController(nullExtensionDescription, 'profile-lifetime', 'Profile lifetime'));
+			const retiredProfile = ds.add(retiredController.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			const retiredChanges: boolean[] = [];
+			ds.add(retiredProfile.onDidChangeDefault(value => retiredChanges.push(value)));
+			retiredController.dispose();
+			const replacementController = ds.add(ctrl.createTestController(nullExtensionDescription, 'profile-lifetime', 'Profile lifetime'));
+			const replacement = ds.add(replacementController.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+
+			ctrl.$setDefaultRunProfiles({ [replacementController.id]: [ctrl.getProfileInternalId(replacementController, replacement)] });
+			assert.deepStrictEqual({ retiredChanges, replacementDefault: replacement.isDefault }, { retiredChanges: [], replacementDefault: true });
+		});
+
+		test('profile listeners can unsubscribe and subscribe again', () => {
+			const controller = ds.add(ctrl.createTestController(nullExtensionDescription, 'profile-lifetime', 'Profile lifetime'));
+			const profile = ds.add(controller.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			const profileId = ctrl.getProfileInternalId(controller, profile);
+			const removedChanges: boolean[] = [];
+			const subscription = ds.add(profile.onDidChangeDefault(value => removedChanges.push(value)));
+			subscription.dispose();
+			ctrl.$setDefaultRunProfiles({ [controller.id]: [profileId] });
+			const currentChanges: boolean[] = [];
+			ds.add(profile.onDidChangeDefault(value => currentChanges.push(value)));
+			ctrl.$setDefaultRunProfiles({ [controller.id]: [] });
+			ctrl.$setDefaultRunProfiles({ [controller.id]: [profileId] });
+			assert.deepStrictEqual({ removedChanges, currentChanges }, { removedChanges: [], currentChanges: [false, true] });
+		});
+
+		test('subscribing after profile disposal does not reattach to default changes', () => {
+			const controller = ds.add(ctrl.createTestController(nullExtensionDescription, 'profile-lifetime', 'Profile lifetime'));
+			const retired = ds.add(controller.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			retired.dispose();
+			retired.dispose();
+			const changes: boolean[] = [];
+			ds.add(retired.onDidChangeDefault(value => changes.push(value)));
+			const replacement = ds.add(controller.createRunProfile('Run', TestRunProfileKind.Run, () => { }));
+			ctrl.$setDefaultRunProfiles({ [controller.id]: [ctrl.getProfileInternalId(controller, replacement)] });
+			assert.deepStrictEqual(changes, []);
 		});
 
 		test('disposing an observer stops its events while another observer remains live', async () => {
