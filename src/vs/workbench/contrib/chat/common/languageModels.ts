@@ -1718,6 +1718,11 @@ export class LanguageModelsService implements ILanguageModelsService {
 			await this._languageModelsConfigurationService.addLanguageModelsProviderGroup(newGroup);
 		}
 
+		// The model may have been removed or replaced while saving its configuration.
+		if (this._modelCache.get(modelId) !== metadata) {
+			return;
+		}
+
 		// Update the in-memory cache
 		if (Object.keys(updatedConfig).length > 0) {
 			this._modelConfigurations.set(modelId, updatedConfig);
@@ -2308,6 +2313,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 			if (model.vendor === vendor) {
 				removed.set(id, model);
 				this._modelCache.delete(id);
+				this._modelConfigurations.delete(id);
 			}
 		}
 		return removed;
