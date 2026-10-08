@@ -193,6 +193,17 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		}
 
 		this.shellIntegrationNonce = shellIntegrationNonce ?? generateUuid();
+		this._register(this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration(TerminalContribSettingId.AutoReplies)) {
+				this._updateAutoReplies().catch(error => this._logService.error('Could not update terminal auto replies', error));
+			}
+		}));
+	}
+
+	private async _updateAutoReplies(): Promise<void> {
+		if (this._process && this._processType === ProcessType.Process && this.backend) {
+			await this.backend.setAutoReplies(this._process.id, this._configurationService.getValue<Record<string, string | null>>(TerminalContribSettingId.AutoReplies) ?? {});
+		}
 	}
 
 	async freePortKillProcess(port: string): Promise<void> {
@@ -235,8 +246,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	}
 
 	async detachFromProcess(forcePersist?: boolean): Promise<void> {
-		await this._process?.detach?.(forcePersist);
+		const process = this._process;
 		this._process = null;
+		await process?.detach?.(forcePersist);
 	}
 
 	async createProcess(
@@ -255,6 +267,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			this._processType = ProcessType.PsuedoTerminal;
 			newProcess = shellLaunchConfig.customPtyImplementation(this._instanceId, cols, rows);
 		} else {
+			this._processType = ProcessType.Process;
 			const backend = await this._terminalInstanceService.getBackend(this.remoteAuthority);
 			if (!backend) {
 				throw new Error(`No terminal backend registered for remote authority '${this.remoteAuthority}'`);
@@ -416,6 +429,10 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			}
 		}, ProcessConstants.ErrorLaunchThresholdDuration);
 
+		await this._updateAutoReplies();
+		if (this._isDisposed) {
+			return undefined;
+		}
 		const result = await newProcess.start();
 		if (result) {
 			// Error

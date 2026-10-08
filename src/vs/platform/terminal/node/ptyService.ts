@@ -106,12 +106,10 @@ export class PtyService extends Disposable implements IPtyService {
 
 	private readonly _autoRepliesContribution: AutoRepliesPtyServiceContribution;
 	@traceRpc
-	async installAutoReply(match: string, reply: string) {
-		await this._autoRepliesContribution.installAutoReply(match, reply);
-	}
-	@traceRpc
-	async uninstallAllAutoReplies() {
-		await this._autoRepliesContribution.uninstallAllAutoReplies();
+	async setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
+		if (this._ptys.has(id)) {
+			this._autoRepliesContribution.setAutoReplies(id, replies);
+		}
 	}
 
 	// #endregion

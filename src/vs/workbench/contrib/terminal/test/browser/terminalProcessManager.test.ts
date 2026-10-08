@@ -8,6 +8,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { OperatingSystem } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService, type IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -58,6 +59,7 @@ class TestTerminalChildProcess implements ITerminalChildProcess {
 
 class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 	readonly ptyHostRestartEmitter = new Emitter<void>();
+	readonly autoReplyUpdates: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
 	async getBackend() {
 		return {
 			onPtyHostExit: Event.None,
@@ -76,6 +78,7 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 				options: any,
 				shouldPersist: boolean
 			) => new TestTerminalChildProcess(shouldPersist),
+			setAutoReplies: async (id: number, replies: Readonly<Record<string, string | null>>) => { this.autoReplyUpdates.push({ id, replies }); },
 			getLatency: () => Promise.resolve([]),
 			getShellEnvironment: () => Promise.resolve({})
 		} as unknown as ITerminalBackend;
@@ -86,12 +89,13 @@ suite('Workbench - TerminalProcessManager', () => {
 	let manager: TerminalProcessManager;
 	let terminalInstanceService: TestTerminalInstanceService;
 	let environmentVariableService: IEnvironmentVariableService;
+	let configurationService: TestConfigurationService;
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	setup(async () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
 		await configurationService.setUserConfiguration('editor', { fontFamily: 'foo' });
 		await configurationService.setUserConfiguration('terminal', {
 			integrated: {
@@ -112,6 +116,29 @@ suite('Workbench - TerminalProcessManager', () => {
 		environmentVariableService = instantiationService.get(IEnvironmentVariableService);
 
 		manager = store.add(instantiationService.createInstance(TerminalProcessManager, 1, undefined, undefined, undefined));
+	});
+
+	test('applies auto replies to its process and stops updating after detach', async () => {
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'initial' });
+		await manager.createProcess({}, 80, 24, false);
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'updated' });
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		await manager.detachFromProcess();
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', {});
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [
+			{ id: 0, replies: { prompt: 'initial' } },
+			{ id: 0, replies: { prompt: 'updated' } }
+		]);
+	});
+
+	test('does not send auto replies for a custom pty and applies them when replaced with a process', async () => {
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'reply' });
+		await manager.createProcess({ customPtyImplementation: () => new TestTerminalChildProcess(false) }, 80, 24, false);
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, []);
+		await manager.createProcess({}, 80, 24, false);
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 0, replies: { prompt: 'reply' } }]);
 	});
 
 	test('does not accumulate environment variable collection listeners when relaunching', async () => {
