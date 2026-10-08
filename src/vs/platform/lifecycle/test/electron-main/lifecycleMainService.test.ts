@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import electron from 'electron';
+import type electron from 'electron';
 import { EventEmitter } from 'events';
 import sinon from 'sinon';
 import { timeout } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { validatedIpcMain } from '../../../../base/parts/ipc/electron-main/ipcMain.js';
 import { upcastPartial } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IEnvironmentMainService } from '../../../environment/electron-main/environmentMainService.js';
@@ -26,12 +27,22 @@ interface UnloadRequest {
 
 suite('LifecycleMainService - renderer unload', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	teardown(() => sinon.restore());
 
 	function createWindow() {
 		let closed = false;
 		let disposed = false;
 		const didClose = store.add(new Emitter<void>());
 		const nativeEvents = new EventEmitter();
+		const ipcEvents = new EventEmitter();
+		sinon.stub(validatedIpcMain, 'on').callsFake((channel, listener) => {
+			ipcEvents.on(channel, listener);
+			return validatedIpcMain;
+		});
+		sinon.stub(validatedIpcMain, 'removeListener').callsFake((channel, listener) => {
+			ipcEvents.removeListener(channel, listener);
+			return validatedIpcMain;
+		});
 		const nativeWindow = upcastPartial<electron.BrowserWindow>({
 			isDestroyed: () => closed,
 			on: sinon.stub().callsFake((name: string, listener: () => void) => {
@@ -77,11 +88,11 @@ suite('LifecycleMainService - renderer unload', () => {
 		const reply = (index: number, key: 'okChannel' | 'cancelChannel' | 'replyChannel') => {
 			const channel = request(index)[key];
 			assert.ok(channel);
-			electron.ipcMain.emit(channel, { senderFrame: { url: 'about:blank' } });
+			ipcEvents.emit(channel);
 		};
 		const pendingChannels = () => send.getCalls().flatMap(call => {
 			const { okChannel, cancelChannel, replyChannel } = call.args[1] as UnloadRequest;
-			return [okChannel, cancelChannel, replyChannel].filter((channel): channel is string => !!channel && electron.ipcMain.listenerCount(channel) > 0);
+			return [okChannel, cancelChannel, replyChannel].filter((channel): channel is string => !!channel && ipcEvents.listenerCount(channel) > 0);
 		});
 		return { window, service, send, close, reload, nativeEvents, closeNativeWindow, request, reply, pendingChannels };
 	}
@@ -92,8 +103,7 @@ suite('LifecycleMainService - renderer unload', () => {
 			await run(fixture);
 		} finally {
 			fixture.closeNativeWindow();
-			// Complete only this fixture's channels, including on the unfixed source,
-			// so intentional red assertions cannot contaminate the following test.
+			// Complete this fixture's channels so failing assertions cannot contaminate later tests.
 			for (let attempt = 0; attempt < 3; attempt++) {
 				for (let index = 0; index < fixture.send.callCount; index++) {
 					const request = fixture.request(index);
