@@ -533,7 +533,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 	private async doUnload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */> {
 
-		// Always allow to unload a window that is not yet ready
+		// Always allow to unload a window that is not yet ready or has already closed.
 		if (!window.isReady || !window.win || window.win.isDestroyed()) {
 			return false;
 		}
