@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ExtensionAutoReloadContribution } from './extensionsAutoReload.js';
 import { IAction } from '../../../../base/common/actions.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -334,6 +335,13 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
 				default: true,
 				scope: ConfigurationScope.APPLICATION,
 				included: isNative
+			},
+			[ExtensionAutoReloadContribution.ConfigurationKey]: {
+				type: 'boolean',
+				description: localize('extensions.experimental.autoReload', "Automatically reload extension development windows when files in the extensions under development change. Git metadata and node_modules are excluded."),
+				default: false,
+				scope: ConfigurationScope.APPLICATION,
+				tags: ['experimental']
 			},
 			[AutoRestartConfigurationKey]: {
 				type: 'boolean',
@@ -2189,3 +2197,5 @@ Registry.as<IConfigurationMigrationRegistry>(ConfigurationMigrationExtensions.Co
 			return { value: 'on' };
 		}
 	}]);
+
+registerWorkbenchContribution2(ExtensionAutoReloadContribution.ID, ExtensionAutoReloadContribution, WorkbenchPhase.AfterRestored);
