@@ -1408,8 +1408,9 @@ export class LanguageModelsService implements ILanguageModelsService {
 			const wasResolved = this._modelsGroups.has(vendorId);
 			const oldGroups = this._modelsGroups.get(vendorId) ?? [];
 			this._modelsGroups.set(vendorId, languageModelsGroups);
+			const configurationChanged = allModels.some(model => !equals(this._modelConfigurations.get(model.identifier), perModelConfigurations.get(model.identifier)));
 			const oldModels = this._clearModelCache(vendorId);
-			let hasChanges = !wasResolved;
+			let hasChanges = !wasResolved || configurationChanged;
 			for (const model of allModels) {
 				if (this._modelCache.has(model.identifier)) {
 					this._logService.warn(`[LM] Model ${model.identifier} is already registered. Skipping.`);
@@ -1721,6 +1722,15 @@ export class LanguageModelsService implements ILanguageModelsService {
 				settings: { [metadata.id]: updatedConfig }
 			};
 			await this._languageModelsConfigurationService.addLanguageModelsProviderGroup(newGroup);
+		}
+
+		// The model may have been removed or replaced while saving its configuration.
+		const currentMetadata = this._modelCache.get(modelId);
+		if (currentMetadata !== metadata) {
+			if (currentMetadata) {
+				this._onLanguageModelChange.fire(currentMetadata.vendor);
+			}
+			return;
 		}
 
 		// Update the in-memory cache
@@ -2313,6 +2323,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 			if (model.vendor === vendor) {
 				removed.set(id, model);
 				this._modelCache.delete(id);
+				this._modelConfigurations.delete(id);
 			}
 		}
 		return removed;

@@ -14,7 +14,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import Severity from '../../../../../base/common/severity.js';
 import { SubmenuAction } from '../../../../../base/common/actions.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
-import { ChatMessageRole, LanguageModelsService, IChatMessage, IChatResponsePart, ILanguageModelChatMetadata, createModelConfigurationActions, ILanguageModelConfigurationSchema, getAutoModelTier, getByokProviderTelemetryName, THIRD_PARTY_PROVIDER_TELEMETRY_NAME, COPILOT_VENDOR_ID, getLanguageModelDisplayNameWithProvider, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../common/languageModels.js';
+import { ChatMessageRole, LanguageModelsService, IChatMessage, IChatResponsePart, ILanguageModelChatMetadata, createModelConfigurationActions, ILanguageModelConfigurationSchema, getAutoModelTier, getByokProviderTelemetryName, THIRD_PARTY_PROVIDER_TELEMETRY_NAME, COPILOT_VENDOR_ID, getLanguageModelDisplayNameWithProvider, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService, ILanguageModelChatProvider } from '../../common/languageModels.js';
 import { IPromptChoice, IPromptOptions } from '../../../../../platform/notification/common/notification.js';
 import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
 import { NullOpenerService } from '../../../../../platform/opener/test/common/nullOpenerService.js';
@@ -1294,9 +1294,18 @@ suite('LanguageModels - Per-Model Configuration', function () {
 	let languageModelsService: LanguageModelsService;
 	const disposables = new DisposableStore();
 	let receivedOptions: { [name: string]: unknown } | undefined;
+	let registerProvider: () => void;
+	let configurationUpdate: DeferredPromise<ILanguageModelsProviderGroup> | undefined;
+	let configurationChanges: Emitter<readonly ILanguageModelsProviderGroup[]>;
+	let discoveryUpdate: DeferredPromise<void> | undefined;
+	let savedTemperature: number;
 
 	setup(async function () {
 		receivedOptions = undefined;
+		configurationUpdate = undefined;
+		configurationChanges = disposables.add(new Emitter<readonly ILanguageModelsProviderGroup[]>());
+		discoveryUpdate = undefined;
+		savedTemperature = 0.7;
 
 		languageModelsService = new LanguageModelsService(
 			new class extends mock<IExtensionService>() {
@@ -1308,13 +1317,16 @@ suite('LanguageModels - Per-Model Configuration', function () {
 			new TestStorageService(),
 			new MockContextKeyService(),
 			new class extends mock<ILanguageModelsConfigurationService>() {
-				override onDidChangeLanguageModelGroups = Event.None;
+				override onDidChangeLanguageModelGroups = configurationChanges.event;
+				override async updateLanguageModelsProviderGroup(_from: ILanguageModelsProviderGroup, to: ILanguageModelsProviderGroup) {
+					return configurationUpdate ? configurationUpdate.p : to;
+				}
 				override getLanguageModelsProviderGroups() {
 					return [{
 						vendor: 'config-vendor',
 						name: 'default',
 						settings: {
-							'model-a': { temperature: 0.7, reasoningEffort: 'high' },
+							'model-a': { temperature: savedTemperature, reasoningEffort: 'high' },
 							'model-b': { temperature: 0.2 }
 						}
 					}];
@@ -1333,9 +1345,10 @@ suite('LanguageModels - Per-Model Configuration', function () {
 			{ vendor: 'config-vendor', displayName: 'Config Vendor', configuration: undefined, managementCommand: undefined, when: undefined }
 		], []);
 
-		disposables.add(languageModelsService.registerLanguageModelProvider('config-vendor', {
+		const provider: ILanguageModelChatProvider = {
 			onDidChange: Event.None,
 			provideLanguageModelChatInfo: async (options) => {
+				await discoveryUpdate?.p;
 				if (options.group) {
 					return [{
 						metadata: {
@@ -1384,7 +1397,11 @@ suite('LanguageModels - Per-Model Configuration', function () {
 				return { stream: stream.asyncIterable, result: defer.p };
 			},
 			provideTokenCount: async () => { throw new Error(); }
-		}));
+		};
+		registerProvider = () => {
+			disposables.add(languageModelsService.registerLanguageModelProvider('config-vendor', provider));
+		};
+		registerProvider();
 
 		await languageModelsService.selectLanguageModels({});
 	});
@@ -1395,6 +1412,136 @@ suite('LanguageModels - Per-Model Configuration', function () {
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('provider disposal releases cached per-model configuration', function () {
+		disposables.clear();
+
+		assert.deepStrictEqual({
+			models: languageModelsService.getLanguageModelIds(),
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a'),
+			preferences: languageModelsService.getModelConfiguration('config-vendor/default/model-b', false)
+		}, { models: [], configuration: undefined, preferences: undefined });
+	});
+
+	test('vendor removal releases cached per-model configuration', function () {
+		languageModelsService.deltaLanguageModelChatProviderDescriptors([], [
+			{ vendor: 'config-vendor', displayName: 'Config Vendor', configuration: undefined, managementCommand: undefined, when: undefined }
+		]);
+
+		assert.deepStrictEqual({
+			models: languageModelsService.getLanguageModelIds(),
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a'),
+			preferences: languageModelsService.getModelConfiguration('config-vendor/default/model-b', false)
+		}, { models: [], configuration: undefined, preferences: undefined });
+	});
+
+	test('re-registering a provider restores persisted per-model preferences', async function () {
+		disposables.clear();
+		registerProvider();
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+
+		assert.deepStrictEqual({
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a'),
+			preferences: languageModelsService.getModelConfiguration('config-vendor/default/model-b', false)
+		}, {
+			configuration: { temperature: 0.7, reasoningEffort: 'high', maxTokens: 4096 },
+			preferences: { temperature: 0.2 }
+		});
+	});
+
+	test('saving configuration for a live model updates its cached preferences', async function () {
+		await languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+
+		assert.deepStrictEqual(languageModelsService.getModelConfiguration('config-vendor/default/model-a'), {
+			temperature: 0.9, reasoningEffort: 'high', maxTokens: 4096
+		});
+	});
+
+	test('a late configuration save cannot repopulate a disposed provider cache', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		disposables.clear();
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+
+		assert.deepStrictEqual({
+			models: languageModelsService.getLanguageModelIds(),
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a')
+		}, { models: [], configuration: undefined });
+	});
+
+	test('configuration saves still notify after a live model refresh', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		savedTemperature = 0.9;
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+		const changes: string[] = [];
+		disposables.add(languageModelsService.onDidChangeLanguageModels(vendor => changes.push(vendor)));
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+
+		assert.deepStrictEqual({
+			configuration: languageModelsService.getModelConfiguration('config-vendor/default/model-a'),
+			changes
+		}, {
+			configuration: { temperature: 0.9, reasoningEffort: 'high', maxTokens: 4096 },
+			changes: ['config-vendor']
+		});
+	});
+
+	test('configuration saves notify with updated preferences after an overlapping refresh', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+
+		let notifiedConfiguration = languageModelsService.getModelConfiguration('config-vendor/default/model-a');
+		disposables.add(languageModelsService.onDidChangeLanguageModels(() => {
+			notifiedConfiguration = languageModelsService.getModelConfiguration('config-vendor/default/model-a');
+		}));
+		discoveryUpdate = new DeferredPromise<void>();
+		savedTemperature = 0.9;
+		configurationChanges.fire([{ name: 'default', vendor: 'config-vendor' }]);
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+		await discoveryUpdate.complete();
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+
+		assert.deepStrictEqual({
+			temperature: languageModelsService.getModelConfiguration('config-vendor/default/model-a')?.temperature,
+			notifiedTemperature: notifiedConfiguration?.temperature
+		}, { temperature: 0.9, notifiedTemperature: 0.9 });
+	});
+
+	test('a late configuration save cannot overwrite a replacement model cache', async function () {
+		configurationUpdate = new DeferredPromise<ILanguageModelsProviderGroup>();
+		const update = languageModelsService.setModelConfiguration('config-vendor/default/model-a', { temperature: 0.9 });
+		disposables.clear();
+		registerProvider();
+		await languageModelsService.selectLanguageModels({ vendor: 'config-vendor' });
+		await configurationUpdate.complete({ name: 'default', vendor: 'config-vendor' });
+		await update;
+
+		assert.deepStrictEqual(languageModelsService.getModelConfiguration('config-vendor/default/model-a'), {
+			temperature: 0.7, reasoningEffort: 'high', maxTokens: 4096
+		});
+	});
+
+	test('disposing another provider preserves live per-model configuration', function () {
+		languageModelsService.deltaLanguageModelChatProviderDescriptors([
+			{ vendor: 'other-vendor', displayName: 'Other Vendor', configuration: undefined, managementCommand: undefined, when: undefined }
+		], []);
+		const registration = disposables.add(languageModelsService.registerLanguageModelProvider('other-vendor', {
+			onDidChange: Event.None,
+			provideLanguageModelChatInfo: async () => [],
+			sendChatRequest: async () => { throw new Error(); },
+			provideTokenCount: async () => 0
+		}));
+		registration.dispose();
+
+		assert.deepStrictEqual(languageModelsService.getModelConfiguration('config-vendor/default/model-a'), {
+			temperature: 0.7, reasoningEffort: 'high', maxTokens: 4096
+		});
+	});
 
 	test('getModelConfiguration returns per-model config from group', function () {
 		const configA = languageModelsService.getModelConfiguration('config-vendor/default/model-a');
