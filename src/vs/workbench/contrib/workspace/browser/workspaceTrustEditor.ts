@@ -810,7 +810,7 @@ export class WorkspaceTrustEditor extends EditorPane {
 		return localize('untrustedHeader', "You are in Restricted Mode");
 	}
 
-	private getHeaderTitleIconClassNames(trusted: boolean): string[] {
+	private getHeaderTitleIconClassNames(trusted: boolean): readonly string[] {
 		return ThemeIcon.asClassNameArray(shieldIcon);
 	}
 
@@ -1099,7 +1099,7 @@ export class WorkspaceTrustEditor extends EditorPane {
 		subtitleElement.innerText = subtitleText;
 	}
 
-	private renderLimitationsListElement(parent: HTMLElement, limitations: string[], iconClassNames: string[]): void {
+	private renderLimitationsListElement(parent: HTMLElement, limitations: string[], iconClassNames: readonly string[]): void {
 		const listContainer = append(parent, $('.workspace-trust-limitations-list-container'));
 		const limitationsList = append(listContainer, $('ul'));
 		for (const limitation of limitations) {

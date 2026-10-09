@@ -138,7 +138,7 @@ export class LightBulbWidget extends Disposable implements IContentWidget {
 
 	public readonly lightBulbInfo: IObservable<LightBulbInfo | undefined> = this._combinedInfo;
 
-	private _iconClasses: string[] = [];
+	private _iconClasses: readonly string[] = [];
 
 	private readonly lightbulbClasses = [
 		'codicon-' + GUTTER_LIGHTBULB_ICON.id,

@@ -34,7 +34,7 @@ export interface IDropdownMenuActionViewItemOptions extends IBaseActionViewItemO
 	readonly actionViewItemProvider?: IActionViewItemProvider;
 	readonly keybindingProvider?: IKeybindingProvider;
 	readonly actionRunner?: IActionRunner;
-	readonly classNames?: string[] | string;
+	readonly classNames?: readonly string[] | string;
 	readonly menuClassName?: string;
 	readonly closeAnimation?: IContextViewCloseAnimation;
 	readonly getAnchor?: () => HTMLElement;
@@ -128,7 +128,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 		if (typeof this.options.classNames === 'string') {
 			classNames = this.options.classNames.split(/\s+/g).filter(s => !!s);
 		} else if (this.options.classNames) {
-			classNames = this.options.classNames;
+			classNames = [...this.options.classNames];
 		}
 
 		// todo@aeschli: remove codicon, should come through `this.options.classNames`
