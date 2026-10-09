@@ -117,7 +117,7 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 				const remainingOptions = options.filter(option => option.id !== id);
 				if (remainingOptions.length === 0) {
 					this._commandListeners.delete(matcher);
-				} else if (remainingOptions.length !== options.length) {
+				} else {
 					this._commandListeners.set(matcher, remainingOptions);
 				}
 			}
