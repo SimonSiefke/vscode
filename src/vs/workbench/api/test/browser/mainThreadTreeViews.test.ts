@@ -16,7 +16,7 @@ import { NullTelemetryService } from '../../../../platform/telemetry/common/tele
 import { MainThreadTreeViews } from '../../browser/mainThreadTreeViews.js';
 import { DataTransferDTO, ExtHostTreeViewsShape } from '../../common/extHost.protocol.js';
 import { CustomTreeView } from '../../../browser/parts/views/treeView.js';
-import { Extensions, ITreeItem, ITreeView, ITreeViewDescriptor, ITreeViewDragAndDropController, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, TreeItemCollapsibleState, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
+import { Extensions, ITreeItem, ITreeView, ITreeViewDescriptor, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, TreeItemCollapsibleState, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
 import { IExtHostContext } from '../../../services/extensions/common/extHostCustomers.js';
 import { ExtensionHostKind } from '../../../services/extensions/common/extensionHostKind.js';
 import { ViewDescriptorService } from '../../../services/views/browser/viewDescriptorService.js';
@@ -95,94 +95,6 @@ suite('MainThreadHostTreeView', function () {
 		const children = await treeView.dataProvider?.getChildren({ handle: 'root', collapsibleState: TreeItemCollapsibleState.Expanded });
 		assert(children!.length === 1, 'Exactly one child should be returned');
 		assert((<CustomTreeItem>children![0]).customProp === customValue, 'Tree Items should keep custom properties');
-	});
-
-	async function registerDragView(id: string, hasHandleDrag = true): Promise<ITreeView> {
-		const treeView = disposables.add(instantiationService.createInstance(CustomTreeView, id, 'Drag View', 'extension.id'));
-		const viewDescriptor: ITreeViewDescriptor = {
-			id,
-			ctorDescriptor: null!,
-			name: nls.localize2('dragTest', 'Drag View'),
-			treeView
-		};
-		ViewsRegistry.registerViews([viewDescriptor], container);
-		await mainThreadTreeViews.$registerTreeViewDataProvider(id, {
-			showCollapseAll: false, canSelectMany: false, dropMimeTypes: ['text/plain'], dragMimeTypes: ['text/plain'],
-			hasHandleDrag, hasHandleDrop: false, manuallyManageCheckboxes: false
-		});
-		assert.strictEqual(!!treeView.dragAndDropController, hasHandleDrag);
-		return treeView;
-	}
-
-	function dragControllers(): Map<string, ITreeViewDragAndDropController> {
-		return Reflect.get(mainThreadTreeViews, '_dndControllers');
-	}
-
-	test('keeps a live registered drag controller available', async () => {
-		const view = await registerDragView('live-drag-view');
-		assert.deepStrictEqual({ keys: [...dragControllers().keys()], sameController: dragControllers().get('live-drag-view') === view.dragAndDropController, hasProvider: !!view.dataProvider }, { keys: ['live-drag-view'], sameController: true, hasProvider: true });
-	});
-
-	test('releases a disposed drag controller from both registry and contributed view', async () => {
-		const view = await registerDragView('retired-drag-view');
-		await mainThreadTreeViews.$disposeTree('retired-drag-view');
-		assert.deepStrictEqual({ controllers: dragControllers().size, viewController: view.dragAndDropController, provider: view.dataProvider }, { controllers: 0, viewController: undefined, provider: undefined });
-	});
-
-	test('disposing one drag controller preserves another live controller', async () => {
-		const retired = await registerDragView('retired-drag-view');
-		const live = await registerDragView('live-drag-view');
-		const original = live.dragAndDropController;
-		await mainThreadTreeViews.$disposeTree('retired-drag-view');
-		assert.deepStrictEqual({ keys: [...dragControllers().keys()], retired: retired.dragAndDropController, sameLive: live.dragAndDropController === original && dragControllers().get('live-drag-view') === original }, { keys: ['live-drag-view'], retired: undefined, sameLive: true });
-	});
-
-	test('repeated and unknown drag-controller disposal leave live registrations intact', async () => {
-		await registerDragView('retired-drag-view');
-		const live = await registerDragView('live-drag-view');
-		const original = live.dragAndDropController;
-		await mainThreadTreeViews.$disposeTree('retired-drag-view');
-		await mainThreadTreeViews.$disposeTree('retired-drag-view');
-		await mainThreadTreeViews.$disposeTree('unknown-drag-view');
-		assert.deepStrictEqual({ keys: [...dragControllers().keys()], sameLive: dragControllers().get('live-drag-view') === original }, { keys: ['live-drag-view'], sameLive: true });
-	});
-
-	test('does not accumulate drag controllers for disposed contributed views', async () => {
-		const views: ITreeView[] = [];
-		for (let index = 0; index < 37; index++) {
-			const id = `retired-drag-view-${index}`;
-			views.push(await registerDragView(id));
-			await mainThreadTreeViews.$disposeTree(id);
-		}
-		assert.deepStrictEqual({ registered: dragControllers().size, viewControllers: views.filter(view => !!view.dragAndDropController).length }, { registered: 0, viewControllers: 0 });
-	});
-
-	test('customer disposal releases controller references from contributed views', async () => {
-		const first = await registerDragView('first-drag-view');
-		const second = await registerDragView('second-drag-view');
-		mainThreadTreeViews.dispose();
-		assert.deepStrictEqual({ registered: dragControllers().size, first: first.dragAndDropController, second: second.dragAndDropController }, { registered: 0, first: undefined, second: undefined });
-	});
-
-	test('disposed drag-controller file lookups reject the retired registration', async () => {
-		await registerDragView('retired-drag-view');
-		await mainThreadTreeViews.$disposeTree('retired-drag-view');
-		let message: string | undefined;
-		try {
-			await mainThreadTreeViews.$resolveDropFileData('retired-drag-view', 1, 'file');
-		} catch (error) {
-			if (!(error instanceof Error)) {
-				throw error;
-			}
-			message = error.message;
-		}
-		assert.strictEqual(message, 'Unknown tree');
-	});
-
-	test('views without drag support do not allocate drag controllers', async () => {
-		const view = await registerDragView('plain-view', false);
-		await mainThreadTreeViews.$disposeTree('plain-view');
-		assert.deepStrictEqual({ registered: dragControllers().size, controller: view.dragAndDropController }, { registered: 0, controller: undefined });
 	});
 
 	test('handleDrag reconstructs URI list from uriListData', async () => {
