@@ -111,7 +111,17 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 			}
 		});
 		this._register(this._quickFixService.onDidRegisterCommandSelector(selector => this.registerCommandSelector(selector)));
-		this._register(this._quickFixService.onDidUnregisterProvider(id => this._commandListeners.delete(id)));
+		this._register(this._quickFixService.onDidUnregisterProvider(id => {
+			this._registeredSelectors.delete(id);
+			for (const [matcher, options] of this._commandListeners) {
+				const remainingOptions = options.filter(option => option.id !== id);
+				if (remainingOptions.length === 0) {
+					this._commandListeners.delete(matcher);
+				} else if (remainingOptions.length !== options.length) {
+					this._commandListeners.set(matcher, remainingOptions);
+				}
+			}
+		}));
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TerminalSettingId.ShellIntegrationQuickFixEnabled)) {
 				// Clear existing decorations when setting changes
