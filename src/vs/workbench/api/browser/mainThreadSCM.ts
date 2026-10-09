@@ -639,6 +639,7 @@ export class MainThreadSCM implements MainThreadSCMShape {
 	dispose(): void {
 		dispose(this._repositories.values());
 		this._repositories.clear();
+		this._repositoryBarriers.clear();
 
 		dispose(this._repositoryDisposables.values());
 		this._repositoryDisposables.clear();
@@ -686,6 +687,7 @@ export class MainThreadSCM implements MainThreadSCMShape {
 
 	async $unregisterSourceControl(handle: number): Promise<void> {
 		await this._repositoryBarriers.get(handle)?.wait();
+		this._repositoryBarriers.delete(handle);
 		const repository = this._repositories.get(handle);
 
 		if (!repository) {
