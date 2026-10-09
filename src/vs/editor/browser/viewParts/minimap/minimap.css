@@ -60,6 +60,8 @@
 
 .monaco-editor .minimap {
 	z-index: 5;
+	/* The minimap owns explicit dimensions; its shadow must remain outside the box. */
+	contain: size layout style;
 }
 
 .monaco-editor .minimap canvas {
