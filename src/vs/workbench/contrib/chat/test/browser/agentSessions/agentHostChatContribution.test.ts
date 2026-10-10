@@ -80,7 +80,7 @@ import { IChatDebugService } from '../../../common/chatDebugService.js';
 import { IChatEditingService } from '../../../common/editing/chatEditingService.js';
 import { IChatResponseFileChangesService } from '../../../browser/chatResponseFileChangesService.js';
 import { IMarkdownString, MarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { IChatSessionsService, type IChatSession, type IChatSessionHistoryItem, type IChatSessionItemController, type IChatSessionRequestHistoryItem, type IChatSessionServerRequest, type IChatSessionsExtensionPoint } from '../../../common/chatSessionsService.js';
+import { IChatSessionsService, type IChatSession, type IChatSessionContentProvider, type IChatSessionHistoryItem, type IChatSessionItemController, type IChatSessionRequestHistoryItem, type IChatSessionServerRequest, type IChatSessionsExtensionPoint } from '../../../common/chatSessionsService.js';
 import { ILanguageModelsService, type ILanguageModelChatMetadata } from '../../../common/languageModels.js';
 import { IProductService } from '../../../../../../platform/product/common/productService.js';
 import { IOpenerService } from '../../../../../../platform/opener/common/opener.js';
@@ -89,7 +89,8 @@ import { TestInstantiationService } from '../../../../../../platform/instantiati
 import { IOutputService } from '../../../../../services/output/common/output.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../../platform/workspace/common/workspace.js';
 import { IWorkspaceTrustEnablementService, IWorkspaceTrustManagementService, IWorkspaceTrustRequestService, ResourceTrustRequestOptions } from '../../../../../../platform/workspace/common/workspaceTrust.js';
-import { AgentHostContribution, AgentHostSessionHandler } from '../../../browser/agentSessions/agentHost/agentHostChatContribution.js';
+import { AgentHostContribution } from '../../../browser/agentSessions/agentHost/agentHostChatContribution.js';
+import { AgentHostSessionHandler } from '../../../browser/agentSessions/agentHost/agentHostSessionHandler.js';
 import { IAgentHostFirstResponseEvent } from '../../../browser/agentSessions/agentHost/agentHostFirstResponseTelemetry.js';
 import type { IAgentHostFirstResponseDiagnostic } from '../../../../../../platform/agentHost/common/otel/agentHostTiming.js';
 import { AgentHostAuthTokenCache } from '../../../browser/agentSessions/agentHost/agentHostAuth.js';
@@ -256,6 +257,10 @@ class MockAgentHostService extends mock<IAgentHostService>() {
 
 	setHostProtocolVersion(protocolVersion: string): void {
 		this.setInitializeResult({ protocolVersion });
+	}
+
+	override getCompletionTriggerCharacters(): Promise<readonly string[]> {
+		return Promise.resolve(['/']);
 	}
 
 	// Track live subscriptions so fireAction can route to them. A subscription
@@ -1500,6 +1505,100 @@ suite('AgentHostChatContribution', () => {
 			assert.ok(chatAgentService.registeredAgents.has('agent-host-copilot'));
 		});
 
+		for (const warm of [false, true]) {
+			test(`disposing a lazy provider cancels pending calls before delegation (warm=${warm})`, async () => {
+				let provider: IChatSessionContentProvider | undefined;
+				const { contribution, agentHostService, instantiationService } = createContribution(disposables, {
+					chatSessionsServiceOverride: {
+						registerChatSessionContentProvider: (_scheme, value) => {
+							provider = value;
+							return toDisposable(() => { });
+						},
+					},
+				});
+				let contentCalls = 0;
+				let completionCalls = 0;
+				instantiationService.stubInstance(AgentHostSessionHandler, {
+					provideChatSessionContent: async () => { contentCalls++; throw new Error('warmup'); },
+					provideChatInputCompletions: async () => { completionCalls++; return undefined; },
+					dispose: () => { },
+				});
+				agentHostService.setRootState({
+					agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+					activeSessions: 0,
+				});
+				assert.ok(provider);
+				const resource = URI.parse('agent-host-copilot:/session');
+				const creations = sinon.spy(instantiationService, 'createInstance');
+				disposables.add(toDisposable(() => creations.restore()));
+				if (warm) {
+					await assert.rejects(provider.provideChatSessionContent(resource, CancellationToken.None), /warmup/);
+				}
+				const content = provider.provideChatSessionContent(resource, CancellationToken.None);
+				const completions = provider.provideChatInputCompletions!(resource, { text: '', offset: 0 }, CancellationToken.None);
+				contribution.dispose();
+				await Promise.all([assert.rejects(content, isCancellationError), assert.rejects(completions, isCancellationError)]);
+				assert.deepStrictEqual({ contentCalls, completionCalls, handlerCreations: creations.getCalls().filter(call => call.args[0] === AgentHostSessionHandler).length }, { contentCalls: warm ? 1 : 0, completionCalls: 0, handlerCreations: warm ? 1 : 0 });
+			});
+		}
+
+		test('lazy response links use the editor remote connection resource mapper', () => {
+			let provider: IChatSessionContentProvider | undefined;
+			const { agentHostService } = createContribution(disposables, {
+				chatSessionsServiceOverride: {
+					registerChatSessionContentProvider: (_scheme, value) => {
+						provider = value;
+						return toDisposable(() => { });
+					},
+				},
+			});
+			agentHostService.resourceUris = createAgentHostResourceUriMapper('editor-remote');
+			agentHostService.setRootState({
+				agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+				activeSessions: 0,
+			});
+			assert.ok(provider);
+			const resource = URI.parse('agent-host-copilot:/session');
+			assert.deepStrictEqual([
+				provider.resolveChatResponseUri?.(resource, '/workspace/file.ts', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'file:///workspace/file.ts#L10', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'https://example.com/image.png', 'image'),
+			], [
+				agentHostService.resourceUris.fromAgentHost(URI.file('/workspace/file.ts')).toString(),
+				agentHostService.resourceUris.fromAgentHost(URI.file('/workspace/file.ts').with({ fragment: 'L10' })).toString(),
+				'https://example.com/image.png',
+			]);
+		});
+
+		test('defers creating the session handler until session content is requested', async () => {
+			let provider: IChatSessionContentProvider | undefined;
+			const { agentHostService } = createContribution(disposables, {
+				chatSessionsServiceOverride: {
+					registerChatSessionContentProvider: (_scheme, value) => {
+						provider = value;
+						return toDisposable(() => { });
+					},
+				},
+			});
+			agentHostService.setRootState({
+				agents: [{ provider: 'copilot', displayName: 'Agent Host - Copilot', description: 'test', models: [] }],
+				activeSessions: 0,
+			});
+
+			assert.ok(provider);
+			assert.ok(!(provider instanceof AgentHostSessionHandler));
+			assert.deepStrictEqual(await provider.provideChatInputCompletionTriggerCharacters?.(), ['/']);
+			const resource = URI.parse('agent-host-copilot:/session');
+			assert.deepStrictEqual([
+				provider.resolveChatResponseUri?.(resource, '/workspace/file.ts', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'file:///workspace/file.ts#L10', 'link'),
+				provider.resolveChatResponseUri?.(resource, 'https://example.com/image.png', 'image'),
+			], [
+				URI.file('/workspace/file.ts').toString(),
+				URI.file('/workspace/file.ts').with({ fragment: 'L10' }).toString(),
+				'https://example.com/image.png',
+			]);
+		});
 	});
 
 	suite('canvases', () => {
@@ -18658,6 +18757,11 @@ suite('AgentHostChatContribution', () => {
 			};
 			const { instantiationService, agentHostService, chatAgentService, commandService } = createTestServices(disposables, undefined, authService);
 			commandService.result = { success: false, dialogSkipped: false, error: new Error('Bad credentials') };
+			let provider: IChatSessionContentProvider | undefined;
+			instantiationService.stub(IChatSessionsService, 'registerChatSessionContentProvider', (_scheme: string, value: IChatSessionContentProvider) => {
+				provider = value;
+				return toDisposable(() => { });
+			});
 			disposables.add(instantiationService.createInstance(AgentHostContribution));
 			agentHostService.setRootState({ agents: protectedAgents(), activeSessions: 0 });
 			await timeout(0);
@@ -18671,6 +18775,8 @@ suite('AgentHostChatContribution', () => {
 			disposables.add(agentHostService.getSubscription(StateComponents.Session, sessionUri));
 
 			const sessionResource = URI.from({ scheme: 'agent-host-copilot', path: '/eager-auth-error' });
+			assert.ok(provider);
+			disposables.add(await provider.provideChatSessionContent(sessionResource, CancellationToken.None));
 			const registered = chatAgentService.registeredAgents.get('agent-host-copilot')!;
 			await assert.rejects(
 				registered.impl.invoke(makeRequest({ message: 'Send after sign out', sessionResource }), () => { }, [], CancellationToken.None),

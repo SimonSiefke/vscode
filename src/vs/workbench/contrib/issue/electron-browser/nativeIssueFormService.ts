@@ -25,7 +25,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IIssueFormService, IssueReporterData } from '../common/issue.js';
-import { IssueReporter } from './issueReporterService.js';
+import type { IssueReporter } from './issueReporterService.js';
 
 export class NativeIssueFormService extends IssueFormService implements IIssueFormService {
 
@@ -92,6 +92,7 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 	 * window on the active window via `getActiveWindowPosition()`.
 	 */
 	override async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueReporter } = await import('./issueReporterService.js');
 		const bounds = await this.nativeHostService.getActiveWindowPosition();
 		await this.openAuxIssueReporter(data, bounds);
 
