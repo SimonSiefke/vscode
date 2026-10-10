@@ -9,6 +9,7 @@ import { unthemedInboxStyles } from '../../../../base/browser/ui/inputbox/inputB
 import { unthemedButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { unthemedListStyles } from '../../../../base/browser/ui/list/listWidget.js';
 import { unthemedToggleStyles } from '../../../../base/browser/ui/toggle/toggle.js';
+import { ToggleMenuAction, ToolBar } from '../../../../base/browser/ui/toolbar/toolbar.js';
 import { Event } from '../../../../base/common/event.js';
 import { DeferredPromise, raceTimeout } from '../../../../base/common/async.js';
 import { unthemedCountStyles } from '../../../../base/browser/ui/countBadge/countBadge.js';
@@ -126,6 +127,196 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 
 	teardown(() => {
 		sinon.restore();
+	});
+
+	suite('cached row lifecycle', () => {
+		interface CachedRow {
+			readonly domNode: HTMLElement;
+			readonly templateData: readonly { readonly templateData?: { readonly element?: { readonly item?: IQuickPickItem }; readonly toolBar?: ToolBar } }[];
+		}
+
+		function cachedRows(): CachedRow[] {
+			// Inspect the real reusable row cache without changing production visibility.
+			const view = controller as object as {
+				readonly ui: {
+					readonly list: {
+						readonly _tree: {
+							readonly view: {
+								readonly view: {
+									readonly cache: { readonly cache: ReadonlyMap<string, readonly CachedRow[]> };
+								};
+							};
+						};
+					};
+				};
+			};
+			return [...view.ui.list._tree.view.view.cache.cache.values()].flat();
+		}
+
+		function cachedItems(): IQuickPickItem[] {
+			return cachedRows().flatMap(row => row.templateData.flatMap(data => data.templateData?.element?.item ? [data.templateData.element.item] : []));
+		}
+
+		function cachedElementCount(): number {
+			return cachedRows().reduce((count, row) => count + row.templateData.filter(data => data.templateData?.element !== undefined).length, 0);
+		}
+
+		function cachedMenus(): ToggleMenuAction[] {
+			return cachedRows().flatMap(row => row.templateData.flatMap(data => data.templateData?.toolBar ? [Reflect.get(data.templateData.toolBar, 'toggleMenuAction') as ToggleMenuAction] : []));
+		}
+
+		setup(() => {
+			fixture.style.width = '600px';
+			fixture.style.height = '400px';
+			controller.layout({ width: 600, height: 400 }, 0);
+		});
+
+		test('cached rows release retired items when the list is cleared', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.items = [{ label: 'first' }, { label: 'second' }];
+			quickpick.show();
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 2);
+			quickpick.items = [];
+			assert.ok(cachedRows().length >= 2);
+			assert.deepStrictEqual(cachedItems(), []);
+		});
+
+		test('cached rows release unused items when a smaller list replaces them', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.items = [{ label: 'first' }, { label: 'second' }, { label: 'third' }];
+			quickpick.show();
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 3);
+			quickpick.items = [{ label: 'replacement' }];
+			assert.ok(cachedRows().length >= 2);
+			assert.deepStrictEqual({ retired: cachedItems(), current: quickpick.activeItems.map(item => item.label) }, { retired: [], current: ['replacement'] });
+		});
+
+		test('cached rows release picker items when an input box replaces the picker', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.items = [{ label: 'retired' }];
+			quickpick.show();
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 1);
+			store.add(controller.createInputBox()).show();
+			assert.ok(cachedRows().length >= 1);
+			assert.deepStrictEqual(cachedItems(), []);
+		});
+
+		test('cached rows release filtered items and can render them again', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.items = [{ label: 'first' }, { label: 'second' }];
+			quickpick.show();
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 2);
+			quickpick.value = 'no matching item';
+			assert.ok(cachedRows().length >= 2);
+			assert.deepStrictEqual(cachedItems(), []);
+			quickpick.value = '';
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 2);
+		});
+
+		test('cached rows reused for checkboxes update only the current item', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.canSelectMany = true;
+			quickpick.items = [{ label: 'retired' }];
+			quickpick.show();
+			quickpick.items = [];
+			assert.ok(cachedRows().length >= 1);
+			quickpick.items = [{ label: 'current' }];
+			fixture.querySelector<HTMLElement>('.quick-input-list-label')!.click();
+			assert.deepStrictEqual(quickpick.selectedItems.map(item => item.label), ['current']);
+		});
+
+		test('cached rows release separators as well as their child items', () => {
+			const quickpick = store.add(controller.createQuickPick({ useSeparators: true }));
+			quickpick.items = [{ type: 'separator', label: 'Group', buttons: [{ iconClass: 'codicon-add' }] }, { label: 'child' }];
+			quickpick.show();
+			assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 2);
+			quickpick.items = [];
+			assert.ok(cachedRows().length >= 2);
+			assert.strictEqual(cachedElementCount(), 0);
+		});
+
+		test('cached rows ignore checkbox clicks after their element is removed', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.canSelectMany = true;
+			quickpick.items = [{ label: 'retired' }];
+			quickpick.show();
+			quickpick.items = [];
+			assert.ok(cachedRows().length >= 1);
+			cachedRows()[0].domNode.querySelector<HTMLElement>('.quick-input-list-label')!.click();
+			assert.deepStrictEqual(quickpick.selectedItems, []);
+		});
+
+		test('cached rows release each retired catalog during repeated replacements', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.show();
+			const counts: number[] = [];
+			for (let iteration = 0; iteration < 3; iteration++) {
+				quickpick.items = [{ label: `item ${iteration}` }];
+				assert.strictEqual(fixture.querySelectorAll('.quick-input-list .monaco-list-row').length, 1);
+				quickpick.items = [];
+				assert.ok(cachedRows().length >= 1);
+				counts.push(cachedElementCount());
+			}
+			assert.deepStrictEqual(counts, [0, 0, 0]);
+		});
+
+		test('cached rows reused for buttons trigger only the current item', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			const triggered: string[] = [];
+			store.add(quickpick.onDidTriggerItemButton(event => triggered.push(event.item.label)));
+			quickpick.items = [{ label: 'retired', buttons: [{ iconClass: 'codicon-add' }] }];
+			quickpick.show();
+			quickpick.items = [];
+			assert.ok(cachedRows().length >= 1);
+			quickpick.items = [{ label: 'current', buttons: [{ iconClass: 'codicon-add' }] }];
+			fixture.querySelector<HTMLElement>('.quick-input-list-entry-action-bar .action-label')!.click();
+			assert.deepStrictEqual(triggered, ['current']);
+		});
+
+		test('cached rows release secondary actions during repeated clear and input replacement', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			const input = store.add(controller.createInputBox());
+			for (let cycle = 0; cycle < 37; cycle++) {
+				quickpick.items = [{ label: `retired ${cycle}`, buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+				quickpick.show();
+				if (cycle % 2 === 0) {
+					quickpick.items = [];
+				} else {
+					input.show();
+				}
+				const menus = cachedMenus();
+				assert.ok(menus.length > 0);
+				assert.deepStrictEqual(menus.map(menu => menu.menuActions.length), menus.map(() => 0));
+			}
+		});
+
+		test('cached rows reused for secondary buttons trigger only the current item', async () => {
+			const quickpick = store.add(controller.createQuickPick());
+			const triggered: string[] = [];
+			store.add(quickpick.onDidTriggerItemButton(event => triggered.push(event.item.label)));
+			quickpick.items = [{ label: 'retired', buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+			quickpick.show();
+			quickpick.items = [];
+			const menu = cachedMenus()[0];
+			assert.deepStrictEqual(menu.menuActions, []);
+			quickpick.items = [{ label: 'current', buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+			assert.strictEqual(menu.menuActions.length, 1);
+			await menu.menuActions[0].run();
+			assert.deepStrictEqual(triggered, ['current']);
+			quickpick.items = [];
+			assert.deepStrictEqual(menu.menuActions, []);
+		});
+
+		test('cached rows preserve list focus when a focused action is removed', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			quickpick.items = [{ label: 'retired', buttons: [{ iconClass: 'codicon-add' }] }];
+			quickpick.show();
+			const action = fixture.querySelector<HTMLElement>('.quick-input-list-entry-action-bar .action-label')!;
+			action.focus();
+			assert.strictEqual(mainWindow.document.activeElement, action);
+			quickpick.items = [];
+			assert.deepStrictEqual({ visible: controller.isVisible(), focused: fixture.contains(mainWindow.document.activeElement) }, { visible: true, focused: true });
+		});
 	});
 
 	test('close motion requires modern UI with motion enabled', () => {
