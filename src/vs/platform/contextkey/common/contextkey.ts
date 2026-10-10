@@ -69,6 +69,10 @@ export interface IContextKeyExprMapper {
 	mapNotIn(key: string, valueKey: string): ContextKeyNotInExpr;
 }
 
+export interface IContextKeyCollector {
+	add(key: string): unknown;
+}
+
 export interface IContextKeyExpression {
 	cmp(other: ContextKeyExpression): number;
 	equals(other: ContextKeyExpression): boolean;
@@ -76,6 +80,7 @@ export interface IContextKeyExpression {
 	evaluate(context: IContext): boolean;
 	serialize(): string;
 	keys(): string[];
+	collectKeys(target: IContextKeyCollector): void;
 	map(mapFnc: IContextKeyExprMapper): ContextKeyExpression;
 	negate(): ContextKeyExpression;
 
@@ -713,6 +718,10 @@ export class ContextKeyFalseExpr implements IContextKeyExpression {
 		return [];
 	}
 
+	public collectKeys(target: IContextKeyCollector): void {
+		void target;
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return this;
 	}
@@ -754,6 +763,10 @@ export class ContextKeyTrueExpr implements IContextKeyExpression {
 		return [];
 	}
 
+	public collectKeys(target: IContextKeyCollector): void {
+		void target;
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return this;
 	}
@@ -773,6 +786,7 @@ export class ContextKeyDefinedExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Defined;
+	private _keys: string[] | undefined;
 
 	protected constructor(
 		readonly key: string,
@@ -811,7 +825,11 @@ export class ContextKeyDefinedExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -841,6 +859,7 @@ export class ContextKeyEqualsExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Equals;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -883,7 +902,11 @@ export class ContextKeyEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -906,6 +929,7 @@ export class ContextKeyInExpr implements IContextKeyExpression {
 
 	public readonly type = ContextKeyExprType.In;
 	private negated: ContextKeyExpression | null = null;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -970,7 +994,12 @@ export class ContextKeyInExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key, this.valueKey];
+		return this._keys ??= [this.key, this.valueKey];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
+		target.add(this.valueKey);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyInExpr {
@@ -1032,6 +1061,10 @@ export class ContextKeyNotInExpr implements IContextKeyExpression {
 		return this._negated.keys();
 	}
 
+	public collectKeys(target: IContextKeyCollector): void {
+		this._negated.collectKeys(target);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return mapFnc.mapNotIn(this.key, this.valueKey);
 	}
@@ -1059,6 +1092,7 @@ export class ContextKeyNotEqualsExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.NotEquals;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1101,7 +1135,11 @@ export class ContextKeyNotEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1127,6 +1165,7 @@ export class ContextKeyNotExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Not;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1165,7 +1204,11 @@ export class ContextKeyNotExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1200,6 +1243,7 @@ export class ContextKeyGreaterExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Greater;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1237,7 +1281,11 @@ export class ContextKeyGreaterExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1259,6 +1307,7 @@ export class ContextKeyGreaterEqualsExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.GreaterEquals;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1296,7 +1345,11 @@ export class ContextKeyGreaterEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1318,6 +1371,7 @@ export class ContextKeySmallerExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Smaller;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1356,7 +1410,11 @@ export class ContextKeySmallerExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1378,6 +1436,7 @@ export class ContextKeySmallerEqualsExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.SmallerEquals;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1416,7 +1475,11 @@ export class ContextKeySmallerEqualsExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1439,6 +1502,7 @@ export class ContextKeyRegexExpr implements IContextKeyExpression {
 
 	public readonly type = ContextKeyExprType.Regex;
 	private negated: ContextKeyExpression | null = null;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		private readonly key: string,
@@ -1494,7 +1558,11 @@ export class ContextKeyRegexExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return [this.key];
+		return this._keys ??= [this.key];
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		target.add(this.key);
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyRegexExpr {
@@ -1551,6 +1619,10 @@ export class ContextKeyNotRegexExpr implements IContextKeyExpression {
 		return this._actual.keys();
 	}
 
+	public collectKeys(target: IContextKeyCollector): void {
+		this._actual.collectKeys(target);
+	}
+
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
 		return new ContextKeyNotRegexExpr(this._actual.map(mapFnc));
 	}
@@ -1599,6 +1671,7 @@ export class ContextKeyAndExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.And;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		public readonly expr: ContextKeyExpression[],
@@ -1768,11 +1841,18 @@ export class ContextKeyAndExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		const result: string[] = [];
-		for (const expr of this.expr) {
-			result.push(...expr.keys());
+		if (!this._keys) {
+			const result: string[] = [];
+			this.collectKeys({ add: key => result.push(key) });
+			this._keys = result;
 		}
-		return result;
+		return this._keys;
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		for (const expr of this.expr) {
+			expr.collectKeys(target);
+		}
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
@@ -1798,6 +1878,7 @@ export class ContextKeyOrExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.Or;
+	private _keys: string[] | undefined;
 
 	private constructor(
 		public readonly expr: ContextKeyExpression[],
@@ -1938,11 +2019,18 @@ export class ContextKeyOrExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		const result: string[] = [];
-		for (const expr of this.expr) {
-			result.push(...expr.keys());
+		if (!this._keys) {
+			const result: string[] = [];
+			this.collectKeys({ add: key => result.push(key) });
+			this._keys = result;
 		}
-		return result;
+		return this._keys;
+	}
+
+	public collectKeys(target: IContextKeyCollector): void {
+		for (const expr of this.expr) {
+			expr.collectKeys(target);
+		}
 	}
 
 	public map(mapFnc: IContextKeyExprMapper): ContextKeyExpression {
