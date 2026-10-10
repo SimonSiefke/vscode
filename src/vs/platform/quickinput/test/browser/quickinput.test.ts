@@ -9,6 +9,7 @@ import { unthemedInboxStyles } from '../../../../base/browser/ui/inputbox/inputB
 import { unthemedButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { unthemedListStyles } from '../../../../base/browser/ui/list/listWidget.js';
 import { unthemedToggleStyles } from '../../../../base/browser/ui/toggle/toggle.js';
+import { ToggleMenuAction, ToolBar } from '../../../../base/browser/ui/toolbar/toolbar.js';
 import { Event } from '../../../../base/common/event.js';
 import { DeferredPromise, raceTimeout } from '../../../../base/common/async.js';
 import { unthemedCountStyles } from '../../../../base/browser/ui/countBadge/countBadge.js';
@@ -131,7 +132,7 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 	suite('cached row lifecycle', () => {
 		interface CachedRow {
 			readonly domNode: HTMLElement;
-			readonly templateData: readonly { readonly templateData?: { readonly element?: { readonly item?: IQuickPickItem } } }[];
+			readonly templateData: readonly { readonly templateData?: { readonly element?: { readonly item?: IQuickPickItem }; readonly toolBar?: ToolBar } }[];
 		}
 
 		function cachedRows(): CachedRow[] {
@@ -158,6 +159,10 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 
 		function cachedElementCount(): number {
 			return cachedRows().reduce((count, row) => count + row.templateData.filter(data => data.templateData?.element !== undefined).length, 0);
+		}
+
+		function cachedMenus(): ToggleMenuAction[] {
+			return cachedRows().flatMap(row => row.templateData.flatMap(data => data.templateData?.toolBar ? [Reflect.get(data.templateData.toolBar, 'toggleMenuAction') as ToggleMenuAction] : []));
 		}
 
 		setup(() => {
@@ -266,6 +271,40 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 			quickpick.items = [{ label: 'current', buttons: [{ iconClass: 'codicon-add' }] }];
 			fixture.querySelector<HTMLElement>('.quick-input-list-entry-action-bar .action-label')!.click();
 			assert.deepStrictEqual(triggered, ['current']);
+		});
+
+		test('cached rows release secondary actions during repeated clear and input replacement', () => {
+			const quickpick = store.add(controller.createQuickPick());
+			const input = store.add(controller.createInputBox());
+			for (let cycle = 0; cycle < 37; cycle++) {
+				quickpick.items = [{ label: `retired ${cycle}`, buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+				quickpick.show();
+				if (cycle % 2 === 0) {
+					quickpick.items = [];
+				} else {
+					input.show();
+				}
+				const menus = cachedMenus();
+				assert.ok(menus.length > 0);
+				assert.deepStrictEqual(menus.map(menu => menu.menuActions.length), menus.map(() => 0));
+			}
+		});
+
+		test('cached rows reused for secondary buttons trigger only the current item', async () => {
+			const quickpick = store.add(controller.createQuickPick());
+			const triggered: string[] = [];
+			store.add(quickpick.onDidTriggerItemButton(event => triggered.push(event.item.label)));
+			quickpick.items = [{ label: 'retired', buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+			quickpick.show();
+			quickpick.items = [];
+			const menu = cachedMenus()[0];
+			assert.deepStrictEqual(menu.menuActions, []);
+			quickpick.items = [{ label: 'current', buttons: [{ iconClass: 'codicon-add', secondary: true }] }];
+			assert.strictEqual(menu.menuActions.length, 1);
+			await menu.menuActions[0].run();
+			assert.deepStrictEqual(triggered, ['current']);
+			quickpick.items = [];
+			assert.deepStrictEqual(menu.menuActions, []);
 		});
 
 		test('cached rows preserve list focus when a focused action is removed', () => {
