@@ -84,7 +84,8 @@ export class TerminalQuickFixService implements ITerminalQuickFixService {
 			this._pendingProviders.delete(id);
 			const selector = this._selectors.get(id);
 			if (selector) {
-				this._selectors.delete(id);
+				// Selectors come from declarative contributions and must survive
+				// disposal so the provider can register again with the same ID.
 				this._onDidUnregisterProvider.fire(selector.id);
 			}
 		});
