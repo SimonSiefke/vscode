@@ -1238,6 +1238,10 @@ suite('ExtHostChatSessions', function () {
 		const sessionResource = URI.parse(`${sessionScheme}:/session`);
 		const session: vscode.ChatSession = { title: 'Pending session', history: [], requestHandler: undefined };
 		const sessionCount = () => (extHostChatSessions as object as { readonly _extHostChatSessions: { readonly size: number } })._extHostChatSessions.size;
+		const inputStateCount = () => {
+			const controllers = Reflect.get(extHostChatSessions, '_chatSessionItemControllers') as Map<number, { readonly inputStates: Set<vscode.ChatSessionInputState> }>;
+			return Array.from(controllers.values()).reduce((count, controller) => count + controller.inputStates.size, 0);
+		};
 
 		test('keeps normal content until the session is disposed', async () => {
 			disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, createContentProvider(session)));
@@ -1294,6 +1298,8 @@ suite('ExtHostChatSessions', function () {
 			const pendingInput = new DeferredPromise<vscode.ChatSessionInputState>();
 			const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, sessionScheme, async () => { }));
 			const inputState = controller.createChatSessionInputState([]);
+			let disposed = 0;
+			disposables.add(inputState.onDidDispose(() => disposed++));
 			controller.getChatSessionInputState = () => pendingInput.p;
 			const provideChatSessionContent = sinon.stub().resolves(session);
 			const registration = disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, { provideChatSessionContent }));
@@ -1303,10 +1309,55 @@ suite('ExtHostChatSessions', function () {
 			await pendingInput.complete(inputState);
 			try {
 				await rejected;
-				assert.deepStrictEqual({ calls: provideChatSessionContent.callCount, sessions: sessionCount() }, { calls: 0, sessions: 0 });
+				assert.deepStrictEqual({ calls: provideChatSessionContent.callCount, sessions: sessionCount(), inputStates: inputStateCount(), disposed }, { calls: 0, sessions: 0, inputStates: 0, disposed: 1 });
 			} finally {
 				await extHostChatSessions.$disposeChatSessionContent(0, sessionResource);
 			}
+		});
+
+		test('repeated abandoned input creation and reopening releases states while the controller stays alive', async () => {
+			const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, sessionScheme, async () => { }));
+			let disposed = 0;
+			for (let cycle = 0; cycle < 37; cycle++) {
+				const pendingInput = new DeferredPromise<vscode.ChatSessionInputState>();
+				controller.getChatSessionInputState = () => pendingInput.p;
+				const abandoned = controller.createChatSessionInputState([]);
+				disposables.add(abandoned.onDidDispose(() => disposed++));
+				const registration = disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, createContentProvider(session)));
+				const rejected = assert.rejects(extHostChatSessions.$provideChatSessionContent(cycle * 2, sessionResource, { initialSessionOptions: [] }, CancellationToken.None), CancellationError);
+				registration.dispose();
+				await pendingInput.complete(abandoned);
+				await rejected;
+				assert.deepStrictEqual({ states: inputStateCount(), disposed }, { states: 0, disposed: cycle + 1 });
+
+				controller.getChatSessionInputState = async () => controller.createChatSessionInputState([]);
+				const reopened = disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, createContentProvider(session)));
+				await extHostChatSessions.$provideChatSessionContent(cycle * 2 + 1, sessionResource, { initialSessionOptions: [] }, CancellationToken.None);
+				assert.strictEqual(inputStateCount(), 1);
+				await extHostChatSessions.$disposeChatSessionContent(cycle * 2 + 1, sessionResource);
+				reopened.dispose();
+				assert.deepStrictEqual({ states: inputStateCount(), sessions: sessionCount() }, { states: 0, sessions: 0 });
+			}
+		});
+
+		test('obsolete input creation preserves a returned state already bound by a live request', async () => {
+			const controller = disposables.add(extHostChatSessions.createChatSessionItemController(nullExtensionDescription, sessionScheme, async () => { }));
+			const state = controller.createChatSessionInputState([]);
+			let disposed = 0;
+			disposables.add(state.onDidDispose(() => disposed++));
+			const pendingInput = new DeferredPromise<vscode.ChatSessionInputState>();
+			controller.getChatSessionInputState = () => pendingInput.p;
+			const obsolete = disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, createContentProvider(session)));
+			const rejected = assert.rejects(extHostChatSessions.$provideChatSessionContent(0, sessionResource, { initialSessionOptions: [] }, CancellationToken.None), CancellationError);
+			obsolete.dispose();
+			controller.getChatSessionInputState = async () => state;
+			disposables.add(extHostChatSessions.registerChatSessionContentProvider(nullExtensionDescription, sessionScheme, undefined!, createContentProvider(session)));
+			await extHostChatSessions.$provideChatSessionContent(1, sessionResource, { initialSessionOptions: [] }, CancellationToken.None);
+			await pendingInput.complete(state);
+			await rejected;
+			assert.deepStrictEqual({ states: inputStateCount(), sessions: sessionCount(), disposed }, { states: 1, sessions: 1, disposed: 0 });
+			await extHostChatSessions.$disposeChatSessionContent(1, sessionResource);
+			assert.deepStrictEqual({ states: inputStateCount(), sessions: sessionCount(), disposed }, { states: 0, sessions: 0, disposed: 1 });
 		});
 
 		test('does not let a replacement registration revive the old request', async () => {
