@@ -30,6 +30,8 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 	private readonly _proxy: ExtHostTreeViewsShape;
 	private readonly _dataProviders: DisposableMap<string, { dataProvider: TreeViewDataProvider; dispose: () => void }> = this._register(new DisposableMap<string, { dataProvider: TreeViewDataProvider; dispose: () => void }>());
 	private readonly _dndControllers = new Map<string, TreeViewDragAndDropController>();
+	private readonly _dropFileCache = this._register(new DataTransferFileCache());
+	private readonly _dropRequests = new Map<number, string>();
 
 	constructor(
 		extHostContext: IExtHostContext,
@@ -51,7 +53,7 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 			const disposables = new DisposableStore();
 			this._dataProviders.set(treeViewId, { dataProvider, dispose: () => disposables.dispose() });
 			const dndController = (options.hasHandleDrag || options.hasHandleDrop)
-				? new TreeViewDragAndDropController(treeViewId, options.dropMimeTypes, options.dragMimeTypes, options.hasHandleDrag, this._proxy) : undefined;
+				? new TreeViewDragAndDropController(treeViewId, options.dropMimeTypes, options.dragMimeTypes, options.hasHandleDrag, this._proxy, this._dropFileCache, this._dropRequests) : undefined;
 			const viewer = this.getTreeView(treeViewId);
 			if (viewer) {
 				// Order is important here. The internal tree isn't created until the dataProvider is set.
@@ -126,20 +128,21 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 	}
 
 	$resolveDropFileData(destinationViewId: string, requestId: number, dataItemId: string): Promise<VSBuffer> {
-		const controller = this._dndControllers.get(destinationViewId);
-		if (!controller) {
-			throw new Error('Unknown tree');
+		if (this._dropRequests.get(requestId) !== destinationViewId) {
+			throw new Error('Unknown drop request');
 		}
-		return controller.resolveDropFileData(requestId, dataItemId);
+		return this._dropFileCache.resolveFileData(requestId, dataItemId);
 	}
 
 	public async $disposeTree(treeViewId: string): Promise<void> {
 		const viewer = this.getTreeView(treeViewId);
 		if (viewer) {
 			viewer.dataProvider = undefined;
+			viewer.dragAndDropController = undefined;
 		}
 
 		this._dataProviders.deleteAndDispose(treeViewId);
+		this._dndControllers.delete(treeViewId);
 	}
 
 	$logResolveTreeNodeFailure(extensionId: string): void {
@@ -219,11 +222,13 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 			const treeView = this.getTreeView(dataprovider[0]);
 			if (treeView) {
 				treeView.dataProvider = undefined;
+				treeView.dragAndDropController = undefined;
 			}
 		}
 		this._dataProviders.dispose();
 
 		this._dndControllers.clear();
+		this._dropRequests.clear();
 
 		super.dispose();
 	}
@@ -233,17 +238,18 @@ type TreeItemHandle = string;
 
 class TreeViewDragAndDropController implements ITreeViewDragAndDropController {
 
-	private readonly dataTransfersCache = new DataTransferFileCache();
-
 	constructor(private readonly treeViewId: string,
 		readonly dropMimeTypes: string[],
 		readonly dragMimeTypes: string[],
 		readonly hasWillDrop: boolean,
-		private readonly _proxy: ExtHostTreeViewsShape) { }
+		private readonly _proxy: ExtHostTreeViewsShape,
+		private readonly dataTransfersCache: DataTransferFileCache,
+		private readonly dropRequests: Map<number, string>) { }
 
 	async handleDrop(dataTransfer: VSDataTransfer, targetTreeItem: ITreeItem | undefined, token: CancellationToken,
 		operationUuid?: string, sourceTreeId?: string, sourceTreeItemHandles?: string[]): Promise<void> {
 		const request = this.dataTransfersCache.add(dataTransfer);
+		this.dropRequests.set(request.id, this.treeViewId);
 		try {
 			const dataTransferDto = await typeConvert.DataTransfer.fromList(dataTransfer);
 			if (token.isCancellationRequested) {
@@ -251,6 +257,7 @@ class TreeViewDragAndDropController implements ITreeViewDragAndDropController {
 			}
 			return await this._proxy.$handleDrop(this.treeViewId, request.id, dataTransferDto, targetTreeItem?.handle, token, operationUuid, sourceTreeId, sourceTreeItemHandles);
 		} finally {
+			this.dropRequests.delete(request.id);
 			request.dispose();
 		}
 	}
@@ -275,9 +282,6 @@ class TreeViewDragAndDropController implements ITreeViewDragAndDropController {
 		return additionalDataTransfer;
 	}
 
-	public resolveDropFileData(requestId: number, dataItemId: string): Promise<VSBuffer> {
-		return this.dataTransfersCache.resolveFileData(requestId, dataItemId);
-	}
 }
 
 class TreeViewDataProvider implements ITreeViewDataProvider {
