@@ -114,7 +114,7 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 		this._register(this._quickFixService.onDidUnregisterProvider(id => {
 			this._registeredSelectors.delete(id);
 			for (const [matcher, options] of this._commandListeners) {
-				const remainingOptions = options.filter(option => option.id !== id);
+				const remainingOptions = options.filter(option => option.type === 'internal' || option.id !== id);
 				if (remainingOptions.length === 0) {
 					this._commandListeners.delete(matcher);
 				} else {

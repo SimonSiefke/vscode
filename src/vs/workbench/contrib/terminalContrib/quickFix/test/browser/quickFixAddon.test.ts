@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Terminal } from '@xterm/xterm';
+import sinon from 'sinon';
 import { deepStrictEqual, strictEqual } from 'assert';
 import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { IAction } from '../../../../../../base/common/actions.js';
+import { timeout } from '../../../../../../base/common/async.js';
+import { toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { isWindows } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -25,7 +28,10 @@ import { ITerminalCommand, TerminalCapability } from '../../../../../../platform
 import { CommandDetectionCapability } from '../../../../../../platform/terminal/common/capabilities/commandDetectionCapability.js';
 import { TerminalCapabilityStore } from '../../../../../../platform/terminal/common/capabilities/terminalCapabilityStore.js';
 import { ITerminalCommandSelector, ITerminalOutputMatcher } from '../../../../../../platform/terminal/common/terminal.js';
-import { ITerminalQuickFixOptions, ITerminalQuickFixService } from '../../browser/quickFix.js';
+import { ITerminalQuickFixOptions, ITerminalQuickFixProviderSelector, ITerminalQuickFixService, TerminalQuickFixType } from '../../browser/quickFix.js';
+import { TerminalQuickFixService } from '../../browser/terminalQuickFixService.js';
+import { ExtensionsRegistry, ExtensionMessageCollector } from '../../../../../services/extensions/common/extensionsRegistry.js';
+import { nullExtensionDescription } from '../../../../../services/extensions/common/extensions.js';
 import { getQuickFixesForCommand, TerminalQuickFixAddon } from '../../browser/quickFixAddon.js';
 import { freePort, FreePortOutputRegex, gitCreatePr, GitCreatePrOutputRegex, gitFastForwardPull, GitFastForwardPullOutputRegex, GitPushOutputRegex, gitPushSetUpstream, gitSimilar, GitSimilarOutputRegex, gitTwoDashes, GitTwoDashesRegex, pwshGeneralError, PwshGeneralErrorOutputRegex, pwshUnixCommandNotFoundError, PwshUnixCommandNotFoundErrorOutputRegex } from '../../browser/terminalQuickFixBuiltinActions.js';
 import { TestStorageService } from '../../../../../test/common/workbenchTestServices.js';
@@ -136,6 +142,49 @@ suite('QuickFixAddon', () => {
 			register('owned.provider');
 			unregisterProvider.fire('owned.provider');
 			deepStrictEqual(options(), [['owned command', ['builtin']]]);
+		});
+
+		test('preserves a built-in when an extension with the same ID and a different matcher unregisters', () => {
+			const builtin = freePort(() => Promise.resolve());
+			quickFixAddon.registerCommandFinishedListener(builtin);
+			register(builtin.id, 'custom command');
+			unregisterProvider.fire(builtin.id);
+			deepStrictEqual(options(), [[builtin.commandLineMatcher.toString(), [builtin.id]]]);
+		});
+
+		test('service contribution survives repeated public provider disposal and re-registration', async () => {
+			const contribution = selector('owned.provider');
+			const extensionPoint = ExtensionsRegistry.getExtensionPoints().find(point => point.name === 'terminalQuickFixes')!;
+			const handlerStub = sinon.stub(extensionPoint, 'setHandler').callsFake(handler => {
+				handler([{
+					description: { ...nullExtensionDescription, enabledApiProposals: ['terminalQuickFixProvider'] },
+					value: [contribution],
+					collector: new ExtensionMessageCollector(() => { }, nullExtensionDescription, 'terminalQuickFixes')
+				}], { added: [], removed: [] });
+				return store.add(toDisposable(() => { }));
+			});
+			store.add(toDisposable(() => handlerStub.restore()));
+			const service = new TerminalQuickFixService();
+			store.add(Reflect.get(service, '_onDidRegisterProvider') as Emitter<ITerminalQuickFixProviderSelector>);
+			store.add(Reflect.get(service, '_onDidRegisterCommandSelector') as Emitter<ITerminalCommandSelector>);
+			store.add(Reflect.get(service, '_onDidUnregisterProvider') as Emitter<string>);
+			quickFixAddon.dispose();
+			instantiationService.stub(ITerminalQuickFixService, service);
+			quickFixAddon = instantiationService.createInstance(TerminalQuickFixAddon, generateUuid(), [], store.add(new TerminalCapabilityStore()));
+			terminal.loadAddon(quickFixAddon);
+			await service.extensionQuickFixes;
+			for (let cycle = 0; cycle < 37; cycle++) {
+				const command = `replacement ${cycle}`;
+				const registration = store.add(service.registerQuickFixProvider(contribution.id, {
+					provideTerminalQuickFixes: async () => ({ id: contribution.id, source: 'test', type: TerminalQuickFixType.TerminalCommand, terminalCommand: command })
+				}));
+				await timeout(0);
+				const listeners = Reflect.get(quickFixAddon, '_commandListeners') as Map<string, ITerminalQuickFixOptions[]>;
+				const actions = await getQuickFixesForCommand([], terminal, createCommand('owned command', 'owned error', 'owned error', 1, ['owned error']), listeners, commandService, openerService, labelService);
+				deepStrictEqual(actions?.map(action => action.label), [`Run: ${command}`]);
+				registration.dispose();
+				deepStrictEqual({ providers: service.providers.size, listeners: options() }, { providers: 0, listeners: [] });
+			}
 		});
 
 		test('unknown and repeated unregister events preserve live providers', () => {
