@@ -619,6 +619,7 @@ export class MainThreadSCM implements MainThreadSCMShape {
 	private _repositoryBarriers = new Map<number, Barrier>();
 	private _repositoryDisposables = new Map<number, IDisposable>();
 	private readonly _disposables = new DisposableStore();
+	private _isDisposed = false;
 
 	constructor(
 		extHostContext: IExtHostContext,
@@ -637,8 +638,12 @@ export class MainThreadSCM implements MainThreadSCMShape {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		dispose(this._repositories.values());
 		this._repositories.clear();
+		for (const barrier of this._repositoryBarriers.values()) {
+			barrier.open();
+		}
 		this._repositoryBarriers.clear();
 
 		dispose(this._repositoryDisposables.values());
@@ -648,29 +653,38 @@ export class MainThreadSCM implements MainThreadSCMShape {
 	}
 
 	async $registerSourceControl(handle: number, parentHandle: number | undefined, id: string, label: string, rootUri: UriComponents | undefined, iconPath: UriComponents | { light: UriComponents; dark: UriComponents } | ThemeIcon | undefined, isHidden: boolean | undefined, inputBoxDocumentUri: UriComponents): Promise<void> {
-		this._repositoryBarriers.set(handle, new Barrier());
-
-		const inputBoxTextModelRef = await this.textModelService.createModelReference(URI.revive(inputBoxDocumentUri));
-		const provider = new MainThreadSCMProvider(this._proxy, handle, parentHandle, id, label, rootUri ? URI.revive(rootUri) : undefined, getIconFromIconDto(iconPath), isHidden, inputBoxTextModelRef.object.textEditorModel, this.quickDiffService, this._uriIdentService, this.workspaceContextService);
-		const repository = this.scmService.registerSCMProvider(provider);
-		this._repositories.set(handle, repository);
-
-		const disposable = combinedDisposable(
-			inputBoxTextModelRef,
-			Event.filter(this.scmViewService.onDidFocusRepository, r => r === repository)(_ => this._proxy.$setSelectedSourceControl(handle)),
-			repository.input.onDidChange(({ value }) => this._proxy.$onInputBoxValueChange(handle, value))
-		);
-		this._repositoryDisposables.set(handle, disposable);
-
-		if (this.scmViewService.focusedRepository === repository) {
-			setTimeout(() => this._proxy.$setSelectedSourceControl(handle), 0);
+		if (this._isDisposed) {
+			return;
 		}
+		const barrier = new Barrier();
+		this._repositoryBarriers.set(handle, barrier);
+		try {
+			const inputBoxTextModelRef = await this.textModelService.createModelReference(URI.revive(inputBoxDocumentUri));
+			if (this._isDisposed) {
+				inputBoxTextModelRef.dispose();
+				return;
+			}
+			const provider = new MainThreadSCMProvider(this._proxy, handle, parentHandle, id, label, rootUri ? URI.revive(rootUri) : undefined, getIconFromIconDto(iconPath), isHidden, inputBoxTextModelRef.object.textEditorModel, this.quickDiffService, this._uriIdentService, this.workspaceContextService);
+			const repository = this.scmService.registerSCMProvider(provider);
+			this._repositories.set(handle, repository);
 
-		if (repository.input.value) {
-			setTimeout(() => this._proxy.$onInputBoxValueChange(handle, repository.input.value), 0);
+			const disposable = combinedDisposable(
+				inputBoxTextModelRef,
+				Event.filter(this.scmViewService.onDidFocusRepository, r => r === repository)(_ => this._proxy.$setSelectedSourceControl(handle)),
+				repository.input.onDidChange(({ value }) => this._proxy.$onInputBoxValueChange(handle, value))
+			);
+			this._repositoryDisposables.set(handle, disposable);
+
+			if (this.scmViewService.focusedRepository === repository) {
+				setTimeout(() => this._proxy.$setSelectedSourceControl(handle), 0);
+			}
+
+			if (repository.input.value) {
+				setTimeout(() => this._proxy.$onInputBoxValueChange(handle, repository.input.value), 0);
+			}
+		} finally {
+			barrier.open();
 		}
-
-		this._repositoryBarriers.get(handle)?.open();
 	}
 
 	async $updateSourceControl(handle: number, features: SCMProviderFeatures): Promise<void> {
