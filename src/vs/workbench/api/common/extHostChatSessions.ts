@@ -652,7 +652,7 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 		const sessionResource = URI.revive(sessionResourceComponents);
 
 		const controllerData = this.getChatSessionItemController(getChatSessionType(sessionResource));
-		let inputState: vscode.ChatSessionInputState;
+		let inputState: vscode.ChatSessionInputState | undefined;
 		if (controllerData?.controller.getChatSessionInputState) {
 			const result = await controllerData.controller.getChatSessionInputState(isUntitledChatSession(sessionResource) ? undefined : sessionResource, {
 				previousInputState: this._createInputStateFromOptions(controllerData.optionGroups ?? [], context.initialSessionOptions),
@@ -660,6 +660,14 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 			if (result) {
 				inputState = result;
 			}
+		}
+		if (this._chatSessionContentProviders.get(handle) !== provider) {
+			// A returned state that has not been bound belongs to this abandoned
+			// request. Bound states may already be in use by another request.
+			if (inputState instanceof ChatSessionInputStateImpl && !inputState.sessionResource && !inputState.untitledSessionResource && controllerData?.inputStates.delete(inputState)) {
+				inputState._dispose();
+			}
+			throw new CancellationError();
 		}
 		inputState ??= this._createInputStateFromOptions(
 			controllerData?.optionGroups ?? [], context.initialSessionOptions
@@ -681,7 +689,8 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 		const session = await provider.provider.provideChatSessionContent(sessionResource, token, {
 			inputState,
 		});
-		if (token.isCancellationRequested) {
+		// Unregistration can dispose the renderer session while this callback is pending.
+		if (token.isCancellationRequested || this._chatSessionContentProviders.get(handle) !== provider) {
 			throw new CancellationError();
 		}
 
