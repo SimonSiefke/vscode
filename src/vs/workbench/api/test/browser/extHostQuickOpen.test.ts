@@ -6,6 +6,7 @@
 import assert from 'assert';
 import type * as vscode from 'vscode';
 import { DeferredPromise, timeout } from '../../../../base/common/async.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { CancellationError } from '../../../../base/common/errors.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -25,12 +26,18 @@ suite('Extension host quick input callback lifetime', () => {
 		const inputs: DeferredPromise<string | undefined>[] = [];
 		const errors: Error[] = [];
 		const proxy = new class extends mock<MainThreadQuickOpenShape>() {
-			override $show(): Promise<number | number[] | undefined> {
+			override $show(...args: Parameters<MainThreadQuickOpenShape['$show']>): Promise<number | number[] | undefined> {
+				if (args[2].isCancellationRequested) {
+					return Promise.reject(new CancellationError());
+				}
 				const result = new DeferredPromise<number | number[] | undefined>();
 				picks.push(result);
 				return result.p;
 			}
-			override $input(): Promise<string | undefined> {
+			override $input(...args: Parameters<MainThreadQuickOpenShape['$input']>): Promise<string | undefined> {
+				if (args[2].isCancellationRequested) {
+					return Promise.reject(new CancellationError());
+				}
 				const result = new DeferredPromise<string | undefined>();
 				inputs.push(result);
 				return result.p;
@@ -131,6 +138,64 @@ suite('Extension host quick input callback lifetime', () => {
 		await inputs[0].complete('input');
 		await input;
 		assert.deepStrictEqual(observe(), { selection: false, validation: false });
+	});
+
+	test('An already-cancelled Input Box preserves the visible input validator', async () => {
+		const { service, inputs, observe } = createService();
+		const validateInput = () => 'invalid';
+		const first = service.showInput({ validateInput });
+		await service.showInput({ validateInput }, CancellationToken.Cancelled);
+		assert.strictEqual(await service.$validateInput('invalid value'), 'invalid');
+		assert.strictEqual(inputs.length, 1);
+		await inputs[0].complete(undefined);
+		await first;
+		assert.deepStrictEqual(observe(), { selection: false, validation: false });
+	});
+
+	for (const delayed of [false, true]) {
+		test(`An already-cancelled Quick Pick preserves and releases the visible callback (delayed items: ${delayed})`, async () => {
+			const { service, picks, observe } = createService();
+			const items = new DeferredPromise<string[]>();
+			const selected: (string | vscode.QuickPickItem)[] = [];
+			const first = service.showQuickPick(nullExtensionDescription, delayed ? items.p : ['active'], { onDidSelectItem: item => selected.push(item) });
+			await timeout(0);
+			await service.showQuickPick(nullExtensionDescription, ['cancelled'], { onDidSelectItem() { assert.fail('cancelled picker callback'); } }, CancellationToken.Cancelled);
+			await items.complete(['active']);
+			await timeout(0);
+			service.$onItemSelected(0);
+			assert.deepStrictEqual({ selected, count: picks.length }, { selected: ['active'], count: 1 });
+			await picks[0].complete(0);
+			assert.strictEqual(await first, 'active');
+			assert.deepStrictEqual(observe(), { selection: false, validation: false });
+		});
+	}
+
+	test('An older delayed Quick Pick cannot replace or clear the newer callback', async () => {
+		const { service, picks, observe } = createService();
+		const items = new DeferredPromise<string[]>();
+		const selected: (string | vscode.QuickPickItem)[] = [];
+		const first = service.showQuickPick(nullExtensionDescription, items.p, { onDidSelectItem() { assert.fail('stale picker callback'); } });
+		const second = service.showQuickPick(nullExtensionDescription, ['new'], { onDidSelectItem: item => selected.push(item) });
+		await timeout(0);
+		await items.complete(['old']);
+		await timeout(0);
+		service.$onItemSelected(0);
+		await picks[0].complete(undefined);
+		await first;
+		service.$onItemSelected(0);
+		assert.deepStrictEqual(selected, ['new', 'new']);
+		await picks[1].complete(0);
+		assert.strictEqual(await second, 'new');
+		assert.deepStrictEqual(observe(), { selection: false, validation: false });
+	});
+
+	test('An already-cancelled Quick Pick handles later item rejection without opening a widget', async () => {
+		const { service, picks, observe } = createService();
+		const items = new DeferredPromise<string[]>();
+		assert.strictEqual(await service.showQuickPick(nullExtensionDescription, items.p, undefined, CancellationToken.Cancelled), undefined);
+		await items.error(new Error('late items error'));
+		await timeout(0);
+		assert.deepStrictEqual({ ...observe(), count: picks.length }, { selection: false, validation: false, count: 0 });
 	});
 
 	test('Closing before items resolve does not install a callback later', async () => {

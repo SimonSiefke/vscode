@@ -60,10 +60,16 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 		showQuickPick(extension: IExtensionDescription, itemsOrItemsPromise: string[] | Promise<string[]>, options?: QuickPickOptions, token?: CancellationToken): Promise<string | undefined>;
 		showQuickPick(extension: IExtensionDescription, itemsOrItemsPromise: QuickPickItem[] | Promise<QuickPickItem[]>, options?: QuickPickOptions, token?: CancellationToken): Promise<QuickPickItem | undefined>;
 		showQuickPick(extension: IExtensionDescription, itemsOrItemsPromise: Item[] | Promise<Item[]>, options?: QuickPickOptions, token: CancellationToken = CancellationToken.None): Promise<Item | Item[] | undefined> {
+			const itemsPromise = Promise.resolve(itemsOrItemsPromise);
+			if (token.isCancellationRequested) {
+				// The items may still reject after the cancelled request has returned.
+				itemsPromise.catch(() => undefined);
+				return Promise.resolve(undefined);
+			}
+
 			// clear state from last invocation
 			this._onDidSelectItem = undefined;
-
-			const itemsPromise = Promise.resolve(itemsOrItemsPromise);
+			let onDidSelectItem: ((handle: number) => void) | undefined;
 
 			const instance = ++this._instances;
 
@@ -114,10 +120,11 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 					}
 
 					// handle selection changes
-					if (options && typeof options.onDidSelectItem === 'function') {
-						this._onDidSelectItem = (handle) => {
+					if (instance === this._instances && options && typeof options.onDidSelectItem === 'function') {
+						onDidSelectItem = (handle) => {
 							options.onDidSelectItem!(items[handle]);
 						};
+						this._onDidSelectItem = onDidSelectItem;
 					}
 
 					// show items
@@ -141,7 +148,7 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 
 				return Promise.reject(err);
 			}).finally(() => {
-				if (instance === this._instances) {
+				if (this._onDidSelectItem === onDidSelectItem) {
 					this._onDidSelectItem = undefined;
 				}
 			});
@@ -154,6 +161,10 @@ export function createExtHostQuickOpen(mainContext: IMainContext, workspace: IEx
 		// ---- input
 
 		showInput(options?: InputBoxOptions, token: CancellationToken = CancellationToken.None): Promise<string | undefined> {
+			if (token.isCancellationRequested) {
+				return Promise.resolve(undefined);
+			}
+
 			const instance = ++this._inputInstance;
 
 			// global validate fn used in callback below
