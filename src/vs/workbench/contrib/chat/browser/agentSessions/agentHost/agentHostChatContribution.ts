@@ -39,6 +39,7 @@ import { AgentCustomizationItemProvider } from './agentCustomizationItemProvider
 import { agentHostProviderHasBuiltInGitHubMcpServer, COPILOT_CHAT_GITHUB_MCP_COLLECTION_ID } from './agentHostMcpServerSupport.js';
 import { createCustomizationMcpServerCompatibilityScope } from './agentHostMcpServerSupportScope.js';
 import { AgentHostMcpServerMigrationProvider } from './agentHostMcpServerMigrationProvider.js';
+import { AgentHostCustomizationMarketplaceInstallProvider } from './agentHostCustomizationMarketplaceInstallProvider.js';
 import { AgentHostDownloadProgress } from './agentHostDownloadProgress.js';
 import { autoAuthenticateMcpServer, authenticateAgentProtectedResourcesWithToken, authenticateProtectedResources, authenticateProtectedResourcesWithToken, AgentHostAuthenticationRecovery, AgentHostAuthTokenCache, resolveAuthenticationInteractively, revokeAuthenticationForRemovedSessions } from './agentHostAuth.js';
 import { AgentHostLanguageModelProvider, agentHostProviderSupportsAutoModel } from './agentHostLanguageModelProvider.js';
@@ -180,6 +181,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 	private readonly _authRecovery: AgentHostAuthenticationRecovery;
 
 	private readonly _isSessionsWindow: boolean;
+	private readonly _isLocalAgentHost: boolean;
 	private readonly _enableSmokeTestDriver: boolean;
 	private _initialized = false;
 	private readonly _enablementStore = this._register(new MutableDisposable<DisposableStore>());
@@ -207,6 +209,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 		super();
 		this._authRecovery = this._instantiationService.createInstance(AgentHostAuthenticationRecovery);
 		this._isSessionsWindow = environmentService.isSessionsWindow;
+		this._isLocalAgentHost = !environmentService.remoteAuthority;
 		this._enableSmokeTestDriver = !!environmentService.enableSmokeTestDriver;
 
 		this._register(autorun(reader => {
@@ -392,6 +395,13 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 			syncedUri => this._activeClientService.getOrigin(syncedUri)));
 		itemProvider.setDraftCustomAgents(ambientScope.customAgents);
 		itemProvider.setDraftCustomizations(ambientScope.customizations);
+		const marketplaceInstallProvider = agent.provider === 'copilotcli'
+			? store.add(this._instantiationService.createInstance(
+				AgentHostCustomizationMarketplaceInstallProvider,
+				agent.provider,
+				() => this._resolveMarketplaceAuthenticationInteractively(this._protectedResourcesService.getProtectedResources(agent.provider) ?? []),
+			))
+			: undefined;
 		store.add(this._customizationHarnessService.registerExternalHarness({
 			id: sessionType,
 			label: agent.displayName,
@@ -412,6 +422,8 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 			mcpServerMigrationProvider: agent.provider === 'copilotcli'
 				? store.add(this._instantiationService.createInstance(AgentHostMcpServerMigrationProvider))
 				: undefined,
+			marketplaceInstallProvider,
+			marketplaceSearchProvider: marketplaceInstallProvider,
 		}));
 
 		// Session handler
@@ -423,6 +435,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 			description: agent.description,
 			connection: this._agentHostService,
 			connectionAuthority: LOCAL_AGENT_HOST_AUTHORITY,
+			supportsCanvasPresentation: this._isLocalAgentHost && agent.provider === 'copilotcli',
 			onSessionMaterialized: resource => this._chatSessionsService.notifySessionMaterialized?.(resource),
 			resolveAuthentication: (resources) => this._resolveAuthenticationInteractively(resources),
 			promptCacheNotification: this._promptCacheNotification,
@@ -548,7 +561,21 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 	 * creates a session (which triggers the login UI), and pushes the token
 	 * to the server. Returns true if authentication succeeded.
 	 */
-	private async _resolveAuthenticationInteractively(protectedResources: ProtectedResourceMetadata[]): Promise<boolean> {
+	private async _resolveAuthenticationInteractively(protectedResources: readonly ProtectedResourceMetadata[]): Promise<boolean> {
+		return this._resolveAuthenticationInteractivelyForSession(protectedResources);
+	}
+
+	private async _resolveMarketplaceAuthenticationInteractively(protectedResources: readonly ProtectedResourceMetadata[]): Promise<boolean> {
+		if (this._getScenarioAutomationToken() !== undefined) {
+			return this._resolveAuthenticationInteractivelyForSession(protectedResources);
+		}
+		const account = this._defaultAccountService.currentDefaultAccount
+			?? await this._defaultAccountService.getDefaultAccount()
+			?? await this._defaultAccountService.signIn();
+		return account ? this._resolveAuthenticationInteractivelyForSession(protectedResources, account.sessionId) : false;
+	}
+
+	private async _resolveAuthenticationInteractivelyForSession(protectedResources: readonly ProtectedResourceMetadata[], preferredSessionId?: string): Promise<boolean> {
 		const generation = this._authenticationGeneration;
 		if (!this._isAuthenticationCurrent(generation)) {
 			return false;
@@ -565,6 +592,7 @@ export class AgentHostContribution extends Disposable implements IWorkbenchContr
 		return this._instantiationService.invokeFunction(resolveAuthenticationInteractively, protectedResources, {
 			authTokenCache: this._authTokenCache,
 			logPrefix: '[AgentHost]',
+			preferredSessionId,
 			isCurrent: () => this._isAuthenticationCurrent(generation),
 			authenticate: request => this._authenticateIfCurrent(request, generation),
 		});

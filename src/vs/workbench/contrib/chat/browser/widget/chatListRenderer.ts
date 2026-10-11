@@ -122,6 +122,7 @@ import { ChatTreeContentPart, TreePool } from './chatContentParts/chatTreeConten
 import { ChatWorkspaceEditContentPart } from './chatContentParts/chatWorkspaceEditContentPart.js';
 import { ChatExternalEditContentPart } from './chatContentParts/chatExternalEditContentPart.js';
 import { ChatToolInvocationPart } from './chatContentParts/toolInvocationParts/chatToolInvocationPart.js';
+import { ChatImageGenerationBatchPart, getImageGenerationBatch } from './chatContentParts/chatImageGenerationBatchPart.js';
 import { ChatMarkdownDecorationsRenderer } from './chatContentParts/chatMarkdownDecorationsRenderer.js';
 import { ChatEditorOptions } from './chatOptions.js';
 import { ChatCodeBlockContentProvider, CodeBlockPart } from './chatContentParts/codeBlockPart.js';
@@ -657,6 +658,7 @@ export interface IChatRendererDelegate {
 	getListLength(): number;
 	currentChatMode(): ChatModeKind;
 	isStickyScrollEnabled(): boolean;
+	isScrolledToBottom?(): boolean;
 	refreshStickyScroll(): void;
 	readonly stickyScrollTopPadding: number;
 	getEditingValue?(): string | undefined;
@@ -667,6 +669,7 @@ export interface IChatRendererDelegate {
 }
 
 const mostRecentResponseClassName = 'chat-most-recent-response';
+const progressScrollTargetClassName = 'chat-progress-scroll-target';
 
 export function shouldHideChatUserIdentity(username: string, sessionResource: URI, isResponse: boolean, isSessionsWindow: boolean, isSystemInitiatedRequest: boolean): boolean {
 	const sessionType = getChatSessionType(sessionResource);
@@ -778,6 +781,13 @@ class PersistentBackgroundActivityTracker extends Disposable {
 				this.reconcileResponses();
 			}
 		}));
+		const backgroundShellCount = viewModel.model.backgroundShellCount;
+		if (backgroundShellCount) {
+			this._register(autorun(reader => {
+				backgroundShellCount.read(reader);
+				this.onDidChange();
+			}));
+		}
 	}
 
 	getActivity(response: IChatResponseViewModel): IPersistentBackgroundActivity {
@@ -1020,6 +1030,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 
 		const normalizedHeight = Math.ceil(height);
 		const element = template.currentElement;
+		this.updateWorkingProgressRounding(template, height);
 		const update = reconcileChatItemHeight(
 			normalizedHeight,
 			element.currentRenderedHeight,
@@ -1047,6 +1058,21 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 					this.fireItemHeightChange(template);
 				}
 			});
+		}
+	}
+
+	private updateWorkingProgressRounding(template: IChatListItemTemplate, measuredHeight?: number): void {
+		if (!template.renderedPersistentProgress || !template.currentElement || !isResponseVM(template.currentElement) || !template.rowContainer.isConnected) {
+			return;
+		}
+		const progress = this.getWorkingProgressContentPart(template);
+		if (!progress) {
+			return;
+		}
+		const height = measuredHeight ?? template.rowContainer.getBoundingClientRect().height;
+		const rounding = `${Math.ceil(height) - height}px`;
+		if (progress.domNode.style.getPropertyValue('--chat-response-height-rounding') !== rounding) {
+			progress.domNode.style.setProperty('--chat-response-height-rounding', rounding);
 		}
 	}
 
@@ -1285,7 +1311,8 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 			}
 			this.stickyScrollSourceWidthRatioByRequestId.clear();
 			this.stickyScrollSourceRangesByRequestId.clear();
-			this.scheduleStickyScrollSourceRangeRefresh();
+			// Refresh before the tree observes the invalidated ranges and renders estimated sticky rows.
+			this.refreshStickyScrollSourceRanges();
 		}
 	}
 
@@ -1556,6 +1583,11 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		this._elementBeingRendered = node.element;
 		try {
 			this.renderChatTreeItem(node.element, index, templateData);
+			const usesIncrementalRendering = isResponseVM(node.element) && !node.element.renderData && this.configService.getValue<boolean>(ChatConfiguration.IncrementalRendering);
+			if (!usesIncrementalRendering && this.delegate.isScrolledToBottom?.() && templateData.rowContainer.classList.contains(progressScrollTargetClassName)) {
+				// Incremental markdown updates alignment through its height-change event after rendering.
+				this.updateWorkingProgressRounding(templateData);
+			}
 		} finally {
 			this._elementBeingRendered = undefined;
 		}
@@ -1878,6 +1910,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		// response keeps rendering (and the view keeps following it) even when queued or steering
 		// rows are shown below it.
 		const isStickyScrollTargetItem = getStickyScrollTargetItem(this.viewModel?.getItems() ?? []) === element;
+		templateData.rowContainer.classList.toggle(progressScrollTargetClassName, isResponseVM(element) && isStickyScrollTargetItem);
 
 		// TODO: @justschen decide if we want to hide the header for requests or not
 		const shouldShowHeader = (isResponseVM(element) && !this.rendererOptions.noHeader) && !isSystemInitiatedRequest;
@@ -1962,7 +1995,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 
 		if (element.dividerKind === ChatRequestQueueKind.Steering) {
 			if (element.isSystemInitiated) {
-				label.textContent = localize('systemNotificationDivider', "System Notification");
+				label.textContent = localize('systemNotificationDivider', "System notification");
 				label.title = localize('systemNotificationDividerTooltip', "System notification will be sent after the next tool call happens");
 			} else {
 				label.textContent = localize('steeringDivider', "Steering");
@@ -2277,7 +2310,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				const currentBackgroundActivity = this.persistentBackgroundActivityTracker.value?.getActivity(element) ?? getPersistentBackgroundActivity(partsToRender);
 				const inheritedBackgroundActivity = this.persistentBackgroundActivityTracker.value?.getInheritedActivity(element)
 					?? { activeSubagentCount: 0, activeBackgroundTerminalCount: 0 };
-				const activityLabel = getPersistentActivityLabel(partsToRender, inheritedBackgroundActivity, currentBackgroundActivity);
+				const activityLabel = getPersistentActivityLabel(partsToRender, inheritedBackgroundActivity, currentBackgroundActivity, this.viewModel?.model.backgroundShellCount?.get());
 				const progressLabel = activityLabel ?? getTrailingProgressLabel(partsToRender);
 				return {
 					kind: 'working',
@@ -3984,6 +4017,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 
 	private diff(renderedParts: ReadonlyArray<IChatContentPart>, contentToRender: ReadonlyArray<IChatRendererContent>, element: ChatTreeItem): ReadonlyArray<IChatRendererContent | null> {
 		const diff: (IChatRendererContent | null)[] = [];
+		const imageBatchIds = new Set(getImageGenerationBatch(isResponseVM(element) ? element.response.value : contentToRender).map(tool => tool.toolCallId));
 		for (let i = 0; i < contentToRender.length; i++) {
 			const content = contentToRender[i];
 			const renderedPart = renderedParts[i];
@@ -3993,8 +4027,11 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				&& this.isPersistentProgressEnabled()
 				&& this.configService.getValue<ChatProgressVerbosity>(ChatConfiguration.PersistentProgressVerbosity) !== ChatProgressVerbosity.Verbose
 				&& this.shouldGroupToolInvocation(contentToRender, i, element);
+			const groupsImageTool = renderedPart instanceof ChatToolInvocationPart
+				&& (content.kind === 'toolInvocation' || content.kind === 'toolInvocationSerialized')
+				&& imageBatchIds.has(content.toolCallId);
 
-			if (promotesStandaloneTool || groupsStandaloneTool || !renderedPart || !renderedPart.hasSameContent(content, contentToRender.slice(i + 1), element)) {
+			if (promotesStandaloneTool || groupsStandaloneTool || groupsImageTool || !renderedPart || !renderedPart.hasSameContent(content, contentToRender.slice(i + 1), element)) {
 				diff.push(content);
 			} else {
 				// null -> no change
@@ -4761,6 +4798,32 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		if (subagentId && isResponseVM(context.element)) {
 			toolInvocation.isAttachedToThinking = false;
 			return this.handleSubagentToolGrouping(toolInvocation, subagentId, context, templateData, codeBlockStartIndex, batchedSubagentParts);
+		}
+
+		if (isResponseVM(context.element) && isImageGenerationToolInvocation(toolInvocation)) {
+			const response = context.element;
+			const batch = getImageGenerationBatch(response.response.value);
+			if (batch.some(tool => tool.toolCallId === toolInvocation.toolCallId)) {
+				this.finalizeCurrentThinkingPart(context, templateData);
+				if (batch[0].toolCallId !== toolInvocation.toolCallId) {
+					return this.renderNoContent(other => other === toolInvocation
+						&& getImageGenerationBatch(response.response.value).some((tool, index) => index > 0 && tool === other));
+				}
+				const batchPart = this.instantiationService.createInstance(ChatImageGenerationBatchPart, toolInvocation, context, response, (tool, blockIndex) => {
+					const part = this.instantiationService.createInstance(ChatToolInvocationPart, tool, { ...context, inImageGenerationBatch: true }, this.chatContentMarkdownRenderer, this._contentReferencesListPool, this._toolEditorPool, () => this._currentLayoutWidth.get(), this._announcedToolProgressKeys, blockIndex);
+					part.addDisposable(part.onDidChangeHeight(() => {
+						this.fireItemHeightChange(templateData);
+						this.updateWorkingProgress(templateData);
+					}));
+					this.handleRenderedCodeblocks(response, part, blockIndex, templateData);
+					return part;
+				});
+				batchPart.addDisposable(batchPart.onDidChangeHeight(() => {
+					this.fireItemHeightChange(templateData);
+					this.updateWorkingProgress(templateData);
+				}));
+				return batchPart;
+			}
 		}
 
 		if (this.getCollapsedToolsMode() === CollapsedToolsDisplayMode.Off) {
@@ -5989,10 +6052,11 @@ export function getPersistentActivityLabel(
 	parts: readonly IChatRendererContent[],
 	inheritedActivity: IPersistentBackgroundActivity = { activeSubagentCount: 0, activeBackgroundTerminalCount: 0 },
 	currentActivity = getPersistentBackgroundActivity(parts),
+	backgroundShellCount?: number,
 ): IMarkdownString | undefined {
 	const activityLabel = formatPersistentBackgroundActivityLabel({
 		activeSubagentCount: inheritedActivity.activeSubagentCount + currentActivity.activeSubagentCount,
-		activeBackgroundTerminalCount: inheritedActivity.activeBackgroundTerminalCount + currentActivity.activeBackgroundTerminalCount,
+		activeBackgroundTerminalCount: backgroundShellCount ?? inheritedActivity.activeBackgroundTerminalCount + currentActivity.activeBackgroundTerminalCount,
 	});
 	if (activityLabel) {
 		return activityLabel;
