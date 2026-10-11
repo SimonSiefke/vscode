@@ -218,6 +218,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		}
 
 		try {
+			await this._remoteTerminalChannel.setAutoReplies(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
 			await this._remoteTerminalChannel.attachToProcess(id);
 			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel);
 			this._ptys.set(id, pty);
@@ -366,11 +367,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		return this._remoteTerminalChannel.getPerformanceMarks();
 	}
 
-	installAutoReply(match: string, reply: string): Promise<void> {
-		return this._remoteTerminalChannel.installAutoReply(match, reply);
-	}
-
-	uninstallAllAutoReplies(): Promise<void> {
-		return this._remoteTerminalChannel.uninstallAllAutoReplies();
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
+		return this._remoteTerminalChannel.setAutoReplies(id, replies);
 	}
 }

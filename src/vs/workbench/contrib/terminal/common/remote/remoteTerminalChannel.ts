@@ -326,11 +326,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 
 	// #region Pty service contribution RPC calls
 
-	installAutoReply(match: string, reply: string): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.InstallAutoReply, [match, reply]);
-	}
-	uninstallAllAutoReplies(): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.UninstallAllAutoReplies, []);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
+		return this._channel.call(RemoteTerminalChannelRequest.SetAutoReplies, [id, replies]);
 	}
 
 	// #endregion
