@@ -6,7 +6,7 @@
 import { isAbsolute, join, resolve } from '../../base/common/path.js';
 import * as platform from '../../base/common/platform.js';
 import { cwd } from '../../base/common/process.js';
-import { URI } from '../../base/common/uri.js';
+import { URI, UriComponents } from '../../base/common/uri.js';
 import * as performance from '../../base/common/performance.js';
 import { Event } from '../../base/common/event.js';
 import { IURITransformer, transformOutgoingURIs } from '../../base/common/uriIpc.js';
@@ -21,7 +21,7 @@ import { IUserDataProfilesService } from '../../platform/userDataProfile/common/
 import { IServerEnvironmentService } from './serverEnvironmentService.js';
 import { dedupExtensions } from '../../workbench/services/extensions/common/extensionsUtil.js';
 import { Schemas } from '../../base/common/network.js';
-import { IRemoteExtensionsScannerService } from '../../platform/remote/common/remoteExtensionsScanner.js';
+import { getRemoteExtensionsScanContentHash, IRemoteExtensionsScannerService } from '../../platform/remote/common/remoteExtensionsScanner.js';
 import { ILanguagePackService } from '../../platform/languagePacks/common/languagePacks.js';
 import { areSameExtensions } from '../../platform/extensionManagement/common/extensionManagementUtil.js';
 
@@ -338,22 +338,35 @@ export class RemoteExtensionsScannerChannel implements IServerChannel {
 		switch (command) {
 			case 'whenExtensionsReady': return await this.service.whenExtensionsReady();
 
-			case 'scanExtensions': {
-				const language = args[0];
-				const profileLocation = args[1] ? URI.revive(uriTransformer.transformIncoming(args[1])) : undefined;
-				const workspaceExtensionLocations = Array.isArray(args[2]) ? args[2].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
-				const extensionDevelopmentPath = Array.isArray(args[3]) ? args[3].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
-				const languagePackId: string | undefined = args[4];
-				const extensions = await this.service.scanExtensions(
-					language,
-					profileLocation,
-					workspaceExtensionLocations,
-					extensionDevelopmentPath,
-					languagePackId
-				);
-				return extensions.map(extension => transformOutgoingURIs(extension, uriTransformer));
+			case 'scanExtensions': return this.scanExtensions(args, uriTransformer);
+
+			case 'scanExtensionsWithCache': {
+				const knownContentHash: string | undefined = typeof args[5] === 'string' ? args[5] : undefined;
+				const transformedExtensions = await this.scanExtensions(args, uriTransformer);
+				const contentHash = await getRemoteExtensionsScanContentHash(transformedExtensions);
+				if (knownContentHash === contentHash) {
+					return { type: 'hit', contentHash };
+				}
+				return { type: 'miss', contentHash, extensions: transformedExtensions };
 			}
 		}
 		throw new Error('Invalid call');
 	}
+
+	private async scanExtensions(args: [string | undefined, UriComponents | undefined, UriComponents[] | undefined, UriComponents[] | undefined, string | undefined], uriTransformer: IURITransformer): Promise<IExtensionDescription[]> {
+		const language = args[0];
+		const profileLocation = args[1] ? URI.revive(uriTransformer.transformIncoming(args[1])) : undefined;
+		const workspaceExtensionLocations = Array.isArray(args[2]) ? args[2].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
+		const extensionDevelopmentPath = Array.isArray(args[3]) ? args[3].map(u => URI.revive(uriTransformer.transformIncoming(u))) : undefined;
+		const languagePackId: string | undefined = args[4];
+		const extensions = await this.service.scanExtensions(
+			language,
+			profileLocation,
+			workspaceExtensionLocations,
+			extensionDevelopmentPath,
+			languagePackId
+		);
+		return extensions.map(extension => transformOutgoingURIs(extension, uriTransformer));
+	}
+
 }
