@@ -75,6 +75,9 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 	private _inputResolver: Promise<IResolvedNotebookEditorModel | null> | null;
 	private _editorModelReference: IResolvedNotebookEditorModel | null;
 
+	private inputDocumentRegistered = false;
+	private disposingInput = false;
+
 	private _inputModelRef: IReference<IResolvedTextEditorModel> | null;
 
 	get primary(): EditorInput {
@@ -102,7 +105,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 		super();
 		this.isScratchpad = configurationService.getValue<boolean>(NotebookSetting.InteractiveWindowPromptToSave) !== true;
 		this._notebookEditorInput = input;
-		this._register(this._notebookEditorInput);
+		this._register(this._notebookEditorInput.acquire());
 		this.name = title ?? InteractiveEditorInput.windowNames[resource.path] ?? paths.basename(resource.path, paths.extname(resource.path));
 		this._initLanguage = languageId;
 		this._resource = resource;
@@ -169,6 +172,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 		}
 
 		const resolvedLanguage = language ?? this._initLanguage ?? PLAINTEXT_LANGUAGE_ID;
+		this.inputDocumentRegistered = true;
 		this._interactiveDocumentService.willCreateInteractiveDocument(this.resource, this.inputResource, resolvedLanguage);
 		this._inputModelRef = await this._textModelService.createModelReference(this.inputResource);
 
@@ -249,13 +253,18 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 	}
 
 	override dispose() {
+		if (this.isDisposed() || this.disposingInput) {
+			return;
+		}
+		this.disposingInput = true;
 		// we support closing the interactive window without prompt, so the editor model should not be dirty
 		this._editorModelReference?.revert({ soft: true });
 
-		this._notebookEditorInput?.dispose();
-		this._editorModelReference?.dispose();
 		this._editorModelReference = null;
-		this._interactiveDocumentService.willRemoveInteractiveDocument(this.resource, this.inputResource);
+		if (this.inputDocumentRegistered) {
+			this.inputDocumentRegistered = false;
+			this._interactiveDocumentService.willRemoveInteractiveDocument(this.resource, this.inputResource);
+		}
 		this._inputModelRef?.dispose();
 		this._inputModelRef = null;
 		super.dispose();

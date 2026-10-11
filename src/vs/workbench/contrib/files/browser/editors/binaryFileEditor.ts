@@ -73,25 +73,29 @@ export class BinaryFileEditor extends BaseBinaryResourceEditor {
 				return;
 			}
 
-			// If the result if a file editor, the user indicated to open
-			// the binary file as text. As such we adjust the input for that.
-			if (isEditorInputWithOptions(resolvedEditor)) {
-				for (const editor of resolvedEditor.editor instanceof DiffEditorInput ? [resolvedEditor.editor.original, resolvedEditor.editor.modified] : [resolvedEditor.editor]) {
-					if (editor instanceof FileEditorInput) {
-						editor.setForceOpenAsText();
-						editor.setPreferredLanguageId(BINARY_TEXT_FILE_MODE); // https://github.com/microsoft/vscode/issues/131076
+			try {
+				// If the result if a file editor, the user indicated to open
+				// the binary file as text. As such we adjust the input for that.
+				if (isEditorInputWithOptions(resolvedEditor)) {
+					for (const editor of resolvedEditor.editor instanceof DiffEditorInput ? [resolvedEditor.editor.original, resolvedEditor.editor.modified] : [resolvedEditor.editor]) {
+						if (editor instanceof FileEditorInput) {
+							editor.setForceOpenAsText();
+							editor.setPreferredLanguageId(BINARY_TEXT_FILE_MODE); // https://github.com/microsoft/vscode/issues/131076
+						}
 					}
 				}
-			}
 
-			// Replace the active editor with the picked one
-			await this.group.replaceEditors([{
-				editor: activeEditor,
-				replacement: resolvedEditor?.editor ?? input,
-				options: {
-					...resolvedEditor?.options ?? options
-				}
-			}]);
+				// Replace the active editor with the picked one
+				await this.group.replaceEditors([{
+					editor: activeEditor,
+					replacement: resolvedEditor?.editor ?? input,
+					options: {
+						...resolvedEditor?.options ?? options
+					}
+				}]);
+			} finally {
+				resolvedEditor?.reference.dispose();
+			}
 		}
 	}
 

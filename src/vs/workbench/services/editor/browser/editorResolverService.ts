@@ -221,16 +221,20 @@ export class EditorResolverService extends Disposable implements IEditorResolver
 		}
 
 		const input = await this.doResolveEditor(untypedEditor, group, selectedEditor);
-		if (conflictingDefault && input) {
-			// Show the conflicting default dialog
-			await this.doHandleConflictingDefaults(resource, selectedEditor.editorInfo.label, untypedEditor, input.editor, group);
-		}
-
 		if (input) {
-			if (input.editor.editorId !== selectedEditor.editorInfo.id) {
-				this.logService.warn(`Editor ID Mismatch: ${input.editor.editorId} !== ${selectedEditor.editorInfo.id}. This will cause bugs. Please ensure editorInput.editorId matches the registered id`);
+			const reference = input.editor.acquire();
+			try {
+				if (conflictingDefault) {
+					await this.doHandleConflictingDefaults(resource, selectedEditor.editorInfo.label, untypedEditor, input.editor, group);
+				}
+				if (input.editor.editorId !== selectedEditor.editorInfo.id) {
+					this.logService.warn(`Editor ID Mismatch: ${input.editor.editorId} !== ${selectedEditor.editorInfo.id}. This will cause bugs. Please ensure editorInput.editorId matches the registered id`);
+				}
+				return { ...input, group, reference };
+			} catch (error) {
+				reference.dispose();
+				throw error;
 			}
-			return { ...input, group };
 		}
 		return ResolvedStatus.ABORT;
 	}
@@ -240,15 +244,25 @@ export class EditorResolverService extends Disposable implements IEditorResolver
 		if (!isEditorInputWithOptionsAndGroup(primaryResolvedEditor)) {
 			return ResolvedStatus.NONE;
 		}
-		const secondaryResolvedEditor = await this.resolveEditor(editor.secondary, primaryResolvedEditor.group ?? preferredGroup);
-		if (!isEditorInputWithOptionsAndGroup(secondaryResolvedEditor)) {
-			return ResolvedStatus.NONE;
+		try {
+			const secondaryResolvedEditor = await this.resolveEditor(editor.secondary, primaryResolvedEditor.group ?? preferredGroup);
+			if (!isEditorInputWithOptionsAndGroup(secondaryResolvedEditor)) {
+				return ResolvedStatus.NONE;
+			}
+			try {
+				const input = this.instantiationService.createInstance(SideBySideEditorInput, editor.label, editor.description, secondaryResolvedEditor.editor, primaryResolvedEditor.editor);
+				return {
+					group: primaryResolvedEditor.group ?? secondaryResolvedEditor.group,
+					editor: input,
+					options: editor.options,
+					reference: input.acquire()
+				};
+			} finally {
+				secondaryResolvedEditor.reference.dispose();
+			}
+		} finally {
+			primaryResolvedEditor.reference.dispose();
 		}
-		return {
-			group: primaryResolvedEditor.group ?? secondaryResolvedEditor.group,
-			editor: this.instantiationService.createInstance(SideBySideEditorInput, editor.label, editor.description, secondaryResolvedEditor.editor, primaryResolvedEditor.editor),
-			options: editor.options
-		};
 	}
 
 	bufferChangeEvents(callback: Function): void {
@@ -957,14 +971,18 @@ export class EditorResolverService extends Disposable implements IEditorResolver
 					if (replacementEditor === ResolvedStatus.ABORT || replacementEditor === ResolvedStatus.NONE) {
 						return;
 					}
-					// Replace the current editor with the picked one
-					group.replaceEditors([
-						{
-							editor: currentEditor,
-							replacement: replacementEditor.editor,
-							options: replacementEditor.options ?? picked,
-						}
-					]);
+					try {
+						// Replace the current editor with the picked one
+						await group.replaceEditors([
+							{
+								editor: currentEditor,
+								replacement: replacementEditor.editor,
+								options: replacementEditor.options ?? picked,
+							}
+						]);
+					} finally {
+						replacementEditor.reference.dispose();
+					}
 				}
 			},
 			{

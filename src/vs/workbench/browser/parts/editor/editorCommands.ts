@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
@@ -958,95 +959,102 @@ function registerCloseEditorCommands() {
 		const workingCopyEditorService = accessor.get(IWorkingCopyEditorService);
 
 		const resolvedContext = resolveCommandsContext(args, editorService, accessor.get(IEditorGroupsService), accessor.get(IListService));
-		const editorReplacements = new Map<IEditorGroup, IEditorReplacement[]>();
+		const references = new DisposableStore();
+		try {
+			const editorReplacements = new Map<IEditorGroup, IEditorReplacement[]>();
 
-		for (const { group, editors } of resolvedContext.groupedEditors) {
-			for (const editor of editors) {
-				const isDiffEditor = isDiffEditorInput(editor);
-				const editorToResolve = isDiffEditor ? editor.modified : editor;
-				const untypedEditor = isDiffEditor ? editor.toUntyped() : editorToResolve.toUntyped();
-				if (!untypedEditor) {
-					return; // Resolver can only resolve untyped editors
-				}
+			for (const { group, editors } of resolvedContext.groupedEditors) {
+				for (const editor of editors) {
+					const isDiffEditor = isDiffEditorInput(editor);
+					const editorToResolve = isDiffEditor ? editor.modified : editor;
+					const untypedEditor = isDiffEditor ? editor.toUntyped() : editorToResolve.toUntyped();
+					if (!untypedEditor) {
+						return; // Resolver can only resolve untyped editors
+					}
 
-				untypedEditor.options = { ...editorService.activeEditorPane?.options, override: editorOverride };
-				const resolvedEditor = await editorResolverService.resolveEditor(untypedEditor, group);
-				if (!isEditorInputWithOptionsAndGroup(resolvedEditor)) {
-					return;
-				}
+					untypedEditor.options = { ...editorService.activeEditorPane?.options, override: editorOverride };
+					const resolvedEditor = await editorResolverService.resolveEditor(untypedEditor, group);
+					if (!isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+						return;
+					}
 
-				let editorReplacementsInGroup = editorReplacements.get(group);
-				if (!editorReplacementsInGroup) {
-					editorReplacementsInGroup = [];
-					editorReplacements.set(group, editorReplacementsInGroup);
-				}
+					references.add(resolvedEditor.reference);
 
-				// Force replace when closing the editor without saving cannot
-				// lose data. This is the case when the dirty state lives in a
-				// working copy whose lifetime is independent of the editor:
-				// `TextFileEditorModel`s and `UntitledTextEditorModel`s are
-				// kept alive while dirty by their owning service.
-				//
-				// This way switching between a text editor and a text-document
-				// based custom editor (such as the Markdown preview) for the
-				// same resource does not trigger a save dialog.
-				//
-				// Custom-document custom editors (e.g. hex editors) maintain
-				// their dirty state in a working copy whose lifetime is tied
-				// to the editor input, so we must not skip the save prompt
-				// for those — detect this by looking for any dirty working
-				// copy that backs this editor at a different resource.
-				const resource = editorToResolve.resource;
-				let forceReplaceDirty = !!resource && (resource.scheme === Schemas.untitled || textFileService.isDirty(resource));
-				if (forceReplaceDirty && editorToResolve.isDirty()) {
-					for (const workingCopy of workingCopyService.dirtyWorkingCopies) {
-						if (isEqual(workingCopy.resource, resource)) {
-							continue; // working copy at the editor's own resource is text-based and survives close
-						}
-						if (workingCopyEditorService.findEditor(workingCopy)?.editor === editorToResolve) {
-							forceReplaceDirty = false;
-							break;
+					let editorReplacementsInGroup = editorReplacements.get(group);
+					if (!editorReplacementsInGroup) {
+						editorReplacementsInGroup = [];
+						editorReplacements.set(group, editorReplacementsInGroup);
+					}
+
+					// Force replace when closing the editor without saving cannot
+					// lose data. This is the case when the dirty state lives in a
+					// working copy whose lifetime is independent of the editor:
+					// `TextFileEditorModel`s and `UntitledTextEditorModel`s are
+					// kept alive while dirty by their owning service.
+					//
+					// This way switching between a text editor and a text-document
+					// based custom editor (such as the Markdown preview) for the
+					// same resource does not trigger a save dialog.
+					//
+					// Custom-document custom editors (e.g. hex editors) maintain
+					// their dirty state in a working copy whose lifetime is tied
+					// to the editor input, so we must not skip the save prompt
+					// for those — detect this by looking for any dirty working
+					// copy that backs this editor at a different resource.
+					const resource = editorToResolve.resource;
+					let forceReplaceDirty = !!resource && (resource.scheme === Schemas.untitled || textFileService.isDirty(resource));
+					if (forceReplaceDirty && editorToResolve.isDirty()) {
+						for (const workingCopy of workingCopyService.dirtyWorkingCopies) {
+							if (isEqual(workingCopy.resource, resource)) {
+								continue; // working copy at the editor's own resource is text-based and survives close
+							}
+							if (workingCopyEditorService.findEditor(workingCopy)?.editor === editorToResolve) {
+								forceReplaceDirty = false;
+								break;
+							}
 						}
 					}
+
+					editorReplacementsInGroup.push({
+						editor: editor,
+						replacement: resolvedEditor.editor,
+						forceReplaceDirty,
+						options: resolvedEditor.options
+					});
+
+					// Telemetry
+					type WorkbenchEditorReopenClassification = {
+						owner: 'rebornix';
+						comment: 'Identify how a document is reopened';
+						scheme: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File system provider scheme for the resource' };
+						ext: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File extension for the resource' };
+						from: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched from' };
+						to: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched to' };
+					};
+
+					type WorkbenchEditorReopenEvent = {
+						scheme: string;
+						ext: string;
+						from: string;
+						to: string;
+					};
+
+					telemetryService.publicLog2<WorkbenchEditorReopenEvent, WorkbenchEditorReopenClassification>('workbenchEditorReopen', {
+						scheme: editorToResolve.resource?.scheme ?? '',
+						ext: editorToResolve.resource ? extname(editorToResolve.resource) : '',
+						from: editor.editorId ?? '',
+						to: resolvedEditor.editor.editorId ?? ''
+					});
 				}
-
-				editorReplacementsInGroup.push({
-					editor: editor,
-					replacement: resolvedEditor.editor,
-					forceReplaceDirty,
-					options: resolvedEditor.options
-				});
-
-				// Telemetry
-				type WorkbenchEditorReopenClassification = {
-					owner: 'rebornix';
-					comment: 'Identify how a document is reopened';
-					scheme: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File system provider scheme for the resource' };
-					ext: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File extension for the resource' };
-					from: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched from' };
-					to: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The editor view type the resource is switched to' };
-				};
-
-				type WorkbenchEditorReopenEvent = {
-					scheme: string;
-					ext: string;
-					from: string;
-					to: string;
-				};
-
-				telemetryService.publicLog2<WorkbenchEditorReopenEvent, WorkbenchEditorReopenClassification>('workbenchEditorReopen', {
-					scheme: editorToResolve.resource?.scheme ?? '',
-					ext: editorToResolve.resource ? extname(editorToResolve.resource) : '',
-					from: editor.editorId ?? '',
-					to: resolvedEditor.editor.editorId ?? ''
-				});
 			}
-		}
 
-		// Replace editor with resolved one and make active
-		for (const [group, replacements] of editorReplacements) {
-			await group.replaceEditors(replacements);
-			await group.openEditor(replacements[0].replacement);
+			// Replace editor with resolved one and make active
+			for (const [group, replacements] of editorReplacements) {
+				await group.replaceEditors(replacements);
+				await group.openEditor(replacements[0].replacement);
+			}
+		} finally {
+			references.dispose();
 		}
 	}
 

@@ -24,7 +24,7 @@ import { IEditorProgressService } from '../../../../platform/progress/common/pro
 import { EditorProgressIndicator } from '../../../services/progress/browser/progressIndicator.js';
 import { localize } from '../../../../nls.js';
 import { coalesce } from '../../../../base/common/arrays.js';
-import { DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableMap, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ITelemetryData, ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { DeferredPromise, Promises, RunOnceWorker } from '../../../../base/common/async.js';
 import { EventType as TouchEventType, GestureEvent } from '../../../../base/browser/touch.js';
@@ -116,6 +116,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	//#endregion
 
 	private readonly model: EditorGroupModel;
+	private readonly editorReferences: DisposableMap<EditorInput>;
 
 	private active: boolean | undefined;
 	private lastLayout: IDomNodePagePosition | undefined;
@@ -185,6 +186,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			this.model = this._register(instantiationService.createInstance(EditorGroupModel, from));
 		} else {
 			this.model = this._register(instantiationService.createInstance(EditorGroupModel, undefined));
+		}
+
+		this.editorReferences = this._register(new DisposableMap<EditorInput>());
+		for (const editor of this.model.getEditors(EditorsOrder.SEQUENTIAL)) {
+			this.editorReferences.set(editor, editor.acquire());
 		}
 
 		//#region create()
@@ -668,6 +674,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	private onDidOpenEditor(editor: EditorInput, editorIndex: number): void {
+		this.editorReferences.set(editor, editor.acquire());
 
 		/* __GDPR__
 			"editorOpened" : {
@@ -688,42 +695,14 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		// Before close
 		this._onWillCloseEditor.fire({ groupId: this.id, editor, context, index: editorIndex, sticky });
 
-		// Handle event
-		const editorsToClose: EditorInput[] = [editor];
-
-		// Include both sides of side by side editors when being closed
-		if (editor instanceof SideBySideEditorInput) {
-			editorsToClose.push(editor.primary, editor.secondary);
-		}
-
-		// For each editor to close, we call dispose() to free up any resources.
-		// However, certain editors might be shared across multiple editor groups
-		// (including being visible in side by side / diff editors) and as such we
-		// only dispose when they are not opened elsewhere.
-		for (const editor of editorsToClose) {
-			if (this.canDispose(editor)) {
-				editor.dispose();
-			}
-		}
+		// Release this group's ownership; other groups and pending opens keep their own references.
+		this.editorReferences.deleteAndDispose(editor);
 
 		// Update container
 		this.updateContainer();
 
 		// Event
 		this._onDidCloseEditor.fire({ groupId: this.id, editor, context, index: editorIndex, sticky });
-	}
-
-	private canDispose(editor: EditorInput): boolean {
-		for (const groupView of this.editorPartsView.groups) {
-			if (groupView instanceof EditorGroupView && groupView.model.contains(editor, {
-				strictEquals: true,						// only if this input is not shared across editor groups
-				supportSideBySide: SideBySideEditor.ANY // include any side of an opened side by side editor
-			})) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	private toResourceTelemetryDescriptor(resource: URI): object | undefined {
@@ -1196,93 +1175,98 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			return;
 		}
 
-		// Fire the event letting everyone know we are about to open an editor
-		this._onWillOpenEditor.fire({ editor, groupId: this.id });
+		const reference = editor.acquire();
+		try {
+			// Fire the event letting everyone know we are about to open an editor
+			this._onWillOpenEditor.fire({ editor, groupId: this.id });
 
-		// Determine options
-		const pinned = options?.sticky
-			|| (!this.groupsView.partOptions.enablePreview && !options?.transient)
-			|| editor.isDirty()
-			|| (options?.pinned ?? typeof options?.index === 'number' /* unless specified, prefer to pin when opening with index */)
-			|| (typeof options?.index === 'number' && this.model.isSticky(options.index))
-			|| editor.hasCapability(EditorInputCapabilities.Scratchpad);
-		const openEditorOptions: IEditorOpenOptions = {
-			index: options ? options.index : undefined,
-			pinned,
-			sticky: options?.sticky || (typeof options?.index === 'number' && this.model.isSticky(options.index)),
-			transient: !!options?.transient,
-			inactiveSelection: internalOptions?.inactiveSelection,
-			active: this.count === 0 || !options?.inactive,
-			supportSideBySide: internalOptions?.supportSideBySide
-		};
+			// Determine options
+			const pinned = options?.sticky
+				|| (!this.groupsView.partOptions.enablePreview && !options?.transient)
+				|| editor.isDirty()
+				|| (options?.pinned ?? typeof options?.index === 'number' /* unless specified, prefer to pin when opening with index */)
+				|| (typeof options?.index === 'number' && this.model.isSticky(options.index))
+				|| editor.hasCapability(EditorInputCapabilities.Scratchpad);
+			const openEditorOptions: IEditorOpenOptions = {
+				index: options ? options.index : undefined,
+				pinned,
+				sticky: options?.sticky || (typeof options?.index === 'number' && this.model.isSticky(options.index)),
+				transient: !!options?.transient,
+				inactiveSelection: internalOptions?.inactiveSelection,
+				active: this.count === 0 || !options?.inactive,
+				supportSideBySide: internalOptions?.supportSideBySide
+			};
 
-		if (!openEditorOptions.active && !openEditorOptions.pinned && this.model.activeEditor && !this.model.isPinned(this.model.activeEditor)) {
-			// Special case: we are to open an editor inactive and not pinned, but the current active
-			// editor is also not pinned, which means it will get replaced with this one. As such,
-			// the editor can only be active.
-			openEditorOptions.active = true;
-		}
-
-		let activateGroup = false;
-		let restoreGroup = false;
-
-		if (options?.activation === EditorActivation.ACTIVATE) {
-			// Respect option to force activate an editor group.
-			activateGroup = true;
-		} else if (options?.activation === EditorActivation.RESTORE) {
-			// Respect option to force restore an editor group.
-			restoreGroup = true;
-		} else if (options?.activation === EditorActivation.PRESERVE) {
-			// Respect option to preserve active editor group.
-			activateGroup = false;
-			restoreGroup = false;
-		} else if (openEditorOptions.active) {
-			// Finally, we only activate/restore an editor which is
-			// opening as active editor.
-			// If preserveFocus is enabled, we only restore but never
-			// activate the group.
-			activateGroup = !options?.preserveFocus;
-			restoreGroup = !activateGroup;
-		}
-
-		// Actually move the editor if a specific index is provided and we figure
-		// out that the editor is already opened at a different index. This
-		// ensures the right set of events are fired to the outside.
-		if (typeof openEditorOptions.index === 'number') {
-			const indexOfEditor = this.model.indexOf(editor);
-			if (indexOfEditor !== -1 && indexOfEditor !== openEditorOptions.index) {
-				this.doMoveEditorInsideGroup(editor, openEditorOptions);
+			if (!openEditorOptions.active && !openEditorOptions.pinned && this.model.activeEditor && !this.model.isPinned(this.model.activeEditor)) {
+				// Special case: we are to open an editor inactive and not pinned, but the current active
+				// editor is also not pinned, which means it will get replaced with this one. As such,
+				// the editor can only be active.
+				openEditorOptions.active = true;
 			}
-		}
 
-		// Update model and make sure to continue to use the editor we get from
-		// the model. It is possible that the editor was already opened and we
-		// want to ensure that we use the existing instance in that case.
-		const { editor: openedEditor, isNew } = this.model.openEditor(editor, openEditorOptions);
+			let activateGroup = false;
+			let restoreGroup = false;
 
-		// Conditionally lock the group
-		if (
-			isNew &&								// only if this editor was new for the group
-			this.count === 1 &&						// only when this editor was the first editor in the group
-			this.editorPartsView.groups.length > 1 	// only allow auto locking if more than 1 group is opened
-		) {
-			// only when the editor identifier is configured as such
-			if (openedEditor.editorId && this.groupsView.partOptions.autoLockGroups?.has(openedEditor.editorId)) {
-				this.lock(true);
+			if (options?.activation === EditorActivation.ACTIVATE) {
+				// Respect option to force activate an editor group.
+				activateGroup = true;
+			} else if (options?.activation === EditorActivation.RESTORE) {
+				// Respect option to force restore an editor group.
+				restoreGroup = true;
+			} else if (options?.activation === EditorActivation.PRESERVE) {
+				// Respect option to preserve active editor group.
+				activateGroup = false;
+				restoreGroup = false;
+			} else if (openEditorOptions.active) {
+				// Finally, we only activate/restore an editor which is
+				// opening as active editor.
+				// If preserveFocus is enabled, we only restore but never
+				// activate the group.
+				activateGroup = !options?.preserveFocus;
+				restoreGroup = !activateGroup;
 			}
+
+			// Actually move the editor if a specific index is provided and we figure
+			// out that the editor is already opened at a different index. This
+			// ensures the right set of events are fired to the outside.
+			if (typeof openEditorOptions.index === 'number') {
+				const indexOfEditor = this.model.indexOf(editor);
+				if (indexOfEditor !== -1 && indexOfEditor !== openEditorOptions.index) {
+					this.doMoveEditorInsideGroup(editor, openEditorOptions);
+				}
+			}
+
+			// Update model and make sure to continue to use the editor we get from
+			// the model. It is possible that the editor was already opened and we
+			// want to ensure that we use the existing instance in that case.
+			const { editor: openedEditor, isNew } = this.model.openEditor(editor, openEditorOptions);
+
+			// Conditionally lock the group
+			if (
+				isNew &&								// only if this editor was new for the group
+				this.count === 1 &&						// only when this editor was the first editor in the group
+				this.editorPartsView.groups.length > 1 	// only allow auto locking if more than 1 group is opened
+			) {
+				// only when the editor identifier is configured as such
+				if (openedEditor.editorId && this.groupsView.partOptions.autoLockGroups?.has(openedEditor.editorId)) {
+					this.lock(true);
+				}
+			}
+
+			// Show editor
+			const showEditorResult = this.doShowEditor(openedEditor, { active: !!openEditorOptions.active, isNew }, options, internalOptions);
+
+			// Finally make sure the group is active or restored as instructed
+			if (activateGroup) {
+				this.groupsView.activateGroup(this);
+			} else if (restoreGroup) {
+				this.groupsView.restoreGroup(this);
+			}
+
+			return await showEditorResult;
+		} finally {
+			reference.dispose();
 		}
-
-		// Show editor
-		const showEditorResult = this.doShowEditor(openedEditor, { active: !!openEditorOptions.active, isNew }, options, internalOptions);
-
-		// Finally make sure the group is active or restored as instructed
-		if (activateGroup) {
-			this.groupsView.activateGroup(this);
-		} else if (restoreGroup) {
-			this.groupsView.restoreGroup(this);
-		}
-
-		return showEditorResult;
 	}
 
 	private doShowEditor(editor: EditorInput, context: { active: boolean; isNew: boolean }, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {
@@ -1334,51 +1318,61 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	//#region openEditors()
 
 	async openEditors(editors: { editor: EditorInput; options?: IEditorOptions }[]): Promise<IEditorPane | undefined> {
+		const references = new DisposableStore();
+		try {
+			for (const editor of editors) {
+				if (!editor.editor.isDisposed()) {
+					references.add(editor.editor.acquire());
+				}
+			}
 
-		// Guard against invalid editors. Disposed editors
-		// should never open because they emit no events
-		// e.g. to indicate dirty changes.
-		const editorsToOpen = coalesce(editors).filter(({ editor }) => !editor.isDisposed());
+			// Guard against invalid editors. Disposed editors
+			// should never open because they emit no events
+			// e.g. to indicate dirty changes.
+			const editorsToOpen = coalesce(editors).filter(({ editor }) => !editor.isDisposed());
 
-		// Use the first editor as active editor
-		const firstEditor = editorsToOpen.at(0);
-		if (!firstEditor) {
-			return;
+			// Use the first editor as active editor
+			const firstEditor = editorsToOpen.at(0);
+			if (!firstEditor) {
+				return;
+			}
+
+			const openEditorsOptions: IInternalEditorOpenOptions = {
+				// Allow to match on a side-by-side editor when same
+				// editor is opened on both sides. In that case we
+				// do not want to open a new editor but reuse that one.
+				supportSideBySide: SideBySideEditor.BOTH
+			};
+
+			await this.doOpenEditor(firstEditor.editor, firstEditor.options, openEditorsOptions);
+
+			// Open the other ones inactive
+			const inactiveEditors = editorsToOpen.slice(1);
+			const startingIndex = this.getIndexOfEditor(firstEditor.editor) + 1;
+			await Promises.settled(inactiveEditors.map(({ editor, options }, index) => {
+				return this.doOpenEditor(editor, {
+					...options,
+					inactive: true,
+					pinned: true,
+					index: startingIndex + index
+				}, {
+					...openEditorsOptions,
+					// optimization: update the title control later
+					// https://github.com/microsoft/vscode/issues/130634
+					skipTitleUpdate: true
+				});
+			}));
+
+			// Update the title control all at once with all editors
+			this.titleControl.openEditors(inactiveEditors.map(({ editor }) => editor));
+
+			// Opening many editors at once can put any editor to be
+			// the active one depending on options. As such, we simply
+			// return the active editor pane after this operation.
+			return this.editorPane.activeEditorPane ?? undefined;
+		} finally {
+			references.dispose();
 		}
-
-		const openEditorsOptions: IInternalEditorOpenOptions = {
-			// Allow to match on a side-by-side editor when same
-			// editor is opened on both sides. In that case we
-			// do not want to open a new editor but reuse that one.
-			supportSideBySide: SideBySideEditor.BOTH
-		};
-
-		await this.doOpenEditor(firstEditor.editor, firstEditor.options, openEditorsOptions);
-
-		// Open the other ones inactive
-		const inactiveEditors = editorsToOpen.slice(1);
-		const startingIndex = this.getIndexOfEditor(firstEditor.editor) + 1;
-		await Promises.settled(inactiveEditors.map(({ editor, options }, index) => {
-			return this.doOpenEditor(editor, {
-				...options,
-				inactive: true,
-				pinned: true,
-				index: startingIndex + index
-			}, {
-				...openEditorsOptions,
-				// optimization: update the title control later
-				// https://github.com/microsoft/vscode/issues/130634
-				skipTitleUpdate: true
-			});
-		}));
-
-		// Update the title control all at once with all editors
-		this.titleControl.openEditors(inactiveEditors.map(({ editor }) => editor));
-
-		// Opening many editors at once can put any editor to be
-		// the active one depending on options. As such, we simply
-		// return the active editor pane after this operation.
-		return this.editorPane.activeEditorPane ?? undefined;
 	}
 
 	//#endregion
@@ -2046,72 +2040,82 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	//#region replaceEditors()
 
 	async replaceEditors(editors: EditorReplacement[]): Promise<void> {
-
-		// Extract active vs. inactive replacements
-		let activeReplacement: EditorReplacement | undefined;
-		const inactiveReplacements: EditorReplacement[] = [];
-		for (let { editor, replacement, forceReplaceDirty, options } of editors) {
-			const index = this.getIndexOfEditor(editor);
-			if (index >= 0) {
-				const isActiveEditor = this.isActive(editor);
-
-				// make sure we respect the index of the editor to replace
-				if (options) {
-					options.index = index;
-				} else {
-					options = { index };
-				}
-
-				options.inactive = !isActiveEditor;
-				options.pinned = options.pinned ?? true; // unless specified, prefer to pin upon replace
-
-				const editorToReplace = { editor, replacement, forceReplaceDirty, options };
-				if (isActiveEditor) {
-					activeReplacement = editorToReplace;
-				} else {
-					inactiveReplacements.push(editorToReplace);
-				}
-			}
-		}
-
-		// Handle inactive first
-		for (const { editor, replacement, forceReplaceDirty, options } of inactiveReplacements) {
-
-			// Open inactive editor
-			await this.doOpenEditor(replacement, options);
-
-			// Close replaced inactive editor unless they match
-			if (!editor.matches(replacement)) {
-				let closed = false;
-				if (forceReplaceDirty) {
-					this.doCloseEditor(editor, true, { context: EditorCloseContext.REPLACE });
-					closed = true;
-				} else {
-					closed = await this.doCloseEditorWithConfirmationHandling(editor, { preserveFocus: true }, { context: EditorCloseContext.REPLACE, force: true });
-				}
-
-				if (!closed) {
-					return; // canceled
-				}
-			}
-		}
-
-		// Handle active last
-		if (activeReplacement) {
-
-			// Open replacement as active editor
-			const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);
-
-			// Close replaced active editor unless they match
-			if (!activeReplacement.editor.matches(activeReplacement.replacement)) {
-				if (activeReplacement.forceReplaceDirty) {
-					this.doCloseEditor(activeReplacement.editor, true, { context: EditorCloseContext.REPLACE });
-				} else {
-					await this.doCloseEditorWithConfirmationHandling(activeReplacement.editor, { preserveFocus: true }, { context: EditorCloseContext.REPLACE, force: true });
+		const references = new DisposableStore();
+		try {
+			for (const editor of editors) {
+				if (!editor.replacement.isDisposed()) {
+					references.add(editor.replacement.acquire());
 				}
 			}
 
-			await openEditorResult;
+			// Extract active vs. inactive replacements
+			let activeReplacement: EditorReplacement | undefined;
+			const inactiveReplacements: EditorReplacement[] = [];
+			for (let { editor, replacement, forceReplaceDirty, options } of editors) {
+				const index = this.getIndexOfEditor(editor);
+				if (index >= 0) {
+					const isActiveEditor = this.isActive(editor);
+
+					// make sure we respect the index of the editor to replace
+					if (options) {
+						options.index = index;
+					} else {
+						options = { index };
+					}
+
+					options.inactive = !isActiveEditor;
+					options.pinned = options.pinned ?? true; // unless specified, prefer to pin upon replace
+
+					const editorToReplace = { editor, replacement, forceReplaceDirty, options };
+					if (isActiveEditor) {
+						activeReplacement = editorToReplace;
+					} else {
+						inactiveReplacements.push(editorToReplace);
+					}
+				}
+			}
+
+			// Handle inactive first
+			for (const { editor, replacement, forceReplaceDirty, options } of inactiveReplacements) {
+
+				// Open inactive editor
+				await this.doOpenEditor(replacement, options);
+
+				// Close replaced inactive editor unless they match
+				if (!editor.matches(replacement)) {
+					let closed = false;
+					if (forceReplaceDirty) {
+						this.doCloseEditor(editor, true, { context: EditorCloseContext.REPLACE });
+						closed = true;
+					} else {
+						closed = await this.doCloseEditorWithConfirmationHandling(editor, { preserveFocus: true }, { context: EditorCloseContext.REPLACE, force: true });
+					}
+
+					if (!closed) {
+						return; // canceled
+					}
+				}
+			}
+
+			// Handle active last
+			if (activeReplacement) {
+
+				// Open replacement as active editor
+				const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);
+
+				// Close replaced active editor unless they match
+				if (!activeReplacement.editor.matches(activeReplacement.replacement)) {
+					if (activeReplacement.forceReplaceDirty) {
+						this.doCloseEditor(activeReplacement.editor, true, { context: EditorCloseContext.REPLACE });
+					} else {
+						await this.doCloseEditorWithConfirmationHandling(activeReplacement.editor, { preserveFocus: true }, { context: EditorCloseContext.REPLACE, force: true });
+					}
+				}
+
+				await openEditorResult;
+			}
+		} finally {
+			references.dispose();
 		}
 	}
 
