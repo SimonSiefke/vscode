@@ -94,6 +94,27 @@ suite('GitHubService', () => {
 		});
 	});
 
+
+	for (const kind of ['anonymous', 'bootstrap'] as const) {
+		test(`${kind} clients share independent handles until the final release`, async () => {
+			const service = setup({ fetch: async () => new Response('{"value":1}') });
+			const acquire = () => disposables.add(kind === 'anonymous'
+				? service.acquireAnonymousClient({ apiBaseUri: 'https://api.github.com' })
+				: service.acquireBootstrapClient({ apiBaseUri: 'https://api.github.com', token: 'bootstrap' }));
+			const first = acquire();
+			const second = acquire();
+			assert.strictEqual(first.object, second.object);
+			first.dispose();
+			first.dispose();
+			assert.deepStrictEqual((await second.object.get('/resource', signal())).data, { value: 1 });
+			second.dispose();
+			const replacement = acquire();
+			assert.notStrictEqual(first.object, replacement.object);
+			first.dispose();
+			assert.deepStrictEqual((await replacement.object.get('/resource', signal())).data, { value: 1 });
+		});
+	}
+
 	test('bounds simultaneously retained clients and reclaims capacity on release', () => {
 		const service = setup();
 		const clients = Array.from({ length: 64 }, (_, i) => disposables.add(service.acquireClient(clientOptions(undefined, String(i)))));

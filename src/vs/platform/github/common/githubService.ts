@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { SharedResourceMap } from '../../../base/common/sharedResourceMap.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, DisposableMap, DisposableStore, IDisposable, IReference, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, IReference, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { ILogService } from '../../log/common/log.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
@@ -87,8 +88,14 @@ export class GitHubService extends Disposable implements IGitHubService {
 	declare readonly _serviceBrand: undefined;
 
 	private readonly _clients = new Map<string, IClientEntry>();
-	private readonly _anonymousClients = this._register(new DisposableMap<string, GitHubAnonymousClient>());
-	private readonly _bootstrapClients = this._register(new DisposableMap<string, GitHubBootstrapClient>());
+	private readonly _anonymousClients = this._register(new SharedResourceMap<GitHubAnonymousClientOptions, GitHubAnonymousClient, undefined>(options => {
+		this._ensureClientCapacity();
+		return new GitHubAnonymousClient(options.apiBaseUri, options.rawBaseUri, this._options, this._queue, this._rateLimits, this._telemetry, this._logService);
+	}, (_key, client) => client.dispose(), options => JSON.stringify([options.apiBaseUri, options.rawBaseUri])));
+	private readonly _bootstrapClients = this._register(new SharedResourceMap<GitHubBootstrapClientOptions, GitHubBootstrapClient, undefined>(options => {
+		this._ensureClientCapacity();
+		return new GitHubBootstrapClient(options.apiBaseUri, options, this._options, this._queue, this._rateLimits, this._telemetry, this._logService);
+	}, (_key, client) => client.dispose(), options => JSON.stringify([options.apiBaseUri, options.accountId, options.token])));
 	private readonly _telemetry: GitHubRequestTelemetry;
 	private readonly _rateLimits: GitHubRateLimitCoordinator;
 	private readonly _queue: RequestQueue;
@@ -171,21 +178,7 @@ export class GitHubService extends Disposable implements IGitHubService {
 		const rawBaseUri = options.rawBaseUri !== undefined
 			? normalizeReadApiBaseUri(options.rawBaseUri)
 			: apiBaseUri === defaults.apiBaseUri ? defaults.rawBaseUri : undefined;
-		const key = JSON.stringify([apiBaseUri, rawBaseUri]);
-		let client = this._anonymousClients.get(key);
-		if (!client) {
-			this._ensureClientCapacity();
-			client = new GitHubAnonymousClient(apiBaseUri, rawBaseUri, this._options, this._queue, this._rateLimits, this._telemetry, this._logService);
-			this._anonymousClients.set(key, client);
-		}
-		const retained = client;
-		retained.references++;
-		const release = toDisposable(() => {
-			if (--retained.references === 0 && this._anonymousClients.get(key) === retained) {
-				this._anonymousClients.deleteAndDispose(key);
-			}
-		});
-		return { object: retained, dispose: () => release.dispose() };
+		return this._anonymousClients.acquire({ apiBaseUri, rawBaseUri }, undefined);
 	}
 
 	acquireBootstrapClient(options: GitHubBootstrapClientOptions): IReference<IGitHubBootstrapClient> {
@@ -196,21 +189,7 @@ export class GitHubService extends Disposable implements IGitHubService {
 			throw new GitHubRequestError('Invalid GitHub bootstrap credential', 'validation');
 		}
 		const apiBaseUri = normalizeReadApiBaseUri(options.apiBaseUri);
-		const key = JSON.stringify([apiBaseUri, options.accountId, options.token]);
-		let client = this._bootstrapClients.get(key);
-		if (!client) {
-			this._ensureClientCapacity();
-			client = new GitHubBootstrapClient(apiBaseUri, Object.freeze({ ...options, apiBaseUri }), this._options, this._queue, this._rateLimits, this._telemetry, this._logService);
-			this._bootstrapClients.set(key, client);
-		}
-		const retained = client;
-		retained.references++;
-		const release = toDisposable(() => {
-			if (--retained.references === 0 && this._bootstrapClients.get(key) === retained) {
-				this._bootstrapClients.deleteAndDispose(key);
-			}
-		});
-		return { object: retained, dispose: () => release.dispose() };
+		return this._bootstrapClients.acquire(Object.freeze({ ...options, apiBaseUri }), undefined);
 	}
 
 	private _ensureClientCapacity(): void {
@@ -334,7 +313,6 @@ class GitHubClient extends Disposable implements IGitHubClient {
 
 /** Reference-counted reader for a supplied bootstrap credential and its private request state. */
 class GitHubBootstrapClient extends Disposable implements IGitHubBootstrapClient {
-	references = 0;
 	private readonly _account: BootstrapAccount;
 	private readonly _transport: GitHubTransport;
 
