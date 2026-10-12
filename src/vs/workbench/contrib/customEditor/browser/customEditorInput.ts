@@ -333,17 +333,18 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 	}
 
 	public override async saveAs(groupId: GroupIdentifier, options?: ISaveOptions): Promise<EditorInput | IUntypedEditorInput | undefined> {
-		if (!this._modelRef) {
+		const modelRef = this._modelRef;
+		if (!modelRef) {
 			return undefined;
 		}
 
 		const dialogPath = this._editorResource;
 		const target = await this.fileDialogService.pickFileToSave(dialogPath, options?.availableFileSystems);
-		if (!target) {
+		if (!target || this.isDisposed() || this._modelRef !== modelRef) {
 			return undefined; // save cancelled
 		}
 
-		if (!await this._modelRef.object.saveCustomEditorAs(this._editorResource, target, options)) {
+		if (!await modelRef.object.saveCustomEditorAs(this._editorResource, target, options)) {
 			return undefined;
 		}
 
@@ -369,7 +370,12 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 			const oldCapabilities = this.capabilities;
 			const modelRefDisposables = new DisposableStore();
 			this._modelRefDisposables.value = modelRefDisposables;
-			this._modelRef = modelRefDisposables.add(assertReturnsDefined(await this.customEditorService.models.tryRetain(this.resource, this.viewType)));
+			const modelRef = await this.customEditorService.models.tryRetain(this.resource, this.viewType);
+			if (this.isDisposed() || this._modelRefDisposables.value !== modelRefDisposables) {
+				modelRef?.dispose();
+				return null;
+			}
+			this._modelRef = modelRefDisposables.add(assertReturnsDefined(modelRef));
 			modelRefDisposables.add(this._modelRef.object.onDidChangeDirty(() => this._onDidChangeDirty.fire()));
 			modelRefDisposables.add(this._modelRef.object.onDidChangeReadonly(() => this._onDidChangeCapabilities.fire()));
 			// If we're loading untitled file data we should ensure it's dirty
