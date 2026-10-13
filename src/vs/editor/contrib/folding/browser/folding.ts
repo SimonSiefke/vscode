@@ -308,15 +308,19 @@ export class FoldingController extends Disposable implements IEditorContribution
 				this.foldingRegionPromise.cancel();
 				this.foldingRegionPromise = null;
 			}
-			this.foldingModelPromise = this.updateScheduler.trigger(() => {
+			this.foldingModelPromise = this.updateScheduler.trigger(async () => {
 				const foldingModel = this.foldingModel;
 				if (!foldingModel) { // null if editor has been disposed, or folding turned off
 					return null;
 				}
 				const sw = new StopWatch();
 				const provider = this.getRangeProvider(foldingModel.textModel);
+				// if (this.foldingRegionPromise) {
+				// 	this.foldingRegionPromise.cancel()
+				// }
 				const foldingRegionPromise = this.foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
-				return foldingRegionPromise.then(foldingRanges => {
+				try {
+					const foldingRanges = await foldingRegionPromise
 					if (foldingRanges && foldingRegionPromise === this.foldingRegionPromise) { // new request or cancelled in the meantime?
 						let scrollState: StableEditorScrollState | undefined;
 
@@ -341,11 +345,14 @@ export class FoldingController extends Disposable implements IEditorContribution
 						}
 					}
 					return foldingModel;
-				});
-			}).then(undefined, (err) => {
-				onUnexpectedError(err);
-				return null;
-			});
+
+
+				} catch (err) {
+					onUnexpectedError(err);
+					return null;
+
+				}
+			})
 		}
 	}
 
