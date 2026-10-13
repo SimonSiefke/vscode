@@ -113,6 +113,11 @@ export class CancellationTokenSource {
 	}
 
 	cancel(): void {
+		if (this._parentListener) {
+			this._parentListener.dispose();
+			this._parentListener = undefined;
+		}
+
 		if (!this._token) {
 			// save an object by returning the default
 			// cancelled token when cancellation happens
