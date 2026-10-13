@@ -75,8 +75,10 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 	) { }
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<IEditNotebookToolParams>, token: vscode.CancellationToken) {
-		let uri = this.promptPathRepresentationService.resolveFilePath(options.input.filePath);
-		if (!uri) {
+		let uri: URI;
+		try {
+			uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
+		} catch {
 			sendEditNotebookToolOutcomeTelemetry(this.telemetryService, this.endpointProvider, options, 'invalid_file_path');
 			throw new ErrorWithTelemetrySafeReason(`Invalid file path`, 'invalid_file_path');
 		}
@@ -304,7 +306,7 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IEditNotebookToolParams>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
-		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 
 		const confirmation = await this.instantiationService.invokeFunction(
 			createEditConfirmation,

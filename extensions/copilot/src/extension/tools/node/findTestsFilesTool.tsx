@@ -135,7 +135,7 @@ class FindTestFilesTool extends Disposable implements ICopilotTool<IFindTestFile
 			throw new Error('Invalid input');
 		}
 
-		const uris = options.input.filePaths.map(filePath => resolveToolInputPath(filePath, this.promptPathRepresentationService));
+		const uris = options.input.filePaths.map(filePath => resolveToolInputPath(filePath, this.promptPathRepresentationService, options.workingDirectory));
 		if (uris.some(uri => uri === undefined)) {
 			throw new Error('Invalid input');
 		}
