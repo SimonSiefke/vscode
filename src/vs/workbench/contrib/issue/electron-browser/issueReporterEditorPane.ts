@@ -25,7 +25,7 @@ import { decodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
 import { URI } from '../../../../base/common/uri.js';
 import { FileAccess } from '../../../../base/common/network.js';
 import { IssueReporterEditorInput } from '../browser/issueReporterEditorInput.js';
-import { IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
+import type { IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
 import { IRecordingService, IRecordingData, RecordingState } from '../browser/recordingService.js';
 import { IScreenshotService } from '../browser/screenshotService.js';
 import { IIssueFormService } from '../common/issue.js';
@@ -145,11 +145,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			return;
 		}
 
-		// Keep our own input reference for revealAndActivate() after clearInput().
-		this.wizardInput = input;
-
 		// If the wizard is already built and its DOM is still attached, re-parent floating bar if needed
 		if (this.wizard && this.container.contains(this.wizard.getPanel())) {
+			this.wizardInput = input;
 			this.wizard.reparentFloatingBar();
 			this.wizard.showFloatingBar();
 			this.wizard.setUpdateAvailable(this.shouldShowUpdateBanner());
@@ -161,6 +159,8 @@ export class IssueReporterEditorPane extends EditorPane {
 		}
 
 		this.inputDisposables.clear();
+		this.wizard = undefined;
+		this.wizardInput = undefined;
 		clearNode(this.container);
 
 		const data = input.data;
@@ -171,6 +171,11 @@ export class IssueReporterEditorPane extends EditorPane {
 		}
 
 		// Create the wizard — renders inside this container
+		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
+		if (token.isCancellationRequested || input.isDisposed() || this.input !== input || !this.container) {
+			return;
+		}
+		this.wizardInput = input;
 		this.wizard = new IssueReporterOverlay(
 			data,
 			this.recordingService.isSupported,
