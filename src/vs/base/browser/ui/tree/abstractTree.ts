@@ -3427,6 +3427,7 @@ export abstract class AbstractTree<T, TFilterData, TRef> implements IDisposable 
 			this.eventBufferer.bufferEvents(() => {
 				this.focus.onDidModelSplice(e);
 				this.selection.onDidModelSplice(e);
+				this.anchor.onDidModelSplice(e);
 			});
 		}, this.modelDisposables);
 
