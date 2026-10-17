@@ -15,7 +15,7 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { NullTelemetryService } from '../../../../platform/telemetry/common/telemetryUtils.js';
 import { MainThreadTreeViews } from '../../browser/mainThreadTreeViews.js';
 import { DataTransferDTO, ExtHostTreeViewsShape } from '../../common/extHost.protocol.js';
-import { CustomTreeView } from '../../../browser/parts/views/treeView.js';
+import { CustomTreeView, CustomTreeViewDragAndDrop } from '../../../browser/parts/views/treeView.js';
 import { Extensions, ITreeItem, ITreeView, ITreeViewDescriptor, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, TreeItemCollapsibleState, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
 import { IExtHostContext } from '../../../services/extensions/common/extHostCustomers.js';
 import { ExtensionHostKind } from '../../../services/extensions/common/extensionHostKind.js';
@@ -27,6 +27,9 @@ import { Mimes } from '../../../../base/common/mime.js';
 import { URI } from '../../../../base/common/uri.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
 import { createFileDataTransferItem, VSDataTransfer } from '../../../../base/common/dataTransfer.js';
+import { ElementsDragAndDropData } from '../../../../base/browser/ui/list/listView.js';
+import { TreeViewsDnDService } from '../../../../editor/common/services/treeViewsDnd.js';
+import { ITreeViewsDnDService } from '../../../../editor/common/services/treeViewsDndService.js';
 
 suite('MainThreadHostTreeView', function () {
 	const testTreeViewId = 'testTreeView';
@@ -43,6 +46,18 @@ suite('MainThreadHostTreeView', function () {
 		override $handleDrop(...args: Parameters<ExtHostTreeViewsShape['$handleDrop']>): Promise<void> {
 			return this.dropHandler?.(...args) ?? Promise.resolve();
 		}
+
+		readonly releasedDragOperations: string[] = [];
+		readonly dragTokens: CancellationToken[] = [];
+
+		override async $handleDrag(_treeViewId: string, _handles: string[], _uuid: string, token: CancellationToken): Promise<DataTransferDTO | undefined> {
+			this.dragTokens.push(token);
+			return undefined;
+		}
+
+		override $releaseDragOperation(operationUuid: string): void {
+			this.releasedDragOperations.push(operationUuid);
+		}
 		override async $getChildren(treeViewId: string, treeItemHandle?: string[]): Promise<(number | ITreeItem)[][]> {
 			return [[0, <CustomTreeItem>{ handle: 'testItem1', collapsibleState: TreeItemCollapsibleState.Expanded, customProp: customValue }]];
 		}
@@ -58,6 +73,7 @@ suite('MainThreadHostTreeView', function () {
 	let mainThreadTreeViews: MainThreadTreeViews;
 	let extHostTreeViewsShape: MockExtHostTreeViewsShape;
 	let instantiationService: TestInstantiationService;
+	let dragService: TreeViewsDnDService<VSDataTransfer>;
 
 	teardown(() => {
 		ViewsRegistry.deregisterViews(ViewsRegistry.getViews(container), container);
@@ -67,6 +83,8 @@ suite('MainThreadHostTreeView', function () {
 
 	setup(async () => {
 		instantiationService = workbenchInstantiationService(undefined, disposables);
+		dragService = new TreeViewsDnDService<VSDataTransfer>();
+		instantiationService.stub(ITreeViewsDnDService, dragService);
 		const viewDescriptorService = disposables.add(instantiationService.createInstance(ViewDescriptorService));
 		instantiationService.stub(IViewDescriptorService, viewDescriptorService);
 		// eslint-disable-next-line local/code-no-any-casts
@@ -93,7 +111,7 @@ suite('MainThreadHostTreeView', function () {
 				}
 				drain(): any { return null; }
 			}, new TestViewsService(), new TestNotificationService(), testExtensionService, new NullLogService(), NullTelemetryService));
-		mainThreadTreeViews.$registerTreeViewDataProvider(testTreeViewId, { showCollapseAll: false, canSelectMany: false, dropMimeTypes: [], dragMimeTypes: [], hasHandleDrag: false, hasHandleDrop: false, manuallyManageCheckboxes: false });
+		mainThreadTreeViews.$registerTreeViewDataProvider(testTreeViewId, { showCollapseAll: false, canSelectMany: false, dropMimeTypes: [], dragMimeTypes: [], hasHandleDrag: true, hasHandleDrop: false, manuallyManageCheckboxes: false });
 		await testExtensionService.whenInstalledExtensionsRegistered();
 	});
 
@@ -188,6 +206,39 @@ suite('MainThreadHostTreeView', function () {
 			}
 			const cache = Reflect.get(controller, 'dataTransfersCache') as { readonly dataTransferFiles: Map<number, object> };
 			assert.strictEqual(cache.dataTransferFiles.size, 0);
+		});
+	}
+
+	test('forwards canceled drag release to the extension host', () => {
+		const treeView: ITreeView = (<ITreeViewDescriptor>ViewsRegistry.getView(testTreeViewId)).treeView;
+		treeView.dragAndDropController?.handleDragEnd?.('canceled-drag');
+		assert.deepStrictEqual(extHostTreeViewsShape.releasedDragOperations, ['canceled-drag']);
+	});
+
+	for (const teardown of ['tree', 'customer', 'view'] as const) {
+		test(`releases an active drag on ${teardown} disposal`, async () => {
+			const treeView = (<ITreeViewDescriptor>ViewsRegistry.getView(testTreeViewId)).treeView;
+			treeView.setVisibility(false);
+			const drag: CustomTreeViewDragAndDrop = Reflect.get(treeView, 'treeViewDnd');
+			const operations: Map<string, Promise<VSDataTransfer | undefined>> = Reflect.get(dragService, '_dragOperations');
+			drag.onDragStart(new ElementsDragAndDropData([{ handle: 'testItem1', collapsibleState: TreeItemCollapsibleState.None }]), new DragEvent('dragstart', { dataTransfer: new DataTransfer() }));
+			const uuid = [...operations.keys()][0];
+			assert.strictEqual(operations.size, 1);
+			await Promise.all(operations.values());
+			if (teardown === 'tree') {
+				await mainThreadTreeViews.$disposeTree(testTreeViewId);
+			} else if (teardown === 'customer') {
+				mainThreadTreeViews.dispose();
+			} else {
+				treeView.dispose();
+			}
+			assert.strictEqual(operations.size, 0);
+			assert.strictEqual(extHostTreeViewsShape.dragTokens[0].isCancellationRequested, true);
+			assert.deepStrictEqual(extHostTreeViewsShape.releasedDragOperations, [uuid]);
+			if (teardown !== 'view') {
+				assert.strictEqual(treeView.dragAndDropController, undefined);
+				assert.throws(() => mainThreadTreeViews.$resolveDropFileData(testTreeViewId, 1, 'file'), /Unknown drop request/);
+			}
 		});
 	}
 
