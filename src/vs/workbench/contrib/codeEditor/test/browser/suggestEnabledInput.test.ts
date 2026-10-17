@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Position } from '../../../../../editor/common/core/position.js';
+import { CompletionTriggerKind } from '../../../../../editor/common/languages.js';
 import { ILanguageFeaturesService } from '../../../../../editor/common/services/languageFeatures.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
@@ -19,7 +22,7 @@ suite('SuggestEnabledInput', function () {
 
 	teardown(() => disposables.clear());
 
-	test('registers completion provider for the exact input resource', function () {
+	test('provides completions only for the exact input resource', async function () {
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IUserInteractionService, new MockUserInteractionService());
 		const languageFeaturesService = instantiationService.invokeFunction(accessor => accessor.get(ILanguageFeaturesService));
@@ -28,12 +31,17 @@ suite('SuggestEnabledInput', function () {
 		disposables.add(toDisposable(() => container.remove()));
 
 		const input = disposables.add(instantiationService.createInstance(SuggestEnabledInput,
-			'suggest-enabled-input', container, { provideResults: () => [] }, 'Suggestions', 'test:searchinput', {}));
+			'suggest-enabled-input', container, { provideResults: () => ['result'] }, 'Suggestions', 'test:searchinput', {}));
 		const nestedResourceModel = disposables.add(modelService.createModel('', null, URI.parse('test:nested/searchinput'), true));
+		const inputModel = input.inputWidget.getModel()!;
+		const context = { triggerKind: CompletionTriggerKind.Invoke };
 
-		assert.strictEqual(languageFeaturesService.completionProvider.has(input.inputWidget.getModel()!), true);
-		assert.strictEqual(languageFeaturesService.completionProvider.has(nestedResourceModel), false);
+		const provider = languageFeaturesService.completionProvider.all(inputModel).at(-1)!;
+		const inputCompletions = await provider.provideCompletionItems(inputModel, new Position(1, 1), context, CancellationToken.None);
+		const nestedCompletions = await provider.provideCompletionItems(nestedResourceModel, new Position(1, 1), context, CancellationToken.None);
 
+		assert.strictEqual(inputCompletions?.suggestions.length, 1);
+		assert.strictEqual(nestedCompletions, undefined);
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
