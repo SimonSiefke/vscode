@@ -490,7 +490,7 @@ export class MenuBar extends Disposable {
 	}
 
 	private updateOverflowAction(): void {
-		if (!this.menus || !this.menus.length) {
+		if (!this.menus || !this.menus.length || this.container.style.display === 'none') {
 			return;
 		}
 

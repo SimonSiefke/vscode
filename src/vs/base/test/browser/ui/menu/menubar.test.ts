@@ -110,6 +110,34 @@ suite('Menubar', () => {
 		});
 	}
 
+	test('a hidden-first toggle menubar measures overflow on reveal and re-expands', async () => {
+		const parent = document.createElement('div');
+		parent.style.cssText = 'display: flex; width: 70px; height: 30px; font: 13px sans-serif;';
+		const element = parent.appendChild($('.menubar'));
+		document.body.appendChild(parent);
+		disposables.add(toDisposable(() => parent.remove()));
+		disposables.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
+		const menubar = disposables.add(new MenuBar(element, { visibility: 'toggle' }, unthemedMenuStyles));
+		const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
+		menubar.push(labels.map(label => ({ label, actions: [] })));
+		const settle = async () => {
+			for (let frame = 0; frame < 4; frame++) {
+				await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+			}
+		};
+		const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
+		await settle();
+		assert.strictEqual(element.style.display, 'none');
+
+		menubar.toggleFocus();
+		await settle();
+		assert.deepStrictEqual({ menus: visibleMenus(), overflowOnly: element.classList.contains('overflow-menu-only') }, { menus: [], overflowOnly: true });
+
+		parent.style.width = '600px';
+		await settle();
+		assert.deepStrictEqual({ menus: visibleMenus(), overflowOnly: element.classList.contains('overflow-menu-only') }, { menus: labels, overflowOnly: false });
+	});
+
 	const withMenuMenubar = (callback: (menubar: MenuBar) => void) => {
 		const menubar = new MenuBar(container, {
 			enableMnemonics: true,
