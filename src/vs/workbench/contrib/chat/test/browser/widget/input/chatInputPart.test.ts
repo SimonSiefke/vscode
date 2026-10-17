@@ -9,7 +9,7 @@ import { mainWindow } from '../../../../../../../base/browser/window.js';
 import { retry } from '../../../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../../../base/common/event.js';
 import { Lazy } from '../../../../../../../base/common/lazy.js';
-import { DisposableStore, MutableDisposable, toDisposable } from '../../../../../../../base/common/lifecycle.js';
+import { combinedDisposable, DisposableMap, DisposableStore, MutableDisposable, toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { constObservable, IObservable, observableValue } from '../../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../../../base/test/common/mock.js';
@@ -38,6 +38,29 @@ import '../../../../browser/widget/media/chat.css';
 
 suite('ChatInputPart', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('disposes confirmation carousel listeners with the carousel', () => {
+		const carousels = store.add(new DisposableMap<string>());
+		const event = store.add(new Emitter<void>());
+		const activeSubagent = store.add(new Emitter<string | undefined>());
+		const key = 'session';
+		let carouselDisposed = false;
+		let eventCount = 0;
+
+		carousels.set(key, combinedDisposable(
+			toDisposable(() => carouselDisposed = true),
+			event.event(() => eventCount++),
+		));
+		ChatInputPart.prototype.clearToolConfirmationCarousel.call({
+			_currentSessionKey: key,
+			_chatToolConfirmationCarousels: carousels,
+			_onDidChangeActiveConfirmationSubagent: activeSubagent,
+			chatToolConfirmationCarouselContainer: document.createElement('div'),
+		});
+		event.fire();
+
+		assert.deepStrictEqual({ carouselDisposed, eventCount, retained: carousels.has(key) }, { carouselDisposed: true, eventCount: 0, retained: false });
+	});
 
 	function createWorkingSetInput(isSessionsWindow = false, sessionResource = URI.from({ scheme: SessionType.AgentHostCopilot, path: '/session' })) {
 		const configurationService = new TestConfigurationService();
