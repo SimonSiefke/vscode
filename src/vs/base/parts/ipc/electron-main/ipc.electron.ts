@@ -46,7 +46,8 @@ export class Server extends IPCServer {
 			Server.Clients.set(id, reconnectDisposable);
 
 			const onMessage = createScopedOnMessageEvent(id, 'vscode:message') as Event<VSBuffer>;
-			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event);
+			const onDidClientDestroy = Event.fromNodeEventEmitter<void>(webContents, 'destroyed');
+			const onDidClientDisconnect = Event.any(Event.signal(createScopedOnMessageEvent(id, 'vscode:disconnect')), onDidClientReconnect.event, onDidClientDestroy);
 			Event.once(onDidClientDisconnect)(() => {
 				if (Server.Clients.get(id) === reconnectDisposable) {
 					Server.Clients.delete(id);
