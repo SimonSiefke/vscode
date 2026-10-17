@@ -522,6 +522,14 @@ function trivia4and5(targetPath: string, pattern: string, matchPathEnds: boolean
 	return parsedPattern;
 }
 
+function matchLiteralPath(targetPath: string, path: string, ignoreCase: boolean): boolean {
+	const equalsPath = ignoreCase ? equalsIgnoreCase : (a: string, b: string) => a === b;
+	const usingPosixSep = sep === posix.sep;
+	const nativePath = usingPosixSep ? targetPath : targetPath.replace(ALL_FORWARD_SLASHES, sep);
+
+	return equalsPath(path, nativePath) || (!usingPosixSep && equalsPath(path, targetPath));
+}
+
 function toRegExp(pattern: string, options: IGlobOptions): ParsedStringPattern {
 	try {
 		const regExp = new RegExp(`^${parseRegExp(pattern)}$`, options.ignoreCase ? 'i' : undefined);
@@ -549,6 +557,13 @@ export function match(expression: IExpression, path: string, options?: IGlobOpti
 export function match(arg1: string | IExpression | IRelativePattern, path: string, options?: IGlobOptions): boolean {
 	if (!arg1 || typeof path !== 'string') {
 		return false;
+	}
+
+	if (typeof arg1 === 'string') {
+		const literalMatch = T5.exec(trimForExclusions(arg1.trim(), options ?? {}));
+		if (literalMatch) {
+			return matchLiteralPath(literalMatch[1], path, options?.ignoreCase ?? false);
+		}
 	}
 
 	return parse(arg1, options)(path) as boolean;
