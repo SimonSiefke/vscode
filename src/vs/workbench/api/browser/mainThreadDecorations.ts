@@ -5,19 +5,21 @@
 
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { Emitter } from '../../../base/common/event.js';
-import { IDisposable, dispose } from '../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, dispose } from '../../../base/common/lifecycle.js';
 import { ExtHostContext, MainContext, MainThreadDecorationsShape, ExtHostDecorationsShape, DecorationData, DecorationRequest } from '../common/extHost.protocol.js';
 import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 import { IDecorationsService, IDecorationData } from '../../services/decorations/common/decorations.js';
-import { CancellationToken } from '../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { CancellationError } from '../../../base/common/errors.js';
 
-class DecorationRequestsQueue {
+class DecorationRequestsQueue extends Disposable {
+
+	private readonly _cancellation = this._register(new CancellationTokenSource());
 
 	private _idPool = 0;
 	private _requests = new Map<number, DecorationRequest>();
-	private _resolver = new Map<number, DeferredPromise<DecorationData>>();
+	private readonly _resolver = new Map<number, DeferredPromise<DecorationData>>();
 
 	private _timer: Timeout | undefined;
 
@@ -25,10 +27,25 @@ class DecorationRequestsQueue {
 		private readonly _proxy: ExtHostDecorationsShape,
 		private readonly _handle: number
 	) {
-		//
+		super();
+	}
+
+	override dispose(): void {
+		this._cancellation.cancel();
+		clearTimeout(this._timer);
+		this._timer = undefined;
+		for (const defer of this._resolver.values()) {
+			defer.error(new CancellationError());
+		}
+		this._resolver.clear();
+		this._requests.clear();
+		super.dispose();
 	}
 
 	enqueue(uri: URI, token: CancellationToken): Promise<DecorationData> {
+		if (this._store.isDisposed) {
+			return Promise.reject(new CancellationError());
+		}
 		const id = ++this._idPool;
 
 		const defer = new DeferredPromise<DecorationData>();
@@ -52,16 +69,20 @@ class DecorationRequestsQueue {
 		this._timer = setTimeout(() => {
 			// make request
 			const requests = this._requests;
-			const resolver = this._resolver;
-			this._proxy.$provideDecorations(this._handle, [...requests.values()], CancellationToken.None).then(data => {
-				for (const [id, defer] of resolver) {
-					defer.complete(data[id]);
+			this._proxy.$provideDecorations(this._handle, [...requests.values()], this._cancellation.token).then(data => {
+				for (const id of requests.keys()) {
+					this._resolver.get(id)?.complete(data[id]);
+					this._resolver.delete(id);
+				}
+			}, err => {
+				for (const id of requests.keys()) {
+					this._resolver.get(id)?.error(err);
+					this._resolver.delete(id);
 				}
 			});
 
 			// reset
 			this._requests = new Map();
-			this._resolver = new Map();
 			this._timer = undefined;
 		}, 0);
 	}
@@ -70,7 +91,7 @@ class DecorationRequestsQueue {
 @extHostNamedCustomer(MainContext.MainThreadDecorations)
 export class MainThreadDecorations implements MainThreadDecorationsShape {
 
-	private readonly _provider = new Map<number, [Emitter<URI[]>, IDisposable]>();
+	private readonly _provider = new Map<number, [Emitter<URI[]>, IDisposable, DecorationRequestsQueue]>();
 	private readonly _proxy: ExtHostDecorationsShape;
 
 	constructor(
@@ -106,7 +127,7 @@ export class MainThreadDecorations implements MainThreadDecorationsShape {
 				};
 			}
 		});
-		this._provider.set(handle, [emitter, registration]);
+		this._provider.set(handle, [emitter, registration, queue]);
 	}
 
 	$onDidChange(handle: number, resources: UriComponents[]): void {
