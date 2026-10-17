@@ -143,6 +143,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 
 	private categoryVisibilityContextKeys = new Set<string>();
 	private stepCompletionContextKeyExpressions = new Set<ContextKeyExpression>();
+	private stepCompletionContextKeyExpressionKeys = new Map<ContextKeyExpression, Set<string>>();
 	private stepCompletionContextKeys = new Set<string>();
 
 	private metadata: WalkthroughMetaDataType;
@@ -258,7 +259,7 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		this._register(this.contextService.onDidChangeContext(event => {
 			if (event.affectsSome(this.stepCompletionContextKeys)) {
 				this.stepCompletionContextKeyExpressions.forEach(expression => {
-					if (event.affectsSome(new Set(expression.keys())) && this.contextService.contextMatchesRules(expression)) {
+					if (event.affectsSome(this.stepCompletionContextKeyExpressionKeys.get(expression)!) && this.contextService.contextMatchesRules(expression)) {
 						this.progressByEvent(`onContext:` + expression.serialize());
 					}
 				});
@@ -590,11 +591,11 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		walkthroughDescriptor.steps.forEach(step => {
 			if (this.steps.has(step.id)) { throw Error('Attempting to register step with id ' + step.id + ' twice. Second is dropped.'); }
 			this.steps.set(step.id, step);
-			step.when.keys().forEach(key => this.categoryVisibilityContextKeys.add(key));
+			step.when.collectKeys(this.categoryVisibilityContextKeys);
 			this.registerDoneListeners(step);
 		});
 
-		walkthroughDescriptor.when.keys().forEach(key => this.categoryVisibilityContextKeys.add(key));
+		walkthroughDescriptor.when.collectKeys(this.categoryVisibilityContextKeys);
 	}
 
 	private registerDoneListeners(step: IWalkthroughStep) {
@@ -641,7 +642,12 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 					const expression = ContextKeyExpr.deserialize(argument);
 					if (expression) {
 						this.stepCompletionContextKeyExpressions.add(expression);
-						expression.keys().forEach(key => this.stepCompletionContextKeys.add(key));
+						const keys = new Set<string>();
+						expression.collectKeys(keys);
+						this.stepCompletionContextKeyExpressionKeys.set(expression, keys);
+						for (const key of keys) {
+							this.stepCompletionContextKeys.add(key);
+						}
 						event = eventType + ':' + expression.serialize();
 						if (this.contextService.contextMatchesRules(expression)) {
 							this.sessionEvents.add(event);

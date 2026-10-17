@@ -375,7 +375,13 @@ export class MenuWorkbenchToolBar extends WorkbenchToolBar {
 		}, menuService, contextKeyService, contextMenuService, keybindingService, commandService, telemetryService);
 
 		this._container = container;
-		this._menuOptions = options?.menuOptions;
+		this._menuOptions = options?.hiddenItemStrategy === HiddenItemStrategy.NoHide
+			? {
+				...options.menuOptions,
+				skipMenuHideActions: true,
+				skipConfigureKeybindingAction: true,
+			}
+			: options?.menuOptions;
 		this._toolbarOptions = options?.toolbarOptions;
 
 		// update logic
