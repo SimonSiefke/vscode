@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
-import { mark } from '../../../../base/common/performance.js';
+import { clearMarks, mark } from '../../../../base/common/performance.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { EncodingMode, ITextFileService, TextFileEditorModelState, ITextFileEditorModel, ITextFileStreamContent, ITextFileResolveOptions, IResolvedTextFileEditorModel, TextFileResolveReason, ITextFileEditorModelSaveEvent, ITextFileSaveAsOptions } from './textfiles.js';
 import { IRevertOptions, SaveReason, SaveSourceRegistry } from '../../../common/editor.js';
@@ -44,6 +44,9 @@ interface IBackupMetaData extends IWorkingCopyBackupMeta {
 	etag: string;
 	orphaned: boolean;
 }
+
+const WILL_RESOLVE_TEXT_FILE_EDITOR_MODEL = 'code/willResolveTextFileEditorModel';
+const DID_RESOLVE_TEXT_FILE_EDITOR_MODEL = 'code/didResolveTextFileEditorModel';
 
 /**
  * The text file editor model listens to changes to its underlying code editor model and saves these changes through the file service back to the disk.
@@ -285,7 +288,6 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 
 	override async resolve(options?: ITextFileResolveOptions): Promise<void> {
 		this.trace('resolve() - enter');
-		mark('code/willResolveTextFileEditorModel');
 
 		// Return early if we are disposed
 		if (this.isDisposed()) {
@@ -303,10 +305,15 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 			return;
 		}
 
+		clearMarks(WILL_RESOLVE_TEXT_FILE_EDITOR_MODEL);
+		clearMarks(DID_RESOLVE_TEXT_FILE_EDITOR_MODEL);
+		mark(WILL_RESOLVE_TEXT_FILE_EDITOR_MODEL);
+
 		// Resolve either from backup or from file
 		await this.doResolve(options);
 
-		mark('code/didResolveTextFileEditorModel');
+		clearMarks(DID_RESOLVE_TEXT_FILE_EDITOR_MODEL);
+		mark(DID_RESOLVE_TEXT_FILE_EDITOR_MODEL);
 	}
 
 	private async doResolve(options?: ITextFileResolveOptions): Promise<void> {
