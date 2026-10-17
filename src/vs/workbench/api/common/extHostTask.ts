@@ -394,6 +394,8 @@ export interface HandlerData {
 	type: string;
 	provider: vscode.TaskProvider;
 	extension: IExtensionDescription;
+	readonly customExecutions: Map<string, types.CustomExecution>;
+	isDisposed: boolean;
 }
 
 export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask {
@@ -454,10 +456,25 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 			return new types.Disposable(() => { });
 		}
 		const handle = this.nextHandle();
-		this._handlers.set(handle, { type, provider, extension });
+		const handler: HandlerData = { type, provider, extension, customExecutions: new Map(), isDisposed: false };
+		this._handlers.set(handle, handler);
 		this._proxy.$registerTaskProvider(handle, type);
 		return new types.Disposable(() => {
+			handler.isDisposed = true;
 			this._handlers.delete(handle);
+			for (const [taskId, execution] of handler.customExecutions) {
+				if (this._providedCustomExecutions2.get(taskId) !== execution || [...this._handlers.values()].some(other => other.customExecutions.get(taskId) === execution)) {
+					continue;
+				}
+				if (this._activeCustomExecutions2.has(taskId) || this._lastStartedTask === taskId) {
+					// Preserve running tasks and the last task for rerun, then let normal
+					// execution cleanup release them once they are no longer needed.
+					this._notProvidedCustomExecutions.add(taskId);
+				} else {
+					this._providedCustomExecutions2.delete(taskId);
+				}
+			}
+			handler.customExecutions.clear();
 			this._proxy.$unregisterTaskProvider(handle);
 		});
 	}
@@ -657,7 +674,7 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		}
 
 		if (CustomExecutionDTO.is(resolvedTaskDTO.execution)) {
-			await this.addCustomExecution(resolvedTaskDTO, resolvedTask, true);
+			await this.addCustomExecution(resolvedTaskDTO, resolvedTask, handler);
 		}
 
 		return await this.resolveTaskInternal(resolvedTaskDTO);
@@ -669,9 +686,15 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		return this._handleCounter++;
 	}
 
-	protected async addCustomExecution(taskDTO: tasks.ITaskDTO, task: vscode.Task, isProvided: boolean): Promise<void> {
+	protected async addCustomExecution(taskDTO: tasks.ITaskDTO, task: vscode.Task, handler?: HandlerData): Promise<void> {
 		const taskId = await this._proxy.$createTaskId(taskDTO);
-		if (!isProvided && !this._providedCustomExecutions2.has(taskId)) {
+		if (handler?.isDisposed) {
+			return;
+		}
+		if (handler) {
+			handler.customExecutions.set(taskId, <types.CustomExecution>task.execution);
+			this._notProvidedCustomExecutions.delete(taskId);
+		} else if (!this._providedCustomExecutions2.has(taskId)) {
 			this._notProvidedCustomExecutions.add(taskId);
 			// Also add to active executions when not coming from a provider to prevent timing issue.
 			this._activeCustomExecutions2.set(taskId, <types.CustomExecution>task.execution);
@@ -781,7 +804,7 @@ export class WorkerExtHostTask extends ExtHostTaskBase {
 		// in the provided custom execution map that is cleaned up after the
 		// task is executed.
 		if (CustomExecutionDTO.is(dto.execution)) {
-			await this.addCustomExecution(dto, task, false);
+			await this.addCustomExecution(dto, task);
 		} else {
 			throw new NotSupportedError();
 		}
@@ -808,7 +831,7 @@ export class WorkerExtHostTask extends ExtHostTaskBase {
 					// The ID is calculated on the main thread task side, so, let's call into it here.
 					// We need the task id's pre-computed for custom task executions because when OnDidStartTask
 					// is invoked, we have to be able to map it back to our data.
-					taskIdPromises.push(this.addCustomExecution(taskDTO, task, true));
+					taskIdPromises.push(this.addCustomExecution(taskDTO, task, handler));
 				} else {
 					this._logService.warn('Only custom execution tasks supported.');
 				}
