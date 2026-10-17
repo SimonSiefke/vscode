@@ -55,7 +55,7 @@ export class DefaultConfiguration extends Disposable {
 	private resetConfigurationModel(): void {
 		this._configurationModel = ConfigurationModel.createEmptyModel(this.logService);
 		const properties = this.getConfigurationProperties();
-		this.updateConfigurationModel(Object.keys(properties), properties);
+		this.updateConfigurationModel(Object.keys(properties), properties, true);
 	}
 
 	private getConfigurationProperties(): IStringDictionary<IRegisteredConfigurationPropertySchema> {
@@ -71,17 +71,21 @@ export class DefaultConfiguration extends Disposable {
 		return properties;
 	}
 
-	private updateConfigurationModel(properties: string[], configurationProperties: IStringDictionary<IRegisteredConfigurationPropertySchema>): void {
+	private updateConfigurationModel(properties: string[], configurationProperties: IStringDictionary<IRegisteredConfigurationPropertySchema>, add: boolean = false): void {
 		const configurationDefaultsOverrides = this.getConfigurationDefaultOverrides();
 		for (const key of properties) {
 			const defaultOverrideValue = configurationDefaultsOverrides[key];
 			const propertySchema = configurationProperties[key];
-			if (defaultOverrideValue !== undefined) {
-				this._configurationModel.setValue(key, defaultOverrideValue);
-			} else if (propertySchema) {
-				this._configurationModel.setValue(key, this.getDefaultValue(key, propertySchema));
-			} else {
+			if (defaultOverrideValue === undefined && !propertySchema) {
 				this._configurationModel.removeValue(key);
+				continue;
+			}
+			const value = defaultOverrideValue !== undefined ? defaultOverrideValue : this.getDefaultValue(key, propertySchema);
+			if (add) {
+				// A fresh model receives each property exactly once.
+				this._configurationModel.addValue(key, value);
+			} else {
+				this._configurationModel.setValue(key, value);
 			}
 		}
 	}
