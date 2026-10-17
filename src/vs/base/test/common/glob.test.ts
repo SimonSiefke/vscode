@@ -12,6 +12,16 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 
 suite('Glob', () => {
 
+	test('parse cache can be disabled', () => {
+		const cachedTerms = glob.getBasenameTerms(glob.parse('**/cached-pattern'));
+		const cachedTermsAgain = glob.getBasenameTerms(glob.parse('**/cached-pattern'));
+		assert.strictEqual(cachedTerms, cachedTermsAgain);
+
+		const uncachedTerms = glob.getBasenameTerms(glob.parse('**/uncached-pattern', { useCache: false }));
+		const uncachedTermsAgain = glob.getBasenameTerms(glob.parse('**/uncached-pattern', { useCache: false }));
+		assert.notStrictEqual(uncachedTerms, uncachedTermsAgain);
+	});
+
 	// test('perf', () => {
 
 	// 	let patterns = [
