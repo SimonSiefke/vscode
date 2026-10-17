@@ -627,10 +627,11 @@ suite('Async', () => {
 				const canceled = delayer.trigger(() => ++taskCalls);
 				delayer[release]();
 				const retainedAfterRelease = getDelayerTask(delayer);
+				const resolverAfterRelease = (delayer as unknown as { doResolve: unknown }).doResolve;
 
 				const canceledWithCancellationError = await canceled.then(() => false, isCancellationError);
 				const result = await delayer.trigger(() => 42);
-				assert.deepStrictEqual({ retainedAfterRelease, canceledWithCancellationError, taskCalls, result }, { retainedAfterRelease: null, canceledWithCancellationError: true, taskCalls: 0, result: 42 });
+				assert.deepStrictEqual({ retainedAfterRelease, resolverAfterRelease, canceledWithCancellationError, taskCalls, result }, { retainedAfterRelease: null, resolverAfterRelease: null, canceledWithCancellationError: true, taskCalls: 0, result: 42 });
 			});
 		}
 

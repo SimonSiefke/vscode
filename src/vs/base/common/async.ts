@@ -443,7 +443,7 @@ export class Delayer<T> implements IDisposable {
 			const { resolve, promise } = promiseWithResolvers();
 			this.doResolve = resolve;
 
-			const completionPromise = promise.then(value => {
+			const completionPromise = promise.then(() => {
 				if (this.completionPromise !== completionPromise) {
 					// A canceled callback must not clear a subsequently triggered task.
 					throw new CancellationError();
@@ -453,11 +453,6 @@ export class Delayer<T> implements IDisposable {
 				this.doResolve = null;
 				const task = this.task;
 				this.task = null;
-				if (value === cancelValue) {
-					this.deferred?.dispose();
-					this.deferred = null;
-					throw new CancellationError();
-				}
 				if (task) {
 					return task();
 				}
@@ -486,6 +481,7 @@ export class Delayer<T> implements IDisposable {
 
 		if (this.completionPromise) {
 			this.doResolve?.(cancelValue);
+			this.doResolve = null;
 			this.completionPromise = null;
 		}
 	}

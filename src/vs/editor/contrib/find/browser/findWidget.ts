@@ -18,7 +18,7 @@ import { Delayer, disposableTimeout } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
-import { toDisposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
 import * as platform from '../../../../base/common/platform.js';
 import * as strings from '../../../../base/common/strings.js';
 import './findWidget.css';
@@ -196,7 +196,7 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		this._updateButtons();
 		this._tryUpdateWidgetWidth();
 		this._findInput.inputBox.layout();
-		this.boundUpdateHistory = this._updateHistory.bind(this)
+		this.boundUpdateHistory = this._updateHistory.bind(this);
 
 		this._register(this._codeEditor.onDidChangeConfiguration((e: ConfigurationChangedEvent) => {
 			if (e.hasChanged(EditorOption.readOnly)) {
@@ -444,7 +444,7 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 
 	private async _delayedUpdateHistory() {
 		try {
-			await this._updateHistoryDelayer.trigger(this.boundUpdateHistory)
+			await this._updateHistoryDelayer.trigger(this.boundUpdateHistory);
 		} catch (err) {
 			onUnexpectedError(err);
 		}
