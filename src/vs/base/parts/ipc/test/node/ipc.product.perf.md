@@ -1,84 +1,102 @@
 # Packaged structured-clone IPC performance experiments
 
-## Revisions and scope
+## Current measured runtime
 
-Baseline: `00ab0906bad641d5be1d009da16baa5cec66a161` (main). Measured IPC snapshot: `3c9db188f077810b9cfa6b4c6e9cec52478bd26c`. The merge base equals the baseline. This measures the complete structured-clone IPC change, unlike the earlier marshalling-only microbenchmark. Correctness fixes `5817369648d7f9314c9599fc20b04fc2d88fa2ef` and `726ee9245401f48b2786a6fa78e0706fcb0c3692` are **not included** in these packages and receive separate validation.
+Baseline main: `00ab0906bad641d5be1d009da16baa5cec66a161`. Corrected IPC runtime: `726ee9245401f48b2786a6fa78e0706fcb0c3692`. Subsequent documentation commits do not change the measured runtime. Earlier snapshot and marshalling-only experiments are separate.
 
-## Local results
+Twelve cloud blocks and five local blocks contain 1,130 primary samples. All four initial counter pilots and the independent cold-start pilot are excluded. The results are mixed: modest cloud startup reductions and a local warm-empty CPU reduction, a Settings instruction-cost concern in a reduced valid subset, and Search assertion failures reproduced on both revisions in diagnostics, plus confirmed callback-cloning integration failures. This remains an experimental draft.
 
-Negative changes mean lower cost. Latency uses medians; hardware counts use means. Intervals are paired bootstrap differences in the metric’s original units, not percentage intervals.
+## Startup and interaction latency
 
-| Benchmark | Metric | Before | After | Change | Difference 95% CI | Valid pairs |
+Negative changes mean less time. Values are medians; intervals are paired bootstrap differences in milliseconds. Cloud and local absolute timings belong to different environments and must not be pooled.
+
+| Environment | Workload | Main ms | IPC ms | Change | Difference 95% CI ms | Valid pairs |
 | --- | --- | ---: | ---: | ---: | --- | ---: |
-| startup-empty-cold-timing | startupTime | 4421.999 ms | 4429.585 ms | +0.17% | [-137.814, +91.877] ms | 37 |
-| startup-empty-cold-instructions | instructions | 12.919 B | 12.843 B | -0.59% | [-0.198, +0.045] B | 37 |
-| startup-empty-cold-instructions | cycles | 11.864 B | 11.519 B | -2.91% | [-0.551, -0.141] B | 37 |
-| startup-empty-warm-timing | startupTime | 1628.305 ms | 1578.988 ms | -3.03% | [-86.742, +4.701] ms | 37 |
-| startup-empty-warm-instructions | instructions | 6.956 B | 6.855 B | -1.45% | [-0.191, -0.017] B | 37 |
-| startup-empty-warm-instructions | cycles | 5.867 B | 5.688 B | -3.05% | [-0.296, -0.058] B | 37 |
-| startup-workspace-cold-timing | startupTime | 3885.236 ms | 3887.428 ms | +0.06% | [-105.685, +97.433] ms | 37 |
-| startup-workspace-cold-instructions | instructions | 15.087 B | 15.274 B | +1.24% | [-0.061, +0.445] B | 35 |
-| startup-workspace-cold-instructions | cycles | 13.591 B | 13.807 B | +1.59% | [-0.054, +0.493] B | 35 |
-| startup-workspace-warm-timing | startupTime | 2231.619 ms | 2175.861 ms | -2.50% | [-110.155, +49.339] ms | 37 |
-| startup-workspace-warm-instructions | instructions | 11.283 B | 11.216 B | -0.60% | [-0.311, +0.183] B | 37 |
-| startup-workspace-warm-instructions | cycles | 10.303 B | 10.122 B | -1.76% | [-0.455, +0.100] B | 37 |
-| search-timing | actionTime | 506.123 ms | 483.261 ms | -4.52% | [-72.642, +44.686] ms | 37 |
-| search-instructions | instructions | 2.437 B | 2.615 B | +7.31% | [-0.116, +0.490] B | 37 |
-| search-instructions | cycles | 2.774 B | 2.941 B | +6.02% | [-0.152, +0.499] B | 37 |
-| settings-timing | actionTime | 2184.651 ms | 2119.641 ms | -2.98% | [-137.974, +12.055] ms | 37 |
-| settings-instructions | instructions | 13.954 B | 14.376 B | +3.02% | [+0.000, +0.825] B | 25 |
-| settings-instructions | cycles | 13.571 B | 14.186 B | +4.54% | [+0.063, +1.237] B | 25 |
+| Cloud | startup-empty-cold-timing | 2620.66 | 2595.56 | -0.96% | [-46.63, -2.78] | 37 |
+| Cloud | settings-timing | 1311.38 | 1252.60 | -4.48% | [-89.78, +5.91] | 37 |
+| Cloud | startup-empty-warm-timing | 1071.31 | 1067.57 | -0.35% | [-12.40, +5.83] | 37 |
+| Cloud | startup-workspace-cold-timing | 3054.96 | 2896.08 | -5.20% | [-633.64, +250.44] | 37 |
+| Cloud | startup-workspace-warm-timing | 1559.14 | 1519.07 | -2.57% | [-59.54, -21.78] | 37 |
+| Cloud | search-timing | 521.16 | 496.53 | -4.73% | [-62.21, +50.80] | 36 |
+| Local | startup-workspace-cold-timing | 3862.14 | 3873.12 | +0.28% | [-43.50, +63.20] | 37 |
 
-All four local startup latency intervals cross zero. Warm empty-window startup uses 1.45% fewer instructions and 3.05% fewer cycles, but this does not establish a latency improvement. Settings uses 3.02% more instructions and 4.54% more cycles in 25 valid pairs; the instruction difference’s lower interval endpoint is only about 0.48 million instructions, so treat this as an exploratory regression signal requiring follow-up. Search instruction counts are noisy and inconclusive. Neither interaction latency interval excludes zero.
+Cloud cold-empty and warm-workspace startup intervals exclude zero: approximately 25 ms and 40 ms reductions respectively. The other startup latency comparisons and both interaction latency comparisons are inconclusive. These are exploratory intervals across multiple metrics, without a multiple-testing guarantee.
 
-## Method and coverage
+## Local hardware counters
 
-Linux x64, AMD EPYC-Rome. Twelve independent benchmark blocks, 37 alternating before/after pairs requested per block: 888 launches measured, plus unmeasured warm-up launches and excluded pilots. Local measurements reuse the exact two matched native minified cloud packages. Node 24.15.0 runs the harness; the product declares Node 24.18.0 and the build helper places that runtime first on PATH. Both products have identical Electron binary hashes.
+Counts include inherited user-space work across the Electron process tree. Values below are means in billions; intervals are differences in billions. Action windows can include background initialization and are not isolated measurements of the marshalling function.
 
-Each launch has isolated user data, extension storage, and shared runtime directories. `--disable-extensions` disables user-installed extensions; built-in extensions remain available. Startup ends when the editor part has nonzero width; workspace startup also requires the expected text in the editor DOM. It does not wait for every background service to settle. Hardware counters measure inherited user-space work across the Electron process tree. Timing and hardware-counter collectors run separately; their durations are not interchangeable.
+| Workload | Metric | Main B | IPC B | Change | Difference 95% CI B | Valid pairs |
+| --- | --- | ---: | ---: | ---: | --- | ---: |
+| startup-empty-warm-instructions | instructions | 6.789 | 6.728 | -0.90% | [-0.117, -0.003] | 37 |
+| startup-empty-warm-instructions | cycles | 5.550 | 5.418 | -2.39% | [-0.249, -0.017] | 37 |
+| startup-workspace-warm-instructions | instructions | 11.323 | 11.271 | -0.46% | [-0.380, +0.270] | 37 |
+| startup-workspace-warm-instructions | cycles | 9.740 | 9.744 | +0.04% | [-0.324, +0.329] | 37 |
+| search-instructions | instructions | 2.613 | 2.739 | +4.80% | [-0.242, +0.491] | 32 |
+| search-instructions | cycles | 2.851 | 2.962 | +3.91% | [-0.277, +0.507] | 32 |
+| settings-instructions | instructions | 13.768 | 14.643 | +6.36% | [+0.242, +1.573] | 16 |
+| settings-instructions | cycles | 12.530 | 13.242 | +5.68% | [+0.081, +1.410] | 16 |
 
-Cold starts clear page, dentry, and inode caches immediately before spawning. Warm starts prime the isolated profile with an unmeasured launch. Both sides receive identical treatment. The interaction cohorts require 15 seconds of stable idle before starting or after waiting for another E2E run; startup cohorts used the earlier immediate-idle guard. A one-second monitor marks detected overlapping E2E work as contamination. Ordinary host/background activity remains a source of variance.
+Warm empty-window startup uses 0.90% fewer instructions and 2.39% fewer cycles, with intervals excluding zero; the instruction interval only narrowly excludes zero. Warm workspace counters are inconclusive. Settings uses 6.36% more instructions and 5.68% more cycles in 16 complete pairs, a concern also seen in the earlier snapshot. Heavy collector attrition limits that conditional subset: it does not establish a general Settings regression or attribute the difference specifically to IPC. Search counters are inconclusive.
 
-Two cold-workspace counter samples overlapped unrelated E2E processes and were excluded, leaving 35 complete pairs. Fifteen Settings counter samples failed collection: fourteen lost monitored threads during perf attachment and one did not count cycles. Paired analysis retains 25 complete pairs for Settings. Failed samples and their original metrics are retained; there are no silent retries or outlier removals. All other cohorts have 37 valid pairs. All pilots are excluded.
+The local campaign retains 34 unavailable counter samples: 29 for Settings and 5 for Search, due to perf collection failures. They remain in the evidence; no samples were retried, replaced, or removed as outliers. Both warm-start blocks and the cold-start timing follow-up retain 37 complete pairs. Settings retains 16 and Search 32 counter pairs.
 
-The shared analysis computes 10,000 deterministic paired bootstrap resamples. Multiple metrics and scenarios are exploratory; no family-wide significance claim is made. The committed machine-readable evidence preserves all local sample metrics, statuses, diagnostics, collector coverage, paired statistics, and verified package provenance. Larger raw application/perf logs and the standalone HTML/SVG report remain in the investigation directory.
+## CPU resources and physical memory
 
-## Build validity
+Task-clock is median aggregate process-tree CPU time in milliseconds. Peak PSS is mean proportional physical memory in MiB. Each metric uses its own complete-pair coverage; losing CPU collection does not discard a valid PSS observation.
 
-The initial cloud run was rejected: an old helper accepted a nonzero native gulp exit once an executable existed. Its packages and smoke results are excluded. The corrected helper rejects any nonzero gulp exit and requires a clean tracked source diff before packaging.
+| Workload | Metric | Main | IPC | Change | Difference 95% CI | Valid pairs |
+| --- | --- | ---: | ---: | ---: | --- | ---: |
+| settings-resources | task-clock | 4763.88 ms | 4531.72 ms | -4.87% | [-499.82, +168.99] ms | 20 |
+| settings-resources | peakPss | 1020.90 MiB | 1017.02 MiB | -0.38% | [-15.60, +7.77] MiB | 37 |
+| startup-empty-warm-resources | task-clock | 2104.53 ms | 2082.60 ms | -1.04% | [-44.44, -3.09] ms | 37 |
+| startup-empty-warm-resources | peakPss | 569.34 MiB | 566.91 MiB | -0.43% | [-8.69, +4.16] MiB | 37 |
+| startup-workspace-warm-resources | task-clock | 3749.76 ms | 3690.37 ms | -1.58% | [-158.45, +32.40] ms | 37 |
+| startup-workspace-warm-resources | peakPss | 758.34 MiB | 760.12 MiB | +0.23% | [-16.41, +18.71] MiB | 37 |
+| search-resources | task-clock | 1036.63 ms | 1160.07 ms | +11.91% | [-43.60, +343.24] ms | 36 |
+| search-resources | peakPss | 967.60 MiB | 950.70 MiB | -1.75% | [-32.13, -1.21] MiB | 36 |
 
-Both revisions require the same explicit build-only Copilot packaging adjustment: application exclusions remain intact, while built-in extension packaging retains its SDK dependencies. The original build source is restored afterward. Both complete build jobs succeeded; archive checksums, embedded source commits, all 34 desktop extension entrypoints, the codicon font, Copilot SDK/native shim, and equal Electron hashes were verified. Linux compile-cache generation is disabled by these revisions, so its absence is expected. This adjustment is recorded in package metadata.
+Warm empty-window task-clock is about 1% lower. Search peak PSS is about 1.75% lower in 36 valid pairs; other peak-PSS intervals cross zero. These are workload/window observations, not a memory-leak assessment. Settings and Search renderer profiles use five pairs each and are diagnostic; inclusive profile sampled time must not be confused with active process CPU time.
 
-Raw logs retain shell-environment and shutdown-channel warnings observed on both revisions. These visible-startup checks found no missing-module or extension-activation failures in the inspected smoke/pilot logs.
+## Cold-workspace tail follow-up
 
-## Correctness follow-up
+The cloud p95 point estimate increased despite the lower median, so an independent local 37-pair cold-workspace cohort was collected on the same matched packages. Both original cohorts and all samples are retained.
 
-The snapshot’s recursive traversal diverged from native cloning when getters delete later properties, shrink arrays, mutate Map/Set entries, or override collection iterators. Seven regression tests fail against the snapshot. The corrected traversal checks own-property existence against the initial enumerable-key snapshot and snapshots internal Map/Set entries before recursive reads. An eighth test protects the native behavior of retaining initially enumerable properties that become non-enumerable.
+| Environment | Main p95 ms | IPC p95 ms | Difference ms | Exploratory paired 95% CI ms |
+| --- | ---: | ---: | ---: | --- |
+| cloud | 4064.90 | 5597.62 | +1532.71 | [-5019.35, +2118.62] |
+| local | 3974.74 | 4064.74 | +89.99 | [-15.71, +269.59] |
 
-The fix passes 85 Node IPC tests and 51 Electron IPC tests, including native renderer MessagePorts. Focused lint and hygiene pass. The historical full client typecheck and 19-pass/11-pending workbench smoke selection cover the earlier implementation, rather than constituting a fresh full-build result for the correction.
+Both tail intervals cross zero. The local cohort did not reproduce the cloud increase’s magnitude. With 37 observations, empirical p95 estimates and their bootstrap intervals are volatile; this establishes neither a robust tail win nor a robust tail regression. The tail statistic uses 10,000 paired resamples, XorShift32 seed 0x12345678, nearest-rank p95, and percentile indices 249/9749.
 
-The separate correction microbenchmarks are complete below. The broad cloud campaign scheduled 105 benchmark blocks for the earlier snapshot and was stopped after 56 result blocks had been collected, to prioritize packaged validation of the corrected runtime. Completed and partial results are preserved; canceled blocks are not counted as measured. Hosted hardware counters are unavailable and are never reported as zeros. Fresh current-head packaged validation is separate.
+## Correctness and coverage
 
-## Cloud scenario failures under investigation
+The cloud campaign has 9 successful and 3 partial blocks. Two Search samples on the candidate failed the visible result-summary assertion: timing pair 36 after and resources pair 12 after. Their original metrics, diagnostics, UI states, and application logs are retained. Timing uses 36 valid Search pairs. A separate 100-pair replay reuses the exact archived binaries and adds live input values and application logs to failures. All 100 baseline samples pass; 99 candidate samples pass and candidate pair 50 fails the same assertion. The query remains `small deterministic file`, so lost query text is ruled out for that failure. Copied logs contain no Search exception. Two additional passive input-trace cohorts each collect 100 pairs: cloud baseline has one failure (pair 79) and candidate passes all 100; local baseline passes all 100 and candidate has one failure (pair 85). In both traced failures, Enter reaches the focused Search textarea with the intact query. A global progress indicator subsequently activates, but the capture does not identify a backend stage. The matching successful controls show the same input event shape. Search failure is therefore observed on both revisions, and these data do not establish it as an IPC regression. Submission handling and backend completion remain unresolved; no Search fix is claimed. All 600 diagnostic replay samples and their timings remain separate from the 1,130 primary samples.
 
-The first 55 collected cloud blocks include four file-opening timeouts: find-timing pair 5 before, find-renderer pair 4 before, find-resources pair 16 after, and scroll-timing pair 16 before. Their captured UI states show Quick Open with zero results despite the fixture files remaining in Explorer. They occur on both source revisions and do not establish an IPC regression; the underlying cause is unresolved. Original failed samples and logs are preserved and affected paired comparisons exclude the failed side. Failed logs also retain a main-process IPC origin rejection and unknown agent-host channel messages; no causal link to the file-opening timeout has been established. These failures must not be counted as passing correctness checks.
+The IPC changes fix deleted properties, inherited fallbacks, array holes, Map/Set mutations and overridden iterators, plus unwanted Symbol.toStringTag getter calls on plain and null-prototype objects. Seven mutation regressions fail against the older snapshot, and two symbol-getter regressions fail before the classification fix. Final validation passes 87 Node IPC tests and 53 Electron IPC tests after refreshing the 10 changed reachable source/support files from main. Focused lint, hygiene, and targeted TypeScript checks pass. Seven macOS CI jobs did not start because of GitHub runner/account restrictions, so they provide no macOS test coverage.
 
-## Incremental correctness costs
+## Full-product correctness blocker
 
-These separate microbenchmarks use native Node 24.18 MessagePort round trips, eight randomized paired process blocks per experiment, three measured batches of 500 after 200 warm-up calls per fixture. Values are median microseconds per round trip. The 95% intervals resample paired process means 10,000 times, with percentage changes as the statistic. Seeds are 330440 for snapshot-to-mutation-fix and 330441 for mutation-fix-to-classification-fix. All 32 processes passed payload assertions and overlap checks; no process was retried or removed. Compiled module digests and all raw batch samples are preserved.
+The Linux Electron integration job fails the existing task test `Execution from onDidEndTaskProcess and onDidStartTaskProcess are equal to original` after a 60-second timeout. Immediately beforehand, terminal `createProcess` fails to post a `waitOnExit` callback. The same job logs a language-detection workspace-diagnostics request whose ResourceMap contains an uncloneable callback. A minimal real ChannelClient/ChannelServer reproduction confirms that the old buffer transport omits an object callback and succeeds, while the current structured-clone transport rejects with DataCloneError. These requests need a compatibility decision or explicit data-only payloads before this can be considered ready. The candidate is not functionally equivalent on this coverage, so lower costs cannot establish a safe whole-product optimization: failed background work may also change CPU and timing windows. The compatibility failures remain unresolved, and the 87/53 focused test results must not be read as a complete correctness pass.
 
-The first experiment compares `3c9db188` against `58173696`; the second compares `58173696` against the classifier adopted in `726ee924`. Do not multiply their percentage estimates into a fresh direct comparison: these are independent campaigns under different host conditions.
+A minimal channel argument is `{ executable: 'echo', waitOnExit: (exitCode: number) => String(exitCode) }`. Send it through the existing echo channel fixtures: the buffer path returns `{ executable: 'echo' }`; the structured-clone path rejects with DataCloneError. This reproduces the transport incompatibility independently of the slower task integration test.
 
-| Fixture | Mutation fix median change | Paired mean change 95% CI | Classification median change | Paired mean change 95% CI |
-| --- | ---: | --- | ---: | --- |
-| primitive | +4.05% | [-4.25%, +11.29%] | +3.50% | [-10.52%, +32.70%] |
-| small-object | -10.67% | [-13.92%, +5.50%] | -9.21% | [-14.47%, +6.20%] |
-| settings-100 | +7.16% | [+2.26%, +10.63%] | +2.09% | [-2.97%, +8.76%] |
-| text-4KiB | +1.57% | [-17.52%, +1.09%] | +8.83% | [-3.93%, +28.38%] |
-| uris-100 | +8.23% | [+0.50%, +12.91%] | +1.59% | [+0.12%, +6.12%] |
-| VSBuffer-4KiB | +13.66% | [+0.49%, +18.06%] | +3.77% | [-11.03%, +15.24%] |
-| cyclic-map-set | +25.52% | [+13.32%, +37.07%] | -4.38% | [-8.65%, +5.21%] |
+## Method and build validity
 
-The mutation fix has a measurable cost for settings, URIs, VSBuffer, and the small cyclic Map/Set fixture. The classifier does not show a consistent speedup and has a small additional URI cost in this campaign. It is adopted to avoid reading Symbol.toStringTag getters on ordinary and null-prototype objects: two new regressions fail at `58173696` and pass with the classifier. Current validation is 87 Node IPC tests, 53 Electron IPC tests, focused lint/hygiene, and targeted TypeScript diagnostics for the changed files. The compiled adopted IPC body matches the measured prototype, excluding its source-map URL.
+Linux x64, isolated profiles, shared-data directories and extension storage, Xvfb 1440×1000, and identical launch flags for both revisions. User-installed extensions are disabled; built-ins remain available. Launches expose Chromium CDP and Node inspector endpoints; absolute times include automation/debugging overhead. Startup ends at visible editor readiness, with expected editor text for workspace startup, while background initialization may continue. Interaction timing includes input dispatch and assertion polling. Each collector runs independently.
 
-These results reinforce the object-heavy tradeoff against legacy buffer IPC; the historical parent-optimization gains do not remove that limitation. Fresh packaged comparison of `726ee924` against main is separate and pending.
+Cold samples clear page/dentry/inode caches immediately before spawn. Warm samples use an unmeasured prime launch on their isolated profile. Pair order alternates; a 15-second stable-idle guard and in-sample E2E-overlap monitor protect local collection. Ordinary background load remains a source of variance. Main/after samples are paired by index; means summarize counts/bytes and medians summarize durations. The shared analysis uses 10,000 deterministic paired bootstrap resamples, without outlier removal.
+
+Both fresh native minified build jobs succeeded. Archive checksums, embedded source commits, all 34 desktop extension entrypoints, the codicon font, the Copilot SDK/native shim, and equal Electron binary hashes were independently verified before local measurement. Both builds use the same explicit build-only Copilot packaging adjustment and restore tracked build source afterward. The initial helper that accepted a failed gulp exit once an executable existed was corrected, and its rejected packages are excluded. Linux compile-cache generation is disabled by these source revisions. The harness runs Node 24.15.0; the product build selects its declared Node 24.18.0.
+
+## Separate historical experiments and reproduction
+
+The earlier snapshot `3c9db188` campaign collected 56 of 105 planned cloud blocks and 888 local primary samples before being stopped to prioritize corrected code. Its data remains in `ipc.product.perf.results.json`, separate from the current results. Four earlier file-opening timeouts occurred on both revisions and remain recorded. Its warm-workspace cloud startup signal was also modest; it must not be pooled with current absolute timings.
+
+The initial marshalling-only optimization report and 64 process results are in `ipc.perf.md` and `ipc.perf.results.json`. It compares IPC modules against structured-clone parent `5f0eb30e`, not main. Its object-heavy fixture remains about 2.2 times the legacy buffer path before the later correctness fixes. Additional envelope removal was inconclusive and was not adopted.
+
+The two incremental correctness microbenchmarks are in `ipc.correction.perf.results.json`: eight randomized paired process blocks each, native Node MessagePort, three batches of 500 round trips after 200 warm-up calls, and payload assertions. The mutation fix adds measurable cost for settings, URIs, VSBuffer and the small cyclic Map/Set graph. The classifier is adopted for correct symbol-getter handling rather than a general speedup. All 32 processes were valid. Do not multiply estimates from separate campaigns into a direct current-head performance comparison.
+
+These module-only microbenchmarks share supporting JavaScript from initial optimization build `137580c6`; only selected IPC modules vary. Their compiled module digests and supporting-context refresh record are preserved. Full-product comparisons use complete fresh packages, and the final focused test pass uses refreshed reachable dependencies.
+
+Current normalized samples, metric definitions, full paired summaries, tail statistics, and package provenance are in `ipc.product.perf.current.results.json`. Reconstruct a metrics array by combining each sample metric value with its named definition; absent metrics stay absent. The artifact generator verifies exact reconstruction of every original result. Full raw logs and profile evidence remain in the matching workflow artifacts and local investigation directory. The large-performance workflow branch `perf/ipc-comparison-build-validation` supports both report-only rendering and reuse of verified build artifacts for additional experiments.
