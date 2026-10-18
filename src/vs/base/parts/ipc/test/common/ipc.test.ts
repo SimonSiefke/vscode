@@ -348,6 +348,114 @@ suite('Base IPC', function () {
 			});
 		});
 
+		test('copies own enumerable properties without invoking prototype setters', async () => {
+			const input: { constructor: VSBuffer; toString: VSBuffer; __proto__: { buffer: VSBuffer } } = Object.assign(Object.create(null), {
+				constructor: VSBuffer.fromString('constructor'),
+				toString: VSBuffer.fromString('toString')
+			});
+			Object.defineProperty(input, '__proto__', { value: { buffer: VSBuffer.fromString('prototype') }, enumerable: true });
+			Object.defineProperty(input, 'hidden', { value: () => { } });
+			Object.defineProperty(input, Symbol('hidden'), { value: () => { }, enumerable: true });
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				keys: Object.keys(result),
+				prototype: Object.getPrototypeOf(result),
+				ownPrototype: Object.hasOwn(result, '__proto__'),
+				buffer: result.__proto__.buffer.toString(),
+				constructor: result.constructor.toString(),
+				toString: result.toString.toString()
+			}, {
+				keys: ['constructor', 'toString', '__proto__'],
+				prototype: Object.prototype,
+				ownPrototype: true,
+				buffer: 'prototype',
+				constructor: 'constructor',
+				toString: 'toString'
+			});
+		});
+
+		test('preserves sparse arrays and enumerable array properties', async () => {
+			const input: VSBuffer[] & { extra?: VSBuffer } = new Array(6);
+			input[2] = VSBuffer.fromString('array');
+			input.extra = input[2];
+			Object.defineProperty(input, '__proto__', { value: input[2], enumerable: true });
+			Object.freeze(input);
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				length: result.length,
+				keys: Object.keys(result),
+				text: result[2].toString(),
+				extraAlias: result.extra === result[2],
+				prototypeAlias: Object.getOwnPropertyDescriptor(result, '__proto__')?.value === result[2],
+				prototype: Object.getPrototypeOf(result)
+			}, {
+				length: 6, keys: ['2', 'extra', '__proto__'], text: 'array',
+				extraAlias: true, prototypeAlias: true, prototype: Array.prototype
+			});
+		});
+
+		test('reads enumerable getters once without mutating frozen input', async () => {
+			let reads = 0;
+			const buffer = VSBuffer.fromString('getter');
+			const input = Object.freeze({
+				get value() {
+					reads++;
+					return buffer;
+				},
+				alias: buffer
+			});
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({ reads, text: result.value.toString(), alias: result.value === result.alias }, {
+				reads: 1, text: 'getter', alias: true
+			});
+		});
+
+		test('reads sibling properties in native structured clone order', async () => {
+			const input = {
+				nested: {
+					get value() {
+						input.later = 2;
+						return 1;
+					}
+				},
+				later: 1
+			};
+			const expected = structuredClone(input);
+			input.later = 1;
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual(result, expected);
+		});
+
+		test('preserves cycles through map keys, sets and arrays', async () => {
+			const buffer = VSBuffer.fromString('graph');
+			const input = { map: new Map<object, object>(), set: new Set<object>(), array: [] as object[], buffer };
+			input.map.set(input, input.set);
+			input.map.set(buffer, input.array);
+			input.set.add(input);
+			input.set.add(buffer);
+			input.array.push(input.map, input, buffer);
+			Object.freeze(input);
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				mapKey: result.map.get(result) === result.set,
+				bufferKey: result.map.get(result.buffer) === result.array,
+				setCycle: result.set.has(result),
+				setBuffer: result.set.has(result.buffer),
+				arrayCycle: result.array[0] === result.map && result.array[1] === result && result.array[2] === result.buffer,
+				text: result.buffer.toString()
+			}, { mapKey: true, bufferKey: true, setCycle: true, setBuffer: true, arrayCycle: true, text: 'graph' });
+		});
+
 		test('proxy calls revive nested URI arguments and results', async () => {
 			const uri = URI.parse('file:///folder/test%20file?query#fragment');
 			const channelDisposables = store.add(new DisposableStore());

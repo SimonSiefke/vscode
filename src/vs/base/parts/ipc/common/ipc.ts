@@ -181,13 +181,14 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 	if (Array.isArray(data) || Object.prototype.toString.call(data) === '[object Object]') {
 		const result: object = Array.isArray(data) ? new Array(data.length) : {};
 		seen.set(data, result);
-		for (const [key, value] of Object.entries(data)) {
-			Object.defineProperty(result, key, {
-				value: transformStructuredCloneData(value, transform, seen),
-				enumerable: true,
-				configurable: true,
-				writable: true
-			});
+		for (const key of Object.keys(data)) {
+			const value = transformStructuredCloneData((data as Record<string, unknown>)[key], transform, seen);
+			if (key === '__proto__') {
+				// Assignment would invoke Object.prototype's setter instead of copying the key.
+				Object.defineProperty(result, key, { value, enumerable: true, configurable: true, writable: true });
+			} else {
+				(result as Record<string, unknown>)[key] = value;
+			}
 		}
 		return result;
 	}
