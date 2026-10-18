@@ -434,6 +434,121 @@ suite('Base IPC', function () {
 			assert.deepStrictEqual(result, expected);
 		});
 
+		const getterMutationCases: { name: string; createInput: () => object }[] = [
+			{
+				name: 'omits own properties deleted by an earlier nested getter',
+				createInput: () => {
+					const input: { nested: { readonly value: number }; later?: number } = {
+						nested: {
+							get value() {
+								delete input.later;
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'does not replace a deleted own property with an inherited value',
+				createInput: () => {
+					const input: { nested: { readonly value: number }; later?: number } = {
+						nested: {
+							get value() {
+								delete input.later;
+								Object.setPrototypeOf(input, { later: 99 });
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'preserves holes created when a nested getter shrinks an array',
+				createInput: () => {
+					const input = [{
+						get value() {
+							input.length = 1;
+							return 1;
+						}
+					}, 2, 3];
+					return input;
+				}
+			},
+			{
+				name: 'retains initially enumerable keys when a getter makes them non-enumerable',
+				createInput: () => {
+					const input = {
+						nested: {
+							get value() {
+								Object.defineProperty(input, 'later', { enumerable: false });
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'snapshots map entries before getters mutate the map',
+				createInput: () => {
+					const input = new Map<string, number | { readonly value: number }>();
+					input.set('nested', {
+						get value() {
+							input.delete('later');
+							input.set('added', 3);
+							return 1;
+						}
+					});
+					input.set('later', 2);
+					return input;
+				}
+			},
+			{
+				name: 'snapshots set entries before getters mutate the set',
+				createInput: () => {
+					const input = new Set<number | { readonly value: number }>();
+					input.add({
+						get value() {
+							input.delete(2);
+							input.add(3);
+							return 1;
+						}
+					});
+					input.add(2);
+					return input;
+				}
+			},
+			{
+				name: 'uses map entries without invoking an overridden iterator',
+				createInput: () => {
+					const input = new Map([['real', 1]]);
+					Object.defineProperty(input, Symbol.iterator, { value: () => new Map([['fake', 2]]).entries() });
+					return input;
+				}
+			},
+			{
+				name: 'uses set entries without invoking an overridden iterator',
+				createInput: () => {
+					const input = new Set([1]);
+					Object.defineProperty(input, Symbol.iterator, { value: () => new Set([2]).values() });
+					return input;
+				}
+			}
+		];
+
+		for (const { name, createInput } of getterMutationCases) {
+			test(name, async () => {
+				const expected = structuredClone(createInput());
+				const result = await client.getChannel('echo').call<object>('echo', createInput());
+				assert.deepStrictEqual(result, expected);
+			});
+		}
+
 		test('preserves cycles through map keys, sets and arrays', async () => {
 			const buffer = VSBuffer.fromString('graph');
 			const input = { map: new Map<object, object>(), set: new Set<object>(), array: [] as object[], buffer };

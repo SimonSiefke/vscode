@@ -165,7 +165,8 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 	if (data instanceof Map) {
 		const result = new Map();
 		seen.set(data, result);
-		for (const [key, value] of data) {
+		// Snapshot internal entries before getters can mutate the collection.
+		for (const [key, value] of Array.from(Map.prototype.entries.call(data))) {
 			result.set(transformStructuredCloneData(key, transform, seen), transformStructuredCloneData(value, transform, seen));
 		}
 		return result;
@@ -173,7 +174,7 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 	if (data instanceof Set) {
 		const result = new Set();
 		seen.set(data, result);
-		for (const value of data) {
+		for (const value of Array.from(Set.prototype.values.call(data))) {
 			result.add(transformStructuredCloneData(value, transform, seen));
 		}
 		return result;
@@ -182,6 +183,10 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 		const result: object = Array.isArray(data) ? new Array(data.length) : {};
 		seen.set(data, result);
 		for (const key of Object.keys(data)) {
+			// Keep the initial enumerable keys, but omit keys deleted by earlier getters.
+			if (!Object.hasOwn(data, key)) {
+				continue;
+			}
 			const value = transformStructuredCloneData((data as Record<string, unknown>)[key], transform, seen);
 			if (key === '__proto__') {
 				// Assignment would invoke Object.prototype's setter instead of copying the key.
