@@ -524,6 +524,22 @@ suite('Base IPC', function () {
 				}
 			},
 			{
+				name: 'ignores Symbol.toStringTag getters on plain objects',
+				createInput: () => Object.defineProperty({ value: 1 }, Symbol.toStringTag, {
+					get: () => {
+						throw new Error('Symbol.toStringTag must not be read');
+					}
+				})
+			},
+			{
+				name: 'ignores Symbol.toStringTag getters on null-prototype objects',
+				createInput: () => Object.defineProperty(Object.assign(Object.create(null), { value: 1 }), Symbol.toStringTag, {
+					get: () => {
+						throw new Error('Symbol.toStringTag must not be read');
+					}
+				})
+			},
+			{
 				name: 'uses map entries without invoking an overridden iterator',
 				createInput: () => {
 					const input = new Map([['real', 1]]);

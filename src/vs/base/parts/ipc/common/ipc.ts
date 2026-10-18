@@ -179,8 +179,11 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 		}
 		return result;
 	}
-	if (Array.isArray(data) || Object.prototype.toString.call(data) === '[object Object]') {
-		const result: object = Array.isArray(data) ? new Array(data.length) : {};
+	// Classifying plain objects must not invoke Symbol.toStringTag getters.
+	const isArray = Array.isArray(data);
+	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+	if (isArray || prototype === Object.prototype || prototype === null || Object.prototype.toString.call(data) === '[object Object]') {
+		const result: object = isArray ? new Array(data.length) : {};
 		seen.set(data, result);
 		for (const key of Object.keys(data)) {
 			// Keep the initial enumerable keys, but omit keys deleted by earlier getters.
