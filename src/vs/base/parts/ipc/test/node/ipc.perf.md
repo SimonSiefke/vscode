@@ -1,6 +1,6 @@
 # Structured-clone IPC experiments
 
-Parent: `5f0eb30e4bd4412f394a12fa902ed660ee4bd477` (microsoft/vscode#330439). The final patch changes the object/array traversal in `transformStructuredCloneData`: iterate own enumerable keys, read each value when visiting it, assign ordinary keys, and define `__proto__` as an own data property. The URI/VSBuffer conversion and graph identity map remain in place.
+Parent: `5f0eb30e4bd4412f394a12fa902ed660ee4bd477` (microsoft/vscode#330439). The initial optimization changes the object/array traversal in `transformStructuredCloneData`: iterate own enumerable keys, read each value when visiting it, assign ordinary keys, and define `__proto__` as an own data property. The URI/VSBuffer conversion and graph identity map remain in place.
 
 ## Method
 
@@ -8,7 +8,7 @@ Node v24.18.0 on Linux x64, AMD EPYC-Rome. Each measurement is a sequential Chan
 
 Eight paired blocks per transport; all four variants run in a seeded random order within each block (seed 330439). Each process warms each case with 200 round trips and records three batches of 500 round trips. Assertions verify the initial result and the final result of every batch. The tables show medians of the 24 batch samples, in microseconds per round trip. Confidence intervals are for percentage changes of means, resampling the eight paired process blocks 10,000 times with seed 330439 (sorted bootstrap indices 249 and 9749). Negative changes mean less time. Ordinary background host load was not controlled. Pilot runs and validation/build work are excluded from the measured batch.
 
-`keys` is the final patch. `envelope` additionally avoided transforming the header/body envelope; this experiment was not adopted. Both use the same graph traversal. All variants use the same compiled dependencies; only the selected IPC module changes. The parent IPC source was obtained with `git show` and transpiled with the repository’s `transpileFile` helper. The final compiled IPC code matches the measured `keys` variant byte for byte after excluding its source-map URL.
+`keys` is the initial optimized traversal, before the getter-deletion and collection-snapshot correctness follow-up. `envelope` additionally avoided transforming the header/body envelope; this experiment was not adopted. Both use the same graph traversal. All variants use the same compiled dependencies; only the selected IPC module changes. The parent IPC source was obtained with `git show` and transpiled with the repository’s `transpileFile` helper. The compiled IPC code at the initial optimization matches the measured `keys` variant byte for byte after excluding its source-map URL. Later correctness changes are measured separately and must not be assigned these historical timings.
 
 ## Results
 
@@ -71,7 +71,7 @@ The complete batch samples, order, runtime versions, variant descriptions, compi
 
 ## Validation
 
-The final patch passes `npm run typecheck-client`, focused `npm run eslint -- <changed TypeScript paths>`, and `node build/hygiene.ts <changed paths>`. `npm run test-node -- --runGlob '**/parts/ipc/test/{common,node}/**/*.test.js'` passes 77 tests. `VSCODE_SKIP_PRELAUNCH=1 xvfb-run -a scripts/test.sh --no-sandbox --disable-gpu --runGlob '**/parts/ipc/test/{common/ipc,electron-browser/ipc.mp}.test.js'` passes 43 tests. The full development build and smoke/automation compilation also pass.
+The initial optimization passed `npm run typecheck-client`, focused `npm run eslint -- <changed TypeScript paths>`, and `node build/hygiene.ts <changed paths>`. `npm run test-node -- --runGlob '**/parts/ipc/test/{common,node}/**/*.test.js'` passes 77 tests. `VSCODE_SKIP_PRELAUNCH=1 xvfb-run -a scripts/test.sh --no-sandbox --disable-gpu --runGlob '**/parts/ipc/test/{common/ipc,electron-browser/ipc.mp}.test.js'` passes 43 tests. The full development build and smoke/automation compilation also pass.
 
 The existing Electron workbench smoke selection for Preferences, Settings editor, Search, Quick Open, Language Features, Statusbar, Multiroot, Launch, and Notebooks passes 19 tests with 11 existing pending tests. Run from `test/smoke` after `npm run build-fast` and `npm --prefix test/smoke run compile`:
 
@@ -83,4 +83,4 @@ The smoke fixture is `ecb012634f104f7a8188d9e3610a4d2d65bef6f6`. No missing-modu
 
 ## Remaining experiments
 
-Measure Electron main ↔ renderer and utility-process traffic, large binary payloads, main-thread CPU/allocations, and matched packaged/minified startup runs. Investigate the object-heavy regression against buffer IPC before drawing a general performance conclusion. A pre-scan that sends unchanged objects directly must not evaluate getters twice; that shortcut has not been adopted.
+Matched packaged/minified startup and interaction experiments are recorded in `ipc.product.perf.md`; these use main as the baseline and are distinct from the marshalling-only experiment above. Further isolate Electron main ↔ renderer and utility-process traffic, large binary payloads, and marshalling allocations. Investigate the object-heavy regression against buffer IPC before drawing a general performance conclusion. A pre-scan that sends unchanged objects directly must not evaluate getters twice; that shortcut has not been adopted.
