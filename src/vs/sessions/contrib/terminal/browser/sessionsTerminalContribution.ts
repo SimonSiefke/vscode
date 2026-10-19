@@ -213,6 +213,14 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			this._onDidReplaceNewDraftSession(from, to);
 		}));
 
+		this._register(this._sessionsManagementService.onDidDiscardNewSession(session => {
+			const operation = this._pendingTerminalOperations.get(session.sessionId);
+			if (operation) {
+				operation.replaced = true;
+			}
+			void this._closeTerminalsForSession(session.sessionId, 'draft discarded', false);
+		}));
+
 		// When a session is replaced (untitled → committed graduation), transfer
 		// tracked terminals from the old session id to the new one so they are
 		// not orphaned and closed by the removal cleanup.
@@ -779,16 +787,16 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	 * when a session is removed: removal is an explicit user action, so the pty
 	 * is torn down.
 	 *
-	 * Never disposes the terminal the user is currently working in. Removal also
+	 * Normally protects the terminal the user is currently working in. Removal also
 	 * covers session *graduation* (untitled → committed via `onDidReplaceSession`,
 	 * which surfaces the skeleton in `removed`): the focused (active) instance is
-	 * therefore always protected.
+	 * therefore protected unless its draft was explicitly discarded.
 	 *
 	 * {@link reason} is logged for each killed terminal so unexpected disposals in
 	 * the agents window can be diagnosed from the logs. See #313510, #318645.
 	 */
-	private async _closeTerminalsForSession(sessionId: string, reason: string): Promise<void> {
-		const protectedInstanceId = this._terminalService.activeInstance?.instanceId;
+	private async _closeTerminalsForSession(sessionId: string, reason: string, protectActive = true): Promise<void> {
+		const protectedInstanceId = protectActive ? this._terminalService.activeInstance?.instanceId : undefined;
 		for (const instance of this._getTrackedTerminalsForSession(sessionId)) {
 			if (protectedInstanceId !== undefined && instance.instanceId === protectedInstanceId) {
 				this._logService.info(`[SessionsTerminal] Skipping active terminal ${instance.instanceId} for session ${sessionId} (user is working in it)`);

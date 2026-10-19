@@ -269,6 +269,7 @@ suite('SessionsTerminalContribution', () => {
 	let contribution: SessionsTerminalContribution;
 	let activeSessionObs: ReturnType<typeof observableValue<IActiveSession | undefined>>;
 	let onDidChangeSessions: Emitter<ISessionsChangeEvent>;
+	let onDidDiscardNewSession: Emitter<ISession>;
 	let onDidReplaceSession: Emitter<{ readonly from: ISession; readonly to: ISession }>;
 	let onDidReplaceNewDraftSession: Emitter<{ readonly from: ISession; readonly to: ISession }>;
 	let onDidCreateInstance: Emitter<ITerminalInstance>;
@@ -326,6 +327,7 @@ suite('SessionsTerminalContribution', () => {
 
 		activeSessionObs = observableValue<IActiveSession | undefined>('activeSession', undefined);
 		onDidChangeSessions = store.add(new Emitter<ISessionsChangeEvent>());
+		onDidDiscardNewSession = store.add(new Emitter<ISession>());
 		onDidReplaceSession = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
 		onDidReplaceNewDraftSession = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
 		onDidCreateInstance = store.add(new Emitter<ITerminalInstance>());
@@ -335,6 +337,7 @@ suite('SessionsTerminalContribution', () => {
 
 		instantiationService.stub(ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
 			override readonly onDidChangeSessions = onDidChangeSessions.event;
+			override readonly onDidDiscardNewSession = onDidDiscardNewSession.event;
 			override readonly onDidReplaceSession = onDidReplaceSession.event;
 			override readonly onDidReplaceNewDraftSession = onDidReplaceNewDraftSession.event;
 			override getSessions(): ISession[] { return [...allSessions]; }
@@ -970,6 +973,52 @@ suite('SessionsTerminalContribution', () => {
 		assert.strictEqual(instances.length, 0);
 		assert.strictEqual(activeInstanceSet.length, 0);
 		assert.ok(logService.traces.some(message => message.includes(`Cannot activate created terminal for ${cwd.fsPath}; terminal 1 is no longer available`)));
+	});
+
+	// --- discarded drafts ---
+
+	test('closes the active terminal when its draft is discarded', async () => {
+		const cwd = URI.file('/worktree');
+		const session = makeAgentSession({ sessionId: 'test:discarded-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const [terminal] = await contribution.ensureTerminal(cwd, false, session);
+
+		onDidDiscardNewSession.fire(session);
+		await tick();
+
+		assert.deepStrictEqual(disposedInstances.map(instance => instance.instanceId), [terminal.instanceId]);
+		assert.strictEqual(terminalInstances.size, 0);
+	});
+
+	test('closes a terminal that finishes creation after its draft is discarded', async () => {
+		const cwd = URI.file('/worktree');
+		const session = makeAgentSession({ sessionId: 'test:discarded-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const barrier = new DeferredPromise<void>();
+		terminalCreationBarriers.set(cwd.fsPath, barrier);
+		const creation = contribution.ensureTerminal(cwd, false, session);
+		await tick();
+		assert.deepStrictEqual(terminalCreationStarted, [cwd.fsPath]);
+
+		onDidDiscardNewSession.fire(session);
+		await barrier.complete();
+		const terminals = await creation;
+
+		assert.deepStrictEqual(terminals, []);
+		assert.strictEqual(disposedInstances.length, 1);
+		assert.strictEqual(terminalInstances.size, 0);
+		assert.deepStrictEqual(activeInstanceSet, []);
+	});
+
+	test('respects a veto when closing a discarded draft terminal', async () => {
+		const cwd = URI.file('/worktree');
+		const session = makeAgentSession({ sessionId: 'test:discarded-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const [terminal] = await contribution.ensureTerminal(cwd, false, session);
+		vetoSafeDispose = true;
+
+		onDidDiscardNewSession.fire(session);
+		await tick();
+
+		assert.deepStrictEqual(disposedInstances, []);
+		assert.strictEqual(terminalInstances.get(terminal.instanceId), terminal);
 	});
 
 	// --- new-session draft replacement ---
