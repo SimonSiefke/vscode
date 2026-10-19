@@ -359,6 +359,11 @@ function createProvider(disposables: DisposableStore, connection: MockAgentConne
 			}
 			return resource;
 		},
+		forgetSessionResource: backend => {
+			if (sessionResources.delete(backend)) {
+				sessionResourcesChanged.fire();
+			}
+		},
 		getSessionResource: backend => sessionResources.get(backend),
 		registerSessionResolutionPolicy: (authority, policy) => {
 			overrides?.sessionResolutionPolicies?.push({ authority, policy });
@@ -1226,6 +1231,27 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		assert.strictEqual(ws.label, 'project');
 		assert.strictEqual(ws.folders.length, 1);
 		assert.strictEqual(ws.folders[0].root.toString(), uri.toString());
+	});
+
+	test('forgets routing when an eager remote draft is discarded without a root notification', async () => {
+		const forgotten: string[] = [];
+		const provider = createProvider(disposables, connection, {
+			ctor: class extends RemoteAgentHostSessionsProvider {
+				protected override forgetBackendSession(backend: URI): void {
+					forgotten.push(backend.toString());
+					super.forgetBackendSession(backend);
+				}
+			},
+		});
+		const session = provider.createNewSession(URI.parse('vscode-agent-host://localhost__4321/project'), provider.sessionTypes[0].id);
+		provider.setAuthenticationPending(false);
+		await timeout(0);
+		const backend = connection.createdSessionUris.at(-1)!;
+
+		provider.deleteNewSession(session.sessionId);
+		provider.deleteNewSession(session.sessionId);
+
+		assert.deepStrictEqual(forgotten, [backend.toString()]);
 	});
 
 	test('createNewSession eagerly creates the backend session in a trusted folder', async () => {

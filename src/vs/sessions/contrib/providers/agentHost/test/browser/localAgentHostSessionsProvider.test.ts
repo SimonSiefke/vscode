@@ -742,6 +742,11 @@ function createProvider(disposables: DisposableStore, agentHostService: MockAgen
 			}
 			return resource;
 		}
+		override forgetSessionResource(backend: URI): void {
+			if (this._resources.delete(backend)) {
+				this._changed.fire();
+			}
+		}
 		override getSessionResource(backend: URI): URI | undefined { return this._resources.get(backend); }
 	}());
 	const configurationService = options?.configurationService ?? new TestConfigurationService();
@@ -9452,6 +9457,38 @@ suite('LocalAgentHostSessionsProvider', () => {
 			[],
 			'no eager createSession should be invoked for an untrusted folder',
 		);
+	});
+
+	test('forgets routing for discarded drafts and preserves graduated sessions', async () => {
+		const forgotten: string[] = [];
+		class RoutingProvider extends LocalAgentHostSessionsProvider {
+			protected override forgetBackendSession(backend: URI): void {
+				forgotten.push(backend.toString());
+				super.forgetBackendSession(backend);
+			}
+		}
+		const provider = createProvider(disposables, agentHost, undefined, {
+			providerCtor: RoutingProvider,
+			openSession: true,
+			sendRequest: async resource => {
+				agentHost.addSession(createSession(AgentSession.id(resource), { summary: 'Graduated' }));
+				return { kind: 'sent' as const, data: {} as ChatSendResult extends { kind: 'sent'; data: infer D } ? D : never };
+			},
+		});
+		const first = provider.createNewSession(URI.file('/project/a'), provider.sessionTypes[0].id);
+		await timeout(0);
+		const firstBackend = agentHost.createdSessionUris.at(-1)!;
+		const second = provider.createNewSession(URI.file('/project/b'), provider.sessionTypes[0].id);
+		await timeout(0);
+
+		provider.deleteNewSession(first.sessionId);
+		provider.deleteNewSession(first.sessionId);
+		assert.deepStrictEqual(forgotten, [firstBackend.toString()]);
+		const chat = await provider.createNewChat(second.sessionId);
+		await provider.sendRequest(second.sessionId, chat.resource, { query: 'hello' });
+		provider.deleteNewSession(second.sessionId);
+
+		assert.deepStrictEqual(forgotten, [firstBackend.toString()]);
 	});
 
 	test('createNewSession disposes the previous eager backend session on workspace switch', async () => {

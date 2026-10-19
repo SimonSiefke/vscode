@@ -3041,6 +3041,7 @@ interface INewSessionConstructionContext {
 	 */
 	readonly onSessionState?: (sessionId: string, state: SessionState | undefined) => void;
 	readonly onSessionCreated: (backendSession: URI) => void;
+	readonly onSessionDisposed: (backendSession: URI) => void;
 	readonly activeClientScope: IAgentCustomizationScope;
 }
 
@@ -3178,6 +3179,7 @@ class NewSession extends Disposable {
 	private readonly _activeClientPublisher = this._register(new MutableDisposable());
 	private readonly _onSessionState: ((sessionId: string, state: SessionState | undefined) => void) | undefined;
 	private readonly _onSessionCreated: INewSessionConstructionContext['onSessionCreated'];
+	private readonly _onSessionDisposed: INewSessionConstructionContext['onSessionDisposed'];
 
 	private readonly _activeClientScope: IAgentCustomizationScope;
 	private readonly _initialMetadata: Record<string, unknown> | undefined;
@@ -3223,6 +3225,7 @@ class NewSession extends Disposable {
 		this._logService = ctx.logService;
 		this._onSessionState = ctx.onSessionState;
 		this._onSessionCreated = ctx.onSessionCreated;
+		this._onSessionDisposed = ctx.onSessionDisposed;
 		this._activeClientScope = ctx.activeClientScope;
 		this._register(this._activeClientScope);
 		this._initialMetadata = ctx.initialMetadata;
@@ -3936,6 +3939,9 @@ class NewSession extends Disposable {
 		const connection = this._connection;
 		this._backendUri = undefined;
 		this._connection = undefined;
+		if (oldUri) {
+			this._onSessionDisposed(oldUri);
+		}
 		if (oldUri && connection) {
 			connection.disposeSession(oldUri).catch(err => {
 				this._logService.warn(`[${this._providerId}] Failed to dispose eager backend session ${oldUri.toString()}: ${err}`);
@@ -4472,6 +4478,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	/** Provider-level authentication-pending observable used to derive `loading` for sessions. */
 	protected abstract get authenticationPending(): IObservable<boolean>;
 	protected abstract registerBackendSession(backendSession: URI, provider: string): void;
+	protected abstract forgetBackendSession(backendSession: URI): void;
 
 	/** Coalesces the session-resolution notifications of many {@link registerBackendSession} calls. */
 	protected batchBackendRegistrations<T>(fn: () => T): T {
@@ -5220,6 +5227,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				initialConfigSchema: this._seededConfigSchema(),
 				initialMetadata,
 				onSessionCreated: backendSession => this.registerBackendSession(backendSession, sessionType.id),
+				onSessionDisposed: backendSession => this.forgetBackendSession(backendSession),
 				instantiationService: this._instantiationService,
 				onSessionState: (id, state) => state === undefined
 					? this._handleNewSessionStateGone(id)
