@@ -9,7 +9,7 @@ import { IChatSessionHistoryStatus } from '../../../../../platform/chat/common/c
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { IStringDictionary } from '../../../../../base/common/collections.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
-import { BugIndicatingError, ErrorNoTelemetry, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
+import { BugIndicatingError, CancellationError, ErrorNoTelemetry, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Iterable } from '../../../../../base/common/iterator.js';
@@ -643,6 +643,10 @@ export class ChatService extends Disposable implements IChatService {
 		if (LocalChatSessionUri.parseLocalSessionId(sessionResource)) {
 			return;
 		}
+		const load = this._remoteSessionLoads.get(sessionResource);
+		if (load) {
+			this.abandonRemoteSessionLoad(sessionResource, load);
+		}
 		this._sessionModels.get(sessionResource)?.markDeleted();
 		await this._chatSessionStore.deleteSession(sessionResource.toString());
 	}
@@ -999,6 +1003,9 @@ export class ChatService extends Disposable implements IChatService {
 			trace: loadTrace,
 			parsePrompt,
 			publishModel: restoredModel => {
+				if (token.isCancellationRequested) {
+					throw new CancellationError();
+				}
 				this.chatOpenDiagnosticsService.mark(sessionResource, 'replayDone');
 				const reference = this.publishRemoteSessionModel(restoredModel, location, debugOwner ?? 'ChatService#loadRemoteSession');
 				this.chatOpenDiagnosticsService.mark(sessionResource, 'published');

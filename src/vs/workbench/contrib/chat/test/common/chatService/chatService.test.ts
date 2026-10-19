@@ -3925,6 +3925,64 @@ suite('ChatService', () => {
 			return history;
 		}
 
+		test('removing external metadata cancels an unpublished restore without saving it again', async () => {
+			const clock = createManualHistoryReplayClock();
+			const { resource } = setupRemoteProvider({ history: createTimedHistory(30, clock) });
+			const service = createChatService();
+			const first = await service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+			assert.ok(first);
+			testDisposables.add(first);
+			first.dispose();
+			await service.waitForModelDisposals();
+			assert.ok(await service.getMetadataForSession(resource));
+
+			const paused = new DeferredPromise<void>();
+			let resume: (() => void) | undefined;
+			let pausedOnce = false;
+			service.setRemoteHistoryScheduler({
+				now: clock.scheduler.now,
+				runInNewTask: callback => {
+					if (pausedOnce) {
+						return defaultRemoteChatHistoryScheduler.runInNewTask(callback);
+					}
+					pausedOnce = true;
+					resume = callback;
+					void paused.complete();
+					return toDisposable(() => { });
+				},
+			});
+			let publishedModels = 0;
+			testDisposables.add(service.onDidCreateModel(() => publishedModels++));
+			const loading = service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None).then(
+				reference => ({ reference, error: undefined }),
+				(error: unknown) => ({ reference: undefined, error }),
+			);
+			await paused.p;
+			assert.strictEqual(service.getSession(resource), undefined);
+
+			const removal = service.removeExternalSessionMetadata(resource);
+			assert.ok(resume);
+			resume();
+			// Let a pre-fix restore finish so unwanted publication fails without timing out.
+			service.setRemoteHistoryScheduler(defaultRemoteChatHistoryScheduler);
+			const result = await loading;
+			result.reference?.dispose();
+			await removal;
+			await service.waitForModelDisposals();
+
+			assert.deepStrictEqual({
+				publishedModels,
+				cancelled: result.error instanceof Error && result.error.name === 'Canceled',
+				metadata: await service.getMetadataForSession(resource),
+				model: service.getSession(resource),
+				references: service.getChatModelReferenceDebugInfo().totalReferences,
+			}, { publishedModels: 0, cancelled: true, metadata: undefined, model: undefined, references: 0 });
+
+			const fresh = await service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+			assert.ok(fresh, 'a later load must not inherit the cancelled restore');
+			testDisposables.add(fresh);
+		});
+
 		test('large history replay stays unpublished until every turn is restored', async () => {
 			const history = createSlowHistory(100);
 			const { resource } = setupRemoteProvider({ history });

@@ -194,6 +194,13 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	private onDidChangeSessionsFromSessionsProviders(e: ISessionChangeEvent): void {
+		// Mark removed models deleted before view teardown can save their metadata again.
+		for (const session of e.removed) {
+			for (const chat of session.chats.get()) {
+				this.chatService.removeExternalSessionMetadata(chat.resource).catch(error => this.logService.error(error));
+			}
+		}
+
 		// Clear stale new session if the provider removed it. The provider
 		// already disposed it, so just drop the pointer (do not dispose again).
 		if (e.removed.length) {
@@ -1398,12 +1405,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	async deleteSession(session: ISession): Promise<void> {
-		const chatResources = session.chats.get().map(chat => chat.resource);
 		const provider = this._getProvider(session);
 		await provider?.deleteSession(session.sessionId);
-		if (provider) {
-			await Promise.all(chatResources.map(resource => this.chatService.removeExternalSessionMetadata(resource)));
-		}
 		this._explicitlyMarkedUnreadMainChats.delete(session.resource);
 		this._onDidDeleteSession.fire(session);
 	}
@@ -1426,10 +1429,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		let firstError: unknown;
 		for (const [provider, providerSessions] of byProvider) {
 			try {
-				const sessionChats = providerSessions.map(session => ({ session, chatResources: session.chats.get().map(chat => chat.resource) }));
 				await provider.deleteSessions(providerSessions.map(session => session.sessionId));
-				for (const { session, chatResources } of sessionChats) {
-					await Promise.all(chatResources.map(resource => this.chatService.removeExternalSessionMetadata(resource)));
+				for (const session of providerSessions) {
 					this._explicitlyMarkedUnreadMainChats.delete(session.resource);
 					this._onDidDeleteSession.fire(session);
 				}
