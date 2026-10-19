@@ -7,7 +7,7 @@ import { raceTimeout } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../base/common/map.js';
-import { derived, IObservable, IReader } from '../../../../base/common/observable.js';
+import { derivedOpts, IObservable, IReader } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../workbench/common/contributions.js';
@@ -75,7 +75,14 @@ export class SessionsSideChatProviderContribution extends Disposable implements 
 	observeSideChatOrigin(sessionResource: URI): IObservable<IChatSideChatOrigin | undefined> {
 		let sideChatOrigin = this._sideChatOrigins.get(sessionResource);
 		if (!sideChatOrigin) {
-			sideChatOrigin = derived(this, reader => {
+			sideChatOrigin = derivedOpts({
+				owner: this,
+				onLastObserverRemoved: () => {
+					if (this._sideChatOrigins.get(sessionResource) === sideChatOrigin) {
+						this._sideChatOrigins.delete(sessionResource);
+					}
+				},
+			}, reader => {
 				if (!this._isSessionsWindow) {
 					return undefined;
 				}

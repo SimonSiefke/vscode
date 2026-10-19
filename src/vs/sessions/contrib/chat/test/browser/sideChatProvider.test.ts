@@ -7,7 +7,7 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { constObservable, observableValue } from '../../../../../base/common/observable.js';
+import { autorun, constObservable, observableValue } from '../../../../../base/common/observable.js';
 import { extUri } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -147,6 +147,35 @@ suite('SessionsSideChatProviderContribution', () => {
 		const { provider } = setup({ isSessionsWindow: false });
 
 		assert.strictEqual(provider(), undefined);
+	});
+
+	test('releases origin observables after the last observer leaves', () => {
+		const service = setup().provider()!;
+		const previous = service.observeSideChatOrigin(sourceChat.resource);
+		const first = disposables.add(autorun(reader => previous.read(reader)));
+		const second = disposables.add(autorun(reader => previous.read(reader)));
+
+		first.dispose();
+		const preservedWhileObserved = service.observeSideChatOrigin(sourceChat.resource) === previous;
+		second.dispose();
+
+		assert.deepStrictEqual({
+			preservedWhileObserved,
+			reusesUnobservedOrigin: service.observeSideChatOrigin(sourceChat.resource) === previous,
+		}, { preservedWhileObserved: true, reusesUnobservedOrigin: false });
+	});
+
+	test('an old unobserved origin cannot remove a newer observation', () => {
+		const service = setup().provider()!;
+		const previous = service.observeSideChatOrigin(sourceChat.resource);
+		const first = disposables.add(autorun(reader => previous.read(reader)));
+		first.dispose();
+		const current = service.observeSideChatOrigin(sourceChat.resource);
+		disposables.add(autorun(reader => current.read(reader)));
+
+		previous.get();
+
+		assert.strictEqual(service.observeSideChatOrigin(sourceChat.resource), current);
 	});
 
 	test('observes the source metadata for a side chat', () => {
