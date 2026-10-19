@@ -2241,6 +2241,8 @@ export interface IChatService {
 	getLocalSessionHistory(): Promise<IChatDetail[]>;
 	clearAllHistoryEntries(): Promise<void>;
 	removeHistoryEntry(sessionResource: URI): Promise<void>;
+	/** Removes saved metadata for a deleted provider-backed chat and prevents its live model from saving it again. */
+	removeExternalSessionMetadata(sessionResource: URI): Promise<void>;
 	getChatStorageFolder(): URI;
 	logChatIndex(): void;
 	getLiveSessionItems(): Promise<IChatDetail[]>;

@@ -6455,6 +6455,60 @@ suite('ChatService', () => {
 		});
 	});
 
+	test('removing external metadata prevents it from returning on model disposal', async () => {
+		const scheme = 'metadata-provider';
+		const sessionsService = new MockChatSessionsService();
+		testDisposables.add(sessionsService.registerChatSessionContentProvider(scheme, {
+			provideChatSessionContent: resource => Promise.resolve({ sessionResource: resource, history: [], onWillDispose: Event.None, dispose: () => { } }),
+		}));
+		instantiationService.stub(IChatSessionsService, sessionsService);
+		testDisposables.add(chatAgentService.registerAgent(scheme, { ...getAgentData(scheme), locations: [ChatAgentLocation.Chat], isDefault: true }));
+		testDisposables.add(chatAgentService.registerAgentImplementation(scheme, { async invoke() { return {}; } }));
+		const service = createChatService();
+		const resource = URI.from({ scheme, path: '/deleted-chat' });
+		const first = await service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+		assert.ok(first);
+		testDisposables.add(first);
+		const firstResponse = await service.sendRequest(resource, 'hello', { agentId: scheme });
+		ChatSendResult.assertSent(firstResponse);
+		await firstResponse.data.responseCompletePromise;
+		first.dispose();
+		await service.waitForModelDisposals();
+		assert.ok(await service.getMetadataForSession(resource));
+
+		const second = await service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+		assert.ok(second);
+		testDisposables.add(second);
+		const secondResponse = await service.sendRequest(resource, 'hello again', { agentId: scheme });
+		ChatSendResult.assertSent(secondResponse);
+		await secondResponse.data.responseCompletePromise;
+		const model = second.object as ChatModel;
+		const removal = service.removeExternalSessionMetadata(resource);
+		second.dispose();
+		await removal;
+		await service.waitForModelDisposals();
+
+		assert.deepStrictEqual({ deleted: model.isDeleted, metadata: await service.getMetadataForSession(resource) }, { deleted: true, metadata: undefined });
+	});
+
+	test('removing external metadata leaves local chat history intact', async () => {
+		testDisposables.add(chatAgentService.registerAgentImplementation(chatAgentWithMarkdownId, chatAgentWithMarkdown));
+		const service = createChatService();
+		const ref = testDisposables.add(startSessionModel(service));
+		const resource = ref.object.sessionResource;
+		const response = await service.sendRequest(resource, `@${chatAgentWithMarkdownId} test request`);
+		ChatSendResult.assertSent(response);
+		await response.data.responseCompletePromise;
+
+		await service.removeExternalSessionMetadata(resource);
+		const deleted = (ref.object as ChatModel).isDeleted;
+		ref.dispose();
+		await service.waitForModelDisposals();
+		const history = await service.getHistorySessionItems();
+
+		assert.deepStrictEqual({ deleted, inHistory: history.some(item => item.sessionResource.toString() === resource.toString()) }, { deleted: false, inHistory: true });
+	});
+
 	test('removeHistoryEntry marks model as deleted and excludes from getLiveSessionItems', async () => {
 		testDisposables.add(chatAgentService.registerAgentImplementation(chatAgentWithMarkdownId, chatAgentWithMarkdown));
 

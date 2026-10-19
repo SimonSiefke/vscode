@@ -229,6 +229,24 @@ suite('ChatSessionStore', () => {
 		assert.strictEqual(index['session-1'], undefined);
 	});
 
+	test('deletes external metadata without treating its resource as a file name', async () => {
+		const errors: string[] = [];
+		instantiationService.stub(ILogService, new class extends NullLogService {
+			override error(message: string): void { errors.push(message); }
+		});
+		const store = createChatSessionStore();
+		const model = testDisposables.add(createMockChatModel(LocalChatSessionUri.forSession('session-1')));
+		await store.storeSessions([model]);
+		const index = await store.getIndex();
+		const resource = URI.parse('agent-host-copilotcli:/deleted-chat');
+		index[resource.toString()] = { ...index['session-1'], sessionId: resource.toString(), isExternal: true };
+		delete index['session-1'];
+
+		await store.deleteSession(resource.toString());
+
+		assert.deepStrictEqual({ index: await store.getIndex(), deleteOperations: fileService.deleteOperations, errors }, { index: {}, deleteOperations: [], errors: [] });
+	});
+
 	test('deleteSession removes a legacy invalid session ID without deleting files', async () => {
 		const store = createChatSessionStore();
 		const model = testDisposables.add(createMockChatModel(LocalChatSessionUri.forSession('session-1')));
