@@ -37,7 +37,7 @@ import { IChatModelReference, IChatRequestSubmittedEvent, IChatService } from '.
 import { IChatModel } from '../../../../../workbench/contrib/chat/common/model/chatModel.js';
 import { IChatEditorOptions } from '../../../../../workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.js';
 import { ChatAgentLocation } from '../../../../../workbench/contrib/chat/common/constants.js';
-import { IChatWidgetHistoryService } from '../../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
+import { ChatWidgetHistoryService, IChatWidgetHistoryService } from '../../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
 import { PreferredGroup } from '../../../../../workbench/services/editor/common/editorService.js';
 import { nullExtensionDescription } from '../../../../../workbench/services/extensions/common/extensions.js';
 import { IPathService } from '../../../../../workbench/services/path/common/pathService.js';
@@ -7109,16 +7109,130 @@ suite('SessionsManagementService', () => {
 		assert.strictEqual(view.activeSession.get()?.sessionId, 'b');
 	});
 
+	function createInputHistory(recording: TestChatWidgetHistoryService, sessionIds: readonly string[]): ChatWidgetHistoryService {
+		const history = disposables.add(new ChatWidgetHistoryService(disposables.add(new InMemoryStorageService())));
+		for (const sessionId of sessionIds) {
+			history.clearHistory(ChatAgentLocation.Chat, sessionId);
+			history.append(ChatAgentLocation.Chat, {
+				inputText: 'draft', attachments: [], mode: { id: 'agent', kind: undefined },
+				selectedModel: undefined, selections: [], contrib: {},
+			}, sessionId);
+		}
+		recording.clearHistory = (location, historyKey) => history.clearHistory(location, historyKey);
+		return history;
+	}
+
+	test('preserves input history when the deleting provider is unavailable', async () => {
+		const session = stubSession({ sessionId: 'unavailable', providerId: 'missing' });
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, []);
+		const history = createInputHistory(chatWidgetHistoryService, [session.sessionId]);
+
+		await service.deleteSession(session);
+
+		assert.deepStrictEqual(history.getHistory(ChatAgentLocation.Chat, session.sessionId).map(entry => entry.inputText), ['draft']);
+	});
+
+	test('preserves input history when single-session deletion is an offline no-op', async () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///offline-chat') };
+		const session = stubSession({ sessionId: 'offline', providerId: 'test', chats: constObservable([chat]) });
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, new TestSessionsProvider(session));
+		const history = createInputHistory(chatWidgetHistoryService, [session.sessionId]);
+
+		await service.deleteSession(session);
+
+		assert.deepStrictEqual(history.getHistory(ChatAgentLocation.Chat, session.sessionId).map(entry => entry.inputText), ['draft']);
+	});
+
+	test('preserves input history when bulk deletion is an offline no-op', async () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///offline-chat') };
+		const session = stubSession({ sessionId: 'offline', providerId: 'test', chats: constObservable([chat]) });
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, new TestSessionsProvider(session));
+		const history = createInputHistory(chatWidgetHistoryService, [session.sessionId]);
+
+		await service.deleteSessions([session]);
+
+		assert.deepStrictEqual(history.getHistory(ChatAgentLocation.Chat, session.sessionId).map(entry => entry.inputText), ['draft']);
+	});
+
+	test('clears history only for removed sessions when one provider partially fails', async () => {
+		const deletedChat = { ...stubChat, resource: URI.parse('test:///deleted-chat') };
+		const failedChat = { ...stubChat, resource: URI.parse('test:///surviving-chat') };
+		const deleted = stubSession({ sessionId: 'deleted', providerId: 'test', chats: constObservable([deletedChat]) });
+		const failed = stubSession({ sessionId: 'failed', providerId: 'test', chats: constObservable([failedChat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+			override getSessions(): ISession[] { return [deleted, failed]; }
+			override async deleteSessions(): Promise<void> {
+				changes.fire({ added: [], removed: [deleted], changed: [] });
+				throw new Error('second deletion failed');
+			}
+		}(deleted);
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(deleted, disposables, provider);
+		const history = createInputHistory(chatWidgetHistoryService, [deleted.sessionId, failed.sessionId]);
+
+		await assert.rejects(service.deleteSessions([deleted, failed]), /second deletion failed/);
+
+		assert.deepStrictEqual({
+			deleted: history.getHistory(ChatAgentLocation.Chat, deleted.sessionId).map(entry => entry.inputText),
+			surviving: history.getHistory(ChatAgentLocation.Chat, failed.sessionId).map(entry => entry.inputText),
+		}, { deleted: [], surviving: ['draft'] });
+	});
+
+	test('clears history when deletion completes before provider cleanup fails', async () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///deleted-chat') };
+		const session = stubSession({ sessionId: 'deleted', providerId: 'test', chats: constObservable([chat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+			override async deleteSession(): Promise<void> {
+				changes.fire({ added: [], removed: [session], changed: [] });
+				throw new Error('worktree cleanup failed');
+			}
+		}(session);
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, provider);
+		const history = createInputHistory(chatWidgetHistoryService, [session.sessionId]);
+
+		await assert.rejects(service.deleteSession(session), /worktree cleanup failed/);
+
+		assert.deepStrictEqual(history.getHistory(ChatAgentLocation.Chat, session.sessionId), []);
+	});
+
+	test('clears externally removed session history after closing its views', () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///removed-chat') };
+		const session = stubSession({ sessionId: 'removed', providerId: 'test', chats: constObservable([chat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+		}(session);
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, provider);
+		const history = createInputHistory(chatWidgetHistoryService, [session.sessionId]);
+		const savedInput = history.getHistory(ChatAgentLocation.Chat, session.sessionId)[0];
+		let historyAtRemoval: string[] | undefined;
+		disposables.add(service.onDidChangeSessions(() => {
+			history.append(ChatAgentLocation.Chat, { ...savedInput, inputText: 'saved while closing' }, session.sessionId);
+			historyAtRemoval = history.getHistory(ChatAgentLocation.Chat, session.sessionId).map(entry => entry.inputText);
+		}));
+
+		changes.fire({ added: [], removed: [session], changed: [] });
+
+		assert.deepStrictEqual(historyAtRemoval, ['draft', 'saved while closing']);
+		assert.deepStrictEqual(history.getHistory(ChatAgentLocation.Chat, session.sessionId), []);
+	});
+
 	test('clears session input history only after successful backend deletion', async () => {
 		const session = stubSession({ sessionId: 'deleted', providerId: 'test' });
 		const confirmation = new DeferredPromise<void>();
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
 		let fail = false;
 		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
 			override async deleteSession(): Promise<void> {
 				if (fail) {
 					throw new Error('provider failure');
 				}
 				await confirmation.p;
+				changes.fire({ added: [], removed: [session], changed: [] });
 			}
 		}(session);
 		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, provider);
@@ -7173,7 +7287,14 @@ suite('SessionsManagementService', () => {
 			const failed = stubSession({ sessionId: 'failed', providerId: 'p1' });
 			const deleted = stubSession({ sessionId: 'deleted', providerId: 'p2' });
 			const failing = new RecordingProvider('p1', true, failed);
-			const succeeding = new RecordingProvider('p2', false, deleted);
+			const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+			const succeeding = new class extends RecordingProvider {
+				override readonly onDidChangeSessions = changes.event;
+				override async deleteSessions(ids: readonly string[]): Promise<void> {
+					await super.deleteSessions(ids);
+					changes.fire({ added: [], removed: [deleted], changed: [] });
+				}
+			}('p2', false, deleted);
 			const { service, chatWidgetHistoryService } = createSessionsManagementService(failed, disposables, [failing, succeeding]);
 
 			await assert.rejects(service.deleteSessions([failed, deleted]), /p1 failed/);
