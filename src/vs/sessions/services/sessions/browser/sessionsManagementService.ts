@@ -1400,6 +1400,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	async deleteSession(session: ISession): Promise<void> {
 		await this._getProvider(session)?.deleteSession(session.sessionId);
 		this._explicitlyMarkedUnreadMainChats.delete(session.resource);
+		this.chatWidgetHistoryService.clearHistory(ChatAgentLocation.Chat, session.sessionId);
 		this._onDidDeleteSession.fire(session);
 	}
 
@@ -1424,6 +1425,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 				await provider.deleteSessions(providerSessions.map(session => session.sessionId));
 				for (const session of providerSessions) {
 					this._explicitlyMarkedUnreadMainChats.delete(session.resource);
+					this.chatWidgetHistoryService.clearHistory(ChatAgentLocation.Chat, session.sessionId);
 					this._onDidDeleteSession.fire(session);
 				}
 			} catch (error) {

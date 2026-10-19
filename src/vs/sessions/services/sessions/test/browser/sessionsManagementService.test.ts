@@ -36,6 +36,7 @@ import { IChatRequestVariableEntry } from '../../../../../workbench/contrib/chat
 import { IChatModelReference, IChatRequestSubmittedEvent, IChatService } from '../../../../../workbench/contrib/chat/common/chatService/chatService.js';
 import { IChatModel } from '../../../../../workbench/contrib/chat/common/model/chatModel.js';
 import { IChatEditorOptions } from '../../../../../workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.js';
+import { ChatAgentLocation } from '../../../../../workbench/contrib/chat/common/constants.js';
 import { IChatWidgetHistoryService } from '../../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
 import { PreferredGroup } from '../../../../../workbench/services/editor/common/editorService.js';
 import { nullExtensionDescription } from '../../../../../workbench/services/extensions/common/extensions.js';
@@ -139,6 +140,16 @@ class TestChatWidgetService extends mock<IChatWidgetService>() {
 		}
 		return undefined;
 	}
+}
+
+class TestChatWidgetHistoryService extends mock<IChatWidgetHistoryService>() {
+	readonly clearedHistory: { location?: ChatAgentLocation; historyKey?: string }[] = [];
+
+	override clearHistory(location?: ChatAgentLocation, historyKey?: string): void {
+		this.clearedHistory.push({ location, historyKey });
+	}
+
+	override moveHistory(): void { }
 }
 
 class TestChatService extends mock<IChatService>() {
@@ -257,12 +268,13 @@ function createSessionsManagementService(
 	partServiceOverride?: TestSessionsPartService,
 	storageOverride?: InMemoryStorageService,
 	openTelemetryService?: ISessionOpenTelemetryService,
-): { service: ISessionsManagementService; view: SessionsService; chatWidgetService: TestChatWidgetService; chatService: TestChatService; contextKeyService: MockContextKeyService; customViewService: ICustomViewService; focusSession: Emitter<string | undefined>; sessionsPartService: TestSessionsPartService; notifications: (NotificationMessage | NotificationMessage[])[] } {
+): { service: ISessionsManagementService; view: SessionsService; chatWidgetService: TestChatWidgetService; chatService: TestChatService; chatWidgetHistoryService: TestChatWidgetHistoryService; contextKeyService: MockContextKeyService; customViewService: ICustomViewService; focusSession: Emitter<string | undefined>; sessionsPartService: TestSessionsPartService; notifications: (NotificationMessage | NotificationMessage[])[] } {
 	const instantiationService = disposables.add(new TestInstantiationService());
 	const notifications: (NotificationMessage | NotificationMessage[])[] = [];
 	instantiationService.stub(INotificationService, { error: message => notifications.push(message) });
 	const chatWidgetService = new TestChatWidgetService();
 	const chatService = disposables.add(new TestChatService());
+	const chatWidgetHistoryService = new TestChatWidgetHistoryService();
 	const providersService = provider instanceof TestSessionsProvidersService || provider instanceof SessionsProvidersService ? provider : new TestSessionsProvidersService(Array.isArray(provider) ? provider : [provider]);
 	const contextKeyService = disposables.add(new MockContextKeyService());
 	const customViewService = disposables.add(new CustomViewService(new NullLogService(), disposables.add(new InMemoryStorageService())));
@@ -276,9 +288,7 @@ function createSessionsManagementService(
 	instantiationService.stub(IChatWidgetService, chatWidgetService);
 	instantiationService.stub(IProgressService, new TestProgressService());
 	instantiationService.stub(IChatService, chatService);
-	instantiationService.stub(IChatWidgetHistoryService, new class extends mock<IChatWidgetHistoryService>() {
-		override moveHistory(): void { }
-	});
+	instantiationService.stub(IChatWidgetHistoryService, chatWidgetHistoryService);
 	instantiationService.stub(IPathService, new TestPathService(URI.file('/home/test')));
 	instantiationService.stub(ICopilotHomeService, new TestCopilotHomeService(URI.file('/home/test')));
 	instantiationService.stub(IRemoteAgentHostService, upcastPartial<IRemoteAgentHostService>({ connections: [] }));
@@ -291,7 +301,7 @@ function createSessionsManagementService(
 	const focusSession = disposables.add(new Emitter<string | undefined>());
 	const sessionsPartService = partServiceOverride ?? new TestSessionsPartService(focusSession.event);
 	const view = createView(instantiationService, service, disposables, customViewService, sessionsPartService, openTelemetryService);
-	return { service, view, chatWidgetService, chatService, contextKeyService, customViewService, focusSession, sessionsPartService, notifications };
+	return { service, view, chatWidgetService, chatService, chatWidgetHistoryService, contextKeyService, customViewService, focusSession, sessionsPartService, notifications };
 }
 
 /** Sessions part stub that records focus requests without rendering views. */
@@ -7099,6 +7109,32 @@ suite('SessionsManagementService', () => {
 		assert.strictEqual(view.activeSession.get()?.sessionId, 'b');
 	});
 
+	test('clears session input history only after successful backend deletion', async () => {
+		const session = stubSession({ sessionId: 'deleted', providerId: 'test' });
+		const confirmation = new DeferredPromise<void>();
+		let fail = false;
+		const provider = new class extends TestSessionsProvider {
+			override async deleteSession(): Promise<void> {
+				if (fail) {
+					throw new Error('provider failure');
+				}
+				await confirmation.p;
+			}
+		}(session);
+		const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, provider);
+
+		const pending = service.deleteSession(session);
+		const beforeConfirmation = [...chatWidgetHistoryService.clearedHistory];
+		await confirmation.complete();
+		await pending;
+		fail = true;
+		await assert.rejects(service.deleteSession(session), /provider failure/);
+
+		assert.deepStrictEqual({ beforeConfirmation, cleared: chatWidgetHistoryService.clearedHistory }, {
+			beforeConfirmation: [], cleared: [{ location: ChatAgentLocation.Chat, historyKey: session.sessionId }],
+		});
+	});
+
 	suite('deleteSessions', () => {
 
 		class RecordingProvider extends TestSessionsProvider {
@@ -7128,9 +7164,22 @@ suite('SessionsManagementService', () => {
 			});
 			instantiationService.stub(IChatWidgetHistoryService, new class extends mock<IChatWidgetHistoryService>() {
 				override moveHistory(): void { }
+				override clearHistory(): void { }
 			});
 			return disposables.add(instantiationService.createInstance(SessionsManagementService));
 		}
+
+		test('clears history only for successfully deleted provider groups', async () => {
+			const failed = stubSession({ sessionId: 'failed', providerId: 'p1' });
+			const deleted = stubSession({ sessionId: 'deleted', providerId: 'p2' });
+			const failing = new RecordingProvider('p1', true, failed);
+			const succeeding = new RecordingProvider('p2', false, deleted);
+			const { service, chatWidgetHistoryService } = createSessionsManagementService(failed, disposables, [failing, succeeding]);
+
+			await assert.rejects(service.deleteSessions([failed, deleted]), /p1 failed/);
+
+			assert.deepStrictEqual(chatWidgetHistoryService.clearedHistory, [{ location: ChatAgentLocation.Chat, historyKey: deleted.sessionId }]);
+		});
 
 		test('groups sessions by provider and continues when one provider fails (best-effort)', async () => {
 			const s1 = stubSession({ sessionId: 's1', providerId: 'p1' });
@@ -7185,6 +7234,19 @@ suite('SessionsManagementService', () => {
 	});
 
 	suite('deleteChat', () => {
+		test('preserves shared session history when deleting an individual chat', async () => {
+			const session = stubSession({ sessionId: 'session', providerId: 'test' });
+			const provider = new class extends TestSessionsProvider {
+				override async deleteChat(): Promise<boolean> { return true; }
+			}(session);
+			const { service, chatWidgetHistoryService } = createSessionsManagementService(session, disposables, provider);
+
+			await service.deleteChat(session, URI.parse('test:///peer'));
+
+			assert.deepStrictEqual(chatWidgetHistoryService.clearedHistory, []);
+		});
+
+
 		test('captures the requested owner before delayed confirmation and does not emit on provider failure', async () => {
 			const main = { ...stubChat, resource: URI.parse('test:///main') };
 			const peer = { ...stubChat, resource: URI.parse('test:///peer') };
