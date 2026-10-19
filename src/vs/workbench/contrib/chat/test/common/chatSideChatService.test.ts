@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { constObservable, IObservable } from '../../../../../base/common/observable.js';
+import { autorun, constObservable, IObservable } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ChatSideChatService, IChatSideChatOrigin, IChatSideChatProvider } from '../../common/chatSideChatService.js';
@@ -56,6 +56,35 @@ suite('ChatSideChatService', () => {
 		const { service } = createService();
 
 		assert.strictEqual(service.observeSideChatOrigin(resource), service.observeSideChatOrigin(resource));
+	});
+
+	test('releases origin observables after the last observer leaves', () => {
+		const { store, service } = createService();
+		const previous = service.observeSideChatOrigin(resource);
+		const first = store.add(autorun(reader => previous.read(reader)));
+		const second = store.add(autorun(reader => previous.read(reader)));
+
+		first.dispose();
+		const preservedWhileObserved = service.observeSideChatOrigin(resource) === previous;
+		second.dispose();
+
+		assert.deepStrictEqual({
+			preservedWhileObserved,
+			reusesUnobservedOrigin: service.observeSideChatOrigin(resource) === previous,
+		}, { preservedWhileObserved: true, reusesUnobservedOrigin: false });
+	});
+
+	test('an old unobserved origin cannot remove a newer observation', () => {
+		const { store, service } = createService();
+		const previous = service.observeSideChatOrigin(resource);
+		const first = store.add(autorun(reader => previous.read(reader)));
+		first.dispose();
+		const current = service.observeSideChatOrigin(resource);
+		store.add(autorun(reader => current.read(reader)));
+
+		previous.get();
+
+		assert.strictEqual(service.observeSideChatOrigin(resource), current);
 	});
 
 	test('uses the first provider that reports an origin', () => {
