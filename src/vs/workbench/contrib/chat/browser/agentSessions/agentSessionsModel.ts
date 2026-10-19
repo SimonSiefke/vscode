@@ -12,7 +12,7 @@ import { Disposable, DisposableMap } from '../../../../../base/common/lifecycle.
 import { ResourceMap, ResourceSet } from '../../../../../base/common/map.js';
 import { MarshalledId } from '../../../../../base/common/marshallingIds.js';
 import { safeStringify } from '../../../../../base/common/objects.js';
-import { derived, IObservable, observableSignalFromEvent } from '../../../../../base/common/observable.js';
+import { derivedOpts, IObservable, observableSignalFromEvent } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI, UriComponents } from '../../../../../base/common/uri.js';
 import { isEqual } from '../../../../../base/common/resources.js';
@@ -654,7 +654,15 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		if (!observable) {
 			this._changedSignal ??= observableSignalFromEvent('agentSessionsChanged', this.onDidChangeSessions);
 			const signal = this._changedSignal;
-			observable = derived(reader => {
+			observable = derivedOpts({
+				owner: this,
+				onLastObserverRemoved: () => {
+					if (this._sessionObservables.get(resource) === observable) {
+						this._sessionObservables.delete(resource);
+						this._resolvedResources.delete(resource);
+					}
+				},
+			}, reader => {
 				signal.read(reader);
 				return this.getSession(resource);
 			});

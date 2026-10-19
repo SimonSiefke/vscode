@@ -1551,7 +1551,9 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore |
 		// that populate them on demand deliver fresh data by the time the row
 		// renders. This reaches into a Copilot-provider internal and must be
 		// moved into the provider — see the note on the import above.
-		this.agentSessionsService.model.observeSession(element.resource);
+		template.elementDisposables.add(autorun(reader => {
+			this.agentSessionsService.model.observeSession(element.resource).read(reader);
+		}));
 
 		// Set by the details row while it shows, and so observes, the open main chat's Branch Changes.
 		let rowObservesMainChatBranchChanges = false;
