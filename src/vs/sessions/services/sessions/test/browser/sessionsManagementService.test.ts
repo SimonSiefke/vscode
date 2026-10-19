@@ -8228,6 +8228,43 @@ suite('SessionsManagementService', () => {
 			});
 		});
 
+		test('notifies replacement before publishing a quick-chat draft', () => {
+			const quick = new QuickChatProvider(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }));
+			const service = setupQuickChat([quick]);
+			service.createQuickChat();
+			const events: string[] = [];
+			disposables.add(service.onDidReplaceNewDraftSession(({ from, to }) => {
+				events.push(`replace:${from.sessionId}->${to.sessionId}`);
+			}));
+			disposables.add(autorun(reader => {
+				events.push(`publish:${service.newSession.read(reader)?.sessionId}`);
+			}));
+
+			service.createQuickChat();
+
+			assert.deepStrictEqual(events, ['publish:q1', 'replace:q1->q2', 'publish:q2']);
+		});
+
+		test('keeps the quick-chat draft when replacement creation fails', () => {
+			const quick = new class extends QuickChatProvider {
+				override createQuickChat(sessionTypeId: string): ISession {
+					if (this.createQuickChatCalls === 1) {
+						throw new Error('creation failed');
+					}
+					return super.createQuickChat(sessionTypeId);
+				}
+			}(stubSession({ sessionId: 'seed', providerId: 'quick-provider' }));
+			const service = setupQuickChat([quick]);
+			const draft = service.createQuickChat();
+			const replacements: string[] = [];
+			disposables.add(service.onDidReplaceNewDraftSession(({ from, to }) => {
+				replacements.push(`${from.sessionId}->${to.sessionId}`);
+			}));
+
+			assert.throws(() => service.createQuickChat(), /creation failed/);
+			assert.deepStrictEqual({ draft: service.newSession.get(), replacements }, { draft, replacements: [] });
+		});
+
 		test('throws when no provider supports quick chats', () => {
 			const plain = new TestSessionsProvider(stubSession({ sessionId: 'p1', providerId: 'test' }));
 			const service = setupQuickChat([plain]);
