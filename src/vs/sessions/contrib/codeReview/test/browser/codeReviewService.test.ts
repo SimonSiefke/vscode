@@ -51,6 +51,10 @@ suite('CodeReviewService', () => {
 
 	class MockSessionsManagementService extends mock<ISessionsManagementService>() {
 		private readonly _onDidChangeSessions: Emitter<ISessionsChangeEvent>;
+		readonly discardedDraft = store.add(new Emitter<ISession>());
+		readonly replacedDraft = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
+		override readonly onDidDiscardNewSession = this.discardedDraft.event;
+		override readonly onDidReplaceNewDraftSession = this.replacedDraft.event;
 		private readonly _activeSession: ReturnType<typeof observableValue<IActiveSession | undefined>>;
 		override readonly onDidChangeSessions: Event<ISessionsChangeEvent>;
 		readonly activeSession: IObservable<IActiveSession | undefined>;
@@ -315,6 +319,35 @@ suite('CodeReviewService', () => {
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('releases PR review state when an unsent draft is discarded', () => {
+		const draft = sessionsManagement.addSession(session);
+		const previous = service.getPRReviewState(session);
+		const otherResource = URI.parse('test://session/other');
+		const other = service.getPRReviewState(otherResource);
+
+		sessionsManagement.discardedDraft.fire(draft);
+
+		assert.deepStrictEqual({
+			reusesDiscardedState: service.getPRReviewState(session) === previous,
+			preservesOtherState: service.getPRReviewState(otherResource) === other,
+		}, { reusesDiscardedState: false, preservesOtherState: true });
+	});
+
+	test('releases PR review state when an unsent draft is replaced', () => {
+		const draft = sessionsManagement.addSession(session);
+		const nextResource = URI.parse('test://session/next');
+		const next = sessionsManagement.addSession(nextResource);
+		const previous = service.getPRReviewState(session);
+		const replacement = service.getPRReviewState(nextResource);
+
+		sessionsManagement.replacedDraft.fire({ from: draft, to: next });
+
+		assert.deepStrictEqual({
+			reusesReplacedState: service.getPRReviewState(session) === previous,
+			preservesReplacementState: service.getPRReviewState(nextResource) === replacement,
+		}, { reusesReplacedState: false, preservesReplacementState: true });
+	});
 
 	test('PR review state uses dedicated review threads model', async () => {
 		sessionsManagement.addSession(session);

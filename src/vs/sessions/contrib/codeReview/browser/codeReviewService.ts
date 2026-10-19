@@ -293,6 +293,12 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	}
 
 	private _registerSessionListeners(): void {
+		this._register(this._sessionsManagementService.onDidDiscardNewSession(session => {
+			this._disposePRReview(session.resource);
+		}));
+		this._register(this._sessionsManagementService.onDidReplaceNewDraftSession(({ from }) => {
+			this._disposePRReview(from.resource);
+		}));
 		this._register(this._sessionsManagementService.onDidChangeSessions(e => {
 			// Dispose PR review state for removed or archived sessions.
 			for (const session of [...e.removed, ...e.changed.filter(s => s.isArchived.get())]) {
