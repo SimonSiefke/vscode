@@ -810,7 +810,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	private _reserveEditorTerminalCloses(instances: Iterable<ITerminalInstance>): IDisposable {
 		const instanceIds: number[] = [];
 		for (const instance of instances) {
-			if (instance.target === TerminalLocation.Editor && this._editorService.findEditors(instance.resource).length > 0) {
+			if (instance.target === TerminalLocation.Editor && this._editorService.findEditors(instance.resource).some(({ editor }) => !editor.isDisposed())) {
 				instanceIds.push(instance.instanceId);
 				this._pendingEditorTerminalCloses.set(instance.instanceId, (this._pendingEditorTerminalCloses.get(instance.instanceId) ?? 0) + 1);
 			}
@@ -828,7 +828,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	}
 
 	private async _closeTerminal(instance: ITerminalInstance, onRetained?: () => Promise<void>): Promise<void> {
-		const editors = instance.target === TerminalLocation.Editor ? this._editorService.findEditors(instance.resource) : [];
+		const editors = instance.target === TerminalLocation.Editor ? this._editorService.findEditors(instance.resource).filter(({ editor }) => !editor.isDisposed()) : [];
 		if (editors.length > 0) {
 			this._pendingEditorTerminalCloses.set(instance.instanceId, (this._pendingEditorTerminalCloses.get(instance.instanceId) ?? 0) + 1);
 		}

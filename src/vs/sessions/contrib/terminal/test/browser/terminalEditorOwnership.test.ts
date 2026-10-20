@@ -183,6 +183,101 @@ suite('Sessions - terminal editor ownership', () => {
 		return { instantiationService, part, editorService, editors, terminals, resolver, missingInputRequests: () => missingInputRequests };
 	}
 
+	for (const trigger of ['discard', 'remove', 'archive'] as const) {
+		test(`disposes background editor terminal before disposed input leaves group: ${trigger}`, async () => {
+			const owners = await createRealEditorOwners();
+			const { instantiationService, editorService, editors, terminals } = owners;
+			instantiationService.stub(ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
+				override readonly onDidReplaceNewDraftSession = Event.None;
+				override readonly onDidDiscardNewSession = Event.None;
+				override readonly onDidReplaceSession = Event.None;
+				override readonly onDidChangeSessions = Event.None;
+				override getSessions(): ISession[] { return []; }
+			});
+			instantiationService.stub(ISessionsService, new class extends mock<ISessionsService>() {
+				override readonly activeSession = constObservable<IActiveSession | undefined>(undefined);
+			});
+			instantiationService.stub(ISessionsProvidersService, new class extends mock<ISessionsProvidersService>() {
+				override getProvider(): undefined { return undefined; }
+			});
+			instantiationService.stub(IAgentHostTerminalService, new class extends mock<IAgentHostTerminalService>() {
+				override readonly profiles = constObservable<never[]>([]);
+				override setDefaultCwd(): void { }
+				override getAgentHostAddress(): undefined { return undefined; }
+			});
+			const contribution = store.add(instantiationService.createInstance(SessionsTerminalContribution));
+			const sessionId = `test:stale-background-${trigger}`;
+			const instance = makeInstance(901); // No child processes: no real veto/confirmation in this case.
+			const other = trigger === 'remove' ? makeInstance(902) : undefined;
+			const sessionTerminals = Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>;
+			const scopes = Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, { sessionId: string; key: string; agentHostAddress: string | undefined }>;
+			const standalone = Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>;
+			const reservations = Reflect.get(contribution, '_pendingEditorTerminalCloses') as Map<number, number>;
+			const closeForSession = Reflect.get(contribution, '_closeTerminalsForSession') as (sessionId: string, reason: string, protectActive?: boolean) => Promise<void>;
+			const closeArchived = Reflect.get(contribution, '_closeArchivedSessionTerminals') as (session: ISession) => Promise<void>;
+			const archivedIds = Reflect.get(contribution, '_archivedSessionIds') as Set<string>;
+			const session = new class extends mock<ISession>() {
+				override readonly sessionId = sessionId;
+				override readonly workspace = constObservable<undefined>(undefined);
+				override readonly isArchived = constObservable(true);
+			};
+			let cleanup = Promise.resolve();
+			try {
+				await editors.openEditor(instance);
+				const input = editors.getInputFromResource(instance.resource);
+				if (other) {
+					await editors.openEditor(other);
+					terminals.setActiveInstance(other); // Ordinary removal intentionally protects the active terminal.
+				}
+				sessionTerminals.set(sessionId, new Set([instance.instanceId]));
+				scopes.set(instance.instanceId, { sessionId, key: '/draft', agentHostAddress: undefined });
+
+				// Both calls below must stay in the SAME task: do not await onDidCloseEditor,
+				// tick(), timeout() or a mutation between detachment and cleanup invocation.
+				terminals.moveToBackground(instance);
+				assert.deepStrictEqual({
+					live: !instance.isDisposed,
+					inputDisposed: input.isDisposed(),
+					inputDetached: input.terminalInstance === undefined,
+					staleGroupEntry: editorService.findEditors(instance.resource).some(identifier => identifier.editor === input),
+				}, { live: true, inputDisposed: true, inputDetached: true, staleGroupEntry: true });
+				if (trigger === 'archive') {
+					archivedIds.add(sessionId);
+					cleanup = closeArchived.call(contribution, session);
+				} else {
+					cleanup = closeForSession.call(contribution, sessionId, `test ${trigger}`, trigger !== 'discard');
+				}
+				await cleanup;
+				await timeout(0); // Drain delayed model cleanup only AFTER invoking the path under test.
+				assert.deepStrictEqual({
+					disposed: instance.isDisposed,
+					standalone: standalone.has(instance.instanceId),
+					tracked: sessionTerminals.has(sessionId),
+					scope: scopes.has(instance.instanceId),
+					reservations: reservations.size,
+					managed: editors.instances.includes(instance),
+					terminal: terminals.instances.includes(instance),
+					editorLocations: editorService.findEditors(instance.resource).length,
+				}, { disposed: true, standalone: false, tracked: false, scope: false, reservations: 0, managed: false, terminal: false, editorLocations: 0 });
+			} finally {
+				await cleanup;
+				for (const { editor, groupId } of editorService.findEditors(instance.resource)) {
+					await editor.revert(groupId);
+				}
+				await editorService.closeEditors([...editorService.findEditors(instance.resource)]);
+				editors.detachInstance(instance);
+				instance.dispose();
+				if (other) {
+					await editorService.closeEditors([...editorService.findEditors(other.resource)]);
+					editors.detachInstance(other);
+					other.dispose();
+				}
+				contribution.dispose();
+				await workbenchTeardown(instantiationService);
+			}
+		});
+	}
+
 	for (const confirmed of [false, true]) {
 		for (const visibilityStartedFirst of [false, true]) {
 			for (const siblingCount of [1, 2]) {
