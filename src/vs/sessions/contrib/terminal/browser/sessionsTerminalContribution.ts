@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IReader } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -107,6 +107,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	private readonly _sessionTerminals = new Map<string, Set<number>>();
 	private readonly _trackedTerminalScopes = new Map<number, ITrackedTerminalScope>();
 	private readonly _standaloneTerminalIds = new Set<number>();
+	private readonly _pendingEditorTerminalCloses = new Map<number, number>();
 	/** In-flight terminal work for drafts, retained only until each operation settles. */
 	private readonly _pendingTerminalOperations = new Map<string, IPendingTerminalOperation>();
 	private readonly _sessionTerminalGenerations = new Map<string, number>();
@@ -371,11 +372,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				}
 				if (session && this._isTerminalOperationCancelled(session, generation)) {
 					this._trackTerminalsForSession(session.sessionId, [createdInstance]);
-					await this._closeTerminal(createdInstance);
+					await this._closeTerminal(createdInstance, async () => {
+						if (this._pendingTerminalOperations.get(session.sessionId)?.discarded) {
+							await this._keepDiscardedTerminal(createdInstance);
+						}
+					});
 					if (createdInstance.isDisposed) {
 						this._removeTerminalFromTrackedSessions(createdInstance.instanceId);
-					} else if (this._pendingTerminalOperations.get(session.sessionId)?.discarded) {
-						await this._keepDiscardedTerminal(createdInstance);
 					}
 					return [];
 				}
@@ -734,7 +737,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 
 		for (const instance of [...this._terminalService.instances]) {
 			// Skip hidden tool terminals — managed by the chat tool lifecycle
-			if (instance.shellLaunchConfig.hideFromUser || this._standaloneTerminalIds.has(instance.instanceId)) {
+			if (instance.shellLaunchConfig.hideFromUser || this._standaloneTerminalIds.has(instance.instanceId) || this._pendingEditorTerminalCloses.has(instance.instanceId)) {
 				continue;
 			}
 			const currentInstance = this._getAvailableTerminal(instance, 'update terminal visibility');
@@ -758,13 +761,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 
 		for (const instance of toShow) {
 			const availableInstance = this._getAvailableTerminal(instance, 'show background terminal');
-			if (availableInstance) {
+			if (availableInstance && !this._pendingEditorTerminalCloses.has(availableInstance.instanceId)) {
 				await this._terminalService.showBackgroundTerminal(availableInstance, true);
 			}
 		}
 		for (const instance of toHide) {
 			const availableInstance = this._getAvailableTerminal(instance, 'move terminal to background');
-			if (availableInstance && !this._standaloneTerminalIds.has(availableInstance.instanceId)) {
+			if (availableInstance && !this._standaloneTerminalIds.has(availableInstance.instanceId) && !this._pendingEditorTerminalCloses.has(availableInstance.instanceId)) {
 				this._logService.debug(`[SessionsTerminal] Hiding terminal ${availableInstance.instanceId} (does not belong to active key ${activeKey})`);
 				this._terminalService.moveToBackground(availableInstance);
 			}
@@ -804,16 +807,53 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		await this._terminalService.showBackgroundTerminal(availableInstance, true);
 	}
 
-	private async _closeTerminal(instance: ITerminalInstance): Promise<void> {
+	private _reserveEditorTerminalCloses(instances: Iterable<ITerminalInstance>): IDisposable {
+		const instanceIds: number[] = [];
+		for (const instance of instances) {
+			if (instance.target === TerminalLocation.Editor && this._editorService.findEditors(instance.resource).length > 0) {
+				instanceIds.push(instance.instanceId);
+				this._pendingEditorTerminalCloses.set(instance.instanceId, (this._pendingEditorTerminalCloses.get(instance.instanceId) ?? 0) + 1);
+			}
+		}
+		return toDisposable(() => {
+			for (const instanceId of instanceIds) {
+				const remaining = this._pendingEditorTerminalCloses.get(instanceId)! - 1;
+				if (remaining === 0) {
+					this._pendingEditorTerminalCloses.delete(instanceId);
+				} else {
+					this._pendingEditorTerminalCloses.set(instanceId, remaining);
+				}
+			}
+		});
+	}
+
+	private async _closeTerminal(instance: ITerminalInstance, onRetained?: () => Promise<void>): Promise<void> {
 		const editors = instance.target === TerminalLocation.Editor ? this._editorService.findEditors(instance.resource) : [];
 		if (editors.length > 0) {
-			await this._editorService.closeEditors(editors);
-		} else {
-			if (instance.target === TerminalLocation.Editor) {
-				// Detach any cached or queued input before disposing its instance.
-				this._terminalService.moveToBackground(instance);
+			this._pendingEditorTerminalCloses.set(instance.instanceId, (this._pendingEditorTerminalCloses.get(instance.instanceId) ?? 0) + 1);
+		}
+		try {
+			if (editors.length > 0) {
+				await this._editorService.closeEditors(editors);
+			} else {
+				if (instance.target === TerminalLocation.Editor) {
+					// Detach any cached or queued input before disposing its instance.
+					this._terminalService.moveToBackground(instance);
+				}
+				await this._terminalService.safeDisposeTerminal(instance);
 			}
-			await this._terminalService.safeDisposeTerminal(instance);
+			if (!instance.isDisposed) {
+				await onRetained?.();
+			}
+		} finally {
+			if (editors.length > 0) {
+				const remaining = this._pendingEditorTerminalCloses.get(instance.instanceId)! - 1;
+				if (remaining === 0) {
+					this._pendingEditorTerminalCloses.delete(instance.instanceId);
+				} else {
+					this._pendingEditorTerminalCloses.set(instance.instanceId, remaining);
+				}
+			}
 		}
 	}
 
@@ -832,71 +872,86 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	 */
 	private async _closeTerminalsForSession(sessionId: string, reason: string, protectActive = true): Promise<void> {
 		const protectedInstanceId = protectActive ? this._terminalService.activeInstance?.instanceId : undefined;
-		for (const instance of this._getTrackedTerminalsForSession(sessionId)) {
-			if (protectedInstanceId !== undefined && instance.instanceId === protectedInstanceId) {
-				this._logService.info(`[SessionsTerminal] Skipping active terminal ${instance.instanceId} for session ${sessionId} (user is working in it)`);
-				continue;
+		const instances = this._getTrackedTerminalsForSession(sessionId);
+		const editorCloses = this._reserveEditorTerminalCloses(instances.filter(instance => instance.instanceId !== protectedInstanceId));
+		try {
+			for (const instance of instances) {
+				if (protectedInstanceId !== undefined && instance.instanceId === protectedInstanceId) {
+					this._logService.info(`[SessionsTerminal] Skipping active terminal ${instance.instanceId} for session ${sessionId} (user is working in it)`);
+					continue;
+				}
+				const availableInstance = this._getAvailableTerminal(instance, `close removed session terminal for session ${sessionId}`);
+				if (!availableInstance) {
+					continue;
+				}
+				this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
+				await this._closeTerminal(availableInstance, async () => {
+					if (!protectActive) {
+						await this._keepDiscardedTerminal(availableInstance);
+					}
+				});
+				if (availableInstance.isDisposed) {
+					this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+				}
 			}
-			const availableInstance = this._getAvailableTerminal(instance, `close removed session terminal for session ${sessionId}`);
-			if (!availableInstance) {
-				continue;
-			}
-			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
-			await this._closeTerminal(availableInstance);
-			if (availableInstance.isDisposed) {
-				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
-			} else if (!protectActive) {
-				await this._keepDiscardedTerminal(availableInstance);
-			}
+		} finally {
+			editorCloses.dispose();
 		}
 	}
 
 	private async _closeArchivedSessionTerminals(session: ISession): Promise<void> {
 		const cleanupGeneration = this._getTerminalOperationGeneration(session.sessionId);
 		const terminals = new Map(this._getTrackedTerminalsForSession(session.sessionId).map(instance => [instance.instanceId, instance]));
-		const untrackedWorktreeTerminalIds = new Set<number>();
-		const worktreeCwd = getSessionWorktreeCwd(session);
-		const anotherLiveSessionSharesWorktree = worktreeCwd && this._sessionsManagementService.getSessions().some(candidate =>
-			candidate.sessionId !== session.sessionId
-			&& !candidate.isArchived.get()
-			&& isEqual(getSessionWorktreeCwd(candidate), worktreeCwd)
-		);
-		if (worktreeCwd && !anotherLiveSessionSharesWorktree) {
-			for (const instance of await this._findUntrackedTerminalsForResource(worktreeCwd)) {
-				if (instance.instanceId === this._terminalService.activeInstance?.instanceId) {
+		const editorCloses = new DisposableStore();
+		try {
+			editorCloses.add(this._reserveEditorTerminalCloses(terminals.values()));
+			const untrackedWorktreeTerminalIds = new Set<number>();
+			const worktreeCwd = getSessionWorktreeCwd(session);
+			const anotherLiveSessionSharesWorktree = worktreeCwd && this._sessionsManagementService.getSessions().some(candidate =>
+				candidate.sessionId !== session.sessionId
+				&& !candidate.isArchived.get()
+				&& isEqual(getSessionWorktreeCwd(candidate), worktreeCwd)
+			);
+			if (worktreeCwd && !anotherLiveSessionSharesWorktree) {
+				for (const instance of await this._findUntrackedTerminalsForResource(worktreeCwd)) {
+					if (instance.instanceId === this._terminalService.activeInstance?.instanceId) {
+						continue;
+					}
+					terminals.set(instance.instanceId, instance);
+					untrackedWorktreeTerminalIds.add(instance.instanceId);
+				}
+			}
+			if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
+				return;
+			}
+
+			editorCloses.add(this._reserveEditorTerminalCloses(terminals.values()));
+			for (const instance of terminals.values()) {
+				if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
+					return;
+				}
+				if (untrackedWorktreeTerminalIds.has(instance.instanceId)
+					&& (this._isTerminalTracked(instance.instanceId)
+						|| this._standaloneTerminalIds.has(instance.instanceId)
+						|| this._terminalService.activeInstance?.instanceId === instance.instanceId)) {
 					continue;
 				}
-				terminals.set(instance.instanceId, instance);
-				untrackedWorktreeTerminalIds.add(instance.instanceId);
+				const availableInstance = this._getAvailableTerminal(instance, `close archived session terminal for session ${session.sessionId}`);
+				if (!availableInstance) {
+					continue;
+				}
+				this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session archived: ${session.sessionId})`);
+				await this._closeTerminal(availableInstance);
+				if (availableInstance.isDisposed) {
+					this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+				}
+				if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
+					await this._ensureActiveSessionTerminalAfterLateArchiveCleanup(session.sessionId);
+					return;
+				}
 			}
-		}
-		if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
-			return;
-		}
-
-		for (const instance of terminals.values()) {
-			if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
-				return;
-			}
-			if (untrackedWorktreeTerminalIds.has(instance.instanceId)
-				&& (this._isTerminalTracked(instance.instanceId)
-					|| this._standaloneTerminalIds.has(instance.instanceId)
-					|| this._terminalService.activeInstance?.instanceId === instance.instanceId)) {
-				continue;
-			}
-			const availableInstance = this._getAvailableTerminal(instance, `close archived session terminal for session ${session.sessionId}`);
-			if (!availableInstance) {
-				continue;
-			}
-			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session archived: ${session.sessionId})`);
-			await this._closeTerminal(availableInstance);
-			if (availableInstance.isDisposed) {
-				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
-			}
-			if (!this._isArchiveCleanupCurrent(session.sessionId, cleanupGeneration)) {
-				await this._ensureActiveSessionTerminalAfterLateArchiveCleanup(session.sessionId);
-				return;
-			}
+		} finally {
+			editorCloses.dispose();
 		}
 	}
 

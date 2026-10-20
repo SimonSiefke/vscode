@@ -20,8 +20,8 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { ITerminalCapabilityStore } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
-import { TerminalLocation } from '../../../../../platform/terminal/common/terminal.js';
+import { ITerminalCapabilityImplMap, ITerminalCapabilityStore, TerminalCapability } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
+import { TerminalLocation, TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
 import { IRemoteAgentService } from '../../../../../workbench/services/remote/common/remoteAgentService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
 import { IEditorPane } from '../../../../../workbench/common/editor.js';
@@ -29,12 +29,21 @@ import { ITerminalEditorService, ITerminalInstance, ITerminalInstanceService, IT
 import { TerminalEditorService } from '../../../../../workbench/contrib/terminal/browser/terminalEditorService.js';
 import { TerminalService } from '../../../../../workbench/contrib/terminal/browser/terminalService.js';
 import { ITerminalStatusList } from '../../../../../workbench/contrib/terminal/browser/terminalStatusList.js';
+import { constObservable } from '../../../../../base/common/observable.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IDialogService, IConfirmationResult } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IAgentHostTerminalService } from '../../../../../workbench/contrib/terminal/browser/agentHostTerminalService.js';
+import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
+import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
+import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
+import { ISession } from '../../../../services/sessions/common/session.js';
 
 suite('Sessions - terminal editor ownership', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	teardown(() => sinon.restore());
 
-	function makeInstance(id: number): ITerminalInstance {
+	function makeInstance(id: number, hasChildProcesses = false): ITerminalInstance {
 		const onDisposed = store.add(new Emitter<ITerminalInstance>());
 		const onExit = store.add(new Emitter<number | undefined>());
 		return new class extends mock<ITerminalInstance>() {
@@ -42,12 +51,14 @@ suite('Sessions - terminal editor ownership', () => {
 			override readonly resource = URI.from({ scheme: 'vscode-terminal', path: `/queued-test/${id}` });
 			override target = TerminalLocation.Editor;
 			override isDisposed = false;
-			override readonly hasChildProcesses = false;
+			override readonly hasChildProcesses = hasChildProcesses;
+			override readonly title = `terminal-${id}`;
 			override readonly waitOnExit = false;
 			override readonly description = undefined;
 			override readonly shellLaunchConfig = {};
 			override readonly capabilities = new class extends mock<ITerminalCapabilityStore>() {
 				override readonly onDidChangeCapabilities = Event.None;
+				override get<T extends TerminalCapability>(_capability: T): ITerminalCapabilityImplMap[T] | undefined { return undefined; }
 			};
 			override readonly statusList = new class extends mock<ITerminalStatusList>() {
 				override readonly onDidChangePrimaryStatus = Event.None;
@@ -59,6 +70,7 @@ suite('Sessions - terminal editor ownership', () => {
 			override readonly onDisposed = onDisposed.event;
 			override readonly onExit = onExit.event;
 			override detachFromElement(): void { }
+			override resetFocusContextKey(): void { }
 			override setParentContextKeyService(): void { }
 			override dispose(): void {
 				if (!this.isDisposed) {
@@ -169,6 +181,165 @@ suite('Sessions - terminal editor ownership', () => {
 			},
 		}));
 		return { instantiationService, part, editorService, editors, terminals, resolver, missingInputRequests: () => missingInputRequests };
+	}
+
+	for (const confirmed of [false, true]) {
+		for (const visibilityStartedFirst of [false, true]) {
+			for (const siblingCount of [1, 2]) {
+				test(`preserves real editor confirmation ownership: confirmed=${confirmed}, staleVisibility=${visibilityStartedFirst}, siblings=${siblingCount}`, async () => {
+					const owners = await createRealEditorOwners();
+					const { instantiationService, editorService, editors, terminals } = owners;
+					const configuration = instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as TestConfigurationService;
+					await configuration.setUserConfiguration(TerminalSettingId.ConfirmOnKill, 'editor');
+					const dialogService = instantiationService.invokeFunction(accessor => accessor.get(IDialogService));
+					const promptEntered = Array.from({ length: siblingCount }, () => new DeferredPromise<void>());
+					const promptResults = Array.from({ length: siblingCount }, () => new DeferredPromise<IConfirmationResult>());
+					let promptCount = 0;
+					const confirmDialog = sinon.stub(dialogService, 'confirm').callsFake(async () => {
+						const index = promptCount++;
+						assert.ok(promptResults[index], 'each draft terminal should request exactly one editor confirmation');
+						await promptEntered[index].complete();
+						return promptResults[index].p;
+					});
+					instantiationService.stub(ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
+						override readonly onDidReplaceNewDraftSession = Event.None;
+						override readonly onDidDiscardNewSession = Event.None;
+						override readonly onDidReplaceSession = Event.None;
+						override readonly onDidChangeSessions = Event.None;
+						override getSessions(): ISession[] { return []; }
+					});
+					instantiationService.stub(ISessionsService, new class extends mock<ISessionsService>() {
+						override readonly activeSession = constObservable<IActiveSession | undefined>(undefined);
+					});
+					instantiationService.stub(ISessionsProvidersService, new class extends mock<ISessionsProvidersService>() {
+						override getProvider(): undefined { return undefined; }
+					});
+					instantiationService.stub(IAgentHostTerminalService, new class extends mock<IAgentHostTerminalService>() {
+						override readonly profiles = constObservable<never[]>([]);
+						override setDefaultCwd(): void { }
+						override getAgentHostAddress(): undefined { return undefined; }
+					});
+					const contribution = store.add(instantiationService.createInstance(SessionsTerminalContribution));
+					const sessionTerminals = Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>;
+					const scopes = Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, { sessionId: string; key: string; agentHostAddress: string | undefined }>;
+					const standalone = Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>;
+					const draftId = 'test:confirming-draft';
+					const incomingId = 'test:incoming';
+					const draftTerminals = Array.from({ length: siblingCount }, (_, index) => makeInstance(801 + index, true));
+					const incoming = makeInstance(810);
+					const originalInputs: TerminalEditorInput[] = [];
+					const trackedInputs = Reflect.get(editors, '_editorInputs') as Map<string, TerminalEditorInput>;
+					const trackedDisposables = Reflect.get(editors, '_instanceDisposables') as Map<string, object>;
+					const opening = sinon.spy(editors, 'openEditor');
+					const visibilityEntered = new DeferredPromise<void>();
+					const releaseVisibility = new DeferredPromise<void>();
+					const realShow = terminals.showBackgroundTerminal.bind(terminals);
+					const pendingShow = sinon.stub(terminals, 'showBackgroundTerminal').callsFake(async (instance, suppressSetActive) => {
+						if (instance === incoming) {
+							await visibilityEntered.complete();
+							await releaseVisibility.p;
+						}
+						await realShow(instance, suppressSetActive);
+					});
+					const closeDraft = Reflect.get(contribution, '_closeTerminalsForSession') as (sessionId: string, reason: string, protectActive: boolean) => Promise<void>;
+					const updateVisibility = Reflect.get(contribution, '_updateTerminalVisibility') as (session: ISession, key: string, address: string | undefined, forceIds: number[]) => Promise<void>;
+					const incomingSession = new class extends mock<ISession>() { override readonly sessionId = incomingId; };
+					let closing = Promise.resolve();
+					let visibility = Promise.resolve();
+					try {
+						for (const instance of draftTerminals) {
+							await editors.openEditor(instance);
+							originalInputs.push(editors.getInputFromResource(instance.resource));
+							scopes.set(instance.instanceId, { sessionId: draftId, key: '/draft', agentHostAddress: undefined });
+						}
+						await editors.openEditor(incoming);
+						scopes.set(incoming.instanceId, { sessionId: incomingId, key: '/incoming', agentHostAddress: undefined });
+						sessionTerminals.set(draftId, new Set(draftTerminals.map(instance => instance.instanceId)));
+						sessionTerminals.set(incomingId, new Set([incoming.instanceId]));
+						const incomingInput = editors.getInputFromResource(incoming.resource);
+						const incomingClosed = Event.toPromise(Event.filter(editorService.onDidCloseEditor, event => event.editor === incomingInput));
+						terminals.moveToBackground(incoming);
+						await incomingClosed;
+						await editorService.openEditor(originalInputs[0], { pinned: true });
+						if (visibilityStartedFirst) {
+							visibility = updateVisibility.call(contribution, incomingSession, '/incoming', undefined, []);
+							// Reaching toShow means every old draft terminal has already entered toHide.
+							await visibilityEntered.p;
+						}
+						closing = closeDraft.call(contribution, draftId, 'test draft discarded', false);
+						const closeObserved = closing.then(() => ({ kind: 'closed' as const }), error => ({ kind: 'error' as const, error }));
+						const first = await Promise.race([promptEntered[0].p.then(() => ({ kind: 'prompt' as const })), closeObserved]);
+						assert.deepStrictEqual(first, { kind: 'prompt' });
+						if (!visibilityStartedFirst) {
+							visibility = updateVisibility.call(contribution, incomingSession, '/incoming', undefined, []);
+							await visibilityEntered.p;
+						}
+						await releaseVisibility.complete();
+						await visibility;
+						const pendingState = draftTerminals.map((instance, index) => ({
+							live: !instance.isDisposed,
+							inputLive: !originalInputs[index].isDisposed(),
+							sameInput: trackedInputs.get(instance.resource.path) === originalInputs[index],
+							attached: originalInputs[index].terminalInstance === instance,
+							foreground: terminals.foregroundInstances.includes(instance),
+						}));
+						for (let index = 0; index < siblingCount; index++) {
+							if (index > 0) {
+								const next = await Promise.race([promptEntered[index].p.then(() => ({ kind: 'prompt' as const })), closeObserved]);
+								assert.deepStrictEqual(next, { kind: 'prompt' }, 'an open editor sibling must keep its own confirmation');
+							}
+							await promptResults[index].complete({ confirmed });
+						}
+						await closing;
+						await Promise.all(opening.returnValues);
+						assert.deepStrictEqual({
+							pendingState,
+							promptCount,
+							draftOwner: sessionTerminals.has(draftId),
+							terminals: draftTerminals.map((instance, index) => ({
+								live: !instance.isDisposed,
+								inputLive: !originalInputs[index].isDisposed(),
+								sameInput: trackedInputs.get(instance.resource.path) === originalInputs[index],
+								liveInputAttachment: !originalInputs[index].isDisposed() && originalInputs[index].terminalInstance === instance,
+								foreground: terminals.foregroundInstances.includes(instance),
+								managed: editors.instances.includes(instance),
+								inputOwner: trackedInputs.has(instance.resource.path),
+								listenerOwner: trackedDisposables.has(instance.resource.path),
+								openEditors: editorService.findEditors(instance.resource).length,
+								standalone: standalone.has(instance.instanceId),
+								scope: scopes.has(instance.instanceId),
+							})),
+							incomingLive: !incoming.isDisposed,
+						}, {
+							pendingState: draftTerminals.map(() => ({ live: true, inputLive: true, sameInput: true, attached: true, foreground: true })),
+							promptCount: siblingCount,
+							draftOwner: false,
+							terminals: draftTerminals.map(() => ({ live: !confirmed, inputLive: !confirmed, sameInput: !confirmed, liveInputAttachment: !confirmed, foreground: !confirmed, managed: !confirmed, inputOwner: !confirmed, listenerOwner: !confirmed, openEditors: confirmed ? 0 : 1, standalone: !confirmed, scope: false })),
+							incomingLive: true,
+						});
+					} finally {
+						await releaseVisibility.complete();
+						for (const result of promptResults) {
+							await result.complete({ confirmed: false });
+						}
+						await Promise.allSettled([closing, visibility]);
+						await Promise.allSettled(opening.returnValues);
+						pendingShow.restore();
+						confirmDialog.restore();
+						for (const instance of [...draftTerminals, incoming]) {
+							for (const { editor, groupId } of editorService.findEditors(instance.resource)) {
+								await editor.revert(groupId);
+							}
+							await editorService.closeEditors([...editorService.findEditors(instance.resource)]);
+							editors.detachInstance(instance);
+							instance.dispose();
+						}
+						contribution.dispose();
+						await workbenchTeardown(instantiationService);
+					}
+				});
+			}
+		}
 	}
 
 	test('a submitted fresh terminal never resolves its detached resource after opening resumes', async () => {
