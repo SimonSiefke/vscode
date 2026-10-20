@@ -442,7 +442,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			// Otherwise prevent unload and handle it from window
 			e.preventDefault();
 			this.unload(window, UnloadReason.CLOSE).then(veto => {
-				if (veto) {
+				if (veto || !window.win || window.win.isDestroyed()) {
 					this.windowToCloseRequest.delete(windowId);
 					return;
 				}
@@ -509,7 +509,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 		// Only reload when the window has not vetoed this
 		const veto = await this.unload(window, UnloadReason.RELOAD);
-		if (!veto) {
+		if (!veto && window.win && !window.win.isDestroyed()) {
 			window.reload(cli);
 		}
 	}
@@ -533,8 +533,8 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 	private async doUnload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */> {
 
-		// Always allow to unload a window that is not yet ready
-		if (!window.isReady) {
+		// Always allow to unload a window that is not yet ready or has already closed.
+		if (!window.isReady || !window.win || window.win.isDestroyed()) {
 			return false;
 		}
 
@@ -547,6 +547,11 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			this.trace(`Lifecycle#unload() - veto in renderer (window ID ${window.id})`);
 
 			return this.handleWindowUnloadVeto(veto);
+		}
+
+		// The native window can close while the renderer is handling the request.
+		if (!window.win || window.win.isDestroyed()) {
+			return false;
 		}
 
 		// finally if there are no vetos, unload the renderer
@@ -586,6 +591,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			const cleanup = (value: boolean) => {
 				validatedIpcMain.removeListener(okChannel, okListener);
 				validatedIpcMain.removeListener(cancelChannel, cancelListener);
+				closeListener.dispose();
 				resolve(value);
 			};
 
@@ -597,6 +603,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 				cleanup(true); // veto
 			};
 
+			const closeListener = window.onDidClose(() => cleanup(false));
 			validatedIpcMain.on(okChannel, okListener);
 			validatedIpcMain.on(cancelChannel, cancelListener);
 
@@ -609,7 +616,14 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			const oneTimeEventToken = this.oneTimeListenerTokenGenerator++;
 			const replyChannel = `vscode:reply${oneTimeEventToken}`;
 
-			validatedIpcMain.once(replyChannel, () => resolve());
+			const cleanup = () => {
+				validatedIpcMain.removeListener(replyChannel, cleanup);
+				closeListener.dispose();
+				resolve();
+			};
+
+			const closeListener = window.onDidClose(cleanup);
+			validatedIpcMain.on(replyChannel, cleanup);
 
 			window.send('vscode:onWillUnload', { replyChannel, reason });
 		});
