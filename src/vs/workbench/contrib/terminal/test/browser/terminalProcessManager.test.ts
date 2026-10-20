@@ -9,9 +9,8 @@ import { Schemas } from '../../../../../base/common/network.js';
 import { getCaseInsensitive } from '../../../../../base/common/objects.js';
 import { OperatingSystem, type IProcessEnvironment } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { mock } from '../../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { IConfigurationService, type IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { EnvironmentVariableMutatorType, type IEnvironmentVariableCollection } from '../../../../../platform/terminal/common/environmentVariable.js';
@@ -279,8 +278,8 @@ suite('Workbench - TerminalProcessManager', () => {
 		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', {});
 		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
 		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [
-			{ id: 0, replies: { prompt: 'initial' } },
-			{ id: 0, replies: { prompt: 'updated' } }
+			{ id: 1, replies: { prompt: 'initial' } },
+			{ id: 1, replies: { prompt: 'updated' } }
 		]);
 	});
 
@@ -290,7 +289,7 @@ suite('Workbench - TerminalProcessManager', () => {
 		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
 		deepStrictEqual(terminalInstanceService.autoReplyUpdates, []);
 		await manager.createProcess({}, 80, 24, false);
-		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 0, replies: { prompt: 'reply' } }]);
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 1, replies: { prompt: 'reply' } }]);
 	});
 
 	test('does not accumulate environment variable collection listeners when relaunching', async () => {
