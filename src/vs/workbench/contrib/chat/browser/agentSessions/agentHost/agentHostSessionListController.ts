@@ -209,9 +209,10 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 			return;
 		}
 
+		const registration = this._connectionsService.findSessionResource(session, this._connectionAuthority);
 		await this._sessionListStore.disposeSession(session);
 
-		if (entry && this._sessionListStore.getSession(this._provider, session)?.resource !== entry.resource) {
+		if (this._connectionsService.findSessionResource(session, this._connectionAuthority) !== registration) {
 			return;
 		}
 		this._connectionsService.forgetSessionResource(session, this._connectionAuthority);

@@ -333,6 +333,10 @@ export class LocalAgentHostSessionsProvider extends DevContainerAgentHostSession
 		this._connectionsService.registerSessionResource(backendSession, undefined, provider);
 	}
 
+	protected override findBackendSessionResource(backendSession: URI): URI | undefined {
+		return this._connectionsService.findSessionResource(backendSession);
+	}
+
 	protected override forgetBackendSession(backendSession: URI): void {
 		this._connectionsService.forgetSessionResource(backendSession);
 	}

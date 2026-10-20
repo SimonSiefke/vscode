@@ -472,7 +472,26 @@ suite('AgentHostConnectionsService', () => {
 		}
 		assert.deepStrictEqual(actual, expected);
 	});
-	test('forgets every frontend alias when an ambient backend session is removed', () => {
+	for (const authority of ['local', 'myhost']) {
+		for (const backend of [URI.parse('ahp-session:/hidden-live'), URI.parse('host-session://owner/opaque/session?revision=one#backend-fragment')]) {
+			test(`preserves known routing when a live ${backend.scheme} session is hidden on ${authority}`, () => {
+				const notifications = store.add(new Emitter<INotification>());
+				const remoteConnection: IAgentConnection = { ...fakeConnection('remote'), onDidNotification: notifications.event };
+				const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', remoteConnection]]), { ambientNotifications: authority === 'local' ? notifications.event : undefined });
+				const resource = service.registerSessionResource(backend, authority, 'copilot');
+				const canonical = service.findSessionResource(backend, authority);
+
+				notifications.fire({ type: 'root/sessionRemoved', channel: 'ahp-root://', session: backend.toString() });
+
+				assert.deepStrictEqual({
+					routing: service.findSessionResource(backend, authority)?.toString(),
+					advertised: service.resolveSessionResourceIdentity(resource)?.backendSessionIsAdvertised,
+				}, { routing: canonical?.toString(), advertised: true });
+			});
+		}
+	}
+
+	test('forgets every frontend alias after an ambient backend session is confirmed deleted', () => {
 		const notifications = store.add(new Emitter<INotification>());
 		const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', fakeConnection('remote')]]), { ambientNotifications: notifications.event });
 		const backend = URI.parse('ahp-session:/removed');
@@ -485,8 +504,8 @@ suite('AgentHostConnectionsService', () => {
 		let changes = 0;
 		store.add(service.onDidChangeSessionResolution(() => changes++));
 
-		notifications.fire({ type: 'root/sessionRemoved', channel: 'ahp-root://', session: backend.toString() });
-		notifications.fire({ type: 'root/sessionRemoved', channel: 'ahp-root://', session: backend.toString() });
+		service.forgetSessionResource(backend);
+		service.forgetSessionResource(backend);
 
 		assert.deepStrictEqual({
 			removed: service.findSessionResource(backend),
@@ -510,7 +529,7 @@ suite('AgentHostConnectionsService', () => {
 		assert.strictEqual(service.findSessionResource(backend)?.toString(), replacement.toString());
 	});
 
-	test('batches remote removals and preserves the ambient identity', () => {
+	test('batches confirmed remote deletions and preserves the ambient identity', () => {
 		const notifications = store.add(new Emitter<INotification>());
 		const remoteConnection: IAgentConnection = { ...fakeConnection('remote'), onDidNotification: notifications.event };
 		const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', remoteConnection]]));
@@ -524,7 +543,7 @@ suite('AgentHostConnectionsService', () => {
 
 		service.batchSessionResolutionChanges(() => {
 			for (const backend of backends) {
-				notifications.fire({ type: 'root/sessionRemoved', channel: 'ahp-root://', session: backend.toString() });
+				service.forgetSessionResource(backend, 'myhost');
 			}
 		});
 

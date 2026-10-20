@@ -463,9 +463,8 @@ export class AgentHostSessionListStore extends Disposable {
 	}
 
 	private _registerSessionResource(session: URI, provider: string): URI {
-		const existing = this._connectionsService.findSessionResource(session, this._options.connectionAuthority);
-		const registered = this._connectionsService.registerSessionResource(session, this._options.connectionAuthority, provider);
-		return existing ?? registered.with({ fragment: '' });
+		this._connectionsService.registerSessionResource(session, this._options.connectionAuthority, provider);
+		return this._connectionsService.findSessionResource(session, this._options.connectionAuthority)!;
 	}
 
 	/** Uses workspace-file provenance for multi-root workspaces and path containment otherwise. */

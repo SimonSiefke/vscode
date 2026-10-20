@@ -96,7 +96,7 @@ import { dedupeLinks, partitionSessionArtifacts, type IRecordedGitHubReference }
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import type { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsRecentWorkspacesService } from '../../../../services/sessions/browser/sessionsRecentWorkspacesService.js';
-import { IAutomationSessionConfiguration, IChatMovedEvent, ISessionChatMoveDestination, SessionMoveRefusedError, IDeleteChatOptions, type IForkChatOptions, ISendRequestOptions, ISessionChangeEvent, ISessionChangesetOperationInvokedEvent, ISessionConfigurationSnapshot, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionPermissionOption, ISessionsProviderCreateSessionOptions, ISessionWorktreeConfiguration } from '../../../../services/sessions/common/sessionsProvider.js';
+import { IAutomationSessionConfiguration, IChatMovedEvent, ISessionChatMoveDestination, SessionMoveRefusedError, IDeleteChatOptions, type IForkChatOptions, ISendRequestOptions, ISessionChangeEvent, ISessionChangesetOperationInvokedEvent, ISessionConfigurationSnapshot, ISessionDeletion, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionPermissionOption, ISessionsProviderCreateSessionOptions, ISessionWorktreeConfiguration } from '../../../../services/sessions/common/sessionsProvider.js';
 import { AgentHostChatMoveTracker } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostChatMoveTracker.js';
 import type { AgentChatMoveDestination } from '../../../../../platform/agentHost/common/agentHostChatMove.js';
 import { toChatMoveError } from './agentHostChatMoveErrors.js';
@@ -126,13 +126,20 @@ const SETTINGS_DERIVED_SESSION_CONFIG_CLEARED_VALUES: Readonly<Record<string, un
 };
 
 function mergeSessionChangeEvents(events: readonly ISessionChangeEvent[]): ISessionChangeEvent {
+	let deletions: Map<string, ISessionDeletion> | undefined;
 	const changes = new Map<string, { added?: ISession; removed?: ISession; changed?: ISession }>();
 	for (const event of events) {
-		for (const session of event.added) {
-			changes.set(session.sessionId, { removed: changes.get(session.sessionId)?.removed, added: session });
+		if (event.deleted) {
+			for (const deletion of event.deleted) {
+				(deletions ??= new Map()).set(deletion.sessionId, deletion);
+			}
 		}
 		for (const session of event.removed) {
 			changes.set(session.sessionId, { removed: session });
+		}
+		for (const session of event.added) {
+			deletions?.delete(session.sessionId);
+			changes.set(session.sessionId, { removed: changes.get(session.sessionId)?.removed, added: session });
 		}
 		for (const session of event.changed) {
 			const change = changes.get(session.sessionId);
@@ -161,10 +168,12 @@ function mergeSessionChangeEvents(events: readonly ISessionChangeEvent[]): ISess
 			changed.push(change.changed);
 		}
 	}
+	const deleted = deletions && [...deletions.values()].filter(deletion => !changes.get(deletion.sessionId)?.added);
 	return {
 		added,
 		removed,
 		changed,
+		...(deleted?.length ? { deleted } : {}),
 	};
 }
 
@@ -4548,6 +4557,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	protected abstract get authenticationPending(): IObservable<boolean>;
 	protected abstract registerBackendSession(backendSession: URI, provider: string): void;
 	protected abstract forgetBackendSession(backendSession: URI): void;
+	protected abstract findBackendSessionResource(backendSession: URI): URI | undefined;
 
 	/** Coalesces the session-resolution notifications of many {@link registerBackendSession} calls. */
 	protected batchBackendRegistrations<T>(fn: () => T): T {
@@ -7221,38 +7231,105 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		await this.deleteSessions([sessionId]);
 	}
 
+	protected trackSessionDeletions(sessions: readonly AgentHostSessionAdapter[], store: DisposableStore): ReadonlyMap<AgentHostSessionAdapter, () => ISessionDeletion | undefined> {
+		const tracked = new Map<AgentHostSessionAdapter, () => ISessionDeletion | undefined>();
+		if (sessions.length === 0) {
+			return tracked;
+		}
+		const targets = new Map(sessions.map(session => [session.sessionId, { session, invalidated: false }]));
+		store.add(this._onDidChangeSessionsImmediately(event => {
+			for (const session of event.added) {
+				const target = targets.get(session.sessionId);
+				if (target && target.session !== session) {
+					target.invalidated = true;
+				}
+			}
+		}));
+		for (const [sessionId, target] of targets) {
+			const chatResources = new ResourceSet();
+			store.add(autorun(reader => {
+				for (const chat of target.session.chats.read(reader)) {
+					chatResources.add(chat.resource);
+				}
+			}));
+			tracked.set(target.session, () => target.invalidated ? undefined : { sessionId, chatResources: [...chatResources] });
+		}
+		return tracked;
+	}
+
 	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
 		const connection = this.connection;
 		if (!connection) {
 			return;
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
+		const targets: { rawId: string; cached: AgentHostSessionAdapter; registration: URI | undefined }[] = [];
 		for (const sessionId of sessionIds) {
 			this._assertSessionAvailable(sessionId);
 			const rawId = this._sessionKeyFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({ rawId, cached });
+				targets.push({ rawId, cached, registration: this.findBackendSessionResource(cached.backendUri) });
 			}
 		}
 		if (targets.length === 0) {
 			return;
 		}
 		const removed: AgentHostSessionAdapter[] = [];
+		const deleted: { rawId: string; cached: AgentHostSessionAdapter; registration: URI | undefined; getDeletion: () => ISessionDeletion | undefined }[] = [];
+		const deletionStore = new DisposableStore();
 		try {
-			for (const { rawId, cached } of targets) {
+			const tracked = this.trackSessionDeletions(targets.map(target => target.cached), deletionStore);
+			for (const { rawId, cached, registration } of targets) {
+				const getDeletion = tracked.get(cached)!;
 				await connection.disposeSession(cached.backendUri);
+				const current = this._sessionCache.get(rawId);
+				if ((current && current !== cached) || this.findBackendSessionResource(cached.backendUri) !== registration) {
+					continue;
+				}
+				deleted.push({ rawId, cached, registration, getDeletion });
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
 				}
 			}
 		} finally {
-			if (removed.length > 0) {
-				this._onDidChangeSessions.fire({ added: [], removed, changed: [] });
+			try {
+				const removedSessions = new Set(removed);
+				const added = new Set<AgentHostSessionAdapter>();
+				const deletedSessions: ISessionDeletion[] = [];
+				for (const { rawId, cached, registration, getDeletion } of deleted) {
+					const current = this._sessionCache.get(rawId);
+					if ((current && current !== cached) || this.findBackendSessionResource(cached.backendUri) !== registration) {
+						if (current && removedSessions.has(cached)) {
+							added.add(current);
+						}
+						continue;
+					}
+					const deletion = getDeletion();
+					if (deletion) {
+						deletedSessions.push(deletion);
+					}
+				}
+				if (removed.length > 0 || deletedSessions.length > 0) {
+					const event = { added: [...added], removed, changed: [], deleted: deletedSessions };
+					if (removed.length > 0) {
+						this._onDidChangeSessions.fire(event);
+					} else {
+						// Keep an already announced removal on its notification debounce.
+						this._onDidChangeSessionsFromNotifications.fire(event);
+					}
+				}
 				for (const cached of removed) {
 					cached.dispose();
 				}
+				for (const { rawId, cached, registration, getDeletion } of deleted) {
+					const current = this._sessionCache.get(rawId);
+					if ((!current || current === cached) && this.findBackendSessionResource(cached.backendUri) === registration && getDeletion()) {
+						this.forgetBackendSession(cached.backendUri);
+					}
+				}
+			} finally {
+				deletionStore.dispose();
 			}
 		}
 	}
