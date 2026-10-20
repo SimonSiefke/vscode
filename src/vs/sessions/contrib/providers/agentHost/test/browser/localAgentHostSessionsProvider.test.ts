@@ -9723,6 +9723,45 @@ suite('LocalAgentHostSessionsProvider', () => {
 		}));
 	}
 
+	for (const waitFor of ['first', 'second'] as const) {
+		test(`captures a peer added while the ${waitFor} bulk deletion is pending`, async () => {
+			agentHost.addSession(createSession('late-peer-first'));
+			agentHost.addSession(createSession('late-peer-second'));
+			const provider = createProvider(disposables, agentHost);
+			await timeout(0);
+			const first = provider.getSessions().find(session => AgentSession.id(session.resource) === 'late-peer-first');
+			const second = provider.getSessions().find(session => AgentSession.id(session.resource) === 'late-peer-second');
+			assert.ok(first);
+			assert.ok(second instanceof AgentHostSessionAdapter);
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			const dispose = agentHost.disposeSession.bind(agentHost);
+			agentHost.disposeSession = async backend => {
+				if (AgentSession.id(backend) === `late-peer-${waitFor}`) {
+					await entered.complete();
+					await release.p;
+				}
+				await dispose(backend);
+			};
+			const changes: ISessionChangeEvent[] = [];
+			disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+			const deletion = provider.deleteSessions([first.sessionId, second.sessionId]);
+			await entered.p;
+			second.applyChatMetadata([{ chat: URI.parse(buildDefaultChatUri(second.backendUri.toString())), kind: 'default' }, { chat: URI.parse(buildChatUri(second.backendUri, 'late-peer')), kind: 'peer' }]);
+			const peer = second.chats.get().find(chat => chat.resource.fragment === 'late-peer');
+			assert.ok(peer);
+			if (waitFor === 'second') {
+				fireSessionRemoved(agentHost, 'late-peer-second');
+				await timeout(0);
+			}
+			await release.complete();
+			await deletion;
+			await timeout(100);
+
+			assert.ok(changes.flatMap(event => event.deleted ?? []).find(session => session.sessionId === second.sessionId)?.chatResources.some(resource => resource.toString() === peer.resource.toString()));
+		});
+	}
+
 	test('publishes confirmed partial deletions before a later target fails', async () => {
 		agentHost.addSession(createSession('confirmed-first', { summary: 'First' }));
 		agentHost.addSession(createSession('confirmed-second', { summary: 'Second' }));
@@ -9761,6 +9800,57 @@ suite('LocalAgentHostSessionsProvider', () => {
 			removed: changes.flatMap(event => event.removed.map(session => session.sessionId)),
 		}, { deleted: [], removed: [target.sessionId] });
 	}));
+
+	for (const flushReplacement of [false, true]) {
+		for (const rejectSecond of [false, true]) {
+			test(`preserves a completed deletion target recreated during a later batch await: flushed=${flushReplacement}, rejected=${rejectSecond}`, () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+				const provider = createProvider(disposables, agentHost);
+				await timeout(0);
+				fireSessionAdded(agentHost, 'completed-target', { title: 'First' });
+				fireSessionAdded(agentHost, 'pending-target', { title: 'Second' });
+				await timeout(100);
+				const first = provider.getSessions().find(session => session.title.get() === 'First');
+				const second = provider.getSessions().find(session => session.title.get() === 'Second');
+				assert.ok(first);
+				assert.ok(second);
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const dispose = agentHost.disposeSession.bind(agentHost);
+				agentHost.disposeSession = async backend => {
+					if (AgentSession.id(backend) === 'pending-target') {
+						await entered.complete();
+						await release.p;
+						if (rejectSecond) {
+							throw new Error('second deletion rejected');
+						}
+					}
+					await dispose(backend);
+				};
+				const changes: ISessionChangeEvent[] = [];
+				disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+				const deletion = provider.deleteSessions([first.sessionId, second.sessionId]).then(() => undefined, error => error);
+				await entered.p;
+				fireSessionAdded(agentHost, 'completed-target', { title: 'Replacement' });
+				await timeout(flushReplacement ? 100 : 0);
+				const replacement = provider.getSessions().find(session => session.title.get() === 'Replacement');
+				assert.ok(replacement);
+				await release.complete();
+				const error = await deletion;
+				assert.strictEqual(error?.message, rejectSecond ? 'second deletion rejected' : undefined);
+				await timeout(100);
+
+				assert.deepStrictEqual({
+					deleted: changes.flatMap(event => event.deleted?.map(session => session.sessionId) ?? []),
+					removedFirst: changes.some(event => event.removed.includes(first)),
+					publishedReplacement: changes.some(event => event.added.includes(replacement)),
+					remaining: provider.getSessions().map(session => session.title.get()).sort(),
+				}, {
+					deleted: rejectSecond ? [] : [second.sessionId], removedFirst: false, publishedReplacement: true,
+					remaining: rejectSecond ? ['Replacement', 'Second'] : ['Replacement'],
+				});
+			}));
+		}
+	}
 
 	test('does not confirm deletion for a replacement announced while disposal is pending', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		const provider = createProvider(disposables, agentHost);

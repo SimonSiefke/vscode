@@ -7106,54 +7106,72 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		await this.deleteSessions([sessionId]);
 	}
 
+	protected trackSessionDeletion(session: AgentHostSessionAdapter, store: DisposableStore): () => ISessionDeletion {
+		const sessionId = session.sessionId;
+		const chatResources = new ResourceSet();
+		store.add(autorun(reader => {
+			for (const chat of session.chats.read(reader)) {
+				chatResources.add(chat.resource);
+			}
+		}));
+		return () => ({ sessionId, chatResources: [...chatResources] });
+	}
+
 	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
 		const connection = this.connection;
 		if (!connection) {
 			return;
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
+		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
 		for (const sessionId of sessionIds) {
 			this._assertSessionAvailable(sessionId);
 			const rawId = this._sessionKeyFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({
-					rawId,
-					cached,
-					deletion: { sessionId: cached.sessionId, chatResources: cached.chats.get().map(chat => chat.resource) },
-				});
+				targets.push({ rawId, cached });
 			}
 		}
 		if (targets.length === 0) {
 			return;
 		}
 		const removed: AgentHostSessionAdapter[] = [];
-		const deleted: ISessionDeletion[] = [];
+		const deleted: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
+		const deletionStore = new DisposableStore();
 		try {
-			for (const { rawId, cached, deletion } of targets) {
+			const trackedTargets = targets.map(target => ({ ...target, getDeletion: this.trackSessionDeletion(target.cached, deletionStore) }));
+			for (const { rawId, cached, getDeletion } of trackedTargets) {
 				await connection.disposeSession(cached.backendUri);
 				const current = this._sessionCache.get(rawId);
 				if (current && current !== cached) {
 					continue;
 				}
-				deleted.push(deletion);
+				deleted.push({ rawId, cached, deletion: getDeletion() });
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
 				}
 			}
 		} finally {
-			if (removed.length > 0 || deleted.length > 0) {
-				const event = { added: [], removed, changed: [], deleted };
-				if (removed.length > 0) {
+			deletionStore.dispose();
+			// Earlier targets can be replaced while a later deletion is pending.
+			const confirmed = deleted.filter(({ rawId, cached }) => {
+				const current = this._sessionCache.get(rawId);
+				return !current || current === cached;
+			});
+			const confirmedSessions = new Set(confirmed.map(target => target.cached));
+			const removedSessions = removed.filter(session => confirmedSessions.has(session));
+			const deletedSessions = confirmed.map(target => target.deletion);
+			if (removedSessions.length > 0 || deletedSessions.length > 0) {
+				const event = { added: [], removed: removedSessions, changed: [], deleted: deletedSessions };
+				if (removedSessions.length > 0) {
 					this._onDidChangeSessions.fire(event);
 				} else {
 					// Keep an already announced removal on its notification debounce.
 					this._onDidChangeSessionsFromNotifications.fire(event);
 				}
-				for (const cached of removed) {
-					cached.dispose();
-				}
+			}
+			for (const cached of removed) {
+				cached.dispose();
 			}
 		}
 	}

@@ -161,6 +161,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 	 * environment as one that has vanished and tear it down mid-provision.
 	 */
 	protected readonly _provisioning = new Set<string>();
+	private readonly _pendingSessionDeletions = new Map<string, number>();
 	/** History-backed providers retained through their first live connection. */
 	private readonly _historyHandlers = this._register(new DisposableMap<string, { readonly handler: CloudSandboxSessionHandler; dispose(): void }>());
 	/**
@@ -405,7 +406,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 			}
 		}
 		for (const [address, environment] of this._environments) {
-			if (present.has(address) || this._provisioning.has(address)) {
+			if (present.has(address) || this._provisioning.has(address) || this._pendingSessionDeletions.has(address)) {
 				continue;
 			}
 			if (result.kind !== 'complete' && (!environment.taskId || (!removedTasks.has(environment.taskId) && !updatedTasks.has(environment.taskId)))) {
@@ -624,6 +625,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 		const store = new DisposableStore();
 		const source = store.add(new CancellationTokenSource(this._enabledCts.token));
 		store.add(token.onCancellationRequested(() => source.cancel()));
+		this._pendingSessionDeletions.set(address, (this._pendingSessionDeletions.get(address) ?? 0) + 1);
 		try {
 			for (const target of targets) {
 				await this._apiService.deleteTask(target.taskId, source.token);
@@ -636,8 +638,14 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 				removeSession(target.sessionId);
 			}
 		} finally {
+			const pending = (this._pendingSessionDeletions.get(address) ?? 1) - 1;
+			if (pending === 0) {
+				this._pendingSessionDeletions.delete(address);
+			} else {
+				this._pendingSessionDeletions.set(address, pending);
+			}
 			store.dispose();
-			if (this._sessionEnvironments.get(address) === sessions) {
+			if (pending === 0 && this._sessionEnvironments.get(address) === sessions) {
 				const remaining = sessions?.values().next().value;
 				if (!remaining) {
 					this._teardownEnvironment(address);
