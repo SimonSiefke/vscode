@@ -1021,6 +1021,49 @@ suite('SessionsTerminalContribution', () => {
 		assert.strictEqual(terminalInstances.get(terminal.instanceId), terminal);
 	});
 
+	for (const late of [false, true]) {
+		test(`keeps a vetoed discarded-draft terminal out of later draft ownership: late=${late}`, async () => {
+			const cwd = URI.file('/worktree');
+			const first = makeAgentSession({ sessionId: 'test:kept-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const next = makeAgentSession({ sessionId: 'test:later-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const barrier = new DeferredPromise<void>();
+			if (late) {
+				terminalCreationBarriers.set(cwd.fsPath, barrier);
+			}
+			const creation = contribution.ensureTerminal(cwd, false, first);
+			if (late) {
+				await tick();
+				assert.deepStrictEqual(terminalCreationStarted, [cwd.fsPath]);
+			} else {
+				await creation;
+			}
+			vetoSafeDispose = true;
+			onDidDiscardNewSession.fire(first);
+			if (late) {
+				await barrier.complete();
+				assert.deepStrictEqual(await creation, []);
+			}
+			await tick();
+			const kept = [...terminalInstances.values()][0] as TestTerminalInstance;
+			assert.ok(kept);
+			assert.strictEqual(disposedInstances.length, 0);
+
+			vetoSafeDispose = false;
+			const [replacement] = await contribution.ensureTerminal(cwd, false, next);
+			assert.notStrictEqual(replacement.instanceId, kept.instanceId, 'a later draft must not adopt the terminal the user kept');
+			onDidDiscardNewSession.fire(next);
+			await tick();
+			assert.deepStrictEqual(disposedInstances.map(instance => instance.instanceId), [replacement.instanceId]);
+			assert.strictEqual(terminalInstances.get(kept.instanceId), kept);
+
+			kept._testSetDisposed(true);
+			terminalInstances.delete(kept.instanceId);
+			onDidDisposeInstance.fire(kept);
+			assert.strictEqual((Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).size, 0);
+			assert.strictEqual((Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, unknown>).size, 0);
+		});
+	}
+
 	// --- new-session draft replacement ---
 
 	test('reuses one terminal across repeated same-cwd replacement drafts', async () => {

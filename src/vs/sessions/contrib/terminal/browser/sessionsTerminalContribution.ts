@@ -811,7 +811,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
 			await this._terminalService.safeDisposeTerminal(availableInstance);
-			this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+			if (availableInstance.isDisposed) {
+				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+			}
 		}
 	}
 
