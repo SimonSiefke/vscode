@@ -882,6 +882,28 @@ suite('CloudSandboxAgentHostContribution', () => {
 		});
 	});
 
+	test('publishes owner deletion confirmation before the last sandbox provider is disposed', async () => {
+		const harness = await createContribution(store, [discoveredSession()]);
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const backend = URI.parse('ahp-session:/sess-1');
+		const deleted = { sessionId: 'sandbox-history', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirmations: unknown[] = [];
+		const wasDisposed: boolean[] = [];
+		const remove = provider.removeDeletedSession.bind(provider);
+		provider.removeDeletedSession = (rawId, confirmation?: typeof deleted) => {
+			confirmations.push(confirmation);
+			wasDisposed.push(provider.disposed);
+			remove(rawId);
+		};
+
+		await provider.config.deleteSessionsOnDemand!.deleteSessions([backend], resource => {
+			assert.strictEqual(resource.toString(), backend.toString());
+			return deleted;
+		});
+
+		assert.deepStrictEqual({ confirmations, wasDisposed, disposed: provider.disposed }, { confirmations: [deleted], wasDisposed: [false], disposed: true });
+	});
+
 	test('retains the provider and inventory when Mission Control rejects deletion', async () => {
 		const storage = store.add(new InMemoryStorageService());
 		const harness = await createContribution(store, [discoveredSession()], {

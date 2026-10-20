@@ -52,7 +52,7 @@ import { DevContainerAgentHostSessionsProvider } from '../../agentHost/browser/d
 import type { AgentHostSessionAdapter } from '../../agentHost/browser/baseAgentHostSessionsProvider.js';
 import { mapProtocolStatus } from '../../agentHost/browser/agentHostDiffs.js';
 import { ReconnectableAgentHostAutomationStore } from '../../agentHost/browser/reconnectableAgentHostAutomationStore.js';
-import type { ISendRequestOptions, ISessionsProviderAutomations, SessionResourceResolveReason } from '../../../../services/sessions/common/sessionsProvider.js';
+import type { ISendRequestOptions, ISessionDeletion, ISessionsProviderAutomations, SessionResourceResolveReason } from '../../../../services/sessions/common/sessionsProvider.js';
 import { remoteAgentHostSessionTypeAuthorityPrefix, remoteAgentHostSessionTypeId } from '../../../../../platform/agentHost/common/agentHostSessionType.js';
 import { readAgentDevContainerWorktreeMetadata } from '../../../../../platform/agentHost/common/meta/agentDevContainerWorktreeMeta.js';
 import { INewSessionComposerService } from '../../../chat/browser/newSessionComposerService.js';
@@ -94,7 +94,7 @@ export interface IRemoteAgentHostSessionsProviderConfig {
 	/** Optional owner-managed deletion for exact backend resources, working without a host connection. */
 	readonly deleteSessionsOnDemand?: {
 		ownsSession(session: URI): boolean;
-		deleteSessions(sessions: readonly URI[]): Promise<void>;
+		deleteSessions(sessions: readonly URI[], confirmDeletion?: (session: URI) => ISessionDeletion | undefined): Promise<void>;
 	};
 	/** Optional progress messages during on-demand connect. */
 	readonly onDidReportConnectProgress?: Event<IAgentHostConnectProgress>;
@@ -611,6 +611,7 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 
 	override async deleteSessions(sessionIds: readonly string[]): Promise<void> {
 		const ownerSessions: URI[] = [];
+		const ownerDeletions = new Map<string, { key: string; cached: AgentHostSessionAdapter; deleted: ISessionDeletion }>();
 		const hostSessionIds: string[] = [];
 		for (const sessionId of sessionIds) {
 			const key = this._sessionKeyFromChatId(sessionId);
@@ -619,7 +620,12 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 				if (!key || !this._sessionCache.has(key)) {
 					throw new Error(localize('remoteAgentHost.deleteSessionNotFound', "Session not found."));
 				}
+				const cached = this._sessionCache.get(key)!;
 				ownerSessions.push(backendSession);
+				ownerDeletions.set(backendSession.toString(), {
+					key, cached,
+					deleted: { sessionId: cached.sessionId, chatResources: cached.chats.get().map(chat => chat.resource) },
+				});
 			} else {
 				hostSessionIds.push(sessionId);
 			}
@@ -668,7 +674,14 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 		}
 		if (ownerSessions.length > 0) {
 			// Owner deletion can disconnect the host, so finish its AHP deletions first.
-			await this._deleteSessionsOnDemand?.deleteSessions(ownerSessions);
+			await this._deleteSessionsOnDemand?.deleteSessions(ownerSessions, resource => {
+				const target = ownerDeletions.get(resource.toString());
+				if (!target) {
+					return undefined;
+				}
+				const current = this._sessionCache.get(target.key);
+				return current && current !== target.cached ? undefined : target.deleted;
+			});
 		}
 	}
 

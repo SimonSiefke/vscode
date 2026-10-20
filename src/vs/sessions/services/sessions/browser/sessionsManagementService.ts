@@ -194,10 +194,10 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	private onDidChangeSessionsFromSessionsProviders(e: ISessionChangeEvent): void {
-		// Mark removed models deleted before view teardown can save their metadata again.
-		for (const session of e.removed) {
-			for (const chat of session.chats.get()) {
-				this.chatService.removeExternalSessionMetadata(chat.resource).catch(error => this.logService.error(error));
+		// Mark deleted models before view teardown can save their metadata again.
+		for (const session of e.deleted ?? []) {
+			for (const resource of session.chatResources) {
+				this.chatService.removeExternalSessionMetadata(resource).catch(error => this.logService.error(error));
 			}
 		}
 

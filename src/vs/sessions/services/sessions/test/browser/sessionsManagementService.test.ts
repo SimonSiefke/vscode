@@ -7105,6 +7105,97 @@ suite('SessionsManagementService', () => {
 		assert.strictEqual(view.activeSession.get()?.sessionId, 'b');
 	});
 
+	function confirmedDeletion(session: ISession) {
+		return { sessionId: session.sessionId, chatResources: session.chats.get().map(chat => chat.resource) };
+	}
+
+	test('preserves external metadata when a catalog hides and restores a live session', () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///hidden-live-chat') };
+		const session = stubSession({ sessionId: 'hidden-live', providerId: 'test', chats: constObservable([chat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+		}(session);
+		const { chatService } = createSessionsManagementService(session, disposables, provider);
+
+		changes.fire({ added: [], removed: [session], changed: [] });
+		changes.fire({ added: [session], removed: [], changed: [] });
+
+		assert.deepStrictEqual(chatService.removedMetadataResources, []);
+	});
+
+	test('preserves external metadata for a catalog-only removal during a delete call', async () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///catalog-only-chat') };
+		const session = stubSession({ sessionId: 'catalog-only', providerId: 'test', chats: constObservable([chat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+			override async deleteSession(): Promise<void> {
+				changes.fire({ added: [], removed: [session], changed: [] });
+			}
+		}(session);
+		const { service, chatService } = createSessionsManagementService(session, disposables, provider);
+
+		await service.deleteSession(session);
+
+		assert.deepStrictEqual(chatService.removedMetadataResources, []);
+	});
+
+	test('forgets only confirmed deleted metadata in a mixed catalog removal', () => {
+		const hiddenChat = { ...stubChat, resource: URI.parse('test:///hidden-chat') };
+		const deletedChat = { ...stubChat, resource: URI.parse('test:///deleted-chat') };
+		const hidden = stubSession({ sessionId: 'hidden', providerId: 'test', chats: constObservable([hiddenChat]) });
+		const deleted = stubSession({ sessionId: 'deleted', providerId: 'test', chats: constObservable([deletedChat]) });
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+			override getSessions(): ISession[] { return [hidden, deleted]; }
+		}(hidden);
+		const { chatService } = createSessionsManagementService(hidden, disposables, provider);
+
+		changes.fire({ added: [], removed: [hidden, deleted], changed: [], deleted: [confirmedDeletion(deleted)] });
+
+		assert.deepStrictEqual(chatService.removedMetadataResources, [deletedChat.resource]);
+	});
+
+	test('forgets confirmed deleted metadata after its catalog facade was already removed', () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///removed-facade-chat') };
+		const chats = observableValue<readonly IChat[]>('chats', [chat]);
+		const session = stubSession({ sessionId: 'removed-facade', providerId: 'test', chats });
+		const deletion = confirmedDeletion(session);
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+		}(session);
+		const { chatService } = createSessionsManagementService(session, disposables, provider);
+
+		changes.fire({ added: [], removed: [session], changed: [] });
+		const beforeConfirmation = [...chatService.removedMetadataResources];
+		chats.set([], undefined);
+		changes.fire({ added: [], removed: [], changed: [], deleted: [deletion] });
+
+		assert.deepStrictEqual({ beforeConfirmation, afterConfirmation: chatService.removedMetadataResources }, {
+			beforeConfirmation: [], afterConfirmation: [chat.resource],
+		});
+	});
+
+	test('forgets confirmed metadata using the captured chats after their facade is emptied', () => {
+		const chat = { ...stubChat, resource: URI.parse('test:///emptied-facade-chat') };
+		const chats = observableValue<readonly IChat[]>('chats', [chat]);
+		const session = stubSession({ sessionId: 'emptied-facade', providerId: 'test', chats });
+		const deletion = confirmedDeletion(session);
+		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = changes.event;
+		}(session);
+		const { chatService } = createSessionsManagementService(session, disposables, provider);
+
+		chats.set([], undefined);
+		changes.fire({ added: [], removed: [session], changed: [], deleted: [deletion] });
+
+		assert.deepStrictEqual(chatService.removedMetadataResources, [chat.resource]);
+	});
+
 	test('preserves external metadata when single-session deletion is an offline no-op', async () => {
 		const chat = { ...stubChat, resource: URI.parse('test:///offline-chat') };
 		const session = stubSession({ sessionId: 'offline', providerId: 'test', chats: constObservable([chat]) });
@@ -7125,7 +7216,7 @@ suite('SessionsManagementService', () => {
 		assert.deepStrictEqual(chatService.removedMetadataResources, []);
 	});
 
-	test('forgets only removed sessions when one provider partially fails', async () => {
+	test('forgets only confirmed deletions when one provider partially fails', async () => {
 		const deletedChat = { ...stubChat, resource: URI.parse('test:///deleted-chat') };
 		const failedChat = { ...stubChat, resource: URI.parse('test:///surviving-chat') };
 		const deleted = stubSession({ sessionId: 'deleted', providerId: 'test', chats: constObservable([deletedChat]) });
@@ -7135,7 +7226,7 @@ suite('SessionsManagementService', () => {
 			override readonly onDidChangeSessions = changes.event;
 			override getSessions(): ISession[] { return [deleted, failed]; }
 			override async deleteSessions(): Promise<void> {
-				changes.fire({ added: [], removed: [deleted], changed: [] });
+				changes.fire({ added: [], removed: [deleted], changed: [], deleted: [confirmedDeletion(deleted)] });
 				throw new Error('second deletion failed');
 			}
 		}(deleted);
@@ -7153,7 +7244,7 @@ suite('SessionsManagementService', () => {
 		const provider = new class extends TestSessionsProvider {
 			override readonly onDidChangeSessions = changes.event;
 			override async deleteSession(): Promise<void> {
-				changes.fire({ added: [], removed: [session], changed: [] });
+				changes.fire({ added: [], removed: [session], changed: [], deleted: [confirmedDeletion(session)] });
 				throw new Error('worktree cleanup failed');
 			}
 		}(session);
@@ -7164,7 +7255,7 @@ suite('SessionsManagementService', () => {
 		assert.deepStrictEqual(chatService.removedMetadataResources, [chat.resource]);
 	});
 
-	test('forgets metadata for externally removed sessions before closing their views', () => {
+	test('forgets confirmed deleted metadata before closing its views', () => {
 		const chat = { ...stubChat, resource: URI.parse('test:///removed-chat') };
 		const session = stubSession({ sessionId: 'removed', providerId: 'test', chats: constObservable([chat]) });
 		const changes = disposables.add(new Emitter<ISessionChangeEvent>());
@@ -7175,7 +7266,7 @@ suite('SessionsManagementService', () => {
 		let metadataAtRemoval: URI[] = [];
 		disposables.add(service.onDidChangeSessions(() => metadataAtRemoval = [...chatService.removedMetadataResources]));
 
-		changes.fire({ added: [], removed: [session], changed: [] });
+		changes.fire({ added: [], removed: [session], changed: [], deleted: [confirmedDeletion(session)] });
 
 		assert.deepStrictEqual(metadataAtRemoval, [chat.resource]);
 	});
@@ -7191,7 +7282,7 @@ suite('SessionsManagementService', () => {
 			override readonly onDidChangeSessions = changes.event;
 			override async deleteSession(): Promise<void> {
 				await confirmation.p;
-				changes.fire({ added: [], removed: [session], changed: [] });
+				changes.fire({ added: [], removed: [session], changed: [], deleted: [confirmedDeletion(session)] });
 				chats.set([], undefined);
 			}
 		}(session);
@@ -7248,7 +7339,7 @@ suite('SessionsManagementService', () => {
 				override readonly onDidChangeSessions = changes.event;
 				override async deleteSessions(ids: readonly string[]): Promise<void> {
 					await super.deleteSessions(ids);
-					changes.fire({ added: [], removed: [deletedSession], changed: [] });
+					changes.fire({ added: [], removed: [deletedSession], changed: [], deleted: [confirmedDeletion(deletedSession)] });
 					chats.set([], undefined);
 				}
 			}('p2', false, deletedSession);

@@ -9699,6 +9699,121 @@ suite('LocalAgentHostSessionsProvider', () => {
 		});
 	});
 
+	for (const notified of [false, true]) {
+		test(`publishes confirmed deletion identity ${notified ? 'with' : 'without'} a host notification`, () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+			const provider = createProvider(disposables, agentHost);
+			fireSessionAdded(agentHost, 'confirmed-delete', { title: 'Confirmed' });
+			const target = provider.getSessions().find(session => session.title.get() === 'Confirmed');
+			assert.ok(target);
+			const deletion = { sessionId: target.sessionId, chatResources: target.chats.get().map(chat => chat.resource) };
+			const changes: ISessionChangeEvent[] = [];
+			disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+			if (notified) {
+				agentHost.onDisposeSession = session => fireSessionRemoved(agentHost, AgentSession.id(session));
+			}
+
+			await provider.deleteSession(target.sessionId);
+			await timeout(100);
+
+			assert.deepStrictEqual({
+				deleted: changes.flatMap(event => event.deleted ?? []),
+				removed: changes.flatMap(event => event.removed.map(session => session.sessionId)),
+				remaining: provider.getSessions().some(session => session.sessionId === target.sessionId),
+			}, { deleted: [deletion], removed: [target.sessionId], remaining: false });
+		}));
+	}
+
+	test('publishes confirmed partial deletions before a later target fails', async () => {
+		agentHost.addSession(createSession('confirmed-first', { summary: 'First' }));
+		agentHost.addSession(createSession('confirmed-second', { summary: 'Second' }));
+		const provider = createProvider(disposables, agentHost);
+		await timeout(0);
+		const first = provider.getSessions().find(session => session.title.get() === 'First');
+		const second = provider.getSessions().find(session => session.title.get() === 'Second');
+		assert.ok(first);
+		assert.ok(second);
+		const deletion = { sessionId: first.sessionId, chatResources: first.chats.get().map(chat => chat.resource) };
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+		agentHost.failDisposeSessionFor = 'confirmed-second';
+
+		await assert.rejects(provider.deleteSessions([first.sessionId, second.sessionId]), /Failed to dispose confirmed-second/);
+
+		assert.deepStrictEqual({
+			deleted: changes.flatMap(event => event.deleted ?? []),
+			remaining: provider.getSessions().map(session => session.title.get()),
+		}, { deleted: [deletion], remaining: ['Second'] });
+	});
+
+	test('does not infer permanent deletion from catalog removal notifications', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const provider = createProvider(disposables, agentHost);
+		fireSessionAdded(agentHost, 'hidden-live', { title: 'Hidden live session' });
+		const target = provider.getSessions().find(session => session.title.get() === 'Hidden live session');
+		assert.ok(target);
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+
+		fireSessionRemoved(agentHost, 'hidden-live');
+		await timeout(100);
+
+		assert.deepStrictEqual({
+			deleted: changes.flatMap(event => event.deleted ?? []),
+			removed: changes.flatMap(event => event.removed.map(session => session.sessionId)),
+		}, { deleted: [], removed: [target.sessionId] });
+	}));
+
+	test('does not confirm deletion for a replacement announced while disposal is pending', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const provider = createProvider(disposables, agentHost);
+		await timeout(0);
+		fireSessionAdded(agentHost, 'recreated-delete', { title: 'Original' });
+		const target = provider.getSessions().find(session => session.title.get() === 'Original');
+		assert.ok(target);
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+		agentHost.onDisposeSession = session => {
+			fireSessionRemoved(agentHost, AgentSession.id(session));
+			fireSessionAdded(agentHost, AgentSession.id(session), { title: 'Replacement' });
+		};
+
+		await provider.deleteSession(target.sessionId);
+		await timeout(100);
+
+		assert.deepStrictEqual({
+			deleted: changes.flatMap(event => event.deleted ?? []),
+			remaining: provider.getSessions().map(session => session.title.get()),
+		}, { deleted: [], remaining: ['Replacement'] });
+	}));
+
+	test('keeps backend deletion confirmation on the existing notification debounce', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const provider = createProvider(disposables, agentHost);
+		await timeout(0);
+		fireSessionAdded(agentHost, 'debounced-confirmation');
+		const target = provider.getSessions()[0];
+		assert.ok(target);
+		const order: string[] = [];
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(event => {
+			order.push('sessions changed');
+			changes.push(event);
+		}));
+		agentHost.onDisposeSession = session => fireSessionRemoved(agentHost, AgentSession.id(session));
+
+		await provider.deleteSession(target.sessionId);
+		order.push('delete returned');
+		const beforeNotification = [...order];
+		await timeout(100);
+
+		assert.deepStrictEqual({
+			beforeNotification,
+			order,
+			deleted: changes.flatMap(event => event.deleted?.map(session => session.sessionId) ?? []),
+			removed: changes.flatMap(event => event.removed.map(session => session.sessionId)),
+		}, {
+			beforeNotification: ['delete returned'], order: ['delete returned', 'sessions changed'],
+			deleted: [target.sessionId], removed: [target.sessionId],
+		});
+	}));
+
 	// ---- Rename -------
 
 	test('renameSession dispatches SessionTitleChanged on the session channel', async () => {
