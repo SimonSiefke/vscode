@@ -878,8 +878,8 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 
 			}));
 
-			// eslint-disable-next-line no-restricted-syntax
 			const terminalElement = this._terminal?.element;
+			// eslint-disable-next-line no-restricted-syntax
 			const element = terminalElement?.querySelector('.xterm-helper-textarea');
 			if (element && terminalElement) {
 				this._register(dom.addDisposableListener(terminalElement.ownerDocument, 'click', (event) => {
