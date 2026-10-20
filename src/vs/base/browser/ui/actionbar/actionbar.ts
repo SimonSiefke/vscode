@@ -669,4 +669,4 @@ export function prepareActions(actions: IAction[]): IAction[] {
 
 
 // @ts-ignore
-globalThis.ActionBar = ActionBar
+globalThis.ActionBar = ActionBar;
