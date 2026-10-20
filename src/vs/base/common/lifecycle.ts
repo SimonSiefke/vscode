@@ -820,7 +820,7 @@ export class DisposableMap<K, V extends IDisposable = IDisposable> implements ID
 	 */
 	deleteAndDispose(key: K): void {
 		if (!this._store.has(key)) {
-			console.warn('cannot dispose', key)
+			console.warn('cannot dispose', key);
 		}
 		this._store.get(key)?.dispose();
 		this._store.delete(key);

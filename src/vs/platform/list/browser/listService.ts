@@ -1213,7 +1213,7 @@ class WorkbenchTreeInternals<TInput, T, TFilterData> {
 		@IConfigurationService configurationService: IConfigurationService
 	) {
 		this.contextKeyService = createScopedContextKeyService(contextKeyService, tree);
-		this.disposables.push(this.contextKeyService)
+		this.disposables.push(this.contextKeyService);
 
 		this.disposables.push(createScrollObserver(this.contextKeyService, tree));
 

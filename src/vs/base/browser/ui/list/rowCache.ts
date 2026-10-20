@@ -119,7 +119,7 @@ export class RowCache<T> implements IDisposable {
 
 		this.cache.clear();
 		this.transactionNodesPendingRemoval.clear();
-		this.renderers = new Map()
+		this.renderers = new Map();
 	}
 
 	private getRenderer(templateId: string): IListRenderer<T, any> {
