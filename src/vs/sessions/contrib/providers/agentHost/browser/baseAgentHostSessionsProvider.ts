@@ -7135,7 +7135,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			return;
 		}
 		const removed: AgentHostSessionAdapter[] = [];
-		const deleted: ISessionDeletion[] = [];
+		const deleted: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
 		const deletionStore = new DisposableStore();
 		try {
 			const trackedTargets = targets.map(target => ({ ...target, getDeletion: this.trackSessionDeletion(target.cached, deletionStore) }));
@@ -7145,7 +7145,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				if (current && current !== cached) {
 					continue;
 				}
-				deleted.push(getDeletion());
+				deleted.push({ rawId, cached, deletion: getDeletion() });
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
@@ -7153,17 +7153,25 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			}
 		} finally {
 			deletionStore.dispose();
-			if (removed.length > 0 || deleted.length > 0) {
-				const event = { added: [], removed, changed: [], deleted };
-				if (removed.length > 0) {
+			// Earlier targets can be replaced while a later deletion is pending.
+			const confirmed = deleted.filter(({ rawId, cached }) => {
+				const current = this._sessionCache.get(rawId);
+				return !current || current === cached;
+			});
+			const confirmedSessions = new Set(confirmed.map(target => target.cached));
+			const removedSessions = removed.filter(session => confirmedSessions.has(session));
+			const deletedSessions = confirmed.map(target => target.deletion);
+			if (removedSessions.length > 0 || deletedSessions.length > 0) {
+				const event = { added: [], removed: removedSessions, changed: [], deleted: deletedSessions };
+				if (removedSessions.length > 0) {
 					this._onDidChangeSessions.fire(event);
 				} else {
 					// Keep an already announced removal on its notification debounce.
 					this._onDidChangeSessionsFromNotifications.fire(event);
 				}
-				for (const cached of removed) {
-					cached.dispose();
-				}
+			}
+			for (const cached of removed) {
+				cached.dispose();
 			}
 		}
 	}

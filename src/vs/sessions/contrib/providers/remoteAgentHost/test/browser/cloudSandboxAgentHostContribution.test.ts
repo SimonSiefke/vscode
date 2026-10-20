@@ -899,7 +899,7 @@ suite('CloudSandboxAgentHostContribution', () => {
 		await release.complete();
 		await deletion;
 
-		assert.deepStrictEqual({ disposedWhilePending, confirmations, finallyDisposed: provider.disposed }, { disposedWhilePending: false, confirmations: [deleted], finallyDisposed: true });
+		assert.deepStrictEqual({ disposedWhilePending, confirmations, finallyDisposed: provider.disposed }, { disposedWhilePending: false, confirmations: [undefined, deleted], finallyDisposed: true });
 	});
 
 	test('releases the sandbox deletion hold after a rejected task request', async () => {
@@ -1634,6 +1634,34 @@ suite('CloudSandboxAgentHostContribution startup inventory', () => {
 			}
 		}
 	}
+
+	test('applies a one-shot sibling discovery removal while another task deletion is pending', async () => {
+		const storageService = store.add(new InMemoryStorageService());
+		const sibling = discoveredSession({ sessionId: 'sibling', taskId: 'task-sibling' });
+		const kept = discoveredSession({ sessionId: 'kept', taskId: 'task-kept' });
+		let result: ICloudSandboxDiscoveryResult = { kind: 'complete', sessions: [discoveredSession(), sibling, kept] };
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [], {
+			storageService, listSessions: async () => result,
+			deleteTask: async () => { await entered.complete(); await release.p; },
+		});
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')]);
+		await entered.p;
+		result = { kind: 'incremental', sessions: [], removedTaskIds: ['task-sibling'] };
+		await harness.runDiscovery();
+		const whilePending = readInventory(storageService).map(session => session.sessionId).sort();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await deletion;
+		result = { kind: 'incremental', sessions: [], removedTaskIds: [] };
+		await harness.runDiscovery();
+
+		assert.deepStrictEqual({
+			whilePending, disposedWhilePending, remaining: readInventory(storageService).map(session => session.sessionId),
+		}, { whilePending: ['kept', 'sess-1'], disposedWhilePending: false, remaining: ['kept'] });
+	});
 
 	test('restores session rows and repository metadata before discovery finishes without connecting', async () => {
 		const storageService = store.add(new InMemoryStorageService());

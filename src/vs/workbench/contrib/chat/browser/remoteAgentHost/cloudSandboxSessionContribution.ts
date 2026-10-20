@@ -382,7 +382,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 
 		const removedTasks = new Set(result.kind === 'complete' ? [] : result.removedTaskIds);
 		for (const [address, sessions] of this._sessionEnvironments) {
-			if (this._provisioning.has(address) || this._pendingSessionDeletions.has(address)) {
+			if (this._provisioning.has(address)) {
 				continue;
 			}
 			const connected = this._remoteAgentHostService.connections.some(
