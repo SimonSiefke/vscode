@@ -1222,7 +1222,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 
 	private readonly _store = new DisposableStore();
 
-	private readonly _providers = new Map<string, ILanguageModelChatProvider>();
+	private readonly _providers = new Map<string, { readonly provider: ILanguageModelChatProvider }>();
 	private readonly _vendors = new Map<string, ILanguageModelProviderDescriptor>();
 
 	/** Vendors for which a deprecation notice has already been shown this session. */
@@ -1441,21 +1441,22 @@ export class LanguageModelsService implements ILanguageModelsService {
 		// such as the agent host), skip the activation wait — there's nothing
 		// more for an extension to contribute, and waiting would block on
 		// extension host startup unnecessarily.
-		let provider = this._providers.get(vendorId);
-		if (!provider) {
+		let registration = this._providers.get(vendorId);
+		if (!registration) {
 			// Activate extensions before requesting to resolve the models
 			await this._extensionService.activateByEvent(`onLanguageModelChatProvider:${vendorId}`);
-			provider = this._providers.get(vendorId);
+			registration = this._providers.get(vendorId);
 		}
-		if (!provider) {
+		if (!registration) {
 			this._logService.warn(`[LM] No provider registered for vendor ${vendorId}`);
 			return;
 		}
 
 		return this._resolveLMSequencer.queue(vendorId, async () => {
-			if (this._providers.get(vendorId) !== provider) {
+			if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
 				return;
 			}
+			const { provider } = registration;
 
 			const allModels: ILanguageModelChatMetadataAndIdentifier[] = [];
 			const languageModelsGroups: ILanguageModelsGroup[] = [];
@@ -1489,6 +1490,10 @@ export class LanguageModelsService implements ILanguageModelsService {
 				});
 			}
 
+			if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
+				return;
+			}
+
 			const groups = this._languageModelsConfigurationService.getLanguageModelsProviderGroups();
 			const perModelConfigurations = new Map<string, IStringDictionary<unknown>>();
 			for (const group of groups) {
@@ -1515,6 +1520,9 @@ export class LanguageModelsService implements ILanguageModelsService {
 				}
 
 				const configuration = await this._resolveConfiguration(group, vendor.configuration);
+				if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
+					return;
+				}
 
 				try {
 					const models = await provider.provideLanguageModelChatInfo({ group: group.name, silent, configuration }, CancellationToken.None);
@@ -1556,7 +1564,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 				}
 			}
 
-			if (this._providers.get(vendorId) !== provider) {
+			if (this._providers.get(vendorId) !== registration || this._vendors.get(vendorId) !== vendor) {
 				return;
 			}
 
@@ -1660,7 +1668,8 @@ export class LanguageModelsService implements ILanguageModelsService {
 			throw new Error(`Chat model provider for vendor ${vendor} is already registered.`);
 		}
 
-		this._providers.set(vendor, provider);
+		const registration = { provider };
+		this._providers.set(vendor, registration);
 
 		const modelChangeListener = provider.onDidChange(() => {
 			this._resolveAllLanguageModels(vendor, true);
@@ -1668,7 +1677,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 
 		return toDisposable(() => {
 			modelChangeListener.dispose();
-			if (this._providers.get(vendor) !== provider) {
+			if (this._providers.get(vendor) !== registration) {
 				return;
 			}
 
@@ -1682,7 +1691,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 
 	async sendChatRequest(modelId: string, from: ExtensionIdentifier | undefined, messages: IChatMessage[], options: ILanguageModelChatRequestOptions, token: CancellationToken): Promise<ILanguageModelChatResponse> {
 		const metadata = this._modelCache.get(modelId);
-		const provider = this._providers.get(metadata?.vendor || '');
+		const provider = this._providers.get(metadata?.vendor || '')?.provider;
 		if (!provider) {
 			throw new Error(`Chat provider for model ${modelId} is not registered.`);
 		}
@@ -1787,7 +1796,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 		if (!model) {
 			throw new Error(`Chat model ${modelId} could not be found.`);
 		}
-		const provider = this._providers.get(model.vendor);
+		const provider = this._providers.get(model.vendor)?.provider;
 		if (!provider) {
 			throw new Error(`Chat provider for model ${modelId} is not registered.`);
 		}
@@ -2555,7 +2564,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 		}
 
 		await this._extensionService.activateByEvent(`onLanguageModelChatProvider:${vendor}`);
-		const provider = this._providers.get(vendor);
+		const provider = this._providers.get(vendor)?.provider;
 		if (!provider) {
 			throw new Error(`Chat model provider for vendor ${vendor} is not registered.`);
 		}
