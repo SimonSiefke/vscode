@@ -647,13 +647,13 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 			}
 			store.dispose();
 			if (ownsHold && this._sessionEnvironments.get(address) === sessions) {
-				if (pending === 0) {
-					const remaining = sessions?.values().next().value;
-					if (!remaining) {
+				const remaining = sessions?.values().next().value;
+				if (!remaining) {
+					if (pending === 0) {
 						this._teardownEnvironment(address);
-					} else if (!sessions?.has(this._environments.get(address)?.sessionId ?? '')) {
-						this._environments.set(address, remaining);
 					}
+				} else if (!sessions?.has(this._environments.get(address)?.sessionId ?? '')) {
+					this._environments.set(address, remaining);
 				}
 				this._persistInventory();
 			}
