@@ -1136,6 +1136,7 @@ export class DebugSession implements IDebugSession {
 
 		this.rawListeners.add(this.raw.onDidContinued(async event => {
 			const allThreads = event.body.allThreadsContinued !== false;
+			this.stoppedDetails = allThreads ? [] : this.stoppedDetails.filter(sd => sd.threadId !== event.body.threadId);
 
 			let affectedThreads: number[] | Promise<number[]>;
 			if (!allThreads) {
@@ -1155,7 +1156,6 @@ export class DebugSession implements IDebugSession {
 
 			statusQueue.cancel(allThreads ? undefined : [event.body.threadId]);
 			await statusQueue.run(affectedThreads, threadId => {
-				this.stoppedDetails = this.stoppedDetails.filter(sd => sd.threadId !== threadId);
 				const tokens = this.cancellationMap.get(threadId);
 				this.cancellationMap.delete(threadId);
 				tokens?.forEach(t => t.dispose(true));

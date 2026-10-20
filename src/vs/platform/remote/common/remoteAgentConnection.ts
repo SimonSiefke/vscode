@@ -589,6 +589,17 @@ export abstract class PersistentConnection extends Disposable {
 
 	private readonly _onDidStateChange = this._register(new Emitter<PersistentConnectionEvent>());
 	public readonly onDidStateChange = this._onDidStateChange.event;
+	private _connectionState = PersistentConnectionEventType.ConnectionGain;
+
+	/** Whether the transport is currently connected, including for late subscribers. */
+	public get isConnected(): boolean {
+		return this._connectionState === PersistentConnectionEventType.ConnectionGain && !this._isDisposed && !this._isPermanentFailure;
+	}
+
+	private _fireStateChange(event: PersistentConnectionEvent): void {
+		this._connectionState = event.type;
+		this._onDidStateChange.fire(event);
+	}
 
 	private _permanentFailure: boolean = false;
 	private get _isPermanentFailure(): boolean {
@@ -609,7 +620,7 @@ export abstract class PersistentConnection extends Disposable {
 		super();
 
 
-		this._onDidStateChange.fire(new ConnectionGainEvent(this.reconnectionToken, 0, 0));
+		this._fireStateChange(new ConnectionGainEvent(this.reconnectionToken, 0, 0));
 
 		this._register(protocol.onSocketClose((e) => {
 			const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
@@ -679,7 +690,7 @@ export abstract class PersistentConnection extends Disposable {
 		}
 		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
 		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
-		this._onDidStateChange.fire(new ConnectionLostEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData()));
+		this._fireStateChange(new ConnectionLostEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData()));
 		const TIMES = [0, 5, 5, 10, 10, 10, 10, 10, 30];
 		const graceTime = this._reconnectionGraceTime;
 		this._options.logService.info(`${logPrefix} starting reconnection with grace time: ${graceTime}ms (${Math.floor(graceTime / 1000)}s)`);
@@ -698,7 +709,7 @@ export abstract class PersistentConnection extends Disposable {
 			try {
 				if (waitTime > 0) {
 					const sleepPromise = sleep(waitTime);
-					this._onDidStateChange.fire(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise));
+					this._fireStateChange(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise));
 
 					this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
 					try {
@@ -712,13 +723,13 @@ export abstract class PersistentConnection extends Disposable {
 				}
 
 				// connection was lost, let's try to re-establish it
-				this._onDidStateChange.fire(new ReconnectionRunningEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), attempt + 1));
+				this._fireStateChange(new ReconnectionRunningEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), attempt + 1));
 				this._options.logService.info(`${logPrefix} resolving connection...`);
 				const simpleOptions = await resolveConnectionOptions(this._options, this.reconnectionToken, this.protocol);
 				this._options.logService.info(`${logPrefix} connecting to ${simpleOptions.connectTo}...`);
 				await this._reconnect(simpleOptions, createTimeoutCancellation(RECONNECT_TIMEOUT));
 				this._options.logService.info(`${logPrefix} reconnected!`);
-				this._onDidStateChange.fire(new ConnectionGainEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), attempt + 1));
+				this._fireStateChange(new ConnectionGainEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), attempt + 1));
 
 				break;
 			} catch (err) {
@@ -777,7 +788,7 @@ export abstract class PersistentConnection extends Disposable {
 	}
 
 	private _gotoPermanentFailure(millisSinceLastIncomingData: number, attempt: number, handled: boolean): void {
-		this._onDidStateChange.fire(new ReconnectionPermanentFailureEvent(this.reconnectionToken, millisSinceLastIncomingData, attempt, handled));
+		this._fireStateChange(new ReconnectionPermanentFailureEvent(this.reconnectionToken, millisSinceLastIncomingData, attempt, handled));
 		safeDisposeProtocolAndSocket(this.protocol);
 	}
 
