@@ -920,8 +920,10 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 					const preConditions = commandPreconditions(href.path);
 					if (preConditions) {
 						button.enabled = this.contextKeyService.contextMatchesRules(preConditions);
+						const keys = new Set<string>();
+						preConditions.collectKeys(keys);
 						disposables.add(this.contextKeyService.onDidChangeContext(e => {
-							if (e.affectsSome(new Set(preConditions.keys()))) {
+							if (e.affectsSome(keys)) {
 								button.enabled = this.contextKeyService.contextMatchesRules(preConditions);
 							}
 						}));
