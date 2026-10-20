@@ -6,7 +6,7 @@
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Iterable } from '../../../base/common/iterator.js';
 import { IJSONSchema } from '../../../base/common/jsonSchema.js';
-import { IDisposable, markAsSingleton, toDisposable } from '../../../base/common/lifecycle.js';
+import { IDisposable, markAsDisposed, markAsSingleton, trackDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
 import { TypeConstraint, validateConstraints } from '../../../base/common/types.js';
 import { ILocalizedString } from '../../action/common/action.js';
@@ -64,6 +64,30 @@ export interface ICommandRegistry {
 	getCommands(): ICommandsMap;
 }
 
+class CommandRegistration implements IDisposable {
+	constructor(
+		private _registration: IDisposable | undefined,
+		private readonly _commands: Map<string, LinkedList<ICommand>>,
+		private readonly _id: string,
+	) {
+		trackDisposable(this);
+	}
+
+	dispose(): void {
+		const registration = this._registration;
+		if (!registration) {
+			return;
+		}
+		this._registration = undefined;
+		markAsDisposed(this);
+		registration.dispose();
+		const commands = this._commands.get(this._id);
+		if (commands?.isEmpty()) {
+			this._commands.delete(this._id);
+		}
+	}
+}
+
 export const CommandsRegistry: ICommandRegistry = new class implements ICommandRegistry {
 
 	private readonly _commands = new Map<string, LinkedList<ICommand>>();
@@ -106,15 +130,7 @@ export const CommandsRegistry: ICommandRegistry = new class implements ICommandR
 			this._commands.set(id, commands);
 		}
 
-		const removeFn = commands.unshift(idOrCommand);
-
-		const ret = toDisposable(() => {
-			removeFn();
-			const command = this._commands.get(id);
-			if (command?.isEmpty()) {
-				this._commands.delete(id);
-			}
-		});
+		const ret = new CommandRegistration(commands.unshiftDisposable(idOrCommand), this._commands, id);
 
 		// tell the world about this command
 		this._onDidRegisterCommand.fire(id);
