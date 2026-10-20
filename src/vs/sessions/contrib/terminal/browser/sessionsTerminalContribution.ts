@@ -40,6 +40,7 @@ interface ISessionTerminalInfo {
 interface IPendingTerminalOperation {
 	count: number;
 	replaced: boolean;
+	discarded: boolean;
 }
 
 /** The address of the local agent host, which runs on this machine; see {@link IAgentHostTerminalService.createTerminalForEntry}. */
@@ -220,6 +221,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			const operation = this._pendingTerminalOperations.get(session.sessionId);
 			if (operation) {
 				operation.replaced = true;
+				operation.discarded = true;
 			}
 			void this._closeTerminalsForSession(session.sessionId, 'draft discarded', false);
 		}));
@@ -372,6 +374,8 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 					await this._closeTerminal(createdInstance);
 					if (createdInstance.isDisposed) {
 						this._removeTerminalFromTrackedSessions(createdInstance.instanceId);
+					} else if (this._pendingTerminalOperations.get(session.sessionId)?.discarded) {
+						await this._keepDiscardedTerminal(createdInstance);
 					}
 					return [];
 				}
@@ -571,7 +575,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			operation.count++;
 			return;
 		}
-		this._pendingTerminalOperations.set(sessionId, { count: 1, replaced: false });
+		this._pendingTerminalOperations.set(sessionId, { count: 1, replaced: false, discarded: false });
 	}
 
 	private _endTerminalOperation(sessionId: string): void {
@@ -760,7 +764,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 		for (const instance of toHide) {
 			const availableInstance = this._getAvailableTerminal(instance, 'move terminal to background');
-			if (availableInstance) {
+			if (availableInstance && !this._standaloneTerminalIds.has(availableInstance.instanceId)) {
 				this._logService.debug(`[SessionsTerminal] Hiding terminal ${availableInstance.instanceId} (does not belong to active key ${activeKey})`);
 				this._terminalService.moveToBackground(availableInstance);
 			}
@@ -789,11 +793,26 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 	}
 
+	private async _keepDiscardedTerminal(instance: ITerminalInstance): Promise<void> {
+		const availableInstance = this._getAvailableTerminal(instance, 'keep discarded draft terminal');
+		if (!availableInstance) {
+			return;
+		}
+		// A canceled close transfers ownership to the user, not to the next draft.
+		this._standaloneTerminalIds.add(availableInstance.instanceId);
+		this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+		await this._terminalService.showBackgroundTerminal(availableInstance, true);
+	}
+
 	private async _closeTerminal(instance: ITerminalInstance): Promise<void> {
 		const editors = instance.target === TerminalLocation.Editor ? this._editorService.findEditors(instance.resource) : [];
 		if (editors.length > 0) {
 			await this._editorService.closeEditors(editors);
 		} else {
+			if (instance.target === TerminalLocation.Editor) {
+				// Detach any cached or queued input before disposing its instance.
+				this._terminalService.moveToBackground(instance);
+			}
 			await this._terminalService.safeDisposeTerminal(instance);
 		}
 	}
@@ -826,6 +845,8 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			await this._closeTerminal(availableInstance);
 			if (availableInstance.isDisposed) {
 				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
+			} else if (!protectActive) {
+				await this._keepDiscardedTerminal(availableInstance);
 			}
 		}
 	}

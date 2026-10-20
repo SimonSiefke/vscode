@@ -140,19 +140,28 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 	async openEditor(instance: ITerminalInstance, editorOptions?: TerminalEditorLocation): Promise<void> {
 		const resource = this.resolveResource(instance);
 		if (resource) {
+			const input = this._editorInputs.get(resource.path);
 			await this._activeOpenEditorRequest?.promise;
+			if (instance.isDisposed || !input || input.isDisposed() || input.terminalInstance !== instance || this._editorInputs.get(resource.path) !== input) {
+				return;
+			}
+			const options = {
+				pinned: true,
+				forceReload: true,
+				preserveFocus: editorOptions?.preserveFocus,
+				auxiliary: editorOptions?.auxiliary,
+			};
+			const group = editorOptions?.viewColumn ?? ACTIVE_GROUP;
+			const existingEditors = this._editorService.findEditors(resource);
 			this._activeOpenEditorRequest = {
 				instanceId: instance.instanceId,
-				promise: this._editorService.openEditor({
-					resource,
-					description: instance.description || instance.shellLaunchConfig.type,
-					options: {
-						pinned: true,
-						forceReload: true,
-						preserveFocus: editorOptions?.preserveFocus,
-						auxiliary: editorOptions?.auxiliary,
-					}
-				}, editorOptions?.viewColumn ?? ACTIVE_GROUP)
+				promise: existingEditors.length > 0
+					? this._editorService.openEditor({
+						resource,
+						description: instance.description || instance.shellLaunchConfig.type,
+						options,
+					}, group)
+					: this._editorService.openEditor(input, options, group)
 			};
 			await this._activeOpenEditorRequest?.promise;
 			this._activeOpenEditorRequest = undefined;

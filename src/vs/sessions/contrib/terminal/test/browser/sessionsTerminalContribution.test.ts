@@ -308,6 +308,7 @@ suite('SessionsTerminalContribution', () => {
 	let terminalEditors: Map<number, IEditorIdentifier>;
 	let editorCloseCalls: number[];
 	let safeDisposeBarrier: DeferredPromise<void> | undefined;
+	let safeDisposeBarriers: DeferredPromise<void>[];
 	let logService: TestLogService;
 	let allSessions: ISession[];
 	let sessionProviders: Map<string, ISessionsProvider>;
@@ -347,6 +348,7 @@ suite('SessionsTerminalContribution', () => {
 		terminalEditors = new Map();
 		editorCloseCalls = [];
 		safeDisposeBarrier = undefined;
+		safeDisposeBarriers = [];
 		logService = new TestLogService();
 		allSessions = [];
 		sessionProviders = new Map();
@@ -415,7 +417,8 @@ suite('SessionsTerminalContribution', () => {
 				focusCalls++;
 			}
 			override async safeDisposeTerminal(instance: ITerminalInstance): Promise<void> {
-				await safeDisposeBarrier?.p;
+				const barrier = safeDisposeBarriers.shift() ?? safeDisposeBarrier;
+				await barrier?.p;
 				if (vetoSafeDispose && instance.target !== TerminalLocation.Editor) {
 					return;
 				}
@@ -1155,7 +1158,8 @@ suite('SessionsTerminalContribution', () => {
 				editorCloseCalls,
 				disposed: terminal.isDisposed,
 				trackedSessions: [...(Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).keys()],
-			}, { editorCloseCalls: [terminal.instanceId], disposed: !veto, trackedSessions: veto ? [session.sessionId] : [] });
+			}, { editorCloseCalls: [terminal.instanceId], disposed: !veto, trackedSessions: [] });
+			assert.strictEqual((Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>).has(terminal.instanceId), veto);
 		});
 	}
 
@@ -2679,6 +2683,123 @@ suite('SessionsTerminalContribution', () => {
 		// The restored terminal should have been shown (via cwd fallback)
 		// rather than left in the background
 		assert.ok(showBackgroundCalls.includes(restoredTerminal.instanceId), 'untracked restored terminal at matching cwd should be shown');
+	});
+	for (const late of [false, true]) {
+		for (const duringConfirmation of [false, true]) {
+			test(`keeps a canceled discarded terminal accessible across same-cwd activations: late=${late}, during=${duringConfirmation}`, async () => {
+				const cwd = URI.file('/kept-discard');
+				const discarded = makeAgentSession({ sessionId: 'test:discard-kept', worktree: cwd, providerType: AgentSessionProviders.Background });
+				const next = makeAgentSession({ sessionId: 'test:next-kept', worktree: cwd, providerType: AgentSessionProviders.Background });
+				const third = makeAgentSession({ sessionId: 'test:third-kept', worktree: cwd, providerType: AgentSessionProviders.Background });
+				const creationBarrier = new DeferredPromise<void>();
+				const closeBarrier = new DeferredPromise<void>();
+				if (late) {
+					terminalCreationBarriers.set(cwd.fsPath, creationBarrier);
+				}
+				vetoSafeDispose = true;
+				safeDisposeBarrier = closeBarrier;
+				const creating = contribution.ensureTerminal(cwd, false, discarded);
+				await tick();
+				onDidDiscardNewSession.fire(discarded);
+				if (late) {
+					await creationBarrier.complete();
+					await tick();
+				}
+				const kept = [...terminalInstances.values()][0];
+				assert.ok(kept);
+				allSessions = [next, third];
+				if (duringConfirmation) {
+					activeSessionObs.set(next, undefined);
+					await tick();
+					assert.strictEqual(backgroundedInstances.has(kept.instanceId), true);
+				}
+				await closeBarrier.complete();
+				await creating;
+				await tick();
+				safeDisposeBarrier = undefined;
+				vetoSafeDispose = false;
+				activeSessionObs.set(next, undefined);
+				await tick();
+				const standaloneIds = Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>;
+				const sessionTerminals = Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>;
+				assert.deepStrictEqual({
+					keptAlive: !kept.isDisposed,
+					foreground: !backgroundedInstances.has(kept.instanceId),
+					standalone: standaloneIds.has(kept.instanceId),
+					oldOwner: sessionTerminals.has(discarded.sessionId),
+					adopted: sessionTerminals.get(next.sessionId)?.has(kept.instanceId) ?? false,
+				}, { keptAlive: true, foreground: true, standalone: true, oldOwner: false, adopted: false });
+				activeSessionObs.set(third, undefined);
+				await tick();
+				assert.strictEqual(backgroundedInstances.has(kept.instanceId), false);
+				assert.strictEqual(sessionTerminals.get(third.sessionId)?.has(kept.instanceId) ?? false, false);
+				assert.notStrictEqual(activeInstanceId, kept.instanceId);
+			});
+		}
+	}
+
+	test('keeps both canceled discarded terminals accessible without releasing the second prompt reservation', async () => {
+		const cwd = URI.file('/double-veto');
+		const discarded = makeAgentSession({ sessionId: 'test:double-veto', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const [first] = await contribution.ensureTerminal(cwd, false, discarded);
+		const second = makeTerminalInstance(nextInstanceId++, cwd.fsPath);
+		terminalInstances.set(second.instanceId, second);
+		const sessionTerminals = Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>;
+		sessionTerminals.get(discarded.sessionId)!.add(second.instanceId);
+		const firstPrompt = new DeferredPromise<void>();
+		const secondPrompt = new DeferredPromise<void>();
+		safeDisposeBarriers.push(firstPrompt, secondPrompt);
+		vetoSafeDispose = true;
+		onDidDiscardNewSession.fire(discarded);
+		await tick();
+		await firstPrompt.complete();
+		await tick();
+		const standaloneIds = Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>;
+		const firstState = [standaloneIds.has(first.instanceId), standaloneIds.has(second.instanceId), sessionTerminals.get(discarded.sessionId)?.has(second.instanceId)];
+		const next = makeAgentSession({ sessionId: 'test:after-double-veto', worktree: cwd, providerType: AgentSessionProviders.Background });
+		allSessions = [next];
+		activeSessionObs.set(next, undefined);
+		await tick();
+		const firstForeground = !backgroundedInstances.has(first.instanceId);
+		await secondPrompt.complete();
+		await tick();
+		assert.strictEqual(firstForeground, true);
+		assert.deepStrictEqual(firstState, [true, false, true]);
+		assert.deepStrictEqual([standaloneIds.has(first.instanceId), standaloneIds.has(second.instanceId), sessionTerminals.has(discarded.sessionId), backgroundedInstances.has(first.instanceId), backgroundedInstances.has(second.instanceId)], [true, true, false, false, false]);
+	});
+
+	test('keeps a canceled discarded terminal foreground when an older visibility pass resumes', async () => {
+		const cwd = URI.file('/stale-visibility-kept');
+		const discarded = makeAgentSession({ sessionId: 'test:stale-discarded', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const next = makeAgentSession({ sessionId: 'test:stale-next', worktree: URI.file('/stale-next'), providerType: AgentSessionProviders.Background });
+		const [kept] = await contribution.ensureTerminal(cwd, false, discarded);
+		const closeBarrier = new DeferredPromise<void>();
+		const scopeBarrier = new DeferredPromise<void>();
+		safeDisposeBarrier = closeBarrier;
+		vetoSafeDispose = true;
+		onDidDiscardNewSession.fire(discarded);
+		await tick();
+		(Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, object>).delete(kept.instanceId);
+		(kept as TestTerminalInstance)._testSetInitialCwdBarrier(scopeBarrier.p);
+		const update = Reflect.get(contribution, '_updateTerminalVisibility') as (session: ISession, key: string, address: string | undefined, forceIds: number[]) => Promise<void>;
+		const visibility = update.call(contribution, next, '/stale-next', undefined, []);
+		let settled = false;
+		const observed = visibility.then(() => { settled = true; });
+		try {
+			await tick();
+			assert.strictEqual(settled, false, 'the old visibility pass must be pending in real cwd lookup');
+			await closeBarrier.complete();
+			await tick();
+		} finally {
+			await closeBarrier.complete();
+			await scopeBarrier.complete();
+			await observed;
+		}
+		assert.deepStrictEqual({
+			alive: !kept.isDisposed,
+			foreground: !backgroundedInstances.has(kept.instanceId),
+			standalone: (Reflect.get(contribution, '_standaloneTerminalIds') as Set<number>).has(kept.instanceId),
+		}, { alive: true, foreground: true, standalone: true });
 	});
 });
 
