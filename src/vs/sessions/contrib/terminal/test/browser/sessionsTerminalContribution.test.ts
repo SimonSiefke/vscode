@@ -1064,6 +1064,48 @@ suite('SessionsTerminalContribution', () => {
 		});
 	}
 
+	for (const veto of [false, true]) {
+		test(`reserves a late discarded-draft terminal while close confirmation is pending: veto=${veto}`, async () => {
+			const cwd = URI.file('/worktree');
+			const first = makeAgentSession({ sessionId: 'test:pending-close', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const next = makeAgentSession({ sessionId: 'test:during-close', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const creationBarrier = new DeferredPromise<void>();
+			const closeBarrier = new DeferredPromise<void>();
+			terminalCreationBarriers.set(cwd.fsPath, creationBarrier);
+			safeDisposeBarrier = closeBarrier;
+			vetoSafeDispose = veto;
+			const creation = contribution.ensureTerminal(cwd, false, first);
+			await tick();
+			onDidDiscardNewSession.fire(first);
+			await creationBarrier.complete();
+			await tick();
+			const original = [...terminalInstances.values()][0] as TestTerminalInstance;
+			assert.ok(original);
+			let replacement: ITerminalInstance;
+			try {
+				[replacement] = await contribution.ensureTerminal(cwd, false, next);
+			} finally {
+				await closeBarrier.complete();
+			}
+			assert.deepStrictEqual(await creation, []);
+			assert.notStrictEqual(replacement.instanceId, original.instanceId, 'a newer draft must not adopt a terminal awaiting close confirmation');
+			assert.strictEqual(replacement.isDisposed, false);
+			assert.strictEqual(original.isDisposed, !veto);
+			vetoSafeDispose = false;
+			onDidDiscardNewSession.fire(next);
+			await tick();
+			assert.strictEqual(replacement.isDisposed, true);
+			assert.strictEqual(original.isDisposed, !veto, 'discarding the newer draft must not dispose the terminal the user kept');
+			if (veto) {
+				original._testSetDisposed(true);
+				terminalInstances.delete(original.instanceId);
+				onDidDisposeInstance.fire(original);
+			}
+			assert.strictEqual((Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).size, 0);
+			assert.strictEqual((Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, unknown>).size, 0);
+		});
+	}
+
 	// --- new-session draft replacement ---
 
 	test('reuses one terminal across repeated same-cwd replacement drafts', async () => {

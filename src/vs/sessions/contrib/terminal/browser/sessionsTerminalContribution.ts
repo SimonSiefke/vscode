@@ -365,9 +365,10 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 					return [];
 				}
 				if (session && this._isTerminalOperationCancelled(session, generation)) {
+					this._trackTerminalsForSession(session.sessionId, [createdInstance]);
 					await this._terminalService.safeDisposeTerminal(createdInstance);
-					if (!createdInstance.isDisposed) {
-						this._trackTerminalsForSession(session.sessionId, [createdInstance]);
+					if (createdInstance.isDisposed) {
+						this._removeTerminalFromTrackedSessions(createdInstance.instanceId);
 					}
 					return [];
 				}
