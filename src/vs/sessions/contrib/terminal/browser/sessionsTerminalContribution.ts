@@ -612,6 +612,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	}
 
 	private _transferTerminals(fromSessionId: string, toSessionId: string): void {
+		if (fromSessionId === toSessionId) {
+			return;
+		}
 		const terminalIds = this._sessionTerminals.get(fromSessionId);
 		if (terminalIds && terminalIds.size > 0) {
 			let targetIds = this._sessionTerminals.get(toSessionId);

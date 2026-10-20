@@ -2314,6 +2314,24 @@ suite('SessionsTerminalContribution', () => {
 		assert.strictEqual(result[0].instanceId, terminalId);
 	});
 
+	test('closes terminals after graduation keeps the session id', async () => {
+		const worktreeUri = URI.file('/worktree');
+		const draft = makeAgentSession({ sessionId: 'test:quick-chat', worktree: worktreeUri, providerType: AgentSessionProviders.Background });
+		const committed = makeAgentSession({ sessionId: draft.sessionId, worktree: worktreeUri, providerType: AgentSessionProviders.Background });
+		await contribution.ensureTerminal(worktreeUri, false, draft);
+		const terminalId = [...terminalInstances.keys()][0];
+
+		onDidReplaceSession.fire({ from: draft, to: committed });
+		assert.strictEqual(disposedInstances.length, 0, 'graduation must preserve the terminal');
+
+		activeInstanceId = undefined;
+		onDidChangeSessions.fire({ added: [], removed: [committed], changed: [] });
+		await tick();
+
+		assert.deepStrictEqual(disposedInstances.map(instance => instance.instanceId), [terminalId]);
+		assert.strictEqual(terminalInstances.size, 0, 'removing the graduated session must close its terminal');
+	});
+
 	test('cleans up tracked terminal ids when terminals are externally disposed', async () => {
 		const worktreeUri = URI.file('/worktree');
 		const session = makeAgentSession({ sessionId: 'test:session', worktree: worktreeUri, providerType: AgentSessionProviders.Background });
