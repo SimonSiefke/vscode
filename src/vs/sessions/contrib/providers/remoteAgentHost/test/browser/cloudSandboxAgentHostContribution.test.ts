@@ -1763,6 +1763,67 @@ suite('CloudSandboxAgentHostContribution startup inventory', () => {
 		}
 	}
 
+	test('retargets a deleted seed before another deletion completes and never restores its inventory', async () => {
+		const storageService = store.add(new InMemoryStorageService());
+		const survivor = discoveredSession({ sessionId: 'sess-c', taskId: 'task-c' });
+		const pending = discoveredSession({ sessionId: 'sess-b', taskId: 'task-b' });
+		const seed = discoveredSession({ sessionId: 'sess-a', taskId: 'task-a' });
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [survivor, pending, seed], {
+			storageService, autoConnectOnOpen: false,
+			deleteTask: async taskId => {
+				if (taskId === pending.taskId) {
+					await entered.complete();
+					await release.p;
+				}
+			},
+		});
+		const address = cloudSandboxAddress('env-1');
+		const provider = harness.contribution.stubProviders.get(address)!;
+		const environments = Reflect.get(harness.contribution, '_environments') as ReadonlyMap<string, ICloudSandboxSessionEnvironment>;
+		const sessionMaps = Reflect.get(harness.contribution, '_sessionEnvironments') as ReadonlyMap<string, ReadonlyMap<string, ICloudSandboxSessionEnvironment>>;
+		const initialSeed = environments.get(address)?.sessionId;
+		const pendingDeletion = provider.config.deleteSessionsOnDemand!.deleteSessions([AgentSession.uri('ahp-session', pending.sessionId)]);
+		const reconnectRequests: { sessionId: string | undefined; taskId: string | undefined }[] = [];
+		let seedAfterCompletion: string | undefined;
+		let inventoryAfterCompletion: string[] = [];
+		let catalogAfterReconnect: string[] = [];
+		try {
+			await entered.p;
+			await provider.config.deleteSessionsOnDemand!.deleteSessions([AgentSession.uri('ahp-session', seed.sessionId)]);
+			seedAfterCompletion = environments.get(address)?.sessionId;
+			inventoryAfterCompletion = readInventory(storageService).map(session => session.sessionId).sort();
+			harness.onConnect = async options => {
+				reconnectRequests.push({ sessionId: options.sessionId, taskId: options.sessionId ? sessionMaps.get(address)?.get(options.sessionId)?.taskId : undefined });
+				throw new Error('Controlled credential boundary');
+			};
+			// Calls real contribution _connectEnvironment -> connect -> _ensureProvider.
+			// The mock stops only at the external Cloud connection/credential service.
+			await assert.rejects(provider.config.connectOnDemand!(), /Controlled credential boundary/);
+			catalogAfterReconnect = [...(sessionMaps.get(address)?.keys() ?? [])].sort();
+		} finally {
+			await release.complete();
+			await pendingDeletion;
+		}
+		const inventoryAfterPending = readInventory(storageService).map(session => session.sessionId).sort();
+		harness.contribution.dispose();
+		const restored = await createContribution(store, [], {
+			storageService, accountKey: account,
+			listSessions: async () => ({ kind: 'failed', reason: 'offline' }),
+		});
+		assert.deepStrictEqual({
+			initialSeed, seedAfterCompletion, reconnectRequests, inventoryAfterCompletion,
+			catalogAfterReconnect, inventoryAfterPending,
+			restored: restored.contribution.stubProviders.get(address)?.seeded.map(meta => AgentSession.id(meta.session)).sort(),
+		}, {
+			initialSeed: 'sess-a', seedAfterCompletion: 'sess-c',
+			reconnectRequests: [{ sessionId: 'sess-c', taskId: 'task-c' }],
+			inventoryAfterCompletion: ['sess-b', 'sess-c'], catalogAfterReconnect: ['sess-b', 'sess-c'],
+			inventoryAfterPending: ['sess-c'], restored: ['sess-c'],
+		});
+	});
+
 	test('applies a one-shot sibling discovery removal while another task deletion is pending', async () => {
 		const storageService = store.add(new InMemoryStorageService());
 		const sibling = discoveredSession({ sessionId: 'sibling', taskId: 'task-sibling' });
