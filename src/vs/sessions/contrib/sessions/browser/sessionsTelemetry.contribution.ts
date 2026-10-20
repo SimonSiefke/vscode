@@ -575,18 +575,18 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 			if (!this._lifecycleTracker.isTracked(session.sessionId)) {
 				continue;
 			}
-			this._register(disposableTimeout(() => {
+			disposableTimeout(() => {
 				this._fireSessionSummary(session, 'deletedRemotely');
-			}, 100));
+			}, 100, this._store);
 		}
 		for (const session of e.changed) {
 			if (!this._lifecycleTracker.isTracked(session.sessionId)) {
 				continue;
 			}
 			if (session.isArchived.get()) {
-				this._register(disposableTimeout(() => {
+				disposableTimeout(() => {
 					this._fireSessionSummary(session, 'archivedRemotely');
-				}, 100));
+				}, 100, this._store);
 			} else {
 				this._lifecycleTracker.updateSessionState(session);
 			}

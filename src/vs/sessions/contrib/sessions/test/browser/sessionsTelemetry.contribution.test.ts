@@ -12,6 +12,7 @@ import { extUri } from '../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
@@ -29,7 +30,7 @@ import { IFileQuery, ISearchComplete, ISearchService } from '../../../../../work
 import { IAgentFeedbackService } from '../../../agentFeedback/browser/agentFeedbackService.js';
 import { ISessionsTasksService } from '../../../chat/browser/sessionsTasksService.js';
 import { ChatInteractivity, IChat, ISession, ISessionFolder, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
-import { IActiveSession, ISendRequestSentEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
+import { IActiveSession, ISendRequestSentEvent, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionChangesetOperationInvokedEvent } from '../../../../services/sessions/common/sessionsProvider.js';
 import { ISessionsPartService } from '../../../../services/sessions/browser/sessionsPartService.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
@@ -222,11 +223,13 @@ class TestFileCountSearchService extends mock<ISearchService>() {
 suite('SessionsTelemetryContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, visibleSessions: readonly (IActiveSession | undefined)[] = [], options: { searchService?: ISearchService; telemetryLevel?: TelemetryLevel; chatEntitlementService?: IChatEntitlementService } = {}): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onWillSendRequest: Emitter<ISession>; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel>; onDidInvokeChangesetOperation: Emitter<ISessionChangesetOperationInvokedEvent>; onDidExecuteCommand: Emitter<ICommandEvent> } {
+	function setup(sessions: readonly ISession[], activeSession?: IObservable<IActiveSession | undefined>, visibleSessions: readonly (IActiveSession | undefined)[] = [], options: { searchService?: ISearchService; telemetryLevel?: TelemetryLevel; chatEntitlementService?: IChatEntitlementService } = {}): { telemetryService: TestTelemetryService; storageService: InMemoryStorageService; onWillSendRequest: Emitter<ISession>; onDidSendRequest: Emitter<ISendRequestSentEvent>; onDidArchiveSession: Emitter<ISession>; onModelAdded: Emitter<ITextModel>; contribution: SessionsTelemetryContribution; onDidChangeSessions: Emitter<ISessionsChangeEvent>; onDidDeleteSession: Emitter<ISession>; onDidInvokeChangesetOperation: Emitter<ISessionChangesetOperationInvokedEvent>; onDidExecuteCommand: Emitter<ICommandEvent> } {
 		const onWillSendRequest = disposables.add(new Emitter<ISession>());
 		const onDidSendRequest = disposables.add(new Emitter<ISendRequestSentEvent>());
 		const onDidArchiveSession = disposables.add(new Emitter<ISession>());
 		const onModelAdded = disposables.add(new Emitter<ITextModel>());
+		const onDidChangeSessions = disposables.add(new Emitter<ISessionsChangeEvent>());
+		const onDidDeleteSession = disposables.add(new Emitter<ISession>());
 		const onDidInvokeChangesetOperation = disposables.add(new Emitter<ISessionChangesetOperationInvokedEvent>());
 		const onDidExecuteCommand = disposables.add(new Emitter<ICommandEvent>());
 		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
@@ -234,11 +237,11 @@ suite('SessionsTelemetryContribution', () => {
 			override readonly onDidSendRequest = onDidSendRequest.event;
 			override readonly onDidArchiveSession = onDidArchiveSession.event;
 			override readonly onDidUnarchiveSession = Event.None;
-			override readonly onDidDeleteSession = Event.None;
+			override readonly onDidDeleteSession = onDidDeleteSession.event;
 			override readonly onDidDeleteChat = Event.None;
 			override readonly onDidRenameChat = Event.None;
 			override readonly onDidRenameSession = Event.None;
-			override readonly onDidChangeSessions = Event.None;
+			override readonly onDidChangeSessions = onDidChangeSessions.event;
 			override readonly onDidInvokeChangesetOperation = onDidInvokeChangesetOperation.event;
 			override getSessions(): ISession[] { return [...sessions]; }
 			override getSession(resource: URI): ISession | undefined { return sessions.find(s => s.resource.toString() === resource.toString()); }
@@ -276,7 +279,7 @@ suite('SessionsTelemetryContribution', () => {
 			override getModels() { return []; }
 		}();
 
-		disposables.add(new SessionsTelemetryContribution(
+		const contribution = disposables.add(new SessionsTelemetryContribution(
 			sessionsManagementService,
 			sessionsService,
 			telemetryService,
@@ -301,8 +304,59 @@ suite('SessionsTelemetryContribution', () => {
 			options.chatEntitlementService ?? new TestChatEntitlementService(),
 		));
 
-		return { telemetryService, storageService, onWillSendRequest, onDidSendRequest, onDidArchiveSession, onModelAdded, onDidInvokeChangesetOperation, onDidExecuteCommand };
+		return { telemetryService, storageService, onWillSendRequest, onDidSendRequest, onDidArchiveSession, onModelAdded, onDidInvokeChangesetOperation, onDidExecuteCommand, contribution, onDidChangeSessions, onDidDeleteSession };
 	}
+
+	function registeredDisposableCount(contribution: SessionsTelemetryContribution): number {
+		return (Reflect.get(Reflect.get(contribution, '_store'), '_toDispose') as Set<object>).size;
+	}
+
+	for (const doneReason of ['deletedRemotely', 'archivedRemotely'] as const) {
+		test(`releases completed ${doneReason} timers while the window remains open`, () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+			const { contribution, onDidSendRequest, onDidChangeSessions, telemetryService } = setup([]);
+			const initial = registeredDisposableCount(contribution);
+
+			for (let i = 0; i < 3; i++) {
+				const current = { ...session, sessionId: `remote-${i}`, resource: URI.parse(`test:///remote-${i}`), isArchived: constObservable(doneReason === 'archivedRemotely') };
+				onDidSendRequest.fire({ session: current, chat, isNewSession: true, isNewChat: true, options: { query: 'request' } });
+				onDidChangeSessions.fire({
+					added: [], removed: doneReason === 'deletedRemotely' ? [current] : [],
+					changed: doneReason === 'archivedRemotely' ? [current] : [],
+				});
+				await timeout(101);
+
+				assert.strictEqual(registeredDisposableCount(contribution), initial);
+			}
+
+			assert.deepStrictEqual(telemetryService.sessionSummaries.map(summary => Reflect.get(summary as object, 'doneReason')), [doneReason, doneReason, doneReason]);
+		}));
+	}
+
+	test('releases the deferred timer after local deletion claims the summary', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const { contribution, onDidSendRequest, onDidChangeSessions, onDidDeleteSession, telemetryService } = setup([session]);
+		const initial = registeredDisposableCount(contribution);
+		onDidSendRequest.fire({ session, chat, isNewSession: true, isNewChat: true, options: { query: 'request' } });
+		onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
+		onDidDeleteSession.fire(session);
+
+		await timeout(101);
+
+		assert.deepStrictEqual({
+			registrations: registeredDisposableCount(contribution),
+			reasons: telemetryService.sessionSummaries.map(summary => Reflect.get(summary as object, 'doneReason')),
+		}, { registrations: initial, reasons: ['deleted'] });
+	}));
+
+	test('cancels pending remote summaries when the telemetry contribution is disposed', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const { contribution, onDidSendRequest, onDidChangeSessions, telemetryService } = setup([session]);
+		onDidSendRequest.fire({ session, chat, isNewSession: true, isNewChat: true, options: { query: 'request' } });
+		onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
+
+		contribution.dispose();
+		await timeout(101);
+
+		assert.deepStrictEqual(telemetryService.sessionSummaries, []);
+	}));
 
 	test('adds the action-time SKU to requests and the current SKU to lifecycle actions and summaries', async () => {
 		const chatEntitlementService = new class extends mock<IChatEntitlementService>() {
