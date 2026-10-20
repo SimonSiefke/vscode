@@ -31,6 +31,7 @@ export interface IAgentHostSessionListConnection {
  * Provider-tagged backend session entry owned by the shared session-list store.
  */
 export interface IAgentHostSessionListEntry {
+	readonly resource: URI;
 	readonly provider: string;
 	readonly rawId: string;
 	readonly summary: SessionSummary;
@@ -49,6 +50,7 @@ export interface IAgentHostSessionListEntry {
  * Provider-tagged backend session removal emitted by the shared session-list store.
  */
 export interface IAgentHostSessionListRemoval {
+	readonly resource: URI;
 	readonly provider: string;
 	readonly rawId: string;
 	readonly session: URI;
@@ -134,14 +136,6 @@ export class AgentHostSessionListStore extends Disposable {
 
 	getSession(provider: string, session: URI): IAgentHostSessionListEntry | undefined {
 		return this._entries.get(this._key(provider, session.toString()));
-	}
-
-	getSessionResource(session: URI): URI {
-		const resource = this._connectionsService.findSessionResource(session, this._options.connectionAuthority);
-		if (!resource) {
-			throw new Error(`Session resource is not registered: ${session.toString()}`);
-		}
-		return resource;
 	}
 
 	seedSessions(sessions: readonly IAgentSessionMetadata[]): void {
@@ -390,6 +384,7 @@ export class AgentHostSessionListStore extends Disposable {
 			const updated: IAgentHostSessionListEntry = {
 				provider,
 				rawId: cached.rawId,
+				resource: cached.resource,
 				statusKnown: cached.statusKnown || notification.changes.status !== undefined,
 				summary: {
 					...cached.summary,
@@ -416,11 +411,12 @@ export class AgentHostSessionListStore extends Disposable {
 		}
 
 		const rawId = AgentSession.id(session.session);
-		this._connectionsService.registerSessionResource(session.session, this._options.connectionAuthority, provider);
+		const resource = this._registerSessionResource(session.session, provider);
 
 		return {
 			provider,
 			rawId,
+			resource,
 			statusKnown: session.status !== undefined,
 			summary: {
 				resource: session.session.toString(),
@@ -456,13 +452,20 @@ export class AgentHostSessionListStore extends Disposable {
 		if (!provider) {
 			return undefined;
 		}
-		this._connectionsService.registerSessionResource(URI.parse(summary.resource), this._options.connectionAuthority, provider);
+		const resource = this._registerSessionResource(URI.parse(summary.resource), provider);
 		return {
 			provider,
 			rawId: AgentSession.id(summary.resource),
+			resource,
 			statusKnown: true,
 			summary,
 		};
+	}
+
+	private _registerSessionResource(session: URI, provider: string): URI {
+		const existing = this._connectionsService.findSessionResource(session, this._options.connectionAuthority);
+		const registered = this._connectionsService.registerSessionResource(session, this._options.connectionAuthority, provider);
+		return existing ?? registered.with({ fragment: '' });
 	}
 
 	/** Uses workspace-file provenance for multi-root workspaces and path containment otherwise. */
@@ -552,6 +555,7 @@ export class AgentHostSessionListStore extends Disposable {
 		return {
 			provider: entry.provider,
 			rawId: entry.rawId,
+			resource: entry.resource,
 			session: URI.parse(entry.summary.resource),
 		};
 	}

@@ -79,17 +79,17 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 		// combinators are bound to `this._store` so disposing the controller
 		// tears down the projection and its subscription to the store event.
 		for (const entry of this._sessionListStore.getSessions(this._provider)) {
-			this._updateChatCatalog(entry.summary);
+			this._updateChatCatalog(entry.summary, entry.resource);
 		}
 		this._register(this._sessionListStore.onDidChangeSessions(delta => {
 			for (const entry of delta.addedOrUpdated ?? []) {
 				if (entry.provider === this._provider) {
-					this._updateChatCatalog(entry.summary);
+					this._updateChatCatalog(entry.summary, entry.resource);
 				}
 			}
 			for (const removal of delta.removed ?? []) {
 				if (removal.provider === this._provider) {
-					this._chatMoves.remove({ resource: this._sessionListStore.getSessionResource(removal.session) });
+					this._chatMoves.remove({ resource: removal.resource });
 				}
 			}
 		}));
@@ -103,7 +103,7 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 
 	get items(): readonly IChatSessionItem[] {
 		return this._sessionListStore.getSessions(this._provider)
-			.map(entry => this._makeItemFromSummary(entry.summary, entry.statusKnown));
+			.map(entry => this._makeItemFromSummary(entry.summary, entry.statusKnown, entry.resource));
 	}
 
 	isNewSession(resource: URI): boolean {
@@ -211,6 +211,11 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 
 		await this._sessionListStore.disposeSession(session);
 
+		if (entry && this._sessionListStore.getSession(this._provider, session)?.resource !== entry.resource) {
+			return;
+		}
+		this._connectionsService.forgetSessionResource(session, this._connectionAuthority);
+
 		// `root/sessionRemoved` only fires for sessions the backend had previously announced, so remove the session from
 		// the store directly (this also clears any local pending marker). If the notification does fire as well, the
 		// second call is a no-op.
@@ -247,14 +252,14 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 			if (entry.provider !== this._provider) {
 				continue;
 			}
-			(addedOrUpdated ??= []).push(this._makeItemFromSummary(entry.summary, entry.statusKnown));
+			(addedOrUpdated ??= []).push(this._makeItemFromSummary(entry.summary, entry.statusKnown, entry.resource));
 		}
 
 		for (const removal of delta.removed ?? []) {
 			if (removal.provider !== this._provider) {
 				continue;
 			}
-			(removed ??= []).push(this._sessionListStore.getSessionResource(removal.session));
+			(removed ??= []).push(removal.resource);
 		}
 
 		if (!addedOrUpdated && !removed) {
@@ -263,8 +268,7 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 		return { ...(addedOrUpdated ? { addedOrUpdated } : undefined), ...(removed ? { removed } : undefined) };
 	}
 
-	private _makeItemFromSummary(summary: SessionSummary, statusKnown: boolean): IChatSessionItem {
-		const resource = this._sessionListStore.getSessionResource(URI.parse(summary.resource));
+	private _makeItemFromSummary(summary: SessionSummary, statusKnown: boolean, resource: URI): IChatSessionItem {
 		const workingDir = typeof summary.workingDirectories?.[0] === 'string' ? URI.parse(summary.workingDirectories?.[0]) : summary.workingDirectories?.[0];
 		const base = {
 			title: summary.title,
@@ -362,11 +366,10 @@ export class AgentHostSessionListController extends Disposable implements IChatS
 	}
 
 	/** Tells the move tracker which chats the session lists, each with its chat session resource; a summary without a catalog says nothing about it. */
-	private _updateChatCatalog(summary: SessionSummary): void {
+	private _updateChatCatalog(summary: SessionSummary, resource: URI): void {
 		if (!summary.chats) {
 			return;
 		}
-		const resource = this._sessionListStore.getSessionResource(URI.parse(summary.resource));
 		this._chatMoves.update({ resource }, new Map(summary.chats.map(chat => [
 			chat.resource.toString(),
 			this._isDefaultChat(summary, chat) ? resource : resource.with({ fragment: getAgentHostChatId(chat.resource) }),
