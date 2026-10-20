@@ -320,7 +320,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 				// }
 				const foldingRegionPromise = this.foldingRegionPromise = createCancelablePromise(token => provider.compute(token));
 				try {
-					const foldingRanges = await foldingRegionPromise
+					const foldingRanges = await foldingRegionPromise;
 					if (foldingRanges && foldingRegionPromise === this.foldingRegionPromise) { // new request or cancelled in the meantime?
 						let scrollState: StableEditorScrollState | undefined;
 
@@ -352,7 +352,7 @@ export class FoldingController extends Disposable implements IEditorContribution
 					return null;
 
 				}
-			})
+			});
 		}
 	}
 
