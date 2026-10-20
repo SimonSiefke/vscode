@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { TerminalLocation } from '../../../../../platform/terminal/common/terminal.js';
+import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
+import { IEditorIdentifier } from '../../../../../workbench/common/editor.js';
+import { IResourceEditorInputIdentifier } from '../../../../../platform/editor/common/editor.js';
+import { EditorInput } from '../../../../../workbench/common/editor/editorInput.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { DisposableStore, Disposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -56,6 +61,7 @@ class TestLogService extends NullLogService {
 type TestTerminalInstance = ITerminalInstance & {
 	_testCommandHistory: { timestamp: number }[];
 	_testSetDisposed(disposed: boolean): void;
+	_testSetTarget(target: TerminalLocation): void;
 	_testSetInitialCwdBarrier(barrier: Promise<void> | undefined): void;
 	_testSetShellLaunchConfig(shellLaunchConfig: ITerminalInstance['shellLaunchConfig']): void;
 };
@@ -227,6 +233,7 @@ function makeNonAgentSession(opts: { repository?: URI; worktree?: URI; providerT
 function makeTerminalInstance(id: number, cwd: string): TestTerminalInstance {
 	const commandHistory: { timestamp: number }[] = [];
 	let isDisposed = false;
+	let target = TerminalLocation.Panel;
 	let initialCwdBarrier: Promise<void> | undefined;
 	let shellLaunchConfig: ITerminalInstance['shellLaunchConfig'] = {} as ITerminalInstance['shellLaunchConfig'];
 	const capabilities = {
@@ -240,6 +247,9 @@ function makeTerminalInstance(id: number, cwd: string): TestTerminalInstance {
 
 	return {
 		instanceId: id,
+		resource: URI.from({ scheme: 'vscode-terminal', path: `/test/${id}` }),
+		get target() { return target; },
+		_testSetTarget(value: TerminalLocation) { target = value; },
 		get isDisposed() { return isDisposed; },
 		get shellLaunchConfig() { return shellLaunchConfig; },
 		async getInitialCwd() {
@@ -293,12 +303,25 @@ suite('SessionsTerminalContribution', () => {
 	let disposeOnCreatePaths: Set<string>;
 	let defaultCwdCalls: (URI | undefined)[];
 	let vetoSafeDispose: boolean;
+	let vetoEditorClose: boolean;
+	let terminalEditors: Map<number, IEditorIdentifier>;
+	let editorCloseCalls: number[];
 	let safeDisposeBarrier: DeferredPromise<void> | undefined;
 	let logService: TestLogService;
 	let allSessions: ISession[];
 	let sessionProviders: Map<string, ISessionsProvider>;
 	let instantiationService: TestInstantiationService;
 	let cwdExists: (uri: URI) => boolean;
+
+	function disposeTestTerminal(instance: ITerminalInstance): void {
+		disposedInstances.push(instance);
+		(instance as TestTerminalInstance)._testSetDisposed(true);
+		terminalInstances.delete(instance.instanceId);
+		backgroundedInstances.delete(instance.instanceId);
+		if (activeInstanceId === instance.instanceId) {
+			activeInstanceId = undefined;
+		}
+	}
 
 	setup(() => {
 		createdTerminals = [];
@@ -318,6 +341,9 @@ suite('SessionsTerminalContribution', () => {
 		disposeOnCreatePaths = new Set();
 		defaultCwdCalls = [];
 		vetoSafeDispose = false;
+		vetoEditorClose = false;
+		terminalEditors = new Map();
+		editorCloseCalls = [];
 		safeDisposeBarrier = undefined;
 		logService = new TestLogService();
 		allSessions = [];
@@ -385,16 +411,10 @@ suite('SessionsTerminalContribution', () => {
 			}
 			override async safeDisposeTerminal(instance: ITerminalInstance): Promise<void> {
 				await safeDisposeBarrier?.p;
-				if (vetoSafeDispose) {
+				if (vetoSafeDispose && instance.target !== TerminalLocation.Editor) {
 					return;
 				}
-				disposedInstances.push(instance);
-				(instance as TestTerminalInstance)._testSetDisposed(true);
-				terminalInstances.delete(instance.instanceId);
-				backgroundedInstances.delete(instance.instanceId);
-				if (activeInstanceId === instance.instanceId) {
-					activeInstanceId = undefined;
-				}
+				disposeTestTerminal(instance);
 			}
 			override moveToBackground(instance: ITerminalInstance): void {
 				backgroundedInstances.add(instance.instanceId);
@@ -405,6 +425,25 @@ suite('SessionsTerminalContribution', () => {
 				showBackgroundCalls.push(instance.instanceId);
 			}
 		});
+
+		instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
+			override findEditors(resource: URI | IResourceEditorInputIdentifier): readonly IEditorIdentifier[] {
+				const uri = URI.isUri(resource) ? resource : resource.resource;
+				return [...terminalEditors.values()].filter(identifier => identifier.editor.resource?.toString() === uri.toString());
+			}
+			override async closeEditors(editors: readonly IEditorIdentifier[]): Promise<void> {
+				for (const editor of editors) {
+					const entry = [...terminalEditors].find(([, identifier]) => identifier === editor);
+					assert.ok(entry);
+					editorCloseCalls.push(entry[0]);
+					if (!vetoEditorClose) {
+						const instance = terminalInstances.get(entry[0]);
+						assert.ok(instance);
+						disposeTestTerminal(instance);
+					}
+				}
+			}
+		}());
 
 		instantiationService.stub(IPathService, new TestPathService(HOME_DIR));
 
@@ -1007,6 +1046,62 @@ suite('SessionsTerminalContribution', () => {
 		assert.strictEqual(terminalInstances.size, 0);
 		assert.deepStrictEqual(activeInstanceSet, []);
 	});
+
+	for (const veto of [false, true]) {
+		test(`closes a discarded editor terminal through its editor confirmation: veto=${veto}`, async () => {
+			const cwd = URI.file('/editor-terminal');
+			const session = makeAgentSession({ sessionId: 'test:editor-draft', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const [terminal] = await contribution.ensureTerminal(cwd, false, session);
+			(terminal as TestTerminalInstance)._testSetTarget(TerminalLocation.Editor);
+			const input = store.add(new class extends EditorInput {
+				override get typeId(): string { return 'test.terminal'; }
+				override get resource(): URI { return terminal.resource; }
+			});
+			terminalEditors.set(terminal.instanceId, { groupId: 1, editor: input });
+			vetoEditorClose = veto;
+			vetoSafeDispose = true;
+
+			onDidDiscardNewSession.fire(session);
+			await tick();
+
+			assert.deepStrictEqual({
+				editorCloseCalls,
+				disposed: terminal.isDisposed,
+				trackedSessions: [...(Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).keys()],
+			}, { editorCloseCalls: [terminal.instanceId], disposed: !veto, trackedSessions: veto ? [session.sessionId] : [] });
+		});
+	}
+
+	for (const keptBy of ['veto', 'active protection'] as const) {
+		test(`cleans removed-session scope metadata after actual disposal following ${keptBy}`, async () => {
+			const cwd = URI.file('/removed-kept');
+			const removed = makeAgentSession({ sessionId: 'test:removed-kept', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const [terminal] = await contribution.ensureTerminal(cwd, false, removed);
+			if (keptBy === 'veto') {
+				const standalone = makeTerminalInstance(nextInstanceId++, '/standalone');
+				terminalInstances.set(standalone.instanceId, standalone);
+				activeInstanceId = standalone.instanceId;
+				vetoSafeDispose = true;
+			}
+
+			onDidChangeSessions.fire({ added: [], removed: [removed], changed: [] });
+			await tick();
+			const kept = {
+				disposed: terminal.isDisposed,
+				sessions: [...(Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).keys()],
+				scopes: (Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, object>).size,
+			};
+			(terminal as TestTerminalInstance)._testSetDisposed(true);
+			terminalInstances.delete(terminal.instanceId);
+			onDidDisposeInstance.fire(terminal);
+
+			assert.deepStrictEqual({
+				kept,
+				sessionsAfterDisposal: (Reflect.get(contribution, '_sessionTerminals') as Map<string, Set<number>>).size,
+				scopesAfterDisposal: (Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, object>).size,
+			}, { kept: { disposed: false, sessions: [], scopes: 1 }, sessionsAfterDisposal: 0, scopesAfterDisposal: 0 });
+		});
+	}
 
 	test('respects a veto when closing a discarded draft terminal', async () => {
 		const cwd = URI.file('/worktree');

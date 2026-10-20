@@ -25,6 +25,8 @@ import { ISessionsService } from '../../../services/sessions/browser/sessionsSer
 import { ISession, ISessionWorkspace } from '../../../services/sessions/common/session.js';
 import { ISessionsProvidersService } from '../../../services/sessions/browser/sessionsProvidersService.js';
 import { ITerminalProfileService } from '../../../../workbench/contrib/terminal/common/terminal.js';
+import { TerminalLocation } from '../../../../platform/terminal/common/terminal.js';
+import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { ISessionTaskRunnerRegistry } from '../../chat/browser/sessionTaskRunner.js';
 import { AgentHostSessionTaskRunner } from './agentHostSessionTaskRunner.js';
 
@@ -127,6 +129,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		@IPathService private readonly _pathService: IPathService,
 		@IFileService private readonly _fileService: IFileService,
 		@ITerminalProfileService private readonly _terminalProfileService: ITerminalProfileService,
+		@IEditorService private readonly _editorService: IEditorService,
 	) {
 		super();
 
@@ -366,7 +369,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				}
 				if (session && this._isTerminalOperationCancelled(session, generation)) {
 					this._trackTerminalsForSession(session.sessionId, [createdInstance]);
-					await this._terminalService.safeDisposeTerminal(createdInstance);
+					await this._closeTerminal(createdInstance);
 					if (createdInstance.isDisposed) {
 						this._removeTerminalFromTrackedSessions(createdInstance.instanceId);
 					}
@@ -673,9 +676,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	}
 
 	private _removeTerminalFromTrackedSessions(instanceId: number): void {
+		this._trackedTerminalScopes.delete(instanceId);
 		for (const [sessionId, terminalIds] of this._sessionTerminals) {
 			terminalIds.delete(instanceId);
-			this._trackedTerminalScopes.delete(instanceId);
 			if (terminalIds.size === 0) {
 				this._sessionTerminals.delete(sessionId);
 			}
@@ -786,6 +789,14 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 	}
 
+	private async _closeTerminal(instance: ITerminalInstance): Promise<void> {
+		if (instance.target === TerminalLocation.Editor) {
+			await this._editorService.closeEditors(this._editorService.findEditors(instance.resource));
+		} else {
+			await this._terminalService.safeDisposeTerminal(instance);
+		}
+	}
+
 	/**
 	 * Disposes (kills) terminals associated with the given session id. Used
 	 * when a session is removed: removal is an explicit user action, so the pty
@@ -811,7 +822,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				continue;
 			}
 			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
-			await this._terminalService.safeDisposeTerminal(availableInstance);
+			await this._closeTerminal(availableInstance);
 			if (availableInstance.isDisposed) {
 				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
 			}
@@ -856,7 +867,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				continue;
 			}
 			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session archived: ${session.sessionId})`);
-			await this._terminalService.safeDisposeTerminal(availableInstance);
+			await this._closeTerminal(availableInstance);
 			if (availableInstance.isDisposed) {
 				this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
 			}
