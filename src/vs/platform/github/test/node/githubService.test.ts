@@ -104,7 +104,7 @@ suite('GitHubService', () => {
 						object: lease.object,
 						dispose: () => lease.dispose(),
 						read: async () => {
-							const response = await lease.object.rest.request({ method: 'GET', path: '/resource', expectedStatus: 200, responseBody: 'text' }, signal(), undefined);
+							const response = await lease.object.rest.request({ method: 'GET', path: '/resource', expectedStatus: 200, responseBody: 'text' }, signal(), value => String(value));
 							return JSON.parse(String(response.data));
 						}
 					};
