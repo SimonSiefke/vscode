@@ -83,6 +83,6 @@ export class LineDataEventAddon extends Disposable implements ITerminalAddon {
 
 	override dispose() {
 		super.dispose();
-		this._initializationPromise = undefined
+		this._initializationPromise = undefined;
 	}
 }
