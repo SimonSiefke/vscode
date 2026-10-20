@@ -1411,7 +1411,7 @@ function textOf(value: string | IMarkdownString | undefined): string | undefined
  * to be dispatched. Returns helpers to fire server action envelopes.
  */
 async function startTurn(
-	sessionHandler: AgentHostSessionHandler,
+	sessionHandler: Pick<IChatSessionContentProvider, 'provideChatSessionContent'>,
 	agentHostService: MockAgentHostService,
 	chatAgentService: MockChatAgentService,
 	ds: DisposableStore,
@@ -14888,7 +14888,7 @@ suite('AgentHostChatContribution', () => {
 					activeSessions: 0,
 				});
 				const handler = providers.get('agent-host-copilot');
-				assert.ok(handler instanceof AgentHostSessionHandler);
+				assert.ok(handler);
 				const { collected, fire, turnId, turnPromise, chatSession } = await startTurn(handler, agentHostService, chatAgentService, disposables);
 				const file = URI.parse('file:///tmp/foo.txt');
 				const content = URI.parse('agenthost-content:///opaque/proposed');
@@ -14914,7 +14914,7 @@ suite('AgentHostChatContribution', () => {
 					invocation: textOf(invocation.invocationMessage),
 					file: data.modifiedFiles[0].uri.toString(),
 					content: data.modifiedFiles[0].modifiedContentUri?.toString(),
-					responseLinks: [file, content].map(uri => handler.resolveChatResponseUri(chatSession.sessionResource, uri.toString(), 'link')),
+					responseLinks: [file, content].map(uri => handler.resolveChatResponseUri?.(chatSession.sessionResource, uri.toString(), 'link')),
 				};
 				fire({ type: ActionType.ChatTurnComplete, turnId, duration: 0 });
 				await turnPromise;
