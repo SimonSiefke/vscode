@@ -1635,6 +1635,79 @@ suite('CloudSandboxAgentHostContribution startup inventory', () => {
 		}
 	}
 
+
+	for (const transition of ['feature', 'account'] as const) {
+		for (const completionOrder of ['current first', 'old first'] as const) {
+			for (const rejectOld of [false, true]) {
+				test(`keeps deletion holds in their provider lifetime: ${transition}, ${completionOrder}, rejectOld=${rejectOld}`, async () => {
+					const entered = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+					const release = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+					const storageService = store.add(new InMemoryStorageService());
+					const oldError = new Error('Old deletion failed after cancellation');
+					let calls = 0;
+					const harness = await createContribution(store, [discoveredSession()], {
+						storageService,
+						deleteTask: async () => {
+							const index = calls++;
+							await entered[index].complete();
+							await release[index].p;
+							if (index === 0 && rejectOld) {
+								throw oldError;
+							}
+						},
+					});
+					const address = cloudSandboxAddress('env-1');
+					const backend = URI.parse('ahp-session:/sess-1');
+					const oldProvider = harness.contribution.stubProviders.get(address)!;
+					const oldDeletion = oldProvider.config.deleteSessionsOnDemand!.deleteSessions([backend]);
+					const oldOutcome = oldDeletion.then(() => false, error => rejectOld ? error === oldError : isCancellationError(error));
+					await entered[0].p;
+					const currentAccount = transition === 'account' ? '["github","account-2"]' : account;
+					if (transition === 'feature') {
+						await harness.setEnabled(false);
+						await harness.setEnabled(true);
+					} else {
+						harness.changeAccount(currentAccount);
+					}
+					await harness.runDiscovery();
+					const currentProvider = harness.contribution.stubProviders.get(address)!;
+					const currentDeletion = currentProvider.config.deleteSessionsOnDemand!.deleteSessions([backend]);
+					await entered[1].p;
+					let disposedWhileCurrentPending = false;
+					let oldCanceled = false;
+					if (completionOrder === 'old first') {
+						await release[0].complete();
+						oldCanceled = await oldOutcome;
+						harness.discovered = [];
+						await harness.runDiscovery();
+						disposedWhileCurrentPending = currentProvider.disposed;
+					}
+					await release[1].complete();
+					await currentDeletion;
+					const disposedAfterCurrentDeletion = currentProvider.disposed;
+					const inventoryAfterCurrentDeletion = readInventory(storageService, currentAccount).length;
+					if (completionOrder === 'current first') {
+						await release[0].complete();
+						oldCanceled = await oldOutcome;
+					}
+					harness.contribution.dispose();
+					const restored = await createContribution(store, [], {
+						storageService, accountKey: currentAccount,
+						listSessions: async () => ({ kind: 'failed', reason: 'offline' }),
+					});
+					assert.deepStrictEqual({
+						oldDisposed: oldProvider.disposed, recreated: currentProvider !== oldProvider, oldCanceled,
+						disposedWhileCurrentPending, disposedAfterCurrentDeletion, inventoryAfterCurrentDeletion,
+						restoredProviders: restored.contribution.stubProviders.size,
+					}, {
+						oldDisposed: true, recreated: true, oldCanceled: true, disposedWhileCurrentPending: false,
+						disposedAfterCurrentDeletion: true, inventoryAfterCurrentDeletion: 0, restoredProviders: 0,
+					});
+				});
+			}
+		}
+	}
+
 	test('applies a one-shot sibling discovery removal while another task deletion is pending', async () => {
 		const storageService = store.add(new InMemoryStorageService());
 		const sibling = discoveredSession({ sessionId: 'sibling', taskId: 'task-sibling' });
