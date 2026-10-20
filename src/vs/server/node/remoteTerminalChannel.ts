@@ -141,8 +141,7 @@ export class RemoteTerminalChannel extends Disposable implements IServerChannel<
 			case RemoteTerminalChannelRequest.ProcessBinary: return this._ptyHostService.processBinary.apply(this._ptyHostService, args);
 
 			case RemoteTerminalChannelRequest.SendCommandResult: return this._sendCommandResult(args[0], args[1], args[2]);
-			case RemoteTerminalChannelRequest.InstallAutoReply: return this._ptyHostService.installAutoReply.apply(this._ptyHostService, args);
-			case RemoteTerminalChannelRequest.UninstallAllAutoReplies: return this._ptyHostService.uninstallAllAutoReplies.apply(this._ptyHostService, args);
+			case RemoteTerminalChannelRequest.SetAutoReplies: return this._ptyHostService.setAutoReplies(args[0], args[1]);
 			case RemoteTerminalChannelRequest.GetDefaultSystemShell: return this._getDefaultSystemShell.apply(this, args);
 			case RemoteTerminalChannelRequest.GetProfiles: return this._getProfiles.apply(this, args);
 			case RemoteTerminalChannelRequest.GetEnvironment: return this._getEnvironment();

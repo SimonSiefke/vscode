@@ -224,6 +224,7 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 	async attachToProcess(id: number, pid?: number): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
+			await this._proxy.setAutoReplies(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
 			await this._proxy.attachToProcess(id, pid);
 			const pty = new LocalPty(id, true, this._proxy);
 			this._ptys.set(id, pty);
@@ -393,11 +394,8 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 
 	// #region Pty service contribution RPC calls
 
-	installAutoReply(match: string, reply: string): Promise<void> {
-		return this._proxy.installAutoReply(match, reply);
-	}
-	uninstallAllAutoReplies(): Promise<void> {
-		return this._proxy.uninstallAllAutoReplies();
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
+		return this._proxy.setAutoReplies(id, replies);
 	}
 
 	// #endregion

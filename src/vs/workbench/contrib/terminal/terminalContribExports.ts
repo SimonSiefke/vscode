@@ -6,7 +6,7 @@
 import type { IConfigurationNode } from '../../../platform/configuration/common/configurationRegistry.js';
 import { TerminalAccessibilityCommandId, defaultTerminalAccessibilityCommandsToSkipShell } from '../terminalContrib/accessibility/common/terminal.accessibility.js';
 import { terminalAccessibilityConfiguration } from '../terminalContrib/accessibility/common/terminalAccessibilityConfiguration.js';
-import { terminalAutoRepliesConfiguration } from '../terminalContrib/autoReplies/common/terminalAutoRepliesConfiguration.js';
+import { TerminalAutoRepliesSettingId, terminalAutoRepliesConfiguration } from '../terminalContrib/autoReplies/common/terminalAutoRepliesConfiguration.js';
 import { TerminalChatCommandId, TerminalChatContextKeyStrings } from '../terminalContrib/chat/browser/terminalChat.js';
 import { terminalInitialHintConfiguration } from '../terminalContrib/inlineHint/common/terminalInitialHintConfiguration.js';
 import { terminalChatAgentToolsConfiguration, TerminalChatAgentToolsSettingId } from '../terminalContrib/chatAgentTools/common/terminalChatAgentToolsConfiguration.js';
@@ -42,6 +42,7 @@ export const enum TerminalContribCommandId {
 // soft layer breakers between `terminal/` and `terminalContrib/` but there are difficulties in
 // removing the dependency. These are explicitly defined here to avoid an eslint line override.
 export const enum TerminalContribSettingId {
+	AutoReplies = TerminalAutoRepliesSettingId.AutoReplies,
 	StickyScrollEnabled = TerminalStickyScrollSettingId.Enabled,
 	SuggestEnabled = TerminalSuggestSettingId.Enabled,
 	AutoApprove = TerminalChatAgentToolsSettingId.AutoApprove,
