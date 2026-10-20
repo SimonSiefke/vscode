@@ -71,6 +71,9 @@ suite('SideBySideEditorInput', () => {
 			counter++;
 		}));
 
+		disposables.add(input.acquire());
+		disposables.add(otherInput.acquire());
+
 		const sideBySideInput = disposables.add(instantiationService.createInstance(SideBySideEditorInput, 'name', 'description', input, otherInput));
 		assert.strictEqual(sideBySideInput.getName(), 'name');
 		assert.strictEqual(sideBySideInput.getDescription(), 'description');

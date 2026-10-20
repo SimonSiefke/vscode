@@ -538,62 +538,80 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 	openEditor(editor: IResourceDiffEditorInput, group?: PreferredGroup): Promise<ITextDiffEditorPane | undefined>;
 	openEditor(editor: EditorInput | IUntypedEditorInput, optionsOrPreferredGroup?: IEditorOptions | PreferredGroup, preferredGroup?: PreferredGroup): Promise<IEditorPane | undefined>;
 	async openEditor(editor: EditorInput | IUntypedEditorInput, optionsOrPreferredGroup?: IEditorOptions | PreferredGroup, preferredGroup?: PreferredGroup): Promise<IEditorPane | undefined> {
-		let typedEditor: EditorInput | undefined = undefined;
-		let options = isEditorInput(editor) ? optionsOrPreferredGroup as IEditorOptions : editor.options;
-		let group: IEditorGroup | undefined = undefined;
+		const references = new DisposableStore();
+		try {
+			if (isEditorInput(editor) && !editor.isDisposed()) {
+				references.add(editor.acquire());
+			}
+			let typedEditor: EditorInput | undefined = undefined;
+			let options = isEditorInput(editor) ? optionsOrPreferredGroup as IEditorOptions : editor.options;
+			let group: IEditorGroup | undefined = undefined;
 
-		if (isPreferredGroup(optionsOrPreferredGroup)) {
-			preferredGroup = optionsOrPreferredGroup;
-		}
-
-		// Resolve override unless disabled
-		if (!isEditorInput(editor)) {
-			const resolvedEditor = await this.editorResolverService.resolveEditor(editor, preferredGroup);
-
-			if (resolvedEditor === ResolvedStatus.ABORT) {
-				return; // skip editor if override is aborted
+			if (isPreferredGroup(optionsOrPreferredGroup)) {
+				preferredGroup = optionsOrPreferredGroup;
 			}
 
-			// We resolved an editor to use
-			if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
-				typedEditor = resolvedEditor.editor;
-				options = resolvedEditor.options;
-				group = resolvedEditor.group;
-			}
-		}
+			// Resolve override unless disabled
+			if (!isEditorInput(editor)) {
+				const resolvedEditor = await this.editorResolverService.resolveEditor(editor, preferredGroup);
 
-		// Override is disabled or did not apply: fallback to default
-		if (!typedEditor) {
-			typedEditor = isEditorInput(editor) ? editor : await this.textEditorService.resolveTextEditor(editor);
-		}
+				if (resolvedEditor === ResolvedStatus.ABORT) {
+					return; // skip editor if override is aborted
+				}
 
-		// If group still isn't defined because of a disabled override we resolve it
-		if (!group) {
-			let activation: EditorActivation | undefined = undefined;
-			const findGroupResult = this.instantiationService.invokeFunction(findGroup, { editor: typedEditor, options }, preferredGroup);
-			if (findGroupResult instanceof Promise) {
-				([group, activation] = await findGroupResult);
-			} else {
-				([group, activation] = findGroupResult);
+				// We resolved an editor to use
+				if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+					references.add(resolvedEditor.reference);
+					typedEditor = resolvedEditor.editor;
+					options = resolvedEditor.options;
+					group = resolvedEditor.group;
+				}
 			}
 
-			// Mixin editor group activation if returned
-			if (activation) {
-				options = { ...options, activation };
+			// Override is disabled or did not apply: fallback to default
+			if (!typedEditor) {
+				typedEditor = isEditorInput(editor) ? editor : await this.textEditorService.resolveTextEditor(editor);
+				if (!isEditorInput(editor) && !typedEditor.isDisposed()) {
+					references.add(typedEditor.acquire());
+				}
 			}
-		}
 
-		// Modal group: override `preserveFocus` to move focus into the modal because there is nothing to preserve if this is the first modal editor
-		if (
-			options?.preserveFocus &&
-			this.editorGroupService.activeModalEditorPart?.groups.some(modalGroup => modalGroup.id === group.id) &&
-			this.editorGroupService.activeModalEditorPart.count === 1 &&
-			this.editorGroupService.activeModalEditorPart.groups[0].isEmpty
-		) {
-			options = { ...options, preserveFocus: false };
-		}
+			if (typedEditor.isDisposed()) {
+				return;
+			}
 
-		return group.openEditor(typedEditor, options);
+			// If group still isn't defined because of a disabled override we resolve it
+			if (!group) {
+				let activation: EditorActivation | undefined = undefined;
+				const findGroupResult = this.instantiationService.invokeFunction(findGroup, { editor: typedEditor, options }, preferredGroup);
+				if (findGroupResult instanceof Promise) {
+					([group, activation] = await findGroupResult);
+				} else {
+					([group, activation] = findGroupResult);
+				}
+
+				// Mixin editor group activation if returned
+				if (activation) {
+					options = { ...options, activation };
+				}
+			}
+
+			const groupId = group.id;
+
+			// Modal group: override `preserveFocus` to move focus into the modal because there is nothing to preserve if this is the first modal editor
+			if (
+				options?.preserveFocus &&
+				this.editorGroupService.activeModalEditorPart?.groups.some(modalGroup => modalGroup.id === groupId) &&
+				this.editorGroupService.activeModalEditorPart.count === 1 &&
+				this.editorGroupService.activeModalEditorPart.groups[0].isEmpty
+			) {
+				options = { ...options, preserveFocus: false };
+			}
+
+			return await group.openEditor(typedEditor, options);
+		} finally {
+			references.dispose();
+		}
 	}
 
 	//#endregion
@@ -604,80 +622,94 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 	openEditors(editors: IUntypedEditorInput[], group?: PreferredGroup, options?: IOpenEditorsOptions): Promise<IEditorPane[]>;
 	openEditors(editors: Array<EditorInputWithOptions | IUntypedEditorInput>, group?: PreferredGroup, options?: IOpenEditorsOptions): Promise<IEditorPane[]>;
 	async openEditors(editors: Array<EditorInputWithOptions | IUntypedEditorInput>, preferredGroup?: PreferredGroup, options?: IOpenEditorsOptions): Promise<IEditorPane[]> {
-
-		// Pass all editors to trust service to determine if
-		// we should proceed with opening the editors if we
-		// are asked to validate trust.
-		if (options?.validateTrust) {
-			const editorsTrusted = await this.handleWorkspaceTrust(editors);
-			if (!editorsTrusted) {
-				return [];
-			}
-		}
-
-		// Find target groups for editors to open
-		const mapGroupToTypedEditors = new Map<IEditorGroup, Array<EditorInputWithOptions>>();
-		for (const editor of editors) {
-			let typedEditor: EditorInputWithOptions | undefined = undefined;
-			let group: IEditorGroup | undefined = undefined;
-
-			// Resolve override unless disabled
-			if (!isEditorInputWithOptions(editor)) {
-				const resolvedEditor = await this.editorResolverService.resolveEditor(editor, preferredGroup);
-
-				if (resolvedEditor === ResolvedStatus.ABORT) {
-					continue; // skip editor if override is aborted
-				}
-
-				// We resolved an editor to use
-				if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
-					typedEditor = resolvedEditor;
-					group = resolvedEditor.group;
+		const references = new DisposableStore();
+		try {
+			for (const editor of editors) {
+				if (isEditorInputWithOptions(editor) && !editor.editor.isDisposed()) {
+					references.add(editor.editor.acquire());
 				}
 			}
 
-			// Override is disabled or did not apply: fallback to default
-			if (!typedEditor) {
-				typedEditor = isEditorInputWithOptions(editor) ? editor : { editor: await this.textEditorService.resolveTextEditor(editor), options: editor.options };
-			}
-
-			// If group still isn't defined because of a disabled override we resolve it
-			if (!group) {
-				const findGroupResult = this.instantiationService.invokeFunction(findGroup, typedEditor, preferredGroup);
-				if (findGroupResult instanceof Promise) {
-					([group] = await findGroupResult);
-				} else {
-					([group] = findGroupResult);
+			// Pass all editors to trust service to determine if
+			// we should proceed with opening the editors if we
+			// are asked to validate trust.
+			if (options?.validateTrust) {
+				const editorsTrusted = await this.handleWorkspaceTrust(editors);
+				if (!editorsTrusted) {
+					return [];
 				}
 			}
 
-			// Modal group: override `preserveFocus` to move focus into the modal there is nothing to preserve if this is the first modal editor
-			if (
-				typedEditor.options?.preserveFocus &&
-				this.editorGroupService.activeModalEditorPart?.groups.some(modalGroup => modalGroup.id === group.id) &&
-				this.editorGroupService.activeModalEditorPart.count === 1 &&
-				this.editorGroupService.activeModalEditorPart.groups[0].isEmpty
-			) {
-				typedEditor = { ...typedEditor, options: { ...typedEditor.options, preserveFocus: false } };
+			// Find target groups for editors to open
+			const mapGroupToTypedEditors = new Map<IEditorGroup, Array<EditorInputWithOptions>>();
+			for (const editor of editors) {
+				let typedEditor: EditorInputWithOptions | undefined = undefined;
+				let group: IEditorGroup | undefined = undefined;
+
+				// Resolve override unless disabled
+				if (!isEditorInputWithOptions(editor)) {
+					const resolvedEditor = await this.editorResolverService.resolveEditor(editor, preferredGroup);
+
+					if (resolvedEditor === ResolvedStatus.ABORT) {
+						continue; // skip editor if override is aborted
+					}
+
+					// We resolved an editor to use
+					if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+						references.add(resolvedEditor.reference);
+						typedEditor = resolvedEditor;
+						group = resolvedEditor.group;
+					}
+				}
+
+				// Override is disabled or did not apply: fallback to default
+				if (!typedEditor) {
+					typedEditor = isEditorInputWithOptions(editor) ? editor : { editor: await this.textEditorService.resolveTextEditor(editor), options: editor.options };
+					if (!isEditorInputWithOptions(editor) && !typedEditor.editor.isDisposed()) {
+						references.add(typedEditor.editor.acquire());
+					}
+				}
+
+				// If group still isn't defined because of a disabled override we resolve it
+				if (!group) {
+					const findGroupResult = this.instantiationService.invokeFunction(findGroup, typedEditor, preferredGroup);
+					if (findGroupResult instanceof Promise) {
+						([group] = await findGroupResult);
+					} else {
+						([group] = findGroupResult);
+					}
+				}
+
+				// Modal group: override `preserveFocus` to move focus into the modal there is nothing to preserve if this is the first modal editor
+				if (
+					typedEditor.options?.preserveFocus &&
+					this.editorGroupService.activeModalEditorPart?.groups.some(modalGroup => modalGroup.id === group.id) &&
+					this.editorGroupService.activeModalEditorPart.count === 1 &&
+					this.editorGroupService.activeModalEditorPart.groups[0].isEmpty
+				) {
+					typedEditor = { ...typedEditor, options: { ...typedEditor.options, preserveFocus: false } };
+				}
+
+				// Update map of groups to editors
+				let targetGroupEditors = mapGroupToTypedEditors.get(group);
+				if (!targetGroupEditors) {
+					targetGroupEditors = [];
+					mapGroupToTypedEditors.set(group, targetGroupEditors);
+				}
+
+				targetGroupEditors.push(typedEditor);
 			}
 
-			// Update map of groups to editors
-			let targetGroupEditors = mapGroupToTypedEditors.get(group);
-			if (!targetGroupEditors) {
-				targetGroupEditors = [];
-				mapGroupToTypedEditors.set(group, targetGroupEditors);
+			// Open in target groups
+			const result: Promise<IEditorPane | undefined>[] = [];
+			for (const [group, editors] of mapGroupToTypedEditors) {
+				result.push(group.openEditors(editors));
 			}
 
-			targetGroupEditors.push(typedEditor);
+			return coalesce(await Promises.settled(result));
+		} finally {
+			references.dispose();
 		}
-
-		// Open in target groups
-		const result: Promise<IEditorPane | undefined>[] = [];
-		for (const [group, editors] of mapGroupToTypedEditors) {
-			result.push(group.openEditors(editors));
-		}
-
-		return coalesce(await Promises.settled(result));
 	}
 
 	private async handleWorkspaceTrust(editors: Array<EditorInputWithOptions | IUntypedEditorInput>): Promise<boolean> {
@@ -915,50 +947,68 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 	async replaceEditors(replacements: IUntypedEditorReplacement[], group: IEditorGroup | GroupIdentifier): Promise<void>;
 	async replaceEditors(replacements: IEditorReplacement[], group: IEditorGroup | GroupIdentifier): Promise<void>;
 	async replaceEditors(replacements: Array<IEditorReplacement | IUntypedEditorReplacement>, group: IEditorGroup | GroupIdentifier): Promise<void> {
-		const targetGroup = typeof group === 'number' ? this.editorGroupsContainer.getGroup(group) : group;
+		const references = new DisposableStore();
+		try {
+			for (const replacement of replacements) {
+				if (isEditorReplacement(replacement) && !replacement.replacement.isDisposed()) {
+					references.add(replacement.replacement.acquire());
+				}
+			}
+			const targetGroup = typeof group === 'number' ? this.editorGroupsContainer.getGroup(group) : group;
 
-		// Convert all replacements to typed editors unless already
-		// typed and handle overrides properly.
-		const typedReplacements: IEditorReplacement[] = [];
-		for (const replacement of replacements) {
-			let typedReplacement: IEditorReplacement | undefined = undefined;
+			if (!targetGroup) {
+				return;
+			}
 
-			// Resolve override unless disabled
-			if (!isEditorInput(replacement.replacement)) {
-				const resolvedEditor = await this.editorResolverService.resolveEditor(
-					replacement.replacement,
-					targetGroup
-				);
+			// Convert all replacements to typed editors unless already
+			// typed and handle overrides properly.
+			const typedReplacements: IEditorReplacement[] = [];
+			for (const replacement of replacements) {
+				let typedReplacement: IEditorReplacement | undefined = undefined;
 
-				if (resolvedEditor === ResolvedStatus.ABORT) {
-					continue; // skip editor if override is aborted
+				// Resolve override unless disabled
+				if (!isEditorInput(replacement.replacement)) {
+					const resolvedEditor = await this.editorResolverService.resolveEditor(
+						replacement.replacement,
+						targetGroup
+					);
+
+					if (resolvedEditor === ResolvedStatus.ABORT) {
+						continue; // skip editor if override is aborted
+					}
+
+					// We resolved an editor to use
+					if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+						references.add(resolvedEditor.reference);
+						typedReplacement = {
+							editor: replacement.editor,
+							replacement: resolvedEditor.editor,
+							options: resolvedEditor.options,
+							forceReplaceDirty: replacement.forceReplaceDirty
+						};
+					}
 				}
 
-				// We resolved an editor to use
-				if (isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+				// Override is disabled or did not apply: fallback to default
+				if (!typedReplacement) {
 					typedReplacement = {
 						editor: replacement.editor,
-						replacement: resolvedEditor.editor,
-						options: resolvedEditor.options,
+						replacement: isEditorReplacement(replacement) ? replacement.replacement : await this.textEditorService.resolveTextEditor(replacement.replacement),
+						options: isEditorReplacement(replacement) ? replacement.options : replacement.replacement.options,
 						forceReplaceDirty: replacement.forceReplaceDirty
 					};
+					if (!isEditorReplacement(replacement) && !typedReplacement.replacement.isDisposed()) {
+						references.add(typedReplacement.replacement.acquire());
+					}
 				}
+
+				typedReplacements.push(typedReplacement);
 			}
 
-			// Override is disabled or did not apply: fallback to default
-			if (!typedReplacement) {
-				typedReplacement = {
-					editor: replacement.editor,
-					replacement: isEditorReplacement(replacement) ? replacement.replacement : await this.textEditorService.resolveTextEditor(replacement.replacement),
-					options: isEditorReplacement(replacement) ? replacement.options : replacement.replacement.options,
-					forceReplaceDirty: replacement.forceReplaceDirty
-				};
-			}
-
-			typedReplacements.push(typedReplacement);
+			await targetGroup.replaceEditors(typedReplacements);
+		} finally {
+			references.dispose();
 		}
-
-		return targetGroup?.replaceEditors(typedReplacements);
 	}
 
 	//#endregion
@@ -1022,10 +1072,10 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 				viewState: editorPane?.getViewState()
 			};
 
-			const result = options?.saveAs ? await editor.saveAs(groupId, options) : await editor.save(groupId, options);
-			saveResults.push(result);
+			let result = options?.saveAs ? await editor.saveAs(groupId, options) : await editor.save(groupId, options);
 
 			if (!result) {
+				saveResults.push(result);
 				break; // failed or cancelled, abort
 			}
 
@@ -1033,15 +1083,28 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 			// only selected group) if the resulting editor is different from the
 			// current one.
 			if (!editor.matches(result)) {
-				const targetGroups = editor.hasCapability(EditorInputCapabilities.Untitled) ? this.editorGroupsContainer.groups.map(group => group.id) /* untitled replaces across all groups */ : [groupId];
-				for (const targetGroup of targetGroups) {
-					if (result instanceof EditorInput) {
-						await this.replaceEditors([{ editor, replacement: result, options: editorOptions }], targetGroup);
-					} else {
-						await this.replaceEditors([{ editor, replacement: { ...result, options: editorOptions } }], targetGroup);
+				const reference = isEditorInput(result) ? result.acquire() : undefined;
+				try {
+					const targetGroups = editor.hasCapability(EditorInputCapabilities.Untitled) ? this.editorGroupsContainer.groups.map(group => group.id) /* untitled replaces across all groups */ : [groupId];
+					for (const targetGroup of targetGroups) {
+						if (result instanceof EditorInput) {
+							await this.replaceEditors([{ editor, replacement: result, options: editorOptions }], targetGroup);
+						} else {
+							await this.replaceEditors([{ editor, replacement: { ...result, options: editorOptions } }], targetGroup);
+						}
+						const savedEditor: EditorInput | IUntypedEditorInput = result;
+						if (isEditorInput(savedEditor)) {
+							const adopted: EditorInput | undefined = this.editorGroupsContainer.getGroup(targetGroup)?.getEditors(EditorsOrder.SEQUENTIAL).find(candidate => candidate.matches(savedEditor));
+							if (adopted) {
+								result = adopted;
+							}
+						}
 					}
+				} finally {
+					reference?.dispose();
 				}
 			}
+			saveResults.push(result);
 		}
 		return {
 			success: saveResults.every(result => !!result),
