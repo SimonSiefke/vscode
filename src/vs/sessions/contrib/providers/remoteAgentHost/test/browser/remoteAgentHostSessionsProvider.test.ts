@@ -5773,6 +5773,55 @@ suite('CloudSandboxSessionsProvider deletion', () => {
 		assert.strictEqual(provider.getSessions()[0], replacement);
 	});
 
+	for (const connected of [false, true]) {
+		test(`does not revive owner deletion after a live replacement is hidden: connected=${connected}`, async () => {
+			const connection = store.add(new MockAgentConnection());
+			const confirmation = new DeferredPromise<void>();
+			const entered = new DeferredPromise<void>();
+			const changes: ISessionChangeEvent[] = [];
+			const provider = createProvider(store.add(new DisposableStore()), connection, {
+				ctor: CloudSandboxSessionsProvider, noConnection: true,
+				sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' },
+				deleteSessionsOnDemand: {
+					ownsSession: () => true,
+					deleteSessions: async (resources, confirmDeletion) => {
+						await entered.complete();
+						await confirmation.p;
+						for (const resource of resources) {
+							const deleted = confirmDeletion?.(resource);
+							if (!confirmDeletion || deleted) {
+								sandbox.removeDeletedSession(AgentSession.id(resource), deleted);
+							}
+						}
+					},
+				},
+			});
+			const sandbox = provider as CloudSandboxSessionsProvider;
+			const metadata = createSession('replaced-owner', { session: AgentSession.uri('ahp-session', 'replaced-owner'), provider: 'copilot' });
+			if (connected) {
+				connection.addSession(metadata);
+				provider.setConnection(connection);
+				await timeout(0);
+			}
+			provider.seedSessions([metadata]);
+			const original = provider.getSessions()[0];
+			store.add(provider.onDidChangeSessions(event => changes.push(event)));
+			const deletion = provider.deleteSession(original.sessionId);
+			await entered.p;
+			sandbox.removeDeletedSession('replaced-owner');
+			provider.seedSessions([metadata]);
+			const replacement = provider.getSessions()[0];
+			assert.notStrictEqual(replacement, original);
+			sandbox.removeDeletedSession('replaced-owner');
+			await timeout(100);
+			await confirmation.complete();
+			await deletion;
+
+			assert.deepStrictEqual(changes.flatMap(event => event.deleted ?? []), []);
+			assert.strictEqual(provider.getSessions().length, 0);
+		});
+	}
+
 	test('catalog omission does not confirm permanent sandbox deletion', () => {
 		const connection = store.add(new MockAgentConnection());
 		const provider = createProvider(store.add(new DisposableStore()), connection, { ctor: CloudSandboxSessionsProvider, noConnection: true }) as CloudSandboxSessionsProvider;

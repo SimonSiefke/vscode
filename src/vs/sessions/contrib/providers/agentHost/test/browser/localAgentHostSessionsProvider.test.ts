@@ -9845,12 +9845,151 @@ suite('LocalAgentHostSessionsProvider', () => {
 					publishedReplacement: changes.some(event => event.added.includes(replacement)),
 					remaining: provider.getSessions().map(session => session.title.get()).sort(),
 				}, {
-					deleted: rejectSecond ? [] : [second.sessionId], removedFirst: false, publishedReplacement: true,
+					deleted: rejectSecond ? [] : [second.sessionId], removedFirst: true, publishedReplacement: true,
 					remaining: rejectSecond ? ['Replacement', 'Second'] : ['Replacement'],
 				});
 			}));
 		}
 	}
+
+	for (const flushReplacement of [true]) {
+		for (const rejectSecond of [false, true]) {
+			test(`does not revive completed-target deletion after a live replacement is hidden: flushed=${flushReplacement}, rejected=${rejectSecond}`, () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+				const provider = createProvider(disposables, agentHost);
+				await timeout(0);
+				fireSessionAdded(agentHost, 'completed-target', { title: 'First' });
+				fireSessionAdded(agentHost, 'pending-target', { title: 'Second' });
+				await timeout(100);
+				const first = provider.getSessions().find(session => session.title.get() === 'First');
+				const second = provider.getSessions().find(session => session.title.get() === 'Second');
+				assert.ok(first);
+				assert.ok(second);
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const dispose = agentHost.disposeSession.bind(agentHost);
+				agentHost.disposeSession = async backend => {
+					if (AgentSession.id(backend) === 'pending-target') {
+						await entered.complete();
+						await release.p;
+						if (rejectSecond) {
+							throw new Error('second deletion rejected');
+						}
+					}
+					await dispose(backend);
+				};
+				const changes: ISessionChangeEvent[] = [];
+				disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+				const deletion = provider.deleteSessions([first.sessionId, second.sessionId]).then(() => undefined, error => error);
+				await entered.p;
+				fireSessionAdded(agentHost, 'completed-target', { title: 'Replacement' });
+				await timeout(flushReplacement ? 100 : 0);
+				const replacement = provider.getSessions().find(session => session.title.get() === 'Replacement');
+				assert.ok(replacement);
+				fireSessionRemoved(agentHost, 'completed-target');
+				await timeout(100);
+				assert.ok(!provider.getSessions().includes(replacement));
+				await release.complete();
+				const error = await deletion;
+				assert.strictEqual(error?.message, rejectSecond ? 'second deletion rejected' : undefined);
+				await timeout(100);
+
+				assert.deepStrictEqual({
+					deleted: changes.flatMap(event => event.deleted?.map(session => session.sessionId) ?? []),
+					publishedReplacement: changes.some(event => event.added.includes(replacement)),
+					remaining: provider.getSessions().map(session => session.title.get()).sort(),
+				}, {
+					deleted: rejectSecond ? [] : [second.sessionId], publishedReplacement: true,
+					remaining: rejectSecond ? ['Second'] : [],
+				});
+			}));
+		}
+	}
+
+	for (const flushReplacement of [false, true]) {
+		for (const rejectSecond of [false, true]) {
+			test(`closes an open deleted facade when a completed batch target is recreated: flushed=${flushReplacement}, rejected=${rejectSecond}`, () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+				const provider = createProvider(disposables, agentHost);
+				await timeout(0);
+				fireSessionAdded(agentHost, 'completed-target', { title: 'First' });
+				fireSessionAdded(agentHost, 'pending-target', { title: 'Second' });
+				await timeout(100);
+				const first = provider.getSessions().find(session => session.title.get() === 'First');
+				const second = provider.getSessions().find(session => session.title.get() === 'Second');
+				assert.ok(first);
+				assert.ok(second);
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const dispose = agentHost.disposeSession.bind(agentHost);
+				agentHost.disposeSession = async backend => {
+					if (AgentSession.id(backend) === 'pending-target') {
+						await entered.complete();
+						await release.p;
+						if (rejectSecond) {
+							throw new Error('second deletion rejected');
+						}
+					}
+					await dispose(backend);
+				};
+				const changes: ISessionChangeEvent[] = [];
+				disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+				const visibility = disposables.add(new VisibleSessions(
+					session => session.mainChat.get(), () => [], () => [], () => { },
+					upcastPartial<IUriIdentityService>({ extUri: extUriIgnorePathCase }),
+				));
+				visibility.setActive(first);
+				const originalPane = visibility.activeSession.get();
+				disposables.add(provider.onDidChangeSessions(event => visibility.removeMany(event.removed.map(session => session.sessionId))));
+				disposables.add(provider.onDidReplaceSession(({ from, to }) => visibility.updateSession(from, to)));
+				const deletion = provider.deleteSessions([first.sessionId, second.sessionId]).then(() => undefined, error => error);
+				await entered.p;
+				fireSessionAdded(agentHost, 'completed-target', { title: 'Replacement' });
+				await timeout(flushReplacement ? 100 : 0);
+				const replacement = provider.getSessions().find(session => session.title.get() === 'Replacement');
+				assert.ok(replacement);
+				await release.complete();
+				const error = await deletion;
+				assert.strictEqual(error?.message, rejectSecond ? 'second deletion rejected' : undefined);
+				await timeout(100);
+
+				const active = visibility.activeSession.get();
+				assert.strictEqual(active, undefined, 'the deleted original pane must close instead of wrapping its disposed facade');
+				visibility.setActive(replacement);
+				assert.notStrictEqual(visibility.activeSession.get(), originalPane);
+				assert.strictEqual(visibility.activeSession.get()?.title.get(), 'Replacement');
+				assert.deepStrictEqual({
+					deleted: changes.flatMap(event => event.deleted?.map(session => session.sessionId) ?? []),
+					removedFirst: changes.some(event => event.removed.includes(first)),
+					publishedReplacement: changes.some(event => event.added.includes(replacement)),
+					remaining: provider.getSessions().map(session => session.title.get()).sort(),
+				}, {
+					deleted: rejectSecond ? [] : [second.sessionId], removedFirst: true, publishedReplacement: true,
+					remaining: rejectSecond ? ['Replacement', 'Second'] : ['Replacement'],
+				});
+			}));
+		}
+	}
+
+	test('does not revive a debounced deletion after a replacement is added then hidden', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const provider = createProvider(disposables, agentHost);
+		await timeout(0);
+		fireSessionAdded(agentHost, 'debounced-hidden-replacement');
+		await timeout(100);
+		const target = provider.getSessions()[0];
+		assert.ok(target);
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+		agentHost.onDisposeSession = session => fireSessionRemoved(agentHost, AgentSession.id(session));
+
+		await provider.deleteSession(target.sessionId);
+		fireSessionAdded(agentHost, 'debounced-hidden-replacement', { title: 'Live replacement' });
+		fireSessionRemoved(agentHost, 'debounced-hidden-replacement');
+		await timeout(100);
+
+		assert.deepStrictEqual({
+			deleted: changes.flatMap(event => event.deleted ?? []),
+			remaining: provider.getSessions().length,
+		}, { deleted: [], remaining: 0 });
+	}));
 
 	test('does not confirm deletion for a replacement announced while disposal is pending', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		const provider = createProvider(disposables, agentHost);

@@ -133,11 +133,12 @@ function mergeSessionChangeEvents(events: readonly ISessionChangeEvent[]): ISess
 				(deletions ??= new Map()).set(deletion.sessionId, deletion);
 			}
 		}
-		for (const session of event.added) {
-			changes.set(session.sessionId, { removed: changes.get(session.sessionId)?.removed, added: session });
-		}
 		for (const session of event.removed) {
 			changes.set(session.sessionId, { removed: session });
+		}
+		for (const session of event.added) {
+			deletions?.delete(session.sessionId);
+			changes.set(session.sessionId, { removed: changes.get(session.sessionId)?.removed, added: session });
 		}
 		for (const session of event.changed) {
 			const change = changes.get(session.sessionId);
@@ -7106,15 +7107,30 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		await this.deleteSessions([sessionId]);
 	}
 
-	protected trackSessionDeletion(session: AgentHostSessionAdapter, store: DisposableStore): () => ISessionDeletion {
-		const sessionId = session.sessionId;
-		const chatResources = new ResourceSet();
-		store.add(autorun(reader => {
-			for (const chat of session.chats.read(reader)) {
-				chatResources.add(chat.resource);
+	protected trackSessionDeletions(sessions: readonly AgentHostSessionAdapter[], store: DisposableStore): ReadonlyMap<AgentHostSessionAdapter, () => ISessionDeletion | undefined> {
+		const tracked = new Map<AgentHostSessionAdapter, () => ISessionDeletion | undefined>();
+		if (sessions.length === 0) {
+			return tracked;
+		}
+		const targets = new Map(sessions.map(session => [session.sessionId, { session, invalidated: false }]));
+		store.add(this._onDidChangeSessionsImmediately(event => {
+			for (const session of event.added) {
+				const target = targets.get(session.sessionId);
+				if (target && target.session !== session) {
+					target.invalidated = true;
+				}
 			}
 		}));
-		return () => ({ sessionId, chatResources: [...chatResources] });
+		for (const [sessionId, target] of targets) {
+			const chatResources = new ResourceSet();
+			store.add(autorun(reader => {
+				for (const chat of target.session.chats.read(reader)) {
+					chatResources.add(chat.resource);
+				}
+			}));
+			tracked.set(target.session, () => target.invalidated ? undefined : { sessionId, chatResources: [...chatResources] });
+		}
+		return tracked;
 	}
 
 	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
@@ -7135,17 +7151,18 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			return;
 		}
 		const removed: AgentHostSessionAdapter[] = [];
-		const deleted: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
+		const deleted: { rawId: string; cached: AgentHostSessionAdapter; getDeletion: () => ISessionDeletion | undefined }[] = [];
 		const deletionStore = new DisposableStore();
 		try {
-			const trackedTargets = targets.map(target => ({ ...target, getDeletion: this.trackSessionDeletion(target.cached, deletionStore) }));
-			for (const { rawId, cached, getDeletion } of trackedTargets) {
+			const tracked = this.trackSessionDeletions(targets.map(target => target.cached), deletionStore);
+			for (const { rawId, cached } of targets) {
+				const getDeletion = tracked.get(cached)!;
 				await connection.disposeSession(cached.backendUri);
 				const current = this._sessionCache.get(rawId);
 				if (current && current !== cached) {
 					continue;
 				}
-				deleted.push({ rawId, cached, deletion: getDeletion() });
+				deleted.push({ rawId, cached, getDeletion });
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
@@ -7153,17 +7170,25 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			}
 		} finally {
 			deletionStore.dispose();
-			// Earlier targets can be replaced while a later deletion is pending.
-			const confirmed = deleted.filter(({ rawId, cached }) => {
+			const removedSessions = new Set(removed);
+			const added = new Set<AgentHostSessionAdapter>();
+			const deletedSessions: ISessionDeletion[] = [];
+			for (const { rawId, cached, getDeletion } of deleted) {
 				const current = this._sessionCache.get(rawId);
-				return !current || current === cached;
-			});
-			const confirmedSessions = new Set(confirmed.map(target => target.cached));
-			const removedSessions = removed.filter(session => confirmedSessions.has(session));
-			const deletedSessions = confirmed.map(target => target.deletion);
-			if (removedSessions.length > 0 || deletedSessions.length > 0) {
-				const event = { added: [], removed: removedSessions, changed: [], deleted: deletedSessions };
-				if (removedSessions.length > 0) {
+				if (current && current !== cached) {
+					if (removedSessions.has(cached)) {
+						added.add(current);
+					}
+					continue;
+				}
+				const deletion = getDeletion();
+				if (deletion) {
+					deletedSessions.push(deletion);
+				}
+			}
+			if (removed.length > 0 || deletedSessions.length > 0) {
+				const event = { added: [...added], removed, changed: [], deleted: deletedSessions };
+				if (removed.length > 0) {
 					this._onDidChangeSessions.fire(event);
 				} else {
 					// Keep an already announced removal on its notification debounce.

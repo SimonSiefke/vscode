@@ -620,7 +620,7 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 
 	private async _deleteSessionsWithTracking(sessionIds: readonly string[], deletionStore: DisposableStore): Promise<void> {
 		const ownerSessions: URI[] = [];
-		const ownerDeletions = new Map<string, { key: string; cached: AgentHostSessionAdapter; getDeletion: () => ISessionDeletion }>();
+		const ownerDeletions = new Map<string, { key: string; cached: AgentHostSessionAdapter }>();
 		const hostSessionIds: string[] = [];
 		for (const sessionId of sessionIds) {
 			const key = this._sessionKeyFromChatId(sessionId);
@@ -631,14 +631,12 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 				}
 				const cached = this._sessionCache.get(key)!;
 				ownerSessions.push(backendSession);
-				ownerDeletions.set(backendSession.toString(), {
-					key, cached,
-					getDeletion: this.trackSessionDeletion(cached, deletionStore),
-				});
+				ownerDeletions.set(backendSession.toString(), { key, cached });
 			} else {
 				hostSessionIds.push(sessionId);
 			}
 		}
+		const trackedOwnerDeletions = this.trackSessionDeletions([...ownerDeletions.values()].map(target => target.cached), deletionStore);
 		const hadSessions = hostSessionIds.some(sessionId => this._hasSession(sessionId));
 		const detachedWorktrees = hostSessionIds.filter(sessionId => this._hasSession(sessionId)).map(sessionId => ({
 			sessionId,
@@ -689,7 +687,7 @@ export class RemoteAgentHostSessionsProvider extends DevContainerAgentHostSessio
 					return undefined;
 				}
 				const current = this._sessionCache.get(target.key);
-				return current && current !== target.cached ? undefined : target.getDeletion();
+				return current && current !== target.cached ? undefined : trackedOwnerDeletions.get(target.cached)?.();
 			});
 		}
 	}
