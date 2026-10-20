@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import '../../../../browser/parts/statusbar/media/statusbarpart.css';
 import { $ } from '../../../../../base/browser/dom.js';
 import { EventType as TouchEventType } from '../../../../../base/browser/touch.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
@@ -71,6 +72,22 @@ suite('StatusbarEntryItem', () => {
 
 		return { item, entry, container, otherTarget, commands, isVisible, isFocused, click };
 	}
+
+	test('sizes status entries from their text and keeps their labels hit-testable', () => {
+		const { item, entry, container } = createItem();
+		const fixture = container.parentElement!;
+		fixture.classList.add('monaco-workbench');
+		fixture.style.cssText = 'position: absolute; left: 0; top: 0; width: 600px;';
+		const statusbar = fixture.appendChild($('.part.statusbar'));
+		statusbar.appendChild($('.left-items')).appendChild(container);
+		const initialWidth = container.getBoundingClientRect().width;
+		assert.ok(initialWidth > 0);
+		item.update({ ...entry, text: 'Longer status entry' });
+		assert.ok(container.getBoundingClientRect().width > initialWidth);
+		const bounds = item.labelContainer.getBoundingClientRect();
+		const hit = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+		assert.ok(hit && item.labelContainer.contains(hit));
+	});
 
 	test('successive clicks show, hide, and reopen the tooltip', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const { click, isVisible } = createItem();
