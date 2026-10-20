@@ -882,6 +882,90 @@ suite('CloudSandboxAgentHostContribution', () => {
 		});
 	});
 
+	test('keeps the last sandbox provider registered through discovery during deletion', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { await entered.complete(); await release.p; } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deleted = { sessionId: 'pending-sandbox', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirmations: unknown[] = [];
+		const remove = provider.removeDeletedSession.bind(provider);
+		provider.removeDeletedSession = (rawId, confirmation?: typeof deleted) => { confirmations.push(confirmation); remove(rawId); };
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')], () => deleted);
+		await entered.p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await deletion;
+
+		assert.deepStrictEqual({ disposedWhilePending, confirmations, finallyDisposed: provider.disposed }, { disposedWhilePending: false, confirmations: [deleted], finallyDisposed: true });
+	});
+
+	test('releases the sandbox deletion hold after a rejected task request', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { await entered.complete(); await release.p; throw new Error('task deletion rejected'); } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')]);
+		await entered.p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await assert.rejects(deletion, /task deletion rejected/);
+		await harness.runDiscovery();
+
+		assert.deepStrictEqual({ disposedWhilePending, finallyDisposed: provider.disposed }, { disposedWhilePending: false, finallyDisposed: true });
+	});
+
+	test('waits for both pending deletions before disposing the last sandbox provider', async () => {
+		const entered = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+		const release = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+		let calls = 0;
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { const index = calls++; await entered[index].complete(); await release[index].p; } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const resource = URI.parse('ahp-session:/sess-1');
+		const confirmations: boolean[] = [];
+		const deleted = { sessionId: 'pending-sandbox', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirm = () => { confirmations.push(provider.disposed); return deleted; };
+		const first = provider.config.deleteSessionsOnDemand!.deleteSessions([resource], confirm);
+		await entered[0].p;
+		const second = provider.config.deleteSessionsOnDemand!.deleteSessions([resource], confirm);
+		await entered[1].p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		await release[0].complete();
+		await first;
+		const disposedWithSecondPending = provider.disposed;
+		await release[1].complete();
+		await second;
+
+		assert.deepStrictEqual({ disposedWithSecondPending, confirmations, finallyDisposed: provider.disposed }, { disposedWithSecondPending: false, confirmations: [false, false], finallyDisposed: true });
+	});
+
+	test('publishes owner deletion confirmation before the last sandbox provider is disposed', async () => {
+		const harness = await createContribution(store, [discoveredSession()]);
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const backend = URI.parse('ahp-session:/sess-1');
+		const deleted = { sessionId: 'sandbox-history', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirmations: unknown[] = [];
+		const wasDisposed: boolean[] = [];
+		const remove = provider.removeDeletedSession.bind(provider);
+		provider.removeDeletedSession = (rawId, confirmation?: typeof deleted) => {
+			confirmations.push(confirmation);
+			wasDisposed.push(provider.disposed);
+			remove(rawId);
+		};
+
+		await provider.config.deleteSessionsOnDemand!.deleteSessions([backend], resource => {
+			assert.strictEqual(resource.toString(), backend.toString());
+			return deleted;
+		});
+
+		assert.deepStrictEqual({ confirmations, wasDisposed, disposed: provider.disposed }, { confirmations: [deleted], wasDisposed: [false], disposed: true });
+	});
+
 	test('retains the provider and inventory when Mission Control rejects deletion', async () => {
 		const storage = store.add(new InMemoryStorageService());
 		const harness = await createContribution(store, [discoveredSession()], {

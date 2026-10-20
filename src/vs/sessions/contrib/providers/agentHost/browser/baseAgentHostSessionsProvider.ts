@@ -7106,22 +7106,29 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		await this.deleteSessions([sessionId]);
 	}
 
+	protected trackSessionDeletion(session: AgentHostSessionAdapter, store: DisposableStore): () => ISessionDeletion {
+		const sessionId = session.sessionId;
+		const chatResources = new ResourceSet();
+		store.add(autorun(reader => {
+			for (const chat of session.chats.read(reader)) {
+				chatResources.add(chat.resource);
+			}
+		}));
+		return () => ({ sessionId, chatResources: [...chatResources] });
+	}
+
 	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
 		const connection = this.connection;
 		if (!connection) {
 			return;
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
+		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
 		for (const sessionId of sessionIds) {
 			this._assertSessionAvailable(sessionId);
 			const rawId = this._sessionKeyFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({
-					rawId,
-					cached,
-					deletion: { sessionId: cached.sessionId, chatResources: cached.chats.get().map(chat => chat.resource) },
-				});
+				targets.push({ rawId, cached });
 			}
 		}
 		if (targets.length === 0) {
@@ -7129,20 +7136,23 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		}
 		const removed: AgentHostSessionAdapter[] = [];
 		const deleted: ISessionDeletion[] = [];
+		const deletionStore = new DisposableStore();
 		try {
-			for (const { rawId, cached, deletion } of targets) {
+			const trackedTargets = targets.map(target => ({ ...target, getDeletion: this.trackSessionDeletion(target.cached, deletionStore) }));
+			for (const { rawId, cached, getDeletion } of trackedTargets) {
 				await connection.disposeSession(cached.backendUri);
 				const current = this._sessionCache.get(rawId);
 				if (current && current !== cached) {
 					continue;
 				}
-				deleted.push(deletion);
+				deleted.push(getDeletion());
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
 				}
 			}
 		} finally {
+			deletionStore.dispose();
 			if (removed.length > 0 || deleted.length > 0) {
 				const event = { added: [], removed, changed: [], deleted };
 				if (removed.length > 0) {

@@ -9723,6 +9723,45 @@ suite('LocalAgentHostSessionsProvider', () => {
 		}));
 	}
 
+	for (const waitFor of ['first', 'second'] as const) {
+		test(`captures a peer added while the ${waitFor} bulk deletion is pending`, async () => {
+			agentHost.addSession(createSession('late-peer-first'));
+			agentHost.addSession(createSession('late-peer-second'));
+			const provider = createProvider(disposables, agentHost);
+			await timeout(0);
+			const first = provider.getSessions().find(session => AgentSession.id(session.resource) === 'late-peer-first');
+			const second = provider.getSessions().find(session => AgentSession.id(session.resource) === 'late-peer-second');
+			assert.ok(first);
+			assert.ok(second instanceof AgentHostSessionAdapter);
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			const dispose = agentHost.disposeSession.bind(agentHost);
+			agentHost.disposeSession = async backend => {
+				if (AgentSession.id(backend) === `late-peer-${waitFor}`) {
+					await entered.complete();
+					await release.p;
+				}
+				await dispose(backend);
+			};
+			const changes: ISessionChangeEvent[] = [];
+			disposables.add(provider.onDidChangeSessions(event => changes.push(event)));
+			const deletion = provider.deleteSessions([first.sessionId, second.sessionId]);
+			await entered.p;
+			second.applyChatMetadata([{ chat: URI.parse(buildDefaultChatUri(second.backendUri.toString())), kind: 'default' }, { chat: URI.parse(buildChatUri(second.backendUri, 'late-peer')), kind: 'peer' }]);
+			const peer = second.chats.get().find(chat => chat.resource.fragment === 'late-peer');
+			assert.ok(peer);
+			if (waitFor === 'second') {
+				fireSessionRemoved(agentHost, 'late-peer-second');
+				await timeout(0);
+			}
+			await release.complete();
+			await deletion;
+			await timeout(100);
+
+			assert.ok(changes.flatMap(event => event.deleted ?? []).find(session => session.sessionId === second.sessionId)?.chatResources.some(resource => resource.toString() === peer.resource.toString()));
+		});
+	}
+
 	test('publishes confirmed partial deletions before a later target fails', async () => {
 		agentHost.addSession(createSession('confirmed-first', { summary: 'First' }));
 		agentHost.addSession(createSession('confirmed-second', { summary: 'Second' }));

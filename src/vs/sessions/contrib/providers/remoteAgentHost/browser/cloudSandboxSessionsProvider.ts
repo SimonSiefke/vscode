@@ -14,6 +14,7 @@ import { AgentSession, type IAgentSessionMetadata } from '../../../../../platfor
 import { CLOUD_SANDBOX_AGENT_PROVIDER, CLOUD_SANDBOX_SESSION_SCHEME, CloudSandboxAutoConnectOnOpenSettingId, CloudSandboxRequestError, isRetryableCloudSandboxError } from '../../../../../platform/agentHost/common/cloudSandboxAgentHost.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import type { ISession } from '../../../../services/sessions/common/session.js';
+import type { ISessionDeletion } from '../../../../services/sessions/common/sessionsProvider.js';
 import type { AgentHostSessionAdapter } from '../../agentHost/browser/baseAgentHostSessionsProvider.js';
 import { RemoteAgentHostSessionsProvider } from './remoteAgentHostSessionsProvider.js';
 import { resolveCloudSandboxSessionConfig } from '../../../../../workbench/contrib/chat/browser/remoteAgentHost/cloudSandboxSessionConfig.js';
@@ -341,7 +342,7 @@ export class CloudSandboxSessionsProvider extends RemoteAgentHostSessionsProvide
 		return this.getCachedSession(rawId)?.updatedAt.get().getTime();
 	}
 
-	removeDeletedSession(rawId: string): void {
+	removeDeletedSession(rawId: string, deleted?: ISessionDeletion): void {
 		const cached = this.getCachedSession(rawId);
 		const key = cached ? this._sessionKeyFromChatId(cached.sessionId) : undefined;
 		const session = key ? this._removeCachedSession(key) : undefined;
@@ -350,9 +351,9 @@ export class CloudSandboxSessionsProvider extends RemoteAgentHostSessionsProvide
 		this._withheldSessions.delete(taskKey);
 		this._provisionalSessions.delete(taskKey);
 		this._pendingSessionTitles.delete(taskKey);
-		if (session) {
-			this._onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
-			session.dispose();
+		if (session || deleted) {
+			this._onDidChangeSessions.fire({ added: [], removed: session ? [session] : [], changed: [], ...(deleted ? { deleted: [deleted] } : {}) });
+			session?.dispose();
 		}
 	}
 
