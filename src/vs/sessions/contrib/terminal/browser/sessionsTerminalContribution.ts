@@ -790,8 +790,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	}
 
 	private async _closeTerminal(instance: ITerminalInstance): Promise<void> {
-		if (instance.target === TerminalLocation.Editor) {
-			await this._editorService.closeEditors(this._editorService.findEditors(instance.resource));
+		const editors = instance.target === TerminalLocation.Editor ? this._editorService.findEditors(instance.resource) : [];
+		if (editors.length > 0) {
+			await this._editorService.closeEditors(editors);
 		} else {
 			await this._terminalService.safeDisposeTerminal(instance);
 		}

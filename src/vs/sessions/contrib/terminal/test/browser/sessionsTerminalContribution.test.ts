@@ -304,6 +304,7 @@ suite('SessionsTerminalContribution', () => {
 	let defaultCwdCalls: (URI | undefined)[];
 	let vetoSafeDispose: boolean;
 	let vetoEditorClose: boolean;
+	let createTerminalsInEditor: boolean;
 	let terminalEditors: Map<number, IEditorIdentifier>;
 	let editorCloseCalls: number[];
 	let safeDisposeBarrier: DeferredPromise<void> | undefined;
@@ -342,6 +343,7 @@ suite('SessionsTerminalContribution', () => {
 		defaultCwdCalls = [];
 		vetoSafeDispose = false;
 		vetoEditorClose = false;
+		createTerminalsInEditor = false;
 		terminalEditors = new Map();
 		editorCloseCalls = [];
 		safeDisposeBarrier = undefined;
@@ -391,6 +393,9 @@ suite('SessionsTerminalContribution', () => {
 				await terminalCreationBarriers.get(cwdStr)?.p;
 				const id = nextInstanceId++;
 				const instance = makeTerminalInstance(id, cwdStr);
+				if (createTerminalsInEditor) {
+					instance._testSetTarget(TerminalLocation.Editor);
+				}
 				createdTerminals.push({ cwd: opts?.config?.cwd });
 				terminalInstances.set(id, instance);
 				if (disposeOnCreatePaths.has(cwdStr)) {
@@ -417,6 +422,9 @@ suite('SessionsTerminalContribution', () => {
 				disposeTestTerminal(instance);
 			}
 			override moveToBackground(instance: ITerminalInstance): void {
+				// TerminalService detaches the editor input but keeps its live Editor-target instance.
+				terminalEditors.get(instance.instanceId)?.editor.dispose();
+				terminalEditors.delete(instance.instanceId);
 				backgroundedInstances.add(instance.instanceId);
 				moveToBackgroundCalls.push(instance.instanceId);
 			}
@@ -1045,6 +1053,85 @@ suite('SessionsTerminalContribution', () => {
 		assert.strictEqual(disposedInstances.length, 1);
 		assert.strictEqual(terminalInstances.size, 0);
 		assert.deepStrictEqual(activeInstanceSet, []);
+	});
+
+	for (const trigger of ['archive', 'remove', 'discard'] as const) {
+		test(`closes a detached editor terminal on ${trigger} after switching sessions`, async () => {
+			const cwd = URI.file('/detached-editor');
+			const session = makeAgentSession({ sessionId: 'test:detached-editor', worktree: cwd, providerType: AgentSessionProviders.Background });
+			const [terminal] = await contribution.ensureTerminal(cwd, false, session);
+			(terminal as TestTerminalInstance)._testSetTarget(TerminalLocation.Editor);
+			const input = store.add(new class extends EditorInput {
+				override get typeId(): string { return 'test.terminal'; }
+				override get resource(): URI { return terminal.resource; }
+			});
+			terminalEditors.set(terminal.instanceId, { groupId: 1, editor: input });
+			activeSessionObs.set(session, undefined);
+			await tick();
+			const other = makeAgentSession({ sessionId: 'test:other-editor-session', worktree: URI.file('/other-editor-session'), providerType: AgentSessionProviders.Background });
+			allSessions = [session, other];
+			activeSessionObs.set(other, undefined);
+			await tick();
+			const otherTerminal = terminalInstances.get(activeInstanceId!);
+			assert.ok(otherTerminal && otherTerminal !== terminal);
+			const afterSwitch = {
+				live: !terminal.isDisposed,
+				target: terminal.target,
+				backgrounded: backgroundedInstances.has(terminal.instanceId),
+				hasEditor: terminalEditors.has(terminal.instanceId),
+				inputDisposed: input.isDisposed(),
+			};
+
+			if (trigger === 'archive') {
+				onDidChangeSessions.fire({ added: [], removed: [], changed: [makeAgentSession({ sessionId: session.sessionId, worktree: cwd, providerType: AgentSessionProviders.Background, isArchived: true })] });
+			} else if (trigger === 'remove') {
+				allSessions = [other];
+				onDidChangeSessions.fire({ added: [], removed: [session], changed: [] });
+			} else {
+				onDidDiscardNewSession.fire(session);
+			}
+			await tick();
+
+			assert.deepStrictEqual({
+				afterSwitch,
+				disposed: terminal.isDisposed,
+				remainingTerminals: [...terminalInstances.keys()],
+				otherDisposed: otherTerminal.isDisposed,
+				editorCloseCalls,
+				hasOldScope: (Reflect.get(contribution, '_trackedTerminalScopes') as Map<number, object>).has(terminal.instanceId),
+			}, {
+				afterSwitch: { live: true, target: TerminalLocation.Editor, backgrounded: true, hasEditor: false, inputDisposed: true },
+				disposed: true,
+				remainingTerminals: [otherTerminal.instanceId],
+				otherDisposed: false,
+				editorCloseCalls: [],
+				hasOldScope: false,
+			});
+		});
+	}
+
+	test('closes a late-created editor terminal with no open input after draft discard', async () => {
+		const cwd = URI.file('/late-editor');
+		const session = makeAgentSession({ sessionId: 'test:late-editor', worktree: cwd, providerType: AgentSessionProviders.Background });
+		const barrier = new DeferredPromise<void>();
+		terminalCreationBarriers.set(cwd.fsPath, barrier);
+		createTerminalsInEditor = true;
+		const creation = contribution.ensureTerminal(cwd, false, session);
+		try {
+			await tick();
+			onDidDiscardNewSession.fire(session);
+		} finally {
+			await barrier.complete();
+		}
+		const result = await creation;
+
+		assert.deepStrictEqual({
+			result,
+			created: createdTerminals.length,
+			disposedTargets: disposedInstances.map(instance => instance.target),
+			remaining: terminalInstances.size,
+			editorCloseCalls,
+		}, { result: [], created: 1, disposedTargets: [TerminalLocation.Editor], remaining: 0, editorCloseCalls: [] });
 	});
 
 	for (const veto of [false, true]) {
