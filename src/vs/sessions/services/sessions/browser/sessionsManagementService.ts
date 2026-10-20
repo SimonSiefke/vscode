@@ -194,7 +194,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	private onDidChangeSessionsFromSessionsProviders(e: ISessionChangeEvent): void {
-		const removedSessionIds = e.removed.length ? e.removed.map(session => session.sessionId) : undefined;
+		const deletedSessionIds = e.deleted?.map(session => session.sessionId);
 		// Clear stale new session if the provider removed it. The provider
 		// already disposed it, so just drop the pointer (do not dispose again).
 		if (e.removed.length) {
@@ -212,8 +212,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		// the grid and pick a fallback active session.
 		this._onDidChangeSessions.fire(e);
 		// Clear history after closing views have saved their input.
-		if (removedSessionIds) {
-			for (const sessionId of removedSessionIds) {
+		if (deletedSessionIds) {
+			for (const sessionId of deletedSessionIds) {
 				this.chatWidgetHistoryService.clearHistory(ChatAgentLocation.Chat, sessionId);
 			}
 		}

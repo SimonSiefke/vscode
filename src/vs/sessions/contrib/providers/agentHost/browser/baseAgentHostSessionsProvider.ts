@@ -97,7 +97,7 @@ import { getWorktreeDiskUsage } from './worktreeDiskUsage.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import type { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsRecentWorkspacesService } from '../../../../services/sessions/browser/sessionsRecentWorkspacesService.js';
-import { IAutomationSessionConfiguration, IChatMovedEvent, IDeleteChatOptions, type IForkChatOptions, ISendRequestOptions, ISessionChangeEvent, ISessionConfigurationSnapshot, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionPermissionOption, ISessionsProviderCreateSessionOptions, ISessionWorktreeConfiguration } from '../../../../services/sessions/common/sessionsProvider.js';
+import { IAutomationSessionConfiguration, IChatMovedEvent, IDeleteChatOptions, type IForkChatOptions, ISendRequestOptions, ISessionChangeEvent, ISessionConfigurationSnapshot, ISessionDeletion, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionPermissionOption, ISessionsProviderCreateSessionOptions, ISessionWorktreeConfiguration } from '../../../../services/sessions/common/sessionsProvider.js';
 import { AgentHostChatMoveTracker } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostChatMoveTracker.js';
 import { IGitHubService } from '../../../github/browser/githubService.js';
 import { computePullRequestRefPresentation } from '../../../github/browser/pullRequestIconStatus.js';
@@ -125,8 +125,14 @@ const SETTINGS_DERIVED_SESSION_CONFIG_CLEARED_VALUES: Readonly<Record<string, un
 };
 
 function mergeSessionChangeEvents(events: readonly ISessionChangeEvent[]): ISessionChangeEvent {
+	let deletions: Map<string, ISessionDeletion> | undefined;
 	const changes = new Map<string, { added?: ISession; removed?: ISession; changed?: ISession }>();
 	for (const event of events) {
+		if (event.deleted) {
+			for (const deletion of event.deleted) {
+				(deletions ??= new Map()).set(deletion.sessionId, deletion);
+			}
+		}
 		for (const session of event.added) {
 			changes.set(session.sessionId, { removed: changes.get(session.sessionId)?.removed, added: session });
 		}
@@ -160,10 +166,12 @@ function mergeSessionChangeEvents(events: readonly ISessionChangeEvent[]): ISess
 			changed.push(change.changed);
 		}
 	}
+	const deleted = deletions && [...deletions.values()].filter(deletion => !changes.get(deletion.sessionId)?.added);
 	return {
 		added,
 		removed,
 		changed,
+		...(deleted?.length ? { deleted } : {}),
 	};
 }
 
@@ -7103,30 +7111,46 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		if (!connection) {
 			return;
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
+		const targets: { rawId: string; cached: AgentHostSessionAdapter; deletion: ISessionDeletion }[] = [];
 		for (const sessionId of sessionIds) {
 			this._assertSessionAvailable(sessionId);
 			const rawId = this._sessionKeyFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({ rawId, cached });
+				targets.push({
+					rawId,
+					cached,
+					deletion: { sessionId: cached.sessionId, chatResources: cached.chats.get().map(chat => chat.resource) },
+				});
 			}
 		}
 		if (targets.length === 0) {
 			return;
 		}
 		const removed: AgentHostSessionAdapter[] = [];
+		const deleted: ISessionDeletion[] = [];
 		try {
-			for (const { rawId, cached } of targets) {
+			for (const { rawId, cached, deletion } of targets) {
 				await connection.disposeSession(cached.backendUri);
+				const current = this._sessionCache.get(rawId);
+				if (current && current !== cached) {
+					continue;
+				}
+				deleted.push(deletion);
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
 				}
 			}
 		} finally {
-			if (removed.length > 0) {
-				this._onDidChangeSessions.fire({ added: [], removed, changed: [] });
+			if (removed.length > 0 || deleted.length > 0) {
+				const event = { added: [], removed, changed: [], deleted };
+				if (removed.length > 0) {
+					this._onDidChangeSessions.fire(event);
+				} else {
+					// Keep an already announced removal on its notification debounce.
+					this._onDidChangeSessionsFromNotifications.fire(event);
+				}
 				for (const cached of removed) {
 					cached.dispose();
 				}
