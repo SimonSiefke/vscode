@@ -133,6 +133,15 @@ export class TerminalStatusList extends Disposable implements ITerminalStatusLis
 		}
 	}
 
+	override dispose(): void {
+		// Clear all pending timeouts to prevent memory leaks
+		for (const timeout of this._statusTimeouts.values()) {
+			mainWindow.clearTimeout(timeout);
+		}
+		this._statusTimeouts.clear();
+		super.dispose();
+	}
+
 	private _applyAnimationSetting(status: ITerminalStatus): ITerminalStatus {
 		if (!status.icon || ThemeIcon.getModifier(status.icon) !== 'spin' || this._configurationService.getValue(TerminalSettingId.TabsEnableAnimation)) {
 			return status;
