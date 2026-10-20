@@ -55,6 +55,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		super();
 		this._terminalEditorActive = TerminalContextKeys.terminalEditorActive.bindTo(contextKeyService);
 		this._register(toDisposable(() => {
+			dispose(this._editorInputs.values());
 			for (const d of this._instanceDisposables.values()) {
 				dispose(d);
 			}
