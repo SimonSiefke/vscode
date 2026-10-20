@@ -141,7 +141,9 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 		const resource = this.resolveResource(instance);
 		if (resource) {
 			const input = this._editorInputs.get(resource.path);
-			await this._activeOpenEditorRequest?.promise;
+			while (this._activeOpenEditorRequest) {
+				await this._activeOpenEditorRequest.promise;
+			}
 			if (instance.isDisposed || !input || input.isDisposed() || input.terminalInstance !== instance || this._editorInputs.get(resource.path) !== input) {
 				return;
 			}
@@ -153,7 +155,7 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 			};
 			const group = editorOptions?.viewColumn ?? ACTIVE_GROUP;
 			const existingEditors = this._editorService.findEditors(resource);
-			this._activeOpenEditorRequest = {
+			const request = {
 				instanceId: instance.instanceId,
 				promise: existingEditors.length > 0
 					? this._editorService.openEditor({
@@ -163,8 +165,14 @@ export class TerminalEditorService extends Disposable implements ITerminalEditor
 					}, group)
 					: this._editorService.openEditor(input, options, group)
 			};
-			await this._activeOpenEditorRequest?.promise;
-			this._activeOpenEditorRequest = undefined;
+			this._activeOpenEditorRequest = request;
+			try {
+				await request.promise;
+			} finally {
+				if (this._activeOpenEditorRequest === request) {
+					this._activeOpenEditorRequest = undefined;
+				}
+			}
 		}
 	}
 

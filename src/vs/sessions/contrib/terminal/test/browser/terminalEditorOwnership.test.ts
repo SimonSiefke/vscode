@@ -9,12 +9,12 @@ import sinon from 'sinon';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { EditorResolverService } from '../../../../../workbench/services/editor/browser/editorResolverService.js';
 import { EditorService } from '../../../../../workbench/services/editor/browser/editorService.js';
-import { IEditorGroupsService, GroupDirection } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
+import { IEditorGroupsService, GroupDirection, IAuxiliaryEditorPart } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorResolverService, RegisteredEditorPriority } from '../../../../../workbench/services/editor/common/editorResolverService.js';
 import { createEditorPart, registerTestEditor, workbenchInstantiationService, workbenchTeardown } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { TerminalEditorInput } from '../../../../../workbench/contrib/terminal/browser/terminalEditorInput.js';
 
-import { DeferredPromise } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -23,7 +23,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ITerminalCapabilityImplMap, ITerminalCapabilityStore, TerminalCapability } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
 import { TerminalLocation, TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
 import { IRemoteAgentService } from '../../../../../workbench/services/remote/common/remoteAgentService.js';
-import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
+import { IEditorService, AUX_WINDOW_GROUP } from '../../../../../workbench/services/editor/common/editorService.js';
 import { IEditorPane } from '../../../../../workbench/common/editor.js';
 import { ITerminalEditorService, ITerminalInstance, ITerminalInstanceService, ITerminalService, terminalEditorId } from '../../../../../workbench/contrib/terminal/browser/terminal.js';
 import { TerminalEditorService } from '../../../../../workbench/contrib/terminal/browser/terminalEditorService.js';
@@ -407,6 +407,49 @@ suite('Sessions - terminal editor ownership', () => {
 			await editors.openEditor(instance, { viewColumn: second.id });
 			assert.deepStrictEqual([editorService.findEditors(instance.resource).length, second.count, editors.instances.length], [1, 1, 1]);
 		} finally {
+			await editorService.closeEditors([...editorService.findEditors(instance.resource)]);
+			editors.detachInstance(instance);
+			instance.dispose();
+			await workbenchTeardown(instantiationService);
+		}
+	});
+
+	test('keeps one terminal editor when fresh auxiliary and main opens overlap', async () => {
+		const owners = await createRealEditorOwners();
+		const { part, editorService, editors, instantiationService } = owners;
+		const mainGroup = part.activeGroup;
+		const auxiliaryGroup = part.addGroup(mainGroup, GroupDirection.RIGHT);
+		const auxiliaryEntered = new DeferredPromise<void>();
+		const releaseAuxiliary = new DeferredPromise<void>();
+		const auxiliaryPart = new class extends mock<IAuxiliaryEditorPart>() {
+			override readonly activeGroup = auxiliaryGroup;
+		};
+		const createAuxiliary = sinon.stub(part, 'createAuxiliaryEditorPart').callsFake(async () => {
+			await auxiliaryEntered.complete();
+			await releaseAuxiliary.p;
+			return auxiliaryPart;
+		});
+		const instance = makeInstance(703);
+		const auxiliaryOpening = editors.openEditor(instance, { viewColumn: AUX_WINDOW_GROUP });
+		const mainOpening = editors.openEditor(instance, { viewColumn: mainGroup.id });
+		const openings = Promise.all([auxiliaryOpening, mainOpening]);
+		void openings.catch(() => undefined);
+		try {
+			await auxiliaryEntered.p;
+			// Drain the main-group promise chain while auxiliary group selection is held.
+			await timeout(0);
+			await releaseAuxiliary.complete();
+			await openings;
+			const input = editors.getInputFromResource(instance.resource);
+			assert.deepStrictEqual({
+				locations: editorService.findEditors(instance.resource).length,
+				live: !input.isDisposed() && input.terminalInstance === instance,
+				instances: editors.instances.length,
+			}, { locations: 1, live: true, instances: 1 });
+		} finally {
+			await releaseAuxiliary.complete();
+			await Promise.allSettled([auxiliaryOpening, mainOpening]);
+			createAuxiliary.restore();
 			await editorService.closeEditors([...editorService.findEditors(instance.resource)]);
 			editors.detachInstance(instance);
 			instance.dispose();
