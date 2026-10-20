@@ -157,6 +157,33 @@ suite('ExtHostLanguageFeatures', function () {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('AutoClosingPair.beforeText requires proposed API', async () => {
+		const setLanguageConfiguration = sinon.stub(mainThread, '$setLanguageConfiguration');
+		try {
+			disposables.add(extHost.setLanguageConfiguration(defaultExtension, 'testLanguage', {
+				autoClosingPairs: [{ open: '{', close: '}' }]
+			}));
+
+			const configuration: vscode.LanguageConfiguration = {
+				autoClosingPairs: [{ open: '{', close: '}', beforeText: /\{$/ }]
+			};
+			assert.throws(
+				() => extHost.setLanguageConfiguration(defaultExtension, 'testLanguage', configuration),
+				/CANNOT use API proposal: autoClosingPairBeforeText/
+			);
+
+			disposables.add(extHost.setLanguageConfiguration(
+				{ ...defaultExtension, enabledApiProposals: ['autoClosingPairBeforeText'] },
+				'testLanguage',
+				configuration
+			));
+			await rpcProtocol.sync();
+			assert.strictEqual(setLanguageConfiguration.callCount, 2);
+		} finally {
+			setLanguageConfiguration.restore();
+		}
+	});
+
 	for (const throws of [false, true]) {
 		test(`Inline completion list is released when its lifetime callback throws: ${throws}`, async () => {
 			let ended = 0;
@@ -638,7 +665,7 @@ suite('ExtHostLanguageFeatures', function () {
 		}));
 
 		await rpcProtocol.sync();
-		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None))!;
+		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None, false))!;
 		assert.strictEqual(value.size, 1);
 		const [entry] = Array.from(value.values())[0];
 		assert.deepStrictEqual(entry.range, { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 5 });
@@ -659,7 +686,7 @@ suite('ExtHostLanguageFeatures', function () {
 		}));
 
 		await rpcProtocol.sync();
-		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None))!;
+		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None, false))!;
 		assert.strictEqual(value.size, 1);
 		const [entry] = Array.from(value.values())[0];
 		assert.deepStrictEqual(entry.range, { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 5 });
@@ -680,7 +707,7 @@ suite('ExtHostLanguageFeatures', function () {
 		}));
 
 		await rpcProtocol.sync();
-		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None))!;
+		const value = (await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None, false))!;
 		assert.strictEqual(value.size, 1);
 		const [entry] = Array.from(value.values())[0];
 		assert.deepStrictEqual(entry.range, { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 3 });
@@ -702,7 +729,7 @@ suite('ExtHostLanguageFeatures', function () {
 		}));
 
 		await rpcProtocol.sync();
-		const value = await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None);
+		const value = await getOccurrencesAtPosition(languageFeaturesService.documentHighlightProvider, model, new EditorPosition(1, 2), CancellationToken.None, false);
 		assert.strictEqual(value!.size, 1);
 	});
 
