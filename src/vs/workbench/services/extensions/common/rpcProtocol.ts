@@ -314,6 +314,10 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		switch (type) {
 			case MessageType.NotificationJSONArgs: {
 				let args = JSON.parse(message.body as string);
+				const undefinedMask = (message.header as [MessageType, number, number, string, number?])[4];
+				if (undefinedMask) {
+					MessageIO.restoreUndefinedArguments(args, undefinedMask);
+				}
 				if (this._uriTransformer) {
 					args = transformIncomingURIs(args, this._uriTransformer);
 				}
@@ -323,6 +327,10 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			case MessageType.RequestJSONArgs:
 			case MessageType.RequestJSONArgsWithCancellation: {
 				let args = JSON.parse(message.body as string);
+				const undefinedMask = (message.header as [MessageType, number, number, string, number?])[4];
+				if (undefinedMask) {
+					MessageIO.restoreUndefinedArguments(args, undefinedMask);
+				}
 				if (this._uriTransformer) {
 					args = transformIncomingURIs(args, this._uriTransformer);
 				}
@@ -573,13 +581,17 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		if (this._unacknowledgedCount === 0 && Date.now() >= this._unresponsiveTime - RPCProtocol.UNRESPONSIVE_TIME + 1000) {
 			return this._remoteCall(rpcId, methodName, args);
 		}
-		const body = MessageIO.serializeNotificationArguments(args, this._uriReplacer);
-		if (body === undefined) {
+		const serialized = MessageIO.serializeNativeArguments(args, this._uriReplacer);
+		if (!serialized) {
 			return this._remoteCall(rpcId, methodName, args);
 		}
 		const req = ++this._lastMessageId;
 		this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `notification: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
-		native.call(this._protocol, { header: [MessageType.NotificationJSONArgs, req, rpcId, methodName], body });
+		const header: (number | string)[] = [MessageType.NotificationJSONArgs, req, rpcId, methodName];
+		if (serialized.undefinedMask) {
+			header.push(serialized.undefinedMask);
+		}
+		native.call(this._protocol, { header, body: serialized.args });
 		return notificationResult;
 	}
 
@@ -597,7 +609,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			return Promise.reject<any>(errors.canceled());
 		}
 
-		const serializedRequestArguments = MessageIO.serializeRequestArguments(args, this._uriReplacer);
+		const serializedRequestArguments = MessageIO.serializeRequestArguments(args, this._uriReplacer, !!this._protocol.sendStructuredClone);
 
 		const req = ++this._lastMessageId;
 		const callId = String(req);
@@ -617,7 +629,11 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		if (this._protocol.sendStructuredClone && serializedRequestArguments.type === SerializedRequestArgumentType.Simple) {
 			const type = cancellationToken ? MessageType.RequestJSONArgsWithCancellation : MessageType.RequestJSONArgs;
 			this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
-			this._protocol.sendStructuredClone({ header: [type, req, rpcId, methodName], body: serializedRequestArguments.args });
+			const header: (number | string)[] = [type, req, rpcId, methodName];
+			if (serializedRequestArguments.undefinedMask) {
+				header.push(serializedRequestArguments.undefinedMask);
+			}
+			this._protocol.sendStructuredClone({ header, body: serializedRequestArguments.args });
 			return result;
 		}
 		const msg = MessageIO.serializeRequest(req, rpcId, methodName, serializedRequestArguments, !!cancellationToken);
@@ -840,7 +856,7 @@ const enum SerializedRequestArgumentType {
 }
 
 type SerializedRequestArguments =
-	| { readonly type: SerializedRequestArgumentType.Simple; args: string }
+	| { readonly type: SerializedRequestArgumentType.Simple; args: string; undefinedMask?: number }
 	| { readonly type: SerializedRequestArgumentType.Mixed; args: MixedArg[] };
 
 
@@ -848,27 +864,44 @@ const notificationResult = Promise.resolve(undefined);
 
 class MessageIO {
 
-	public static serializeNotificationArguments(args: any[], replacer: JSONStringifyReplacer | null): string | undefined {
-		return this._useMixedArgSerialization(args) ? undefined : stringify(args, replacer);
+	public static serializeNativeArguments(args: any[], replacer: JSONStringifyReplacer | null): Extract<SerializedRequestArguments, { type: SerializedRequestArgumentType.Simple }> | undefined {
+		const undefinedMask = this._simpleArgumentMask(args, true);
+		if (undefinedMask === null) {
+			return undefined;
+		}
+		return undefinedMask
+			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
+			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
 	}
 
-	private static _useMixedArgSerialization(arr: any[]): boolean {
-		for (let i = 0, len = arr.length; i < len; i++) {
-			if (arr[i] instanceof VSBuffer) {
-				return true;
-			}
-			if (arr[i] instanceof SerializableObjectWithBuffers) {
-				return true;
-			}
-			if (typeof arr[i] === 'undefined') {
-				return true;
+	public static restoreUndefinedArguments(args: any[], undefinedMask: number): void {
+		for (let i = 0; i < args.length; i++) {
+			if (undefinedMask & 1 << i) {
+				args[i] = undefined;
 			}
 		}
-		return false;
 	}
 
-	public static serializeRequestArguments(args: any[], replacer: JSONStringifyReplacer | null): SerializedRequestArguments {
-		if (this._useMixedArgSerialization(args)) {
+	private static _simpleArgumentMask(arr: any[], allowUndefined: boolean): number | null {
+		let undefinedMask = 0;
+		for (let i = 0, len = arr.length; i < len; i++) {
+			const value = arr[i];
+			if (value instanceof VSBuffer || value instanceof SerializableObjectWithBuffers) {
+				return null;
+			}
+			if (typeof value === 'undefined') {
+				if (!allowUndefined || len > 32) {
+					return null;
+				}
+				undefinedMask |= 1 << i;
+			}
+		}
+		return undefinedMask;
+	}
+
+	public static serializeRequestArguments(args: any[], replacer: JSONStringifyReplacer | null, allowUndefined = false): SerializedRequestArguments {
+		const undefinedMask = this._simpleArgumentMask(args, allowUndefined);
+		if (undefinedMask === null) {
 			const massagedArgs: MixedArg[] = [];
 			for (let i = 0, len = args.length; i < len; i++) {
 				const arg = args[i];
@@ -888,10 +921,9 @@ class MessageIO {
 				args: massagedArgs,
 			};
 		}
-		return {
-			type: SerializedRequestArgumentType.Simple,
-			args: stringify(args, replacer)
-		};
+		return undefinedMask
+			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
+			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
 	}
 
 	public static serializeRequest(req: number, rpcId: number, method: string, serializedArgs: SerializedRequestArguments, usesCancellationToken: boolean): VSBuffer {

@@ -19,6 +19,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 
 ['binary', 'native JSON', 'batched JSON'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
 	const native = mode !== 'binary';
+	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
 
 	let disposables: DisposableStore;
 
@@ -75,6 +76,9 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		}
 	}
 
+	// Production actors have stable IDs; avoid exhausting the byte protocol's one-byte ID range.
+	const bIdentifier = new ProxyIdentifier<BClass>('bb');
+
 	setup(() => {
 		disposables = new DisposableStore();
 
@@ -86,7 +90,6 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		const A = disposables.add(new RPCProtocol(a_protocol));
 		bProtocol = disposables.add(new RPCProtocol(b_protocol));
 
-		const bIdentifier = new ProxyIdentifier<BClass>('bb');
 		const bInstance = new BClass();
 		bProtocol.set(bIdentifier, bInstance);
 		bProxy = A.getProxy(bIdentifier);
@@ -104,6 +107,92 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 			assert.strictEqual(res, 5);
 			done(null);
 		}, done);
+	});
+
+	test('native optional arguments preserve undefined masks at every boundary', async () => {
+		const sent: VSBuffer[] = [];
+		const one = new MessagePassingProtocol(message => sent.push(message));
+		const two = new MessagePassingProtocol();
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		const service = {
+			$inspect: (...args: unknown[]) => ({
+				length: args.length,
+				undefinedAt: args.flatMap((value, index) => value === undefined ? [index] : []),
+				nullAt: args.flatMap((value, index) => value === null ? [index] : [])
+			})
+		};
+		const identifier = new ProxyIdentifier<typeof service>('optionalArguments');
+		server.set(identifier, service);
+		const proxy = client.getProxy(identifier);
+		for (const length of [1, 2, 13, 31, 32, 33, 64]) {
+			for (const position of new Set([0, Math.floor(length / 2), length - 1])) {
+				const args: unknown[] = Array.from({ length }, (_, index) => index % 3 ? index : null);
+				args[position] = undefined;
+				sent.length = 0;
+				assert.deepStrictEqual(await proxy.$inspect(...args), service.$inspect(...args));
+				const frame = getStructuredCloneMessage(sent[0]);
+				if (native && length <= 32) {
+					assert.ok(frame);
+					assert.strictEqual((frame.header as number[])[4], 1 << position);
+				} else {
+					assert.strictEqual(frame, undefined);
+				}
+			}
+		}
+		assert.deepStrictEqual(await proxy.$inspect(...Array(32).fill(undefined)), { length: 32, undefinedAt: Array.from({ length: 32 }, (_, index) => index), nullAt: [] });
+	});
+
+	test('optional native argument payloads retain snapshots and JSON omission semantics', async () => {
+		let received: unknown;
+		const { proxy } = createNotificationRPC({ $notify: value => { received = value; }, $state: () => received });
+		await proxy.$state();
+		const payload = { label: 'before', optional: undefined, nested: [undefined, null] };
+		proxy.$notify(payload, undefined);
+		payload.label = 'after';
+		assert.deepStrictEqual(await proxy.$state(), { label: 'before', nested: [null, null] });
+	});
+
+	test('notifications with undefined arguments deliver every update without replies', async () => {
+		let count = 0;
+		let undefinedCount = 0;
+		const { proxy, sent } = createNotificationRPC({ $notify: value => { count++; undefinedCount += value === undefined ? 1 : 0; }, $state: () => ({ count, undefinedCount }) });
+		await proxy.$state();
+		sent.length = 0;
+		for (let index = 0; index < 64; index++) {
+			proxy.$notify(undefined);
+		}
+		assert.deepStrictEqual(await proxy.$state(), { count: 64, undefinedCount: 64 });
+		assert.strictEqual(sent.filter(message => messageType(message) === 13).length, native ? 64 : 0);
+	});
+
+	test('optional native arguments preserve cancellation-token delivery', async () => {
+		const one = new MessagePassingProtocol();
+		const two = new MessagePassingProtocol();
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		let enter!: () => void;
+		const entered = new Promise<void>(resolve => enter = resolve);
+		const service = {
+			$wait: (optional: unknown, token: CancellationToken) => new Promise<boolean>(resolve => {
+				const listener = token.onCancellationRequested(() => {
+					listener.dispose();
+					resolve(optional === undefined && token.isCancellationRequested);
+				});
+				enter();
+			})
+		};
+		const identifier = new ProxyIdentifier<typeof service>('optionalCancellation');
+		server.set(identifier, service);
+		const source = disposables.add(new CancellationTokenSource());
+		const result = client.getProxy(identifier).$wait(undefined, source.token);
+		await entered;
+		source.cancel();
+		assert.strictEqual(await result, true);
 	});
 
 	test('native IPC messages own tightly sized backing buffers', async () => {
@@ -184,7 +273,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 	});
 
 	test('short calls reuse a responsiveness check until it expires', async () => {
-		const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+		const clock = sinon.useFakeTimers(timerOptions);
 		try {
 			const { client, proxy } = createObservedRPC({ $call: () => 42 });
 			const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
@@ -205,7 +294,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 	});
 
 	test('a reused check still detects an unresponsive peer and recovers', async () => {
-		const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+		const clock = sinon.useFakeTimers(timerOptions);
 		try {
 			let release!: (value: number) => void;
 			let held = false;
@@ -367,7 +456,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 
 	if (native) {
 		test('notification traffic periodically probes a silent peer and cleans up on disposal', async () => {
-			const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+			const clock = sinon.useFakeTimers(timerOptions);
 			try {
 				const { client, server, two, proxy } = createNotificationRPC({ $notify: () => new Promise<void>(() => { }), $state: () => 0 });
 				await proxy.$state();
