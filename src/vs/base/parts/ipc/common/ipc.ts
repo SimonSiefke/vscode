@@ -336,12 +336,17 @@ function deserializeStructuredCloneMessage(message: IStructuredCloneMessage): IS
 	// in Map keys and Set entries. Restore those wrappers directly without walking
 	// or copying the received graph a second time.
 	for (const value of message.vsBuffers ?? []) {
+		if (value instanceof VSBuffer) {
+			continue;
+		}
 		const buffer = VSBuffer.wrap(value.buffer);
 		Object.setPrototypeOf(value, VSBuffer.prototype);
 		Object.assign(value, buffer);
 	}
 	if (message.jsonBody) {
 		message.body = JSON.parse(message.body as string);
+		// IPCClient shares this frame between its ChannelClient and ChannelServer.
+		message.jsonBody = false;
 	}
 	return message;
 }

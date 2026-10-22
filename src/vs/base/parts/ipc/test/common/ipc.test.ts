@@ -348,6 +348,24 @@ suite('Base IPC', function () {
 			});
 		});
 
+		test('bidirectional clients decode shared JSON frames only once', async () => {
+			const [one, two] = createStructuredCloneProtocolPair();
+			const first = store.add(new IPCClient(one, 'first'));
+			const second = store.add(new IPCClient(two, 'second'));
+			const echo: IServerChannel = { call: async (_ctx, _command, arg) => arg, listen: () => Event.None };
+			first.registerChannel('echo', echo);
+			second.registerChannel('echo', echo);
+			const values = [{ side: 'first', values: [1, 2, 3] }, { side: 'second', value: { enabled: true } }];
+			const result = await Promise.all([
+				first.getChannel('echo').call('echo', values[0]),
+				second.getChannel('echo').call('echo', values[1])
+			]);
+			assert.deepStrictEqual(result, values);
+			const bytes = await first.getChannel('echo').call<VSBuffer>('echo', VSBuffer.fromString('bidirectional bytes'));
+			assert.ok(bytes instanceof VSBuffer);
+			assert.strictEqual(bytes.toString(), 'bidirectional bytes');
+		});
+
 		test('uses JSON for object payloads and omits local callbacks', async () => {
 			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
 			const echoServer = store.add(new ChannelServer(serverProtocol, 'ctx'));
