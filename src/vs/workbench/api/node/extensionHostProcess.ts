@@ -13,7 +13,7 @@ import { Event } from '../../../base/common/event.js';
 import * as performance from '../../../base/common/performance.js';
 import { IURITransformer } from '../../../base/common/uriIpc.js';
 import { Promises } from '../../../base/node/pfs.js';
-import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
+import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../base/parts/ipc/common/ipc.js';
 import { BufferedEmitter, PersistentProtocol, ProtocolConstants } from '../../../base/parts/ipc/common/ipc.net.js';
 import { NodeSocket, WebSocketNodeSocket } from '../../../base/parts/ipc/node/ipc.net.js';
 import type { MessagePortMain, MessageEvent as UtilityMessageEvent } from '../../../base/parts/sandbox/node/electronTypes.js';
@@ -187,7 +187,7 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 			const withPorts = (ports: MessagePortMain[]) => {
 				const port = ports[0];
 				const onMessage = new BufferedEmitter<VSBuffer>();
-				port.on('message', (e) => onMessage.fire(VSBuffer.wrap(e.data as Uint8Array)));
+				port.on('message', (e) => onMessage.fire(ArrayBuffer.isView(e.data) ? VSBuffer.wrap(e.data as Uint8Array) : wrapStructuredCloneMessage(e.data as IStructuredCloneMessage)));
 				port.on('close', () => {
 					onTerminate('renderer closed the MessagePort');
 				});
@@ -195,7 +195,8 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 
 				resolve({
 					onMessage: onMessage.event,
-					send: message => port.postMessage(message.buffer)
+					send: message => port.postMessage(message.buffer),
+					sendStructuredClone: message => port.postMessage(message)
 				});
 			};
 
@@ -320,6 +321,12 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 				protocol.send(msg);
 			}
 		}
+
+		readonly sendStructuredClone = protocol.sendStructuredClone ? (message: IStructuredCloneMessage): void => {
+			if (!this._terminating) {
+				protocol.sendStructuredClone!(message);
+			}
+		} : undefined;
 
 		async drain(): Promise<void> {
 			if (protocol.drain) {

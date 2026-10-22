@@ -14,7 +14,7 @@ import { removeDangerousEnvVariables } from '../../../../base/common/processes.j
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
-import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+import { IMessagePassingProtocol, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
 import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 import { acquirePort } from '../../../../base/parts/ipc/electron-browser/ipc.mp.js';
 import * as nls from '../../../../nls.js';
@@ -433,7 +433,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				const onMessage = new BufferedEmitter<VSBuffer>();
 				port.onmessage = ((e) => {
 					if (e.data) {
-						onMessage.fire(VSBuffer.wrap(e.data));
+						onMessage.fire(ArrayBuffer.isView(e.data) ? VSBuffer.wrap(e.data as Uint8Array) : wrapStructuredCloneMessage(e.data));
 					}
 				});
 				port.start();
@@ -441,6 +441,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				resolve({
 					onMessage: onMessage.event,
 					send: message => port.postMessage(message.buffer),
+					sendStructuredClone: message => port.postMessage(message),
 				});
 			});
 

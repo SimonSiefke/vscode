@@ -13,7 +13,7 @@ import { Disposable, DisposableStore, IDisposable } from '../../../../base/commo
 import { MarshalledObject } from '../../../../base/common/marshalling.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
 import { IURITransformer, transformIncomingURIs } from '../../../../base/common/uriIpc.js';
-import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
 import { CanceledLazyPromise, LazyPromise } from './lazyPromise.js';
 import { getStringIdentifierForProxy, IRPCProtocol, Proxied, ProxyIdentifier, SerializableObjectWithBuffers } from './proxyIdentifier.js';
 
@@ -192,6 +192,11 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 	}
 
 	private _onDidReceiveAcknowledge(req: number): void {
+		const pending = this._pendingRPCReplies[req];
+		if (!pending || pending.acknowledged) {
+			return;
+		}
+		pending.acknowledged = true;
 		// The next possible unresponsive time is now + delta.
 		this._unresponsiveTime = Date.now() + RPCProtocol.UNRESPONSIVE_TIME;
 		this._unacknowledgedCount--;
@@ -277,11 +282,47 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		}
 	}
 
+	private _receiveNativeMessage(message: IStructuredCloneMessage): void {
+		if (this._isDisposed) {
+			return;
+		}
+		const [type, req, rpcId, method] = message.header as [MessageType, number, number, string];
+		switch (type) {
+			case MessageType.RequestJSONArgs:
+			case MessageType.RequestJSONArgsWithCancellation: {
+				let args = JSON.parse(message.body as string);
+				if (this._uriTransformer) {
+					args = transformIncomingURIs(args, this._uriTransformer);
+				}
+				this._receiveRequest(0, req, rpcId, method, args, type === MessageType.RequestJSONArgsWithCancellation);
+				break;
+			}
+			case MessageType.ReplyOKJSON: {
+				let value = JSON.parse(message.body as string);
+				if (this._uriTransformer) {
+					value = transformIncomingURIs(value, this._uriTransformer);
+				}
+				this._receiveReply(0, req, value);
+				break;
+			}
+			case MessageType.ReplyOKEmpty:
+				this._receiveReply(0, req, undefined);
+				break;
+		}
+	}
+
 	private _receiveOneMessage(rawmsg: VSBuffer): void {
 		if (this._isDisposed) {
 			return;
 		}
 
+		if (rawmsg.byteLength === 0) {
+			const native = getStructuredCloneMessage(rawmsg);
+			if (native) {
+				this._receiveNativeMessage(native);
+				return;
+			}
+		}
 		const msgLength = rawmsg.byteLength;
 		const buff = MessageBuffer.read(rawmsg, 0);
 		const messageType = <MessageType>buff.readUInt8();
@@ -374,21 +415,36 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			this._cancelInvokedHandlers[callId] = cancel;
 		}
 
-		// Acknowledge the request
-		const msg = MessageIO.serializeAcknowledged(req);
-		this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
-		this._protocol.send(msg);
-
+		let replied = false;
 		promise.then((r) => {
 			delete this._cancelInvokedHandlers[callId];
+			replied = true;
+			const native = this._protocol.sendStructuredClone;
+			if (native && !(r instanceof VSBuffer) && !(r instanceof SerializableObjectWithBuffers)) {
+				const header = [typeof r === 'undefined' ? MessageType.ReplyOKEmpty : MessageType.ReplyOKJSON, req];
+				const body = typeof r === 'undefined' ? undefined : safeStringify(r, this._uriReplacer);
+				this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `reply:`, r);
+				native.call(this._protocol, { header, body });
+				return;
+			}
 			const msg = MessageIO.serializeReplyOK(req, r, this._uriReplacer);
 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `reply:`, r);
 			this._protocol.send(msg);
 		}, (err) => {
 			delete this._cancelInvokedHandlers[callId];
+			replied = true;
 			const msg = MessageIO.serializeReplyErr(req, err);
 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `replyErr:`, err);
 			this._protocol.send(msg);
+		});
+		// An immediate reply also acknowledges receipt. Pending operations still
+		// acknowledge promptly so slow handlers do not look unresponsive.
+		queueMicrotask(() => {
+			if (!replied && !this._isDisposed) {
+				const msg = MessageIO.serializeAcknowledged(req);
+				this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
+				this._protocol.send(msg);
+			}
 		});
 	}
 
@@ -408,6 +464,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		}
 
 		const pendingReply = this._pendingRPCReplies[callId];
+		this._onDidReceiveAcknowledge(req);
 		delete this._pendingRPCReplies[callId];
 
 		pendingReply.resolveOk(value);
@@ -422,6 +479,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		}
 
 		const pendingReply = this._pendingRPCReplies[callId];
+		this._onDidReceiveAcknowledge(req);
 		delete this._pendingRPCReplies[callId];
 
 		let err: any = undefined;
@@ -489,6 +547,12 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 
 		this._pendingRPCReplies[callId] = new PendingRPCReply(result, disposable);
 		this._onWillSendRequest(req);
+		if (this._protocol.sendStructuredClone && serializedRequestArguments.type === SerializedRequestArgumentType.Simple) {
+			const type = cancellationToken ? MessageType.RequestJSONArgsWithCancellation : MessageType.RequestJSONArgs;
+			this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
+			this._protocol.sendStructuredClone({ header: [type, req, rpcId, methodName], body: serializedRequestArguments.args });
+			return result;
+		}
 		const msg = MessageIO.serializeRequest(req, rpcId, methodName, serializedRequestArguments, !!cancellationToken);
 		this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
 		this._protocol.send(msg);
@@ -497,6 +561,8 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 }
 
 class PendingRPCReply {
+	public acknowledged = false;
+
 	constructor(
 		private readonly _promise: LazyPromise,
 		private readonly _disposable: IDisposable

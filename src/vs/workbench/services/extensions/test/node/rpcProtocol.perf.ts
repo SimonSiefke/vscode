@@ -11,12 +11,13 @@ import { MessageChannel } from 'worker_threads';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
-import type { IMessagePassingProtocol } from '../../../../../base/parts/ipc/common/ipc.js';
+import { IMessagePassingProtocol, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
 import { ProxyIdentifier } from '../../common/proxyIdentifier.js';
 
 const { values: options } = parseArgs({
 	options: {
 		module: { type: 'string' },
+		native: { type: 'boolean', default: false },
 		samples: { type: 'string', default: '3' },
 		iterations: { type: 'string', default: '1000' }
 	}
@@ -36,7 +37,7 @@ const fixtures: { name: string; value: unknown }[] = [
 	{ name: 'settings-100', value: settings },
 	{ name: 'text-4KiB', value: 'a'.repeat(4096) }
 ];
-const results: { name: string; microsecondsPerRoundTrip: number[]; messages: number; bytes: number; backingBytes: number }[] = [];
+const results: { name: string; microsecondsPerRoundTrip: number[]; messages: number; bytes: number; backingBytes: number; nativeMessages: number; nativeStringCharacters: number }[] = [];
 for (const fixture of fixtures) {
 	const store = new DisposableStore();
 	try {
@@ -45,7 +46,7 @@ for (const fixture of fixtures) {
 			port1.close();
 			port2.close();
 		}));
-		const traffic = { messages: 0, bytes: 0, backingBytes: 0 };
+		const traffic = { messages: 0, bytes: 0, backingBytes: 0, nativeMessages: 0, nativeStringCharacters: 0 };
 		const protocol = (port: typeof port1): IMessagePassingProtocol => ({
 			send: message => {
 				traffic.messages++;
@@ -53,7 +54,13 @@ for (const fixture of fixtures) {
 				traffic.backingBytes += message.buffer.buffer.byteLength;
 				port.postMessage(message.buffer);
 			},
-			onMessage: Event.fromNodeEventEmitter(port, 'message', (bytes: Uint8Array) => VSBuffer.wrap(bytes))
+			onMessage: Event.fromNodeEventEmitter(port, 'message', data => ArrayBuffer.isView(data) ? VSBuffer.wrap(data as Uint8Array) : wrapStructuredCloneMessage(data)),
+			sendStructuredClone: options.native ? message => {
+				traffic.messages++;
+				traffic.nativeMessages++;
+				traffic.nativeStringCharacters += typeof message.body === 'string' ? message.body.length : 0;
+				port.postMessage(message);
+			} : undefined
 		});
 		const client = store.add(new RPCProtocol(protocol(port1)));
 		const server = store.add(new RPCProtocol(protocol(port2)));
@@ -65,7 +72,7 @@ for (const fixture of fixtures) {
 		for (let index = 0; index < 200; index++) {
 			await proxy.$echo(fixture.value);
 		}
-		traffic.messages = traffic.bytes = traffic.backingBytes = 0;
+		traffic.messages = traffic.bytes = traffic.backingBytes = traffic.nativeMessages = traffic.nativeStringCharacters = 0;
 		const times: number[] = [];
 		for (let sample = 0; sample < samples; sample++) {
 			const start = performance.now();

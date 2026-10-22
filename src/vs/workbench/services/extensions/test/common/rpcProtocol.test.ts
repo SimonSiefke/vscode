@@ -8,12 +8,12 @@ import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { IMessagePassingProtocol } from '../../../../../base/parts/ipc/common/ipc.js';
+import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
 import { RPCProtocol } from '../../common/rpcProtocol.js';
 
-suite('RPCProtocol', () => {
+[false, true].forEach(native => suite(`RPCProtocol (${native ? 'native JSON' : 'binary'})`, () => {
 
 	let disposables: DisposableStore;
 
@@ -23,7 +23,13 @@ suite('RPCProtocol', () => {
 		private readonly _onMessage = new Emitter<VSBuffer>();
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
-		constructor(private readonly onSend?: (buffer: VSBuffer) => void) { }
+		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
+
+		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
+			if (native) {
+				this.sendStructuredClone = message => this.send(wrapStructuredCloneMessage(structuredClone(message)));
+			}
+		}
 
 		public setPair(other: MessagePassingProtocol) {
 			this._pair = other;
@@ -95,6 +101,87 @@ suite('RPCProtocol', () => {
 		assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
 			reply: 'small RPC payload', tightlySized: true
 		});
+	});
+
+	function createObservedRPC(service: { $call: () => unknown }) {
+		const sent: VSBuffer[] = [];
+		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
+		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		const identifier = new ProxyIdentifier<typeof service>('acknowledgements');
+		server.set(identifier, service);
+		return { client, proxy: client.getProxy(identifier), sent, two };
+	}
+
+	test('immediate replies acknowledge requests without a separate message', async () => {
+		const { client, proxy, sent } = createObservedRPC({ $call: () => 42 });
+		assert.strictEqual(await proxy.$call(), 42);
+		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+	});
+
+	test('immediate errors acknowledge requests without a separate message', async () => {
+		const { client, proxy, sent } = createObservedRPC({ $call: () => { throw new Error('expected failure'); } });
+		await assert.rejects(proxy.$call(), /expected failure/);
+		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+	});
+
+	test('pending handlers acknowledge before their result is available', async () => {
+		let resolve!: (value: number) => void;
+		const result = new Promise<number>(r => resolve = r);
+		const { client, proxy, sent } = createObservedRPC({ $call: () => result });
+		const reply = proxy.$call();
+		await new Promise(r => setTimeout(r, 0));
+		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(sent[1].readUInt8(0), 5); // Acknowledged
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+		resolve(42);
+		assert.strictEqual(await reply, 42);
+		assert.strictEqual(sent.length, 3);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+	});
+
+	test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
+		const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
+		assert.strictEqual(await proxy.$call(), 42);
+		const ack = VSBuffer.alloc(5);
+		ack.writeUInt8(5, 0); // Acknowledged
+		const first = getStructuredCloneMessage(sent[0]);
+		ack.writeUInt32BE(first ? (first.header as number[])[1] : sent[0].readUInt32BE(1), 1);
+		two.send(ack);
+		two.send(ack);
+		await new Promise(r => setTimeout(r, 0));
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+		assert.strictEqual(await proxy.$call(), 42);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+	});
+
+	test('mixed native and binary requests preserve invocation order', async () => {
+		const one = new MessagePassingProtocol();
+		const two = new MessagePassingProtocol();
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		const seen: number[] = [];
+		const service = { $echo: (index: number, value: unknown) => { seen.push(index); return value; } };
+		const identifier = new ProxyIdentifier<typeof service>('mixed-order');
+		server.set(identifier, service);
+		const proxy = client.getProxy(identifier);
+		const bytes = VSBuffer.fromString('mixed binary frame');
+		const [first, second, third, fourth] = await Promise.all([
+			proxy.$echo(0, { value: 1 }), proxy.$echo(1, bytes), proxy.$echo(2, undefined), proxy.$echo(3, { value: 4 })
+		]);
+		assert.deepStrictEqual(seen, [0, 1, 2, 3]);
+		assert.deepStrictEqual(first, { value: 1 });
+		assert.ok(second instanceof VSBuffer);
+		assert.strictEqual(second.toString(), bytes.toString());
+		assert.strictEqual(third, undefined);
+		assert.deepStrictEqual(fourth, { value: 4 });
 	});
 
 	test('simple call without result', function (done) {
@@ -313,4 +400,4 @@ suite('RPCProtocol', () => {
 			done(null);
 		}, done);
 	});
-});
+}));
