@@ -105,6 +105,20 @@ const cases: BenchmarkCase[] = [
 		}
 	}
 ];
+for (const size of [64, 1024]) {
+	const pooled = VSBuffer.fromString('a'.repeat(size));
+	cases.push({
+		name: `VSBuffer-${size}B`, value: pooled, check: result => {
+			assert.ok(result instanceof VSBuffer);
+			assert.strictEqual(result.toString(), pooled.toString());
+		}
+	}, {
+		name: `Uint8Array-${size}B`, value: pooled.buffer, check: result => {
+			assert.ok(result instanceof Uint8Array);
+			assert.deepStrictEqual([...result], [...pooled.buffer]);
+		}
+	});
+}
 if (!options.transport.startsWith('buffer-')) {
 	const graph = { map: new Map<object, object>(), set: new Set<object>(), buffer };
 	graph.map.set(graph, graph.set);

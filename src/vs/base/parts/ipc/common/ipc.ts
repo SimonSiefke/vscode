@@ -154,11 +154,13 @@ function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, 
 		// can be arbitrary values and retain the full marshalling path below.
 		if (!header || typeof header !== 'object' || Array.isArray(header) && header.every(value => !value || typeof value !== 'object')) {
 			if (!body || typeof body !== 'object' || body instanceof Uint8Array) {
-				protocol.send({ header, body });
+				protocol.send({ header, body: body instanceof Uint8Array ? compactNativeBytes(body) : body });
 				return 0;
 			}
 			if (body instanceof VSBuffer) {
-				protocol.send({ header, body, vsBuffers: [body] });
+				const bytes = compactNativeBytes(body.buffer);
+				const wrapper = bytes === body.buffer ? body : { buffer: bytes };
+				protocol.send({ header, body: wrapper, vsBuffers: [wrapper] });
 				return 0;
 			}
 			if (body instanceof URI) {
@@ -191,6 +193,16 @@ function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, 
 	}
 
 	return sendBufferMessage(protocol, header, body);
+}
+
+/** Avoid cloning an oversized backing store for a standalone byte payload. */
+function compactNativeBytes(bytes: Uint8Array): Uint8Array {
+	if (bytes.buffer instanceof ArrayBuffer && bytes.buffer.byteLength > bytes.byteLength + 4096) {
+		const result = new Uint8Array(bytes.byteLength);
+		result.set(bytes);
+		return result;
+	}
+	return bytes;
 }
 
 /** JSON strings avoid native cloning of large DTO trees and byte encoding. */
@@ -537,6 +549,24 @@ const BufferPresets = {
 	Uint: createOneByteBuffer(DataType.Int),
 };
 
+/** Encode large primitive lists as one existing JSON wire value instead of many buffers. */
+function canSerializePrimitiveArray(data: readonly unknown[]): boolean {
+	if (data.length < 32 || Object.getPrototypeOf(data) !== Array.prototype || Reflect.has(data, 'toJSON') || Object.hasOwn(data, Symbol.iterator)) {
+		return false;
+	}
+	for (let index = 0; index < data.length; index++) {
+		const descriptor = Object.getOwnPropertyDescriptor(data, index);
+		if (!descriptor || descriptor.get || descriptor.set) {
+			return false;
+		}
+		const value: unknown = descriptor.value;
+		if (value !== null && typeof value !== 'string' && typeof value !== 'boolean' && typeof value !== 'number' || typeof value === 'string' && /[\uD800-\uDFFF]/.test(value)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 export function serialize(writer: IWriter, data: any): void {
 	if (typeof data === 'undefined') {
 		writer.write(BufferPresets.Undefined);
@@ -559,6 +589,11 @@ export function serialize(writer: IWriter, data: any): void {
 		writer.write(BufferPresets.VSBuffer);
 		writeInt32VQL(writer, data.byteLength);
 		writer.write(data);
+	} else if (Array.isArray(data) && canSerializePrimitiveArray(data)) {
+		const buffer = VSBuffer.fromString(JSON.stringify(data));
+		writer.write(BufferPresets.Object);
+		writeInt32VQL(writer, buffer.byteLength);
+		writer.write(buffer);
 	} else if (Array.isArray(data)) {
 		writer.write(BufferPresets.Array);
 		writeInt32VQL(writer, data.length);
