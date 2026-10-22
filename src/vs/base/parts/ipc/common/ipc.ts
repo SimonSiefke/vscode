@@ -453,21 +453,27 @@ interface IWriter {
 }
 
 
+function readByte(reader: IReader): number {
+	return reader instanceof BufferReader ? reader.readUInt8() : reader.read(1).readUInt8(0);
+}
+
 /**
  * @see https://en.wikipedia.org/wiki/Variable-length_quantity
  */
 function readIntVQL(reader: IReader) {
 	let value = 0;
 	for (let n = 0; ; n += 7) {
-		const next = reader.read(1);
-		value |= (next.buffer[0] & 0b01111111) << n;
-		if (!(next.buffer[0] & 0b10000000)) {
+		const next = readByte(reader);
+		value |= (next & 0b01111111) << n;
+		if (!(next & 0b10000000)) {
 			return value;
 		}
 	}
 }
 
 const vqlZero = createOneByteBuffer(0);
+// Cache short control values without retaining a message Buffer slab.
+const vqlSmall: (VSBuffer | undefined)[] = new Array(256);
 
 /**
  * @see https://en.wikipedia.org/wiki/Variable-length_quantity
@@ -475,6 +481,20 @@ const vqlZero = createOneByteBuffer(0);
 function writeInt32VQL(writer: IWriter, value: number) {
 	if (value === 0) {
 		writer.write(vqlZero);
+		return;
+	}
+
+	if ((value & 0xff) === value) {
+		let cached = vqlSmall[value];
+		if (!cached) {
+			cached = VSBuffer.alloc(value < 128 ? 1 : 2, { unpooled: true });
+			cached.writeUInt8(value < 128 ? value : (value & 127) | 128, 0);
+			if (value >= 128) {
+				cached.writeUInt8(1, 1);
+			}
+			vqlSmall[value] = cached;
+		}
+		writer.write(cached);
 		return;
 	}
 
@@ -500,6 +520,10 @@ export class BufferReader implements IReader {
 	private pos = 0;
 
 	constructor(private buffer: VSBuffer) { }
+
+	readUInt8(): number {
+		return this.buffer.readUInt8(this.pos++);
+	}
 
 	read(bytes: number): VSBuffer {
 		const result = this.buffer.slice(this.pos, this.pos + bytes);
@@ -617,7 +641,7 @@ export function serialize(writer: IWriter, data: any): void {
 }
 
 export function deserialize(reader: IReader): any {
-	const type = reader.read(1).readUInt8(0);
+	const type = readByte(reader);
 
 	switch (type) {
 		case DataType.Undefined: return undefined;

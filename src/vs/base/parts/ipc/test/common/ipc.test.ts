@@ -1032,6 +1032,79 @@ suite('Base IPC', function () {
 			return assert.strictEqual(r, 5);
 		});
 
+		test('integer wire bytes retain their VQL boundary encodings', () => {
+			const cases: readonly [number, readonly number[]][] = [
+				[0, [6, 0]], [1, [6, 1]], [127, [6, 127]], [128, [6, 128, 1]],
+				[201, [6, 201, 1]], [255, [6, 255, 1]], [256, [6, 128, 2]],
+				[16383, [6, 255, 127]], [16384, [6, 128, 128, 1]],
+				[2147483647, [6, 255, 255, 255, 255, 7]],
+				[-1, [6, 255, 255, 255, 255, 15]], [-2147483648, [6, 128, 128, 128, 128, 8]]
+			];
+			for (const [value, expected] of cases) {
+				const writer = new BufferWriter();
+				serialize(writer, value);
+				assert.deepStrictEqual([...writer.buffer.buffer], expected);
+				assert.strictEqual(deserialize(new BufferReader(writer.buffer)), value);
+			}
+		});
+
+		test('all cached short integers round trip without changing earlier encodings', () => {
+			const parts: VSBuffer[] = [];
+			serialize({ write: bytes => parts.push(bytes) }, 201);
+			for (let value = 0; value < 256; value++) {
+				const writer = new BufferWriter();
+				serialize(writer, value);
+				assert.strictEqual(deserialize(new BufferReader(writer.buffer)), value);
+			}
+			assert.deepStrictEqual([...parts[1].buffer], [201, 1]);
+		});
+
+		test('coerced proxy array lengths do not grow the short integer cache', () => {
+			for (const length of [7.5, '7.0', '7.00']) {
+				const input = new Proxy(Array.from({ length: 8 }, (_, index) => index), {
+					get: (target, key, receiver) => key === 'length' ? length : Reflect.get(target, key, receiver)
+				});
+				const first: VSBuffer[] = [];
+				const second: VSBuffer[] = [];
+				serialize({ write: bytes => first.push(bytes) }, input);
+				serialize({ write: bytes => second.push(bytes) }, input);
+				assert.notStrictEqual(first[1], second[1]);
+				assert.deepStrictEqual(deserialize(new BufferReader(VSBuffer.concat(first))), [0, 1, 2, 3, 4, 5, 6]);
+			}
+		});
+
+		test('cached VQL values do not retain pooled message backing stores', () => {
+			const parts: VSBuffer[] = [];
+			serialize({ write: bytes => parts.push(bytes) }, [201, 1, 2]);
+			// Array length, two-byte response tag and short scalar values are cached.
+			for (const index of [1, 3, 5, 7]) {
+				assert.strictEqual(parts[index].buffer.buffer.byteLength, parts[index].byteLength);
+			}
+		});
+
+		test('byte and slice reads share the logical view cursor', () => {
+			const backing = new Uint8Array(20).fill(255);
+			backing.set(VSBuffer.fromString('offset checks').buffer, 3);
+			const reader = new BufferReader(VSBuffer.wrap(backing.subarray(3, 16)));
+			assert.strictEqual(reader.readUInt8(), 111);
+			assert.strictEqual(reader.read(3).toString(), 'ffs');
+			assert.strictEqual(reader.readUInt8(), 101);
+			assert.strictEqual(reader.read(20).toString(), 't checks');
+			assert.strictEqual(reader.read(1).byteLength, 0);
+		});
+
+		test('deserialization retains the generic reader fallback', () => {
+			const input = [201, 255, 'request', { enabled: true }, VSBuffer.fromString('bytes')];
+			const writer = new BufferWriter();
+			serialize(writer, input);
+			const source = new BufferReader(writer.buffer);
+			let reads = 0;
+			const reader = { read: (size: number) => { reads++; return source.read(size); } };
+			assert.deepStrictEqual(deserialize(reader), input);
+			assert.ok(reads > 0);
+			assert.strictEqual(source.read(1).byteLength, 0);
+		});
+
 		test('round trips numbers', () => {
 			const input = [
 				0,
