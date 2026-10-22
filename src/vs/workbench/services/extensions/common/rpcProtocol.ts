@@ -266,18 +266,22 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 	public getProxy<T>(identifier: ProxyIdentifier<T>): Proxied<T> {
 		const { nid: rpcId, sid } = identifier;
 		if (!this._proxies[rpcId]) {
-			this._proxies[rpcId] = this._createProxy(rpcId, sid);
+			this._proxies[rpcId] = this._createProxy(rpcId, sid, identifier.notificationMethods);
 		}
 		return this._proxies[rpcId];
 	}
 
-	private _createProxy<T>(rpcId: number, debugName: string): T {
+	private _createProxy<T>(rpcId: number, debugName: string, notificationMethods?: readonly string[]): T {
 		const handler = {
 			get: (target: any, name: PropertyKey) => {
 				if (typeof name === 'string' && !target[name] && name.charCodeAt(0) === CharCode.DollarSign) {
-					target[name] = (...myArgs: any[]) => {
-						return this._remoteCall(rpcId, name, myArgs);
-					};
+					if (this._protocol.sendStructuredClone && notificationMethods?.includes(name)) {
+						target[name] = (...args: any[]) => this._remoteNotification(rpcId, name, args);
+					} else {
+						target[name] = (...myArgs: any[]) => {
+							return this._remoteCall(rpcId, name, myArgs);
+						};
+					}
 				}
 				if (name === _RPCProxySymbol) {
 					return debugName;
@@ -308,6 +312,14 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		}
 		const [type, req, rpcId, method] = message.header as [MessageType, number, number, string];
 		switch (type) {
+			case MessageType.NotificationJSONArgs: {
+				let args = JSON.parse(message.body as string);
+				if (this._uriTransformer) {
+					args = transformIncomingURIs(args, this._uriTransformer);
+				}
+				this._receiveNotification(req, rpcId, method, args);
+				break;
+			}
 			case MessageType.RequestJSONArgs:
 			case MessageType.RequestJSONArgsWithCancellation: {
 				let args = JSON.parse(message.body as string);
@@ -413,6 +425,18 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			default:
 				console.error(`received unexpected message`);
 				console.error(rawmsg);
+		}
+	}
+
+	private _receiveNotification(req: number, rpcId: number, method: string, args: any[]): void {
+		this._logger?.logIncoming(0, req, RequestInitiator.OtherSide, `notification ${getStringIdentifierForProxy(rpcId)}.${method}(`, args);
+		try {
+			const result = this._doInvokeHandler(rpcId, method, args);
+			if (result && (typeof result === 'object' || typeof result === 'function')) {
+				void Promise.resolve(result).catch(errors.onUnexpectedError);
+			}
+		} catch (error) {
+			errors.onUnexpectedError(error);
 		}
 	}
 
@@ -534,6 +558,29 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			throw new Error('Unknown method ' + methodName + ' on actor ' + getStringIdentifierForProxy(rpcId));
 		}
 		return method.apply(actor, args);
+	}
+
+	private _remoteNotification(rpcId: number, methodName: string, args: any[]): Promise<any> {
+		if (this._isDisposed) {
+			return new CanceledLazyPromise();
+		}
+		const native = this._protocol.sendStructuredClone;
+		if (!native || args.length > 0 && CancellationToken.isCancellationToken(args[args.length - 1])) {
+			return this._remoteCall(rpcId, methodName, args);
+		}
+		// Keep a regular request as a liveness probe at least once per second
+		// when no other acknowledged traffic already monitors the connection.
+		if (this._unacknowledgedCount === 0 && Date.now() >= this._unresponsiveTime - RPCProtocol.UNRESPONSIVE_TIME + 1000) {
+			return this._remoteCall(rpcId, methodName, args);
+		}
+		const body = MessageIO.serializeNotificationArguments(args, this._uriReplacer);
+		if (body === undefined) {
+			return this._remoteCall(rpcId, methodName, args);
+		}
+		const req = ++this._lastMessageId;
+		this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `notification: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
+		native.call(this._protocol, { header: [MessageType.NotificationJSONArgs, req, rpcId, methodName], body });
+		return notificationResult;
 	}
 
 	private _remoteCall(rpcId: number, methodName: string, args: any[]): Promise<any> {
@@ -797,7 +844,13 @@ type SerializedRequestArguments =
 	| { readonly type: SerializedRequestArgumentType.Mixed; args: MixedArg[] };
 
 
+const notificationResult = Promise.resolve(undefined);
+
 class MessageIO {
+
+	public static serializeNotificationArguments(args: any[], replacer: JSONStringifyReplacer | null): string | undefined {
+		return this._useMixedArgSerialization(args) ? undefined : stringify(args, replacer);
+	}
 
 	private static _useMixedArgSerialization(arr: any[]): boolean {
 		for (let i = 0, len = arr.length; i < len; i++) {
@@ -1036,6 +1089,7 @@ const enum MessageType {
 	ReplyOKJSONWithBuffers = 10,
 	ReplyErrError = 11,
 	ReplyErrEmpty = 12,
+	NotificationJSONArgs = 13,
 }
 
 const enum ArgType {

@@ -7,9 +7,11 @@ import assert from 'assert';
 import * as sinon from 'sinon';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { errorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
 import { RPCMessagePort } from '../../common/rpcMessagePort.js';
@@ -249,6 +251,146 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 				assert.strictEqual(await reply, 42);
 			}
 			assert.strictEqual(listeners, 0);
+		});
+	}
+
+	function createNotificationRPC(service: { $notify: (value?: unknown, token?: CancellationToken) => void; $state: () => unknown }) {
+		const sent: VSBuffer[] = [];
+		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
+		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		const identifier = new ProxyIdentifier<typeof service>('notifications', ['$notify']);
+		server.set(identifier, service);
+		return { client, server, two, sent, proxy: client.getProxy(identifier) };
+	}
+
+	function messageType(buffer: VSBuffer): number {
+		const message = getStructuredCloneMessage(buffer);
+		return message ? (message.header as number[])[0] : buffer.readUInt8(0);
+	}
+
+	test('explicit notifications deliver every update before an ordinary barrier request', async () => {
+		const clock = sinon.useFakeTimers({ toFake: ['Date'] });
+		let count = 0;
+		const { client, server, proxy, sent } = createNotificationRPC({ $notify: () => { count++; }, $state: () => count });
+		try {
+			assert.strictEqual(await proxy.$state(), 0);
+			sent.length = 0;
+			for (let i = 0; i < 64; i++) {
+				proxy.$notify(i);
+			}
+			assert.strictEqual(await proxy.$state(), 64);
+			assert.strictEqual(sent.filter(buffer => messageType(buffer) === 13).length, native ? 64 : 0);
+			assert.strictEqual(sent.filter(buffer => messageType(buffer) === 7).length, native ? 0 : 64);
+		} finally {
+			client.dispose();
+			server.dispose();
+			clock.restore();
+		}
+	});
+
+	test('notification DTOs are snapshotted at call time and preserve URI payloads', async () => {
+		let last: unknown;
+		const { proxy } = createNotificationRPC({ $notify: value => { last = value; }, $state: () => last });
+		await proxy.$state();
+		const value = { label: 'before' };
+		proxy.$notify(value);
+		value.label = 'after';
+		assert.deepStrictEqual(await proxy.$state(), { label: 'before' });
+		const uri = URI.file('/notification-test');
+		proxy.$notify(uri);
+		assert.deepStrictEqual(await proxy.$state(), JSON.parse(JSON.stringify(uri)));
+	});
+
+	test('notification and binary fallback calls retain invocation order', async () => {
+		const seen: unknown[] = [];
+		const { proxy } = createNotificationRPC({
+			$notify: value => { seen.push(value instanceof VSBuffer ? value.toString() : value); },
+			$state: () => seen
+		});
+		await proxy.$state();
+		proxy.$notify(1);
+		await proxy.$notify(VSBuffer.fromString('binary'));
+		proxy.$notify(2);
+		assert.deepStrictEqual(await proxy.$state(), [1, 'binary', 2]);
+	});
+
+	test('cancellable notification methods keep the full request/reply path', async () => {
+		let entered!: () => void;
+		const invoked = new Promise<void>(resolve => entered = resolve);
+		const { client, proxy } = createNotificationRPC({
+			$notify: (_value, token) => new Promise<void>(resolve => {
+				const listener = token!.onCancellationRequested(() => {
+					listener.dispose();
+					resolve();
+				});
+				entered();
+			}),
+			$state: () => 0
+		});
+		const source = disposables.add(new CancellationTokenSource());
+		const reply = proxy.$notify(1, source.token);
+		await invoked;
+		assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 1);
+		source.cancel();
+		await reply;
+		assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 0);
+	});
+
+	test('notification handler errors are reported for synchronous and async handlers', async () => {
+		const received: unknown[] = [];
+		const handler = sinon.stub(errorHandler, 'onUnexpectedError').callsFake(error => received.push(error));
+		try {
+			const { proxy } = createNotificationRPC({
+				$notify: value => {
+					if (value === 'async') {
+						return Promise.reject(new Error('notification failure'));
+					}
+					throw new Error('notification failure');
+				},
+				$state: () => 0
+			});
+			await proxy.$state();
+			proxy.$notify('sync');
+			await proxy.$state();
+			proxy.$notify('async');
+			await proxy.$state();
+			assert.strictEqual(received.length, 2);
+			assert.ok(received.every(error => error instanceof Error && error.message === 'notification failure'));
+		} finally {
+			handler.restore();
+		}
+	});
+
+	if (native) {
+		test('notification traffic periodically probes a silent peer and cleans up on disposal', async () => {
+			const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+			try {
+				const { client, server, two, proxy } = createNotificationRPC({ $notify: () => new Promise<void>(() => { }), $state: () => 0 });
+				await proxy.$state();
+				await proxy.$notify();
+				assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 0);
+				await clock.tickAsync(1100);
+				sinon.stub(two, 'send');
+				const probe = proxy.$notify();
+				const rejected = assert.rejects(probe, /Canceled/);
+				assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 1);
+				for (let i = 0; i < 10; i++) {
+					proxy.$notify(i);
+				}
+				assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 1);
+				await clock.tickAsync(4001);
+				assert.strictEqual(client.responsiveState, 1);
+				client.dispose();
+				server.dispose();
+				await rejected;
+				assert.strictEqual(clock.countTimers(), 0);
+			} finally {
+				clock.restore();
+			}
 		});
 	}
 
