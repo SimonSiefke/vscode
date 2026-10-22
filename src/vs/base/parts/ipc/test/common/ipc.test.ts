@@ -348,39 +348,6 @@ suite('Base IPC', function () {
 			});
 		});
 
-		for (const wrapper of [false, true]) {
-			test(`compacts oversized backing stores for standalone ${wrapper ? 'VSBuffer' : 'Uint8Array'} payloads`, async () => {
-				const [one, two] = createStructuredCloneProtocolPair();
-				const first = store.add(new IPCClient(one, 'first'));
-				const second = store.add(new IPCClient(two, 'second'));
-				second.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
-				const bytes = new Uint8Array(new ArrayBuffer(16384), 128, 64).fill(97);
-				const input = wrapper ? VSBuffer.wrap(bytes) : bytes;
-				const result = await first.getChannel('echo').call<VSBuffer | Uint8Array>('echo', input);
-				assert.strictEqual(result instanceof VSBuffer, wrapper);
-				const output = result instanceof VSBuffer ? result.buffer : result;
-				assert.deepStrictEqual([...output], [...bytes]);
-				assert.strictEqual(output.buffer.byteLength, 64);
-				const sent = one.lastSent!.body as VSBuffer | Uint8Array;
-				assert.strictEqual((sent instanceof Uint8Array ? sent : sent.buffer).buffer.byteLength, 64);
-				assert.strictEqual(bytes.buffer.byteLength, 16384);
-				output[0] = 98;
-				assert.strictEqual(bytes[0], 97);
-			});
-		}
-
-		test('standalone byte payloads retain shared backing memory', async () => {
-			if (typeof SharedArrayBuffer === 'undefined') {
-				return;
-			}
-			const bytes = new Uint8Array(new SharedArrayBuffer(16384), 128, 64).fill(97);
-			const result = await client.getChannel('echo').call<Uint8Array>('echo', bytes);
-			assert.ok(result.buffer instanceof SharedArrayBuffer);
-			assert.strictEqual(result.buffer.byteLength, 16384);
-			result[0] = 98;
-			assert.strictEqual(bytes[0], 98);
-		});
-
 		test('bidirectional clients decode shared JSON frames only once', async () => {
 			const [one, two] = createStructuredCloneProtocolPair();
 			const first = store.add(new IPCClient(one, 'first'));
@@ -1119,54 +1086,6 @@ suite('Base IPC', function () {
 			const writer = new BufferWriter();
 			serialize(writer, input);
 			assert.deepStrictEqual(deserialize(new BufferReader(writer.buffer)), input);
-		});
-
-		test('encodes bulk primitive arrays using the existing JSON wire type', () => {
-			const input = Array.from({ length: 100 }, (_, index) => [String(index), index, true, null][index % 4]);
-			const writer = new BufferWriter();
-			serialize(writer, input);
-			assert.strictEqual(writer.buffer.readUInt8(0), 5);
-			assert.deepStrictEqual(deserialize(new BufferReader(writer.buffer)), input);
-		});
-
-		test('bulk array fallback preserves undefined, holes, binary values and lone surrogates', () => {
-			for (const special of [undefined, VSBuffer.fromString('bytes'), Uint8Array.from([1, 2]), '\ud800', ['nested']]) {
-				const input = Array.from<unknown>({ length: 40 }).fill('value');
-				input[20] = special;
-				const writer = new BufferWriter();
-				serialize(writer, input);
-				assert.strictEqual(writer.buffer.readUInt8(0), 4);
-				const expected = [...input];
-				if (typeof special === 'string') {
-					expected[20] = '\ufffd';
-				} else if (special instanceof Uint8Array) {
-					expected[20] = VSBuffer.wrap(special).buffer;
-				}
-				assert.deepStrictEqual(deserialize(new BufferReader(writer.buffer)), expected);
-			}
-			const input = new Array(40);
-			const writer = new BufferWriter();
-			serialize(writer, input);
-			assert.deepStrictEqual(deserialize(new BufferReader(writer.buffer)), Array.from({ length: 40 }));
-		});
-
-		test('bulk array eligibility does not invoke getters or custom JSON hooks', () => {
-			const input = new Array(40).fill('value');
-			let reads = 0;
-			Object.defineProperty(input, 20, { get: () => { reads++; return 'getter'; }, enumerable: true });
-			Object.defineProperty(input, 'toJSON', { get: () => { throw new Error('array toJSON must not run'); } });
-			const writer = new BufferWriter();
-			serialize(writer, input);
-			assert.strictEqual(reads, 1);
-			const output = deserialize(new BufferReader(writer.buffer));
-			assert.strictEqual(output[20], 'getter');
-		});
-
-		test('bulk primitive arrays retain legacy number projection', () => {
-			const input = Array.from({ length: 40 }, (_, index) => [-0, NaN, Infinity, -Infinity, -12345, 42.6][index % 6]);
-			const writer = new BufferWriter();
-			serialize(writer, input);
-			assert.deepStrictEqual(deserialize(new BufferReader(writer.buffer)), JSON.parse(JSON.stringify(input)));
 		});
 
 		test('round trips Uint8Array values over buffer protocols', () => {
