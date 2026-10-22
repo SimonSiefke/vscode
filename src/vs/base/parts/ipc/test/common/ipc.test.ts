@@ -366,6 +366,34 @@ suite('Base IPC', function () {
 			assert.strictEqual(bytes.toString(), 'bidirectional bytes');
 		});
 
+		test('multiple response observers share an idempotently decoded JSON frame', () => {
+			const messages = store.add(new Emitter<IStructuredCloneMessage>());
+			const protocol: IStructuredCloneMessagePassingProtocol = { type: 'structuredClone', onMessage: messages.event, send: () => { } };
+			store.add(new ChannelClient(protocol));
+			store.add(new ChannelClient(protocol));
+			const frame: IStructuredCloneMessage = { header: [201, 42], body: '{"enabled":true}', jsonBody: true };
+			messages.fire(frame);
+			assert.deepStrictEqual(frame.body, { enabled: true });
+			assert.strictEqual(frame.jsonBody, false);
+		});
+
+		for (const role of ['client', 'server']) {
+			test(`${role} ignores payloads addressed to the other channel role`, () => {
+				const messages = store.add(new Emitter<IStructuredCloneMessage>());
+				const protocol: IStructuredCloneMessagePassingProtocol = { type: 'structuredClone', onMessage: messages.event, send: () => { } };
+				store.add(role === 'client' ? new ChannelClient(protocol) : new ChannelServer(protocol, 'test'));
+				let reads = 0;
+				let body: unknown = '{}';
+				messages.fire({
+					header: role === 'client' ? [100, 0, 'unused', 'unused'] : [201, 0],
+					jsonBody: true,
+					get body() { reads++; return body; },
+					set body(value: unknown) { body = value; }
+				});
+				assert.strictEqual(reads, 0);
+			});
+		}
+
 		test('uses JSON for object payloads and omits local callbacks', async () => {
 			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
 			const echoServer = store.add(new ChannelServer(serverProtocol, 'ctx'));

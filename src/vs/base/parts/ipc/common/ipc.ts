@@ -93,6 +93,15 @@ type IRawPromiseErrorObjResponse = { type: ResponseType.PromiseErrorObj; id: num
 type IRawEventFireResponse = { type: ResponseType.EventFire; id: number; data: any };
 type IRawResponse = IRawInitializeResponse | IRawPromiseSuccessResponse | IRawPromiseErrorResponse | IRawPromiseErrorObjResponse | IRawEventFireResponse;
 
+/** Request/response namespaces let the inactive role skip payload decoding. */
+function isRequestHeader(header: unknown): boolean {
+	return Array.isArray(header) && header[0] >= 100 && header[0] < 200;
+}
+
+function isResponseHeader(header: unknown): boolean {
+	return Array.isArray(header) && header[0] >= 200 && header[0] < 300;
+}
+
 interface IHandler {
 	(response: IRawResponse): void;
 }
@@ -610,6 +619,9 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
 		this.protocolListener = protocol.type === 'structuredClone'
 			? protocol.onMessage(message => {
+				if (!isRequestHeader(message.header)) {
+					return;
+				}
 				const { header, body } = deserializeStructuredCloneMessage(message);
 				this.onMessage(header, body, 0);
 			})
@@ -650,6 +662,9 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	private onRawMessage(message: VSBuffer): void {
 		const reader = new BufferReader(message);
 		const header = deserialize(reader);
+		if (!isRequestHeader(header)) {
+			return;
+		}
 		const body = deserialize(reader);
 		this.onMessage(header, body, message.byteLength);
 	}
@@ -815,6 +830,9 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
 		this.protocolListener = protocol.type === 'structuredClone'
 			? protocol.onMessage(message => {
+				if (!isResponseHeader(message.header)) {
+					return;
+				}
 				const { header, body } = deserializeStructuredCloneMessage(message);
 				this.onMessage(header, body, 0);
 			})
@@ -1001,6 +1019,9 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	private onBuffer(message: VSBuffer): void {
 		const reader = new BufferReader(message);
 		const header = deserialize(reader);
+		if (!isResponseHeader(header)) {
+			return;
+		}
 		const body = deserialize(reader);
 		this.onMessage(header, body, message.byteLength);
 	}

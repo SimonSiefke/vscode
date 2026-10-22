@@ -20,17 +20,30 @@ import { createMessagePortProtocols } from './ipcTestUtils.js';
 const { values: options } = parseArgs({
 	options: {
 		module: { type: 'string' },
+		bidirectional: { type: 'boolean', default: false },
+		'pool-size': { type: 'string', default: String(process.platform === 'linux' ? 8192 : Buffer.poolSize) },
+		filter: { type: 'string', default: '.*' },
 		transport: { type: 'string', default: 'message-port' },
 		samples: { type: 'string', default: '15' },
 		iterations: { type: 'string', default: '1000' }
 	}
 });
+const poolSize = Number(options['pool-size']);
+assert.ok(Number.isSafeInteger(poolSize) && poolSize >= 2048);
+Buffer.poolSize = poolSize;
+for (let index = 0; index < 256; index++) {
+	if (Buffer.allocUnsafe(512).buffer.byteLength === poolSize) {
+		break;
+	}
+}
+assert.strictEqual(Buffer.allocUnsafe(8).buffer.byteLength, poolSize);
+const fixtureFilter = new RegExp(options.filter);
 const samples = Number(options.samples);
 const iterations = Number(options.iterations);
 assert.ok(Number.isSafeInteger(samples) && samples > 0);
 assert.ok(Number.isSafeInteger(iterations) && iterations > 0);
 assert.ok(['clone', 'message-port', 'buffer-clone', 'buffer-message-port'].includes(options.transport));
-const { ChannelClient, ChannelServer } = options.module
+const { ChannelClient, ChannelServer, IPCClient } = options.module
 	? await import(pathToFileURL(options.module).href) as typeof import('../../common/ipc.js')
 	: await import('../../common/ipc.js');
 
@@ -108,12 +121,12 @@ if (!options.transport.startsWith('buffer-')) {
 }
 
 const results: { name: string; microsecondsPerRoundTrip: number[] }[] = [];
-for (const benchmark of cases) {
+for (const benchmark of cases.filter(benchmark => fixtureFilter.test(benchmark.name))) {
 	const store = new DisposableStore();
 	try {
 		const [clientProtocol, serverProtocol] = createProtocols(store);
-		const client = store.add(new ChannelClient(clientProtocol));
-		const server = store.add(new ChannelServer(serverProtocol, 'benchmark'));
+		const client = store.add(options.bidirectional ? new IPCClient(clientProtocol, 'benchmark-client') : new ChannelClient(clientProtocol));
+		const server = store.add(options.bidirectional ? new IPCClient(serverProtocol, 'benchmark-server') : new ChannelServer(serverProtocol, 'benchmark'));
 		server.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
 		const channel = client.getChannel('echo');
 		benchmark.check(await channel.call('echo', benchmark.value));
@@ -135,4 +148,4 @@ for (const benchmark of cases) {
 		store.dispose();
 	}
 }
-console.log(JSON.stringify({ node: process.version, versions: process.versions, transport: options.transport, module: options.module, samples, iterations, results }, null, 2));
+console.log(JSON.stringify({ node: process.version, bufferPoolSize: Buffer.poolSize, bidirectional: options.bidirectional, versions: process.versions, transport: options.transport, module: options.module, samples, iterations, results }, null, 2));
