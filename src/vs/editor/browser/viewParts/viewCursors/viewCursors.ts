@@ -112,18 +112,36 @@ export class ViewCursors extends ViewPart {
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
 		const options = this._context.configuration.options;
 
-		this._readOnly = options.get(EditorOption.readOnly);
-		this._cursorBlinking = options.get(EditorOption.cursorBlinking);
-		this._cursorStyle = options.get(EditorOption.effectiveCursorStyle);
-		this._cursorSmoothCaretAnimation = options.get(EditorOption.cursorSmoothCaretAnimation);
-		this._editContextEnabled = options.get(EditorOption.effectiveEditContext);
+		if (
+			e.hasChanged(EditorOption.readOnly)
+			|| e.hasChanged(EditorOption.cursorBlinking)
+			|| e.hasChanged(EditorOption.effectiveEditContext)
+		) {
+			this._readOnly = options.get(EditorOption.readOnly);
+			this._cursorBlinking = options.get(EditorOption.cursorBlinking);
+			this._editContextEnabled = options.get(EditorOption.effectiveEditContext);
+			this._updateBlinking();
+		}
 
-		this._updateBlinking();
-		this._updateDomClassName();
+		if (e.hasChanged(EditorOption.cursorSmoothCaretAnimation)) {
+			this._cursorSmoothCaretAnimation = options.get(EditorOption.cursorSmoothCaretAnimation);
+		}
 
-		this._primaryCursor.onConfigurationChanged(e);
-		for (let i = 0, len = this._secondaryCursors.length; i < len; i++) {
-			this._secondaryCursors[i].onConfigurationChanged(e);
+		if (e.hasChanged(EditorOption.effectiveCursorStyle)) {
+			this._cursorStyle = options.get(EditorOption.effectiveCursorStyle);
+			this._updateDomClassName();
+		}
+
+		if (
+			e.hasChanged(EditorOption.effectiveCursorStyle)
+			|| e.hasChanged(EditorOption.fontInfo)
+			|| e.hasChanged(EditorOption.cursorWidth)
+			|| e.hasChanged(EditorOption.cursorHeight)
+		) {
+			this._primaryCursor.onConfigurationChanged(e);
+			for (let i = 0, len = this._secondaryCursors.length; i < len; i++) {
+				this._secondaryCursors[i].onConfigurationChanged(e);
+			}
 		}
 		return true;
 	}
