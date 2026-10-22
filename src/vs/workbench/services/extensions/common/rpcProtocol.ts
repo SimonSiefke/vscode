@@ -217,13 +217,13 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			return;
 		}
 		pending.acknowledged = true;
-		// The next possible unresponsive time is now + delta.
-		this._unresponsiveTime = Date.now() + RPCProtocol.UNRESPONSIVE_TIME;
 		this._unacknowledgedCount--;
-		if (this._unacknowledgedCount === 0) {
-			// No more need to check for unresponsive
-			this._asyncCheckUresponsive.cancel();
+		if (this._unacknowledgedCount > 0) {
+			// Pending requests receive a fresh responsiveness deadline.
+			this._unresponsiveTime = Date.now() + RPCProtocol.UNRESPONSIVE_TIME;
 		}
+		// Leave the one scheduled check in place. It exits when idle, avoiding
+		// timer cancellation/allocation on every short successful request.
 		// The ext host is responsive!
 		this._setResponsiveState(ResponsiveState.Responsive);
 	}

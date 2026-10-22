@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as sinon from 'sinon';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -179,6 +180,77 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		assert.strictEqual(await proxy.$call(), 42);
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
+
+	test('short calls reuse a responsiveness check until it expires', async () => {
+		const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+		try {
+			const { client, proxy } = createObservedRPC({ $call: () => 42 });
+			const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
+			for (let i = 0; i < 100; i++) {
+				assert.strictEqual(await proxy.$call(), 42);
+			}
+			assert.strictEqual(schedule.callCount, 1);
+			assert.strictEqual(clock.countTimers(), 1);
+			await clock.tickAsync(1001);
+			assert.strictEqual(clock.countTimers(), 0);
+			assert.strictEqual(await proxy.$call(), 42);
+			assert.strictEqual(schedule.callCount, 2);
+			client.dispose();
+			assert.strictEqual(clock.countTimers(), 0);
+		} finally {
+			clock.restore();
+		}
+	});
+
+	test('a reused check still detects an unresponsive peer and recovers', async () => {
+		const clock = sinon.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+		try {
+			let release!: (value: number) => void;
+			let held = false;
+			const { client, proxy, two } = createObservedRPC({ $call: () => held ? new Promise<number>(resolve => release = resolve) : 42 });
+			assert.strictEqual(await proxy.$call(), 42);
+			held = true;
+			const dropAcknowledgement = sinon.stub(two, 'send');
+			const reply = proxy.$call();
+			await clock.tickAsync(1001);
+			assert.strictEqual(client.responsiveState, 0);
+			await clock.tickAsync(4001);
+			assert.strictEqual(client.responsiveState, 1);
+			dropAcknowledgement.restore();
+			release(42);
+			assert.strictEqual(await reply, 42);
+			assert.strictEqual(client.responsiveState, 0);
+			client.dispose();
+			assert.strictEqual(clock.countTimers(), 0);
+		} finally {
+			clock.restore();
+		}
+	});
+
+	for (const fail of [false, true]) {
+		test(`releases the caller cancellation subscription after ${fail ? 'error' : 'success'}`, async () => {
+			let listeners = 0;
+			const emitter = disposables.add(new Emitter<void>({
+				onDidAddListener: () => listeners++,
+				onWillRemoveListener: () => listeners--
+			}));
+			const token: CancellationToken = { isCancellationRequested: false, onCancellationRequested: emitter.event };
+			delegate = value => {
+				if (fail) {
+					throw new Error('expected failure');
+				}
+				return value;
+			};
+			const reply = bProxy.$m(42, token);
+			assert.strictEqual(listeners, 1);
+			if (fail) {
+				await assert.rejects(reply, /expected failure/);
+			} else {
+				assert.strictEqual(await reply, 42);
+			}
+			assert.strictEqual(listeners, 0);
+		});
+	}
 
 	test('mixed native and binary requests preserve invocation order', async () => {
 		const one = new MessagePassingProtocol();
