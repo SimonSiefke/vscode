@@ -2240,7 +2240,6 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 				const catalogueLoading = changesViewService.activeSessionChangesetsLoadingObs.get();
 
 				return changesets.map(changeset => ({
-					...action,
 					id: `agents.changes.changeset.${changeset.id}`,
 					label: changeset.label,
 					detail: changeset.description,
@@ -2251,6 +2250,8 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 						order: 0
 					},
 					enabled: !catalogueLoading && changeset.isEnabled.get(),
+					class: undefined,
+					tooltip: changeset.description ?? changeset.label,
 					run: async () => {
 						if (changesViewService.activeSessionChangesetsLoadingObs.get()
 							|| !isEqual(changesViewService.activeSessionResourceObs.get(), sessionResource)) {
