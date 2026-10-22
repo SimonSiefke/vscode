@@ -23,11 +23,14 @@ suite('RPCProtocol', () => {
 		private readonly _onMessage = new Emitter<VSBuffer>();
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
+		constructor(private readonly onSend?: (buffer: VSBuffer) => void) { }
+
 		public setPair(other: MessagePassingProtocol) {
 			this._pair = other;
 		}
 
 		public send(buffer: VSBuffer): void {
+			this.onSend?.(buffer);
 			Promise.resolve().then(() => {
 				this._pair!._onMessage.fire(buffer);
 			});
@@ -72,6 +75,26 @@ suite('RPCProtocol', () => {
 			assert.strictEqual(res, 5);
 			done(null);
 		}, done);
+	});
+
+	test('native IPC messages own tightly sized backing buffers', async () => {
+		const sent: { length: number; backingLength: number }[] = [];
+		const record = (buffer: VSBuffer) => sent.push({ length: buffer.byteLength, backingLength: buffer.buffer.buffer.byteLength });
+		const one = new MessagePassingProtocol(record);
+		const two = new MessagePassingProtocol(record);
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		const service = { $echo: async (value: string) => value };
+		const identifier = new ProxyIdentifier<typeof service>('tightlySized');
+		server.set(identifier, service);
+
+		const reply = await client.getProxy(identifier).$echo('small RPC payload');
+
+		assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
+			reply: 'small RPC payload', tightlySized: true
+		});
 	});
 
 	test('simple call without result', function (done) {

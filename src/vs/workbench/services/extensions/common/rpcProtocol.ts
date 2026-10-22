@@ -516,7 +516,7 @@ class PendingRPCReply {
 class MessageBuffer {
 
 	public static alloc(type: MessageType, req: number, messageSize: number): MessageBuffer {
-		const result = new MessageBuffer(VSBuffer.alloc(messageSize + 1 /* type */ + 4 /* req */), 0);
+		const result = new MessageBuffer(VSBuffer.alloc(messageSize + 1 /* type */ + 4 /* req */, { unpooled: true }), 0);
 		result.writeUInt8(type);
 		result.writeUInt32(req);
 		return result;

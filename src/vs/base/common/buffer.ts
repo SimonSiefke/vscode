@@ -8,6 +8,7 @@ import * as streams from './stream.js';
 
 interface NodeBuffer {
 	allocUnsafe(size: number): Uint8Array;
+	allocUnsafeSlow(size: number): Uint8Array;
 	isBuffer(obj: unknown): obj is NodeBuffer;
 	from(arrayBuffer: ArrayBufferLike, byteOffset?: number, length?: number): Uint8Array;
 	from(data: string): Uint8Array;
@@ -26,10 +27,11 @@ export class VSBuffer {
 	/**
 	 * When running in a nodejs context, the backing store for the returned `VSBuffer` instance
 	 * might use a nodejs Buffer allocated from node's Buffer pool, which is not transferrable.
+	 * Use `unpooled` for native IPC messages so cloning does not copy an entire pool.
 	 */
-	static alloc(byteLength: number): VSBuffer {
+	static alloc(byteLength: number, options?: { unpooled?: boolean }): VSBuffer {
 		if (hasBuffer) {
-			return new VSBuffer(Buffer.allocUnsafe(byteLength));
+			return new VSBuffer(options?.unpooled ? Buffer.allocUnsafeSlow(byteLength) : Buffer.allocUnsafe(byteLength));
 		} else {
 			return new VSBuffer(new Uint8Array(byteLength));
 		}
