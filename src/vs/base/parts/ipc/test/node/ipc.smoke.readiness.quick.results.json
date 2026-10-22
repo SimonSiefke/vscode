@@ -100,7 +100,271 @@
 			},
 			"driverCommit": "a1db7893e13f1128cb552897ef8cd98dc9a8e6fc",
 			"normalization": "candidate=after,baseline=before",
-			"available": false
+			"available": true,
+			"provenance": {
+				"id": 39869424221,
+				"digest": "sha256:3dc6bb742192e09d525442ec395acbb29ac3c6b06ad47e1c67e62273302487e8",
+				"artifact": 12466067799
+			},
+			"report": {
+				"schemaVersion": 1,
+				"kind": "paired-smoke",
+				"commits": {
+					"before": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+					"after": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7"
+				},
+				"requestedPairs": 1,
+				"runner": {
+					"hostname": "runnervm8k3b6",
+					"node": "v24.15.0"
+				},
+				"pairs": [
+					{
+						"index": 0,
+						"order": [
+							"before",
+							"after"
+						],
+						"results": {
+							"before": {
+								"schemaVersion": 1,
+								"commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 584951.651575,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							},
+							"after": {
+								"schemaVersion": 1,
+								"commit": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 537562.028954,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							}
+						},
+						"comparable": true
+					}
+				],
+				"comparison": {
+					"before": {
+						"count": 1,
+						"mean": 584951.651575,
+						"median": 584951.651575,
+						"p95": 584951.651575,
+						"min": 584951.651575,
+						"max": 584951.651575,
+						"standardDeviation": 0
+					},
+					"after": {
+						"count": 1,
+						"mean": 537562.028954,
+						"median": 537562.028954,
+						"p95": 537562.028954,
+						"min": 537562.028954,
+						"max": 537562.028954,
+						"standardDeviation": 0
+					},
+					"primary": "median",
+					"absoluteChange": -47389.622621000046,
+					"percentChange": -8.101459751998657,
+					"interval": [
+						-47389.622621000046,
+						-47389.622621000046
+					],
+					"inconclusive": true,
+					"beforeSamples": [
+						584951.651575
+					],
+					"afterSamples": [
+						537562.028954
+					]
+				},
+				"harnessReadinessPatch": {
+					"name": "local-chat-command-completion",
+					"assertionsChanged": false,
+					"enabledTestsChanged": false,
+					"fixtureResponsesChanged": false,
+					"reason": "Palette dismissal and first resource binding can precede the explicit new-local-chat command; wait for its completion before sending a prompt",
+					"changes": [
+						{
+							"file": "test/smoke/extensions/vscode-smoketest-ext-host/extension.js",
+							"beforeSHA256": "a924daf14987888e4d642f9b907c8a07f4ea70d644e3a1586b1b227664a4ea5b",
+							"afterSHA256": "643c13c72210b71c2d202bacd7f7ac182972f3f9095cc33443b4ea3905f47c27"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "d097b4fa0f90c46d6f2d029e657fc9bdc672a12bbb210c68856807b71711a398",
+							"afterSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178",
+							"afterSHA256": "8786cd8ff6bf2eb70f97a21d998a06d7b28b0a1adefdf5677056e50b14b4a885"
+						}
+					]
+				}
+			},
+			"normalizedStatuses": {
+				"candidate": "success",
+				"baseline": "success"
+			},
+			"normalizedTiming": {
+				"baselineMs": 584951.651575,
+				"candidateMs": 537562.028954,
+				"ratio": 0.9189854024800135,
+				"changePct": -8.101459751998652
+			}
 		},
 		{
 			"pair": 2,
@@ -120,7 +384,271 @@
 			},
 			"driverCommit": "a1db7893e13f1128cb552897ef8cd98dc9a8e6fc",
 			"normalization": "candidate=before,baseline=after",
-			"available": false
+			"available": true,
+			"provenance": {
+				"id": 39869428995,
+				"digest": "sha256:aa196f150fc0ecde94b1e75d366a5e9b69b12b9914a9324935eb88501eb0e764",
+				"artifact": 12467120290
+			},
+			"report": {
+				"schemaVersion": 1,
+				"kind": "paired-smoke",
+				"commits": {
+					"before": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+					"after": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c"
+				},
+				"requestedPairs": 1,
+				"runner": {
+					"hostname": "runnervm8k3b6",
+					"node": "v24.15.0"
+				},
+				"pairs": [
+					{
+						"index": 0,
+						"order": [
+							"before",
+							"after"
+						],
+						"results": {
+							"before": {
+								"schemaVersion": 1,
+								"commit": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 562416.136337,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							},
+							"after": {
+								"schemaVersion": 1,
+								"commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 573546.4683279999,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							}
+						},
+						"comparable": true
+					}
+				],
+				"comparison": {
+					"before": {
+						"count": 1,
+						"mean": 562416.136337,
+						"median": 562416.136337,
+						"p95": 562416.136337,
+						"min": 562416.136337,
+						"max": 562416.136337,
+						"standardDeviation": 0
+					},
+					"after": {
+						"count": 1,
+						"mean": 573546.4683279999,
+						"median": 573546.4683279999,
+						"p95": 573546.4683279999,
+						"min": 573546.4683279999,
+						"max": 573546.4683279999,
+						"standardDeviation": 0
+					},
+					"primary": "median",
+					"absoluteChange": 11130.331990999985,
+					"percentChange": 1.9790207413840428,
+					"interval": [
+						11130.331990999985,
+						11130.331990999985
+					],
+					"inconclusive": true,
+					"beforeSamples": [
+						562416.136337
+					],
+					"afterSamples": [
+						573546.4683279999
+					]
+				},
+				"harnessReadinessPatch": {
+					"name": "local-chat-command-completion",
+					"assertionsChanged": false,
+					"enabledTestsChanged": false,
+					"fixtureResponsesChanged": false,
+					"reason": "Palette dismissal and first resource binding can precede the explicit new-local-chat command; wait for its completion before sending a prompt",
+					"changes": [
+						{
+							"file": "test/smoke/extensions/vscode-smoketest-ext-host/extension.js",
+							"beforeSHA256": "a924daf14987888e4d642f9b907c8a07f4ea70d644e3a1586b1b227664a4ea5b",
+							"afterSHA256": "643c13c72210b71c2d202bacd7f7ac182972f3f9095cc33443b4ea3905f47c27"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "d097b4fa0f90c46d6f2d029e657fc9bdc672a12bbb210c68856807b71711a398",
+							"afterSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178",
+							"afterSHA256": "8786cd8ff6bf2eb70f97a21d998a06d7b28b0a1adefdf5677056e50b14b4a885"
+						}
+					]
+				}
+			},
+			"normalizedStatuses": {
+				"candidate": "success",
+				"baseline": "success"
+			},
+			"normalizedTiming": {
+				"baselineMs": 573546.4683279999,
+				"candidateMs": 562416.136337,
+				"ratio": 0.9805938444299952,
+				"changePct": -1.9406155570004802
+			}
 		},
 		{
 			"pair": 3,
@@ -140,7 +668,271 @@
 			},
 			"driverCommit": "a1db7893e13f1128cb552897ef8cd98dc9a8e6fc",
 			"normalization": "candidate=before,baseline=after",
-			"available": false
+			"available": true,
+			"provenance": {
+				"id": 39869433529,
+				"digest": "sha256:965846a8fc0d8c7e570c3c372e6d5c9d7401eef2f5b2e176970cffdc2d8a1278",
+				"artifact": 12466023909
+			},
+			"report": {
+				"schemaVersion": 1,
+				"kind": "paired-smoke",
+				"commits": {
+					"before": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+					"after": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c"
+				},
+				"requestedPairs": 1,
+				"runner": {
+					"hostname": "runnervm8k3b6",
+					"node": "v24.15.0"
+				},
+				"pairs": [
+					{
+						"index": 0,
+						"order": [
+							"before",
+							"after"
+						],
+						"results": {
+							"before": {
+								"schemaVersion": 1,
+								"commit": "simonsiefke/vscode@38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 575177.4827159999,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							},
+							"after": {
+								"schemaVersion": 1,
+								"commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"harnessCommit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+								"fixtureCommit": "ecb012634f104f7a8188d9e3610a4d2d65bef6f6",
+								"requestedSamples": 1,
+								"runner": {
+									"hostname": "runnervm8k3b6",
+									"node": "v24.15.0"
+								},
+								"samples": [
+									{
+										"index": 0,
+										"status": "success",
+										"elapsedMs": 551055.017485,
+										"tests": [
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat panel has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Chat chat response has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench activity bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench status bar has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Accessibility Workbench workbench has no accessibility violations",
+											"VSCode Smoke Tests (Electron) Agents Window (Codex) recovers when the command palette loses focus before finding New Session",
+											"VSCode Smoke Tests (Electron) Agents Window (Dev Container AgentHost) Starts a session in a Dev Container",
+											"VSCode Smoke Tests (Electron) Agents Window (SSH Dev Container AgentHost) Starts and reopens a Dev Container session over SSH",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Replaces the new session UI with the in-progress AgentHost session",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost) Test Copilot CLI session via AgentHost",
+											"VSCode Smoke Tests (Electron) Agents Window (local AgentHost, SDK sandbox) Test Copilot CLI session via AgentHost (SDK sandbox)",
+											"VSCode Smoke Tests (Electron) Chat Disabled can disable AI features",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration forwards the selected reasoning effort and context size to the server",
+											"VSCode Smoke Tests (Electron) Chat Model Configuration shows the schema defaults and every configured option in the model details page",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows terminal network access by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) allows writing to the sandbox TMPDIR",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks reading files in the home directory outside the workspace by default",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) blocks writing to the host temp directory",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) runs terminal commands inside the sandbox",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with home file read access enabled allows reading a configured home directory file",
+											"VSCode Smoke Tests (Electron) Chat Sandbox (linux) with terminal network access disabled blocks terminal network access",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session run in terminal",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session",
+											"VSCode Smoke Tests (Electron) Chat Sessions Test Local session run in terminal",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies editors can save and restore",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (with delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that \"hot exit\" works for dirty files (without delay)",
+											"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies that auto save triggers on shutdown",
+											"VSCode Smoke Tests (Electron) Extension Host Restart allows extensions to gracefully deactivate on window reload (windowLifecycleGraceTime)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on restart extension host (issue #296681)",
+											"VSCode Smoke Tests (Electron) Extension Host Restart kills blocked extension host on window reload (windowLifecycleBound)",
+											"VSCode Smoke Tests (Electron) Integrated Browser adds browser context to chat",
+											"VSCode Smoke Tests (Electron) Integrated Browser allows agents to use shared pages and blocks unshared pages",
+											"VSCode Smoke Tests (Electron) Integrated Browser integrates page find and keyboard routing with the workbench",
+											"VSCode Smoke Tests (Electron) Integrated Browser navigates, reloads, and exposes page history",
+											"VSCode Smoke Tests (Electron) Integrated Browser opens an HTML file in a locked browser editor",
+											"VSCode Smoke Tests (Electron) Integrated Browser preserves native page lifecycle across editors, popups, and restart",
+											"VSCode Smoke Tests (Electron) Integrated Browser remembers camera permissions and shares them with about:blank frames",
+											"VSCode Smoke Tests (Electron) Language Features verifies problems view (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (css)",
+											"VSCode Smoke Tests (Electron) Language Features verifies quick outline (js)",
+											"VSCode Smoke Tests (Electron) Language Features verifies settings (css)",
+											"VSCode Smoke Tests (Electron) Launch verifies that application launches when user data directory has non-ascii characters",
+											"VSCode Smoke Tests (Electron) Multiroot shows results from all folders",
+											"VSCode Smoke Tests (Electron) Multiroot shows workspace name in title",
+											"VSCode Smoke Tests (Electron) Preferences turns off editor line numbers and verifies the live change",
+											"VSCode Smoke Tests (Electron) Quick Open quick open respects fuzzy matching",
+											"VSCode Smoke Tests (Electron) Quick Open quick open search produces correct result",
+											"VSCode Smoke Tests (Electron) Search dismisses result & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches for body & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search searches only for *.js files & checks for correct result number",
+											"VSCode Smoke Tests (Electron) Search verifies the sidebar moves to the right",
+											"VSCode Smoke Tests (Electron) Settings editor shows a modified indicator on a modified setting",
+											"VSCode Smoke Tests (Electron) Statusbar verifies if changing EOL is reflected in the status bar",
+											"VSCode Smoke Tests (Electron) Statusbar verifies presence of all default status bar elements",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'Problems View' appears when clicking on 'Problems' status element",
+											"VSCode Smoke Tests (Electron) Statusbar verifies that 'quick input' opens when clicking on status bar elements",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - false",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - true",
+											"VSCode Smoke Tests (Electron) Task Task Quick Pick Tasks: Run Task hide property - undefined"
+										],
+										"pending": 68
+									}
+								]
+							}
+						},
+						"comparable": true
+					}
+				],
+				"comparison": {
+					"before": {
+						"count": 1,
+						"mean": 575177.4827159999,
+						"median": 575177.4827159999,
+						"p95": 575177.4827159999,
+						"min": 575177.4827159999,
+						"max": 575177.4827159999,
+						"standardDeviation": 0
+					},
+					"after": {
+						"count": 1,
+						"mean": 551055.017485,
+						"median": 551055.017485,
+						"p95": 551055.017485,
+						"min": 551055.017485,
+						"max": 551055.017485,
+						"standardDeviation": 0
+					},
+					"primary": "median",
+					"absoluteChange": -24122.46523099998,
+					"percentChange": -4.193916826697248,
+					"interval": [
+						-24122.46523099998,
+						-24122.46523099998
+					],
+					"inconclusive": true,
+					"beforeSamples": [
+						575177.4827159999
+					],
+					"afterSamples": [
+						551055.017485
+					]
+				},
+				"harnessReadinessPatch": {
+					"name": "local-chat-command-completion",
+					"assertionsChanged": false,
+					"enabledTestsChanged": false,
+					"fixtureResponsesChanged": false,
+					"reason": "Palette dismissal and first resource binding can precede the explicit new-local-chat command; wait for its completion before sending a prompt",
+					"changes": [
+						{
+							"file": "test/smoke/extensions/vscode-smoketest-ext-host/extension.js",
+							"beforeSHA256": "a924daf14987888e4d642f9b907c8a07f4ea70d644e3a1586b1b227664a4ea5b",
+							"afterSHA256": "643c13c72210b71c2d202bacd7f7ac182972f3f9095cc33443b4ea3905f47c27"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "d097b4fa0f90c46d6f2d029e657fc9bdc672a12bbb210c68856807b71711a398",
+							"afterSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178"
+						},
+						{
+							"file": "test/smoke/out/areas/chat/chatSessions.test.js",
+							"beforeSHA256": "ecb3979a41886722175d632bd3ea7240ff531529f606c4734ab23239ea01d178",
+							"afterSHA256": "8786cd8ff6bf2eb70f97a21d998a06d7b28b0a1adefdf5677056e50b14b4a885"
+						}
+					]
+				}
+			},
+			"normalizedStatuses": {
+				"candidate": "success",
+				"baseline": "success"
+			},
+			"normalizedTiming": {
+				"baselineMs": 551055.017485,
+				"candidateMs": 575177.4827159999,
+				"ratio": 1.0437750577811526,
+				"changePct": 4.377505778115265
+			}
 		},
 		{
 			"pair": 4,
@@ -425,17 +1217,20 @@
 			}
 		}
 	],
-	"completeMatchingPairs": 1,
+	"completeMatchingPairs": 4,
 	"ratios": [
+		0.9189854024800135,
+		0.9805938444299952,
+		1.0437750577811526,
 		0.9256033572542168
 	],
 	"inconclusive": true,
 	"method": "Median of candidate/baseline elapsed ratios within each runner; predeclared AB/BA/BA/AB order. All failures retained. Do not pool raw times across hosts. Fewer than five pairs remains inconclusive.",
-	"medianChangePct": -7.439664274578317,
+	"medianChangePct": -4.690139915789393,
 	"exploratoryRatioBootstrapChangePct": [
-		-7.439664274578317,
-		-7.439664274578317
+		-8.101459751998652,
+		4.377505778115265
 	],
-	"observedUTC": "2026-10-22T23:25:06.139384+00:00",
+	"observedUTC": "2026-10-22T23:25:56.932764+00:00",
 	"analysisSource": "from pathlib import Path\nimport json,statistics,random\nroot=Path('/tmp/ipc-opt-12h-20261022');plan=json.loads((root/'readiness-quick-pairs.json').read_text());rows=[];ratios=[];inventory=None;patch=None\nfor item in plan['runs']:\n run=item['databaseId'];path=root/f'cloud-finished-{run}/extracted/paired-smoke-result.json';row={**item,'available':path.exists()};rows.append(row)\n if not path.exists():continue\n report=json.loads(path.read_text());prov=json.loads((path.parent.parent/'provenance.json').read_text());row.update({'provenance':prov,'report':report})\n assert report['requestedPairs']==1 and len(report['pairs'])==1\n readiness=report['harnessReadinessPatch'];assert readiness['name']=='local-chat-command-completion'\n assert all(readiness[k] is False for k in ['assertionsChanged','enabledTestsChanged','fixtureResponsesChanged'])\n if patch is None:patch=readiness\n assert patch==readiness\n pair=report['pairs'][0];candidate='after' if item['order']=='AB' else 'before';baseline='before' if candidate=='after' else 'after'\n assert report['commits'][candidate].lower().endswith('38b2f1066eedc6cd3395bda950ee1f7e292f9df7')\n assert report['commits'][baseline].lower().endswith('4df8bb183f0e984e97d8f4200c802c49061d7d3c')\n samples={role:pair['results'][role]['samples'][0] for role in [candidate,baseline]}\n row['normalizedStatuses']={'candidate':samples[candidate]['status'],'baseline':samples[baseline]['status']}\n if not pair['comparable'] or any(s['status']!='success' for s in samples.values()):continue\n for s in samples.values():\n  observed={'tests':sorted(s['tests']),'pending':s['pending']};assert len(observed['tests'])==62 and observed['pending']==68\n  if inventory is None:inventory=observed\n  assert inventory==observed\n b=samples[baseline]['elapsedMs'];c=samples[candidate]['elapsedMs'];ratio=c/b;ratios.append(ratio);row['normalizedTiming']={'baselineMs':b,'candidateMs':c,'ratio':ratio,'changePct':100*(ratio-1)}\nsummary={'design':plan,'rows':rows,'completeMatchingPairs':len(ratios),'ratios':ratios,'inconclusive':True,'method':'Median of candidate/baseline elapsed ratios within each runner; predeclared AB/BA/BA/AB order. All failures retained. Do not pool raw times across hosts. Fewer than five pairs remains inconclusive.'}\nif ratios:\n rng=random.Random(321241022);boot=sorted(statistics.median(rng.choices(ratios,k=len(ratios))) for _ in range(10000));summary.update({'medianChangePct':100*(statistics.median(ratios)-1),'exploratoryRatioBootstrapChangePct':[100*(boot[i]-1) for i in [249,9749]]})\n(root/'readiness-quick-pairs-results.json').write_text(json.dumps(summary,indent='\\t')+'\\n');print(json.dumps({k:v for k,v in summary.items() if k not in ['rows','design']},indent=2))\n"
 }
