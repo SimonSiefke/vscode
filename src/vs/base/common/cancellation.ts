@@ -156,6 +156,7 @@ export class CancellationTokenSource {
 			this.cancel();
 		}
 		this._parentListener?.dispose();
+		this._parentListener = undefined;
 		if (!this._token) {
 			// ensure to initialize with an empty token if we had none
 			this._token = CancellationToken.None;
@@ -169,7 +170,7 @@ export class CancellationTokenSource {
 
 export function cancelOnDispose(store: DisposableStore): CancellationToken {
 	const source = new CancellationTokenSource();
-	store.add({ dispose() { source.cancel(); } });
+	store.add(source);
 	return source.token;
 }
 
