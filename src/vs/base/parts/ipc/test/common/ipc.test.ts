@@ -348,6 +348,70 @@ suite('Base IPC', function () {
 			});
 		});
 
+		test('uses JSON for object payloads and omits local callbacks', async () => {
+			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+			const echoServer = store.add(new ChannelServer(serverProtocol, 'ctx'));
+			echoServer.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
+			const echoClient = store.add(new ChannelClient(clientProtocol));
+			const input = { executable: 'shell', waitOnExit: () => 'Press any key', optional: undefined };
+
+			const result = await echoClient.getChannel('echo').call('echo', input);
+
+			assert.deepStrictEqual(result, { executable: 'shell' });
+			assert.strictEqual(clientProtocol.lastSent?.jsonBody, true);
+			assert.strictEqual(typeof clientProtocol.lastSent?.body, 'string');
+			assert.strictEqual(input.waitOnExit(), 'Press any key');
+		});
+
+		test('serializes class instances containing local callbacks', async () => {
+			class Workspace {
+				readonly id = 'workspace';
+				readonly folders = [URI.file('/workspace')];
+				readonly onDidChange = () => { };
+			}
+			const result = await client.getChannel('echo').call('echo', new Workspace());
+			assert.deepStrictEqual(result, { id: 'workspace', folders: [URI.file('/workspace').toJSON()] });
+		});
+
+		test('mixed object payloads preserve buffer aliases and ordinary buffer properties', async () => {
+			const buffer = VSBuffer.fromString('shared');
+			const input = { buffers: [buffer, buffer], ordinary: { buffer: 'ordinary' } };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.ok(result.buffers[0] instanceof VSBuffer);
+			assert.strictEqual(result.buffers[0], result.buffers[1]);
+			assert.strictEqual(result.buffers[0].toString(), 'shared');
+			assert.deepStrictEqual(result.ordinary, input.ordinary);
+			assert.strictEqual(input.buffers[0], buffer);
+		});
+
+		test('preserves numeric buffer metadata alongside VSBuffer values', async () => {
+			const input = { reference: { $$vscode_buffer: 0 }, buffer: VSBuffer.fromString('real') };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual(result.reference, input.reference);
+			assert.ok(result.buffer instanceof VSBuffer);
+			assert.strictEqual(result.buffer.toString(), 'real');
+		});
+
+		test('omits local callbacks when native binary data requires the graph path', async () => {
+			const input = { bytes: Uint8Array.from([1, 2, 3]), callback: () => { } };
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, { bytes: input.bytes });
+		});
+
+		test('preserves aliases in acyclic object graphs', async () => {
+			const shared = { value: 42 };
+			const result = await client.getChannel('echo').call<{ first: object; second: object }>('echo', { first: shared, second: shared });
+			assert.strictEqual(result.first, result.second);
+		});
+
+		test('falls back for bigint, non-finite numbers and negative zero', async () => {
+			const input = { large: 12345678901234567890n, nan: NaN, positive: Infinity, negative: -Infinity, zero: -0 };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual(result, input);
+		});
+
 		test('copies own enumerable properties without invoking prototype setters', async () => {
 			const input: { constructor: VSBuffer; toString: VSBuffer; __proto__: { buffer: VSBuffer } } = Object.assign(Object.create(null), {
 				constructor: VSBuffer.fromString('constructor'),

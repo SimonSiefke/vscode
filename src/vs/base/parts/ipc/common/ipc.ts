@@ -110,6 +110,8 @@ export interface IMessagePassingProtocol {
 export interface IStructuredCloneMessage {
 	header: unknown;
 	body: unknown;
+	/** Object payload encoded as JSON; binary references remain native transport values. */
+	jsonBody?: boolean;
 	/** References to VSBuffer wrappers in the header and body, preserved by structured cloning. */
 	vsBuffers?: readonly { buffer: Uint8Array }[];
 }
@@ -124,6 +126,27 @@ export type IChannelMessagePassingProtocol = IMessagePassingProtocol | IStructur
 
 function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
 	if (protocol.type === 'structuredClone') {
+		// Channel headers contain only request IDs and names. Connection contexts
+		// can be arbitrary values and retain the full marshalling path below.
+		if (!header || typeof header !== 'object' || Array.isArray(header) && header.every(value => !value || typeof value !== 'object')) {
+			if (!body || typeof body !== 'object' || body instanceof Uint8Array) {
+				protocol.send({ header, body });
+				return 0;
+			}
+			if (body instanceof VSBuffer) {
+				protocol.send({ header, body, vsBuffers: [body] });
+				return 0;
+			}
+			if (body instanceof URI) {
+				protocol.send({ header, body: body.toJSON() });
+				return 0;
+			}
+			const json = trySerializeJSONBody(header, body);
+			if (json) {
+				protocol.send(json);
+				return 0;
+			}
+		}
 		const vsBuffers: { buffer: Uint8Array }[] = [];
 		const message = transformStructuredCloneData({ header, body }, value => {
 			if (value instanceof URI) {
@@ -144,6 +167,61 @@ function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, 
 	}
 
 	return sendBufferMessage(protocol, header, body);
+}
+
+/** JSON strings avoid native cloning of large DTO trees and byte encoding. */
+function trySerializeJSONBody(header: unknown, body: unknown): IStructuredCloneMessage | undefined {
+	if (!canStringifyStructuredCloneData(body, new Set())) {
+		return undefined;
+	}
+	return { header, body: JSON.stringify(body), jsonBody: true };
+}
+
+/** Inspect data properties without evaluating getters or copying the tree.
+ * Optional fields and local callbacks retain the legacy JSON omission semantics.
+ */
+function canStringifyStructuredCloneData(data: unknown, seen: Set<object>): boolean {
+	if (!data || typeof data !== 'object') {
+		return false;
+	}
+	if (seen.has(data)) {
+		return false;
+	}
+	seen.add(data);
+	if (data instanceof URI) {
+		return true;
+	}
+	const isArray = Array.isArray(data);
+	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+	if (!isArray && prototype !== Object.prototype && prototype !== null) {
+		return false;
+	}
+	const keys = Object.keys(data);
+	if (isArray && keys.length !== data.length) {
+		return false;
+	}
+	let index = 0;
+	for (const key of keys) {
+		if (isArray && key !== String(index++)) {
+			return false;
+		}
+		const descriptor = Object.getOwnPropertyDescriptor(data, key)!;
+		if (descriptor.get || descriptor.set) {
+			return false;
+		}
+		const value: unknown = descriptor.value;
+		if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+			return false;
+		}
+		if (value && typeof value === 'object') {
+			if (!canStringifyStructuredCloneData(value, seen)) {
+				return false;
+			}
+		} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /**
@@ -190,7 +268,12 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 			if (!Object.hasOwn(data, key)) {
 				continue;
 			}
-			const value = transformStructuredCloneData((data as Record<string, unknown>)[key], transform, seen);
+			const original = (data as Record<string, unknown>)[key];
+			// Local callbacks are omitted by the legacy JSON transport as well.
+			if (typeof original === 'function' || typeof original === 'symbol') {
+				continue;
+			}
+			const value = transformStructuredCloneData(original, transform, seen);
 			if (key === '__proto__') {
 				// Assignment would invoke Object.prototype's setter instead of copying the key.
 				Object.defineProperty(result, key, { value, enumerable: true, configurable: true, writable: true });
@@ -204,13 +287,18 @@ function transformStructuredCloneData(data: unknown, transform: (value: object) 
 }
 
 function deserializeStructuredCloneMessage(message: IStructuredCloneMessage): IStructuredCloneMessage {
-	if (!message.vsBuffers?.length) {
-		return message;
+	// Structured cloning preserves the references in this table, including aliases
+	// in Map keys and Set entries. Restore those wrappers directly without walking
+	// or copying the received graph a second time.
+	for (const value of message.vsBuffers ?? []) {
+		const buffer = VSBuffer.wrap(value.buffer);
+		Object.setPrototypeOf(value, VSBuffer.prototype);
+		Object.assign(value, buffer);
 	}
-	// The side table identifies wrappers by reference, so ordinary objects with a
-	// `buffer` property and raw Uint8Arrays retain their original representations.
-	const vsBuffers = new Map<object, VSBuffer>(message.vsBuffers.map(value => [value, VSBuffer.wrap(value.buffer)]));
-	return transformStructuredCloneData({ header: message.header, body: message.body }, value => vsBuffers.get(value) ?? value) as IStructuredCloneMessage;
+	if (message.jsonBody) {
+		message.body = JSON.parse(message.body as string);
+	}
+	return message;
 }
 
 function sendBufferMessage(protocol: IMessagePassingProtocol, header: unknown, body: any): number {
