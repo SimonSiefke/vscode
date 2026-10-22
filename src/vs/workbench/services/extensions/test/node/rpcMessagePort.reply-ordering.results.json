@@ -1,0 +1,4508 @@
+{
+	"status": "held",
+	"productionCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+	"rpcCompiledSHA256BothSides": "d37124671eec94d0908edc359b03a7f29674bee57a935e79d25becce7a233e2b",
+	"datasets": {
+		"node-1": {
+			"seed": 3212410,
+			"referenceBase": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryBaselineCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryVariants": {
+				"before": "before",
+				"after": "immediate"
+			},
+			"compiledSHA256": {
+				"before": "8fd667524948232e95216fd85edbec780164059fbb3e5a52b245b405d721199b",
+				"immediate": "0d52acc50a59c1db1e02d1bc38d36b0c163a8ee6ddaab0deccbe2a6255fb413f"
+			},
+			"blocks": [
+				{
+					"block": 0,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										41.329930664062516,
+										29.37986816406249,
+										28.814864257812488
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										31.975041015625038,
+										30.1094384765625,
+										29.915304687500033
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										46.953205078125,
+										46.50062890625001,
+										42.64394433593755
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										29.489682617187512,
+										23.351812499999987,
+										24.810002929687492
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										28.93793750000001,
+										27.224123046874993,
+										25.928151367187485
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										42.67694628906254,
+										46.685583984375,
+										42.20428320312497
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 1,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										32.74229785156249,
+										25.408663085937505,
+										25.248117187500004
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										28.349001953125008,
+										26.419432617187518,
+										38.769334960937485
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										45.31075390625,
+										45.54402441406252,
+										41.03161914062503
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										32.73471484375,
+										21.144769531250024,
+										23.303097656249992
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										28.8800947265625,
+										29.854693359375016,
+										25.904474609375004
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										42.36665722656252,
+										47.99020507812496,
+										40.917380859375015
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 2,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										30.3113974609375,
+										22.021235351562503,
+										23.71969921875
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										30.25207812499997,
+										27.909957031249988,
+										28.120234374999995
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										45.53420898437499,
+										46.787014648437484,
+										44.35913867187502
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										30.675165039062495,
+										20.433958007812475,
+										24.433028320312495
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										28.975224609375015,
+										27.95565917968748,
+										29.919844726562506
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										44.16729492187505,
+										47.09981835937499,
+										45.48023144531249
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 3,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										34.7600322265625,
+										27.22031640625,
+										23.54517285156252
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										27.523648437499993,
+										25.560499999999987,
+										22.959957031250035
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										40.35891308593753,
+										43.91167968749998,
+										36.64264843749998
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										27.477967773437513,
+										21.40466992187501,
+										24.907724609375016
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										34.6216865234375,
+										27.572618164062508,
+										25.438181640625
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										47.81231347656251,
+										44.05250878906247,
+										44.41330273437505
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 4,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										27.526769531250007,
+										21.848304687500015,
+										27.594954101562486
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										25.905226562499994,
+										24.220089843750014,
+										28.63946874999998
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										41.4325361328125,
+										52.57673242187499,
+										40.30592382812503
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										33.250250976562505,
+										22.65306347656251,
+										31.321677734374997
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										41.15351660156252,
+										30.876509765625006,
+										27.271193359375
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										50.469400390624976,
+										40.860273437499984,
+										43.1874521484375
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 5,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										30.816522460937495,
+										22.669764648437507,
+										26.26406249999999
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										32.716634765625,
+										28.211224609374973,
+										26.85298925781249
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										44.28288183593748,
+										43.5598193359375,
+										44.15290136718747
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										33.2381279296875,
+										24.6114267578125,
+										24.014314453124992
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										30.666447265625006,
+										28.83346484374999,
+										27.649166015625003
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										43.671651367187536,
+										48.2454970703125,
+										43.837966796875016
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 6,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										30.184207031249993,
+										23.849013671875003,
+										26.087140625000004
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										27.947048828124988,
+										28.32936425781249,
+										27.424595703125
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										46.474496093749984,
+										49.203591796875,
+										56.685461914062486
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										30.30391308593751,
+										20.1161845703125,
+										22.509122070312497
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										25.48079882812501,
+										25.265885742187493,
+										22.531271484375004
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										40.82458886718749,
+										47.63405957031252,
+										42.48089453124998
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 7,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										31.571248046875,
+										22.961461914062507,
+										24.35204589843748
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										27.1035556640625,
+										26.203080078124998,
+										25.811703125
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										47.559203125,
+										46.36350781250004,
+										40.44147949218752
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										33.1820068359375,
+										24.183918945312495,
+										25.201750976562522
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										31.015919921874996,
+										26.79857128906249,
+										26.39835742187499
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										47.04477343749996,
+										59.93540527343749,
+										41.29145019531249
+									],
+									"messages": 6144,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"renderer-1": {
+			"seed": 3212410,
+			"referenceBase": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryBaselineCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryVariants": {
+				"before": "before",
+				"after": "immediate"
+			},
+			"compiledSHA256": {
+				"before": "8fd667524948232e95216fd85edbec780164059fbb3e5a52b245b405d721199b",
+				"immediate": "0d52acc50a59c1db1e02d1bc38d36b0c163a8ee6ddaab0deccbe2a6255fb413f"
+			},
+			"blocks": [
+				{
+					"block": 0,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										291.9921875,
+										279.1015624970896,
+										295.31250000582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										285.25390624417923,
+										288.96484375582077,
+										250.9765625
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										332.7148437529104,
+										366.2109375,
+										334.57031250873115
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										221.19140625,
+										217.57812499708962,
+										287.3046875029104
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										265.3320312529104,
+										263.28124999417923,
+										259.66796874126885
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										369.33593748835847,
+										321.77734375,
+										350.39062501164153
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 1,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										300.29296875,
+										291.6992187529104,
+										213.28125000582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										221.97265624708962,
+										231.73828124708962,
+										271.484375
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										301.5624999970896,
+										289.45312500582077,
+										327.9296874970896
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										275.29296874126885,
+										303.02734376164153,
+										280.5664062470896
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										316.1132812529104,
+										289.7460937529104,
+										319.53124998835847
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										377.2460937470896,
+										326.75781249417923,
+										349.21874999417923
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 2,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										369.62890625,
+										287.69531249417923,
+										250.68359375291038
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										306.24999999417923,
+										257.1289062470896,
+										272.85156250582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										355.56640625873115,
+										319.0429687529104,
+										329.98046875582077
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										232.51953124417923,
+										223.73046875873115,
+										303.4179687529104
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										251.953125,
+										267.18750000873115,
+										362.5976562470896
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										356.4453125,
+										288.37890626164153,
+										300.0976562470896
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 3,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										294.7265624970896,
+										244.53125000582077,
+										248.63281249417923
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										280.5664062470896,
+										245.41015624708962,
+										255.46875000873115
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										343.26171875,
+										254.29687500582077,
+										334.37500000582077
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										331.54296875,
+										324.80468749417923,
+										280.76171875
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										312.98828125,
+										301.17187500582077,
+										243.35937500291038
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										301.17187499126885,
+										376.6601562529104,
+										381.5429687529104
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 4,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										315.52734375873115,
+										200.58593749126885,
+										252.83203125582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										290.8203124970896,
+										265.72265624417923,
+										308.00781249126885
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										327.63671875,
+										310.546875,
+										304.4921874970896
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										226.36718749708962,
+										264.6484375,
+										251.66015625291038
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										285.74218750873115,
+										255.07812498835847,
+										275.390625
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										403.1249999970896,
+										339.55078123835847,
+										334.08203125873115
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 5,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										296.6796874970896,
+										226.26953125291038,
+										245.1171875
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										261.81640624417923,
+										277.44140624417923,
+										269.53125
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										357.2265624970896,
+										321.58203126164153,
+										388.3789062529104
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										302.5390624970896,
+										253.61328125291038,
+										280.66406250582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										250.09765624417923,
+										264.16015625,
+										256.44531249417923
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										291.9921875,
+										272.2656249970896,
+										299.31640625
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 6,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										300.0976562470896,
+										218.16406249126885,
+										225.48828125582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										279.39453125873115,
+										283.0078124970896,
+										221.09375000582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										255.17578124708962,
+										264.06249999126885,
+										290.91796875582077
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										231.73828124708962,
+										204.78515625291038,
+										215.42968750873115
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										224.02343749126885,
+										221.6796875,
+										247.16796875873115
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										269.2382812529104,
+										254.68749999708962,
+										308.39843751164153
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 7,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										228.41796874126885,
+										236.42578125873115,
+										241.01562499708962
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										242.28515625873115,
+										187.89062499126885,
+										223.73046874417923
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										289.8437499970896,
+										327.3437500029104,
+										347.07031250582077
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 1,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										332.71484373835847,
+										228.90625000582077,
+										283.59375000582077
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										238.76953125,
+										251.953125,
+										217.7734375
+									],
+									"sent": 3072,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										317.96875000873115,
+										291.3085937470896,
+										315.2343749970896
+									],
+									"sent": 3072,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				}
+			]
+		},
+		"node-32": {
+			"seed": 3212410,
+			"referenceBase": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryBaselineCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryVariants": {
+				"before": "before",
+				"after": "immediate"
+			},
+			"compiledSHA256": {
+				"before": "8fd667524948232e95216fd85edbec780164059fbb3e5a52b245b405d721199b",
+				"immediate": "0d52acc50a59c1db1e02d1bc38d36b0c163a8ee6ddaab0deccbe2a6255fb413f"
+			},
+			"blocks": [
+				{
+					"block": 0,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										25.741385742187497,
+										16.018148437499992,
+										14.4461044921875
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										19.862309570312515,
+										16.90951464843751,
+										15.231021484374995
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										40.96203417968752,
+										39.83656835937499,
+										38.89862109374997
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										25.00483007812501,
+										16.7883720703125,
+										16.277197265624988
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										25.361816406249986,
+										22.836268554687482,
+										16.246037109375
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										34.107010742187526,
+										34.45062402343751,
+										34.11007421875001
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 1,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										21.614095703125003,
+										11.718310546875014,
+										11.4420029296875
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.111824218750016,
+										15.400997070312506,
+										14.012508789062517
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										36.866876953125015,
+										43.56358593750001,
+										42.70230664062497
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										17.798034179687505,
+										13.121112304687516,
+										10.63598046875
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.445946289062487,
+										14.567316406250002,
+										13.320656250000006
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										50.77096875000001,
+										40.74627050781249,
+										43.20130664062505
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 2,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										17.740709960937505,
+										12.199905273437505,
+										11.080525390625013
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										15.50595019531248,
+										13.434590820312508,
+										13.167234375000003
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										41.382999023437506,
+										41.1118173828125,
+										53.54759375000001
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										23.787716796874996,
+										18.137244140625008,
+										18.661869140625008
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										24.76753125,
+										22.610405273437493,
+										19.35713574218753
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										35.66409765625001,
+										43.17833398437499,
+										40.785503906249964
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 3,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										15.685592773437493,
+										11.368191406249991,
+										10.790470703125013
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										14.571817382812519,
+										13.811782226562514,
+										13.843863281250007
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										44.454386718750015,
+										41.25520117187498,
+										44.16992578124995
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										27.03966601562499,
+										19.11679296874999,
+										18.335720703125002
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										20.290435546875013,
+										17.06789746093748,
+										16.54269628906249
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										33.69626171875004,
+										38.177876953124965,
+										44.870653320312535
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 4,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										19.6733232421875,
+										10.821298828125006,
+										10.617840820312502
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										16.629673828124997,
+										17.940468749999994,
+										16.092399414062484
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										43.590334960937476,
+										43.85482519531247,
+										42.88456054687501
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										22.144678710937505,
+										16.56376074218749,
+										13.679481445312502
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										20.014234374999994,
+										16.851066406250006,
+										16.960783203124997
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										44.141572265625015,
+										38.770048828124956,
+										38.607235351562466
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 5,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										21.84560546875,
+										14.664071289062496,
+										12.767951171875
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.099898437500013,
+										17.6858818359375,
+										18.678550781249996
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										37.280814453125004,
+										33.08405175781248,
+										43.37175292968753
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										19.23543457031249,
+										11.829495117187506,
+										13.350800781249978
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.753486328125014,
+										18.29188867187498,
+										13.891648437500015
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										36.25781640625,
+										39.25925683593751,
+										39.807246093750024
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 6,
+					"runs": [
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										16.526904296875006,
+										10.124015624999997,
+										11.36486621093752
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.19241601562499,
+										15.83599218750001,
+										14.467578124999992
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										42.75306542968752,
+										35.390418945312476,
+										37.04100097656254
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										22.617117187499993,
+										15.284206054687498,
+										12.42414355468749
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.417876953125024,
+										14.972744140624993,
+										17.415472656249985
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										37.188866210937476,
+										40.28596484375002,
+										37.62094628906249
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				},
+				{
+					"block": 7,
+					"runs": [
+						{
+							"variant": "immediate",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										19.9331455078125,
+										12.863139648437494,
+										13.206106445312503
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.13042480468749,
+										16.808408203125012,
+										20.265613281250012
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										39.17267871093749,
+										40.08119531250004,
+										36.191157226562524
+									],
+									"messages": 4224,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						},
+						{
+							"variant": "before",
+							"node": "v24.22.0",
+							"bufferPoolSize": 8192,
+							"transport": "node-message-port",
+							"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"samples": 3,
+							"iterations": 1024,
+							"warmups": 200,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										17.280366210937494,
+										10.320781249999994,
+										9.019769531250013
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 18432
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										12.950460937500019,
+										11.341432617187508,
+										11.372760742187488
+									],
+									"messages": 480,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 362496
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										50.273455078125004,
+										39.054087890625006,
+										40.34502050781252
+									],
+									"messages": 3264,
+									"bytes": 0,
+									"backingBytes": 0,
+									"nativeMessages": 6144,
+									"nativeStringCharacters": 25184256
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"renderer-32": {
+			"seed": 3212410,
+			"referenceBase": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryBaselineCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+			"primaryVariants": {
+				"before": "before",
+				"after": "immediate"
+			},
+			"compiledSHA256": {
+				"before": "8fd667524948232e95216fd85edbec780164059fbb3e5a52b245b405d721199b",
+				"immediate": "0d52acc50a59c1db1e02d1bc38d36b0c163a8ee6ddaab0deccbe2a6255fb413f"
+			},
+			"blocks": [
+				{
+					"block": 0,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										24.4140625,
+										20.410156255820766,
+										16.699218744179234
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										25.292968755820766,
+										22.851562505820766,
+										20.99609375
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										47.265625005820766,
+										46.67968751164153,
+										41.40624999126885
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										41.60156250873115,
+										28.80859375,
+										26.171874997089617
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										29.492187502910383,
+										27.34375,
+										27.050781252910383
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										54.101562505820766,
+										45.507812494179234,
+										45.312500005820766
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 1,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										38.96484374126885,
+										31.933593752910383,
+										29.296875
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										37.30468750291038,
+										28.3203125,
+										29.101562497089617
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										48.63281251164153,
+										48.53515623835847,
+										44.62890625291038
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										21.289062511641532,
+										14.55078124126885,
+										13.867187502910383
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										15.72265625873115,
+										13.18359375,
+										12.792968744179234
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										43.16406250291038,
+										36.52343749126885,
+										35.058593755820766
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 2,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										20.99609375,
+										18.16406250873115,
+										17.773437488358468
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.06640625,
+										16.894531247089617,
+										18.5546875
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										47.753906255820766,
+										62.69531250291038,
+										49.31640625
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										37.207031244179234,
+										25.781250005820766,
+										23.33984374126885
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										34.082031255820766,
+										26.660156247089617,
+										23.82812499126885
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										39.160156244179234,
+										43.74999999708962,
+										50.195312505820766
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 3,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										40.0390625,
+										25.29296874126885,
+										34.47265626164153
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										28.222656255820766,
+										25.87890625,
+										26.074218752910383
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										50.68359374126885,
+										45.99609375873115,
+										50.19531249126885
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										29.296875,
+										16.699218744179234,
+										12.109375005820766
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										16.210937494179234,
+										19.62890625873115,
+										15.917968747089617
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										64.64843750291038,
+										44.53125000873115,
+										50.00000000291038
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 4,
+					"runs": [
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										37.89062499708962,
+										27.92968750873115,
+										26.171874997089617
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										37.207031244179234,
+										25.683593747089617,
+										30.078125011641532
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										52.832031244179234,
+										37.89062501164153,
+										38.86718749708962
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										18.06640625,
+										13.867187502910383,
+										13.867187488358468
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										16.99218749126885,
+										19.433593755820766,
+										24.121093752910383
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										40.917968755820766,
+										42.578124994179234,
+										40.23437500291038
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 5,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										28.80859375,
+										22.265624997089617,
+										17.187499994179234
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										18.652343744179234,
+										19.433593755820766,
+										18.750000002910383
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										70.41015624417923,
+										43.74999999708962,
+										41.9921875
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										47.75390624126885,
+										34.277343744179234,
+										29.296875
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										32.128906255820766,
+										34.277343744179234,
+										35.15625
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										53.02734374708962,
+										44.335937505820766,
+										43.16406250291038
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 6,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										26.46484375873115,
+										14.16015625,
+										12.402343738358468
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										16.6015625,
+										16.99218749126885,
+										18.16406250873115
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										60.83984374708962,
+										43.75000001164153,
+										37.59765625
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										36.1328125,
+										30.664062505820766,
+										29.19921874126885
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										30.2734375,
+										23.92578125,
+										29.003906238358468
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										67.48046874417923,
+										52.63671874126885,
+										65.91796875
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				},
+				{
+					"block": 7,
+					"runs": [
+						{
+							"variant": "before",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										25.87890625,
+										16.503906255820766,
+										13.476562497089617
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										22.851562505820766,
+										22.55859375873115,
+										23.632812502910383
+									],
+									"sent": 192,
+									"received": 288
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										42.87109374126885,
+										43.65234375291038,
+										56.34765625291038
+									],
+									"sent": 1152,
+									"received": 2112
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						},
+						{
+							"variant": "immediate",
+							"module": "vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js",
+							"native": true,
+							"batch": true,
+							"concurrency": 32,
+							"hasBuffer": false,
+							"results": [
+								{
+									"name": "primitive",
+									"microsecondsPerRoundTrip": [
+										36.523437505820766,
+										28.417968744179234,
+										27.44140625873115
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "small-object",
+									"microsecondsPerRoundTrip": [
+										30.175781255820766,
+										36.42578124708962,
+										31.73828125
+									],
+									"sent": 192,
+									"received": 3072
+								},
+								{
+									"name": "text-4KiB",
+									"microsecondsPerRoundTrip": [
+										67.87109375,
+										44.23828124708962,
+										37.500000005820766
+									],
+									"sent": 1152,
+									"received": 3072
+								}
+							],
+							"versions": {
+								"node": "24.21.0",
+								"acorn": "8.18.0",
+								"ada": "4.0.0",
+								"amaro": "1.1.11",
+								"ares": "1.34.8",
+								"brotli": "1.2.0",
+								"cldr": "48.0",
+								"icu": "78.2",
+								"llhttp": "9.4.3",
+								"merve": "1.2.2",
+								"modules": "148",
+								"napi": "10",
+								"nbytes": "0.1.4",
+								"ncrypto": "0.0.1",
+								"nghttp2": "1.70.0",
+								"nghttp3": "",
+								"ngtcp2": "",
+								"openssl": "0.0.0",
+								"simdjson": "4.6.7",
+								"simdutf": "7.7.0",
+								"sqlite": "3.53.4",
+								"tz": "2025c",
+								"undici": "7.29.1",
+								"unicode": "17.0",
+								"uv": "1.52.1",
+								"uvwasi": "0.0.23",
+								"v8": "15.0.245.31-electron.0",
+								"zlib": "1.3.2.1-motley",
+								"zstd": "1.6.0",
+								"electron": "43.7.7",
+								"chrome": "150.0.7871.250"
+							},
+							"poolSize": 8192,
+							"worker": {
+								"ready": true,
+								"node": "v24.21.0",
+								"poolSize": 8192
+							}
+						}
+					]
+				}
+			]
+		}
+	},
+	"sourceSnapshots": {
+		"rpcMessagePort.replies-before.ts": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport { VSBuffer } from '../../../../base/common/buffer.js';\nimport { IDisposable } from '../../../../base/common/lifecycle.js';\nimport { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';\nimport { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';\n\n/** Batch immutable native RPC frames while retaining binary/control ordering. */\nexport class RPCMessagePort implements IMessagePassingProtocol, IDisposable {\n\tprivate readonly messages = new BufferedEmitter<VSBuffer>();\n\treadonly onMessage = this.messages.event;\n\tprivate pending: IStructuredCloneMessage[] | undefined;\n\tprivate pendingCharacters = 0;\n\tprivate scheduled = false;\n\tprivate nativeSentSinceReceive = false;\n\tprivate disposed = false;\n\n\tconstructor(private readonly postMessage: (message: unknown) => void) { }\n\n\tacceptMessage(data: unknown): void {\n\t\tif (this.disposed) {\n\t\t\treturn;\n\t\t}\n\t\tthis.nativeSentSinceReceive = false;\n\t\tif (ArrayBuffer.isView(data)) {\n\t\t\tthis.messages.fire(VSBuffer.wrap(data as Uint8Array));\n\t\t} else if (Array.isArray(data)) {\n\t\t\tfor (const message of data) {\n\t\t\t\tif (this.disposed) {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t\tthis.messages.fire(wrapStructuredCloneMessage(message));\n\t\t\t}\n\t\t} else {\n\t\t\tthis.messages.fire(wrapStructuredCloneMessage(data as IStructuredCloneMessage));\n\t\t}\n\t}\n\n\tsend(buffer: VSBuffer): void {\n\t\tthis.flush();\n\t\tif (!this.disposed) {\n\t\t\tthis.postMessage(buffer.buffer);\n\t\t}\n\t}\n\n\tsendStructuredClone(message: IStructuredCloneMessage): void {\n\t\tif (this.disposed) {\n\t\t\treturn;\n\t\t}\n\t\tif (!this.nativeSentSinceReceive) {\n\t\t\tthis.nativeSentSinceReceive = true;\n\t\t\tthis.flush();\n\t\t\t// A sequential request/reply exchange needs no batching microtask.\n\t\t\tthis.postMessage(message);\n\t\t\treturn;\n\t\t}\n\t\tconst characters = typeof message.body === 'string' ? message.body.length : 0;\n\t\t// Keep large DTOs pipelined rather than building one long parsing task.\n\t\tif (this.pending && (this.pending.length >= 64 || this.pendingCharacters + characters > 16 * 1024)) {\n\t\t\tthis.flush();\n\t\t}\n\t\t(this.pending ??= []).push(message);\n\t\tthis.pendingCharacters += characters;\n\t\tif (characters >= 16 * 1024) {\n\t\t\tthis.flush();\n\t\t\treturn;\n\t\t}\n\t\tif (!this.scheduled) {\n\t\t\tthis.scheduled = true;\n\t\t\tqueueMicrotask(() => {\n\t\t\t\tthis.scheduled = false;\n\t\t\t\tthis.flush();\n\t\t\t});\n\t\t}\n\t}\n\n\tasync drain(): Promise<void> {\n\t\tthis.flush();\n\t}\n\n\tprivate flush(): void {\n\t\tconst pending = this.pending;\n\t\tthis.pending = undefined;\n\t\tthis.pendingCharacters = 0;\n\t\tif (pending) {\n\t\t\tthis.postMessage(pending.length === 1 ? pending[0] : pending);\n\t\t}\n\t}\n\n\tdispose(): void {\n\t\tthis.disposed = true;\n\t\tthis.pending = undefined;\n\t\tthis.pendingCharacters = 0;\n\t\tthis.messages.flushBuffer();\n\t}\n}\n",
+		"rpcMessagePort.replies-immediate.ts": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport { VSBuffer } from '../../../../base/common/buffer.js';\nimport { IDisposable } from '../../../../base/common/lifecycle.js';\nimport { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';\nimport { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';\n\n/** Batch immutable native RPC frames while retaining binary/control ordering. */\nexport class RPCMessagePort implements IMessagePassingProtocol, IDisposable {\n\tprivate readonly messages = new BufferedEmitter<VSBuffer>();\n\treadonly onMessage = this.messages.event;\n\tprivate pending: IStructuredCloneMessage[] | undefined;\n\tprivate pendingCharacters = 0;\n\tprivate scheduled = false;\n\tprivate nativeSentSinceReceive = false;\n\tprivate disposed = false;\n\n\tconstructor(private readonly postMessage: (message: unknown) => void) { }\n\n\tacceptMessage(data: unknown): void {\n\t\tif (this.disposed) {\n\t\t\treturn;\n\t\t}\n\t\tthis.nativeSentSinceReceive = false;\n\t\tif (ArrayBuffer.isView(data)) {\n\t\t\tthis.messages.fire(VSBuffer.wrap(data as Uint8Array));\n\t\t} else if (Array.isArray(data)) {\n\t\t\tfor (const message of data) {\n\t\t\t\tif (this.disposed) {\n\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t\tthis.messages.fire(wrapStructuredCloneMessage(message));\n\t\t\t}\n\t\t} else {\n\t\t\tthis.messages.fire(wrapStructuredCloneMessage(data as IStructuredCloneMessage));\n\t\t}\n\t}\n\n\tsend(buffer: VSBuffer): void {\n\t\tthis.flush();\n\t\tif (!this.disposed) {\n\t\t\tthis.postMessage(buffer.buffer);\n\t\t}\n\t}\n\n\tsendStructuredClone(message: IStructuredCloneMessage): void {\n\t\tif (this.disposed) {\n\t\t\treturn;\n\t\t}\n\t\tconst type = (message.header as number[])[0];\n\t\tif (type >= 7 && type <= 12) {\n\t\t\t// A reply needs its own delivery so its Promise continuations run\n\t\t\t// before a later notification can observe the newly created state.\n\t\t\tthis.flush();\n\t\t\tthis.postMessage(message);\n\t\t\treturn;\n\t\t}\n\t\tif (!this.nativeSentSinceReceive) {\n\t\t\tthis.nativeSentSinceReceive = true;\n\t\t\tthis.flush();\n\t\t\t// A sequential request/reply exchange needs no batching microtask.\n\t\t\tthis.postMessage(message);\n\t\t\treturn;\n\t\t}\n\t\tconst characters = typeof message.body === 'string' ? message.body.length : 0;\n\t\t// Keep large DTOs pipelined rather than building one long parsing task.\n\t\tif (this.pending && (this.pending.length >= 64 || this.pendingCharacters + characters > 16 * 1024)) {\n\t\t\tthis.flush();\n\t\t}\n\t\t(this.pending ??= []).push(message);\n\t\tthis.pendingCharacters += characters;\n\t\tif (characters >= 16 * 1024) {\n\t\t\tthis.flush();\n\t\t\treturn;\n\t\t}\n\t\tif (!this.scheduled) {\n\t\t\tthis.scheduled = true;\n\t\t\tqueueMicrotask(() => {\n\t\t\t\tthis.scheduled = false;\n\t\t\t\tthis.flush();\n\t\t\t});\n\t\t}\n\t}\n\n\tasync drain(): Promise<void> {\n\t\tthis.flush();\n\t}\n\n\tprivate flush(): void {\n\t\tconst pending = this.pending;\n\t\tthis.pending = undefined;\n\t\tthis.pendingCharacters = 0;\n\t\tif (pending) {\n\t\t\tthis.postMessage(pending.length === 1 ? pending[0] : pending);\n\t\t}\n\t}\n\n\tdispose(): void {\n\t\tthis.disposed = true;\n\t\tthis.pending = undefined;\n\t\tthis.pendingCharacters = 0;\n\t\tthis.messages.flushBuffer();\n\t}\n}\n",
+		"rpcProtocol.reply-port-before.perf.ts": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport assert from 'assert';\nimport { performance } from 'perf_hooks';\nimport { pathToFileURL } from 'url';\nimport { parseArgs } from 'util';\nimport { MessageChannel } from 'worker_threads';\nimport { VSBuffer } from '../../../../../base/common/buffer.js';\nimport { Event } from '../../../../../base/common/event.js';\nimport { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';\nimport { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';\nimport { RPCMessagePort } from '../../common/rpcMessagePort.mixed-control.js';\nimport { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';\n\nconst { values: options } = parseArgs({\n\toptions: {\n\t\tmodule: { type: 'string' },\n\t\t'pool-size': { type: 'string', default: String(process.platform === 'linux' ? 8 * 1024 : Buffer.poolSize) },\n\t\tfilter: { type: 'string', default: '.*' },\n\t\tnative: { type: 'boolean', default: false },\n\t\tbatch: { type: 'boolean', default: false },\n\t\tconcurrency: { type: 'string', default: '1' },\n\t\tsamples: { type: 'string', default: '3' },\n\t\titerations: { type: 'string', default: '1000' }\n\t}\n});\nconst poolSize = Number(options['pool-size']);\nassert.ok(Number.isSafeInteger(poolSize) && poolSize >= 2048);\n// Match the Linux product bootstrap, including any slab created before imports.\nBuffer.poolSize = poolSize;\nfor (let index = 0; index < 256; index++) {\n\tif (Buffer.allocUnsafe(512).buffer.byteLength === poolSize) {\n\t\tbreak;\n\t}\n}\nassert.strictEqual(Buffer.allocUnsafe(8).buffer.byteLength, poolSize);\nconst fixtureFilter = new RegExp(options.filter);\nconst samples = Number(options.samples);\nconst iterations = Number(options.iterations);\nconst concurrency = Number(options.concurrency);\nassert.ok(Number.isSafeInteger(concurrency) && concurrency > 0);\nassert.ok(!options.batch || options.native);\nassert.ok(Number.isSafeInteger(samples) && samples > 0);\nassert.ok(Number.isSafeInteger(iterations) && iterations > 0);\nconst { RPCProtocol } = options.module\n\t? await import(pathToFileURL(options.module).href) as typeof import('../../common/rpcProtocol.js')\n\t: await import('../../common/rpcProtocol.js');\n\nconst settings = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`editor.setting${index}`, { enabled: true, value: index, scopes: ['user', 'workspace'] }]));\nconst fixtures: { name: string; value: unknown }[] = [\n\t{ name: 'primitive', value: 42 },\n\t{ name: 'small-object', value: { command: 'open', options: { pinned: true }, ids: [1, 2, 3] } },\n\t{ name: 'settings-100', value: settings },\n\t{ name: 'text-4KiB', value: 'a'.repeat(4096) },\n\t{ name: 'wrapped-settings-100', value: new SerializableObjectWithBuffers(settings) },\n\t{\n\t\tname: 'workspace-edits-100', value: new SerializableObjectWithBuffers({\n\t\t\tedits: Array.from({ length: 100 }, (_, index) => ({\n\t\t\t\tresource: { $mid: 1, scheme: 'file', path: `/workspace/file${index}` },\n\t\t\t\tedit: { range: { startLineNumber: index + 1, startColumn: 1, endLineNumber: index + 1, endColumn: 10 }, text: `replacement ${index}`, eol: undefined },\n\t\t\t\tmetadata: { label: `edit ${index}`, needsConfirmation: undefined }\n\t\t\t}))\n\t\t})\n\t},\n\t{\n\t\tname: 'notebook-100', value: new SerializableObjectWithBuffers({\n\t\t\tcells: Array.from({ length: 100 }, (_, index) => ({ language: 'markdown', source: `cell ${index}`, metadata: undefined, outputs: [{ mime: 'text/plain', data: VSBuffer.fromString(`output ${index}`) }] }))\n\t\t})\n\t}\n];\nconst results: { name: string; microsecondsPerRoundTrip: number[]; messages: number; bytes: number; backingBytes: number; nativeMessages: number; nativeStringCharacters: number }[] = [];\nfor (const fixture of fixtures.filter(fixture => fixtureFilter.test(fixture.name))) {\n\tconst store = new DisposableStore();\n\ttry {\n\t\tconst { port1, port2 } = new MessageChannel();\n\t\tstore.add(toDisposable(() => {\n\t\t\tport1.close();\n\t\t\tport2.close();\n\t\t}));\n\t\tconst traffic = { messages: 0, bytes: 0, backingBytes: 0, nativeMessages: 0, nativeStringCharacters: 0 };\n\t\tconst protocol = (port: typeof port1): IMessagePassingProtocol => {\n\t\t\tconst post = (data: unknown) => {\n\t\t\t\ttraffic.messages++;\n\t\t\t\tif (ArrayBuffer.isView(data)) {\n\t\t\t\t\ttraffic.bytes += data.byteLength;\n\t\t\t\t\ttraffic.backingBytes += data.buffer.byteLength;\n\t\t\t\t} else {\n\t\t\t\t\tfor (const message of (Array.isArray(data) ? data : [data]) as IStructuredCloneMessage[]) {\n\t\t\t\t\t\ttraffic.nativeMessages++;\n\t\t\t\t\t\ttraffic.nativeStringCharacters += typeof message.body === 'string' ? message.body.length : 0;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tport.postMessage(data);\n\t\t\t};\n\t\t\tif (options.native) {\n\t\t\t\tconst adapter = store.add(new RPCMessagePort(post));\n\t\t\t\tif (!options.batch) {\n\t\t\t\t\tadapter.sendStructuredClone = post;\n\t\t\t\t}\n\t\t\t\tconst listener = (data: unknown) => adapter.acceptMessage(data);\n\t\t\t\tport.on('message', listener);\n\t\t\t\tstore.add(toDisposable(() => port.off('message', listener)));\n\t\t\t\treturn adapter;\n\t\t\t}\n\t\t\treturn {\n\t\t\t\tsend: message => post(message.buffer),\n\t\t\t\tonMessage: Event.fromNodeEventEmitter(port, 'message', data => ArrayBuffer.isView(data) ? VSBuffer.wrap(data as Uint8Array) : wrapStructuredCloneMessage(data)),\n\t\t\t\tsendStructuredClone: options.native ? post : undefined\n\t\t\t};\n\t\t};\n\t\tconst client = store.add(new RPCProtocol(protocol(port1)));\n\t\tconst server = store.add(new RPCProtocol(protocol(port2)));\n\t\tconst actor = { $echo: async (value: unknown) => { await Promise.resolve(); await Promise.resolve(); return value; } };\n\t\tconst identifier = new ProxyIdentifier<typeof actor>(`benchmark-${fixture.name}`);\n\t\tserver.set(identifier, actor);\n\t\tconst proxy = client.getProxy(identifier);\n\t\tconst expected = await proxy.$echo(fixture.value);\n\t\tif (!(fixture.value instanceof SerializableObjectWithBuffers)) {\n\t\t\tassert.deepStrictEqual(expected, fixture.value);\n\t\t} else {\n\t\t\tassert.ok(expected instanceof SerializableObjectWithBuffers);\n\t\t\tassert.deepStrictEqual(JSON.stringify(expected.value), JSON.stringify(fixture.value.value));\n\t\t}\n\t\tfor (let index = 0; index < 200; index++) {\n\t\t\tawait proxy.$echo(fixture.value);\n\t\t}\n\t\ttraffic.messages = traffic.bytes = traffic.backingBytes = traffic.nativeMessages = traffic.nativeStringCharacters = 0;\n\t\tconst times: number[] = [];\n\t\tfor (let sample = 0; sample < samples; sample++) {\n\t\t\tconst start = performance.now();\n\t\t\tlet last: unknown;\n\t\t\tfor (let index = 0; index < iterations; index += concurrency) {\n\t\t\t\tif (concurrency === 1) {\n\t\t\t\t\tlast = await proxy.$echo(fixture.value);\n\t\t\t\t} else {\n\t\t\t\t\tconst count = Math.min(concurrency, iterations - index);\n\t\t\t\t\tlast = (await Promise.all(Array.from({ length: count }, () => proxy.$echo(fixture.value))))[0];\n\t\t\t\t}\n\t\t\t}\n\t\t\ttimes.push((performance.now() - start) * 1000 / iterations);\n\t\t\tassert.deepStrictEqual(last, expected);\n\t\t}\n\t\tresults.push({ name: fixture.name, microsecondsPerRoundTrip: times, ...traffic });\n\t} finally {\n\t\tstore.dispose();\n\t}\n}\nconsole.log(JSON.stringify({ node: process.version, bufferPoolSize: Buffer.poolSize, transport: 'node-message-port', module: options.module, native: options.native, batch: options.batch, concurrency, samples, iterations, warmups: 200, results }, null, 2));\n",
+		"rpcProtocol.reply-port-immediate.perf.ts": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport assert from 'assert';\nimport { performance } from 'perf_hooks';\nimport { pathToFileURL } from 'url';\nimport { parseArgs } from 'util';\nimport { MessageChannel } from 'worker_threads';\nimport { VSBuffer } from '../../../../../base/common/buffer.js';\nimport { Event } from '../../../../../base/common/event.js';\nimport { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';\nimport { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';\nimport { RPCMessagePort } from '../../common/rpcMessagePort.replies-immediate.js';\nimport { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';\n\nconst { values: options } = parseArgs({\n\toptions: {\n\t\tmodule: { type: 'string' },\n\t\t'pool-size': { type: 'string', default: String(process.platform === 'linux' ? 8 * 1024 : Buffer.poolSize) },\n\t\tfilter: { type: 'string', default: '.*' },\n\t\tnative: { type: 'boolean', default: false },\n\t\tbatch: { type: 'boolean', default: false },\n\t\tconcurrency: { type: 'string', default: '1' },\n\t\tsamples: { type: 'string', default: '3' },\n\t\titerations: { type: 'string', default: '1000' }\n\t}\n});\nconst poolSize = Number(options['pool-size']);\nassert.ok(Number.isSafeInteger(poolSize) && poolSize >= 2048);\n// Match the Linux product bootstrap, including any slab created before imports.\nBuffer.poolSize = poolSize;\nfor (let index = 0; index < 256; index++) {\n\tif (Buffer.allocUnsafe(512).buffer.byteLength === poolSize) {\n\t\tbreak;\n\t}\n}\nassert.strictEqual(Buffer.allocUnsafe(8).buffer.byteLength, poolSize);\nconst fixtureFilter = new RegExp(options.filter);\nconst samples = Number(options.samples);\nconst iterations = Number(options.iterations);\nconst concurrency = Number(options.concurrency);\nassert.ok(Number.isSafeInteger(concurrency) && concurrency > 0);\nassert.ok(!options.batch || options.native);\nassert.ok(Number.isSafeInteger(samples) && samples > 0);\nassert.ok(Number.isSafeInteger(iterations) && iterations > 0);\nconst { RPCProtocol } = options.module\n\t? await import(pathToFileURL(options.module).href) as typeof import('../../common/rpcProtocol.js')\n\t: await import('../../common/rpcProtocol.js');\n\nconst settings = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`editor.setting${index}`, { enabled: true, value: index, scopes: ['user', 'workspace'] }]));\nconst fixtures: { name: string; value: unknown }[] = [\n\t{ name: 'primitive', value: 42 },\n\t{ name: 'small-object', value: { command: 'open', options: { pinned: true }, ids: [1, 2, 3] } },\n\t{ name: 'settings-100', value: settings },\n\t{ name: 'text-4KiB', value: 'a'.repeat(4096) },\n\t{ name: 'wrapped-settings-100', value: new SerializableObjectWithBuffers(settings) },\n\t{\n\t\tname: 'workspace-edits-100', value: new SerializableObjectWithBuffers({\n\t\t\tedits: Array.from({ length: 100 }, (_, index) => ({\n\t\t\t\tresource: { $mid: 1, scheme: 'file', path: `/workspace/file${index}` },\n\t\t\t\tedit: { range: { startLineNumber: index + 1, startColumn: 1, endLineNumber: index + 1, endColumn: 10 }, text: `replacement ${index}`, eol: undefined },\n\t\t\t\tmetadata: { label: `edit ${index}`, needsConfirmation: undefined }\n\t\t\t}))\n\t\t})\n\t},\n\t{\n\t\tname: 'notebook-100', value: new SerializableObjectWithBuffers({\n\t\t\tcells: Array.from({ length: 100 }, (_, index) => ({ language: 'markdown', source: `cell ${index}`, metadata: undefined, outputs: [{ mime: 'text/plain', data: VSBuffer.fromString(`output ${index}`) }] }))\n\t\t})\n\t}\n];\nconst results: { name: string; microsecondsPerRoundTrip: number[]; messages: number; bytes: number; backingBytes: number; nativeMessages: number; nativeStringCharacters: number }[] = [];\nfor (const fixture of fixtures.filter(fixture => fixtureFilter.test(fixture.name))) {\n\tconst store = new DisposableStore();\n\ttry {\n\t\tconst { port1, port2 } = new MessageChannel();\n\t\tstore.add(toDisposable(() => {\n\t\t\tport1.close();\n\t\t\tport2.close();\n\t\t}));\n\t\tconst traffic = { messages: 0, bytes: 0, backingBytes: 0, nativeMessages: 0, nativeStringCharacters: 0 };\n\t\tconst protocol = (port: typeof port1): IMessagePassingProtocol => {\n\t\t\tconst post = (data: unknown) => {\n\t\t\t\ttraffic.messages++;\n\t\t\t\tif (ArrayBuffer.isView(data)) {\n\t\t\t\t\ttraffic.bytes += data.byteLength;\n\t\t\t\t\ttraffic.backingBytes += data.buffer.byteLength;\n\t\t\t\t} else {\n\t\t\t\t\tfor (const message of (Array.isArray(data) ? data : [data]) as IStructuredCloneMessage[]) {\n\t\t\t\t\t\ttraffic.nativeMessages++;\n\t\t\t\t\t\ttraffic.nativeStringCharacters += typeof message.body === 'string' ? message.body.length : 0;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tport.postMessage(data);\n\t\t\t};\n\t\t\tif (options.native) {\n\t\t\t\tconst adapter = store.add(new RPCMessagePort(post));\n\t\t\t\tif (!options.batch) {\n\t\t\t\t\tadapter.sendStructuredClone = post;\n\t\t\t\t}\n\t\t\t\tconst listener = (data: unknown) => adapter.acceptMessage(data);\n\t\t\t\tport.on('message', listener);\n\t\t\t\tstore.add(toDisposable(() => port.off('message', listener)));\n\t\t\t\treturn adapter;\n\t\t\t}\n\t\t\treturn {\n\t\t\t\tsend: message => post(message.buffer),\n\t\t\t\tonMessage: Event.fromNodeEventEmitter(port, 'message', data => ArrayBuffer.isView(data) ? VSBuffer.wrap(data as Uint8Array) : wrapStructuredCloneMessage(data)),\n\t\t\t\tsendStructuredClone: options.native ? post : undefined\n\t\t\t};\n\t\t};\n\t\tconst client = store.add(new RPCProtocol(protocol(port1)));\n\t\tconst server = store.add(new RPCProtocol(protocol(port2)));\n\t\tconst actor = { $echo: async (value: unknown) => { await Promise.resolve(); await Promise.resolve(); return value; } };\n\t\tconst identifier = new ProxyIdentifier<typeof actor>(`benchmark-${fixture.name}`);\n\t\tserver.set(identifier, actor);\n\t\tconst proxy = client.getProxy(identifier);\n\t\tconst expected = await proxy.$echo(fixture.value);\n\t\tif (!(fixture.value instanceof SerializableObjectWithBuffers)) {\n\t\t\tassert.deepStrictEqual(expected, fixture.value);\n\t\t} else {\n\t\t\tassert.ok(expected instanceof SerializableObjectWithBuffers);\n\t\t\tassert.deepStrictEqual(JSON.stringify(expected.value), JSON.stringify(fixture.value.value));\n\t\t}\n\t\tfor (let index = 0; index < 200; index++) {\n\t\t\tawait proxy.$echo(fixture.value);\n\t\t}\n\t\ttraffic.messages = traffic.bytes = traffic.backingBytes = traffic.nativeMessages = traffic.nativeStringCharacters = 0;\n\t\tconst times: number[] = [];\n\t\tfor (let sample = 0; sample < samples; sample++) {\n\t\t\tconst start = performance.now();\n\t\t\tlet last: unknown;\n\t\t\tfor (let index = 0; index < iterations; index += concurrency) {\n\t\t\t\tif (concurrency === 1) {\n\t\t\t\t\tlast = await proxy.$echo(fixture.value);\n\t\t\t\t} else {\n\t\t\t\t\tconst count = Math.min(concurrency, iterations - index);\n\t\t\t\t\tlast = (await Promise.all(Array.from({ length: count }, () => proxy.$echo(fixture.value))))[0];\n\t\t\t\t}\n\t\t\t}\n\t\t\ttimes.push((performance.now() - start) * 1000 / iterations);\n\t\t\tassert.deepStrictEqual(last, expected);\n\t\t}\n\t\tresults.push({ name: fixture.name, microsecondsPerRoundTrip: times, ...traffic });\n\t} finally {\n\t\tstore.dispose();\n\t}\n}\nconsole.log(JSON.stringify({ node: process.version, bufferPoolSize: Buffer.poolSize, transport: 'node-message-port', module: options.module, native: options.native, batch: options.batch, concurrency, samples, iterations, warmups: 200, results }, null, 2));\n",
+		"run-rpc-reply-port-paired.py": "import subprocess,os,json,pathlib,random,statistics,hashlib\nroot=pathlib.Path('/home/simon/.cache/vscode-ipc-opt-20261022');tmp=pathlib.Path('/tmp/ipc-opt-12h-20261022');base=os.environ.copy();base['PATH']='/home/simon/.nvm/versions/node/v24.22.0/bin:'+base['PATH'];base.pop('ELECTRON_RUN_AS_NODE',None);base.pop('VSCODE_DEV',None);rng=random.Random(3212410)\nvariants=['before','immediate'];modules={'before':'vs/workbench/services/extensions/common/rpcMessagePort.mixed-control.js','immediate':'vs/workbench/services/extensions/common/rpcMessagePort.replies-immediate.js'};hashes={v:hashlib.sha256((root/'out'/path).read_bytes()).hexdigest()for v,path in modules.items()}\nfor kind in ['node-1','renderer-1','node-32','renderer-32']:\n blocks=[]\n for block in range(8):\n  order=variants[:];rng.shuffle(order);runs=[]\n  for variant in order:\n   env={**base,'RPC_MODULE':'vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js','PORT_MODULE':modules[variant]}\n   if kind.startswith('node'):\n    args=['node','--import',str(tmp/'product-pool.mjs'),str(root/f'out/vs/workbench/services/extensions/test/node/rpcProtocol.reply-port-{variant}.perf.js'),'--native','--batch','--module',str(root/'out/vs/workbench/services/extensions/common/rpcProtocol.ack2-flush-grace2.js'),'--samples','3','--iterations','1024','--concurrency',kind.split('-')[1],'--filter','^(primitive|small-object|text-4KiB)$'];d=json.loads(subprocess.check_output(args,cwd=root,env=env,text=True))\n   else:\n    output=tmp/f'rpc-reply-port-renderer-{block}-{variant}.json';env.update(OUTPUT=str(output),CONCURRENCY=kind.split('-')[1],BATCH='1');subprocess.run(['xvfb-run','-a','.build/electron/code-oss','--no-sandbox','--disable-gpu','--user-data-dir='+str(tmp/'renderer-profile'),str(tmp/'rpc-reply-port-renderer-main.cjs')],cwd=root,env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True);d=json.loads(output.read_text())\n   runs.append({'variant':variant,**d})\n  blocks.append({'block':block,'runs':runs});(tmp/f'rpc-reply-port-{kind}-results.json').write_text(json.dumps({'seed':3212410,'referenceBase':'38b2f1066eedc6cd3395bda950ee1f7e292f9df7','primaryBaselineCommit':'38b2f1066eedc6cd3395bda950ee1f7e292f9df7','primaryVariants':{'before':'before','after':'immediate'},'compiledSHA256':hashes,'blocks':blocks},indent=2));print(kind,'block',block+1,flush=True)\n for fixture in blocks[0]['runs'][0]['results']:\n  name=fixture['name'];v={variant:statistics.median(x for b in blocks for r in b['runs'] if r['variant']==variant for f in r['results'] if f['name']==name for x in f['microsecondsPerRoundTrip']) for variant in variants};print(kind,name,'replyDeliveryChange%',round((v['immediate']/v['before']-1)*100,2),v,'changes%',{k:round((v[k]/v['before']-1)*100,2) for k in variants[1:]},flush=True)\nfor v,path in modules.items():assert hashlib.sha256((root/'out'/path).read_bytes()).hexdigest()==hashes[v]\n",
+		"rpc-reply-port-renderer.html": "<!DOCTYPE html><script type=\"module\">\nwindow.addEventListener('message',async event=>{\n if(event.data.event!=='benchmark-start')return;\n try{\n const {root,module,native,batch,concurrency,portModule}=event.data;const load=p=>import('file://'+root+'/out/'+p);\n const [{RPCProtocol},{ProxyIdentifier,SerializableObjectWithBuffers},{VSBuffer},{Emitter}]=await Promise.all([load(module),load('vs/workbench/services/extensions/common/proxyIdentifier.js'),load('vs/base/common/buffer.js'),load('vs/base/common/event.js')]);\n const {wrapStructuredCloneMessage}=await load('vs/base/parts/ipc/common/ipc.js');const port=event.ports[0];\n const {RPCMessagePort}=await load(portModule);const traffic={sent:0,received:0};\n const post=message=>{traffic.sent++;port.postMessage(message);};const protocol=new RPCMessagePort(post);if(!batch)protocol.sendStructuredClone=post;\n port.onmessage=e=>{traffic.received++;protocol.acceptMessage(e.data);};port.start();\n const client=new RPCProtocol(protocol);const id=new ProxyIdentifier('electron-benchmark');const proxy=client.getProxy(id);\n const settings=Object.fromEntries(Array.from({length:100},(_,i)=>['editor.setting'+i,{enabled:true,value:i,scopes:['user','workspace']}]));const results=[];\n for(const [name,value] of [['primitive',42],['small-object',{command:'open',options:{pinned:true},ids:[1,2,3]}],['text-4KiB','a'.repeat(4096)]]){\n const check=last=>{if(JSON.stringify(last)!==JSON.stringify(value))throw new Error('mismatch '+name);};\n check(await proxy.$echo(value));for(let i=0;i<200;i++)await proxy.$echo(value);for(const k in traffic)traffic[k]=0;const times=[];\n for(let s=0;s<3;s++){const start=performance.now();let last;for(let i=0;i<1024;i+=concurrency){if(concurrency===1)last=await proxy.$echo(value);else last=(await Promise.all(Array.from({length:concurrency},()=>proxy.$echo(value))))[0];}times.push((performance.now()-start)*1000/1024);check(last);}\n results.push({name,microsecondsPerRoundTrip:times,...traffic});}\n window.reportBenchmark({module,native,batch,concurrency,hasBuffer:typeof Buffer!=='undefined',results});client.dispose();port.close();\n }catch(error){window.reportBenchmark({error:String(error.stack)});}\n});\n</script>\n",
+		"rpc-reply-port-renderer-main.cjs": "Buffer.poolSize=8*1024;for(let i=0;i<256;i++){if(Buffer.allocUnsafe(512).buffer.byteLength===Buffer.poolSize)break;}\nconst {app,utilityProcess,MessageChannelMain,BrowserWindow,ipcMain}=require('electron');const fs=require('node:fs');\napp.commandLine.appendSwitch('disable-renderer-backgrounding');app.commandLine.appendSwitch('disable-background-timer-throttling');\napp.whenReady().then(async()=>{\n const root='/home/simon/.cache/vscode-ipc-opt-20261022';const module=process.env.RPC_MODULE||'vs/workbench/services/extensions/common/rpcProtocol.js';const portModule=process.env.PORT_MODULE;const native=true;const batch=process.env.BATCH==='1';const concurrency=Number(process.env.CONCURRENCY||1);\n const child=utilityProcess.fork('/tmp/ipc-opt-12h-20261022/rpc-reply-port-renderer-worker.cjs',[],{stdio:'pipe',serviceName:'RPC renderer benchmark'});const {port1,port2}=new MessageChannelMain();\n const ready=new Promise((resolve,reject)=>{child.once('message',msg=>msg.error?reject(new Error(msg.error)):resolve(msg));child.once('exit',code=>reject(new Error('worker exit '+code)));});child.postMessage({root,module,native,batch,portModule},[port2]);\n const window=new BrowserWindow({show:false,webPreferences:{preload:'/tmp/ipc-opt-12h-20261022/rpc-renderer-preload.cjs',nodeIntegration:false,contextIsolation:false,sandbox:false,webSecurity:false,backgroundThrottling:false}});\n window.webContents.on('console-message',details=>{if(details.level==='error')console.error(details.message);});\n const result=new Promise((resolve,reject)=>ipcMain.once('benchmark-result',(event,result)=>result.error?reject(new Error(result.error)):resolve(result)));\n await window.loadFile('/tmp/ipc-opt-12h-20261022/rpc-reply-port-renderer.html');const worker=await ready;window.webContents.postMessage('benchmark-start',{root,module,native,batch,concurrency,portModule},[port1]);\n const data=await result;fs.writeFileSync(process.env.OUTPUT,JSON.stringify({...data,versions:process.versions,poolSize:Buffer.poolSize,worker},null,2));child.kill();window.destroy();app.quit();\n}).catch(error=>{console.error(error);app.exit(1);});\n",
+		"rpc-reply-port-renderer-worker.cjs": "Buffer.poolSize=8*1024;for(let i=0;i<256;i++){if(Buffer.allocUnsafe(512).buffer.byteLength===Buffer.poolSize)break;}\nconst {pathToFileURL}=require('node:url');\nprocess.parentPort.once('message',async event=>{\n try{\n  const {root,module,native,batch,portModule}=event.data;const load=p=>import(pathToFileURL(root+'/out/'+p).href);\n  const [{RPCProtocol},{ProxyIdentifier},{VSBuffer},{Event}]=await Promise.all([load(module),load('vs/workbench/services/extensions/common/proxyIdentifier.js'),load('vs/base/common/buffer.js'),load('vs/base/common/event.js')]);\n  const {RPCMessagePort}=await load(portModule);const port=event.ports[0];const post=message=>port.postMessage(message);const protocol=new RPCMessagePort(post);if(!batch)protocol.sendStructuredClone=post;port.on('message',e=>protocol.acceptMessage(e.data));port.start();\n  const server=new RPCProtocol(protocol);const id=new ProxyIdentifier('electron-benchmark');server.set(id,{$echo:async value=>{await Promise.resolve();await Promise.resolve();return value;}});\n  process.parentPort.postMessage({ready:true,node:process.version,poolSize:Buffer.poolSize});\n }catch(error){process.parentPort.postMessage({error:String(error.stack)});}\n});\n",
+		"rpcMessagePort.ordering.prototype.test.ts": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport assert from 'assert';\nimport { VSBuffer } from '../../../../../base/common/buffer.js';\nimport { toDisposable } from '../../../../../base/common/lifecycle.js';\nimport { getStructuredCloneMessage, IStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';\nimport { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';\nimport { RPCMessagePort } from '../../common/rpcMessagePort.js';\nimport { ProxyIdentifier } from '../../common/proxyIdentifier.js';\nimport { RPCProtocol } from '../../common/rpcProtocol.js';\n\nsuite('RPCMessagePort', () => {\n\tconst store = ensureNoDisposablesAreLeakedInTestSuite();\n\tconst frame = (id: number, length = 0): IStructuredCloneMessage => ({ header: [1, id], body: 'x'.repeat(length) });\n\n\ttest('finishes a request continuation before a subsequent notification', async () => {\n\t\tconst { port1, port2 } = new MessageChannel();\n\t\tstore.add(toDisposable(() => { port1.close(); port2.close(); }));\n\t\tconst one = store.add(new RPCMessagePort(message => port1.postMessage(message)));\n\t\tconst two = store.add(new RPCMessagePort(message => port2.postMessage(message)));\n\t\tport1.onmessage = event => one.acceptMessage(event.data);\n\t\tport2.onmessage = event => two.acceptMessage(event.data);\n\t\tport1.start();\n\t\tport2.start();\n\t\tconst client = store.add(new RPCProtocol(one));\n\t\tconst server = store.add(new RPCProtocol(two));\n\t\tlet created = false;\n\t\tlet finish!: () => void;\n\t\tconst ready = new Promise<void>(resolve => { finish = resolve; });\n\t\tconst received: { stage: string; created: boolean }[] = [];\n\t\tconst receiver = {\n\t\t\t$prime: () => undefined,\n\t\t\t$stage: (stage: string) => {\n\t\t\t\treceived.push({ stage, created });\n\t\t\t\tif (stage === 'ready') {\n\t\t\t\t\tfinish();\n\t\t\t\t}\n\t\t\t}\n\t\t};\n\t\tconst receiverId = new ProxyIdentifier<typeof receiver>('portStages', ['$stage']);\n\t\tclient.set(receiverId, receiver);\n\t\tconst stages = server.getProxy(receiverId);\n\t\t// Prime liveness so both stage updates take the notification path.\n\t\tawait stages.$prime();\n\t\tconst creator = {\n\t\t\t$create: () => {\n\t\t\t\tstages.$stage('starting');\n\t\t\t\tqueueMicrotask(() => queueMicrotask(() => stages.$stage('ready')));\n\t\t\t\treturn 'created';\n\t\t\t}\n\t\t};\n\t\tconst creatorId = new ProxyIdentifier<typeof creator>('portCreator');\n\t\tserver.set(creatorId, creator);\n\t\tawait Promise.all([client.getProxy(creatorId).$create().then(() => { created = true; }), ready]);\n\t\tassert.deepStrictEqual(received, [\n\t\t\t{ stage: 'starting', created: false },\n\t\t\t{ stage: 'ready', created: true }\n\t\t]);\n\t});\n\n\ttest('sends the first frame immediately and coalesces the rest of a burst', async () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tconst frames = [frame(1), frame(2), frame(3)];\n\t\tfor (const message of frames) {\n\t\t\tport.sendStructuredClone(message);\n\t\t}\n\t\tassert.deepStrictEqual(sent, [frames[0]]);\n\t\tawait Promise.resolve();\n\t\tassert.deepStrictEqual(sent, [frames[0], frames.slice(1)]);\n\t});\n\n\ttest('receiving data keeps the next outgoing frame immediate', () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tport.sendStructuredClone(frame(1));\n\t\tport.acceptMessage(frame(2));\n\t\tport.sendStructuredClone(frame(3));\n\t\tassert.deepStrictEqual(sent, [frame(1), frame(3)]);\n\t});\n\n\ttest('bounds bursts by frame count', async () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tfor (let i = 0; i < 66; i++) {\n\t\t\tport.sendStructuredClone(frame(i));\n\t\t}\n\t\tawait Promise.resolve();\n\t\tassert.strictEqual(sent.length, 3);\n\t\tassert.deepStrictEqual(sent[0], frame(0));\n\t\tassert.strictEqual((sent[1] as unknown[]).length, 64);\n\t\tassert.deepStrictEqual(sent[2], frame(65));\n\t});\n\n\ttest('large DTOs remain pipelined in separate packets', async () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tconst frames = [frame(1, 9000), frame(2, 9000), frame(3, 9000)];\n\t\tfor (const message of frames) {\n\t\t\tport.sendStructuredClone(message);\n\t\t}\n\t\tawait Promise.resolve();\n\t\tassert.deepStrictEqual(sent, frames);\n\t});\n\n\ttest('binary controls flush native frames and preserve startup buffering order', async () => {\n\t\tconst packets: unknown[] = [];\n\t\tconst sender = store.add(new RPCMessagePort(message => packets.push(message)));\n\t\tsender.sendStructuredClone(frame(1));\n\t\tsender.send(VSBuffer.fromByteArray([2]));\n\t\tsender.sendStructuredClone(frame(3));\n\t\tawait Promise.resolve();\n\t\tconst receiver = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));\n\t\tfor (const packet of packets) {\n\t\t\treceiver.acceptMessage(packet);\n\t\t}\n\t\tconst order: number[] = [];\n\t\tstore.add(receiver.onMessage(buffer => {\n\t\t\tconst native = getStructuredCloneMessage(buffer);\n\t\t\torder.push(native ? (native.header as number[])[1] : buffer.readUInt8(0));\n\t\t}));\n\t\tawait Promise.resolve();\n\t\tassert.deepStrictEqual(order, [1, 2, 3]);\n\t});\n\n\ttest('drain flushes a queued frame immediately', async () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tport.sendStructuredClone(frame(0));\n\t\tport.sendStructuredClone(frame(1));\n\t\tassert.deepStrictEqual(sent, [frame(0)]);\n\t\tawait port.drain();\n\t\tassert.deepStrictEqual(sent, [frame(0), frame(1)]);\n\t});\n\n\ttest('disposal drops queued sends and later incoming frames', async () => {\n\t\tconst sent: unknown[] = [];\n\t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n\t\tstore.add(port.onMessage(() => assert.fail('unexpected incoming frame')));\n\t\tport.sendStructuredClone(frame(0));\n\t\tport.sendStructuredClone(frame(1));\n\t\tport.dispose();\n\t\tport.acceptMessage(frame(2));\n\t\tport.send(VSBuffer.fromByteArray([3]));\n\t\tport.sendStructuredClone(frame(4));\n\t\tawait Promise.resolve();\n\t\tassert.deepStrictEqual(sent, [frame(0)]);\n\t});\n\n\ttest('disposal during a batch stops delivery of remaining frames', () => {\n\t\tconst port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));\n\t\tlet received = 0;\n\t\tstore.add(port.onMessage(() => {\n\t\t\treceived++;\n\t\t\tport.dispose();\n\t\t}));\n\t\tport.acceptMessage([frame(1), frame(2)]);\n\t\tassert.strictEqual(received, 1);\n\t});\n});\n"
+	},
+	"unshippedPatch": "diff --git a/src/vs/workbench/services/extensions/common/rpcMessagePort.ts b/src/vs/workbench/services/extensions/common/rpcMessagePort.ts\nindex 6f532e313a15..c3f5b4f622b1 100644\n--- a/src/vs/workbench/services/extensions/common/rpcMessagePort.ts\n+++ b/src/vs/workbench/services/extensions/common/rpcMessagePort.ts\n@@ -50,6 +50,14 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {\n \t\tif (this.disposed) {\n \t\t\treturn;\n \t\t}\n+\t\tconst type = (message.header as number[])[0];\n+\t\tif (type >= 7 && type <= 12) {\n+\t\t\t// A reply needs its own delivery so its Promise continuations run\n+\t\t\t// before a later notification can observe the newly created state.\n+\t\t\tthis.flush();\n+\t\t\tthis.postMessage(message);\n+\t\t\treturn;\n+\t\t}\n \t\tif (!this.nativeSentSinceReceive) {\n \t\t\tthis.nativeSentSinceReceive = true;\n \t\t\tthis.flush();\ndiff --git a/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts b/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts\nindex 3dbbe1228c03..826cf08b769f 100644\n--- a/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts\n+++ b/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts\n@@ -5,14 +5,62 @@\n \n import assert from 'assert';\n import { VSBuffer } from '../../../../../base/common/buffer.js';\n+import { toDisposable } from '../../../../../base/common/lifecycle.js';\n import { getStructuredCloneMessage, IStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';\n import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';\n import { RPCMessagePort } from '../../common/rpcMessagePort.js';\n+import { ProxyIdentifier } from '../../common/proxyIdentifier.js';\n+import { RPCProtocol } from '../../common/rpcProtocol.js';\n \n suite('RPCMessagePort', () => {\n \tconst store = ensureNoDisposablesAreLeakedInTestSuite();\n \tconst frame = (id: number, length = 0): IStructuredCloneMessage => ({ header: [1, id], body: 'x'.repeat(length) });\n \n+\ttest('finishes a request continuation before a subsequent notification', async () => {\n+\t\tconst { port1, port2 } = new MessageChannel();\n+\t\tstore.add(toDisposable(() => { port1.close(); port2.close(); }));\n+\t\tconst one = store.add(new RPCMessagePort(message => port1.postMessage(message)));\n+\t\tconst two = store.add(new RPCMessagePort(message => port2.postMessage(message)));\n+\t\tport1.onmessage = event => one.acceptMessage(event.data);\n+\t\tport2.onmessage = event => two.acceptMessage(event.data);\n+\t\tport1.start();\n+\t\tport2.start();\n+\t\tconst client = store.add(new RPCProtocol(one));\n+\t\tconst server = store.add(new RPCProtocol(two));\n+\t\tlet created = false;\n+\t\tlet finish!: () => void;\n+\t\tconst ready = new Promise<void>(resolve => { finish = resolve; });\n+\t\tconst received: { stage: string; created: boolean }[] = [];\n+\t\tconst receiver = {\n+\t\t\t$prime: () => undefined,\n+\t\t\t$stage: (stage: string) => {\n+\t\t\t\treceived.push({ stage, created });\n+\t\t\t\tif (stage === 'ready') {\n+\t\t\t\t\tfinish();\n+\t\t\t\t}\n+\t\t\t}\n+\t\t};\n+\t\tconst receiverId = new ProxyIdentifier<typeof receiver>('portStages', ['$stage']);\n+\t\tclient.set(receiverId, receiver);\n+\t\tconst stages = server.getProxy(receiverId);\n+\t\t// Prime liveness so both stage updates take the notification path.\n+\t\tawait stages.$prime();\n+\t\tconst creator = {\n+\t\t\t$create: () => {\n+\t\t\t\tstages.$stage('starting');\n+\t\t\t\tqueueMicrotask(() => queueMicrotask(() => stages.$stage('ready')));\n+\t\t\t\treturn 'created';\n+\t\t\t}\n+\t\t};\n+\t\tconst creatorId = new ProxyIdentifier<typeof creator>('portCreator');\n+\t\tserver.set(creatorId, creator);\n+\t\tawait Promise.all([client.getProxy(creatorId).$create().then(() => { created = true; }), ready]);\n+\t\tassert.deepStrictEqual(received, [\n+\t\t\t{ stage: 'starting', created: false },\n+\t\t\t{ stage: 'ready', created: true }\n+\t\t]);\n+\t});\n+\n \ttest('sends the first frame immediately and coalesces the rest of a burst', async () => {\n \t\tconst sent: unknown[] = [];\n \t\tconst port = store.add(new RPCMessagePort(message => sent.push(message)));\n",
+	"orderingProbe": {
+		"before": {
+			"passing": 9,
+			"failing": 1,
+			"exitCode": 1
+		},
+		"after": {
+			"passing": 10,
+			"failing": 0,
+			"exitCode": 0
+		}
+	},
+	"notSmokePerformance": true
+}
