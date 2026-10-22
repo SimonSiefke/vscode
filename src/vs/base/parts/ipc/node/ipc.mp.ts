@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { flushBatchedChannelProtocol } from '../common/ipc.batch.js';
 import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
 import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
 import { Emitter, Event } from '../../../common/event.js';
@@ -29,6 +30,7 @@ class Protocol implements IStructuredCloneMessagePassingProtocol {
 	}
 
 	disconnect(): void {
+		flushBatchedChannelProtocol(this);
 		this.port.close();
 	}
 }
