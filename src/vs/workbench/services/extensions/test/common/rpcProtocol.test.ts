@@ -11,14 +11,17 @@ import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
+import { RPCMessagePort } from '../../common/rpcMessagePort.js';
 import { RPCProtocol } from '../../common/rpcProtocol.js';
 
-[false, true].forEach(native => suite(`RPCProtocol (${native ? 'native JSON' : 'binary'})`, () => {
+['binary', 'native JSON', 'batched JSON'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
+	const native = mode !== 'binary';
 
 	let disposables: DisposableStore;
 
 	class MessagePassingProtocol implements IMessagePassingProtocol {
 		private _pair?: MessagePassingProtocol;
+		private readonly bufferedPort?: RPCMessagePort;
 
 		private readonly _onMessage = new Emitter<VSBuffer>();
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
@@ -26,7 +29,20 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
 
 		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
-			if (native) {
+			if (mode === 'batched JSON') {
+				this.bufferedPort = disposables.add(new RPCMessagePort(data => {
+					if (ArrayBuffer.isView(data)) {
+						this.onSend?.(VSBuffer.wrap(data as Uint8Array));
+					} else {
+						for (const message of Array.isArray(data) ? data : [data]) {
+							this.onSend?.(wrapStructuredCloneMessage(message));
+						}
+					}
+					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(data));
+				}));
+				this.onMessage = this.bufferedPort.onMessage;
+				this.sendStructuredClone = message => this.bufferedPort!.sendStructuredClone(message);
+			} else if (native) {
 				this.sendStructuredClone = message => this.send(wrapStructuredCloneMessage(structuredClone(message)));
 			}
 		}
@@ -36,6 +52,10 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		}
 
 		public send(buffer: VSBuffer): void {
+			if (this.bufferedPort) {
+				this.bufferedPort.send(buffer);
+				return;
+			}
 			this.onSend?.(buffer);
 			Promise.resolve().then(() => {
 				this._pair!._onMessage.fire(buffer);

@@ -11,19 +11,25 @@ import { MessageChannel } from 'worker_threads';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { IMessagePassingProtocol, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+import { RPCMessagePort } from '../../common/rpcMessagePort.js';
 import { ProxyIdentifier } from '../../common/proxyIdentifier.js';
 
 const { values: options } = parseArgs({
 	options: {
 		module: { type: 'string' },
 		native: { type: 'boolean', default: false },
+		batch: { type: 'boolean', default: false },
+		concurrency: { type: 'string', default: '1' },
 		samples: { type: 'string', default: '3' },
 		iterations: { type: 'string', default: '1000' }
 	}
 });
 const samples = Number(options.samples);
 const iterations = Number(options.iterations);
+const concurrency = Number(options.concurrency);
+assert.ok(Number.isSafeInteger(concurrency) && concurrency > 0);
+assert.ok(!options.batch || options.native);
 assert.ok(Number.isSafeInteger(samples) && samples > 0);
 assert.ok(Number.isSafeInteger(iterations) && iterations > 0);
 const { RPCProtocol } = options.module
@@ -47,21 +53,36 @@ for (const fixture of fixtures) {
 			port2.close();
 		}));
 		const traffic = { messages: 0, bytes: 0, backingBytes: 0, nativeMessages: 0, nativeStringCharacters: 0 };
-		const protocol = (port: typeof port1): IMessagePassingProtocol => ({
-			send: message => {
+		const protocol = (port: typeof port1): IMessagePassingProtocol => {
+			const post = (data: unknown) => {
 				traffic.messages++;
-				traffic.bytes += message.byteLength;
-				traffic.backingBytes += message.buffer.buffer.byteLength;
-				port.postMessage(message.buffer);
-			},
-			onMessage: Event.fromNodeEventEmitter(port, 'message', data => ArrayBuffer.isView(data) ? VSBuffer.wrap(data as Uint8Array) : wrapStructuredCloneMessage(data)),
-			sendStructuredClone: options.native ? message => {
-				traffic.messages++;
-				traffic.nativeMessages++;
-				traffic.nativeStringCharacters += typeof message.body === 'string' ? message.body.length : 0;
-				port.postMessage(message);
-			} : undefined
-		});
+				if (ArrayBuffer.isView(data)) {
+					traffic.bytes += data.byteLength;
+					traffic.backingBytes += data.buffer.byteLength;
+				} else {
+					for (const message of (Array.isArray(data) ? data : [data]) as IStructuredCloneMessage[]) {
+						traffic.nativeMessages++;
+						traffic.nativeStringCharacters += typeof message.body === 'string' ? message.body.length : 0;
+					}
+				}
+				port.postMessage(data);
+			};
+			if (options.native) {
+				const adapter = store.add(new RPCMessagePort(post));
+				if (!options.batch) {
+					adapter.sendStructuredClone = post;
+				}
+				const listener = (data: unknown) => adapter.acceptMessage(data);
+				port.on('message', listener);
+				store.add(toDisposable(() => port.off('message', listener)));
+				return adapter;
+			}
+			return {
+				send: message => post(message.buffer),
+				onMessage: Event.fromNodeEventEmitter(port, 'message', data => ArrayBuffer.isView(data) ? VSBuffer.wrap(data as Uint8Array) : wrapStructuredCloneMessage(data)),
+				sendStructuredClone: options.native ? post : undefined
+			};
+		};
 		const client = store.add(new RPCProtocol(protocol(port1)));
 		const server = store.add(new RPCProtocol(protocol(port2)));
 		const actor = { $echo: (value: unknown) => value };
@@ -77,8 +98,13 @@ for (const fixture of fixtures) {
 		for (let sample = 0; sample < samples; sample++) {
 			const start = performance.now();
 			let last: unknown;
-			for (let index = 0; index < iterations; index++) {
-				last = await proxy.$echo(fixture.value);
+			for (let index = 0; index < iterations; index += concurrency) {
+				if (concurrency === 1) {
+					last = await proxy.$echo(fixture.value);
+				} else {
+					const count = Math.min(concurrency, iterations - index);
+					last = (await Promise.all(Array.from({ length: count }, () => proxy.$echo(fixture.value))))[0];
+				}
 			}
 			times.push((performance.now() - start) * 1000 / iterations);
 			assert.deepStrictEqual(last, fixture.value);
@@ -88,4 +114,4 @@ for (const fixture of fixtures) {
 		store.dispose();
 	}
 }
-console.log(JSON.stringify({ node: process.version, transport: 'node-message-port', module: options.module, samples, iterations, warmups: 200, results }, null, 2));
+console.log(JSON.stringify({ node: process.version, transport: 'node-message-port', module: options.module, native: options.native, batch: options.batch, concurrency, samples, iterations, warmups: 200, results }, null, 2));
