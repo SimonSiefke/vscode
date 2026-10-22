@@ -23,6 +23,41 @@ suite('MessagePort IPC', () => {
 		client = store.add(new ChannelClient(clientProtocol));
 	});
 
+	test('runs request continuations before a subsequent event delivery', async () => {
+		const stages = store.add(new Emitter<string>());
+		server.registerChannel('ordering', {
+			call: async <T>(_ctx: string, command: string) => {
+				if (command === 'create') {
+					stages.fire('starting');
+					// The reply is sent between these microtasks. Its receiver must get
+					// a chance to finish creating the object before handling its events.
+					queueMicrotask(() => queueMicrotask(() => stages.fire('ready')));
+					return 'created' as T;
+				}
+				return undefined as T;
+			},
+			listen: <T>() => stages.event as Event<T>
+		});
+		const channel = client.getChannel('ordering');
+		let created = false;
+		const received: { stage: string; created: boolean }[] = [];
+		const ready = new Promise<void>(resolve => {
+			store.add(channel.listen<string>('stage')(stage => {
+				received.push({ stage, created });
+				if (stage === 'ready') {
+					resolve();
+				}
+			}));
+		});
+		// Establish the remote subscription before creating the object.
+		await channel.call('barrier');
+		await Promise.all([channel.call('create').then(() => { created = true; }), ready]);
+		assert.deepStrictEqual(received, [
+			{ stage: 'starting', created: false },
+			{ stage: 'ready', created: true }
+		]);
+	});
+
 	test('round trips URI, VSBuffer, typed array views and cyclic aliases', async () => {
 		server.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
 		const bytes = Uint8Array.from([0, 97, 98, 99, 0]).subarray(1, 4);
