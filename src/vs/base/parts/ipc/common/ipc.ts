@@ -16,7 +16,6 @@ import { revive } from '../../../common/marshalling.js';
 import * as strings from '../../../common/strings.js';
 import { isFunction, isUndefinedOrNull } from '../../../common/types.js';
 import { URI } from '../../../common/uri.js';
-import { getBatchedChannelProtocol } from './ipc.batch.js';
 
 /**
  * An `IChannel` is an abstraction over a collection of commands.
@@ -120,8 +119,6 @@ export interface IMessagePassingProtocol {
 }
 
 export interface IStructuredCloneMessage {
-	/** Coalesced native channel frames, dispatched in order to both channel roles. */
-	readonly batch?: readonly IStructuredCloneMessage[];
 	header: unknown;
 	body: unknown;
 	/** Object payload encoded as JSON; binary references remain native transport values. */
@@ -644,7 +641,6 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	private pendingRequests = new Map<string, PendingRequest[]>();
 
 	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
-		protocol = this.protocol = getBatchedChannelProtocol(protocol);
 		this.protocolListener = protocol.type === 'structuredClone'
 			? protocol.onMessage(message => {
 				if (!isRequestHeader(message.header)) {
@@ -856,7 +852,6 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	readonly onDidInitialize = this._onDidInitialize.event;
 
 	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
-		protocol = this.protocol = getBatchedChannelProtocol(protocol);
 		this.protocolListener = protocol.type === 'structuredClone'
 			? protocol.onMessage(message => {
 				if (!isResponseHeader(message.header)) {
