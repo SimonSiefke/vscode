@@ -155,6 +155,8 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 	private _unacknowledgedCount: number;
 	private _unresponsiveTime: number;
 	private _asyncCheckUresponsive: RunOnceScheduler;
+	// A native ACK can consume the port's immediate-send slot.
+	private _flushNativeReplyAfterAck = false;
 
 	constructor(protocol: IMessagePassingProtocol, logger: IRPCProtocolLogger | null = null, transformer: IURITransformer | null = null) {
 		super();
@@ -312,6 +314,10 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		}
 		const [type, req, rpcId, method] = message.header as [MessageType, number, number, string];
 		switch (type) {
+			case MessageType.Acknowledged:
+				this._logger?.logIncoming(0, req, RequestInitiator.LocalSide, `ack`);
+				this._onDidReceiveAcknowledge(req);
+				break;
 			case MessageType.NotificationJSONArgs: {
 				let args = JSON.parse(message.body as string);
 				const undefinedMask = (message.header as [MessageType, number, number, string, number?])[4];
@@ -477,25 +483,45 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 				const body = typeof r === 'undefined' ? undefined : safeStringify(r, this._uriReplacer);
 				this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `reply:`, r);
 				native.call(this._protocol, { header, body });
+				if (this._flushNativeReplyAfterAck) {
+					this._flushNativeReplyAfterAck = false;
+					void this._protocol.drain?.();
+				}
 				return;
 			}
+			this._flushNativeReplyAfterAck = false;
 			const msg = MessageIO.serializeReplyOK(req, r, this._uriReplacer);
 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `reply:`, r);
 			this._protocol.send(msg);
 		}, (err) => {
 			delete this._cancelInvokedHandlers[callId];
 			replied = true;
+			this._flushNativeReplyAfterAck = false;
 			const msg = MessageIO.serializeReplyErr(req, err);
 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `replyErr:`, err);
 			this._protocol.send(msg);
 		});
-		// An immediate reply also acknowledges receipt. Pending operations still
-		// acknowledge promptly so slow handlers do not look unresponsive.
+		// A brief microtask grace lets short promise chains acknowledge themselves
+		// through their reply. Pending handlers still acknowledge without a task delay.
 		queueMicrotask(() => {
 			if (!replied && !this._isDisposed) {
-				const msg = MessageIO.serializeAcknowledged(req);
-				this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
-				this._protocol.send(msg);
+				queueMicrotask(() => {
+					if (!replied && !this._isDisposed) {
+						queueMicrotask(() => {
+							if (!replied && !this._isDisposed) {
+								if (this._protocol.sendStructuredClone) {
+									this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `ack`);
+									this._flushNativeReplyAfterAck = true;
+									this._protocol.sendStructuredClone({ header: [MessageType.Acknowledged, req], body: undefined });
+								} else {
+									const msg = MessageIO.serializeAcknowledged(req);
+									this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
+									this._protocol.send(msg);
+								}
+							}
+						});
+					}
+				});
 			}
 		});
 	}

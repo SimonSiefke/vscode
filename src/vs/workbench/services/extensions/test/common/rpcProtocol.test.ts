@@ -242,6 +242,28 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
 
+	for (const fail of [false, true]) {
+		test(`short async ${fail ? 'errors' : 'replies'} acknowledge without a separate message`, async () => {
+			const { client, proxy, sent } = createObservedRPC({
+				$call: async () => {
+					await Promise.resolve();
+					await Promise.resolve();
+					if (fail) {
+						throw new Error('short async failure');
+					}
+					return 42;
+				}
+			});
+			if (fail) {
+				await assert.rejects(proxy.$call(), /short async failure/);
+			} else {
+				assert.strictEqual(await proxy.$call(), 42);
+			}
+			assert.strictEqual(sent.length, 2);
+			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+		});
+	}
+
 	test('pending handlers acknowledge before their result is available', async () => {
 		let resolve!: (value: number) => void;
 		const result = new Promise<number>(r => resolve = r);
@@ -249,10 +271,26 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		const reply = proxy.$call();
 		await new Promise(r => setTimeout(r, 0));
 		assert.strictEqual(sent.length, 2);
-		assert.strictEqual(sent[1].readUInt8(0), 5); // Acknowledged
+		const acknowledgement = getStructuredCloneMessage(sent[1]);
+		assert.strictEqual(!!acknowledgement, native);
+		assert.strictEqual(acknowledgement ? (acknowledgement.header as number[])[0] : sent[1].readUInt8(0), 5); // Acknowledged
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 		resolve(42);
 		assert.strictEqual(await reply, 42);
+		assert.strictEqual(sent.length, 3);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+	});
+
+	test('pending handler errors settle after their acknowledgement', async () => {
+		let reject!: (error: Error) => void;
+		const result = new Promise<number>((_resolve, r) => { reject = r; });
+		const { client, proxy, sent } = createObservedRPC({ $call: () => result });
+		const reply = assert.rejects(proxy.$call(), /pending failure/);
+		await new Promise(r => setTimeout(r, 0));
+		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+		reject(new Error('pending failure'));
+		await reply;
 		assert.strictEqual(sent.length, 3);
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
@@ -302,12 +340,14 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 			assert.strictEqual(await proxy.$call(), 42);
 			held = true;
 			const dropAcknowledgement = sinon.stub(two, 'send');
+			const dropNativeAcknowledgement = two.sendStructuredClone ? sinon.stub(two, 'sendStructuredClone') : undefined;
 			const reply = proxy.$call();
 			await clock.tickAsync(1001);
 			assert.strictEqual(client.responsiveState, 0);
 			await clock.tickAsync(4001);
 			assert.strictEqual(client.responsiveState, 1);
 			dropAcknowledgement.restore();
+			dropNativeAcknowledgement?.restore();
 			release(42);
 			assert.strictEqual(await reply, 42);
 			assert.strictEqual(client.responsiveState, 0);
@@ -464,6 +504,9 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 				assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 0);
 				await clock.tickAsync(1100);
 				sinon.stub(two, 'send');
+				if (two.sendStructuredClone) {
+					sinon.stub(two, 'sendStructuredClone');
+				}
 				const probe = proxy.$notify();
 				const rejected = assert.rejects(probe, /Canceled/);
 				assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 1);
