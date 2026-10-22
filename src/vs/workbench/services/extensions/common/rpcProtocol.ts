@@ -62,19 +62,39 @@ export function stringifyJsonWithBufferRefs<T>(obj: T, replacer: JSONStringifyRe
 }
 
 export function parseJsonAndRestoreBufferRefs(jsonString: string, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): any {
-	return JSON.parse(jsonString, (_key, value) => {
-		if (value) {
-			const ref = value[refSymbolName];
-			if (typeof ref === 'number') {
-				return buffers[ref];
-			}
+	const value = JSON.parse(jsonString);
+	// Normal JSON contains no reference placeholders. Unicode escapes require
+	// inspection because a foreign sender can escape a marker's property name.
+	if (!jsonString.includes(refSymbolName) && (!uriTransformer || !jsonString.includes('$mid')) && !jsonString.includes('\\u')) {
+		return value;
+	}
+	return restoreBufferRefs(value, buffers, uriTransformer);
+}
 
-			if (uriTransformer && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
-				return uriTransformer.transformIncoming(value);
+function restoreBufferRefs(value: any, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): any {
+	if (!value || typeof value !== 'object') {
+		return value;
+	}
+	// Match JSON reviver's postorder, visiting objects rather than every scalar.
+	for (const key of Object.keys(value)) {
+		const child = value[key];
+		if (child && typeof child === 'object') {
+			const restored = restoreBufferRefs(child, buffers, uriTransformer);
+			if (restored === undefined) {
+				delete value[key];
+			} else if (restored !== child) {
+				value[key] = restored;
 			}
 		}
-		return value;
-	});
+	}
+	const ref = value[refSymbolName];
+	if (typeof ref === 'number') {
+		return buffers[ref];
+	}
+	if (uriTransformer && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
+		return uriTransformer.transformIncoming(value);
+	}
+	return value;
 }
 
 

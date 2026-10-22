@@ -1,5 +1,7 @@
 # Hybrid IPC performance experiment (2026-10-22)
 
+These standalone measurements used the runtime's default 64 KiB Buffer pool. Linux VS Code sets an 8 KiB pool in `src/bootstrap-node.ts`; in particular, legacy buffer-transport comparisons must be remeasured with that policy. Full packaged smoke runs use the actual bootstrap.
+
 The previous implementation copies the full object graph before native cloning. A VSBuffer adds another complete receive-side traversal. This experiment sends primitive values, raw bytes, VSBuffer instances and URI DTOs directly; sends eligible object trees as JSON strings without byte encoding; and restores the native-cloned VSBuffer wrappers directly through the reference table. Ordinary objects and typed arrays with a `buffer` property keep their representations. Cycles, repeated object references, getters, sparse arrays, Map, Set, RegExp, bigint and non-finite numbers use the graph path.
 
 The JSON eligibility scan reads data-property descriptors without evaluating getters. It does not create replacement objects. JSON omission of optional `undefined` fields and local callback properties matches the legacy object serializer. The graph path also omits local callback and symbol properties, addressing the previously reproduced terminal/Workspace DataCloneError patterns. These are focused compatibility reproductions; they do not replace the complete ShellExecution integration suite. Arbitrary user-defined `toJSON` behavior and proxies are not an exact structured-clone equivalence guarantee.

@@ -1,5 +1,7 @@
 # Unpooled extension-host RPC messages
 
+The standalone measurements below used Node/Electron's default 64 KiB Buffer pool. The Linux product already sets an 8 KiB pool in `src/bootstrap-node.ts`. The allocation-specific gains therefore do not establish the gain for the Linux product; product-policy remeasurements are being collected separately. Full packaged smoke runs use the actual product bootstrap and are unaffected.
+
 RPC packets allocated through Node's shared Buffer pool can make native MessagePort serialization copy far more than the logical message. In this Node v24.22.0 environment, a primitive request/ack/reply exchanges 36 wire bytes but its three buffers reference 196,608 bytes of pooled backing storage. The candidate uses `VSBuffer.alloc(size, { unpooled: true })` for complete RPC packets, preserving the same wire bytes while allocating only their actual storage. Other allocations keep their existing behavior. [Node documents the full-pool cloning behavior](https://nodejs.org/api/worker_threads.html#considerations-when-transferring-typedarrays-and-buffers).
 
 The new outgoing-message regression fails against the prior RPC module and passes with the candidate. The focused buffer, channel IPC and extension-host RPC suites pass: 142 Node tests and 108 Electron tests. Native renderer MessagePorts remain covered by the channel suite. These checks do not establish a full smoke-suite speedup.

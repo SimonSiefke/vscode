@@ -1,5 +1,7 @@
 # Bulk JSON IPC performance experiment (2026-10-22)
 
+These standalone measurements used the runtime's default 64 KiB Buffer pool. Linux VS Code sets an 8 KiB pool in `src/bootstrap-node.ts`; in particular, legacy buffer-transport comparisons must be remeasured with that policy. Full packaged smoke runs use the actual bootstrap.
+
 Bulk DTOs use the legacy JSON contract without recursively reading property descriptors across the entire object graph. Payloads with at least 32 enumerable properties inspect their immediate children for native binary or rich values before choosing JSON. Sparse arrays, named array properties, direct native values, cycles and bigint still use the graph path. Smaller payloads retain the recursive eligibility check.
 
 This deliberately trades exact nested structured-clone semantics for speed on bulk DTOs: nested aliases become independent JSON values, nested native objects follow their JSON representation, and custom getters or `toJSON` can run. It is not a universal structured-clone replacement. The normal channel contract historically used JSON for object payloads; URI DTOs still revive through the existing channel layer. Tests cover bulk URI arrays, direct binary values, cycles, sparse arrays and named binary properties.

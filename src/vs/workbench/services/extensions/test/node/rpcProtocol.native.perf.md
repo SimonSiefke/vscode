@@ -1,5 +1,7 @@
 # Native extension RPC JSON experiment (2026-10-22)
 
+The standalone measurements below used Node/Electron's default 64 KiB Buffer pool. The Linux product already sets an 8 KiB pool in `src/bootstrap-node.ts`. The allocation-specific gains therefore do not establish the gain for the Linux product; product-policy remeasurements are being collected separately. Full packaged smoke runs use the actual product bootstrap and are unaffected.
+
 Local desktop extension hosts can send the existing serialized JSON strings directly through their native MessagePort. This removes UTF-8 encoding, copying into a request/reply buffer, and byte decoding. Requests containing VSBuffer, undefined arguments or SerializableObjectWithBuffers retain their existing mixed binary format. Binary replies, errors, cancellation and socket/remote transports retain their existing encodings. URI transformations still apply to parsed values.
 
 Native frames travel through the same ordered BufferedEmitter stream as binary startup and RPC messages. A locally tagged zero-length VSBuffer carries an already cloned native frame through existing handshake/termination wrappers; the attachment never goes over the wire. Commit matching remains enforced by the packaged extension-host handshake.

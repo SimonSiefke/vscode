@@ -1,5 +1,7 @@
 # Bounded native RPC batching experiment (2026-10-22)
 
+The standalone measurements below used Node/Electron's default 64 KiB Buffer pool. The Linux product already sets an 8 KiB pool in `src/bootstrap-node.ts`. The allocation-specific gains therefore do not establish the gain for the Linux product; product-policy remeasurements are being collected separately. Full packaged smoke runs use the actual product bootstrap and are unaffected.
+
 Native JSON RPC frames can be coalesced during a synchronous burst. The first outgoing native frame after receiving data is sent immediately, so a sequential request/reply exchange needs no batching microtask. Follow-up frames coalesce until a microtask, with limits of 64 frames or 16 Ki UTF-16 body characters. Larger DTOs stay pipelined. Binary/control packets flush earlier native frames before sending. Disposal clears incoming and outgoing buffers, and an extension-host port close disposes its adapter.
 
 The adapter retains the existing single BufferedEmitter stream for startup and mixed binary/native traffic. JSON strings and fresh protocol headers belong to the encoder and are not mutated after enqueueing. The protocol wire can carry a single frame or a frame array. Packaged extension-host peers already enforce matching commits.
