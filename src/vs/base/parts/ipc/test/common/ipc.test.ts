@@ -412,6 +412,48 @@ suite('Base IPC', function () {
 			assert.deepStrictEqual(result, input);
 		});
 
+		test('bulk DTOs use the legacy JSON representation for nested object graphs', async () => {
+			const shared = { theme: 'dark' };
+			const input = Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, { value: index, metadata: shared }]));
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, JSON.parse(JSON.stringify(input)));
+		});
+
+		test('bulk URI arrays retain URI marshalling', async () => {
+			const input = Array.from({ length: 64 }, (_, index) => URI.file(`/workspace/file${index}`));
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, input.map(uri => uri.toJSON()));
+		});
+
+		test('bulk objects with native binary properties retain the graph path', async () => {
+			const input = { values: Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, index])), buffer: VSBuffer.fromString('bulk') };
+			const argument = { ...input.values, buffer: input.buffer };
+			const result = await client.getChannel('echo').call<typeof argument>('echo', argument);
+			assert.deepStrictEqual({ values: Object.keys(result).length, isVSBuffer: result.buffer instanceof VSBuffer, text: result.buffer.toString() }, {
+				values: 65, isVSBuffer: true, text: 'bulk'
+			});
+		});
+
+		test('bulk objects with nested cycles fall back to the graph path', async () => {
+			const input = { ...Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, index])), nested: {} as { self?: object } };
+			input.nested.self = input;
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.strictEqual(result.nested.self, result);
+		});
+
+		test('bulk sparse arrays retain their holes', async () => {
+			const input = Array.from({ length: 64 }, (_, index) => index);
+			delete input[10];
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual(result, input);
+		});
+
+		test('bulk arrays retain named binary properties', async () => {
+			const input = Object.assign(Array.from({ length: 64 }, (_, index) => index), { extra: VSBuffer.fromString('extra') });
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual({ values: [...result], extra: result.extra.toString() }, { values: [...input], extra: 'extra' });
+		});
+
 		test('copies own enumerable properties without invoking prototype setters', async () => {
 			const input: { constructor: VSBuffer; toString: VSBuffer; __proto__: { buffer: VSBuffer } } = Object.assign(Object.create(null), {
 				constructor: VSBuffer.fromString('constructor'),

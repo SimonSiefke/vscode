@@ -171,16 +171,24 @@ function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, 
 
 /** JSON strings avoid native cloning of large DTO trees and byte encoding. */
 function trySerializeJSONBody(header: unknown, body: unknown): IStructuredCloneMessage | undefined {
-	if (!canStringifyStructuredCloneData(body, new Set())) {
+	if (!canSerializeChannelJSON(body, new Set())) {
 		return undefined;
 	}
-	return { header, body: JSON.stringify(body), jsonBody: true };
+	try {
+		return { header, body: JSON.stringify(body), jsonBody: true };
+	} catch (error) {
+		// Cycles and nested bigint values still require the native graph path.
+		if (!(error instanceof TypeError)) {
+			throw error;
+		}
+		return undefined;
+	}
 }
 
-/** Inspect data properties without evaluating getters or copying the tree.
+/** Prefer legacy JSON for bulk DTOs, retaining richer graph semantics for smaller values.
  * Optional fields and local callbacks retain the legacy JSON omission semantics.
  */
-function canStringifyStructuredCloneData(data: unknown, seen: Set<object>): boolean {
+function canSerializeChannelJSON(data: unknown, seen: Set<object>): boolean {
 	if (!data || typeof data !== 'object') {
 		return false;
 	}
@@ -197,6 +205,28 @@ function canStringifyStructuredCloneData(data: unknown, seen: Set<object>): bool
 		return false;
 	}
 	const keys = Object.keys(data);
+	// Bulk channel payloads historically used JSON. Avoid recursively reflecting
+	// their DTO trees while preserving top-level native values on the graph path.
+	if (keys.length >= 32) {
+		if (isArray && (keys.length !== data.length || keys[keys.length - 1] !== String(data.length - 1))) {
+			return false;
+		}
+		for (const key of keys) {
+			const value = (data as Record<string, unknown>)[key];
+			if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+				return false;
+			}
+			if (value && typeof value === 'object' && !(value instanceof URI)) {
+				const prototype = Object.getPrototypeOf(value);
+				if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+					return false;
+				}
+			} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+				return false;
+			}
+		}
+		return true;
+	}
 	if (isArray && keys.length !== data.length) {
 		return false;
 	}
@@ -214,7 +244,7 @@ function canStringifyStructuredCloneData(data: unknown, seen: Set<object>): bool
 			return false;
 		}
 		if (value && typeof value === 'object') {
-			if (!canStringifyStructuredCloneData(value, seen)) {
+			if (!canSerializeChannelJSON(value, seen)) {
 				return false;
 			}
 		} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {

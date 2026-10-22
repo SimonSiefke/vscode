@@ -79,6 +79,9 @@ const cases: BenchmarkCase[] = [
 		{ name: 'primitive', value: 42 },
 		{ name: 'small-object', value: { command: 'open', options: { pinned: true }, ids: [1, 2, 3] } },
 		{ name: 'settings-100', value: settings },
+		{ name: 'stat-object', value: { type: 1, ctime: 1700000000000, mtime: 1700000000001, size: 4096, permissions: 0 } },
+		{ name: 'directory-100', value: Array.from({ length: 100 }, (_, index) => [`file${index}.txt`, 1]) },
+		{ name: 'keys-1000', value: Array.from({ length: 1000 }, (_, index) => `editor.setting${index}`) },
 		{ name: 'text-4KiB', value: 'a'.repeat(4096) }
 	].map(({ name, value }) => ({ name, value, check: (result: unknown) => assert.deepStrictEqual(result, value) })),
 	{ name: 'uris-100', value: uris, check: result => assert.deepStrictEqual(result, uris.map(uri => uri.toJSON())) },
