@@ -6,17 +6,43 @@
 import type { IReference } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { constObservable } from '../../../../base/common/observable.js';
-import type { IDetailedDiffResult, IDiffComputeService, IDiffCountResult } from '../../common/diffComputeService.js';
+import type { IDetailedDiffResult, IDiffComputeService, IDiffCountResult, IDiffHunksResult } from '../../common/diffComputeService.js';
 import { MAX_TERMINAL_OUTPUT_BYTES, MAX_TOOL_RESULT_RESOURCE_BYTES, type IFileEditContent, type IFileEditRecord, type IPersistedTurnRecord, type IReviewedFileRecord, type ISessionCatalogSyncAcknowledgement, type ISessionCatalogSyncPendingSnapshot, type ISessionCatalogSyncSnapshot, type ISessionDatabase, type ISessionDataService, type ISessionRowsWatermark, type IToolResultResource, type SessionCatalogSyncTransitionResult, type SessionCatalogSyncWriteResult, type SessionCatalogSyncWriteValidator, SESSION_FOREIGN_TURN_IDS_METADATA_KEY, SESSION_ROW_OWNER_CHAT_METADATA_KEY, type ITurnCheckpointRecord } from '../../common/sessionDataService.js';
 import type { IAgentHostCheckpointService } from '../../common/agentHostCheckpointService.js';
 import type { IAgentHostGitStateService } from '../../common/agentHostGitStateService.js';
 import { AH_META_HAS_WORKSPACE_TRANSITIONS_DB_KEY, type ISessionGitHubState, type Message } from '../../common/state/sessionState.js';
 
+/** A metadata map that reports every write. */
+class ObservedMetadata extends Map<string, string> {
+	constructor(private readonly _onDidWrite: () => void) {
+		super();
+	}
+
+	override set(key: string, value: string): this {
+		super.set(key, value);
+		this._onDidWrite();
+		return this;
+	}
+
+	override delete(key: string): boolean {
+		const deleted = super.delete(key);
+		this._onDidWrite();
+		return deleted;
+	}
+}
+
 export class TestSessionDatabase implements ISessionDatabase {
+	private readonly _onDidChangeMetadata = new Emitter<void>();
+	/** Fires after every metadata write, for tests that wait for a write issued in the background. */
+	readonly onDidChangeMetadata: Event<void> = this._onDidChangeMetadata.event;
+	private readonly _onDidChangeChatRows = new Emitter<void>();
+	/** Fires after every write of a chat draft or persisted turn, for tests that wait for a write issued in the background. */
+	readonly onDidChangeChatRows: Event<void> = this._onDidChangeChatRows.event;
+
 	private readonly _edits: (IFileEditRecord & IFileEditContent)[] = [];
-	private readonly _metadata = new Map<string, string>();
+	private readonly _metadata = new ObservedMetadata(() => this._onDidChangeMetadata.fire());
 	private _catalogSyncSnapshot: ISessionCatalogSyncSnapshot | undefined;
 	private readonly _drafts = new Map<string, Message>();
 	private readonly _reviewedFiles: IReviewedFileRecord[] = [];
@@ -298,6 +324,7 @@ export class TestSessionDatabase implements ISessionDatabase {
 		} else {
 			this._drafts.delete(key);
 		}
+		this._onDidChangeChatRows.fire();
 	}
 
 	async getChatDraft(chat: URI): Promise<Message | undefined> {
@@ -444,6 +471,7 @@ export class TestSessionDatabase implements ISessionDatabase {
 		}
 		const seq = record.seq ?? Math.max(0, ...[...this._persistedTurns.values()].map(turn => turn.seq)) + 1;
 		this._persistedTurns.set(record.turnId, { ...record, seq });
+		this._onDidChangeChatRows.fire();
 	}
 
 	async getPersistedTurns(): Promise<Array<IPersistedTurnRecord & { seq: number }>> {
@@ -458,6 +486,7 @@ export class TestSessionDatabase implements ISessionDatabase {
 		for (const id of turnIds) {
 			this._persistedTurns.delete(id);
 		}
+		this._onDidChangeChatRows.fire();
 	}
 
 	async remapTurnIds(mapping: ReadonlyMap<string, string>, eventIds?: ReadonlyMap<string, string>): Promise<void> {
@@ -694,6 +723,20 @@ export class TestDiffComputeService implements IDiffComputeService {
 			added: counts.added,
 			removed: counts.removed,
 			replacements: original === modified ? [] : [{ start: 0, endExclusive: original.length, text: modified }],
+			hitTimeout: false,
+		};
+	}
+
+	async computeDiffHunks(original: string, modified: string): Promise<IDiffHunksResult> {
+		return {
+			hunks: original === modified ? [] : [{
+				originalStartLineNumber: 1,
+				originalEndLineNumberExclusive: original.split('\n').length + 1,
+				modifiedStartLineNumber: 1,
+				modifiedEndLineNumberExclusive: modified.split('\n').length + 1,
+				replacements: [{ start: 0, endExclusive: original.length, text: modified }],
+				reverseReplacements: [{ start: 0, endExclusive: modified.length, text: original }],
+			}],
 			hitTimeout: false,
 		};
 	}
