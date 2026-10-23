@@ -33,6 +33,7 @@ class TestInMemoryFileSystemProvider extends InMemoryFileSystemProvider {
 	private readonly statFailures = new ResourceSet();
 	private readonly writeFailures = new ResourceSet();
 	private statDelay = 0;
+	private writeBlock: { resource: URI; started: DeferredPromise<void>; released: Promise<void> } | undefined;
 	private statBlock: { directory: URI; released: Promise<void> } | undefined;
 	private readonly statsChanged = this._register(new Emitter<void>());
 	activeStats = 0;
@@ -58,6 +59,10 @@ class TestInMemoryFileSystemProvider extends InMemoryFileSystemProvider {
 
 	failNextWrite(resource: URI): void {
 		this.writeFailures.add(resource);
+	}
+
+	blockWrite(resource: URI, started: DeferredPromise<void>, released: Promise<void>): void {
+		this.writeBlock = { resource, started, released };
 	}
 
 	/** Resolves once `predicate` holds, re-checking it whenever a stat starts or settles. */
@@ -95,6 +100,12 @@ class TestInMemoryFileSystemProvider extends InMemoryFileSystemProvider {
 	}
 
 	override async writeFile(resource: URI, content: Uint8Array, options: IFileWriteOptions): Promise<void> {
+		if (this.writeBlock && isEqual(resource, this.writeBlock.resource)) {
+			const block = this.writeBlock;
+			this.writeBlock = undefined;
+			block.started.complete();
+			await block.released;
+		}
 		if (this.writeFailures.delete(resource)) {
 			throw new Error('Unavailable test resource');
 		}
@@ -160,6 +171,86 @@ suite('SyncedCustomizationBundler', () => {
 			pluginUri: origin.pluginUri?.toString(),
 		};
 	}
+
+	test('removes a disposed bundle without removing another authority', async () => {
+		const uri = await seedFile('/test/rules.md', '# Rules');
+		const first = createBundler('first');
+		const second = createBundler('second');
+		await first.bundle([{ uri, type: PromptsType.instructions }]);
+		await second.bundle([{ uri, type: PromptsType.instructions }]);
+		first.dispose();
+		await timeout(0);
+		assert.strictEqual(await fileService.exists(URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/first' })), false);
+		assert.strictEqual(await fileService.exists(URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/second/rules/rules.md' })), true);
+	});
+
+	test('keeps a replacement bundle until its last owner is disposed', async () => {
+		const uri = await seedFile('/test/rules.md', '# Rules');
+		const first = createBundler();
+		await first.bundle([{ uri, type: PromptsType.instructions }]);
+		const replacement = createBundler();
+		await replacement.bundle([{ uri, type: PromptsType.instructions }]);
+		first.dispose();
+		await timeout(0);
+		const root = URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/test-agent' });
+		assert.strictEqual(await fileService.exists(URI.joinPath(root, 'rules/rules.md')), true);
+		replacement.dispose();
+		await timeout(0);
+		assert.strictEqual(await fileService.exists(root), false);
+	});
+
+	test('does not retain directories after repeated bundle disposal', async () => {
+		const uri = await seedFile('/test/rules.md', '# Rules');
+		for (let i = 0; i < 37; i++) {
+			const bundler = createBundler(`session-${i}`);
+			await bundler.bundle([{ uri, type: PromptsType.instructions }]);
+			bundler.dispose();
+		}
+		await timeout(0);
+		const root = await fileService.resolve(URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/' }));
+		assert.strictEqual(root.children?.length, 0);
+	});
+
+	test('removes partial files after disposal during an in-flight write', async () => {
+		const uri = await seedFile('/test/rules.md', '# Rules');
+		const bundler = createBundler();
+		const started = new DeferredPromise<void>();
+		const released = new DeferredPromise<void>();
+		const root = URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/test-agent' });
+		syncedFs.blockWrite(URI.joinPath(root, 'rules/rules.md'), started, released.p);
+		const bundle = bundler.bundle([{ uri, type: PromptsType.instructions }]);
+		const cancelled = assert.rejects(bundle, error => isCancellationError(error));
+		try {
+			await started.p;
+			assert.strictEqual(await fileService.exists(URI.joinPath(root, '.plugin/plugin.json')), true);
+			bundler.dispose();
+		} finally {
+			released.complete();
+		}
+		await cancelled;
+		await timeout(0);
+		assert.strictEqual(await fileService.exists(root), false);
+	});
+
+	test('cleans the same authority independently in different file services', async () => {
+		const uri = await seedFile('/test/rules.md', '# Rules');
+		const first = createBundler();
+		await first.bundle([{ uri, type: PromptsType.instructions }]);
+		const otherService = disposables.add(new FileService(new NullLogService()));
+		const otherFs = disposables.add(new TestInMemoryFileSystemProvider());
+		disposables.add(otherService.registerProvider(SYNCED_CUSTOMIZATION_SCHEME, otherFs));
+		instantiationService.stub(IFileService, otherService);
+		const other = createBundler();
+		await other.bundle([], [enabledMcpServer('server', { type: McpServerType.LOCAL, command: 'node' })]);
+		first.dispose();
+		await timeout(0);
+		const root = URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: '/test-agent' });
+		assert.strictEqual(await fileService.exists(root), false);
+		assert.strictEqual(await otherService.exists(URI.joinPath(root, '.mcp.json')), true);
+		other.dispose();
+		await timeout(0);
+		assert.strictEqual(await otherService.exists(root), false);
+	});
 
 	test('returns undefined for empty file list', async () => {
 		const bundler = createBundler();
