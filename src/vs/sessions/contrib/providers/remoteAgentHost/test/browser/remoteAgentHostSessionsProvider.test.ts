@@ -388,6 +388,7 @@ function createProvider(disposables: DisposableStore, connection: MockAgentConne
 		override readonly visibleSessions: IObservable<readonly (IActiveSession | undefined)[]> = constObservable<readonly (IActiveSession | undefined)[]>([]);
 	}());
 	instantiationService.stub(IAgentHostActiveClientService, new class extends mock<IAgentHostActiveClientService>() {
+		override retainPublishedScopes = () => new DisposableStore();
 		override acquireScope = (_sessionType: string, _roots: readonly URI[]) => ({
 			customizations: constObservable([]),
 			customAgents: constObservable([]),

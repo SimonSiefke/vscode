@@ -240,7 +240,7 @@ export class SyncedCustomizationBundler extends Disposable {
 	 * The authority is encoded into the path (not the URI authority) because
 	 * {@link InMemoryFileSystemProvider} only routes by path.
 	 */
-	private get _rootUri(): URI {
+	get rootUri(): URI {
 		return URI.from({ scheme: SYNCED_CUSTOMIZATION_SCHEME, path: `/${this._authority}` });
 	}
 
@@ -265,7 +265,7 @@ export class SyncedCustomizationBundler extends Disposable {
 					return;
 				}
 				try {
-					await this._fileService.del(this._rootUri, { recursive: true });
+					await this._fileService.del(this.rootUri, { recursive: true });
 				} catch (error) {
 					if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
 						this._logService.warn('[SyncedCustomizationBundler] Failed to remove disposed bundle', error);
@@ -338,7 +338,7 @@ export class SyncedCustomizationBundler extends Disposable {
 			if (file.type === PromptsType.skill && fileName.toLowerCase() === 'skill.md') {
 				const skillRoot = dirname(file.uri);
 				const skillDirName = basename(skillRoot);
-				addEntry(file, file.uri, URI.joinPath(this._rootUri, dir, skillDirName, fileName), `${dir}/${skillDirName}/${fileName}`);
+				addEntry(file, file.uri, URI.joinPath(this.rootUri, dir, skillDirName, fileName), `${dir}/${skillDirName}/${fileName}`);
 				for (const source of await collectDirectoryFiles(this._fileService, this._logService, skillRoot, skillRoot, operation => this._queueFileOperation(operation))) {
 					if (extUri.isEqual(source.resource, file.uri)) {
 						continue;
@@ -350,12 +350,12 @@ export class SyncedCustomizationBundler extends Disposable {
 					addEntry(
 						file,
 						source.resource,
-						URI.joinPath(this._rootUri, dir, skillDirName, relativePath),
+						URI.joinPath(this.rootUri, dir, skillDirName, relativePath),
 						`${dir}/${skillDirName}/${relativePath}`,
 					);
 				}
 			} else {
-				addEntry(file, file.uri, URI.joinPath(this._rootUri, dir, fileName), `${dir}/${fileName}`);
+				addEntry(file, file.uri, URI.joinPath(this.rootUri, dir, fileName), `${dir}/${fileName}`);
 			}
 		}));
 		this._throwIfDisposed();
@@ -409,14 +409,14 @@ export class SyncedCustomizationBundler extends Disposable {
 
 		// Delete the previous tree for this authority, preserving other authorities
 		try {
-			await this._fileService.del(this._rootUri, { recursive: true });
+			await this._fileService.del(this.rootUri, { recursive: true });
 		} catch {
 			// Directory may not exist on first bundle
 		}
 
 		// Write the manifest
 		this._throwIfDisposed();
-		const manifestUri = URI.joinPath(this._rootUri, '.plugin', 'plugin.json');
+		const manifestUri = URI.joinPath(this.rootUri, '.plugin', 'plugin.json');
 		await this._fileService.writeFile(manifestUri, VSBuffer.fromString(this._standalone ? STANDALONE_MANIFEST_CONTENT : MANIFEST_CONTENT));
 
 		// Write each source file into the correct plugin directory.
@@ -429,7 +429,7 @@ export class SyncedCustomizationBundler extends Disposable {
 		// adapter reads this file relative to the plugin root.
 		if (mcpContent !== undefined) {
 			this._throwIfDisposed();
-			const mcpUri = URI.joinPath(this._rootUri, '.mcp.json');
+			const mcpUri = URI.joinPath(this.rootUri, '.mcp.json');
 			await this._fileService.writeFile(mcpUri, VSBuffer.fromString(mcpContent));
 		}
 
@@ -437,7 +437,7 @@ export class SyncedCustomizationBundler extends Disposable {
 		this._originByDest = originByDest;
 		this._lastNonce = nonce;
 
-		const rootUriString = this._rootUri.toString() as ProtocolURI;
+		const rootUriString = this.rootUri.toString() as ProtocolURI;
 		const meta = this._toMeta(mcpDefaultCwds);
 		const result: IBundleResult = {
 			ref: {

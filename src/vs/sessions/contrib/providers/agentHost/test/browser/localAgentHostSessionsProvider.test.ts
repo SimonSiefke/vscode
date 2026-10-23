@@ -718,7 +718,7 @@ class BackendSchemeTestProvider extends LocalAgentHostSessionsProvider {
 
 function createProvider(disposables: DisposableStore, agentHostService: MockAgentHostService, contributions = [
 	{ type: 'agent-host-copilotcli', name: 'copilot', displayName: 'Copilot', description: 'test', icon: undefined },
-], options?: { chatSessionsService?: Partial<IChatSessionsService>; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelsService?: Partial<ILanguageModelsService>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; languageModelChanges?: Event<string>; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<IActiveSession | undefined>; visibleSessions?: IObservable<readonly (IActiveSession | undefined)[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; activeClientAgents?: IObservable<readonly AgentCustomization[]>; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; recentWorkspacesService?: ISessionsRecentWorkspacesService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService; pathService?: IPathService; labelService?: ILabelService; providerCtor?: typeof LocalAgentHostSessionsProvider }): LocalAgentHostSessionsProvider {
+], options?: { chatSessionsService?: Partial<IChatSessionsService>; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelsService?: Partial<ILanguageModelsService>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; languageModelChanges?: Event<string>; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<IActiveSession | undefined>; visibleSessions?: IObservable<readonly (IActiveSession | undefined)[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; activeClientAgents?: IObservable<readonly AgentCustomization[]>; retainPublishedScopes?: IAgentHostActiveClientService['retainPublishedScopes']; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; recentWorkspacesService?: ISessionsRecentWorkspacesService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService; pathService?: IPathService; labelService?: ILabelService; providerCtor?: typeof LocalAgentHostSessionsProvider }): LocalAgentHostSessionsProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
 	instantiationService.stub(IAgentHostService, agentHostService);
@@ -826,6 +826,7 @@ function createProvider(disposables: DisposableStore, agentHostService: MockAgen
 		override readonly visibleSessions: IObservable<readonly (IActiveSession | undefined)[]> = visibleSessionsObs;
 	}());
 	instantiationService.stub(IAgentHostActiveClientService, new class extends mock<IAgentHostActiveClientService>() {
+		override retainPublishedScopes: IAgentHostActiveClientService['retainPublishedScopes'] = customizations => options?.retainPublishedScopes?.(customizations) ?? new DisposableStore();
 		override areScopeRootsEqual = (first: readonly URI[] | undefined, second: readonly URI[]) =>
 			first !== undefined && first.length === second.length && first.every((root, index) => extUriIgnorePathCase.isEqual(root, second[index]));
 		override acquireScope = (sessionType: string, roots: readonly URI[]) => options?.activeClientScope?.(sessionType, roots) ?? ({
@@ -9055,6 +9056,48 @@ suite('LocalAgentHostSessionsProvider', () => {
 			resolvedWorkspaceLabel: 'my-project',
 		});
 	});
+
+	test('summary subscriptions retain only this clients published scopes until unsubscribe', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const ownRef = { type: CustomizationType.Plugin, id: 'own', uri: 'vscode-synced-customization:/own', name: 'Own' } as const;
+		const nextRef = { ...ownRef, id: 'next', uri: 'vscode-synced-customization:/next' };
+		const otherRef = { ...ownRef, id: 'other', uri: 'vscode-synced-customization:/other' };
+		const state = (own: NonNullable<SessionActiveClient['customizations']> = [ownRef]): SessionState => ({
+			provider: 'copilotcli', title: 'Published scopes', status: ProtocolSessionStatus.Idle,
+			lifecycle: SessionLifecycle.Ready, chats: [],
+			activeClients: [
+				{ clientId: agentHost.clientId, tools: [], customizations: own },
+				{ clientId: 'other-client', tools: [], customizations: [otherRef] },
+			],
+		});
+		const backend = AgentSession.uri('copilotcli', 'published-scopes').toString();
+		const held = new Set<readonly string[]>();
+		let unsubscribedBeforeRelease = false;
+		agentHost.addSession(createSession('published-scopes'));
+		agentHost.setSessionState('published-scopes', 'copilotcli', state());
+		const provider = createProvider(disposables, agentHost, undefined, {
+			retainPublishedScopes: refs => {
+				const uris = [...new Set(refs.map(ref => ref.uri))].sort();
+				held.add(uris);
+				return toDisposable(() => {
+					held.delete(uris);
+					unsubscribedBeforeRelease = (agentHost.sessionUnsubscribeCounts.get(backend) ?? 0) > 0;
+				});
+			},
+		});
+		await timeout(0);
+		const session = provider.getSessions()[0];
+		provider.getSessionConfig(session.sessionId, session.mainChat.get().resource);
+		assert.deepStrictEqual([...held], [[ownRef.uri]]);
+		agentHost.setOptimisticSessionState('published-scopes', 'copilotcli', state([nextRef]));
+		assert.deepStrictEqual([...held], [[nextRef.uri, ownRef.uri].sort()]);
+		agentHost.setSessionState('published-scopes', 'copilotcli', state());
+		assert.deepStrictEqual([...held], [[ownRef.uri]]);
+		agentHost.setSessionState('published-scopes', 'copilotcli', state([]));
+		assert.deepStrictEqual([...held], [[]]);
+		agentHost.setSessionState('published-scopes', 'copilotcli', state());
+		await timeout(30_001);
+		assert.deepStrictEqual({ held: [...held], unsubscribedBeforeRelease }, { held: [], unsubscribedBeforeRelease: true });
+	}));
 
 	test('joins the active client with customizations when opening an existing session', async () => {
 		const activeSession = observableValue<IActiveSession | undefined>('activeSession', undefined);

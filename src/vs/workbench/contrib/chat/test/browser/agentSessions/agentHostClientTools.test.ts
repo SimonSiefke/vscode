@@ -57,12 +57,14 @@ import { AgentHostSessionHandler, toolDataToDefinition, toolResultToProtocol, UN
 import { AgentHostActiveClientService, IAgentHostActiveClientService } from '../../../browser/agentSessions/agentHost/agentHostActiveClientService.js';
 import { IAgentHostCustomizationService, NullAgentHostCustomizationService } from '../../../browser/agentSessions/agentHost/agentHostCustomizationService.js';
 import { AGENT_HOST_COPILOT_CLI_SESSION_TYPE, IAgentHostToolSetEnablementService, IToolEnablementState } from '../../../browser/agentSessions/agentHost/agentHostToolSetEnablementService.js';
+import { FileService } from '../../../../../../platform/files/common/fileService.js';
+import { InMemoryFileSystemProvider } from '../../../../../../platform/files/common/inMemoryFilesystemProvider.js';
 import { IFileService } from '../../../../../../platform/files/common/files.js';
 import { TestChatEntitlementService, TestFileService } from '../../../../../test/common/workbenchTestServices.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
 import { MockLabelService } from '../../../../../services/label/test/common/mockLabelService.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
-import { IAgentHostFileSystemService } from '../../../../../services/agentHost/common/agentHostFileSystemService.js';
+import { IAgentHostFileSystemService, SYNCED_CUSTOMIZATION_SCHEME } from '../../../../../services/agentHost/common/agentHostFileSystemService.js';
 import { IAgentHostImportConversationStore } from '../../../browser/agentSessions/agentHost/agentHostImportConversationStore.js';
 import { IStorageService, InMemoryStorageService, StorageScope } from '../../../../../../platform/storage/common/storage.js';
 import { IAccessibilitySignalService } from '../../../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
@@ -173,7 +175,7 @@ suite('AgentHostClientTools', () => {
 		});
 
 		const service = disposables.add(instantiationService.createInstance(AgentHostActiveClientService));
-		return { service };
+		return { service, instantiationService };
 	}
 
 	test('lazily creates scopes and shares them for equivalent root sets', async () => {
@@ -215,6 +217,63 @@ suite('AgentHostClientTools', () => {
 			syncProviderIsStable: true,
 			scopeAfterReleaseIsResolved: true,
 		});
+	});
+
+	test('published scope leases preserve bundle reads after the local owner closes', async () => {
+		const collection: McpCollectionDefinition = {
+			id: 'test', label: 'test', order: 0, remoteAuthority: null,
+			provenance: McpCollectionProvenance.ExternalConfiguration,
+			serverDefinitions: constObservable([]), trustBehavior: McpServerTrust.Kind.Trusted,
+			scope: StorageScope.PROFILE, configTarget: ConfigurationTarget.USER,
+		};
+		const definition: McpServerDefinition = {
+			id: 'test', label: 'test', cacheNonce: 'test',
+			launch: { type: McpServerTransportType.Stdio, command: 'server', args: [], env: {}, envFile: undefined, cwd: undefined, sandbox: undefined },
+		};
+		const server = new class extends mock<IMcpServer>() {
+			override readonly collection = collection;
+			override readonly definition = definition;
+			override readonly enablement = constObservable(ContributionEnablementState.EnabledProfile);
+			override readDefinitions() { return constObservable({ collection, server: definition }); }
+		}();
+		const { service, instantiationService } = createActiveClientService(undefined, undefined, { remoteAuthority: 'ssh-remote+devbox', servers: [server] });
+		const fileService = disposables.add(new FileService(new NullLogService()));
+		disposables.add(fileService.registerProvider(SYNCED_CUSTOMIZATION_SCHEME, disposables.add(new InMemoryFileSystemProvider())));
+		instantiationService.stub(IFileService, fileService);
+		const scope = disposables.add(service.acquireScope(AGENT_HOST_COPILOT_CLI_SESSION_TYPE, []));
+		await scope.whenResolved();
+		const refs = scope.customizations.get();
+		assert.strictEqual(refs.length, 1);
+		const root = URI.parse(refs[0].uri);
+		const published = disposables.add(service.retainPublishedScopes(refs));
+		const otherReader = disposables.add(service.retainPublishedScopes(refs));
+		const readBarrier = new DeferredPromise<void>();
+		const pendingRead = (async () => {
+			await readBarrier.p;
+			return (await fileService.readFile(URI.joinPath(root, '.mcp.json'))).value.toString();
+		})();
+		scope.dispose();
+		published.dispose();
+		await timeout(0);
+		readBarrier.complete();
+		assert.deepStrictEqual(JSON.parse(await pendingRead), { mcpServers: { test: { type: 'stdio', command: 'server' } } });
+		const removed = Event.toPromise(Event.filter(fileService.onDidRunOperation, event => event.resource.toString() === root.toString()));
+		otherReader.dispose();
+		await removed;
+		assert.strictEqual(await fileService.exists(root), false);
+		// Passive observation cannot resurrect a scope, but must lease it if a
+		// local owner subsequently reopens the already-published scope.
+		const passive = disposables.add(service.retainPublishedScopes(refs));
+		assert.strictEqual(await fileService.exists(root), false);
+		const reopened = disposables.add(service.acquireScope(AGENT_HOST_COPILOT_CLI_SESSION_TYPE, []));
+		await reopened.whenResolved();
+		reopened.dispose();
+		await timeout(0);
+		assert.strictEqual(await fileService.exists(root), true);
+		const removedAgain = Event.toPromise(Event.filter(fileService.onDidRunOperation, event => event.resource.toString() === root.toString()));
+		passive.dispose();
+		await removedAgain;
+		assert.strictEqual(await fileService.exists(root), false);
 	});
 
 	test('isolates additional tools to one session and moves them with the session resource', () => {
