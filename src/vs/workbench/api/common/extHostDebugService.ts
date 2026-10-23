@@ -7,6 +7,7 @@ import type * as vscode from 'vscode';
 import { coalesce } from '../../../base/common/arrays.js';
 import { asPromise } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
+import { canceled } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable as DisposableCls, DisposableMap, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { ThemeIcon as ThemeIconUtils } from '../../../base/common/themables.js';
@@ -104,6 +105,7 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 
 	private _debugAdapters: Map<number, IDebugAdapter>;
 	private _debugAdaptersTrackers: Map<number, vscode.DebugAdapterTracker>;
+	private readonly _debugAdapterStartRequests = new Map<number, object>();
 
 	private _debugVisualizationTreeItemIdsCounter = 0;
 	private readonly _debugVisualizationProviders = new Map<string, vscode.DebugVisualizationProvider>();
@@ -606,10 +608,17 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 
 	public async $startDASession(debugAdapterHandle: number, sessionDto: IDebugSessionDto): Promise<void> {
 		const mythis = this;
+		const request = {};
+		// Stopping a pending start invalidates its async factory continuations.
+		this._debugAdapterStartRequests.set(debugAdapterHandle, request);
 
-		const session = await this.getSession(sessionDto);
+		try {
+			const session = await this.getSession(sessionDto);
+			if (this._debugAdapterStartRequests.get(debugAdapterHandle) !== request) {
+				throw canceled();
+			}
 
-		return this.getAdapterDescriptor(this.getAdapterDescriptorFactoryByType(session.type), session).then(daDescriptor => {
+			const daDescriptor = await this.getAdapterDescriptor(this.getAdapterDescriptorFactoryByType(session.type), session);
 
 			if (!daDescriptor) {
 				throw new Error(`Couldn't find a debug adapter descriptor for debug type '${session.type}' (extension might have failed to activate)`);
@@ -621,87 +630,97 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 			}
 
 			const debugAdapter = da;
+			if (this._debugAdapterStartRequests.get(debugAdapterHandle) !== request) {
+				await debugAdapter.stopSession();
+				throw canceled();
+			}
 
 			this._debugAdapters.set(debugAdapterHandle, debugAdapter);
 
-			return this.getDebugAdapterTrackers(session).then(tracker => {
+			const tracker = await this.getDebugAdapterTrackers(session);
+			if (this._debugAdapterStartRequests.get(debugAdapterHandle) !== request) {
+				throw canceled();
+			}
 
-				if (tracker) {
-					this._debugAdaptersTrackers.set(debugAdapterHandle, tracker);
-				}
+			if (tracker) {
+				this._debugAdaptersTrackers.set(debugAdapterHandle, tracker);
+			}
 
-				debugAdapter.onMessage(async message => {
+			debugAdapter.onMessage(async message => {
 
-					if (message.type === 'request' && (<DebugProtocol.Request>message).command === 'handshake') {
+				if (message.type === 'request' && (<DebugProtocol.Request>message).command === 'handshake') {
 
-						const request = <DebugProtocol.Request>message;
+					const request = <DebugProtocol.Request>message;
 
-						const response: DebugProtocol.Response = {
-							type: 'response',
-							seq: 0,
-							command: request.command,
-							request_seq: request.seq,
-							success: true
-						};
+					const response: DebugProtocol.Response = {
+						type: 'response',
+						seq: 0,
+						command: request.command,
+						request_seq: request.seq,
+						success: true
+					};
 
-						if (!this._signService) {
-							this._signService = this.createSignService();
-						}
+					if (!this._signService) {
+						this._signService = this.createSignService();
+					}
 
-						try {
-							if (this._signService) {
-								const signature = await this._signService.sign(request.arguments.value);
-								response.body = {
-									signature: signature
-								};
-								debugAdapter.sendResponse(response);
-							} else {
-								throw new Error('no signer');
-							}
-						} catch (e) {
-							response.success = false;
-							response.message = e.message;
+					try {
+						if (this._signService) {
+							const signature = await this._signService.sign(request.arguments.value);
+							response.body = {
+								signature: signature
+							};
 							debugAdapter.sendResponse(response);
+						} else {
+							throw new Error('no signer');
 						}
-					} else {
-						if (tracker && tracker.onDidSendMessage) {
-							tracker.onDidSendMessage(message);
-						}
-
-						// DA -> VS Code
-						try {
-							// Try to catch details for #233167
-							message = convertToVSCPaths(message, true);
-						} catch (e) {
-							// eslint-disable-next-line local/code-no-any-casts
-							const type = message.type + '_' + ((message as any).command ?? (message as any).event ?? '');
-							this._telemetryProxy.$publicLog2<DebugProtocolMessageErrorEvent, DebugProtocolMessageErrorClassification>('debugProtocolMessageError', { type, from: session.type });
-							throw e;
-						}
-
-						mythis._debugServiceProxy.$acceptDAMessage(debugAdapterHandle, message);
+					} catch (e) {
+						response.success = false;
+						response.message = e.message;
+						debugAdapter.sendResponse(response);
 					}
-				});
-				debugAdapter.onError(err => {
-					if (tracker && tracker.onError) {
-						tracker.onError(err);
+				} else {
+					if (tracker && tracker.onDidSendMessage) {
+						tracker.onDidSendMessage(message);
 					}
-					this._debugServiceProxy.$acceptDAError(debugAdapterHandle, err.name, err.message, err.stack);
-				});
-				debugAdapter.onExit((code: number | null) => {
-					if (tracker && tracker.onExit) {
-						tracker.onExit(code ?? undefined, undefined);
-					}
-					this._debugServiceProxy.$acceptDAExit(debugAdapterHandle, code ?? undefined, undefined);
-				});
 
-				if (tracker && tracker.onWillStartSession) {
-					tracker.onWillStartSession();
+					// DA -> VS Code
+					try {
+						// Try to catch details for #233167
+						message = convertToVSCPaths(message, true);
+					} catch (e) {
+						// eslint-disable-next-line local/code-no-any-casts
+						const type = message.type + '_' + ((message as any).command ?? (message as any).event ?? '');
+						this._telemetryProxy.$publicLog2<DebugProtocolMessageErrorEvent, DebugProtocolMessageErrorClassification>('debugProtocolMessageError', { type, from: session.type });
+						throw e;
+					}
+
+					mythis._debugServiceProxy.$acceptDAMessage(debugAdapterHandle, message);
 				}
-
-				return debugAdapter.startSession();
 			});
-		});
+			debugAdapter.onError(err => {
+				if (tracker && tracker.onError) {
+					tracker.onError(err);
+				}
+				this._debugServiceProxy.$acceptDAError(debugAdapterHandle, err.name, err.message, err.stack);
+			});
+			debugAdapter.onExit((code: number | null) => {
+				if (tracker && tracker.onExit) {
+					tracker.onExit(code ?? undefined, undefined);
+				}
+				this._debugServiceProxy.$acceptDAExit(debugAdapterHandle, code ?? undefined, undefined);
+			});
+
+			if (tracker && tracker.onWillStartSession) {
+				tracker.onWillStartSession();
+			}
+
+			return await debugAdapter.startSession();
+		} finally {
+			if (this._debugAdapterStartRequests.get(debugAdapterHandle) === request) {
+				this._debugAdapterStartRequests.delete(debugAdapterHandle);
+			}
+		}
 	}
 
 	public $sendDAMessage(debugAdapterHandle: number, message: DebugProtocol.ProtocolMessage): void {
@@ -719,6 +738,7 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 	}
 
 	public $stopDASession(debugAdapterHandle: number): Promise<void> {
+		this._debugAdapterStartRequests.delete(debugAdapterHandle);
 
 		const tracker = this._debugAdaptersTrackers.get(debugAdapterHandle);
 		this._debugAdaptersTrackers.delete(debugAdapterHandle);
