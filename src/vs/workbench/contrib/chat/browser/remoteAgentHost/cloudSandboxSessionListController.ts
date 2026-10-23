@@ -99,7 +99,7 @@ export class CloudSandboxSessionListController extends Disposable implements ICl
 						? discoveredRepositories.get(getComparisonKey(URI.parse(entry.summary.resource)))?.repository
 						: undefined;
 				return repository !== undefined && repositories.has(repository);
-			}).map(entry => this._sessionListStore.getSessionResource(URI.parse(entry.summary.resource))));
+			}).map(entry => entry.resource));
 			return this._controller.items
 				.filter(item => !visibleSessions || visibleSessions.has(item.resource))
 				.map(item => this._listItem(item, connected, archivedStates));
@@ -267,7 +267,7 @@ export class CloudSandboxSessionListController extends Disposable implements ICl
 			return repoNwo ? URI.from({ scheme: Schemas.https, authority: 'github.com', path: `/${repoNwo}` }) : null;
 		}
 		const entries = this._sessionListStore.getSessions(CLOUD_SANDBOX_AGENT_PROVIDER);
-		const findEntry = (parent: URI) => entries.find(entry => isEqual(this._sessionListStore.getSessionResource(URI.parse(entry.summary.resource)), parent));
+		const findEntry = (parent: URI) => entries.find(entry => isEqual(entry.resource, parent));
 		const entry = findEntry(resource.with({ fragment: '' })) ?? findEntry(getAgentHostSessionResource(resource));
 		const directory = entry?.summary.workingDirectories?.[0];
 		const connection = this._connection.get();

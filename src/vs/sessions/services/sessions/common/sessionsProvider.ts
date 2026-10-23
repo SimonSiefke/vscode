@@ -21,6 +21,12 @@ import { IAutomationSessionTemplate } from '../../../../workbench/contrib/chat/c
 import { AutomationUnavailableReasonCode, IAutomationProviderConfiguration, IAutomationStore } from '../../../../workbench/contrib/chat/common/automations/automationService.js';
 import { ChatModelSource, IChat, ISession, ISessionCanvas, ISessionCanvasDefinition, ISessionCreationReference, ISessionEnvironment, ISessionType, ISessionWorkspace, ISessionWorkspaceBrowseAction, ISideChatSelection, type SessionCanvasDefinitionSnapshot } from './session.js';
 
+/** Identity captured before a confirmed permanent deletion. */
+export interface ISessionDeletion {
+	readonly sessionId: string;
+	readonly chatResources: readonly URI[];
+}
+
 /**
  * Event fired when sessions change within a provider.
  */
@@ -28,6 +34,7 @@ export interface ISessionChangeEvent {
 	readonly added: readonly ISession[];
 	readonly removed: readonly ISession[];
 	readonly changed: readonly ISession[];
+	readonly deleted?: readonly ISessionDeletion[];
 }
 
 /** One end of a chat move: the session and the chat's resource in it. */

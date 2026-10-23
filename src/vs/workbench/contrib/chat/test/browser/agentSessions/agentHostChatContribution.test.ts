@@ -21,6 +21,7 @@ import { IUriIdentityService } from '../../../../../../platform/uriIdentity/comm
 import { hasKey } from '../../../../../../base/common/types.js';
 import { getSubagentEditorResource } from '../../../browser/widget/chatContentParts/chatSubagentOpenChat.js';
 import { URI } from '../../../../../../base/common/uri.js';
+import { AgentHostChatMoveTracker } from '../../../browser/agentSessions/agentHost/agentHostChatMoveTracker.js';
 import { IAgentHostConnectionsService } from '../../../../../../platform/agentHost/common/agentHostConnectionsService.js';
 import { AgentHostConnectionsService } from '../../../../../../platform/agentHost/browser/agentHostConnectionsService.js';
 import { autorun, constObservable, derived, ISettableObservable, observableValue, type IObservable } from '../../../../../../base/common/observable.js';
@@ -5540,6 +5541,70 @@ suite('AgentHostChatContribution', () => {
 			});
 		});
 
+		test('catalog removal preserves the admitted identity when another alias is registered', async () => {
+			const { instantiationService, agentHostService } = createTestServices(disposables);
+			const connections = instantiationService.get(IAgentHostConnectionsService);
+			const backend = URI.parse('host-session://owner/opaque/session?revision=one#backend-fragment');
+			const original = connections.registerSessionResource(backend, 'local', 'first-provider').with({ fragment: '' });
+			agentHostService.addSession({ session: backend, provider: 'copilot', startTime: 0, modifiedTime: 0, summary: 'Original' });
+			const store = createSessionListStore(disposables, instantiationService, agentHostService);
+			disposables.add(store.onDidChangeSessions(delta => {
+				if (delta.removed?.length) {
+					connections.registerSessionResource(backend, 'local', 'replacement-provider');
+				}
+			}));
+			const controller = disposables.add(instantiationService.createInstance(AgentHostSessionListController, 'agent-host-copilot', 'copilot', store, undefined, 'local', false));
+			await controller.refresh(CancellationToken.None);
+			const admitted = controller.items[0].resource.toString();
+			const removed: string[] = [];
+			disposables.add(controller.onDidChangeChatSessionItems(delta => {
+				removed.push(...(delta.removed ?? []).map(resource => resource.toString()));
+			}));
+			agentHostService.fireNotification({ type: NotificationType.SessionRemoved, channel: ROOT_STATE_URI, session: backend.toString() });
+			assert.deepStrictEqual({
+				admitted, removed, remaining: controller.items.length,
+				replacement: connections.findSessionResource(backend, 'local')?.toString(),
+			}, {
+				admitted: original.toString(), removed: [original.toString()], remaining: 0,
+				replacement: original.toString(),
+			});
+		});
+
+		test('removed session catalogs cannot turn later peer reuse into a chat move', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const { instantiationService, agentHostService } = createTestServices(disposables);
+			const backend = AgentSession.uri('copilot', 'old-owner');
+			const peer = URI.parse('ahp-chat:/reused-peer');
+			agentHostService.addSession({
+				session: backend, provider: 'copilot', startTime: 0, modifiedTime: 0, chats: [
+					{ chat: URI.parse('ahp-chat:/old-main'), summary: 'Main', kind: 'default' },
+					{ chat: peer, summary: 'Peer', kind: 'peer' },
+				]
+			});
+			const store = createSessionListStore(disposables, instantiationService, agentHostService);
+			const controller = disposables.add(instantiationService.createInstance(AgentHostSessionListController, 'agent-host-copilot', 'copilot', store, undefined, 'local', false));
+			await controller.refresh(CancellationToken.None);
+			const moves: string[] = [];
+			disposables.add(controller.onDidMoveChat(({ from, to }) => moves.push(`${from.chat.toString()} -> ${to.chat.toString()}`)));
+			agentHostService.fireNotification({ type: NotificationType.SessionRemoved, channel: ROOT_STATE_URI, session: backend.toString() });
+			await timeout(AgentHostChatMoveTracker.PAIRING_WINDOW_MS + 1);
+			agentHostService.fireNotification({
+				type: NotificationType.SessionAdded, channel: ROOT_STATE_URI, summary: {
+					resource: backend.toString(), provider: 'copilot', title: 'Listed again', status: SessionStatus.Idle,
+					createdAt: new Date(0).toISOString(), modifiedAt: new Date(0).toISOString(), defaultChat: 'ahp-chat:/old-main',
+					chats: [{ resource: 'ahp-chat:/old-main', title: 'Main' }],
+				}
+			});
+			agentHostService.fireNotification({
+				type: NotificationType.SessionAdded, channel: ROOT_STATE_URI, summary: {
+					resource: AgentSession.uri('copilot', 'new-owner').toString(), provider: 'copilot', title: 'New owner', status: SessionStatus.Idle,
+					createdAt: new Date(0).toISOString(), modifiedAt: new Date(0).toISOString(), defaultChat: 'ahp-chat:/new-main', chats: [
+						{ resource: 'ahp-chat:/new-main', title: 'Main' }, { resource: peer.toString(), title: 'Peer' },
+					],
+				}
+			});
+			assert.deepStrictEqual({ moves, remaining: controller.items.length }, { moves: [], remaining: 2 });
+		}));
+
 		test('sessionRemoved notification removes only the matching item', async () => {
 			const { instantiationService, agentHostService } = createTestServices(disposables);
 
@@ -6088,12 +6153,83 @@ suite('AgentHostChatContribution', () => {
 			assert.deepStrictEqual(listController.items.map(item => item.label), ['Tail matches workspace', 'Local session']);
 		});
 
+		test('deleteChatSessionItem releases a first opaque fragment identity after a refresh during deletion', async () => {
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
+			const backend = URI.parse('host-session://owner/opaque/session?revision=one#backend-fragment');
+			agentHostService.addSession({ session: backend, provider: 'copilot', startTime: 0, modifiedTime: 0, summary: 'Opaque' });
+			await listController.refresh(CancellationToken.None);
+			const resource = listController.items[0].resource;
+			const confirmation = new DeferredPromise<void>();
+			agentHostService.disposeSession = async () => confirmation.p;
+
+			const deletion = listController.deleteChatSessionItem(resource, CancellationToken.None);
+			await listController.refresh(CancellationToken.None);
+			await confirmation.complete();
+			await deletion;
+
+			assert.deepStrictEqual({
+				remaining: listController.items.length,
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local'),
+			}, { remaining: 0, routing: undefined });
+		});
+
+		test('deleteChatSessionItem releases routing after workspace filtering removes the pending row', async () => {
+			const { instantiationService, agentHostService } = createTestServices(disposables);
+			let folder = URI.file('/workspace/first');
+			const onDidChangeWorkspaceFolders = disposables.add(new Emitter<{ readonly added: never[]; readonly removed: never[]; readonly changed: never[] }>());
+			instantiationService.stub(IWorkspaceContextService, {
+				getWorkbenchState: () => WorkbenchState.FOLDER,
+				getWorkspace: () => ({ id: 'workspace', folders: [{ uri: folder, name: 'root', index: 0, toResource: () => folder }] }),
+				getWorkspaceFolder: () => null,
+				onDidChangeWorkspaceFolders: onDidChangeWorkspaceFolders.event,
+			});
+			const backend = AgentSession.uri('copilot', 'filtered-pending-delete');
+			agentHostService.addSession({ session: backend, startTime: 0, modifiedTime: 0, workingDirectories: [folder] });
+			const controller = createSessionListController(disposables, instantiationService, agentHostService);
+			await controller.refresh(CancellationToken.None);
+			const resource = controller.items[0].resource;
+			const confirmation = new DeferredPromise<void>();
+			agentHostService.disposeSession = async () => confirmation.p;
+
+			const deletion = controller.deleteChatSessionItem(resource, CancellationToken.None);
+			folder = URI.file('/workspace/second');
+			onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+			await timeout(0);
+			assert.strictEqual(controller.items.length, 0);
+			await confirmation.complete();
+			await deletion;
+
+			assert.strictEqual(instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local'), undefined);
+		});
+
+		test('deleteChatSessionItem completes cleanup after a duplicate announcement without removal', async () => {
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
+			const backend = AgentSession.uri('copilot', 'duplicate-added-during-delete');
+			agentHostService.addSession({ session: backend, startTime: 0, modifiedTime: 0, summary: 'Original' });
+			await listController.refresh(CancellationToken.None);
+			const resource = listController.items[0].resource;
+			agentHostService.disposeSession = async session => {
+				agentHostService.fireNotification({
+					type: NotificationType.SessionAdded, channel: ROOT_STATE_URI, summary: {
+						resource: session.toString(), provider: 'copilot', title: 'Updated original', status: SessionStatus.Idle,
+						createdAt: new Date(0).toISOString(), modifiedAt: new Date(0).toISOString(),
+					}
+				});
+			};
+
+			await listController.deleteChatSessionItem(resource, CancellationToken.None);
+
+			assert.deepStrictEqual({
+				items: listController.items,
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local'),
+			}, { items: [], routing: undefined });
+		});
+
 		test('deleteChatSessionItem disposes the corresponding backend session and removes it from the cached items', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
-			const { listController, agentHostService } = createContribution(disposables);
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
 
 			agentHostService.addSession({ session: AgentSession.uri('copilot', 'session-to-delete'), startTime: 1000, modifiedTime: 2000, summary: 'Doomed' });
 			await listController.refresh(CancellationToken.None);
-			assert.strictEqual(listController.items.length, 1);
 
 			const itemResource = listController.items[0].resource;
 			const removalEvents: URI[] = [];
@@ -6104,10 +6240,70 @@ suite('AgentHostChatContribution', () => {
 			}));
 			await listController.deleteChatSessionItem(itemResource, CancellationToken.None);
 
-			assert.deepStrictEqual(agentHostService.disposedSessions.map(s => s.toString()), [AgentSession.uri('copilot', 'session-to-delete').toString()]);
-			assert.strictEqual(listController.items.length, 0);
-			assert.deepStrictEqual(removalEvents.map(r => r.toString()), [itemResource.toString()]);
+			assert.deepStrictEqual({
+				disposed: agentHostService.disposedSessions.map(session => session.toString()),
+				remaining: listController.items.length,
+				removed: removalEvents.map(resource => resource.toString()),
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(AgentSession.uri('copilot', 'session-to-delete'), 'local'),
+			}, {
+				disposed: [AgentSession.uri('copilot', 'session-to-delete').toString()], remaining: 0,
+				removed: [itemResource.toString()], routing: undefined,
+			});
 		}));
+
+		test('deleteChatSessionItem emits one removal when the backend announces deletion during the command', async () => {
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
+			const backend = AgentSession.uri('copilot', 'announced-delete');
+			agentHostService.addSession({ session: backend, startTime: 0, modifiedTime: 0 });
+			await listController.refresh(CancellationToken.None);
+			const resource = listController.items[0].resource;
+			const removed: string[] = [];
+			disposables.add(listController.onDidChangeChatSessionItems(delta => removed.push(...(delta.removed ?? []).map(item => item.toString()))));
+			agentHostService.disposeSession = async session => {
+				agentHostService.fireNotification({ type: NotificationType.SessionRemoved, channel: ROOT_STATE_URI, session: session.toString() });
+			};
+			await listController.deleteChatSessionItem(resource, CancellationToken.None);
+			assert.deepStrictEqual({
+				removed, remaining: listController.items.length,
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local'),
+			}, { removed: [resource.toString()], remaining: 0, routing: undefined });
+		});
+
+		test('deleteChatSessionItem preserves a replacement announced before deletion completes', async () => {
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
+			const backend = AgentSession.uri('copilot', 'replaced-during-delete');
+			agentHostService.addSession({ session: backend, startTime: 0, modifiedTime: 0, summary: 'Original' });
+			await listController.refresh(CancellationToken.None);
+			const resource = listController.items[0].resource;
+			agentHostService.disposeSession = async session => {
+				agentHostService.fireNotification({ type: NotificationType.SessionRemoved, channel: ROOT_STATE_URI, session: session.toString() });
+				agentHostService.fireNotification({
+					type: NotificationType.SessionAdded, channel: ROOT_STATE_URI, summary: {
+						resource: session.toString(), provider: 'copilot', title: 'Replacement', status: SessionStatus.Idle,
+						createdAt: new Date(0).toISOString(), modifiedAt: new Date(0).toISOString(),
+					}
+				});
+			};
+			await listController.deleteChatSessionItem(resource, CancellationToken.None);
+			assert.deepStrictEqual({
+				labels: listController.items.map(item => item.label),
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local')?.toString(),
+			}, { labels: ['Replacement'], routing: resource.toString() });
+		});
+
+		test('deleteChatSessionItem preserves routing when backend deletion fails', async () => {
+			const { listController, agentHostService, instantiationService } = createContribution(disposables);
+			const backend = AgentSession.uri('copilot', 'failed-delete');
+			agentHostService.addSession({ session: backend, startTime: 0, modifiedTime: 0 });
+			await listController.refresh(CancellationToken.None);
+			const resource = listController.items[0].resource;
+			agentHostService.disposeSession = async () => { throw new Error('Deletion rejected'); };
+			await assert.rejects(listController.deleteChatSessionItem(resource, CancellationToken.None), /Deletion rejected/);
+			assert.deepStrictEqual({
+				items: listController.items.map(item => item.resource.toString()),
+				routing: instantiationService.get(IAgentHostConnectionsService).findSessionResource(backend, 'local')?.toString(),
+			}, { items: [resource.toString()], routing: resource.toString() });
+		});
 
 		test('deleteChatSessionItem disposes only the selected peer chat', async () => {
 			const { listController, agentHostService } = createContribution(disposables);

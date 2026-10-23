@@ -155,6 +155,9 @@ export interface IAgentHostConnectionsService {
 	/** Records an exact backend identity and adapts only its frontend provider scheme. */
 	registerSessionResource(backendSession: URI, authority?: string, provider?: string): URI;
 
+	/** Releases the saved frontend identities of a session whose lifetime has ended. */
+	forgetSessionResource(backendSession: URI, authority?: string): void;
+
 	/** Looks up a frontend resource using its advertised backend identity on one connection. */
 	findSessionResource(backendSession: URI, authority?: string): URI | undefined;
 

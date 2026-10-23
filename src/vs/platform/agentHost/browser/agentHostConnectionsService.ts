@@ -37,7 +37,7 @@ export class AgentHostConnectionsService extends Disposable implements IAgentHos
 	readonly onDidChangeSessionResolution: Event<void> = this._onDidChangeSessionResolution.event;
 	private readonly _sessionResolutionPolicies = new Map<string, IAgentHostSessionResolutionPolicy>();
 	private readonly _backendSessions = new ResourceMap<{ readonly backend: URI; readonly authority: string; readonly provider: string }>();
-	private readonly _frontendByBackend = new Map<string, URI>();
+	private readonly _frontendByBackend = new Map<string, { resources: URI[]; isPublished: boolean }>();
 	private _resolutionBatchDepth = 0;
 	private _resolutionBatchDirty = false;
 	private readonly _connectionListeners = this._register(new DisposableMap<IAgentConnection, DisposableStore>());
@@ -100,7 +100,18 @@ export class AgentHostConnectionsService extends Disposable implements IAgentHos
 				if (connection.onDidNotification) {
 					store.add(connection.onDidNotification(notification => {
 						if (notification.type === 'root/sessionAdded') {
-							this.registerSessionResource(URI.parse(notification.summary.resource), info.authority, notification.summary.provider);
+							const backend = URI.parse(notification.summary.resource);
+							const entry = this._frontendByBackend.get(this._backendIdentityKey(backend, info.authority));
+							if (entry && !entry.isPublished) {
+								entry.resources = entry.resources.map(resource => URI.parse(resource.toString()));
+								entry.isPublished = true;
+							}
+							this.registerSessionResource(backend, info.authority, notification.summary.provider);
+						} else if (notification.type === 'root/sessionRemoved') {
+							const entry = this._frontendByBackend.get(this._backendIdentityKey(URI.parse(notification.session), info.authority));
+							if (entry) {
+								entry.isPublished = false;
+							}
 						}
 					}));
 				}
@@ -212,24 +223,41 @@ export class AgentHostConnectionsService extends Disposable implements IAgentHos
 			throw new Error(`Session has no advertised provider: ${backendSession.toString()}`);
 		}
 		const resource = backendSession.with({ scheme: `${prefix}${provider}` });
-		const previous = this._backendSessions.get(resource.with({ fragment: '' }));
+		const frontend = resource.with({ fragment: '' });
+		const previous = this._backendSessions.get(frontend);
 		if (previous && !isEqual(previous.backend, backendSession)) {
 			throw new Error(`Conflicting backend identities for ${resource.toString()}`);
 		}
-		this._backendSessions.set(resource.with({ fragment: '' }), { backend: backendSession, authority, provider });
+		this._backendSessions.set(frontend, { backend: backendSession, authority, provider });
 		if (!previous) {
 			// The first frontend resource registered for an identity wins, as with an insertion-ordered scan.
 			const identityKey = this._backendIdentityKey(backendSession, authority);
-			if (!this._frontendByBackend.has(identityKey)) {
-				this._frontendByBackend.set(identityKey, resource.with({ fragment: '' }));
+			let entry = this._frontendByBackend.get(identityKey);
+			if (!entry) {
+				entry = { resources: [], isPublished: true };
+				this._frontendByBackend.set(identityKey, entry);
 			}
+			entry.resources.push(frontend);
 			this._fireSessionResolutionChanged();
 		}
 		return resource;
 	}
 
 	findSessionResource(backendSession: URI, authority = AMBIENT_AGENT_HOST_AUTHORITY): URI | undefined {
-		return this._frontendByBackend.get(this._backendIdentityKey(backendSession, authority));
+		return this._frontendByBackend.get(this._backendIdentityKey(backendSession, authority))?.resources[0];
+	}
+
+	forgetSessionResource(backendSession: URI, authority = AMBIENT_AGENT_HOST_AUTHORITY): void {
+		const identityKey = this._backendIdentityKey(backendSession, authority);
+		const entry = this._frontendByBackend.get(identityKey);
+		if (!entry) {
+			return;
+		}
+		for (const resource of entry.resources) {
+			this._backendSessions.delete(resource);
+		}
+		this._frontendByBackend.delete(identityKey);
+		this._fireSessionResolutionChanged();
 	}
 
 	private _backendIdentityKey(backendSession: URI, authority: string): string {

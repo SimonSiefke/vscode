@@ -360,6 +360,11 @@ function createProvider(disposables: DisposableStore, connection: MockAgentConne
 			}
 			return resource;
 		},
+		forgetSessionResource: backend => {
+			if (sessionResources.delete(backend)) {
+				sessionResourcesChanged.fire();
+			}
+		},
 		getSessionResource: backend => sessionResources.get(backend),
 		registerSessionResolutionPolicy: (authority, policy) => {
 			overrides?.sessionResolutionPolicies?.push({ authority, policy });
@@ -1234,6 +1239,27 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		assert.strictEqual(ws.label, 'project');
 		assert.strictEqual(ws.folders.length, 1);
 		assert.strictEqual(ws.folders[0].root.toString(), uri.toString());
+	});
+
+	test('forgets routing when an eager remote draft is discarded without a root notification', async () => {
+		const forgotten: string[] = [];
+		const provider = createProvider(disposables, connection, {
+			ctor: class extends RemoteAgentHostSessionsProvider {
+				protected override forgetBackendSession(backend: URI): void {
+					forgotten.push(backend.toString());
+					super.forgetBackendSession(backend);
+				}
+			},
+		});
+		const session = provider.createNewSession(URI.parse('vscode-agent-host://localhost__4321/project'), provider.sessionTypes[0].id);
+		provider.setAuthenticationPending(false);
+		await timeout(0);
+		const backend = connection.createdSessionUris.at(-1)!;
+
+		provider.deleteNewSession(session.sessionId);
+		provider.deleteNewSession(session.sessionId);
+
+		assert.deepStrictEqual(forgotten, [backend.toString()]);
 	});
 
 	test('createNewSession eagerly creates the backend session in a trusted folder', async () => {
@@ -5663,6 +5689,244 @@ suite('CloudSandboxSessionsProvider deletion', () => {
 				supportsDelete: true, deleted: [['sandbox-session']], removed: [session.sessionId],
 				connects: 0, hostDeletions: [], remaining: [],
 			});
+		});
+	}
+
+	for (const connected of [false, true]) {
+		test(`confirms Mission Control deletion with captured chats before teardown: connected=${connected}`, async () => {
+			const connection = store.add(new MockAgentConnection());
+			const confirmation = new DeferredPromise<void>();
+			const entered = new DeferredPromise<void>();
+			const changes: ISessionChangeEvent[] = [];
+			const provider = createProvider(store.add(new DisposableStore()), connection, {
+				address: 'cloudsandbox:confirmed-delete', ctor: CloudSandboxSessionsProvider,
+				sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' }, noConnection: true,
+				deleteSessionsOnDemand: {
+					ownsSession: () => true,
+					deleteSessions: async (resources, confirmDeletion) => {
+						await entered.complete();
+						await confirmation.p;
+						for (const resource of resources) {
+							const deleted = confirmDeletion?.(resource);
+							if (!confirmDeletion || deleted) {
+								sandbox.removeDeletedSession(AgentSession.id(resource), deleted);
+							}
+						}
+						provider.dispose();
+					},
+				},
+			});
+			const sandbox = provider as CloudSandboxSessionsProvider;
+			const backend = AgentSession.uri('ahp-session', 'confirmed-owner');
+			const metadata = createSession('confirmed-owner', { session: backend, provider: 'copilot' });
+			if (connected) {
+				connection.addSession(metadata);
+				provider.setConnection(connection);
+				await timeout(0);
+			}
+			provider.seedSessions([metadata]);
+			const session = provider.getSessions()[0];
+			const expected = { sessionId: session.sessionId, chatResources: session.chats.get().map(chat => chat.resource.toString()) };
+			store.add(provider.onDidChangeSessions(event => changes.push(event)));
+			const deletion = provider.deleteSession(session.sessionId);
+			await entered.p;
+			if (connected) {
+				fireSessionRemoved(connection, 'confirmed-owner', 'ahp-session');
+				await timeout(0);
+				assert.strictEqual(provider.getSessions().length, 0);
+			}
+			assert.deepStrictEqual(changes.flatMap(event => event.deleted ?? []), []);
+			await confirmation.complete();
+			await deletion;
+
+			assert.deepStrictEqual(changes.flatMap(event => (event.deleted ?? []).map(deleted => ({ sessionId: deleted.sessionId, chatResources: deleted.chatResources.map(resource => resource.toString()) }))), [expected]);
+			assert.strictEqual(provider.getSessions().length, 0);
+		});
+	}
+
+	test('confirms only successful Mission Control targets when a later delete fails', async () => {
+		const connection = store.add(new MockAgentConnection());
+		const changes: ISessionChangeEvent[] = [];
+		const provider = createProvider(store.add(new DisposableStore()), connection, {
+			ctor: CloudSandboxSessionsProvider, noConnection: true,
+			sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' },
+			deleteSessionsOnDemand: {
+				ownsSession: () => true,
+				deleteSessions: async (resources, confirmDeletion) => {
+					const first = resources[0];
+					sandbox.removeDeletedSession(AgentSession.id(first), confirmDeletion?.(first));
+					throw new Error('second task rejected deletion');
+				},
+			},
+		});
+		const sandbox = provider as CloudSandboxSessionsProvider;
+		provider.seedSessions(['first-task', 'second-task'].map(id => createSession(id, { session: AgentSession.uri('ahp-session', id), provider: 'copilot' })));
+		const sessions = provider.getSessions();
+		store.add(provider.onDidChangeSessions(event => changes.push(event)));
+
+		await assert.rejects(provider.deleteSessions(sessions.map(session => session.sessionId)), /second task rejected/);
+
+		assert.deepStrictEqual({ confirmed: changes.flatMap(event => (event.deleted ?? []).map(session => session.sessionId)), remaining: provider.getSessions().map(session => session.sessionId) }, { confirmed: [sessions[0].sessionId], remaining: [sessions[1].sessionId] });
+	});
+
+	test('does not confirm a replacement after pending Mission Control deletion', async () => {
+		const connection = store.add(new MockAgentConnection());
+		const confirmation = new DeferredPromise<void>();
+		const entered = new DeferredPromise<void>();
+		const changes: ISessionChangeEvent[] = [];
+		const provider = createProvider(store.add(new DisposableStore()), connection, {
+			ctor: CloudSandboxSessionsProvider, noConnection: true,
+			sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' },
+			deleteSessionsOnDemand: {
+				ownsSession: () => true,
+				deleteSessions: async (resources, confirmDeletion) => {
+					await entered.complete();
+					await confirmation.p;
+					for (const resource of resources) {
+						const deleted = confirmDeletion?.(resource);
+						if (!confirmDeletion || deleted) {
+							sandbox.removeDeletedSession(AgentSession.id(resource), deleted);
+						}
+					}
+				},
+			},
+		});
+		const sandbox = provider as CloudSandboxSessionsProvider;
+		const metadata = createSession('replaced-owner', { session: AgentSession.uri('ahp-session', 'replaced-owner'), provider: 'copilot' });
+		connection.addSession(metadata);
+		provider.setConnection(connection);
+		await timeout(0);
+		provider.seedSessions([metadata]);
+		const original = provider.getSessions()[0];
+		store.add(provider.onDidChangeSessions(event => changes.push(event)));
+		const deletion = provider.deleteSession(original.sessionId);
+		await entered.p;
+		fireSessionRemoved(connection, 'replaced-owner', 'ahp-session');
+		provider.seedSessions([metadata]);
+		const replacement = provider.getSessions()[0];
+		assert.notStrictEqual(replacement, original);
+		await confirmation.complete();
+		await deletion;
+
+		assert.deepStrictEqual(changes.flatMap(event => event.deleted ?? []), []);
+		assert.strictEqual(provider.getSessions()[0], replacement);
+	});
+
+	for (const connected of [false, true]) {
+		test(`does not revive owner deletion after a live replacement is hidden: connected=${connected}`, async () => {
+			const connection = store.add(new MockAgentConnection());
+			const confirmation = new DeferredPromise<void>();
+			const entered = new DeferredPromise<void>();
+			const changes: ISessionChangeEvent[] = [];
+			const provider = createProvider(store.add(new DisposableStore()), connection, {
+				ctor: CloudSandboxSessionsProvider, noConnection: true,
+				sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' },
+				deleteSessionsOnDemand: {
+					ownsSession: () => true,
+					deleteSessions: async (resources, confirmDeletion) => {
+						await entered.complete();
+						await confirmation.p;
+						for (const resource of resources) {
+							const deleted = confirmDeletion?.(resource);
+							if (!confirmDeletion || deleted) {
+								sandbox.removeDeletedSession(AgentSession.id(resource), deleted);
+							}
+						}
+					},
+				},
+			});
+			const sandbox = provider as CloudSandboxSessionsProvider;
+			const metadata = createSession('replaced-owner', { session: AgentSession.uri('ahp-session', 'replaced-owner'), provider: 'copilot' });
+			if (connected) {
+				connection.addSession(metadata);
+				provider.setConnection(connection);
+				await timeout(0);
+			}
+			provider.seedSessions([metadata]);
+			const original = provider.getSessions()[0];
+			store.add(provider.onDidChangeSessions(event => changes.push(event)));
+			const deletion = provider.deleteSession(original.sessionId);
+			await entered.p;
+			sandbox.removeDeletedSession('replaced-owner');
+			provider.seedSessions([metadata]);
+			const replacement = provider.getSessions()[0];
+			assert.notStrictEqual(replacement, original);
+			sandbox.removeDeletedSession('replaced-owner');
+			await timeout(100);
+			await confirmation.complete();
+			await deletion;
+
+			assert.deepStrictEqual(changes.flatMap(event => event.deleted ?? []), []);
+			assert.strictEqual(provider.getSessions().length, 0);
+		});
+	}
+
+	test('catalog omission does not confirm permanent sandbox deletion', () => {
+		const connection = store.add(new MockAgentConnection());
+		const provider = createProvider(store.add(new DisposableStore()), connection, { ctor: CloudSandboxSessionsProvider, noConnection: true }) as CloudSandboxSessionsProvider;
+		provider.seedSessions([createSession('catalog-omission', { session: AgentSession.uri('ahp-session', 'catalog-omission'), provider: 'copilot' })]);
+		const changes: ISessionChangeEvent[] = [];
+		store.add(provider.onDidChangeSessions(event => changes.push(event)));
+
+		provider.removeDeletedSession('catalog-omission');
+
+		assert.deepStrictEqual({ removed: changes.flatMap(event => event.removed).length, deleted: changes.flatMap(event => event.deleted ?? []) }, { removed: 1, deleted: [] });
+	});
+
+	for (const connected of [false, true]) {
+		test(`forgets confirmed Mission Control routing while another task keeps the provider alive: connected=${connected}`, async () => {
+			const connection = store.add(new MockAgentConnection());
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			const provider = createProvider(store.add(new DisposableStore()), connection, {
+				address: 'cloudsandbox:owner-routing', ctor: CloudSandboxSessionsProvider,
+				sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' }, noConnection: true,
+				deleteSessionsOnDemand: {
+					ownsSession: () => true,
+					deleteSessions: async (resources, confirmDeletion) => {
+						await entered.complete();
+						await release.p;
+						for (const resource of resources) {
+							const deleted = confirmDeletion?.(resource);
+							if (!confirmDeletion || deleted) {
+								sandbox.removeDeletedSession(AgentSession.id(resource), deleted);
+							}
+						}
+					},
+				},
+			});
+			const sandbox = provider as CloudSandboxSessionsProvider;
+			const backend = AgentSession.uri('ahp-session', 'owner-routing-delete');
+			const kept = AgentSession.uri('ahp-session', 'owner-routing-kept');
+			const metadata = [createSession('owner-routing-delete', { session: backend, provider: 'copilot' }), createSession('owner-routing-kept', { session: kept, provider: 'copilot' })];
+			if (connected) {
+				for (const session of metadata) {
+					connection.addSession(session);
+				}
+				provider.setConnection(connection);
+				await timeout(0);
+			}
+			provider.seedSessions(metadata);
+			const connections = Reflect.get(provider, 'agentHostConnectionsService') as IAgentHostConnectionsService;
+			assert.ok(connections.findSessionResource(backend));
+			const keptRegistration = connections.findSessionResource(kept);
+			assert.ok(keptRegistration);
+			const target = provider.getSessions().find(session => AgentSession.id(session.resource) === 'owner-routing-delete');
+			assert.ok(target);
+			const deletion = provider.deleteSession(target.sessionId);
+			await entered.p;
+			if (connected) {
+				fireSessionRemoved(connection, 'owner-routing-delete', 'ahp-session');
+				await timeout(0);
+			}
+			await release.complete();
+			await deletion;
+
+			assert.deepStrictEqual({
+				deletedRouting: connections.findSessionResource(backend),
+				keptRouting: connections.findSessionResource(kept),
+				remaining: provider.getSessions().map(session => AgentSession.id(session.resource)),
+			}, { deletedRouting: undefined, keptRouting: keptRegistration, remaining: ['owner-routing-kept'] });
 		});
 	}
 

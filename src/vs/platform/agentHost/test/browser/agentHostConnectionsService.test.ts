@@ -20,6 +20,7 @@ import { ChangesetKind } from '../../common/changesetUri.js';
 import type { IRemoteAgentHostConnectionInfo, IRemoteAgentHostService } from '../../common/remoteAgentHostService.js';
 import { AGENT_HOST_SCHEME, agentHostAuthority, createAgentHostResourceUriMapper, identityAgentHostResourceUriMapper } from '../../common/agentHostUri.js';
 import { remoteAgentHostSessionTypeId } from '../../common/agentHostSessionType.js';
+import type { INotification } from '../../common/state/sessionActions.js';
 
 /** A connection stand-in identified by a `marker` so equality checks read clearly. */
 function fakeConnection(marker: string, operatingSystem = 'linux'): IAgentConnection {
@@ -42,7 +43,7 @@ suite('AgentHostConnectionsService', () => {
 	function createService(
 		remoteConnections: readonly IRemoteAgentHostConnectionInfo[],
 		remoteByAddress: Map<string, IAgentConnection>,
-		options?: { ambientResourceAuthority?: string; ambientOperatingSystem?: string },
+		options?: { ambientResourceAuthority?: string; ambientOperatingSystem?: string; ambientNotifications?: Event<INotification> },
 	): { service: AgentHostConnectionsService; ambient: IAgentConnection; pathProvider: IResourcePathProvider; fireRemoteChange: () => void } {
 		const onRemoteChange = store.add(new Emitter<void>());
 
@@ -50,6 +51,7 @@ suite('AgentHostConnectionsService', () => {
 			...fakeConnection('ambient', options?.ambientOperatingSystem),
 			onAgentHostStart: Event.None,
 			onAgentHostExit: Event.None,
+			onDidNotification: options?.ambientNotifications ?? Event.None,
 			resourceUris: options?.ambientResourceAuthority
 				? createAgentHostResourceUriMapper(options.ambientResourceAuthority)
 				: identityAgentHostResourceUriMapper,
@@ -470,4 +472,86 @@ suite('AgentHostConnectionsService', () => {
 		}
 		assert.deepStrictEqual(actual, expected);
 	});
+	for (const authority of ['local', 'myhost']) {
+		for (const backend of [URI.parse('ahp-session:/hidden-live'), URI.parse('host-session://owner/opaque/session?revision=one#backend-fragment')]) {
+			test(`preserves known routing when a live ${backend.scheme} session is hidden on ${authority}`, () => {
+				const notifications = store.add(new Emitter<INotification>());
+				const remoteConnection: IAgentConnection = { ...fakeConnection('remote'), onDidNotification: notifications.event };
+				const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', remoteConnection]]), { ambientNotifications: authority === 'local' ? notifications.event : undefined });
+				const resource = service.registerSessionResource(backend, authority, 'copilot');
+				const canonical = service.findSessionResource(backend, authority);
+
+				notifications.fire({ type: 'root/sessionRemoved', channel: 'ahp-root://', session: backend.toString() });
+
+				assert.deepStrictEqual({
+					routing: service.findSessionResource(backend, authority)?.toString(),
+					advertised: service.resolveSessionResourceIdentity(resource)?.backendSessionIsAdvertised,
+				}, { routing: canonical?.toString(), advertised: true });
+			});
+		}
+	}
+
+	test('forgets every frontend alias after an ambient backend session is confirmed deleted', () => {
+		const notifications = store.add(new Emitter<INotification>());
+		const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', fakeConnection('remote')]]), { ambientNotifications: notifications.event });
+		const backend = URI.parse('ahp-session:/removed');
+		const first = service.registerSessionResource(backend, undefined, 'codex');
+		const second = service.registerSessionResource(backend, undefined, 'copilot');
+		service.registerSessionResource(backend, undefined, 'codex');
+		const remote = service.registerSessionResource(backend, 'myhost', 'codex');
+		const remainingBackend = URI.parse('ahp-session:/remaining');
+		const remaining = service.registerSessionResource(remainingBackend, undefined, 'codex');
+		let changes = 0;
+		store.add(service.onDidChangeSessionResolution(() => changes++));
+
+		service.forgetSessionResource(backend);
+		service.forgetSessionResource(backend);
+
+		assert.deepStrictEqual({
+			removed: service.findSessionResource(backend),
+			advertised: [first, second].map(resource => service.resolveSessionResourceIdentity(resource)?.backendSessionIsAdvertised),
+			remote: service.findSessionResource(backend, 'myhost')?.toString(),
+			remaining: service.findSessionResource(remainingBackend)?.toString(),
+			changes,
+		}, { removed: undefined, advertised: [undefined, undefined], remote: remote.toString(), remaining: remaining.toString(), changes: 1 });
+	});
+
+	test('releases draft identities without a root notification and allows a new registration', () => {
+		const { service } = createService([], new Map());
+		const backend = URI.parse('ahp-session:/draft');
+		const old = service.registerSessionResource(backend, undefined, 'codex');
+		service.registerSessionResource(backend, undefined, 'copilot');
+
+		service.forgetSessionResource(backend);
+		assert.deepStrictEqual({ lookup: service.findSessionResource(backend), advertised: service.resolveSessionResourceIdentity(old)?.backendSessionIsAdvertised }, { lookup: undefined, advertised: undefined });
+		const replacement = service.registerSessionResource(backend, undefined, 'other');
+
+		assert.strictEqual(service.findSessionResource(backend)?.toString(), replacement.toString());
+	});
+
+	test('batches confirmed remote deletions and preserves the ambient identity', () => {
+		const notifications = store.add(new Emitter<INotification>());
+		const remoteConnection: IAgentConnection = { ...fakeConnection('remote'), onDidNotification: notifications.event };
+		const { service } = createService([info('myhost', 'Remote')], new Map([['myhost', remoteConnection]]));
+		const backends = [URI.parse('ahp-session:/first'), URI.parse('ahp-session:/second')];
+		const ambient = service.registerSessionResource(backends[0], undefined, 'codex');
+		for (const backend of backends) {
+			service.registerSessionResource(backend, 'myhost', 'codex');
+		}
+		let changes = 0;
+		store.add(service.onDidChangeSessionResolution(() => changes++));
+
+		service.batchSessionResolutionChanges(() => {
+			for (const backend of backends) {
+				service.forgetSessionResource(backend, 'myhost');
+			}
+		});
+
+		assert.deepStrictEqual({
+			remote: backends.map(backend => service.findSessionResource(backend, 'myhost')),
+			ambient: service.findSessionResource(backends[0])?.toString(),
+			changes,
+		}, { remote: [undefined, undefined], ambient: ambient.toString(), changes: 1 });
+	});
+
 });
