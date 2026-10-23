@@ -1290,6 +1290,8 @@ export class ChatService extends Disposable implements IChatService {
 				streamingResponseCompletedAt = undefined;
 			};
 			const processProgress = (progressArray: readonly IChatProgress[], isComplete: boolean) => {
+				// The first observation replays whatever the session did before it was watched.
+				const restoredProgress = wasComplete === undefined;
 				const justCompleted = wasComplete === false && isComplete;
 				wasComplete = isComplete;
 
@@ -1302,7 +1304,7 @@ export class ChatService extends Disposable implements IChatService {
 				if (streamingRequest && progressArray.length > lastProgressLength) {
 					const newProgress = progressArray.slice(lastProgressLength);
 					for (const progress of newProgress) {
-						model?.acceptResponseProgress(streamingRequest, progress);
+						model?.acceptResponseProgress(streamingRequest, progress, undefined, restoredProgress);
 					}
 					lastProgressLength = progressArray.length;
 				}
@@ -1323,7 +1325,7 @@ export class ChatService extends Disposable implements IChatService {
 			// Handle server-initiated requests (e.g. consumed queued messages).
 			let progressDeferredForServerRequest = false;
 			if (providedSession.onDidStartServerRequest) {
-				const handleServerRequest = ({ id, prompt, metadata, variableData, modelId, modelConfiguration, timestamp, isSystemInitiated, requestSource, isHidden, isRequestHidden, systemInitiatedLabel, isTerminalRequest, resume, origin }: IChatSessionServerRequest) => {
+				const handleServerRequest = ({ id, prompt, metadata, variableData, modelId, modelConfiguration, timestamp, isSystemInitiated, requestSource, artifactRequest, isHidden, isRequestHidden, systemInitiatedLabel, isTerminalRequest, resume, origin }: IChatSessionServerRequest) => {
 					if (resume) {
 						const request = model.getRequests().find(request => request.id === id);
 						if (!request?.response) {
@@ -1368,6 +1370,8 @@ export class ChatService extends Disposable implements IChatService {
 						requestSource,
 						modelConfiguration,
 						metadata,
+						undefined,
+						artifactRequest,
 					);
 
 					// Reset progress tracking for the new turn
@@ -2611,7 +2615,7 @@ export class ChatService extends Disposable implements IChatService {
 			model.acceptResponseProgress(request, { content: new MarkdownString(response.message), kind: 'markdownContent' });
 		} else {
 			for (const part of response.message) {
-				model.acceptResponseProgress(request, part, true);
+				model.acceptResponseProgress(request, part, true, true /* restored */);
 			}
 		}
 		model.setResponse(request, response.result || {});
@@ -2735,10 +2739,13 @@ export class ChatService extends Disposable implements IChatService {
 			const agentHostMessageOrigin = remote.agentHostMessageOrigin ?? local?.sendOptions.agentHostMessageOrigin;
 			const metadata = remote.agentHostMessageOrigin !== undefined ? remote.metadata : remote.metadata ?? local?.sendOptions.metadata;
 			const isSystemInitiated = remote.isSystemInitiated ?? local?.request.isSystemInitiated;
+			const requestSource = remote.agentHostMessageOrigin !== undefined ? remote.requestSource : remote.requestSource ?? local?.request.requestSource;
+			const artifactRequest = remote.agentHostMessageOrigin !== undefined ? remote.artifactRequest : remote.artifactRequest ?? local?.request.artifactRequest;
 			const systemInitiatedLabel = remote.agentHostMessageOrigin !== undefined ? remote.systemInitiatedLabel : remote.systemInitiatedLabel ?? local?.request.systemInitiatedLabel;
 			if (local && local.request.message.text === remote.message && equals(local.request.variableData, variableData)
 				&& local.request.modelId === modelId && equals(local.request.modelConfiguration, modelConfiguration)
 				&& local.request.isSystemInitiated === isSystemInitiated && local.request.systemInitiatedLabel === systemInitiatedLabel
+				&& local.request.requestSource === requestSource && equals(local.request.artifactRequest, artifactRequest)
 				&& equals(local.sendOptions.agentHostMessageOrigin, agentHostMessageOrigin) && equals(local.sendOptions.metadata, metadata)) {
 				return local.kind === remote.kind ? local : { ...local, kind: remote.kind };
 			}
@@ -2753,6 +2760,8 @@ export class ChatService extends Disposable implements IChatService {
 				modelId,
 				modelConfiguration,
 				isSystemInitiated,
+				requestSource,
+				artifactRequest,
 				systemInitiatedLabel,
 			});
 			return {
