@@ -140,7 +140,12 @@ export class CloudSandboxAgentHostContribution extends CloudSandboxSessionContri
 			disconnectOnDemand: () => this._disconnectEnvironment(cloudSandboxAddress(env.environmentId)),
 			deleteSessionsOnDemand: {
 				ownsSession: session => isEqual(session, AgentSession.uri(CLOUD_SANDBOX_SESSION_SCHEME, AgentSession.id(session))) && this._ownsSandboxSession(cloudSandboxAddress(env.environmentId), AgentSession.id(session)),
-				deleteSessions: sessions => this._deleteSandboxSession(cloudSandboxAddress(env.environmentId), sessions.map(session => AgentSession.id(session)), rawId => provider.removeDeletedSession(rawId)),
+				deleteSessions: (sessions, confirmDeletion) => this._deleteSandboxSession(cloudSandboxAddress(env.environmentId), sessions.map(session => AgentSession.id(session)), rawId => {
+					const deleted = confirmDeletion?.(AgentSession.uri(CLOUD_SANDBOX_SESSION_SCHEME, rawId));
+					if (!confirmDeletion || deleted) {
+						provider.removeDeletedSession(rawId, deleted);
+					}
+				}),
 			},
 			sessionSchemeAlias: { ui: CLOUD_SANDBOX_AGENT_PROVIDER, backend: CLOUD_SANDBOX_SESSION_SCHEME },
 			defaultChangesetKind: ChangesetKind.Session,

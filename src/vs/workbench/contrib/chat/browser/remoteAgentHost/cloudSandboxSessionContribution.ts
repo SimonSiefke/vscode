@@ -172,6 +172,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 	 * environment as one that has vanished and tear it down mid-provision.
 	 */
 	protected readonly _provisioning = new Set<string>();
+	private readonly _pendingSessionDeletions = new Map<string, { count: number }>();
 	/** History-backed providers retained through their first live connection. */
 	private readonly _historyHandlers = this._register(new DisposableMap<string, { readonly handler: CloudSandboxSessionHandler; dispose(): void }>());
 	/**
@@ -476,7 +477,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 			}
 		}
 		for (const [address, environment] of this._environments) {
-			if (present.has(address) || this._provisioning.has(address)) {
+			if (present.has(address) || this._provisioning.has(address) || this._pendingSessionDeletions.has(address)) {
 				continue;
 			}
 			if (result.kind !== 'complete' && (!environment.taskId || (!removedTasks.has(environment.taskId) && !updatedTasks.has(environment.taskId)))) {
@@ -697,6 +698,9 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 		const store = new DisposableStore();
 		const source = store.add(new CancellationTokenSource(this._enabledCts.token));
 		store.add(token.onCancellationRequested(() => source.cancel()));
+		const pendingDeletion = this._pendingSessionDeletions.get(address) ?? { count: 0 };
+		pendingDeletion.count++;
+		this._pendingSessionDeletions.set(address, pendingDeletion);
 		try {
 			for (const target of targets) {
 				await this._apiService.deleteTask(target.taskId, source.token);
@@ -709,11 +713,18 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 				removeSession(target.sessionId);
 			}
 		} finally {
+			const pending = --pendingDeletion.count;
+			const ownsHold = this._pendingSessionDeletions.get(address) === pendingDeletion;
+			if (pending === 0 && ownsHold) {
+				this._pendingSessionDeletions.delete(address);
+			}
 			store.dispose();
-			if (this._sessionEnvironments.get(address) === sessions) {
+			if (ownsHold && this._sessionEnvironments.get(address) === sessions) {
 				const remaining = sessions?.values().next().value;
 				if (!remaining) {
-					this._teardownEnvironment(address);
+					if (pending === 0) {
+						this._teardownEnvironment(address);
+					}
 				} else if (!sessions?.has(this._environments.get(address)?.sessionId ?? '')) {
 					this._environments.set(address, remaining);
 				}
@@ -757,6 +768,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 		}
 		this._sessionEnvironments.delete(address);
 		this._environments.delete(address);
+		this._pendingSessionDeletions.delete(address);
 		this._cancelPendingConnect(address);
 		this._providerStores.deleteAndDispose(address);
 		this._clearSessionHandlers(address);
@@ -778,6 +790,7 @@ export abstract class CloudSandboxSessionContribution<T extends ICloudSandboxSes
 		this._discoveryRetryInterval = DISCOVERY_STALE_AFTER_MS;
 		this._accountKey = undefined;
 		this._deletedTaskIds.clear();
+		this._pendingSessionDeletions.clear();
 		this._persistedInventory.clear();
 		for (const address of [...this._environments.keys()]) {
 			this._teardownEnvironment(address);

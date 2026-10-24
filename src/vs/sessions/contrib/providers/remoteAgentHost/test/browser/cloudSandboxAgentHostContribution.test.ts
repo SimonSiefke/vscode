@@ -1218,6 +1218,90 @@ suite('CloudSandboxAgentHostContribution', () => {
 		});
 	});
 
+	test('keeps the last sandbox provider registered through discovery during deletion', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { await entered.complete(); await release.p; } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deleted = { sessionId: 'pending-sandbox', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirmations: unknown[] = [];
+		const remove = provider.removeDeletedSession.bind(provider);
+		provider.removeDeletedSession = (rawId, confirmation?: typeof deleted) => { confirmations.push(confirmation); remove(rawId); };
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')], () => deleted);
+		await entered.p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await deletion;
+
+		assert.deepStrictEqual({ disposedWhilePending, confirmations, finallyDisposed: provider.disposed }, { disposedWhilePending: false, confirmations: [undefined, deleted], finallyDisposed: true });
+	});
+
+	test('releases the sandbox deletion hold after a rejected task request', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { await entered.complete(); await release.p; throw new Error('task deletion rejected'); } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')]);
+		await entered.p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await assert.rejects(deletion, /task deletion rejected/);
+		await harness.runDiscovery();
+
+		assert.deepStrictEqual({ disposedWhilePending, finallyDisposed: provider.disposed }, { disposedWhilePending: false, finallyDisposed: true });
+	});
+
+	test('waits for both pending deletions before disposing the last sandbox provider', async () => {
+		const entered = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+		const release = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+		let calls = 0;
+		const harness = await createContribution(store, [discoveredSession()], { deleteTask: async () => { const index = calls++; await entered[index].complete(); await release[index].p; } });
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const resource = URI.parse('ahp-session:/sess-1');
+		const confirmations: boolean[] = [];
+		const deleted = { sessionId: 'pending-sandbox', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirm = () => { confirmations.push(provider.disposed); return deleted; };
+		const first = provider.config.deleteSessionsOnDemand!.deleteSessions([resource], confirm);
+		await entered[0].p;
+		const second = provider.config.deleteSessionsOnDemand!.deleteSessions([resource], confirm);
+		await entered[1].p;
+		harness.discovered = [];
+		await harness.runDiscovery();
+		await release[0].complete();
+		await first;
+		const disposedWithSecondPending = provider.disposed;
+		await release[1].complete();
+		await second;
+
+		assert.deepStrictEqual({ disposedWithSecondPending, confirmations, finallyDisposed: provider.disposed }, { disposedWithSecondPending: false, confirmations: [false, false], finallyDisposed: true });
+	});
+
+	test('publishes owner deletion confirmation before the last sandbox provider is disposed', async () => {
+		const harness = await createContribution(store, [discoveredSession()]);
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const backend = URI.parse('ahp-session:/sess-1');
+		const deleted = { sessionId: 'sandbox-history', chatResources: [URI.parse('remote-sandbox-copilot:/sess-1')] };
+		const confirmations: unknown[] = [];
+		const wasDisposed: boolean[] = [];
+		const remove = provider.removeDeletedSession.bind(provider);
+		provider.removeDeletedSession = (rawId, confirmation?: typeof deleted) => {
+			confirmations.push(confirmation);
+			wasDisposed.push(provider.disposed);
+			remove(rawId);
+		};
+
+		await provider.config.deleteSessionsOnDemand!.deleteSessions([backend], resource => {
+			assert.strictEqual(resource.toString(), backend.toString());
+			return deleted;
+		});
+
+		assert.deepStrictEqual({ confirmations, wasDisposed, disposed: provider.disposed }, { confirmations: [deleted], wasDisposed: [false], disposed: true });
+	});
+
 	test('retains the provider and inventory when Mission Control rejects deletion', async () => {
 		const storage = store.add(new InMemoryStorageService());
 		const harness = await createContribution(store, [discoveredSession()], {
@@ -1886,6 +1970,223 @@ suite('CloudSandboxAgentHostContribution startup inventory', () => {
 			}
 		}
 	}
+
+
+	for (const transition of ['feature', 'account'] as const) {
+		for (const completionOrder of ['current first', 'old first'] as const) {
+			for (const rejectOld of [false, true]) {
+				test(`keeps deletion holds in their provider lifetime: ${transition}, ${completionOrder}, rejectOld=${rejectOld}`, async () => {
+					const entered = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+					const release = [new DeferredPromise<void>(), new DeferredPromise<void>()];
+					const storageService = store.add(new InMemoryStorageService());
+					const oldError = new Error('Old deletion failed after cancellation');
+					let calls = 0;
+					const harness = await createContribution(store, [discoveredSession()], {
+						storageService,
+						deleteTask: async () => {
+							const index = calls++;
+							await entered[index].complete();
+							await release[index].p;
+							if (index === 0 && rejectOld) {
+								throw oldError;
+							}
+						},
+					});
+					const address = cloudSandboxAddress('env-1');
+					const backend = URI.parse('ahp-session:/sess-1');
+					const oldProvider = harness.contribution.stubProviders.get(address)!;
+					const oldDeletion = oldProvider.config.deleteSessionsOnDemand!.deleteSessions([backend]);
+					const oldOutcome = oldDeletion.then(() => false, error => rejectOld ? error === oldError : isCancellationError(error));
+					await entered[0].p;
+					const currentAccount = transition === 'account' ? '["github","account-2"]' : account;
+					if (transition === 'feature') {
+						await harness.setEnabled(false);
+						await harness.setEnabled(true);
+					} else {
+						harness.changeAccount(currentAccount);
+					}
+					await harness.runDiscovery();
+					const currentProvider = harness.contribution.stubProviders.get(address)!;
+					const currentDeletion = currentProvider.config.deleteSessionsOnDemand!.deleteSessions([backend]);
+					await entered[1].p;
+					let disposedWhileCurrentPending = false;
+					let oldCanceled = false;
+					if (completionOrder === 'old first') {
+						await release[0].complete();
+						oldCanceled = await oldOutcome;
+						harness.discovered = [];
+						await harness.runDiscovery();
+						disposedWhileCurrentPending = currentProvider.disposed;
+					}
+					await release[1].complete();
+					await currentDeletion;
+					const disposedAfterCurrentDeletion = currentProvider.disposed;
+					const inventoryAfterCurrentDeletion = readInventory(storageService, currentAccount).length;
+					if (completionOrder === 'current first') {
+						await release[0].complete();
+						oldCanceled = await oldOutcome;
+					}
+					harness.contribution.dispose();
+					const restored = await createContribution(store, [], {
+						storageService, accountKey: currentAccount,
+						listSessions: async () => ({ kind: 'failed', reason: 'offline' }),
+					});
+					assert.deepStrictEqual({
+						oldDisposed: oldProvider.disposed, recreated: currentProvider !== oldProvider, oldCanceled,
+						disposedWhileCurrentPending, disposedAfterCurrentDeletion, inventoryAfterCurrentDeletion,
+						restoredProviders: restored.contribution.stubProviders.size,
+					}, {
+						oldDisposed: true, recreated: true, oldCanceled: true, disposedWhileCurrentPending: false,
+						disposedAfterCurrentDeletion: true, inventoryAfterCurrentDeletion: 0, restoredProviders: 0,
+					});
+				});
+			}
+		}
+	}
+
+	for (const transition of ['feature', 'account'] as const) {
+		for (const rejectPending of [false, true]) {
+			test(`persists a completed deletion while another call is pending: ${transition}, rejectPending=${rejectPending}`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const storageService = store.add(new InMemoryStorageService());
+				const pendingError = new Error('Pending deletion failed after teardown');
+				const first = discoveredSession();
+				const second = discoveredSession({ sessionId: 'sess-2', taskId: 'task-2' });
+				const harness = await createContribution(store, [first, second], {
+					storageService,
+					deleteTask: async taskId => {
+						if (taskId === second.taskId) {
+							await entered.complete();
+							await release.p;
+							if (rejectPending) {
+								throw pendingError;
+							}
+						}
+					},
+				});
+				const address = cloudSandboxAddress('env-1');
+				const provider = harness.contribution.stubProviders.get(address)!;
+				const pending = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-2')]);
+				const pendingOutcome = pending.then(() => false, error => rejectPending ? error === pendingError : isCancellationError(error));
+				let savedAfterCompletion: readonly string[] = [];
+				let disposedWhilePending = true;
+				try {
+					await entered.p;
+					await provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')]);
+					savedAfterCompletion = readInventory(storageService).map(session => session.sessionId).sort();
+					disposedWhilePending = provider.disposed;
+					if (transition === 'feature') {
+						await harness.setEnabled(false);
+					} else {
+						harness.changeAccount('["github","account-2"]');
+					}
+				} finally {
+					await release.complete();
+				}
+				const canceledPending = await pendingOutcome;
+				harness.contribution.dispose();
+				const restored = await createContribution(store, [], {
+					storageService, accountKey: account,
+					listSessions: async () => ({ kind: 'failed', reason: 'offline' }),
+				});
+
+				assert.deepStrictEqual({
+					savedAfterCompletion, disposedWhilePending, canceledPending,
+					restored: restored.contribution.stubProviders.get(address)?.seeded.map(meta => AgentSession.id(meta.session)).sort(),
+				}, { savedAfterCompletion: ['sess-2'], disposedWhilePending: false, canceledPending: true, restored: ['sess-2'] });
+			});
+		}
+	}
+
+	test('retargets a deleted seed before another deletion completes and never restores its inventory', async () => {
+		const storageService = store.add(new InMemoryStorageService());
+		const survivor = discoveredSession({ sessionId: 'sess-c', taskId: 'task-c' });
+		const pending = discoveredSession({ sessionId: 'sess-b', taskId: 'task-b' });
+		const seed = discoveredSession({ sessionId: 'sess-a', taskId: 'task-a' });
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [survivor, pending, seed], {
+			storageService, autoConnectOnOpen: false,
+			deleteTask: async taskId => {
+				if (taskId === pending.taskId) {
+					await entered.complete();
+					await release.p;
+				}
+			},
+		});
+		const address = cloudSandboxAddress('env-1');
+		const provider = harness.contribution.stubProviders.get(address)!;
+		const environments = Reflect.get(harness.contribution, '_environments') as ReadonlyMap<string, ICloudSandboxSessionEnvironment>;
+		const sessionMaps = Reflect.get(harness.contribution, '_sessionEnvironments') as ReadonlyMap<string, ReadonlyMap<string, ICloudSandboxSessionEnvironment>>;
+		const initialSeed = environments.get(address)?.sessionId;
+		const pendingDeletion = provider.config.deleteSessionsOnDemand!.deleteSessions([AgentSession.uri('ahp-session', pending.sessionId)]);
+		const reconnectRequests: { sessionId: string | undefined; taskId: string | undefined }[] = [];
+		let seedAfterCompletion: string | undefined;
+		let inventoryAfterCompletion: string[] = [];
+		let catalogAfterReconnect: string[] = [];
+		try {
+			await entered.p;
+			await provider.config.deleteSessionsOnDemand!.deleteSessions([AgentSession.uri('ahp-session', seed.sessionId)]);
+			seedAfterCompletion = environments.get(address)?.sessionId;
+			inventoryAfterCompletion = readInventory(storageService).map(session => session.sessionId).sort();
+			harness.onConnect = async options => {
+				reconnectRequests.push({ sessionId: options.sessionId, taskId: options.sessionId ? sessionMaps.get(address)?.get(options.sessionId)?.taskId : undefined });
+				throw new Error('Controlled credential boundary');
+			};
+			// Calls real contribution _connectEnvironment -> connect -> _ensureProvider.
+			// The mock stops only at the external Cloud connection/credential service.
+			await assert.rejects(provider.config.connectOnDemand!(), /Controlled credential boundary/);
+			catalogAfterReconnect = [...(sessionMaps.get(address)?.keys() ?? [])].sort();
+		} finally {
+			await release.complete();
+			await pendingDeletion;
+		}
+		const inventoryAfterPending = readInventory(storageService).map(session => session.sessionId).sort();
+		harness.contribution.dispose();
+		const restored = await createContribution(store, [], {
+			storageService, accountKey: account,
+			listSessions: async () => ({ kind: 'failed', reason: 'offline' }),
+		});
+		assert.deepStrictEqual({
+			initialSeed, seedAfterCompletion, reconnectRequests, inventoryAfterCompletion,
+			catalogAfterReconnect, inventoryAfterPending,
+			restored: restored.contribution.stubProviders.get(address)?.seeded.map(meta => AgentSession.id(meta.session)).sort(),
+		}, {
+			initialSeed: 'sess-a', seedAfterCompletion: 'sess-c',
+			reconnectRequests: [{ sessionId: 'sess-c', taskId: 'task-c' }],
+			inventoryAfterCompletion: ['sess-b', 'sess-c'], catalogAfterReconnect: ['sess-b', 'sess-c'],
+			inventoryAfterPending: ['sess-c'], restored: ['sess-c'],
+		});
+	});
+
+	test('applies a one-shot sibling discovery removal while another task deletion is pending', async () => {
+		const storageService = store.add(new InMemoryStorageService());
+		const sibling = discoveredSession({ sessionId: 'sibling', taskId: 'task-sibling' });
+		const kept = discoveredSession({ sessionId: 'kept', taskId: 'task-kept' });
+		let result: ICloudSandboxDiscoveryResult = { kind: 'complete', sessions: [discoveredSession(), sibling, kept] };
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const harness = await createContribution(store, [], {
+			storageService, listSessions: async () => result,
+			deleteTask: async () => { await entered.complete(); await release.p; },
+		});
+		const provider = harness.contribution.stubProviders.get(cloudSandboxAddress('env-1'))!;
+		const deletion = provider.config.deleteSessionsOnDemand!.deleteSessions([URI.parse('ahp-session:/sess-1')]);
+		await entered.p;
+		result = { kind: 'incremental', sessions: [], removedTaskIds: ['task-sibling'] };
+		await harness.runDiscovery();
+		const whilePending = readInventory(storageService).map(session => session.sessionId).sort();
+		const disposedWhilePending = provider.disposed;
+		await release.complete();
+		await deletion;
+		result = { kind: 'incremental', sessions: [], removedTaskIds: [] };
+		await harness.runDiscovery();
+
+		assert.deepStrictEqual({
+			whilePending, disposedWhilePending, remaining: readInventory(storageService).map(session => session.sessionId),
+		}, { whilePending: ['kept', 'sess-1'], disposedWhilePending: false, remaining: ['kept'] });
+	});
 
 	for (const application of ['copilot-cli', undefined]) {
 		test(`preserves creating application through offline inventory restoration: ${application}`, async () => {

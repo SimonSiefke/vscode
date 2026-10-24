@@ -458,6 +458,11 @@ export class ChatSessionStore extends Disposable {
 			return;
 		}
 
+		if (index.entries[sessionId].isExternal) {
+			delete index.entries[sessionId];
+			return;
+		}
+
 		let storageLocation: ReturnType<ChatSessionStore['getStorageLocation']>;
 		try {
 			storageLocation = this.getStorageLocation(sessionId);

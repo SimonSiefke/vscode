@@ -200,6 +200,13 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	private onDidChangeSessionsFromSessionsProviders(e: ISessionChangeEvent): void {
+		// Mark deleted models before view teardown can save their metadata again.
+		for (const session of e.deleted ?? []) {
+			for (const resource of session.chatResources) {
+				this.chatService.removeExternalSessionMetadata(resource).catch(error => this.logService.error(error));
+			}
+		}
+
 		// Clear stale new session if the provider removed it. The provider
 		// already disposed it, so just drop the pointer (do not dispose again).
 		if (e.removed.length) {
@@ -1442,7 +1449,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	async deleteSession(session: ISession): Promise<void> {
-		await this._getProvider(session)?.deleteSession(session.sessionId);
+		const provider = this._getProvider(session);
+		await provider?.deleteSession(session.sessionId);
 		this._explicitlyMarkedUnreadChats.delete(session.resource);
 		this._onDidDeleteSession.fire(session);
 	}
@@ -1490,6 +1498,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		const deleted = await this._getProvider(session)?.deleteChat(session.sessionId, chatUri, options) ?? false;
 		if (deleted) {
 			this._clearChatUnreadMarker(session, chatUri);
+			await this.chatService.removeExternalSessionMetadata(chatUri);
 			this._onDidDeleteChat.fire(deletedChat);
 		}
 		return deleted;
