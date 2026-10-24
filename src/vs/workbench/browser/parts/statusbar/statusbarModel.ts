@@ -28,7 +28,51 @@ export class StatusbarViewModel extends Disposable {
 	readonly onDidChangeEntryVisibility = this._onDidChangeEntryVisibility.event;
 
 	private _entries: IStatusbarViewModelEntry[] = []; // Intentionally not using a map here since multiple entries can have the same ID
-	get entries(): IStatusbarViewModelEntry[] { return this._entries.slice(0); }
+	get entries(): IStatusbarViewModelEntry[] {
+		const entries = this._entries.slice(0);
+		if (this.entryLocations.size > 0) {
+			entries.sort((a, b) => {
+				const alignmentA = this.getAlignment(a);
+				const alignmentB = this.getAlignment(b);
+				if (alignmentA !== alignmentB) {
+					return alignmentA === StatusbarAlignment.LEFT ? -1 : 1;
+				}
+
+				const indexA = this.entryLocations.get(a.id)?.index ?? Number.MAX_SAFE_INTEGER;
+				const indexB = this.entryLocations.get(b.id)?.index ?? Number.MAX_SAFE_INTEGER;
+				return indexA - indexB;
+			});
+		}
+		return entries;
+	}
+
+	private readonly entryLocations = new Map<string, { alignment: StatusbarAlignment; index: number }>();
+
+	/** Applies user-defined locations without changing the entries' default priorities. */
+	updateEntryLocations(items: unknown): void {
+		this.entryLocations.clear();
+		if (items && typeof items === 'object') {
+			const locations = items as { left?: unknown; right?: unknown };
+			for (const [alignment, ids] of [[StatusbarAlignment.LEFT, locations.left], [StatusbarAlignment.RIGHT, locations.right]] as const) {
+				if (Array.isArray(ids)) {
+					for (const [index, id] of ids.entries()) {
+						if (typeof id === 'string' && !this.entryLocations.has(id)) {
+							this.entryLocations.set(id, { alignment, index });
+						}
+					}
+				}
+			}
+		}
+		this.markFirstLastVisibleEntry();
+	}
+
+	getAlignment(entry: IStatusbarViewModelEntry): StatusbarAlignment {
+		return this.entryLocations.get(entry.id)?.alignment ?? entry.alignment;
+	}
+
+	hasCustomLocation(entry: IStatusbarViewModelEntry): boolean {
+		return this.entryLocations.has(entry.id);
+	}
 
 	private _lastFocusedEntry: IStatusbarViewModelEntry | undefined;
 	get lastFocusedEntry(): IStatusbarViewModelEntry | undefined {
@@ -156,7 +200,7 @@ export class StatusbarViewModel extends Disposable {
 	}
 
 	getEntries(alignment: StatusbarAlignment): IStatusbarViewModelEntry[] {
-		return this._entries.filter(entry => entry.alignment === alignment);
+		return this.entries.filter(entry => this.getAlignment(entry) === alignment);
 	}
 
 	focusNextEntry(): void {
@@ -176,13 +220,14 @@ export class StatusbarViewModel extends Disposable {
 	}
 
 	private focusEntry(delta: number, restartPosition: number): void {
+		const entries = this.entries;
 
 		const getVisibleEntry = (start: number) => {
 			let indexToFocus = start;
-			let entry = (indexToFocus >= 0 && indexToFocus < this._entries.length) ? this._entries[indexToFocus] : undefined;
+			let entry = (indexToFocus >= 0 && indexToFocus < entries.length) ? entries[indexToFocus] : undefined;
 			while (entry && this.isHidden(entry.id)) {
 				indexToFocus += delta;
-				entry = (indexToFocus >= 0 && indexToFocus < this._entries.length) ? this._entries[indexToFocus] : undefined;
+				entry = (indexToFocus >= 0 && indexToFocus < entries.length) ? entries[indexToFocus] : undefined;
 			}
 
 			return entry;
@@ -190,7 +235,7 @@ export class StatusbarViewModel extends Disposable {
 
 		const focused = this.getFocusedEntry();
 		if (focused) {
-			const entry = getVisibleEntry(this._entries.indexOf(focused) + delta);
+			const entry = getVisibleEntry(entries.indexOf(focused) + delta);
 			if (entry) {
 				this._lastFocusedEntry = entry;
 

@@ -16,7 +16,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { STATUS_BAR_BACKGROUND, STATUS_BAR_FOREGROUND, STATUS_BAR_INACTIVE_BACKGROUND, STATUS_BAR_NO_FOLDER_BACKGROUND, STATUS_BAR_ITEM_HOVER_BACKGROUND, STATUS_BAR_BORDER, STATUS_BAR_NO_FOLDER_FOREGROUND, STATUS_BAR_NO_FOLDER_BORDER, STATUS_BAR_ITEM_COMPACT_HOVER_BACKGROUND, STATUS_BAR_ITEM_FOCUS_BORDER, STATUS_BAR_FOCUS_BORDER } from '../../../common/theme.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { contrastBorder, activeContrastBorder } from '../../../../platform/theme/common/colorRegistry.js';
-import { EventHelper, addDisposableListener, EventType, clearNode, getWindow, isHTMLElement, $ } from '../../../../base/browser/dom.js';
+import { EventHelper, addDisposableListener, EventType, clearNode, getWindow, isHTMLElement, isAncestorOfActiveElement, $ } from '../../../../base/browser/dom.js';
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { Parts, IWorkbenchLayoutService, LayoutSettings } from '../../../services/layout/browser/layoutService.js';
@@ -187,6 +187,7 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 
 		this.viewModel = this._register(new StatusbarViewModel(storageService));
 		this.onDidChangeEntryVisibility = this.viewModel.onDidChangeEntryVisibility;
+		this.viewModel.updateEntryLocations(this.configurationService.getValue('workbench.statusBar.items'));
 
 		this.hoverDelegate = this._register(this.instantiationService.createInstance(WorkbenchHoverDelegate, 'element', {
 			instantHover: true,
@@ -242,6 +243,14 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 		// part height) for the main status bar only: signal the grid that the size
 		// constraint changed.
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('workbench.statusBar.items')) {
+				this.viewModel.updateEntryLocations(this.configurationService.getValue('workbench.statusBar.items'));
+				if (this.element) {
+					const focusedEntry = this.viewModel.entries.find(entry => isAncestorOfActiveElement(entry.container));
+					this.appendStatusbarEntries();
+					focusedEntry?.labelContainer.focus();
+				}
+			}
 			if (this.getId() === Parts.STATUSBAR_PART && (e.affectsConfiguration(LayoutSettings.MODERN_UI) || e.affectsConfiguration(LayoutSettings.MODERN_UI_DENSITY))) {
 				this._onDidChange.fire(undefined);
 				if (this.element) {
@@ -509,7 +518,10 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 			...this.viewModel.getEntries(StatusbarAlignment.LEFT),
 			...this.viewModel.getEntries(StatusbarAlignment.RIGHT).reverse() // reversing due to flex: row-reverse
 		]) {
-			const target = entry.alignment === StatusbarAlignment.LEFT ? leftItemsContainer : rightItemsContainer;
+			const alignment = this.viewModel.getAlignment(entry);
+			entry.container.classList.toggle('left', alignment === StatusbarAlignment.LEFT);
+			entry.container.classList.toggle('right', alignment === StatusbarAlignment.RIGHT);
+			const target = alignment === StatusbarAlignment.LEFT ? leftItemsContainer : rightItemsContainer;
 
 			target.appendChild(entry.container);
 		}
@@ -519,13 +531,16 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 	}
 
 	private appendStatusbarEntry(entry: IStatusbarViewModelEntry): void {
-		const entries = this.viewModel.getEntries(entry.alignment);
+		const alignment = this.viewModel.getAlignment(entry);
+		entry.container.classList.toggle('left', alignment === StatusbarAlignment.LEFT);
+		entry.container.classList.toggle('right', alignment === StatusbarAlignment.RIGHT);
+		const entries = this.viewModel.getEntries(alignment);
 
-		if (entry.alignment === StatusbarAlignment.RIGHT) {
+		if (alignment === StatusbarAlignment.RIGHT) {
 			entries.reverse(); // reversing due to flex: row-reverse
 		}
 
-		const target = assertReturnsDefined(entry.alignment === StatusbarAlignment.LEFT ? this.leftItemsContainer : this.rightItemsContainer);
+		const target = assertReturnsDefined(alignment === StatusbarAlignment.LEFT ? this.leftItemsContainer : this.rightItemsContainer);
 
 		const index = entries.indexOf(entry);
 		if (index + 1 === entries.length) {
@@ -551,6 +566,16 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 			entry.container.classList.remove('compact-left', 'compact-right');
 		}
 
+		const visibleEntryIndices = new Map<IStatusbarViewModelEntry, number>();
+		for (const alignment of [StatusbarAlignment.LEFT, StatusbarAlignment.RIGHT]) {
+			let index = 0;
+			for (const entry of this.viewModel.getEntries(alignment)) {
+				if (!this.viewModel.isHidden(entry.id)) {
+					visibleEntryIndices.set(entry, index++);
+				}
+			}
+		}
+
 		// Figure out groups of entries with `compact` alignment
 		const compactEntryGroups = new Map<string, Map<string, IStatusbarViewModelEntry>>();
 		for (const entry of mapIdToVisibleEntry.values()) {
@@ -560,8 +585,15 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 			) {
 				const locationId = entry.priority.primary.location.id;
 				const location = mapIdToVisibleEntry.get(locationId);
-				if (!location) {
-					continue; // skip if location does not exist
+				if (!location || this.viewModel.getAlignment(entry) !== this.viewModel.getAlignment(location)) {
+					continue; // compact entries must be on the same side
+				}
+
+				const entryIndex = visibleEntryIndices.get(entry)!;
+				const locationIndex = visibleEntryIndices.get(location)!;
+				const expectedOffset = entry.priority.primary.alignment === StatusbarAlignment.LEFT ? -1 : 1;
+				if ((this.viewModel.hasCustomLocation(entry) || this.viewModel.hasCustomLocation(location)) && entryIndex - locationIndex !== expectedOffset) {
+					continue; // customization can separate or reverse compact entries
 				}
 
 				// Build a map of entries that are compact among each other
