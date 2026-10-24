@@ -1919,6 +1919,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 				added: change.added.map(session => AgentSession.id(session.resource)),
 				removed: change.removed.map(session => AgentSession.id(session.resource)),
 				changed: change.changed.map(session => AgentSession.id(session.resource)),
+				deleted: change.deleted?.map(session => session.sessionId),
 			})),
 		}, {
 			eventsAfterDelete: 1,
@@ -1926,6 +1927,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 				added: [],
 				removed: ['deleted-before-debounce'],
 				changed: [],
+				deleted: [session.sessionId],
 			}],
 		});
 	}));

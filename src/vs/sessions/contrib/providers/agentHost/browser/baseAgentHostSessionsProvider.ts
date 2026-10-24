@@ -4272,6 +4272,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	readonly onDidChangeSessions: Event<ISessionChangeEvent> = Event.map(
 		debounceSessionChangeEvents(this._onDidChangeSessionsFromNotifications.event, this._onDidChangeSessions.event, this._store),
 		change => ({
+			...change,
 			added: change.added.filter(session => !this._isUnpublishedDraft(session)),
 			removed: change.removed,
 			changed: change.changed.filter(session => !this._isUnpublishedDraft(session)),
