@@ -1,0 +1,978 @@
+{
+	"parent": "5f0eb30e4bd4412f394a12fa902ed660ee4bd477",
+	"platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+	"node": "v24.18.0",
+	"versions": {
+		"node": "24.18.0",
+		"acorn": "8.16.0",
+		"ada": "3.4.4",
+		"amaro": "1.1.9",
+		"ares": "1.34.6",
+		"brotli": "1.2.0",
+		"cldr": "48.0",
+		"icu": "78.3",
+		"llhttp": "9.4.2",
+		"merve": "1.2.2",
+		"modules": "137",
+		"napi": "10",
+		"nbytes": "0.1.4",
+		"ncrypto": "0.0.1",
+		"nghttp2": "1.69.0",
+		"nghttp3": "",
+		"ngtcp2": "",
+		"openssl": "3.5.7",
+		"simdjson": "4.6.4",
+		"simdutf": "6.4.0",
+		"sqlite": "3.53.1",
+		"tz": "2026b",
+		"undici": "7.28.0",
+		"unicode": "17.0",
+		"uv": "1.52.1",
+		"uvwasi": "0.0.23",
+		"v8": "13.6.233.17-node.50",
+		"zlib": "1.3.1-e00f703",
+		"zstd": "1.5.7"
+	},
+	"seed": 330439,
+	"blocks": 8,
+	"samplesPerProcess": 3,
+	"iterationsPerSample": 500,
+	"warmupRoundTripsPerCase": 200,
+	"unit": "microseconds per round trip",
+	"variants": {
+		"parent": "Unmodified IPC module from parent commit",
+		"keys": "Final optimized key loop; measured compiled code byte-matches final code after removing source-map URLs",
+		"envelope": "Keys plus direct header/body transformation; not adopted",
+		"buffer": "Parent module using the legacy buffer serializer over the same native clone or Node MessagePort"
+	},
+	"generatedAt": "2026-10-18T10:10:49.269205+00:00",
+	"cpu": "AMD EPYC-Rome Processor",
+	"compiledModuleCodeSha256": {
+		"parent": "8cb874cef7727c1dae225d0c24ffaef32dc6ad61417906b0f63c430b214aa464",
+		"keys": "64b821f2bcd5b6ef35bd37cdda4aa22a0c5a1d0e28c56fedb3eb4b0aaf518633"
+	},
+	"records": [
+		{
+			"transport": "clone",
+			"block": 0,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [123.12886800000001, 89.45880400000004, 61.34368000000006]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [101.76711, 74.71343200000001, 62.344334]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [264.51869, 244.76860799999986, 247.65631400000007]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [62.41446599999995, 59.92382199999997, 54.7436419999999]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [455.28935, 440.1275420000002, 483.3131820000003]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [100.1671339999998, 66.777736, 61.99385799999982]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 0,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [21.615413999999987, 12.175977999999986, 12.503309999999999]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [27.166225999999995, 24.493202000000053, 20.065292000000003]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [567.8224759999999, 551.0370480000001, 552.2740640000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.56823200000008, 15.845788000000084, 15.385248000000047]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [286.7653439999999, 284.9289240000003, 298.0802100000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [35.091003999999884, 31.795031999999992, 28.817317999999887]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [45.715196000000105, 40.889639999999865, 35.204158000000014]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 0,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [30.883668, 26.22466399999999, 22.700946000000016]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [44.39149800000001, 35.275630000000035, 37.971960000000024]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [977.8968639999999, 994.0518160000001, 1004.369232]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [20.216891999999916, 20.81431399999974, 20.803391999999803]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [462.8177619999997, 454.1104599999998, 466.3357139999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [48.996139999999286, 41.44542399999955, 43.045900000000074]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [73.40995400000065, 55.95508999999947, 59.68415399999958]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 0,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [21.05089799999999, 13.375423999999981, 12.147626000000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [24.21365800000001, 25.068557999999996, 24.61879599999997]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [563.82746, 567.334664, 550.590232]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [18.40055200000006, 19.20646399999987, 20.205211999999847]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [292.32885799999985, 300.9585400000001, 317.16386200000034]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [41.1886199999999, 29.735356000000138, 31.2808500000001]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [46.801392000000305, 47.616738000000176, 32.27136399999972]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 1,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [19.530528000000007, 12.208881999999988, 11.416636000000011]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [28.015578000000005, 20.310788, 23.17665599999998]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [555.146264, 559.81342, 548.334726]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.09801200000038, 14.174219999999877, 17.933338000000276]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [304.52190999999993, 289.8069559999999, 300.1804780000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [39.31056600000011, 29.233998000000156, 33.791192000000144]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [43.18247799999972, 38.8216080000002, 40.83722399999988]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 1,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [24.451281999999992, 17.30732800000004, 17.510547999999975]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [38.22114600000003, 46.235209999999995, 44.84679399999999]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [994.4826419999999, 963.2587380000002, 961.951888]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [18.565121999999974, 17.440775999999914, 19.877840000000106]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [457.7380539999999, 450.1327140000003, 450.2830359999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [42.952346000000034, 39.00587599999926, 36.897649999999885]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [63.93855799999983, 67.50044600000001, 50.64795200000026]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 1,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [94.723502, 101.94263799999999, 79.40217400000006]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [66.55523800000003, 60.1018959999999, 55.72534200000007]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [325.24294799999996, 307.6852120000001, 270.06483000000003]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [60.577808000000005, 61.806550000000016, 53.913625999999795]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [462.13178199999993, 413.26241600000003, 422.5893219999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [99.98942400000031, 89.41686600000003, 93.37852199999996]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 1,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [27.327206000000018, 19.441744, 16.603927999999996]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [30.518601999999987, 30.876914, 20.129490000000036]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [587.7689459999999, 570.931558, 546.4021700000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [11.376742000000377, 16.858124000000316, 13.531456000000162]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [366.5876440000002, 298.52546200000006, 293.1459100000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [32.10785799999985, 31.653448000000026, 23.470745999999963]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [33.44189800000004, 34.614751999999946, 73.69202200000016]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 2,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [22.559399999999982, 12.327001999999993, 10.280768000000023]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [22.320933999999966, 27.078202000000033, 33.11218000000008]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [619.068288, 548.430588, 551.308356]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [13.071796000000177, 15.395023999999921, 23.62132799999972]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [292.3730639999999, 307.503232, 297.9451939999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [31.38658600000008, 27.144204000000173, 22.98163199999999]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [56.15578600000026, 35.89322600000014, 33.69986000000018]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 2,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [36.63092599999999, 12.154358000000002, 20.180345999999986]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [31.18811599999998, 36.563822000000016, 31.147980000000018]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [776.67804, 905.1770459999998, 1068.770778]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.834288000000015, 16.162943999999698, 17.02475800000002]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [308.456338, 291.5303039999999, 292.08244000000013]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [41.43871200000012, 30.024837999999363, 34.80040000000008]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [42.10774399999991, 36.762455999999474, 53.955705999999736]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 2,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [26.003929999999997, 19.410766000000024, 18.088788000000022]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [44.484532, 41.20419199999998, 33.37366800000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1024.57667, 1022.6956459999999, 1005.9234000000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [17.73360599999978, 20.597208000000137, 19.88703600000008]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [503.9975119999999, 453.0369339999998, 471.5872039999994]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [47.07083799999964, 38.14584599999944, 34.46483399999943]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [60.63880199999949, 49.232726000000184, 59.42228200000045]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 2,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [72.96528200000003, 93.13320599999997, 104.26304399999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [70.52106600000002, 75.89590800000008, 65.32783999999992]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [239.77712199999996, 229.37740800000006, 227.92623000000003]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [64.3447779999999, 55.50370599999996, 55.30631600000015]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [408.08761000000004, 424.4317499999998, 446.33794799999987]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [63.74984600000017, 72.64738399999987, 66.8852139999999]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 3,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [84.451728, 92.14675799999998, 79.19136000000003]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [62.241461999999956, 67.69591400000002, 61.12707599999999]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [280.14496600000007, 253.442628, 238.6479280000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [55.59093000000007, 54.99814200000014, 58.38708399999996]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [432.7497840000001, 456.60022400000025, 414.60470799999985]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [60.045570000000225, 78.58708800000022, 64.56158600000026]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 3,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [20.427667999999983, 11.035183999999987, 11.485063999999994]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [24.879466000000008, 20.388774000000012, 21.43625800000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [524.799922, 561.6738660000001, 579.0846039999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [18.822744000000057, 18.600588000000243, 17.227114000000256]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [283.2264359999999, 290.9180799999999, 289.3494020000003]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [31.991202000000158, 34.19219999999995, 27.403029999999944]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [100.07007199999998, 55.28772200000003, 42.61561399999983]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 3,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [20.111556000000007, 11.166205999999987, 12.061442]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [22.928752000000028, 20.89630599999998, 22.98718200000002]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [535.0969819999999, 552.5808179999999, 559.4063199999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.375810000000001, 13.052140000000236, 14.315785999999662]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [296.87601399999994, 331.2141279999996, 310.6486439999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [39.776836, 31.040441999999985, 29.732410000000073]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [38.150651999999816, 39.99837400000025, 35.21593600000006]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 3,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [26.690455999999983, 18.68132, 17.118573999999967]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [32.882267999999954, 34.60273000000001, 29.939480000000003]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1054.673402, 981.8369, 994.3726139999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [21.546644000000015, 18.965831999999864, 26.69041399999969]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [472.2608279999995, 503.86808800000017, 478.35439600000063]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [44.25023400000009, 44.17884000000049, 38.42502599999989]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [58.159459999999854, 56.64383999999973, 53.27515399999993]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 4,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [110.99446800000001, 86.81455199999999, 57.497900000000016]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [89.36624999999992, 61.68133399999999, 91.33269200000007]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [306.056462, 250.24002999999993, 241.36902000000006]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [60.55868999999984, 55.67514600000003, 56.28911799999992]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [488.2654160000002, 448.3874460000002, 456.4768720000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [62.45209599999998, 66.48883399999977, 70.57789199999979]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 4,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [25.90692999999999, 16.058449999999993, 12.789648]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [26.255442000000016, 26.766395999999986, 20.881899999999973]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [538.9176340000001, 554.6483680000001, 623.0784799999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.36076200000025, 12.733240000000023, 13.439605999999912]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [281.94603800000004, 290.49975799999993, 294.497844]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [47.08225599999969, 37.8688659999998, 35.69962200000009]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [56.47586600000023, 49.19128600000022, 53.607718000000204]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 4,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [30.697978000000006, 23.48593599999998, 21.00709599999999]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [44.294295999999974, 37.609482000000014, 38.75073800000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1007.015768, 1006.0968680000001, 1068.223152]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [21.562311999999565, 25.38725599999998, 20.579553999999916]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [443.56203000000005, 461.5199540000003, 485.7573360000006]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [56.96576199999981, 41.1382679999997, 35.53074799999922]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [63.4512679999998, 58.60729600000013, 49.62752199999977]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 4,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [20.516678000000013, 11.943622000000005, 11.029012000000023]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [26.753273999999976, 32.17590799999999, 29.59946400000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [649.3262239999999, 566.3034339999999, 590.346974]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [12.613918000000012, 12.419673999999759, 13.402896000000055]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [277.81027399999994, 289.2322800000001, 291.967584]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [34.39716599999974, 28.972385999999915, 31.197873999999956]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [47.35725199999979, 35.603384000000005, 37.53153599999997]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 5,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [118.15737800000002, 65.90642400000002, 55.42327399999999]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [60.35473000000002, 78.37469199999998, 65.875586]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [254.91021599999988, 282.19228, 302.4935519999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [58.78585199999998, 56.58494999999994, 54.98076999999989]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [425.30145800000014, 468.7569659999999, 455.4892420000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [91.26346399999966, 63.008076000000074, 59.47375800000009]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 5,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [29.393898000000007, 19.419542000000007, 19.229025999999976]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [39.481708000000026, 40.299537999999984, 33.297968000000026]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [995.6102900000001, 971.6116159999997, 945.5992699999997]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [17.8584979999996, 17.039765999999872, 20.852723999999853]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [453.5656220000001, 494.6060860000007, 465.23372800000016]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [47.808156000000054, 43.289152000000286, 46.99882200000047]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [61.20890799999961, 56.35467999999946, 53.90262799999982]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 5,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [21.382856000000004, 12.797601999999985, 11.679288000000014]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [20.978041999999988, 20.95289199999999, 20.175538000000017]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [566.779886, 538.648232, 567.7063399999997]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [13.097803999999996, 17.70158599999968, 17.28005600000006]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [280.56874000000016, 288.53118799999993, 298.16706999999997]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [37.6905740000002, 31.80162399999972, 28.734324000000015]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [42.24121399999967, 40.60961600000018, 39.37079800000037]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 5,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [18.16617599999998, 12.036196000000018, 10.15433200000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [20.23109999999997, 19.54503799999998, 18.575822000000013]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [557.1816339999999, 526.7558039999999, 537.440092]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [11.413532000000032, 11.021635999999944, 12.200524000000314]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [283.2961839999998, 282.8606520000003, 313.747746]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [34.911950000000154, 31.67094199999974, 23.253380000000107]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [36.41823199999999, 40.384555999999975, 32.81682600000022]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 6,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [22.24733600000002, 14.216059999999999, 11.800995999999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [25.24893800000001, 23.940066, 21.304429999999968]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [586.386558, 544.384532, 590.3444459999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [12.941111999999976, 13.22650799999974, 14.074271999999837]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [295.35602800000015, 290.252794, 321.09826999999996]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [37.90653599999997, 32.71762200000012, 24.753768000000036]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [43.05251199999976, 37.41078800000014, 39.36853400000018]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 6,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [89.09850799999998, 76.32947999999999, 77.42495200000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [62.31435800000003, 63.094098000000024, 57.369539999999915]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [246.6423339999999, 249.06084399999986, 237.43449600000008]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [56.8314899999998, 60.212603999999835, 56.6281919999999]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [454.8555560000002, 450.0424640000001, 538.7673559999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [87.733252, 83.34736199999998, 67.85509200000024]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 6,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [27.84902599999998, 20.91123399999998, 17.82305200000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [51.96502000000004, 54.94069000000002, 58.53357799999998]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1057.4345739999999, 955.4958820000002, 1010.6106180000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [21.38536400000021, 22.571743999999853, 21.322924000000057]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [472.59357, 439.4367259999999, 455.6985359999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [37.26443599999948, 39.69919399999981, 34.0207419999997]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [51.16794800000025, 57.73856999999953, 50.0711339999998]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 6,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [21.706062000000003, 12.377474000000005, 11.513497999999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [21.93130400000001, 19.364460000000005, 20.363426000000004]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [610.1207979999999, 590.839354, 561.0558460000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [12.32453600000008, 12.971750000000156, 15.430112000000008]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [297.23007800000005, 294.52042200000005, 293.0541979999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [30.2022079999997, 25.325520000000324, 33.36924200000022]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [55.20316400000002, 46.67535599999974, 40.67448200000035]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 7,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [26.119708000000003, 12.888393999999977, 13.081671999999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [24.675722000000007, 22.576813999999956, 20.164716000000002]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [537.576102, 552.484238, 557.2420079999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [15.81448999999975, 17.259317999999894, 19.099261999999726]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [283.515136, 338.37638000000015, 332.40568200000007]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [35.94594599999982, 38.83836199999997, 25.019988000000012]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [42.98174000000017, 36.776262000000315, 36.02573399999983]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 7,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [22.37948399999999, 13.859487999999999, 12.348301999999988]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [19.94738799999999, 19.712668000000008, 35.36762199999998]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [572.3411560000001, 547.917046, 550.908506]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [12.201285999999982, 13.060194000000138, 13.810077999999976]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [284.75706400000036, 302.9080880000001, 290.01106000000027]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [31.22606799999994, 29.076906000000236, 22.32558199999994]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [48.00799199999983, 44.965453999999674, 34.805552000000255]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 7,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [99.088074, 61.66081600000001, 50.07199600000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [57.65967999999998, 63.366949999999974, 67.73761000000002]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [262.70084399999996, 256.677866, 247.40001799999982]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [67.73524799999997, 56.187423999999965, 56.33349800000019]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [466.4580020000001, 453.58659799999987, 447.8213260000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [92.04763000000004, 66.45380999999996, 63.35506600000008]}
+			]
+		},
+		{
+			"transport": "clone",
+			"block": 7,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [40.80087600000002, 19.52593999999999, 19.734552000000008]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [46.09142199999996, 50.440246, 36.350400000000036]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [941.9523399999999, 995.81153, 950.9703879999997]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [19.61889599999995, 19.858444000000418, 18.69777000000022]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [442.8444259999996, 488.4129700000003, 560.6885179999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [43.00410399999964, 42.93979800000034, 35.46075800000017]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [54.77828600000066, 51.33005200000025, 49.000850000000355]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 0,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [169.158452, 100.17218200000002, 78.55871400000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [112.18910399999993, 102.71496400000001, 78.97892200000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [289.34116599999993, 269.016208, 254.15882999999985]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [68.02328799999987, 68.6103659999999, 67.42817399999969]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [458.60297200000014, 445.4418920000003, 446.57162800000015]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [74.00975599999992, 57.46391399999993, 79.40183200000001]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 0,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [29.80432400000001, 20.233866000000035, 23.32467199999996]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [37.916675999999995, 31.94896, 33.81202999999999]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [581.887834, 600.6502639999999, 553.2383320000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [27.256134000000202, 22.35499600000003, 21.542077999999947]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [295.1333300000001, 287.9205460000003, 305.79627600000003]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [45.85744599999998, 39.535305999999764, 37.10748000000013]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [67.82471600000007, 53.12763799999993, 51.5870319999999]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 0,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [31.601572000000004, 17.861263999999977, 21.299701999999996]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [35.31833, 33.226112, 27.962398000000007]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [620.5993380000001, 613.028082, 586.9042460000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [23.066849999999704, 20.616082000000006, 21.33671000000004]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [308.1756919999998, 294.2355319999997, 287.0733580000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [38.36740000000009, 39.058655999999694, 37.43805799999973]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [55.12515800000029, 52.81767799999988, 55.651404000000184]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 0,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [40.769457999999986, 28.78790399999997, 23.02266800000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [49.15353600000003, 40.222853999999984, 35.35175400000003]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1017.609804, 983.5173480000001, 1006.068374]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [30.133883999999853, 24.60593199999994, 26.336731999999756]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [467.40525400000024, 513.3821039999993, 465.2190620000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [55.78717599999982, 57.42231599999923, 54.80427800000052]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [86.27131400000054, 68.0012859999997, 75.41614799999935]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 1,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [121.05574600000003, 86.58658600000001, 85.87130600000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [83.24154399999998, 75.77001200000007, 75.24308599999995]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [265.24487, 266.14348999999993, 262.746128]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [66.84350199999994, 62.45991200000003, 62.993971999999985]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [447.9283839999998, 460.9981600000001, 422.7134940000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [58.77276600000005, 65.2863040000002, 62.02140800000007]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 1,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [27.831571999999994, 19.64330000000001, 17.19720000000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [33.634276, 30.52044600000005, 29.671396000000016]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [568.9178880000001, 543.9487939999999, 566.0296000000003]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [24.853035999999975, 21.322243999999955, 19.67159400000037]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [290.58772, 299.0116939999998, 308.2565240000003]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [36.68176399999993, 34.21748800000023, 30.847760000000108]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [50.97009600000001, 46.978744000000006, 48.22986800000035]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 1,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [29.128239999999977, 18.699094000000002, 17.46436]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [31.040841999999998, 28.386753999999996, 29.066564000000028]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [557.4054140000001, 561.697028, 531.8472760000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [21.31927799999994, 19.280961999999818, 18.175432]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [297.0333879999998, 302.57961399999976, 306.8574819999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [84.3948220000002, 70.76718600000005, 59.347363999999736]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [50.08640199999991, 49.35366999999997, 43.354498000000156]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 1,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [35.75278400000002, 27.910059999999987, 24.533355999999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [48.20045200000004, 44.76589799999999, 45.188512]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1322.4304760000002, 1278.582992, 957.97336]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [37.77591200000006, 30.350028000000748, 28.025336000000607]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [527.0401959999999, 495.4764160000004, 528.8221720000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [68.29359400000067, 59.33530000000064, 45.34969200000069]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [109.98748400000024, 69.15659200000026, 81.68282199999975]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 2,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [169.29823399999998, 85.29673000000003, 68.073984]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [103.48897599999998, 110.05282399999999, 81.58133399999997]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [290.80522599999995, 390.8470059999999, 369.7174399999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [82.77679200000011, 73.42959000000019, 84.8084960000001]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [482.18973600000027, 450.6917619999999, 450.90355800000043]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [70.6983139999993, 54.85577600000033, 57.04160799999954]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 2,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [55.296276000000006, 47.69141600000003, 39.221562000000006]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [54.177441999999985, 45.73137000000003, 45.786130000000014]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [972.3542079999999, 1013.7870460000001, 1041.5347419999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [31.420332000000144, 27.926307999999608, 24.870064000000184]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [464.162284, 477.00454999999965, 523.5665119999994]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [56.60789400000067, 54.12796999999955, 50.51544399999966]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [62.15664399999969, 65.03605599999992, 68.9869319999998]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 2,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [36.63848399999998, 19.48428199999998, 19.918757999999997]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [35.03197400000002, 33.299311999999986, 29.072613999999987]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [589.05834, 623.947848, 581.55537]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [24.837146000000303, 20.66144800000029, 25.807702000000063]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [320.0256599999998, 306.3625559999996, 311.3794499999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [44.75606399999969, 45.855162000000284, 52.91065400000025]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [67.93265999999994, 61.45336600000018, 57.98439000000007]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 2,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [31.39660599999999, 20.859578, 18.822606000000007]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [32.063716, 29.79416600000002, 29.2774]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [596.796208, 650.6464779999999, 585.11077]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [23.38985599999978, 20.335896000000048, 18.97643199999993]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [301.8426559999998, 299.0146199999999, 294.30642400000033]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [64.9849979999999, 74.26228800000035, 49.033429999999946]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [59.722343999999794, 52.80563200000005, 79.33514800000012]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 3,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [37.94047999999998, 25.152376000000004, 25.152135999999985]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [43.448571999999956, 45.16871400000002, 39.28231199999999]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1025.535622, 1036.501278, 986.276656]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [31.973043999999845, 36.99977999999965, 67.49297399999979]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [564.5822900000003, 517.310176, 496.8376040000003]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [58.63108000000011, 51.19728000000032, 58.010198000000855]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [81.8675519999997, 77.02263800000037, 87.4323459999996]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 3,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [94.39105800000002, 86.531182, 87.57966399999998]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [79.98870999999997, 74.54257399999995, 90.85804399999995]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [289.87717, 299.95279400000004, 322.17897199999993]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [81.01623399999994, 135.65842599999974, 98.58883799999967]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [534.0725039999998, 536.237376, 496.21065]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [63.61317000000009, 52.482449999999965, 56.92199999999957]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 3,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [32.58533600000004, 24.676784, 22.782096000000024]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [42.48056200000002, 39.097226000000035, 36.017378000000015]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [601.168774, 541.345082, 562.4348300000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [21.9653059999996, 19.7253740000001, 21.667107999999644]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [288.60913600000003, 295.324928, 296.8445740000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [43.92710799999986, 40.55369199999995, 39.69887000000017]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [61.11198800000012, 57.78581799999984, 56.83075000000008]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 3,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [31.603734000000003, 20.245869999999996, 21.668552000000034]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [36.03783800000002, 35.195141999999976, 35.10591199999999]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [594.6510320000001, 588.1489779999999, 625.6120619999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [28.842483999999786, 22.778354000000036, 21.743912000000364]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [312.84351000000015, 309.01452199999994, 300.25408000000016]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [47.97801399999981, 37.36153799999965, 39.065243999999886]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [60.52965799999992, 51.891422000000155, 47.17709399999967]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 4,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [136.00397599999997, 68.65523000000002, 68.13582000000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [84.15323000000001, 83.31171399999994, 83.23052199999995]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [250.31471, 271.83637, 273.1334800000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [76.73004800000012, 62.373250000000105, 66.38512199999991]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [466.9627660000001, 467.8614520000001, 455.6515079999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [62.343213999999996, 57.823169999999664, 62.57444399999986]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 4,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [40.85976599999998, 29.839874000000012, 24.881248]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [38.609350000000006, 36.84294600000004, 31.784051999999974]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [548.2948519999999, 545.2478679999999, 596.9831379999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [28.592937999999776, 29.685825999999906, 27.960833999999977]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [317.1214220000001, 310.5947620000002, 289.278088]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [46.77466199999981, 42.185428000000236, 35.653560000000205]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [55.808075999999794, 54.08574999999974, 59.443802000000225]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 4,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [30.827622000000016, 22.014539999999954, 21.435474]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [33.60684600000002, 35.47345999999999, 25.99369000000002]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [577.8043680000001, 580.4553700000001, 557.5908199999999]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [23.606137999999646, 24.755471999999827, 20.927765999999792]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [325.25322800000004, 308.2546400000001, 289.88816799999995]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [40.87874200000034, 36.646858000000066, 34.29391200000009]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [58.11641999999984, 46.522869999999784, 45.657688000000235]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 4,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [46.02289400000001, 35.09190600000005, 32.00738799999999]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [52.398991999999964, 53.71211199999999, 54.807241999999974]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [986.891348, 967.9884139999999, 1054.9638880000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [44.734519999999975, 37.51817000000028, 32.66827000000012]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [486.24436799999967, 480.3840380000002, 466.16219]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [59.840306000000055, 54.16976800000066, 45.85936800000036]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [83.62179399999967, 66.74409399999968, 70.52996200000052]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 5,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [41.891238000000016, 31.292392000000007, 32.41824]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [43.234532, 44.047394, 40.62777]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1047.716156, 969.202646, 964.2829940000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [31.71334200000001, 29.71192999999994, 27.682694000000083]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [586.8929660000003, 467.6056099999996, 471.17248799999925]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [60.880111999999826, 54.135245999999825, 52.11035199999969]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [74.41795999999975, 65.29864600000019, 59.19992600000023]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 5,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [106.424272, 106.68850400000002, 116.01949599999995]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [88.17820600000005, 72.52088600000002, 69.49718999999993]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [273.0060819999999, 269.848068, 255.0118460000001]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [68.86466399999995, 68.6234320000001, 68.36883200000011]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [476.023952, 474.8234659999998, 449.81080999999995]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [61.601926000000276, 62.904725999999755, 66.5055440000001]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 5,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [34.17893599999999, 21.61292800000001, 21.044021999999984]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [35.84008800000004, 33.658923999999956, 32.82626399999998]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [556.3030880000001, 548.622766, 576.770532]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [24.72527600000012, 22.135584000000108, 20.87644999999975]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [293.60104, 289.0240719999997, 311.49959599999966]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [46.65593799999988, 39.80392799999981, 36.93166999999994]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [56.733650000000125, 49.126224000000086, 49.12127599999985]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 5,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [29.788415999999984, 18.59375399999999, 16.84171599999999]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [34.921006000000006, 38.61628400000001, 32.96274]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [645.107808, 549.999022, 613.31069]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [30.84163000000035, 20.653831999999966, 17.053331999999955]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [312.73639000000003, 354.08946000000014, 314.34969200000023]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [51.8546940000001, 45.95662799999991, 43.26843800000006]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [59.350507999999984, 51.24907799999983, 51.39332999999988]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 6,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [34.478260000000006, 21.786911999999973, 22.442883999999992]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [35.82225600000004, 36.59480000000002, 38.59444400000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [606.2532560000001, 594.2646280000001, 605.1627119999998]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [26.12601799999993, 23.42397800000026, 27.482880000000023]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [298.7579959999998, 301.73008200000004, 296.7272360000002]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [42.1047980000003, 39.86782600000014, 35.66458000000012]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [53.745532000000374, 47.849293999999645, 47.595078000000285]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 6,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [45.15739400000001, 30.787126, 26.497915999999975]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [53.57763999999997, 49.90576199999998, 40.77551]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1096.180902, 1054.556804, 1024.9343000000003]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [27.188325999999506, 28.254706000000624, 26.530955999999605]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [472.27158599999984, 478.79542200000014, 474.6216679999998]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [55.8674860000001, 55.71077399999922, 53.1570499999998]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [84.133194, 94.45155200000045, 83.97279199999959]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 6,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [124.44475199999997, 71.656272, 69.82931000000002]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [73.89005399999996, 116.51169600000003, 81.92481800000007]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [276.87542399999995, 259.87842, 261.949758]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [69.13580999999999, 69.829788, 63.22193799999991]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [452.6498879999999, 439.07294399999955, 450.9281639999999]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [64.46656999999959, 56.804122, 63.83510400000022]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 6,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [36.077192000000025, 19.430982, 19.60232400000001]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [41.104164000000026, 34.75320999999997, 32.02538599999997]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [573.727554, 546.8154040000002, 580.746758]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [25.852747999999792, 20.44345599999997, 21.670338000000356]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [308.5989239999999, 308.31262800000013, 323.657862]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [42.06183600000032, 37.48102000000017, 35.37537599999996]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [57.46487799999977, 46.85389000000032, 53.89972199999966]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 7,
+			"variant": "buffer",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [105.55594199999999, 76.54983199999998, 91.40434799999997]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [70.852666, 71.44976399999997, 62.400622]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [274.80733399999997, 251.18504200000007, 246.571324]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [65.09638599999994, 60.57592199999999, 61.12637200000018]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [449.4035479999998, 448.8212579999999, 432.201098]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [62.531426, 64.53309399999989, 64.44526799999994]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 7,
+			"variant": "keys",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [27.67261400000001, 22.11587, 19.880663999999996]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [34.67789000000005, 33.121196, 39.789683999999966]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [566.5592320000001, 617.4305220000001, 581.502892]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [22.303461999999854, 20.072944000000007, 20.97920200000044]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [306.8064300000001, 345.7755140000004, 291.6305520000001]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [43.588896000000204, 37.166331999999784, 33.86180199999989]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [53.34963000000017, 47.05975400000033, 41.75183799999969]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 7,
+			"variant": "envelope",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [32.135050000000035, 22.81477799999999, 18.271331999999973]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [29.73792199999997, 34.262294, 27.34376000000003]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [613.4949939999999, 557.435086, 543.025168]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [23.004295999999613, 23.35014000000001, 21.746018000000277]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [314.43851799999993, 305.89189599999963, 303.9189199999996]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [37.325948000000146, 35.882926000000225, 29.764611999999943]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [59.041230000000276, 49.46744399999989, 46.43354200000022]}
+			]
+		},
+		{
+			"transport": "message-port",
+			"block": 7,
+			"variant": "parent",
+			"results": [
+				{"name": "primitive", "microsecondsPerRoundTrip": [39.93190799999999, 31.171926000000013, 26.188236000000018]},
+				{"name": "small-object", "microsecondsPerRoundTrip": [53.46976000000001, 53.77735200000001, 40.32019600000001]},
+				{"name": "settings-100", "microsecondsPerRoundTrip": [1027.8003439999998, 991.7864500000001, 1030.1108720000002]},
+				{"name": "text-4KiB", "microsecondsPerRoundTrip": [34.28709799999979, 27.165006000000176, 28.95866399999977]},
+				{"name": "uris-100", "microsecondsPerRoundTrip": [470.2568739999997, 471.16034599999966, 507.57328400000006]},
+				{"name": "VSBuffer-4KiB", "microsecondsPerRoundTrip": [61.90647600000011, 61.993757999999616, 46.6171460000005]},
+				{"name": "cyclic-map-set", "microsecondsPerRoundTrip": [74.51209600000038, 69.24118999999975, 62.73622599999999]}
+			]
+		}
+	],
+	"comparisons": [
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "primitive", "beforeMedian": 20.959164999999985, "afterMedian": 12.985032999999987, "medianChangePercent": -38.04603857071598, "meanChangePercent": -27.50104961627692, "pairedBlockBootstrap95CI": [-34.90189070605133, -16.472823401238912]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "primitive", "beforeMedian": 85.63314, "afterMedian": 12.985032999999987, "medianChangePercent": -84.83643949059909, "meanChangePercent": -80.12795194411669, "pairedBlockBootstrap95CI": [-82.35536581137089, -77.5847381967323]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "primitive", "beforeMedian": 12.985032999999987, "afterMedian": 12.876448999999994, "medianChangePercent": -0.8362242899189631, "meanChangePercent": -6.424950219250325, "pairedBlockBootstrap95CI": [-19.96376832753618, 10.960321727602263]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "small-object", "beforeMedian": 39.890623000000005, "afterMedian": 23.55836099999999, "medianChangePercent": -40.94260949496831, "meanChangePercent": -41.460340855999576, "pairedBlockBootstrap95CI": [-49.00565958947689, -32.31261149521194]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "small-object", "beforeMedian": 64.34739499999995, "afterMedian": 23.55836099999999, "medianChangePercent": -63.38878831070005, "meanChangePercent": -64.52131540832909, "pairedBlockBootstrap95CI": [-67.97401220862068, -60.30122890744698]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "small-object", "beforeMedian": 23.55836099999999, "afterMedian": 22.957967000000025, "medianChangePercent": -2.5485389242484446, "meanChangePercent": 0.954777321510214, "pairedBlockBootstrap95CI": [-7.945034317305288, 10.171033899416138]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "settings-100", "beforeMedian": 995.046466, "afterMedian": 558.527714, "medianChangePercent": -43.86918268799721, "meanChangePercent": -39.25943252684427, "pairedBlockBootstrap95CI": [-43.9969057947747, -30.509268389957466]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "settings-100", "beforeMedian": 251.84132899999997, "afterMedian": 558.527714, "medianChangePercent": 121.7776233225008, "meanChangePercent": 131.53226189771635, "pairedBlockBootstrap95CI": [103.13931239380621, 179.03198749320893]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "settings-100", "beforeMedian": 558.527714, "afterMedian": 560.231083, "medianChangePercent": 0.3049748396191543, "meanChangePercent": -6.172290387071843, "pairedBlockBootstrap95CI": [-18.484674411241365, 2.4479539401659256]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "text-4KiB", "beforeMedian": 20.398222999999916, "afterMedian": 15.824388999999883, "medianChangePercent": -22.42270809570055, "meanChangePercent": -22.489245037555627, "pairedBlockBootstrap95CI": [-29.945955150268944, -15.45866565442422]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "text-4KiB", "beforeMedian": 56.60657099999992, "afterMedian": 15.824388999999883, "medianChangePercent": -72.04496099931596, "meanChangePercent": -72.76758819720884, "pairedBlockBootstrap95CI": [-74.54248689915379, -70.86966510270709]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "text-4KiB", "beforeMedian": 15.824388999999883, "afterMedian": 13.237346000000116, "medianChangePercent": -16.34845427523164, "meanChangePercent": -8.539443840774275, "pairedBlockBootstrap95CI": [-19.4469789096131, 4.093719214504388]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "uris-100", "beforeMedian": 464.0257449999999, "afterMedian": 291.2241919999999, "medianChangePercent": -37.239647769974496, "meanChangePercent": -36.97038420873684, "pairedBlockBootstrap95CI": [-38.45615652658443, -35.48576094222392]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "uris-100", "beforeMedian": 451.814531, "afterMedian": 291.2241919999999, "medianChangePercent": -35.54342058113223, "meanChangePercent": -34.20347181231654, "pairedBlockBootstrap95CI": [-36.20689679308108, -32.06274312241912]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "uris-100", "beforeMedian": 291.2241919999999, "afterMedian": 295.698218, "medianChangePercent": 1.5362823978579687, "meanChangePercent": 1.2874720588335054, "pairedBlockBootstrap95CI": [-2.4245499566143414, 4.871382595414309]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "VSBuffer-4KiB", "beforeMedian": 42.19261099999994, "afterMedian": 33.99169600000005, "medianChangePercent": -19.43685115860667, "meanChangePercent": -19.047868860361604, "pairedBlockBootstrap95CI": [-24.320398536672904, -13.793744527425666]},
+		{"transport": "clone", "baseline": "buffer", "variant": "keys", "case": "VSBuffer-4KiB", "beforeMedian": 67.37015300000007, "afterMedian": 33.99169600000005, "medianChangePercent": -49.54487338035285, "meanChangePercent": -54.6968331364345, "pairedBlockBootstrap95CI": [-59.10375901103906, -49.2477800059295]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "VSBuffer-4KiB", "beforeMedian": 33.99169600000005, "afterMedian": 31.11915799999997, "medianChangePercent": -8.450705136925418, "meanChangePercent": -10.409615638657389, "pairedBlockBootstrap95CI": [-17.50020259148006, -2.32012965959687]},
+		{"transport": "clone", "baseline": "parent", "variant": "keys", "case": "cyclic-map-set", "beforeMedian": 56.499259999999595, "afterMedian": 42.17447899999979, "medianChangePercent": -25.35392675939456, "meanChangePercent": -20.002662424672323, "pairedBlockBootstrap95CI": [-29.775265055031962, -7.259014083663651]},
+		{"transport": "clone", "baseline": "keys", "variant": "envelope", "case": "cyclic-map-set", "beforeMedian": 42.17447899999979, "afterMedian": 39.07451300000003, "medianChangePercent": -7.35033620687946, "meanChangePercent": -7.740148779114254, "pairedBlockBootstrap95CI": [-23.28877253407986, 8.247545523456346]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "primitive", "beforeMedian": 32.212813999999995, "afterMedian": 21.951390999999987, "medianChangePercent": -31.855096546361985, "meanChangePercent": -26.911425755364938, "pairedBlockBootstrap95CI": [-34.82909104545805, -20.412130527517082]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "primitive", "beforeMedian": 89.49200599999998, "afterMedian": 21.951390999999987, "medianChangePercent": -75.47111526363595, "meanChangePercent": -74.45565248767923, "pairedBlockBootstrap95CI": [-77.12658871840236, -71.11979349912731]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "primitive", "beforeMedian": 21.951390999999987, "afterMedian": 22.39831799999999, "medianChangePercent": 2.035984872211527, "meanChangePercent": -4.850987344508317, "pairedBlockBootstrap95CI": [-12.17757044922222, 2.4081801782675827]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "small-object", "beforeMedian": 45.459941000000015, "afterMedian": 34.854932000000034, "medianChangePercent": -23.32825068998655, "meanChangePercent": -26.874726854075938, "pairedBlockBootstrap95CI": [-31.20680045578389, -22.321635625064353]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "small-object", "beforeMedian": 81.75307600000002, "afterMedian": 34.854932000000034, "medianChangePercent": -57.36560175423855, "meanChangePercent": -59.69026006150282, "pairedBlockBootstrap95CI": [-63.57259042040126, -55.37780420920263]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "small-object", "beforeMedian": 34.854932000000034, "afterMedian": 33.62056100000001, "medianChangePercent": -3.5414528996929984, "meanChangePercent": -1.2083025212288545, "pairedBlockBootstrap95CI": [-7.523919042596439, 4.916568445456493]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "settings-100", "beforeMedian": 1021.2720520000003, "afterMedian": 587.526612, "medianChangePercent": -42.47109662411482, "meanChangePercent": -43.609624768832155, "pairedBlockBootstrap95CI": [-47.04064154333888, -41.12361118210197]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "settings-100", "beforeMedian": 270.842219, "afterMedian": 587.526612, "medianChangePercent": 116.92578585763246, "meanChangePercent": 108.15146620235758, "pairedBlockBootstrap95CI": [93.85120482714149, 120.50181597690988]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "settings-100", "beforeMedian": 587.526612, "afterMedian": 575.7659610000001, "medianChangePercent": -2.001722264114214, "meanChangePercent": -0.9000139072677382, "pairedBlockBootstrap95CI": [-3.750531427635384, 2.3198903737764676]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "text-4KiB", "beforeMedian": 29.922906999999896, "afterMedian": 22.540907999999945, "medianChangePercent": -24.67005963023572, "meanChangePercent": -27.313147185796627, "pairedBlockBootstrap95CI": [-35.975757129785755, -18.349156950733757]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "text-4KiB", "beforeMedian": 68.489599, "afterMedian": 22.540907999999945, "medianChangePercent": -67.08856771084331, "meanChangePercent": -67.89266081974648, "pairedBlockBootstrap95CI": [-71.82850604342366, -63.70484217508549]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "text-4KiB", "beforeMedian": 22.540907999999945, "afterMedian": 21.708178000000316, "medianChangePercent": -3.694305482279736, "meanChangePercent": -4.5957840701214225, "pairedBlockBootstrap95CI": [-11.967756753189374, 3.898813015444169]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "uris-100", "beforeMedian": 479.58973000000015, "afterMedian": 304.4710849999997, "medianChangePercent": -36.5142608454106, "meanChangePercent": -38.450288519250606, "pairedBlockBootstrap95CI": [-40.28613017195794, -36.58245318673432]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "uris-100", "beforeMedian": 451.7890259999999, "afterMedian": 304.4710849999997, "medianChangePercent": -32.60768467625424, "meanChangePercent": -34.13957685033184, "pairedBlockBootstrap95CI": [-36.73665874928489, -31.87481168868547]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "uris-100", "beforeMedian": 304.4710849999997, "afterMedian": 304.8575979999998, "medianChangePercent": 0.12694571637241747, "meanChangePercent": 0.32369847641706695, "pairedBlockBootstrap95CI": [-2.482428525330016, 3.691745123854151]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "VSBuffer-4KiB", "beforeMedian": 55.74897499999952, "afterMedian": 40.986312000000225, "medianChangePercent": -26.480599867530152, "meanChangePercent": -19.122174668573912, "pairedBlockBootstrap95CI": [-28.848149177562743, -5.11606006000741]},
+		{"transport": "message-port", "baseline": "buffer", "variant": "keys", "case": "VSBuffer-4KiB", "beforeMedian": 62.552934999999934, "afterMedian": 40.986312000000225, "medianChangePercent": -34.47739582483177, "meanChangePercent": -28.303120328645125, "pairedBlockBootstrap95CI": [-38.24154398190942, -14.00915215070393]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "VSBuffer-4KiB", "beforeMedian": 40.986312000000225, "afterMedian": 39.61708799999997, "medianChangePercent": -3.340686031961726, "meanChangePercent": -6.501817919892794, "pairedBlockBootstrap95CI": [-27.09819973618438, 12.80911113294696]},
+		{"transport": "message-port", "baseline": "parent", "variant": "keys", "case": "cyclic-map-set", "beforeMedian": 74.46502800000007, "afterMedian": 53.083654000000024, "medianChangePercent": -28.7133095551915, "meanChangePercent": -30.345070899469295, "pairedBlockBootstrap95CI": [-37.97099797840715, -21.272697824609367]},
+		{"transport": "message-port", "baseline": "keys", "variant": "envelope", "case": "cyclic-map-set", "beforeMedian": 53.083654000000024, "afterMedian": 52.966635, "medianChangePercent": -0.22044262439060436, "meanChangePercent": 3.367387751650708, "pairedBlockBootstrap95CI": [-1.4598631360464354, 7.1134892623809565]}
+	]
+}

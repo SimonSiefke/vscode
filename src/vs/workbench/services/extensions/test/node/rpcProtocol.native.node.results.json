@@ -1,0 +1,1058 @@
+{
+	"seed": 3212249,
+	"baseline": "199bfa689d673a28ba1d8998a343816c84fed6db",
+	"candidateSourceSHA256": "331bc8fa28f047f185787deae8dc71416eb723a845703ef295d049725ff0ffb1",
+	"bufferSourceSHA256": "03407346bf231e5d0a9303a223f09d2d20ef95a9e2468e4073d049dbb49e0188",
+	"blocks": [
+		{
+			"block": 0,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								55.18267599999999,
+								43.124245,
+								46.56733299999999
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								63.429749999999956,
+								62.57527100000004,
+								45.16691099999997
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								290.84566500000005,
+								269.90306699999985,
+								274.67663800000014
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								81.5004100000001,
+								73.67847199999983,
+								78.91921500000012
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								33.423880999999994,
+								28.278424,
+								22.070931
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								25.157309999999995,
+								26.63002800000001,
+								25.44821399999995
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								217.74744000000004,
+								224.88318200000003,
+								217.04233799999997
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								42.48827400000005,
+								39.98601900000017,
+								37.927443000000046
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 1,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								57.02678999999998,
+								45.488462,
+								31.221105000000023
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								48.30601899999999,
+								53.96292199999999,
+								58.657865000000015
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								245.83703999999994,
+								249.19801499999997,
+								236.78893700000003
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								83.12318700000016,
+								79.58810900000003,
+								78.25443100000007
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								41.083884,
+								25.567328000000003,
+								23.569617000000022
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								28.95801800000001,
+								34.66794100000001,
+								29.19763599999999
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								212.638351,
+								213.44958099999997,
+								212.21625200000005
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								44.82391800000005,
+								41.81388100000004,
+								35.87950999999998
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 2,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								58.397998,
+								40.332336999999995,
+								39.25878700000001
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								55.93796099999997,
+								50.37472199999996,
+								54.468650000000025
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								268.715294,
+								252.27708000000007,
+								252.809256
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								72.81007599999998,
+								72.30633200000011,
+								76.64328499999988
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								36.418459,
+								22.578220000000016,
+								26.452806000000013
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								32.850877999999994,
+								32.987143,
+								30.386132000000032
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								212.66398999999996,
+								211.14619800000003,
+								244.74732100000006
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								40.355459999999994,
+								50.69903099999988,
+								41.559776000000056
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 3,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								49.71636099999999,
+								46.190308000000016,
+								43.798348000000004
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								49.33007699999996,
+								39.12512700000002,
+								36.04423700000001
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								246.541049,
+								248.38812899999994,
+								252.0226939999999
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								66.92343200000005,
+								67.60614099999998,
+								59.067691000000195
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								30.504363000000012,
+								22.97900100000001,
+								23.573112999999978
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								31.98066800000001,
+								32.812917,
+								30.551882999999975
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								240.04328100000004,
+								248.19742100000008,
+								216.8631939999999
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								50.199936999999856,
+								37.687564000000066,
+								36.21251300000017
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 4,
+			"runs": [
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								34.595124,
+								20.561474999999987,
+								21.234245000000016
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								30.325799000000018,
+								29.49370000000002,
+								26.453418
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								232.03930199999996,
+								219.35051199999998,
+								221.26217099999997
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								45.62390499999993,
+								39.753994999999804,
+								40.912062000000105
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				},
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								40.859554,
+								31.495168000000007,
+								30.69914799999998
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								41.83085299999999,
+								36.23257000000001,
+								41.677576000000045
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								248.77774699999998,
+								228.55325499999992,
+								230.998734
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								73.08501999999999,
+								57.25825399999986,
+								55.85425400000008
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 5,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								48.02116600000001,
+								31.394209000000018,
+								39.802847000000014
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								44.46366500000002,
+								47.058312,
+								48.09450300000003
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								250.180184,
+								213.9902629999999,
+								239.69369599999993
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								68.39570000000005,
+								66.69920200000001,
+								53.20787700000005
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								39.162687000000005,
+								18.919249000000008,
+								19.01770400000001
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								32.35379599999999,
+								23.81331399999999,
+								23.150402000000014
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								209.71668100000005,
+								222.56217600000002,
+								236.38552200000004
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								43.67582900000002,
+								41.56424500000002,
+								37.29711199999997
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 6,
+			"runs": [
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								34.052007,
+								23.345267000000007,
+								23.821289000000007
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								26.764629999999983,
+								26.54942699999998,
+								23.275576
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								217.73513599999995,
+								212.31789200000003,
+								196.20143199999995
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								41.95900299999994,
+								40.44271399999991,
+								37.95921399999998
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				},
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								43.229192999999995,
+								33.399744999999996,
+								30.531814999999995
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								41.039491999999996,
+								36.32283899999999,
+								39.79200599999996
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								247.57536699999997,
+								249.66229399999997,
+								253.65569300000004
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								62.32716699999991,
+								62.29886299999998,
+								55.740350000000035
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 7,
+			"runs": [
+				{
+					"variant": "unpooled",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/workbench/services/extensions/common/rpcProtocol.unpooled.js",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								41.26651699999999,
+								31.15015199999999,
+								31.186941999999988
+							],
+							"messages": 9000,
+							"bytes": 108000,
+							"backingBytes": 108000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								36.695325999999994,
+								31.996045999999982,
+								31.657181999999978
+							],
+							"messages": 9000,
+							"bytes": 444000,
+							"backingBytes": 444000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								237.660389,
+								230.74443799999995,
+								230.04864500000008
+							],
+							"messages": 9000,
+							"bytes": 46182000,
+							"backingBytes": 46182000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								69.75795100000005,
+								54.28453400000012,
+								53.95162200000005
+							],
+							"messages": 9000,
+							"bytes": 24684000,
+							"backingBytes": 24684000,
+							"nativeMessages": 0,
+							"nativeStringCharacters": 0
+						}
+					]
+				},
+				{
+					"variant": "production",
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"samples": 3,
+					"iterations": 1000,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								44.058625000000006,
+								29.272847000000013,
+								32.26798500000001
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 18000
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								35.196248999999995,
+								33.36416800000001,
+								25.221811000000002
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 354000
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								210.89889400000004,
+								204.74421900000004,
+								241.10249399999998
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 46092000
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								37.37564099999986,
+								43.770174,
+								37.793462999999974
+							],
+							"messages": 6000,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6000,
+							"nativeStringCharacters": 24594000
+						}
+					]
+				}
+			]
+		}
+	],
+	"transport": "Node worker MessagePorts in one process",
+	"sourceSHA256": {
+		"src/vs/workbench/services/extensions/common/rpcProtocol.ts": "331bc8fa28f047f185787deae8dc71416eb723a845703ef295d049725ff0ffb1",
+		"src/vs/base/parts/ipc/common/ipc.ts": "84d92ea765054c861fd67a37e49d601a2e53cfce187891e0fce57e2542e47667",
+		"src/vs/workbench/services/extensions/test/node/rpcProtocol.perf.ts": "656f5840b81ed772f9b160759f606aef633a5af3a0fc5320a36df92dea5a045c"
+	},
+	"compiledModules": {
+		"before": "b25da7245ec7c664ea21968ab6e987a0dcbcb3b9e4f127c98f84c3f221f2f204",
+		"after": "4ea565ae544db4c9785b8e40eb8be53a4494bf8f3571a5595fd5812f3368e1a4"
+	}
+}

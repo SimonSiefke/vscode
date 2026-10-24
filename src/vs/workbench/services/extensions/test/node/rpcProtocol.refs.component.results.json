@@ -1,0 +1,650 @@
+{
+	"kind": "component",
+	"seed": 3212261,
+	"baseline": "30882a04012034801bd0c6eb0cf9ba831953da78",
+	"sourceSHA256": {
+		"src/vs/workbench/services/extensions/common/rpcProtocol.ts": "78fa563a081c1ac76f96a50b4a84cd9aa9b5f005446caec5a4bd955c490f7c73",
+		"src/vs/workbench/services/extensions/test/node/rpcProtocol.perf.ts": "c539e6e954958df3bc1a0905bfc94605797e384e7babcff990cf3ee264e28fb7"
+	},
+	"compiledSHA256": {
+		"before": "4ea565ae544db4c9785b8e40eb8be53a4494bf8f3571a5595fd5812f3368e1a4",
+		"after": "82ad186bd7c840de8987aba05b35bdd1ba908e3f0d69a5bc0964d070371a695c"
+	},
+	"blocks": [
+		{
+			"block": 0,
+			"runs": [
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								558.194847,
+								502.15599900000007,
+								533.5994000000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1785.0678829999997,
+								1751.2194690000001,
+								1706.9345409999996
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								959.2501560000001,
+								948.0726030000005,
+								988.4200790000014
+							]
+						}
+					]
+				},
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								57.845201,
+								58.79517999999999,
+								58.36067600000004
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								443.900018,
+								434.74084800000014,
+								414.9355489999998
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								278.9570960000001,
+								219.871492,
+								216.84103700000014
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 1,
+			"runs": [
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								524.4355499999999,
+								550.952204,
+								555.860306
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1679.423624,
+								1652.2533360000002,
+								1650.763325
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								893.611119000001,
+								941.1290019999997,
+								1023.5028639999982
+							]
+						}
+					]
+				},
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								63.464544000000004,
+								67.93044700000002,
+								60.764467999999994
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								388.81691099999995,
+								389.67231100000004,
+								388.5105960000001
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								230.86570099999994,
+								288.6775779999998,
+								271.367354
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 2,
+			"runs": [
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								560.945549,
+								541.8725720000001,
+								538.1090960000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1721.594462,
+								1621.9299809999998,
+								1613.6325240000006
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								954.0649950000006,
+								970.137612999999,
+								932.9653529999996
+							]
+						}
+					]
+				},
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								66.04499600000001,
+								68.00701999999998,
+								59.94900100000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								364.92039000000005,
+								390.35845600000005,
+								356.5093199999999
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								240.67626100000007,
+								250.92038399999979,
+								298.8098120000002
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 3,
+			"runs": [
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								59.876334,
+								62.871094,
+								60.33512400000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								442.59955299999996,
+								367.961507,
+								382.49893999999995
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								244.21730200000002,
+								240.88610499999982,
+								226.57876199999964
+							]
+						}
+					]
+				},
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								594.3941239999999,
+								533.6520089999999,
+								570.1435429999999
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1692.2600310000003,
+								1903.6197150000003,
+								1643.8599269999995
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								917.860259,
+								901.8372729999992,
+								912.2837250000011
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 4,
+			"runs": [
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								68.659151,
+								61.20646599999998,
+								60.049758999999966
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								403.482713,
+								415.0164309999999,
+								390.41316800000004
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								240.683945,
+								229.39960399999995,
+								255.81059200000027
+							]
+						}
+					]
+				},
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								545.772575,
+								536.330133,
+								506.83557199999996
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1670.24181,
+								1658.4025700000007,
+								1731.8399500000005
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								940.9789109999992,
+								936.679419,
+								952.1092829999998
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 5,
+			"runs": [
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								539.235034,
+								534.7232539999999,
+								515.235572
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1697.437027,
+								1775.3369840000005,
+								1695.3712780000005
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								914.9335269999992,
+								966.5908319999999,
+								1005.7625450000014
+							]
+						}
+					]
+				},
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								60.137304,
+								60.90615300000002,
+								64.25271900000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								377.05990399999996,
+								388.7461680000001,
+								363.56710799999996
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								225.9764439999999,
+								238.94557099999997,
+								222.78740400000015
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 6,
+			"runs": [
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								59.66681299999999,
+								59.426702000000006,
+								60.437956000000014
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								386.112767,
+								412.497244,
+								362.2160980000001
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								225.1616479999998,
+								234.81076800000005,
+								231.29524400000014
+							]
+						}
+					]
+				},
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								509.54190000000006,
+								555.6307459999999,
+								611.6805650000001
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1634.5888260000002,
+								1570.7458459999998,
+								1755.4720830000006
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								950.6643789999989,
+								985.2946860000011,
+								1013.163222000001
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 7,
+			"runs": [
+				{
+					"variant": "before",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.before-refs.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								585.488639,
+								529.810395,
+								510.84584100000006
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								1665.2978620000004,
+								1714.290015,
+								1707.36121
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								944.938545,
+								973.8060920000007,
+								1022.6558370000002
+							]
+						}
+					]
+				},
+				{
+					"variant": "after",
+					"node": "v24.22.0",
+					"module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+					"results": [
+						{
+							"name": "settings-100",
+							"jsonCharacters": 6381,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								57.380560999999986,
+								57.69886700000001,
+								58.14949099999998
+							]
+						},
+						{
+							"name": "workspace-edits-100",
+							"jsonCharacters": 26765,
+							"buffers": 0,
+							"microsecondsPerParse": [
+								397.51891599999993,
+								376.1291100000001,
+								388.45877999999993
+							]
+						},
+						{
+							"name": "notebook-100",
+							"jsonCharacters": 12491,
+							"buffers": 100,
+							"microsecondsPerParse": [
+								236.5035170000001,
+								224.93874099999994,
+								228.77855099999988
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"measuredRuntime": "Parser only; no Buffer allocations inside timed function",
+	"harnessSource": "import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';\nconst root='/home/simon/.cache/vscode-ipc-opt-20261022';const load=p=>import(pathToFileURL(root+'/out/'+p).href);const module=process.env.RPC_MODULE||'vs/workbench/services/extensions/common/rpcProtocol.before-refs.js';\nconst {parseJsonAndRestoreBufferRefs:parse,stringifyJsonWithBufferRefs:stringify}=await load(module);const {VSBuffer}=await load('vs/base/common/buffer.js');\nconst fixtures=[['settings-100',Object.fromEntries(Array.from({length:100},(_,i)=>['s'+i,{value:i,enabled:true,scopes:['user','workspace']}]))],['workspace-edits-100',{edits:Array.from({length:100},(_,i)=>({resource:{$mid:1,scheme:'file',path:'/workspace/file'+i},edit:{range:{startLineNumber:i+1,startColumn:1,endLineNumber:i+1,endColumn:10},text:'replacement '+i,eol:undefined},metadata:{label:'edit '+i,needsConfirmation:undefined}}))}],['notebook-100',{cells:Array.from({length:100},(_,i)=>({language:'markdown',source:'cell '+i,metadata:undefined,outputs:[{mime:'text/plain',data:VSBuffer.fromString('output '+i)}]}))}]];\nconst results=[];for(const[name,value]of fixtures){const{jsonString,referencedBuffers}=stringify(value);for(let i=0;i<200;i++)parse(jsonString,referencedBuffers,null);const times=[];for(let s=0;s<3;s++){const start=performance.now();let last;for(let i=0;i<1000;i++)last=parse(jsonString,referencedBuffers,null);times.push(performance.now()-start);assert.ok(last);}results.push({name,jsonCharacters:jsonString.length,buffers:referencedBuffers.length,microsecondsPerParse:times});}console.log(JSON.stringify({node:process.version,module,results}));\n",
+	"sourceNote": "The parser module hash identifies the measured implementation. The component/renderer harnesses do not execute the Node benchmark file; its logged hash is context only."
+}

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, toDisposable } from '../../../base/common/lifecycle.js';
 import * as nls from '../../../nls.js';
 import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 import { AuthenticationSession, AuthenticationSessionsChangeEvent, getDynamicAuthenticationProviderId, IAuthenticationProvider, IAuthenticationService, IAuthenticationExtensionsService, AuthenticationSessionAccount, IAuthenticationProviderSessionOptions, isAuthenticationWwwAuthenticateRequest, IAuthenticationConstraint, IAuthenticationWwwAuthenticateRequest, withoutWorkbenchOnlySessionOptions } from '../../services/authentication/common/authentication.js';
@@ -66,6 +66,8 @@ function prepareSessionRequest(options: AuthenticationGetSessionOptions) {
 }
 
 class MainThreadAuthenticationProvider extends Disposable implements IAuthenticationProvider {
+	private readonly _sessionRequests = new Map<string, ReturnType<Proxied<ExtHostAuthenticationShape>['$getSessions']>>();
+	private _sessionRequestVersion = 0;
 
 	readonly onDidChangeSessions: Event<AuthenticationSessionsChangeEvent>;
 
@@ -80,18 +82,45 @@ class MainThreadAuthenticationProvider extends Disposable implements IAuthentica
 	) {
 		super();
 		this.onDidChangeSessions = onDidChangeSessionsEmitter.event;
+		this._register(this.onDidChangeSessions(() => this._invalidateSessionRequests()));
+		this._register(toDisposable(() => this._invalidateSessionRequests()));
 	}
 
 	async getSessions(scopes: string[] | undefined, options: IAuthenticationProviderSessionOptions) {
-		const sessions = await this._proxy.$getSessions(this.id, scopes, options);
-		return sessions.map(reviveAuthenticationSession);
+		// Only share an outstanding read. Completed results and session mutations
+		// must never turn this into a stale authentication-session cache.
+		const key = JSON.stringify([scopes, options]);
+		let request = this._sessionRequests.get(key);
+		if (!request) {
+			const version = this._sessionRequestVersion;
+			request = this._proxy.$getSessions(this.id, scopes, options);
+			if (!this._store.isDisposed && version === this._sessionRequestVersion) {
+				this._sessionRequests.set(key, request);
+			}
+		}
+		try {
+			const sessions = await request;
+			return sessions.map(reviveAuthenticationSession);
+		} finally {
+			if (this._sessionRequests.get(key) === request) {
+				this._sessionRequests.delete(key);
+			}
+		}
+	}
+
+	/** Clear shared reads before provider state can change. */
+	protected _invalidateSessionRequests(): void {
+		this._sessionRequestVersion++;
+		this._sessionRequests.clear();
 	}
 
 	async createSession(scopes: string[], options: IAuthenticationProviderSessionOptions): Promise<AuthenticationSession> {
+		this._invalidateSessionRequests();
 		return reviveAuthenticationSession(await this._proxy.$createSession(this.id, scopes, options));
 	}
 
 	async removeSession(sessionId: string): Promise<void> {
+		this._invalidateSessionRequests();
 		await this._proxy.$removeSession(this.id, sessionId);
 	}
 }
@@ -124,6 +153,7 @@ class MainThreadAuthenticationProviderWithChallenges extends MainThreadAuthentic
 	}
 
 	async createSessionFromChallenges(constraint: IAuthenticationConstraint, options: IAuthenticationProviderSessionOptions): Promise<AuthenticationSession> {
+		this._invalidateSessionRequests();
 		return reviveAuthenticationSession(await this._proxy.$createSessionFromChallenges(this.id, constraint, options));
 	}
 }

@@ -1,0 +1,3074 @@
+{
+	"referenceProductionCommit": "38b2f1066eedc6cd3395bda950ee1f7e292f9df7",
+	"wholeSmokeGainVerifiedForThisChange": false,
+	"methods": {
+		"ExtHostFileSystemEventService": [
+			"$onFileEvent"
+		],
+		"ExtHostFileSystemInfo": [
+			"$acceptProviderInfos"
+		],
+		"ExtHostDataChannels": [
+			"$onDidReceiveData"
+		],
+		"ExtHostTheming": [
+			"$onColorThemeChange"
+		]
+	},
+	"callsiteAudit": {
+		"sourceSHA256": {
+			"src/vs/workbench/api/browser/mainThreadFileSystemEventService.ts": "8347a61aec03e5f9743889ace7d4039e13c804576b984dfeb40ac0531b9f214a",
+			"src/vs/workbench/api/common/extHostFileSystemEventService.ts": "d45558128841d0284bd7a499e8d8ceaad2b5105e7f63893ae60326530ff34fb1",
+			"src/vs/workbench/api/browser/mainThreadFileSystem.ts": "577228e2a68970980fcd5d33a298265c89eef73d13cad3d6e9bbabb1b26889e4",
+			"src/vs/workbench/api/common/extHostFileSystemInfo.ts": "35e439c6dfcc25d771c944ab3a6741e5221bafbad761fa3087c66f4a047d6d06",
+			"src/vs/workbench/api/browser/mainThreadDataChannels.ts": "7246603d796f9316a8f88b1f5a2f2abbfbe513ea21785cdaaab2e22e091aa41d",
+			"src/vs/workbench/api/common/extHostDataChannels.ts": "089d3c8fcd70f77e0e42f0af6b4283c07210381d17b34cfffc1690eb2ca19c9e",
+			"src/vs/workbench/api/browser/mainThreadTheming.ts": "b2b859eb0af4a66197b5b52a4f23fd0057f539ae3048f908078711d0c0a6dc25",
+			"src/vs/workbench/api/common/extHostTheming.ts": "bdebb9fa5b822151715a5d88c217e432830f2c14c1c84128982b4f7d1c91b823"
+		},
+		"productionCompletionConsumers": 0,
+		"receiverReturnType": "void",
+		"sourcesAreOrdinaryEventListeners": true
+	},
+	"baselineDiagnosticCounts": {
+		"ExtHostFileSystemEventService.$onFileEvent(": {
+			"launch-1-renderer-0-rpc.json": 139,
+			"launch-2-renderer-0-rpc.json": 80,
+			"launch-3-renderer-0-rpc.json": 224
+		},
+		"ExtHostFileSystemInfo.$acceptProviderInfos(": {
+			"launch-1-renderer-0-rpc.json": 13,
+			"launch-2-renderer-0-rpc.json": 13,
+			"launch-3-renderer-0-rpc.json": 15
+		},
+		"ExtHostDataChannels.$onDidReceiveData(": {
+			"launch-1-renderer-0-rpc.json": 0,
+			"launch-2-renderer-0-rpc.json": 0,
+			"launch-3-renderer-0-rpc.json": 126
+		},
+		"ExtHostTheming.$onColorThemeChange(": {
+			"launch-1-renderer-0-rpc.json": 2,
+			"launch-2-renderer-0-rpc.json": 2,
+			"launch-3-renderer-0-rpc.json": 2
+		}
+	},
+	"diagnosticFunctionalReport": {
+		"tests": [
+			"VSCode Smoke Tests (Electron) Data Loss (insiders -> insiders) verifies opened editors are restored",
+			"VSCode Smoke Tests (Electron) Chat Sessions Test Copilot CLI session"
+		],
+		"pending": 0,
+		"failures": 0,
+		"retried": false,
+		"diagnosticOnly": true,
+		"profiled": true
+	},
+	"diagnosticProfileProtocolSummaries": [
+		{
+			"file": "launch-1-extension-host-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: MainThreadLogger.$registerLogger(": 6,
+				"out request: MainThreadWindow.$getInitialState(": 1,
+				"out notification: MainThreadCommands.$registerCommand(": 291,
+				"out request: MainThreadTerminalService.$registerProcessSupport(": 1,
+				"out notification: MainThreadSearch.$registerTextSearchProvider(": 2,
+				"out request: MainThreadTask.$registerSupportedExecutions(": 2,
+				"out request: MainThreadTask.$registerTaskSystem(": 1,
+				"out request: MainThreadChatSkills.$getTools(": 1,
+				"out request: MainThreadFileSystem.$ensureActivation(": 9,
+				"in receiveRequest ExtHostChatAgents.$acceptActiveChatSession(": 2,
+				"out reply:": 394,
+				"in receiveRequest ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"in receiveRequest ExtHostConfiguration.$initializeConfiguration(": 1,
+				"in receiveRequest ExtHostFileSystemInfo.$acceptProviderInfos(": 13,
+				"in receiveRequest ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 1,
+				"in notification ExtHostLanguages.$acceptLanguageIds(": 1,
+				"in receiveRequest ExtHostOutputService.$setVisibleChannel(": 1,
+				"in receiveRequest ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out notification: MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in receiveRequest ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"in receiveRequest ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"in receiveRequest ExtHostTheming.$onColorThemeChange(": 2,
+				"in receiveRequest ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"in receiveRequest ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"in receiveRequest ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"out ack": 206,
+				"in notification ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 14,
+				"in receiveRequest ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"in receiveRequest ExtHostExtensionService.$startExtensionHost(": 1,
+				"in receiveRequest ExtHostExtensionService.$activateByEvent(": 4,
+				"in receiveRequest ExtHostWorkspace.$initializeWorkspace(": 1,
+				"out request: MainThreadExtensionService.$onWillActivateExtension(": 10,
+				"out request: MainThreadDebugService.$registerDebugTypes(": 1,
+				"in receiveReply:": 298,
+				"out notification: MainThreadTelemetry.$publicLog2(": 21,
+				"out request: MainThreadStorage.$initializeExtensionStorage(": 20,
+				"in notification ExtHostTerminalService.$acceptDefaultProfile(": 2,
+				"in notification ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"out request: MainThreadUrls.$registerUriHandler(": 2,
+				"out request: MainThreadSecretState.$getPassword(": 1,
+				"out request: MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: MainThreadExtensionService.$onDidActivateExtension(": 10,
+				"out notification: MainThreadLanguageFeatures.$registerCompletionsProvider(": 22,
+				"in ack": 128,
+				"in receiveRequest ExtHostAuthentication.$getSessions(": 149,
+				"out notification: MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 3,
+				"out notification: MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"out request: MainThreadTask.$registerTaskProvider(": 2,
+				"out request: MainThreadTreeViews.$registerTreeViewDataProvider(": 1,
+				"out notification: MainThreadCommands.$fireCommandActivationEvent(": 105,
+				"out request: MainThreadCommands.$executeCommand(": 105,
+				"out notification: MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"out request: MainThreadTerminalService.$registerQuickFixProvider(": 1,
+				"in notification ExtHostDocuments.$acceptModelChanged(": 1,
+				"in receiveRequest ExtHostTreeViews.$hasResolve(": 1,
+				"in receiveRequest ExtHostTreeViews.$setVisible(": 1,
+				"in receiveRequest ExtHostFileSystemEventService.$onFileEvent(": 139,
+				"in receiveRequest ExtHostChatSkills.$onDidChangeTools(": 4,
+				"out request: MainThreadTerminalService.$setEnvironmentVariableCollection(": 7,
+				"out request: MainThreadProgress.$startProgress(": 6,
+				"out notification: MainThreadDocumentContentProviders.$registerTextContentProvider(": 3,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 3,
+				"out request: MainThreadFileSystem.$registerFileSystemProvider(": 1,
+				"out notification: MainThreadDecorations.$registerDecorationProvider(": 4,
+				"out notification: MainThreadStatusBar.$disposeEntry(": 1,
+				"out request: MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerCodeActionSupport(": 13,
+				"out request: MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"out request: MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"out request: MainThreadStorage.$setValue(": 3,
+				"in receiveRequest ExtHostDecorations.$provideDecorations(": 13,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentLinks(": 7,
+				"in receiveRequest ExtHostMcp.$onDidChangeMcpServerDefinitions(": 2,
+				"out notification: MainThreadTextEditors.$registerTextEditorDecorationType(": 63,
+				"out request: MainThreadWorkspace.$requestResourceTrust(": 1,
+				"in notification ExtHostConfiguration.$acceptConfigurationChanged(": 8,
+				"out notification: MainThreadTextEditors.$removeTextEditorDecorationType(": 56,
+				"out request: MainThreadFileSystemEventService.$watch(": 54,
+				"out request: MainThreadSCM.$registerSourceControl(": 1,
+				"out request: MainThreadSCM.$updateSourceControl(": 12,
+				"out request: MainThreadSCM.$setValidationProviderIsEnabled(": 5,
+				"out request: MainThreadSCM.$setInputBoxPlaceholder(": 5,
+				"out request: MainThreadSCM.$updateGroup(": 3,
+				"out notification: MainThreadDecorations.$onDidChange(": 8,
+				"out request: MainThreadTimeline.$registerTimelineProvider(": 1,
+				"out request: MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"in receiveRequest ExtHostSCM.$setSelectedSourceControl(": 1,
+				"in receiveRequest ExtHostStorage.$acceptValue(": 4,
+				"out request: MainThreadSCM.$registerGroups(": 1,
+				"out request: MainThreadAuthentication.$ensureProvider(": 1,
+				"out request: MainThreadAuthentication.$getSession(": 1,
+				"out notification: MainThreadProgress.$progressEnd(": 6,
+				"out request: MainThreadFileSystemEventService.$unwatch(": 4,
+				"out request: MainThreadShare.$registerShareProvider(": 1,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 3,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"out request: MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"out request: MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"out request: MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"in receiveRequest ExtHostSearch.$provideFileSearchResults(": 2,
+				"in receiveRequest ExtHostEditorTabs.$acceptTabOperation(": 6,
+				"in receiveRequest ExtHostEditors.$acceptEditorDiffInformation(": 5,
+				"in notification ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"in notification ExtHostEditors.$acceptEditorPositionData(": 3,
+				"in receiveRequest ExtHostSCM.$provideOriginalResource(": 2,
+				"in receiveRequest ExtHostSCM.$provideSecondaryOriginalResource(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerNavigateTypeSupport(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerCallHierarchyProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerPasteEditProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDefinitionSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentHighlightProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerMultiDocumentHighlightProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerOnTypeFormattingSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerImplementationSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerInlayHintsProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerLinkedEditingRangeProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerReferenceSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerRenameSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentRangeSemanticTokensProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerSignatureHelpProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 2,
+				"out notification: MainThreadLanguages.$setLanguageStatus(": 4,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentSymbols(": 4,
+				"in receiveRequest ExtHostLanguageFeatures.$provideCodeActions(": 7,
+				"in receiveCancel": 10,
+				"out replyErr:": 10,
+				"in receiveRequest ExtHostFileSystem.$readFile(": 2,
+				"in receiveRequest ExtHostFileSystem.$stat(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$provideInlayHints(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentRangeSemanticTokens(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$provideFoldingRanges(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentHighlights(": 4,
+				"out request: MainThreadDiagnostics.$changeMany(": 2,
+				"in receiveRequest ExtHostSearch.$clearCache(": 1,
+				"out notification: MainThreadLanguages.$removeLanguageStatus(": 2,
+				"in receiveRequest ExtHostDiagnostics.$acceptMarkersChange(": 1
+			},
+			"roundTrips": {
+				"MainThreadLogger.$registerLogger(": {
+					"count": 6,
+					"medianMs": 151.963623046875,
+					"maxMs": 229.43017578125,
+					"sumMs": 765.06689453125
+				},
+				"MainThreadWindow.$getInitialState(": {
+					"count": 1,
+					"medianMs": 199.19140625,
+					"maxMs": 199.19140625,
+					"sumMs": 199.19140625
+				},
+				"MainThreadTerminalService.$registerProcessSupport(": {
+					"count": 1,
+					"medianMs": 196.568115234375,
+					"maxMs": 196.568115234375,
+					"sumMs": 196.568115234375
+				},
+				"MainThreadTask.$registerSupportedExecutions(": {
+					"count": 2,
+					"medianMs": 186.6417236328125,
+					"maxMs": 186.6865234375,
+					"sumMs": 373.283447265625
+				},
+				"MainThreadTask.$registerTaskSystem(": {
+					"count": 1,
+					"medianMs": 186.626953125,
+					"maxMs": 186.626953125,
+					"sumMs": 186.626953125
+				},
+				"MainThreadChatSkills.$getTools(": {
+					"count": 1,
+					"medianMs": 182.095458984375,
+					"maxMs": 182.095458984375,
+					"sumMs": 182.095458984375
+				},
+				"MainThreadFileSystem.$ensureActivation(": {
+					"count": 9,
+					"medianMs": 45.546875,
+					"maxMs": 179.294921875,
+					"sumMs": 676.274169921875
+				},
+				"MainThreadExtensionService.$onWillActivateExtension(": {
+					"count": 10,
+					"medianMs": 33.65478515625,
+					"maxMs": 168.82666015625,
+					"sumMs": 665.235595703125
+				},
+				"MainThreadDebugService.$registerDebugTypes(": {
+					"count": 1,
+					"medianMs": 159.492431640625,
+					"maxMs": 159.492431640625,
+					"sumMs": 159.492431640625
+				},
+				"MainThreadStorage.$initializeExtensionStorage(": {
+					"count": 20,
+					"medianMs": 50.2166748046875,
+					"maxMs": 151.3974609375,
+					"sumMs": 1321.16357421875
+				},
+				"MainThreadUrls.$registerUriHandler(": {
+					"count": 2,
+					"medianMs": 29.2894287109375,
+					"maxMs": 33.554443359375,
+					"sumMs": 58.578857421875
+				},
+				"MainThreadSecretState.$getPassword(": {
+					"count": 1,
+					"medianMs": 22.03515625,
+					"maxMs": 22.03515625,
+					"sumMs": 22.03515625
+				},
+				"MainThreadAuthentication.$registerAuthenticationProvider(": {
+					"count": 2,
+					"medianMs": 19.587158203125,
+					"maxMs": 20.12890625,
+					"sumMs": 39.17431640625
+				},
+				"MainThreadExtensionService.$onDidActivateExtension(": {
+					"count": 10,
+					"medianMs": 23.556640625,
+					"maxMs": 113.1962890625,
+					"sumMs": 408.10693359375
+				},
+				"MainThreadTask.$registerTaskProvider(": {
+					"count": 2,
+					"medianMs": 83.748046875,
+					"maxMs": 115.976318359375,
+					"sumMs": 167.49609375
+				},
+				"MainThreadTreeViews.$registerTreeViewDataProvider(": {
+					"count": 1,
+					"medianMs": 114.962890625,
+					"maxMs": 114.962890625,
+					"sumMs": 114.962890625
+				},
+				"MainThreadTerminalService.$registerQuickFixProvider(": {
+					"count": 1,
+					"medianMs": 113.098876953125,
+					"maxMs": 113.098876953125,
+					"sumMs": 113.098876953125
+				},
+				"MainThreadCommands.$executeCommand(": {
+					"count": 105,
+					"medianMs": 49.09619140625,
+					"maxMs": 313.88427734375,
+					"sumMs": 7210.843505859375
+				},
+				"MainThreadTerminalService.$setEnvironmentVariableCollection(": {
+					"count": 7,
+					"medianMs": 50.23974609375,
+					"maxMs": 50.66552734375,
+					"sumMs": 351.591064453125
+				},
+				"MainThreadProgress.$startProgress(": {
+					"count": 6,
+					"medianMs": 58.82958984375,
+					"maxMs": 287.44677734375,
+					"sumMs": 545.578125
+				},
+				"MainThreadFileSystem.$registerFileSystemProvider(": {
+					"count": 1,
+					"medianMs": 39.482666015625,
+					"maxMs": 39.482666015625,
+					"sumMs": 39.482666015625
+				},
+				"MainThreadWorkspace.$registerEditSessionIdentityProvider(": {
+					"count": 1,
+					"medianMs": 37.22314453125,
+					"maxMs": 37.22314453125,
+					"sumMs": 37.22314453125
+				},
+				"MainThreadWorkspace.$registerCanonicalUriProvider(": {
+					"count": 3,
+					"medianMs": 31.997802734375,
+					"maxMs": 32.040283203125,
+					"sumMs": 95.86767578125
+				},
+				"MainThreadExtensionService.$setPerformanceMarks(": {
+					"count": 1,
+					"medianMs": 31.34228515625,
+					"maxMs": 31.34228515625,
+					"sumMs": 31.34228515625
+				},
+				"MainThreadStorage.$setValue(": {
+					"count": 3,
+					"medianMs": 47.869384765625,
+					"maxMs": 48.574462890625,
+					"sumMs": 133.01611328125
+				},
+				"MainThreadWorkspace.$requestResourceTrust(": {
+					"count": 1,
+					"medianMs": 22.10107421875,
+					"maxMs": 22.10107421875,
+					"sumMs": 22.10107421875
+				},
+				"MainThreadTimeline.$registerTimelineProvider(": {
+					"count": 1,
+					"medianMs": 32.83203125,
+					"maxMs": 32.83203125,
+					"sumMs": 32.83203125
+				},
+				"MainThreadTimeline.$registerWorkspaceTimelineProvider(": {
+					"count": 1,
+					"medianMs": 32.76513671875,
+					"maxMs": 32.76513671875,
+					"sumMs": 32.76513671875
+				},
+				"MainThreadFileSystemEventService.$watch(": {
+					"count": 54,
+					"medianMs": 24.3460693359375,
+					"maxMs": 304.720458984375,
+					"sumMs": 3958.172607421875
+				},
+				"MainThreadSCM.$registerSourceControl(": {
+					"count": 1,
+					"medianMs": 40.489501953125,
+					"maxMs": 40.489501953125,
+					"sumMs": 40.489501953125
+				},
+				"MainThreadSCM.$updateSourceControl(": {
+					"count": 12,
+					"medianMs": 39.8695068359375,
+					"maxMs": 72.248046875,
+					"sumMs": 533.696533203125
+				},
+				"MainThreadSCM.$setValidationProviderIsEnabled(": {
+					"count": 5,
+					"medianMs": 43.75244140625,
+					"maxMs": 57.337158203125,
+					"sumMs": 190.4326171875
+				},
+				"MainThreadSCM.$setInputBoxPlaceholder(": {
+					"count": 5,
+					"medianMs": 38.902099609375,
+					"maxMs": 51.53271484375,
+					"sumMs": 164.84326171875
+				},
+				"MainThreadSCM.$updateGroup(": {
+					"count": 3,
+					"medianMs": 38.02978515625,
+					"maxMs": 38.102294921875,
+					"sumMs": 114.16162109375
+				},
+				"MainThreadSCM.$registerGroups(": {
+					"count": 1,
+					"medianMs": 27.693603515625,
+					"maxMs": 27.693603515625,
+					"sumMs": 27.693603515625
+				},
+				"MainThreadAuthentication.$ensureProvider(": {
+					"count": 1,
+					"medianMs": 71.35009765625,
+					"maxMs": 71.35009765625,
+					"sumMs": 71.35009765625
+				},
+				"MainThreadAuthentication.$getSession(": {
+					"count": 1,
+					"medianMs": 86.53076171875,
+					"maxMs": 86.53076171875,
+					"sumMs": 86.53076171875
+				},
+				"MainThreadFileSystemEventService.$unwatch(": {
+					"count": 4,
+					"medianMs": 16.907958984375,
+					"maxMs": 51.8369140625,
+					"sumMs": 88.104736328125
+				},
+				"MainThreadShare.$registerShareProvider(": {
+					"count": 1,
+					"medianMs": 23.2705078125,
+					"maxMs": 23.2705078125,
+					"sumMs": 23.2705078125
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": {
+					"count": 3,
+					"medianMs": 41.3232421875,
+					"maxMs": 50.79296875,
+					"sumMs": 100.486083984375
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": {
+					"count": 1,
+					"medianMs": 41.614501953125,
+					"maxMs": 41.614501953125,
+					"sumMs": 41.614501953125
+				},
+				"MainThreadSCM.$onDidChangeArtifacts(": {
+					"count": 1,
+					"medianMs": 41.475830078125,
+					"maxMs": 41.475830078125,
+					"sumMs": 41.475830078125
+				},
+				"MainThreadTimeline.$emitTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 20.735107421875,
+					"maxMs": 20.735107421875,
+					"sumMs": 20.735107421875
+				},
+				"MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 142.990966796875,
+					"maxMs": 142.990966796875,
+					"sumMs": 142.990966796875
+				},
+				"MainThreadDiagnostics.$changeMany(": {
+					"count": 2,
+					"medianMs": 14.5631103515625,
+					"maxMs": 27.034912109375,
+					"sumMs": 29.126220703125
+				}
+			}
+		},
+		{
+			"file": "launch-1-renderer-0-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: ExtHostChatAgents.$acceptActiveChatSession(": 2,
+				"out request: ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"out request: ExtHostConfiguration.$initializeConfiguration(": 1,
+				"out request: ExtHostFileSystemInfo.$acceptProviderInfos(": 13,
+				"out request: ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"out request: ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 1,
+				"out notification: ExtHostLanguages.$acceptLanguageIds(": 1,
+				"out request: ExtHostOutputService.$setVisibleChannel(": 1,
+				"out request: ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out request: ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"out request: ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"out request: ExtHostTheming.$onColorThemeChange(": 2,
+				"out request: ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"out request: ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"out request: ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"out notification: ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 14,
+				"out request: ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"out request: ExtHostExtensionService.$startExtensionHost(": 1,
+				"out request: ExtHostExtensionService.$activateByEvent(": 4,
+				"out request: ExtHostWorkspace.$initializeWorkspace(": 1,
+				"in receiveRequest MainThreadLogger.$registerLogger(": 6,
+				"out reply:": 299,
+				"in receiveRequest MainThreadWindow.$getInitialState(": 1,
+				"in notification MainThreadCommands.$registerCommand(": 291,
+				"in receiveRequest MainThreadTerminalService.$registerProcessSupport(": 1,
+				"in notification MainThreadSearch.$registerTextSearchProvider(": 2,
+				"in receiveRequest MainThreadTask.$registerSupportedExecutions(": 2,
+				"in receiveRequest MainThreadTask.$registerTaskSystem(": 1,
+				"in receiveRequest MainThreadChatSkills.$getTools(": 1,
+				"in receiveRequest MainThreadFileSystem.$ensureActivation(": 9,
+				"in receiveReply:": 395,
+				"in notification MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in ack": 206,
+				"in receiveRequest MainThreadExtensionService.$onWillActivateExtension(": 10,
+				"in receiveRequest MainThreadDebugService.$registerDebugTypes(": 1,
+				"in notification MainThreadTelemetry.$publicLog2(": 21,
+				"out notification: ExtHostTerminalService.$acceptDefaultProfile(": 2,
+				"out notification: ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"in receiveRequest MainThreadStorage.$initializeExtensionStorage(": 20,
+				"in receiveRequest MainThreadUrls.$registerUriHandler(": 2,
+				"in receiveRequest MainThreadSecretState.$getPassword(": 1,
+				"out ack": 128,
+				"in receiveRequest MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: ExtHostAuthentication.$getSessions(": 149,
+				"in receiveRequest MainThreadExtensionService.$onDidActivateExtension(": 10,
+				"in notification MainThreadLanguageFeatures.$registerCompletionsProvider(": 22,
+				"in notification MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 3,
+				"out notification: ExtHostDocuments.$acceptModelChanged(": 1,
+				"in notification MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"in receiveRequest MainThreadTask.$registerTaskProvider(": 2,
+				"in receiveRequest MainThreadTreeViews.$registerTreeViewDataProvider(": 1,
+				"out request: ExtHostTreeViews.$hasResolve(": 1,
+				"out request: ExtHostTreeViews.$setVisible(": 1,
+				"out request: ExtHostFileSystemEventService.$onFileEvent(": 139,
+				"out request: ExtHostChatSkills.$onDidChangeTools(": 4,
+				"in notification MainThreadCommands.$fireCommandActivationEvent(": 105,
+				"in receiveRequest MainThreadCommands.$executeCommand(": 105,
+				"in notification MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"in receiveRequest MainThreadTerminalService.$registerQuickFixProvider(": 1,
+				"in receiveRequest MainThreadTerminalService.$setEnvironmentVariableCollection(": 7,
+				"in receiveRequest MainThreadProgress.$startProgress(": 6,
+				"in notification MainThreadDocumentContentProviders.$registerTextContentProvider(": 3,
+				"in notification MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 3,
+				"in receiveRequest MainThreadFileSystem.$registerFileSystemProvider(": 1,
+				"in notification MainThreadDecorations.$registerDecorationProvider(": 4,
+				"in notification MainThreadStatusBar.$disposeEntry(": 1,
+				"in receiveRequest MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCodeActionSupport(": 13,
+				"in receiveRequest MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"in receiveRequest MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"out request: ExtHostDecorations.$provideDecorations(": 13,
+				"out request: ExtHostLanguageFeatures.$provideDocumentLinks(": 7,
+				"out request: ExtHostMcp.$onDidChangeMcpServerDefinitions(": 2,
+				"in receiveRequest MainThreadStorage.$setValue(": 3,
+				"in notification MainThreadTextEditors.$registerTextEditorDecorationType(": 63,
+				"out notification: ExtHostConfiguration.$acceptConfigurationChanged(": 8,
+				"in receiveRequest MainThreadWorkspace.$requestResourceTrust(": 1,
+				"in notification MainThreadTextEditors.$removeTextEditorDecorationType(": 56,
+				"in receiveRequest MainThreadFileSystemEventService.$watch(": 54,
+				"in receiveRequest MainThreadSCM.$registerSourceControl(": 1,
+				"in receiveRequest MainThreadSCM.$updateSourceControl(": 12,
+				"in receiveRequest MainThreadSCM.$setValidationProviderIsEnabled(": 5,
+				"in receiveRequest MainThreadSCM.$setInputBoxPlaceholder(": 5,
+				"in receiveRequest MainThreadSCM.$updateGroup(": 3,
+				"in notification MainThreadDecorations.$onDidChange(": 8,
+				"in receiveRequest MainThreadTimeline.$registerTimelineProvider(": 1,
+				"in receiveRequest MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"out request: ExtHostSCM.$setSelectedSourceControl(": 1,
+				"out request: ExtHostStorage.$acceptValue(": 4,
+				"in receiveRequest MainThreadSCM.$registerGroups(": 1,
+				"in receiveRequest MainThreadAuthentication.$ensureProvider(": 1,
+				"in receiveRequest MainThreadAuthentication.$getSession(": 1,
+				"in notification MainThreadProgress.$progressEnd(": 6,
+				"in receiveRequest MainThreadFileSystemEventService.$unwatch(": 4,
+				"in receiveRequest MainThreadShare.$registerShareProvider(": 1,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 3,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"in receiveRequest MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"in receiveRequest MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"in receiveRequest MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"out request: ExtHostSearch.$provideFileSearchResults(": 2,
+				"out request: ExtHostEditorTabs.$acceptTabOperation(": 6,
+				"out request: ExtHostEditors.$acceptEditorDiffInformation(": 5,
+				"out notification: ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"out notification: ExtHostEditors.$acceptEditorPositionData(": 3,
+				"out request: ExtHostSCM.$provideOriginalResource(": 2,
+				"out request: ExtHostSCM.$provideSecondaryOriginalResource(": 2,
+				"in notification MainThreadLanguageFeatures.$registerNavigateTypeSupport(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCallHierarchyProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerPasteEditProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDefinitionSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentHighlightProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerMultiDocumentHighlightProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerOnTypeFormattingSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerImplementationSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerInlayHintsProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerLinkedEditingRangeProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerReferenceSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerRenameSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentRangeSemanticTokensProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerSignatureHelpProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 2,
+				"out request: ExtHostLanguageFeatures.$provideDocumentSymbols(": 4,
+				"out request: ExtHostLanguageFeatures.$provideCodeActions(": 7,
+				"out cancel": 10,
+				"in notification MainThreadLanguages.$setLanguageStatus(": 4,
+				"out request: ExtHostFileSystem.$readFile(": 2,
+				"out request: ExtHostFileSystem.$stat(": 2,
+				"out request: ExtHostLanguageFeatures.$provideInlayHints(": 2,
+				"in receiveReplyErr:": 10,
+				"out request: ExtHostLanguageFeatures.$provideDocumentRangeSemanticTokens(": 2,
+				"out request: ExtHostLanguageFeatures.$provideFoldingRanges(": 2,
+				"out request: ExtHostLanguageFeatures.$provideDocumentHighlights(": 4,
+				"in receiveRequest MainThreadDiagnostics.$changeMany(": 3,
+				"out request: ExtHostSearch.$clearCache(": 1,
+				"in notification MainThreadLanguages.$removeLanguageStatus(": 2,
+				"out request: ExtHostDiagnostics.$acceptMarkersChange(": 2
+			},
+			"roundTrips": {
+				"ExtHostChatAgents.$acceptActiveChatSession(": {
+					"count": 2,
+					"medianMs": 103.5,
+					"maxMs": 119.0,
+					"sumMs": 207.0
+				},
+				"ExtHostChatAgents.$onDidChangePlugins(": {
+					"count": 1,
+					"medianMs": 118.900146484375,
+					"maxMs": 118.900146484375,
+					"sumMs": 118.900146484375
+				},
+				"ExtHostConfiguration.$initializeConfiguration(": {
+					"count": 1,
+					"medianMs": 116.300048828125,
+					"maxMs": 116.300048828125,
+					"sumMs": 116.300048828125
+				},
+				"ExtHostFileSystemInfo.$acceptProviderInfos(": {
+					"count": 13,
+					"medianMs": 133.199951171875,
+					"maxMs": 133.2998046875,
+					"sumMs": 1273.399169921875
+				},
+				"ExtHostLanguageFeatures.$setWordDefinitions(": {
+					"count": 2,
+					"medianMs": 91.9500732421875,
+					"maxMs": 128.0,
+					"sumMs": 183.900146484375
+				},
+				"ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": {
+					"count": 1,
+					"medianMs": 126.699951171875,
+					"maxMs": 126.699951171875,
+					"sumMs": 126.699951171875
+				},
+				"ExtHostOutputService.$setVisibleChannel(": {
+					"count": 1,
+					"medianMs": 125.89990234375,
+					"maxMs": 125.89990234375,
+					"sumMs": 125.89990234375
+				},
+				"ExtHostSearch.$enableExtensionHostSearch(": {
+					"count": 1,
+					"medianMs": 125.60009765625,
+					"maxMs": 125.60009765625,
+					"sumMs": 125.60009765625
+				},
+				"ExtHostStatusBar.$acceptStaticEntries(": {
+					"count": 1,
+					"medianMs": 125.60009765625,
+					"maxMs": 125.60009765625,
+					"sumMs": 125.60009765625
+				},
+				"ExtHostTelemetry.$initializeTelemetryLevel(": {
+					"count": 1,
+					"medianMs": 125.400146484375,
+					"maxMs": 125.400146484375,
+					"sumMs": 125.400146484375
+				},
+				"ExtHostTheming.$onColorThemeChange(": {
+					"count": 2,
+					"medianMs": 91.5,
+					"maxMs": 124.300048828125,
+					"sumMs": 183.0
+				},
+				"ExtHostDataChannels.$acceptLinkPresentationRules(": {
+					"count": 4,
+					"medianMs": 35.3499755859375,
+					"maxMs": 117.60009765625,
+					"sumMs": 223.5
+				},
+				"ExtHostMeteredConnection.$initializeIsConnectionMetered(": {
+					"count": 1,
+					"medianMs": 117.60009765625,
+					"maxMs": 117.60009765625,
+					"sumMs": 117.60009765625
+				},
+				"ExtHostEditorTabs.$acceptEditorTabModel(": {
+					"count": 1,
+					"medianMs": 110.800048828125,
+					"maxMs": 110.800048828125,
+					"sumMs": 110.800048828125
+				},
+				"ExtHostWorkspace.$initializeWorkspace(": {
+					"count": 1,
+					"medianMs": 107.39990234375,
+					"maxMs": 107.39990234375,
+					"sumMs": 107.39990234375
+				},
+				"ExtHostGitExtension.$isGitExtensionAvailable(": {
+					"count": 1,
+					"medianMs": 123.699951171875,
+					"maxMs": 123.699951171875,
+					"sumMs": 123.699951171875
+				},
+				"ExtHostExtensionService.$activateByEvent(": {
+					"count": 4,
+					"medianMs": 239.199951171875,
+					"maxMs": 512.5,
+					"sumMs": 1037.999755859375
+				},
+				"ExtHostAuthentication.$getSessions(": {
+					"count": 149,
+					"medianMs": 43.800048828125,
+					"maxMs": 79.10009765625,
+					"sumMs": 6680.599853515625
+				},
+				"ExtHostTreeViews.$hasResolve(": {
+					"count": 1,
+					"medianMs": 52.10009765625,
+					"maxMs": 52.10009765625,
+					"sumMs": 52.10009765625
+				},
+				"ExtHostTreeViews.$setVisible(": {
+					"count": 1,
+					"medianMs": 50.5,
+					"maxMs": 50.5,
+					"sumMs": 50.5
+				},
+				"ExtHostFileSystemEventService.$onFileEvent(": {
+					"count": 139,
+					"medianMs": 40.89990234375,
+					"maxMs": 221.0,
+					"sumMs": 6724.39794921875
+				},
+				"ExtHostChatSkills.$onDidChangeTools(": {
+					"count": 4,
+					"medianMs": 27.8499755859375,
+					"maxMs": 42.7998046875,
+					"sumMs": 103.39990234375
+				},
+				"ExtHostExtensionService.$startExtensionHost(": {
+					"count": 1,
+					"medianMs": 502.7001953125,
+					"maxMs": 502.7001953125,
+					"sumMs": 502.7001953125
+				},
+				"ExtHostDecorations.$provideDecorations(": {
+					"count": 13,
+					"medianMs": 41.60009765625,
+					"maxMs": 709.10009765625,
+					"sumMs": 1739.100341796875
+				},
+				"ExtHostLanguageFeatures.$provideDocumentLinks(": {
+					"count": 7,
+					"medianMs": 51.099853515625,
+					"maxMs": 200.10009765625,
+					"sumMs": 620.699951171875
+				},
+				"ExtHostMcp.$onDidChangeMcpServerDefinitions(": {
+					"count": 2,
+					"medianMs": 36.7999267578125,
+					"maxMs": 46.89990234375,
+					"sumMs": 73.599853515625
+				},
+				"ExtHostSCM.$setSelectedSourceControl(": {
+					"count": 1,
+					"medianMs": 34.7998046875,
+					"maxMs": 34.7998046875,
+					"sumMs": 34.7998046875
+				},
+				"ExtHostStorage.$acceptValue(": {
+					"count": 4,
+					"medianMs": 36.800048828125,
+					"maxMs": 57.800048828125,
+					"sumMs": 145.5
+				},
+				"ExtHostSearch.$provideFileSearchResults(": {
+					"count": 2,
+					"medianMs": 52.7000732421875,
+					"maxMs": 58.5,
+					"sumMs": 105.400146484375
+				},
+				"ExtHostEditorTabs.$acceptTabOperation(": {
+					"count": 6,
+					"medianMs": 85.9998779296875,
+					"maxMs": 172.800048828125,
+					"sumMs": 633.599609375
+				},
+				"ExtHostEditors.$acceptEditorDiffInformation(": {
+					"count": 5,
+					"medianMs": 150.10009765625,
+					"maxMs": 262.0,
+					"sumMs": 624.300048828125
+				},
+				"ExtHostSCM.$provideSecondaryOriginalResource(": {
+					"count": 2,
+					"medianMs": 193.300048828125,
+					"maxMs": 364.10009765625,
+					"sumMs": 386.60009765625
+				},
+				"ExtHostSCM.$provideOriginalResource(": {
+					"count": 2,
+					"medianMs": 195.050048828125,
+					"maxMs": 364.39990234375,
+					"sumMs": 390.10009765625
+				},
+				"ExtHostLanguageFeatures.$provideCodeActions(": {
+					"count": 7,
+					"medianMs": 686.60009765625,
+					"maxMs": 1972.60009765625,
+					"sumMs": 5978.10009765625
+				},
+				"ExtHostFileSystem.$readFile(": {
+					"count": 2,
+					"medianMs": 48.0999755859375,
+					"maxMs": 48.199951171875,
+					"sumMs": 96.199951171875
+				},
+				"ExtHostLanguageFeatures.$provideInlayHints(": {
+					"count": 2,
+					"medianMs": 47.10009765625,
+					"maxMs": 77.5,
+					"sumMs": 94.2001953125
+				},
+				"ExtHostFileSystem.$stat(": {
+					"count": 2,
+					"medianMs": 265.949951171875,
+					"maxMs": 371.699951171875,
+					"sumMs": 531.89990234375
+				},
+				"ExtHostLanguageFeatures.$provideDocumentHighlights(": {
+					"count": 4,
+					"medianMs": 277.0,
+					"maxMs": 479.800048828125,
+					"sumMs": 1039.699951171875
+				},
+				"ExtHostLanguageFeatures.$provideDocumentSymbols(": {
+					"count": 4,
+					"medianMs": 479.300048828125,
+					"maxMs": 1325.099853515625,
+					"sumMs": 2391.5
+				},
+				"ExtHostLanguageFeatures.$provideFoldingRanges(": {
+					"count": 2,
+					"medianMs": 289.0001220703125,
+					"maxMs": 563.10009765625,
+					"sumMs": 578.000244140625
+				},
+				"ExtHostSearch.$clearCache(": {
+					"count": 1,
+					"medianMs": 2.2001953125,
+					"maxMs": 2.2001953125,
+					"sumMs": 2.2001953125
+				},
+				"ExtHostLanguageFeatures.$provideDocumentRangeSemanticTokens(": {
+					"count": 2,
+					"medianMs": 930.5999755859375,
+					"maxMs": 1417.099853515625,
+					"sumMs": 1861.199951171875
+				},
+				"ExtHostDiagnostics.$acceptMarkersChange(": {
+					"count": 2,
+					"medianMs": 3.050048828125,
+					"maxMs": 5.2001953125,
+					"sumMs": 6.10009765625
+				}
+			}
+		},
+		{
+			"file": "launch-2-extension-host-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: MainThreadLogger.$registerLogger(": 6,
+				"out request: MainThreadWindow.$getInitialState(": 1,
+				"out notification: MainThreadCommands.$registerCommand(": 291,
+				"out request: MainThreadTerminalService.$registerProcessSupport(": 1,
+				"out notification: MainThreadSearch.$registerTextSearchProvider(": 2,
+				"out request: MainThreadTask.$registerSupportedExecutions(": 2,
+				"out request: MainThreadTask.$registerTaskSystem(": 1,
+				"out request: MainThreadChatSkills.$getTools(": 1,
+				"out request: MainThreadFileSystem.$ensureActivation(": 7,
+				"in receiveRequest ExtHostChatAgents.$acceptActiveChatSession(": 2,
+				"out reply:": 157,
+				"in receiveRequest ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"in receiveRequest ExtHostConfiguration.$initializeConfiguration(": 1,
+				"in receiveRequest ExtHostFileSystemInfo.$acceptProviderInfos(": 13,
+				"in receiveRequest ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 1,
+				"in notification ExtHostLanguages.$acceptLanguageIds(": 1,
+				"in receiveRequest ExtHostOutputService.$setVisibleChannel(": 1,
+				"in receiveRequest ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out notification: MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in receiveRequest ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"in receiveRequest ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"in notification ExtHostTerminalService.$initEnvironmentVariableCollections(": 1,
+				"in receiveRequest ExtHostTheming.$onColorThemeChange(": 2,
+				"in receiveRequest ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"in receiveRequest ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"in receiveRequest ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"in notification ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 8,
+				"in receiveRequest ExtHostEditors.$acceptEditorDiffInformation(": 3,
+				"out ack": 31,
+				"in receiveRequest ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"in receiveRequest ExtHostExtensionService.$startExtensionHost(": 1,
+				"in receiveRequest ExtHostExtensionService.$activateByEvent(": 3,
+				"in receiveRequest ExtHostWorkspace.$initializeWorkspace(": 1,
+				"out request: MainThreadExtensionService.$onWillActivateExtension(": 10,
+				"out request: MainThreadDebugService.$registerDebugTypes(": 1,
+				"in receiveReply:": 184,
+				"out notification: MainThreadTelemetry.$publicLog2(": 21,
+				"out request: MainThreadStorage.$initializeExtensionStorage(": 20,
+				"in notification ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"in receiveRequest ExtHostFileSystemEventService.$onFileEvent(": 80,
+				"in notification ExtHostConfiguration.$acceptConfigurationChanged(": 9,
+				"out request: MainThreadUrls.$registerUriHandler(": 2,
+				"out request: MainThreadSecretState.$getPassword(": 1,
+				"out request: MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: MainThreadExtensionService.$onDidActivateExtension(": 10,
+				"out notification: MainThreadLanguageFeatures.$registerCompletionsProvider(": 22,
+				"in ack": 77,
+				"in receiveRequest ExtHostAuthentication.$getSessions(": 13,
+				"in notification ExtHostTerminalService.$acceptDefaultProfile(": 3,
+				"in receiveRequest ExtHostWindow.$onDidChangeWindowActive(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 3,
+				"in notification ExtHostDocuments.$acceptModelChanged(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"out request: MainThreadTask.$registerTaskProvider(": 2,
+				"out request: MainThreadTreeViews.$registerTreeViewDataProvider(": 1,
+				"out notification: MainThreadCommands.$fireCommandActivationEvent(": 70,
+				"out request: MainThreadCommands.$executeCommand(": 70,
+				"out notification: MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"out request: MainThreadTerminalService.$registerQuickFixProvider(": 1,
+				"in receiveRequest ExtHostChatSkills.$onDidChangeTools(": 3,
+				"in receiveRequest ExtHostTreeViews.$hasResolve(": 1,
+				"in receiveRequest ExtHostTreeViews.$setVisible(": 1,
+				"out request: MainThreadTerminalService.$setEnvironmentVariableCollection(": 7,
+				"out request: MainThreadProgress.$startProgress(": 4,
+				"out notification: MainThreadDocumentContentProviders.$registerTextContentProvider(": 3,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 3,
+				"out request: MainThreadFileSystem.$registerFileSystemProvider(": 1,
+				"out notification: MainThreadDecorations.$registerDecorationProvider(": 4,
+				"out notification: MainThreadStatusBar.$disposeEntry(": 1,
+				"out request: MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerCodeActionSupport(": 13,
+				"out request: MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"out request: MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"out request: MainThreadStorage.$setValue(": 3,
+				"in receiveRequest ExtHostMcp.$onDidChangeMcpServerDefinitions(": 2,
+				"in receiveRequest ExtHostDecorations.$provideDecorations(": 5,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentLinks(": 5,
+				"out request: MainThreadWorkspace.$requestResourceTrust(": 1,
+				"out notification: MainThreadTextEditors.$registerTextEditorDecorationType(": 63,
+				"out request: MainThreadFileSystemEventService.$watch(": 4,
+				"out request: MainThreadSCM.$registerSourceControl(": 1,
+				"out request: MainThreadSCM.$updateSourceControl(": 12,
+				"out request: MainThreadSCM.$setValidationProviderIsEnabled(": 3,
+				"out request: MainThreadSCM.$setInputBoxPlaceholder(": 3,
+				"out request: MainThreadSCM.$updateGroup(": 3,
+				"out notification: MainThreadDecorations.$onDidChange(": 5,
+				"out request: MainThreadTimeline.$registerTimelineProvider(": 1,
+				"out request: MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"in receiveRequest ExtHostSCM.$setSelectedSourceControl(": 1,
+				"out request: MainThreadSCM.$registerGroups(": 1,
+				"out notification: MainThreadTextEditors.$removeTextEditorDecorationType(": 56,
+				"out request: MainThreadAuthentication.$ensureProvider(": 1,
+				"out notification: MainThreadProgress.$progressEnd(": 2,
+				"out request: MainThreadAuthentication.$getSession(": 1,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 2,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"out request: MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"out request: MainThreadFileSystemEventService.$unwatch(": 1,
+				"out request: MainThreadShare.$registerShareProvider(": 1,
+				"in receiveRequest ExtHostStorage.$acceptValue(": 1,
+				"out request: MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"out request: MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"in receiveRequest ExtHostLanguageFeatures.$provideCodeLenses(": 1,
+				"in receiveRequest ExtHostEditorTabs.$acceptTabOperation(": 2,
+				"in notification ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"in notification ExtHostEditors.$acceptEditorPositionData(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerNavigateTypeSupport(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerCallHierarchyProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerPasteEditProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDefinitionSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentHighlightProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerMultiDocumentHighlightProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerOnTypeFormattingSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerImplementationSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerInlayHintsProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerLinkedEditingRangeProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerReferenceSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerRenameSupport(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentRangeSemanticTokensProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerSignatureHelpProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 2,
+				"out notification: MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 2,
+				"out notification: MainThreadLanguages.$setLanguageStatus(": 3,
+				"out notification: MainThreadLanguages.$removeLanguageStatus(": 1,
+				"in receiveCancel": 1,
+				"in receiveRequest ExtHostSCM.$provideOriginalResource(": 1,
+				"in receiveRequest ExtHostSCM.$provideSecondaryOriginalResource(": 1
+			},
+			"roundTrips": {
+				"MainThreadLogger.$registerLogger(": {
+					"count": 5,
+					"medianMs": 77.1083984375,
+					"maxMs": 155.505859375,
+					"sumMs": 405.444580078125
+				},
+				"MainThreadWindow.$getInitialState(": {
+					"count": 1,
+					"medianMs": 160.68505859375,
+					"maxMs": 160.68505859375,
+					"sumMs": 160.68505859375
+				},
+				"MainThreadTerminalService.$registerProcessSupport(": {
+					"count": 1,
+					"medianMs": 158.404541015625,
+					"maxMs": 158.404541015625,
+					"sumMs": 158.404541015625
+				},
+				"MainThreadTask.$registerSupportedExecutions(": {
+					"count": 2,
+					"medianMs": 147.98876953125,
+					"maxMs": 148.04443359375,
+					"sumMs": 295.9775390625
+				},
+				"MainThreadTask.$registerTaskSystem(": {
+					"count": 1,
+					"medianMs": 147.96875,
+					"maxMs": 147.96875,
+					"sumMs": 147.96875
+				},
+				"MainThreadChatSkills.$getTools(": {
+					"count": 1,
+					"medianMs": 142.72998046875,
+					"maxMs": 142.72998046875,
+					"sumMs": 142.72998046875
+				},
+				"MainThreadFileSystem.$ensureActivation(": {
+					"count": 5,
+					"medianMs": 39.088134765625,
+					"maxMs": 138.899169921875,
+					"sumMs": 325.329345703125
+				},
+				"MainThreadExtensionService.$onWillActivateExtension(": {
+					"count": 10,
+					"medianMs": 41.067626953125,
+					"maxMs": 130.778076171875,
+					"sumMs": 623.02294921875
+				},
+				"MainThreadDebugService.$registerDebugTypes(": {
+					"count": 1,
+					"medianMs": 130.167724609375,
+					"maxMs": 130.167724609375,
+					"sumMs": 130.167724609375
+				},
+				"MainThreadStorage.$initializeExtensionStorage(": {
+					"count": 20,
+					"medianMs": 69.622802734375,
+					"maxMs": 115.15576171875,
+					"sumMs": 1465.87353515625
+				},
+				"MainThreadUrls.$registerUriHandler(": {
+					"count": 2,
+					"medianMs": 36.2330322265625,
+					"maxMs": 41.0966796875,
+					"sumMs": 72.466064453125
+				},
+				"MainThreadSecretState.$getPassword(": {
+					"count": 1,
+					"medianMs": 38.545166015625,
+					"maxMs": 38.545166015625,
+					"sumMs": 38.545166015625
+				},
+				"MainThreadAuthentication.$registerAuthenticationProvider(": {
+					"count": 2,
+					"medianMs": 30.29833984375,
+					"maxMs": 30.502685546875,
+					"sumMs": 60.5966796875
+				},
+				"MainThreadExtensionService.$onDidActivateExtension(": {
+					"count": 9,
+					"medianMs": 31.208740234375,
+					"maxMs": 92.081298828125,
+					"sumMs": 369.323486328125
+				},
+				"MainThreadTask.$registerTaskProvider(": {
+					"count": 2,
+					"medianMs": 86.1092529296875,
+					"maxMs": 96.076416015625,
+					"sumMs": 172.218505859375
+				},
+				"MainThreadTreeViews.$registerTreeViewDataProvider(": {
+					"count": 1,
+					"medianMs": 95.5400390625,
+					"maxMs": 95.5400390625,
+					"sumMs": 95.5400390625
+				},
+				"MainThreadTerminalService.$registerQuickFixProvider(": {
+					"count": 1,
+					"medianMs": 92.097900390625,
+					"maxMs": 92.097900390625,
+					"sumMs": 92.097900390625
+				},
+				"MainThreadCommands.$executeCommand(": {
+					"count": 60,
+					"medianMs": 33.0020751953125,
+					"maxMs": 141.45654296875,
+					"sumMs": 2483.46435546875
+				},
+				"MainThreadTerminalService.$setEnvironmentVariableCollection(": {
+					"count": 7,
+					"medianMs": 27.34423828125,
+					"maxMs": 27.599609375,
+					"sumMs": 191.364013671875
+				},
+				"MainThreadProgress.$startProgress(": {
+					"count": 3,
+					"medianMs": 49.512939453125,
+					"maxMs": 70.302734375,
+					"sumMs": 144.695556640625
+				},
+				"MainThreadFileSystem.$registerFileSystemProvider(": {
+					"count": 1,
+					"medianMs": 22.691650390625,
+					"maxMs": 22.691650390625,
+					"sumMs": 22.691650390625
+				},
+				"MainThreadWorkspace.$registerEditSessionIdentityProvider(": {
+					"count": 1,
+					"medianMs": 20.923583984375,
+					"maxMs": 20.923583984375,
+					"sumMs": 20.923583984375
+				},
+				"MainThreadWorkspace.$registerCanonicalUriProvider(": {
+					"count": 3,
+					"medianMs": 30.037353515625,
+					"maxMs": 30.05517578125,
+					"sumMs": 90.122314453125
+				},
+				"MainThreadExtensionService.$setPerformanceMarks(": {
+					"count": 1,
+					"medianMs": 29.47998046875,
+					"maxMs": 29.47998046875,
+					"sumMs": 29.47998046875
+				},
+				"MainThreadStorage.$setValue(": {
+					"count": 3,
+					"medianMs": 47.630126953125,
+					"maxMs": 75.645751953125,
+					"sumMs": 129.546142578125
+				},
+				"MainThreadWorkspace.$requestResourceTrust(": {
+					"count": 1,
+					"medianMs": 15.623779296875,
+					"maxMs": 15.623779296875,
+					"sumMs": 15.623779296875
+				},
+				"MainThreadTimeline.$registerTimelineProvider(": {
+					"count": 1,
+					"medianMs": 51.336669921875,
+					"maxMs": 51.336669921875,
+					"sumMs": 51.336669921875
+				},
+				"MainThreadTimeline.$registerWorkspaceTimelineProvider(": {
+					"count": 1,
+					"medianMs": 51.256103515625,
+					"maxMs": 51.256103515625,
+					"sumMs": 51.256103515625
+				},
+				"MainThreadFileSystemEventService.$watch(": {
+					"count": 4,
+					"medianMs": 50.0074462890625,
+					"maxMs": 63.75634765625,
+					"sumMs": 171.279541015625
+				},
+				"MainThreadSCM.$registerSourceControl(": {
+					"count": 1,
+					"medianMs": 59.867919921875,
+					"maxMs": 59.867919921875,
+					"sumMs": 59.867919921875
+				},
+				"MainThreadSCM.$updateSourceControl(": {
+					"count": 12,
+					"medianMs": 58.64990234375,
+					"maxMs": 66.593505859375,
+					"sumMs": 655.003662109375
+				},
+				"MainThreadSCM.$setValidationProviderIsEnabled(": {
+					"count": 3,
+					"medianMs": 58.466064453125,
+					"maxMs": 65.4375,
+					"sumMs": 134.81494140625
+				},
+				"MainThreadSCM.$setInputBoxPlaceholder(": {
+					"count": 3,
+					"medianMs": 39.465576171875,
+					"maxMs": 58.38330078125,
+					"sumMs": 105.233154296875
+				},
+				"MainThreadSCM.$updateGroup(": {
+					"count": 3,
+					"medianMs": 57.351806640625,
+					"maxMs": 57.524658203125,
+					"sumMs": 172.21142578125
+				},
+				"MainThreadSCM.$registerGroups(": {
+					"count": 1,
+					"medianMs": 24.74072265625,
+					"maxMs": 24.74072265625,
+					"sumMs": 24.74072265625
+				},
+				"MainThreadAuthentication.$ensureProvider(": {
+					"count": 1,
+					"medianMs": 62.419189453125,
+					"maxMs": 62.419189453125,
+					"sumMs": 62.419189453125
+				},
+				"MainThreadAuthentication.$getSession(": {
+					"count": 1,
+					"medianMs": 31.318359375,
+					"maxMs": 31.318359375,
+					"sumMs": 31.318359375
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": {
+					"count": 2,
+					"medianMs": 16.588134765625,
+					"maxMs": 26.315673828125,
+					"sumMs": 33.17626953125
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": {
+					"count": 1,
+					"medianMs": 14.11328125,
+					"maxMs": 14.11328125,
+					"sumMs": 14.11328125
+				},
+				"MainThreadSCM.$onDidChangeArtifacts(": {
+					"count": 1,
+					"medianMs": 13.84619140625,
+					"maxMs": 13.84619140625,
+					"sumMs": 13.84619140625
+				},
+				"MainThreadFileSystemEventService.$unwatch(": {
+					"count": 1,
+					"medianMs": 7.930419921875,
+					"maxMs": 7.930419921875,
+					"sumMs": 7.930419921875
+				},
+				"MainThreadShare.$registerShareProvider(": {
+					"count": 1,
+					"medianMs": 7.413330078125,
+					"maxMs": 7.413330078125,
+					"sumMs": 7.413330078125
+				},
+				"MainThreadTimeline.$emitTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 10.323974609375,
+					"maxMs": 10.323974609375,
+					"sumMs": 10.323974609375
+				},
+				"MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 15.326416015625,
+					"maxMs": 15.326416015625,
+					"sumMs": 15.326416015625
+				}
+			}
+		},
+		{
+			"file": "launch-2-renderer-0-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: ExtHostChatAgents.$acceptActiveChatSession(": 2,
+				"out request: ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"out request: ExtHostConfiguration.$initializeConfiguration(": 1,
+				"out request: ExtHostFileSystemInfo.$acceptProviderInfos(": 13,
+				"out request: ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"out request: ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 1,
+				"out notification: ExtHostLanguages.$acceptLanguageIds(": 1,
+				"out request: ExtHostOutputService.$setVisibleChannel(": 1,
+				"out request: ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out request: ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"out request: ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"out notification: ExtHostTerminalService.$initEnvironmentVariableCollections(": 1,
+				"out request: ExtHostTheming.$onColorThemeChange(": 2,
+				"out request: ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"out request: ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"out request: ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"out notification: ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 8,
+				"out request: ExtHostEditors.$acceptEditorDiffInformation(": 3,
+				"out request: ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"out request: ExtHostExtensionService.$startExtensionHost(": 1,
+				"out request: ExtHostExtensionService.$activateByEvent(": 3,
+				"out request: ExtHostWorkspace.$initializeWorkspace(": 1,
+				"in receiveRequest MainThreadLogger.$registerLogger(": 6,
+				"out reply:": 199,
+				"in receiveRequest MainThreadWindow.$getInitialState(": 1,
+				"in notification MainThreadCommands.$registerCommand(": 291,
+				"in receiveRequest MainThreadTerminalService.$registerProcessSupport(": 1,
+				"in notification MainThreadSearch.$registerTextSearchProvider(": 2,
+				"in receiveRequest MainThreadTask.$registerSupportedExecutions(": 2,
+				"in receiveRequest MainThreadTask.$registerTaskSystem(": 1,
+				"in receiveRequest MainThreadChatSkills.$getTools(": 1,
+				"in receiveRequest MainThreadFileSystem.$ensureActivation(": 7,
+				"in receiveReply:": 157,
+				"in notification MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in ack": 32,
+				"in receiveRequest MainThreadExtensionService.$onWillActivateExtension(": 10,
+				"in receiveRequest MainThreadDebugService.$registerDebugTypes(": 1,
+				"in notification MainThreadTelemetry.$publicLog2(": 21,
+				"out notification: ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"out request: ExtHostFileSystemEventService.$onFileEvent(": 80,
+				"out notification: ExtHostConfiguration.$acceptConfigurationChanged(": 9,
+				"in receiveRequest MainThreadStorage.$initializeExtensionStorage(": 20,
+				"in receiveRequest MainThreadUrls.$registerUriHandler(": 2,
+				"in receiveRequest MainThreadSecretState.$getPassword(": 1,
+				"out ack": 87,
+				"in receiveRequest MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: ExtHostAuthentication.$getSessions(": 13,
+				"in receiveRequest MainThreadExtensionService.$onDidActivateExtension(": 10,
+				"out notification: ExtHostTerminalService.$acceptDefaultProfile(": 3,
+				"out request: ExtHostWindow.$onDidChangeWindowActive(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCompletionsProvider(": 22,
+				"out notification: ExtHostDocuments.$acceptModelChanged(": 2,
+				"in notification MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 3,
+				"out request: ExtHostChatSkills.$onDidChangeTools(": 3,
+				"in notification MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"in receiveRequest MainThreadTask.$registerTaskProvider(": 2,
+				"in receiveRequest MainThreadTreeViews.$registerTreeViewDataProvider(": 1,
+				"out request: ExtHostTreeViews.$hasResolve(": 1,
+				"out request: ExtHostTreeViews.$setVisible(": 1,
+				"in notification MainThreadCommands.$fireCommandActivationEvent(": 70,
+				"in receiveRequest MainThreadCommands.$executeCommand(": 70,
+				"in notification MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"in receiveRequest MainThreadTerminalService.$registerQuickFixProvider(": 1,
+				"out request: ExtHostMcp.$onDidChangeMcpServerDefinitions(": 2,
+				"in receiveRequest MainThreadTerminalService.$setEnvironmentVariableCollection(": 7,
+				"in receiveRequest MainThreadProgress.$startProgress(": 4,
+				"in notification MainThreadDocumentContentProviders.$registerTextContentProvider(": 3,
+				"in notification MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 3,
+				"in receiveRequest MainThreadFileSystem.$registerFileSystemProvider(": 1,
+				"in notification MainThreadDecorations.$registerDecorationProvider(": 4,
+				"in notification MainThreadStatusBar.$disposeEntry(": 1,
+				"in receiveRequest MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCodeActionSupport(": 13,
+				"in receiveRequest MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"in receiveRequest MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"in receiveRequest MainThreadStorage.$setValue(": 3,
+				"out request: ExtHostDecorations.$provideDecorations(": 5,
+				"out request: ExtHostLanguageFeatures.$provideDocumentLinks(": 5,
+				"in receiveRequest MainThreadWorkspace.$requestResourceTrust(": 1,
+				"in notification MainThreadTextEditors.$registerTextEditorDecorationType(": 63,
+				"in receiveRequest MainThreadFileSystemEventService.$watch(": 4,
+				"in receiveRequest MainThreadSCM.$registerSourceControl(": 1,
+				"in receiveRequest MainThreadSCM.$updateSourceControl(": 12,
+				"in receiveRequest MainThreadSCM.$setValidationProviderIsEnabled(": 3,
+				"in receiveRequest MainThreadSCM.$setInputBoxPlaceholder(": 3,
+				"in receiveRequest MainThreadSCM.$updateGroup(": 3,
+				"in notification MainThreadDecorations.$onDidChange(": 5,
+				"in receiveRequest MainThreadTimeline.$registerTimelineProvider(": 1,
+				"in receiveRequest MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"out request: ExtHostSCM.$setSelectedSourceControl(": 1,
+				"in receiveRequest MainThreadSCM.$registerGroups(": 1,
+				"in notification MainThreadTextEditors.$removeTextEditorDecorationType(": 56,
+				"in receiveRequest MainThreadAuthentication.$ensureProvider(": 1,
+				"in notification MainThreadProgress.$progressEnd(": 2,
+				"in receiveRequest MainThreadAuthentication.$getSession(": 1,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 2,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"in receiveRequest MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"in receiveRequest MainThreadFileSystemEventService.$unwatch(": 1,
+				"in receiveRequest MainThreadShare.$registerShareProvider(": 1,
+				"out request: ExtHostStorage.$acceptValue(": 1,
+				"in receiveRequest MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"in receiveRequest MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"out request: ExtHostLanguageFeatures.$provideCodeLenses(": 1,
+				"out request: ExtHostEditorTabs.$acceptTabOperation(": 2,
+				"out notification: ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"out notification: ExtHostEditors.$acceptEditorPositionData(": 2,
+				"out cancel": 4,
+				"out request: ExtHostSCM.$provideOriginalResource(": 1,
+				"out request: ExtHostSCM.$provideSecondaryOriginalResource(": 1,
+				"in notification MainThreadLanguageFeatures.$registerNavigateTypeSupport(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCallHierarchyProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerPasteEditProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDefinitionSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentHighlightProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerMultiDocumentHighlightProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerOnTypeFormattingSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerImplementationSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerInlayHintsProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerLinkedEditingRangeProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerReferenceSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerRenameSupport(": 2,
+				"in notification MainThreadLanguageFeatures.$registerDocumentRangeSemanticTokensProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerSignatureHelpProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 2,
+				"in notification MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 2,
+				"out request: ExtHostLanguageFeatures.$provideCodeActions(": 5,
+				"in notification MainThreadLanguages.$setLanguageStatus(": 3,
+				"in notification MainThreadLanguages.$removeLanguageStatus(": 1,
+				"out request: ExtHostLanguageFeatures.$provideInlayHints(": 1
+			},
+			"roundTrips": {
+				"ExtHostChatAgents.$acceptActiveChatSession(": {
+					"count": 2,
+					"medianMs": 73.900146484375,
+					"maxMs": 96.900146484375,
+					"sumMs": 147.80029296875
+				},
+				"ExtHostChatAgents.$onDidChangePlugins(": {
+					"count": 1,
+					"medianMs": 96.699951171875,
+					"maxMs": 96.699951171875,
+					"sumMs": 96.699951171875
+				},
+				"ExtHostConfiguration.$initializeConfiguration(": {
+					"count": 1,
+					"medianMs": 93.800048828125,
+					"maxMs": 93.800048828125,
+					"sumMs": 93.800048828125
+				},
+				"ExtHostFileSystemInfo.$acceptProviderInfos(": {
+					"count": 13,
+					"medianMs": 91.89990234375,
+					"maxMs": 92.199951171875,
+					"sumMs": 926.2998046875
+				},
+				"ExtHostLanguageFeatures.$setWordDefinitions(": {
+					"count": 2,
+					"medianMs": 78.8499755859375,
+					"maxMs": 86.099853515625,
+					"sumMs": 157.699951171875
+				},
+				"ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": {
+					"count": 1,
+					"medianMs": 84.7998046875,
+					"maxMs": 84.7998046875,
+					"sumMs": 84.7998046875
+				},
+				"ExtHostOutputService.$setVisibleChannel(": {
+					"count": 1,
+					"medianMs": 80.0,
+					"maxMs": 80.0,
+					"sumMs": 80.0
+				},
+				"ExtHostSearch.$enableExtensionHostSearch(": {
+					"count": 1,
+					"medianMs": 79.800048828125,
+					"maxMs": 79.800048828125,
+					"sumMs": 79.800048828125
+				},
+				"ExtHostStatusBar.$acceptStaticEntries(": {
+					"count": 1,
+					"medianMs": 79.60009765625,
+					"maxMs": 79.60009765625,
+					"sumMs": 79.60009765625
+				},
+				"ExtHostTelemetry.$initializeTelemetryLevel(": {
+					"count": 1,
+					"medianMs": 79.39990234375,
+					"maxMs": 79.39990234375,
+					"sumMs": 79.39990234375
+				},
+				"ExtHostTheming.$onColorThemeChange(": {
+					"count": 2,
+					"medianMs": 91.89990234375,
+					"maxMs": 112.89990234375,
+					"sumMs": 183.7998046875
+				},
+				"ExtHostDataChannels.$acceptLinkPresentationRules(": {
+					"count": 4,
+					"medianMs": 76.949951171875,
+					"maxMs": 108.10009765625,
+					"sumMs": 294.400146484375
+				},
+				"ExtHostMeteredConnection.$initializeIsConnectionMetered(": {
+					"count": 1,
+					"medianMs": 108.0,
+					"maxMs": 108.0,
+					"sumMs": 108.0
+				},
+				"ExtHostEditors.$acceptEditorDiffInformation(": {
+					"count": 3,
+					"medianMs": 104.89990234375,
+					"maxMs": 161.5,
+					"sumMs": 354.599853515625
+				},
+				"ExtHostEditorTabs.$acceptEditorTabModel(": {
+					"count": 1,
+					"medianMs": 101.800048828125,
+					"maxMs": 101.800048828125,
+					"sumMs": 101.800048828125
+				},
+				"ExtHostWorkspace.$initializeWorkspace(": {
+					"count": 1,
+					"medianMs": 96.89990234375,
+					"maxMs": 96.89990234375,
+					"sumMs": 96.89990234375
+				},
+				"ExtHostGitExtension.$isGitExtensionAvailable(": {
+					"count": 1,
+					"medianMs": 111.10009765625,
+					"maxMs": 111.10009765625,
+					"sumMs": 111.10009765625
+				},
+				"ExtHostFileSystemEventService.$onFileEvent(": {
+					"count": 80,
+					"medianMs": 63.5,
+					"maxMs": 197.599853515625,
+					"sumMs": 4929.39892578125
+				},
+				"ExtHostExtensionService.$activateByEvent(": {
+					"count": 3,
+					"medianMs": 255.10009765625,
+					"maxMs": 498.0,
+					"sumMs": 971.60009765625
+				},
+				"ExtHostAuthentication.$getSessions(": {
+					"count": 13,
+					"medianMs": 52.300048828125,
+					"maxMs": 60.0,
+					"sumMs": 459.800537109375
+				},
+				"ExtHostWindow.$onDidChangeWindowActive(": {
+					"count": 1,
+					"medianMs": 44.39990234375,
+					"maxMs": 44.39990234375,
+					"sumMs": 44.39990234375
+				},
+				"ExtHostChatSkills.$onDidChangeTools(": {
+					"count": 3,
+					"medianMs": 97.0,
+					"maxMs": 111.800048828125,
+					"sumMs": 214.7001953125
+				},
+				"ExtHostTreeViews.$hasResolve(": {
+					"count": 1,
+					"medianMs": 94.7998046875,
+					"maxMs": 94.7998046875,
+					"sumMs": 94.7998046875
+				},
+				"ExtHostTreeViews.$setVisible(": {
+					"count": 1,
+					"medianMs": 93.2998046875,
+					"maxMs": 93.2998046875,
+					"sumMs": 93.2998046875
+				},
+				"ExtHostExtensionService.$startExtensionHost(": {
+					"count": 1,
+					"medianMs": 526.599853515625,
+					"maxMs": 526.599853515625,
+					"sumMs": 526.599853515625
+				},
+				"ExtHostMcp.$onDidChangeMcpServerDefinitions(": {
+					"count": 2,
+					"medianMs": 30.60009765625,
+					"maxMs": 47.60009765625,
+					"sumMs": 61.2001953125
+				},
+				"ExtHostDecorations.$provideDecorations(": {
+					"count": 5,
+					"medianMs": 33.599853515625,
+					"maxMs": 566.10009765625,
+					"sumMs": 707.80029296875
+				},
+				"ExtHostLanguageFeatures.$provideDocumentLinks(": {
+					"count": 5,
+					"medianMs": 71.89990234375,
+					"maxMs": 130.39990234375,
+					"sumMs": 434.5
+				},
+				"ExtHostSCM.$setSelectedSourceControl(": {
+					"count": 1,
+					"medianMs": 33.699951171875,
+					"maxMs": 33.699951171875,
+					"sumMs": 33.699951171875
+				},
+				"ExtHostStorage.$acceptValue(": {
+					"count": 1,
+					"medianMs": 5.10009765625,
+					"maxMs": 5.10009765625,
+					"sumMs": 5.10009765625
+				},
+				"ExtHostLanguageFeatures.$provideCodeLenses(": {
+					"count": 1,
+					"medianMs": 11.099853515625,
+					"maxMs": 11.099853515625,
+					"sumMs": 11.099853515625
+				},
+				"ExtHostEditorTabs.$acceptTabOperation(": {
+					"count": 2,
+					"medianMs": 174.0,
+					"maxMs": 280.10009765625,
+					"sumMs": 348.0
+				}
+			}
+		},
+		{
+			"file": "launch-3-extension-host-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: MainThreadLogger.$registerLogger(": 8,
+				"out request: MainThreadWindow.$getInitialState(": 1,
+				"out notification: MainThreadCommands.$registerCommand(": 533,
+				"out request: MainThreadTerminalService.$registerProcessSupport(": 1,
+				"out notification: MainThreadSearch.$registerTextSearchProvider(": 2,
+				"out request: MainThreadTask.$registerSupportedExecutions(": 2,
+				"out request: MainThreadTask.$registerTaskSystem(": 1,
+				"out request: MainThreadChatSkills.$getTools(": 1,
+				"out request: MainThreadFileSystem.$ensureActivation(": 91,
+				"in receiveRequest ExtHostChatAgents.$acceptActiveChatSession(": 6,
+				"out reply:": 857,
+				"in receiveRequest ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"in receiveRequest ExtHostConfiguration.$initializeConfiguration(": 1,
+				"in receiveRequest ExtHostFileSystemInfo.$acceptProviderInfos(": 15,
+				"in receiveRequest ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"in receiveRequest ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 2,
+				"in notification ExtHostLanguages.$acceptLanguageIds(": 1,
+				"in receiveRequest ExtHostOutputService.$setVisibleChannel(": 1,
+				"in receiveRequest ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out notification: MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in receiveRequest ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"in receiveRequest ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"in receiveRequest ExtHostTheming.$onColorThemeChange(": 2,
+				"in receiveRequest ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"in receiveRequest ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"in receiveRequest ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"out ack": 335,
+				"in notification ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 27,
+				"in receiveRequest ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"in receiveRequest ExtHostExtensionService.$startExtensionHost(": 1,
+				"in receiveRequest ExtHostExtensionService.$activateByEvent(": 19,
+				"in receiveRequest ExtHostWorkspace.$initializeWorkspace(": 1,
+				"out request: MainThreadExtensionService.$onWillActivateExtension(": 13,
+				"out request: MainThreadDebugService.$registerDebugTypes(": 1,
+				"in receiveReply:": 724,
+				"out notification: MainThreadTelemetry.$publicLog2(": 35,
+				"out request: MainThreadStorage.$initializeExtensionStorage(": 26,
+				"in notification ExtHostTerminalService.$acceptDefaultProfile(": 2,
+				"in notification ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"out request: MainThreadUrls.$registerUriHandler(": 3,
+				"out request: MainThreadSecretState.$getPassword(": 43,
+				"out request: MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: MainThreadExtensionService.$onDidActivateExtension(": 13,
+				"out notification: MainThreadLanguageFeatures.$registerCompletionsProvider(": 24,
+				"in receiveRequest ExtHostChatSkills.$onDidChangeTools(": 3,
+				"in receiveRequest ExtHostFileSystemEventService.$onFileEvent(": 224,
+				"in notification ExtHostConfiguration.$acceptConfigurationChanged(": 12,
+				"in receiveRequest ExtHostMcp.$onDidChangeMcpServerDefinitions(": 3,
+				"in receiveRequest ExtHostChatAgents.$onDidChangeInstructions(": 8,
+				"in receiveRequest ExtHostChatAgents.$onDidChangeCustomAgents(": 8,
+				"in receiveRequest ExtHostChatAgents.$onDidChangeSlashCommands(": 7,
+				"in receiveRequest ExtHostChatAgents.$onDidChangeSkills(": 7,
+				"out notification: MainThreadCommands.$fireCommandActivationEvent(": 197,
+				"out request: MainThreadCommands.$executeCommand(": 202,
+				"out request: MainThreadConsole.$logExtensionHostMessage(": 5,
+				"out notification: MainThreadDocumentContentProviders.$registerTextContentProvider(": 10,
+				"out request: MainThreadLanguageModels.$selectChatModels(": 9,
+				"out notification: MainThreadLanguageFeatures.$registerDefinitionSupport(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerImplementationSupport(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"out notification: MainThreadStatusBar.$disposeEntry(": 2,
+				"out request: MainThreadPower.$isOnBatteryPower(": 1,
+				"out request: MainThreadPower.$getCurrentThermalState(": 1,
+				"out request: MainThreadPower.$getSystemIdleTime(": 1,
+				"out request: MainThreadTerminalService.$setEnvironmentVariableCollection(": 29,
+				"out request: MainThreadTerminalService.$startSendingDataEvents(": 1,
+				"out request: MainThreadTerminalService.$startSendingCommandEvents(": 1,
+				"out request: MainThreadFileSystemEventService.$watch(": 6,
+				"out request: MainThreadLanguageModels.$registerLanguageModelProvider(": 11,
+				"out request: MainThreadTreeViews.$registerTreeViewDataProvider(": 3,
+				"out request: MainThreadChatStatus.$setEntry(": 19,
+				"out request: MainThreadTerminalService.$startLinkProvider(": 1,
+				"out request: MainThreadChatAgents2.$registerAgent(": 12,
+				"out request: MainThreadChatSessions.$registerChatSessionItemController(": 2,
+				"out request: MainThreadChatSessions.$registerChatSessionContentProvider(": 2,
+				"out request: MainThreadChatAgents2.$provideCustomAgents(": 5,
+				"out request: MainThreadFileSystem.$stat(": 7,
+				"out request: MainThreadLanguageModels.$onLMProviderChange(": 6,
+				"out request: MainThreadChatAgents2.$registerChatSessionCustomizationProvider(": 1,
+				"out request: MainThreadSpeechProvider.$registerVoiceLiveSessionProvider(": 1,
+				"out request: MainThreadChatAgents2.$registerChatParticipantDetectionProvider(": 1,
+				"out notification: MainThreadSearch.$registerAITextSearchProvider(": 1,
+				"out request: MainThreadAiSettingsSearch.$registerAiSettingsSearchProvider(": 1,
+				"out request: MainThreadComments.$registerCommentController(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerCodeActionSupport(": 6,
+				"out request: MainThreadNotebook.$registerNotebookCellStatusBarItemProvider(": 1,
+				"out request: MainThreadTerminalService.$registerQuickFixProvider(": 5,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 5,
+				"out request: MainThreadFileSystem.$registerFileSystemProvider(": 3,
+				"out request: MainThreadAiRelatedInformation.$registerAiRelatedInformationProvider(": 2,
+				"out request: MainThreadChatSkills.$registerTool(": 35,
+				"out request: MainThreadChatSkills.$registerToolWithDefinition(": 1,
+				"out request: MainThreadChatAgents2.$registerAgentCompletionsProvider(": 1,
+				"out request: MainThreadCodeMapper.$registerCodeMapperProvider(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerNewSymbolNamesProvider(": 1,
+				"out request: MainThreadLanguageModels.$registerFileIgnoreProvider(": 1,
+				"out request: MainThreadChatAgents2.$registerPromptFileProvider(": 5,
+				"out notification: MainThreadLanguageFeatures.$registerInlineCompletionsSupport(": 6,
+				"out notification: MainThreadLanguageFeatures.$unregister(": 4,
+				"out notification: MainThreadCommands.$unregisterCommand(": 69,
+				"out request: MainThreadChatAgents2.$updateAgent(": 10,
+				"out request: MainThreadEmbeddings.$registerEmbeddingProvider(": 1,
+				"out request: MainThreadTerminalService.$registerProfileProvider(": 1,
+				"out request: MainThreadStorage.$setValue(": 10,
+				"in ack": 312,
+				"in receiveRequest ExtHostAuthentication.$getSessions(": 167,
+				"out request: MainThreadChatAgents2.$onDidChangeCustomizations(": 15,
+				"out request: MainThreadChatSessions.$onDidChangeChatSessionProviderOptions(": 5,
+				"in receiveRequest ExtHostChatSessions.$refreshChatSessionItems(": 8,
+				"in receiveRequest ExtHostChatSessions.$provideChatSessionInputState(": 3,
+				"in receiveRequest ExtHostChatSessions.$provideChatSessionProviderOptions(": 7,
+				"in receiveRequest ExtHostTreeViews.$hasResolve(": 3,
+				"in receiveRequest ExtHostTreeViews.$setVisible(": 3,
+				"in receiveRequest ExtHostChatProvider.$provideLanguageModelChatInfo(": 73,
+				"in receiveReplyErr:": 16,
+				"in notification ExtHostDocuments.$acceptModelChanged(": 118,
+				"in notification ExtHostDocuments.$acceptDirtyStateChanged(": 6,
+				"in receiveRequest ExtHostDocumentSaveParticipant.$participateInSave(": 3,
+				"in receiveRequest ExtHostLanguageFeatures.$supportsAutomaticNewSymbolNamesTriggerKind(": 1,
+				"in receiveRequest ExtHostChatAgents.$providePromptFiles(": 32,
+				"out request: MainThreadFileSystem.$mkdir(": 4,
+				"in receiveRequest ExtHostLanguageFeatures.$provideDocumentLinks(": 10,
+				"in receiveRequest ExtHostEmbeddings.$acceptEmbeddingModels(": 1,
+				"in receiveCancel": 3,
+				"out notification: MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 2,
+				"out request: MainThreadTreeViews.$refresh(": 6,
+				"out request: MainThreadExtensionService.$onExtensionRuntimeError(": 1,
+				"out request: MainThreadErrors.$onUnexpectedError(": 1,
+				"in receiveRequest ExtHostChatProvider.$onChatModelsChange(": 5,
+				"out request: MainThreadProfileContentHandlers.$registerProfileContentHandler(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"out request: MainThreadTask.$registerTaskProvider(": 2,
+				"in receiveRequest ExtHostStorage.$acceptValue(": 8,
+				"in receiveRequest ExtHostExtensionService.$activate(": 3,
+				"in receiveRequest ExtHostDataChannels.$onDidReceiveData(": 126,
+				"out notification: MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"in notification ExtHostDocuments.$acceptModelSaved(": 3,
+				"in receiveRequest ExtHostComments.$provideCommentingRanges(": 12,
+				"out request: MainThreadOutputService.$register(": 1,
+				"in receiveRequest ExtHostCommands.$executeContributedCommand(": 3,
+				"out request: MainThreadCommands.$getCommands(": 2,
+				"out request: MainThreadProgress.$startProgress(": 3,
+				"out notification: MainThreadDecorations.$registerDecorationProvider(": 4,
+				"out request: MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"out request: MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"out request: MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"in receiveRequest ExtHostDecorations.$provideDecorations(": 13,
+				"out request: MainThreadFileSystem.$writeFile(": 3,
+				"out notification: MainThreadTextEditors.$registerTextEditorDecorationType(": 14,
+				"out request: MainThreadWorkspace.$requestResourceTrust(": 4,
+				"out notification: MainThreadTextEditors.$removeTextEditorDecorationType(": 7,
+				"out request: MainThreadSCM.$registerSourceControl(": 1,
+				"out request: MainThreadSCM.$updateSourceControl(": 12,
+				"out request: MainThreadSCM.$setValidationProviderIsEnabled(": 3,
+				"out request: MainThreadSCM.$setInputBoxPlaceholder(": 3,
+				"out request: MainThreadSCM.$updateGroup(": 3,
+				"out notification: MainThreadDecorations.$onDidChange(": 5,
+				"out request: MainThreadTimeline.$registerTimelineProvider(": 1,
+				"out request: MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerDocumentColorProvider(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 1,
+				"out request: MainThreadFileSystem.$readFile(": 1,
+				"in receiveRequest ExtHostSCM.$setSelectedSourceControl(": 1,
+				"out notification: MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 1,
+				"out request: MainThreadSCM.$registerGroups(": 1,
+				"out notification: MainThreadLanguages.$setLanguageStatus(": 1,
+				"out request: MainThreadAuthentication.$ensureProvider(": 1,
+				"out request: MainThreadAuthentication.$getSession(": 1,
+				"out notification: MainThreadProgress.$progressEnd(": 3,
+				"in receiveRequest ExtHostEditorTabs.$acceptTabOperation(": 18,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 2,
+				"out request: MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"out request: MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"out request: MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"out request: MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"out request: MainThreadFileSystemEventService.$unwatch(": 1,
+				"out request: MainThreadShare.$registerShareProvider(": 1,
+				"in receiveRequest ExtHostChatSessions.$provideChatSessionContent(": 2,
+				"out request: MainThreadWorkspace.$isResourceTrusted(": 1,
+				"in receiveRequest ExtHostChatSessions.$provideHandleOptionsChange(": 4,
+				"in notification ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"in notification ExtHostEditors.$acceptEditorPositionData(": 1,
+				"in receiveRequest ExtHostChatAgents.$provideChatSessionCustomizations(": 2,
+				"out request: MainThreadChatAgents2.$provideSkills(": 1,
+				"out request: MainThreadChatAgents2.$provideHooks(": 1,
+				"out request: MainThreadChatAgents2.$providePlugins(": 1,
+				"in receiveRequest ExtHostLanguageFeatures.$provideInlineCompletions(": 10,
+				"out request: MainThreadChatAgents2.$provideInstructions(": 1,
+				"in receiveRequest ExtHostChatSessions.$newChatSessionItem(": 1,
+				"in receiveRequest ExtHostChatAgents.$provideChatTitle(": 1,
+				"in receiveRequest ExtHostChatAgents.$setYieldRequested(": 2,
+				"in receiveRequest ExtHostChatAgents.$invokeAgent(": 2,
+				"out request: MainThreadChatSessions.$onDidChangeChatSessionOptions(": 2,
+				"out request: MainThreadPower.$startPowerSaveBlocker(": 1,
+				"out request: MainThreadMcpShape.$startMcpGateway(": 2,
+				"out request: MainThreadMcpShape.$disposeMcpGateway(": 2,
+				"out request: MainThreadChatSkills.$invokeTool(": 2,
+				"out notification: MainThreadChatAgents2.$handleProgressChunkNotification(": 8,
+				"out request: MainThreadFileSystem.$readdir(": 9,
+				"in receiveRequest ExtHostChatAgents.$setRequestTools(": 2,
+				"out request: MainThreadChatSessions.$updateChatSessionItems(": 12,
+				"out request: MainThreadChatSessions.$onDidCommitChatSessionItem(": 1,
+				"in receiveRequest ExtHostChatAgents.$releaseSession(": 2,
+				"in receiveRequest ExtHostChatSessions.$disposeChatSessionContent(": 2,
+				"in receiveRequest ExtHostTask.$provideTasks(": 2,
+				"out request: MainThreadWorkspace.$startFileSearch(": 1,
+				"in receiveRequest ExtHostSearch.$provideFileSearchResults(": 1,
+				"in receiveRequest ExtHostTask.$resolveTask(": 1,
+				"in receiveRequest ExtHostDocuments.$acceptModelChanged(": 1,
+				"out request: MainThreadCommands.$fireCommandActivationEvent(": 2,
+				"in receiveRequest ExtHostAiRelatedInformation.$provideAiRelatedInformation(": 1
+			},
+			"roundTrips": {
+				"MainThreadLogger.$registerLogger(": {
+					"count": 8,
+					"medianMs": 66.09619140625,
+					"maxMs": 206.693603515625,
+					"sumMs": 696.669921875
+				},
+				"MainThreadWindow.$getInitialState(": {
+					"count": 1,
+					"medianMs": 210.842041015625,
+					"maxMs": 210.842041015625,
+					"sumMs": 210.842041015625
+				},
+				"MainThreadTerminalService.$registerProcessSupport(": {
+					"count": 1,
+					"medianMs": 207.54931640625,
+					"maxMs": 207.54931640625,
+					"sumMs": 207.54931640625
+				},
+				"MainThreadTask.$registerSupportedExecutions(": {
+					"count": 2,
+					"medianMs": 196.524658203125,
+					"maxMs": 196.552490234375,
+					"sumMs": 393.04931640625
+				},
+				"MainThreadTask.$registerTaskSystem(": {
+					"count": 1,
+					"medianMs": 196.52783203125,
+					"maxMs": 196.52783203125,
+					"sumMs": 196.52783203125
+				},
+				"MainThreadChatSkills.$getTools(": {
+					"count": 1,
+					"medianMs": 193.095458984375,
+					"maxMs": 193.095458984375,
+					"sumMs": 193.095458984375
+				},
+				"MainThreadFileSystem.$ensureActivation(": {
+					"count": 91,
+					"medianMs": 5.070556640625,
+					"maxMs": 806.81591796875,
+					"sumMs": 4636.574951171875
+				},
+				"MainThreadExtensionService.$onWillActivateExtension(": {
+					"count": 13,
+					"medianMs": 177.032470703125,
+					"maxMs": 804.181884765625,
+					"sumMs": 3335.734130859375
+				},
+				"MainThreadDebugService.$registerDebugTypes(": {
+					"count": 1,
+					"medianMs": 174.227783203125,
+					"maxMs": 174.227783203125,
+					"sumMs": 174.227783203125
+				},
+				"MainThreadStorage.$initializeExtensionStorage(": {
+					"count": 26,
+					"medianMs": 147.1461181640625,
+					"maxMs": 1422.933349609375,
+					"sumMs": 10955.8037109375
+				},
+				"MainThreadUrls.$registerUriHandler(": {
+					"count": 3,
+					"medianMs": 566.9072265625,
+					"maxMs": 808.958984375,
+					"sumMs": 1388.317626953125
+				},
+				"MainThreadSecretState.$getPassword(": {
+					"count": 43,
+					"medianMs": 80.808837890625,
+					"maxMs": 806.63134765625,
+					"sumMs": 7164.909423828125
+				},
+				"MainThreadAuthentication.$registerAuthenticationProvider(": {
+					"count": 2,
+					"medianMs": 804.0465087890625,
+					"maxMs": 805.227783203125,
+					"sumMs": 1608.093017578125
+				},
+				"MainThreadExtensionService.$onDidActivateExtension(": {
+					"count": 13,
+					"medianMs": 71.932373046875,
+					"maxMs": 804.989013671875,
+					"sumMs": 2700.5908203125
+				},
+				"MainThreadConsole.$logExtensionHostMessage(": {
+					"count": 5,
+					"medianMs": 44.50634765625,
+					"maxMs": 615.77099609375,
+					"sumMs": 772.827392578125
+				},
+				"MainThreadCommands.$executeCommand(": {
+					"count": 202,
+					"medianMs": 321.7337646484375,
+					"maxMs": 618.521240234375,
+					"sumMs": 54738.110107421875
+				},
+				"MainThreadTerminalService.$setEnvironmentVariableCollection(": {
+					"count": 29,
+					"medianMs": 511.40869140625,
+					"maxMs": 568.1123046875,
+					"sumMs": 11574.798583984375
+				},
+				"MainThreadTerminalService.$startSendingDataEvents(": {
+					"count": 1,
+					"medianMs": 567.90625,
+					"maxMs": 567.90625,
+					"sumMs": 567.90625
+				},
+				"MainThreadTerminalService.$startSendingCommandEvents(": {
+					"count": 1,
+					"medianMs": 567.882568359375,
+					"maxMs": 567.882568359375,
+					"sumMs": 567.882568359375
+				},
+				"MainThreadLanguageModels.$registerLanguageModelProvider(": {
+					"count": 11,
+					"medianMs": 501.81640625,
+					"maxMs": 561.967529296875,
+					"sumMs": 5593.3720703125
+				},
+				"MainThreadFileSystemEventService.$watch(": {
+					"count": 6,
+					"medianMs": 76.585693359375,
+					"maxMs": 563.7705078125,
+					"sumMs": 919.50341796875
+				},
+				"MainThreadPower.$isOnBatteryPower(": {
+					"count": 1,
+					"medianMs": 576.9609375,
+					"maxMs": 576.9609375,
+					"sumMs": 576.9609375
+				},
+				"MainThreadPower.$getCurrentThermalState(": {
+					"count": 1,
+					"medianMs": 576.94775390625,
+					"maxMs": 576.94775390625,
+					"sumMs": 576.94775390625
+				},
+				"MainThreadPower.$getSystemIdleTime(": {
+					"count": 1,
+					"medianMs": 576.9306640625,
+					"maxMs": 576.9306640625,
+					"sumMs": 576.9306640625
+				},
+				"MainThreadTreeViews.$registerTreeViewDataProvider(": {
+					"count": 3,
+					"medianMs": 532.84521484375,
+					"maxMs": 544.513916015625,
+					"sumMs": 1226.574951171875
+				},
+				"MainThreadChatStatus.$setEntry(": {
+					"count": 19,
+					"medianMs": 498.187744140625,
+					"maxMs": 533.25927734375,
+					"sumMs": 9620.0634765625
+				},
+				"MainThreadTerminalService.$startLinkProvider(": {
+					"count": 1,
+					"medianMs": 531.083251953125,
+					"maxMs": 531.083251953125,
+					"sumMs": 531.083251953125
+				},
+				"MainThreadChatSessions.$registerChatSessionItemController(": {
+					"count": 2,
+					"medianMs": 518.3858642578125,
+					"maxMs": 519.542236328125,
+					"sumMs": 1036.771728515625
+				},
+				"MainThreadChatSessions.$registerChatSessionContentProvider(": {
+					"count": 2,
+					"medianMs": 517.1405029296875,
+					"maxMs": 519.37646484375,
+					"sumMs": 1034.281005859375
+				},
+				"MainThreadChatAgents2.$registerAgent(": {
+					"count": 12,
+					"medianMs": 545.1187744140625,
+					"maxMs": 545.731201171875,
+					"sumMs": 6474.615478515625
+				},
+				"MainThreadLanguageModels.$onLMProviderChange(": {
+					"count": 6,
+					"medianMs": 79.3768310546875,
+					"maxMs": 515.04541015625,
+					"sumMs": 1043.1181640625
+				},
+				"MainThreadSpeechProvider.$registerVoiceLiveSessionProvider(": {
+					"count": 1,
+					"medianMs": 497.291015625,
+					"maxMs": 497.291015625,
+					"sumMs": 497.291015625
+				},
+				"MainThreadChatAgents2.$registerChatSessionCustomizationProvider(": {
+					"count": 1,
+					"medianMs": 515.04150390625,
+					"maxMs": 515.04150390625,
+					"sumMs": 515.04150390625
+				},
+				"MainThreadFileSystem.$stat(": {
+					"count": 7,
+					"medianMs": 340.8701171875,
+					"maxMs": 590.11865234375,
+					"sumMs": 1987.192626953125
+				},
+				"MainThreadChatAgents2.$registerChatParticipantDetectionProvider(": {
+					"count": 1,
+					"medianMs": 552.9716796875,
+					"maxMs": 552.9716796875,
+					"sumMs": 552.9716796875
+				},
+				"MainThreadAiSettingsSearch.$registerAiSettingsSearchProvider(": {
+					"count": 1,
+					"medianMs": 552.3271484375,
+					"maxMs": 552.3271484375,
+					"sumMs": 552.3271484375
+				},
+				"MainThreadComments.$registerCommentController(": {
+					"count": 1,
+					"medianMs": 551.533935546875,
+					"maxMs": 551.533935546875,
+					"sumMs": 551.533935546875
+				},
+				"MainThreadNotebook.$registerNotebookCellStatusBarItemProvider(": {
+					"count": 1,
+					"medianMs": 547.4560546875,
+					"maxMs": 547.4560546875,
+					"sumMs": 547.4560546875
+				},
+				"MainThreadTerminalService.$registerQuickFixProvider(": {
+					"count": 5,
+					"medianMs": 532.49267578125,
+					"maxMs": 547.337890625,
+					"sumMs": 2239.7978515625
+				},
+				"MainThreadFileSystem.$registerFileSystemProvider(": {
+					"count": 3,
+					"medianMs": 546.727294921875,
+					"maxMs": 546.857666015625,
+					"sumMs": 1111.036865234375
+				},
+				"MainThreadAiRelatedInformation.$registerAiRelatedInformationProvider(": {
+					"count": 2,
+					"medianMs": 546.3515625,
+					"maxMs": 546.352294921875,
+					"sumMs": 1092.703125
+				},
+				"MainThreadChatSkills.$registerTool(": {
+					"count": 35,
+					"medianMs": 528.519775390625,
+					"maxMs": 528.76318359375,
+					"sumMs": 18492.193359375
+				},
+				"MainThreadChatSkills.$registerToolWithDefinition(": {
+					"count": 1,
+					"medianMs": 527.381591796875,
+					"maxMs": 527.381591796875,
+					"sumMs": 527.381591796875
+				},
+				"MainThreadChatAgents2.$registerAgentCompletionsProvider(": {
+					"count": 1,
+					"medianMs": 525.5693359375,
+					"maxMs": 525.5693359375,
+					"sumMs": 525.5693359375
+				},
+				"MainThreadCodeMapper.$registerCodeMapperProvider(": {
+					"count": 1,
+					"medianMs": 524.697021484375,
+					"maxMs": 524.697021484375,
+					"sumMs": 524.697021484375
+				},
+				"MainThreadLanguageModels.$registerFileIgnoreProvider(": {
+					"count": 1,
+					"medianMs": 523.669921875,
+					"maxMs": 523.669921875,
+					"sumMs": 523.669921875
+				},
+				"MainThreadChatAgents2.$registerPromptFileProvider(": {
+					"count": 5,
+					"medianMs": 522.332763671875,
+					"maxMs": 522.601318359375,
+					"sumMs": 2611.17724609375
+				},
+				"MainThreadChatAgents2.$updateAgent(": {
+					"count": 10,
+					"medianMs": 478.399658203125,
+					"maxMs": 478.40869140625,
+					"sumMs": 4783.35205078125
+				},
+				"MainThreadEmbeddings.$registerEmbeddingProvider(": {
+					"count": 1,
+					"medianMs": 439.333740234375,
+					"maxMs": 439.333740234375,
+					"sumMs": 439.333740234375
+				},
+				"MainThreadTerminalService.$registerProfileProvider(": {
+					"count": 1,
+					"medianMs": 434.6142578125,
+					"maxMs": 434.6142578125,
+					"sumMs": 434.6142578125
+				},
+				"MainThreadChatAgents2.$provideCustomAgents(": {
+					"count": 5,
+					"medianMs": 1098.894287109375,
+					"maxMs": 1186.650390625,
+					"sumMs": 5085.686279296875
+				},
+				"MainThreadStorage.$setValue(": {
+					"count": 10,
+					"medianMs": 55.9150390625,
+					"maxMs": 231.235107421875,
+					"sumMs": 771.984375
+				},
+				"MainThreadChatAgents2.$onDidChangeCustomizations(": {
+					"count": 15,
+					"medianMs": 213.244873046875,
+					"maxMs": 221.303955078125,
+					"sumMs": 2883.709716796875
+				},
+				"MainThreadChatSessions.$onDidChangeChatSessionProviderOptions(": {
+					"count": 5,
+					"medianMs": 213.227783203125,
+					"maxMs": 221.251220703125,
+					"sumMs": 780.57275390625
+				},
+				"MainThreadTreeViews.$refresh(": {
+					"count": 6,
+					"medianMs": 12.62451171875,
+					"maxMs": 327.34130859375,
+					"sumMs": 384.186279296875
+				},
+				"MainThreadExtensionService.$onExtensionRuntimeError(": {
+					"count": 1,
+					"medianMs": 310.01318359375,
+					"maxMs": 310.01318359375,
+					"sumMs": 310.01318359375
+				},
+				"MainThreadErrors.$onUnexpectedError(": {
+					"count": 1,
+					"medianMs": 309.823974609375,
+					"maxMs": 309.823974609375,
+					"sumMs": 309.823974609375
+				},
+				"MainThreadProfileContentHandlers.$registerProfileContentHandler(": {
+					"count": 1,
+					"medianMs": 293.091552734375,
+					"maxMs": 293.091552734375,
+					"sumMs": 293.091552734375
+				},
+				"MainThreadTask.$registerTaskProvider(": {
+					"count": 2,
+					"medianMs": 110.71337890625,
+					"maxMs": 149.38525390625,
+					"sumMs": 221.4267578125
+				},
+				"MainThreadFileSystem.$mkdir(": {
+					"count": 4,
+					"medianMs": 185.44873046875,
+					"maxMs": 375.251708984375,
+					"sumMs": 825.8115234375
+				},
+				"MainThreadOutputService.$register(": {
+					"count": 1,
+					"medianMs": 23.29296875,
+					"maxMs": 23.29296875,
+					"sumMs": 23.29296875
+				},
+				"MainThreadCommands.$getCommands(": {
+					"count": 2,
+					"medianMs": 60.9483642578125,
+					"maxMs": 77.30126953125,
+					"sumMs": 121.896728515625
+				},
+				"MainThreadProgress.$startProgress(": {
+					"count": 3,
+					"medianMs": 22.00390625,
+					"maxMs": 88.681396484375,
+					"sumMs": 130.17138671875
+				},
+				"MainThreadWorkspace.$registerEditSessionIdentityProvider(": {
+					"count": 1,
+					"medianMs": 14.435791015625,
+					"maxMs": 14.435791015625,
+					"sumMs": 14.435791015625
+				},
+				"MainThreadWorkspace.$registerCanonicalUriProvider(": {
+					"count": 3,
+					"medianMs": 78.376220703125,
+					"maxMs": 78.37744140625,
+					"sumMs": 235.09912109375
+				},
+				"MainThreadExtensionService.$setPerformanceMarks(": {
+					"count": 1,
+					"medianMs": 77.78125,
+					"maxMs": 77.78125,
+					"sumMs": 77.78125
+				},
+				"MainThreadFileSystem.$writeFile(": {
+					"count": 3,
+					"medianMs": 54.505615234375,
+					"maxMs": 83.699462890625,
+					"sumMs": 171.615234375
+				},
+				"MainThreadWorkspace.$requestResourceTrust(": {
+					"count": 4,
+					"medianMs": 30.0123291015625,
+					"maxMs": 44.450439453125,
+					"sumMs": 104.85791015625
+				},
+				"MainThreadTimeline.$registerTimelineProvider(": {
+					"count": 1,
+					"medianMs": 91.43212890625,
+					"maxMs": 91.43212890625,
+					"sumMs": 91.43212890625
+				},
+				"MainThreadTimeline.$registerWorkspaceTimelineProvider(": {
+					"count": 1,
+					"medianMs": 91.3291015625,
+					"maxMs": 91.3291015625,
+					"sumMs": 91.3291015625
+				},
+				"MainThreadSCM.$registerSourceControl(": {
+					"count": 1,
+					"medianMs": 101.491943359375,
+					"maxMs": 101.491943359375,
+					"sumMs": 101.491943359375
+				},
+				"MainThreadSCM.$updateSourceControl(": {
+					"count": 12,
+					"medianMs": 99.15625,
+					"maxMs": 101.403564453125,
+					"sumMs": 980.83544921875
+				},
+				"MainThreadSCM.$setValidationProviderIsEnabled(": {
+					"count": 3,
+					"medianMs": 55.5859375,
+					"maxMs": 100.326416015625,
+					"sumMs": 163.45068359375
+				},
+				"MainThreadSCM.$setInputBoxPlaceholder(": {
+					"count": 3,
+					"medianMs": 54.330810546875,
+					"maxMs": 100.185546875,
+					"sumMs": 205.155517578125
+				},
+				"MainThreadSCM.$updateGroup(": {
+					"count": 3,
+					"medianMs": 99.453125,
+					"maxMs": 99.570556640625,
+					"sumMs": 298.46728515625
+				},
+				"MainThreadFileSystem.$readFile(": {
+					"count": 1,
+					"medianMs": 18.82763671875,
+					"maxMs": 18.82763671875,
+					"sumMs": 18.82763671875
+				},
+				"MainThreadSCM.$registerGroups(": {
+					"count": 1,
+					"medianMs": 47.431640625,
+					"maxMs": 47.431640625,
+					"sumMs": 47.431640625
+				},
+				"MainThreadLanguageModels.$selectChatModels(": {
+					"count": 9,
+					"medianMs": 399.8671875,
+					"maxMs": 1636.504150390625,
+					"sumMs": 5624.67919921875
+				},
+				"MainThreadAuthentication.$ensureProvider(": {
+					"count": 1,
+					"medianMs": 22.968994140625,
+					"maxMs": 22.968994140625,
+					"sumMs": 22.968994140625
+				},
+				"MainThreadAuthentication.$getSession(": {
+					"count": 1,
+					"medianMs": 229.269287109375,
+					"maxMs": 229.269287109375,
+					"sumMs": 229.269287109375
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": {
+					"count": 2,
+					"medianMs": 103.47900390625,
+					"maxMs": 153.636962890625,
+					"sumMs": 206.9580078125
+				},
+				"MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": {
+					"count": 1,
+					"medianMs": 137.52099609375,
+					"maxMs": 137.52099609375,
+					"sumMs": 137.52099609375
+				},
+				"MainThreadSCM.$onDidChangeArtifacts(": {
+					"count": 1,
+					"medianMs": 137.423583984375,
+					"maxMs": 137.423583984375,
+					"sumMs": 137.423583984375
+				},
+				"MainThreadTimeline.$emitTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 101.51953125,
+					"maxMs": 101.51953125,
+					"sumMs": 101.51953125
+				},
+				"MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": {
+					"count": 1,
+					"medianMs": 101.455322265625,
+					"maxMs": 101.455322265625,
+					"sumMs": 101.455322265625
+				},
+				"MainThreadFileSystemEventService.$unwatch(": {
+					"count": 1,
+					"medianMs": 55.259033203125,
+					"maxMs": 55.259033203125,
+					"sumMs": 55.259033203125
+				},
+				"MainThreadShare.$registerShareProvider(": {
+					"count": 1,
+					"medianMs": 53.142822265625,
+					"maxMs": 53.142822265625,
+					"sumMs": 53.142822265625
+				},
+				"MainThreadWorkspace.$isResourceTrusted(": {
+					"count": 1,
+					"medianMs": 14.0966796875,
+					"maxMs": 14.0966796875,
+					"sumMs": 14.0966796875
+				},
+				"MainThreadChatAgents2.$providePlugins(": {
+					"count": 1,
+					"medianMs": 49.33935546875,
+					"maxMs": 49.33935546875,
+					"sumMs": 49.33935546875
+				},
+				"MainThreadChatAgents2.$provideHooks(": {
+					"count": 1,
+					"medianMs": 175.19970703125,
+					"maxMs": 175.19970703125,
+					"sumMs": 175.19970703125
+				},
+				"MainThreadChatAgents2.$provideInstructions(": {
+					"count": 1,
+					"medianMs": 13.162841796875,
+					"maxMs": 13.162841796875,
+					"sumMs": 13.162841796875
+				},
+				"MainThreadChatAgents2.$provideSkills(": {
+					"count": 1,
+					"medianMs": 644.25537109375,
+					"maxMs": 644.25537109375,
+					"sumMs": 644.25537109375
+				},
+				"MainThreadChatSessions.$onDidChangeChatSessionOptions(": {
+					"count": 2,
+					"medianMs": 37.9462890625,
+					"maxMs": 55.00146484375,
+					"sumMs": 75.892578125
+				},
+				"MainThreadPower.$startPowerSaveBlocker(": {
+					"count": 1,
+					"medianMs": 29.981201171875,
+					"maxMs": 29.981201171875,
+					"sumMs": 29.981201171875
+				},
+				"MainThreadMcpShape.$startMcpGateway(": {
+					"count": 2,
+					"medianMs": 12.0726318359375,
+					"maxMs": 13.1904296875,
+					"sumMs": 24.145263671875
+				},
+				"MainThreadMcpShape.$disposeMcpGateway(": {
+					"count": 2,
+					"medianMs": 2.66455078125,
+					"maxMs": 2.89013671875,
+					"sumMs": 5.3291015625
+				},
+				"MainThreadChatSkills.$invokeTool(": {
+					"count": 2,
+					"medianMs": 14.8831787109375,
+					"maxMs": 24.672607421875,
+					"sumMs": 29.766357421875
+				},
+				"MainThreadFileSystem.$readdir(": {
+					"count": 9,
+					"medianMs": 9.30224609375,
+					"maxMs": 119.897216796875,
+					"sumMs": 295.36572265625
+				},
+				"MainThreadChatSessions.$updateChatSessionItems(": {
+					"count": 12,
+					"medianMs": 6.6407470703125,
+					"maxMs": 46.058349609375,
+					"sumMs": 119.02392578125
+				},
+				"MainThreadChatSessions.$onDidCommitChatSessionItem(": {
+					"count": 1,
+					"medianMs": 132.21484375,
+					"maxMs": 132.21484375,
+					"sumMs": 132.21484375
+				},
+				"MainThreadWorkspace.$startFileSearch(": {
+					"count": 1,
+					"medianMs": 64.92041015625,
+					"maxMs": 64.92041015625,
+					"sumMs": 64.92041015625
+				},
+				"MainThreadCommands.$fireCommandActivationEvent(": {
+					"count": 2,
+					"medianMs": 81.541259765625,
+					"maxMs": 83.026611328125,
+					"sumMs": 163.08251953125
+				}
+			}
+		},
+		{
+			"file": "launch-3-renderer-0-rpc.json",
+			"protocols": 1,
+			"events": {
+				"out request: ExtHostChatAgents.$acceptActiveChatSession(": 6,
+				"out request: ExtHostChatAgents.$onDidChangePlugins(": 1,
+				"out request: ExtHostConfiguration.$initializeConfiguration(": 1,
+				"out request: ExtHostFileSystemInfo.$acceptProviderInfos(": 15,
+				"out request: ExtHostLanguageFeatures.$setWordDefinitions(": 2,
+				"out request: ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": 2,
+				"out notification: ExtHostLanguages.$acceptLanguageIds(": 1,
+				"out request: ExtHostOutputService.$setVisibleChannel(": 1,
+				"out request: ExtHostSearch.$enableExtensionHostSearch(": 1,
+				"out request: ExtHostStatusBar.$acceptStaticEntries(": 1,
+				"out request: ExtHostTelemetry.$initializeTelemetryLevel(": 1,
+				"out request: ExtHostTheming.$onColorThemeChange(": 2,
+				"out request: ExtHostDataChannels.$acceptLinkPresentationRules(": 4,
+				"out request: ExtHostMeteredConnection.$initializeIsConnectionMetered(": 1,
+				"out request: ExtHostGitExtension.$isGitExtensionAvailable(": 1,
+				"out notification: ExtHostDocumentsAndEditors.$acceptDocumentsAndEditorsDelta(": 27,
+				"out request: ExtHostEditorTabs.$acceptEditorTabModel(": 1,
+				"out request: ExtHostExtensionService.$startExtensionHost(": 1,
+				"out request: ExtHostExtensionService.$activateByEvent(": 19,
+				"out request: ExtHostWorkspace.$initializeWorkspace(": 1,
+				"in receiveRequest MainThreadLogger.$registerLogger(": 8,
+				"out reply:": 724,
+				"in receiveRequest MainThreadWindow.$getInitialState(": 1,
+				"in notification MainThreadCommands.$registerCommand(": 533,
+				"in receiveRequest MainThreadTerminalService.$registerProcessSupport(": 1,
+				"in notification MainThreadSearch.$registerTextSearchProvider(": 2,
+				"in receiveRequest MainThreadTask.$registerSupportedExecutions(": 2,
+				"in receiveRequest MainThreadTask.$registerTaskSystem(": 1,
+				"in receiveRequest MainThreadChatSkills.$getTools(": 1,
+				"in receiveRequest MainThreadFileSystem.$ensureActivation(": 91,
+				"in receiveReply:": 857,
+				"in notification MainThreadSearch.$registerFileSearchProvider(": 1,
+				"in ack": 335,
+				"in receiveRequest MainThreadExtensionService.$onWillActivateExtension(": 13,
+				"in receiveRequest MainThreadDebugService.$registerDebugTypes(": 1,
+				"out notification: ExtHostTerminalService.$acceptDefaultProfile(": 2,
+				"in notification MainThreadTelemetry.$publicLog2(": 35,
+				"out notification: ExtHostLanguages.$acceptSyntaxHighlightingThemeChanged(": 1,
+				"in receiveRequest MainThreadStorage.$initializeExtensionStorage(": 26,
+				"out request: ExtHostChatSkills.$onDidChangeTools(": 3,
+				"out request: ExtHostFileSystemEventService.$onFileEvent(": 224,
+				"out notification: ExtHostConfiguration.$acceptConfigurationChanged(": 12,
+				"out request: ExtHostMcp.$onDidChangeMcpServerDefinitions(": 3,
+				"out request: ExtHostChatAgents.$onDidChangeInstructions(": 8,
+				"out request: ExtHostChatAgents.$onDidChangeCustomAgents(": 8,
+				"out request: ExtHostChatAgents.$onDidChangeSlashCommands(": 7,
+				"out request: ExtHostChatAgents.$onDidChangeSkills(": 7,
+				"in receiveRequest MainThreadUrls.$registerUriHandler(": 3,
+				"in receiveRequest MainThreadSecretState.$getPassword(": 43,
+				"out ack": 312,
+				"in receiveRequest MainThreadAuthentication.$registerAuthenticationProvider(": 2,
+				"out request: ExtHostAuthentication.$getSessions(": 167,
+				"in receiveRequest MainThreadExtensionService.$onDidActivateExtension(": 13,
+				"in notification MainThreadLanguageFeatures.$registerCompletionsProvider(": 24,
+				"in notification MainThreadCommands.$fireCommandActivationEvent(": 197,
+				"in receiveRequest MainThreadCommands.$executeCommand(": 202,
+				"in receiveRequest MainThreadConsole.$logExtensionHostMessage(": 5,
+				"in notification MainThreadDocumentContentProviders.$registerTextContentProvider(": 10,
+				"in receiveRequest MainThreadLanguageModels.$selectChatModels(": 9,
+				"in notification MainThreadLanguageFeatures.$registerDefinitionSupport(": 1,
+				"in notification MainThreadLanguageFeatures.$registerTypeDefinitionSupport(": 1,
+				"in notification MainThreadLanguageFeatures.$registerImplementationSupport(": 1,
+				"in notification MainThreadLanguageFeatures.$registerHoverProvider(": 4,
+				"in notification MainThreadStatusBar.$disposeEntry(": 2,
+				"in receiveRequest MainThreadPower.$isOnBatteryPower(": 1,
+				"in receiveRequest MainThreadPower.$getCurrentThermalState(": 1,
+				"in receiveRequest MainThreadPower.$getSystemIdleTime(": 1,
+				"in receiveRequest MainThreadTerminalService.$setEnvironmentVariableCollection(": 29,
+				"in receiveRequest MainThreadTerminalService.$startSendingDataEvents(": 1,
+				"in receiveRequest MainThreadTerminalService.$startSendingCommandEvents(": 1,
+				"in receiveRequest MainThreadFileSystemEventService.$watch(": 6,
+				"in receiveRequest MainThreadLanguageModels.$registerLanguageModelProvider(": 11,
+				"in receiveRequest MainThreadTreeViews.$registerTreeViewDataProvider(": 3,
+				"in receiveRequest MainThreadChatStatus.$setEntry(": 19,
+				"in receiveRequest MainThreadTerminalService.$startLinkProvider(": 1,
+				"in receiveRequest MainThreadChatAgents2.$registerAgent(": 12,
+				"in receiveRequest MainThreadChatSessions.$registerChatSessionItemController(": 2,
+				"out request: ExtHostChatSessions.$refreshChatSessionItems(": 8,
+				"out request: ExtHostChatSessions.$provideChatSessionInputState(": 3,
+				"in receiveRequest MainThreadChatSessions.$registerChatSessionContentProvider(": 2,
+				"out request: ExtHostChatSessions.$provideChatSessionProviderOptions(": 7,
+				"in receiveRequest MainThreadChatAgents2.$provideCustomAgents(": 5,
+				"in receiveRequest MainThreadFileSystem.$stat(": 7,
+				"out request: ExtHostTreeViews.$hasResolve(": 3,
+				"out request: ExtHostTreeViews.$setVisible(": 3,
+				"in receiveRequest MainThreadLanguageModels.$onLMProviderChange(": 6,
+				"in receiveRequest MainThreadChatAgents2.$registerChatSessionCustomizationProvider(": 1,
+				"in receiveRequest MainThreadSpeechProvider.$registerVoiceLiveSessionProvider(": 1,
+				"out request: ExtHostChatProvider.$provideLanguageModelChatInfo(": 73,
+				"out replyErr:": 16,
+				"out notification: ExtHostDocuments.$acceptModelChanged(": 118,
+				"out notification: ExtHostDocuments.$acceptDirtyStateChanged(": 6,
+				"out request: ExtHostDocumentSaveParticipant.$participateInSave(": 3,
+				"in receiveRequest MainThreadChatAgents2.$registerChatParticipantDetectionProvider(": 1,
+				"in notification MainThreadSearch.$registerAITextSearchProvider(": 1,
+				"in receiveRequest MainThreadAiSettingsSearch.$registerAiSettingsSearchProvider(": 1,
+				"in receiveRequest MainThreadComments.$registerCommentController(": 1,
+				"in notification MainThreadLanguageFeatures.$registerCodeActionSupport(": 6,
+				"in receiveRequest MainThreadNotebook.$registerNotebookCellStatusBarItemProvider(": 1,
+				"in receiveRequest MainThreadTerminalService.$registerQuickFixProvider(": 5,
+				"in notification MainThreadLanguageFeatures.$registerDocumentLinkProvider(": 5,
+				"in receiveRequest MainThreadFileSystem.$registerFileSystemProvider(": 3,
+				"in receiveRequest MainThreadAiRelatedInformation.$registerAiRelatedInformationProvider(": 2,
+				"in receiveRequest MainThreadChatSkills.$registerTool(": 35,
+				"in receiveRequest MainThreadChatSkills.$registerToolWithDefinition(": 1,
+				"in receiveRequest MainThreadChatAgents2.$registerAgentCompletionsProvider(": 1,
+				"in receiveRequest MainThreadCodeMapper.$registerCodeMapperProvider(": 1,
+				"in notification MainThreadLanguageFeatures.$registerNewSymbolNamesProvider(": 1,
+				"out request: ExtHostLanguageFeatures.$supportsAutomaticNewSymbolNamesTriggerKind(": 1,
+				"in receiveRequest MainThreadLanguageModels.$registerFileIgnoreProvider(": 1,
+				"in receiveRequest MainThreadChatAgents2.$registerPromptFileProvider(": 5,
+				"in notification MainThreadLanguageFeatures.$registerInlineCompletionsSupport(": 6,
+				"in notification MainThreadLanguageFeatures.$unregister(": 4,
+				"in notification MainThreadCommands.$unregisterCommand(": 69,
+				"in receiveRequest MainThreadChatAgents2.$updateAgent(": 10,
+				"out request: ExtHostChatAgents.$providePromptFiles(": 32,
+				"out request: ExtHostLanguageFeatures.$provideDocumentLinks(": 10,
+				"in receiveRequest MainThreadEmbeddings.$registerEmbeddingProvider(": 1,
+				"out request: ExtHostEmbeddings.$acceptEmbeddingModels(": 1,
+				"in receiveRequest MainThreadTerminalService.$registerProfileProvider(": 1,
+				"in receiveRequest MainThreadStorage.$setValue(": 10,
+				"out cancel": 3,
+				"in receiveRequest MainThreadChatAgents2.$onDidChangeCustomizations(": 15,
+				"in receiveRequest MainThreadChatSessions.$onDidChangeChatSessionProviderOptions(": 5,
+				"out request: ExtHostChatProvider.$onChatModelsChange(": 5,
+				"out request: ExtHostStorage.$acceptValue(": 8,
+				"in receiveRequest MainThreadFileSystem.$mkdir(": 4,
+				"in notification MainThreadLanguageFeatures.$registerFoldingRangeProvider(": 2,
+				"in receiveRequest MainThreadTreeViews.$refresh(": 6,
+				"in receiveRequest MainThreadExtensionService.$onExtensionRuntimeError(": 1,
+				"in receiveRequest MainThreadErrors.$onUnexpectedError(": 1,
+				"in receiveRequest MainThreadProfileContentHandlers.$registerProfileContentHandler(": 1,
+				"in notification MainThreadLanguageFeatures.$registerDocumentSymbolProvider(": 2,
+				"out request: ExtHostExtensionService.$activate(": 3,
+				"out request: ExtHostDataChannels.$onDidReceiveData(": 126,
+				"in receiveRequest MainThreadTask.$registerTaskProvider(": 2,
+				"out notification: ExtHostDocuments.$acceptModelSaved(": 3,
+				"out request: ExtHostComments.$provideCommentingRanges(": 12,
+				"in notification MainThreadLanguageFeatures.$registerCodeLensSupport(": 2,
+				"out request: ExtHostCommands.$executeContributedCommand(": 3,
+				"in receiveRequest MainThreadOutputService.$register(": 1,
+				"in receiveRequest MainThreadCommands.$getCommands(": 2,
+				"in receiveRequest MainThreadProgress.$startProgress(": 3,
+				"in notification MainThreadDecorations.$registerDecorationProvider(": 4,
+				"in receiveRequest MainThreadWorkspace.$registerEditSessionIdentityProvider(": 1,
+				"out request: ExtHostDecorations.$provideDecorations(": 13,
+				"in receiveRequest MainThreadWorkspace.$registerCanonicalUriProvider(": 3,
+				"in receiveRequest MainThreadExtensionService.$setPerformanceMarks(": 1,
+				"in receiveRequest MainThreadFileSystem.$writeFile(": 3,
+				"in notification MainThreadTextEditors.$registerTextEditorDecorationType(": 14,
+				"in receiveRequest MainThreadWorkspace.$requestResourceTrust(": 4,
+				"in notification MainThreadTextEditors.$removeTextEditorDecorationType(": 7,
+				"in receiveRequest MainThreadSCM.$registerSourceControl(": 1,
+				"in receiveRequest MainThreadSCM.$updateSourceControl(": 12,
+				"in receiveRequest MainThreadSCM.$setValidationProviderIsEnabled(": 3,
+				"in receiveRequest MainThreadSCM.$setInputBoxPlaceholder(": 3,
+				"in receiveRequest MainThreadSCM.$updateGroup(": 3,
+				"in notification MainThreadDecorations.$onDidChange(": 5,
+				"in receiveRequest MainThreadTimeline.$registerTimelineProvider(": 1,
+				"in receiveRequest MainThreadTimeline.$registerWorkspaceTimelineProvider(": 1,
+				"out request: ExtHostSCM.$setSelectedSourceControl(": 1,
+				"in notification MainThreadLanguageFeatures.$registerDocumentColorProvider(": 1,
+				"in notification MainThreadLanguageFeatures.$registerSelectionRangeProvider(": 1,
+				"in receiveRequest MainThreadFileSystem.$readFile(": 1,
+				"in notification MainThreadLanguageFeatures.$registerRangeFormattingSupport(": 1,
+				"in receiveRequest MainThreadSCM.$registerGroups(": 1,
+				"in notification MainThreadLanguages.$setLanguageStatus(": 1,
+				"in receiveRequest MainThreadAuthentication.$ensureProvider(": 1,
+				"in receiveRequest MainThreadAuthentication.$getSession(": 1,
+				"in notification MainThreadProgress.$progressEnd(": 3,
+				"out request: ExtHostEditorTabs.$acceptTabOperation(": 18,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderCurrentHistoryItemRefs(": 2,
+				"in receiveRequest MainThreadSCM.$onDidChangeHistoryProviderHistoryItemRefs(": 1,
+				"in receiveRequest MainThreadSCM.$onDidChangeArtifacts(": 1,
+				"in receiveRequest MainThreadTimeline.$emitTimelineChangeEvent(": 1,
+				"in receiveRequest MainThreadTimeline.$emitWorkspaceTimelineChangeEvent(": 1,
+				"in receiveRequest MainThreadFileSystemEventService.$unwatch(": 1,
+				"in receiveRequest MainThreadShare.$registerShareProvider(": 1,
+				"out request: ExtHostChatSessions.$provideChatSessionContent(": 2,
+				"in receiveRequest MainThreadWorkspace.$isResourceTrusted(": 1,
+				"out request: ExtHostChatSessions.$provideHandleOptionsChange(": 4,
+				"out notification: ExtHostNotebookEditors.$acceptEditorViewColumns(": 1,
+				"out notification: ExtHostEditors.$acceptEditorPositionData(": 1,
+				"out request: ExtHostChatAgents.$provideChatSessionCustomizations(": 2,
+				"in receiveRequest MainThreadChatAgents2.$provideSkills(": 1,
+				"in receiveRequest MainThreadChatAgents2.$provideHooks(": 1,
+				"in receiveRequest MainThreadChatAgents2.$providePlugins(": 1,
+				"out request: ExtHostLanguageFeatures.$provideInlineCompletions(": 10,
+				"in receiveRequest MainThreadChatAgents2.$provideInstructions(": 1,
+				"out request: ExtHostChatSessions.$newChatSessionItem(": 1,
+				"out request: ExtHostChatAgents.$provideChatTitle(": 1,
+				"out request: ExtHostChatAgents.$setYieldRequested(": 2,
+				"out request: ExtHostChatAgents.$invokeAgent(": 2,
+				"in receiveRequest MainThreadChatSessions.$onDidChangeChatSessionOptions(": 2,
+				"in receiveRequest MainThreadPower.$startPowerSaveBlocker(": 1,
+				"in receiveRequest MainThreadMcpShape.$startMcpGateway(": 2,
+				"in receiveRequest MainThreadMcpShape.$disposeMcpGateway(": 2,
+				"in receiveRequest MainThreadChatSkills.$invokeTool(": 2,
+				"in notification MainThreadChatAgents2.$handleProgressChunkNotification(": 8,
+				"out request: ExtHostChatAgents.$setRequestTools(": 2,
+				"in receiveRequest MainThreadFileSystem.$readdir(": 9,
+				"in receiveRequest MainThreadChatSessions.$updateChatSessionItems(": 12,
+				"in receiveRequest MainThreadChatSessions.$onDidCommitChatSessionItem(": 1,
+				"out request: ExtHostChatAgents.$releaseSession(": 2,
+				"out request: ExtHostChatSessions.$disposeChatSessionContent(": 2,
+				"out request: ExtHostTask.$provideTasks(": 2,
+				"in receiveRequest MainThreadWorkspace.$startFileSearch(": 1,
+				"out request: ExtHostSearch.$provideFileSearchResults(": 1,
+				"out request: ExtHostTask.$resolveTask(": 1,
+				"out request: ExtHostDocuments.$acceptModelChanged(": 1,
+				"in receiveRequest MainThreadCommands.$fireCommandActivationEvent(": 2,
+				"out request: ExtHostAiRelatedInformation.$provideAiRelatedInformation(": 1
+			},
+			"roundTrips": {
+				"ExtHostChatAgents.$acceptActiveChatSession(": {
+					"count": 6,
+					"medianMs": 95.2498779296875,
+					"maxMs": 241.300048828125,
+					"sumMs": 677.999755859375
+				},
+				"ExtHostChatAgents.$onDidChangePlugins(": {
+					"count": 1,
+					"medianMs": 112.099853515625,
+					"maxMs": 112.099853515625,
+					"sumMs": 112.099853515625
+				},
+				"ExtHostConfiguration.$initializeConfiguration(": {
+					"count": 1,
+					"medianMs": 109.10009765625,
+					"maxMs": 109.10009765625,
+					"sumMs": 109.10009765625
+				},
+				"ExtHostFileSystemInfo.$acceptProviderInfos(": {
+					"count": 15,
+					"medianMs": 156.199951171875,
+					"maxMs": 1279.89990234375,
+					"sumMs": 7045.80029296875
+				},
+				"ExtHostLanguageFeatures.$setWordDefinitions(": {
+					"count": 2,
+					"medianMs": 245.4000244140625,
+					"maxMs": 343.0,
+					"sumMs": 490.800048828125
+				},
+				"ExtHostLanguageFeatures.$acceptInlineCompletionsUnificationState(": {
+					"count": 2,
+					"medianMs": 81.1500244140625,
+					"maxMs": 146.699951171875,
+					"sumMs": 162.300048828125
+				},
+				"ExtHostOutputService.$setVisibleChannel(": {
+					"count": 1,
+					"medianMs": 145.89990234375,
+					"maxMs": 145.89990234375,
+					"sumMs": 145.89990234375
+				},
+				"ExtHostSearch.$enableExtensionHostSearch(": {
+					"count": 1,
+					"medianMs": 145.39990234375,
+					"maxMs": 145.39990234375,
+					"sumMs": 145.39990234375
+				},
+				"ExtHostStatusBar.$acceptStaticEntries(": {
+					"count": 1,
+					"medianMs": 145.2998046875,
+					"maxMs": 145.2998046875,
+					"sumMs": 145.2998046875
+				},
+				"ExtHostTelemetry.$initializeTelemetryLevel(": {
+					"count": 1,
+					"medianMs": 145.199951171875,
+					"maxMs": 145.199951171875,
+					"sumMs": 145.199951171875
+				},
+				"ExtHostTheming.$onColorThemeChange(": {
+					"count": 2,
+					"medianMs": 820.449951171875,
+					"maxMs": 1496.800048828125,
+					"sumMs": 1640.89990234375
+				},
+				"ExtHostDataChannels.$acceptLinkPresentationRules(": {
+					"count": 4,
+					"medianMs": 876.699951171875,
+					"maxMs": 876.800048828125,
+					"sumMs": 2767.099853515625
+				},
+				"ExtHostMeteredConnection.$initializeIsConnectionMetered(": {
+					"count": 1,
+					"medianMs": 136.7998046875,
+					"maxMs": 136.7998046875,
+					"sumMs": 136.7998046875
+				},
+				"ExtHostEditorTabs.$acceptEditorTabModel(": {
+					"count": 1,
+					"medianMs": 128.300048828125,
+					"maxMs": 128.300048828125,
+					"sumMs": 128.300048828125
+				},
+				"ExtHostWorkspace.$initializeWorkspace(": {
+					"count": 1,
+					"medianMs": 124.5,
+					"maxMs": 124.5,
+					"sumMs": 124.5
+				},
+				"ExtHostGitExtension.$isGitExtensionAvailable(": {
+					"count": 1,
+					"medianMs": 143.400146484375,
+					"maxMs": 143.400146484375,
+					"sumMs": 143.400146484375
+				},
+				"ExtHostExtensionService.$activateByEvent(": {
+					"count": 19,
+					"medianMs": 536.599853515625,
+					"maxMs": 1882.800048828125,
+					"sumMs": 15734.198974609375
+				},
+				"ExtHostChatSkills.$onDidChangeTools(": {
+					"count": 3,
+					"medianMs": 112.099853515625,
+					"maxMs": 1332.199951171875,
+					"sumMs": 1488.2998046875
+				},
+				"ExtHostFileSystemEventService.$onFileEvent(": {
+					"count": 224,
+					"medianMs": 126.5501708984375,
+					"maxMs": 1302.199951171875,
+					"sumMs": 71804.30297851562
+				},
+				"ExtHostMcp.$onDidChangeMcpServerDefinitions(": {
+					"count": 3,
+					"medianMs": 566.0,
+					"maxMs": 1188.300048828125,
+					"sumMs": 1774.39990234375
+				},
+				"ExtHostChatAgents.$onDidChangeInstructions(": {
+					"count": 8,
+					"medianMs": 455.6500244140625,
+					"maxMs": 1009.10009765625,
+					"sumMs": 4125.400146484375
+				},
+				"ExtHostChatAgents.$onDidChangeCustomAgents(": {
+					"count": 8,
+					"medianMs": 456.300048828125,
+					"maxMs": 1008.89990234375,
+					"sumMs": 4125.7001953125
+				},
+				"ExtHostChatAgents.$onDidChangeSlashCommands(": {
+					"count": 7,
+					"medianMs": 534.599853515625,
+					"maxMs": 1008.599853515625,
+					"sumMs": 3746.79931640625
+				},
+				"ExtHostChatAgents.$onDidChangeSkills(": {
+					"count": 7,
+					"medianMs": 534.5,
+					"maxMs": 1008.5,
+					"sumMs": 3746.400146484375
+				},
+				"ExtHostAuthentication.$getSessions(": {
+					"count": 167,
+					"medianMs": 171.800048828125,
+					"maxMs": 600.699951171875,
+					"sumMs": 44997.501708984375
+				},
+				"ExtHostChatSessions.$provideChatSessionInputState(": {
+					"count": 3,
+					"medianMs": 406.5,
+					"maxMs": 517.0,
+					"sumMs": 980.60009765625
+				},
+				"ExtHostTreeViews.$hasResolve(": {
+					"count": 3,
+					"medianMs": 450.10009765625,
+					"maxMs": 516.099853515625,
+					"sumMs": 1142.199951171875
+				},
+				"ExtHostTreeViews.$setVisible(": {
+					"count": 3,
+					"medianMs": 449.300048828125,
+					"maxMs": 514.5,
+					"sumMs": 1139.400146484375
+				},
+				"ExtHostChatSessions.$provideChatSessionProviderOptions(": {
+					"count": 7,
+					"medianMs": 185.300048828125,
+					"maxMs": 2145.699951171875,
+					"sumMs": 3386.10009765625
+				},
+				"ExtHostChatProvider.$provideLanguageModelChatInfo(": {
+					"count": 73,
+					"medianMs": 55.800048828125,
+					"maxMs": 963.5,
+					"sumMs": 8812.70068359375
+				},
+				"ExtHostDocumentSaveParticipant.$participateInSave(": {
+					"count": 3,
+					"medianMs": 90.89990234375,
+					"maxMs": 472.39990234375,
+					"sumMs": 624.7998046875
+				},
+				"ExtHostLanguageFeatures.$supportsAutomaticNewSymbolNamesTriggerKind(": {
+					"count": 1,
+					"medianMs": 444.199951171875,
+					"maxMs": 444.199951171875,
+					"sumMs": 444.199951171875
+				},
+				"ExtHostChatAgents.$providePromptFiles(": {
+					"count": 32,
+					"medianMs": 220.300048828125,
+					"maxMs": 575.2998046875,
+					"sumMs": 7124.79931640625
+				},
+				"ExtHostLanguageFeatures.$provideDocumentLinks(": {
+					"count": 10,
+					"medianMs": 34.199951171875,
+					"maxMs": 394.5,
+					"sumMs": 927.900146484375
+				},
+				"ExtHostEmbeddings.$acceptEmbeddingModels(": {
+					"count": 1,
+					"medianMs": 389.599853515625,
+					"maxMs": 389.599853515625,
+					"sumMs": 389.599853515625
+				},
+				"ExtHostChatProvider.$onChatModelsChange(": {
+					"count": 5,
+					"medianMs": 37.800048828125,
+					"maxMs": 110.10009765625,
+					"sumMs": 238.800537109375
+				},
+				"ExtHostStorage.$acceptValue(": {
+					"count": 8,
+					"medianMs": 31.800048828125,
+					"maxMs": 199.699951171875,
+					"sumMs": 425.39990234375
+				},
+				"ExtHostExtensionService.$activate(": {
+					"count": 3,
+					"medianMs": 125.89990234375,
+					"maxMs": 275,
+					"sumMs": 475.999755859375
+				},
+				"ExtHostChatSessions.$refreshChatSessionItems(": {
+					"count": 8,
+					"medianMs": 452.8499755859375,
+					"maxMs": 1880.300048828125,
+					"sumMs": 5562.50048828125
+				},
+				"ExtHostDataChannels.$onDidReceiveData(": {
+					"count": 126,
+					"medianMs": 9.099853515625,
+					"maxMs": 202.7998046875,
+					"sumMs": 1536.80029296875
+				},
+				"ExtHostComments.$provideCommentingRanges(": {
+					"count": 12,
+					"medianMs": 41.14990234375,
+					"maxMs": 146.10009765625,
+					"sumMs": 644.299560546875
+				},
+				"ExtHostExtensionService.$startExtensionHost(": {
+					"count": 1,
+					"medianMs": 2844.5,
+					"maxMs": 2844.5,
+					"sumMs": 2844.5
+				},
+				"ExtHostDecorations.$provideDecorations(": {
+					"count": 13,
+					"medianMs": 46.10009765625,
+					"maxMs": 615.0,
+					"sumMs": 1231.600341796875
+				},
+				"ExtHostSCM.$setSelectedSourceControl(": {
+					"count": 1,
+					"medianMs": 74.0,
+					"maxMs": 74.0,
+					"sumMs": 74.0
+				},
+				"ExtHostEditorTabs.$acceptTabOperation(": {
+					"count": 18,
+					"medianMs": 87.0499267578125,
+					"maxMs": 185.0,
+					"sumMs": 1595.099853515625
+				},
+				"ExtHostChatSessions.$provideChatSessionContent(": {
+					"count": 2,
+					"medianMs": 30.4000244140625,
+					"maxMs": 34.60009765625,
+					"sumMs": 60.800048828125
+				},
+				"ExtHostChatSessions.$provideHandleOptionsChange(": {
+					"count": 4,
+					"medianMs": 85.0499267578125,
+					"maxMs": 129.2998046875,
+					"sumMs": 309.899658203125
+				},
+				"ExtHostCommands.$executeContributedCommand(": {
+					"count": 3,
+					"medianMs": 19.099853515625,
+					"maxMs": 1116.099853515625,
+					"sumMs": 1141.599609375
+				},
+				"ExtHostLanguageFeatures.$provideInlineCompletions(": {
+					"count": 10,
+					"medianMs": 12.0,
+					"maxMs": 57.300048828125,
+					"sumMs": 255.699951171875
+				},
+				"ExtHostChatSessions.$newChatSessionItem(": {
+					"count": 1,
+					"medianMs": 8.60009765625,
+					"maxMs": 8.60009765625,
+					"sumMs": 8.60009765625
+				},
+				"ExtHostChatAgents.$provideChatSessionCustomizations(": {
+					"count": 2,
+					"medianMs": 360.0999755859375,
+					"maxMs": 664.800048828125,
+					"sumMs": 720.199951171875
+				},
+				"ExtHostChatAgents.$setYieldRequested(": {
+					"count": 2,
+					"medianMs": 33.550048828125,
+					"maxMs": 44.400146484375,
+					"sumMs": 67.10009765625
+				},
+				"ExtHostChatAgents.$provideChatTitle(": {
+					"count": 1,
+					"medianMs": 22.89990234375,
+					"maxMs": 22.89990234375,
+					"sumMs": 22.89990234375
+				},
+				"ExtHostChatAgents.$setRequestTools(": {
+					"count": 2,
+					"medianMs": 35.9000244140625,
+					"maxMs": 36.300048828125,
+					"sumMs": 71.800048828125
+				},
+				"ExtHostChatAgents.$invokeAgent(": {
+					"count": 2,
+					"medianMs": 905.60009765625,
+					"maxMs": 1036,
+					"sumMs": 1811.2001953125
+				},
+				"ExtHostChatAgents.$releaseSession(": {
+					"count": 2,
+					"medianMs": 58.2501220703125,
+					"maxMs": 65.400146484375,
+					"sumMs": 116.500244140625
+				},
+				"ExtHostChatSessions.$disposeChatSessionContent(": {
+					"count": 2,
+					"medianMs": 57.8499755859375,
+					"maxMs": 64.699951171875,
+					"sumMs": 115.699951171875
+				},
+				"ExtHostTask.$provideTasks(": {
+					"count": 2,
+					"medianMs": 38.85009765625,
+					"maxMs": 74.900146484375,
+					"sumMs": 77.7001953125
+				},
+				"ExtHostSearch.$provideFileSearchResults(": {
+					"count": 1,
+					"medianMs": 55.10009765625,
+					"maxMs": 55.10009765625,
+					"sumMs": 55.10009765625
+				},
+				"ExtHostTask.$resolveTask(": {
+					"count": 1,
+					"medianMs": 19.89990234375,
+					"maxMs": 19.89990234375,
+					"sumMs": 19.89990234375
+				},
+				"ExtHostDocuments.$acceptModelChanged(": {
+					"count": 1,
+					"medianMs": 78.699951171875,
+					"maxMs": 78.699951171875,
+					"sumMs": 78.699951171875
+				},
+				"ExtHostAiRelatedInformation.$provideAiRelatedInformation(": {
+					"count": 1,
+					"medianMs": 21.5,
+					"maxMs": 21.5,
+					"sumMs": 21.5
+				}
+			}
+		}
+	],
+	"verification": {
+		"node": 249,
+		"electronAndAPI": 1341,
+		"pending": 3,
+		"clientTypecheckExit": 0,
+		"focusedLintExit": 0,
+		"regressionBefore": {
+			"passing": 5,
+			"failing": 1,
+			"actualEmptyReplies": 2,
+			"expectedEmptyReplies": 0
+		},
+		"regressionAfter": {
+			"passing": 6,
+			"fileEventsDeliveredBeforeBarrier": true,
+			"snapshotsRetained": true,
+			"emptyReplies": 0
+		}
+	},
+	"diagnosticSource": {
+		"prepare-rpc-stats.py": "from pathlib import Path\nimport os,shutil,re,json,hashlib\np=Path('/tmp/ipc-opt-resume-20261023');base=Path('/home/simon/.cache/ipc-product-check-20261022/38-artifact/extracted/VSCode-linux-x64');target=base.parents[2]/'38-rpc-stats'/'VSCode-linux-x64';assert not target.exists();shutil.copytree(base,target,copy_function=os.link)\nchanges=[]\nfor file in ['vs/workbench/workbench.desktop.main.js','vs/workbench/api/node/extensionHostProcess.js','vs/sessions/sessions.desktop.main.js','vs/workbench/api/worker/extensionHostWorkerMain.js']:\n path=target/'resources/app/out'/file;before=path.read_text();pattern=r'this\\._protocol=(\\w+),this\\._logger=(\\w+),this\\._uriTransformer=(\\w+)';matches=list(re.finditer(pattern,before));assert len(matches)==1,(file,len(matches));m=matches[0];proto,logger,uri=m.groups()\n recorder='(()=>{const root=globalThis.__ipcOptRpcStats??={protocols:[]};const stats={id:root.protocols.length,entries:[]};root.protocols.push(stats);const record=(direction,len,req,initiator,text)=>{if(stats.entries.length<50000)stats.entries.push([performance.timeOrigin+performance.now(),direction,len,req,initiator,text])};return {logIncoming:(len,req,initiator,text)=>record(\"in\",len,req,initiator,text),logOutgoing:(len,req,initiator,text)=>record(\"out\",len,req,initiator,text)}})()'\n replacement=f'this._protocol={proto},this._logger={logger}??{recorder},this._uriTransformer={uri}';after=before[:m.start()]+replacement+before[m.end():];temp=path.with_suffix('.rpc-stats-tmp');temp.write_text(after);temp.replace(path);changes.append({'file':file,'beforeSHA256':hashlib.sha256(before.encode()).hexdigest(),'afterSHA256':hashlib.sha256(after.encode()).hexdigest()})\n(target.parent/'patch.json').write_text(json.dumps({'productionCommit':'38b2f1066eedc6cd3395bda950ee1f7e292f9df7','diagnosticOnly':True,'payloadsLogged':False,'trace':'Protocol-local request IDs, directions, event names and timestamps in memory only; retrieved by inspector before closure','changes':changes},indent=2));print(target)\ns=(p/'profile-smoke-ext.cjs').read_text();s=s.replace(\"const {profile}=await state.ext.post('Profiler.stop');\", \"const snapshot=await state.ext.post('Runtime.evaluate',{expression:'JSON.stringify(globalThis.__ipcOptRpcStats||null)',returnByValue:true});writeFileSync(join(out,`launch-${state.index}-extension-host-rpc.json`),snapshot.result.value);const {profile}=await state.ext.post('Profiler.stop');\");s=s.replace(\"const {profile}=await r.cdp.send('Profiler.stop');\", \"const snapshot=await r.cdp.send('Runtime.evaluate',{expression:'JSON.stringify(globalThis.__ipcOptRpcStats||null)',returnByValue:true});writeFileSync(join(out,`launch-${state.index}-renderer-${i}-rpc.json`),snapshot.result.value);const {profile}=await r.cdp.send('Profiler.stop');\");(p/'profile-rpc-stats.cjs').write_text(s)\n",
+		"profile-rpc-stats.cjs": "const {createRequire}=require('node:module');\nconst {writeFileSync,mkdirSync}=require('node:fs');\nconst {join}=require('node:path');\nconst root=process.argv[2],out=process.argv[3];mkdirSync(out,{recursive:true});\nconst load=createRequire(join(root,'test/index.js'));const playwright=load('@playwright/test');\nconst sessions=new Map();let counter=0;\nconst originalLaunch=playwright._electron.launch.bind(playwright._electron);\nplaywright._electron.launch=async options=>{\n const app=await originalLaunch(options),state={index:++counter,start:Date.now(),renderers:[]};sessions.set(app,state);\n try {await app.evaluate(async()=>{const {Session}=process.getBuiltinModule('node:inspector');const session=new Session();session.connect();globalThis.__ipcOptResumeProfile={session,post:(name,params={})=>new Promise((resolve,reject)=>session.post(name,params,(e,r)=>e?reject(e):resolve(r)))};await globalThis.__ipcOptResumeProfile.post('Profiler.enable');await globalThis.__ipcOptResumeProfile.post('Profiler.start');});}catch(error){state.mainError=String(error);}\n \n const port=Number(process.env.IPC_OPT_EXT_INSPECT_PORT);\n if(port)state.extConnecting=(async()=>{\n  for(let attempt=0;attempt<300&&!state.stopped;attempt++){\n   try{\n    const targets=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();\n    const ws=new WebSocket(targets[0].webSocketDebuggerUrl);await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true});});\n    let next=0;const pending=new Map();ws.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}}});\n    const post=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));});\n    const check=await post('Runtime.evaluate',{expression:'JSON.stringify({pid:process.pid,ppid:process.ppid})',returnByValue:true});const owner=JSON.parse(check.result.value);\n    if(owner.ppid!==app.process().pid){ws.close();throw new Error('Inspector does not belong to this smoke application');}\n    await post('Profiler.enable');await post('Profiler.start');state.ext={ws,post,owner};return;\n   }catch(error){state.extLastError=String(error);await new Promise(resolve=>setTimeout(resolve,100));}\n  }\n })();\n\n const attach=async page=>{try{const cdp=await page.context().newCDPSession(page);await cdp.send('Profiler.enable');await cdp.send('Profiler.start');state.renderers.push({cdp,url:page.url()});}catch(error){(state.errors??=[]).push(String(error));}};\n app.on('window',attach);await Promise.all(app.windows().map(attach));return app;\n};\nconst {PlaywrightDriver}=load(join(root,'../automation/out/playwrightDriver.js'));const originalClose=PlaywrightDriver.prototype.close;\nPlaywrightDriver.prototype.close=async function(){\n const state=sessions.get(this.application);if(state&&!state.stopped){state.stopped=true;\n  if(state.ext){try{const snapshot=await state.ext.post('Runtime.evaluate',{expression:'JSON.stringify(globalThis.__ipcOptRpcStats||null)',returnByValue:true});writeFileSync(join(out,`launch-${state.index}-extension-host-rpc.json`),snapshot.result.value);const {profile}=await state.ext.post('Profiler.stop');writeFileSync(join(out,`launch-${state.index}-extension-host.cpuprofile`),JSON.stringify(profile));state.ext.ws.close();}catch(error){state.extLastError=String(error);}}\n  for(const [i,r] of state.renderers.entries()){try{const snapshot=await r.cdp.send('Runtime.evaluate',{expression:'JSON.stringify(globalThis.__ipcOptRpcStats||null)',returnByValue:true});writeFileSync(join(out,`launch-${state.index}-renderer-${i}-rpc.json`),snapshot.result.value);const {profile}=await r.cdp.send('Profiler.stop');writeFileSync(join(out,`launch-${state.index}-renderer-${i}.cpuprofile`),JSON.stringify(profile));}catch(error){(state.errors??=[]).push(String(error));}}\n  try{const profile=await this.application.evaluate(async()=>{const p=globalThis.__ipcOptResumeProfile;if(!p)return null;const r=await p.post('Profiler.stop');p.session.disconnect();delete globalThis.__ipcOptResumeProfile;return r.profile;});if(profile)writeFileSync(join(out,`launch-${state.index}-main.cpuprofile`),JSON.stringify(profile));}catch(error){(state.errors??=[]).push(String(error));}\n  writeFileSync(join(out,`launch-${state.index}-metadata.json`),JSON.stringify({...state,extConnecting:undefined,ext:state.ext?{owner:state.ext.owner}:undefined,renderers:state.renderers.map(r=>({url:r.url})),end:Date.now()},null,2));\n }\n return originalClose.call(this);\n};\nconst Mocha=load('mocha');const mocha=new Mocha({timeout:120000,retries:0,reporter:'spec',failZero:true});mocha.addFile(join(root,'out/main.js'));mocha.loadFiles();mocha.grep('Data Loss \\\\(insiders -> insiders\\\\).*verifies opened editors are restored|Chat Sessions.*Test Copilot CLI session$');\nconst tests=[];let pending=0,retried=false;const runner=mocha.run(failures=>{writeFileSync(join(out,'functional-report.json'),JSON.stringify({tests,pending,failures,retried,diagnosticOnly:true,profiled:true}));process.exit(failures||retried||!tests.length?1:0);});runner.on('pass',test=>tests.push(test.fullTitle()));runner.on('pending',()=>pending++);runner.on('retry',()=>retried=true);\n",
+		"analyze-rpc-stats.py": "from pathlib import Path\nimport json,collections,statistics\nroot=Path('/tmp/ipc-opt-resume-20261023/profile-rpc-stats');rows=[]\nfor path in sorted(root.glob('*-rpc.json')):\n data=json.loads(path.read_text());summary=collections.Counter();latencies=collections.defaultdict(list)\n if not data:continue\n for protocol in data['protocols']:\n  pending={}\n  for timestamp,direction,length,req,initiator,text in protocol['entries']:\n   summary[direction+' '+text]+=1\n   if direction=='out' and text.startswith('request: '):pending[req]=(timestamp,text[9:])\n   if direction=='in' and text.startswith(('receiveReply:','receiveReplyErr:')) and req in pending:\n    start,method=pending.pop(req);latencies[method].append(timestamp-start)\n one={'file':path.name,'protocols':len(data['protocols']),'events':dict(summary),'roundTrips':{name:{'count':len(v),'medianMs':statistics.median(v),'maxMs':max(v),'sumMs':sum(v)} for name,v in latencies.items()}};rows.append(one);print('\\n',path.name,'events',sum(summary.values()),'protocols',len(data['protocols']))\n print('Most frequent request/notification sends:',[(k,v) for k,v in summary.most_common() if k.startswith('out request') or k.startswith('out notification')][:8])\n print('Longest observed round trips (include remote handler time):',sorted(one['roundTrips'].items(),key=lambda x:x[1]['maxMs'],reverse=True)[:6])\n(root.parent/'rpc-stats-summary.json').write_text(json.dumps(rows,indent=2)+'\\n')\n"
+	}
+}

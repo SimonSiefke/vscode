@@ -1,0 +1,2235 @@
+{
+	"kind": "node",
+	"seed": 3212256,
+	"baseline": "de21f53b3671f6792a631c5ac6a235f8350a0dcd",
+	"sourceSHA256": {
+		"src/vs/workbench/services/extensions/common/rpcMessagePort.ts": "08c7b67ad27eac91d29c0c4a12fd5ab84ff328042edb22a44e583347f8d3c7f3",
+		"src/vs/workbench/services/extensions/common/rpcProtocol.ts": "331bc8fa28f047f185787deae8dc71416eb723a845703ef295d049725ff0ffb1",
+		"src/vs/workbench/api/node/extensionHostProcess.ts": "09330815c9505fa83e3488c2dcf6bccce90e52ddd1a28402c8cd90fae7681369",
+		"src/vs/workbench/services/extensions/electron-browser/localProcessExtensionHost.ts": "2bae605fd0c0e19b1391e6df786fe59cad54339ff6da72d04c7924c1c128111a",
+		"src/vs/workbench/services/extensions/test/node/rpcProtocol.perf.ts": "bbef077cf38bf116ac3f23988926c5d4e594c1c5a2cadd0c0a93746767df33cf"
+	},
+	"blocks": [
+		{
+			"block": 0,
+			"runs": [
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								64.84367285156249,
+								31.128565429687505,
+								33.11908007812497
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								47.249357421875025,
+								29.772471679687495,
+								33.13844238281249
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								213.18885644531255,
+								208.90265722656244,
+								225.52122753906255
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								41.55000488281235,
+								40.90736523437521,
+								40.054713867187616
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								14.729703124999993,
+								9.900180664062507,
+								13.389770507812482
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								21.53791992187498,
+								14.792484375000026,
+								11.119885742187503
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								225.00712109375,
+								204.62876464843748,
+								209.78206738281247
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								33.58790624999997,
+								29.409584960937487,
+								31.33265820312503
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								20.868295898437513,
+								16.310171875,
+								16.19940625000002
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								21.13285449218749,
+								17.834549804687487,
+								17.674572265624995
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								216.340275390625,
+								213.97342089843747,
+								223.12446484374993
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								41.88765722656251,
+								48.18553515625001,
+								45.21300488281255
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								32.964443359375,
+								24.95947363281248,
+								28.13319042968751
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								39.23941796875,
+								35.333724609374976,
+								30.758681640625007
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								227.10087499999997,
+								214.21199414062497,
+								224.1091796875001
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								60.32906738281252,
+								42.02478906249985,
+								41.004872070312445
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 1,
+			"runs": [
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								23.8574296875,
+								12.09794824218749,
+								11.417865234375018
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								16.15255273437502,
+								14.790187499999996,
+								14.552250000000017
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								206.30230957031247,
+								216.20565917968747,
+								210.5370742187499
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								31.74554003906249,
+								29.021797851562447,
+								31.283690429687596
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								36.43415429687501,
+								23.247567382812502,
+								26.480044921875002
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								41.24669140625001,
+								49.34247656249999,
+								24.50481347656247
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								219.3553359375,
+								210.04122460937504,
+								212.565482421875
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								54.138226562500115,
+								48.68790234374987,
+								35.608086914062476
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								37.22731835937498,
+								24.969415039062497,
+								28.59568750000002
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								34.159131835937494,
+								28.592331054687474,
+								28.824661132812512
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								233.58098925781252,
+								213.33803320312495,
+								214.02962207031263
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								43.47058203124998,
+								43.51404296874995,
+								46.74985839843737
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								19.650459960937493,
+								13.692828125,
+								14.335360351562493
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								18.6812216796875,
+								16.00639941406251,
+								17.658418945312505
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								209.99744140625,
+								226.07944140624997,
+								224.61426660156246
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								50.88451464843746,
+								40.952047851562476,
+								42.23608300781257
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 2,
+			"runs": [
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								39.894599609375,
+								24.983356445312495,
+								25.927330078125006
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								31.523014648437513,
+								34.15966015625002,
+								28.196902343749997
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								224.45479589843748,
+								225.2727158203125,
+								218.559373046875
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								49.79374218749988,
+								46.396530273437484,
+								44.92374414062495
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								18.12612011718749,
+								12.486948242187504,
+								12.090541015624984
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								18.843254882812495,
+								12.862387695312478,
+								11.980354492187512
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								204.84371777343748,
+								208.52050585937494,
+								216.95826855468746
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								42.180921874999996,
+								36.319575195312595,
+								46.84704199218748
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								37.89221777343749,
+								22.969623046875,
+								24.794672851562506
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								33.30043457031251,
+								33.86964550781249,
+								29.621200195312504
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								224.15504687500004,
+								235.63973632812497,
+								217.1799736328125
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								58.60545800781236,
+								49.108542968750115,
+								50.53423925781253
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								20.576226562500008,
+								14.755160156250003,
+								16.452498046875014
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								21.109431640624983,
+								18.81495898437499,
+								18.134163085937516
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								211.89755273437498,
+								197.55777050781242,
+								199.28948046874996
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								47.07460742187497,
+								43.90965820312498,
+								36.329946289062384
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 3,
+			"runs": [
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								29.044663085937504,
+								18.796653320312508,
+								19.748641601562504
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								26.41882714843752,
+								24.350716796875005,
+								22.219088867187487
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								226.57889257812508,
+								214.06772949218745,
+								195.96877929687506
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								39.73258691406245,
+								35.904891601562625,
+								35.52802441406233
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								30.739683593749998,
+								22.49880273437499,
+								21.8177490234375
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								29.896315429687487,
+								26.61116992187501,
+								25.38707031250001
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								203.88634082031248,
+								213.36097656249996,
+								212.29894824218752
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								44.780897460937496,
+								37.037608398437506,
+								34.375591796874886
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								22.3888486328125,
+								14.477541015624999,
+								14.134025390625013
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								17.59528222656248,
+								15.919145507812482,
+								17.202909179687502
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								192.35802343750004,
+								193.32621289062502,
+								191.725314453125
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								32.26265136718742,
+								32.18309765625005,
+								37.36772851562509
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								14.769982421874994,
+								9.9975791015625,
+								10.335525390625003
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								14.231463867187516,
+								11.8176572265625,
+								11.215113281249995
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								208.71762402343748,
+								232.18929101562497,
+								205.137892578125
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								37.59143945312504,
+								33.42429003906244,
+								36.37085253906247
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 4,
+			"runs": [
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								31.497430664062506,
+								20.4857158203125,
+								22.608019531249994
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								29.42700000000001,
+								23.936278320312503,
+								24.455688476562486
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								234.12570117187497,
+								229.43562890625003,
+								235.86852441406248
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								50.13106249999999,
+								44.38434472656239,
+								45.993070312499995
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								36.418461914062505,
+								22.862098632812494,
+								25.858276367187514
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								29.018509765625005,
+								29.73906835937501,
+								29.56691992187502
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								230.68735742187502,
+								230.40681250000006,
+								241.69769335937497
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								42.00884082031253,
+								39.793286132812526,
+								35.71037695312506
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								27.226844726562504,
+								20.359111328125014,
+								21.064445312500013
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								25.706007812500015,
+								23.93737500000001,
+								22.057574218750016
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								210.08767968750004,
+								217.43583398437505,
+								204.93483691406246
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								30.03564941406256,
+								30.630092773437646,
+								40.41118164062496
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								16.094346679687497,
+								11.971402343749993,
+								14.588048828125006
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								12.89645507812498,
+								14.484858398437495,
+								12.5723515625
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								207.512759765625,
+								220.04017285156246,
+								219.49100097656247
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.68464355468748,
+								34.75098242187502,
+								36.152502929687415
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 5,
+			"runs": [
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								14.276802734374996,
+								9.315833007812497,
+								9.812202148437505
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								13.626924804687496,
+								11.495041015625013,
+								11.271282226562512
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								188.092173828125,
+								192.9226943359375,
+								191.5526376953125
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								35.38958007812498,
+								34.27625585937499,
+								37.35186914062505
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								34.2264365234375,
+								25.517227539062493,
+								24.724022460937494
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								30.362667968749978,
+								29.631651367187512,
+								29.740740234375007
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								206.02970898437505,
+								239.2019248046875,
+								236.6969414062501
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								43.525793945312415,
+								45.167775390624996,
+								44.93368457031255
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								32.46994335937499,
+								32.639626953125,
+								29.76226562499998
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								35.82804003906251,
+								28.77805859374999,
+								22.78418945312499
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								236.115509765625,
+								240.04652343749999,
+								228.53792285156248
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								41.54385937499994,
+								46.001346679687586,
+								52.076678710937465
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								20.235187500000002,
+								16.115470703125023,
+								17.07247753906252
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								19.280019531249998,
+								15.312747070312493,
+								16.02998828125002
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								203.738611328125,
+								200.3069228515625,
+								212.00823730468755
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								35.86986621093746,
+								42.564236328125006,
+								43.29466699218754
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 6,
+			"runs": [
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								34.5117744140625,
+								20.275721679687496,
+								20.782764648437507
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								29.424710937499988,
+								33.62748339843752,
+								32.81057128906248
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								206.82942968749995,
+								211.86307421874994,
+								214.24418359374997
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								43.69486132812506,
+								39.08369628906261,
+								34.884504882812365
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								40.90760058593751,
+								20.09223339843752,
+								16.85992187499999
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								19.01776171875,
+								18.024582031250013,
+								17.4709287109375
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								268.26782714843756,
+								206.98029687500008,
+								188.5492109375
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								53.085765624999894,
+								40.104338867187565,
+								39.036910156249995
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								17.80481542968748,
+								13.663554687499996,
+								13.212290039062491
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								16.306355468749977,
+								13.48501757812498,
+								12.43100292968749
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								212.64304882812502,
+								217.07905175781244,
+								201.49299121093756
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.36042187499999,
+								39.06013671875008,
+								41.17445703124989
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								34.915891601562514,
+								21.2483251953125,
+								22.621462890625
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								29.08309375000001,
+								29.77160937499998,
+								27.989883789062475
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								257.3832666015625,
+								227.37045214843744,
+								231.32982031250015
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								50.78405175781264,
+								37.16451660156261,
+								47.07267968750006
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		},
+		{
+			"block": 7,
+			"runs": [
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								20.654360351562513,
+								16.15945019531251,
+								14.205370117187504
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								19.59141406249998,
+								16.724667968749994,
+								16.017651367187526
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								205.68676367187498,
+								207.50293457031245,
+								199.94700976562495
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								44.16784667968743,
+								29.604039062499975,
+								33.69169335937505
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": false,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": false,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								31.007762695312497,
+								20.445208984375004,
+								20.82702734375
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								26.1854013671875,
+								25.2238564453125,
+								24.1313896484375
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								201.07826855468753,
+								201.34566406250005,
+								210.92034179687502
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								53.29346972656257,
+								40.57761621093747,
+								37.933799804687474
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 1
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 1,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								31.6051025390625,
+								22.227609375,
+								24.461578124999996
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								32.675994140625,
+								35.42269921874999,
+								27.57535937499997
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								234.40051269531253,
+								233.2392158203125,
+								234.74549414062506
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								46.899063476562475,
+								47.085193359375,
+								45.31526757812499
+							],
+							"messages": 6144,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				},
+				{
+					"spec": {
+						"batch": true,
+						"concurrency": 32
+					},
+					"node": "v24.22.0",
+					"transport": "node-message-port",
+					"native": true,
+					"batch": true,
+					"concurrency": 32,
+					"samples": 3,
+					"iterations": 1024,
+					"warmups": 200,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								16.476380859375002,
+								12.796082031250004,
+								12.371545898437503
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 18432
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								17.270201171874998,
+								14.79807226562499,
+								12.538636718749995
+							],
+							"messages": 480,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 362496
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								224.4043427734375,
+								236.00130175781254,
+								203.5475810546875
+							],
+							"messages": 4704,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 47198208
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								34.878996093750004,
+								32.71450292968747,
+								32.78583886718756
+							],
+							"messages": 3264,
+							"bytes": 0,
+							"backingBytes": 0,
+							"nativeMessages": 6144,
+							"nativeStringCharacters": 25184256
+						}
+					]
+				}
+			]
+		}
+	],
+	"control": "Identical RPCMessagePort receiver/BufferedEmitter; control overrides sendStructuredClone to post immediately. Only batching differs.",
+	"compiledModuleSHA256": {
+		"rpcMessagePort.js": "8fd667524948232e95216fd85edbec780164059fbb3e5a52b245b405d721199b",
+		"rpcProtocol.js": "4ea565ae544db4c9785b8e40eb8be53a4494bf8f3571a5595fd5812f3368e1a4"
+	}
+}

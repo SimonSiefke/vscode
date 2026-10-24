@@ -1,0 +1,2905 @@
+{
+	"seed": 3212232,
+	"baseline": "bda3e03a85c7985e6edf55acaa40be6091a8df4b",
+	"sourceSHA256": "679e422ad2dcbd2dac3ca0b577c93ab8f7b364e344b5f3b2dbcac4b556f2aff9",
+	"benchmarkSHA256": "d4467d90706913ab125231152c9c2cfe2f670ecd3b0b1503f1fe7a883f394ee0",
+	"modules": {
+		"strict": {
+			"module": "ipc.d016.js",
+			"transport": "message-port",
+			"sha256": "a94acd3a1e757c73415e1ec7ac553bef2f7baadf1713fd285fcd6be26b90d721"
+		},
+		"bulk": {
+			"module": "ipc.js",
+			"transport": "message-port",
+			"sha256": "a31fd169a0e60be1b30f2ad081c2fb6b945dd3fe54a169af6dd105a0b7ba1432"
+		},
+		"buffer": {
+			"module": "ipc.d016.js",
+			"transport": "buffer-message-port",
+			"sha256": "a94acd3a1e757c73415e1ec7ac553bef2f7baadf1713fd285fcd6be26b90d721"
+		}
+	},
+	"blocks": [
+		{
+			"index": 0,
+			"runs": [
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								100.28970299999999,
+								60.539456,
+								59.38307099999997
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								64.135922,
+								54.35353199999997,
+								61.90679700000004
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								318.72949499999993,
+								271.1459990000001,
+								240.70694000000003
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								50.213951999999836,
+								47.769603999999845,
+								48.646115
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								316.5416379999999,
+								329.4016589999999,
+								306.85161100000005
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1436.8665560000004,
+								1513.926429,
+								1606.613695
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								72.1900029999997,
+								64.19082499999968,
+								60.33104600000024
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								471.1610789999995,
+								462.057272,
+								478.8372240000008
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								56.30525699999998,
+								62.34290399999918,
+								58.04290099999889
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								19.226083000000003,
+								15.356487000000001,
+								15.296514000000004
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								31.10243200000002,
+								26.995171,
+								26.546831999999995
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								261.97785000000005,
+								236.40216800000007,
+								210.660793
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								22.504700999999955,
+								21.4500559999999,
+								21.022787999999995
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								83.45055000000002,
+								82.46222899999998,
+								78.95359000000009
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								296.8649109999999,
+								302.08811200000014,
+								285.6822710000001
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								17.08822999999984,
+								16.924352,
+								13.273255000000063
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								155.70244900000034,
+								162.9913980000001,
+								164.96027699999968
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								35.93039500000032,
+								31.369442000000163,
+								31.03366399999959
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								56.11858799999981,
+								53.19643499999984,
+								50.98953299999994
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								18.515782,
+								12.997889999999998,
+								12.466515000000001
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								27.349323999999996,
+								25.36036899999999,
+								26.934878999999995
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								470.638,
+								411.6753460000001,
+								440.18787799999996
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								21.41513299999997,
+								21.410843999999997,
+								22.00803300000007
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								234.24843399999986,
+								223.4293849999999,
+								223.47964900000034
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								591.4729769999999,
+								551.8533040000002,
+								651.3149370000001
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.32481799999914,
+								15.114333000000443,
+								15.768659000000298
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								260.95939499999986,
+								249.0267190000004,
+								233.6230740000001
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.00327000000016,
+								31.564949000000524,
+								44.10414000000037
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								64.77423700000054,
+								53.02334200000041,
+								49.91910000000007
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 1,
+			"runs": [
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								17.874392,
+								14.620418,
+								15.68647399999999
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								26.889654000000007,
+								23.679081000000025,
+								25.463853999999998
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								413.198729,
+								394.3902490000001,
+								434.19202099999984
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								24.420949999999944,
+								24.517411999999926,
+								21.318721000000096
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								238.23284599999988,
+								233.76272599999993,
+								255.35090100000025
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								594.8882719999997,
+								543.2789069999999,
+								561.2656989999996
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								13.771017999999458,
+								12.958307000000787,
+								12.757027999999991
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								247.82712400000037,
+								245.22839699999986,
+								243.37128699999997
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								35.04272100000071,
+								31.400109000000157,
+								31.008366000000024
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								61.518299999999726,
+								56.89415000000008,
+								57.149970000000394
+							]
+						}
+					]
+				},
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								69.442178,
+								48.33505199999999,
+								67.39667699999998
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								125.30059899999998,
+								89.92495500000001,
+								70.135985
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								232.29895299999998,
+								262.30343100000005,
+								258.29870200000005
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								64.27799900000014,
+								70.06793900000002,
+								61.976687000000084
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								359.18148399999995,
+								335.43475800000033,
+								379.25743999999986
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1537.0405029999997,
+								1479.5809530000006,
+								1504.3077870000006
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								61.978070000000116,
+								57.95661100000052,
+								59.20056900000054
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								437.0119109999996,
+								472.99716699999954,
+								426.62420799999927
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								49.196014000001014,
+								47.98141099999884,
+								45.4087729999992
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								30.108912000000004,
+								27.24402699999999,
+								19.443771000000027
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								33.995599999999996,
+								22.768236,
+								23.04209900000001
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								232.72576299999997,
+								233.87253199999998,
+								217.05426599999998
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								21.115069999999946,
+								20.447610999999938,
+								19.87810300000001
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								86.3196429999998,
+								90.34084199999984,
+								81.95787499999983
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								264.46058100000005,
+								296.4836580000001,
+								282.42976
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.406419999999798,
+								16.02136100000007,
+								13.87134500000002
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								164.36268700000028,
+								166.75192000000015,
+								170.63118600000007
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								31.354194000000007,
+								26.34620700000005,
+								26.630979000000025
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								48.57891000000018,
+								44.80794800000012,
+								43.31326799999988
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 2,
+			"runs": [
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								69.98921199999998,
+								55.456448999999964,
+								69.36714799999999
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								74.96551999999997,
+								83.84178299999996,
+								90.95321100000001
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								271.976805,
+								262.513735,
+								272.928637
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								72.95356300000002,
+								75.42911799999979,
+								91.58037399999989
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								348.78028900000004,
+								334.62649400000004,
+								324.319172
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1505.0997599999996,
+								1433.3925200000003,
+								1492.0046780000002
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								76.0645489999997,
+								61.24138099999982,
+								56.99837599999955
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								462.2782150000003,
+								475.33716900000036,
+								429.83576399999953
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								52.588888000000225,
+								56.40575600000011,
+								53.32312300000012
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								22.023121000000003,
+								19.087764000000007,
+								13.703030000000014
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								30.827998000000008,
+								25.884892000000008,
+								26.370441
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								439.7351,
+								435.24647600000003,
+								480.59808099999987
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								23.93738599999983,
+								20.47746700000016,
+								19.028933000000052
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								249.27324099999987,
+								227.73036999999977,
+								202.98197600000003
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								571.5760460000001,
+								563.061623,
+								590.4642359999993
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								16.856144999999742,
+								16.573255000000245,
+								19.25771199999963
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								237.3755419999998,
+								238.1332309999998,
+								257.94380699999965
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								35.85763700000007,
+								28.60329400000046,
+								34.34965299999931
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								64.75132400000075,
+								58.48553999999967,
+								52.48744799999986
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								18.644182999999998,
+								15.033320999999999,
+								13.74622099999999
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								30.214129000000014,
+								29.009974999999997,
+								27.765273000000008
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								230.185837,
+								233.63767099999995,
+								233.86952600000006
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								22.393554999999875,
+								23.29149600000005,
+								19.275797000000015
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								90.98398799999995,
+								88.2853150000001,
+								80.51079600000003
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								295.9220459999999,
+								287.06197399999996,
+								277.02013999999986
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								13.897234000000026,
+								13.280891000000338,
+								13.599656000000323
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								146.8804699999996,
+								170.81329700000015,
+								152.45976800000017
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								28.27434600000015,
+								21.97024199999987,
+								23.10118900000043
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								45.76696300000003,
+								43.65738400000009,
+								47.70652599999994
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 3,
+			"runs": [
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								67.110321,
+								52.610028,
+								78.39405099999999
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								57.81982300000004,
+								53.62041899999997,
+								47.31487200000004
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								256.09705899999994,
+								262.41541100000006,
+								272.14456999999993
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								89.84069700000009,
+								94.7302709999999,
+								94.2201779999998
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								365.5834239999999,
+								333.75664499999993,
+								320.25291800000014
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1664.3206579999996,
+								1463.2482579999996,
+								1469.7629379999998
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								86.56262700000023,
+								67.56243799999994,
+								66.72161400000005
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								431.6059879999993,
+								441.33875499999886,
+								421.0085930000005
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								53.54601999999977,
+								53.89119699999901,
+								50.69373900000028
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								21.24886199999999,
+								13.862589,
+								12.720951000000014
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								26.939928000000005,
+								27.257213000000007,
+								31.232155000000006
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								197.220817,
+								218.47981599999997,
+								235.18302500000004
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								22.63809200000003,
+								18.88092599999993,
+								19.61174500000004
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								80.70732399999996,
+								83.04935,
+								82.95844899999997
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								285.7079170000002,
+								297.423217,
+								296.1502039999998
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								13.885331999999835,
+								14.57077500000014,
+								15.11635699999988
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								172.58103699999992,
+								154.65720199999987,
+								161.14339800000016
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								40.94363099999965,
+								26.653412000000117,
+								31.804497000000083
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								61.26885199999969,
+								57.15019900000015,
+								55.93075699999964
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								18.872649999999993,
+								14.702523,
+								14.733388999999988
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								31.01674299999999,
+								23.743943,
+								31.683571
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								471.38878600000004,
+								427.6985209999999,
+								452.182008
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								24.760477000000034,
+								24.761369000000055,
+								24.026691999999912
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								248.04127400000016,
+								240.3075510000001,
+								245.20495200000005
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								608.209468,
+								603.3974659999999,
+								613.1936599999995
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.109102999999777,
+								15.530942999999752,
+								16.12156899999991
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								266.53719999999976,
+								282.52763400000003,
+								247.32024399999955
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.77658699999938,
+								33.702322000000095,
+								36.360609000000295
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								69.66475400000037,
+								57.60233700000026,
+								63.290547999999944
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 4,
+			"runs": [
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								71.63256899999999,
+								93.81258399999999,
+								70.953619
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								62.707898,
+								56.24029600000006,
+								53.330376
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								254.3311520000001,
+								240.03395,
+								244.70351299999993
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								61.97575699999993,
+								63.44979699999999,
+								66.80246399999987
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								346.5099970000001,
+								323.85988199999997,
+								288.2348900000002
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1588.3015849999997,
+								1516.0004719999995,
+								1544.3614319999997
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								84.31499700000042,
+								64.64628699999957,
+								62.614040999999816
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								450.74611999999973,
+								476.5768089999983,
+								504.44255299999895
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								56.51542100000006,
+								55.76497600000039,
+								62.11364400000093
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								21.200812,
+								16.725118999999992,
+								17.362614000000008
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								34.45303799999999,
+								33.58319700000001,
+								28.576763
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								414.35933100000005,
+								412.1786299999999,
+								419.3693139999998
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								23.864648999999876,
+								20.938118999999915,
+								21.355148999999983
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								243.5869520000001,
+								224.73156400000016,
+								224.53878299999997
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								584.2535459999998,
+								556.4590589999998,
+								555.2359380000003
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.800968999999895,
+								14.562530000000152,
+								14.815244000000348
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								247.84344299999972,
+								242.0173330000007,
+								242.73807399999987
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.82258400000046,
+								34.94323399999939,
+								33.153535000000375
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								55.250592000000324,
+								51.64394900000025,
+								58.35013600000002
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								20.790712999999997,
+								18.340816000000004,
+								16.964766999999995
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								34.71136999999999,
+								30.861050000000006,
+								30.692335000000014
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								235.73222400000003,
+								234.18944399999998,
+								239.48443099999997
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								25.267276000000038,
+								24.70748799999979,
+								18.093273000000185
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								91.78882399999998,
+								99.18285000000016,
+								91.13250500000004
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								324.17329799999993,
+								275.4531760000002,
+								282.72056299999986
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								14.00585799999999,
+								14.117917000000034,
+								13.447121000000152
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								155.6895340000001,
+								180.31088999999974,
+								175.90248699999984
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								36.508436000000074,
+								35.68281999999999,
+								26.285683000000063
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								70.66915500000005,
+								54.87290500000017,
+								49.71224200000005
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 5,
+			"runs": [
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								22.653751,
+								14.064857999999987,
+								13.387429999999995
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								31.732562,
+								29.757453999999996,
+								32.30335199999999
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								238.84648500000006,
+								217.91730299999995,
+								229.74116600000002
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								23.407312999999927,
+								23.821026999999958,
+								21.896594000000047
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								87.06909699999983,
+								83.52609199999984,
+								96.45162700000014
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								293.5885559999999,
+								315.53869999999984,
+								289.449294
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								13.56318999999985,
+								12.797775999999885,
+								12.523580999999922
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								147.38435299999992,
+								151.98617000000013,
+								149.10289199999988
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								28.59782200000018,
+								25.249491000000035,
+								27.617765999999847
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								47.142209000000086,
+								42.43435300000011,
+								44.7126800000001
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								18.213487,
+								13.560473999999997,
+								15.798174000000017
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								28.666701000000018,
+								33.673719000000006,
+								35.73580899999999
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								424.813819,
+								374.3720309999999,
+								397.3027609999999
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								24.845103999999992,
+								22.180024000000007,
+								21.598075000000104
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								247.49030300000004,
+								247.79569300000003,
+								217.42844699999978
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								586.5300599999996,
+								573.4254689999998,
+								613.7531479999998
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								14.619606999999633,
+								14.329964000000473,
+								14.469224000000395
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								221.1347679999999,
+								236.0912860000008,
+								249.1040439999997
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								33.230829000000085,
+								34.39598999999998,
+								40.3197339999997
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								63.5639000000001,
+								47.519446000000244,
+								44.98820499999965
+							]
+						}
+					]
+				},
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								92.93045199999999,
+								63.45440500000001,
+								42.71417800000003
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								53.42241999999999,
+								53.650045000000034,
+								52.823969999999974
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								251.13732199999993,
+								254.103516,
+								238.08161400000006
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								81.89701100000003,
+								87.6362889999998,
+								71.33585300000004
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								307.2021690000001,
+								307.3706239999999,
+								320.19180400000005
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1600.0361079999998,
+								1532.5786170000001,
+								1579.7774920000002
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								71.54380300000048,
+								56.97608300000047,
+								53.92314700000043
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								478.84429599999925,
+								445.8572260000001,
+								452.5014269999992
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								51.38347199999953,
+								52.209616999998616,
+								54.19494499999928
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 6,
+			"runs": [
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								21.783722999999995,
+								14.311019000000016,
+								17.244101000000004
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								30.317192000000006,
+								25.357683999999978,
+								25.08266999999998
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								412.660141,
+								445.78708399999994,
+								445.28545499999996
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								21.031804000000193,
+								20.59682900000007,
+								18.79771000000005
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								219.833613,
+								222.40973600000007,
+								212.71412999999984
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								534.2509410000002,
+								526.5605610000002,
+								560.7445840000005
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.012212000000545,
+								16.22061399999984,
+								13.564099999999598
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								244.5975149999995,
+								233.34782900000025,
+								242.8523669999995
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								31.4544420000002,
+								27.203620999999657,
+								26.498059999999896
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								49.093181999999615,
+								45.97508300000027,
+								45.28259600000001
+							]
+						}
+					]
+				},
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								92.51356200000001,
+								49.74131600000001,
+								67.80585399999995
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								68.36677400000002,
+								59.496063000000056,
+								57.83224799999999
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								234.47124200000007,
+								231.12825299999997,
+								242.46853800000008
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								56.73748699999988,
+								49.344603,
+								48.21767299999988
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								352.2790600000001,
+								331.7008050000002,
+								311.38669400000026
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1510.4364229999996,
+								1439.5720020000008,
+								1465.968943
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								73.45452100000055,
+								62.71703600000001,
+								57.5726709999999
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								472.7686299999996,
+								533.8982109999988,
+								448.5510400000003
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								51.82050900000104,
+								52.08408299999974,
+								51.936305999999604
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								17.192645,
+								13.497305999999995,
+								13.765967999999987
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								28.275008000000014,
+								28.14720899999997,
+								25.902445
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								227.999955,
+								229.136392,
+								234.90702900000008
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								25.29512800000009,
+								22.078724999999963,
+								23.57070800000008
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								138.27469399999995,
+								97.22468299999991,
+								87.61718400000018
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								297.690607,
+								298.46318399999996,
+								291.44450099999995
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								17.971694999999727,
+								17.083160000000134,
+								16.655329000000165
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								192.7538730000001,
+								169.25301600000012,
+								174.6789960000001
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								37.39914399999998,
+								33.80676799999993,
+								34.69386800000029
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								61.82519400000001,
+								60.13079100000004,
+								52.76099000000023
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"index": 7,
+			"runs": [
+				{
+					"variant": "buffer",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "buffer-message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								95.29707300000001,
+								115.60756799999999,
+								83.20207399999998
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								82.63597499999997,
+								61.94279500000005,
+								63.922510999999986
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								279.72566699999993,
+								317.5720869999999,
+								277.312326
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								58.306104000000005,
+								60.95601699999998,
+								54.52610599999979
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								330.07898699999987,
+								351.77104899999995,
+								337.2744630000002
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								1588.1378880000002,
+								1505.2108469999994,
+								1455.5631079999994
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								74.92085700000008,
+								64.66297899999972,
+								52.447963999999956
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								430.39252700000003,
+								431.4056929999988,
+								456.5598660000014
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								59.61276200000066,
+								56.10367999999835,
+								58.40789500000028
+							]
+						}
+					]
+				},
+				{
+					"variant": "bulk",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								24.231907000000007,
+								18.15142,
+								16.832180999999988
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								28.13514600000002,
+								31.324647999999996,
+								35.10553900000002
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								212.03249399999999,
+								214.83448100000004,
+								218.929439
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								22.610410000000005,
+								21.48994199999993,
+								23.51545499999997
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								96.0431709999998,
+								79.11710600000015,
+								83.3393410000001
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								274.14862300000004,
+								293.248429,
+								281.205467
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								15.049962999999934,
+								23.76138600000013,
+								22.701751999999942
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								212.15350800000033,
+								172.8162870000001,
+								214.91731599999957
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								52.55162900000004,
+								44.5769650000002,
+								24.855242999999973
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								53.43773799999963,
+								45.8810569999996,
+								48.052863999999765
+							]
+						}
+					]
+				},
+				{
+					"variant": "strict",
+					"node": "v24.22.0",
+					"versions": {
+						"node": "24.22.0",
+						"acorn": "8.18.0",
+						"ada": "4.0.0",
+						"amaro": "1.1.11",
+						"ares": "1.34.8",
+						"brotli": "1.2.0",
+						"cldr": "48.0",
+						"icu": "78.3",
+						"llhttp": "9.4.3",
+						"merve": "1.2.2",
+						"modules": "137",
+						"napi": "10",
+						"nbytes": "0.1.4",
+						"ncrypto": "0.0.1",
+						"nghttp2": "1.70.0",
+						"nghttp3": "",
+						"ngtcp2": "",
+						"openssl": "3.5.8",
+						"simdjson": "4.6.11",
+						"simdutf": "6.4.0",
+						"sqlite": "3.53.4",
+						"tz": "2026c",
+						"undici": "7.29.1",
+						"unicode": "17.0",
+						"uv": "1.52.1",
+						"uvwasi": "0.0.23",
+						"v8": "13.6.233.17-node.57",
+						"zlib": "1.3.2.1-motley-285e94b",
+						"zstd": "1.5.7"
+					},
+					"transport": "message-port",
+					"module": "/home/simon/.cache/vscode-ipc-opt-20261022/out/vs/base/parts/ipc/common/ipc.d016.js",
+					"samples": 3,
+					"iterations": 1000,
+					"results": [
+						{
+							"name": "primitive",
+							"microsecondsPerRoundTrip": [
+								26.656025999999997,
+								22.725156000000013,
+								23.906427000000008
+							]
+						},
+						{
+							"name": "small-object",
+							"microsecondsPerRoundTrip": [
+								45.44226599999999,
+								37.26203700000002,
+								41.088593
+							]
+						},
+						{
+							"name": "settings-100",
+							"microsecondsPerRoundTrip": [
+								421.853246,
+								472.16910700000005,
+								504.0843209999998
+							]
+						},
+						{
+							"name": "stat-object",
+							"microsecondsPerRoundTrip": [
+								22.542504000000008,
+								21.618001000000046,
+								23.94807499999979
+							]
+						},
+						{
+							"name": "directory-100",
+							"microsecondsPerRoundTrip": [
+								277.051279,
+								233.10829000000012,
+								227.0991479999998
+							]
+						},
+						{
+							"name": "keys-1000",
+							"microsecondsPerRoundTrip": [
+								606.3248680000002,
+								570.0852649999997,
+								600.8547049999997
+							]
+						},
+						{
+							"name": "text-4KiB",
+							"microsecondsPerRoundTrip": [
+								17.560194000000592,
+								16.99106799999936,
+								16.884517999999844
+							]
+						},
+						{
+							"name": "uris-100",
+							"microsecondsPerRoundTrip": [
+								247.51790400000027,
+								238.47788500000024,
+								261.38260700000046
+							]
+						},
+						{
+							"name": "VSBuffer-4KiB",
+							"microsecondsPerRoundTrip": [
+								38.73003499999959,
+								30.101228000000447,
+								29.704052000000047
+							]
+						},
+						{
+							"name": "cyclic-map-set",
+							"microsecondsPerRoundTrip": [
+								60.714083999999275,
+								51.64542100000017,
+								49.67111399999976
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
