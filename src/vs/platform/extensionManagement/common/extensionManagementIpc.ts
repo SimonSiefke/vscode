@@ -33,6 +33,7 @@ function transformOutgoingURI(uri: URI, transformer: IURITransformer | null): UR
 function transformIncomingExtension(extension: ILocalExtension, transformer: IURITransformer | null): ILocalExtension {
 	transformer = transformer ? transformer : DefaultURITransformer;
 	const manifest = extension.manifest;
+	deduplicateManifestStrings(manifest);
 	const transformed = transformAndReviveIncomingURIs({ ...extension, ...{ manifest: undefined } }, transformer);
 	return { ...transformed, ...{ manifest } };
 }
@@ -359,5 +360,31 @@ export class ExtensionTipsChannel implements IServerChannel {
 		}
 
 		throw new Error('Invalid call');
+	}
+}
+
+/**
+ * Shares equal string values within a freshly deserialized manifest. Debugger schemas
+ * can repeat the same long descriptions hundreds of times. Keep the pool local
+ * so it does not extend the lifetime of strings after the manifest is released.
+ */
+function deduplicateManifestStrings(manifest: IExtensionManifest): void {
+	const strings = new Map<string, string>();
+	const pending: object[] = [manifest];
+	while (pending.length) {
+		const current = pending.pop()! as Record<string, unknown>;
+		for (const key of Object.keys(current)) {
+			const value = current[key];
+			if (typeof value === 'string' && value.length >= 20) {
+				const existing = strings.get(value);
+				if (existing !== undefined) {
+					current[key] = existing;
+				} else {
+					strings.set(value, value);
+				}
+			} else if (value && typeof value === 'object') {
+				pending.push(value);
+			}
+		}
 	}
 }
