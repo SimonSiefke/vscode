@@ -38,7 +38,8 @@ export interface IChatWidgetHistoryService {
 
 	readonly onDidChangeHistory: Event<ChatHistoryChange>;
 
-	clearHistory(): void;
+	/** Clears all history, or only the given location and history key when a location is provided. */
+	clearHistory(location?: ChatAgentLocation, historyKey?: string): void;
 	getHistory(location: ChatAgentLocation, historyKey?: string): readonly IChatModelInputState[];
 	append(location: ChatAgentLocation, history: IChatModelInputState, historyKey?: string): void;
 	moveHistory(location: ChatAgentLocation, fromHistoryKey: string, toHistoryKey: string): void;
@@ -48,7 +49,7 @@ interface IChatHistory {
 	history?: { [providerId: string]: IChatModelInputState[] };
 }
 
-export type ChatHistoryChange = { kind: 'append'; location: ChatAgentLocation; historyKey: string | undefined; entry: IChatModelInputState } | { kind: 'move'; location: ChatAgentLocation; fromHistoryKey: string; toHistoryKey: string } | { kind: 'clear' };
+export type ChatHistoryChange = { kind: 'append'; location: ChatAgentLocation; historyKey: string | undefined; entry: IChatModelInputState } | { kind: 'move'; location: ChatAgentLocation; fromHistoryKey: string; toHistoryKey: string } | { kind: 'clear'; location?: ChatAgentLocation; historyKey?: string };
 
 export const ChatInputHistoryMaxEntries = 40;
 
@@ -169,10 +170,14 @@ export class ChatWidgetHistoryService extends Disposable implements IChatWidgetH
 		this._onDidChangeHistory.fire({ kind: 'move', location, fromHistoryKey, toHistoryKey });
 	}
 
-	clearHistory(): void {
-		this.viewState.history = {};
+	clearHistory(location?: ChatAgentLocation, historyKey?: string): void {
+		if (location === undefined) {
+			this.viewState.history = {};
+		} else if (this.viewState.history) {
+			delete this.viewState.history[this.getKey(location, historyKey)];
+		}
 		this.changed = true;
-		this._onDidChangeHistory.fire({ kind: 'clear' });
+		this._onDidChangeHistory.fire(location === undefined ? { kind: 'clear' } : { kind: 'clear', location, historyKey });
 	}
 }
 
@@ -217,6 +222,9 @@ export class ChatHistoryNavigator extends Disposable {
 					this._currentIndex = newLength;
 				}
 			} else if (e.kind === 'clear') {
+				if (e.location !== undefined && (e.location !== this.location || e.historyKey !== this._historyKey)) {
+					return;
+				}
 				this._history = [];
 				this._currentIndex = 0;
 				this._overlay = [];
