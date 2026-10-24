@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Terminal } from '@xterm/xterm';
-import { strictEqual } from 'assert';
+import sinon from 'sinon';
+import { deepStrictEqual, strictEqual } from 'assert';
 import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { IAction } from '../../../../../../base/common/actions.js';
-import { Event } from '../../../../../../base/common/event.js';
+import { timeout } from '../../../../../../base/common/async.js';
+import { toDisposable } from '../../../../../../base/common/lifecycle.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { isWindows } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -24,8 +27,11 @@ import { IStorageService } from '../../../../../../platform/storage/common/stora
 import { ITerminalCommand, TerminalCapability } from '../../../../../../platform/terminal/common/capabilities/capabilities.js';
 import { CommandDetectionCapability } from '../../../../../../platform/terminal/common/capabilities/commandDetectionCapability.js';
 import { TerminalCapabilityStore } from '../../../../../../platform/terminal/common/capabilities/terminalCapabilityStore.js';
-import { ITerminalOutputMatcher } from '../../../../../../platform/terminal/common/terminal.js';
-import { ITerminalQuickFixService } from '../../browser/quickFix.js';
+import { ITerminalCommandSelector, ITerminalOutputMatcher } from '../../../../../../platform/terminal/common/terminal.js';
+import { ITerminalQuickFixOptions, ITerminalQuickFixProviderSelector, ITerminalQuickFixService, TerminalQuickFixType } from '../../browser/quickFix.js';
+import { TerminalQuickFixService } from '../../browser/terminalQuickFixService.js';
+import { ExtensionsRegistry, ExtensionMessageCollector } from '../../../../../services/extensions/common/extensionsRegistry.js';
+import { nullExtensionDescription } from '../../../../../services/extensions/common/extensions.js';
 import { getQuickFixesForCommand, TerminalQuickFixAddon } from '../../browser/quickFixAddon.js';
 import { freePort, FreePortOutputRegex, gitCreatePr, GitCreatePrOutputRegex, gitFastForwardPull, GitFastForwardPullOutputRegex, GitPushOutputRegex, gitPushSetUpstream, gitSimilar, GitSimilarOutputRegex, gitTwoDashes, GitTwoDashesRegex, pwshGeneralError, PwshGeneralErrorOutputRegex, pwshUnixCommandNotFoundError, PwshUnixCommandNotFoundErrorOutputRegex } from '../../browser/terminalQuickFixBuiltinActions.js';
 import { TestStorageService } from '../../../../../test/common/workbenchTestServices.js';
@@ -42,6 +48,7 @@ suite('QuickFixAddon', () => {
 	let labelService: ILabelService;
 	let terminal: Terminal;
 	let instantiationService: TestInstantiationService;
+	let unregisterProvider: Emitter<string>;
 
 	setup(async () => {
 		instantiationService = store.add(new TestInstantiationService());
@@ -53,9 +60,10 @@ suite('QuickFixAddon', () => {
 			logger: TestXtermLogger
 		}));
 		instantiationService.stub(IStorageService, store.add(new TestStorageService()));
+		unregisterProvider = store.add(new Emitter<string>());
 		instantiationService.stub(ITerminalQuickFixService, {
 			onDidRegisterProvider: Event.None,
-			onDidUnregisterProvider: Event.None,
+			onDidUnregisterProvider: unregisterProvider.event,
 			onDidRegisterCommandSelector: Event.None,
 			extensionQuickFixes: Promise.resolve([])
 		} as Partial<ITerminalQuickFixService>);
@@ -71,6 +79,125 @@ suite('QuickFixAddon', () => {
 
 		quickFixAddon = instantiationService.createInstance(TerminalQuickFixAddon, generateUuid(), [], capabilities);
 		terminal.loadAddon(quickFixAddon);
+	});
+
+	suite('provider disposal', () => {
+		function options(): [string, string[]][] {
+			const listeners: ReadonlyMap<string, readonly ITerminalQuickFixOptions[]> = Reflect.get(quickFixAddon, '_commandListeners');
+			return [...listeners].map(([matcher, entries]) => [matcher, entries.map(entry => entry.id)]);
+		}
+
+		function selector(id: string, commandLineMatcher: string | RegExp = 'owned command'): ITerminalCommandSelector {
+			return { id, commandLineMatcher, exitStatus: false, commandExitResult: 'error', outputMatcher: { lineMatcher: 'owned error', anchor: 'bottom', offset: 0, length: 1 } };
+		}
+
+		function register(id: string, matcher: string | RegExp = 'owned command'): void {
+			const entry = selector(id, matcher);
+			quickFixAddon.registerCommandSelector(entry);
+			quickFixAddon.registerCommandFinishedListener({ ...entry, type: 'resolved', getQuickFixes: async () => undefined });
+		}
+
+		test('releases options when the provider ID differs from its command matcher', () => {
+			register('owned.provider');
+			unregisterProvider.fire('owned.provider');
+			deepStrictEqual(options(), []);
+		});
+
+		test('keeps another live provider sharing the command matcher', () => {
+			register('owned.retired');
+			register('owned.live');
+			unregisterProvider.fire('owned.retired');
+			deepStrictEqual(options(), [['owned command', ['owned.live']]]);
+		});
+
+		test('does not remove an unrelated matcher equal to the retired provider ID', () => {
+			register('owned.retired', 'first command');
+			register('owned.live', 'owned.retired');
+			unregisterProvider.fire('owned.retired');
+			deepStrictEqual(options(), [['owned.retired', ['owned.live']]]);
+		});
+
+		test('releases every matcher belonging to a provider', () => {
+			register('owned.provider', 'first command');
+			register('owned.provider', /second command/);
+			unregisterProvider.fire('owned.provider');
+			deepStrictEqual(options(), []);
+		});
+
+		test('allows a selector to register again after provider disposal', () => {
+			register('owned.provider');
+			unregisterProvider.fire('owned.provider');
+			quickFixAddon.registerCommandSelector(selector('owned.provider', 'replacement command'));
+			deepStrictEqual(options(), [['replacement command', ['owned.provider']]]);
+		});
+
+		test('removes unresolved selectors when their provider unregisters', () => {
+			quickFixAddon.registerCommandSelector(selector('owned.provider'));
+			unregisterProvider.fire('owned.provider');
+			deepStrictEqual(options(), []);
+		});
+
+		test('preserves live built-in options while removing an extension provider', () => {
+			quickFixAddon.registerCommandFinishedListener({ id: 'builtin', type: 'internal', commandLineMatcher: 'owned command', commandExitResult: 'error' });
+			register('owned.provider');
+			unregisterProvider.fire('owned.provider');
+			deepStrictEqual(options(), [['owned command', ['builtin']]]);
+		});
+
+		test('preserves a built-in when an extension with the same ID and a different matcher unregisters', () => {
+			const builtin = freePort(() => Promise.resolve());
+			quickFixAddon.registerCommandFinishedListener(builtin);
+			register(builtin.id, 'custom command');
+			unregisterProvider.fire(builtin.id);
+			deepStrictEqual(options(), [[builtin.commandLineMatcher.toString(), [builtin.id]]]);
+		});
+
+		test('service contribution survives repeated public provider disposal and re-registration', async () => {
+			const contribution = selector('owned.provider');
+			const extensionPoint = ExtensionsRegistry.getExtensionPoints().find(point => point.name === 'terminalQuickFixes')!;
+			const handlerStub = sinon.stub(extensionPoint, 'setHandler').callsFake(handler => {
+				handler([{
+					description: { ...nullExtensionDescription, enabledApiProposals: ['terminalQuickFixProvider'] },
+					value: [contribution],
+					collector: new ExtensionMessageCollector(() => { }, nullExtensionDescription, 'terminalQuickFixes')
+				}], { added: [], removed: [] });
+				return store.add(toDisposable(() => { }));
+			});
+			store.add(toDisposable(() => handlerStub.restore()));
+			const service = new TerminalQuickFixService();
+			store.add(Reflect.get(service, '_onDidRegisterProvider') as Emitter<ITerminalQuickFixProviderSelector>);
+			store.add(Reflect.get(service, '_onDidRegisterCommandSelector') as Emitter<ITerminalCommandSelector>);
+			store.add(Reflect.get(service, '_onDidUnregisterProvider') as Emitter<string>);
+			quickFixAddon.dispose();
+			instantiationService.stub(ITerminalQuickFixService, service);
+			quickFixAddon = instantiationService.createInstance(TerminalQuickFixAddon, generateUuid(), [], store.add(new TerminalCapabilityStore()));
+			terminal.loadAddon(quickFixAddon);
+			await service.extensionQuickFixes;
+			for (let cycle = 0; cycle < 37; cycle++) {
+				const command = `replacement ${cycle}`;
+				const registration = store.add(service.registerQuickFixProvider(contribution.id, {
+					provideTerminalQuickFixes: async () => ({ id: contribution.id, source: 'test', type: TerminalQuickFixType.TerminalCommand, terminalCommand: command })
+				}));
+				await timeout(0);
+				const listeners = Reflect.get(quickFixAddon, '_commandListeners') as Map<string, ITerminalQuickFixOptions[]>;
+				const actions = await getQuickFixesForCommand([], terminal, createCommand('owned command', 'owned error', 'owned error', 1, ['owned error']), listeners, commandService, openerService, labelService);
+				deepStrictEqual(actions?.map(action => action.label), [`Run: ${command}`]);
+				registration.dispose();
+				deepStrictEqual({ providers: service.providers.size, listeners: options() }, { providers: 0, listeners: [] });
+			}
+		});
+
+		test('unknown and repeated unregister events preserve live providers', () => {
+			register('owned.live');
+			unregisterProvider.fire('owned.unknown');
+			unregisterProvider.fire('owned.unknown');
+			deepStrictEqual(options(), [['owned command', ['owned.live']]]);
+		});
+
+		test('live registration replaces only its unresolved option', () => {
+			register('owned.live');
+			deepStrictEqual(options(), [['owned command', ['owned.live']]]);
+		});
 	});
 
 	suite('registerCommandFinishedListener & getMatchActions', () => {
