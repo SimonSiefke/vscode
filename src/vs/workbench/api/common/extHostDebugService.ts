@@ -718,20 +718,19 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 		da?.sendMessage(message);
 	}
 
-	public $stopDASession(debugAdapterHandle: number): Promise<void> {
+	public async $stopDASession(debugAdapterHandle: number): Promise<void> {
 
 		const tracker = this._debugAdaptersTrackers.get(debugAdapterHandle);
 		this._debugAdaptersTrackers.delete(debugAdapterHandle);
-		if (tracker && tracker.onWillStopSession) {
-			tracker.onWillStopSession();
-		}
-
 		const da = this._debugAdapters.get(debugAdapterHandle);
 		this._debugAdapters.delete(debugAdapterHandle);
-		if (da) {
-			return da.stopSession();
-		} else {
-			return Promise.resolve(void 0);
+		try {
+			if (tracker && tracker.onWillStopSession) {
+				tracker.onWillStopSession();
+			}
+		} finally {
+			// A failing extension tracker must not skip adapter cleanup.
+			await da?.stopSession();
 		}
 	}
 
