@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
 import { ExtHostFileSystemEventService } from '../../common/extHostFileSystemEventService.js';
-import { ExtHostContext, IMainContext, MainContext, MainThreadCommandsShape } from '../../common/extHost.protocol.js';
+import { ExtHostContext, IMainContext, MainContext, MainThreadCommandsShape, MainThreadFileSystemEventServiceShape } from '../../common/extHost.protocol.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ExtHostFileSystemInfo } from '../../common/extHostFileSystemInfo.js';
@@ -23,7 +23,8 @@ suite('ExtHostFileSystemEventService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('provider metadata and file notifications retain snapshots before a subsequent RPC barrier', async () => {
+	/** Exercises native framing, batching and snapshots through both real RPC peers. */
+	function createRPCPair() {
 		const replies: unknown[] = [];
 		const clientPort = store.add(new RPCMessagePort(message => {
 			const snapshot = structuredClone(message);
@@ -36,6 +37,35 @@ suite('ExtHostFileSystemEventService', () => {
 		}));
 		const client = store.add(new RPCProtocol(clientPort));
 		const server = store.add(new RPCProtocol(serverPort));
+		return { client, server, replies };
+	}
+
+	test('watcher registration and disposal use ordered notifications without empty replies', async () => {
+		const { client, server, replies } = createRPCPair();
+		const calls: string[] = [];
+		server.set(MainContext.MainThreadFileSystemEventService, new class extends mock<MainThreadFileSystemEventServiceShape>() {
+			override async $watch(): Promise<void> { calls.push('watch'); }
+			override $unwatch(): void { calls.push('unwatch'); }
+		});
+		server.set(MainContext.MainThreadCommands, new class extends mock<MainThreadCommandsShape>() {
+			override async $getCommands(): Promise<string[]> { return []; }
+		});
+		const commands = client.getProxy(MainContext.MainThreadCommands);
+		await commands.$getCommands();
+		replies.length = 0;
+		const service = new ExtHostFileSystemEventService(client, store.add(new NullLogService()), undefined!);
+		const workspace = new class extends mock<IExtHostWorkspace>() {
+			override getWorkspaceFolder() { return undefined; }
+		};
+		const watcher = store.add(service.createFileSystemWatcher(workspace, undefined!, new ExtHostFileSystemInfo(), nullExtensionDescription, new RelativePattern(URI.file('/outside-workspace'), '*.ts'), {}));
+		watcher.dispose();
+		await commands.$getCommands();
+		const emptyReplies = replies.filter(message => !ArrayBuffer.isView(message) && ((message as IStructuredCloneMessage).header as number[])[0] === 7).length;
+		assert.deepStrictEqual({ calls, emptyReplies }, { calls: ['watch', 'unwatch'], emptyReplies: 0 });
+	});
+
+	test('provider metadata and file notifications retain snapshots before a subsequent RPC barrier', async () => {
+		const { client, server, replies } = createRPCPair();
 		const info = new ExtHostFileSystemInfo();
 		const service = new ExtHostFileSystemEventService(protocol, store.add(new NullLogService()), undefined!);
 		server.set(ExtHostContext.ExtHostFileSystemInfo, info);
