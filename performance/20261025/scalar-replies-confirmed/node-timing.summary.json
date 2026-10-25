@@ -1,0 +1,161 @@
+{
+  "role": "Supplementary actual elapsed time and whole-Node-process CPU time, not replacements for primary retired user instructions; same fifty independent balanced pairs. No profiler.",
+  "fixtures": {
+    "primitive": {
+      "elapsedMs": {
+        "median": {
+          "control": 364.3813305,
+          "scalar-replies": 338.87446950000003
+        },
+        "medianPairedChangePercent": -4.442699477227675,
+        "intervalPercent": [
+          -11.198702625605183,
+          0.45595600975372
+        ],
+        "inconclusive": true
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 529462.5,
+          "scalar-replies": 507164.0
+        },
+        "medianPairedChangePercent": -4.932480471595908,
+        "intervalPercent": [
+          -10.886722131371911,
+          -0.6297389830420154
+        ],
+        "inconclusive": false
+      }
+    },
+    "small-object": {
+      "elapsedMs": {
+        "median": {
+          "control": 473.1294795,
+          "scalar-replies": 467.6782715
+        },
+        "medianPairedChangePercent": -2.355065742335218,
+        "intervalPercent": [
+          -6.545320123940979,
+          1.048712017770321
+        ],
+        "inconclusive": true
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 683477.5,
+          "scalar-replies": 676255.0
+        },
+        "medianPairedChangePercent": -1.6541987938465854,
+        "intervalPercent": [
+          -6.481282841315168,
+          2.1343816520196013
+        ],
+        "inconclusive": true
+      }
+    },
+    "settings-100": {
+      "elapsedMs": {
+        "median": {
+          "control": 3974.975559,
+          "scalar-replies": 3926.7824625
+        },
+        "medianPairedChangePercent": -0.36564917821340015,
+        "intervalPercent": [
+          -5.022347432197116,
+          1.8135165076683244
+        ],
+        "inconclusive": true
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 7567870.0,
+          "scalar-replies": 7492255.5
+        },
+        "medianPairedChangePercent": -0.6766130444063417,
+        "intervalPercent": [
+          -3.7001205582066654,
+          1.6795479739287522
+        ],
+        "inconclusive": true
+      }
+    },
+    "text-4KiB": {
+      "elapsedMs": {
+        "median": {
+          "control": 270.44567900000004,
+          "scalar-replies": 198.6893705
+        },
+        "medianPairedChangePercent": -24.567065484595016,
+        "intervalPercent": [
+          -27.40548608561475,
+          -19.25963397431105
+        ],
+        "inconclusive": false
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 517345.0,
+          "scalar-replies": 372939.0
+        },
+        "medianPairedChangePercent": -24.381240180648796,
+        "intervalPercent": [
+          -27.2384961823154,
+          -21.022446341173794
+        ],
+        "inconclusive": false
+      }
+    },
+    "text-64KiB": {
+      "elapsedMs": {
+        "median": {
+          "control": 2163.829071,
+          "scalar-replies": 1538.7604365000002
+        },
+        "medianPairedChangePercent": -29.51847071466519,
+        "intervalPercent": [
+          -31.16054799750853,
+          -28.221146617667674
+        ],
+        "inconclusive": false
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 4061129.5,
+          "scalar-replies": 2708044.0
+        },
+        "medianPairedChangePercent": -33.26069370788868,
+        "intervalPercent": [
+          -35.35570978243605,
+          -32.379726733049104
+        ],
+        "inconclusive": false
+      }
+    },
+    "text-escaped": {
+      "elapsedMs": {
+        "median": {
+          "control": 599.39927,
+          "scalar-replies": 404.62093350000004
+        },
+        "medianPairedChangePercent": -30.72987170595131,
+        "intervalPercent": [
+          -39.0450025379462,
+          -24.329137528928594
+        ],
+        "inconclusive": false
+      },
+      "processCpuTotalMicroseconds": {
+        "median": {
+          "control": 1152156.5,
+          "scalar-replies": 760764.0
+        },
+        "medianPairedChangePercent": -32.152605323720955,
+        "intervalPercent": [
+          -39.66741774854702,
+          -26.708669868930667
+        ],
+        "inconclusive": false
+      }
+    }
+  }
+}

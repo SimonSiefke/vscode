@@ -1,0 +1,161 @@
+{
+  "role": "Supplementary elapsed time and summed user/kernel instructions; renderer and utility topology, fifty independent paired processes per fixture. No profiling.",
+  "fixtures": {
+    "primitive": {
+      "elapsedMs": {
+        "median": {
+          "control": 580.7000000029802,
+          "scalar-replies": 569.8499999977648
+        },
+        "medianPairedChangePercent": -1.8928288346792042,
+        "intervalPercent": [
+          -5.693779903593244,
+          1.33255446127846
+        ],
+        "inconclusive": true
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 43738.522689819336,
+          "scalar-replies": 41755.202697753906
+        },
+        "medianPairedChangePercent": -4.582515580343167,
+        "intervalPercent": [
+          -4.647990975574763,
+          -4.46148506847858
+        ],
+        "inconclusive": false
+      }
+    },
+    "small-object": {
+      "elapsedMs": {
+        "median": {
+          "control": 653.4499999955297,
+          "scalar-replies": 646.9499999992549
+        },
+        "medianPairedChangePercent": -1.8324659350649086,
+        "intervalPercent": [
+          -2.9064788246535778,
+          1.640184521021526
+        ],
+        "inconclusive": true
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 57366.37435913086,
+          "scalar-replies": 57341.006576538086
+        },
+        "medianPairedChangePercent": -0.029912317639255604,
+        "intervalPercent": [
+          -0.12324891700339347,
+          0.0710345312144518
+        ],
+        "inconclusive": true
+      }
+    },
+    "settings-100": {
+      "elapsedMs": {
+        "median": {
+          "control": 4626.14999999851,
+          "scalar-replies": 4652.45000000298
+        },
+        "medianPairedChangePercent": 1.2944538454508638,
+        "intervalPercent": [
+          -0.33564751290524303,
+          2.9881625159806178
+        ],
+        "inconclusive": true
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 1333830.3913116455,
+          "scalar-replies": 1332960.0094909668
+        },
+        "medianPairedChangePercent": -0.03065820956657228,
+        "intervalPercent": [
+          -0.1349333451319823,
+          0.04394720902807384
+        ],
+        "inconclusive": true
+      }
+    },
+    "text-4KiB": {
+      "elapsedMs": {
+        "median": {
+          "control": 434.25,
+          "scalar-replies": 393.94999999925494
+        },
+        "medianPairedChangePercent": -9.661474127894385,
+        "intervalPercent": [
+          -13.134978230209827,
+          -6.288209607962958
+        ],
+        "inconclusive": false
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 229794.8055419922,
+          "scalar-replies": 193914.8980102539
+        },
+        "medianPairedChangePercent": -15.621459898964954,
+        "intervalPercent": [
+          -15.706118628876576,
+          -15.42928251177984
+        ],
+        "inconclusive": false
+      }
+    },
+    "text-64KiB": {
+      "elapsedMs": {
+        "median": {
+          "control": 3692.0,
+          "scalar-replies": 3370.699999999255
+        },
+        "medianPairedChangePercent": -9.54467838682387,
+        "intervalPercent": [
+          -10.300815460882964,
+          -8.19767173587633
+        ],
+        "inconclusive": false
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 2133775.3266601562,
+          "scalar-replies": 1625335.088256836
+        },
+        "medianPairedChangePercent": -23.79679393508063,
+        "intervalPercent": [
+          -23.894093954576366,
+          -23.71272388089021
+        ],
+        "inconclusive": false
+      }
+    },
+    "text-escaped": {
+      "elapsedMs": {
+        "median": {
+          "control": 1111.949999999255,
+          "scalar-replies": 798.8500000014901
+        },
+        "medianPairedChangePercent": -26.390391799069548,
+        "intervalPercent": [
+          -29.886088438732227,
+          -24.213555621820227
+        ],
+        "inconclusive": false
+      },
+      "userPlusKernelInstructionsPerCall": {
+        "median": {
+          "control": 1059369.0575561523,
+          "scalar-replies": 649992.3754272461
+        },
+        "medianPairedChangePercent": -38.65302859611521,
+        "intervalPercent": [
+          -38.90665861099173,
+          -38.50223159790095
+        ],
+        "inconclusive": false
+      }
+    }
+  }
+}

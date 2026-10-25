@@ -1,0 +1,121 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/ipc-opt-20261025/scalar-selected-runtime",
+    "output": "/home/simon/.cache/ipc-opt-20261025/scalar-final50-renderer-ordinary",
+    "variants": "control,scalar-replies",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/ipc-opt-20261025/scalar-selected-runtimes.json",
+    "fixtures": "primitive,small-object,settings-100",
+    "replicates": 50,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 50,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 39037.77151489258,
+          "scalar-replies": 37178.76184082031
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -4.77158145887695,
+            "intervalPercent": [
+              -4.810465977853918,
+              -4.7217809664850785
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 4700.575469970703,
+          "scalar-replies": 4584.123306274414
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -2.779084639264917,
+            "intervalPercent": [
+              -3.5977703434540986,
+              -1.861757860476121
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 52182.71391296387,
+          "scalar-replies": 52164.32971191406
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -0.037571998553909136,
+            "intervalPercent": [
+              -0.05624806950009775,
+              -0.002254826575565083
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 5185.56282043457,
+          "scalar-replies": 5170.041458129883
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -0.08892508478036687,
+            "intervalPercent": [
+              -0.9613348757579021,
+              0.8245281555276041
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    },
+    "settings-100": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 1268829.2554168701,
+          "scalar-replies": 1268340.3228149414
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -0.02767188262198239,
+            "intervalPercent": [
+              -0.09268690599011364,
+              0.03114636773569046
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 65031.42808532715,
+          "scalar-replies": 64976.67794799805
+        },
+        "comparisons": {
+          "scalar-replies": {
+            "medianPairedChangePercent": -0.004535541448091873,
+            "intervalPercent": [
+              -0.6574612353165032,
+              0.6943416933046009
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

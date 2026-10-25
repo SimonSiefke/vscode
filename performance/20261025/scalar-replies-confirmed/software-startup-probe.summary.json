@@ -1,0 +1,496 @@
+{
+  "commits": {
+    "before": "simonsiefke/vscode@ac92d647915e8434b3f9d17f957796cab32d3c03",
+    "after": "simonsiefke/vscode@37e23c02fb542e78dadf80a205dbada712e60406"
+  },
+  "benchmark": {
+    "id": "startup-workspace-warm-resources",
+    "scenario": "workspace",
+    "collector": "resources",
+    "startup": true,
+    "cache": "warm",
+    "diagnostic": false
+  },
+  "allSamplesSuccessful": true,
+  "hardwareCountersRequired": false,
+  "pairs": 10,
+  "metrics": {
+    "task-clock": {
+      "unit": "ms",
+      "before": {
+        "count": 10,
+        "mean": 2416.5683254,
+        "median": 2441.8635505,
+        "p95": 2519.331328,
+        "min": 2228.427684,
+        "max": 2519.331328,
+        "standardDeviation": 92.64385197638147
+      },
+      "after": {
+        "count": 10,
+        "mean": 2471.1118333,
+        "median": 2476.3515625,
+        "p95": 2750.471371,
+        "min": 2271.375714,
+        "max": 2750.471371,
+        "standardDeviation": 131.3279068187126
+      },
+      "primary": "median",
+      "absoluteChange": 34.4880119999998,
+      "percentChange": 1.4123644211380268,
+      "interval": [
+        -56.49121350000041,
+        135.06648050000013
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        2316.955846,
+        2228.427684,
+        2503.344413,
+        2457.276489,
+        2449.368007,
+        2341.285082,
+        2487.169494,
+        2434.359094,
+        2519.331328,
+        2428.165817
+      ],
+      "afterSamples": [
+        2531.67013,
+        2432.424137,
+        2271.375714,
+        2447.149415,
+        2526.788419,
+        2328.45285,
+        2750.471371,
+        2505.55371,
+        2516.056145,
+        2401.176442
+      ]
+    },
+    "context-switches": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 10677.9,
+        "median": 10718.5,
+        "p95": 11762,
+        "min": 9819,
+        "max": 11762,
+        "standardDeviation": 615.4946429950106
+      },
+      "after": {
+        "count": 10,
+        "mean": 11043.6,
+        "median": 10854,
+        "p95": 13888,
+        "min": 9989,
+        "max": 13888,
+        "standardDeviation": 1136.4518076500697
+      },
+      "primary": "mean",
+      "absoluteChange": 365.7000000000007,
+      "percentChange": 3.4248307251425913,
+      "interval": [
+        -96.5,
+        886.3000000000011
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        11762,
+        10255,
+        10744,
+        10052,
+        10787,
+        10693,
+        10303,
+        10821,
+        11543,
+        9819
+      ],
+      "afterSamples": [
+        13888,
+        10417,
+        9989,
+        10923,
+        10785,
+        10336,
+        11496,
+        11362,
+        11245,
+        9995
+      ]
+    },
+    "page-faults": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 192290.3,
+        "median": 191991.5,
+        "p95": 201051,
+        "min": 184283,
+        "max": 201051,
+        "standardDeviation": 4783.462531356224
+      },
+      "after": {
+        "count": 10,
+        "mean": 197542,
+        "median": 196790.5,
+        "p95": 228301,
+        "min": 181961,
+        "max": 228301,
+        "standardDeviation": 13390.518295503807
+      },
+      "primary": "mean",
+      "absoluteChange": 5251.700000000012,
+      "percentChange": 2.731131003487962,
+      "interval": [
+        -2511,
+        13254.799999999988
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        189318,
+        184283,
+        201051,
+        195391,
+        194940,
+        189059,
+        195800,
+        189078,
+        193772,
+        190211
+      ],
+      "afterSamples": [
+        198632,
+        191229,
+        181961,
+        194949,
+        202574,
+        188591,
+        228301,
+        202017,
+        204078,
+        183088
+      ]
+    },
+    "minor-faults": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 191982.3,
+        "median": 191646.5,
+        "p95": 200762,
+        "min": 183928,
+        "max": 200762,
+        "standardDeviation": 4807.934900881159
+      },
+      "after": {
+        "count": 10,
+        "mean": 197238.9,
+        "median": 196471.5,
+        "p95": 227938,
+        "min": 181631,
+        "max": 227938,
+        "standardDeviation": 13358.785677099046
+      },
+      "primary": "mean",
+      "absoluteChange": 5256.600000000006,
+      "percentChange": 2.738064915359388,
+      "interval": [
+        -2477.100000000006,
+        13230.400000000023
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        189014,
+        183928,
+        200762,
+        195134,
+        194607,
+        188754,
+        195593,
+        188738,
+        193414,
+        189879
+      ],
+      "afterSamples": [
+        198295,
+        190912,
+        181631,
+        194648,
+        202279,
+        188334,
+        227938,
+        201719,
+        203725,
+        182908
+      ]
+    },
+    "major-faults": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 341.6,
+        "median": 342,
+        "p95": 347,
+        "min": 333,
+        "max": 347,
+        "standardDeviation": 3.7178249316263163
+      },
+      "after": {
+        "count": 10,
+        "mean": 338.9,
+        "median": 342,
+        "p95": 351,
+        "min": 304,
+        "max": 351,
+        "standardDeviation": 12.740573857649514
+      },
+      "primary": "mean",
+      "absoluteChange": -2.7000000000000455,
+      "percentChange": -0.7903981264637134,
+      "interval": [
+        -11.5,
+        4.300000000000011
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        347,
+        340,
+        343,
+        345,
+        342,
+        343,
+        333,
+        342,
+        341,
+        340
+      ],
+      "afterSamples": [
+        341,
+        342,
+        338,
+        342,
+        345,
+        340,
+        351,
+        343,
+        343,
+        304
+      ]
+    },
+    "peakPss": {
+      "unit": "bytes",
+      "before": {
+        "count": 10,
+        "mean": 830649548.8,
+        "median": 837718016,
+        "p95": 867287040,
+        "min": 744699904,
+        "max": 867287040,
+        "standardDeviation": 35220607.060058
+      },
+      "after": {
+        "count": 10,
+        "mean": 833885593.6,
+        "median": 825404416,
+        "p95": 903128064,
+        "min": 791361536,
+        "max": 903128064,
+        "standardDeviation": 34387052.6469165
+      },
+      "primary": "mean",
+      "absoluteChange": 3236044.8000000715,
+      "percentChange": 0.389580034645782,
+      "interval": [
+        -18210406.400000095,
+        23704371.19999993
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        815450112,
+        744699904,
+        865154048,
+        853905408,
+        816808960,
+        867287040,
+        841230336,
+        842103808,
+        834205696,
+        825650176
+      ],
+      "afterSamples": [
+        810986496,
+        791361536,
+        793690112,
+        856955904,
+        820784128,
+        862955520,
+        903128064,
+        824386560,
+        848185344,
+        826422272
+      ]
+    },
+    "peakProcessCount": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 10.9,
+        "median": 11,
+        "p95": 11,
+        "min": 10,
+        "max": 11,
+        "standardDeviation": 0.3162277660168379
+      },
+      "after": {
+        "count": 10,
+        "mean": 11,
+        "median": 11,
+        "p95": 11,
+        "min": 11,
+        "max": 11,
+        "standardDeviation": 0
+      },
+      "primary": "mean",
+      "absoluteChange": 0.09999999999999964,
+      "percentChange": 0.9174311926605472,
+      "interval": [
+        0,
+        0.3000000000000007
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        11,
+        10,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ],
+      "afterSamples": [
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ]
+    },
+    "finalPss": {
+      "unit": "bytes",
+      "before": {
+        "count": 10,
+        "mean": 830649548.8,
+        "median": 837718016,
+        "p95": 867287040,
+        "min": 744699904,
+        "max": 867287040,
+        "standardDeviation": 35220607.060058
+      },
+      "after": {
+        "count": 10,
+        "mean": 833885593.6,
+        "median": 825404416,
+        "p95": 903128064,
+        "min": 791361536,
+        "max": 903128064,
+        "standardDeviation": 34387052.6469165
+      },
+      "primary": "mean",
+      "absoluteChange": 3236044.8000000715,
+      "percentChange": 0.389580034645782,
+      "interval": [
+        -18210406.400000095,
+        23704371.19999993
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        815450112,
+        744699904,
+        865154048,
+        853905408,
+        816808960,
+        867287040,
+        841230336,
+        842103808,
+        834205696,
+        825650176
+      ],
+      "afterSamples": [
+        810986496,
+        791361536,
+        793690112,
+        856955904,
+        820784128,
+        862955520,
+        903128064,
+        824386560,
+        848185344,
+        826422272
+      ]
+    },
+    "finalProcessCount": {
+      "unit": "count",
+      "before": {
+        "count": 10,
+        "mean": 10.9,
+        "median": 11,
+        "p95": 11,
+        "min": 10,
+        "max": 11,
+        "standardDeviation": 0.3162277660168379
+      },
+      "after": {
+        "count": 10,
+        "mean": 11,
+        "median": 11,
+        "p95": 11,
+        "min": 11,
+        "max": 11,
+        "standardDeviation": 0
+      },
+      "primary": "mean",
+      "absoluteChange": 0.09999999999999964,
+      "percentChange": 0.9174311926605472,
+      "interval": [
+        0,
+        0.3000000000000007
+      ],
+      "inconclusive": true,
+      "beforeSamples": [
+        11,
+        10,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ],
+      "afterSamples": [
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ]
+    }
+  }
+}
