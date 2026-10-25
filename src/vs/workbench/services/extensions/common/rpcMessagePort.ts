@@ -4,14 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { Event } from '../../../../base/common/event.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
 import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 
 /** Batch immutable native RPC frames while retaining binary/control ordering. */
 export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
-	private readonly messages = new BufferedEmitter<VSBuffer>();
-	readonly onMessage = this.messages.event;
+	private readonly messages = new BufferedEmitter<VSBuffer | IStructuredCloneMessage>();
+	readonly onMessageWithStructuredClone = this.messages.event;
+	readonly onMessage = Event.map(this.onMessageWithStructuredClone, message => message instanceof VSBuffer ? message : wrapStructuredCloneMessage(message));
 	private pending: IStructuredCloneMessage[] | undefined;
 	private pendingCharacters = 0;
 	private scheduled = false;
@@ -32,10 +34,10 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
 				if (this.disposed) {
 					break;
 				}
-				this.messages.fire(wrapStructuredCloneMessage(message));
+				this.messages.fire(message);
 			}
 		} else {
-			this.messages.fire(wrapStructuredCloneMessage(data as IStructuredCloneMessage));
+			this.messages.fire(data as IStructuredCloneMessage);
 		}
 	}
 

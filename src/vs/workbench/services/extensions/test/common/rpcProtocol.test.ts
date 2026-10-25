@@ -17,7 +17,7 @@ import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/pro
 import { RPCMessagePort } from '../../common/rpcMessagePort.js';
 import { RPCProtocol } from '../../common/rpcProtocol.js';
 
-['binary', 'native JSON', 'batched JSON'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
+['binary', 'native JSON', 'batched JSON', 'batched native receive'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
 	const native = mode !== 'binary';
 	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
 
@@ -31,9 +31,10 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
 		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
+		public readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage>;
 
 		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
-			if (mode === 'batched JSON') {
+			if (mode === 'batched JSON' || mode === 'batched native receive') {
 				this.bufferedPort = disposables.add(new RPCMessagePort(data => {
 					if (ArrayBuffer.isView(data)) {
 						this.onSend?.(VSBuffer.wrap(data as Uint8Array));
@@ -45,6 +46,9 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(data));
 				}));
 				this.onMessage = this.bufferedPort.onMessage;
+				if (mode === 'batched native receive') {
+					this.onMessageWithStructuredClone = this.bufferedPort.onMessageWithStructuredClone;
+				}
 				this.sendStructuredClone = message => this.bufferedPort!.sendStructuredClone(message);
 			} else if (native) {
 				this.sendStructuredClone = message => this.send(wrapStructuredCloneMessage(structuredClone(message)));
@@ -78,6 +82,8 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 
 	// Production actors have stable IDs; avoid exhausting the byte protocol's one-byte ID range.
 	const bIdentifier = new ProxyIdentifier<BClass>('bb');
+	type NotificationTestService = { $notify: (value?: unknown, token?: CancellationToken) => void; $state: () => unknown };
+	const notificationIdentifier = new ProxyIdentifier<NotificationTestService>('notifications', ['$notify']);
 
 	setup(() => {
 		disposables = new DisposableStore();
@@ -399,7 +405,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		});
 	}
 
-	function createNotificationRPC(service: { $notify: (value?: unknown, token?: CancellationToken) => void; $state: () => unknown }) {
+	function createNotificationRPC(service: NotificationTestService) {
 		const sent: VSBuffer[] = [];
 		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
@@ -407,9 +413,8 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		two.setPair(one);
 		const client = disposables.add(new RPCProtocol(one));
 		const server = disposables.add(new RPCProtocol(two));
-		const identifier = new ProxyIdentifier<typeof service>('notifications', ['$notify']);
-		server.set(identifier, service);
-		return { client, server, two, sent, proxy: client.getProxy(identifier) };
+		server.set(notificationIdentifier, service);
+		return { client, server, two, sent, proxy: client.getProxy(notificationIdentifier) };
 	}
 
 	function messageType(buffer: VSBuffer): number {

@@ -78,6 +78,30 @@ suite('RPCMessagePort', () => {
 		assert.deepStrictEqual(order, [1, 2, 3]);
 	});
 
+	test('native receive stream preserves buffered frames and binary controls without wrappers', async () => {
+		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+		const frames = [frame(1), frame(3), frame(4)];
+		port.acceptMessage(frames[0]);
+		port.acceptMessage(new Uint8Array([2]));
+		port.acceptMessage(frames.slice(1));
+		const received: (VSBuffer | IStructuredCloneMessage)[] = [];
+		store.add(port.onMessageWithStructuredClone(message => received.push(message)));
+		await Promise.resolve();
+		assert.deepStrictEqual(received.map(message => message instanceof VSBuffer ? message.readUInt8(0) : (message.header as number[])[1]), [1, 2, 3, 4]);
+		assert.strictEqual(received[0], frames[0]);
+	});
+
+	test('disposal during a native receive batch stops remaining delivery', () => {
+		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+		let received = 0;
+		store.add(port.onMessageWithStructuredClone(() => {
+			received++;
+			port.dispose();
+		}));
+		port.acceptMessage([frame(1), frame(2)]);
+		assert.strictEqual(received, 1);
+	});
+
 	test('drain flushes a queued frame immediately', async () => {
 		const sent: unknown[] = [];
 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
