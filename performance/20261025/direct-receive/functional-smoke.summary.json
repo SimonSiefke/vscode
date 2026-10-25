@@ -1,0 +1,24 @@
+{
+  "run": 40211572152,
+  "pairs": 1,
+  "purpose": "Functional compatibility; one paired suite duration is not primary performance evidence",
+  "results": [
+    {
+      "revision": "before",
+      "commit": "simonsiefke/vscode@218b977159b5a4bc24268ca3c12795e6f6d5437d",
+      "status": "success",
+      "testCount": 62,
+      "elapsedMs": 581707.373633,
+      "pending": 68
+    },
+    {
+      "revision": "after",
+      "commit": "simonsiefke/vscode@18f8cde2f9d038bd1fb4b868a381fea98ea1aca8",
+      "status": "success",
+      "testCount": 62,
+      "elapsedMs": 551871.0254559999,
+      "pending": 68
+    }
+  ],
+  "sameTestList": true
+}

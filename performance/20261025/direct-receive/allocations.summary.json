@@ -1,0 +1,24 @@
+[
+  {
+    "fixture": "primitive",
+    "independentProcessesPerVariant": 4,
+    "callsPerProcess": 10000,
+    "medianEstimatedBytesPerLogicalCall": {
+      "control": 3143.9768,
+      "raw-receive": 2868.1332
+    },
+    "changePercent": -8.773716141925725,
+    "diagnosticOnly": true
+  },
+  {
+    "fixture": "small-object",
+    "independentProcessesPerVariant": 4,
+    "callsPerProcess": 10000,
+    "medianEstimatedBytesPerLogicalCall": {
+      "control": 3672.3784,
+      "raw-receive": 3393.0552
+    },
+    "changePercent": -7.606057153587454,
+    "diagnosticOnly": true
+  }
+]
