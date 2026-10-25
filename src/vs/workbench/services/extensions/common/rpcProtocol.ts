@@ -376,6 +376,9 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 				this._receiveReply(0, req, value);
 				break;
 			}
+			case MessageType.ReplyOKScalar:
+				this._receiveReply(0, req, message.body);
+				break;
 			case MessageType.ReplyOKEmpty:
 				this._receiveReply(0, req, undefined);
 				break;
@@ -506,8 +509,19 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			replied = true;
 			const native = this._protocol.sendStructuredClone;
 			if (native && !(r instanceof VSBuffer) && !(r instanceof SerializableObjectWithBuffers)) {
-				const header = typeof r === 'undefined' ? MessageType.ReplyOKEmpty : MessageType.ReplyOKJSON;
-				const body = typeof r === 'undefined' ? undefined : safeStringify(r, this._uriReplacer);
+				let header = MessageType.ReplyOKEmpty;
+				let body: unknown = undefined;
+				if (typeof r === 'number') {
+					header = MessageType.ReplyOKScalar;
+					// Match JSON's nonfinite-number and negative-zero conversions.
+					body = Number.isFinite(r) ? r + 0 : null;
+				} else if (r === null || typeof r === 'string' || typeof r === 'boolean') {
+					header = MessageType.ReplyOKScalar;
+					body = r;
+				} else if (typeof r !== 'undefined') {
+					header = MessageType.ReplyOKJSON;
+					body = safeStringify(r, this._uriReplacer);
+				}
 				this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `reply:`, r);
 				const message: NativeRPCMessage = { header: req * nativeMessageHeaderScale + header, body };
 				native.call(this._protocol, message);
@@ -1177,6 +1191,7 @@ const enum MessageType {
 	ReplyErrError = 11,
 	ReplyErrEmpty = 12,
 	NotificationJSONArgs = 13,
+	ReplyOKScalar = 14,
 }
 
 const enum ArgType {

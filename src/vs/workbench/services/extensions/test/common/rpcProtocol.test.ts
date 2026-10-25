@@ -311,8 +311,8 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 			assert.deepStrictEqual({ requestHeader: request.header, requestBody: request.body, replyHeader: reply.header, replyBody: reply.body }, {
 				requestHeader: 0xffffffff * 32 + 1,
 				requestBody: '[]',
-				replyHeader: 0xffffffff * 32 + 9,
-				replyBody: '42'
+				replyHeader: 0xffffffff * 32 + 14,
+				replyBody: 42
 			});
 		});
 	}
@@ -572,6 +572,47 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		assert.strictEqual(second.toString(), bytes.toString());
 		assert.strictEqual(third, undefined);
 		assert.deepStrictEqual(fourth, { value: 4 });
+	});
+
+	test('native scalar replies retain JSON conversions and object fallback', async () => {
+		const sent: VSBuffer[] = [];
+		const one = new MessagePassingProtocol();
+		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		server.set(bIdentifier, new BClass());
+		const proxy = client.getProxy(bIdentifier);
+		const unusualText = String.fromCharCode(0, 0xd800, 0xdc00, 0xd800, 34, 92) + '😊';
+		const text = unusualText.repeat(4096);
+		const cases = [
+			{ value: undefined, expected: undefined, scalar: false },
+			{ value: null, expected: null, scalar: true },
+			{ value: true, expected: true, scalar: true },
+			{ value: false, expected: false, scalar: true },
+			{ value: 42, expected: 42, scalar: true },
+			{ value: -0, expected: 0, scalar: true },
+			{ value: 1.25, expected: 1.25, scalar: true },
+			{ value: NaN, expected: null, scalar: true },
+			{ value: Infinity, expected: null, scalar: true },
+			{ value: -Infinity, expected: null, scalar: true },
+			{ value: '', expected: '', scalar: true },
+			{ value: unusualText, expected: unusualText, scalar: true },
+			{ value: text, expected: text, scalar: true },
+			{ value: { toJSON: () => 'object fallback' }, expected: 'object fallback', scalar: false }
+		];
+		for (const item of cases) {
+			sent.length = 0;
+			delegate = () => item.value;
+			assert.deepStrictEqual(await proxy.$m(null, null), item.expected);
+			const reply = sent.find(buffer => [7, 9, 14].includes(messageType(buffer)));
+			assert.ok(reply);
+			assert.strictEqual(messageType(reply), item.value === undefined ? 7 : native && item.scalar ? 14 : 9);
+			if (native && item.scalar) {
+				assert.deepStrictEqual(getStructuredCloneMessage(reply)?.body, item.expected);
+			}
+		}
 	});
 
 	test('simple call without result', function (done) {
