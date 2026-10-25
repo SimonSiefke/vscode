@@ -128,7 +128,7 @@ export interface IStructuredCloneMessage {
 }
 
 const structuredCloneMessage = Symbol('structuredCloneMessage');
-const emptyMessageBuffer = new Uint8Array(0);
+const emptyMessageBuffer = VSBuffer.wrap(new Uint8Array(0)).buffer;
 
 /** Carry native frames through the existing ordered, buffered handshake/RPC stream. */
 export function wrapStructuredCloneMessage(message: IStructuredCloneMessage): VSBuffer {

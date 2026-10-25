@@ -23,6 +23,15 @@ suite('ExtHostFileSystemEventService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	/** Recognizes empty replies in both native framing formats. */
+	function isEmptyReply(message: unknown): boolean {
+		if (ArrayBuffer.isView(message)) {
+			return false;
+		}
+		const { header } = message as IStructuredCloneMessage;
+		return (typeof header === 'number' ? header & 31 : (header as number[])[0]) === 7;
+	}
+
 	/** Exercises native framing, batching and snapshots through both real RPC peers. */
 	function createRPCPair() {
 		const replies: unknown[] = [];
@@ -60,7 +69,7 @@ suite('ExtHostFileSystemEventService', () => {
 		const watcher = store.add(service.createFileSystemWatcher(workspace, undefined!, new ExtHostFileSystemInfo(), nullExtensionDescription, new RelativePattern(URI.file('/outside-workspace'), '*.ts'), {}));
 		watcher.dispose();
 		await commands.$getCommands();
-		const emptyReplies = replies.filter(message => !ArrayBuffer.isView(message) && ((message as IStructuredCloneMessage).header as number[])[0] === 7).length;
+		const emptyReplies = replies.filter(isEmptyReply).length;
 		assert.deepStrictEqual({ calls, emptyReplies }, { calls: ['watch', 'unwatch'], emptyReplies: 0 });
 	});
 
@@ -87,7 +96,7 @@ suite('ExtHostFileSystemEventService', () => {
 		client.getProxy(ExtHostContext.ExtHostFileSystemEventService).$onFileEvent(events);
 		events.created.push(URI.file('/workspace/after.ts'));
 		await commands.$getCommands();
-		const emptyReplies = replies.filter(message => !ArrayBuffer.isView(message) && ((message as IStructuredCloneMessage).header as number[])[0] === 7).length;
+		const emptyReplies = replies.filter(isEmptyReply).length;
 		assert.deepStrictEqual({ capabilities: info.getCapabilities('file'), created, emptyReplies }, {
 			capabilities: FileSystemProviderCapabilities.FileReadWrite,
 			created: ['/workspace/before.ts'],

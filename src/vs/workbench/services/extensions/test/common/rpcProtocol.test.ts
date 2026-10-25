@@ -136,7 +136,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 				const frame = getStructuredCloneMessage(sent[0]);
 				if (native && length <= 32) {
 					assert.ok(frame);
-					assert.strictEqual((frame.header as number[])[4], 1 << position);
+					assert.strictEqual(Reflect.get(frame, 'undefinedMask') ?? (frame.header as number[])[4], 1 << position);
 				} else {
 					assert.strictEqual(frame, undefined);
 				}
@@ -273,7 +273,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		assert.strictEqual(sent.length, 2);
 		const acknowledgement = getStructuredCloneMessage(sent[1]);
 		assert.strictEqual(!!acknowledgement, native);
-		assert.strictEqual(acknowledgement ? (acknowledgement.header as number[])[0] : sent[1].readUInt8(0), 5); // Acknowledged
+		assert.strictEqual(messageType(sent[1]), 5); // Acknowledged
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 		resolve(42);
 		assert.strictEqual(await reply, 42);
@@ -295,13 +295,29 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
 
+	if (native) {
+		test('compact native headers preserve request IDs above the 27-bit boundary', async () => {
+			const { client, proxy, sent } = createObservedRPC({ $call: () => 42 });
+			Reflect.set(client, '_lastMessageId', 0xfffffffe);
+			assert.strictEqual(await proxy.$call(), 42);
+			const request = getStructuredCloneMessage(sent[0])!;
+			const reply = getStructuredCloneMessage(sent[1])!;
+			assert.deepStrictEqual({ requestHeader: request.header, requestBody: request.body, replyHeader: reply.header, replyBody: reply.body }, {
+				requestHeader: 0xffffffff * 32 + 1,
+				requestBody: '[]',
+				replyHeader: 0xffffffff * 32 + 9,
+				replyBody: '42'
+			});
+		});
+	}
+
 	test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
 		const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
 		assert.strictEqual(await proxy.$call(), 42);
 		const ack = VSBuffer.alloc(5);
 		ack.writeUInt8(5, 0); // Acknowledged
 		const first = getStructuredCloneMessage(sent[0]);
-		ack.writeUInt32BE(first ? (first.header as number[])[1] : sent[0].readUInt32BE(1), 1);
+		ack.writeUInt32BE(first ? typeof first.header === 'number' ? Math.floor(first.header / 32) : (first.header as number[])[1] : sent[0].readUInt32BE(1), 1);
 		two.send(ack);
 		two.send(ack);
 		await new Promise(r => setTimeout(r, 0));
@@ -398,7 +414,10 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 
 	function messageType(buffer: VSBuffer): number {
 		const message = getStructuredCloneMessage(buffer);
-		return message ? (message.header as number[])[0] : buffer.readUInt8(0);
+		if (!message) {
+			return buffer.readUInt8(0);
+		}
+		return typeof message.header === 'number' ? message.header & 31 : (message.header as number[])[0];
 	}
 
 	test('explicit notifications deliver every update before an ordinary barrier request', async () => {
