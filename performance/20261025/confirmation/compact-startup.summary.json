@@ -1,0 +1,98 @@
+[
+  {
+    "benchmark": "startup-empty-cold-timing",
+    "commits": {
+      "before": "simonsiefke/vscode@218b977159b5a4bc24268ca3c12795e6f6d5437d",
+      "after": "simonsiefke/vscode@18f8cde2f9d038bd1fb4b868a381fea98ea1aca8"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 2836.214246679999,
+    "afterMeanMs": 2629.052638300002,
+    "beforeMedianMs": 2612.0874920000006,
+    "afterMedianMs": 2616.4344804999855,
+    "medianChangePercent": 0.16641818137020292,
+    "meanChangePercent": -7.304159360404294,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -16.586875500011956,
+      28.856215999956476
+    ],
+    "inconclusive": true,
+    "beforeMinMs": 2530.1319730000105,
+    "beforeMaxMs": 13456.042184000002,
+    "afterMinMs": 2529.8320960000274,
+    "afterMaxMs": 2865.142012000004
+  },
+  {
+    "benchmark": "startup-empty-warm-timing",
+    "commits": {
+      "before": "simonsiefke/vscode@218b977159b5a4bc24268ca3c12795e6f6d5437d",
+      "after": "simonsiefke/vscode@18f8cde2f9d038bd1fb4b868a381fea98ea1aca8"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 916.8158205000003,
+    "afterMeanMs": 917.3654356800002,
+    "beforeMedianMs": 912.7570119999873,
+    "afterMedianMs": 907.6739775000024,
+    "medianChangePercent": -0.5568880253077698,
+    "meanChangePercent": 0.05994826525792529,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -16.11282300001767,
+      5.3707080000313
+    ],
+    "inconclusive": true,
+    "beforeMinMs": 864.2654709999988,
+    "beforeMaxMs": 987.0386609999987,
+    "afterMinMs": 875.0757080000003,
+    "afterMaxMs": 1008.7756460000019
+  },
+  {
+    "benchmark": "startup-workspace-cold-timing",
+    "commits": {
+      "before": "simonsiefke/vscode@218b977159b5a4bc24268ca3c12795e6f6d5437d",
+      "after": "simonsiefke/vscode@18f8cde2f9d038bd1fb4b868a381fea98ea1aca8"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 2018.4962511400008,
+    "afterMeanMs": 1955.70124288,
+    "beforeMedianMs": 1946.8877490000013,
+    "afterMedianMs": 1938.5579345000078,
+    "medianChangePercent": -0.4278528386791709,
+    "meanChangePercent": -3.1109796822528457,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -21.57348499998625,
+      9.201231500006543
+    ],
+    "inconclusive": true,
+    "beforeMinMs": 1892.8433670000013,
+    "beforeMaxMs": 5265.55341,
+    "afterMinMs": 1901.0903689999977,
+    "afterMaxMs": 2231.186566999997
+  },
+  {
+    "benchmark": "startup-workspace-warm-timing",
+    "commits": {
+      "before": "simonsiefke/vscode@218b977159b5a4bc24268ca3c12795e6f6d5437d",
+      "after": "simonsiefke/vscode@18f8cde2f9d038bd1fb4b868a381fea98ea1aca8"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 1605.3908700600011,
+    "afterMeanMs": 1591.8516835799999,
+    "beforeMedianMs": 1576.510935499995,
+    "afterMedianMs": 1574.117392999964,
+    "medianChangePercent": -0.1518253027069407,
+    "meanChangePercent": -0.8433576353586214,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -28.94720400001097,
+      11.015622499966412
+    ],
+    "inconclusive": true,
+    "beforeMinMs": 1526.276853999996,
+    "beforeMaxMs": 1892.2166950000028,
+    "afterMinMs": 1508.397629999963,
+    "afterMaxMs": 1930.2915610000055
+  }
+]
