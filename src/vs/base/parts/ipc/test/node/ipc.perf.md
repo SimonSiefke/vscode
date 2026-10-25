@@ -83,3 +83,23 @@ Four fresh allocation-sampling processes per version/fixture, 10,000 calls each,
 Direct receive passes 293 Node transport tests and 1,540 Electron/API/authentication tests, with three existing pending, client typechecking, targeted lint and hygiene. Two direct receive buffering/disposal regressions fail against the preceding source; the complete RPC suite also covers the new receive event. Notification test actors reuse stable IDs so the expanded suite stays within the byte codec’s actor-ID range.
 
 The preceding compact-frame packaged smoke comparison passes the same 62 tests with 68 pending in each version; one pair establishes compatibility rather than speed. The direct-receive [50-pair startup comparison](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40215506758) measures complete-product behavior separately. Hosted instruction collectors report unavailable hardware counters, and large-file profiling fails in both versions in Quick Open readiness; those failures remain in the diagnostic archive.
+
+
+## Actual packaged API measurements
+
+The same direct-receive comparison (`18f8cde2f9d038bd1fb4b868a381fea98ea1aca8` → `ac92d647915e8434b3f9d17f957796cab32d3c03`) now has fifty independent paired packaged-application processes per fixture. A development extension runs real public API calls, following five seconds of settling and 16,384 warmup calls. Each process completes and validates 32,768 measured calls at concurrency 32. Counters include the whole application process tree and inherited threads, excluding startup, warmup and Xvfb. Only the extension host explicitly collects garbage, so real handler/UI and background work remain included. All 200 processes validate and all counters run 100% of the measured interval.
+
+| Actual API workload | Median paired user-instruction change | Exploratory 95% paired interval |
+| --- | ---: | ---: |
+| `setContext`, unchanged value | -1.96% | [-2.08%, -1.87%] |
+| `setContext`, alternating value | -0.38% | [-0.43%, -0.34%] |
+
+The separate ten-pair identical-package A/A calibration changes unchanged-context instructions by -0.016%, with interval [-0.28%, +0.68%], including zero. These public API workloads include real handlers; they measure a broader scope than isolated RPC CPU cost. The changing workload performs substantially more UI work. Neither result is a whole-smoke or startup speedup.
+
+The direct-receive startup run completes 400 successful launches, fifty pairs in each scenario. Median changes are -1.15% empty/cold, -0.10% empty/warm, +2.28% workspace/cold and -0.97% workspace/warm. All four paired intervals include zero. The direct-receive [smoke compatibility run](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40217494355) passes the same 62 tests, with 68 pending in each version; its single-pair elapsed duration is not used to estimate performance.
+
+A separate scalar-reply [startup run](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40221936330), comparing `ac92d647915e8434b3f9d17f957796cab32d3c03` → `37e23c02fb542e78dadf80a205dbada712e60406`, also completes 400 successful launches. Median changes are +0.12%, +0.61%, -0.74% and +0.51% in the same scenario order; all four intervals include zero. Scalar reply CPU/clipboard confirmation remains separate. This source increment passes 297 Node and 1,544 Electron/API/authentication tests, with three existing pending, typechecking, lint and hygiene.
+
+[All packaged API/A/A samples, raw startup/smoke results, exact API fixture/harness and checksums](https://github.com/SimonSiefke/vscode/tree/e26ec2dd748c4df3e810fd274e8eeb2e290ea3be/performance/20261025/product-confirmation) are archived outside this implementation. Every startup sample remains included. These comparisons precede the later merge from `main`; no cross-base improvement is inferred and no 10–20% whole-product improvement is established.
+
+The follow-up notification increment adds ten audited methods: diagnostic changes/clear and terminal disposal, visibility, input and process output/ready/property/exit updates. Actual `DiagnosticCollection` and `TerminalDataBufferer` regressions observe three and two ignored replies before the metadata change, respectively, and zero afterward, preserving change/disposal and buffered-output-before-exit order. Completion-bearing terminal creation remains ordinary RPC. On the PR's subsequent existing merge from `main`, validation passes 297 Node and 1,562 Electron/API/authentication tests (three existing pending), using the refreshed Electron 43.8.3 runtime. The additional tests from `main` account for the different suite total; older benchmark snapshots retain their matching Electron 43.7.7 binary.
