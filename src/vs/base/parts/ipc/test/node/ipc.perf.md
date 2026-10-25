@@ -22,3 +22,21 @@ The additional audited notifications cover filesystem watcher registration/dispo
 | Workspace, warm | 1265.48 → 1233.46 | 1264.09 → 1217.91 | −3.65% | [−67.87, −17.02] |
 
 Only warm workspace startup excludes zero in this campaign; the other three scenarios are inconclusive. Means, especially cold-start means, are sensitive to the early large samples. The intervals are exploratory and are not corrected for multiple comparisons. Startup includes readiness polling and measures the complete product, rather than isolating RPC overhead.
+
+## Fixed-work retired-instruction confirmation
+
+The compact-frame increment `18f8cde2f9d038bd1fb4b868a381fea98ea1aca8` is compared with `218b977159b5a4bc24268ca3c12795e6f6d5437d` using separate frozen runtime copies and matching esbuild ES2024/ESM options. Real worker-thread MessagePorts carry the actual RPC protocol and batching adapter. Each fixture has 50 independent paired processes, balanced variant order, randomized fixture order, 16,384 warmup calls and 32,768 measured calls at concurrency 32. Both isolates collect garbage before counting begins. Every process validates the returned value and the remote handler's exact measured call count.
+
+Linux `perf stat` counts retired userspace instructions across the target process and inherited worker/JIT/GC threads. FIFO control disables counting during startup and warmup. A worker-only arithmetic probe verifies inherited-counter coverage. Identical-code A/A comparisons are retained; their userspace intervals include zero. Allocation sampling and timing diagnostics run separately. This isolates RPC CPU work and does not include real provider, disk or network work.
+
+| Fixture | Baseline median instructions/call | Compact median instructions/call | Median paired change | Exploratory 95% paired interval |
+| --- | ---: | ---: | ---: | ---: |
+| Primitive | 47,225 | 38,646 | −18.14% | [−18.52%, −17.80%] |
+| Small object | 62,798 | 54,395 | −13.67% | [−13.90%, −13.02%] |
+| Settings object, 100 keys | 1,460,639 | 1,452,142 | −0.59% | [−0.70%, −0.51%] |
+
+Changes and intervals use paired log-ratios, with 10,000 bootstrap resamples and no multiple-comparison correction. Counts of instructions are distinct from elapsed time. Early broader direct-clone and larger-batch experiments retain their regressions and are not shipped. The selected change keeps JSON payload semantics and the 16 Ki-character/64-frame batch bounds.
+
+Separate V8 allocation sampling (1,024-byte interval, including objects collected by minor and major GC) runs three fresh processes per variant/fixture and 10,000 real MessagePort RPCs per process. Both peers share one process for this diagnostic. Estimated median allocated bytes/call change from 4,013 to 3,161 (−21.24%) for primitive replies and 4,547 to 3,672 (−19.25%) for small objects. The disposable tracker separately records exactly 10,000 per-call `DisposableStore` constructions in every baseline process and zero in every compact process. Sampled bytes are estimates, not retained heap or complete-product memory measurements; tracked constructor counts are exact.
+
+[Complete raw evidence, frozen runtimes and reproduction instructions](https://github.com/SimonSiefke/vscode/tree/1b7746ad33021ff281ff7a8ffafc7a3a00f63a8d/performance/20261025) are archived separately from the implementation diff. The selected increment passes 251 Node transport tests and 1,498 combined Electron/API/authentication tests (three pre-existing pending), final client typechecking and targeted lint. Wide request-ID tests fail against the preceding array-header format and pass with arithmetic packing, covering IDs above the bitwise-shift boundary.
