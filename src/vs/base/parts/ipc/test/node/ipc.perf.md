@@ -65,3 +65,21 @@ The same exact-source comparison also runs through real MessagePorts between a N
 | Settings object, 100 keys | 1,282,923 | 1,272,028 | -0.87% | [-0.95%, -0.78%] |
 
 The separate 10-pair identical-code renderer A/A calibration has all three userspace intervals crossing zero. [Complete renderer and compact-startup evidence](https://github.com/SimonSiefke/vscode/tree/210d58a7f6abf05d4edb2c605e2c804fa507cd6f/performance/20261025/confirmation) includes raw counters, process logs, frozen harness files, all startup launches and file/archive checksums. These results confirm lower RPC CPU work in both transport topologies; the compact-only startup campaign above remains inconclusive.
+
+## Direct native receive confirmation
+
+The subsequent `ac92d647915e8434b3f9d17f957796cab32d3c03` increment receives native frames directly, retaining the existing byte event for other consumers. Compared with compact frames `18f8cde2f9d038bd1fb4b868a381fea98ea1aca8`, each topology has another 50 independent paired processes per fixture with identical 16,384-call warmup, 32,768-call measured workload and concurrency 32. All 600 processes validate values and exact remote call counts; all counters run 100% of their measured interval.
+
+| Fixture | Node user-instruction change (exploratory 95% interval) | Renderer/utility change (exploratory 95% interval) |
+| --- | ---: | ---: |
+| Primitive | -11.74% [-11.93%, -11.38%] | -8.88% [-8.91%, -8.85%] |
+| Small object | -8.33% [-8.69%, -8.18%] | -6.71% [-6.74%, -6.66%] |
+| 100-key settings | -0.25% [-0.30%, -0.17%] | -0.19% [-0.21%, -0.12%] |
+
+Separate 12-pair Node controls reduce primitive/small-object instructions by 12.19%/8.69% for resolved promises and 7.13%/5.81% for next-task deferred handlers. Resolved settings is inconclusive; deferred settings improves 0.45%. They are distinct workloads and are not pooled with synchronous results. [All confirmation samples, counters, exact driver files and checksums](https://github.com/SimonSiefke/vscode/tree/23c8d6a1a95fb593a9e3e83287d50fbc2c141b17/performance/20261025/direct-receive-confirmed) are preserved separately.
+
+Four fresh allocation-sampling processes per version/fixture, 10,000 calls each, estimate median bytes/call of 3,143.98 → 2,868.13 (−8.77%) for primitives and 3,672.38 → 3,393.06 (−7.61%) for small objects. A separate constructor diagnostic counts 20,000 `VSBuffer` constructor invocations before and zero after for 10,000 calls in each fixture. Instrumentation can affect optimization; these constructor-counting runtimes are excluded from CPU and byte-sampling studies. [Diagnostic sources, profiles, exact counts and preliminary controls](https://github.com/SimonSiefke/vscode/tree/373ba888a572f5ccd82152c9c6b254250f89e490/performance/20261025/direct-receive) remain available.
+
+Direct receive passes 293 Node transport tests and 1,540 Electron/API/authentication tests, with three existing pending, client typechecking, targeted lint and hygiene. Two direct receive buffering/disposal regressions fail against the preceding source; the complete RPC suite also covers the new receive event. Notification test actors reuse stable IDs so the expanded suite stays within the byte codec’s actor-ID range.
+
+The preceding compact-frame packaged smoke comparison passes the same 62 tests with 68 pending in each version; one pair establishes compatibility rather than speed. The direct-receive [50-pair startup comparison](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40215506758) measures complete-product behavior separately. Hosted instruction collectors report unavailable hardware counters, and large-file profiling fails in both versions in Quick Open readiness; those failures remain in the diagnostic archive.
