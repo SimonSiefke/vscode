@@ -18,6 +18,72 @@ suite('Workbench status bar model', () => {
 		disposables.clear();
 	});
 
+	function addEntry(model: StatusbarViewModel, id: string, alignment = StatusbarAlignment.LEFT, priority = 0): IStatusbarViewModelEntry {
+		const container = document.createElement('div');
+		const entry = { id, alignment, name: id, priority: { primary: priority, secondary: 0 }, container, labelContainer: container, hasCommand: false, extensionId: undefined };
+		model.add(entry);
+		return entry;
+	}
+
+	test('custom locations move and order entries while preserving unlisted entries and defaults', () => {
+		const model = disposables.add(new StatusbarViewModel(disposables.add(new TestStorageService())));
+		addEntry(model, 'branch', StatusbarAlignment.LEFT, 100);
+		addEntry(model, 'problems', StatusbarAlignment.LEFT, 50);
+		addEntry(model, 'encoding', StatusbarAlignment.RIGHT, 100);
+		addEntry(model, 'position', StatusbarAlignment.RIGHT, 50);
+		const defaults = model.entries.map(entry => entry.id);
+
+		model.updateEntryLocations({ left: ['position', 'encoding'], right: ['branch'] });
+		const customized = {
+			left: model.getEntries(StatusbarAlignment.LEFT).map(entry => entry.id),
+			right: model.getEntries(StatusbarAlignment.RIGHT).map(entry => entry.id),
+		};
+		model.updateEntryLocations(undefined);
+		assert.deepStrictEqual({ customized, restored: model.entries.map(entry => entry.id) }, {
+			customized: { left: ['position', 'encoding', 'problems'], right: ['branch'] },
+			restored: defaults,
+		});
+	});
+
+	test('custom locations apply to late entries and duplicate entry IDs', () => {
+		const model = disposables.add(new StatusbarViewModel(disposables.add(new TestStorageService())));
+		model.updateEntryLocations({ left: ['late', 'other', 'late'], right: ['late'] });
+		const first = addEntry(model, 'late', StatusbarAlignment.RIGHT);
+		addEntry(model, 'other');
+		addEntry(model, 'late', StatusbarAlignment.RIGHT);
+		const beforeRemove = model.entries.map(entry => entry.id);
+		model.remove(first);
+		assert.deepStrictEqual({ beforeRemove, left: model.getEntries(StatusbarAlignment.LEFT).map(entry => entry.id), right: model.getEntries(StatusbarAlignment.RIGHT).map(entry => entry.id) }, {
+			beforeRemove: ['late', 'late', 'other'], left: ['late', 'other'], right: [],
+		});
+	});
+
+	test('invalid custom locations are ignored and do not hide items', () => {
+		const model = disposables.add(new StatusbarViewModel(disposables.add(new TestStorageService())));
+		addEntry(model, 'a');
+		addEntry(model, 'b', StatusbarAlignment.RIGHT);
+		model.hide('a');
+		model.updateEntryLocations({ left: 'b', right: [null, 42, 'a', 'missing'] });
+		const customized = { left: model.getEntries(StatusbarAlignment.LEFT).map(entry => entry.id), right: model.getEntries(StatusbarAlignment.RIGHT).map(entry => entry.id), hidden: model.isHidden('a') };
+		model.updateEntryLocations(null);
+		assert.deepStrictEqual({ customized, restored: model.entries.map(entry => entry.id) }, {
+			customized: { left: [], right: ['a', 'b'], hidden: true }, restored: ['a', 'b'],
+		});
+	});
+
+	test('resetting custom locations restores stable and relative ordering', () => {
+		const model = disposables.add(new StatusbarViewModel(disposables.add(new TestStorageService())));
+		const a = addEntry(model, 'a');
+		addEntry(model, 'b');
+		const container = document.createElement('div');
+		model.add({ ...a, id: 'relative', container, labelContainer: container, priority: { primary: { location: { id: 'a', priority: 0 }, alignment: StatusbarAlignment.LEFT }, secondary: 0 } });
+		const defaults = model.entries.map(entry => entry.id);
+		model.updateEntryLocations({ right: ['b', 'a'] });
+		addEntry(model, 'c');
+		model.updateEntryLocations({});
+		assert.deepStrictEqual(model.entries.map(entry => entry.id), [...defaults, 'c']);
+	});
+
 	test('basics', () => {
 		const container = document.createElement('div');
 		const model = disposables.add(new StatusbarViewModel(disposables.add(new TestStorageService())));
