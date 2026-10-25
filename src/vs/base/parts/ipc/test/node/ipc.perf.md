@@ -53,3 +53,15 @@ Separate V8 allocation sampling (1,024-byte interval, including objects collecte
 | Workspace, warm | 1605.39 → 1591.85 | 1576.51 → 1574.12 | -0.15% | [-28.95, +11.02] |
 
 All four intervals include zero: this campaign establishes no detectable startup gain from compact frames. The cold-empty baseline includes a 13.46-second first launch, retained in both the raw data and mean. The lower RPC instruction/allocation measurements must not be described as a complete-product startup improvement. A [follow-up instruction and CPU-profile run](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40212599206) reuses the exact packaged builds.
+
+## Renderer/utility instruction confirmation
+
+The same exact-source comparison also runs through real MessagePorts between a Node-disabled Electron renderer and a utility process. Fifty independent pairs per fixture use the same warmup, measured call counts, concurrency, GC gates and value/request-count checks. Counters include inherited application processes and threads, with Xvfb excluded. All 300 processes validate 32,768 measured remote calls and all counters run 100% of the measured interval.
+
+| Fixture | Baseline median instructions/call | Compact median instructions/call | Median paired change | Exploratory 95% paired interval |
+| --- | ---: | ---: | ---: | ---: |
+| Primitive | 50,016 | 42,750 | -14.52% | [-14.60%, -14.50%] |
+| Small object | 62,953 | 55,860 | -11.29% | [-11.44%, -11.23%] |
+| Settings object, 100 keys | 1,282,923 | 1,272,028 | -0.87% | [-0.95%, -0.78%] |
+
+The separate 10-pair identical-code renderer A/A calibration has all three userspace intervals crossing zero. [Complete renderer and compact-startup evidence](https://github.com/SimonSiefke/vscode/tree/210d58a7f6abf05d4edb2c605e2c804fa507cd6f/performance/20261025/confirmation) includes raw counters, process logs, frozen harness files, all startup launches and file/archive checksums. These results confirm lower RPC CPU work in both transport topologies; the compact-only startup campaign above remains inconclusive.
