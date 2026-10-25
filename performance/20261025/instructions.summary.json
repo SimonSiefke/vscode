@@ -1,0 +1,120 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/ipc-opt-20261025/frozen-runtime",
+    "output": "/home/simon/.cache/ipc-opt-20261025/perf-final50",
+    "variants": "control,compact",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/ipc-opt-20261025/selected-runtimes.json",
+    "fixtures": "primitive,small-object,settings-100",
+    "replicates": 50,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32
+  },
+  "pairedIndependentProcesses": 50,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 47225.348220825195,
+          "compact": 38646.18490600586
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -18.137340126612745,
+            "intervalPercent": [
+              -18.517217539632334,
+              -17.80399775262248
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 1934.0192413330078,
+          "compact": 1676.8402709960938
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -13.156768466173908,
+            "intervalPercent": [
+              -14.173817533840992,
+              -11.19466453528487
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 62798.07850646973,
+          "compact": 54394.56083679199
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -13.66625014024957,
+            "intervalPercent": [
+              -13.899426232015976,
+              -13.015934444488575
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 2050.8550415039062,
+          "compact": 1806.5332641601562
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -12.795719419728592,
+            "intervalPercent": [
+              -14.159712409115354,
+              -12.115444727455927
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "settings-100": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 1460638.9521026611,
+          "compact": 1452141.611251831
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -0.5872261896360143,
+            "intervalPercent": [
+              -0.7032718381960623,
+              -0.5061463852264025
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 5643.275650024414,
+          "compact": 5142.698669433594
+        },
+        "comparisons": {
+          "compact": {
+            "medianPairedChangePercent": -9.327866063113255,
+            "intervalPercent": [
+              -10.91417821391939,
+              -5.471643200985787
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    }
+  }
+}

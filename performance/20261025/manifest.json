@@ -1,0 +1,10 @@
+{
+  "sha256": "ba14b339b46cdf33579b7eb09404166841d97042f30db4e69ea3f1baae942972",
+  "bytes": 25179571,
+  "files": 4090,
+  "baseline": "218b977159b5a4bc24268ca3c12795e6f6d5437d",
+  "candidate": "18f8cde2f9d038bd1fb4b868a381fea98ea1aca8",
+  "node": "v24.22.0",
+  "perf": "perf version 7.0.14",
+  "scope": "Complete completed data, including held control regressions; excludes browser cache directories and in-progress measurements"
+}

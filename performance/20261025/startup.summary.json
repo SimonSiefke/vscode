@@ -1,0 +1,110 @@
+[
+  {
+    "benchmark": "startup-empty-cold-timing",
+    "commits": {
+      "before": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+      "after": "simonsiefke/vscode@6e1e253fc47b04643a6bee09f445ed32753f7448"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 2652.709838560004,
+    "afterMeanMs": 2595.898465720002,
+    "beforeMedianMs": 2597.9610225000215,
+    "afterMedianMs": 2587.881512499982,
+    "medianChangePercent": -0.38797772225004357,
+    "meanChangePercent": -2.1416353954053724,
+    "pairedMedianDifferenceMs": -0.4521470000036061,
+    "exploratory95IntervalMs": [
+      -31.024636999994982,
+      13.526418499997817
+    ],
+    "beforeSD": 395.1209641917168,
+    "afterSD": 54.47103392659274,
+    "inconclusive": true,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -27.274980000016512,
+      24.012321999995038
+    ]
+  },
+  {
+    "benchmark": "startup-empty-warm-timing",
+    "commits": {
+      "before": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+      "after": "simonsiefke/vscode@6e1e253fc47b04643a6bee09f445ed32753f7448"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 807.1106389400013,
+    "afterMeanMs": 799.3830604199945,
+    "beforeMedianMs": 799.7243865000055,
+    "afterMedianMs": 795.7011654999997,
+    "medianChangePercent": -0.5030759431525533,
+    "meanChangePercent": -0.9574373260840208,
+    "pairedMedianDifferenceMs": -4.626847000010457,
+    "exploratory95IntervalMs": [
+      -14.388891000009608,
+      0.06886949998443015
+    ],
+    "beforeSD": 42.442736468217426,
+    "afterSD": 25.933626178538635,
+    "inconclusive": true,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -21.556336000001465,
+      13.434456999995746
+    ]
+  },
+  {
+    "benchmark": "startup-workspace-cold-timing",
+    "commits": {
+      "before": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+      "after": "simonsiefke/vscode@6e1e253fc47b04643a6bee09f445ed32753f7448"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 3192.424993440002,
+    "afterMeanMs": 3079.1174796199984,
+    "beforeMedianMs": 3076.570433999994,
+    "afterMedianMs": 3069.3773395000026,
+    "medianChangePercent": -0.23380236709351632,
+    "meanChangePercent": -3.5492615818017548,
+    "pairedMedianDifferenceMs": -2.528849500027718,
+    "exploratory95IntervalMs": [
+      -35.86498100000608,
+      38.12336999999388
+    ],
+    "beforeSD": 752.9944002641096,
+    "afterSD": 82.25314283252767,
+    "inconclusive": true,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -44.179472999996506,
+      31.12947199998598
+    ]
+  },
+  {
+    "benchmark": "startup-workspace-warm-timing",
+    "commits": {
+      "before": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+      "after": "simonsiefke/vscode@6e1e253fc47b04643a6bee09f445ed32753f7448"
+    },
+    "pairs": 50,
+    "failures": 0,
+    "beforeMeanMs": 1265.481345440002,
+    "afterMeanMs": 1233.4595592600058,
+    "beforeMedianMs": 1264.0944420000305,
+    "afterMedianMs": 1217.9133005000112,
+    "medianChangePercent": -3.6532983585429113,
+    "meanChangePercent": -2.5304036519686823,
+    "pairedMedianDifferenceMs": -28.694178999983706,
+    "exploratory95IntervalMs": [
+      -48.21735200000694,
+      -6.048314499988919
+    ],
+    "beforeSD": 74.3369484057679,
+    "afterSD": 64.07780092208553,
+    "inconclusive": false,
+    "workflow95IntervalDifferenceOfMediansMs": [
+      -67.86892300000909,
+      -17.01886799998465
+    ]
+  }
+]

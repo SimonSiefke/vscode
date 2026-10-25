@@ -1,0 +1,46 @@
+[
+  {
+    "fixture": "primitive",
+    "independentProcessesPerVariant": 3,
+    "callsPerProcess": 10000,
+    "medianSampledBytesPerLogicalCall": {
+      "control": 4013.2088,
+      "compact": 3160.9072
+    },
+    "changePercent": -21.237409825274966,
+    "exactTrackedDisposableStores": {
+      "control": [
+        10000,
+        10000,
+        10000
+      ],
+      "compact": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  {
+    "fixture": "small-object",
+    "independentProcessesPerVariant": 3,
+    "callsPerProcess": 10000,
+    "medianSampledBytesPerLogicalCall": {
+      "control": 4547.1232,
+      "compact": 3671.6976
+    },
+    "changePercent": -19.252295605274117,
+    "exactTrackedDisposableStores": {
+      "control": [
+        10000,
+        10000,
+        10000
+      ],
+      "compact": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]
