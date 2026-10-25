@@ -40,3 +40,16 @@ Changes and intervals use paired log-ratios, with 10,000 bootstrap resamples and
 Separate V8 allocation sampling (1,024-byte interval, including objects collected by minor and major GC) runs three fresh processes per variant/fixture and 10,000 real MessagePort RPCs per process. Both peers share one process for this diagnostic. Estimated median allocated bytes/call change from 4,013 to 3,161 (−21.24%) for primitive replies and 4,547 to 3,672 (−19.25%) for small objects. The disposable tracker separately records exactly 10,000 per-call `DisposableStore` constructions in every baseline process and zero in every compact process. Sampled bytes are estimates, not retained heap or complete-product memory measurements; tracked constructor counts are exact.
 
 [Complete raw evidence, frozen runtimes and reproduction instructions](https://github.com/SimonSiefke/vscode/tree/1b7746ad33021ff281ff7a8ffafc7a3a00f63a8d/performance/20261025) are archived separately from the implementation diff. The selected increment passes 251 Node transport tests and 1,498 combined Electron/API/authentication tests (three pre-existing pending), final client typechecking and targeted lint. Wide request-ID tests fail against the preceding array-header format and pass with arithmetic packing, covering IDs above the bitwise-shift boundary.
+
+## Compact-only startup confirmation
+
+[Run 40209708548](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40209708548) isolates `218b977159b5a4bc24268ca3c12795e6f6d5437d` → `18f8cde2f9d038bd1fb4b868a381fea98ea1aca8`. All 400 measured launches succeed, with 50 alternating pairs per scenario, matching cache policy and no excluded samples.
+
+| Startup scenario | Before mean → after mean (ms) | Before median → after median (ms) | Median change | Exploratory 95% paired interval for median difference (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Empty, cold | 2836.21 → 2629.05 | 2612.09 → 2616.43 | +0.17% | [-16.59, +28.86] |
+| Empty, warm | 916.82 → 917.37 | 912.76 → 907.67 | -0.56% | [-16.11, +5.37] |
+| Workspace, cold | 2018.50 → 1955.70 | 1946.89 → 1938.56 | -0.43% | [-21.57, +9.20] |
+| Workspace, warm | 1605.39 → 1591.85 | 1576.51 → 1574.12 | -0.15% | [-28.95, +11.02] |
+
+All four intervals include zero: this campaign establishes no detectable startup gain from compact frames. The cold-empty baseline includes a 13.46-second first launch, retained in both the raw data and mean. The lower RPC instruction/allocation measurements must not be described as a complete-product startup improvement. A [follow-up instruction and CPU-profile run](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40212599206) reuses the exact packaged builds.
