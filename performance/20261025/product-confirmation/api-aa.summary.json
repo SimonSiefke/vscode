@@ -1,0 +1,53 @@
+{
+  "diagnosticOnly": false,
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-raw.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-context-aa10",
+    "variants": "control,aa-b",
+    "fixtures": "context-unchanged",
+    "replicates": 10,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "pairedIndependentProcesses": 10,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "context-unchanged": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 115538.49850463867,
+          "aa-b": 115492.87915039062
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.01595021963685106,
+            "intervalPercent": [
+              -0.2811502874643712,
+              0.6832793496733602
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 6950.990493774414,
+          "aa-b": 6870.803283691406
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -1.7267167365123015,
+            "intervalPercent": [
+              -2.5818521091791613,
+              0.4297260047153362
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}
