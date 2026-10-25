@@ -72,6 +72,23 @@ suite('ChatWidgetHistoryService', () => {
 		assert.strictEqual(terminalHistory[0].inputText, 'terminal query');
 	});
 
+	test('clears only the requested location and history key', () => {
+		const service = createHistoryService();
+		service.append(ChatAgentLocation.Chat, createInputState('global'));
+		service.append(ChatAgentLocation.Chat, createInputState('deleted'), 'deleted');
+		service.append(ChatAgentLocation.Chat, createInputState('other'), 'other');
+		service.append(ChatAgentLocation.Terminal, createInputState('terminal'), 'deleted');
+
+		service.clearHistory(ChatAgentLocation.Chat, 'deleted');
+
+		assert.deepStrictEqual({
+			global: service.getHistory(ChatAgentLocation.Chat).map(entry => entry.inputText),
+			deleted: service.getHistory(ChatAgentLocation.Chat, 'deleted').map(entry => entry.inputText),
+			other: service.getHistory(ChatAgentLocation.Chat, 'other').map(entry => entry.inputText),
+			terminal: service.getHistory(ChatAgentLocation.Terminal, 'deleted').map(entry => entry.inputText),
+		}, { global: ['global'], deleted: [], other: ['other'], terminal: ['terminal'] });
+	});
+
 	test('should maintain separate history per history key', () => {
 		const historyService = createHistoryService();
 		historyService.append(ChatAgentLocation.Chat, createInputState('global query'));
@@ -473,6 +490,35 @@ suite('ChatHistoryNavigator', () => {
 			nav1Values: ['session 1 query 1', 'session 1 query 2'],
 			nav2Values: ['session 2 query', 'session 2 query 2'],
 		});
+	});
+
+	test('scoped clear resets matching navigators and preserves other cursors', () => {
+		const instantiationService = testDisposables.add(new TestInstantiationService());
+		instantiationService.stub(IStorageService, testDisposables.add(new TestStorageService()));
+		const service = testDisposables.add(instantiationService.createInstance(ChatWidgetHistoryService));
+		instantiationService.stub(IChatWidgetHistoryService, service);
+		const deleted = testDisposables.add(instantiationService.createInstance(ChatHistoryNavigator, ChatAgentLocation.Chat));
+		const other = testDisposables.add(instantiationService.createInstance(ChatHistoryNavigator, ChatAgentLocation.Chat));
+		const terminal = testDisposables.add(instantiationService.createInstance(ChatHistoryNavigator, ChatAgentLocation.Terminal));
+		deleted.setHistoryKey('deleted');
+		other.setHistoryKey('other');
+		terminal.setHistoryKey('deleted');
+		deleted.append(createInputState('deleted query'));
+		other.append(createInputState('other query'));
+		terminal.append(createInputState('terminal query'));
+		deleted.previous();
+		other.previous();
+		terminal.previous();
+		deleted.overlay(createInputState('edited deleted query'));
+
+		service.clearHistory(ChatAgentLocation.Chat, 'deleted');
+
+		assert.deepStrictEqual({
+			deletedValues: deleted.values,
+			deletedCurrent: deleted.current(),
+			otherCurrent: other.current()?.inputText,
+			terminalCurrent: terminal.current()?.inputText,
+		}, { deletedValues: [], deletedCurrent: undefined, otherCurrent: 'other query', terminalCurrent: 'terminal query' });
 	});
 
 	test('should update navigator when scoped history moves', () => {
