@@ -1,0 +1,87 @@
+{
+  "diagnosticOnly": false,
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-context-composed-confirmation.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-context-composed-final50-batch32",
+    "variants": "control,fastipc",
+    "fixtures": "context-unchanged,context-changing",
+    "replicates": 50,
+    "iterations": 8192,
+    "warmup": 16384,
+    "concurrency": 32,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "pairedIndependentProcesses": 50,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "context-unchanged": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 139731.05389404297,
+          "fastipc": 134234.73138427734
+        },
+        "comparisons": {
+          "fastipc": {
+            "medianPairedChangePercent": -0.8261071886476179,
+            "intervalPercent": [
+              -5.444645749848631,
+              0.04495349880939692
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 6502.6873779296875,
+          "fastipc": 6443.358581542969
+        },
+        "comparisons": {
+          "fastipc": {
+            "medianPairedChangePercent": -2.329501772102227,
+            "intervalPercent": [
+              -2.897873756422986,
+              -0.48516359017863886
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "context-changing": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 715142.66015625,
+          "fastipc": 151000.62982177734
+        },
+        "comparisons": {
+          "fastipc": {
+            "medianPairedChangePercent": -78.9065743539358,
+            "intervalPercent": [
+              -78.9484247699067,
+              -78.80771562617836
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 11153.535339355469,
+          "fastipc": 6511.9154052734375
+        },
+        "comparisons": {
+          "fastipc": {
+            "medianPairedChangePercent": -41.54683573078073,
+            "intervalPercent": [
+              -42.65106619314927,
+              -40.503736488510675
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    }
+  }
+}

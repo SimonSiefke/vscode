@@ -1,0 +1,474 @@
+{
+  "utc": "2026-10-26T21:02:52.331947+00:00",
+  "state": "complete-independent-review-candidate-kept-private-pending-refinement",
+  "source": "a498c2e0970c303bb4fb0469eeb40b5c1970173a",
+  "allUnprofiledProcesses": 480,
+  "allPlumbingProcesses": 8,
+  "metricRows": [
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": -0.6263078619867191,
+        "intervalPercent": [
+          -4.923493136990553,
+          -0.1774710410561875
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": -2.432735233773453,
+        "intervalPercent": [
+          -4.920706897846783,
+          4.150811452034087
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "total",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": -0.748553216041481,
+        "intervalPercent": [
+          -4.526726434299033,
+          0.07562928025910409
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": 7.877492963775912,
+        "intervalPercent": [
+          -2.9549858044934596,
+          46.80388026247928
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": -0.06919275847664386,
+        "intervalPercent": [
+          -0.27094321463418947,
+          0.2397228001272067
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": -2.353122938007912,
+        "intervalPercent": [
+          -3.3862360388517643,
+          4.048816709363368
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "total",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": -0.05391551356831448,
+        "intervalPercent": [
+          -0.48066682439394937,
+          0.43334537139616547
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": -3.203282594857315,
+        "intervalPercent": [
+          -7.682065758663015,
+          14.603644241178193
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": -0.8211579736334129,
+        "intervalPercent": [
+          -27.230914672626394,
+          14.297545663552324
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": -1.9901537627683097,
+        "intervalPercent": [
+          -3.4155742800943023,
+          2.1475057429928057
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "total",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": -1.6257226321246265,
+        "intervalPercent": [
+          -23.931801159290167,
+          24.209609305853142
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": -1.2831779429351986,
+        "intervalPercent": [
+          -10.841446204804427,
+          8.296187463230286
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": 0.047830761358347296,
+        "intervalPercent": [
+          -0.060549407682508605,
+          0.3534468219590359
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": 0.15321219262631747,
+        "intervalPercent": [
+          -0.37167275711977865,
+          0.8327843336692453
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "total",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": 0.10866800341942096,
+        "intervalPercent": [
+          -0.09984243541293347,
+          0.3729747556070029
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "aa10",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 10,
+        "medianPairedChangePercent": 0.2602383314196821,
+        "intervalPercent": [
+          -4.613926383700539,
+          6.000553612847592
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": -0.8261071886476179,
+        "intervalPercent": [
+          -5.444645749848631,
+          0.04495349880939692
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": -2.329501772102227,
+        "intervalPercent": [
+          -2.897873756422986,
+          -0.48516359017863886
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "total",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": -0.642878098142563,
+        "intervalPercent": [
+          -5.226902818523871,
+          -0.11240109207630855
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-unchanged",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": -2.8478875227266776,
+        "intervalPercent": [
+          -6.313556776239659,
+          1.2172667941555027
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": -78.9065743539358,
+        "intervalPercent": [
+          -78.9484247699067,
+          -78.80771562617836
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": -41.54683573078073,
+        "intervalPercent": [
+          -42.65106619314927,
+          -40.503736488510675
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "total",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": -78.33158592672528,
+        "intervalPercent": [
+          -78.39598505866377,
+          -78.2124142324345
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "batch32",
+      "fixture": "context-changing",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": -67.09150131832425,
+        "intervalPercent": [
+          -68.46282606338625,
+          -66.36666797521973
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": 1.1394970524528203,
+        "intervalPercent": [
+          0.12520182492472554,
+          2.339852572482437
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": 0.588482289025527,
+        "intervalPercent": [
+          -0.25355097154080575,
+          2.048092723921502
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "total",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": 1.0714280664341214,
+        "intervalPercent": [
+          -0.6918410900018768,
+          2.4453623496061505
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-unchanged",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": 1.456997865186005,
+        "intervalPercent": [
+          -0.13132067189425278,
+          4.631523559268902
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "user",
+      "comparison": {
+        "medianPairedChangePercent": 0.7983706952441327,
+        "intervalPercent": [
+          0.6893224641477236,
+          0.9585279686357362
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "kernel",
+      "comparison": {
+        "medianPairedChangePercent": 0.707256526244926,
+        "intervalPercent": [
+          0.11282159947749726,
+          1.5863509356879746
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "total",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": 0.8474753333639118,
+        "intervalPercent": [
+          0.6354366540287426,
+          0.9780873850082861
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "kind": "final50",
+      "schedule": "sequential",
+      "fixture": "context-changing",
+      "metric": "elapsed",
+      "comparison": {
+        "pairs": 50,
+        "medianPairedChangePercent": 1.1236089812660222,
+        "intervalPercent": [
+          -0.6013843827066045,
+          4.725792271390805
+        ],
+        "inconclusive": true
+      }
+    }
+  ],
+  "decision": "Keep private rather than promote as-is: robust changing-context batch win, but independently repeated sequential changing-context total instructions +0.847% CI[+0.635,+0.978]. Sequential elapsed CI0; unchanged point shifts affected by wide A/A bands. Small batch unchanged difference comparable to AA, no attributed gain. Investigate minimum physical batch size so activation-plus-single-command packets avoid buffering/callback costs; needs separate red-capable test and independent exact package comparison. No automatic production selection or pooled gains."
+}
