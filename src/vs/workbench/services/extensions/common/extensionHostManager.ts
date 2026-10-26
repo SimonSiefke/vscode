@@ -98,6 +98,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 		@ITelemetryService private readonly _telemetryService: ITelemetryService,
 		@ILogService private readonly _logService: ILogService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 	) {
 		super();
 		this._cachedActivationEvents = new Map<string, Promise<void>>();
@@ -257,10 +258,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 		}
 
 		const runInBatch = protocol.onMessageWithStructuredClone && protocol.sendStructuredClone
-			? this._instantiationService.invokeFunction(accessor => {
-				const contextKeyService = accessor.get(IContextKeyService);
-				return (callback: () => void) => contextKeyService.bufferChangeEvents(callback);
-			})
+			? (callback: () => void) => this._contextKeyService.bufferChangeEvents(callback)
 			: undefined;
 		this._rpcProtocol = new RPCProtocol(protocol, logger, null, runInBatch);
 		this._register(this._rpcProtocol.onDidChangeResponsiveState((responsiveState: ResponsiveState) => this._onDidChangeResponsiveState.fire(responsiveState)));
