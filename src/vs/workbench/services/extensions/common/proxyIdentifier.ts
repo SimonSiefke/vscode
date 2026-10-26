@@ -34,9 +34,9 @@ type NotificationMethod<T> = {
 	[K in keyof T]: T[K] extends (...args: never[]) => infer R ? R extends void ? K : never : never
 }[keyof T] & string;
 
-/** Only methods whose API bridge unconditionally observes completion may opt in. */
+/** Observed RPC completion is independent of whether its actor returns void. */
 type NativePromiseMethod<T> = {
-	[K in keyof T]: T[K] extends (...args: never[]) => infer R ? R extends void ? never : K : never
+	[K in keyof T]: T[K] extends (...args: never[]) => unknown ? K : never
 }[keyof T] & string;
 
 export class ProxyIdentifier<T> {
