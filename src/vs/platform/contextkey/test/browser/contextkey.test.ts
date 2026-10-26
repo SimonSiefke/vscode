@@ -11,13 +11,72 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IConfigurationService } from '../../../configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../configuration/test/common/testConfigurationService.js';
 import { ContextKeyService, setContext } from '../../browser/contextKeyService.js';
-import { ContextKeyExpr, IContextKeyService } from '../../common/contextkey.js';
+import { ContextKeyExpr, IContextKeyChangeEvent, IContextKeyService } from '../../common/contextkey.js';
 import { ServiceCollection } from '../../../instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../instantiation/test/common/instantiationServiceMock.js';
 import { ITelemetryService } from '../../../telemetry/common/telemetry.js';
 
 suite('ContextKeyService', () => {
 	const testDisposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+
+	test('nested same-key changes preserve final values, membership and child shadowing', () => {
+		const root = testDisposables.add(new ContextKeyService(new TestConfigurationService()));
+		root.setContext('repeated', 0);
+		const child = testDisposables.add(root.createScoped(document.createElement('div')));
+		const shadowed = testDisposables.add(root.createScoped(document.createElement('div')));
+		shadowed.createKey('repeated', 100);
+		const snapshots: { scope: string; value: unknown; relevant: boolean; unrelated: boolean; all: boolean; none: boolean }[] = [];
+		for (const [scope, service] of [['root', root], ['child', child], ['shadowed', shadowed]] as const) {
+			testDisposables.add(service.onDidChangeContext(event => snapshots.push({
+				scope, value: service.getContextKeyValue('repeated'),
+				relevant: event.affectsSome(new Set(['repeated'])),
+				unrelated: event.affectsSome(new Set(['unrelated'])),
+				all: event.allKeysContainedIn(new Set(['repeated'])),
+				none: event.allKeysContainedIn(new Set())
+			})));
+		}
+		const values: (number | undefined)[] = [];
+		root.bufferChangeEvents(() => {
+			root.bufferChangeEvents(() => {
+				for (let value = 1; value <= 16; value++) {
+					root.setContext('repeated', value);
+					values.push(root.getContextKeyValue<number>('repeated'));
+				}
+			});
+			for (let value = 17; value <= 32; value++) {
+				root.setContext('repeated', value);
+				values.push(root.getContextKeyValue<number>('repeated'));
+			}
+			assert.strictEqual(snapshots.length, 0);
+		});
+		assert.deepStrictEqual({ values, snapshots: snapshots.sort((a, b) => a.scope.localeCompare(b.scope)) }, {
+			values: Array.from({ length: 32 }, (_, index) => index + 1),
+			snapshots: ['child', 'root'].map(scope => ({ scope, value: 32, relevant: true, unrelated: false, all: true, none: false }))
+		});
+	});
+
+	test('buffered opaque changes retain membership and resume after a callback throws', () => {
+		class TestContextKeyService extends ContextKeyService {
+			emitContextChange(event: IContextKeyChangeEvent): void {
+				this._onDidChangeContext.fire(event);
+			}
+		}
+		const root = testDisposables.add(new TestContextKeyService(new TestConfigurationService()));
+		const snapshots: boolean[][] = [];
+		testDisposables.add(root.onDidChangeContext(event => snapshots.push([
+			event.affectsSome(new Set(['real'])), event.affectsSome(new Set(['virtual'])),
+			event.allKeysContainedIn(new Set(['real', 'virtual'])), event.allKeysContainedIn(new Set(['real']))
+		])));
+		assert.throws(() => root.bufferChangeEvents(() => {
+			root.setContext('real', 1);
+			root.setContext('real', 2);
+			root.emitContextChange({ affectsSome: keys => keys.has('virtual'), allKeysContainedIn: keys => keys.has('virtual') });
+			throw new Error('expected buffered failure');
+		}), /expected buffered failure/);
+		root.setContext('real', 3);
+		assert.deepStrictEqual(snapshots, [[true, true, true, false], [true, false, true, true]]);
+	});
 
 	test('updateParent', () => {
 		const root = testDisposables.add(new ContextKeyService(new TestConfigurationService()));

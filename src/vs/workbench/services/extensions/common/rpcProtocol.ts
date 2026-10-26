@@ -181,7 +181,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 	// A native ACK can consume the port's immediate-send slot.
 	private _flushNativeReplyAfterAck = false;
 
-	constructor(protocol: IMessagePassingProtocol, logger: IRPCProtocolLogger | null = null, transformer: IURITransformer | null = null) {
+	constructor(protocol: IMessagePassingProtocol, logger: IRPCProtocolLogger | null = null, transformer: IURITransformer | null = null, runInBatch?: (callback: () => void) => void) {
 		super();
 		this._protocol = protocol;
 		this._logger = logger;
@@ -206,11 +206,10 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 				if (message instanceof VSBuffer) {
 					this._receiveOneMessage(message);
 				} else if (Array.isArray(message)) {
-					for (const frame of message) {
-						if (this._isDisposed) {
-							break;
-						}
-						this._receiveNativeMessage(frame);
+					if (message.length > 1 && runInBatch) {
+						this._receiveNativeMessagesInBatch(message, runInBatch);
+					} else {
+						this._receiveNativeMessages(message);
 					}
 				} else {
 					this._receiveNativeMessage(message as IStructuredCloneMessage);
@@ -237,6 +236,21 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			return this._protocol.drain();
 		}
 		return Promise.resolve();
+	}
+
+	/** Allocate the context callback closure only for a physical batch. */
+	private _receiveNativeMessagesInBatch(messages: readonly IStructuredCloneMessage[], runInBatch: (callback: () => void) => void): void {
+		runInBatch(() => this._receiveNativeMessages(messages));
+	}
+
+	/** Invoke a physical native batch in order, stopping when a handler disposes the protocol. */
+	private _receiveNativeMessages(messages: readonly IStructuredCloneMessage[]): void {
+		for (const message of messages) {
+			if (this._isDisposed) {
+				break;
+			}
+			this._receiveNativeMessage(message);
+		}
 	}
 
 	private _onWillSendRequest(req: number): void {

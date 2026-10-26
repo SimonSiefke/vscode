@@ -14,6 +14,7 @@ import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.j
 import * as nls from '../../../../nls.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { ExtensionIdentifier, IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -97,6 +98,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 		@IWorkbenchEnvironmentService private readonly _environmentService: IWorkbenchEnvironmentService,
 		@ITelemetryService private readonly _telemetryService: ITelemetryService,
 		@ILogService private readonly _logService: ILogService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 	) {
 		super();
 		this._cachedActivationEvents = new Map<string, Promise<void>>();
@@ -255,7 +257,10 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			logger = new TelemetryRPCLogger(this._telemetryService);
 		}
 
-		this._rpcProtocol = new RPCProtocol(protocol, logger);
+		const runInBatch = protocol.onMessageWithStructuredClone && protocol.sendStructuredClone
+			? (callback: () => void) => this._contextKeyService.bufferChangeEvents(callback)
+			: undefined;
+		this._rpcProtocol = new RPCProtocol(protocol, logger, null, runInBatch);
 		this._register(this._rpcProtocol.onDidChangeResponsiveState((responsiveState: ResponsiveState) => this._onDidChangeResponsiveState.fire(responsiveState)));
 		let extensionHostProxy: IExtensionHostProxy | null = null as IExtensionHostProxy | null;
 		let mainProxyIdentifiers: ProxyIdentifier<any>[] = [];

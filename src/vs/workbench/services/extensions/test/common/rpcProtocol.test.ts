@@ -115,19 +115,98 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	/** Use the same transport modes for observed promises and the legacy mixed fallback. */
-	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: VSBuffer[]) {
+	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: VSBuffer[], runInBatch?: (callback: () => void) => void) {
 		const one = new MessagePassingProtocol(message => sent?.push(message));
 		const two = new MessagePassingProtocol();
 		one.setPair(two);
 		two.setPair(one);
 		const client = disposables.add(new RPCProtocol(one));
-		const server = disposables.add(new RPCProtocol(two));
+		const server = disposables.add(new RPCProtocol(two, null, null, runInBatch));
 		server.set(observedRepliesIdentifier, {
 			$echo: echo,
 			$fail: () => { throw new Error('observed failure'); },
 			$hold: () => new Promise<number>(() => { })
 		});
-		return { client, proxy: client.getProxy(observedRepliesIdentifier) };
+		return { client, server, proxy: client.getProxy(observedRepliesIdentifier) };
+	}
+
+
+	test('native batch context excludes sequential singletons and binary frames', async () => {
+		let batches = 0;
+		const { proxy } = createAuditedPromiseRPC(value => value, undefined, callback => {
+			batches++;
+			callback();
+		});
+		const first = await proxy.$echo(1);
+		const second = await proxy.$echo(2);
+		const buffer = await proxy.$echo(VSBuffer.fromByteArray([0, 1, 255]));
+		assert.ok(buffer instanceof VSBuffer);
+		assert.deepStrictEqual({ first, second, bytes: [...buffer.buffer], batches }, {
+			first: 1, second: 2, bytes: [0, 1, 255], batches: 0
+		});
+	});
+
+	if (mode === 'batched native receive') {
+		test('native batch context covers synchronous invocation and ends before async continuation', async () => {
+			let depth = 0;
+			let batches = 0;
+			const before: [unknown, number][] = [];
+			const after: [unknown, number][] = [];
+			const { proxy } = createAuditedPromiseRPC(async value => {
+				before.push([value, depth]);
+				await Promise.resolve();
+				after.push([value, depth]);
+				if (value === 1) {
+					throw new Error('expected batch rejection');
+				}
+				return value;
+			}, undefined, callback => {
+				batches++;
+				depth++;
+				try {
+					callback();
+				} finally {
+					depth--;
+				}
+			});
+			const values = Array.from({ length: 32 }, (_, index) => index);
+			const results = await Promise.allSettled(values.map(value => proxy.$echo(value)));
+			assert.deepStrictEqual({
+				before, after, batches, depth,
+				results: results.map(result => result.status === 'fulfilled' ? result.value : result.reason instanceof Error ? result.reason.message : String(result.reason))
+			}, {
+				before: values.map(value => [value, value === 0 ? 0 : 1]),
+				after: values.map(value => [value, 0]),
+				batches: 1, depth: 0,
+				results: values.map(value => value === 1 ? 'expected batch rejection' : value)
+			});
+		});
+
+		test('disposing an actor protocol within a native batch unwinds its context', async () => {
+			let depth = 0;
+			let batches = 0;
+			const seen: unknown[] = [];
+			const rpc = createAuditedPromiseRPC(value => {
+				seen.push(value);
+				if (value === 1) {
+					rpc.server.dispose();
+				}
+				return value;
+			}, undefined, callback => {
+				batches++;
+				depth++;
+				try {
+					callback();
+				} finally {
+					depth--;
+				}
+			});
+			const replies = Promise.allSettled(Array.from({ length: 32 }, (_, value) => rpc.proxy.$echo(value)));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			rpc.client.dispose();
+			await replies;
+			assert.deepStrictEqual({ seen, batches, depth }, { seen: [0, 1], batches: 1, depth: 0 });
+		});
 	}
 
 	test('audited observed methods return native promises only on native JSON requests', async () => {
