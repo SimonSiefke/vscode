@@ -1,0 +1,176 @@
+{
+  "diagnosticOnly": false,
+  "campaign": "product-cumulative-aa10",
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-cumulative.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-cumulative-aa10",
+    "variants": "control,aa-b",
+    "fixtures": "context-unchanged,context-changing,clipboard-64KiB",
+    "replicates": 10,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "scope": "Same completed unprofiled public API samples; whole-app inherited hardware counters and elapsed time for fixed completed API work. Instructions measure work, not CPU seconds; elapsed is distinct. No profiler or outlier removal.",
+  "intervalMethod": "Conservative95% distribution-free sign/order-statistic interval for median paired log ratio; no multiple-comparison correction. Separate from primary instruction bootstrap summaries.",
+  "fixtures": {
+    "context-unchanged": {
+      "products": {
+        "control": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 6583.495115500001,
+            "aa-b": 6535.216754
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 1.0824824870503624,
+              "intervalPercent": [
+                -8.03058053892759,
+                12.13889967919004
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 871930.4550323486,
+            "aa-b": 879074.9090118408
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.9856004512976524,
+              "intervalPercent": [
+                -5.318316017664159,
+                3.4102883530888084
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    },
+    "context-changing": {
+      "products": {
+        "control": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 10442.982870499998,
+            "aa-b": 10664.925373499998
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": -1.4489334781206509,
+              "intervalPercent": [
+                -3.9062415260771477,
+                4.843531572436821
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 1532753.0172424316,
+            "aa-b": 1544351.173614502
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.8095111191471993,
+              "intervalPercent": [
+                -1.1388826282026199,
+                8.276310772886152
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    },
+    "clipboard-64KiB": {
+      "products": {
+        "control": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "microsoft/vscode@4df8bb183f0e984e97d8f4200c802c49061d7d3c",
+          "executableSHA256": "9ecc59968492b5139d37b2de89496832655d2caeae1c7229cecb706006aceb9a",
+          "node": "v24.21.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 44713.930068999995,
+            "aa-b": 44998.302961999994
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.09762624653031349,
+              "intervalPercent": [
+                -2.2728650178885035,
+                1.4796965512897886
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 6910230.6700286865,
+            "aa-b": 6934545.390289307
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.12917514288508514,
+              "intervalPercent": [
+                -0.9483973787515754,
+                1.2829908423087844
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
