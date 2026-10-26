@@ -314,14 +314,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 		const handler = {
 			get: (target: any, name: PropertyKey) => {
 				if (typeof name === 'string' && !target[name] && name.charCodeAt(0) === CharCode.DollarSign) {
-					if (this._protocol.sendStructuredClone && notificationMethods?.includes(name)) {
-						target[name] = (...args: any[]) => this._remoteNotification(rpcId, name, args);
-					} else {
-						const nativePromise = !!this._protocol.sendStructuredClone && !!nativePromiseMethods?.includes(name);
-						target[name] = (...myArgs: any[]) => {
-							return this._remoteCall(rpcId, name, myArgs, nativePromise);
-						};
-					}
+					target[name] = this._createProxyMethod(rpcId, name, notificationMethods, nativePromiseMethods);
 				}
 				if (name === _RPCProxySymbol) {
 					return debugName;
@@ -330,6 +323,15 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 			}
 		};
 		return new Proxy(Object.create(null), handler);
+	}
+
+	/** Keep first-use method closures out of the frequently invoked proxy getter. */
+	private _createProxyMethod(rpcId: number, name: string, notificationMethods?: readonly string[], nativePromiseMethods?: readonly string[]) {
+		if (this._protocol.sendStructuredClone && notificationMethods?.includes(name)) {
+			return (...args: unknown[]) => this._remoteNotification(rpcId, name, args);
+		}
+		const nativePromise = !!this._protocol.sendStructuredClone && !!nativePromiseMethods?.includes(name);
+		return (...args: unknown[]) => this._remoteCall(rpcId, name, args, nativePromise);
 	}
 
 	public set<T, R extends T>(identifier: ProxyIdentifier<T>, value: R): R {
