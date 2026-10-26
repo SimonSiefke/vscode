@@ -1,0 +1,18 @@
+{
+  "commits": {
+    "before": "simonsiefke/vscode@aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+    "after": "simonsiefke/vscode@264f9bc0fbf05a94c51fd0f9bc0171095b994a97"
+  },
+  "sameTests": true,
+  "scope": "One exact-head metadata compatibility pair; all raw timing retained, no speed claim.",
+  "before": {
+    "passingCount": 62,
+    "pendingCount": 68,
+    "failureCount": 0
+  },
+  "after": {
+    "passingCount": 62,
+    "pendingCount": 68,
+    "failureCount": 0
+  }
+}
