@@ -1,0 +1,175 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/ipc-opt-20261025/scalar-selected-runtime",
+    "output": "/home/simon/.cache/ipc-opt-20261025/combined-owned-deferred-renderer",
+    "variants": "control,combined-owned,combined-scalar-arguments-owned",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/ipc-opt-20261025/combined-owned-runtimes.json",
+    "fixtures": "primitive,small-object,settings-100",
+    "replicates": 12,
+    "iterations": 16384,
+    "warmup": 8192,
+    "concurrency": 32,
+    "handler": "deferred"
+  },
+  "pairedIndependentProcesses": 12,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 120261.43865966797,
+          "combined-owned": 116710.8932800293,
+          "combined-scalar-arguments-owned": 114025.9133605957
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -2.9343886544792253,
+            "intervalPercent": [
+              -3.1251128636977987,
+              -2.6758563706651306
+            ],
+            "inconclusive": false
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -5.168436516159868,
+            "intervalPercent": [
+              -5.373656199832966,
+              -4.97353966226437
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 20546.867462158203,
+          "combined-owned": 20171.520904541016,
+          "combined-scalar-arguments-owned": 20002.081085205078
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -1.1597383878635292,
+            "intervalPercent": [
+              -4.730576193538283,
+              0.739890050781078
+            ],
+            "inconclusive": true
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -2.7700160228700144,
+            "intervalPercent": [
+              -4.00020175668484,
+              -1.8705615586653068
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 135470.88330078125,
+          "combined-owned": 131731.869140625,
+          "combined-scalar-arguments-owned": 131899.4334411621
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -2.7069744674586227,
+            "intervalPercent": [
+              -2.9359738617412146,
+              -2.4325764422804097
+            ],
+            "inconclusive": false
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -2.5804854586353287,
+            "intervalPercent": [
+              -2.7443732764381945,
+              -2.3795490719356716
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 21178.068817138672,
+          "combined-owned": 20818.80828857422,
+          "combined-scalar-arguments-owned": 20480.740661621094
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -1.7259891911676983,
+            "intervalPercent": [
+              -3.2144414769338603,
+              -0.8013324291972879
+            ],
+            "inconclusive": false
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -3.409097632566649,
+            "intervalPercent": [
+              -4.162908085292926,
+              -2.496603200013525
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "settings-100": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 1354864.2111206055,
+          "combined-owned": 1326705.0837402344,
+          "combined-scalar-arguments-owned": 1326060.2874450684
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -2.1218876872982184,
+            "intervalPercent": [
+              -2.166061215725712,
+              -1.9969001567415212
+            ],
+            "inconclusive": false
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -2.0996011236877887,
+            "intervalPercent": [
+              -2.2346253422406925,
+              -1.9689997991097274
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 91370.44030761719,
+          "combined-owned": 86275.10949707031,
+          "combined-scalar-arguments-owned": 85624.69760131836
+        },
+        "comparisons": {
+          "combined-owned": {
+            "medianPairedChangePercent": -5.195741846649815,
+            "intervalPercent": [
+              -6.977176007530983,
+              -4.564716149146308
+            ],
+            "inconclusive": false
+          },
+          "combined-scalar-arguments-owned": {
+            "medianPairedChangePercent": -6.395831019672038,
+            "intervalPercent": [
+              -7.764365804815188,
+              -5.469057418670986
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    }
+  }
+}
