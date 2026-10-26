@@ -1,0 +1,72 @@
+{
+  "diagnosticOnly": false,
+  "campaign": "product-provider-core-final50-sequential",
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-provider-current-core.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-provider-core-final50-sequential",
+    "variants": "control,fastipc",
+    "fixtures": "hover-provider",
+    "replicates": 50,
+    "iterations": 8192,
+    "warmup": 16384,
+    "concurrency": 1,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "scope": "Same completed unprofiled public API samples; whole-app inherited hardware counters and elapsed time for fixed completed API work. Instructions measure work, not CPU seconds; elapsed is distinct. No profiler or outlier removal.",
+  "intervalMethod": "Conservative95% distribution-free sign/order-statistic interval for median paired log ratio; no multiple-comparison correction. Separate from primary instruction bootstrap summaries.",
+  "fixtures": {
+    "hover-provider": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "fastipc": {
+          "commit": "simonsiefke/vscode@aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 7683.701740999999,
+            "fastipc": 7710.412323500001
+          },
+          "comparisons": {
+            "fastipc": {
+              "pairs": 50,
+              "medianPairedChangePercent": -1.1053420336680886,
+              "intervalPercent": [
+                -2.2705063941171333,
+                1.18407922907382
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 1058122.4489746094,
+            "fastipc": 1057802.7994995117
+          },
+          "comparisons": {
+            "fastipc": {
+              "pairs": 50,
+              "medianPairedChangePercent": -0.0519630260265358,
+              "intervalPercent": [
+                -0.32075483727800336,
+                0.13835948988647484
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

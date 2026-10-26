@@ -1,0 +1,72 @@
+{
+  "diagnosticOnly": false,
+  "campaign": "product-provider-core-aa10-sequential",
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-provider-current-core.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-provider-core-aa10-sequential",
+    "variants": "control,same-aa",
+    "fixtures": "hover-provider",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 16384,
+    "concurrency": 1,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "scope": "Same completed unprofiled public API samples; whole-app inherited hardware counters and elapsed time for fixed completed API work. Instructions measure work, not CPU seconds; elapsed is distinct. No profiler or outlier removal.",
+  "intervalMethod": "Conservative95% distribution-free sign/order-statistic interval for median paired log ratio; no multiple-comparison correction. Separate from primary instruction bootstrap summaries.",
+  "fixtures": {
+    "hover-provider": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "same-aa": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 7575.911354999998,
+            "same-aa": 7618.601251
+          },
+          "comparisons": {
+            "same-aa": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.8775380490184448,
+              "intervalPercent": [
+                -2.815544992544461,
+                1.4104412297241131
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 1057045.752746582,
+            "same-aa": 1059760.0921020508
+          },
+          "comparisons": {
+            "same-aa": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.23934818356707854,
+              "intervalPercent": [
+                -0.19864195252558003,
+                2.7602190668950533
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
