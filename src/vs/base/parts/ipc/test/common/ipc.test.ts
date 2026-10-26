@@ -455,7 +455,21 @@ suite('Base IPC', function () {
 		test('falls back for bigint, non-finite numbers and negative zero', async () => {
 			const input = { large: 12345678901234567890n, nan: NaN, positive: Infinity, negative: -Infinity, zero: -0 };
 			const result = await client.getChannel('echo').call<typeof input>('echo', input);
-			assert.deepStrictEqual(result, input);
+			assert.deepStrictEqual({
+				large: result.large.toString(),
+				largeType: typeof result.large,
+				nan: Number.isNaN(result.nan),
+				positive: result.positive === Infinity,
+				negative: result.negative === -Infinity,
+				negativeZero: Object.is(result.zero, -0)
+			}, {
+				large: input.large.toString(),
+				largeType: 'bigint',
+				nan: true,
+				positive: true,
+				negative: true,
+				negativeZero: true
+			});
 		});
 
 		test('bulk DTOs use the legacy JSON representation for nested object graphs', async () => {
