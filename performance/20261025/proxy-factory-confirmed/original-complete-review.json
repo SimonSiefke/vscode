@@ -1,0 +1,653 @@
+{
+  "utc": "2026-10-26T18:42:13.004026+00:00",
+  "decision": "retain-private-pending-independent-confirmation-not-production-selection",
+  "comparisons": [
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.2843363033100288,
+      "intervalPercent": [
+        -0.3548102300974687,
+        -0.23392741275715112
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 1.462060550410027,
+      "intervalPercent": [
+        -3.0112208239651217,
+        2.768983233993483
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.31154938007653676,
+      "intervalPercent": [
+        -0.4411206022594927,
+        -0.17381525038637768
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.15178451306490093,
+      "intervalPercent": [
+        -1.8311639868597407,
+        2.2059263327883993
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "settings-100",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.032276647069506836,
+      "intervalPercent": [
+        -0.07054292094713643,
+        0.3120463186896849
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "settings-100",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 1.654832224900571,
+      "intervalPercent": [
+        -2.740081685171103,
+        9.612320530456131
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "text-64KiB",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.14696422421921485,
+      "intervalPercent": [
+        -0.6644321230465544,
+        0.0010049727647398754
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "node",
+      "fixture": "text-64KiB",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -4.071728856372204,
+      "intervalPercent": [
+        -13.571928444286263,
+        14.142639570824667
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.1703213878392673,
+      "intervalPercent": [
+        -0.38275398950516903,
+        -0.011263282888374082
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.39409294831953545,
+      "intervalPercent": [
+        0.060764665353474356,
+        1.7852084866462947
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.02894127873922514,
+      "intervalPercent": [
+        -0.09593154452302022,
+        0.05660652727861315
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.7938618601541769,
+      "intervalPercent": [
+        -1.0677511554681218,
+        1.5429466822446392
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "settings-100",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.06279164273020887,
+      "intervalPercent": [
+        -0.25352395810771533,
+        0.30689087695974226
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "settings-100",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.48349120085336983,
+      "intervalPercent": [
+        -2.5651526563887694,
+        1.7069086388259214
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "text-64KiB",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.17235059289983923,
+      "intervalPercent": [
+        -1.4406239966889167,
+        0.4155582967912963
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "ordinary12",
+      "topology": "renderer",
+      "fixture": "text-64KiB",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.028034708467150615,
+      "intervalPercent": [
+        -0.3226081798511027,
+        0.16369800209310448
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "buffer-64B",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.4875104444965528,
+      "intervalPercent": [
+        -2.4737597713814896,
+        0.9621270964734752
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "buffer-64B",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 3.892757536235636,
+      "intervalPercent": [
+        -3.181974784526298,
+        17.82433075895775
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "buffer-64KiB",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -5.454288393866225,
+      "intervalPercent": [
+        -18.911810731252743,
+        -0.06876442301509966
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "buffer-64KiB",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -12.955497657372561,
+      "intervalPercent": [
+        -36.05084910011127,
+        6.145504487600606
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "wrapped-buffer-64B",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.13783603790384902,
+      "intervalPercent": [
+        -2.1979514557444957,
+        0.4865616295395947
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "node",
+      "fixture": "wrapped-buffer-64B",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -7.286674709823915,
+      "intervalPercent": [
+        -13.859953999990305,
+        10.813541089442502
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "buffer-64B",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.1030891164224057,
+      "intervalPercent": [
+        -0.2859454746303891,
+        -0.0201099304812713
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "buffer-64B",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -3.854855750900532,
+      "intervalPercent": [
+        -4.70813595678673,
+        1.4937383111164548
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "buffer-64KiB",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.07432051182262311,
+      "intervalPercent": [
+        -0.2086364194582857,
+        0.9829410631190694
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "buffer-64KiB",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.05345339926892123,
+      "intervalPercent": [
+        -0.8603866241855718,
+        1.4746391254051527
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "wrapped-buffer-64B",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.09187748135244256,
+      "intervalPercent": [
+        -0.3238267323012134,
+        0.2314910532047021
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "binary6",
+      "topology": "renderer",
+      "fixture": "wrapped-buffer-64B",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.8183372578210002,
+      "intervalPercent": [
+        -3.7335480181269864,
+        2.3676046931930816
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.05053499640705894,
+      "intervalPercent": [
+        -0.2739447207008583,
+        0.05694792270769522
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.5035648404844162,
+      "intervalPercent": [
+        -1.6010178871406544,
+        4.4826033960782885
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.007705449284767241,
+      "intervalPercent": [
+        -0.09347393582752606,
+        0.18544691001327607
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.8761724229667922,
+      "intervalPercent": [
+        -1.2438481261787704,
+        7.616719162710228
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.049467947613413,
+      "intervalPercent": [
+        -0.3886021170148579,
+        0.1657180286705806
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -0.2816733140898142,
+      "intervalPercent": [
+        -15.637764665958098,
+        1.7020105908368333
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.07204767903264964,
+      "intervalPercent": [
+        -0.23929072456869704,
+        0.2136209076153195
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "resolved6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": -1.3356814989169186,
+      "intervalPercent": [
+        -7.042500004680196,
+        12.415508586625545
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.27023674162622857,
+      "intervalPercent": [
+        -0.41884808526591044,
+        0.05316498089336097
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.32759996556142035,
+      "intervalPercent": [
+        -10.604532475149641,
+        4.474744763138361
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.11301682137550007,
+      "intervalPercent": [
+        -0.3869742011961219,
+        0.15115554292250977
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 1.492763361262095,
+      "intervalPercent": [
+        -4.5940855591878105,
+        9.293033720647138
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.0686335747083322,
+      "intervalPercent": [
+        -0.7464479820898484,
+        0.1628855145653363
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 3.079270885351293,
+      "intervalPercent": [
+        1.074739535027347,
+        6.450398613842223
+      ],
+      "inconclusive": false
+    },
+    {
+      "group": "deferred6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.043378576098729305,
+      "intervalPercent": [
+        -0.2416875302121757,
+        0.3505847824577746
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "deferred6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 2.9895055332632703,
+      "intervalPercent": [
+        -2.3704637403488937,
+        6.224921807711348
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.15205928718927675,
+      "intervalPercent": [
+        -0.9158453892169849,
+        0.6163035216524726
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 1.1090705180324845,
+      "intervalPercent": [
+        -3.071600756860282,
+        2.974131442898309
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": -0.10770241086823784,
+      "intervalPercent": [
+        -0.42539466424431627,
+        0.6046990373499872
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.3040407572936443,
+      "intervalPercent": [
+        -1.8176540140576791,
+        17.158978264590875
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.2783833852846529,
+      "intervalPercent": [
+        -0.49346829615515286,
+        0.47521830468459925
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 1.066727996492678,
+      "intervalPercent": [
+        -1.4504591961507773,
+        25.512155801577574
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "medianPairedChangePercent": 0.019334027018280686,
+      "intervalPercent": [
+        -0.3395528514345991,
+        0.5331602120838719
+      ],
+      "inconclusive": true
+    },
+    {
+      "group": "sequential6",
+      "topology": "renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "medianPairedChangePercent": 0.9014088013992838,
+      "intervalPercent": [
+        -2.9550489067080465,
+        1.4355541410720152
+      ],
+      "inconclusive": true
+    }
+  ],
+  "allocationDiagnostic": {
+    "primitive": {
+      "medians": {
+        "control": 2340.32,
+        "proxy-method-factory": 2279.44
+      },
+      "relativeChangePercent": {
+        "proxy-method-factory": -2.6013536610378085
+      }
+    },
+    "small-object": {
+      "medians": {
+        "control": 2992.624,
+        "proxy-method-factory": 2950.884
+      },
+      "relativeChangePercent": {
+        "proxy-method-factory": -1.3947625896203353
+      }
+    }
+  },
+  "knownConcern": "Rendererprimitivekernelinstructionspositivebothordinary+.394%anddeferred+3.079%; preservebeforefreshAA/fixed50. Missingnamedgetterframesnullnotzero. Do notclaimglobal/appgainfromsmallordinaryNodewins.",
+  "next": "Oneprepared960process+8plumbindependentconfirmationthroughsameexistingserialreviewchildaftercontextconfirmationandrootrelease; no newworker now.",
+  "request": "/home/simon/.cache/ipc-opt-20261025/proxy-factory-independent-confirmation-request.json"
+}

@@ -1,0 +1,428 @@
+{
+  "utc": "2026-10-26T21:56:38.746838+00:00",
+  "decision": "retain-small-current-source-delta-as-allocation-optimization-after-source-and-byte-identity-validation; no broad CPU/startup/elapsed claim",
+  "sourceValidation": "proxy-method-factory-current-source-validation.json",
+  "primaryRows": [
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -3.6067577174479393,
+        "intervalPercent": [
+          -6.012066220075152,
+          -0.7001408931322728
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -0.4670186509638796,
+        "intervalPercent": [
+          -7.819169649823021,
+          2.9776408958457345
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": 0.26249743894661837,
+        "intervalPercent": [
+          -1.8326256859194756,
+          3.41684575376906
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -0.4040964024949023,
+        "intervalPercent": [
+          -4.70848324158144,
+          3.6160958828024725
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.008338851043299123,
+        "intervalPercent": [
+          -0.04532070060144777,
+          0.03593946700841677
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -0.21075531648591106,
+        "intervalPercent": [
+          -3.6557891656257335,
+          2.0470748127507488
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.02778137061800745,
+        "intervalPercent": [
+          -0.06623743570515206,
+          0.005397272756701987
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-aa10-renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 2.437402159827684,
+        "intervalPercent": [
+          0.7411325485797704,
+          4.769394095164214
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -1.2594588034413712,
+        "intervalPercent": [
+          -1.8049875539906668,
+          -0.10867110024412874
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 2.320903060555457,
+        "intervalPercent": [
+          0.8037966819605113,
+          4.314147969749027
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-node",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.09361197201430693,
+        "intervalPercent": [
+          -0.4778677814962995,
+          0.03598170169196724
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-node",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.4526769537619879,
+        "intervalPercent": [
+          -0.7754056480068106,
+          2.0696265976543726
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.1304856452292391,
+        "intervalPercent": [
+          -0.1800307190081063,
+          -0.05339443243534969
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.32602509143087044,
+        "intervalPercent": [
+          -0.8748098048089514,
+          0.9634144129516464
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-renderer",
+      "fixture": "small-object",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.019521313408010776,
+        "intervalPercent": [
+          -0.035310929980858496,
+          0.01013333959083429
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-ordinary-final50-renderer",
+      "fixture": "small-object",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.5405261351280499,
+        "intervalPercent": [
+          -0.42813680224563777,
+          1.6244017083960616
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": 0.1704322155300142,
+        "intervalPercent": [
+          -0.5374395495186479,
+          0.8627674514462225
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -1.806344953521477,
+        "intervalPercent": [
+          -8.110334468104242,
+          8.117316965552067
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.18565657242238798,
+        "intervalPercent": [
+          -0.6124095824383224,
+          0.18641954342668576
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.1246151020690256,
+        "intervalPercent": [
+          -1.909048747907316,
+          1.9394595997069386
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.12938440369109072,
+        "intervalPercent": [
+          -0.26669377677923656,
+          0.06410471473317081
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -1.3218598284848393,
+        "intervalPercent": [
+          -4.680883208597397,
+          5.3858745657183515
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.03172472103750712,
+        "intervalPercent": [
+          -0.19774598482141803,
+          0.08307817351489444
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-deferred-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -0.25679416300523616,
+        "intervalPercent": [
+          -1.2742798934456956,
+          0.3043191885501173
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": 0.09006470624846052,
+        "intervalPercent": [
+          -0.06570139666236541,
+          0.19741110088586922
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-aa10-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": -1.0572958998562476,
+        "intervalPercent": [
+          -1.2675738349561816,
+          -0.5560428293448605
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": 0.03866998278774236,
+        "intervalPercent": [
+          -0.1273323351596134,
+          0.18517715849020178
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-aa10-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.13536258990132222,
+        "intervalPercent": [
+          -0.8694367129605696,
+          1.9792038321751582
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.11642302832015616,
+        "intervalPercent": [
+          -0.17175923822912997,
+          -0.08202066374555228
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-final50-node",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.13911261209709203,
+        "intervalPercent": [
+          -0.08880165009910179,
+          0.6484458675401594
+        ],
+        "inconclusive": true
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:u",
+      "comparison": {
+        "medianPairedChangePercent": -0.07342411695153706,
+        "intervalPercent": [
+          -0.1415448023510124,
+          -0.023281288923682197
+        ],
+        "inconclusive": false
+      }
+    },
+    {
+      "campaign": "proxy-factory-independent-sequential-final50-renderer",
+      "fixture": "primitive",
+      "metric": "instructions:k",
+      "comparison": {
+        "medianPairedChangePercent": 0.15148973147849354,
+        "intervalPercent": [
+          -0.16980989495962717,
+          0.41407811338070033
+        ],
+        "inconclusive": true
+      }
+    }
+  ],
+  "supplementary": "proxy-factory-independent-total-timing-summary.json",
+  "original52RowsAnd24Profiles": "proxy-method-factory-complete-review.json",
+  "scope": "All960independent+8plumbing; sourceRPCmodulebeforechangebyteidenticaltooriginalmeasuredcontrol; currentaftercompiledbytesexactmeasuredcandidatef279. Sixseparateinterval1diagnosticJSallocationprocessespercell lower2.601%primitive/1.395%small; excludesnative/external/notexactcensus. Current202sourceRPC/port/serialization/observedvoidtests,lintandnormalhygiene pass.",
+  "cpuReview": "Only1of8candidateTOTAL intervals excludes0(rendererordinaryprimitive-.1208%CI[-.1752,-.0126]);other7totalandall8elapsedCI0. Nodeordinarykernel+2.321%CI[+.804,+4.314] remainsvisible. IdenticalbinaryAAfalsepositivesincludeNodeordinarytotal-3.627%CI[-6.098,-.793]andNodesequentialtotal-.274%CI[-.532,-.068]; no attributedNodeordinaryCPUgain from-1.06comparison. Original2positivekernelintervalsnotrepeatedinthe samecells; alloriginalresultsretained.",
+  "composition": "Do not multiplygains. Alreadyqueuedmin3b094comparesfixedhistorical4a7runtime-equivalentactual7716control, not this laterfactoryhead. Preserve factorywhencomposingfuturecontextsource; laterfullsource/packagevalidationneededbeforeanycombinedactualAPIclaim."
+}

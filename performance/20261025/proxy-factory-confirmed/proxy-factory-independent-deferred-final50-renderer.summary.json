@@ -1,0 +1,53 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/ipc-opt-20261025/combined-scalar-arguments-owned-runtime",
+    "output": "/home/simon/.cache/ipc-opt-20261025/proxy-factory-independent-deferred-final50-renderer",
+    "variants": "control,proxy-method-factory",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/ipc-opt-20261025/proxy-factory-independent-runtimes.json",
+    "fixtures": "primitive",
+    "replicates": 50,
+    "iterations": 8192,
+    "warmup": 8192,
+    "concurrency": 32,
+    "handler": "deferred"
+  },
+  "pairedIndependentProcesses": 50,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 118050.92474365234,
+          "proxy-method-factory": 118082.62103271484
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": -0.03172472103750712,
+            "intervalPercent": [
+              -0.19774598482141803,
+              0.08307817351489444
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 20074.365478515625,
+          "proxy-method-factory": 20035.764221191406
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": -0.25679416300523616,
+            "intervalPercent": [
+              -1.2742798934456956,
+              0.3043191885501173
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

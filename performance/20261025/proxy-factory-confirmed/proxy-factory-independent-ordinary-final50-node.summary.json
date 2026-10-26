@@ -1,0 +1,87 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/ipc-opt-20261025/combined-scalar-arguments-owned-runtime",
+    "output": "/home/simon/.cache/ipc-opt-20261025/proxy-factory-independent-ordinary-final50-node",
+    "variants": "control,proxy-method-factory",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/ipc-opt-20261025/proxy-factory-independent-runtimes.json",
+    "fixtures": "primitive,small-object",
+    "replicates": 50,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 50,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 25737.362686157227,
+          "proxy-method-factory": 25325.00148010254
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": -1.2594588034413712,
+            "intervalPercent": [
+              -1.8049875539906668,
+              -0.10867110024412874
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 1228.0081939697266,
+          "proxy-method-factory": 1257.1094818115234
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": 2.320903060555457,
+            "intervalPercent": [
+              0.8037966819605113,
+              4.314147969749027
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 47261.77705383301,
+          "proxy-method-factory": 46029.193603515625
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": -0.09361197201430693,
+            "intervalPercent": [
+              -0.4778677814962995,
+              0.03598170169196724
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 1249.718276977539,
+          "proxy-method-factory": 1258.5601654052734
+        },
+        "comparisons": {
+          "proxy-method-factory": {
+            "medianPairedChangePercent": 0.4526769537619879,
+            "intervalPercent": [
+              -0.7754056480068106,
+              2.0696265976543726
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

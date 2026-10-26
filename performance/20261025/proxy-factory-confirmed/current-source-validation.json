@@ -1,0 +1,12 @@
+{
+  "utc": "2026-10-26T21:53:21.176091+00:00",
+  "state": "current-source-validated-committed-before-feature-push",
+  "base": "4a7ffd590b0933f40bebfcaace26ddf04af09313",
+  "sourceSHA256": "72d6b06185d161d0fe33478f45d628cd1e4b962148ba73861a194cf36b214006",
+  "rationale": "CurrentRPCProtocol.ts byte-for-byte identical to frozen measured control source (verified before mutation). Keep measured small closure-factory delta as allocation optimization: calibrated diagnosticJSbytes -2.60%/-1.39%; independent960 all8elapsedCIs0,total7of8CI0,rendererprimitive -.1208%CI[-.1752,-.0126]. AAfalsepositivesNodeordinarytotal-3.627% andseqtotal-.274% retained; Nodeordinarykernel+2.321%CI[+.804,+4.314]. No general CPU/startup gain claimed. Source/lifecycle checks and current compiled parity before commit.",
+  "commit": "01727f8ddcdc94276b35b7e417b9c39e49708253",
+  "passing": 202,
+  "compiledCandidateByteParity": "f27977b35f913f8a952972532ab4b02a3790dfa6da5f1121baab8841201ca80c",
+  "metadataUnchanged": true,
+  "validation": "202currentRPC/MessagePort/serialization/observedvoid tests pass; targeted lint; normalcommit hygiene; exactsourcecontrolidentity and compiledcandidatebyteparity with alreadymeasuredprototype. Preserveallfalsepositives/kernelconcerns; allocatefewerJSbytesonly, no broadCPUspeedupclaim."
+}

@@ -1,0 +1,259 @@
+{
+  "diagnosticOnly": true,
+  "scope": "ActualRPCnativePromiseproxyfactoryvariant,sixfreshprocesses/label/fixture; interval1calibratedJSsamplingafter16384warm+GC,1000sequentialcalls. Notexact/native/externalallocationcensus orCPUestimate. No poolingwithpreviousallocationcohorts.",
+  "samples": [
+    {
+      "replicate": 0,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2384.84,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 0,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2360.048,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 0,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 2998.192,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 0,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2954.84,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 1,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2282.52,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 1,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2343.512,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 1,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2951.856,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 1,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 2988.336,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 2,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2337.128,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 2,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2360.048,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 2,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 2980.616,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 2,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2949.912,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 3,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2275.8,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 3,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2282.312,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 3,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2924.208,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 3,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 2959.496,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 4,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2276.712,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 4,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2276.36,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 4,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 3006.016,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 4,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2934.68,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 5,
+      "fixture": "primitive",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2228.536,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 5,
+      "fixture": "primitive",
+      "variant": "control",
+      "estimatedBytesPerCall": 2371.064,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    },
+    {
+      "replicate": 5,
+      "fixture": "small-object",
+      "variant": "proxy-method-factory",
+      "estimatedBytesPerCall": 2953.952,
+      "getterAttributionPresent": false,
+      "getterSampledBytesPerCall": null
+    },
+    {
+      "replicate": 5,
+      "fixture": "small-object",
+      "variant": "control",
+      "estimatedBytesPerCall": 2996.912,
+      "getterAttributionPresent": true,
+      "getterSampledBytesPerCall": 40.0
+    }
+  ],
+  "fixtures": {
+    "primitive": {
+      "medians": {
+        "control": 2340.32,
+        "proxy-method-factory": 2279.44
+      },
+      "relativeChangePercent": {
+        "proxy-method-factory": -2.6013536610378085
+      }
+    },
+    "small-object": {
+      "medians": {
+        "control": 2992.624,
+        "proxy-method-factory": 2950.884
+      },
+      "relativeChangePercent": {
+        "proxy-method-factory": -1.3947625896203353
+      }
+    }
+  },
+  "getterAttribution": {
+    "interpretation": "Sampled named-function attribution only, not an exact census. Missing getter frames remain null, never imputed zero. Changes can reflect inlining or attribution movement; use all total sampled allocation results independently.",
+    "fixtures": {
+      "primitive": {
+        "control": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          40.0
+        ],
+        "proxy-method-factory": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "small-object": {
+        "control": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          40.0
+        ],
+        "proxy-method-factory": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  }
+}
