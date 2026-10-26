@@ -206,7 +206,8 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
 				if (message instanceof VSBuffer) {
 					this._receiveOneMessage(message);
 				} else if (Array.isArray(message)) {
-					if (message.length > 1 && runInBatch) {
+					// Activation plus one command needs no context buffering; amortize it over larger packets.
+					if (message.length > 2 && runInBatch) {
 						this._receiveNativeMessagesInBatch(message, runInBatch);
 					} else {
 						this._receiveNativeMessages(message);

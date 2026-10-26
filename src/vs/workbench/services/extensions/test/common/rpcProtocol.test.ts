@@ -147,6 +147,33 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	});
 
 	if (mode === 'batched native receive') {
+		test('short command bursts avoid context buffering while larger bursts retain it', async () => {
+			const observations = [];
+			for (const count of [3, 4]) {
+				let depth = 0;
+				let batches = 0;
+				const seen: [unknown, number][] = [];
+				const { proxy } = createAuditedPromiseRPC(value => {
+					seen.push([value, depth]);
+					return value;
+				}, undefined, callback => {
+					batches++;
+					depth++;
+					try {
+						callback();
+					} finally {
+						depth--;
+					}
+				});
+				const results = await Promise.all(Array.from({ length: count }, (_, value) => proxy.$echo(value)));
+				observations.push({ count, seen, results, batches, depth });
+			}
+			assert.deepStrictEqual(observations, [
+				{ count: 3, seen: [[0, 0], [1, 0], [2, 0]], results: [0, 1, 2], batches: 0, depth: 0 },
+				{ count: 4, seen: [[0, 0], [1, 1], [2, 1], [3, 1]], results: [0, 1, 2, 3], batches: 1, depth: 0 }
+			]);
+		});
+
 		test('native batch context covers synchronous invocation and ends before async continuation', async () => {
 			let depth = 0;
 			let batches = 0;
