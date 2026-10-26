@@ -30,23 +30,42 @@ export interface IRPCProtocol {
 	dispose(): void;
 }
 
+type NotificationMethod<T> = {
+	[K in keyof T]: T[K] extends (...args: never[]) => infer R ? R extends void ? K : never : never
+}[keyof T] & string;
+
+/** Observed RPC completion is independent of whether its actor returns void. */
+type NativePromiseMethod<T> = {
+	[K in keyof T]: T[K] extends (...args: never[]) => unknown ? K : never
+}[keyof T] & string;
+
 export class ProxyIdentifier<T> {
 	public static count = 0;
 	_proxyIdentifierBrand: void = undefined;
 
 	public readonly sid: string;
 	public readonly nid: number;
+	/** Native notifications complete when enqueued, rather than when their remote handler returns. */
+	public readonly notificationMethods?: readonly string[];
+	/** Internal API bridges observe these replies; ignored calls retain lazy promises. */
+	public readonly nativePromiseMethods?: readonly string[];
 
-	constructor(sid: string) {
+	constructor(sid: string, notificationMethods?: readonly NotificationMethod<T>[], nativePromiseMethods?: readonly NativePromiseMethod<T>[]) {
 		this.sid = sid;
 		this.nid = (++ProxyIdentifier.count);
+		if (notificationMethods?.length) {
+			this.notificationMethods = notificationMethods;
+		}
+		if (nativePromiseMethods?.length) {
+			this.nativePromiseMethods = nativePromiseMethods;
+		}
 	}
 }
 
 const identifiers: ProxyIdentifier<unknown>[] = [];
 
-export function createProxyIdentifier<T>(identifier: string): ProxyIdentifier<T> {
-	const result = new ProxyIdentifier<T>(identifier);
+export function createProxyIdentifier<T>(identifier: string, notificationMethods?: readonly NotificationMethod<T>[], nativePromiseMethods?: readonly NativePromiseMethod<T>[]): ProxyIdentifier<T> {
+	const result = new ProxyIdentifier<T>(identifier, notificationMethods, nativePromiseMethods);
 	identifiers[result.nid] = result;
 	return result;
 }

@@ -477,6 +477,10 @@ export class MainThreadChatAgents2 extends Disposable implements MainThreadChatA
 		this._chatAgentService.updateAgent(data.id, revive(metadataUpdate));
 	}
 
+	$handleProgressChunkNotification(requestId: string, chunks: (IChatProgressDto | [IChatProgressDto, number])[]): Promise<void> {
+		return this.$handleProgressChunk(requestId, chunks);
+	}
+
 	async $handleProgressChunk(requestId: string, chunks: (IChatProgressDto | [IChatProgressDto, number])[]): Promise<void> {
 		const pendingProgress = this._pendingProgress.get(requestId);
 		if (!pendingProgress) {

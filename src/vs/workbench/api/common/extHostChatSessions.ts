@@ -698,6 +698,9 @@ export class ExtHostChatSessions extends Disposable implements ExtHostChatSessio
 			$handleProgressChunk: (requestId, chunks) => {
 				return this._proxy.$handleProgressChunk(handle, sessionResource, requestId, chunks);
 			},
+			$handleProgressChunkNotification: (requestId, chunks) => {
+				this._proxy.$handleProgressChunkNotification(handle, sessionResource, requestId, chunks);
+			},
 			$handleAnchorResolve: (requestId, requestHandle, anchor) => {
 				this._proxy.$handleAnchorResolve(handle, sessionResource, requestId, requestHandle, anchor);
 			},

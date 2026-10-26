@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
 import { ExtHostFileSystemEventService } from '../../common/extHostFileSystemEventService.js';
-import { IMainContext } from '../../common/extHost.protocol.js';
+import { ExtHostContext, IMainContext, MainContext, MainThreadCommandsShape, MainThreadFileSystemEventServiceShape } from '../../common/extHost.protocol.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ExtHostFileSystemInfo } from '../../common/extHostFileSystemInfo.js';
@@ -14,10 +14,95 @@ import { IExtHostWorkspace } from '../../common/extHostWorkspace.js';
 import { RelativePattern } from '../../common/extHostTypes.js';
 import { nullExtensionDescription } from '../../../services/extensions/common/extensions.js';
 import { ExtHostConfigProvider } from '../../common/extHostConfiguration.js';
+import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
+import { RPCProtocol } from '../../../services/extensions/common/rpcProtocol.js';
+import { IStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
+import { mock } from '../../../../base/test/common/mock.js';
 
 suite('ExtHostFileSystemEventService', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	/** Recognizes empty replies in both native framing formats. */
+	function isEmptyReply(message: unknown): boolean {
+		if (ArrayBuffer.isView(message)) {
+			return false;
+		}
+		const { header } = message as IStructuredCloneMessage;
+		return (typeof header === 'number' ? header & 31 : (header as number[])[0]) === 7;
+	}
+
+	/** Exercises native framing, batching and snapshots through both real RPC peers. */
+	function createRPCPair() {
+		const replies: unknown[] = [];
+		const clientPort = store.add(new RPCMessagePort(message => {
+			const snapshot = structuredClone(message);
+			queueMicrotask(() => serverPort.acceptMessage(snapshot));
+		}));
+		const serverPort = store.add(new RPCMessagePort(message => {
+			replies.push(...(Array.isArray(message) ? message : [message]));
+			const snapshot = structuredClone(message);
+			queueMicrotask(() => clientPort.acceptMessage(snapshot));
+		}));
+		const client = store.add(new RPCProtocol(clientPort));
+		const server = store.add(new RPCProtocol(serverPort));
+		return { client, server, replies };
+	}
+
+	test('watcher registration and disposal use ordered notifications without empty replies', async () => {
+		const { client, server, replies } = createRPCPair();
+		const calls: string[] = [];
+		server.set(MainContext.MainThreadFileSystemEventService, new class extends mock<MainThreadFileSystemEventServiceShape>() {
+			override async $watch(): Promise<void> { calls.push('watch'); }
+			override $unwatch(): void { calls.push('unwatch'); }
+		});
+		server.set(MainContext.MainThreadCommands, new class extends mock<MainThreadCommandsShape>() {
+			override async $getCommands(): Promise<string[]> { return []; }
+		});
+		const commands = client.getProxy(MainContext.MainThreadCommands);
+		await commands.$getCommands();
+		replies.length = 0;
+		const service = new ExtHostFileSystemEventService(client, store.add(new NullLogService()), undefined!);
+		const workspace = new class extends mock<IExtHostWorkspace>() {
+			override getWorkspaceFolder() { return undefined; }
+		};
+		const watcher = store.add(service.createFileSystemWatcher(workspace, undefined!, new ExtHostFileSystemInfo(), nullExtensionDescription, new RelativePattern(URI.file('/outside-workspace'), '*.ts'), {}));
+		watcher.dispose();
+		await commands.$getCommands();
+		const emptyReplies = replies.filter(isEmptyReply).length;
+		assert.deepStrictEqual({ calls, emptyReplies }, { calls: ['watch', 'unwatch'], emptyReplies: 0 });
+	});
+
+	test('provider metadata and file notifications retain snapshots before a subsequent RPC barrier', async () => {
+		const { client, server, replies } = createRPCPair();
+		const info = new ExtHostFileSystemInfo();
+		const service = new ExtHostFileSystemEventService(protocol, store.add(new NullLogService()), undefined!);
+		server.set(ExtHostContext.ExtHostFileSystemInfo, info);
+		server.set(ExtHostContext.ExtHostFileSystemEventService, service);
+		server.set(MainContext.MainThreadCommands, new class extends mock<MainThreadCommandsShape>() {
+			override async $getCommands(): Promise<string[]> { return []; }
+		});
+		const workspace = new class extends mock<IExtHostWorkspace>() {
+			override getWorkspaceFolder() { return { uri: URI.file('/workspace'), name: 'test', index: 0 }; }
+		};
+		const watcher = store.add(service.createFileSystemWatcher(workspace, undefined!, info, nullExtensionDescription, '**/*.ts', {}));
+		const created: string[] = [];
+		store.add(watcher.onDidCreate(uri => created.push(uri.path)));
+		const commands = client.getProxy(MainContext.MainThreadCommands);
+		await commands.$getCommands(); // Establish liveness before notification traffic.
+		replies.length = 0;
+		client.getProxy(ExtHostContext.ExtHostFileSystemInfo).$acceptProviderInfos(URI.file('/'), FileSystemProviderCapabilities.FileReadWrite);
+		const events = { created: [URI.file('/workspace/before.ts')], changed: [], deleted: [] };
+		client.getProxy(ExtHostContext.ExtHostFileSystemEventService).$onFileEvent(events);
+		events.created.push(URI.file('/workspace/after.ts'));
+		await commands.$getCommands();
+		const emptyReplies = replies.filter(isEmptyReply).length;
+		assert.deepStrictEqual({ capabilities: info.getCapabilities('file'), created, emptyReplies }, {
+			capabilities: FileSystemProviderCapabilities.FileReadWrite,
+			created: ['/workspace/before.ts'],
+			emptyReplies: 0
+		});
+	});
 
 	const protocol: IMainContext = {
 		getProxy: () => { return undefined!; },

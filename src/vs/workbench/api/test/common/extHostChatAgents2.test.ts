@@ -133,6 +133,92 @@ suite('ExtHostChatAgents2', function () {
 		assert.deepStrictEqual({ unregisterCount: unregisterCount(), unregisteredCompletions }, { unregisterCount: 1, unregisteredCompletions: [] });
 	});
 
+	function createProgressStream(proxy: IChatAgentProgressShape): ChatAgentResponseStream {
+		return new ChatAgentResponseStream(
+			{ ...nullExtensionDescription, enabledApiProposals: ['chatParticipantAdditions'] },
+			{
+				sessionResource: URI.parse('chat-session:/notification-test'),
+				requestId: 'notification-request',
+				agentId: 'agent',
+				message: '',
+				variables: { variables: [] },
+				location: ChatAgentLocation.Chat,
+			},
+			proxy,
+			undefined as unknown as CommandsConverter,
+			disposables.add(new DisposableStore()),
+			new Map(),
+			CancellationToken.None,
+		);
+	}
+
+	test('ordinary chat progress batches use notifications and retain every chunk in order', async () => {
+		const batches: IChatProgressDto[][] = [];
+		const stream = createProgressStream({
+			$handleProgressChunk: async () => assert.fail('Ordinary progress must not wait for a reply'),
+			$handleProgressChunkNotification: (_requestId, chunks) => {
+				batches.push(chunks.map(chunk => Array.isArray(chunk) ? chunk[0] : chunk));
+			},
+			$handleAnchorResolve() { },
+		});
+		for (let turn = 0; turn < 2; turn++) {
+			for (let index = 0; index < 32; index++) {
+				stream.apiObject.markdown(`chunk-${turn * 32 + index}`);
+			}
+			await Promise.resolve();
+		}
+		stream.close();
+		assert.deepStrictEqual(batches.map(batch => batch.length), [32, 32]);
+		assert.deepStrictEqual(batches.flat().map(chunk => chunk.kind === 'markdownContent' ? chunk.content.value : undefined), Array.from({ length: 64 }, (_, index) => `chunk-${index}`));
+	});
+
+	test('external edits await ordinary progress acknowledgements before starting and completing', async () => {
+		const acknowledgements: DeferredPromise<void>[] = [];
+		const starts: boolean[] = [];
+		const callbackEntered = new DeferredPromise<void>();
+		const stopReceived = new DeferredPromise<void>();
+		const stream = createProgressStream({
+			$handleProgressChunk: (_requestId, chunks) => {
+				const acknowledgement = new DeferredPromise<void>();
+				acknowledgements.push(acknowledgement);
+				for (const entry of chunks) {
+					assert.ok(Array.isArray(entry));
+					const [chunk] = entry;
+					assert.strictEqual(chunk.kind, 'externalEdits');
+					if (chunk.kind === 'externalEdits') {
+						starts.push(chunk.start);
+						if (!chunk.start) {
+							void stopReceived.complete();
+						}
+					}
+				}
+				return acknowledgement.p;
+			},
+			$handleProgressChunkNotification: () => assert.fail('External edits require remote completion'),
+			$handleAnchorResolve() { },
+		});
+		let callbackStarted = false;
+		let completed = false;
+		const operation = stream.apiObject.externalEdit(URI.file('/notification-test.ts'), async () => {
+			callbackStarted = true;
+			await callbackEntered.complete();
+		});
+		void operation.then(() => completed = true);
+		await Promise.resolve();
+		assert.strictEqual(acknowledgements.length, 1);
+		assert.strictEqual(callbackStarted, false);
+		await acknowledgements[0].complete();
+		await callbackEntered.p;
+		await stopReceived.p;
+		assert.strictEqual(callbackStarted, true);
+		assert.strictEqual(completed, false);
+		await acknowledgements[1].complete();
+		await operation;
+		stream.close();
+		assert.strictEqual(completed, true);
+		assert.deepStrictEqual(starts, [true, false]);
+	});
+
 	test('forwards the Auto tier on edit parts and omits it when unset', async () => {
 		const progress: { requestId: string; chunks: IChatProgressDto[] }[] = [];
 		const stream = new ChatAgentResponseStream(
@@ -147,6 +233,9 @@ suite('ExtHostChatAgents2', function () {
 			},
 			{
 				async $handleProgressChunk(requestId, chunks) {
+					progress.push({ requestId, chunks: chunks.map(chunk => Array.isArray(chunk) ? chunk[0] : chunk) });
+				},
+				$handleProgressChunkNotification(requestId, chunks) {
 					progress.push({ requestId, chunks: chunks.map(chunk => Array.isArray(chunk) ? chunk[0] : chunk) });
 				},
 				$handleAnchorResolve() { },
@@ -184,6 +273,9 @@ suite('ExtHostChatAgents2', function () {
 				for (const chunk of chunks) {
 					progressChunks.push(Array.isArray(chunk) ? chunk[0] : chunk);
 				}
+			},
+			$handleProgressChunkNotification(requestId, chunks) {
+				void this.$handleProgressChunk(requestId, chunks);
 			},
 			$handleAnchorResolve(_requestId, handle) {
 				events.push('resolve');

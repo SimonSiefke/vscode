@@ -15,6 +15,7 @@ import { DisposableStore, dispose, IDisposable, toDisposable } from '../../../co
 import { revive } from '../../../common/marshalling.js';
 import * as strings from '../../../common/strings.js';
 import { isFunction, isUndefinedOrNull } from '../../../common/types.js';
+import { URI } from '../../../common/uri.js';
 
 /**
  * An `IChannel` is an abstraction over a collection of commands.
@@ -92,17 +93,290 @@ type IRawPromiseErrorObjResponse = { type: ResponseType.PromiseErrorObj; id: num
 type IRawEventFireResponse = { type: ResponseType.EventFire; id: number; data: any };
 type IRawResponse = IRawInitializeResponse | IRawPromiseSuccessResponse | IRawPromiseErrorResponse | IRawPromiseErrorObjResponse | IRawEventFireResponse;
 
+/** Request/response namespaces let the inactive role skip payload decoding. */
+function isRequestHeader(header: unknown): boolean {
+	return Array.isArray(header) && header[0] >= 100 && header[0] < 200;
+}
+
+function isResponseHeader(header: unknown): boolean {
+	return Array.isArray(header) && header[0] >= 200 && header[0] < 300;
+}
+
 interface IHandler {
 	(response: IRawResponse): void;
 }
 
 export interface IMessagePassingProtocol {
+	readonly type?: undefined;
 	send(buffer: VSBuffer): void;
+	/** Optional native path; received values use the same ordered message stream. */
+	sendStructuredClone?(message: IStructuredCloneMessage): void;
 	readonly onMessage: Event<VSBuffer>;
+	/** Optional ordered receive stream that avoids wrapping native values in byte buffers. */
+	readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
 	/**
 	 * Wait for the write buffer (if applicable) to become empty.
 	 */
 	drain?(): Promise<void>;
+}
+
+export interface IStructuredCloneMessage {
+	header: unknown;
+	body: unknown;
+	/** Object payload encoded as JSON; binary references remain native transport values. */
+	jsonBody?: boolean;
+	/** References to VSBuffer wrappers in the header and body, preserved by structured cloning. */
+	vsBuffers?: readonly { buffer: Uint8Array }[];
+}
+
+const structuredCloneMessage = Symbol('structuredCloneMessage');
+const emptyMessageBuffer = VSBuffer.wrap(new Uint8Array(0)).buffer;
+
+/** Carry native frames through the existing ordered, buffered handshake/RPC stream. */
+export function wrapStructuredCloneMessage(message: IStructuredCloneMessage): VSBuffer {
+	return Object.assign(VSBuffer.wrap(emptyMessageBuffer), { [structuredCloneMessage]: message });
+}
+
+/** Read a locally wrapped native frame; ordinary binary messages have no attachment. */
+export function getStructuredCloneMessage(buffer: VSBuffer): IStructuredCloneMessage | undefined {
+	return (buffer as VSBuffer & { [structuredCloneMessage]?: IStructuredCloneMessage })[structuredCloneMessage];
+}
+
+export interface IStructuredCloneMessagePassingProtocol {
+	readonly type: 'structuredClone';
+	send(message: IStructuredCloneMessage): void;
+	readonly onMessage: Event<IStructuredCloneMessage>;
+}
+
+export type IChannelMessagePassingProtocol = IMessagePassingProtocol | IStructuredCloneMessagePassingProtocol;
+
+function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
+	if (protocol.type === 'structuredClone') {
+		// Channel headers contain only request IDs and names. Connection contexts
+		// can be arbitrary values and retain the full marshalling path below.
+		if (!header || typeof header !== 'object' || Array.isArray(header) && header.every(value => !value || typeof value !== 'object')) {
+			if (!body || typeof body !== 'object' || body instanceof Uint8Array) {
+				protocol.send({ header, body });
+				return 0;
+			}
+			if (body instanceof VSBuffer) {
+				protocol.send({ header, body, vsBuffers: [body] });
+				return 0;
+			}
+			if (body instanceof URI) {
+				protocol.send({ header, body: body.toJSON() });
+				return 0;
+			}
+			const json = trySerializeJSONBody(header, body);
+			if (json) {
+				protocol.send(json);
+				return 0;
+			}
+		}
+		const vsBuffers: { buffer: Uint8Array }[] = [];
+		const message = transformStructuredCloneData({ header, body }, value => {
+			if (value instanceof URI) {
+				return value.toJSON();
+			}
+			if (value instanceof VSBuffer) {
+				const buffer = { buffer: value.buffer };
+				vsBuffers.push(buffer);
+				return buffer;
+			}
+			return value;
+		}) as IStructuredCloneMessage;
+		if (vsBuffers.length > 0) {
+			message.vsBuffers = vsBuffers;
+		}
+		protocol.send(message);
+		return 0;
+	}
+
+	return sendBufferMessage(protocol, header, body);
+}
+
+/** JSON strings avoid native cloning of large DTO trees and byte encoding. */
+function trySerializeJSONBody(header: unknown, body: unknown): IStructuredCloneMessage | undefined {
+	if (!canSerializeChannelJSON(body, new Set())) {
+		return undefined;
+	}
+	try {
+		return { header, body: JSON.stringify(body), jsonBody: true };
+	} catch (error) {
+		// Cycles and nested bigint values still require the native graph path.
+		if (!(error instanceof TypeError)) {
+			throw error;
+		}
+		return undefined;
+	}
+}
+
+/** Prefer legacy JSON for bulk DTOs, retaining richer graph semantics for smaller values.
+ * Optional fields and local callbacks retain the legacy JSON omission semantics.
+ */
+function canSerializeChannelJSON(data: unknown, seen: Set<object>): boolean {
+	if (!data || typeof data !== 'object') {
+		return false;
+	}
+	if (seen.has(data)) {
+		return false;
+	}
+	seen.add(data);
+	if (data instanceof URI) {
+		return true;
+	}
+	const isArray = Array.isArray(data);
+	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+	if (!isArray && prototype !== Object.prototype && prototype !== null) {
+		return false;
+	}
+	const keys = Object.keys(data);
+	// Bulk channel payloads historically used JSON. Avoid recursively reflecting
+	// their DTO trees while preserving top-level native values on the graph path.
+	if (keys.length >= 32) {
+		if (isArray && (keys.length !== data.length || keys[keys.length - 1] !== String(data.length - 1))) {
+			return false;
+		}
+		for (const key of keys) {
+			const value = (data as Record<string, unknown>)[key];
+			if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+				return false;
+			}
+			if (value && typeof value === 'object' && !(value instanceof URI)) {
+				const prototype = Object.getPrototypeOf(value);
+				if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+					return false;
+				}
+			} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+				return false;
+			}
+		}
+		return true;
+	}
+	if (isArray && keys.length !== data.length) {
+		return false;
+	}
+	let index = 0;
+	for (const key of keys) {
+		if (isArray && key !== String(index++)) {
+			return false;
+		}
+		const descriptor = Object.getOwnPropertyDescriptor(data, key)!;
+		if (descriptor.get || descriptor.set) {
+			return false;
+		}
+		const value: unknown = descriptor.value;
+		if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+			return false;
+		}
+		if (value && typeof value === 'object') {
+			if (!canSerializeChannelJSON(value, seen)) {
+				return false;
+			}
+		} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Convert channel values without mutating them or losing structured-clone graph identity.
+ * Native cloneable values, including binary payloads, are left to the transport.
+ */
+function transformStructuredCloneData(data: unknown, transform: (value: object) => unknown, seen = new Map<object, unknown>()): unknown {
+	if (!data || typeof data !== 'object') {
+		return data;
+	}
+	if (seen.has(data)) {
+		return seen.get(data);
+	}
+	const transformed = transform(data);
+	if (transformed !== data) {
+		seen.set(data, transformed);
+		return transformed;
+	}
+	if (data instanceof Map) {
+		const result = new Map();
+		seen.set(data, result);
+		// Snapshot internal entries before getters can mutate the collection.
+		for (const [key, value] of Array.from(Map.prototype.entries.call(data))) {
+			result.set(transformStructuredCloneData(key, transform, seen), transformStructuredCloneData(value, transform, seen));
+		}
+		return result;
+	}
+	if (data instanceof Set) {
+		const result = new Set();
+		seen.set(data, result);
+		for (const value of Array.from(Set.prototype.values.call(data))) {
+			result.add(transformStructuredCloneData(value, transform, seen));
+		}
+		return result;
+	}
+	// Classifying plain objects must not invoke Symbol.toStringTag getters.
+	const isArray = Array.isArray(data);
+	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+	if (isArray || prototype === Object.prototype || prototype === null || Object.prototype.toString.call(data) === '[object Object]') {
+		const result: object = isArray ? new Array(data.length) : {};
+		seen.set(data, result);
+		for (const key of Object.keys(data)) {
+			// Keep the initial enumerable keys, but omit keys deleted by earlier getters.
+			if (!Object.hasOwn(data, key)) {
+				continue;
+			}
+			const original = (data as Record<string, unknown>)[key];
+			// Local callbacks are omitted by the legacy JSON transport as well.
+			if (typeof original === 'function' || typeof original === 'symbol') {
+				continue;
+			}
+			const value = transformStructuredCloneData(original, transform, seen);
+			if (key === '__proto__') {
+				// Assignment would invoke Object.prototype's setter instead of copying the key.
+				Object.defineProperty(result, key, { value, enumerable: true, configurable: true, writable: true });
+			} else {
+				(result as Record<string, unknown>)[key] = value;
+			}
+		}
+		return result;
+	}
+	return data;
+}
+
+function deserializeStructuredCloneMessage(message: IStructuredCloneMessage): IStructuredCloneMessage {
+	// Structured cloning preserves the references in this table, including aliases
+	// in Map keys and Set entries. Restore those wrappers directly without walking
+	// or copying the received graph a second time.
+	for (const value of message.vsBuffers ?? []) {
+		if (value instanceof VSBuffer) {
+			continue;
+		}
+		const buffer = VSBuffer.wrap(value.buffer);
+		Object.setPrototypeOf(value, VSBuffer.prototype);
+		Object.assign(value, buffer);
+	}
+	if (message.jsonBody) {
+		message.body = JSON.parse(message.body as string);
+		// IPCClient shares this frame between its ChannelClient and ChannelServer.
+		message.jsonBody = false;
+	}
+	return message;
+}
+
+function sendBufferMessage(protocol: IMessagePassingProtocol, header: unknown, body: any): number {
+	const writer = new BufferWriter();
+	try {
+		serialize(writer, header);
+		serialize(writer, body);
+		const message = writer.buffer;
+		try {
+			protocol.send(message);
+			return message.byteLength;
+		} catch (error) {
+			return 0;
+		}
+	} finally {
+		writer.dispose();
+	}
 }
 
 enum State {
@@ -166,21 +440,27 @@ interface IWriter {
 }
 
 
+function readByte(reader: IReader): number {
+	return reader instanceof BufferReader ? reader.readUInt8() : reader.read(1).readUInt8(0);
+}
+
 /**
  * @see https://en.wikipedia.org/wiki/Variable-length_quantity
  */
 function readIntVQL(reader: IReader) {
 	let value = 0;
 	for (let n = 0; ; n += 7) {
-		const next = reader.read(1);
-		value |= (next.buffer[0] & 0b01111111) << n;
-		if (!(next.buffer[0] & 0b10000000)) {
+		const next = readByte(reader);
+		value |= (next & 0b01111111) << n;
+		if (!(next & 0b10000000)) {
 			return value;
 		}
 	}
 }
 
 const vqlZero = createOneByteBuffer(0);
+// Cache short control values without retaining a message Buffer slab.
+const vqlSmall: (VSBuffer | undefined)[] = new Array(256);
 
 /**
  * @see https://en.wikipedia.org/wiki/Variable-length_quantity
@@ -188,6 +468,20 @@ const vqlZero = createOneByteBuffer(0);
 function writeInt32VQL(writer: IWriter, value: number) {
 	if (value === 0) {
 		writer.write(vqlZero);
+		return;
+	}
+
+	if ((value & 0xff) === value) {
+		let cached = vqlSmall[value];
+		if (!cached) {
+			cached = VSBuffer.alloc(value < 128 ? 1 : 2, { unpooled: true });
+			cached.writeUInt8(value < 128 ? value : (value & 127) | 128, 0);
+			if (value >= 128) {
+				cached.writeUInt8(1, 1);
+			}
+			vqlSmall[value] = cached;
+		}
+		writer.write(cached);
 		return;
 	}
 
@@ -213,6 +507,10 @@ export class BufferReader implements IReader {
 	private pos = 0;
 
 	constructor(private buffer: VSBuffer) { }
+
+	readUInt8(): number {
+		return this.buffer.readUInt8(this.pos++);
+	}
 
 	read(bytes: number): VSBuffer {
 		const result = this.buffer.slice(this.pos, this.pos + bytes);
@@ -278,6 +576,11 @@ export function serialize(writer: IWriter, data: any): void {
 		writer.write(BufferPresets.Buffer);
 		writeInt32VQL(writer, buffer.byteLength);
 		writer.write(buffer);
+	} else if (data instanceof Uint8Array) {
+		const buffer = VSBuffer.wrap(data);
+		writer.write(BufferPresets.Buffer);
+		writeInt32VQL(writer, buffer.byteLength);
+		writer.write(buffer);
 	} else if (data instanceof VSBuffer) {
 		writer.write(BufferPresets.VSBuffer);
 		writeInt32VQL(writer, data.byteLength);
@@ -302,7 +605,7 @@ export function serialize(writer: IWriter, data: any): void {
 }
 
 export function deserialize(reader: IReader): any {
-	const type = reader.read(1).readUInt8(0);
+	const type = readByte(reader);
 
 	switch (type) {
 		case DataType.Undefined: return undefined;
@@ -339,8 +642,16 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	// They will timeout after `timeoutDelay`.
 	private pendingRequests = new Map<string, PendingRequest[]>();
 
-	constructor(private protocol: IMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
-		this.protocolListener = this.protocol.onMessage(msg => this.onRawMessage(msg));
+	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
+		this.protocolListener = protocol.type === 'structuredClone'
+			? protocol.onMessage(message => {
+				if (!isRequestHeader(message.header)) {
+					return;
+				}
+				const { header, body } = deserializeStructuredCloneMessage(message);
+				this.onMessage(header, body, 0);
+			})
+			: protocol.onMessage(message => this.onRawMessage(message));
 		this.sendResponse({ type: ResponseType.Initialize });
 	}
 
@@ -371,44 +682,34 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 	}
 
 	private send(header: unknown, body: any = undefined): number {
-		const writer = new BufferWriter();
-		try {
-			serialize(writer, header);
-			serialize(writer, body);
-			return this.sendBuffer(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
-	}
-
-	private sendBuffer(message: VSBuffer): number {
-		try {
-			this.protocol.send(message);
-			return message.byteLength;
-		} catch (err) {
-			// noop
-			return 0;
-		}
+		return sendMessage(this.protocol, header, body);
 	}
 
 	private onRawMessage(message: VSBuffer): void {
 		const reader = new BufferReader(message);
 		const header = deserialize(reader);
+		if (!isRequestHeader(header)) {
+			return;
+		}
 		const body = deserialize(reader);
+		this.onMessage(header, body, message.byteLength);
+	}
+
+	private onMessage(header: any, body: any, messageLength: number): void {
 		const type = header[0] as RequestType;
 
 		switch (type) {
 			case RequestType.Promise:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
+				this.logger?.logIncoming(messageLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
 				return this.onPromise({ type, id: header[1], channelName: header[2], name: header[3], arg: body });
 			case RequestType.EventListen:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
+				this.logger?.logIncoming(messageLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}: ${header[2]}.${header[3]}`, body);
 				return this.onEventListen({ type, id: header[1], channelName: header[2], name: header[3], arg: body });
 			case RequestType.PromiseCancel:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
+				this.logger?.logIncoming(messageLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
 				return this.disposeActiveRequest({ type, id: header[1] });
 			case RequestType.EventDispose:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
+				this.logger?.logIncoming(messageLength, header[1], RequestInitiator.OtherSide, `${requestTypeToStr(type)}`);
 				return this.disposeActiveRequest({ type, id: header[1] });
 		}
 	}
@@ -552,8 +853,16 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	private readonly _onDidInitialize = new Emitter<void>();
 	readonly onDidInitialize = this._onDidInitialize.event;
 
-	constructor(private protocol: IMessagePassingProtocol, logger: IIPCLogger | null = null) {
-		this.protocolListener = this.protocol.onMessage(msg => this.onBuffer(msg));
+	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
+		this.protocolListener = protocol.type === 'structuredClone'
+			? protocol.onMessage(message => {
+				if (!isResponseHeader(message.header)) {
+					return;
+				}
+				const { header, body } = deserializeStructuredCloneMessage(message);
+				this.onMessage(header, body, 0);
+			})
+			: protocol.onMessage(message => this.onBuffer(message));
 		this.logger = logger;
 	}
 
@@ -730,42 +1039,32 @@ export class ChannelClient implements IChannelClient, IDisposable {
 	}
 
 	private send(header: unknown, body: any = undefined): number {
-		const writer = new BufferWriter();
-		try {
-			serialize(writer, header);
-			serialize(writer, body);
-			return this.sendBuffer(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
-	}
-
-	private sendBuffer(message: VSBuffer): number {
-		try {
-			this.protocol.send(message);
-			return message.byteLength;
-		} catch (err) {
-			// noop
-			return 0;
-		}
+		return sendMessage(this.protocol, header, body);
 	}
 
 	private onBuffer(message: VSBuffer): void {
 		const reader = new BufferReader(message);
 		const header = deserialize(reader);
+		if (!isResponseHeader(header)) {
+			return;
+		}
 		const body = deserialize(reader);
+		this.onMessage(header, body, message.byteLength);
+	}
+
+	private onMessage(header: any, body: any, messageLength: number): void {
 		const type: ResponseType = header[0];
 
 		switch (type) {
 			case ResponseType.Initialize:
-				this.logger?.logIncoming(message.byteLength, 0, RequestInitiator.LocalSide, responseTypeToStr(type));
+				this.logger?.logIncoming(messageLength, 0, RequestInitiator.LocalSide, responseTypeToStr(type));
 				return this.onResponse({ type: header[0] });
 
 			case ResponseType.PromiseSuccess:
 			case ResponseType.PromiseError:
 			case ResponseType.EventFire:
 			case ResponseType.PromiseErrorObj:
-				this.logger?.logIncoming(message.byteLength, header[1], RequestInitiator.LocalSide, responseTypeToStr(type), body);
+				this.logger?.logIncoming(messageLength, header[1], RequestInitiator.LocalSide, responseTypeToStr(type), body);
 				return this.onResponse({ type: header[0], id: header[1], data: body });
 		}
 	}
@@ -808,7 +1107,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 }
 
 export interface ClientConnectionEvent {
-	protocol: IMessagePassingProtocol;
+	protocol: IChannelMessagePassingProtocol;
 	readonly onDidClientDisconnect: Event<void>;
 }
 
@@ -846,35 +1145,37 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
 
 	constructor(onDidClientConnect: Event<ClientConnectionEvent>, ipcLogger?: IIPCLogger | null, timeoutDelay?: number) {
 		this.disposables.add(onDidClientConnect(({ protocol, onDidClientDisconnect }) => {
-			const onFirstMessage = Event.once(protocol.onMessage);
-
 			const connectionDisposables = new DisposableStore();
 
-			const onFirstMessageDisposable = onFirstMessage(msg => {
-				const reader = new BufferReader(msg);
-				const ctx = deserialize(reader) as TContext;
-
-				const channelServer = new ChannelServer(protocol, ctx, ipcLogger, timeoutDelay);
-				const channelClient = new ChannelClient(protocol, ipcLogger);
-
-				this.channels.forEach((channel, name) => channelServer.registerChannel(name, channel));
-
-				const connection: Connection<TContext> = { channelServer, channelClient, ctx };
-				this._connections.add(connection);
-				this._onDidAddConnection.fire(connection);
-
-				connectionDisposables.add(onDidClientDisconnect(() => {
-					channelServer.dispose();
-					channelClient.dispose();
-					this._connections.delete(connection);
-					this._onDidRemoveConnection.fire(connection);
-					this.disposables.delete(connectionDisposables);
-					connectionDisposables.dispose();
+			const onFirstMessageDisposable = (protocol.type === 'structuredClone'
+				? Event.once(protocol.onMessage)(message => this.initializeConnection(protocol, deserializeStructuredCloneMessage(message).header as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay))
+				: Event.once(protocol.onMessage)(message => {
+					const reader = new BufferReader(message);
+					this.initializeConnection(protocol, deserialize(reader) as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay);
 				}));
-			});
 
 			connectionDisposables.add(onFirstMessageDisposable);
 			this.disposables.add(connectionDisposables);
+		}));
+	}
+
+	private initializeConnection(protocol: IChannelMessagePassingProtocol, ctx: TContext, onDidClientDisconnect: Event<void>, connectionDisposables: DisposableStore, ipcLogger?: IIPCLogger | null, timeoutDelay?: number): void {
+		const channelServer = new ChannelServer(protocol, ctx, ipcLogger, timeoutDelay);
+		const channelClient = new ChannelClient(protocol, ipcLogger);
+
+		this.channels.forEach((channel, name) => channelServer.registerChannel(name, channel));
+
+		const connection: Connection<TContext> = { channelServer, channelClient, ctx };
+		this._connections.add(connection);
+		this._onDidAddConnection.fire(connection);
+
+		connectionDisposables.add(onDidClientDisconnect(() => {
+			channelServer.dispose();
+			channelClient.dispose();
+			this._connections.delete(connection);
+			this._onDidRemoveConnection.fire(connection);
+			this.disposables.delete(connectionDisposables);
+			connectionDisposables.dispose();
 		}));
 	}
 
@@ -1017,14 +1318,8 @@ export class IPCClient<TContext = string> implements IChannelClient, IChannelSer
 	private channelClient: ChannelClient;
 	private channelServer: ChannelServer<TContext>;
 
-	constructor(protocol: IMessagePassingProtocol, ctx: TContext, ipcLogger: IIPCLogger | null = null) {
-		const writer = new BufferWriter();
-		try {
-			serialize(writer, ctx);
-			protocol.send(writer.buffer);
-		} finally {
-			writer.dispose();
-		}
+	constructor(protocol: IChannelMessagePassingProtocol, ctx: TContext, ipcLogger: IIPCLogger | null = null) {
+		sendMessage(protocol, ctx);
 
 		this.channelClient = new ChannelClient(protocol, ipcLogger);
 		this.channelServer = new ChannelServer(protocol, ctx, ipcLogger);
