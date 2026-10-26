@@ -4215,7 +4215,8 @@ export const MainContext = {
 	MainThreadLanguageModelTools: createProxyIdentifier<MainThreadLanguageModelToolsShape>('MainThreadChatSkills', ['$registerTool', '$registerToolWithDefinition', '$unregisterTool', '$acceptToolProgress']),
 	MainThreadGitExtension: createProxyIdentifier<MainThreadGitExtensionShape>('MainThreadGitExtension'),
 	MainThreadClipboard: createProxyIdentifier<MainThreadClipboardShape>('MainThreadClipboard'),
-	MainThreadCommands: createProxyIdentifier<MainThreadCommandsShape>('MainThreadCommands', ['$registerCommand', '$unregisterCommand', '$fireCommandActivationEvent']),
+	// ExtHostCommands._doExecuteCommand unconditionally awaits the native-promise reply.
+	MainThreadCommands: createProxyIdentifier<MainThreadCommandsShape>('MainThreadCommands', ['$registerCommand', '$unregisterCommand', '$fireCommandActivationEvent'], ['$executeCommand']),
 	MainThreadComments: createProxyIdentifier<MainThreadCommentsShape>('MainThreadComments'),
 	MainThreadConfiguration: createProxyIdentifier<MainThreadConfigurationShape>('MainThreadConfiguration'),
 	MainThreadConsole: createProxyIdentifier<MainThreadConsoleShape>('MainThreadConsole'),

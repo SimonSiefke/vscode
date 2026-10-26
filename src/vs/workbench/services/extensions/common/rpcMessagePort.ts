@@ -5,15 +5,36 @@
 
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Event } from '../../../../base/common/event.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
 import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 
 /** Batch immutable native RPC frames while retaining binary/control ordering. */
 export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
-	private readonly messages = new BufferedEmitter<VSBuffer | IStructuredCloneMessage>();
+	private readonly messages = new BufferedEmitter<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>();
+	private readonly legacyStore = new DisposableStore();
+	private legacyDeliveryDepth = 0;
 	readonly onMessageWithStructuredClone = this.messages.event;
-	readonly onMessage = Event.map(this.onMessageWithStructuredClone, message => message instanceof VSBuffer ? message : wrapStructuredCloneMessage(message));
+	readonly onMessage = Event.map<VSBuffer | IStructuredCloneMessage, VSBuffer>((listener, thisArgs, disposables) => this.onMessageWithStructuredClone(message => {
+		this.legacyDeliveryDepth++;
+		try {
+			if (Array.isArray(message)) {
+				for (const frame of message) {
+					if (this.disposed) {
+						break;
+					}
+					listener.call(thisArgs, frame);
+				}
+			} else {
+				listener.call(thisArgs, message as VSBuffer | IStructuredCloneMessage);
+			}
+		} finally {
+			if (--this.legacyDeliveryDepth === 0 && this.disposed) {
+				this.legacyStore.dispose();
+			}
+		}
+	}, undefined, disposables), message => message instanceof VSBuffer ? message : wrapStructuredCloneMessage(message), this.legacyStore);
+
 	private pending: IStructuredCloneMessage[] | undefined;
 	private pendingCharacters = 0;
 	private scheduled = false;
@@ -26,18 +47,11 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
 		if (this.disposed) {
 			return;
 		}
-		this.nativeSentSinceReceive = false;
+		this.nativeSentSinceReceive = Array.isArray(data) && data.length > 1;
 		if (ArrayBuffer.isView(data)) {
 			this.messages.fire(VSBuffer.wrap(data as Uint8Array));
-		} else if (Array.isArray(data)) {
-			for (const message of data) {
-				if (this.disposed) {
-					break;
-				}
-				this.messages.fire(message);
-			}
 		} else {
-			this.messages.fire(data as IStructuredCloneMessage);
+			this.messages.fire(data as IStructuredCloneMessage | readonly IStructuredCloneMessage[]);
 		}
 	}
 
@@ -97,5 +111,9 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
 		this.pending = undefined;
 		this.pendingCharacters = 0;
 		this.messages.flushBuffer();
+		// Finish broadcasting the current legacy frame before releasing its listeners.
+		if (this.legacyDeliveryDepth === 0) {
+			this.legacyStore.dispose();
+		}
 	}
 }

@@ -113,7 +113,7 @@ export interface IMessagePassingProtocol {
 	sendStructuredClone?(message: IStructuredCloneMessage): void;
 	readonly onMessage: Event<VSBuffer>;
 	/** Optional ordered receive stream that avoids wrapping native values in byte buffers. */
-	readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage>;
+	readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
 	/**
 	 * Wait for the write buffer (if applicable) to become empty.
 	 */

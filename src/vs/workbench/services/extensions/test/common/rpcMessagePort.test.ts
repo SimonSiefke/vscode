@@ -84,11 +84,14 @@ suite('RPCMessagePort', () => {
 		port.acceptMessage(frames[0]);
 		port.acceptMessage(new Uint8Array([2]));
 		port.acceptMessage(frames.slice(1));
-		const received: (VSBuffer | IStructuredCloneMessage)[] = [];
+		const received: (VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[])[] = [];
 		store.add(port.onMessageWithStructuredClone(message => received.push(message)));
 		await Promise.resolve();
-		assert.deepStrictEqual(received.map(message => message instanceof VSBuffer ? message.readUInt8(0) : (message.header as number[])[1]), [1, 2, 3, 4]);
+		assert.strictEqual(received.length, 3);
 		assert.strictEqual(received[0], frames[0]);
+		assert.ok(received[1] instanceof VSBuffer);
+		assert.strictEqual(received[1].readUInt8(0), 2);
+		assert.deepStrictEqual(received[2], frames.slice(1));
 	});
 
 	test('disposal during a native receive batch stops remaining delivery', () => {
@@ -100,6 +103,31 @@ suite('RPCMessagePort', () => {
 		}));
 		port.acceptMessage([frame(1), frame(2)]);
 		assert.strictEqual(received, 1);
+	});
+
+	test('a received native batch coalesces small replies without an immediate-send split', async () => {
+		const sent: unknown[] = [];
+		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+		port.acceptMessage([frame(0), frame(1)]);
+		port.sendStructuredClone(frame(2));
+		port.sendStructuredClone(frame(3));
+		assert.deepStrictEqual(sent, []);
+		await Promise.resolve();
+		assert.deepStrictEqual(sent, [[frame(2), frame(3)]]);
+	});
+
+	test('legacy listeners share the current frame when disposal stops the rest of a batch', () => {
+		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+		const received: VSBuffer[][] = [[], []];
+		store.add(port.onMessage(message => {
+			received[0].push(message);
+			port.dispose();
+		}));
+		store.add(port.onMessage(message => received[1].push(message)));
+		port.acceptMessage([frame(1), frame(2)]);
+		assert.deepStrictEqual(received.map(messages => messages.length), [1, 1]);
+		assert.strictEqual(received[0][0], received[1][0]);
+		assert.strictEqual((getStructuredCloneMessage(received[0][0])!.header as number[])[1], 1);
 	});
 
 	test('drain flushes a queued frame immediately', async () => {

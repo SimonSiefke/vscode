@@ -17,6 +17,13 @@ import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/pro
 import { RPCMessagePort } from '../../common/rpcMessagePort.js';
 import { RPCProtocol } from '../../common/rpcProtocol.js';
 
+type ObservedRepliesService = {
+	$echo(value: unknown): unknown;
+	$fail(): number;
+	$hold(): Promise<number>;
+};
+const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('observedReplies', undefined, ['$echo', '$fail', '$hold']);
+
 ['binary', 'native JSON', 'batched JSON', 'batched native receive'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
 	const native = mode !== 'binary';
 	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
@@ -31,7 +38,7 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
 		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
-		public readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage>;
+		public readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
 
 		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
 			if (mode === 'batched JSON' || mode === 'batched native receive') {
@@ -107,6 +114,79 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	/** Use the same transport modes for observed promises and the legacy mixed fallback. */
+	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: VSBuffer[]) {
+		const one = new MessagePassingProtocol(message => sent?.push(message));
+		const two = new MessagePassingProtocol();
+		one.setPair(two);
+		two.setPair(one);
+		const client = disposables.add(new RPCProtocol(one));
+		const server = disposables.add(new RPCProtocol(two));
+		server.set(observedRepliesIdentifier, {
+			$echo: echo,
+			$fail: () => { throw new Error('observed failure'); },
+			$hold: () => new Promise<number>(() => { })
+		});
+		return { client, proxy: client.getProxy(observedRepliesIdentifier) };
+	}
+
+	test('audited observed methods return native promises only on native JSON requests', async () => {
+		const { proxy } = createAuditedPromiseRPC();
+		const reply = proxy.$echo(7);
+		assert.strictEqual(reply instanceof Promise, native);
+		assert.strictEqual(await reply, 7);
+	});
+
+	test('observed methods preserve the lazy mixed-buffer fallback and exact bytes', async () => {
+		const { proxy } = createAuditedPromiseRPC();
+		const reply = proxy.$echo(VSBuffer.fromByteArray([0, 1, 127, 255]));
+		assert.strictEqual(reply instanceof Promise, false);
+		const value = await reply;
+		assert.ok(value instanceof VSBuffer);
+		assert.deepStrictEqual([...value.buffer], [0, 1, 127, 255]);
+	});
+
+	test('observed method rejections remain catchable', async () => {
+		const { proxy } = createAuditedPromiseRPC();
+		await assert.rejects(proxy.$fail(), /observed failure/);
+	});
+
+	test('disposal rejects an already-observed native reply', async () => {
+		const { client, proxy } = createAuditedPromiseRPC();
+		const rejection = assert.rejects(proxy.$hold(), /Canceled/);
+		client.dispose();
+		await rejection;
+	});
+
+	test('single scalar request bodies preserve argument normalization and object fallback', async () => {
+		const sent: VSBuffer[] = [];
+		const { proxy } = createAuditedPromiseRPC(value => ({ kind: typeof value, value, negativeZero: Object.is(value, -0) }), sent);
+		const text = String.fromCharCode(0, 0xd800, 0xdc00, 0xd800, 34, 92) + '😊';
+		const cases = [
+			{ value: undefined, expected: { kind: 'undefined', negativeZero: false }, scalar: true },
+			{ value: null, expected: { kind: 'object', value: null, negativeZero: false }, scalar: true },
+			{ value: true, expected: { kind: 'boolean', value: true, negativeZero: false }, scalar: true },
+			{ value: false, expected: { kind: 'boolean', value: false, negativeZero: false }, scalar: true },
+			{ value: 42, expected: { kind: 'number', value: 42, negativeZero: false }, scalar: true },
+			{ value: -0, expected: { kind: 'number', value: 0, negativeZero: false }, scalar: true },
+			{ value: NaN, expected: { kind: 'object', value: null, negativeZero: false }, scalar: true },
+			{ value: Infinity, expected: { kind: 'object', value: null, negativeZero: false }, scalar: true },
+			{ value: -Infinity, expected: { kind: 'object', value: null, negativeZero: false }, scalar: true },
+			{ value: '', expected: { kind: 'string', value: '', negativeZero: false }, scalar: true },
+			{ value: text, expected: { kind: 'string', value: text, negativeZero: false }, scalar: true },
+			{ value: text.repeat(4096), expected: { kind: 'string', value: text.repeat(4096), negativeZero: false }, scalar: true },
+			{ value: { toJSON: () => 'object fallback' }, expected: { kind: 'string', value: 'object fallback', negativeZero: false }, scalar: false },
+			{ value: { toJSON: () => undefined }, expected: { kind: 'object', value: null, negativeZero: false }, scalar: false }
+		];
+		for (const item of cases) {
+			sent.length = 0;
+			assert.deepStrictEqual(await proxy.$echo(item.value), item.expected);
+			if (native) {
+				assert.strictEqual(messageType(sent[0]), item.scalar ? 15 : 1);
+			}
+		}
+	});
+
 	test('simple call', function (done) {
 		delegate = (a1: number, a2: number) => a1 + a2;
 		bProxy.$m(4, 1).then((res: number) => {
@@ -140,7 +220,10 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 				sent.length = 0;
 				assert.deepStrictEqual(await proxy.$inspect(...args), service.$inspect(...args));
 				const frame = getStructuredCloneMessage(sent[0]);
-				if (native && length <= 32) {
+				if (native && length === 1) {
+					assert.ok(frame);
+					assert.deepStrictEqual({ type: messageType(sent[0]), body: frame.body, undefinedMask: Reflect.get(frame, 'undefinedMask') }, { type: 15, body: undefined, undefinedMask: undefined });
+				} else if (native && length <= 32) {
 					assert.ok(frame);
 					assert.strictEqual(Reflect.get(frame, 'undefinedMask') ?? (frame.header as number[])[4], 1 << position);
 				} else {
@@ -175,7 +258,8 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 	});
 
 	test('optional native arguments preserve cancellation-token delivery', async () => {
-		const one = new MessagePassingProtocol();
+		const sent: VSBuffer[] = [];
+		const one = new MessagePassingProtocol(message => sent.push(message));
 		const two = new MessagePassingProtocol();
 		one.setPair(two);
 		two.setPair(one);
@@ -197,6 +281,9 @@ import { RPCProtocol } from '../../common/rpcProtocol.js';
 		const source = disposables.add(new CancellationTokenSource());
 		const result = client.getProxy(identifier).$wait(undefined, source.token);
 		await entered;
+		if (native) {
+			assert.strictEqual(messageType(sent[0]), 16);
+		}
 		source.cancel();
 		assert.strictEqual(await result, true);
 	});

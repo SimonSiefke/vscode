@@ -122,3 +122,63 @@ The small Node settings regression is retained. Supplementary fixed-work elapsed
 [All exact-source samples, counters, supplementary timing tables, runtime/harness hashes and compatibility controls](https://github.com/SimonSiefke/vscode/tree/3aa10148e76fcf9da80ef67798b959abf8ceb1ad/performance/20261025/scalar-replies-confirmed) are archived separately. Intervals use 10,000 paired bootstrap resamples without multiple-comparison correction. Scalar [smoke compatibility run 40227240697](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40227240697) passes the same 62 tests with 68 pending in both packages; its single-pair duration is not used to estimate speed.
 
 A hosted [software-counter probe](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40230499876) completes twenty warm-workspace launches with process-tree task-clock, faults/context switches and PSS, with no partial samples or diagnostics. Its ten-pair CPU-time comparison is inconclusive. These software counters work where the earlier hosted hardware-instruction probes were unavailable. A [cumulative 50-pair startup CPU/resource comparison](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40231788062) compares the original upstream package with the selected scalar package using four cold/warm empty/workspace scenarios, reusing packages from separate build runs.
+
+## Cumulative startup CPU and merged-base compatibility
+
+The completed [cumulative software-resource run 40231788062](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40231788062) compares original upstream `4df8bb183f0e984e97d8f4200c802c49061d7d3c` with selected scalar source `37e23c02fb542e78dadf80a205dbada712e60406`, before the later merge from `main`. Each scenario requests 50 alternating pairs. Counters cover the application process tree from spawn to visible-workbench readiness and are disabled before shutdown. Task-clock sums CPU time across threads and processes; it is distinct from elapsed startup time.
+
+| Startup scenario | Complete CPU pairs | Median CPU time before → after (ms) | Median change | Exploratory 95% paired interval for median difference (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Empty, cold | 50 | 3953.82 → 3941.76 | -0.30% | [-56.15, +20.34], inconclusive |
+| Empty, warm | 48 | 2371.29 → 2334.73 | -1.54% | [-66.70, -4.10] |
+| Workspace, cold | 50 | 4839.14 → 4706.51 | -2.74% | [-169.71, +17.91], inconclusive |
+| Workspace, warm | 50 | 3403.30 → 3277.95 | -3.68% | [-145.38, -79.95] |
+
+All 400 launches retain resource samples; 398 have CPU counters. Baseline empty/warm pairs 20 and 36 have empty perf output and explicit partial-sample diagnostics. The empty/warm CPU comparison uses the 48 complete pairs, retaining missing-window diagnostics and unmatched after-side measurements. No failed window is replaced with zero or selectively rerun. All raw metric types, logs and sampled PSS remain available in the run artifacts. PSS is sampled every 250 ms, can miss brief peaks, and does not measure allocated bytes. Intervals use the benchmark's paired median-difference bootstrap; there is no multiple-comparison correction.
+
+The ten-method notification increment separately compares the PR's existing main-merge commit `a5e2a60eac7f5f5f819a0021145bd74868c739fb` with `a167347ebc4ab8923c027674f602a4f74d39ada5`. Its [50-pair startup timing run 40228551273](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40228551273) completes all 400 launches; all four paired intervals include zero. Its [smoke compatibility run 40234587600](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40234587600) passes the same 62 tests, with 68 pending, in both packages. That single smoke pair is a compatibility control, not a performance estimate.
+
+A further [50-pair software-resource run against the PR's current base](https://github.com/SimonSiefke/vscode-memory-leak-finder/actions/runs/40240099034) compares `416e5d6b0db90081fddd1d62c9a905cdeb9ebcff` with `a167347ebc4ab8923c027674f602a4f74d39ada5`. It measures the cumulative pushed implementation on the merged codebase separately from the original-base comparison above. The completed run has 400 resource samples and 399 CPU windows:
+
+| Current-base startup scenario | Complete CPU pairs | Median CPU time before → after (ms) | Median change | Exploratory 95% paired interval for median difference (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Empty, cold | 50 | 3582.26 → 3559.96 | -0.62% | [-54.44, +2.55], inconclusive |
+| Empty, warm | 49 | 2303.37 → 2279.49 | -1.04% | [-48.19, -10.59] |
+| Workspace, cold | 50 | 5010.80 → 4969.92 | -0.82% | [-95.01, +23.19], inconclusive |
+| Workspace, warm | 50 | 3815.26 → 3712.63 | -2.69% | [-194.61, +4.22], inconclusive |
+
+After-side empty/warm pair 0 has empty perf output; its unmatched baseline CPU value and diagnostic remain in the raw data. The CPU comparison uses 49 complete pairs, with no zero imputation or selective rerun. The other three scenarios use all 50 pairs. This run uses an Intel Xeon Platinum 8573C runner, while the preceding original-base comparison uses an AMD EPYC 7763; source comparisons and runner hardware are kept separate rather than pooled. Startup uses disabled installed extensions, and these CPU results describe that controlled configuration. No 10–20% complete-product speedup is established.
+
+## Combined native batch and scalar-request confirmation
+
+The next increment passes received native batches through one emitter delivery and coalesces replies to those batches. Existing 64-frame/16 Ki-character limits and binary/control FIFO flushing remain. Audited `MainThreadCommands.$executeCommand` replies use native promises because its existing async bridge always awaits them; other ordinary methods and ignored notification liveness probes retain lazy promises. Single null/string/boolean/number/undefined arguments bypass request-array JSON. Nonfinite numbers become null and negative zero becomes positive zero, matching JSON; objects, mixed buffers and other payloads retain their codecs. Legacy event listeners keep a shared current-frame wrapper and explicit disposal ownership.
+
+Compared with scalar replies `37e23c02fb542e78dadf80a205dbada712e60406`, each topology/fixture has 54 independent paired repetitions with three labels and balanced six cyclic/reversed orders. Ordinary fixtures use 16,384 warmup and 32,768 measured calls; strings use 4,096 warmup and 8,192 measured calls, at concurrency 32. Baseline and both candidates use the same frozen Node 24.22.0 / Electron 43.7.7 foundation and harness. Core overlays match the selected implementation; this comparison precedes the production worktree's later main-merge runtime. All values, exact remote invocation counts and counter-running fractions are validated.
+
+| Selected combined scalar-request fixture | Node user-instruction change (exploratory 95% interval) | Renderer/utility change (exploratory 95% interval) |
+| --- | ---: | ---: |
+| primitive | -22.15% [-22.97%, -21.68%] | -28.59% [-28.61%, -28.57%] |
+| small-object | -7.32% [-7.53%, -6.91%] | -15.71% [-15.74%, -15.67%] |
+| settings-100 | -0.08% [-0.18%, +0.05%] (inconclusive) | -2.45% [-2.51%, -2.37%] |
+| text-4KiB | -58.98% [-59.03%, -58.90%] | -47.08% [-47.11%, -47.04%] |
+| text-64KiB | -87.38% [-87.40%, -87.33%] | -56.95% [-57.06%, -56.82%] |
+| text-escaped | -87.83% [-87.84%, -87.81%] | -80.02% [-80.04%, -79.99%] |
+
+The batch/native-promise candidate without scalar requests separately changes primitive/small-object instructions by -13.10%/-7.83% in Node and -21.42%/-15.94% in renderer/utility. Scalar requests trade a small part of the small-object gain for much larger primitive/string gains. No variant, control or inconclusive result is omitted.
+
+Separate 12-pair resolved/deferred/sequential controls retain their full values and intervals. Selected sequential primitive/small-object instructions change -8.18%/-3.10% in Node and -3.54%/-1.74% in renderer/utility. Deferred-handler gains are smaller than synchronous echo gains. These synthetic instruction results do not establish a complete-product speedup.
+
+Fresh 12-pair binary controls (4,096 warmup, 8,192 measured calls, concurrency 32) retain the lazy mixed-buffer path. Small-buffer regressions remain visible:
+
+| Binary fixture | Node user-instruction change (95% interval) | Renderer/utility change (95% interval) |
+| --- | ---: | ---: |
+| buffer-64B | +2.01% [+0.16%, +4.28%] | +0.41% [+0.31%, +0.48%] |
+| buffer-512B | +2.01% [-0.43%, +3.17%] (inconclusive) | +0.36% [+0.30%, +0.48%] |
+| buffer-64KiB | +3.12% [-2.23%, +16.25%] (inconclusive) | +0.15% [-0.41%, +0.52%] (inconclusive) |
+| wrapped-buffer-64B | +0.54% [+0.05%, +1.28%] | +0.19% [+0.06%, +0.44%] |
+
+All 2,880 completed process results across ordinary, strings, async/sequential and binary campaigns are retained. A user-requested migration to detached tmux interrupted Node string collection: 245 fully annotated samples were preserved, one additional incomplete attempt was archived and restarted, and remaining samples resumed with unchanged measured code/fixtures. The full 54-pair result includes every completed sample; separate pre/post-migration median points agree closely. The interrupted attempt and explicit manifest reconstruction/provenance notes are retained.
+
+Tracked async-hook diagnostics record two fewer Promise initializations per audited observed RPC, not per notification. Profiling/instrumentation is separate from instruction collection. Regression tests cover real server-side scalar argument normalization, Unicode/NUL/long strings, object-toJSON fallback, undefined masks, cancellation, legacy listener disposal, batching and byte fallbacks. Nine scalar wire-format regressions fail before the codec change; selected validation passes 319 Node and 1,584 Electron/API/authentication tests, with three existing pending, client typechecking and targeted lint.
+
+Full samples, all labels/metrics, rejected controls, frozen core/harness hashes and migration evidence are kept separately on the evidence branch. No 10–20% complete-product speedup is established; the current merged-base startup CPU results above remain separate.

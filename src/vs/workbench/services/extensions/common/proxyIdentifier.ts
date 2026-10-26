@@ -34,6 +34,11 @@ type NotificationMethod<T> = {
 	[K in keyof T]: T[K] extends (...args: never[]) => infer R ? R extends void ? K : never : never
 }[keyof T] & string;
 
+/** Only methods whose API bridge unconditionally observes completion may opt in. */
+type NativePromiseMethod<T> = {
+	[K in keyof T]: T[K] extends (...args: never[]) => infer R ? R extends void ? never : K : never
+}[keyof T] & string;
+
 export class ProxyIdentifier<T> {
 	public static count = 0;
 	_proxyIdentifierBrand: void = undefined;
@@ -42,20 +47,25 @@ export class ProxyIdentifier<T> {
 	public readonly nid: number;
 	/** Native notifications complete when enqueued, rather than when their remote handler returns. */
 	public readonly notificationMethods?: readonly string[];
+	/** Internal API bridges observe these replies; ignored calls retain lazy promises. */
+	public readonly nativePromiseMethods?: readonly string[];
 
-	constructor(sid: string, notificationMethods?: readonly NotificationMethod<T>[]) {
+	constructor(sid: string, notificationMethods?: readonly NotificationMethod<T>[], nativePromiseMethods?: readonly NativePromiseMethod<T>[]) {
 		this.sid = sid;
 		this.nid = (++ProxyIdentifier.count);
 		if (notificationMethods?.length) {
 			this.notificationMethods = notificationMethods;
+		}
+		if (nativePromiseMethods?.length) {
+			this.nativePromiseMethods = nativePromiseMethods;
 		}
 	}
 }
 
 const identifiers: ProxyIdentifier<unknown>[] = [];
 
-export function createProxyIdentifier<T>(identifier: string, notificationMethods?: readonly NotificationMethod<T>[]): ProxyIdentifier<T> {
-	const result = new ProxyIdentifier<T>(identifier, notificationMethods);
+export function createProxyIdentifier<T>(identifier: string, notificationMethods?: readonly NotificationMethod<T>[], nativePromiseMethods?: readonly NativePromiseMethod<T>[]): ProxyIdentifier<T> {
+	const result = new ProxyIdentifier<T>(identifier, notificationMethods, nativePromiseMethods);
 	identifiers[result.nid] = result;
 	return result;
 }
