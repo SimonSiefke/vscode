@@ -273,7 +273,16 @@ export abstract class AbstractContextKeyService extends Disposable implements IC
 	protected _isDisposed: boolean;
 	protected _myContextId: number;
 
-	protected _onDidChangeContext = this._register(new PauseableEmitter<IContextKeyChangeEvent>({ merge: input => new CompositeContextKeyChangeEvent(input) }));
+	protected _onDidChangeContext = this._register(new PauseableEmitter<IContextKeyChangeEvent>({
+		merge: input => {
+			const first = input[0];
+			// Repeated updates to one key carry the same membership information.
+			if (first instanceof SimpleContextKeyChangeEvent && first.constructor === SimpleContextKeyChangeEvent && input.every(event => event instanceof SimpleContextKeyChangeEvent && event.constructor === SimpleContextKeyChangeEvent && event.key === first.key)) {
+				return first;
+			}
+			return new CompositeContextKeyChangeEvent(input);
+		}
+	}));
 	get onDidChangeContext() { return this._onDidChangeContext.event; }
 
 	constructor(myContextId: number) {
