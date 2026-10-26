@@ -1,0 +1,176 @@
+{
+  "diagnosticOnly": false,
+  "campaign": "product-current-core-ordinary-read-aa10-sequential",
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-current-core.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-current-core-ordinary-read-aa10-sequential",
+    "variants": "control,aa-b",
+    "fixtures": "context-unchanged,context-changing,clipboard-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 16384,
+    "concurrency": 1,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "scope": "Same completed unprofiled public API samples; whole-app inherited hardware counters and elapsed time for fixed completed API work. Instructions measure work, not CPU seconds; elapsed is distinct. No profiler or outlier removal.",
+  "intervalMethod": "Conservative95% distribution-free sign/order-statistic interval for median paired log ratio; no multiple-comparison correction. Separate from primary instruction bootstrap summaries.",
+  "fixtures": {
+    "context-unchanged": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 3676.7979545,
+            "aa-b": 3719.4981184999997
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": -1.479312666446242,
+              "intervalPercent": [
+                -13.481530776275452,
+                9.030269600665374
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 491421.1812133789,
+            "aa-b": 492779.04571533203
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.49503885659467617,
+              "intervalPercent": [
+                -16.012345880889335,
+                19.17788131627718
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    },
+    "context-changing": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 4763.6928714999995,
+            "aa-b": 4760.7328915
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": 0.1472072089395038,
+              "intervalPercent": [
+                -10.194972073987374,
+                7.424587080880207
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 1086074.7650146484,
+            "aa-b": 1084889.2006225586
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": -0.28244811242250645,
+              "intervalPercent": [
+                -0.5549475140034565,
+                0.1518230603024806
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    },
+    "clipboard-64KiB": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "aa-b": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 16622.061425,
+            "aa-b": 16163.159796999997
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": -2.8881886864581374,
+              "intervalPercent": [
+                -6.869103932078624,
+                -1.545005447663006
+              ],
+              "inconclusive": false
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 2972700.9450683594,
+            "aa-b": 2966045.7727661133
+          },
+          "comparisons": {
+            "aa-b": {
+              "pairs": 10,
+              "medianPairedChangePercent": -0.20375711546958275,
+              "intervalPercent": [
+                -0.7580669916716354,
+                0.10716860237245385
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

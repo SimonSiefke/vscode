@@ -1,0 +1,176 @@
+{
+  "diagnosticOnly": false,
+  "campaign": "product-current-core-ordinary-read-final50",
+  "arguments": {
+    "products": "/home/simon/.cache/ipc-opt-20261025/products-current-core.json",
+    "output": "/home/simon/.cache/ipc-opt-20261025/product-current-core-ordinary-read-final50",
+    "variants": "control,candidate",
+    "fixtures": "context-unchanged,context-changing,clipboard-64KiB",
+    "replicates": 50,
+    "iterations": 32768,
+    "warmup": 16384,
+    "concurrency": 32,
+    "settle_ms": 5000,
+    "cpu_profile": false
+  },
+  "scope": "Same completed unprofiled public API samples; whole-app inherited hardware counters and elapsed time for fixed completed API work. Instructions measure work, not CPU seconds; elapsed is distinct. No profiler or outlier removal.",
+  "intervalMethod": "Conservative95% distribution-free sign/order-statistic interval for median paired log ratio; no multiple-comparison correction. Separate from primary instruction bootstrap summaries.",
+  "fixtures": {
+    "context-unchanged": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "candidate": {
+          "commit": "simonsiefke/vscode@aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 1088.146225,
+            "candidate": 1069.4557085000001
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": -1.836883805484868,
+              "intervalPercent": [
+                -5.001556572853572,
+                1.3005192367513407
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 120830.81362915039,
+            "candidate": 109495.8032989502
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": -9.217800720061343,
+              "intervalPercent": [
+                -9.496189960142686,
+                -8.867563167661697
+              ],
+              "inconclusive": false
+            }
+          }
+        }
+      }
+    },
+    "context-changing": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "candidate": {
+          "commit": "simonsiefke/vscode@aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 4071.551208500001,
+            "candidate": 4078.6764224999997
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": -0.09283937140235343,
+              "intervalPercent": [
+                -2.113180467108766,
+                2.0694344532361075
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 671571.8242034912,
+            "candidate": 659859.6650848389
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": -1.7568679640748153,
+              "intervalPercent": [
+                -1.825888188352398,
+                -1.693961558938728
+              ],
+              "inconclusive": false
+            }
+          }
+        }
+      }
+    },
+    "clipboard-64KiB": {
+      "products": {
+        "control": {
+          "commit": "simonsiefke/vscode@a167347ebc4ab8923c027674f602a4f74d39ada5",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        },
+        "candidate": {
+          "commit": "simonsiefke/vscode@aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+          "executableSHA256": "be79f4206514ab4bcca03fc0752c1cceb8b69c0f8ded32cfcb78953777edbf5d",
+          "node": "v24.22.0",
+          "vscodeVersion": "1.144.0"
+        }
+      },
+      "metrics": {
+        "elapsedMs": {
+          "medians": {
+            "control": 24725.920317999997,
+            "candidate": 24656.403419000002
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": -0.025330461717043562,
+              "intervalPercent": [
+                -1.3260208760512482,
+                1.1548332338164213
+              ],
+              "inconclusive": true
+            }
+          }
+        },
+        "userPlusKernelInstructionsPerCompletedCall": {
+          "medians": {
+            "control": 2681986.6215667725,
+            "candidate": 2681345.463897705
+          },
+          "comparisons": {
+            "candidate": {
+              "pairs": 50,
+              "medianPairedChangePercent": 0.10654649584558307,
+              "intervalPercent": [
+                -0.12608269375875558,
+                0.2027461317580359
+              ],
+              "inconclusive": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
