@@ -1,0 +1,254 @@
+{
+  "status": "Private proposed metadata-only increment; not applied. Core native-promise implementation is measured separately. Existing notifications preserved; terminal creation stays full RPC. Raw public-promise methods such as clipboard/secret-state/window.openUri and configuration.update are excluded.",
+  "newMethodCount": 19,
+  "audit": [
+    {
+      "context": "MainThreadTextEditors",
+      "method": "$tryShowTextDocument",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostTextEditors.ts",
+          "line": 85,
+          "source": "const editorId = await this._proxy.$tryShowTextDocument(document.uri, options);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadLanguages",
+      "method": "$computeFullSyntaxHighlighting",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+          "line": 47,
+          "source": "const result = await this._proxy.$computeFullSyntaxHighlighting(source, languageId);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadLanguages",
+      "method": "$changeLanguage",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+          "line": 56,
+          "source": "await this._proxy.$changeLanguage(uri, languageId);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadLanguages",
+      "method": "$tokensAtPosition",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+          "line": 67,
+          "source": "const info = await this._proxy.$tokensAtPosition(document.uri, pos);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadStorage",
+      "method": "$initializeExtensionStorage",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostStorage.ts",
+          "line": 40,
+          "source": "const value = await this._proxy.$initializeExtensionStorage(shared, key);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadTerminalService",
+      "method": "$createTerminal",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostTerminalService.ts",
+          "line": 181,
+          "source": "await this._proxy.$createTerminal(this._id, {"
+        },
+        {
+          "file": "src/vs/workbench/api/common/extHostTerminalService.ts",
+          "line": 209,
+          "source": "await this._proxy.$createTerminal(this._id, {"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadWorkspace",
+      "method": "$save",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+          "line": 919,
+          "source": "const result = await this._proxy.$save(uri, { saveAs: false });"
+        },
+        {
+          "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+          "line": 925,
+          "source": "const result = await this._proxy.$save(uri, { saveAs: true });"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadWorkspace",
+      "method": "$resolveDecoding",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+          "line": 1126,
+          "source": "const options = await this._proxy.$resolveDecoding(uri, opts);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadWorkspace",
+      "method": "$resolveEncoding",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+          "line": 1148,
+          "source": "const { encoding, addBOM } = await this._proxy.$resolveEncoding(uri, options);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadExtensionService",
+      "method": "$activateExtension",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostExtensionService.ts",
+          "line": 193,
+          "source": "await this._mainThreadExtensionsProxy.$activateExtension(extensionId, reason);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadExtensionService",
+      "method": "$getExtension",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostExtensionService.ts",
+          "line": 290,
+          "source": "const ext = await this._mainThreadExtensionsProxy.$getExtension(extensionId);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadTask",
+      "method": "$createTaskId",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostTask.ts",
+          "line": 673,
+          "source": "const taskId = await this._proxy.$createTaskId(taskDTO);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadTask",
+      "method": "$getTaskExecution",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostTask.ts",
+          "line": 790,
+          "source": "const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);"
+        },
+        {
+          "file": "src/vs/workbench/api/node/extHostTask.ts",
+          "line": 69,
+          "source": "const executionDTO = await this._proxy.$getTaskExecution(handleDto);"
+        },
+        {
+          "file": "src/vs/workbench/api/node/extHostTask.ts",
+          "line": 89,
+          "source": "const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadWindow",
+      "method": "$asExternalUri",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostWindow.ts",
+          "line": 110,
+          "source": "const result = await this._proxy.$asExternalUri(uri, options);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadNotebookDocuments",
+      "method": "$tryCreateNotebook",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+          "line": 190,
+          "source": "const canonicalUri = await this._notebookDocumentsProxy.$tryCreateNotebook({"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadNotebookDocuments",
+      "method": "$tryOpenNotebook",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+          "line": 202,
+          "source": "const canonicalUri = await this._notebookDocumentsProxy.$tryOpenNotebook(uri);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadNotebookEditors",
+      "method": "$tryShowNotebookDocument",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+          "line": 229,
+          "source": "const editorId = await this._notebookEditorsProxy.$tryShowNotebookDocument(notebook.uri, viewType, resolvedOptions);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadLocalization",
+      "method": "$fetchBundleContents",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostLocalizationService.ts",
+          "line": 79,
+          "source": "const response = await this._proxy.$fetchBundleContents(bundleUri);"
+        }
+      ]
+    },
+    {
+      "context": "MainThreadLocalization",
+      "method": "$fetchBuiltInBundleUri",
+      "alwaysObserved": "All production calls on the identified main-thread proxy are unconditional awaits inside existing async API bridges. Async outer promise/error propagation exists already; request/reply completion and ignored-probe/mixed fallback semantics remain.",
+      "callers": [
+        {
+          "file": "src/vs/workbench/api/common/extHostLocalizationService.ts",
+          "line": 98,
+          "source": "const uri = await this._proxy.$fetchBuiltInBundleUri(extension.identifier.value, this.currentLanguage);"
+        }
+      ]
+    }
+  ]
+}

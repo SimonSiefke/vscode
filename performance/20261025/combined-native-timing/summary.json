@@ -1,0 +1,1151 @@
+{
+  "scope": "Supplementary metrics from the same completed fixed-work, unprofiled paired processes. Separate from full application startup.",
+  "intervalMethod": "Distribution-free conservative95% sign/order-statistic interval for population median paired log-ratio; no bootstrap and no multiple-comparison adjustment. All completed pairs retained.",
+  "campaigns": {
+    "combined-owned-ordinary-node": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -5.14780080045033,
+          "intervalPercent": [
+            -11.083109822842996,
+            0.7524771324074253
+          ],
+          "inconclusive": true,
+          "medianBefore": 380.924339,
+          "medianAfter": 361.10891749999996
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -22.513840463613654,
+          "intervalPercent": [
+            -23.721476756745673,
+            -21.963927270662932
+          ],
+          "inconclusive": false,
+          "medianBefore": 1125407308.0,
+          "medianAfter": 872992773.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -21.20735970179747,
+          "intervalPercent": [
+            -26.380756645327942,
+            -17.96562132400401
+          ],
+          "inconclusive": false,
+          "medianBefore": 551711.5,
+          "medianAfter": 426918.0
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": 4.2272028487884805,
+          "intervalPercent": [
+            -2.968907371924745,
+            7.325007356788471
+          ],
+          "inconclusive": true,
+          "medianBefore": 521.3309869999999,
+          "medianAfter": 520.6472265
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -8.27937106317178,
+          "intervalPercent": [
+            -8.59390184621459,
+            -7.88499275175194
+          ],
+          "inconclusive": false,
+          "medianBefore": 1691978800.5,
+          "medianAfter": 1587720232.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -13.557014326323491,
+          "intervalPercent": [
+            -19.693856097445185,
+            -10.93089608959712
+          ],
+          "inconclusive": false,
+          "medianBefore": 737398.5,
+          "medianAfter": 612869.0
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -2.0067996656262466,
+          "intervalPercent": [
+            -4.908101477938487,
+            0.4298815212611329
+          ],
+          "inconclusive": true,
+          "medianBefore": 4392.379253499999,
+          "medianAfter": 4327.613799000001
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -0.08317084582567524,
+          "intervalPercent": [
+            -0.19149639655551276,
+            0.06345886483962726
+          ],
+          "inconclusive": true,
+          "medianBefore": 47645131494.5,
+          "medianAfter": 47616389366.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -1.3269941935298402,
+          "intervalPercent": [
+            -3.499186254132103,
+            0.5326715928470893
+          ],
+          "inconclusive": true,
+          "medianBefore": 8231334.0,
+          "medianAfter": 8142154.0
+        }
+      }
+    },
+    "combined-owned-ordinary-renderer": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -4.98257775548675,
+          "intervalPercent": [
+            -12.06896551868778,
+            0.8069277704148892
+          ],
+          "inconclusive": true,
+          "medianBefore": 593.3999999985099,
+          "medianAfter": 587.4500000029802
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -29.771660271267876,
+          "intervalPercent": [
+            -29.867014180472275,
+            -29.5750724853827
+          ],
+          "inconclusive": false,
+          "medianBefore": 1371263242.5,
+          "medianAfter": 963154472.5
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -2.743769024015408,
+          "intervalPercent": [
+            -6.990154712092855,
+            2.7665012789242827
+          ],
+          "inconclusive": true,
+          "medianBefore": 718.1500000022352,
+          "medianAfter": 695.6499999985099
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -18.01082171070332,
+          "intervalPercent": [
+            -18.174559316842164,
+            -17.89772927599057
+          ],
+          "inconclusive": false,
+          "medianBefore": 1885436698.0,
+          "medianAfter": 1546522214.5
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -3.0268204324855774,
+          "intervalPercent": [
+            -5.16095441860892,
+            1.2601452370781807
+          ],
+          "inconclusive": true,
+          "medianBefore": 4938.900000002235,
+          "medianAfter": 4913.349999997765
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -2.8607432214592388,
+          "intervalPercent": [
+            -3.033109103236842,
+            -2.733333412898431
+          ],
+          "inconclusive": false,
+          "medianBefore": 43850707487.5,
+          "medianAfter": 42609619248.0
+        }
+      }
+    },
+    "combined-owned-strings-node": {
+      "text-4KiB": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -37.328305315558005,
+          "intervalPercent": [
+            -41.923306135711144,
+            -33.14454558545224
+          ],
+          "inconclusive": false,
+          "medianBefore": 203.92774950000003,
+          "medianAfter": 130.74293899999998
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -57.8634985085164,
+          "intervalPercent": [
+            -58.0439098776859,
+            -57.73247535115746
+          ],
+          "inconclusive": false,
+          "medianBefore": 931465962.5,
+          "medianAfter": 392471602.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -41.6666668424682,
+          "intervalPercent": [
+            -45.73105696714801,
+            -39.371367097733525
+          ],
+          "inconclusive": false,
+          "medianBefore": 369881.0,
+          "medianAfter": 212202.5
+        }
+      },
+      "text-64KiB": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -62.979174657104785,
+          "intervalPercent": [
+            -65.24484930217115,
+            -62.09231142875422
+          ],
+          "inconclusive": false,
+          "medianBefore": 1500.8846075000001,
+          "medianAfter": 552.766817
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -81.5421977546826,
+          "intervalPercent": [
+            -81.79202141815303,
+            -81.03151955015812
+          ],
+          "inconclusive": false,
+          "medianBefore": 8496247372.5,
+          "medianAfter": 1572495104.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -62.849770140650385,
+          "intervalPercent": [
+            -63.78481390327286,
+            -61.50610489245868
+          ],
+          "inconclusive": false,
+          "medianBefore": 2566947.0,
+          "medianAfter": 977925.5
+        }
+      },
+      "text-escaped": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -58.87314214979858,
+          "intervalPercent": [
+            -62.21471312130031,
+            -55.372260380524786
+          ],
+          "inconclusive": false,
+          "medianBefore": 393.68076149999996,
+          "medianAfter": 160.20169449999997
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -87.09816173344304,
+          "intervalPercent": [
+            -87.15535578530518,
+            -87.05763024379229
+          ],
+          "inconclusive": false,
+          "medianBefore": 3543920265.5,
+          "medianAfter": 457122499.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 54,
+          "medianPairedChangePercent": -61.53951595559035,
+          "intervalPercent": [
+            -64.67474947726247,
+            -60.153950243100574
+          ],
+          "inconclusive": false,
+          "medianBefore": 713144.0,
+          "medianAfter": 270484.5
+        }
+      }
+    },
+    "combined-owned-strings-renderer": {
+      "text-4KiB": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -15.409000358886793,
+          "intervalPercent": [
+            -22.3326359844742,
+            -11.620204249071442
+          ],
+          "inconclusive": false,
+          "medianBefore": 350.8500000014901,
+          "medianAfter": 294.5
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -43.1803025462522,
+          "intervalPercent": [
+            -43.32556200923414,
+            -43.08943180865775
+          ],
+          "inconclusive": false,
+          "medianBefore": 1592078097.5,
+          "medianAfter": 905102885.0
+        }
+      },
+      "text-64KiB": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -8.711735221611361,
+          "intervalPercent": [
+            -9.84488243165227,
+            -7.04364447304685
+          ],
+          "inconclusive": false,
+          "medianBefore": 2992.5499999932945,
+          "medianAfter": 2750.39999999851
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -30.51352685409977,
+          "intervalPercent": [
+            -30.649271774665387,
+            -30.34034889509728
+          ],
+          "inconclusive": false,
+          "medianBefore": 13319964531.5,
+          "medianAfter": 9267452565.5
+        }
+      },
+      "text-escaped": {
+        "elapsedMs": {
+          "pairs": 54,
+          "medianPairedChangePercent": -46.8194749195499,
+          "intervalPercent": [
+            -48.89425010002563,
+            -43.52909555195117
+          ],
+          "inconclusive": false,
+          "medianBefore": 751.25,
+          "medianAfter": 403.6000000052154
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 54,
+          "medianPairedChangePercent": -74.56506657058797,
+          "intervalPercent": [
+            -74.66201354892085,
+            -74.3929972391862
+          ],
+          "inconclusive": false,
+          "medianBefore": 5342087347.5,
+          "medianAfter": 1356863561.0
+        }
+      }
+    },
+    "combined-owned-resolved-node": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -5.961220041157356,
+          "intervalPercent": [
+            -28.483232764706635,
+            2.837704086423254
+          ],
+          "inconclusive": true,
+          "medianBefore": 174.555878,
+          "medianAfter": 172.08206600000003
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -20.024071757907414,
+          "intervalPercent": [
+            -21.056136826909842,
+            -19.66317925044565
+          ],
+          "inconclusive": false,
+          "medianBefore": 620869625.0,
+          "medianAfter": 496386102.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -19.3725112596674,
+          "intervalPercent": [
+            -35.31471446436015,
+            -15.850844943355458
+          ],
+          "inconclusive": false,
+          "medianBefore": 286422.0,
+          "medianAfter": 224958.5
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 6.920531477109937,
+          "intervalPercent": [
+            -5.713830707548507,
+            17.49763092362384
+          ],
+          "inconclusive": true,
+          "medianBefore": 245.231718,
+          "medianAfter": 271.9115795
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -9.664735017718185,
+          "intervalPercent": [
+            -10.062287707773265,
+            -9.492465960373819
+          ],
+          "inconclusive": false,
+          "medianBefore": 924867146.5,
+          "medianAfter": 834877799.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -13.048301905030435,
+          "intervalPercent": [
+            -18.973668666803555,
+            -3.342633421220109
+          ],
+          "inconclusive": false,
+          "medianBefore": 370074.0,
+          "medianAfter": 333822.0
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.06968101701461116,
+          "intervalPercent": [
+            -3.068992145655014,
+            7.891081822370705
+          ],
+          "inconclusive": true,
+          "medianBefore": 2134.9931515,
+          "medianAfter": 2206.5171689999997
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.007103615231907057,
+          "intervalPercent": [
+            -0.5737262064629767,
+            0.4437078630975533
+          ],
+          "inconclusive": true,
+          "medianBefore": 24033262185.0,
+          "medianAfter": 24064128676.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.544044165339308,
+          "intervalPercent": [
+            -3.7889132639026157,
+            5.277263158483003
+          ],
+          "inconclusive": true,
+          "medianBefore": 4074093.0,
+          "medianAfter": 4149004.0
+        }
+      }
+    },
+    "combined-owned-resolved-renderer": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -10.372182828151633,
+          "intervalPercent": [
+            -22.329103562616524,
+            13.335679095940133
+          ],
+          "inconclusive": true,
+          "medianBefore": 320.8999999910593,
+          "medianAfter": 303.59999999403954
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -27.617989559624366,
+          "intervalPercent": [
+            -29.05500005128827,
+            -27.44984051868119
+          ],
+          "inconclusive": false,
+          "medianBefore": 768729968.0,
+          "medianAfter": 556072734.0
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -5.434356910041838,
+          "intervalPercent": [
+            -17.62572533658363,
+            9.699494196123881
+          ],
+          "inconclusive": true,
+          "medianBefore": 369.3999999985099,
+          "medianAfter": 338.20000000298023
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -16.537323615830225,
+          "intervalPercent": [
+            -17.034462748210554,
+            -16.26805698542014
+          ],
+          "inconclusive": false,
+          "medianBefore": 1025527486.5,
+          "medianAfter": 854524850.0
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.1642743218433744,
+          "intervalPercent": [
+            -9.992808054752167,
+            2.2869727257297967
+          ],
+          "inconclusive": true,
+          "medianBefore": 2364.75,
+          "medianAfter": 2256.4000000059605
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.015014355987189,
+          "intervalPercent": [
+            -3.217050839094371,
+            -2.7884763845446914
+          ],
+          "inconclusive": false,
+          "medianBefore": 22029176616.0,
+          "medianAfter": 21368577138.5
+        }
+      }
+    },
+    "combined-owned-deferred-node": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -8.388151618602247,
+          "intervalPercent": [
+            -27.34321874165222,
+            16.124611573437207
+          ],
+          "inconclusive": true,
+          "medianBefore": 273.2132765,
+          "medianAfter": 241.7714985
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -6.825612007276261,
+          "intervalPercent": [
+            -7.332664501991825,
+            -5.977499049336066
+          ],
+          "inconclusive": false,
+          "medianBefore": 1030062721.5,
+          "medianAfter": 961142085.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.74952087310807,
+          "intervalPercent": [
+            -14.396222172250962,
+            15.636235459992953
+          ],
+          "inconclusive": true,
+          "medianBefore": 485804.5,
+          "medianAfter": 434965.0
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.3925958480404583,
+          "intervalPercent": [
+            -19.283396327649093,
+            13.879647573456321
+          ],
+          "inconclusive": true,
+          "medianBefore": 326.3112005,
+          "medianAfter": 334.4973345
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.3301968397410944,
+          "intervalPercent": [
+            -2.8615212500476273,
+            -1.9111273262242379
+          ],
+          "inconclusive": false,
+          "medianBefore": 1339264863.0,
+          "medianAfter": 1308593033.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -4.368072051361549,
+          "intervalPercent": [
+            -19.96170653915407,
+            14.643195376038577
+          ],
+          "inconclusive": true,
+          "medianBefore": 570995.5,
+          "medianAfter": 562477.0
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -4.876950338310426,
+          "intervalPercent": [
+            -8.27175511745012,
+            -0.5065452506185952
+          ],
+          "inconclusive": false,
+          "medianBefore": 2813.5388959999996,
+          "medianAfter": 2704.0210045
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.3228219841927782,
+          "intervalPercent": [
+            -0.4703297307952381,
+            -0.08688115612514036
+          ],
+          "inconclusive": false,
+          "medianBefore": 24399034993.0,
+          "medianAfter": 24318087145.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.9508982906765855,
+          "intervalPercent": [
+            -7.660918789040627,
+            0.7618811464501496
+          ],
+          "inconclusive": true,
+          "medianBefore": 4626302.5,
+          "medianAfter": 4543228.5
+        }
+      }
+    },
+    "combined-owned-deferred-renderer": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -8.874382400976376,
+          "intervalPercent": [
+            -17.337691279368617,
+            2.176870749200366
+          ],
+          "inconclusive": true,
+          "medianBefore": 597.75,
+          "medianAfter": 552.4500000029802
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -4.820382981186732,
+          "intervalPercent": [
+            -5.22668996942156,
+            -4.4610980163779175
+          ],
+          "inconclusive": false,
+          "medianBefore": 2306631851.5,
+          "medianAfter": 2197729213.5
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 1.2896992029975074,
+          "intervalPercent": [
+            -3.6870203527476164,
+            5.284956923556461
+          ],
+          "inconclusive": true,
+          "medianBefore": 600.25,
+          "medianAfter": 607.7499999925494
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.6129394783434567,
+          "intervalPercent": [
+            -2.9496108837840485,
+            -2.5603441909265334
+          ],
+          "inconclusive": false,
+          "medianBefore": 2565852115.5,
+          "medianAfter": 2497916895.0
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -1.2798982777057488,
+          "intervalPercent": [
+            -7.839829224711226,
+            2.7144845774093485
+          ],
+          "inconclusive": true,
+          "medianBefore": 2777.4999999925494,
+          "medianAfter": 2698.25
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.4105332584775874,
+          "intervalPercent": [
+            -2.543635497739305,
+            -2.1957818985914312
+          ],
+          "inconclusive": false,
+          "medianBefore": 23706236798.5,
+          "medianAfter": 23121582513.5
+        }
+      }
+    },
+    "combined-owned-sequential-node": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -10.097153096895362,
+          "intervalPercent": [
+            -14.768366431968005,
+            12.56070259678459
+          ],
+          "inconclusive": true,
+          "medianBefore": 711.022708,
+          "medianAfter": 658.3409234999999
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -5.786167268897713,
+          "intervalPercent": [
+            -6.040748261663909,
+            -5.217340099054368
+          ],
+          "inconclusive": false,
+          "medianBefore": 356454166.0,
+          "medianAfter": 336207537.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -8.737512291984084,
+          "intervalPercent": [
+            -14.794437504592551,
+            9.41574024018399
+          ],
+          "inconclusive": true,
+          "medianBefore": 676457.0,
+          "medianAfter": 640774.0
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.462347581762812,
+          "intervalPercent": [
+            -6.4486065903410665,
+            12.078514712993815
+          ],
+          "inconclusive": true,
+          "medianBefore": 731.761413,
+          "medianAfter": 740.4016529999999
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.3009985853876924,
+          "intervalPercent": [
+            -2.4614704030784362,
+            -1.673875073327713
+          ],
+          "inconclusive": false,
+          "medianBefore": 435185686.0,
+          "medianAfter": 425272398.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.3340171246475565,
+          "intervalPercent": [
+            -8.09591399399533,
+            10.499499957576376
+          ],
+          "inconclusive": true,
+          "medianBefore": 732859.0,
+          "medianAfter": 723906.5
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.5380188792808882,
+          "intervalPercent": [
+            -4.757856152606332,
+            11.301115577340992
+          ],
+          "inconclusive": true,
+          "medianBefore": 1799.4409420000002,
+          "medianAfter": 1816.3851175
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.42280146205654345,
+          "intervalPercent": [
+            -0.8692950102559216,
+            0.07227940770424546
+          ],
+          "inconclusive": true,
+          "medianBefore": 6193096327.0,
+          "medianAfter": 6173485044.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.06633631725643241,
+          "intervalPercent": [
+            -6.001193037664088,
+            9.847010911190978
+          ],
+          "inconclusive": true,
+          "medianBefore": 1899440.5,
+          "medianAfter": 1923668.0
+        }
+      }
+    },
+    "combined-owned-sequential-renderer": {
+      "primitive": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.3381431867120921,
+          "intervalPercent": [
+            -8.797398525087063,
+            9.949265336765322
+          ],
+          "inconclusive": true,
+          "medianBefore": 1555.0999999940395,
+          "medianAfter": 1580.5499999970198
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.2518332741654823,
+          "intervalPercent": [
+            -3.0425797270528077,
+            -1.5679816849380135
+          ],
+          "inconclusive": false,
+          "medianBefore": 946041999.0,
+          "medianAfter": 924024408.5
+        }
+      },
+      "small-object": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -1.2004590530297898,
+          "intervalPercent": [
+            -13.090699529985361,
+            3.1420392580388423
+          ],
+          "inconclusive": true,
+          "medianBefore": 1546.1000000014901,
+          "medianAfter": 1544.7999999970198
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -1.236418625317337,
+          "intervalPercent": [
+            -4.537646727994426,
+            -0.7145546005470571
+          ],
+          "inconclusive": false,
+          "medianBefore": 1016840843.0,
+          "medianAfter": 1005347984.5
+        }
+      },
+      "settings-100": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.11239285176352087,
+          "intervalPercent": [
+            -5.416874688174844,
+            3.080490228178512
+          ],
+          "inconclusive": true,
+          "medianBefore": 2557.85000000149,
+          "medianAfter": 2501.14999999851
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.18248226318642313,
+          "intervalPercent": [
+            -0.7080495759450356,
+            -0.0836910627025178
+          ],
+          "inconclusive": false,
+          "medianBefore": 5832878428.0,
+          "medianAfter": 5821252976.5
+        }
+      }
+    },
+    "combined-owned-binary12-node": {
+      "buffer-64B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.5959624308306237,
+          "intervalPercent": [
+            -18.197703050235205,
+            11.736370601637102
+          ],
+          "inconclusive": true,
+          "medianBefore": 221.546148,
+          "medianAfter": 213.58329799999998
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 1.9185960963863158,
+          "intervalPercent": [
+            -0.5848256714406697,
+            4.5070705945992495
+          ],
+          "inconclusive": true,
+          "medianBefore": 890150666.0,
+          "medianAfter": 905922387.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": 2.7860177048773638,
+          "intervalPercent": [
+            -12.951204152553187,
+            12.998333861911537
+          ],
+          "inconclusive": true,
+          "medianBefore": 483628.0,
+          "medianAfter": 478404.5
+        }
+      },
+      "buffer-512B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.45853858744091536,
+          "intervalPercent": [
+            -15.847100437855344,
+            12.699221468016475
+          ],
+          "inconclusive": true,
+          "medianBefore": 255.53677549999995,
+          "medianAfter": 251.58350299999998
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 1.4546848656842526,
+          "intervalPercent": [
+            -0.5422719085638628,
+            3.51067224749928
+          ],
+          "inconclusive": true,
+          "medianBefore": 896616577.0,
+          "medianAfter": 905316959.0
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": 1.5469498827539008,
+          "intervalPercent": [
+            -11.504739953532827,
+            13.843540976391488
+          ],
+          "inconclusive": true,
+          "medianBefore": 533301.0,
+          "medianAfter": 535915.5
+        }
+      },
+      "buffer-64KiB": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 10.16314655038093,
+          "intervalPercent": [
+            2.0513156428795254,
+            19.151363498207317
+          ],
+          "inconclusive": false,
+          "medianBefore": 600.9067655000001,
+          "medianAfter": 649.567239
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 4.5555733078529,
+          "intervalPercent": [
+            -3.9197796950760755,
+            18.62533112381819
+          ],
+          "inconclusive": true,
+          "medianBefore": 2214032601.0,
+          "medianAfter": 2363235087.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": 7.555277552914719,
+          "intervalPercent": [
+            -2.8193852600287617,
+            26.257379352985133
+          ],
+          "inconclusive": true,
+          "medianBefore": 1486915.5,
+          "medianAfter": 1623766.5
+        }
+      },
+      "wrapped-buffer-64B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -8.073790109836498,
+          "intervalPercent": [
+            -20.919628246900366,
+            6.929096487040476
+          ],
+          "inconclusive": true,
+          "medianBefore": 306.4646385,
+          "medianAfter": 305.87174949999996
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.4321338291119359,
+          "intervalPercent": [
+            -0.35785323805570535,
+            0.9818779025471347
+          ],
+          "inconclusive": true,
+          "medianBefore": 1528689208.0,
+          "medianAfter": 1543900420.5
+        },
+        "processCpuMicroseconds": {
+          "pairs": 12,
+          "medianPairedChangePercent": -3.387041932785062,
+          "intervalPercent": [
+            -16.459969169540923,
+            4.549213619143999
+          ],
+          "inconclusive": true,
+          "medianBefore": 718966.0,
+          "medianAfter": 706819.5
+        }
+      }
+    },
+    "combined-owned-binary12-renderer": {
+      "buffer-64B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": 5.310470213525087,
+          "intervalPercent": [
+            -6.248492157071006,
+            12.56144183089145
+          ],
+          "inconclusive": true,
+          "medianBefore": 379.75,
+          "medianAfter": 400.04999999701977
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.5653887509657451,
+          "intervalPercent": [
+            0.08944487676243451,
+            0.7011233475056722
+          ],
+          "inconclusive": false,
+          "medianBefore": 1845466371.0,
+          "medianAfter": 1854618182.0
+        }
+      },
+      "buffer-512B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.749843756140145,
+          "intervalPercent": [
+            -3.62173037965281,
+            5.022721836952737
+          ],
+          "inconclusive": true,
+          "medianBefore": 414.8500000014901,
+          "medianAfter": 419.5
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.19644936466420848,
+          "intervalPercent": [
+            0.046025593761744865,
+            0.6749471347061053
+          ],
+          "inconclusive": false,
+          "medianBefore": 1905656387.5,
+          "medianAfter": 1912384148.5
+        }
+      },
+      "buffer-64KiB": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.9635526904892888,
+          "intervalPercent": [
+            -5.35984386442987,
+            0.6397708286445702
+          ],
+          "inconclusive": true,
+          "medianBefore": 4073.0,
+          "medianAfter": 4047.0999999940395
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": -0.11540420700657528,
+          "intervalPercent": [
+            -0.26354508903249085,
+            0.09357730657293395
+          ],
+          "inconclusive": true,
+          "medianBefore": 13453495435.0,
+          "medianAfter": 13423961376.0
+        }
+      },
+      "wrapped-buffer-64B": {
+        "elapsedMs": {
+          "pairs": 12,
+          "medianPairedChangePercent": -2.7676132105691753,
+          "intervalPercent": [
+            -5.888689407005343,
+            9.574890746670128
+          ],
+          "inconclusive": true,
+          "medianBefore": 519.1000000014901,
+          "medianAfter": 522.6499999985099
+        },
+        "userPlusKernelInstructions": {
+          "pairs": 12,
+          "medianPairedChangePercent": 0.13367371786063842,
+          "intervalPercent": [
+            -0.03638519547266572,
+            0.5335899162648428
+          ],
+          "inconclusive": true,
+          "medianBefore": 2560450654.5,
+          "medianAfter": 2563891008.5
+        }
+      }
+    }
+  }
+}

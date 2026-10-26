@@ -1,0 +1,23 @@
+src/vs/workbench/api/common/extHostWorkspace.ts:919:		const result = await this._proxy.$save(uri, { saveAs: false });
+src/vs/workbench/api/common/extHostWorkspace.ts:925:		const result = await this._proxy.$save(uri, { saveAs: true });
+src/vs/workbench/api/common/extHostWorkspace.ts:1126:		const options = await this._proxy.$resolveDecoding(uri, opts);
+src/vs/workbench/api/common/extHostWorkspace.ts:1148:		const { encoding, addBOM } = await this._proxy.$resolveEncoding(uri, options);
+src/vs/workbench/api/common/extHostLocalizationService.ts:79:			const response = await this._proxy.$fetchBundleContents(bundleUri);
+src/vs/workbench/api/common/extHostLocalizationService.ts:98:			const uri = await this._proxy.$fetchBuiltInBundleUri(extension.identifier.value, this.currentLanguage);
+src/vs/workbench/api/common/extHostLanguages.ts:47:		const result = await this._proxy.$computeFullSyntaxHighlighting(source, languageId);
+src/vs/workbench/api/common/extHostLanguages.ts:56:		await this._proxy.$changeLanguage(uri, languageId);
+src/vs/workbench/api/common/extHostLanguages.ts:67:		const info = await this._proxy.$tokensAtPosition(document.uri, pos);
+src/vs/workbench/api/common/extHostStorage.ts:40:		const value = await this._proxy.$initializeExtensionStorage(shared, key);
+src/vs/workbench/api/common/extHostTask.ts:673:		const taskId = await this._proxy.$createTaskId(taskDTO);
+src/vs/workbench/api/common/extHostTask.ts:790:		const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);
+src/vs/workbench/api/common/extHostExtensionService.ts:193:						await this._mainThreadExtensionsProxy.$activateExtension(extensionId, reason);
+src/vs/workbench/api/common/extHostExtensionService.ts:290:		const ext = await this._mainThreadExtensionsProxy.$getExtension(extensionId);
+src/vs/workbench/api/common/extHostTerminalService.ts:181:		await this._proxy.$createTerminal(this._id, {
+src/vs/workbench/api/common/extHostTerminalService.ts:209:		await this._proxy.$createTerminal(this._id, {
+src/vs/workbench/api/common/extHostNotebook.ts:190:		const canonicalUri = await this._notebookDocumentsProxy.$tryCreateNotebook({
+src/vs/workbench/api/common/extHostNotebook.ts:202:		const canonicalUri = await this._notebookDocumentsProxy.$tryOpenNotebook(uri);
+src/vs/workbench/api/common/extHostNotebook.ts:229:		const editorId = await this._notebookEditorsProxy.$tryShowNotebookDocument(notebook.uri, viewType, resolvedOptions);
+src/vs/workbench/api/common/extHostTextEditors.ts:85:		const editorId = await this._proxy.$tryShowTextDocument(document.uri, options);
+src/vs/workbench/api/common/extHostWindow.ts:110:		const result = await this._proxy.$asExternalUri(uri, options);
+src/vs/workbench/api/node/extHostTask.ts:69:			const executionDTO = await this._proxy.$getTaskExecution(handleDto);
+src/vs/workbench/api/node/extHostTask.ts:89:			const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);

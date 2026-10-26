@@ -1,0 +1,163 @@
+[
+  {
+    "method": "$getTaskExecution",
+    "file": "src/vs/workbench/api/node/extHostTask.ts",
+    "line": 69,
+    "source": "const executionDTO = await this._proxy.$getTaskExecution(handleDto);",
+    "awaited": true
+  },
+  {
+    "method": "$getTaskExecution",
+    "file": "src/vs/workbench/api/node/extHostTask.ts",
+    "line": 89,
+    "source": "const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);",
+    "awaited": true
+  },
+  {
+    "method": "$asExternalUri",
+    "file": "src/vs/workbench/api/common/extHostWindow.ts",
+    "line": 110,
+    "source": "const result = await this._proxy.$asExternalUri(uri, options);",
+    "awaited": true
+  },
+  {
+    "method": "$tryShowTextDocument",
+    "file": "src/vs/workbench/api/common/extHostTextEditors.ts",
+    "line": 85,
+    "source": "const editorId = await this._proxy.$tryShowTextDocument(document.uri, options);",
+    "awaited": true
+  },
+  {
+    "method": "$tryCreateNotebook",
+    "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+    "line": 190,
+    "source": "const canonicalUri = await this._notebookDocumentsProxy.$tryCreateNotebook({",
+    "awaited": true
+  },
+  {
+    "method": "$tryOpenNotebook",
+    "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+    "line": 202,
+    "source": "const canonicalUri = await this._notebookDocumentsProxy.$tryOpenNotebook(uri);",
+    "awaited": true
+  },
+  {
+    "method": "$tryShowNotebookDocument",
+    "file": "src/vs/workbench/api/common/extHostNotebook.ts",
+    "line": 229,
+    "source": "const editorId = await this._notebookEditorsProxy.$tryShowNotebookDocument(notebook.uri, viewType, resolvedOptions);",
+    "awaited": true
+  },
+  {
+    "method": "$createTerminal",
+    "file": "src/vs/workbench/api/common/extHostTerminalService.ts",
+    "line": 181,
+    "source": "await this._proxy.$createTerminal(this._id, {",
+    "awaited": true
+  },
+  {
+    "method": "$createTerminal",
+    "file": "src/vs/workbench/api/common/extHostTerminalService.ts",
+    "line": 209,
+    "source": "await this._proxy.$createTerminal(this._id, {",
+    "awaited": true
+  },
+  {
+    "method": "$activateExtension",
+    "file": "src/vs/workbench/api/common/extHostExtensionService.ts",
+    "line": 193,
+    "source": "await this._mainThreadExtensionsProxy.$activateExtension(extensionId, reason);",
+    "awaited": true
+  },
+  {
+    "method": "$getExtension",
+    "file": "src/vs/workbench/api/common/extHostExtensionService.ts",
+    "line": 290,
+    "source": "const ext = await this._mainThreadExtensionsProxy.$getExtension(extensionId);",
+    "awaited": true
+  },
+  {
+    "method": "$createTaskId",
+    "file": "src/vs/workbench/api/common/extHostTask.ts",
+    "line": 673,
+    "source": "const taskId = await this._proxy.$createTaskId(taskDTO);",
+    "awaited": true
+  },
+  {
+    "method": "$getTaskExecution",
+    "file": "src/vs/workbench/api/common/extHostTask.ts",
+    "line": 790,
+    "source": "const execution = await this.getTaskExecution(await this._proxy.$getTaskExecution(dto), task);",
+    "awaited": true
+  },
+  {
+    "method": "$initializeExtensionStorage",
+    "file": "src/vs/workbench/api/common/extHostStorage.ts",
+    "line": 40,
+    "source": "const value = await this._proxy.$initializeExtensionStorage(shared, key);",
+    "awaited": true
+  },
+  {
+    "method": "$computeFullSyntaxHighlighting",
+    "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+    "line": 47,
+    "source": "const result = await this._proxy.$computeFullSyntaxHighlighting(source, languageId);",
+    "awaited": true
+  },
+  {
+    "method": "$changeLanguage",
+    "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+    "line": 56,
+    "source": "await this._proxy.$changeLanguage(uri, languageId);",
+    "awaited": true
+  },
+  {
+    "method": "$tokensAtPosition",
+    "file": "src/vs/workbench/api/common/extHostLanguages.ts",
+    "line": 67,
+    "source": "const info = await this._proxy.$tokensAtPosition(document.uri, pos);",
+    "awaited": true
+  },
+  {
+    "method": "$fetchBundleContents",
+    "file": "src/vs/workbench/api/common/extHostLocalizationService.ts",
+    "line": 79,
+    "source": "const response = await this._proxy.$fetchBundleContents(bundleUri);",
+    "awaited": true
+  },
+  {
+    "method": "$fetchBuiltInBundleUri",
+    "file": "src/vs/workbench/api/common/extHostLocalizationService.ts",
+    "line": 98,
+    "source": "const uri = await this._proxy.$fetchBuiltInBundleUri(extension.identifier.value, this.currentLanguage);",
+    "awaited": true
+  },
+  {
+    "method": "$save",
+    "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+    "line": 919,
+    "source": "const result = await this._proxy.$save(uri, { saveAs: false });",
+    "awaited": true
+  },
+  {
+    "method": "$save",
+    "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+    "line": 925,
+    "source": "const result = await this._proxy.$save(uri, { saveAs: true });",
+    "awaited": true
+  },
+  {
+    "method": "$resolveDecoding",
+    "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+    "line": 1126,
+    "source": "const options = await this._proxy.$resolveDecoding(uri, opts);",
+    "awaited": true
+  },
+  {
+    "method": "$resolveEncoding",
+    "file": "src/vs/workbench/api/common/extHostWorkspace.ts",
+    "line": 1148,
+    "source": "const { encoding, addBOM } = await this._proxy.$resolveEncoding(uri, options);",
+    "awaited": true
+  }
+]

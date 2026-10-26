@@ -1,0 +1,1592 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/simon/.cache/vscode-ipc-opt-20261022/.build/crashes'
+(node:1323114) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1323114) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1323114) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ExtHost API[0m
+  [32m  ✔[0m[90m issue #51387: originalFSPath[0m
+  [32m  ✔[0m[90m TerminalOptions.isRemoteResolverTerminal requires terminalRemoteResolver proposal[0m
+
+[0m  ExtHostLanguageFeatureCommands[0m
+  [32m  ✔[0m[90m WorkspaceSymbols, invalid arguments[0m
+  [32m  ✔[0m[90m WorkspaceSymbols, back and forth[0m
+  [32m  ✔[0m[90m executeWorkspaceSymbolProvider should accept empty string, #39522[0m
+  [32m  ✔[0m[90m executeFormatDocumentProvider, back and forth[0m
+  [32m  ✔[0m[90m vscode.prepareRename[0m
+  [32m  ✔[0m[90m vscode.executeDocumentRenameProvider[0m
+  [32m  ✔[0m[90m Definition, invalid arguments[0m
+  [32m  ✔[0m[90m Definition, back and forth[0m
+  [32m  ✔[0m[90m Definition, back and forth (sorting & de-deduping)[0m
+  [32m  ✔[0m[90m Definition Link[0m
+  [32m  ✔[0m[90m Declaration, back and forth[0m
+  [32m  ✔[0m[90m Declaration Link[0m
+  [32m  ✔[0m[90m Type Definition, invalid arguments[0m
+  [32m  ✔[0m[90m Type Definition, back and forth[0m
+  [32m  ✔[0m[90m Type Definition Link[0m
+  [32m  ✔[0m[90m Implementation, invalid arguments[0m
+  [32m  ✔[0m[90m Implementation, back and forth[0m
+  [32m  ✔[0m[90m Implementation Definition Link[0m
+  [32m  ✔[0m[90m reference search, back and forth[0m
+  [32m  ✔[0m[90m "vscode.executeDocumentHighlights" API has stopped returning DocumentHighlight[]#200056[0m
+  [32m  ✔[0m[90m Outline, back and forth[0m
+  [32m  ✔[0m[90m vscode.executeDocumentSymbolProvider command only returns SymbolInformation[] rather than DocumentSymbol[] #57984[0m
+  [32m  ✔[0m[90m triggerCharacter is null when completion provider is called programmatically #159914[0m
+  [32m  ✔[0m[90m Suggest, back and forth[0m
+  [32m  ✔[0m[90m Suggest, return CompletionList !array[0m
+  [32m  ✔[0m[90m Suggest, resolve completion items[0m
+  [32m  ✔[0m[90m "vscode.executeCompletionItemProvider" doesnot return a preselect field #53749[0m
+  [32m  ✔[0m[90m executeCompletionItemProvider doesn't capture commitCharacters #58228[0m
+  [32m  ✔[0m[90m vscode.executeCompletionItemProvider returns the wrong CompletionItemKinds in insiders #95715[0m
+  [32m  ✔[0m[90m Parameter Hints, back and forth[0m
+  [32m  ✔[0m[90m QuickFix, back and forth[0m
+  [32m  ✔[0m[90m vscode.executeCodeActionProvider results seem to be missing their `command` property #45124[0m
+  [32m  ✔[0m[90m vscode.executeCodeActionProvider passes Range to provider although Selection is passed in #77997[0m
+  [32m  ✔[0m[90m vscode.executeCodeActionProvider results seem to be missing their `isPreferred` property #78098[0m
+  [32m  ✔[0m[90m resolving code action[0m
+  [32m  ✔[0m[90m CodeLens, back and forth[0m
+  [32m  ✔[0m[90m CodeLens, resolve[0m
+  [32m  ✔[0m[90m Links, back and forth[0m
+  [32m  ✔[0m[90m What's the condition for DocumentLink target to be undefined? #106308[0m
+  [32m  ✔[0m[90m DocumentLink[] vscode.executeLinkProvider returns lack tooltip #213970[0m
+  [32m  ✔[0m[90m Color provider[0m
+  [32m  ✔[0m[90m "TypeError: e.onCancellationRequested is not a function" calling hover provider in Insiders #54174[0m
+  [32m  ✔[0m[90m Inlay Hints, back and forth[0m
+  [32m  ✔[0m[90m Inline Hints, merge[0m
+  [32m  ✔[0m[90m Inline Hints, bad provider[0m
+  [32m  ✔[0m[90m Selection Range, back and forth[0m
+  [32m  ✔[0m[90m CallHierarchy, back and forth[0m
+  [32m  ✔[0m[90m prepareCallHierarchy throws TypeError if clangd returns empty result #137415[0m
+  [32m  ✔[0m[90m TypeHierarchy, back and forth[0m
+  [32m  ✔[0m[90m selectionRangeProvider on inner array always returns outer array #91852[0m
+  [32m  ✔[0m[90m more element test of selectionRangeProvider on inner array always returns outer array #91852[0m
+
+[0m  TokenStore[0m
+  [32m  ✔[0m[90m derives session scopes from the stored token.scope, falling back to JWT claims only when scope is absent[0m
+
+[0m  DynamicAuthProvider[0m
+  [32m  ✔[0m[90m honors an explicit provider ID without changing the default identity[0m
+  [32m  ✔[0m[90m does not rotate the client while silently refreshing a token[0m
+  [32m  ✔[0m[90m refresh sends scope without resource for Microsoft auth, and resource without scope otherwise[0m
+  [32m  ✔[0m[90m authorization URL requests offline_access when advertised and omits resource for Microsoft auth[0m
+
+[0m  Account Icon Revival[0m
+  [32m  ✔[0m[90m reviveAccountIcon revives a present icon into a URI and leaves a missing icon undefined[0m
+
+[0m  ExtHostBrowsers[0m
+  [32m  ✔[0m[90m browserTabs populates from $onDidOpenBrowserTab[0m
+  [32m  ✔[0m[90m browserTabs returns a snapshot, not a live array[0m
+  [32m  ✔[0m[90m activeBrowserTab updates via $onDidChangeActiveBrowserTab[0m
+  [32m  ✔[0m[90m activeBrowserTab becomes undefined when cleared[0m
+  [32m  ✔[0m[90m $onDidChangeActiveBrowserTab with unknown tab returns undefined[0m
+  [32m  ✔[0m[90m openBrowserTab returns a BrowserTab with correct properties[0m
+  [32m  ✔[0m[90m openBrowserTab fires onDidOpenBrowserTab for new tabs[0m
+  [32m  ✔[0m[90m openBrowserTab reuses existing tab when IDs match[0m
+  [32m  ✔[0m[90m openBrowserTab forwards options to proxy[0m
+  [32m  ✔[0m[90m $onDidOpenBrowserTab fires event[0m
+  [32m  ✔[0m[90m $onDidCloseBrowserTab removes tab and fires event[0m
+  [32m  ✔[0m[90m $onDidChangeBrowserTabState does not fire when data is unchanged[0m
+  [32m  ✔[0m[90m $onDidChangeActiveBrowserTab fires event[0m
+  [32m  ✔[0m[90m icon is globe ThemeIcon when no favicon[0m
+  [32m  ✔[0m[90m icon is URI when favicon is provided[0m
+  [32m  ✔[0m[90m icon updates when favicon changes[0m
+  [32m  ✔[0m[90m icon reverts to globe when favicon is cleared[0m
+  [32m  ✔[0m[90m tab properties are not directly writable[0m
+  [32m  ✔[0m[90m startCDPSession calls $startCDPSession on proxy[0m
+  [32m  ✔[0m[90m sendMessage validates message structure[0m
+  [32m  ✔[0m[90m sendMessage forwards valid message to proxy[0m
+  [32m  ✔[0m[90m sendMessage rejects after session is closed[0m
+  [32m  ✔[0m[90m $onCDPSessionMessage delivers to correct session[0m
+  [32m  ✔[0m[90m $onCDPSessionClosed fires onDidClose[0m
+  [32m  ✔[0m[90m tab object reference is stable across updates[0m
+  [32m  ✔[0m[90m openBrowserTab returns same reference as browserTabs entry[0m
+  [32m  ✔[0m[90m closing one tab does not affect others[0m
+  [32m  ✔[0m[90m closing active tab clears activeBrowserTab[0m
+
+[0m  ExtHostBulkEdits.applyWorkspaceEdit[0m
+  [32m  ✔[0m[90m uses version id if document available[0m
+  [32m  ✔[0m[90m does not use version id if document is not available[0m
+
+[0m  ExtHostCodeMapper provider lifetime[0m
+  [32m  ✔[0m[90m maps with a registered provider and preserves its result[0m
+  [32m  ✔[0m[90m removes a disposed provider and stops invoking it[0m
+  [32m  ✔[0m[90m disposes registrations independently even for the same provider[0m
+  [32m  ✔[0m[90m serves requests arriving before unregistration is acknowledged[0m
+  [32m  ✔[0m[90m releases the provider even when unregistration fails[0m
+  [32m  ✔[0m[90m lets an in-flight request finish without restoring a disposed registration[0m
+
+[0m  ExtHostCommands[0m
+  [32m  ✔[0m[90m dispose calls unregister[0m
+  [32m  ✔[0m[90m dispose bubbles only once[0m
+  [32m  ✔[0m[90m execute with retry[0m
+  [32m  ✔[0m[90m onCommand:abc activates extensions when executed from command palette, but not when executed programmatically with vscode.commands.executeCommand #150293[0m
+
+[0m  ExtHostConfiguration[0m
+  [32m  ✔[0m[90m getConfiguration fails regression test 1.7.1 -> 1.8 #15552[0m
+  [32m  ✔[0m[90m has/get[0m
+  [32m  ✔[0m[90m get nested config[0m
+  [32m  ✔[0m[90m can modify the returned configuration[0m
+  [32m  ✔[0m[90m Stringify returned configuration[0m
+  [32m  ✔[0m[90m cannot modify returned configuration[0m
+  [32m  ✔[0m[90m inspect in no workspace context[0m
+  [32m  ✔[0m[90m inspect in single root context[0m
+  [32m  ✔[0m[90m inspect in multi root context[0m
+  [32m  ✔[0m[90m inspect with language overrides[0m
+  [32m  ✔[0m[90m application is not set in inspect[0m
+  [32m  ✔[0m[90m getConfiguration vs get[0m
+  [32m  ✔[0m[90m name vs property[0m
+  [32m  ✔[0m[90m update: no target passes null[0m
+  [32m  ✔[0m[90m update/section to key[0m
+  [32m  ✔[0m[90m update, what is #15834[0m
+  [32m  ✔[0m[90m update/error-state not OK[0m
+  [32m  ✔[0m[90m configuration change event[0m
+  [32m  ✔[0m[90m get return instance of array value[0m
+
+[0m  Extension host inline debug adapters[0m
+  [32m  ✔[0m[90m stopping releases a subscription to a longer-lived publisher[0m
+  [32m  ✔[0m[90m disposing releases the subscription[0m
+  [32m  ✔[0m[90m stopping preserves communication for surviving adapters[0m
+  [32m  ✔[0m[90m stopping releases the subscription when implementation disposal throws[0m
+
+[0m  Extension host debug visualization session items[0m
+  [32m  ✔[0m[90m releases roots and children when their debug session ends[0m
+  [32m  ✔[0m[90m does not cache a root returned after its session ends[0m
+  [32m  ✔[0m[90m does not cache children returned after their session ends[0m
+  [32m  ✔[0m[90m does not cache an edit returned after its session ends[0m
+  [32m  ✔[0m[90m retains separate items while their sessions are active[0m
+  [32m  ✔[0m[90m retains shared items while their sessions are active[0m
+
+[0m  Extension host debug visualization registrations[0m
+  [32m  ✔[0m[90m does not call a disposed visualization provider[0m
+  [32m  ✔[0m[90m allows a visualization provider to register again after disposal[0m
+  [32m  ✔[0m[90m does not call a disposed visualization tree provider[0m
+
+[0m  ExtHostDecorations[0m
+  [32m  ✔[0m[90m SCM Decorations missing #100524[0m[33m (61ms)[0m
+
+[0m  ExtHostDiagnostics[0m
+  [32m  ✔[0m[90m disposeCheck[0m
+  [32m  ✔[0m[90m diagnostic collection, forEach, clear, has[0m
+  [32m  ✔[0m[90m diagnostic collection, immutable read[0m
+  [32m  ✔[0m[90m diagnostics collection, set with dupliclated tuples[0m
+  [32m  ✔[0m[90m diagnostics collection, set tuple overrides, #11547[0m
+  [32m  ✔[0m[90m do send message when not making a change[0m
+  [32m  ✔[0m[90m diagnostics collection, tuples and undefined (small array), #15585[0m
+  [32m  ✔[0m[90m diagnostics collection, tuples and undefined (large array), #15585[0m
+  [32m  ✔[0m[90m diagnostic capping (max per file)[0m
+  [32m  ✔[0m[90m diagnostic capping (max files)[0m
+  [32m  ✔[0m[90m diagnostic eventing[0m
+  [32m  ✔[0m[90m vscode.languages.onDidChangeDiagnostics Does Not Provide Document URI #49582[0m
+  [32m  ✔[0m[90m diagnostics with related information[0m
+  [32m  ✔[0m[90m vscode.languages.getDiagnostics appears to return old diagnostics in some circumstances #54359[0m
+  [32m  ✔[0m[90m Error updating diagnostics from extension #60394[0m
+  [32m  ✔[0m[90m getDiagnostics does not tolerate sparse diagnostic arrays[0m
+  [32m  ✔[0m[90m Version id is set whenever possible[0m
+  [32m  ✔[0m[90m Diagnostics created by tasks aren't accessible to extensions #47292[0m
+  [32m  ✔[0m[90m languages.getDiagnostics doesn't handle case insensitivity correctly #128198[0m
+
+[0m  ExtHostDocumentContentProvider[0m
+  [32m  ✔[0m[90m TextDocumentContentProvider drops onDidChange events when they happen quickly #179711[0m
+
+[0m  ExtHostDocumentData[0m
+  [32m  ✔[0m[90m readonly-ness[0m
+  [32m  ✔[0m[90m save, when disposed[0m
+  [32m  ✔[0m[90m read, when disposed[0m
+  [32m  ✔[0m[90m lines[0m
+  [32m  ✔[0m[90m line, issue #5704[0m
+  [32m  ✔[0m[90m offsetAt[0m
+  [32m  ✔[0m[90m offsetAt, after remove[0m
+  [32m  ✔[0m[90m offsetAt, after replace[0m
+  [32m  ✔[0m[90m offsetAt, after insert line[0m
+  [32m  ✔[0m[90m offsetAt, after remove line[0m
+  [32m  ✔[0m[90m positionAt[0m
+  [32m  ✔[0m[90m getWordRangeAtPosition[0m
+  [32m  ✔[0m[90m getWordRangeAtPosition doesn't quite use the regex as expected, #29102[0m
+  [32m  ✔[0m[90m getWordRangeAtPosition can freeze the extension host #95319[0m
+  [32m  ✔[0m[90m Rename popup sometimes populates with text on the left side omitted #96013[0m
+  [32m  ✔[0m[90m Custom snippet $TM_SELECTED_TEXT not show suggestion #108892[0m
+
+[0m  ExtHostDocumentData updates line mapping[0m
+  [32m  ✔[0m[90m line mapping[0m
+  [32m  ✔[0m[90m after remove[0m
+  [32m  ✔[0m[90m after replace[0m
+  [32m  ✔[0m[90m after insert line[0m
+  [32m  ✔[0m[90m after insert two lines[0m
+  [32m  ✔[0m[90m after remove line[0m
+  [32m  ✔[0m[90m after remove two lines[0m
+  [32m  ✔[0m[90m after deleting entire content[0m
+  [32m  ✔[0m[90m after replacing entire content[0m
+  [32m  ✔[0m[90m after changing EOL to CRLF[0m
+  [32m  ✔[0m[90m after changing EOL to LF[0m
+
+[0m  ExtHostDocumentsAndEditors[0m
+  [32m  ✔[0m[90m The value of TextDocument.isClosed is incorrect when a text document is closed, #27949[0m
+
+[0m  ExtHostDocumentSaveParticipant[0m
+  [32m  ✔[0m[90m no listeners, no problem[0m
+  [32m  ✔[0m[90m event delivery[0m
+  [32m  ✔[0m[90m event delivery, immutable[0m
+  [32m  ✔[0m[90m event delivery, bad listener[0m
+  [32m  ✔[0m[90m event delivery, bad listener doesn't prevent more events[0m
+  [32m  ✔[0m[90m event delivery, in subscriber order[0m
+  [32m  ✔[0m[90m event delivery, ignore bad listeners[0m
+  [32m  ✔[0m[90m event delivery, overall timeout[0m
+  [32m  ✔[0m[90m event delivery, waitUntil[0m
+  [32m  ✔[0m[90m event delivery, waitUntil must be called sync[0m
+  [32m  ✔[0m[90m event delivery, waitUntil will timeout[0m
+  [32m  ✔[0m[90m event delivery, waitUntil failure handling[0m
+  [32m  ✔[0m[90m event delivery, pushEdits sync[0m
+  [32m  ✔[0m[90m event delivery, concurrent change[0m
+  [32m  ✔[0m[90m event delivery, two listeners -> two document states[0m
+  [32m  ✔[0m[90m Log failing listener[0m
+
+[0m  ExtHostEditorTabs[0m
+  [32m  ✔[0m[90m Ensure empty model throws when accessing active group[0m
+  [32m  ✔[0m[90m single tab[0m
+  [32m  ✔[0m[90m Empty tab group[0m
+  [32m  ✔[0m[90m Ensure tabGroup change events fires[0m
+  [32m  ✔[0m[90m Check TabGroupChangeEvent properties[0m
+  [32m  ✔[0m[90m Ensure reference equality for activeTab and activeGroup[0m
+  [32m  ✔[0m[90m TextMergeTabInput surfaces in the UI[0m
+  [32m  ✔[0m[90m Ensure reference stability[0m
+  [32m  ✔[0m[90m Tab.isActive working[0m
+  [32m  ✔[0m[90m vscode.window.tagGroups is immutable[0m
+  [32m  ✔[0m[90m Ensure close is called with all tab ids[0m
+  [32m  ✔[0m[90m Update tab only sends tab change event[0m
+  [32m  ✔[0m[90m Active tab[0m
+  [32m  ✔[0m[90m Tab operations patches open and close correctly[0m
+  [32m  ✔[0m[90m Tab operations patches move correctly[0m
+  [32m  ✔[0m[90m Reference stability across full model resync[0m
+
+[0m  ExtHostConsumerFileSystem activation[0m
+  [32m  ✔[0m[90m successful activation is reused across local operations and retains safe copies[0m
+  [32m  ✔[0m[90m concurrent local operations share and wait for first activation[0m
+  [32m  ✔[0m[90m activation failures are retried before invoking the local provider[0m
+  [32m  ✔[0m[90m provider registrations have independent activation barriers[0m
+  [32m  ✔[0m[90m readonly, trash, rename, copy and nonlocal operations retain main-thread paths[0m
+
+[0m  ExtHostFileSystemEventService[0m
+  [32m  ✔[0m[90m watcher registration and disposal use ordered notifications without empty replies[0m
+  [32m  ✔[0m[90m provider metadata and file notifications retain snapshots before a subsequent RPC barrier[0m
+  [32m  ✔[0m[90m FileSystemWatcher ignore events properties are reversed #26851[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches case-insensitively via pre-lowercasing[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches case-sensitively when PathCaseSensitive[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches relative pattern case-insensitively via pre-lowercasing[0m
+
+[0m  ExtHostGitExtensionService[0m
+  [32m  ✔[0m[90m stages the requested files and commits them[0m
+  [32m  ✔[0m[90m does nothing when no files are provided[0m
+  [32m  ✔[0m[90m refuses to commit when other files are already staged[0m
+  [32m  ✔[0m[90m allows staged changes that are part of the requested files[0m
+  [32m  ✔[0m[90m treats nothing to commit and untracked missing paths as no-ops[0m
+  [32m  ✔[0m[90m rethrows other git failures[0m
+
+[0m  Extension host hierarchy sessions[0m
+  [32m  ✔[0m[90m does not cache call hierarchy items returned after cancellation[0m
+  [32m  ✔[0m[90m does not cache type hierarchy items returned after cancellation[0m
+  [32m  ✔[0m[90m keeps an active call hierarchy session until release[0m
+  [32m  ✔[0m[90m keeps an active type hierarchy session until release[0m
+
+[0m  ExtHostLanguageFeatures[0m
+  [32m  ✔[0m[90m AutoClosingPair.beforeText requires proposed API[0m
+  [32m  ✔[0m[90m DocumentDropEdits does not cache an empty edit array without release IDs[0m
+  [32m  ✔[0m[90m DocumentDropEdits releases cache IDs after 0 declined requests[0m
+  [32m  ✔[0m[90m DocumentDropEdits releases cache IDs after 2 declined requests[0m
+  [32m  ✔[0m[90m DocumentPasteEdits releases cache IDs after 0 declined requests[0m
+  [32m  ✔[0m[90m DocumentPasteEdits releases cache IDs after 2 declined requests[0m
+  [32m  ✔[0m[90m DocumentPasteEdits does not cache empty results without release IDs[0m
+  [32m  ✔[0m[90m DocumentSymbols, register/deregister[0m
+  [32m  ✔[0m[90m DocumentSymbols, evil provider[0m
+  [32m  ✔[0m[90m DocumentSymbols, data conversion[0m
+  [32m  ✔[0m[90m Quick Outline uses a not ideal sorting, #138502[0m
+  [32m  ✔[0m[90m CodeLens, evil provider[0m
+  [32m  ✔[0m[90m CodeLens, do not resolve a resolved lens[0m
+  [32m  ✔[0m[90m CodeLens, missing command[0m
+  [32m  ✔[0m[90m Definition, data conversion[0m
+  [32m  ✔[0m[90m Definition, one or many[0m
+  [32m  ✔[0m[90m Definition, registration order[0m
+  [32m  ✔[0m[90m Definition, evil provider[0m
+  [32m  ✔[0m[90m Declaration, data conversion[0m
+  [32m  ✔[0m[90m Implementation, data conversion[0m
+  [32m  ✔[0m[90m Type Definition, data conversion[0m
+  [32m  ✔[0m[90m HoverProvider, word range at pos[0m
+  [32m  ✔[0m[90m HoverProvider, given range[0m
+  [32m  ✔[0m[90m HoverProvider, registration order[0m
+  [32m  ✔[0m[90m HoverProvider, evil provider[0m
+  [32m  ✔[0m[90m Occurrences, data conversion[0m
+  [32m  ✔[0m[90m Occurrences, order 1/2[0m
+  [32m  ✔[0m[90m Occurrences, order 2/2[0m
+  [32m  ✔[0m[90m Occurrences, evil provider[0m
+  [32m  ✔[0m[90m References, registration order[0m
+  [32m  ✔[0m[90m References, data conversion[0m
+  [32m  ✔[0m[90m References, evil provider[0m
+  [32m  ✔[0m[90m Quick Fix, command data conversion[0m
+  [32m  ✔[0m[90m Quick Fix, code action data conversion[0m
+  [32m  ✔[0m[90m Cannot read property 'id' of undefined, #29469[0m
+  [32m  ✔[0m[90m Quick Fix, evil provider[0m
+  [32m  ✔[0m[90m Navigate types, evil provider[0m
+  [32m  ✔[0m[90m Navigate types, de-duplicate results[0m
+  [32m  ✔[0m[90m Rename, evil provider 0/2[0m
+  [32m  ✔[0m[90m Rename, evil provider 1/2[0m
+  [32m  ✔[0m[90m Rename, evil provider 2/2[0m
+  [32m  ✔[0m[90m Rename, ordering[0m
+  [32m  ✔[0m[90m Multiple RenameProviders don't respect all possible PrepareRename handlers 1/2, #98352[0m
+  [32m  ✔[0m[90m Multiple RenameProviders don't respect all possible PrepareRename handlers 2/2, #98352[0m
+  [32m  ✔[0m[90m Parameter Hints, order[0m
+  [32m  ✔[0m[90m Parameter Hints, evil provider[0m
+  [32m  ✔[0m[90m Suggest, order 1/3[0m
+  [32m  ✔[0m[90m Suggest, order 2/3[0m
+  [32m  ✔[0m[90m Suggest, order 3/3[0m
+  [32m  ✔[0m[90m Suggest, evil provider[0m
+  [32m  ✔[0m[90m Suggest, CompletionList[0m
+  [32m  ✔[0m[90m Format Doc, data conversion[0m
+  [32m  ✔[0m[90m Format Doc, evil provider[0m
+  [32m  ✔[0m[90m Format Doc, order[0m
+  [32m  ✔[0m[90m Format Range, data conversion[0m
+  [32m  ✔[0m[90m Format Range, + format_doc[0m
+  [32m  ✔[0m[90m Format Range, evil provider[0m
+  [32m  ✔[0m[90m Format on Type, data conversion[0m
+  [32m  ✔[0m[90m Links, data conversion[0m
+  [32m  ✔[0m[90m Links, evil provider[0m
+  [32m  ✔[0m[90m Document colors, data conversion[0m
+  [32m  ✔[0m[90m Selection Ranges, data conversion[0m
+  [32m  ✔[0m[90m Selection Ranges, bad data[0m
+
+[0m  ExtHostMessageService[0m
+  [32m  ✔[0m[90m preserves command and web links in extension notifications[0m
+  [32m  ✔[0m[90m propagte handle on select[0m
+[0m    notification telemetry[0m
+    [32m  ✔[0m[90m attributes extension messages and button positions without inferring semantics (Publisher.Extension)[0m
+    [32m  ✔[0m[90m attributes extension messages and button positions without inferring semantics (missing)[0m
+    [32m  ✔[0m[90m attributes extension messages and button positions without inferring semantics (/private/extension)[0m
+[0m    modal[0m
+    [32m  ✔[0m[90m calls dialog service[0m
+    [32m  ✔[0m[90m returns undefined when cancelled[0m
+    [32m  ✔[0m[90m hides Cancel button when not needed[0m
+
+[0m  NotebookCell#Document[0m
+  [32m  ✔[0m[90m cell document is vscode.TextDocument[0m
+  [32m  ✔[0m[90m cell document goes when notebook closes[0m
+  [32m  ✔[0m[90m cell document is vscode.TextDocument after changing it[0m
+  [32m  ✔[0m[90m cell document stays open when notebook is still open[0m
+  [32m  ✔[0m[90m cell document goes when cell is removed[0m
+  [32m  ✔[0m[90m cell#index[0m
+  [32m  ✔[0m[90m ERR MISSING extHostDocument for notebook cell: #116711[0m
+  [32m  ✔[0m[90m Opening a notebook results in VS Code firing the event onDidChangeActiveNotebookEditor twice #118470[0m
+  [32m  ✔[0m[90m unset active notebook editor[0m
+  [32m  ✔[0m[90m change cell language triggers onDidChange events[0m
+  [32m  ✔[0m[90m onDidChangeNotebook-event, cell changes[0m
+  [32m  ✔[0m[90m onDidChangeNotebook-event, notebook metadata[0m
+  [32m  ✔[0m[90m onDidChangeNotebook-event, froozen data[0m
+  [32m  ✔[0m[90m change cell language and onDidChangeNotebookDocument[0m
+  [32m  ✔[0m[90m change notebook cell document and onDidChangeNotebookDocument[0m
+  [32m  ✔[0m[90m Append multiple text/plain output items[0m
+  [32m  ✔[0m[90m Append multiple stdout stream output items to an output with another mime[0m
+  [32m  ✔[0m[90m Compress multiple stdout stream output items[0m
+  [32m  ✔[0m[90m Compress multiple stdout stream output items (with support for terminal escape code -> [A)[0m
+  [32m  ✔[0m[90m Compress multiple stdout stream output items (with support for terminal escape code ->  character)[0m
+  [32m  ✔[0m[90m Compress multiple stderr stream output items[0m
+
+[0m  NotebookKernel[0m
+  [32m  ✔[0m[90m create/dispose kernel[0m
+  [32m  ✔[0m[90m update kernel[0m
+  [32m  ✔[0m[90m execute - simple createNotebookCellExecution[0m
+  [32m  ✔[0m[90m createNotebookCellExecution, must be selected/associated[0m
+  [32m  ✔[0m[90m createNotebookCellExecution, cell must be alive[0m
+  [32m  ✔[0m[90m interrupt handler, cancellation[0m
+  [32m  ✔[0m[90m set outputs on cancel[0m
+  [32m  ✔[0m[90m set outputs on interrupt[0m
+
+[0m  ExtHostNotebookSerializer[0m
+  [32m  ✔[0m[90m disposed serializers cannot deserialize subsequent requests[0m
+  [32m  ✔[0m[90m disposed serializers cannot serialize subsequent requests[0m
+  [32m  ✔[0m[90m disposing one serializer leaves another registration usable[0m
+  [32m  ✔[0m[90m an in-flight deserialization can finish without reviving a disposed serializer[0m
+
+[0m  Notebook cell status command lifetime[0m
+  [32m  ✔[0m[90m releases command arguments with the cell status result[0m
+  [32m  ✔[0m[90m releasing one result preserves another live result[0m
+  [32m  ✔[0m[90m ignores unknown result IDs[0m
+
+[0m  Extension host native notifications[0m
+  [32m  ✔[0m[90m diagnostic collection changes and disposal retain order without ignored replies[0m
+  [32m  ✔[0m[90m buffered terminal output is delivered before exit without ignored replies[0m
+
+[0m  Extension host semantic tokens cache[0m
+  [32m  ✔[0m[90m does not reuse tokens returned after cancellation[0m
+  [32m  ✔[0m[90m does not reuse edits returned after cancellation[0m
+  [32m  ✔[0m[90m preserves active tokens over RPC[0m
+  [32m  ✔[0m[90m releases canceled tokens over RPC before cancellation reaches the extension host[0m
+  [32m  ✔[0m[90m preserves active edits over RPC[0m
+  [32m  ✔[0m[90m releases canceled edits over RPC before cancellation reaches the extension host[0m
+  [32m  ✔[0m[90m uses active result IDs for edits until release[0m
+
+[0m  Extension host signature help cache[0m
+  [32m  ✔[0m[90m does not reuse signature help returned after cancellation[0m
+  [32m  ✔[0m[90m reuses active signature help until it is released[0m
+
+[0m  ExtHostSpeech[0m
+  [32m  ✔[0m[90m does not restore a text-to-speech session that resolves after cancellation[0m
+
+[0m  ExtHostStatusBar command lifetime[0m
+  [32m  ✔[0m[90m replacing commands that were never published releases their arguments[0m
+  [32m  ✔[0m[90m queued clicks survive hide before replacement[0m
+  [32m  ✔[0m[90m queued clicks survive replacement before hide[0m
+  [32m  ✔[0m[90m a contributed item keeps its published command after hide before replacement[0m
+  [32m  ✔[0m[90m a contributed item keeps its published command after replacement before hide[0m
+  [32m  ✔[0m[90m visible replacement keeps the previous command until the UI update[0m
+  [32m  ✔[0m[90m hidden replacements retain only the published and current arguments[0m
+  [32m  ✔[0m[90m showing after hidden replacements preserves the latest arguments[0m
+  [32m  ✔[0m[90m disposing a hidden item releases its current arguments[0m
+
+[0m  TelemetryLogAdapter[0m
+  [32m  ✔[0m[90m Do not Log Telemetry if log level is not trace[0m
+  [32m  ✔[0m[90m Log Telemetry if log level is trace[0m
+  [32m  ✔[0m[90m Use custom logger id[0m
+
+[0m  ExtHostTelemetry[0m
+  [32m  ✔[0m[90m Validate sender instances[0m
+  [32m  ✔[0m[90m Ensure logger gets proper telemetry level during initialization[0m
+  [32m  ✔[0m[90m Simple log event to TelemetryLogger[0m
+  [32m  ✔[0m[90m Disposed telemetry loggers are removed from extension bookkeeping[0m
+  [32m  ✔[0m[90m Telemetry loggers are removed from extension bookkeeping when flush throws[0m
+  [32m  ✔[0m[90m Replacing the last logger during enablement notification does not notify the replacement[0m
+  [32m  ✔[0m[90m Simple log event to TelemetryLogger with options[0m
+  [32m  ✔[0m[90m Log error should get common properties #193205[0m
+  [32m  ✔[0m[90m Ensure logger properly cleans PII[0m
+  [32m  ✔[0m[90m Ensure output channel is logged to[0m
+
+[0m  ExtHost Testing[0m
+[0m    OwnedTestCollection[0m
+    [32m  ✔[0m[90m adds a root recursively[0m
+    [32m  ✔[0m[90m parents are set correctly[0m
+    [32m  ✔[0m[90m can add an item with same ID as root[0m
+    [32m  ✔[0m[90m no-ops if items not changed[0m
+    [32m  ✔[0m[90m watches property mutations[0m
+    [32m  ✔[0m[90m removes children[0m
+    [32m  ✔[0m[90m adds new children[0m
+    [32m  ✔[0m[90m manages tags correctly[0m
+    [32m  ✔[0m[90m replaces on uri change[0m
+    [32m  ✔[0m[90m treats in-place replacement as mutation[0m
+    [32m  ✔[0m[90m treats in-place replacement as mutation deeply[0m
+    [32m  ✔[0m[90m moves an item to be a new child[0m
+    [32m  ✔[0m[90m sends document sync events[0m
+[0m      discovery errors[0m
+      [32m  ✔[0m[90m publishes synchronous failures without mutating the provider error[0m
+      [32m  ✔[0m[90m publishes asynchronous failures and completes expansion[0m
+      [32m  ✔[0m[90m waits for concurrent expansions of a resolving item[0m
+      [32m  ✔[0m[90m keeps rediscovery pending when an obsolete handler rejects[0m
+      [32m  ✔[0m[90m clears failures when resetting the handler and rediscovering successfully[0m
+      [32m  ✔[0m[90m clears failures when removing the handler[0m
+      [32m  ✔[0m[90m preserves provider errors on failure and successful rediscovery[0m
+      [32m  ✔[0m[90m uses provider errors in preference to a discovery failure[0m
+      [32m  ✔[0m[90m clears failures when replacing an item[0m
+      [32m  ✔[0m[90m ignores obsolete asynchronous failures after remove[0m
+      [32m  ✔[0m[90m ignores obsolete asynchronous failures after replace[0m
+      [32m  ✔[0m[90m ignores obsolete asynchronous failures after dispose[0m
+      [32m  ✔[0m[90m ignores obsolete asynchronous failures after reset[0m
+[0m      expandibility restoration[0m
+      [32m  ✔[0m[90m does not restore an unexpanded state[0m
+      [32m  ✔[0m[90m restores resolve state on replacement[0m
+      [32m  ✔[0m[90m does not expand if new child is not expandable[0m
+[0m    TestRunTracker[0m
+    [32m  ✔[0m[90m tracks a run started from a main thread request[0m
+    [32m  ✔[0m[90m run cancel force ends after a timeout[0m
+    [32m  ✔[0m[90m run cancel force ends on second cancellation request[0m
+    [32m  ✔[0m[90m tracks a run started from an extension request[0m
+    [32m  ✔[0m[90m adds tests to run smartly[0m
+    [32m  ✔[0m[90m adds test messages to run[0m
+    [32m  ✔[0m[90m guards calls after runs are ended[0m
+    [32m  ✔[0m[90m sets state of test with identical local IDs (#131827)[0m
+[0m    service[0m
+    [32m  ✔[0m[90m disposing an observer stops its events while another observer remains live[0m
+    [32m  ✔[0m[90m subscribing to a disposed observer does not reattach its events[0m
+    [32m  ✔[0m[90m observer listeners can unsubscribe and subscribe again[0m
+    [32m  ✔[0m[90m a new observer starts a fresh collection after the last observer closes[0m
+    [32m  ✔[0m[90m exposes active profiles correctly[0m
+
+[0m  ExtHostTextEditor[0m
+  [32m  ✔[0m[90m disposed editor[0m
+  [32m  ✔[0m[90m API [bug]: registerTextEditorCommand clears redo stack even if no edits are made #55163[0m
+
+[0m  ExtHostTextEditorOptions[0m
+  [32m  ✔[0m[90m can set tabSize to the same value[0m
+  [32m  ✔[0m[90m can change tabSize to positive integer[0m
+  [32m  ✔[0m[90m can change tabSize to positive float[0m
+  [32m  ✔[0m[90m can change tabSize to a string number[0m
+  [32m  ✔[0m[90m tabSize can request indentation detection[0m
+  [32m  ✔[0m[90m ignores invalid tabSize 1[0m
+  [32m  ✔[0m[90m ignores invalid tabSize 2[0m
+  [32m  ✔[0m[90m ignores invalid tabSize 3[0m
+  [32m  ✔[0m[90m ignores invalid tabSize 4[0m
+  [32m  ✔[0m[90m can set indentSize to the same value[0m
+  [32m  ✔[0m[90m can change indentSize to positive integer[0m
+  [32m  ✔[0m[90m can change indentSize to positive float[0m
+  [32m  ✔[0m[90m can change indentSize to a string number[0m
+  [32m  ✔[0m[90m indentSize can request to use tabSize[0m
+  [32m  ✔[0m[90m indentSize cannot request indentation detection[0m
+  [32m  ✔[0m[90m ignores invalid indentSize 1[0m
+  [32m  ✔[0m[90m ignores invalid indentSize 2[0m
+  [32m  ✔[0m[90m ignores invalid indentSize 3[0m
+  [32m  ✔[0m[90m ignores invalid indentSize 4[0m
+  [32m  ✔[0m[90m can set insertSpaces to the same value[0m
+  [32m  ✔[0m[90m can set insertSpaces to boolean[0m
+  [32m  ✔[0m[90m can set insertSpaces to false string[0m
+  [32m  ✔[0m[90m can set insertSpaces to truey[0m
+  [32m  ✔[0m[90m insertSpaces can request indentation detection[0m
+  [32m  ✔[0m[90m can set cursorStyle to same value[0m
+  [32m  ✔[0m[90m can change cursorStyle[0m
+  [32m  ✔[0m[90m can set lineNumbers to same value[0m
+  [32m  ✔[0m[90m can change lineNumbers[0m
+  [32m  ✔[0m[90m can do bulk updates 0[0m
+  [32m  ✔[0m[90m can do bulk updates 1[0m
+  [32m  ✔[0m[90m can do bulk updates 2[0m
+  [32m  ✔[0m[90m can do bulk updates 3[0m
+
+[0m  ExtHostTimeline[0m
+  [32m  ✔[0m[90m disposes cached timeline items with their provider[0m
+  [32m  ✔[0m[90m does not cache an in-flight timeline result after provider disposal[0m
+  [32m  ✔[0m[90m passes the original items to the providing extension and read-only copies to other extensions[0m
+  [32m  ✔[0m[90m changing a copy for another extension does not change the original item[0m
+  [32m  ✔[0m[90m requests timelines with public options and forwards change events[0m
+  [32m  ✔[0m[90m workspace timeline providers share an id only with providers of the same extension[0m
+
+[0m  ExtHostTreeViews registration lifetime[0m
+  [36m  - disposed view providers become collectible while the service remains alive[0m
+  [32m  ✔[0m[90m disposing one view preserves other live providers[0m
+  [32m  ✔[0m[90m registered data providers can still be disposed repeatedly[0m
+  [32m  ✔[0m[90m shutdown still disposes all live registrations[0m
+  [32m  ✔[0m[90m pending old-view disposal does not remove a replacement[0m
+
+[0m  ExtHostTreeView[0m
+  [32m  ✔[0m[90m drag transfer remains available until it is consumed[0m
+  [32m  ✔[0m[90m drag transfer is released when canceled before provider completion[0m
+  [32m  ✔[0m[90m drag transfer is released when the provider rejects[0m
+  [32m  ✔[0m[90m drag transfer release retires completed data without touching a live operation[0m
+  [32m  ✔[0m[90m drag transfer release does not restore data after late provider completion[0m
+  [32m  ✔[0m[90m drag transfer release does not accumulate over repeated completed cancellations[0m
+  [32m  ✔[0m[90m drag transfer consumption preserves original item identity for a successful drop[0m
+  [32m  ✔[0m[90m construct node tree[0m
+  [32m  ✔[0m[90m construct id tree[0m
+  [32m  ✔[0m[90m construct highlights tree[0m
+  [32m  ✔[0m[90m duplicate id across siblings is handled gracefully[0m
+  [32m  ✔[0m[90m different element instances with same id are replaced gracefully[0m
+  [32m  ✔[0m[90m refresh root[0m
+  [32m  ✔[0m[90m refresh a parent node[0m
+  [32m  ✔[0m[90m refresh a leaf node[0m
+  [32m  ✔[0m[90m refresh parent and child node trigger refresh only on parent - scenario 1[0m
+  [32m  ✔[0m[90m refresh parent and child node trigger refresh only on parent - scenario 2[0m
+  [32m  ✔[0m[90m refresh an element for label change[0m
+  [32m  ✔[0m[90m refresh calls are throttled on roots[0m
+  [32m  ✔[0m[90m refresh calls are throttled on elements[0m
+  [32m  ✔[0m[90m refresh calls are throttled on unknown elements[0m
+  [32m  ✔[0m[90m refresh calls are throttled on unknown elements and root[0m
+  [32m  ✔[0m[90m refresh calls are throttled on elements and root[0m
+  [32m  ✔[0m[90m generate unique handles from labels by escaping them[0m
+  [32m  ✔[0m[90m tree with duplicate labels[0m
+  [32m  ✔[0m[90m getChildren is not returned from cache if refreshed[0m
+  [32m  ✔[0m[90m getChildren is returned from cache if not refreshed[0m
+  [32m  ✔[0m[90m dispose and re-register tree view[0m
+  [32m  ✔[0m[90m reveal will throw an error if getParent is not implemented[0m
+  [32m  ✔[0m[90m reveal will return empty array for root element[0m
+  [32m  ✔[0m[90m reveal will return parents array for an element when hierarchy is not loaded[0m
+  [32m  ✔[0m[90m reveal will return parents array for an element when hierarchy is loaded[0m
+  [32m  ✔[0m[90m reveal will return parents array for deeper element with no selection[0m
+  [32m  ✔[0m[90m reveal after first udpate[0m
+  [32m  ✔[0m[90m reveal after second udpate[0m
+
+[0m  ExtHostTypeConverter[0m
+  [32m  ✔[0m[90m MarkdownConvert - uris[0m
+  [32m  ✔[0m[90m LanguageModelChatMessage2 converters preserve tool-result data parts across the provider boundary #313920[0m
+  [32m  ✔[0m[90m NPM script explorer running a script from the hover does not work #65561[0m
+  [32m  ✔[0m[90m Notebook metadata is ignored when using Notebook Serializer #125716[0m
+  [32m  ✔[0m[90m NotebookCellOutputItem[0m
+  [32m  ✔[0m[90m LanguageSelector[0m
+  [32m  ✔[0m[90m WorkspaceEdit round-trip preserves insertAsSnippet and keepWhitespace (#178654, #325990)[0m
+
+[0m  ChatAgentResult[0m
+  [32m  ✔[0m[90m reviveMetadata - roundtrips base64-encoded LanguageModelDataPart[0m
+  [32m  ✔[0m[90m reviveMetadata - decodes legacy Buffer-like LanguageModelDataPart shape[0m
+  [32m  ✔[0m[90m reviveMetadata - does not throw on malformed LanguageModelDataPart shape[0m
+
+[0m  ChatAgentRequest[0m
+  [32m  ✔[0m[90m tool invocation token identifies the request it was issued for[0m
+
+[0m  ExtHostTypes[0m
+  [32m  ✔[0m[90m URI, toJSON[0m
+  [32m  ✔[0m[90m Disposable[0m
+  [32m  ✔[0m[90m Position[0m
+  [32m  ✔[0m[90m Position, toJSON[0m
+  [32m  ✔[0m[90m Position, isBefore(OrEqual)?[0m
+  [32m  ✔[0m[90m Position, isAfter(OrEqual)?[0m
+  [32m  ✔[0m[90m Position, compareTo[0m
+  [32m  ✔[0m[90m Position, translate[0m
+  [32m  ✔[0m[90m Position, with[0m
+  [32m  ✔[0m[90m Range[0m
+  [32m  ✔[0m[90m Range, toJSON[0m
+  [32m  ✔[0m[90m Range, sorting[0m
+  [32m  ✔[0m[90m Range, isEmpty|isSingleLine[0m
+  [32m  ✔[0m[90m Range, contains[0m
+  [32m  ✔[0m[90m Range, contains (no instanceof)[0m
+  [32m  ✔[0m[90m Range, intersection[0m
+  [32m  ✔[0m[90m Range, union[0m
+  [32m  ✔[0m[90m Range, with[0m
+  [32m  ✔[0m[90m TextEdit[0m
+  [32m  ✔[0m[90m WorkspaceEdit[0m
+  [32m  ✔[0m[90m WorkspaceEdit - keep order of text and file changes[0m
+  [32m  ✔[0m[90m WorkspaceEdit - two edits for one resource[0m
+  [32m  ✔[0m[90m WorkspaceEdit - set with metadata accepts undefined[0m
+  [32m  ✔[0m[90m DocumentLink[0m
+  [32m  ✔[0m[90m toJSON & stringify[0m
+  [32m  ✔[0m[90m SymbolInformation, old ctor[0m
+  [32m  ✔[0m[90m SnippetString, builder-methods[0m
+  [32m  ✔[0m[90m Snippet choices are incorrectly escaped/applied #180132[0m
+  [32m  ✔[0m[90m instanceof doesn't work for FileSystemError #49386[0m
+  [32m  ✔[0m[90m CancellationError[0m
+  [32m  ✔[0m[90m CodeActionKind contains[0m
+  [32m  ✔[0m[90m CodeActionKind intersects[0m
+  [32m  ✔[0m[90m SemanticTokensBuilder simple[0m
+  [32m  ✔[0m[90m SemanticTokensBuilder no modifier[0m
+  [32m  ✔[0m[90m SemanticTokensBuilder out of order 1[0m
+  [32m  ✔[0m[90m SemanticTokensBuilder out of order 2[0m
+  [32m  ✔[0m[90m SemanticTokensBuilder with legend[0m
+  [32m  ✔[0m[90m Markdown codeblock rendering is swapped #111604[0m
+  [32m  ✔[0m[90m NotebookCellOutputItem - factories[0m
+  [32m  ✔[0m[90m FileDecoration#validate[0m
+  [32m  ✔[0m[90m runtime stable, type-def changed[0m
+  [32m  ✔[0m[90m LanguageModelError.RateLimited keeps retryAfter across serialization[0m
+
+[0m  ExtHostUriOpeners[0m
+  [32m  ✔[0m[90m maps internal openToSide=true to viewColumn[0m
+  [32m  ✔[0m[90m maps internal openToSide=false to viewColumn[0m
+  [32m  ✔[0m[90m maps internal openToSide=undefined to viewColumn[0m
+
+[0m  ExtHostWebview[0m
+  [32m  ✔[0m[90m Cannot register multiple serializers for the same view type[0m
+  [32m  ✔[0m[90m asWebviewUri for local file paths[0m
+  [32m  ✔[0m[90m asWebviewUri for remote file paths[0m
+  [32m  ✔[0m[90m asWebviewUri for remote with / and + in name[0m
+  [32m  ✔[0m[90m asWebviewUri for remote with port in name[0m
+[0m    ensureDefaultContentOptions[0m
+    [32m  ✔[0m[90m fills default localResourceRoots from workspace folders and extension location when caller did not supply them[0m
+    [32m  ✔[0m[90m does nothing when caller already supplied localResourceRoots[0m
+    [32m  ✔[0m[90m falls back to just the extension location when there are no workspace folders[0m
+
+[0m  ExtHostWorkspace[0m
+  [32m  ✔[0m[90m asRelativePath[0m
+  [32m  ✔[0m[90m asRelativePath, same paths, #11402[0m
+  [32m  ✔[0m[90m asRelativePath, no workspace[0m
+  [32m  ✔[0m[90m asRelativePath, multiple folders[0m
+  [32m  ✔[0m[90m slightly inconsistent behaviour of asRelativePath and getWorkspaceFolder, #31553[0m
+  [32m  ✔[0m[90m getPath, legacy[0m
+  [32m  ✔[0m[90m WorkspaceFolder has name and index[0m
+  [32m  ✔[0m[90m getContainingWorkspaceFolder[0m
+  [32m  ✔[0m[90m Multiroot change event should have a delta, #29641[0m
+  [32m  ✔[0m[90m Multiroot change keeps existing workspaces live[0m
+  [32m  ✔[0m[90m updateWorkspaceFolders - invalid arguments[0m
+  [32m  ✔[0m[90m updateWorkspaceFolders - valid arguments[0m
+  [32m  ✔[0m[90m Multiroot change event is immutable[0m
+  [32m  ✔[0m[90m `vscode.workspace.getWorkspaceFolder(file)` don't return workspace folder when file open from command line. #36221[0m
+[0m    findFiles -[0m
+    [32m  ✔[0m[90m string include[0m
+    [32m  ✔[0m[90m RelativePattern include (string)[0m
+    [32m  ✔[0m[90m RelativePattern include (URI)[0m
+    [32m  ✔[0m[90m no excludes[0m
+    [32m  ✔[0m[90m with cancelled token[0m
+    [32m  ✔[0m[90m RelativePattern exclude[0m
+[0m    findFiles2 -[0m
+    [32m  ✔[0m[90m string include[0m
+    [32m  ✔[0m[90m RelativePattern include (string)[0m
+    [32m  ✔[0m[90m RelativePattern include (URI)[0m
+    [32m  ✔[0m[90m no excludes[0m
+    [32m  ✔[0m[90m no dups[0m
+    [32m  ✔[0m[90m with cancelled token[0m
+    [32m  ✔[0m[90m RelativePattern exclude[0m
+    [32m  ✔[0m[90m useIgnoreFiles[0m
+    [32m  ✔[0m[90m use symlinks[0m
+    [32m  ✔[0m[90m caseInsensitive[0m
+[0m    findTextInFiles -[0m
+    [32m  ✔[0m[90m no include[0m
+    [32m  ✔[0m[90m string include[0m
+    [32m  ✔[0m[90m RelativePattern include[0m
+    [32m  ✔[0m[90m with cancelled token[0m
+    [32m  ✔[0m[90m RelativePattern exclude[0m
+[0m    findTextInFiles2 -[0m
+    [32m  ✔[0m[90m no include[0m
+    [32m  ✔[0m[90m string include[0m
+    [32m  ✔[0m[90m RelativePattern include[0m
+    [32m  ✔[0m[90m with cancelled token[0m
+    [32m  ✔[0m[90m RelativePattern exclude[0m
+    [32m  ✔[0m[90m caseInsensitive[0m
+
+[0m  Extension host workspace symbol cache[0m
+  [32m  ✔[0m[90m does not resolve workspace symbols returned after cancellation[0m
+  [32m  ✔[0m[90m resolves active workspace symbols until release[0m
+
+[0m  XaaAuthProvider helpers[0m
+  [32m  ✔[0m[90m cacheKey is scope-order-independent[0m
+  [32m  ✔[0m[90m cacheKey distinguishes different audiences[0m
+  [32m  ✔[0m[90m isExpired treats tokens without expires_in as never expiring[0m
+  [32m  ✔[0m[90m isExpired flags tokens within 60s of expiry as expired[0m
+  [32m  ✔[0m[90m isExpired treats expires_in: 0 as immediately expired[0m
+  [32m  ✔[0m[90m IDP_SCOPES requests an OpenID session with refresh[0m
+
+[0m  XaaAuthProvider toSession[0m
+  [32m  ✔[0m[90m prefers the identity in the session's own id_token over the fallback account[0m
+  [32m  ✔[0m[90m falls back to the threaded account when the token has no id_token[0m
+  [32m  ✔[0m[90m never mines identity from the access_token[0m
+
+[0m  MainThreadAuthentication[0m
+  [32m  ✔[0m[90m concurrent identical session reads share one RPC without caching completed results[0m
+  [32m  ✔[0m[90m session reads with different scopes or provider options remain independent[0m
+  [32m  ✔[0m[90m failed shared session reads are evicted before the next request[0m
+  [32m  ✔[0m[90m session changes invalidate pending reads and old completion cannot evict a newer read[0m
+  [32m  ✔[0m[90m creating or removing sessions invalidates reads before the mutation finishes[0m
+  [32m  ✔[0m[90m an invalidation during the RPC call cannot install an obsolete shared read[0m
+  [32m  ✔[0m[90m revives session URIs and preserves optional session fields[0m
+
+[0m  MainThreadBulkEdits[0m
+  [32m  ✔[0m[90m "Rename failed to apply edits" in monorepo with pnpm #158845[0m
+
+[0m  MainThreadChatAgents2[0m
+  [32m  ✔[0m[90m forwards usage to the progress callback for a subagent request[0m
+  [32m  ✔[0m[90m sets usage on the response model for a non-subagent request[0m
+  [32m  ✔[0m[90m drops usage (with a warning) for a non-subagent request that has no response model[0m
+
+[0m  Chat artifact integration extension bridge[0m
+  [32m  ✔[0m[90m preserves extension-provided list icons without a pill section[0m
+  [32m  ✔[0m[90m matches, converts themed details, executes a manual action, and updates observations[0m
+  [32m  ✔[0m[90m list-only details and actual Markdown descriptions cross the bridge as immutable snapshots[0m
+  [32m  ✔[0m[90m details updates, paging capability and disposal cross the bridge independently of state[0m
+  [32m  ✔[0m[90m authentication-required matches retain presentation and sign in within the extension[0m
+  [32m  ✔[0m[90m shares resource observations, invalidates them for every binding, and unregisters[0m
+  [32m  ✔[0m[90m an update arriving before resource creation completes wins over the initial snapshot[0m
+  [32m  ✔[0m[90m invalid state is visible as an error and never enables an unknown action[0m
+  [32m  ✔[0m[90m ambiguous presentation identities are isolated and valid extension updates recover[0m
+  [32m  ✔[0m[90m revalidates action availability and conservatively records uncertain execution failures[0m
+  [32m  ✔[0m[90m a cancelled confirmation is recorded as skipped rather than completed[0m
+  [32m  ✔[0m[90m disposes a resource returned after cancellation[0m
+  [32m  ✔[0m[90m disposes a resource returned after unregistration[0m
+  [32m  ✔[0m[90m rejects duplicate registrations and leaves unmatched resources plain[0m
+  [32m  ✔[0m[90m agent-facing provider descriptions cross the bridge and must be one bounded line[0m
+  [32m  ✔[0m[90m prompt actions use the invoking chat manually and the recorded chat automatically, with notices and request cards[0m
+  [32m  ✔[0m[90m shared observations have isolated session consent and durable, revisioned checkpoints[0m
+  [32m  ✔[0m[90m an extension that requests its occurrence on every change settles instead of looping[0m[33m (45ms)[0m
+  [32m  ✔[0m[90m a sign-in the extension already reported rematches once[0m
+  [32m  ✔[0m[90m restores consent, enablement time, checkpoints and occurrence deduplication after coordinator restart[0m
+  [32m  ✔[0m[90m disconnect disposes automation, rejects retained contexts, and resumes from the durable checkpoint[0m
+  [32m  ✔[0m[90m disposes an activation result returned after consent was revoked[0m
+  [32m  ✔[0m[90m revoking consent while a prompt is preparing prevents dispatch[0m
+  [32m  ✔[0m[90m prompt preparation skip never dispatches a chat turn[0m
+  [32m  ✔[0m[90m prompt preparation empty text never dispatches a chat turn[0m
+  [32m  ✔[0m[90m prompt preparation missing result never dispatches a chat turn[0m
+  [32m  ✔[0m[90m invalid option declarations fail during registration[0m
+  [32m  ✔[0m[90m activation failure is exposed instead of leaving an apparently working automation[0m
+  [32m  ✔[0m[90m invalid automation references fail visibly and unsupported runtimes leave manual actions available[0m
+
+[0m  MainThreadChatInputNotification[0m
+  [32m  ✔[0m[90m carries session types across the bridge, defaulting to none[0m
+  [32m  ✔[0m[90m maps the notification onto the internal shape[0m
+
+[0m  ObservableChatSession[0m
+  [32m  ✔[0m[90m constructor creates session with proper initial state[0m
+  [32m  ✔[0m[90m session queues progress before initialization and processes it after[0m
+  [32m  ✔[0m[90m initialization loads session history and sets up capabilities[0m
+  [32m  ✔[0m[90m initialization revives modeInstructions in history[0m
+  [32m  ✔[0m[90m toRequestDto passes modeInstructions through[0m
+  [32m  ✔[0m[90m initialization sets forkSession and revives forked items[0m
+  [32m  ✔[0m[90m initialization sets title from session content[0m
+  [32m  ✔[0m[90m title is undefined when not provided in session content[0m
+  [32m  ✔[0m[90m initialization is idempotent and returns same promise[0m
+  [32m  ✔[0m[90m initialization forwards initial session options context[0m
+  [32m  ✔[0m[90m progress handling works correctly after initialization[0m
+  [32m  ✔[0m[90m progress completion updates session state correctly[0m
+  [32m  ✔[0m[90m session with active response callback becomes active when progress is added[0m
+  [32m  ✔[0m[90m request handler forwards requests to proxy[0m
+  [32m  ✔[0m[90m request handler forwards progress updates to external callback[0m
+  [32m  ✔[0m[90m dispose properly cleans up resources and notifies listeners[0m
+  [32m  ✔[0m[90m session with multiple request/response pairs in history[0m
+
+[0m  MainThreadChatSessions[0m
+  [32m  ✔[0m[90m provideChatSessionContent creates and initializes session[0m
+  [32m  ✔[0m[90m provideChatSessionContent propagates title[0m
+  [32m  ✔[0m[90m $handleProgressChunk routes to correct session[0m
+  [32m  ✔[0m[90m $handleProgressComplete marks session complete[0m
+  [32m  ✔[0m[90m integration with multiple request/response pairs[0m
+  [32m  ✔[0m[90m $onDidChangeChatSessionProviderOptions refreshes option groups[0m
+  [32m  ✔[0m[90m provider option refresh only logs unexpected errors[0m
+  [32m  ✔[0m[90m getSessionOption returns undefined for unset options[0m
+  [32m  ✔[0m[90m getSessionOption returns value for explicitly set options[0m
+  [32m  ✔[0m[90m option change notifications are sent to the extension[0m
+  [32m  ✔[0m[90m option change notifications fail silently when provider not registered[0m
+  [32m  ✔[0m[90m setSessionOption updates option and getSessionOption reflects change[0m
+  [32m  ✔[0m[90m $updateChatSessionInputState applies selected options only to the targeted session[0m
+  [32m  ✔[0m[90m $updateChatSessionInputState updates different sessions independently[0m
+  [32m  ✔[0m[90m resolveChatSessionItem invokes proxy and updates item[0m
+  [32m  ✔[0m[90m resolveChatSessionItem returns undefined when supportsResolve is false[0m
+  [32m  ✔[0m[90m resolveChatSessionItem cache is invalidated on item update[0m
+  [32m  ✔[0m[90m resolveChatSessionItem caches undefined result until item update invalidates it[0m
+  [32m  ✔[0m[90m resolveChatSessionItem ignores stale in-flight resolve result after item update[0m
+
+[0m  ExtHostChatSessions[0m
+  [32m  ✔[0m[90m controller only advertises resolve support after resolve handler is assigned[0m
+  [32m  ✔[0m[90m advertises controller fork support when only the controller registers a fork handler[0m
+  [32m  ✔[0m[90m prefers controller fork handler over deprecated session fork handler[0m
+  [32m  ✔[0m[90m falls back to deprecated session fork handler when no controller fork handler exists[0m
+
+[0m  MainThreadCommands[0m
+  [32m  ✔[0m[90m dispose on unregister[0m
+  [32m  ✔[0m[90m unregister all on dispose[0m
+  [32m  ✔[0m[90m activate and throw when needed[0m
+
+[0m  MainThreadConfiguration[0m
+  [32m  ✔[0m[90m update resource configuration without configuration target defaults to workspace in multi root workspace when no resource is provided[0m
+  [32m  ✔[0m[90m update resource configuration without configuration target defaults to workspace in folder workspace when resource is provider[0m
+  [32m  ✔[0m[90m update resource configuration without configuration target defaults to workspace in folder workspace when no resource is provider[0m
+  [32m  ✔[0m[90m update window configuration without configuration target defaults to workspace in multi root workspace when no resource is provided[0m
+  [32m  ✔[0m[90m update window configuration without configuration target defaults to workspace in multi root workspace when resource is provided[0m
+  [32m  ✔[0m[90m update window configuration without configuration target defaults to workspace in folder workspace when resource is provider[0m
+  [32m  ✔[0m[90m update window configuration without configuration target defaults to workspace in folder workspace when no resource is provider[0m
+  [32m  ✔[0m[90m update resource configuration without configuration target defaults to folder[0m
+  [32m  ✔[0m[90m update configuration with user configuration target[0m
+  [32m  ✔[0m[90m update configuration with workspace configuration target[0m
+  [32m  ✔[0m[90m update configuration with folder configuration target[0m
+  [32m  ✔[0m[90m remove resource configuration without configuration target defaults to workspace in multi root workspace when no resource is provided[0m
+  [32m  ✔[0m[90m remove resource configuration without configuration target defaults to workspace in folder workspace when resource is provider[0m
+  [32m  ✔[0m[90m remove resource configuration without configuration target defaults to workspace in folder workspace when no resource is provider[0m
+  [32m  ✔[0m[90m remove window configuration without configuration target defaults to workspace in multi root workspace when no resource is provided[0m
+  [32m  ✔[0m[90m remove window configuration without configuration target defaults to workspace in multi root workspace when resource is provided[0m
+  [32m  ✔[0m[90m remove window configuration without configuration target defaults to workspace in folder workspace when resource is provider[0m
+  [32m  ✔[0m[90m remove window configuration without configuration target defaults to workspace in folder workspace when no resource is provider[0m
+  [32m  ✔[0m[90m remove configuration without configuration target defaults to folder[0m
+
+[0m  MainThreadCustomEditors[0m
+  [32m  ✔[0m[90m custom text navigation resolves only after its editor and invalidates Outline capability on disposal[0m
+  [32m  ✔[0m[90m unregistering a text provider removes navigation from still-open panels[0m
+  [32m  ✔[0m[90m navigation resolution is canceled when its panel closes before completion[0m
+  [32m  ✔[0m[90m binary custom editors and custom text diff panels do not resolve navigation[0m
+  [32m  ✔[0m[90m navigation errors leave the custom panel intact without a text-editor fallback[0m
+  [32m  ✔[0m[90m selection notifications during navigation resolution supersede its initial snapshot[0m
+  [32m  ✔[0m[90m custom editor pane accepts missing options when switching back to an open editor[0m
+  [32m  ✔[0m[90m custom editor pane exposes live navigation selections for editor type switches[0m
+  [32m  ✔[0m[90m creates the document before resolving the editor and disposes it with the editor[0m
+  [32m  ✔[0m[90m sets an error page instead of rejecting when the extension fails to resolve the editor[0m
+  [32m  ✔[0m[90m asks the extension again when a new editor opens a document that failed to open (#250622)[0m
+  [32m  ✔[0m[90m asks the extension again when retrying an editor whose document failed to open (#250622)[0m
+  [32m  ✔[0m[90m retries an editor whose shared document was canceled by closing another editor (#250622)[0m
+  [32m  ✔[0m[90m retries an inline diff whose original document failed to open (#250622)[0m
+
+[0m  MainThreadCustomTextEditorNavigation[0m
+  [32m  ✔[0m[90m preview preserves focus and reveal focuses the originating panel[0m
+  [32m  ✔[0m[90m canceled requests do not reveal and disposal cancels in-flight reveal[0m
+  [32m  ✔[0m[90m restore waits for asynchronous capture[0m
+  [32m  ✔[0m[90m committing a heading releases captures instead of restoring preview state[0m
+  [32m  ✔[0m[90m disposal invalidates captures and prevents late restoration[0m
+  [32m  ✔[0m[90m a restore waiting for capture cannot overwrite a newer heading navigation[0m
+  [32m  ✔[0m[90m a restore waiting for capture is invalidated when the editor is disposed[0m
+  [32m  ✔[0m[90m selection changes are instance-local and stop after disposal[0m
+
+[0m  MainThreadDataChannels[0m
+  [32m  ✔[0m[90m preserves the selected kind when the provider is no longer available[0m
+  [32m  ✔[0m[90m bridges core link presentation watchers and runtime enablement[0m
+  [32m  ✔[0m[90m selects extension providers by URI regexp and shares live watchers[0m
+  [32m  ✔[0m[90m initializes watchers synchronously from rules and the last-data cache[0m
+  [32m  ✔[0m[90m skips file link presentation providers[0m
+  [32m  ✔[0m[90m rejects presentations that disagree with the registered kind[0m
+  [32m  ✔[0m[90m replaces a restored presentation when the provider returns the wrong kind[0m
+  [32m  ✔[0m[90m restores the shared cache after a service restart[0m
+
+[0m  MainThreadDebugService[0m
+  [32m  ✔[0m[90m disposes debug configuration provider registrations when they are unregistered[0m
+  [32m  ✔[0m[90m disposes debug adapter descriptor factory registrations when they are unregistered[0m
+
+[0m  MainThreadDiagnostics[0m
+  [32m  ✔[0m[90m clear markers on dispose[0m
+  [32m  ✔[0m[90m OnDidChangeDiagnostics triggers twice on same diagnostics #136434[0m
+  [32m  ✔[0m[90m onDidChangeDiagnostics different behavior when "extensionKind" ui running on remote workspace #136955[0m
+
+[0m  MainThreadDocumentContentProviders[0m
+  [32m  ✔[0m[90m events are processed properly[0m
+  [32m  ✔[0m[90m model disposed during async operation[0m
+
+[0m  BoundModelReferenceCollection[0m
+  [32m  ✔[0m[90m max age[0m
+  [32m  ✔[0m[90m max size[0m
+  [32m  ✔[0m[90m max count[0m
+  [32m  ✔[0m[90m dispose uri[0m
+
+[0m  MainThreadDocumentsAndEditors[0m
+  [32m  ✔[0m[90m Model#add[0m
+  [32m  ✔[0m[90m ignore huge model[0m
+  [32m  ✔[0m[90m ignore huge model from editor[0m
+  [32m  ✔[0m[90m ignore simple widget model[0m
+  [32m  ✔[0m[90m ignore editor w/o model[0m
+  [32m  ✔[0m[90m editor with model[0m
+  [32m  ✔[0m[90m fires expected add/remove events on editor lifecycle[0m
+  [32m  ✔[0m[90m editor with dispos-ed/-ing model[0m
+  [32m  ✔[0m[90m dispose removes editor listeners[0m
+
+[0m  MainThreadEditors[0m
+  [32m  ✔[0m[90m applyWorkspaceEdit returns false if model is changed by user[0m
+  [32m  ✔[0m[90m issue #54773: applyWorkspaceEdit checks model version in race situation[0m
+  [32m  ✔[0m[90m applyWorkspaceEdit: noop eol edit keeps undo stack clean[0m
+  [32m  ✔[0m[90m applyWorkspaceEdit with only resource edit[0m
+  [32m  ✔[0m[90m applyWorkspaceEdit can control undo/redo stack 1[0m
+  [32m  ✔[0m[90m applyWorkspaceEdit can control undo/redo stack 2[0m
+
+[0m  MainThreadEditorTabs[0m
+  [32m  ✔[0m[90m ignores only missing modal editor label changes[0m
+  [32m  ✔[0m[90m updating a background tab does not make it the active tab[0m
+  [32m  ✔[0m[90m multi diff tab whose resources changed does not become the active tab[0m
+
+[0m  MainThreadGitExtensionService[0m
+  [32m  ✔[0m[90m owns repository wrappers across reopen and disposal[0m
+  [32m  ✔[0m[90m forwards commitFiles to the extension host for the repository handle[0m
+
+[0m  MainThreadGitHub[0m
+  [32m  ✔[0m[90m binds exactly the selected session and creates a secret gist without exposing credentials[0m
+  [32m  ✔[0m[90m rejects unknown, stale, inaccessible and Enterprise-only sessions identically without acquiring[0m
+  [32m  ✔[0m[90m anonymous clients read gists in file order without credentials and cannot create gists[0m
+  [32m  ✔[0m[90m maps request failures to typed errors without response bodies and validates gist input[0m
+  [32m  ✔[0m[90m cancels requests, and disposes clients whose acquisition was released or cancelled[0m
+  [32m  ✔[0m[90m invalidates clients when the session is revoked or the extension loses account access[0m
+  [32m  ✔[0m[90m rechecks account access after pending acquisition[0m
+  [32m  ✔[0m[90m cancels initial session lookups and invalidates clients on provider removal[0m
+  [32m  ✔[0m[90m releases every client when the extension host connection is disposed[0m
+
+[0m  MainThreadLanguageModels[0m
+  [32m  ✔[0m[90m bridges onDidChangeLanguageModels to $onChatModelsChange when the model id set changes[0m
+  [32m  ✔[0m[90m does not bridge metadata-only churn that keeps the model id set stable[0m
+  [32m  ✔[0m[90m defaults isBYOK in provideLanguageModelChatInfo for built-in and extension-contributed models[0m
+  [32m  ✔[0m[90m $cancelLanguageModelChatRequest cancels the token passed to $tryStartChatRequest[0m
+  [32m  ✔[0m[90m $cancelLanguageModelChatRequest is a no-op for unknown requestId[0m
+  [32m  ✔[0m[90m disposes the provider request cancellation listener when the response completes[0m
+
+[0m  MainThreadManagedSockets[0m
+[0m    ManagedSocket[0m
+    [32m  ✔[0m[90m connects[0m
+    [32m  ✔[0m[90m includes trailing connection data[0m
+    [32m  ✔[0m[90m round trips data[0m
+
+[0m  MainThreadMcp - McpServerAuthTracker[0m
+  [32m  ✔[0m[90m retains the full auth context per tracked server and groups by provider[0m
+  [32m  ✔[0m[90m re-tracking the same server replaces its context without duplicating[0m
+  [32m  ✔[0m[90m untrack removes a server across every provider and drops empty provider buckets[0m
+  [32m  ✔[0m[90m clear removes all tracking[0m
+
+[0m  MainThreadMcp - launch[0m
+  [32m  ✔[0m[90m forwards the definition default cwd to the extension host[0m
+  [32m  ✔[0m[90m expands environment variables in the extension host only for flagged definitions[0m
+
+[0m  MainThreadMcp - re-validation[0m
+  [32m  ✔[0m[90m replays the tracked auth context with a rotated or removed client secret (#324925)[0m
+  [32m  ✔[0m[90m replays XAA resource auth context with a rotated or removed client secret[0m
+  [32m  ✔[0m[90m revalidates clients without a secret-storage key without reading secret storage[0m
+
+[0m  MainThreadMcp - request policy[0m
+  [32m  ✔[0m[90m enforces URL denials before dispatch to https://redirected.example/mcp[0m
+  [32m  ✔[0m[90m enforces URL denials before dispatch to https://allowed.example/private[0m
+  [32m  ✔[0m[90m requires a URL-allowlisted redirect destination to be separately allowed[0m
+  [32m  ✔[0m[90m a name entry cannot bypass a URL entry at the request boundary[0m
+  [32m  ✔[0m[90m expands URL policies on the connecting host for initial and redirected requests[0m
+  [32m  ✔[0m[90m an expanded URL denial wins over an expanded allow entry[0m
+  [32m  ✔[0m[90m preserves the configured server name for destination policy decisions[0m
+  [32m  ✔[0m[90m a destination denial overrides a matching server name allowlist[0m
+  [32m  ✔[0m[90m allows explicitly permitted redirect destinations[0m
+  [32m  ✔[0m[90m enforces global MCP disablement before dispatch[0m
+  [32m  ✔[0m[90m enforces configured server name denials before dispatch[0m
+  [32m  ✔[0m[90m stops an active redirected transport when destination policy is revoked[0m
+  [32m  ✔[0m[90m does not dispatch using a removed connection[0m
+
+[0m  MainThreadNotebooks[0m
+  [32m  ✔[0m[90m disposes and clears cell status bar provider registrations[0m
+
+[0m  MainThreadProgress[0m
+  [32m  ✔[0m[90m keeps extension progress messages serializable and the capability local to the bridge[0m
+  [32m  ✔[0m[90m extension-host attribution ignores public extra options and arbitrary display sources[0m
+  [32m  ✔[0m[90m preserves legacy extension links at progress location 15[0m
+  [32m  ✔[0m[90m preserves legacy extension links at progress location 10[0m
+
+[0m  MainThreadQuickOpen pending item lifetime[0m
+  [32m  ✔[0m[90m releases pending items after close, multiple=false[0m
+  [32m  ✔[0m[90m releases pending items after cancel, multiple=false[0m
+  [32m  ✔[0m[90m releases pending items after error, multiple=false[0m
+  [32m  ✔[0m[90m preserves accepted items, multiple=false[0m
+  [32m  ✔[0m[90m releases pending items after close, multiple=true[0m
+  [32m  ✔[0m[90m releases pending items after cancel, multiple=true[0m
+  [32m  ✔[0m[90m releases pending items after error, multiple=true[0m
+  [32m  ✔[0m[90m preserves accepted items, multiple=true[0m
+  [32m  ✔[0m[90m item production errors preserve their original error and release the request[0m
+  [32m  ✔[0m[90m synchronous widget creation errors release the request[0m
+  [32m  ✔[0m[90m settlement only releases its own request and late items are harmless[0m
+
+[0m  MainThreadShare[0m
+  [32m  ✔[0m[90m disposes share provider registrations when they are unregistered[0m
+
+[0m  MainThreadTelemetry - CAPI assignment context[0m
+  [32m  ✔[0m[90m accepts well-formed assignment contexts[0m
+  [32m  ✔[0m[90m rejects malformed, empty or oversized input[0m
+
+[0m  MainThreadTerminalService[0m
+  [32m  ✔[0m[90m records a local extension host origin in a remote window[0m
+  [32m  ✔[0m[90m does not bootstrap a foreign PATH into a remote extension host and retains non-PATH values[0m
+  [32m  ✔[0m[90m bootstraps same-host persisted PATH into its extension host[0m
+  [32m  ✔[0m[90m normalizes the producing authority when an extension publishes its collection[0m
+  [32m  ✔[0m[90m uses extension-host OS 1 synchronously for cached PATH spelling[0m
+  [32m  ✔[0m[90m uses extension-host OS 3 synchronously for cached PATH spelling[0m
+  [32m  ✔[0m[90m uses extension-host OS 2 synchronously for cached PATH spelling[0m
+  [32m  ✔[0m[90m initializes an empty filtered snapshot and permits empty sync and delete[0m
+  [36m  - releases the launch request after an API terminal closes[0m
+  [32m  ✔[0m[90m closing one API terminal preserves a live terminal[0m[31m (159ms)[0m
+  [32m  ✔[0m[90m a terminal closed outside the API no longer resolves its extension identifier[0m
+  [32m  ✔[0m[90m a process exit removes the extension identifier[0m[31m (103ms)[0m
+  [32m  ✔[0m[90m a terminal removed from its group still releases its extension identifier[0m
+  [32m  ✔[0m[90m a terminal closed during creation releases its extension identifier[0m
+
+[0m  MainThreadTerminalShellIntegration[0m
+  [32m  ✔[0m[90m finished commands flush data and release their resources while the service stays alive[0m
+  [32m  ✔[0m[90m terminal disposal flushes pending data before closing the extension stream[0m
+  [32m  ✔[0m[90m finishing one terminal keeps another terminal stream active[0m
+  [32m  ✔[0m[90m replacing a command flushes its data and removes the old data listener[0m
+  [32m  ✔[0m[90m duplicate start notifications do not duplicate output[0m
+  [32m  ✔[0m[90m service disposal releases active terminal streams and flushes pending output[0m
+
+[0m  MainThreadTimeline[0m
+  [32m  ✔[0m[90m live provider forwards timeline requests and change events[0m
+  [32m  ✔[0m[90m workspace provider forwards workspace timeline requests and change events[0m
+  [32m  ✔[0m[90m unregister releases its change emitter[0m
+  [32m  ✔[0m[90m unregister disposes observers of its emitter[0m
+  [32m  ✔[0m[90m unregister leaves another live provider intact[0m
+  [32m  ✔[0m[90m repeated and unknown unregister preserve live providers[0m
+  [32m  ✔[0m[90m successive disposed providers do not accumulate emitters[0m
+  [32m  ✔[0m[90m re-registering a retired id uses a fresh emitter[0m
+  [32m  ✔[0m[90m customer disposal unregisters its providers and releases emitters[0m
+  [32m  ✔[0m[90m customer disposal preserves providers owned by another customer[0m
+
+[0m  MainThreadHostTreeView[0m
+  [32m  ✔[0m[90m getChildren keeps custom properties[0m
+  [32m  ✔[0m[90m forwards canceled drag release to the extension host[0m
+  [32m  ✔[0m[90m releases an active drag on tree disposal[0m
+  [32m  ✔[0m[90m releases an active drag on customer disposal[0m
+  [32m  ✔[0m[90m releases an active drag on view disposal[0m
+  [32m  ✔[0m[90m handleDrag reconstructs URI list from uriListData[0m
+
+[0m  MainThreadNotebookKernelVariableProvider[0m
+  [32m  ✔[0m[90m get variables from kernel[0m
+  [32m  ✔[0m[90m get variables twice[0m
+  [32m  ✔[0m[90m gets all variables async[0m
+  [32m  ✔[0m[90m cancel while getting variables[0m
+
+[0m  MainThreadWebviewPanels[0m
+  [32m  ✔[0m[90m restores extension-relative roots before deserializing without widening access[0m
+  [32m  ✔[0m[90m preserves unrelated roots and relocates the extension root itself[0m
+  [32m  ✔[0m[90m relocates remote extension roots[0m
+  [32m  ✔[0m[90m relocates Windows extension roots with spaces and trailing separators[0m
+  [32m  ✔[0m[90m preserves subdirectories on case-insensitive file systems[0m
+  [32m  ✔[0m[90m preserves unspecified roots[0m
+  [32m  ✔[0m[90m preserves empty roots[0m
+  [32m  ✔[0m[90m leaves roots unchanged when the extension location has not changed[0m
+  [32m  ✔[0m[90m leaves roots unchanged when the extension is unavailable[0m
+  [32m  ✔[0m[90m leaves roots unchanged when the saved extension is unknown[0m
+  [32m  ✔[0m[90m leaves roots unchanged when the saved extension location is unknown[0m
+
+[0m  MainThreadWorkspace[0m
+  [32m  ✔[0m[90m simple[0m
+  [32m  ✔[0m[90m exclude defaults[0m
+  [32m  ✔[0m[90m disregard excludes[0m
+  [32m  ✔[0m[90m do not disregard anything if disregardExcludeSettings is true[0m
+  [32m  ✔[0m[90m exclude string[0m
+  [32m  ✔[0m[90m Valid revived URI after moving to EH[0m
+
+[0m  ExtensionHostMain#ErrorHandler - Wrapping prepareStackTrace can cause slowdown and eventual stack overflow #184926 [0m
+  [32m  ✔[0m[90m basics[0m
+  [32m  ✔[0m[90m set/reset prepareStackTrace-callback[0m
+  [32m  ✔[0m[90m wrap prepareStackTrace-callback[0m
+  [32m  ✔[0m[90m prevent rewrapping[0m
+[0m    https://gist.github.com/thecrypticace/f0f2e182082072efdaf0f8e1537d2cce[0m
+    [32m  ✔[0m[90m Restored, separate operations[0m
+    [32m  ✔[0m[90m Never restored, separate operations[0m
+    [32m  ✔[0m[90m Restored, too many uses before restoration[0m
+
+[0m  ExtHostChatAgents2[0m
+  [32m  ✔[0m[90m preserves system initiation in chat history only with the private API (false)[0m
+  [32m  ✔[0m[90m preserves system initiation in chat history only with the private API (true)[0m
+  [32m  ✔[0m[90m does not invoke disposed static participants[0m
+  [32m  ✔[0m[90m unregisters variable providers of disposed static participants only once[0m
+  [32m  ✔[0m[90m does not invoke disposed dynamic participants[0m
+  [32m  ✔[0m[90m unregisters variable providers of disposed dynamic participants only once[0m
+  [32m  ✔[0m[90m releases completion commands when the participant is disposed[0m
+  [32m  ✔[0m[90m ignores completions that finish after participant disposal[0m
+  [32m  ✔[0m[90m unregisters a disposed participant only once[0m
+  [32m  ✔[0m[90m ordinary chat progress batches use notifications and retain every chunk in order[0m
+  [32m  ✔[0m[90m external edits await ordinary progress acknowledgements before starting and completing[0m
+  [32m  ✔[0m[90m forwards the Auto tier on edit parts and omits it when unset[0m
+  [32m  ✔[0m[90m reports anchor before resolving it[0m
+
+[0m  ExtHostComments[0m
+  [32m  ✔[0m[90m disposed comment controllers are removed from extension host bookkeeping[0m
+
+[0m  ExtHostCommentThreads[0m
+  [32m  ✔[0m[90m a disposed thread no longer resolves as a command argument[0m
+  [32m  ✔[0m[90m repeated disposal deletes a thread from the renderer only once[0m
+  [32m  ✔[0m[90m disposing one thread preserves command arguments for another live thread[0m
+  [32m  ✔[0m[90m a disposed template no longer resolves as a command argument[0m
+  [32m  ✔[0m[90m renderer deletion and subsequent API disposal release the same thread once[0m
+  [32m  ✔[0m[90m controller shutdown disposes every remaining thread[0m
+  [36m  - a live controller releases the comments of a disposed thread[0m
+
+[0m  ExtHostCustomEditors document disposal[0m
+  [32m  ✔[0m[90m disposes the document after its provider has been unregistered[0m
+  [32m  ✔[0m[90m removes the old document so a replacement provider can reopen its resource[0m
+  [32m  ✔[0m[90m does not require a replacement provider to be a custom document provider[0m
+  [32m  ✔[0m[90m still disposes documents while their provider is registered[0m
+  [32m  ✔[0m[90m removes the entry before invoking a throwing document dispose callback[0m
+  [32m  ✔[0m[90m uses the stored resource key when the document URI has changed[0m
+
+[0m  ExtHostCustomTextEditorNavigation[0m
+  [32m  ✔[0m[90m resolves after the panel and reports directional selection and clearing per panel[0m
+  [32m  ✔[0m[90m preview has no selection and captured opaque state never leaves the host[0m
+  [32m  ✔[0m[90m released asynchronous captures cannot resurrect retained states[0m
+  [32m  ✔[0m[90m cancellation consumes captured states and prevents reveal[0m
+  [32m  ✔[0m[90m panel and provider disposal unsubscribe and dispose controllers exactly once[0m
+  [32m  ✔[0m[90m provider disposal while resolving disposes the late controller[0m
+  [32m  ✔[0m[90m navigation requires the proposal before registering a provider[0m
+  [32m  ✔[0m[90m controller state handles are isolated between split panels[0m
+
+[0m  ExtensionsActivator[0m
+  [32m  ✔[0m[90m calls activate only once with sequential activations[0m
+  [32m  ✔[0m[90m calls activate only once with parallel activations[0m
+  [32m  ✔[0m[90m activates dependencies first[0m
+  [32m  ✔[0m[90m Supports having resolved extensions[0m
+  [32m  ✔[0m[90m Supports having external extensions[0m
+  [32m  ✔[0m[90m Error: activateById with missing extension[0m
+  [32m  ✔[0m[90m Error: dependency missing[0m
+  [32m  ✔[0m[90m Error: dependency activation failed[0m
+  [32m  ✔[0m[90m issue #144518: Problem with git extension and vscode-icons[0m
+
+[0m  ExtHostGitHub[0m
+  [32m  ✔[0m[90m requires the github API proposal[0m
+  [32m  ✔[0m[90m binds the requested session, maps gists and releases once on dispose[0m
+  [32m  ✔[0m[90m reports acquisition failures as typed errors and releases the handle[0m
+  [32m  ✔[0m[90m propagates request errors and cancellation, and cancels in-flight requests on dispose[0m
+
+[0m  ExtHostLanguageModels reasoning capabilities[0m
+  [32m  ✔[0m[90m preserves the declared protocol and adaptive mode through registration and selection[0m
+  [32m  ✔[0m[90m requires the languageModelCapabilities proposal for apiType[0m
+  [32m  ✔[0m[90m requires the languageModelCapabilities proposal for adaptiveThinking[0m
+
+[0m  ExtHostLanguageModels request model resolution[0m
+  [32m  ✔[0m[90m fails instead of falling back to the default model when the selected model is unavailable[0m
+
+[0m  ExtHostLanguageModels provider errors[0m
+  [32m  ✔[0m[90m reports a synchronously thrown rate limit with its retry guidance[0m
+
+[0m  ExtHostLanguageModels provider disposal[0m
+  [32m  ✔[0m[90m discards model information completing after provider disposal[0m
+  [32m  ✔[0m[90m a disposed registration cannot overwrite its replacement catalog[0m
+  [32m  ✔[0m[90m a live provider still publishes models and disposal clears them[0m
+  [32m  ✔[0m[90m disposing a provider prevents a pending model catalog from repopulating its cache[0m
+
+[0m  ExtHostLanguageModelTools request model resolution[0m
+  [32m  ✔[0m[90m model-independent tool runs with unresolved agent-host-copilotcli:claude-opus-5.5 without falling back[0m
+  [32m  ✔[0m[90m model-dependent tool still rejects unresolved agent-host-copilotcli:claude-opus-5.5 without falling back[0m
+  [32m  ✔[0m[90m model-independent tool runs with unresolved remote-host:opaque-model without falling back[0m
+  [32m  ✔[0m[90m model-dependent tool still rejects unresolved remote-host:opaque-model without falling back[0m
+  [32m  ✔[0m[90m model-independent tool runs with unresolved test/missing without falling back[0m
+  [32m  ✔[0m[90m model-dependent tool still rejects unresolved test/missing without falling back[0m
+  [32m  ✔[0m[90m preserves absent tool model selection[0m
+  [32m  ✔[0m[90m preserves test/available tool model selection[0m
+  [32m  ✔[0m[90m does not defer Canceled Canceled during model resolution[0m
+  [32m  ✔[0m[90m does not defer LanguageModelError Permission denied during model resolution[0m
+
+[0m  ExtHostMcp[0m
+[0m    McpHTTPHandle stream cleanup[0m
+    [32m  ✔[0m[90m does not cancel an already-aborted reader when disposed[0m
+    [32m  ✔[0m[90m still reports a stream read failure while the handle is active[0m
+[0m    McpHTTPHandle request destinations[0m
+    [32m  ✔[0m[90m checks the destination before following 307 to https://other.example/mcp[0m
+    [32m  ✔[0m[90m checks the destination before following 307 to https://example.com/private[0m
+    [32m  ✔[0m[90m checks the destination before following 308 to https://other.example/mcp[0m
+    [32m  ✔[0m[90m checks the destination before following 308 to https://example.com/private[0m
+    [32m  ✔[0m[90m checks every hop in a redirect chain[0m
+    [32m  ✔[0m[90m checks a server-selected endpoint before its first request[0m
+    [32m  ✔[0m[90m waits for policy validation before dispatching a request[0m
+    [32m  ✔[0m[90m does not dispatch when policy validation fails[0m
+    [32m  ✔[0m[90m does not dispatch after disposal while awaiting policy[0m
+    [32m  ✔[0m[90m does not dispatch requests on a disposed transport[0m
+    [32m  ✔[0m[90m removes configured headers on a cross-origin 301[0m
+    [32m  ✔[0m[90m removes configured headers on a cross-origin 302[0m
+    [32m  ✔[0m[90m removes configured headers on a cross-origin 303[0m
+    [32m  ✔[0m[90m removes configured headers on a cross-origin 307[0m
+    [32m  ✔[0m[90m removes configured headers on a cross-origin 308[0m
+    [32m  ✔[0m[90m removes configured credentials from a cross-origin server-selected endpoint[0m
+    [32m  ✔[0m[90m preserves same-origin credentials and strips standard credentials across origins[0m
+    [32m  ✔[0m[90m keeps caller headers intact for a retry against the configured origin[0m
+    [32m  ✔[0m[90m keeps caller method and body intact after a 301[0m
+    [32m  ✔[0m[90m keeps caller method and body intact after a 302[0m
+    [32m  ✔[0m[90m keeps caller method and body intact after a 303[0m
+    [32m  ✔[0m[90m does not restore credentials when a redirect chain returns to its original origin[0m
+    [32m  ✔[0m[90m preserves generated transport headers when configured names overlap[0m
+    [32m  ✔[0m[90m validates MCP retries without applying server allowlists to OAuth metadata discovery[0m
+    [32m  ✔[0m[90m continues rejecting non-HTTP redirect destinations[0m
+    [32m  ✔[0m[90m preserves the generated protocol version across OAuth metadata redirects[0m
+[0m      first destinations[0m
+      [32m  ✔[0m[90m rejects an unconfigured unix first destination for MCP data[0m
+      [32m  ✔[0m[90m rejects an unconfigured unix first destination for metadata[0m
+      [32m  ✔[0m[90m rejects an unconfigured pipe first destination for MCP data[0m
+      [32m  ✔[0m[90m rejects an unconfigured pipe first destination for metadata[0m
+      [32m  ✔[0m[90m rejects an unconfigured file first destination for MCP data[0m
+      [32m  ✔[0m[90m rejects an unconfigured file first destination for metadata[0m
+      [32m  ✔[0m[90m rejects an unconfigured fixture first destination for MCP data[0m
+      [32m  ✔[0m[90m rejects an unconfigured fixture first destination for metadata[0m
+      [32m  ✔[0m[90m preserves the explicitly configured unix transport and its HTTP routes[0m
+      [32m  ✔[0m[90m compares the unix socket path as the dispatcher decodes it[0m
+      [32m  ✔[0m[90m rejects a different unix endpoint for MCP data despite equal opaque origins[0m
+      [32m  ✔[0m[90m rejects a different unix endpoint for metadata despite equal opaque origins[0m
+      [32m  ✔[0m[90m does not treat another IPC scheme as the configured unix endpoint[0m
+      [32m  ✔[0m[90m strips unix credentials when using an HTTP metadata provider[0m
+      [32m  ✔[0m[90m preserves the explicitly configured pipe transport and its HTTP routes[0m
+      [32m  ✔[0m[90m compares the pipe socket path as the dispatcher decodes it[0m
+      [32m  ✔[0m[90m rejects a different pipe endpoint for MCP data despite equal opaque origins[0m
+      [32m  ✔[0m[90m rejects a different pipe endpoint for metadata despite equal opaque origins[0m
+      [32m  ✔[0m[90m does not treat another IPC scheme as the configured pipe endpoint[0m
+      [32m  ✔[0m[90m strips pipe credentials when using an HTTP metadata provider[0m
+      [32m  ✔[0m[90m does not grant an unsupported scheme just because it was configured[0m
+      [32m  ✔[0m[90m reports a rejected legacy SSE endpoint and disposes its transport[0m
+[0m    IAuthMetadata[0m
+[0m      properties[0m
+      [32m  ✔[0m[90m should expose readonly properties[0m
+      [32m  ✔[0m[90m should allow undefined scopes[0m
+[0m      update()[0m
+      [32m  ✔[0m[90m should return true and update scopes when WWW-Authenticate header contains new scopes[0m
+      [32m  ✔[0m[90m should return false when scopes are the same[0m
+      [32m  ✔[0m[90m should return false when scopes are same but in different order[0m
+      [32m  ✔[0m[90m should return true when updating from undefined scopes to defined scopes[0m
+      [32m  ✔[0m[90m should return true when updating from defined scopes to undefined (no scope in header)[0m
+      [32m  ✔[0m[90m should return false when no WWW-Authenticate header and scopes are already undefined[0m
+      [32m  ✔[0m[90m should handle multiple Bearer challenges and use first scope[0m
+      [32m  ✔[0m[90m should ignore non-Bearer schemes[0m
+[0m    createAuthMetadata[0m
+    [32m  ✔[0m[90m should create IAuthMetadata with fetched server metadata[0m
+    [32m  ✔[0m[90m should fall back to default metadata when server metadata fetch fails[0m
+    [32m  ✔[0m[90m should use scopes from WWW-Authenticate header when resource metadata has none[0m
+    [32m  ✔[0m[90m should use scopes from WWW-Authenticate header even when resource metadata has scopes_supported[0m
+    [32m  ✔[0m[90m should use resource_metadata challenge URL from WWW-Authenticate header[0m
+    [32m  ✔[0m[90m should pass launch headers when fetching metadata from same origin[0m
+    [32m  ✔[0m[90m should handle empty scope string in WWW-Authenticate header[0m
+    [32m  ✔[0m[90m should handle malformed WWW-Authenticate header gracefully[0m
+    [32m  ✔[0m[90m should handle invalid JSON in resource metadata response[0m
+    [32m  ✔[0m[90m should handle non-401 status codes in update()[0m
+
+[0m  ExtHostSCM[0m
+  [32m  ✔[0m[90m does not cache artifact commands returned after source control disposal[0m
+  [32m  ✔[0m[90m does not replace live artifact commands with a retired provider result[0m
+  [32m  ✔[0m[90m does not cache artifact commands after request cancellation[0m
+  [32m  ✔[0m[90m does not allocate an orphan command store when artifact requests reject[0m
+  [32m  ✔[0m[90m releases replaced artifact commands and retains commands from other groups[0m
+  [32m  ✔[0m[90m disposed source controls are removed from extension bookkeeping[0m
+  [32m  ✔[0m[90m active repository name is forwarded to the main thread[0m
+
+[0m  ExtHostTerminalService[0m
+  [32m  ✔[0m[90m $acceptTerminalClosed cancels in-flight link providers and clears the link cache[0m
+  [32m  ✔[0m[90m extension terminal processes are released when terminals close[0m
+
+[0m  InternalTerminalShellIntegration[0m
+  [32m  ✔[0m[90m simple execution[0m
+  [32m  ✔[0m[90m different execution unexpectedly ended[0m
+  [32m  ✔[0m[90m no end event[0m
+[0m    executeCommand[0m
+    [32m  ✔[0m[90m ^C to clear previous command[0m
+    [32m  ✔[0m[90m multi-line command line[0m
+    [32m  ✔[0m[90m multi-line command with long second command[0m
+    [32m  ✔[0m[90m multi-line command comment followed by long second command[0m
+    [32m  ✔[0m[90m 4 multi-line commands with output[0m
+
+[0m  extHostTypeConverters[0m
+  [32m  ✔[0m[90m converts voice progress to hidden chat progress[0m
+[0m    IconPath[0m
+[0m      from[0m
+      [32m  ✔[0m[90m undefined[0m
+      [32m  ✔[0m[90m ThemeIcon[0m
+      [32m  ✔[0m[90m URI[0m
+      [32m  ✔[0m[90m string[0m
+      [32m  ✔[0m[90m dark only[0m
+      [32m  ✔[0m[90m dark/light[0m
+      [32m  ✔[0m[90m dark/light strings[0m
+      [32m  ✔[0m[90m invalid object[0m
+      [32m  ✔[0m[90m light only[0m
+[0m      to[0m
+      [32m  ✔[0m[90m undefined[0m
+      [32m  ✔[0m[90m ThemeIcon[0m
+      [32m  ✔[0m[90m URI[0m
+      [32m  ✔[0m[90m dark/light[0m
+[0m    ChatPromptReference[0m
+    [32m  ✔[0m[90m expands an element with a screenshot into text and binary references[0m
+[0m    ChatRequestModeInstructions[0m
+    [32m  ✔[0m[90m to returns undefined for undefined input[0m
+    [32m  ✔[0m[90m from returns undefined for undefined input[0m
+    [32m  ✔[0m[90m to converts IChatRequestModeInstructions to API type[0m
+    [32m  ✔[0m[90m to handles Dto with UriComponents[0m
+    [32m  ✔[0m[90m from converts API type to IChatRequestModeInstructions[0m
+    [32m  ✔[0m[90m from handles missing toolReferences[0m
+    [32m  ✔[0m[90m roundtrip from -> to preserves data[0m
+[0m    ChatToolInvocationPart[0m
+    [32m  ✔[0m[90m converts subagent data with its model name[0m
+
+[0m  extHostMcpNode - escapeCmdArg[0m
+  [32m  ✔[0m[90m wraps simple values in double quotes[0m
+  [32m  ✔[0m[90m preserves paths with spaces[0m
+  [32m  ✔[0m[90m preserves paths with parentheses without injecting ^[0m
+  [32m  ✔[0m[90m neutralizes cmd.exe metacharacters inside quotes (CVE-2024-27980)[0m
+  [32m  ✔[0m[90m does not add stray ^ to argument values[0m
+  [32m  ✔[0m[90m doubles embedded double quotes (cmd.exe convention)[0m
+
+[0m  ExtHostSearch[0m
+[0m    File:[0m
+    [32m  ✔[0m[90m no results[0m
+    [32m  ✔[0m[90m simple results[0m
+    [32m  ✔[0m[90m Search canceled[0m
+    [32m  ✔[0m[90m session cancellation should work[0m
+    [32m  ✔[0m[90m provider returns null[0m
+    [32m  ✔[0m[90m all provider calls get global include/excludes[0m
+    [32m  ✔[0m[90m global/local include/excludes combined[0m
+    [32m  ✔[0m[90m include/excludes resolved correctly[0m
+    [32m  ✔[0m[90m basic sibling exclude clause[0m
+(node:1323114) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 exit listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+    [32m  ✔[0m[90m include, sibling exclude, and subfolder[0m
+    [32m  ✔[0m[90m multiroot sibling exclude clause[0m
+    [32m  ✔[0m[90m max results = 1[0m
+    [32m  ✔[0m[90m max results = 2[0m
+    [32m  ✔[0m[90m provider returns maxResults exactly[0m
+    [32m  ✔[0m[90m multiroot max results[0m
+    [32m  ✔[0m[90m works with non-file schemes[0m
+    [32m  ✔[0m[90m if onlyFileScheme is set, do not call custom schemes[0m
+[0m    Text:[0m
+    [32m  ✔[0m[90m no results[0m
+    [32m  ✔[0m[90m basic results[0m
+    [32m  ✔[0m[90m all provider calls get global include/excludes[0m
+    [32m  ✔[0m[90m global/local include/excludes combined[0m
+    [32m  ✔[0m[90m include/excludes resolved correctly[0m
+    [32m  ✔[0m[90m provider fail[0m
+    [32m  ✔[0m[90m basic sibling clause[0m
+    [32m  ✔[0m[90m multiroot sibling clause[0m
+    [32m  ✔[0m[90m include pattern applied[0m
+    [32m  ✔[0m[90m max results = 1[0m
+    [32m  ✔[0m[90m max results = 2[0m
+    [32m  ✔[0m[90m provider returns maxResults exactly[0m
+    [32m  ✔[0m[90m provider returns early with limitHit[0m
+    [32m  ✔[0m[90m multiroot max results[0m
+    [32m  ✔[0m[90m works with non-file schemes[0m
+
+[0m  ExtHostTunnelService[0m
+  [32m  ✔[0m[90m getSockets[0m
+  [32m  ✔[0m[90m loadConnectionTable[0m
+  [32m  ✔[0m[90m loadListeningPorts[0m
+  [32m  ✔[0m[90m tryFindRootPorts[0m
+  [32m  ✔[0m[90m findPorts[0m
+  [32m  ✔[0m[90m parseIpAddress[0m
+
+[0m  LoopbackAuthServer - getHtml[0m
+  [32m  ✔[0m[90m does not interpolate the app URI into the inline script[0m
+  [32m  ✔[0m[90m encodes characters that would break out of the href attribute[0m
+  [32m  ✔[0m[90m href round-trips to the exact app URI[0m
+  [32m  ✔[0m[90m escapes the app name[0m
+
+[0m  RPCProtocol (binary)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+[0m  RPCProtocol (native JSON)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m compact native headers preserve request IDs above the 27-bit boundary[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m notification traffic periodically probes a silent peer and cleans up on disposal[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+[0m  RPCProtocol (batched JSON)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m compact native headers preserve request IDs above the 27-bit boundary[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m notification traffic periodically probes a silent peer and cleans up on disposal[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+[0m  RPCProtocol (batched native receive)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m compact native headers preserve request IDs above the 27-bit boundary[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m notification traffic periodically probes a silent peer and cleans up on disposal[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+
+[92m [0m[32m 1305 passing[0m[90m (3s)[0m
+[36m [0m[36m 3 pending[0m
+

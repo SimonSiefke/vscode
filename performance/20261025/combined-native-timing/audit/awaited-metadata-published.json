@@ -1,0 +1,8 @@
+{
+  "head": "264f9bc0fbf05a94c51fd0f9bc0171095b994a97",
+  "previous": "aac6b0fcf3bc6714c8cd7e7dd9fa1bfe6618ba25",
+  "audit": "more-native-promise-global-callers.json",
+  "methods": 19,
+  "callers": 23,
+  "validation": "1305 API/RPC tests passing,3pending,lint,incremental client build,normal hygiene"
+}
