@@ -1,0 +1,350 @@
+{
+  "diagnosticOnly": true,
+  "passed": true,
+  "scope": "High-resolution V8 heap sampling interval1, collected-object records retained. Near-census JS allocation diagnostic, not a native/external allocator census or CPU/timing measure. Engine clamps sampling steps to tagged-word size and still uses random intervals; do not call exact. Calibration retains a64-array escape ring, validates execution, checks doubling iteration count and element storage growth against actual pointer size, withthreefreshprocesses percase.",
+  "noOpMedianBytes": 11792,
+  "doublingCountRatio": 1.999089856634217,
+  "observedWidthDeltaBytes": 2097152,
+  "expectedElementWidthDeltaBytes": 2097152,
+  "rows": [
+    {
+      "replicate": 0,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 0,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 11792,
+      "samples": 34,
+      "byFunction": {
+        "(root)": 0,
+        "": 424,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152
+      },
+      "minimumElementBytes": 0
+    },
+    {
+      "replicate": 0,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 64
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 2309552,
+      "samples": 4388,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 2161600,
+        "allocateCalibrationArray": 135496,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 2097152
+    },
+    {
+      "replicate": 0,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 4403368,
+      "samples": 4142,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 4389840,
+        "allocateCalibrationArray": 1072,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 4194304
+    },
+    {
+      "replicate": 0,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 8192,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 8797616,
+      "samples": 8589,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 8416272,
+        "allocateCalibrationArray": 368888,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 8388608
+    },
+    {
+      "replicate": 1,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 0,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 11792,
+      "samples": 34,
+      "byFunction": {
+        "(root)": 0,
+        "": 424,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152
+      },
+      "minimumElementBytes": 0
+    },
+    {
+      "replicate": 1,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 64
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 2309552,
+      "samples": 4548,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 2072000,
+        "allocateCalibrationArray": 225096,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 2097152
+    },
+    {
+      "replicate": 1,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 4406704,
+      "samples": 4476,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 4043584,
+        "allocateCalibrationArray": 350664,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 4194304
+    },
+    {
+      "replicate": 1,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 8192,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 8794280,
+      "samples": 8238,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 8780752,
+        "allocateCalibrationArray": 1072,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 8388608
+    },
+    {
+      "replicate": 2,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 0,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 11792,
+      "samples": 34,
+      "byFunction": {
+        "(root)": 0,
+        "": 424,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152
+      },
+      "minimumElementBytes": 0
+    },
+    {
+      "replicate": 2,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 64
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 2309552,
+      "samples": 4155,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 2292080,
+        "allocateCalibrationArray": 5016,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 2097152
+    },
+    {
+      "replicate": 2,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 4096,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 4406704,
+      "samples": 4235,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 4301936,
+        "allocateCalibrationArray": 92312,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 4194304
+    },
+    {
+      "replicate": 2,
+      "diagnosticOnly": true,
+      "options": {
+        "count": 8192,
+        "width": 128
+      },
+      "node": "v24.22.0",
+      "v8": "13.6.233.17-node.57",
+      "samplingInterval": 1,
+      "pointerBytes": 8,
+      "bytes": 8798192,
+      "samples": 8986,
+      "byFunction": {
+        "(root)": 0,
+        "": 1024,
+        "fn": 160,
+        "Promise": 216,
+        "push": 168,
+        "post": 10448,
+        "wrappedFn": 128,
+        "#onMessage": 96,
+        "delete": 152,
+        "work": 8537032,
+        "allocateCalibrationArray": 248704,
+        "strictEqual": 64
+      },
+      "minimumElementBytes": 8388608
+    }
+  ]
+}

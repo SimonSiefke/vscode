@@ -1,0 +1,499 @@
+{
+  "diagnosticOnly": true,
+  "scope": "Both real MessagePort peers in one process; sequential RPCs. V8 sampling interval1024, includes collected objects. Six independent processes per label/fixture, ten thousand measured calls after1000 warmup; exact remote call counts and returned values validated. Metadata opts into observed promises identically across labels. Does not assess concurrent batching; no CPU counter comparison uses instrumented runs.",
+  "harnessSHA256": "651835085f6c0a616e250612e5ffdd28539ecad5b7f09bc21df8755f47e3ea21",
+  "samples": [
+    {
+      "replicate": 0,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2828.8824,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 0,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2357.7464,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 0,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2315.4912,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 0,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3407.4888,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 0,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2947.5848,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 0,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2959.9616,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2353.6712,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2311.4776,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2829.9976,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2929.8048,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2949.8376,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 1,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3403.9192,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2296.8656,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2819.9448,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2382.8488,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2966.808,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3383.3248,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 2,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2955.7384,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2295.9248,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2381.3672,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2846.7784,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2973.7776,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2939.9464,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 3,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3411.1672,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2839.3352,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2309.9368,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2384.3928,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3410.3672,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2962.9384,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 4,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2963.1624,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "primitive",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2382.4216,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "primitive",
+      "variant": "control",
+      "sampledBytesPerCall": 2811.8688,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 40000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "primitive",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2285.5352,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 0,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "small-object",
+      "variant": "combined-owned",
+      "sampledBytesPerCall": 2933.2416,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "small-object",
+      "variant": "control",
+      "sampledBytesPerCall": 3432.6448,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    },
+    {
+      "replicate": 5,
+      "fixture": "small-object",
+      "variant": "combined-scalar-arguments-owned",
+      "sampledBytesPerCall": 2965.424,
+      "trackedDisposableConstructions": {},
+      "traffic": {
+        "packets": 20000,
+        "frames": 20000,
+        "stringBodyCharacters": 1180000,
+        "backingBytes": 0
+      }
+    }
+  ],
+  "fixtures": {
+    "primitive": {
+      "medianEstimatedAllocatedBytesPerCall": {
+        "control": 2829.44,
+        "combined-owned": 2381.8944,
+        "combined-scalar-arguments-owned": 2303.4012000000002
+      },
+      "relativeChangePercent": {
+        "combined-owned": -15.817462112644199,
+        "combined-scalar-arguments-owned": -18.591622370504403
+      }
+    },
+    "small-object": {
+      "medianEstimatedAllocatedBytesPerCall": {
+        "control": 3408.928,
+        "combined-owned": 2943.7655999999997,
+        "combined-scalar-arguments-owned": 2964.1812
+      },
+      "relativeChangePercent": {
+        "combined-owned": -13.645415802269811,
+        "combined-scalar-arguments-owned": -13.046529583493694
+      }
+    }
+  }
+}
