@@ -12,7 +12,7 @@ import { IURITransformer } from '../../../base/common/uriIpc.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { ReadableStreamEventPayload, listenStream } from '../../../base/common/stream.js';
-import { IStat, IFileReadStreamOptions, IFileWriteOptions, IFileOpenOptions, IFileDeleteOptions, IFileOverwriteOptions, IFileChange, IWatchOptions, FileType, IFileAtomicReadOptions } from '../common/files.js';
+import { IStat, IFileReadStreamOptions, IFileWriteOptions, IFileOpenOptions, IFileDeleteOptions, IFileOverwriteOptions, IFileChange, IWatchOptions, FileType, IFileAtomicReadOptions, IFileSystemProviderError, toFileSystemProviderErrorCode } from '../common/files.js';
 import { CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
 import { IRecursiveWatcherOptions } from '../common/watcher.js';
@@ -124,7 +124,14 @@ export abstract class AbstractDiskFileSystemProviderChannel<T> extends Disposabl
 				const data = encodeIPCFileData(chunk);
 				emitter.fire(typeof data === 'string' ? { data } : data);
 			},
-			onError: error => emitter.fire(error),
+			onError: error => {
+				const serialized: IFileSystemProviderError = {
+					name: error.name,
+					message: error.message,
+					code: toFileSystemProviderErrorCode(error)
+				};
+				emitter.fire(serialized);
+			},
 			onEnd: () => {
 
 				// Forward event

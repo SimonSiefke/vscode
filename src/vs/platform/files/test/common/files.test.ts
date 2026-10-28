@@ -14,6 +14,16 @@ import { FileChangesEvent, FileChangeType, IFileChange, isParent } from '../../c
 
 suite('Files', () => {
 
+	test('IPC file data preserves BOM, invalid UTF-8, empty input and view offsets', () => {
+		for (const content of [
+			new Uint8Array(), Uint8Array.from([0xef, 0xbb, 0xbf, 65]),
+			Uint8Array.from([0xc3]), Uint8Array.from([0xed, 0xa0, 0x80]),
+			Uint8Array.from([0, 65, 66, 0]).subarray(1, 3)
+		]) {
+			assert.deepStrictEqual([...decodeIPCFileData(encodeIPCFileData(content))], [...content]);
+		}
+	});
+
 	test('IPC file data uses strings only for ordinary UTF-8', () => {
 		const utf8 = VSBuffer.fromString('Hello 🌍').buffer;
 		const binaryWithNull = Uint8Array.from([65, 0, 66]);

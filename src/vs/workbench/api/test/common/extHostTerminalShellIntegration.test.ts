@@ -11,6 +11,19 @@ import { TerminalShellExecutionCommandLineConfidence } from '../../common/extHos
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'assert';
 import type { URI } from '../../../../base/common/uri.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
+import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { ProxyIdentifier } from '../../../services/extensions/common/proxyIdentifier.js';
+import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
+import { StructuredCloneRPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
+
+interface TerminalBurst {
+	$prime(): void;
+	$start(): void;
+	$data(): void;
+	$end(): void;
+	$barrier(): void;
+}
+const terminalBurst = new ProxyIdentifier<TerminalBurst>('terminalNativeBurst', ['$prime', '$start', '$data', '$end']);
 
 function cmdLine(value: string): TerminalShellExecutionCommandLine {
 	return Object.freeze({
@@ -111,6 +124,33 @@ suite('InternalTerminalShellIntegration', () => {
 			type: 'end',
 			commandLine: e.execution.commandLine.value,
 		})));
+	});
+
+	test('an immediate reader retains start/data/end from a primed real MessagePort batch', async () => {
+		const channel = new MessageChannel();
+		store.add(toDisposable(() => { channel.port1.close(); channel.port2.close(); }));
+		const first = store.add(new RPCMessagePort(message => channel.port1.postMessage(message)));
+		const second = store.add(new RPCMessagePort(message => channel.port2.postMessage(message)));
+		channel.port1.onmessage = event => first.acceptMessage(event.data);
+		channel.port2.onmessage = event => second.acceptMessage(event.data);
+		const sender = store.add(new StructuredCloneRPCProtocol(first));
+		const receiver = store.add(new StructuredCloneRPCProtocol(second));
+		receiver.set(terminalBurst, {
+			$prime: () => { },
+			$start: () => si.startShellExecution(cmdLine(testCommandLine), undefined),
+			$data: () => si.emitData('complete output'),
+			$end: () => si.endShellExecution(cmdLine(testCommandLine), 0),
+			$barrier: () => { }
+		});
+		const proxy = sender.getProxy(terminalBurst);
+		await proxy.$barrier();
+		void proxy.$prime();
+		void proxy.$start();
+		void proxy.$data();
+		void proxy.$end();
+		await proxy.$barrier();
+		await Promise.all(readIteratorsFlushed);
+		assertDataTrackedEvents([{ type: 'data', commandLine: testCommandLine, data: 'complete output' }]);
 	});
 
 	test('simple execution', async () => {

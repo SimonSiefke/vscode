@@ -12,7 +12,7 @@ import { IExtHostRpcService } from './extHostRpcService.js';
 import { IExtHostTerminalService } from './extHostTerminalService.js';
 import { Emitter, type Event } from '../../../base/common/event.js';
 import { URI } from '../../../base/common/uri.js';
-import { AsyncIterableObject, Barrier, type AsyncIterableEmitter } from '../../../base/common/async.js';
+import { AsyncIterableObject, AsyncIterableSource } from '../../../base/common/async.js';
 
 export interface IExtHostTerminalShellIntegration extends ExtHostTerminalShellIntegrationShape {
 	readonly _serviceBrand: undefined;
@@ -431,35 +431,28 @@ class InternalTerminalShellExecution {
 }
 
 class ShellExecutionDataStream extends Disposable {
-	private _barrier: Barrier | undefined;
-	private _iterables: AsyncIterableObject<string>[] = [];
-	private _emitters: AsyncIterableEmitter<string>[] = [];
+	private readonly _sources: AsyncIterableSource<string>[] = [];
 
 	createIterable(): AsyncIterable<string> {
-		if (!this._barrier) {
-			this._barrier = new Barrier();
-		}
-		const barrier = this._barrier;
-		const iterable = new AsyncIterableObject<string>(async emitter => {
-			this._emitters.push(emitter);
-			await barrier.wait();
-		});
-		this._iterables.push(iterable);
-		return iterable;
+		const source = new AsyncIterableSource<string>();
+		this._sources.push(source);
+		return source.asyncIterable;
 	}
 
 	emitData(data: string): void {
-		for (const emitter of this._emitters) {
-			emitter.emitOne(data);
+		for (const source of this._sources) {
+			source.emitOne(data);
 		}
 	}
 
 	endExecution(): void {
-		this._barrier?.open();
+		for (const source of this._sources) {
+			source.resolve();
+		}
 	}
 
 	async flush(): Promise<void> {
-		await Promise.all(this._iterables.map(e => e.toPromise()));
+		await Promise.all(this._sources.map(source => source.asyncIterable.toPromise()));
 	}
 }
 
