@@ -1,0 +1,39 @@
+{
+  "perfVersion": "perf version 7.0.14",
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-plumbing",
+    "variants": "control,aa-b,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive",
+    "replicates": 1,
+    "iterations": 64,
+    "warmup": 32,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "counterScope": "Retired instructions in the target Node process and inherited worker/JIT/GC threads; userspace and kernel counters reported separately; disabled during startup, warmup and full GC",
+  "samples": [
+    {
+      "label": "000-primitive-native-unbatched",
+      "status": "success",
+      "path": "000-primitive-native-unbatched/result.json"
+    },
+    {
+      "label": "000-primitive-aa-b",
+      "status": "success",
+      "path": "000-primitive-aa-b/result.json"
+    },
+    {
+      "label": "000-primitive-control",
+      "status": "success",
+      "path": "000-primitive-control/result.json"
+    },
+    {
+      "label": "000-primitive-native-batched",
+      "status": "success",
+      "path": "000-primitive-native-batched/result.json"
+    }
+  ]
+}

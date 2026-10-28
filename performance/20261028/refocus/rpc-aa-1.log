@@ -1,0 +1,241 @@
+Start 000-small-object-aa-b
+000-small-object-aa-b {'instructions:u': 174122.7, 'instructions:k': 29046.33}
+Start 000-small-object-control
+000-small-object-control {'instructions:u': 174163.26, 'instructions:k': 28644.49}
+Start 000-text-64KiB-aa-b
+000-text-64KiB-aa-b {'instructions:u': 2343360.3, 'instructions:k': 68286.9}
+Start 000-text-64KiB-control
+000-text-64KiB-control {'instructions:u': 2342789.42, 'instructions:k': 59452.98}
+Start 000-primitive-aa-b
+000-primitive-aa-b {'instructions:u': 156778.55, 'instructions:k': 28821.38}
+Start 000-primitive-control
+000-primitive-control {'instructions:u': 156689.96, 'instructions:k': 27956.58}
+Start 001-text-64KiB-control
+001-text-64KiB-control {'instructions:u': 2343560.91, 'instructions:k': 54311.48}
+Start 001-text-64KiB-aa-b
+001-text-64KiB-aa-b {'instructions:u': 2353518.57, 'instructions:k': 61503.67}
+Start 001-primitive-control
+001-primitive-control {'instructions:u': 156740.81, 'instructions:k': 28768.32}
+Start 001-primitive-aa-b
+001-primitive-aa-b {'instructions:u': 155737.0, 'instructions:k': 28154.92}
+Start 001-small-object-control
+001-small-object-control {'instructions:u': 174272.0, 'instructions:k': 28353.14}
+Start 001-small-object-aa-b
+001-small-object-aa-b {'instructions:u': 173741.87, 'instructions:k': 28806.44}
+Start 002-text-64KiB-aa-b
+002-text-64KiB-aa-b {'instructions:u': 2343074.36, 'instructions:k': 60462.16}
+Start 002-text-64KiB-control
+002-text-64KiB-control {'instructions:u': 2343488.64, 'instructions:k': 64611.63}
+Start 002-primitive-aa-b
+002-primitive-aa-b {'instructions:u': 155822.62, 'instructions:k': 29208.1}
+Start 002-primitive-control
+002-primitive-control {'instructions:u': 155770.73, 'instructions:k': 28241.83}
+Start 002-small-object-aa-b
+002-small-object-aa-b {'instructions:u': 173667.1, 'instructions:k': 28747.56}
+Start 002-small-object-control
+002-small-object-control {'instructions:u': 174049.98, 'instructions:k': 28651.17}
+Start 003-small-object-control
+003-small-object-control {'instructions:u': 174157.28, 'instructions:k': 28907.37}
+Start 003-small-object-aa-b
+003-small-object-aa-b {'instructions:u': 173793.47, 'instructions:k': 28910.2}
+Start 003-primitive-control
+003-primitive-control {'instructions:u': 155992.03, 'instructions:k': 28783.86}
+Start 003-primitive-aa-b
+003-primitive-aa-b {'instructions:u': 156456.7, 'instructions:k': 28641.93}
+Start 003-text-64KiB-control
+003-text-64KiB-control {'instructions:u': 2342838.46, 'instructions:k': 54323.55}
+Start 003-text-64KiB-aa-b
+003-text-64KiB-aa-b {'instructions:u': 2343063.72, 'instructions:k': 74664.99}
+Start 004-primitive-aa-b
+004-primitive-aa-b {'instructions:u': 155756.95, 'instructions:k': 28440.69}
+Start 004-primitive-control
+004-primitive-control {'instructions:u': 156195.72, 'instructions:k': 27994.24}
+Start 004-small-object-aa-b
+004-small-object-aa-b {'instructions:u': 173782.97, 'instructions:k': 29036.03}
+Start 004-small-object-control
+004-small-object-control {'instructions:u': 174244.67, 'instructions:k': 28505.61}
+Start 004-text-64KiB-aa-b
+004-text-64KiB-aa-b {'instructions:u': 2342826.56, 'instructions:k': 55724.88}
+Start 004-text-64KiB-control
+004-text-64KiB-control {'instructions:u': 2342791.87, 'instructions:k': 65270.57}
+Start 005-primitive-control
+005-primitive-control {'instructions:u': 156710.01, 'instructions:k': 27734.76}
+Start 005-primitive-aa-b
+005-primitive-aa-b {'instructions:u': 156634.33, 'instructions:k': 28731.66}
+Start 005-small-object-control
+005-small-object-control {'instructions:u': 174092.76, 'instructions:k': 28241.2}
+Start 005-small-object-aa-b
+005-small-object-aa-b {'instructions:u': 173544.27, 'instructions:k': 27890.65}
+Start 005-text-64KiB-control
+005-text-64KiB-control {'instructions:u': 2342683.87, 'instructions:k': 74728.27}
+Start 005-text-64KiB-aa-b
+005-text-64KiB-aa-b {'instructions:u': 2342183.95, 'instructions:k': 59608.6}
+Start 006-text-64KiB-aa-b
+006-text-64KiB-aa-b {'instructions:u': 2348095.32, 'instructions:k': 55483.72}
+Start 006-text-64KiB-control
+006-text-64KiB-control {'instructions:u': 2342861.21, 'instructions:k': 63537.08}
+Start 006-primitive-aa-b
+006-primitive-aa-b {'instructions:u': 156790.42, 'instructions:k': 28369.43}
+Start 006-primitive-control
+006-primitive-control {'instructions:u': 156770.51, 'instructions:k': 28125.37}
+Start 006-small-object-aa-b
+006-small-object-aa-b {'instructions:u': 174298.61, 'instructions:k': 28744.42}
+Start 006-small-object-control
+006-small-object-control {'instructions:u': 174123.87, 'instructions:k': 28283.45}
+Start 007-text-64KiB-control
+007-text-64KiB-control {'instructions:u': 2352750.32, 'instructions:k': 62910.27}
+Start 007-text-64KiB-aa-b
+007-text-64KiB-aa-b {'instructions:u': 2342529.82, 'instructions:k': 64325.62}
+Start 007-small-object-control
+007-small-object-control {'instructions:u': 173607.09, 'instructions:k': 27942.14}
+Start 007-small-object-aa-b
+007-small-object-aa-b {'instructions:u': 174275.03, 'instructions:k': 28652.17}
+Start 007-primitive-control
+007-primitive-control {'instructions:u': 155867.32, 'instructions:k': 28106.4}
+Start 007-primitive-aa-b
+007-primitive-aa-b {'instructions:u': 155736.91, 'instructions:k': 29187.14}
+Start 008-small-object-aa-b
+008-small-object-aa-b {'instructions:u': 173989.62, 'instructions:k': 28293.81}
+Start 008-small-object-control
+008-small-object-control {'instructions:u': 174226.34, 'instructions:k': 28652.3}
+Start 008-primitive-aa-b
+008-primitive-aa-b {'instructions:u': 156678.46, 'instructions:k': 28221.95}
+Start 008-primitive-control
+008-primitive-control {'instructions:u': 155814.23, 'instructions:k': 27761.9}
+Start 008-text-64KiB-aa-b
+008-text-64KiB-aa-b {'instructions:u': 2342817.92, 'instructions:k': 58507.53}
+Start 008-text-64KiB-control
+008-text-64KiB-control {'instructions:u': 2352867.68, 'instructions:k': 64951.55}
+Start 009-text-64KiB-control
+009-text-64KiB-control {'instructions:u': 2354433.91, 'instructions:k': 53493.19}
+Start 009-text-64KiB-aa-b
+009-text-64KiB-aa-b {'instructions:u': 2342468.25, 'instructions:k': 80639.53}
+Start 009-primitive-control
+009-primitive-control {'instructions:u': 155785.52, 'instructions:k': 28416.64}
+Start 009-primitive-aa-b
+009-primitive-aa-b {'instructions:u': 156720.13, 'instructions:k': 28580.02}
+Start 009-small-object-control
+009-small-object-control {'instructions:u': 173874.48, 'instructions:k': 29044.64}
+Start 009-small-object-aa-b
+009-small-object-aa-b {'instructions:u': 174043.37, 'instructions:k': 28621.03}
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-aa-1",
+    "variants": "control,aa-b",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive,small-object,text-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 10,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 156093.87634277344,
+          "aa-b": 156545.51611328125
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 0.023004014633332126,
+            "intervalPercent": [
+              -0.16466736810901716,
+              0.3052861635053805
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28115.884338378906,
+          "aa-b": 28610.97442626953
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 1.6259555602019304,
+            "intervalPercent": [
+              0.1850021474667507,
+              3.421442430094701
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 174140.5757446289,
+          "aa-b": 173891.54553222656
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.1723918513073741,
+            "intervalPercent": [
+              -0.2649729804912515,
+              0.0971336489602681
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28575.053161621094,
+          "aa-b": 28745.98858642578
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 0.8682262898917603,
+            "intervalPercent": [
+              -1.241280960687885,
+              1.63153801286271
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    },
+    "text-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 2343174.921936035,
+          "aa-b": 2342945.136657715
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.008099126254812461,
+            "intervalPercent": [
+              -0.4271281568579921,
+              0.11645356851046618
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 63223.674072265625,
+          "aa-b": 60982.916442871094
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -2.182244748829265,
+            "intervalPercent": [
+              -12.675054384258011,
+              24.152648334995707
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

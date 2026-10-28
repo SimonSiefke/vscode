@@ -1,0 +1,175 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-comparison-1",
+    "variants": "control,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive,small-object,text-64KiB",
+    "replicates": 20,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 20,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 156325.7445678711,
+          "native-unbatched": 76641.66986083984,
+          "native-batched": 76624.65148925781
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -50.940671671416695,
+            "intervalPercent": [
+              -51.05648086777692,
+              -50.80459320269708
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -51.019660757083926,
+            "intervalPercent": [
+              -51.0985334373062,
+              -50.86104945690939
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28291.076232910156,
+          "native-unbatched": 27011.311767578125,
+          "native-batched": 27154.84210205078
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -4.980478946608436,
+            "intervalPercent": [
+              -5.760207205859558,
+              -3.875648128127973
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -4.501353842355682,
+            "intervalPercent": [
+              -5.071774884268065,
+              -3.1253539275920117
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 174167.1596069336,
+          "native-unbatched": 99413.87133789062,
+          "native-batched": 99431.82788085938
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -42.90028276287122,
+            "intervalPercent": [
+              -42.93843026337495,
+              -42.87261799913718
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -42.8840601776471,
+            "intervalPercent": [
+              -42.93046516956529,
+              -42.83872221852156
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28714.861877441406,
+          "native-unbatched": 27052.152587890625,
+          "native-batched": 26927.723022460938
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -6.166315288317071,
+            "intervalPercent": [
+              -6.700026599344788,
+              -4.615893857548448
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -5.552806542312505,
+            "intervalPercent": [
+              -6.905911703496114,
+              -4.692719130282164
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "text-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 2342891.8259277344,
+          "native-unbatched": 133626.8856201172,
+          "native-batched": 133640.75842285156
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -94.29631569143996,
+            "intervalPercent": [
+              -94.29740336592268,
+              -94.29459729187113
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -94.29596827310839,
+            "intervalPercent": [
+              -94.29809615175945,
+              -94.2942777829024
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 58909.27899169922,
+          "native-unbatched": 29852.569213867188,
+          "native-batched": 29789.62908935547
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -48.92312369416578,
+            "intervalPercent": [
+              -51.07293940290896,
+              -46.03643177247096
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -49.31872838271675,
+            "intervalPercent": [
+              -52.15925964919255,
+              -46.730535460462875
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    }
+  }
+}

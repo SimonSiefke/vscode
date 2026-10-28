@@ -1,0 +1,15 @@
+[2J[3J[H Initializing 
+[2J[3J[H Initialized  (0.003 s)
+
+ RUNS  src/activity-bar-toggle.ts
+[K[1A[K[1A PASS  src/activity-bar-toggle.ts (44.836 s)
+[WaitForSession] classified target E47D37D5B2208179C0F12FE4BC4FE29C vscode-file://vscode-app/home/simon/.cache/vscode-pr321-refocus-20261028/baseline/out/vs/code/electron-browser/workbench/workbench-dev.html
+[TestWorker WaitForSession] classified target E47D37D5B2208179C0F12FE4BC4FE29C vscode-file://vscode-app/home/simon/.cache/vscode-pr321-refocus-20261028/baseline/out/vs/code/electron-browser/workbench/workbench-dev.html
+
+ RUNS  src/editor-open.ts
+[K[1A[K[1A PASS  src/editor-open.ts (28.329 s)
+
+Test Suites: 2 passed, 2 total
+Time:        73.166 s
+Ran all test suites.
+

@@ -1,0 +1,347 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/simon/.cache/vscode-ipc-opt-20261022/.build/crashes'
+[202836:1028/105053.922744:WARNING:sandbox/policy/linux/sandbox_linux.cc:405] InitializeSandbox() called with multiple threads in process gpu-process.
+[202836:1028/105053.933269:WARNING:ui/gfx/linux/gbm_support_x11.cc:48] dri3 extension not supported.
+(node:202864) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:202864) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:202864) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  IPC, MessagePorts[0m
+  [32m  ✔[0m[90m message passing[0m
+
+[0m  Base IPC[0m
+  [32m  ✔[0m[90m delayed channel handles rejected listeners[0m
+  [32m  ✔[0m[90m createProtocolPair[0m
+  [32m  ✔[0m[90m structured clone protocol preserves native cloneable values[0m
+[0m    structured clone marshalling[0m
+    [32m  ✔[0m[90m bidirectional clients decode shared JSON frames only once[0m
+    [32m  ✔[0m[90m multiple response observers share an idempotently decoded JSON frame[0m
+    [32m  ✔[0m[90m client ignores payloads addressed to the other channel role[0m
+    [32m  ✔[0m[90m server ignores payloads addressed to the other channel role[0m
+    [32m  ✔[0m[90m uses JSON for object payloads and omits local callbacks[0m
+    [32m  ✔[0m[90m serializes class instances containing local callbacks[0m
+    [32m  ✔[0m[90m mixed object payloads preserve buffer aliases and ordinary buffer properties[0m
+    [32m  ✔[0m[90m preserves numeric buffer metadata alongside VSBuffer values[0m
+    [32m  ✔[0m[90m omits local callbacks when native binary data requires the graph path[0m
+    [32m  ✔[0m[90m preserves aliases in acyclic object graphs[0m
+    [32m  ✔[0m[90m falls back for bigint, non-finite numbers and negative zero[0m
+    [32m  ✔[0m[90m bulk DTOs use the legacy JSON representation for nested object graphs[0m
+    [32m  ✔[0m[90m bulk URI arrays retain URI marshalling[0m
+    [32m  ✔[0m[90m bulk objects with native binary properties retain the graph path[0m
+    [32m  ✔[0m[90m bulk objects with nested cycles fall back to the graph path[0m
+    [32m  ✔[0m[90m bulk sparse arrays retain their holes[0m
+    [32m  ✔[0m[90m bulk arrays retain named binary properties[0m
+    [32m  ✔[0m[90m copies own enumerable properties without invoking prototype setters[0m
+    [32m  ✔[0m[90m preserves sparse arrays and enumerable array properties[0m
+    [32m  ✔[0m[90m reads object accessors once at 31 keys[0m
+    [32m  ✔[0m[90m reads array accessors once at 31 keys[0m
+    [32m  ✔[0m[90m reads nested accessors once at 31 keys[0m
+    [32m  ✔[0m[90m reads object accessors once at 32 keys[0m
+    [32m  ✔[0m[90m reads array accessors once at 32 keys[0m
+    [32m  ✔[0m[90m reads nested accessors once at 32 keys[0m
+    [32m  ✔[0m[90m reads object accessors once at 33 keys[0m
+    [32m  ✔[0m[90m reads array accessors once at 33 keys[0m
+    [32m  ✔[0m[90m reads nested accessors once at 33 keys[0m
+    [32m  ✔[0m[90m reads object accessors once at 64 keys[0m
+    [32m  ✔[0m[90m reads array accessors once at 64 keys[0m
+    [32m  ✔[0m[90m reads nested accessors once at 64 keys[0m
+    [32m  ✔[0m[90m reads enumerable getters once without mutating frozen input[0m
+    [32m  ✔[0m[90m reads sibling properties in native structured clone order[0m
+    [32m  ✔[0m[90m omits own properties deleted by an earlier nested getter[0m
+    [32m  ✔[0m[90m does not replace a deleted own property with an inherited value[0m
+    [32m  ✔[0m[90m preserves holes created when a nested getter shrinks an array[0m
+    [32m  ✔[0m[90m retains initially enumerable keys when a getter makes them non-enumerable[0m
+    [32m  ✔[0m[90m snapshots map entries before getters mutate the map[0m
+    [32m  ✔[0m[90m snapshots set entries before getters mutate the set[0m
+    [32m  ✔[0m[90m ignores Symbol.toStringTag getters on plain objects[0m
+    [32m  ✔[0m[90m ignores Symbol.toStringTag getters on null-prototype objects[0m
+    [32m  ✔[0m[90m uses map entries without invoking an overridden iterator[0m
+    [32m  ✔[0m[90m uses set entries without invoking an overridden iterator[0m
+    [32m  ✔[0m[90m preserves cycles through map keys, sets and arrays[0m
+    [32m  ✔[0m[90m proxy calls revive nested URI arguments and results[0m
+    [32m  ✔[0m[90m VSBuffer arguments and responses retain their methods[0m
+    [32m  ✔[0m[90m nested buffers preserve cycles, aliases and native binary values[0m
+    [32m  ✔[0m[90m events restore VSBuffer payloads and subscription arguments[0m
+    [32m  ✔[0m[90m disabled URI marshalling still restores VSBuffer values[0m
+    [32m  ✔[0m[90m connection contexts restore VSBuffer values[0m
+[0m    one to one[0m
+    [32m  ✔[0m[90m call success[0m
+    [32m  ✔[0m[90m call error[0m
+    [32m  ✔[0m[90m cancel call with cancelled cancellation token[0m
+    [32m  ✔[0m[90m cancel call with cancellation token (sync)[0m
+    [32m  ✔[0m[90m cancel call with cancellation token (async)[0m
+    [32m  ✔[0m[90m listen to events[0m
+    [32m  ✔[0m[90m unbuffered events subscribe lazily[0m
+    [32m  ✔[0m[90m listen to events (resubscribe)[0m
+    [32m  ✔[0m[90m buffers in arrays[0m
+    [32m  ✔[0m[90m integer wire bytes retain their VQL boundary encodings[0m
+    [32m  ✔[0m[90m all cached short integers round trip without changing earlier encodings[0m
+    [32m  ✔[0m[90m coerced proxy array lengths do not grow the short integer cache[0m
+    [32m  ✔[0m[90m cached VQL values do not retain pooled message backing stores[0m
+    [32m  ✔[0m[90m byte and slice reads share the logical view cursor[0m
+    [32m  ✔[0m[90m deserialization retains the generic reader fallback[0m
+    [32m  ✔[0m[90m round trips numbers[0m
+    [32m  ✔[0m[90m round trips Uint8Array values over buffer protocols[0m
+    [32m  ✔[0m[90m BufferWriter releases its buffers on dispose[0m
+    [32m  ✔[0m[90m request rejects (and cleans up) when serialization throws on the deferred path[0m
+[0m    one to one (proxy)[0m
+    [32m  ✔[0m[90m call success[0m
+    [32m  ✔[0m[90m call error[0m
+    [32m  ✔[0m[90m listen to events[0m
+    [32m  ✔[0m[90m listen to events (resubscribe)[0m
+    [32m  ✔[0m[90m marshalling uri[0m
+    [32m  ✔[0m[90m buffers in arrays[0m
+    [32m  ✔[0m[90m proxy is not a thenable[0m
+[0m    one to one (proxy, extra context)[0m
+    [32m  ✔[0m[90m call extra context[0m
+[0m    one to one (proxy, event buffering)[0m
+    [32m  ✔[0m[90m service events are eagerly subscribed to and buffered by default[0m
+    [32m  ✔[0m[90m unbuffered events do not change buffering for other service events[0m
+[0m    one to many[0m
+    [32m  ✔[0m[90m all clients get pinged[0m
+    [32m  ✔[0m[90m server gets pings from all clients (broadcast channel)[0m
+
+[0m  IPC, MessagePorts[0m
+  [32m  ✔[0m[90m structured clone channel round trip over native MessagePorts[0m
+  [32m  ✔[0m[90m message port close event[0m
+  [32m  ✔[0m[90m message port acquisition reports structured errors[0m
+
+[0m  MessagePort IPC[0m
+  [32m  ✔[0m[90m runs request continuations before a subsequent event delivery[0m
+  [32m  ✔[0m[90m round trips URI, VSBuffer, typed array views and cyclic aliases[0m
+  [32m  ✔[0m[90m propagates errors and cancellation across the port[0m
+  [32m  ✔[0m[90m disposes event subscriptions across the port[0m
+
+[0m  Files[0m
+  [32m  ✔[0m[90m IPC file data preserves BOM, invalid UTF-8, empty input and view offsets[0m
+  [32m  ✔[0m[90m IPC file data uses strings only for ordinary UTF-8[0m
+  [32m  ✔[0m[90m FileChangesEvent - basics[0m
+  [32m  ✔[0m[90m FileChangesEvent - supports multiple changes on file tree[0m
+  [32m  ✔[0m[90m FileChangesEvent - correlation[0m
+  [32m  ✔[0m[90m isEqual (ignoreCase)[0m
+  [32m  ✔[0m[90m isParent (ignorecase)[0m
+  [32m  ✔[0m[90m isEqualOrParent (ignorecase)[0m
+
+[0m  DiskFileSystemProvider native IPC[0m
+  [32m  ✔[0m[90m stream errors retain provider classification EntryNotFound over a real MessagePort[0m
+  [32m  ✔[0m[90m stream errors retain provider classification NoPermissions over a real MessagePort[0m
+  [32m  ✔[0m[90m stream errors retain provider classification EntryTooLarge over a real MessagePort[0m
+  [32m  ✔[0m[90m real missing-file stream errors retain their classification[0m
+  [32m  ✔[0m[90m file contents, partial reads and write offsets preserve exact bytes[0m
+
+[0m  ExtHostConsumerFileSystem activation[0m
+  [32m  ✔[0m[90m successful activation is reused across local operations and retains safe copies[0m
+  [32m  ✔[0m[90m concurrent local operations share and wait for first activation[0m
+  [32m  ✔[0m[90m activation failures are retried before invoking the local provider[0m
+  [32m  ✔[0m[90m provider registrations have independent activation barriers[0m
+  [32m  ✔[0m[90m disposing an old registration does not remove its replacement[0m
+  [32m  ✔[0m[90m readonly, trash, rename, copy and nonlocal operations retain main-thread paths[0m
+
+[0m  ExtHostFileSystemEventService[0m
+  [32m  ✔[0m[90m watcher registration and disposal use ordered notifications without empty replies[0m
+  [32m  ✔[0m[90m provider metadata and file notifications retain snapshots before a subsequent RPC barrier[0m
+  [32m  ✔[0m[90m FileSystemWatcher ignore events properties are reversed #26851[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches case-insensitively via pre-lowercasing[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches case-sensitively when PathCaseSensitive[0m
+  [32m  ✔[0m[90m FileSystemWatcher matches relative pattern case-insensitively via pre-lowercasing[0m
+
+[0m  Extension host native notifications[0m
+  [32m  ✔[0m[90m diagnostic collection changes and disposal retain order without ignored replies[0m
+  [32m  ✔[0m[90m buffered terminal output is delivered before exit without ignored replies[0m
+
+[0m  MainThreadAuthentication[0m
+  [32m  ✔[0m[90m concurrent identical session reads share one RPC without caching completed results[0m
+  [32m  ✔[0m[90m session reads with different scopes or provider options remain independent[0m
+  [32m  ✔[0m[90m failed shared session reads are evicted before the next request[0m
+  [32m  ✔[0m[90m session changes invalidate pending reads and old completion cannot evict a newer read[0m
+  [32m  ✔[0m[90m creating or removing sessions invalidates reads before the mutation finishes[0m
+  [32m  ✔[0m[90m an invalidation during the RPC call cannot install an obsolete shared read[0m
+  [32m  ✔[0m[90m revives session URIs and preserves optional session fields[0m
+
+[0m  InternalTerminalShellIntegration[0m
+  [32m  ✔[0m[90m an immediate reader retains start/data/end from a primed real MessagePort batch[0m
+  [32m  ✔[0m[90m simple execution[0m
+  [32m  ✔[0m[90m different execution unexpectedly ended[0m
+  [32m  ✔[0m[90m no end event[0m
+[0m    executeCommand[0m
+    [32m  ✔[0m[90m ^C to clear previous command[0m
+    [32m  ✔[0m[90m multi-line command line[0m
+    [32m  ✔[0m[90m multi-line command with long second command[0m
+    [32m  ✔[0m[90m multi-line command comment followed by long second command[0m
+    [32m  ✔[0m[90m 4 multi-line commands with output[0m
+
+[0m  RPCMessagePort[0m
+  [32m  ✔[0m[90m handshake listeners do not consume native frames before the RPC engine subscribes[0m
+  [32m  ✔[0m[90m unbatched transport sends every frame immediately[0m
+  [32m  ✔[0m[90m reentrant delivery cannot overtake the rest of a received batch[0m
+  [32m  ✔[0m[90m sends the first frame immediately and coalesces the rest of a burst[0m
+  [32m  ✔[0m[90m receiving data keeps the next outgoing frame immediate[0m
+  [32m  ✔[0m[90m bounds bursts by frame count[0m
+  [32m  ✔[0m[90m large DTOs remain pipelined in separate packets[0m
+  [32m  ✔[0m[90m binary controls flush native frames and preserve startup buffering order[0m
+  [32m  ✔[0m[90m native receive stream preserves buffered frames and binary codec envelopes[0m
+  [32m  ✔[0m[90m disposal during a native receive batch stops remaining delivery[0m
+  [32m  ✔[0m[90m a received native batch coalesces small replies without an immediate-send split[0m
+  [32m  ✔[0m[90m native listeners share the current frame when disposal stops the rest of a batch[0m
+  [32m  ✔[0m[90m drain flushes a queued frame immediately[0m
+  [32m  ✔[0m[90m disposal drops queued sends and later incoming frames[0m
+  [32m  ✔[0m[90m disposal during a batch stops delivery of remaining frames[0m
+
+[0m  RPCProtocol (observed void actor)[0m
+  [32m  ✔[0m[90m an explicitly observed void actor retains completion over real MessagePorts[0m
+
+[0m  RPC JSON buffer references[0m
+  [32m  ✔[0m[90m ordinary large DTOs retain their JSON representation[0m
+  [32m  ✔[0m[90m buffer references retain aliases and methods[0m
+  [32m  ✔[0m[90m undefined placeholders delete object fields and preserve array holes[0m
+  [32m  ✔[0m[90m unicode-escaped reference names still resolve[0m
+  [32m  ✔[0m[90m URI transformation retains postorder even under a replaced buffer reference[0m
+  [32m  ✔[0m[90m restoring a __proto__ field preserves the parsed object prototype[0m
+
+[0m  RPCProtocol (binary)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+[0m  RPCProtocol (native JSON)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m compact native headers preserve request IDs above the 27-bit boundary[0m
+  [32m  ✔[0m[90m disposing the native engine cancels pending actors and suppresses late replies[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m notification traffic periodically probes a silent peer and cleans up on disposal[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+[0m  RPCProtocol (batched JSON)[0m
+  [32m  ✔[0m[90m audited observed methods return native promises only on native JSON requests[0m
+  [32m  ✔[0m[90m observed methods preserve the lazy mixed-buffer fallback and exact bytes[0m
+  [32m  ✔[0m[90m observed method rejections remain catchable[0m
+  [32m  ✔[0m[90m disposal rejects an already-observed native reply[0m
+  [32m  ✔[0m[90m single scalar request bodies preserve argument normalization and object fallback[0m
+  [32m  ✔[0m[90m simple call[0m
+  [32m  ✔[0m[90m native optional arguments preserve undefined masks at every boundary[0m
+  [32m  ✔[0m[90m optional native argument payloads retain snapshots and JSON omission semantics[0m
+  [32m  ✔[0m[90m notifications with undefined arguments deliver every update without replies[0m
+  [32m  ✔[0m[90m optional native arguments preserve cancellation-token delivery[0m
+  [32m  ✔[0m[90m native IPC messages own tightly sized backing buffers[0m
+  [32m  ✔[0m[90m immediate replies acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m immediate errors acknowledge requests without a separate message[0m
+  [32m  ✔[0m[90m short async replies acknowledge without a separate message[0m
+  [32m  ✔[0m[90m short async errors acknowledge without a separate message[0m
+  [32m  ✔[0m[90m pending handlers acknowledge before their result is available[0m
+  [32m  ✔[0m[90m pending handler errors settle after their acknowledgement[0m
+  [32m  ✔[0m[90m compact native headers preserve request IDs above the 27-bit boundary[0m
+  [32m  ✔[0m[90m disposing the native engine cancels pending actors and suppresses late replies[0m
+  [32m  ✔[0m[90m late and duplicate acknowledgements do not corrupt responsiveness accounting[0m
+  [32m  ✔[0m[90m short calls reuse a responsiveness check until it expires[0m
+  [32m  ✔[0m[90m a reused check still detects an unresponsive peer and recovers[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after success[0m
+  [32m  ✔[0m[90m releases the caller cancellation subscription after error[0m
+  [32m  ✔[0m[90m explicit notifications deliver every update before an ordinary barrier request[0m
+  [32m  ✔[0m[90m notification DTOs are snapshotted at call time and preserve URI payloads[0m
+  [32m  ✔[0m[90m notification and binary fallback calls retain invocation order[0m
+  [32m  ✔[0m[90m cancellable notification methods keep the full request/reply path[0m
+  [32m  ✔[0m[90m notification handler errors are reported for synchronous and async handlers[0m
+  [32m  ✔[0m[90m notification traffic periodically probes a silent peer and cleans up on disposal[0m
+  [32m  ✔[0m[90m mixed native and binary requests preserve invocation order[0m
+  [32m  ✔[0m[90m native scalar replies retain JSON conversions and object fallback[0m
+  [32m  ✔[0m[90m simple call without result[0m
+  [32m  ✔[0m[90m passing buffer as argument[0m
+  [32m  ✔[0m[90m returning a buffer[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken before[0m
+  [32m  ✔[0m[90m passing CancellationToken.None[0m
+  [32m  ✔[0m[90m cancelling a call via CancellationToken quickly[0m
+  [32m  ✔[0m[90m releases cancellation handler when the invoked call does not settle[0m
+  [32m  ✔[0m[90m does not track uncancellable calls that do not settle[0m
+  [32m  ✔[0m[90m throwing an error[0m
+  [32m  ✔[0m[90m error promise[0m
+  [32m  ✔[0m[90m issue #60450: Converting circular structure to JSON[0m
+  [32m  ✔[0m[90m issue #72798: null errors are hard to digest[0m
+  [32m  ✔[0m[90m undefined arguments arrive as null[0m
+  [32m  ✔[0m[90m issue #81424: SerializeRequest should throw if an argument can not be serialized[0m
+  [32m  ✔[0m[90m SerializableObjectWithBuffers is correctly transferred[0m
+
+
+[92m [0m[32m 292 passing[0m[90m (395ms)[0m
+

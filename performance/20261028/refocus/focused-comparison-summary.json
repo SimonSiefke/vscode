@@ -1,0 +1,2135 @@
+{
+  "method": "Paired median log ratios, conservative 95% binomial/order-statistic intervals; no multiple-comparison correction; independent application processes",
+  "rows": [
+    {
+      "fixture": "primitive",
+      "concurrency": 1,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -43.84093947182488,
+          "intervalPercent": [
+            -44.012227461207424,
+            -43.48915596779446
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5078936373103072,
+            "intervalPercent": [
+              0.0041756022876704435,
+              0.5960793778917006
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -14.605913520675312,
+          "intervalPercent": [
+            -21.68254931286612,
+            -12.176085913448407
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.474778922666608,
+            "intervalPercent": [
+              0.4177252791309094,
+              15.613324109121374
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -25.103747380856518,
+          "intervalPercent": [
+            -29.298034660405893,
+            -24.105406290107055
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 4.611007031309029,
+            "intervalPercent": [
+              1.1670101029924274,
+              12.339065035298024
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "primitive",
+      "concurrency": 1,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -43.79588586668051,
+          "intervalPercent": [
+            -43.85379660796532,
+            -43.58362108257941
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5078936373103072,
+            "intervalPercent": [
+              0.0041756022876704435,
+              0.5960793778917006
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -16.134224852047023,
+          "intervalPercent": [
+            -19.436656504330706,
+            -12.405146054579829
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.474778922666608,
+            "intervalPercent": [
+              0.4177252791309094,
+              15.613324109121374
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -27.408374231648846,
+          "intervalPercent": [
+            -29.025689474595108,
+            -24.747692590230326
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 4.611007031309029,
+            "intervalPercent": [
+              1.1670101029924274,
+              12.339065035298024
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "primitive",
+      "concurrency": 1,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.13774177237045301,
+          "intervalPercent": [
+            -0.6509519934201347,
+            0.5216555533067213
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5078936373103072,
+            "intervalPercent": [
+              0.0041756022876704435,
+              0.5960793778917006
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": 2.113728393538977,
+          "intervalPercent": [
+            -6.601237991463449,
+            5.802969506652156
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.474778922666608,
+            "intervalPercent": [
+              0.4177252791309094,
+              15.613324109121374
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.869351890868595,
+          "intervalPercent": [
+            -3.6939379603035727,
+            4.2912339898416585
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 4.611007031309029,
+            "intervalPercent": [
+              1.1670101029924274,
+              12.339065035298024
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 1,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -37.71338481302053,
+          "intervalPercent": [
+            -37.79997783993688,
+            -37.51211190990985
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.08173174192863429,
+            "intervalPercent": [
+              -0.2933856294510262,
+              0.3140739356505273
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -19.19482033572501,
+          "intervalPercent": [
+            -24.55169571545486,
+            -10.078571902216371
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.302590666275704,
+            "intervalPercent": [
+              -4.878564593181367,
+              7.273032064183438
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -26.196751921493593,
+          "intervalPercent": [
+            -30.965612225190043,
+            -19.80170826018116
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.5605758242604457,
+            "intervalPercent": [
+              -3.077508362750747,
+              6.0870796547350725
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 1,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -37.603760616576125,
+          "intervalPercent": [
+            -37.759422253606665,
+            -37.53896867536082
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.08173174192863429,
+            "intervalPercent": [
+              -0.2933856294510262,
+              0.3140739356505273
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -15.80506166554775,
+          "intervalPercent": [
+            -22.843518148785115,
+            -12.364009815434516
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.302590666275704,
+            "intervalPercent": [
+              -4.878564593181367,
+              7.273032064183438
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -25.401673097469924,
+          "intervalPercent": [
+            -30.17615914804085,
+            -21.7607363131486
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.5605758242604457,
+            "intervalPercent": [
+              -3.077508362750747,
+              6.0870796547350725
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 1,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.06796957047507829,
+          "intervalPercent": [
+            -0.24953629911531605,
+            0.3509258464401199
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.08173174192863429,
+            "intervalPercent": [
+              -0.2933856294510262,
+              0.3140739356505273
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.8579102407046941,
+          "intervalPercent": [
+            -4.234331922366275,
+            3.543479607148181
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 5.302590666275704,
+            "intervalPercent": [
+              -4.878564593181367,
+              7.273032064183438
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.810318887083548,
+          "intervalPercent": [
+            -4.115215879609202,
+            4.024237883423298
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.5605758242604457,
+            "intervalPercent": [
+              -3.077508362750747,
+              6.0870796547350725
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 1,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -93.19085218744405,
+          "intervalPercent": [
+            -93.20241816806852,
+            -93.17619493749329
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.1533431215852016,
+            "intervalPercent": [
+              -0.646128961386705,
+              0.7152109874073664
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -71.69221089507477,
+          "intervalPercent": [
+            -73.18898525743492,
+            -70.18715231045319
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.8342775036051371,
+            "intervalPercent": [
+              -2.6546616908552756,
+              8.255649885982885
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -73.5460329892841,
+          "intervalPercent": [
+            -74.96157340709739,
+            -72.31501061735335
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.2093553613363812,
+            "intervalPercent": [
+              -3.0278661211873614,
+              7.21185875860908
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 1,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -93.2042012734795,
+          "intervalPercent": [
+            -93.21487678327586,
+            -93.18330485414292
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.1533431215852016,
+            "intervalPercent": [
+              -0.646128961386705,
+              0.7152109874073664
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -72.4557072310137,
+          "intervalPercent": [
+            -73.93778616051928,
+            -71.39618739489131
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.8342775036051371,
+            "intervalPercent": [
+              -2.6546616908552756,
+              8.255649885982885
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -74.38872289242126,
+          "intervalPercent": [
+            -75.11389928206734,
+            -73.32645865662127
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.2093553613363812,
+            "intervalPercent": [
+              -3.0278661211873614,
+              7.21185875860908
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 1,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.10436566122391758,
+          "intervalPercent": [
+            -0.34376166238979655,
+            0.11001284677671919
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.1533431215852016,
+            "intervalPercent": [
+              -0.646128961386705,
+              0.7152109874073664
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.31078812782298787,
+          "intervalPercent": [
+            -11.266602573695616,
+            3.562874060890109
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.8342775036051371,
+            "intervalPercent": [
+              -2.6546616908552756,
+              8.255649885982885
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.5136903764862072,
+          "intervalPercent": [
+            -9.360784887620577,
+            3.3472597170844054
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.2093553613363812,
+            "intervalPercent": [
+              -3.0278661211873614,
+              7.21185875860908
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "primitive",
+      "concurrency": 32,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -51.29304324424384,
+          "intervalPercent": [
+            -52.645582087758946,
+            -50.55786663454393
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5939714972066823,
+            "intervalPercent": [
+              -5.348738591784674,
+              3.576659737693877
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -69.82098758324628,
+          "intervalPercent": [
+            -74.12962493529899,
+            -62.72351044146236
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -1.4703209361005358,
+            "intervalPercent": [
+              -22.926345098629042,
+              34.810638300534904
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -68.04484519290088,
+          "intervalPercent": [
+            -73.05279965786788,
+            -63.834080106153834
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.9265575959375,
+            "intervalPercent": [
+              -17.87492096222699,
+              23.892293698061806
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "primitive",
+      "concurrency": 32,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -69.21375115130046,
+          "intervalPercent": [
+            -70.1001115884837,
+            -68.92984018770606
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5939714972066823,
+            "intervalPercent": [
+              -5.348738591784674,
+              3.576659737693877
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -72.31299040982172,
+          "intervalPercent": [
+            -78.10852746027821,
+            -69.8101770397712
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -1.4703209361005358,
+            "intervalPercent": [
+              -22.926345098629042,
+              34.810638300534904
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -81.2987312073858,
+          "intervalPercent": [
+            -82.93767846877327,
+            -79.28468957531514
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.9265575959375,
+            "intervalPercent": [
+              -17.87492096222699,
+              23.892293698061806
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -97.91666666666666,
+          "intervalPercent": [
+            -97.91666666666666,
+            -97.91666666666666
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "primitive",
+      "concurrency": 32,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -36.94888822277682,
+          "intervalPercent": [
+            -37.28722150084669,
+            -36.71944892206883
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5939714972066823,
+            "intervalPercent": [
+              -5.348738591784674,
+              3.576659737693877
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -20.079191352470907,
+          "intervalPercent": [
+            -27.307056230385395,
+            -7.787213615802968
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -1.4703209361005358,
+            "intervalPercent": [
+              -22.926345098629042,
+              34.810638300534904
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -44.12308808035301,
+          "intervalPercent": [
+            -47.24055398870468,
+            -37.53608079491774
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.9265575959375,
+            "intervalPercent": [
+              -17.87492096222699,
+              23.892293698061806
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -96.875,
+          "intervalPercent": [
+            -96.875,
+            -96.875
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 32,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -39.57408075504317,
+          "intervalPercent": [
+            -39.93047174315021,
+            -39.099038621373495
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.4321763318035624,
+            "intervalPercent": [
+              -1.3051794271439876,
+              3.4435983210306276
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -57.065073258330436,
+          "intervalPercent": [
+            -65.17206046642825,
+            -54.54498910833412
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.3291681326480933,
+            "intervalPercent": [
+              -24.706696720661792,
+              21.247732215792038
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -57.22060407853829,
+          "intervalPercent": [
+            -62.423112868634156,
+            -53.366499778902934
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.8883582305982642,
+            "intervalPercent": [
+              -23.07365995812227,
+              18.087453368747152
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 32,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -57.21844247318497,
+          "intervalPercent": [
+            -57.57944019744716,
+            -57.08061455499093
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.4321763318035624,
+            "intervalPercent": [
+              -1.3051794271439876,
+              3.4435983210306276
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -63.584053513439564,
+          "intervalPercent": [
+            -67.17731309398447,
+            -59.64915930162829
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.3291681326480933,
+            "intervalPercent": [
+              -24.706696720661792,
+              21.247732215792038
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -74.6391585532359,
+          "intervalPercent": [
+            -77.671196992921,
+            -73.05925701285132
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.8883582305982642,
+            "intervalPercent": [
+              -23.07365995812227,
+              18.087453368747152
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -97.91666666666666,
+          "intervalPercent": [
+            -97.91666666666666,
+            -97.91666666666666
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "small-object",
+      "concurrency": 32,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -29.21357311260874,
+          "intervalPercent": [
+            -29.490693460578342,
+            -28.978113096327707
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.4321763318035624,
+            "intervalPercent": [
+              -1.3051794271439876,
+              3.4435983210306276
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -12.948151658682985,
+          "intervalPercent": [
+            -20.789155340725717,
+            -1.5438505587234141
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.3291681326480933,
+            "intervalPercent": [
+              -24.706696720661792,
+              21.247732215792038
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -39.739541573268966,
+          "intervalPercent": [
+            -45.33219392242206,
+            -34.3328126743278
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 3.8883582305982642,
+            "intervalPercent": [
+              -23.07365995812227,
+              18.087453368747152
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -96.875,
+          "intervalPercent": [
+            -96.875,
+            -96.875
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 32,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -91.4209737391766,
+          "intervalPercent": [
+            -91.86150524905996,
+            -91.30129111071264
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.7786648933014747,
+            "intervalPercent": [
+              -1.8420928098658695,
+              -0.07278294504645677
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -76.70797850450657,
+          "intervalPercent": [
+            -78.72076799794318,
+            -74.87221612166572
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4963691138566646,
+            "intervalPercent": [
+              -7.392625616766146,
+              9.813663858811061
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -78.52692047745239,
+          "intervalPercent": [
+            -80.2101247737711,
+            -77.23407948425073
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.9795552569749983,
+            "intervalPercent": [
+              -6.033009192433337,
+              7.760730531851534
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 32,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -91.4028258140309,
+          "intervalPercent": [
+            -91.74195361600155,
+            -91.2440298894067
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.7786648933014747,
+            "intervalPercent": [
+              -1.8420928098658695,
+              -0.07278294504645677
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -77.43503219855698,
+          "intervalPercent": [
+            -79.83021620960903,
+            -75.7229535279495
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4963691138566646,
+            "intervalPercent": [
+              -7.392625616766146,
+              9.813663858811061
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -79.49118553017632,
+          "intervalPercent": [
+            -81.27151916465712,
+            -78.21413031992591
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.9795552569749983,
+            "intervalPercent": [
+              -6.033009192433337,
+              7.760730531851534
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "text-64KiB",
+      "concurrency": 32,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 1.1797343681255337,
+          "intervalPercent": [
+            -2.8447312662142177,
+            4.788178125430109
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.7786648933014747,
+            "intervalPercent": [
+              -1.8420928098658695,
+              -0.07278294504645677
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.368868284689578,
+          "intervalPercent": [
+            -16.076377037554067,
+            12.35571211769213
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4963691138566646,
+            "intervalPercent": [
+              -7.392625616766146,
+              9.813663858811061
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.5418036255858505,
+          "intervalPercent": [
+            -13.541611800253861,
+            9.03653397473776
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.9795552569749983,
+            "intervalPercent": [
+              -6.033009192433337,
+              7.760730531851534
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 1,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -10.006156944524248,
+          "intervalPercent": [
+            -10.259994437697683,
+            -9.923043805722397
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.23369331132225735,
+            "intervalPercent": [
+              -0.5308242351113934,
+              0.35525799631284105
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -1.2858678288571501,
+          "intervalPercent": [
+            -6.944635291550039,
+            1.2091642253218238
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.09990010806571929,
+            "intervalPercent": [
+              -4.125413294829516,
+              5.467010586980603
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -5.719735556533874,
+          "intervalPercent": [
+            -10.227506249042563,
+            -4.06151985130061
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.1994990058992614,
+            "intervalPercent": [
+              -4.437001397750285,
+              6.300462601667034
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 1,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -10.191235574675382,
+          "intervalPercent": [
+            -10.452888490762069,
+            -10.015038044373426
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.23369331132225735,
+            "intervalPercent": [
+              -0.5308242351113934,
+              0.35525799631284105
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -6.807060873789268,
+          "intervalPercent": [
+            -10.473307940856058,
+            -3.8406968923658913
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.09990010806571929,
+            "intervalPercent": [
+              -4.125413294829516,
+              5.467010586980603
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -10.362593471028246,
+          "intervalPercent": [
+            -12.598049064222405,
+            -7.055953991552832
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.1994990058992614,
+            "intervalPercent": [
+              -4.437001397750285,
+              6.300462601667034
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 1,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.11839617087442739,
+          "intervalPercent": [
+            -0.3290507063371306,
+            0.044642815752937715
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.23369331132225735,
+            "intervalPercent": [
+              -0.5308242351113934,
+              0.35525799631284105
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.546585224173844,
+          "intervalPercent": [
+            -8.343175785860113,
+            1.0749611693088745
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.09990010806571929,
+            "intervalPercent": [
+              -4.125413294829516,
+              5.467010586980603
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -3.706375764732059,
+          "intervalPercent": [
+            -7.288206245222684,
+            -0.9229417313880273
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.1994990058992614,
+            "intervalPercent": [
+              -4.437001397750285,
+              6.300462601667034
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 1,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.868276183932659,
+          "intervalPercent": [
+            -8.398252703406971,
+            -2.638934813558691
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5457583371196242,
+            "intervalPercent": [
+              -4.7171321848404,
+              9.380065052843323
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": 8.833072608379961,
+          "intervalPercent": [
+            1.4411943338217048,
+            13.61527796955884
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4312879513297536,
+            "intervalPercent": [
+              -9.382962369319948,
+              8.698203925102789
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.31675469968922754,
+          "intervalPercent": [
+            -5.319952797975214,
+            1.547571758188826
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.3502164639309153,
+            "intervalPercent": [
+              -6.129481823816917,
+              3.4698368432657833
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 1,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.96396238727585,
+          "intervalPercent": [
+            -7.878479097521939,
+            -3.1189653206821655
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5457583371196242,
+            "intervalPercent": [
+              -4.7171321848404,
+              9.380065052843323
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": 5.532828863179779,
+          "intervalPercent": [
+            0.4453959621147696,
+            9.621825533425543
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4312879513297536,
+            "intervalPercent": [
+              -9.382962369319948,
+              8.698203925102789
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -2.259463400889628,
+          "intervalPercent": [
+            -7.895642482749999,
+            0.12869092073171107
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.3502164639309153,
+            "intervalPercent": [
+              -6.129481823816917,
+              3.4698368432657833
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 1,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.02912230073549842,
+          "intervalPercent": [
+            -1.647138601269238,
+            1.460591752163909
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.5457583371196242,
+            "intervalPercent": [
+              -4.7171321848404,
+              9.380065052843323
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.6589505775998319,
+          "intervalPercent": [
+            -7.278742593216125,
+            1.5341735613198404
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.4312879513297536,
+            "intervalPercent": [
+              -9.382962369319948,
+              8.698203925102789
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.7972358938696057,
+          "intervalPercent": [
+            -7.656118152405744,
+            1.3455267441344176
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 1.3502164639309153,
+            "intervalPercent": [
+              -6.129481823816917,
+              3.4698368432657833
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 32,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -3.2378176561289878,
+          "intervalPercent": [
+            -3.799028584277997,
+            -2.097867890074556
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.9371014081819921,
+            "intervalPercent": [
+              -4.584239182816696,
+              5.758316807052566
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -35.12881898901219,
+          "intervalPercent": [
+            -43.48318466021803,
+            -27.53610644701231
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 6.8288836825714005,
+            "intervalPercent": [
+              -4.743207654879821,
+              25.318399808072822
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -28.351009318623028,
+          "intervalPercent": [
+            -33.57505680105224,
+            -24.84541175332048
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 7.5180949825242624,
+            "intervalPercent": [
+              -0.22746401964398588,
+              19.918280215473395
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 32,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -2.9940100742693505,
+          "intervalPercent": [
+            -3.5226973637879633,
+            -1.9715877318559283
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.9371014081819921,
+            "intervalPercent": [
+              -4.584239182816696,
+              5.758316807052566
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -26.95426918431572,
+          "intervalPercent": [
+            -37.98963435966832,
+            -22.21651806071415
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 6.8288836825714005,
+            "intervalPercent": [
+              -4.743207654879821,
+              25.318399808072822
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -21.695976675541985,
+          "intervalPercent": [
+            -27.923232816105447,
+            -17.26547102164502
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 7.5180949825242624,
+            "intervalPercent": [
+              -0.22746401964398588,
+              19.918280215473395
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64",
+      "concurrency": 32,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.030394916815613397,
+          "intervalPercent": [
+            -0.47655373527771827,
+            0.803586697661407
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.9371014081819921,
+            "intervalPercent": [
+              -4.584239182816696,
+              5.758316807052566
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": 9.41538936084226,
+          "intervalPercent": [
+            6.920517277883387,
+            28.753670935034403
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 6.8288836825714005,
+            "intervalPercent": [
+              -4.743207654879821,
+              25.318399808072822
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": 9.477297821929156,
+          "intervalPercent": [
+            6.466920605196513,
+            21.748536866903834
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 7.5180949825242624,
+            "intervalPercent": [
+              -0.22746401964398588,
+              19.918280215473395
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 32,
+      "comparison": "native-unbatched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": -0.6036909182345289,
+          "intervalPercent": [
+            -1.9858293359239942,
+            2.827554737882121
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.3650244115766691,
+            "intervalPercent": [
+              -4.413159110705644,
+              1.5133452190508878
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -13.01601190315989,
+          "intervalPercent": [
+            -17.9480152804708,
+            -7.240435152380198
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -6.3085003805968505,
+            "intervalPercent": [
+              -15.221158846904881,
+              -0.324429303746554
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -5.531326865455355,
+          "intervalPercent": [
+            -12.333077989275553,
+            -1.4534010437044276
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -7.514998266907308,
+            "intervalPercent": [
+              -15.284516656791503,
+              0.708900636811105
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 32,
+      "comparison": "native-batched vs byte",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 1.2542539642509691,
+          "intervalPercent": [
+            0.5206857554349575,
+            4.920126578856854
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.3650244115766691,
+            "intervalPercent": [
+              -4.413159110705644,
+              1.5133452190508878
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -13.050242067410483,
+          "intervalPercent": [
+            -18.654309404429814,
+            -4.708964570910334
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -6.3085003805968505,
+            "intervalPercent": [
+              -15.221158846904881,
+              -0.324429303746554
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -6.232841268222681,
+          "intervalPercent": [
+            -14.50714375678659,
+            -1.2797382088047704
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -7.514998266907308,
+            "intervalPercent": [
+              -15.284516656791503,
+              0.708900636811105
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": -33.333333333333336,
+          "intervalPercent": [
+            -33.333333333333336,
+            -33.333333333333336
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "fixture": "binary-64KiB",
+      "concurrency": 32,
+      "comparison": "batching increment",
+      "metrics": {
+        "instructions": {
+          "pairs": 20,
+          "medianPairedChangePercent": 1.1300033876568847,
+          "intervalPercent": [
+            -1.4502239918048998,
+            4.008934696750699
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -0.3650244115766691,
+            "intervalPercent": [
+              -4.413159110705644,
+              1.5133452190508878
+            ]
+          }
+        },
+        "elapsedMs": {
+          "pairs": 20,
+          "medianPairedChangePercent": -4.293076814643154,
+          "intervalPercent": [
+            -7.509251933257133,
+            9.561741667887302
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -6.3085003805968505,
+            "intervalPercent": [
+              -15.221158846904881,
+              -0.324429303746554
+            ]
+          }
+        },
+        "cpuMicroseconds": {
+          "pairs": 20,
+          "medianPairedChangePercent": -1.598228300008807,
+          "intervalPercent": [
+            -5.036454147325598,
+            6.578806206922017
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": -7.514998266907308,
+            "intervalPercent": [
+              -15.284516656791503,
+              0.708900636811105
+            ]
+          }
+        },
+        "packets": {
+          "pairs": 20,
+          "medianPairedChangePercent": 0.0,
+          "intervalPercent": [
+            0.0,
+            0.0
+          ],
+          "byteAAControl": {
+            "pairs": 10,
+            "medianPairedChangePercent": 0.0,
+            "intervalPercent": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

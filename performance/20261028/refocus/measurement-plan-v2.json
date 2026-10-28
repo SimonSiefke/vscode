@@ -1,0 +1,46 @@
+{
+  "sourceBase": "416e5d6b0db90081fddd1d62c9a905cdeb9ebcff",
+  "priorPrHead": "0108dc90564c7626027cf63b3a994d0cb1bd8be1",
+  "focused": {
+    "aaPairs": 10,
+    "comparisonPairs": 20,
+    "fixtures": [
+      "primitive",
+      "small-object",
+      "text-64KiB"
+    ],
+    "schedules": [
+      1,
+      32
+    ],
+    "warmup": 4096,
+    "calls": 8192,
+    "order": "fixed seed, balanced cyclic and reversed orders"
+  },
+  "ui": {
+    "harness": "a76c1e02df184d81aa79da2e83d6f51bac52bfbb",
+    "scenarios": [
+      "activity-bar-toggle",
+      "editor-open"
+    ],
+    "pilotIterations": 3,
+    "campaignIterations": 37,
+    "independentLaunchPairs": 8,
+    "order": [
+      "AB",
+      "BA",
+      "BA",
+      "AB",
+      "AB",
+      "BA",
+      "BA",
+      "AB"
+    ],
+    "excludeOriginallySkipped": true,
+    "instrumentation": "action run stage only; no snapshots, forced GC or profiler",
+    "claims": "independent launch is the statistical unit; UI timings include automation and readiness overhead",
+    "aaPilotPairs": 2,
+    "amendment": "Before collecting UI samples: eight independent pairs permit a finite conservative sign/order-statistic interval; four do not.",
+    "aaCampaignPairs": 8
+  }
+}

@@ -1,0 +1,167 @@
+Start 000-binary-64KiB-aa-b
+000-binary-64KiB-aa-b {'instructions:u': 318566.09, 'instructions:k': 13506.04}
+Start 000-binary-64KiB-control
+000-binary-64KiB-control {'instructions:u': 316118.68, 'instructions:k': 14182.62}
+Start 000-binary-64-aa-b
+000-binary-64-aa-b {'instructions:u': 128769.72, 'instructions:k': 8007.06}
+Start 000-binary-64-control
+000-binary-64-control {'instructions:u': 142054.75, 'instructions:k': 7449.62}
+Start 001-binary-64-control
+001-binary-64-control {'instructions:u': 128067.09, 'instructions:k': 7811.68}
+Start 001-binary-64-aa-b
+001-binary-64-aa-b {'instructions:u': 142874.0, 'instructions:k': 8867.01}
+Start 001-binary-64KiB-control
+001-binary-64KiB-control {'instructions:u': 292661.0, 'instructions:k': 14756.37}
+Start 001-binary-64KiB-aa-b
+001-binary-64KiB-aa-b {'instructions:u': 307634.11, 'instructions:k': 11712.37}
+Start 002-binary-64-aa-b
+002-binary-64-aa-b {'instructions:u': 128276.21, 'instructions:k': 6387.08}
+Start 002-binary-64-control
+002-binary-64-control {'instructions:u': 128796.05, 'instructions:k': 7752.32}
+Start 002-binary-64KiB-aa-b
+002-binary-64KiB-aa-b {'instructions:u': 290605.75, 'instructions:k': 13615.62}
+Start 002-binary-64KiB-control
+002-binary-64KiB-control {'instructions:u': 319605.21, 'instructions:k': 15120.9}
+Start 003-binary-64KiB-control
+003-binary-64KiB-control {'instructions:u': 303765.25, 'instructions:k': 16465.77}
+Start 003-binary-64KiB-aa-b
+003-binary-64KiB-aa-b {'instructions:u': 309461.59, 'instructions:k': 13647.68}
+Start 003-binary-64-control
+003-binary-64-control {'instructions:u': 134858.82, 'instructions:k': 8154.36}
+Start 003-binary-64-aa-b
+003-binary-64-aa-b {'instructions:u': 135878.95, 'instructions:k': 7583.72}
+Start 004-binary-64-aa-b
+004-binary-64-aa-b {'instructions:u': 128199.29, 'instructions:k': 8003.47}
+Start 004-binary-64-control
+004-binary-64-control {'instructions:u': 129698.94, 'instructions:k': 7176.83}
+Start 004-binary-64KiB-aa-b
+004-binary-64KiB-aa-b {'instructions:u': 310130.41, 'instructions:k': 14060.68}
+Start 004-binary-64KiB-control
+004-binary-64KiB-control {'instructions:u': 322352.12, 'instructions:k': 12206.73}
+Start 005-binary-64-control
+005-binary-64-control {'instructions:u': 133387.02, 'instructions:k': 6897.33}
+Start 005-binary-64-aa-b
+005-binary-64-aa-b {'instructions:u': 135416.83, 'instructions:k': 7522.07}
+Start 005-binary-64KiB-control
+005-binary-64KiB-control {'instructions:u': 309968.07, 'instructions:k': 14901.42}
+Start 005-binary-64KiB-aa-b
+005-binary-64KiB-aa-b {'instructions:u': 310787.95, 'instructions:k': 18997.94}
+Start 006-binary-64-aa-b
+006-binary-64-aa-b {'instructions:u': 137003.81, 'instructions:k': 7133.37}
+Start 006-binary-64-control
+006-binary-64-control {'instructions:u': 129226.6, 'instructions:k': 7062.62}
+Start 006-binary-64KiB-aa-b
+006-binary-64KiB-aa-b {'instructions:u': 303358.52, 'instructions:k': 11459.74}
+Start 006-binary-64KiB-control
+006-binary-64KiB-control {'instructions:u': 309672.86, 'instructions:k': 12323.5}
+Start 007-binary-64KiB-control
+007-binary-64KiB-control {'instructions:u': 306342.64, 'instructions:k': 18638.34}
+Start 007-binary-64KiB-aa-b
+007-binary-64KiB-aa-b {'instructions:u': 295928.83, 'instructions:k': 24963.58}
+Start 007-binary-64-control
+007-binary-64-control {'instructions:u': 137890.81, 'instructions:k': 6201.97}
+Start 007-binary-64-aa-b
+007-binary-64-aa-b {'instructions:u': 134660.9, 'instructions:k': 7101.78}
+Start 008-binary-64KiB-aa-b
+008-binary-64KiB-aa-b {'instructions:u': 302097.61, 'instructions:k': 14818.3}
+Start 008-binary-64KiB-control
+008-binary-64KiB-control {'instructions:u': 299395.15, 'instructions:k': 13282.39}
+Start 008-binary-64-aa-b
+008-binary-64-aa-b {'instructions:u': 128977.2, 'instructions:k': 8719.21}
+Start 008-binary-64-control
+008-binary-64-control {'instructions:u': 136285.77, 'instructions:k': 6269.25}
+Start 009-binary-64-control
+009-binary-64-control {'instructions:u': 135611.82, 'instructions:k': 8752.05}
+Start 009-binary-64-aa-b
+009-binary-64-aa-b {'instructions:u': 129113.9, 'instructions:k': 8631.99}
+Start 009-binary-64KiB-control
+009-binary-64KiB-control {'instructions:u': 310874.13, 'instructions:k': 14721.28}
+Start 009-binary-64KiB-aa-b
+009-binary-64KiB-aa-b {'instructions:u': 298347.39, 'instructions:k': 12878.97}
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/binary-aa-32",
+    "variants": "control,aa-b",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "binary-64,binary-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 32,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 10,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "binary-64": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 134122.91967773438,
+          "aa-b": 131887.39825439453
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.7806464046032913,
+            "intervalPercent": [
+              -4.791561742196859,
+              3.3538818215921085
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 7313.223937988281,
+          "aa-b": 7793.592956542969
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 8.267453243526802,
+            "intervalPercent": [
+              -1.3718045993684536,
+              13.509536028360959
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    },
+    "binary-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 309820.46209716797,
+          "aa-b": 305496.3156738281
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.8939569119437163,
+            "intervalPercent": [
+              -3.791416894153654,
+              1.323229228325018
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 14738.821533203125,
+          "aa-b": 13631.646240234375
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -5.896453850826832,
+            "intervalPercent": [
+              -13.609081610388285,
+              19.261578002076508
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+Found '/home/simon/.cache/vscode-ipc-opt-20261022/.nvmrc' with version <24.22.1>
+Now using node v24.22.1 (npm v11.19.1)
+
+> husky - npm run -s precommit
+> husky - node v24.22.1
+
+Reading 13 git index versions...
+Starting hygiene (provided file stream)...
+
+Hygiene checked 13 files in 3545ms.
+[perf/ipc-fast-20261022 e88586143b39] refactor(rpc): isolate native RPC from the byte engine
+ 13 files changed, 1634 insertions(+), 613 deletions(-)
+ create mode 100644 src/vs/workbench/services/extensions/common/structuredCloneRPCProtocol.ts

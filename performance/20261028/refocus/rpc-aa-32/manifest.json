@@ -1,0 +1,319 @@
+{
+  "perfVersion": "perf version 7.0.14",
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-aa-32",
+    "variants": "control,aa-b",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive,small-object,text-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 32,
+    "handler": "sync"
+  },
+  "counterScope": "Retired instructions in the target Node process and inherited worker/JIT/GC threads; userspace and kernel counters reported separately; disabled during startup, warmup and full GC",
+  "samples": [
+    {
+      "label": "000-small-object-aa-b",
+      "status": "success",
+      "path": "000-small-object-aa-b/result.json"
+    },
+    {
+      "label": "000-small-object-control",
+      "status": "success",
+      "path": "000-small-object-control/result.json"
+    },
+    {
+      "label": "000-text-64KiB-aa-b",
+      "status": "success",
+      "path": "000-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "000-text-64KiB-control",
+      "status": "success",
+      "path": "000-text-64KiB-control/result.json"
+    },
+    {
+      "label": "000-primitive-aa-b",
+      "status": "success",
+      "path": "000-primitive-aa-b/result.json"
+    },
+    {
+      "label": "000-primitive-control",
+      "status": "success",
+      "path": "000-primitive-control/result.json"
+    },
+    {
+      "label": "001-text-64KiB-control",
+      "status": "success",
+      "path": "001-text-64KiB-control/result.json"
+    },
+    {
+      "label": "001-text-64KiB-aa-b",
+      "status": "success",
+      "path": "001-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "001-primitive-control",
+      "status": "success",
+      "path": "001-primitive-control/result.json"
+    },
+    {
+      "label": "001-primitive-aa-b",
+      "status": "success",
+      "path": "001-primitive-aa-b/result.json"
+    },
+    {
+      "label": "001-small-object-control",
+      "status": "success",
+      "path": "001-small-object-control/result.json"
+    },
+    {
+      "label": "001-small-object-aa-b",
+      "status": "success",
+      "path": "001-small-object-aa-b/result.json"
+    },
+    {
+      "label": "002-text-64KiB-aa-b",
+      "status": "success",
+      "path": "002-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "002-text-64KiB-control",
+      "status": "success",
+      "path": "002-text-64KiB-control/result.json"
+    },
+    {
+      "label": "002-primitive-aa-b",
+      "status": "success",
+      "path": "002-primitive-aa-b/result.json"
+    },
+    {
+      "label": "002-primitive-control",
+      "status": "success",
+      "path": "002-primitive-control/result.json"
+    },
+    {
+      "label": "002-small-object-aa-b",
+      "status": "success",
+      "path": "002-small-object-aa-b/result.json"
+    },
+    {
+      "label": "002-small-object-control",
+      "status": "success",
+      "path": "002-small-object-control/result.json"
+    },
+    {
+      "label": "003-small-object-control",
+      "status": "success",
+      "path": "003-small-object-control/result.json"
+    },
+    {
+      "label": "003-small-object-aa-b",
+      "status": "success",
+      "path": "003-small-object-aa-b/result.json"
+    },
+    {
+      "label": "003-primitive-control",
+      "status": "success",
+      "path": "003-primitive-control/result.json"
+    },
+    {
+      "label": "003-primitive-aa-b",
+      "status": "success",
+      "path": "003-primitive-aa-b/result.json"
+    },
+    {
+      "label": "003-text-64KiB-control",
+      "status": "success",
+      "path": "003-text-64KiB-control/result.json"
+    },
+    {
+      "label": "003-text-64KiB-aa-b",
+      "status": "success",
+      "path": "003-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "004-primitive-aa-b",
+      "status": "success",
+      "path": "004-primitive-aa-b/result.json"
+    },
+    {
+      "label": "004-primitive-control",
+      "status": "success",
+      "path": "004-primitive-control/result.json"
+    },
+    {
+      "label": "004-small-object-aa-b",
+      "status": "success",
+      "path": "004-small-object-aa-b/result.json"
+    },
+    {
+      "label": "004-small-object-control",
+      "status": "success",
+      "path": "004-small-object-control/result.json"
+    },
+    {
+      "label": "004-text-64KiB-aa-b",
+      "status": "success",
+      "path": "004-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "004-text-64KiB-control",
+      "status": "success",
+      "path": "004-text-64KiB-control/result.json"
+    },
+    {
+      "label": "005-primitive-control",
+      "status": "success",
+      "path": "005-primitive-control/result.json"
+    },
+    {
+      "label": "005-primitive-aa-b",
+      "status": "success",
+      "path": "005-primitive-aa-b/result.json"
+    },
+    {
+      "label": "005-small-object-control",
+      "status": "success",
+      "path": "005-small-object-control/result.json"
+    },
+    {
+      "label": "005-small-object-aa-b",
+      "status": "success",
+      "path": "005-small-object-aa-b/result.json"
+    },
+    {
+      "label": "005-text-64KiB-control",
+      "status": "success",
+      "path": "005-text-64KiB-control/result.json"
+    },
+    {
+      "label": "005-text-64KiB-aa-b",
+      "status": "success",
+      "path": "005-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "006-text-64KiB-aa-b",
+      "status": "success",
+      "path": "006-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "006-text-64KiB-control",
+      "status": "success",
+      "path": "006-text-64KiB-control/result.json"
+    },
+    {
+      "label": "006-primitive-aa-b",
+      "status": "success",
+      "path": "006-primitive-aa-b/result.json"
+    },
+    {
+      "label": "006-primitive-control",
+      "status": "success",
+      "path": "006-primitive-control/result.json"
+    },
+    {
+      "label": "006-small-object-aa-b",
+      "status": "success",
+      "path": "006-small-object-aa-b/result.json"
+    },
+    {
+      "label": "006-small-object-control",
+      "status": "success",
+      "path": "006-small-object-control/result.json"
+    },
+    {
+      "label": "007-text-64KiB-control",
+      "status": "success",
+      "path": "007-text-64KiB-control/result.json"
+    },
+    {
+      "label": "007-text-64KiB-aa-b",
+      "status": "success",
+      "path": "007-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "007-small-object-control",
+      "status": "success",
+      "path": "007-small-object-control/result.json"
+    },
+    {
+      "label": "007-small-object-aa-b",
+      "status": "success",
+      "path": "007-small-object-aa-b/result.json"
+    },
+    {
+      "label": "007-primitive-control",
+      "status": "success",
+      "path": "007-primitive-control/result.json"
+    },
+    {
+      "label": "007-primitive-aa-b",
+      "status": "success",
+      "path": "007-primitive-aa-b/result.json"
+    },
+    {
+      "label": "008-small-object-aa-b",
+      "status": "success",
+      "path": "008-small-object-aa-b/result.json"
+    },
+    {
+      "label": "008-small-object-control",
+      "status": "success",
+      "path": "008-small-object-control/result.json"
+    },
+    {
+      "label": "008-primitive-aa-b",
+      "status": "success",
+      "path": "008-primitive-aa-b/result.json"
+    },
+    {
+      "label": "008-primitive-control",
+      "status": "success",
+      "path": "008-primitive-control/result.json"
+    },
+    {
+      "label": "008-text-64KiB-aa-b",
+      "status": "success",
+      "path": "008-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "008-text-64KiB-control",
+      "status": "success",
+      "path": "008-text-64KiB-control/result.json"
+    },
+    {
+      "label": "009-text-64KiB-control",
+      "status": "success",
+      "path": "009-text-64KiB-control/result.json"
+    },
+    {
+      "label": "009-text-64KiB-aa-b",
+      "status": "success",
+      "path": "009-text-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "009-primitive-control",
+      "status": "success",
+      "path": "009-primitive-control/result.json"
+    },
+    {
+      "label": "009-primitive-aa-b",
+      "status": "success",
+      "path": "009-primitive-aa-b/result.json"
+    },
+    {
+      "label": "009-small-object-control",
+      "status": "success",
+      "path": "009-small-object-control/result.json"
+    },
+    {
+      "label": "009-small-object-aa-b",
+      "status": "success",
+      "path": "009-small-object-aa-b/result.json"
+    }
+  ]
+}

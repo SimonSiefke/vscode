@@ -1,0 +1,15 @@
+{
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "cpu": "",
+  "logicalCpus": 8,
+  "loadAverage": [
+    2.46240234375,
+    2.427734375,
+    3.6826171875
+  ],
+  "perf": "perf version 7.0.14",
+  "limits": {
+    "memory": "15 GiB physical; shared host",
+    "isolation": "No CPU pinning or exclusive host reservation; paired A/A controls retained"
+  }
+}

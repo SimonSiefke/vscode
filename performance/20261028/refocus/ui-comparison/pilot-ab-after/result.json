@@ -1,0 +1,17 @@
+{
+  "label": "pilot-ab-after",
+  "variant": "after",
+  "exitCode": 0,
+  "totalElapsedMs": 29307.713276000868,
+  "counts": {
+    "activity-bar-toggle": 3,
+    "editor-open": 3
+  },
+  "failures": [],
+  "activationErrors": [],
+  "expectedCounts": {
+    "activity-bar-toggle": 3,
+    "editor-open": 3
+  },
+  "valid": true
+}

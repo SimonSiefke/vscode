@@ -1,0 +1,9 @@
+{"file":"packages/e2e/src/activity-bar-toggle.ts","stage":"setup","elapsedMs":11.815797999999631,"status":"passed"}
+{"file":"packages/e2e/src/activity-bar-toggle.ts","stage":"run","elapsedMs":984.3472550000006,"status":"passed"}
+{"file":"packages/e2e/src/activity-bar-toggle.ts","stage":"run","elapsedMs":745.3627880000022,"status":"passed"}
+{"file":"packages/e2e/src/activity-bar-toggle.ts","stage":"run","elapsedMs":643.0384159999994,"status":"passed"}
+{"file":"packages/e2e/src/editor-open.ts","stage":"setup","elapsedMs":374.0852089999971,"status":"passed"}
+{"file":"packages/e2e/src/editor-open.ts","stage":"run","elapsedMs":1089.714847000003,"status":"passed"}
+{"file":"packages/e2e/src/editor-open.ts","stage":"run","elapsedMs":1049.065963000001,"status":"passed"}
+{"file":"packages/e2e/src/editor-open.ts","stage":"run","elapsedMs":847.3464349999995,"status":"passed"}
+{"file":"packages/e2e/src/editor-open.ts","stage":"teardown","elapsedMs":7.143456999998307,"status":"passed"}

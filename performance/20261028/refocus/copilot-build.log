@@ -1,0 +1,50 @@
+
+  node_modules/@vscode/copilot-typescript-server-plugin/dist/main.js   269.0kb
+  ...odules/@vscode/copilot-typescript-server-plugin/dist/main.js.map  158.0kb
+
+⚡ Done in 230ms
+
+  .vscode/extensions/test-extension/dist/simulation-extension.js      372.7kb
+  .vscode/extensions/test-extension/dist/simulation-extension.js.map  240.7kb
+
+⚡ Done in 329ms
+
+  dist/web.js      1.9mb ⚠️
+  dist/web.js.map  1.0mb
+
+⚡ Done in 632ms
+
+  dist/suggestionsPanelWebview.js      204.0kb
+  dist/suggestionsPanelWebview.js.map  109.7kb
+
+⚡ Done in 921ms
+
+  dist/simulationWorkbench.js      2.9mb ⚠️
+  dist/simulationWorkbench.js.map  1.6mb
+
+⚡ Done in 3087ms
+
+  dist/sanity-test-extension.js       32.4mb ⚠️
+  dist/test-extension.js              32.3mb ⚠️
+  dist/extension.js                   30.6mb ⚠️
+  dist/worker2.js                    271.3kb
+  dist/diffWorker.js                 263.5kb
+  dist/tikTokenizerWorker.js          77.5kb
+  dist/copilotDebugCommand.js         48.0kb
+  dist/copilotCLITodoWorker.js         3.4kb
+  dist/sanity-test-extension.js.map   14.7mb
+  dist/test-extension.js.map          14.7mb
+  dist/extension.js.map               14.3mb
+  dist/worker2.js.map                150.3kb
+  dist/diffWorker.js.map             142.7kb
+  dist/tikTokenizerWorker.js.map      50.5kb
+  dist/copilotDebugCommand.js.map     33.6kb
+  dist/copilotCLITodoWorker.js.map     2.0kb
+
+⚡ Done in 5304ms
+
+  dist/simulationMain.js      29.9mb ⚠️
+  dist/simulationMain.js.map  15.1mb
+
+⚡ Done in 5441ms
+Creating symlinks for Claude session storage and instructions...

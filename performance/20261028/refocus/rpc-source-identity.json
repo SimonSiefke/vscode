@@ -1,0 +1,9 @@
+{
+  "sourceHead": "51918aaf5d0d54b7b00f3777e26e5eac98b200b7",
+  "node": "v24.22.1",
+  "modules": {
+    "rpcProtocol.js": "79e17a333f825f1a73d0e5e086f06182eb0b0902d6bc7b054ddafaf4074bfb4e",
+    "structuredCloneRPCProtocol.js": "e5f0381658a454e638a5b49e60f76f383f7524507d1c33a99222641929e5f89a",
+    "rpcMessagePort.js": "8dc6a6f82eb29f31e4a7c91a69f88d979f66244cf9989abfc05ecfe49e821eb1"
+  }
+}

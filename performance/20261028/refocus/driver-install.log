@@ -1,0 +1,6 @@
+lerna notice cli v8.2.4
+lerna info ci enabled
+lerna info Bootstrapping 46 packages
+lerna info Installing external dependencies
+lerna info Symlinking packages and binaries
+lerna success Bootstrapped 46 packages

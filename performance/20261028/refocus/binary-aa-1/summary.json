@@ -1,0 +1,87 @@
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/binary-aa-1",
+    "variants": "control,aa-b",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "binary-64,binary-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 10,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "binary-64": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 152976.88006591797,
+          "aa-b": 152470.39544677734
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.37359809634899266,
+            "intervalPercent": [
+              -0.46281070865715757,
+              -0.00014069624348911347
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28200.839416503906,
+          "aa-b": 28218.65185546875
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -0.13974835111172368,
+            "intervalPercent": [
+              -0.8789714455728403,
+              1.113002393303275
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    },
+    "binary-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 270965.8225097656,
+          "aa-b": 275019.8770751953
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 1.3384245185720456,
+            "intervalPercent": [
+              -1.6837061516291718,
+              3.7303737753488164
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 45435.26623535156,
+          "aa-b": 38892.924377441406
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": -7.751767628587746,
+            "intervalPercent": [
+              -18.287443967867222,
+              44.63386750798464
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

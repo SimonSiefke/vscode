@@ -1,0 +1,661 @@
+{
+  "driverHead": "a76c1e02df184d81aa79da2e83d6f51bac52bfbb",
+  "driverPatchSHA256": "b3201c90c1c606baba92c7bb4a680de970f9503c223c09adb5b1c626834e2908",
+  "variants": {
+    "before": "416e5d6b0db90081fddd1d62c9a905cdeb9ebcff",
+    "after": "51918aaf5d0d54b7b00f3777e26e5eac98b200b7"
+  },
+  "scenarios": [
+    "activity-bar-toggle",
+    "editor-open"
+  ],
+  "samples": [
+    {
+      "label": "pilot-aa-0-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 30057.711846999155,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "pilot-aa-0-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 27929.349096000806,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "pilot-aa-1-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 28056.78963399987,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "pilot-aa-1-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 27622.638962002384,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "pilot-ab-before",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 27701.75787700282,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "pilot-ab-after",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 29307.713276000868,
+      "counts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 3,
+        "editor-open": 3
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-0-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 75711.46105599837,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-0-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 78800.95370100025,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-1-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 72451.04328799789,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-1-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 73057.17682300019,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-2-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 71490.41871900044,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-2-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 71631.74638399869,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-3-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 71488.55361700043,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-3-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 69555.02870399869,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-4-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 69805.02020899803,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-4-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 75913.75639000034,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-5-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 75068.47139399906,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-5-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 74002.67890800023,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-6-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 75974.38359299849,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-6-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 74811.32519200037,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-7-b",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 75079.51195699934,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "aa-7-a",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 74121.08275799983,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-0-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 74487.3939800018,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-0-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 72543.4259169997,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-1-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 71234.99623099997,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-1-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 74767.54203000019,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-2-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 71548.97065400291,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-2-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 69449.4800709981,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-3-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 71019.96775700172,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-3-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 77067.24806000057,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-4-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 73325.87111600151,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-4-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 71097.07382399938,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-5-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 77164.91060699991,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-5-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 77319.5229899975,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-6-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 77074.28633000018,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-6-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 73508.83657300074,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-7-A",
+      "variant": "before",
+      "exitCode": 0,
+      "totalElapsedMs": 72493.27169200114,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    },
+    {
+      "label": "ab-7-B",
+      "variant": "after",
+      "exitCode": 0,
+      "totalElapsedMs": 70505.02383600178,
+      "counts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "failures": [],
+      "activationErrors": [],
+      "expectedCounts": {
+        "activity-bar-toggle": 37,
+        "editor-open": 37
+      },
+      "valid": true
+    }
+  ],
+  "statisticalUnit": "independent application launch; operations within a launch are correlated"
+}

@@ -1,0 +1,77 @@
+Start pilot-aa-0-a before
+pilot-aa-0-a {'label': 'pilot-aa-0-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 30057.711846999155, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start pilot-aa-0-b before
+pilot-aa-0-b {'label': 'pilot-aa-0-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 27929.349096000806, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start pilot-aa-1-a before
+pilot-aa-1-a {'label': 'pilot-aa-1-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 28056.78963399987, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start pilot-aa-1-b before
+pilot-aa-1-b {'label': 'pilot-aa-1-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 27622.638962002384, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start pilot-ab-before before
+pilot-ab-before {'label': 'pilot-ab-before', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 27701.75787700282, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start pilot-ab-after after
+pilot-ab-after {'label': 'pilot-ab-after', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 29307.713276000868, 'counts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 3, 'editor-open': 3}, 'valid': True}
+Start aa-0-a before
+aa-0-a {'label': 'aa-0-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 75711.46105599837, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-0-b before
+aa-0-b {'label': 'aa-0-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 78800.95370100025, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-1-b before
+aa-1-b {'label': 'aa-1-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 72451.04328799789, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-1-a before
+aa-1-a {'label': 'aa-1-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 73057.17682300019, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-2-a before
+aa-2-a {'label': 'aa-2-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 71490.41871900044, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-2-b before
+aa-2-b {'label': 'aa-2-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 71631.74638399869, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-3-b before
+aa-3-b {'label': 'aa-3-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 71488.55361700043, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-3-a before
+aa-3-a {'label': 'aa-3-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 69555.02870399869, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-4-a before
+aa-4-a {'label': 'aa-4-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 69805.02020899803, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-4-b before
+aa-4-b {'label': 'aa-4-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 75913.75639000034, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-5-b before
+aa-5-b {'label': 'aa-5-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 75068.47139399906, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-5-a before
+aa-5-a {'label': 'aa-5-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 74002.67890800023, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-6-a before
+aa-6-a {'label': 'aa-6-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 75974.38359299849, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-6-b before
+aa-6-b {'label': 'aa-6-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 74811.32519200037, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-7-b before
+aa-7-b {'label': 'aa-7-b', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 75079.51195699934, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start aa-7-a before
+aa-7-a {'label': 'aa-7-a', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 74121.08275799983, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-0-A before
+ab-0-A {'label': 'ab-0-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 74487.3939800018, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-0-B after
+ab-0-B {'label': 'ab-0-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 72543.4259169997, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-1-B after
+ab-1-B {'label': 'ab-1-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 71234.99623099997, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-1-A before
+ab-1-A {'label': 'ab-1-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 74767.54203000019, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-2-B after
+ab-2-B {'label': 'ab-2-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 71548.97065400291, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-2-A before
+ab-2-A {'label': 'ab-2-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 69449.4800709981, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-3-A before
+ab-3-A {'label': 'ab-3-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 71019.96775700172, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-3-B after
+ab-3-B {'label': 'ab-3-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 77067.24806000057, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-4-A before
+ab-4-A {'label': 'ab-4-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 73325.87111600151, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-4-B after
+ab-4-B {'label': 'ab-4-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 71097.07382399938, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-5-B after
+ab-5-B {'label': 'ab-5-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 77164.91060699991, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-5-A before
+ab-5-A {'label': 'ab-5-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 77319.5229899975, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-6-B after
+ab-6-B {'label': 'ab-6-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 77074.28633000018, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-6-A before
+ab-6-A {'label': 'ab-6-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 73508.83657300074, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-7-A before
+ab-7-A {'label': 'ab-7-A', 'variant': 'before', 'exitCode': 0, 'totalElapsedMs': 72493.27169200114, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Start ab-7-B after
+ab-7-B {'label': 'ab-7-B', 'variant': 'after', 'exitCode': 0, 'totalElapsedMs': 70505.02383600178, 'counts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'failures': [], 'activationErrors': [], 'expectedCounts': {'activity-bar-toggle': 37, 'editor-open': 37}, 'valid': True}
+Completed UI controls and comparisons

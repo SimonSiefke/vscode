@@ -1,0 +1,23 @@
+[build-fast] incremental state is missing
+[build-fast] client=full, extensions=skip, copilot=skip
+[10:51:23] Using gulpfile ~/.cache/vscode-pr321-refocus-20261028/baseline/gulpfile.mjs
+[10:51:23] Starting 'copy-codicons'...
+[10:51:23] Starting 'compile-api-proposal-names'...
+[10:51:23] Starting 'compile-extension-point-names'...
+[10:51:23] Starting [32mcompilation[39m[34m api-proposal-names[39m...
+[10:51:23] Starting [32mcompilation[39m[34m extension-point-names[39m...
+[10:51:23] Finished 'copy-codicons' after 39 ms
+[10:51:24] Finished [32mcompilation[39m[34m api-proposal-names[39m with 0 errors after [35m722 ms[39m
+[10:51:24] Finished 'compile-api-proposal-names' after 745 ms
+[10:51:28] Finished [32mcompilation[39m[34m extension-point-names[39m with 0 errors after [35m4734 ms[39m
+[10:51:28] Finished 'compile-extension-point-names' after 4.77 s
+[build-fast] prerequisites finished in 8665ms
+[clean] out
+[transpile] src → out
+[transpile] Found 10818 files
+[resources] Copying all non-TS files to out...
+[resources] Copied 2359 files
+[transpile] Done in 12301ms
+
+✓ Total: 12327ms
+[build-fast] client finished in 13648ms

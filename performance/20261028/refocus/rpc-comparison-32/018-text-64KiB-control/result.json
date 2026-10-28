@@ -1,0 +1,59 @@
+{
+  "options": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "module": "vs/workbench/services/extensions/common/rpcProtocol.js",
+    "fixture": "text-64KiB",
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 32,
+    "handler": "sync",
+    "batching": true
+  },
+  "node": "v24.22.1",
+  "poolSize": 8192,
+  "worker": {
+    "ready": true,
+    "node": "v24.22.1",
+    "poolSize": 8192
+  },
+  "measuredLogicalCalls": 8192,
+  "packets": 24576,
+  "elapsedMs": 3047.42151,
+  "processCpuMicroseconds": {
+    "user": 5450818,
+    "system": 580322
+  },
+  "hardwareCounting": "Enabled after warmup and full GC in both isolates; disabled before final result and request-count validation; includes both worker threads",
+  "replicate": 18,
+  "variant": "control",
+  "compiledSHA256": "79e17a333f825f1a73d0e5e086f06182eb0b0902d6bc7b054ddafaf4074bfb4e",
+  "counters": {
+    "instructions:u": {
+      "count": 19090735714.0,
+      "raw": [
+        "19090735714",
+        "",
+        "instructions:u",
+        "6268843265",
+        "100.00",
+        "",
+        ""
+      ],
+      "perLogicalCall": 2330412.0744628906
+    },
+    "instructions:k": {
+      "count": 310828719.0,
+      "raw": [
+        "310828719",
+        "",
+        "instructions:k",
+        "6268886577",
+        "100.00",
+        "",
+        ""
+      ],
+      "perLogicalCall": 37942.95886230469
+    }
+  },
+  "portSHA256": "8dc6a6f82eb29f31e4a7c91a69f88d979f66244cf9989abfc05ecfe49e821eb1"
+}

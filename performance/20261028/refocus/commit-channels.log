@@ -1,0 +1,16 @@
+Found '/home/simon/.cache/vscode-ipc-opt-20261022/.nvmrc' with version <24.22.1>
+Now using node v24.22.1 (npm v11.19.1)
+
+> husky - npm run -s precommit
+> husky - node v24.22.1
+
+Reading 25 git index versions...
+Starting hygiene (provided file stream)...
+
+Hygiene checked 24 files in 4051ms.
+[perf/ipc-fast-20261022 b7d6c66e5458] refactor(ipc): add dedicated structured-clone channel adapters
+ 25 files changed, 492 insertions(+), 254 deletions(-)
+ create mode 100644 src/vs/base/parts/ipc/common/ipc.structuredClone.electron.ts
+ create mode 100644 src/vs/base/parts/ipc/common/ipc.structuredClone.mp.ts
+ create mode 100644 src/vs/base/parts/ipc/common/ipc.structuredClone.ts
+ create mode 100644 src/vs/base/parts/ipc/node/ipc.structuredClone.mp.ts

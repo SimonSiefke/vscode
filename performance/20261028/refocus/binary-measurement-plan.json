@@ -1,0 +1,20 @@
+{
+  "purpose": "Independent binary regression checks; no main campaign sample or fixture removed",
+  "fixtures": [
+    "binary-64",
+    "binary-64KiB"
+  ],
+  "iterations": 8192,
+  "warmup": 4096,
+  "aaPairs": 10,
+  "comparisonPairs": 20,
+  "schedules": [
+    1,
+    32
+  ],
+  "variants": [
+    "control",
+    "native-unbatched",
+    "native-batched"
+  ]
+}

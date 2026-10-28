@@ -1,0 +1,219 @@
+{
+  "perfVersion": "perf version 7.0.14",
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/binary-aa-1",
+    "variants": "control,aa-b",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "binary-64,binary-64KiB",
+    "replicates": 10,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "counterScope": "Retired instructions in the target Node process and inherited worker/JIT/GC threads; userspace and kernel counters reported separately; disabled during startup, warmup and full GC",
+  "samples": [
+    {
+      "label": "000-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "000-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "000-binary-64KiB-control",
+      "status": "success",
+      "path": "000-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "000-binary-64-aa-b",
+      "status": "success",
+      "path": "000-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "000-binary-64-control",
+      "status": "success",
+      "path": "000-binary-64-control/result.json"
+    },
+    {
+      "label": "001-binary-64-control",
+      "status": "success",
+      "path": "001-binary-64-control/result.json"
+    },
+    {
+      "label": "001-binary-64-aa-b",
+      "status": "success",
+      "path": "001-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "001-binary-64KiB-control",
+      "status": "success",
+      "path": "001-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "001-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "001-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "002-binary-64-aa-b",
+      "status": "success",
+      "path": "002-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "002-binary-64-control",
+      "status": "success",
+      "path": "002-binary-64-control/result.json"
+    },
+    {
+      "label": "002-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "002-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "002-binary-64KiB-control",
+      "status": "success",
+      "path": "002-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "003-binary-64KiB-control",
+      "status": "success",
+      "path": "003-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "003-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "003-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "003-binary-64-control",
+      "status": "success",
+      "path": "003-binary-64-control/result.json"
+    },
+    {
+      "label": "003-binary-64-aa-b",
+      "status": "success",
+      "path": "003-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "004-binary-64-aa-b",
+      "status": "success",
+      "path": "004-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "004-binary-64-control",
+      "status": "success",
+      "path": "004-binary-64-control/result.json"
+    },
+    {
+      "label": "004-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "004-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "004-binary-64KiB-control",
+      "status": "success",
+      "path": "004-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "005-binary-64-control",
+      "status": "success",
+      "path": "005-binary-64-control/result.json"
+    },
+    {
+      "label": "005-binary-64-aa-b",
+      "status": "success",
+      "path": "005-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "005-binary-64KiB-control",
+      "status": "success",
+      "path": "005-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "005-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "005-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "006-binary-64-aa-b",
+      "status": "success",
+      "path": "006-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "006-binary-64-control",
+      "status": "success",
+      "path": "006-binary-64-control/result.json"
+    },
+    {
+      "label": "006-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "006-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "006-binary-64KiB-control",
+      "status": "success",
+      "path": "006-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "007-binary-64KiB-control",
+      "status": "success",
+      "path": "007-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "007-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "007-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "007-binary-64-control",
+      "status": "success",
+      "path": "007-binary-64-control/result.json"
+    },
+    {
+      "label": "007-binary-64-aa-b",
+      "status": "success",
+      "path": "007-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "008-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "008-binary-64KiB-aa-b/result.json"
+    },
+    {
+      "label": "008-binary-64KiB-control",
+      "status": "success",
+      "path": "008-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "008-binary-64-aa-b",
+      "status": "success",
+      "path": "008-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "008-binary-64-control",
+      "status": "success",
+      "path": "008-binary-64-control/result.json"
+    },
+    {
+      "label": "009-binary-64-control",
+      "status": "success",
+      "path": "009-binary-64-control/result.json"
+    },
+    {
+      "label": "009-binary-64-aa-b",
+      "status": "success",
+      "path": "009-binary-64-aa-b/result.json"
+    },
+    {
+      "label": "009-binary-64KiB-control",
+      "status": "success",
+      "path": "009-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "009-binary-64KiB-aa-b",
+      "status": "success",
+      "path": "009-binary-64KiB-aa-b/result.json"
+    }
+  ]
+}

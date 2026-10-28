@@ -1,0 +1,41 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/simon/.cache/vscode-ipc-opt-20261022/.build/crashes'
+[384680:1028/121632.087774:WARNING:sandbox/policy/linux/sandbox_linux.cc:405] InitializeSandbox() called with multiple threads in process gpu-process.
+[384680:1028/121632.091668:WARNING:ui/gfx/linux/gbm_support_x11.cc:48] dri3 extension not supported.
+(node:384702) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:384702) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:384702) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  AbstractPolicyService[0m
+  [32m  ✔[0m[90m serialize() omits the non-cloneable value callback so policiesData can be sent over IPC[0m
+  [32m  ✔[0m[90m channel client omits non-cloneable value callbacks[0m
+  [32m  ✔[0m[90m tracks value and source changes together[0m
+
+[0m  NativeManagedSettingsService[0m
+  [32m  ✔[0m[90m watches managed-settings keys from policy definitions and exposes raw managed settings[0m
+  [32m  ✔[0m[90m watches transport controls without a managed-settings policy definition[0m
+  [32m  ✔[0m[90m applies native telemetry file path updates and removals without watcher metadata[0m
+  [32m  ✔[0m[90m observes strict marketplace policy without a configuration registration and preserves channel precedence[0m
+  [32m  ✔[0m[90m native capture.prompts selects telemetry without a corresponding Local capture policy[0m
+  [32m  ✔[0m[90m native capture.responses selects telemetry without a corresponding Local capture policy[0m
+  [32m  ✔[0m[90m native capture.toolArguments selects telemetry without a corresponding Local capture policy[0m
+  [32m  ✔[0m[90m native capture.toolOutput selects telemetry without a corresponding Local capture policy[0m
+  [32m  ✔[0m[90m native capture.policyDetail selects telemetry without a corresponding Local capture policy[0m
+  [32m  ✔[0m[90m without observed declared telemetry keys, native delivery leaves the server block active[0m
+  [32m  ✔[0m[90m watches all current runtime permission controls before configuration policies register[0m
+  [32m  ✔[0m[90m clears stale watcher values when managed-settings definitions are removed[0m
+  [32m  ✔[0m[90m keeps raw managed settings while definitions are unchanged[0m
+  [32m  ✔[0m[90m retries watcher creation after initialization fails[0m
+  [32m  ✔[0m[90m removes raw managed settings whose definitions are no longer watched[0m
+  [32m  ✔[0m[90m channel client keeps newer event state when initial snapshot resolves later[0m
+  [32m  ✔[0m[90m channel client updatePolicyDefinitions updates cache without firing change event[0m
+  [32m  ✔[0m[90m channel client omits non-cloneable value callbacks[0m
+  [32m  ✔[0m[90m channel client retries a failed initial snapshot[0m
+
+
+[92m [0m[32m 23 passing[0m[90m (25ms)[0m
+

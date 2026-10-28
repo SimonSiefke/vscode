@@ -1,0 +1,17 @@
+{
+  "label": "ab-4-A",
+  "variant": "before",
+  "exitCode": 0,
+  "totalElapsedMs": 73325.87111600151,
+  "counts": {
+    "activity-bar-toggle": 37,
+    "editor-open": 37
+  },
+  "failures": [],
+  "activationErrors": [],
+  "expectedCounts": {
+    "activity-bar-toggle": 37,
+    "editor-open": 37
+  },
+  "valid": true
+}

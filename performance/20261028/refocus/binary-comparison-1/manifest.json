@@ -1,0 +1,619 @@
+{
+  "perfVersion": "perf version 7.0.14",
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/binary-comparison-1",
+    "variants": "control,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "binary-64,binary-64KiB",
+    "replicates": 20,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "counterScope": "Retired instructions in the target Node process and inherited worker/JIT/GC threads; userspace and kernel counters reported separately; disabled during startup, warmup and full GC",
+  "samples": [
+    {
+      "label": "000-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "000-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "000-binary-64KiB-control",
+      "status": "success",
+      "path": "000-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "000-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "000-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "000-binary-64-native-batched",
+      "status": "success",
+      "path": "000-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "000-binary-64-control",
+      "status": "success",
+      "path": "000-binary-64-control/result.json"
+    },
+    {
+      "label": "000-binary-64-native-unbatched",
+      "status": "success",
+      "path": "000-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "001-binary-64-native-batched",
+      "status": "success",
+      "path": "001-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "001-binary-64-native-unbatched",
+      "status": "success",
+      "path": "001-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "001-binary-64-control",
+      "status": "success",
+      "path": "001-binary-64-control/result.json"
+    },
+    {
+      "label": "001-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "001-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "001-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "001-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "001-binary-64KiB-control",
+      "status": "success",
+      "path": "001-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "002-binary-64-native-unbatched",
+      "status": "success",
+      "path": "002-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "002-binary-64-control",
+      "status": "success",
+      "path": "002-binary-64-control/result.json"
+    },
+    {
+      "label": "002-binary-64-native-batched",
+      "status": "success",
+      "path": "002-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "002-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "002-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "002-binary-64KiB-control",
+      "status": "success",
+      "path": "002-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "002-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "002-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "003-binary-64KiB-control",
+      "status": "success",
+      "path": "003-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "003-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "003-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "003-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "003-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "003-binary-64-control",
+      "status": "success",
+      "path": "003-binary-64-control/result.json"
+    },
+    {
+      "label": "003-binary-64-native-batched",
+      "status": "success",
+      "path": "003-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "003-binary-64-native-unbatched",
+      "status": "success",
+      "path": "003-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "004-binary-64-control",
+      "status": "success",
+      "path": "004-binary-64-control/result.json"
+    },
+    {
+      "label": "004-binary-64-native-unbatched",
+      "status": "success",
+      "path": "004-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "004-binary-64-native-batched",
+      "status": "success",
+      "path": "004-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "004-binary-64KiB-control",
+      "status": "success",
+      "path": "004-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "004-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "004-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "004-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "004-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "005-binary-64-native-unbatched",
+      "status": "success",
+      "path": "005-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "005-binary-64-native-batched",
+      "status": "success",
+      "path": "005-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "005-binary-64-control",
+      "status": "success",
+      "path": "005-binary-64-control/result.json"
+    },
+    {
+      "label": "005-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "005-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "005-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "005-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "005-binary-64KiB-control",
+      "status": "success",
+      "path": "005-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "006-binary-64-native-batched",
+      "status": "success",
+      "path": "006-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "006-binary-64-control",
+      "status": "success",
+      "path": "006-binary-64-control/result.json"
+    },
+    {
+      "label": "006-binary-64-native-unbatched",
+      "status": "success",
+      "path": "006-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "006-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "006-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "006-binary-64KiB-control",
+      "status": "success",
+      "path": "006-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "006-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "006-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "007-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "007-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "007-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "007-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "007-binary-64KiB-control",
+      "status": "success",
+      "path": "007-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "007-binary-64-native-batched",
+      "status": "success",
+      "path": "007-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "007-binary-64-native-unbatched",
+      "status": "success",
+      "path": "007-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "007-binary-64-control",
+      "status": "success",
+      "path": "007-binary-64-control/result.json"
+    },
+    {
+      "label": "008-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "008-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "008-binary-64KiB-control",
+      "status": "success",
+      "path": "008-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "008-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "008-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "008-binary-64-native-unbatched",
+      "status": "success",
+      "path": "008-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "008-binary-64-control",
+      "status": "success",
+      "path": "008-binary-64-control/result.json"
+    },
+    {
+      "label": "008-binary-64-native-batched",
+      "status": "success",
+      "path": "008-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "009-binary-64-control",
+      "status": "success",
+      "path": "009-binary-64-control/result.json"
+    },
+    {
+      "label": "009-binary-64-native-batched",
+      "status": "success",
+      "path": "009-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "009-binary-64-native-unbatched",
+      "status": "success",
+      "path": "009-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "009-binary-64KiB-control",
+      "status": "success",
+      "path": "009-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "009-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "009-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "009-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "009-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "010-binary-64-control",
+      "status": "success",
+      "path": "010-binary-64-control/result.json"
+    },
+    {
+      "label": "010-binary-64-native-unbatched",
+      "status": "success",
+      "path": "010-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "010-binary-64-native-batched",
+      "status": "success",
+      "path": "010-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "010-binary-64KiB-control",
+      "status": "success",
+      "path": "010-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "010-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "010-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "010-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "010-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "011-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "011-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "011-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "011-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "011-binary-64KiB-control",
+      "status": "success",
+      "path": "011-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "011-binary-64-native-unbatched",
+      "status": "success",
+      "path": "011-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "011-binary-64-native-batched",
+      "status": "success",
+      "path": "011-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "011-binary-64-control",
+      "status": "success",
+      "path": "011-binary-64-control/result.json"
+    },
+    {
+      "label": "012-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "012-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "012-binary-64KiB-control",
+      "status": "success",
+      "path": "012-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "012-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "012-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "012-binary-64-native-batched",
+      "status": "success",
+      "path": "012-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "012-binary-64-control",
+      "status": "success",
+      "path": "012-binary-64-control/result.json"
+    },
+    {
+      "label": "012-binary-64-native-unbatched",
+      "status": "success",
+      "path": "012-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "013-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "013-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "013-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "013-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "013-binary-64KiB-control",
+      "status": "success",
+      "path": "013-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "013-binary-64-native-batched",
+      "status": "success",
+      "path": "013-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "013-binary-64-native-unbatched",
+      "status": "success",
+      "path": "013-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "013-binary-64-control",
+      "status": "success",
+      "path": "013-binary-64-control/result.json"
+    },
+    {
+      "label": "014-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "014-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "014-binary-64KiB-control",
+      "status": "success",
+      "path": "014-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "014-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "014-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "014-binary-64-native-unbatched",
+      "status": "success",
+      "path": "014-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "014-binary-64-control",
+      "status": "success",
+      "path": "014-binary-64-control/result.json"
+    },
+    {
+      "label": "014-binary-64-native-batched",
+      "status": "success",
+      "path": "014-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "015-binary-64KiB-control",
+      "status": "success",
+      "path": "015-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "015-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "015-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "015-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "015-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "015-binary-64-control",
+      "status": "success",
+      "path": "015-binary-64-control/result.json"
+    },
+    {
+      "label": "015-binary-64-native-batched",
+      "status": "success",
+      "path": "015-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "015-binary-64-native-unbatched",
+      "status": "success",
+      "path": "015-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "016-binary-64KiB-control",
+      "status": "success",
+      "path": "016-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "016-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "016-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "016-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "016-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "016-binary-64-control",
+      "status": "success",
+      "path": "016-binary-64-control/result.json"
+    },
+    {
+      "label": "016-binary-64-native-unbatched",
+      "status": "success",
+      "path": "016-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "016-binary-64-native-batched",
+      "status": "success",
+      "path": "016-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "017-binary-64-native-unbatched",
+      "status": "success",
+      "path": "017-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "017-binary-64-native-batched",
+      "status": "success",
+      "path": "017-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "017-binary-64-control",
+      "status": "success",
+      "path": "017-binary-64-control/result.json"
+    },
+    {
+      "label": "017-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "017-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "017-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "017-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "017-binary-64KiB-control",
+      "status": "success",
+      "path": "017-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "018-binary-64-native-batched",
+      "status": "success",
+      "path": "018-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "018-binary-64-control",
+      "status": "success",
+      "path": "018-binary-64-control/result.json"
+    },
+    {
+      "label": "018-binary-64-native-unbatched",
+      "status": "success",
+      "path": "018-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "018-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "018-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "018-binary-64KiB-control",
+      "status": "success",
+      "path": "018-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "018-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "018-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "019-binary-64KiB-native-batched",
+      "status": "success",
+      "path": "019-binary-64KiB-native-batched/result.json"
+    },
+    {
+      "label": "019-binary-64KiB-native-unbatched",
+      "status": "success",
+      "path": "019-binary-64KiB-native-unbatched/result.json"
+    },
+    {
+      "label": "019-binary-64KiB-control",
+      "status": "success",
+      "path": "019-binary-64KiB-control/result.json"
+    },
+    {
+      "label": "019-binary-64-native-batched",
+      "status": "success",
+      "path": "019-binary-64-native-batched/result.json"
+    },
+    {
+      "label": "019-binary-64-native-unbatched",
+      "status": "success",
+      "path": "019-binary-64-native-unbatched/result.json"
+    },
+    {
+      "label": "019-binary-64-control",
+      "status": "success",
+      "path": "019-binary-64-control/result.json"
+    }
+  ]
+}

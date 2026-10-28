@@ -1,0 +1,34 @@
+{
+  "sourceHead": "51918aaf5d0d54b7b00f3777e26e5eac98b200b7",
+  "targetProcesses": 800,
+  "measuredRPCs": 6553600,
+  "uiLaunches": 38,
+  "fullUiActions": 2368,
+  "pilotActions": 36,
+  "validation": {
+    "final-focused-electron-tests": {
+      "passing": 292,
+      "pending": 0
+    },
+    "final-api-electron-tests": {
+      "passing": 1077,
+      "pending": 3
+    },
+    "final-policy-tests": {
+      "passing": 23,
+      "pending": 0
+    }
+  },
+  "sampledJavaScriptBytesPerCall": {
+    "primitive": {
+      "control": 5913.3240000000005,
+      "native-unbatched": 3433.424,
+      "native-batched": 3431.504
+    },
+    "small-object": {
+      "control": 6455.616,
+      "native-unbatched": 4058.416,
+      "native-batched": 4061.7439999999997
+    }
+  }
+}

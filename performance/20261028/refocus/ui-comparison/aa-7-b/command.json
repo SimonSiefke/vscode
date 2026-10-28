@@ -1,0 +1,23 @@
+{
+  "command": [
+    "xvfb-run",
+    "-a",
+    "node",
+    "packages/cli/bin/test.js",
+    "--cwd",
+    "packages/e2e",
+    "--vscode-path",
+    "/home/simon/.cache/vscode-pr321-refocus-20261028/baseline/scripts/code.sh",
+    "--runs",
+    "37",
+    "--timeout-between",
+    "0",
+    "--run-mode=import"
+  ],
+  "variant": "before",
+  "runs": 37,
+  "selectedScenarios": [
+    "activity-bar-toggle",
+    "editor-open"
+  ]
+}

@@ -1,0 +1,12 @@
+Found '/home/simon/.cache/vscode-ipc-opt-20261022/.nvmrc' with version <24.22.1>
+Now using node v24.22.1 (npm v11.19.1)
+
+> husky - npm run -s precommit
+> husky - node v24.22.1
+
+Reading 2 git index versions...
+Starting hygiene (provided file stream)...
+
+Hygiene checked 2 files in 2066ms.
+[perf/ipc-fast-20261022 51918aaf5d0d] fix(files): keep replacement provider registrations alive
+ 2 files changed, 16 insertions(+), 2 deletions(-)

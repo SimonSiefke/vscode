@@ -1,0 +1,363 @@
+Start 000-binary-64KiB-native-batched
+000-binary-64KiB-native-batched {'instructions:u': 272713.84, 'instructions:k': 45897.81}
+Start 000-binary-64KiB-control
+000-binary-64KiB-control {'instructions:u': 278233.03, 'instructions:k': 37445.44}
+Start 000-binary-64KiB-native-unbatched
+000-binary-64KiB-native-unbatched {'instructions:u': 267025.74, 'instructions:k': 51375.26}
+Start 000-binary-64-native-batched
+000-binary-64-native-batched {'instructions:u': 134814.66, 'instructions:k': 27317.71}
+Start 000-binary-64-control
+000-binary-64-control {'instructions:u': 152942.07, 'instructions:k': 28258.63}
+Start 000-binary-64-native-unbatched
+000-binary-64-native-unbatched {'instructions:u': 134902.0, 'instructions:k': 28160.4}
+Start 001-binary-64-native-batched
+001-binary-64-native-batched {'instructions:u': 135263.97, 'instructions:k': 27500.05}
+Start 001-binary-64-native-unbatched
+001-binary-64-native-unbatched {'instructions:u': 135347.6, 'instructions:k': 27369.25}
+Start 001-binary-64-control
+001-binary-64-control {'instructions:u': 152295.37, 'instructions:k': 28583.75}
+Start 001-binary-64KiB-native-batched
+001-binary-64KiB-native-batched {'instructions:u': 258190.49, 'instructions:k': 41130.88}
+Start 001-binary-64KiB-native-unbatched
+001-binary-64KiB-native-unbatched {'instructions:u': 261584.38, 'instructions:k': 40300.85}
+Start 001-binary-64KiB-control
+001-binary-64KiB-control {'instructions:u': 275834.65, 'instructions:k': 53728.09}
+Start 002-binary-64-native-unbatched
+002-binary-64-native-unbatched {'instructions:u': 134790.12, 'instructions:k': 28698.18}
+Start 002-binary-64-control
+002-binary-64-control {'instructions:u': 152837.46, 'instructions:k': 30506.78}
+Start 002-binary-64-native-batched
+002-binary-64-native-batched {'instructions:u': 135309.4, 'instructions:k': 27952.99}
+Start 002-binary-64KiB-native-unbatched
+002-binary-64KiB-native-unbatched {'instructions:u': 274431.08, 'instructions:k': 39561.59}
+Start 002-binary-64KiB-control
+002-binary-64KiB-control {'instructions:u': 275865.08, 'instructions:k': 46638.25}
+Start 002-binary-64KiB-native-batched
+002-binary-64KiB-native-batched {'instructions:u': 257255.73, 'instructions:k': 34635.06}
+Start 003-binary-64KiB-control
+003-binary-64KiB-control {'instructions:u': 276779.83, 'instructions:k': 35868.09}
+Start 003-binary-64KiB-native-batched
+003-binary-64KiB-native-batched {'instructions:u': 262539.49, 'instructions:k': 38379.98}
+Start 003-binary-64KiB-native-unbatched
+003-binary-64KiB-native-unbatched {'instructions:u': 271247.7, 'instructions:k': 34711.34}
+Start 003-binary-64-control
+003-binary-64-control {'instructions:u': 152461.91, 'instructions:k': 28645.07}
+Start 003-binary-64-native-batched
+003-binary-64-native-batched {'instructions:u': 135258.67, 'instructions:k': 28040.81}
+Start 003-binary-64-native-unbatched
+003-binary-64-native-unbatched {'instructions:u': 135255.83, 'instructions:k': 27574.28}
+Start 004-binary-64-control
+004-binary-64-control {'instructions:u': 152513.68, 'instructions:k': 28300.2}
+Start 004-binary-64-native-unbatched
+004-binary-64-native-unbatched {'instructions:u': 135309.84, 'instructions:k': 27553.05}
+Start 004-binary-64-native-batched
+004-binary-64-native-batched {'instructions:u': 135398.56, 'instructions:k': 28479.15}
+Start 004-binary-64KiB-control
+004-binary-64KiB-control {'instructions:u': 278715.36, 'instructions:k': 35466.4}
+Start 004-binary-64KiB-native-unbatched
+004-binary-64KiB-native-unbatched {'instructions:u': 258595.7, 'instructions:k': 40835.87}
+Start 004-binary-64KiB-native-batched
+004-binary-64KiB-native-batched {'instructions:u': 267612.53, 'instructions:k': 34014.0}
+Start 005-binary-64-native-unbatched
+005-binary-64-native-unbatched {'instructions:u': 135324.19, 'instructions:k': 27338.5}
+Start 005-binary-64-native-batched
+005-binary-64-native-batched {'instructions:u': 135255.76, 'instructions:k': 26974.98}
+Start 005-binary-64-control
+005-binary-64-control {'instructions:u': 153075.45, 'instructions:k': 28184.51}
+Start 005-binary-64KiB-native-unbatched
+005-binary-64KiB-native-unbatched {'instructions:u': 256528.39, 'instructions:k': 41308.37}
+Start 005-binary-64KiB-native-batched
+005-binary-64KiB-native-batched {'instructions:u': 266186.83, 'instructions:k': 38993.81}
+Start 005-binary-64KiB-control
+005-binary-64KiB-control {'instructions:u': 277837.28, 'instructions:k': 36056.36}
+Start 006-binary-64-native-batched
+006-binary-64-native-batched {'instructions:u': 135708.9, 'instructions:k': 27541.95}
+Start 006-binary-64-control
+006-binary-64-control {'instructions:u': 153520.43, 'instructions:k': 28171.37}
+Start 006-binary-64-native-unbatched
+006-binary-64-native-unbatched {'instructions:u': 134896.07, 'instructions:k': 28007.11}
+Start 006-binary-64KiB-native-batched
+006-binary-64KiB-native-batched {'instructions:u': 249764.62, 'instructions:k': 38950.37}
+Start 006-binary-64KiB-control
+006-binary-64KiB-control {'instructions:u': 273046.54, 'instructions:k': 45620.84}
+Start 006-binary-64KiB-native-unbatched
+006-binary-64KiB-native-unbatched {'instructions:u': 251827.95, 'instructions:k': 34253.33}
+Start 007-binary-64KiB-native-batched
+007-binary-64KiB-native-batched {'instructions:u': 257590.57, 'instructions:k': 34090.52}
+Start 007-binary-64KiB-native-unbatched
+007-binary-64KiB-native-unbatched {'instructions:u': 252413.37, 'instructions:k': 35068.79}
+Start 007-binary-64KiB-control
+007-binary-64KiB-control {'instructions:u': 277308.19, 'instructions:k': 46591.66}
+Start 007-binary-64-native-batched
+007-binary-64-native-batched {'instructions:u': 135374.56, 'instructions:k': 27468.53}
+Start 007-binary-64-native-unbatched
+007-binary-64-native-unbatched {'instructions:u': 135310.21, 'instructions:k': 27437.05}
+Start 007-binary-64-control
+007-binary-64-control {'instructions:u': 152486.45, 'instructions:k': 28224.56}
+Start 008-binary-64KiB-native-unbatched
+008-binary-64KiB-native-unbatched {'instructions:u': 263208.33, 'instructions:k': 39754.77}
+Start 008-binary-64KiB-control
+008-binary-64KiB-control {'instructions:u': 270474.03, 'instructions:k': 39002.28}
+Start 008-binary-64KiB-native-batched
+008-binary-64KiB-native-batched {'instructions:u': 257481.32, 'instructions:k': 35233.53}
+Start 008-binary-64-native-unbatched
+008-binary-64-native-unbatched {'instructions:u': 135336.23, 'instructions:k': 27499.58}
+Start 008-binary-64-control
+008-binary-64-control {'instructions:u': 152409.83, 'instructions:k': 28364.27}
+Start 008-binary-64-native-batched
+008-binary-64-native-batched {'instructions:u': 135354.97, 'instructions:k': 27499.09}
+Start 009-binary-64-control
+009-binary-64-control {'instructions:u': 152853.42, 'instructions:k': 28387.0}
+Start 009-binary-64-native-batched
+009-binary-64-native-batched {'instructions:u': 135349.1, 'instructions:k': 27517.35}
+Start 009-binary-64-native-unbatched
+009-binary-64-native-unbatched {'instructions:u': 135390.23, 'instructions:k': 27832.58}
+Start 009-binary-64KiB-control
+009-binary-64KiB-control {'instructions:u': 277200.1, 'instructions:k': 36563.45}
+Start 009-binary-64KiB-native-batched
+009-binary-64KiB-native-batched {'instructions:u': 252422.79, 'instructions:k': 39291.25}
+Start 009-binary-64KiB-native-unbatched
+009-binary-64KiB-native-unbatched {'instructions:u': 257528.05, 'instructions:k': 40417.31}
+Start 010-binary-64-control
+010-binary-64-control {'instructions:u': 152998.88, 'instructions:k': 28223.03}
+Start 010-binary-64-native-unbatched
+010-binary-64-native-unbatched {'instructions:u': 135317.12, 'instructions:k': 27778.51}
+Start 010-binary-64-native-batched
+010-binary-64-native-batched {'instructions:u': 134947.11, 'instructions:k': 27520.79}
+Start 010-binary-64KiB-control
+010-binary-64KiB-control {'instructions:u': 271871.01, 'instructions:k': 43635.36}
+Start 010-binary-64KiB-native-unbatched
+010-binary-64KiB-native-unbatched {'instructions:u': 267916.42, 'instructions:k': 35375.6}
+Start 010-binary-64KiB-native-batched
+010-binary-64KiB-native-batched {'instructions:u': 270816.54, 'instructions:k': 35055.48}
+Start 011-binary-64KiB-native-unbatched
+011-binary-64KiB-native-unbatched {'instructions:u': 257347.76, 'instructions:k': 37968.86}
+Start 011-binary-64KiB-native-batched
+011-binary-64KiB-native-batched {'instructions:u': 258329.26, 'instructions:k': 41897.03}
+Start 011-binary-64KiB-control
+011-binary-64KiB-control {'instructions:u': 274964.24, 'instructions:k': 45167.06}
+Start 011-binary-64-native-unbatched
+011-binary-64-native-unbatched {'instructions:u': 135278.26, 'instructions:k': 27442.49}
+Start 011-binary-64-native-batched
+011-binary-64-native-batched {'instructions:u': 133601.27, 'instructions:k': 27516.93}
+Start 011-binary-64-control
+011-binary-64-control {'instructions:u': 152373.9, 'instructions:k': 28168.83}
+Start 012-binary-64KiB-native-batched
+012-binary-64KiB-native-batched {'instructions:u': 266601.79, 'instructions:k': 55994.16}
+Start 012-binary-64KiB-control
+012-binary-64KiB-control {'instructions:u': 265461.87, 'instructions:k': 38366.59}
+Start 012-binary-64KiB-native-unbatched
+012-binary-64KiB-native-unbatched {'instructions:u': 257008.95, 'instructions:k': 37700.16}
+Start 012-binary-64-native-batched
+012-binary-64-native-batched {'instructions:u': 134925.0, 'instructions:k': 27673.15}
+Start 012-binary-64-control
+012-binary-64-control {'instructions:u': 152901.75, 'instructions:k': 28326.49}
+Start 012-binary-64-native-unbatched
+012-binary-64-native-unbatched {'instructions:u': 135282.14, 'instructions:k': 27476.51}
+Start 013-binary-64KiB-native-batched
+013-binary-64KiB-native-batched {'instructions:u': 257165.37, 'instructions:k': 38978.02}
+Start 013-binary-64KiB-native-unbatched
+013-binary-64KiB-native-unbatched {'instructions:u': 255758.44, 'instructions:k': 32514.59}
+Start 013-binary-64KiB-control
+013-binary-64KiB-control {'instructions:u': 278326.12, 'instructions:k': 36740.86}
+Start 013-binary-64-native-batched
+013-binary-64-native-batched {'instructions:u': 135319.73, 'instructions:k': 27274.81}
+Start 013-binary-64-native-unbatched
+013-binary-64-native-unbatched {'instructions:u': 135286.79, 'instructions:k': 27014.86}
+Start 013-binary-64-control
+013-binary-64-control {'instructions:u': 152577.66, 'instructions:k': 28414.1}
+Start 014-binary-64KiB-native-unbatched
+014-binary-64KiB-native-unbatched {'instructions:u': 258428.33, 'instructions:k': 32499.92}
+Start 014-binary-64KiB-control
+014-binary-64KiB-control {'instructions:u': 272168.48, 'instructions:k': 45893.98}
+Start 014-binary-64KiB-native-batched
+014-binary-64KiB-native-batched {'instructions:u': 266115.76, 'instructions:k': 59222.32}
+Start 014-binary-64-native-unbatched
+014-binary-64-native-unbatched {'instructions:u': 135322.57, 'instructions:k': 27665.46}
+Start 014-binary-64-control
+014-binary-64-control {'instructions:u': 152724.64, 'instructions:k': 28028.94}
+Start 014-binary-64-native-batched
+014-binary-64-native-batched {'instructions:u': 135385.61, 'instructions:k': 27377.21}
+Start 015-binary-64KiB-control
+015-binary-64KiB-control {'instructions:u': 269944.28, 'instructions:k': 35772.38}
+Start 015-binary-64KiB-native-batched
+015-binary-64KiB-native-batched {'instructions:u': 255379.56, 'instructions:k': 40801.91}
+Start 015-binary-64KiB-native-unbatched
+015-binary-64KiB-native-unbatched {'instructions:u': 264000.06, 'instructions:k': 45894.01}
+Start 015-binary-64-control
+015-binary-64-control {'instructions:u': 152672.83, 'instructions:k': 28046.4}
+Start 015-binary-64-native-batched
+015-binary-64-native-batched {'instructions:u': 133536.3, 'instructions:k': 27845.03}
+Start 015-binary-64-native-unbatched
+015-binary-64-native-unbatched {'instructions:u': 135360.14, 'instructions:k': 27641.59}
+Start 016-binary-64KiB-control
+016-binary-64KiB-control {'instructions:u': 277291.71, 'instructions:k': 35732.43}
+Start 016-binary-64KiB-native-unbatched
+016-binary-64KiB-native-unbatched {'instructions:u': 269618.71, 'instructions:k': 40997.75}
+Start 016-binary-64KiB-native-batched
+016-binary-64KiB-native-batched {'instructions:u': 259915.51, 'instructions:k': 39811.13}
+Start 016-binary-64-control
+016-binary-64-control {'instructions:u': 152754.84, 'instructions:k': 28107.15}
+Start 016-binary-64-native-unbatched
+016-binary-64-native-unbatched {'instructions:u': 135285.4, 'instructions:k': 27635.1}
+Start 016-binary-64-native-batched
+016-binary-64-native-batched {'instructions:u': 135318.35, 'instructions:k': 27066.06}
+Start 017-binary-64-native-unbatched
+017-binary-64-native-unbatched {'instructions:u': 135246.77, 'instructions:k': 27358.46}
+Start 017-binary-64-native-batched
+017-binary-64-native-batched {'instructions:u': 135496.82, 'instructions:k': 27181.0}
+Start 017-binary-64-control
+017-binary-64-control {'instructions:u': 152935.14, 'instructions:k': 28466.0}
+Start 017-binary-64KiB-native-unbatched
+017-binary-64KiB-native-unbatched {'instructions:u': 268053.09, 'instructions:k': 36226.69}
+Start 017-binary-64KiB-native-batched
+017-binary-64KiB-native-batched {'instructions:u': 268641.26, 'instructions:k': 35502.2}
+Start 017-binary-64KiB-control
+017-binary-64KiB-control {'instructions:u': 271998.8, 'instructions:k': 46508.35}
+Start 018-binary-64-native-batched
+018-binary-64-native-batched {'instructions:u': 135425.55, 'instructions:k': 27259.16}
+Start 018-binary-64-control
+018-binary-64-control {'instructions:u': 152864.79, 'instructions:k': 28230.15}
+Start 018-binary-64-native-unbatched
+018-binary-64-native-unbatched {'instructions:u': 135333.86, 'instructions:k': 27915.92}
+Start 018-binary-64KiB-native-batched
+018-binary-64KiB-native-batched {'instructions:u': 257852.38, 'instructions:k': 38767.32}
+Start 018-binary-64KiB-control
+018-binary-64KiB-control {'instructions:u': 275200.93, 'instructions:k': 46786.48}
+Start 018-binary-64KiB-native-unbatched
+018-binary-64KiB-native-unbatched {'instructions:u': 257914.18, 'instructions:k': 40826.35}
+Start 019-binary-64KiB-native-batched
+019-binary-64KiB-native-batched {'instructions:u': 257435.27, 'instructions:k': 35837.05}
+Start 019-binary-64KiB-native-unbatched
+019-binary-64KiB-native-unbatched {'instructions:u': 256857.91, 'instructions:k': 36437.58}
+Start 019-binary-64KiB-control
+019-binary-64KiB-control {'instructions:u': 274286.01, 'instructions:k': 50348.22}
+Start 019-binary-64-native-batched
+019-binary-64-native-batched {'instructions:u': 135347.57, 'instructions:k': 27286.64}
+Start 019-binary-64-native-unbatched
+019-binary-64-native-unbatched {'instructions:u': 134954.42, 'instructions:k': 27680.39}
+Start 019-binary-64-control
+019-binary-64-control {'instructions:u': 152944.34, 'instructions:k': 28674.26}
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/binary-comparison-1",
+    "variants": "control,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "binary-64,binary-64KiB",
+    "replicates": 20,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 20,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "binary-64": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 152796.14868164062,
+          "native-unbatched": 135298.31964111328,
+          "native-batched": 135319.0424194336
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -11.430529298421066,
+            "intervalPercent": [
+              -11.56136075051255,
+              -11.309002080595787
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -11.433199035864972,
+            "intervalPercent": [
+              -11.62158590002712,
+              -11.332026606345657
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28279.41766357422,
+          "native-unbatched": 27604.69366455078,
+          "native-batched": 27499.56964111328
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -2.715149761589142,
+            "intervalPercent": [
+              -3.2575295768958235,
+              -1.6272671709242292
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -3.0568935941346354,
+            "intervalPercent": [
+              -3.747685128763234,
+              -2.3197514546144937
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "binary-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 275517.7890625,
+          "native-unbatched": 258512.01483154297,
+          "native-batched": 258259.87951660156
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -5.107336128409068,
+            "intervalPercent": [
+              -6.752399699878997,
+              -2.7267118856647454
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -5.723229947209763,
+            "intervalPercent": [
+              -6.3503118992202285,
+              -4.088477923302769
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 41318.818786621094,
+          "native-unbatched": 38765.229919433594,
+          "native-batched": 38964.19464111328
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -12.123130716507735,
+            "intervalPercent": [
+              -20.53396879603514,
+              6.147492231649632
+            ],
+            "inconclusive": true
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -5.680601809576236,
+            "intervalPercent": [
+              -18.411039960967546,
+              7.803074621150041
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

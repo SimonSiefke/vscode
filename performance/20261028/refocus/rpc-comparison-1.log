@@ -1,0 +1,535 @@
+Start 000-small-object-native-batched
+000-small-object-native-batched {'instructions:u': 99526.41, 'instructions:k': 27766.25}
+Start 000-small-object-control
+000-small-object-control {'instructions:u': 174144.43, 'instructions:k': 29650.89}
+Start 000-small-object-native-unbatched
+000-small-object-native-unbatched {'instructions:u': 99063.04, 'instructions:k': 26679.14}
+Start 000-text-64KiB-native-batched
+000-text-64KiB-native-batched {'instructions:u': 133609.3, 'instructions:k': 30084.72}
+Start 000-text-64KiB-control
+000-text-64KiB-control {'instructions:u': 2342611.09, 'instructions:k': 58758.17}
+Start 000-text-64KiB-native-unbatched
+000-text-64KiB-native-unbatched {'instructions:u': 133588.1, 'instructions:k': 29846.14}
+Start 000-primitive-native-batched
+000-primitive-native-batched {'instructions:u': 77399.03, 'instructions:k': 26777.61}
+Start 000-primitive-control
+000-primitive-control {'instructions:u': 155910.85, 'instructions:k': 28634.73}
+Start 000-primitive-native-unbatched
+000-primitive-native-unbatched {'instructions:u': 76613.25, 'instructions:k': 26846.64}
+Start 001-text-64KiB-native-batched
+001-text-64KiB-native-batched {'instructions:u': 133565.88, 'instructions:k': 29745.8}
+Start 001-text-64KiB-native-unbatched
+001-text-64KiB-native-unbatched {'instructions:u': 133687.04, 'instructions:k': 29266.3}
+Start 001-text-64KiB-control
+001-text-64KiB-control {'instructions:u': 2341305.85, 'instructions:k': 53169.38}
+Start 001-primitive-native-batched
+001-primitive-native-batched {'instructions:u': 76650.5, 'instructions:k': 26800.93}
+Start 001-primitive-native-unbatched
+001-primitive-native-unbatched {'instructions:u': 77388.16, 'instructions:k': 27765.64}
+Start 001-primitive-control
+001-primitive-control {'instructions:u': 155917.89, 'instructions:k': 28278.8}
+Start 001-small-object-native-batched
+001-small-object-native-batched {'instructions:u': 99460.13, 'instructions:k': 26824.82}
+Start 001-small-object-native-unbatched
+001-small-object-native-unbatched {'instructions:u': 99399.56, 'instructions:k': 26673.05}
+Start 001-small-object-control
+001-small-object-control {'instructions:u': 174253.59, 'instructions:k': 28435.43}
+Start 002-text-64KiB-native-unbatched
+002-text-64KiB-native-unbatched {'instructions:u': 133633.79, 'instructions:k': 30630.19}
+Start 002-text-64KiB-control
+002-text-64KiB-control {'instructions:u': 2342645.06, 'instructions:k': 66590.47}
+Start 002-text-64KiB-native-batched
+002-text-64KiB-native-batched {'instructions:u': 133654.25, 'instructions:k': 29884.15}
+Start 002-primitive-native-unbatched
+002-primitive-native-unbatched {'instructions:u': 76565.99, 'instructions:k': 27604.15}
+Start 002-primitive-control
+002-primitive-control {'instructions:u': 156573.11, 'instructions:k': 28787.26}
+Start 002-primitive-native-batched
+002-primitive-native-batched {'instructions:u': 76660.75, 'instructions:k': 27418.03}
+Start 002-small-object-native-unbatched
+002-small-object-native-unbatched {'instructions:u': 99513.85, 'instructions:k': 27226.13}
+Start 002-small-object-control
+002-small-object-control {'instructions:u': 174114.14, 'instructions:k': 28411.69}
+Start 002-small-object-native-batched
+002-small-object-native-batched {'instructions:u': 99560.13, 'instructions:k': 26865.69}
+Start 003-small-object-control
+003-small-object-control {'instructions:u': 174270.02, 'instructions:k': 28851.28}
+Start 003-small-object-native-batched
+003-small-object-native-batched {'instructions:u': 99315.23, 'instructions:k': 26763.62}
+Start 003-small-object-native-unbatched
+003-small-object-native-unbatched {'instructions:u': 99526.6, 'instructions:k': 26869.67}
+Start 003-primitive-control
+003-primitive-control {'instructions:u': 156838.91, 'instructions:k': 28217.42}
+Start 003-primitive-native-batched
+003-primitive-native-batched {'instructions:u': 76668.23, 'instructions:k': 26943.39}
+Start 003-primitive-native-unbatched
+003-primitive-native-unbatched {'instructions:u': 76444.99, 'instructions:k': 26586.49}
+Start 003-text-64KiB-control
+003-text-64KiB-control {'instructions:u': 2342988.18, 'instructions:k': 65755.94}
+Start 003-text-64KiB-native-batched
+003-text-64KiB-native-batched {'instructions:u': 133614.59, 'instructions:k': 29251.57}
+Start 003-text-64KiB-native-unbatched
+003-text-64KiB-native-unbatched {'instructions:u': 133612.73, 'instructions:k': 29192.02}
+Start 004-primitive-control
+004-primitive-control {'instructions:u': 155721.85, 'instructions:k': 28013.97}
+Start 004-primitive-native-unbatched
+004-primitive-native-unbatched {'instructions:u': 76602.21, 'instructions:k': 27320.95}
+Start 004-primitive-native-batched
+004-primitive-native-batched {'instructions:u': 76625.72, 'instructions:k': 27290.89}
+Start 004-small-object-control
+004-small-object-control {'instructions:u': 173799.12, 'instructions:k': 28302.15}
+Start 004-small-object-native-unbatched
+004-small-object-native-unbatched {'instructions:u': 99269.06, 'instructions:k': 27002.27}
+Start 004-small-object-native-batched
+004-small-object-native-batched {'instructions:u': 99576.44, 'instructions:k': 26942.95}
+Start 004-text-64KiB-control
+004-text-64KiB-control {'instructions:u': 2342776.14, 'instructions:k': 53129.16}
+Start 004-text-64KiB-native-unbatched
+004-text-64KiB-native-unbatched {'instructions:u': 133701.73, 'instructions:k': 29481.96}
+Start 004-text-64KiB-native-batched
+004-text-64KiB-native-batched {'instructions:u': 133625.61, 'instructions:k': 29951.66}
+Start 005-primitive-native-unbatched
+005-primitive-native-unbatched {'instructions:u': 76733.84, 'instructions:k': 26858.96}
+Start 005-primitive-native-batched
+005-primitive-native-batched {'instructions:u': 76683.61, 'instructions:k': 27012.32}
+Start 005-primitive-control
+005-primitive-control {'instructions:u': 156320.51, 'instructions:k': 28782.23}
+Start 005-small-object-native-unbatched
+005-small-object-native-unbatched {'instructions:u': 99464.46, 'instructions:k': 27102.04}
+Start 005-small-object-native-batched
+005-small-object-native-batched {'instructions:u': 99276.25, 'instructions:k': 26974.41}
+Start 005-small-object-control
+005-small-object-control {'instructions:u': 174140.01, 'instructions:k': 28043.0}
+Start 005-text-64KiB-native-unbatched
+005-text-64KiB-native-unbatched {'instructions:u': 133620.04, 'instructions:k': 30032.09}
+Start 005-text-64KiB-native-batched
+005-text-64KiB-native-batched {'instructions:u': 133795.51, 'instructions:k': 29018.3}
+Start 005-text-64KiB-control
+005-text-64KiB-control {'instructions:u': 2342491.1, 'instructions:k': 53932.85}
+Start 006-text-64KiB-native-batched
+006-text-64KiB-native-batched {'instructions:u': 133627.27, 'instructions:k': 30233.19}
+Start 006-text-64KiB-control
+006-text-64KiB-control {'instructions:u': 2351924.61, 'instructions:k': 70573.68}
+Start 006-text-64KiB-native-unbatched
+006-text-64KiB-native-unbatched {'instructions:u': 133607.3, 'instructions:k': 29393.55}
+Start 006-primitive-native-batched
+006-primitive-native-batched {'instructions:u': 76467.04, 'instructions:k': 26784.21}
+Start 006-primitive-control
+006-primitive-control {'instructions:u': 156311.92, 'instructions:k': 28463.65}
+Start 006-primitive-native-unbatched
+006-primitive-native-unbatched {'instructions:u': 77431.3, 'instructions:k': 26986.94}
+Start 006-small-object-native-batched
+006-small-object-native-batched {'instructions:u': 99400.67, 'instructions:k': 26672.98}
+Start 006-small-object-control
+006-small-object-control {'instructions:u': 174282.94, 'instructions:k': 28730.08}
+Start 006-small-object-native-unbatched
+006-small-object-native-unbatched {'instructions:u': 99574.85, 'instructions:k': 26886.16}
+Start 007-text-64KiB-native-batched
+007-text-64KiB-native-batched {'instructions:u': 133769.42, 'instructions:k': 29285.1}
+Start 007-text-64KiB-native-unbatched
+007-text-64KiB-native-unbatched {'instructions:u': 133719.48, 'instructions:k': 29521.94}
+Start 007-text-64KiB-control
+007-text-64KiB-control {'instructions:u': 2342854.66, 'instructions:k': 55160.62}
+Start 007-small-object-native-batched
+007-small-object-native-batched {'instructions:u': 99409.33, 'instructions:k': 27256.86}
+Start 007-small-object-native-unbatched
+007-small-object-native-unbatched {'instructions:u': 99349.54, 'instructions:k': 27353.28}
+Start 007-small-object-control
+007-small-object-control {'instructions:u': 173708.05, 'instructions:k': 29264.67}
+Start 007-primitive-native-batched
+007-primitive-native-batched {'instructions:u': 76476.37, 'instructions:k': 27462.33}
+Start 007-primitive-native-unbatched
+007-primitive-native-unbatched {'instructions:u': 76612.21, 'instructions:k': 27035.69}
+Start 007-primitive-control
+007-primitive-control {'instructions:u': 156737.08, 'instructions:k': 28287.69}
+Start 008-small-object-native-unbatched
+008-small-object-native-unbatched {'instructions:u': 99462.68, 'instructions:k': 26865.53}
+Start 008-small-object-control
+008-small-object-control {'instructions:u': 174235.23, 'instructions:k': 28621.4}
+Start 008-small-object-native-batched
+008-small-object-native-batched {'instructions:u': 99460.85, 'instructions:k': 27310.69}
+Start 008-primitive-native-unbatched
+008-primitive-native-unbatched {'instructions:u': 76689.76, 'instructions:k': 26792.76}
+Start 008-primitive-control
+008-primitive-control {'instructions:u': 156681.29, 'instructions:k': 28241.15}
+Start 008-primitive-native-batched
+008-primitive-native-batched {'instructions:u': 76685.38, 'instructions:k': 26852.47}
+Start 008-text-64KiB-native-unbatched
+008-text-64KiB-native-unbatched {'instructions:u': 133604.99, 'instructions:k': 30222.54}
+Start 008-text-64KiB-control
+008-text-64KiB-control {'instructions:u': 2342848.14, 'instructions:k': 66603.7}
+Start 008-text-64KiB-native-batched
+008-text-64KiB-native-batched {'instructions:u': 133534.27, 'instructions:k': 29950.01}
+Start 009-text-64KiB-control
+009-text-64KiB-control {'instructions:u': 2352852.38, 'instructions:k': 58574.3}
+Start 009-text-64KiB-native-batched
+009-text-64KiB-native-batched {'instructions:u': 133530.43, 'instructions:k': 30096.65}
+Start 009-text-64KiB-native-unbatched
+009-text-64KiB-native-unbatched {'instructions:u': 133641.38, 'instructions:k': 29805.88}
+Start 009-primitive-control
+009-primitive-control {'instructions:u': 156288.88, 'instructions:k': 28473.02}
+Start 009-primitive-native-batched
+009-primitive-native-batched {'instructions:u': 76548.82, 'instructions:k': 29911.65}
+Start 009-primitive-native-unbatched
+009-primitive-native-unbatched {'instructions:u': 76488.86, 'instructions:k': 26838.51}
+Start 009-small-object-control
+009-small-object-control {'instructions:u': 173731.81, 'instructions:k': 28968.56}
+Start 009-small-object-native-batched
+009-small-object-native-batched {'instructions:u': 99476.41, 'instructions:k': 26912.5}
+Start 009-small-object-native-unbatched
+009-small-object-native-unbatched {'instructions:u': 99362.11, 'instructions:k': 27234.65}
+Start 010-primitive-control
+010-primitive-control {'instructions:u': 155368.28, 'instructions:k': 28528.28}
+Start 010-primitive-native-unbatched
+010-primitive-native-unbatched {'instructions:u': 76577.32, 'instructions:k': 27350.14}
+Start 010-primitive-native-batched
+010-primitive-native-batched {'instructions:u': 76516.56, 'instructions:k': 26734.37}
+Start 010-text-64KiB-control
+010-text-64KiB-control {'instructions:u': 2350959.87, 'instructions:k': 59395.76}
+Start 010-text-64KiB-native-unbatched
+010-text-64KiB-native-unbatched {'instructions:u': 133643.82, 'instructions:k': 29714.91}
+Start 010-text-64KiB-native-batched
+010-text-64KiB-native-batched {'instructions:u': 133691.18, 'instructions:k': 29513.61}
+Start 010-small-object-control
+010-small-object-control {'instructions:u': 174202.83, 'instructions:k': 29249.46}
+Start 010-small-object-native-unbatched
+010-small-object-native-unbatched {'instructions:u': 99273.12, 'instructions:k': 26791.93}
+Start 010-small-object-native-batched
+010-small-object-native-batched {'instructions:u': 99402.34, 'instructions:k': 27227.54}
+Start 011-text-64KiB-native-unbatched
+011-text-64KiB-native-unbatched {'instructions:u': 133621.17, 'instructions:k': 29859.0}
+Start 011-text-64KiB-native-batched
+011-text-64KiB-native-batched {'instructions:u': 133679.08, 'instructions:k': 29212.55}
+Start 011-text-64KiB-control
+011-text-64KiB-control {'instructions:u': 2343015.71, 'instructions:k': 53307.14}
+Start 011-small-object-native-unbatched
+011-small-object-native-unbatched {'instructions:u': 99461.71, 'instructions:k': 26545.12}
+Start 011-small-object-native-batched
+011-small-object-native-batched {'instructions:u': 99348.15, 'instructions:k': 28252.06}
+Start 011-small-object-control
+011-small-object-control {'instructions:u': 174222.61, 'instructions:k': 28848.98}
+Start 011-primitive-native-unbatched
+011-primitive-native-unbatched {'instructions:u': 76632.44, 'instructions:k': 27179.0}
+Start 011-primitive-native-batched
+011-primitive-native-batched {'instructions:u': 76613.91, 'instructions:k': 27926.18}
+Start 011-primitive-control
+011-primitive-control {'instructions:u': 156840.08, 'instructions:k': 28274.83}
+Start 012-text-64KiB-native-batched
+012-text-64KiB-native-batched {'instructions:u': 133662.39, 'instructions:k': 29686.16}
+Start 012-text-64KiB-control
+012-text-64KiB-control {'instructions:u': 2342481.68, 'instructions:k': 55541.17}
+Start 012-text-64KiB-native-unbatched
+012-text-64KiB-native-unbatched {'instructions:u': 133691.59, 'instructions:k': 30220.43}
+Start 012-small-object-native-batched
+012-small-object-native-batched {'instructions:u': 99369.98, 'instructions:k': 27221.68}
+Start 012-small-object-control
+012-small-object-control {'instructions:u': 174214.03, 'instructions:k': 28699.65}
+Start 012-small-object-native-unbatched
+012-small-object-native-unbatched {'instructions:u': 99428.18, 'instructions:k': 27368.29}
+Start 012-primitive-native-batched
+012-primitive-native-batched {'instructions:u': 76474.39, 'instructions:k': 26853.2}
+Start 012-primitive-control
+012-primitive-control {'instructions:u': 156750.43, 'instructions:k': 28186.12}
+Start 012-primitive-native-unbatched
+012-primitive-native-unbatched {'instructions:u': 76724.75, 'instructions:k': 27404.69}
+Start 013-small-object-native-batched
+013-small-object-native-batched {'instructions:u': 99488.54, 'instructions:k': 26787.06}
+Start 013-small-object-native-unbatched
+013-small-object-native-unbatched {'instructions:u': 99881.48, 'instructions:k': 27118.09}
+Start 013-small-object-control
+013-small-object-control {'instructions:u': 174189.89, 'instructions:k': 28073.63}
+Start 013-text-64KiB-native-batched
+013-text-64KiB-native-batched {'instructions:u': 133665.55, 'instructions:k': 29446.22}
+Start 013-text-64KiB-native-unbatched
+013-text-64KiB-native-unbatched {'instructions:u': 133540.37, 'instructions:k': 32811.57}
+Start 013-text-64KiB-control
+013-text-64KiB-control {'instructions:u': 2341213.25, 'instructions:k': 63801.99}
+Start 013-primitive-native-batched
+013-primitive-native-batched {'instructions:u': 76587.08, 'instructions:k': 27666.71}
+Start 013-primitive-native-unbatched
+013-primitive-native-unbatched {'instructions:u': 76586.65, 'instructions:k': 28395.55}
+Start 013-primitive-control
+013-primitive-control {'instructions:u': 156852.33, 'instructions:k': 28093.97}
+Start 014-small-object-native-unbatched
+014-small-object-native-unbatched {'instructions:u': 99443.95, 'instructions:k': 27703.94}
+Start 014-small-object-control
+014-small-object-control {'instructions:u': 174094.29, 'instructions:k': 30057.14}
+Start 014-small-object-native-batched
+014-small-object-native-batched {'instructions:u': 99437.25, 'instructions:k': 26544.91}
+Start 014-text-64KiB-native-unbatched
+014-text-64KiB-native-unbatched {'instructions:u': 133632.6, 'instructions:k': 30279.6}
+Start 014-text-64KiB-control
+014-text-64KiB-control {'instructions:u': 2343004.1, 'instructions:k': 59060.39}
+Start 014-text-64KiB-native-batched
+014-text-64KiB-native-batched {'instructions:u': 133576.19, 'instructions:k': 29466.77}
+Start 014-primitive-native-unbatched
+014-primitive-native-unbatched {'instructions:u': 76673.2, 'instructions:k': 26927.25}
+Start 014-primitive-control
+014-primitive-control {'instructions:u': 155404.7, 'instructions:k': 28294.46}
+Start 014-primitive-native-batched
+014-primitive-native-batched {'instructions:u': 76788.52, 'instructions:k': 27310.37}
+Start 015-small-object-control
+015-small-object-control {'instructions:u': 173866.56, 'instructions:k': 29150.93}
+Start 015-small-object-native-batched
+015-small-object-native-batched {'instructions:u': 99401.09, 'instructions:k': 27877.93}
+Start 015-small-object-native-unbatched
+015-small-object-native-unbatched {'instructions:u': 97816.16, 'instructions:k': 27922.88}
+Start 015-text-64KiB-control
+015-text-64KiB-control {'instructions:u': 2343120.3, 'instructions:k': 61790.48}
+Start 015-text-64KiB-native-batched
+015-text-64KiB-native-batched {'instructions:u': 133700.67, 'instructions:k': 30642.35}
+Start 015-text-64KiB-native-unbatched
+015-text-64KiB-native-unbatched {'instructions:u': 133538.63, 'instructions:k': 29937.15}
+Start 015-primitive-control
+015-primitive-control {'instructions:u': 156363.39, 'instructions:k': 28188.07}
+Start 015-primitive-native-batched
+015-primitive-native-batched {'instructions:u': 76737.04, 'instructions:k': 26923.09}
+Start 015-primitive-native-unbatched
+015-primitive-native-unbatched {'instructions:u': 76610.52, 'instructions:k': 27887.34}
+Start 016-small-object-control
+016-small-object-control {'instructions:u': 173607.32, 'instructions:k': 28672.31}
+Start 016-small-object-native-unbatched
+016-small-object-native-unbatched {'instructions:u': 99343.03, 'instructions:k': 27184.89}
+Start 016-small-object-native-batched
+016-small-object-native-batched {'instructions:u': 99174.2, 'instructions:k': 27867.03}
+Start 016-primitive-control
+016-primitive-control {'instructions:u': 156330.98, 'instructions:k': 28582.4}
+Start 016-primitive-native-unbatched
+016-primitive-native-unbatched {'instructions:u': 76650.9, 'instructions:k': 26597.51}
+Start 016-primitive-native-batched
+016-primitive-native-batched {'instructions:u': 76573.45, 'instructions:k': 27587.9}
+Start 016-text-64KiB-control
+016-text-64KiB-control {'instructions:u': 2341490.07, 'instructions:k': 67649.11}
+Start 016-text-64KiB-native-unbatched
+016-text-64KiB-native-unbatched {'instructions:u': 133608.89, 'instructions:k': 29377.8}
+Start 016-text-64KiB-native-batched
+016-text-64KiB-native-batched {'instructions:u': 133539.58, 'instructions:k': 29558.8}
+Start 017-primitive-native-unbatched
+017-primitive-native-unbatched {'instructions:u': 77398.46, 'instructions:k': 27044.64}
+Start 017-primitive-native-batched
+017-primitive-native-batched {'instructions:u': 76572.26, 'instructions:k': 28054.59}
+Start 017-primitive-control
+017-primitive-control {'instructions:u': 156717.12, 'instructions:k': 28737.62}
+Start 017-text-64KiB-native-unbatched
+017-text-64KiB-native-unbatched {'instructions:u': 134210.95, 'instructions:k': 29646.75}
+Start 017-text-64KiB-native-batched
+017-text-64KiB-native-batched {'instructions:u': 133781.58, 'instructions:k': 30101.29}
+Start 017-text-64KiB-control
+017-text-64KiB-control {'instructions:u': 2343073.71, 'instructions:k': 60002.28}
+Start 017-small-object-native-unbatched
+017-small-object-native-unbatched {'instructions:u': 99362.65, 'instructions:k': 26912.51}
+Start 017-small-object-native-batched
+017-small-object-native-batched {'instructions:u': 99426.41, 'instructions:k': 26713.62}
+Start 017-small-object-control
+017-small-object-control {'instructions:u': 174062.54, 'instructions:k': 28693.21}
+Start 018-primitive-native-batched
+018-primitive-native-batched {'instructions:u': 76623.58, 'instructions:k': 27328.61}
+Start 018-primitive-control
+018-primitive-control {'instructions:u': 156001.84, 'instructions:k': 28270.74}
+Start 018-primitive-native-unbatched
+018-primitive-native-unbatched {'instructions:u': 76730.63, 'instructions:k': 26682.1}
+Start 018-text-64KiB-native-batched
+018-text-64KiB-native-batched {'instructions:u': 133553.97, 'instructions:k': 29873.35}
+Start 018-text-64KiB-control
+018-text-64KiB-control {'instructions:u': 2342928.99, 'instructions:k': 57707.09}
+Start 018-text-64KiB-native-unbatched
+018-text-64KiB-native-unbatched {'instructions:u': 133575.32, 'instructions:k': 30338.5}
+Start 018-small-object-native-batched
+018-small-object-native-batched {'instructions:u': 99525.89, 'instructions:k': 26787.58}
+Start 018-small-object-control
+018-small-object-control {'instructions:u': 174298.37, 'instructions:k': 28254.95}
+Start 018-small-object-native-unbatched
+018-small-object-native-unbatched {'instructions:u': 99438.46, 'instructions:k': 27198.23}
+Start 019-text-64KiB-native-batched
+019-text-64KiB-native-batched {'instructions:u': 133654.87, 'instructions:k': 29833.46}
+Start 019-text-64KiB-native-unbatched
+019-text-64KiB-native-unbatched {'instructions:u': 133662.45, 'instructions:k': 30099.79}
+Start 019-text-64KiB-control
+019-text-64KiB-control {'instructions:u': 2343040.83, 'instructions:k': 54228.92}
+Start 019-small-object-native-batched
+019-small-object-native-batched {'instructions:u': 99755.53, 'instructions:k': 26569.25}
+Start 019-small-object-native-unbatched
+019-small-object-native-unbatched {'instructions:u': 99298.17, 'instructions:k': 26639.33}
+Start 019-small-object-control
+019-small-object-control {'instructions:u': 174245.7, 'instructions:k': 29581.47}
+Start 019-primitive-native-batched
+019-primitive-native-batched {'instructions:u': 76676.68, 'instructions:k': 27018.79}
+Start 019-primitive-native-unbatched
+019-primitive-native-unbatched {'instructions:u': 76665.88, 'instructions:k': 26577.96}
+Start 019-primitive-control
+019-primitive-control {'instructions:u': 155827.73, 'instructions:k': 28576.53}
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-comparison-1",
+    "variants": "control,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive,small-object,text-64KiB",
+    "replicates": 20,
+    "iterations": 8192,
+    "warmup": 4096,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 20,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 156325.7445678711,
+          "native-unbatched": 76641.66986083984,
+          "native-batched": 76624.65148925781
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -50.940671671416695,
+            "intervalPercent": [
+              -51.05648086777692,
+              -50.80459320269708
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -51.019660757083926,
+            "intervalPercent": [
+              -51.0985334373062,
+              -50.86104945690939
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28291.076232910156,
+          "native-unbatched": 27011.311767578125,
+          "native-batched": 27154.84210205078
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -4.980478946608436,
+            "intervalPercent": [
+              -5.760207205859558,
+              -3.875648128127973
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -4.501353842355682,
+            "intervalPercent": [
+              -5.071774884268065,
+              -3.1253539275920117
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "small-object": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 174167.1596069336,
+          "native-unbatched": 99413.87133789062,
+          "native-batched": 99431.82788085938
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -42.90028276287122,
+            "intervalPercent": [
+              -42.93843026337495,
+              -42.87261799913718
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -42.8840601776471,
+            "intervalPercent": [
+              -42.93046516956529,
+              -42.83872221852156
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 28714.861877441406,
+          "native-unbatched": 27052.152587890625,
+          "native-batched": 26927.723022460938
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -6.166315288317071,
+            "intervalPercent": [
+              -6.700026599344788,
+              -4.615893857548448
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -5.552806542312505,
+            "intervalPercent": [
+              -6.905911703496114,
+              -4.692719130282164
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    },
+    "text-64KiB": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 2342891.8259277344,
+          "native-unbatched": 133626.8856201172,
+          "native-batched": 133640.75842285156
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -94.29631569143996,
+            "intervalPercent": [
+              -94.29740336592268,
+              -94.29459729187113
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -94.29596827310839,
+            "intervalPercent": [
+              -94.29809615175945,
+              -94.2942777829024
+            ],
+            "inconclusive": false
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 58909.27899169922,
+          "native-unbatched": 29852.569213867188,
+          "native-batched": 29789.62908935547
+        },
+        "comparisons": {
+          "native-unbatched": {
+            "medianPairedChangePercent": -48.92312369416578,
+            "intervalPercent": [
+              -51.07293940290896,
+              -46.03643177247096
+            ],
+            "inconclusive": false
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -49.31872838271675,
+            "intervalPercent": [
+              -52.15925964919255,
+              -46.730535460462875
+            ],
+            "inconclusive": false
+          }
+        }
+      }
+    }
+  }
+}

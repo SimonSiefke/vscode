@@ -1,0 +1,17 @@
+{
+  "label": "pilot-aa-1-b",
+  "variant": "before",
+  "exitCode": 0,
+  "totalElapsedMs": 27622.638962002384,
+  "counts": {
+    "activity-bar-toggle": 3,
+    "editor-open": 3
+  },
+  "failures": [],
+  "activationErrors": [],
+  "expectedCounts": {
+    "activity-bar-toggle": 3,
+    "editor-open": 3
+  },
+  "valid": true
+}

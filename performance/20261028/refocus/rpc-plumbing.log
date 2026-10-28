@@ -1,0 +1,97 @@
+Start 000-primitive-native-unbatched
+000-primitive-native-unbatched {'instructions:u': 85959.0, 'instructions:k': 31058.59}
+Start 000-primitive-aa-b
+000-primitive-aa-b {'instructions:u': 216540.0, 'instructions:k': 42488.62}
+Start 000-primitive-control
+000-primitive-control {'instructions:u': 216008.75, 'instructions:k': 40671.19}
+Start 000-primitive-native-batched
+000-primitive-native-batched {'instructions:u': 86033.67, 'instructions:k': 30193.09}
+{
+  "arguments": {
+    "root": "/home/simon/.cache/vscode-ipc-opt-20261022",
+    "output": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-plumbing",
+    "variants": "control,aa-b,native-unbatched,native-batched",
+    "port_variants": "",
+    "runtime_map": "/home/simon/.cache/vscode-pr321-refocus-20261028/rpc-runtimes.json",
+    "fixtures": "primitive",
+    "replicates": 1,
+    "iterations": 64,
+    "warmup": 32,
+    "concurrency": 1,
+    "handler": "sync"
+  },
+  "pairedIndependentProcesses": 1,
+  "confidence": "Exploratory 95% paired bootstrap of median log-ratios; 10,000 resamples; no multiple-comparison correction",
+  "fixtures": {
+    "primitive": {
+      "instructions:u": {
+        "medianInstructionsPerCall": {
+          "control": 216008.75,
+          "aa-b": 216540.0,
+          "native-unbatched": 85959.0,
+          "native-batched": 86033.671875
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 0.2459391112628495,
+            "intervalPercent": [
+              0.2459391112628495,
+              0.2459391112628495
+            ],
+            "inconclusive": true
+          },
+          "native-unbatched": {
+            "medianPairedChangePercent": -60.20577870109429,
+            "intervalPercent": [
+              -60.20577870109429,
+              -60.20577870109429
+            ],
+            "inconclusive": true
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -60.171209788955316,
+            "intervalPercent": [
+              -60.171209788955316,
+              -60.171209788955316
+            ],
+            "inconclusive": true
+          }
+        }
+      },
+      "instructions:k": {
+        "medianInstructionsPerCall": {
+          "control": 40671.1875,
+          "aa-b": 42488.625,
+          "native-unbatched": 31058.59375,
+          "native-batched": 30193.09375
+        },
+        "comparisons": {
+          "aa-b": {
+            "medianPairedChangePercent": 4.468611839769854,
+            "intervalPercent": [
+              4.468611839769854,
+              4.468611839769854
+            ],
+            "inconclusive": true
+          },
+          "native-unbatched": {
+            "medianPairedChangePercent": -23.63489816961947,
+            "intervalPercent": [
+              -23.63489816961947,
+              -23.63489816961947
+            ],
+            "inconclusive": true
+          },
+          "native-batched": {
+            "medianPairedChangePercent": -25.76294028788808,
+            "intervalPercent": [
+              -25.76294028788808,
+              -25.76294028788808
+            ],
+            "inconclusive": true
+          }
+        }
+      }
+    }
+  }
+}

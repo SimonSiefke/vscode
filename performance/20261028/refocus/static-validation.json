@@ -1,0 +1,30 @@
+{
+  "sourceHead": "51918aaf5d0d54b7b00f3777e26e5eac98b200b7",
+  "checks": [
+    {
+      "command": "npm run typecheck-client",
+      "exitCode": 0,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "npm run eslint -- <lint-targets.json>",
+      "exitCode": 0,
+      "log": "lint.log"
+    },
+    {
+      "command": "npm run valid-layers-check",
+      "exitCode": 0,
+      "log": "layers.log"
+    }
+  ],
+  "legacyParity": {
+    "base": "416e5d6b0db90081fddd1d62c9a905cdeb9ebcff",
+    "files": [
+      "src/vs/workbench/services/extensions/common/rpcProtocol.ts",
+      "src/vs/base/parts/ipc/common/ipc.mp.ts",
+      "src/vs/base/parts/ipc/common/ipc.electron.ts",
+      "src/vs/base/parts/ipc/node/ipc.mp.ts"
+    ],
+    "byteForByteEqual": true
+  }
+}

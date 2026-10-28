@@ -1,0 +1,4360 @@
+diff --git a/src/vs/base/parts/ipc/browser/ipc.mp.ts b/src/vs/base/parts/ipc/browser/ipc.mp.ts
+index f1c882b65392..9d6f2e3c702e 100644
+--- a/src/vs/base/parts/ipc/browser/ipc.mp.ts
++++ b/src/vs/base/parts/ipc/browser/ipc.mp.ts
+@@ -4,7 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import { IDisposable } from '../../../common/lifecycle.js';
+-import { Client as MessagePortClient } from '../common/ipc.mp.js';
++import { Client as MessagePortClient } from '../common/ipc.structuredClone.mp.js';
+ 
+ /**
+  * An implementation of a `IPCClient` on top of DOM `MessagePort`.
+diff --git a/src/vs/base/parts/ipc/common/ipc.electron.ts b/src/vs/base/parts/ipc/common/ipc.electron.ts
+index 33ab202fa7bb..5dec77f297f8 100644
+--- a/src/vs/base/parts/ipc/common/ipc.electron.ts
++++ b/src/vs/base/parts/ipc/common/ipc.electron.ts
+@@ -3,8 +3,9 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
++import { VSBuffer } from '../../../common/buffer.js';
+ import { Event } from '../../../common/event.js';
+-import { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
++import { IMessagePassingProtocol } from './ipc.js';
+ 
+ export interface Sender {
+ 	send(channel: string, msg: unknown): void;
+@@ -15,15 +16,13 @@ export interface Sender {
+  * for the implementation of the `IMessagePassingProtocol`. That style of API requires a channel
+  * name for sending data.
+  */
+-export class Protocol implements IStructuredCloneMessagePassingProtocol {
++export class Protocol implements IMessagePassingProtocol {
+ 
+-	readonly type = 'structuredClone';
++	constructor(private sender: Sender, readonly onMessage: Event<VSBuffer>) { }
+ 
+-	constructor(private sender: Sender, readonly onMessage: Event<IStructuredCloneMessage>) { }
+-
+-	send(message: IStructuredCloneMessage): void {
++	send(message: VSBuffer): void {
+ 		try {
+-			this.sender.send('vscode:message', message);
++			this.sender.send('vscode:message', message.buffer);
+ 		} catch (e) {
+ 			// systems are going down
+ 		}
+diff --git a/src/vs/base/parts/ipc/common/ipc.mp.ts b/src/vs/base/parts/ipc/common/ipc.mp.ts
+index 8717456d099f..c63ce5f5cd95 100644
+--- a/src/vs/base/parts/ipc/common/ipc.mp.ts
++++ b/src/vs/base/parts/ipc/common/ipc.mp.ts
+@@ -3,9 +3,10 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
++import { VSBuffer } from '../../../common/buffer.js';
+ import { Event } from '../../../common/event.js';
+ import { IDisposable } from '../../../common/lifecycle.js';
+-import { IPCClient, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
++import { IMessagePassingProtocol, IPCClient } from './ipc.js';
+ 
+ /**
+  * Declare minimal `MessageEvent` and `MessagePort` interfaces here
+@@ -15,7 +16,11 @@ import { IPCClient, IStructuredCloneMessage, IStructuredCloneMessagePassingProto
+ 
+ export interface MessageEvent {
+ 
+-	data: IStructuredCloneMessage;
++	/**
++	 * For our use we only consider `Uint8Array` a valid data transfer
++	 * via message ports because our protocol implementation is buffer based.
++	 */
++	data: Uint8Array;
+ }
+ 
+ export interface MessagePort {
+@@ -23,7 +28,7 @@ export interface MessagePort {
+ 	addEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
+ 	removeEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
+ 
+-	postMessage(message: IStructuredCloneMessage): void;
++	postMessage(message: Uint8Array): void;
+ 
+ 	start(): void;
+ 	close(): void;
+@@ -34,20 +39,25 @@ export interface MessagePort {
+  * for the implementation of the `IMessagePassingProtocol`. That style of API
+  * is a simple `onmessage` / `postMessage` pattern.
+  */
+-export class Protocol implements IStructuredCloneMessagePassingProtocol {
++export class Protocol implements IMessagePassingProtocol {
+ 
+-	readonly type = 'structuredClone';
+-	readonly onMessage: Event<IStructuredCloneMessage>;
++	readonly onMessage;
+ 
+ 	constructor(private port: MessagePort) {
+-		const onMessage = Event.fromDOMEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data);
+-		this.onMessage = Event.filter(onMessage, data => !!data);
++		// A `message` event may carry no (or empty) data (e.g. during
++		// connection teardown). An empty frame is never a valid protocol
++		// message (the smallest valid frame still has a serialized header),
++		// so we must not forward it: doing so makes the channel readers
++		// deserialize an `undefined` header and crash. Filter these out at
++		// the transport boundary instead.
++		const onMessage = Event.fromDOMEventEmitter<VSBuffer>(this.port, 'message', (e: MessageEvent) => e.data ? VSBuffer.wrap(e.data) : VSBuffer.alloc(0));
++		this.onMessage = Event.filter(onMessage, data => data.byteLength > 0);
+ 		// we must call start() to ensure messages are flowing
+ 		port.start();
+ 	}
+ 
+-	send(message: IStructuredCloneMessage): void {
+-		this.port.postMessage(message);
++	send(message: VSBuffer): void {
++		this.port.postMessage(message.buffer);
+ 	}
+ 
+ 	disconnect(): void {
+diff --git a/src/vs/base/parts/ipc/common/ipc.structuredClone.electron.ts b/src/vs/base/parts/ipc/common/ipc.structuredClone.electron.ts
+new file mode 100644
+index 000000000000..fe68f1990687
+--- /dev/null
++++ b/src/vs/base/parts/ipc/common/ipc.structuredClone.electron.ts
+@@ -0,0 +1,35 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { Event } from '../../../common/event.js';
++import { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
++
++export interface Sender {
++	send(channel: string, msg: unknown): void;
++}
++
++/**
++ * The Electron `Protocol` leverages Electron style IPC communication (`ipcRenderer`, `ipcMain`)
++ * for the implementation of the `IMessagePassingProtocol`. That style of API requires a channel
++ * name for sending data.
++ */
++export class StructuredCloneProtocol implements IStructuredCloneMessagePassingProtocol {
++
++	readonly type = 'structuredClone';
++
++	constructor(private sender: Sender, readonly onMessage: Event<IStructuredCloneMessage>) { }
++
++	send(message: IStructuredCloneMessage): void {
++		try {
++			this.sender.send('vscode:message', message);
++		} catch (e) {
++			// systems are going down
++		}
++	}
++
++	disconnect(): void {
++		this.sender.send('vscode:disconnect', null);
++	}
++}
+diff --git a/src/vs/base/parts/ipc/common/ipc.structuredClone.mp.ts b/src/vs/base/parts/ipc/common/ipc.structuredClone.mp.ts
+new file mode 100644
+index 000000000000..d9e971e4ef99
+--- /dev/null
++++ b/src/vs/base/parts/ipc/common/ipc.structuredClone.mp.ts
+@@ -0,0 +1,77 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { Event } from '../../../common/event.js';
++import { IDisposable } from '../../../common/lifecycle.js';
++import { IPCClient, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
++
++/**
++ * Declare minimal `MessageEvent` and `MessagePort` interfaces here
++ * so that this utility can be used both from `browser` and
++ * `electron-main` namespace where message ports are available.
++ */
++
++export interface MessageEvent {
++
++	data: IStructuredCloneMessage;
++}
++
++export interface MessagePort {
++
++	addEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
++	removeEventListener(type: 'message', listener: (this: MessagePort, e: MessageEvent) => unknown): void;
++
++	postMessage(message: IStructuredCloneMessage): void;
++
++	start(): void;
++	close(): void;
++}
++
++/**
++ * The MessagePort `Protocol` leverages MessagePort style IPC communication
++ * for the implementation of the `IMessagePassingProtocol`. That style of API
++ * is a simple `onmessage` / `postMessage` pattern.
++ */
++export class StructuredCloneProtocol implements IStructuredCloneMessagePassingProtocol {
++
++	readonly type = 'structuredClone';
++	readonly onMessage: Event<IStructuredCloneMessage>;
++
++	constructor(private port: MessagePort) {
++		const onMessage = Event.fromDOMEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data);
++		this.onMessage = Event.filter(onMessage, data => !!data);
++		// we must call start() to ensure messages are flowing
++		port.start();
++	}
++
++	send(message: IStructuredCloneMessage): void {
++		this.port.postMessage(message);
++	}
++
++	disconnect(): void {
++		this.port.close();
++	}
++}
++
++/**
++ * An implementation of a `IPCClient` on top of MessagePort style IPC communication.
++ */
++export class Client extends IPCClient implements IDisposable {
++
++	private protocol: StructuredCloneProtocol;
++
++	constructor(port: MessagePort, clientId: string) {
++		const protocol = new StructuredCloneProtocol(port);
++		super(protocol, clientId);
++
++		this.protocol = protocol;
++	}
++
++	override dispose(): void {
++		this.protocol.disconnect();
++
++		super.dispose();
++	}
++}
+diff --git a/src/vs/base/parts/ipc/common/ipc.structuredClone.ts b/src/vs/base/parts/ipc/common/ipc.structuredClone.ts
+new file mode 100644
+index 000000000000..dfae195587a2
+--- /dev/null
++++ b/src/vs/base/parts/ipc/common/ipc.structuredClone.ts
+@@ -0,0 +1,198 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { VSBuffer } from '../../../common/buffer.js';
++import { URI } from '../../../common/uri.js';
++import type { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
++
++/** Marshal channel data without exposing native frames to byte transports. */
++export function sendStructuredCloneMessage(protocol: IStructuredCloneMessagePassingProtocol, header: unknown, body: unknown): number {
++	// Channel headers contain only request IDs and names. Connection contexts
++	// can be arbitrary values and retain the full marshalling path below.
++	if (!header || typeof header !== 'object' || Array.isArray(header) && header.every(value => !value || typeof value !== 'object')) {
++		if (!body || typeof body !== 'object' || body instanceof Uint8Array) {
++			protocol.send({ header, body });
++			return 0;
++		}
++		if (body instanceof VSBuffer) {
++			protocol.send({ header, body, vsBuffers: [body] });
++			return 0;
++		}
++		if (body instanceof URI) {
++			protocol.send({ header, body: body.toJSON() });
++			return 0;
++		}
++		const json = trySerializeJSONBody(header, body);
++		if (json) {
++			protocol.send(json);
++			return 0;
++		}
++	}
++	const vsBuffers: { buffer: Uint8Array }[] = [];
++	const message = transformStructuredCloneData({ header, body }, value => {
++		if (value instanceof URI) {
++			return value.toJSON();
++		}
++		if (value instanceof VSBuffer) {
++			const buffer = { buffer: value.buffer };
++			vsBuffers.push(buffer);
++			return buffer;
++		}
++		return value;
++	}) as IStructuredCloneMessage;
++	if (vsBuffers.length > 0) {
++		message.vsBuffers = vsBuffers;
++	}
++	protocol.send(message);
++	return 0;
++}
++
++/** JSON strings avoid native cloning of large DTO trees and byte encoding. */
++function trySerializeJSONBody(header: unknown, body: unknown): IStructuredCloneMessage | undefined {
++	if (!canSerializeChannelJSON(body, new Set())) {
++		return undefined;
++	}
++	try {
++		return { header, body: JSON.stringify(body), jsonBody: true };
++	} catch (error) {
++		// Cycles and nested bigint values still require the native graph path.
++		if (!(error instanceof TypeError)) {
++			throw error;
++		}
++		return undefined;
++	}
++}
++
++/** Prefer legacy JSON for bulk DTOs, retaining richer graph semantics for smaller values.
++ * Optional fields and local callbacks retain the legacy JSON omission semantics.
++ */
++function canSerializeChannelJSON(data: unknown, seen: Set<object>): boolean {
++	if (!data || typeof data !== 'object') {
++		return false;
++	}
++	if (seen.has(data)) {
++		return false;
++	}
++	seen.add(data);
++	if (data instanceof URI) {
++		return true;
++	}
++	const isArray = Array.isArray(data);
++	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
++	if (!isArray && prototype !== Object.prototype && prototype !== null) {
++		return false;
++	}
++	const keys = Object.keys(data);
++	// Bulk channel payloads historically used JSON. Avoid recursively reflecting
++	// their DTO trees while preserving top-level native values on the graph path.
++	if (isArray && keys.length !== data.length) {
++		return false;
++	}
++	let index = 0;
++	for (const key of keys) {
++		if (isArray && key !== String(index++)) {
++			return false;
++		}
++		const descriptor = Object.getOwnPropertyDescriptor(data, key)!;
++		if (descriptor.get || descriptor.set) {
++			return false;
++		}
++		const value: unknown = descriptor.value;
++		if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
++			return false;
++		}
++		if (value && typeof value === 'object') {
++			if (!canSerializeChannelJSON(value, seen)) {
++				return false;
++			}
++		} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
++			return false;
++		}
++	}
++	return true;
++}
++
++/**
++ * Convert channel values without mutating them or losing structured-clone graph identity.
++ * Native cloneable values, including binary payloads, are left to the transport.
++ */
++function transformStructuredCloneData(data: unknown, transform: (value: object) => unknown, seen = new Map<object, unknown>()): unknown {
++	if (!data || typeof data !== 'object') {
++		return data;
++	}
++	if (seen.has(data)) {
++		return seen.get(data);
++	}
++	const transformed = transform(data);
++	if (transformed !== data) {
++		seen.set(data, transformed);
++		return transformed;
++	}
++	if (data instanceof Map) {
++		const result = new Map();
++		seen.set(data, result);
++		// Snapshot internal entries before getters can mutate the collection.
++		for (const [key, value] of Array.from(Map.prototype.entries.call(data))) {
++			result.set(transformStructuredCloneData(key, transform, seen), transformStructuredCloneData(value, transform, seen));
++		}
++		return result;
++	}
++	if (data instanceof Set) {
++		const result = new Set();
++		seen.set(data, result);
++		for (const value of Array.from(Set.prototype.values.call(data))) {
++			result.add(transformStructuredCloneData(value, transform, seen));
++		}
++		return result;
++	}
++	// Classifying plain objects must not invoke Symbol.toStringTag getters.
++	const isArray = Array.isArray(data);
++	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
++	if (isArray || prototype === Object.prototype || prototype === null || Object.prototype.toString.call(data) === '[object Object]') {
++		const result: object = isArray ? new Array(data.length) : {};
++		seen.set(data, result);
++		for (const key of Object.keys(data)) {
++			// Keep the initial enumerable keys, but omit keys deleted by earlier getters.
++			if (!Object.hasOwn(data, key)) {
++				continue;
++			}
++			const original = (data as Record<string, unknown>)[key];
++			// Local callbacks are omitted by the legacy JSON transport as well.
++			if (typeof original === 'function' || typeof original === 'symbol') {
++				continue;
++			}
++			const value = transformStructuredCloneData(original, transform, seen);
++			if (key === '__proto__') {
++				// Assignment would invoke Object.prototype's setter instead of copying the key.
++				Object.defineProperty(result, key, { value, enumerable: true, configurable: true, writable: true });
++			} else {
++				(result as Record<string, unknown>)[key] = value;
++			}
++		}
++		return result;
++	}
++	return data;
++}
++
++export function deserializeStructuredCloneMessage(message: IStructuredCloneMessage): IStructuredCloneMessage {
++	// Structured cloning preserves the references in this table, including aliases
++	// in Map keys and Set entries. Restore those wrappers directly without walking
++	// or copying the received graph a second time.
++	for (const value of message.vsBuffers ?? []) {
++		if (value instanceof VSBuffer) {
++			continue;
++		}
++		const buffer = VSBuffer.wrap(value.buffer);
++		Object.setPrototypeOf(value, VSBuffer.prototype);
++		Object.assign(value, buffer);
++	}
++	if (message.jsonBody) {
++		message.body = JSON.parse(message.body as string);
++		// IPCClient shares this frame between its ChannelClient and ChannelServer.
++		message.jsonBody = false;
++	}
++	return message;
++}
++
+diff --git a/src/vs/base/parts/ipc/common/ipc.ts b/src/vs/base/parts/ipc/common/ipc.ts
+index 346f8888fa21..5c957273a975 100644
+--- a/src/vs/base/parts/ipc/common/ipc.ts
++++ b/src/vs/base/parts/ipc/common/ipc.ts
+@@ -15,7 +15,7 @@ import { DisposableStore, dispose, IDisposable, toDisposable } from '../../../co
+ import { revive } from '../../../common/marshalling.js';
+ import * as strings from '../../../common/strings.js';
+ import { isFunction, isUndefinedOrNull } from '../../../common/types.js';
+-import { URI } from '../../../common/uri.js';
++import { deserializeStructuredCloneMessage, sendStructuredCloneMessage } from './ipc.structuredClone.js';
+ 
+ /**
+  * An `IChannel` is an abstraction over a collection of commands.
+@@ -107,13 +107,8 @@ interface IHandler {
+ }
+ 
+ export interface IMessagePassingProtocol {
+-	readonly type?: undefined;
+ 	send(buffer: VSBuffer): void;
+-	/** Optional native path; received values use the same ordered message stream. */
+-	sendStructuredClone?(message: IStructuredCloneMessage): void;
+ 	readonly onMessage: Event<VSBuffer>;
+-	/** Optional ordered receive stream that avoids wrapping native values in byte buffers. */
+-	readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
+ 	/**
+ 	 * Wait for the write buffer (if applicable) to become empty.
+ 	 */
+@@ -129,237 +124,20 @@ export interface IStructuredCloneMessage {
+ 	vsBuffers?: readonly { buffer: Uint8Array }[];
+ }
+ 
+-const structuredCloneMessage = Symbol('structuredCloneMessage');
+-const emptyMessageBuffer = VSBuffer.wrap(new Uint8Array(0)).buffer;
+-
+-/** Carry native frames through the existing ordered, buffered handshake/RPC stream. */
+-export function wrapStructuredCloneMessage(message: IStructuredCloneMessage): VSBuffer {
+-	return Object.assign(VSBuffer.wrap(emptyMessageBuffer), { [structuredCloneMessage]: message });
+-}
+-
+-/** Read a locally wrapped native frame; ordinary binary messages have no attachment. */
+-export function getStructuredCloneMessage(buffer: VSBuffer): IStructuredCloneMessage | undefined {
+-	return (buffer as VSBuffer & { [structuredCloneMessage]?: IStructuredCloneMessage })[structuredCloneMessage];
+-}
+-
+ export interface IStructuredCloneMessagePassingProtocol {
+ 	readonly type: 'structuredClone';
+ 	send(message: IStructuredCloneMessage): void;
+ 	readonly onMessage: Event<IStructuredCloneMessage>;
+ }
+ 
+-export type IChannelMessagePassingProtocol = IMessagePassingProtocol | IStructuredCloneMessagePassingProtocol;
+-
+-function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
+-	if (protocol.type === 'structuredClone') {
+-		// Channel headers contain only request IDs and names. Connection contexts
+-		// can be arbitrary values and retain the full marshalling path below.
+-		if (!header || typeof header !== 'object' || Array.isArray(header) && header.every(value => !value || typeof value !== 'object')) {
+-			if (!body || typeof body !== 'object' || body instanceof Uint8Array) {
+-				protocol.send({ header, body });
+-				return 0;
+-			}
+-			if (body instanceof VSBuffer) {
+-				protocol.send({ header, body, vsBuffers: [body] });
+-				return 0;
+-			}
+-			if (body instanceof URI) {
+-				protocol.send({ header, body: body.toJSON() });
+-				return 0;
+-			}
+-			const json = trySerializeJSONBody(header, body);
+-			if (json) {
+-				protocol.send(json);
+-				return 0;
+-			}
+-		}
+-		const vsBuffers: { buffer: Uint8Array }[] = [];
+-		const message = transformStructuredCloneData({ header, body }, value => {
+-			if (value instanceof URI) {
+-				return value.toJSON();
+-			}
+-			if (value instanceof VSBuffer) {
+-				const buffer = { buffer: value.buffer };
+-				vsBuffers.push(buffer);
+-				return buffer;
+-			}
+-			return value;
+-		}) as IStructuredCloneMessage;
+-		if (vsBuffers.length > 0) {
+-			message.vsBuffers = vsBuffers;
+-		}
+-		protocol.send(message);
+-		return 0;
+-	}
++export type IChannelMessagePassingProtocol = (IMessagePassingProtocol & { readonly type?: never }) | IStructuredCloneMessagePassingProtocol;
+ 
+-	return sendBufferMessage(protocol, header, body);
++function isStructuredCloneProtocol(protocol: IChannelMessagePassingProtocol): protocol is IStructuredCloneMessagePassingProtocol {
++	return 'type' in protocol && protocol.type === 'structuredClone';
+ }
+ 
+-/** JSON strings avoid native cloning of large DTO trees and byte encoding. */
+-function trySerializeJSONBody(header: unknown, body: unknown): IStructuredCloneMessage | undefined {
+-	if (!canSerializeChannelJSON(body, new Set())) {
+-		return undefined;
+-	}
+-	try {
+-		return { header, body: JSON.stringify(body), jsonBody: true };
+-	} catch (error) {
+-		// Cycles and nested bigint values still require the native graph path.
+-		if (!(error instanceof TypeError)) {
+-			throw error;
+-		}
+-		return undefined;
+-	}
+-}
+-
+-/** Prefer legacy JSON for bulk DTOs, retaining richer graph semantics for smaller values.
+- * Optional fields and local callbacks retain the legacy JSON omission semantics.
+- */
+-function canSerializeChannelJSON(data: unknown, seen: Set<object>): boolean {
+-	if (!data || typeof data !== 'object') {
+-		return false;
+-	}
+-	if (seen.has(data)) {
+-		return false;
+-	}
+-	seen.add(data);
+-	if (data instanceof URI) {
+-		return true;
+-	}
+-	const isArray = Array.isArray(data);
+-	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+-	if (!isArray && prototype !== Object.prototype && prototype !== null) {
+-		return false;
+-	}
+-	const keys = Object.keys(data);
+-	// Bulk channel payloads historically used JSON. Avoid recursively reflecting
+-	// their DTO trees while preserving top-level native values on the graph path.
+-	if (keys.length >= 32) {
+-		if (isArray && (keys.length !== data.length || keys[keys.length - 1] !== String(data.length - 1))) {
+-			return false;
+-		}
+-		for (const key of keys) {
+-			const value = (data as Record<string, unknown>)[key];
+-			if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+-				return false;
+-			}
+-			if (value && typeof value === 'object' && !(value instanceof URI)) {
+-				const prototype = Object.getPrototypeOf(value);
+-				if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+-					return false;
+-				}
+-			} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+-				return false;
+-			}
+-		}
+-		return true;
+-	}
+-	if (isArray && keys.length !== data.length) {
+-		return false;
+-	}
+-	let index = 0;
+-	for (const key of keys) {
+-		if (isArray && key !== String(index++)) {
+-			return false;
+-		}
+-		const descriptor = Object.getOwnPropertyDescriptor(data, key)!;
+-		if (descriptor.get || descriptor.set) {
+-			return false;
+-		}
+-		const value: unknown = descriptor.value;
+-		if (key === 'toJSON' && typeof value === 'function' || isArray && (value === undefined || typeof value === 'function')) {
+-			return false;
+-		}
+-		if (value && typeof value === 'object') {
+-			if (!canSerializeChannelJSON(value, seen)) {
+-				return false;
+-			}
+-		} else if (typeof value === 'bigint' || typeof value === 'symbol' || typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) {
+-			return false;
+-		}
+-	}
+-	return true;
+-}
+-
+-/**
+- * Convert channel values without mutating them or losing structured-clone graph identity.
+- * Native cloneable values, including binary payloads, are left to the transport.
+- */
+-function transformStructuredCloneData(data: unknown, transform: (value: object) => unknown, seen = new Map<object, unknown>()): unknown {
+-	if (!data || typeof data !== 'object') {
+-		return data;
+-	}
+-	if (seen.has(data)) {
+-		return seen.get(data);
+-	}
+-	const transformed = transform(data);
+-	if (transformed !== data) {
+-		seen.set(data, transformed);
+-		return transformed;
+-	}
+-	if (data instanceof Map) {
+-		const result = new Map();
+-		seen.set(data, result);
+-		// Snapshot internal entries before getters can mutate the collection.
+-		for (const [key, value] of Array.from(Map.prototype.entries.call(data))) {
+-			result.set(transformStructuredCloneData(key, transform, seen), transformStructuredCloneData(value, transform, seen));
+-		}
+-		return result;
+-	}
+-	if (data instanceof Set) {
+-		const result = new Set();
+-		seen.set(data, result);
+-		for (const value of Array.from(Set.prototype.values.call(data))) {
+-			result.add(transformStructuredCloneData(value, transform, seen));
+-		}
+-		return result;
+-	}
+-	// Classifying plain objects must not invoke Symbol.toStringTag getters.
+-	const isArray = Array.isArray(data);
+-	const prototype = isArray ? undefined : Object.getPrototypeOf(data);
+-	if (isArray || prototype === Object.prototype || prototype === null || Object.prototype.toString.call(data) === '[object Object]') {
+-		const result: object = isArray ? new Array(data.length) : {};
+-		seen.set(data, result);
+-		for (const key of Object.keys(data)) {
+-			// Keep the initial enumerable keys, but omit keys deleted by earlier getters.
+-			if (!Object.hasOwn(data, key)) {
+-				continue;
+-			}
+-			const original = (data as Record<string, unknown>)[key];
+-			// Local callbacks are omitted by the legacy JSON transport as well.
+-			if (typeof original === 'function' || typeof original === 'symbol') {
+-				continue;
+-			}
+-			const value = transformStructuredCloneData(original, transform, seen);
+-			if (key === '__proto__') {
+-				// Assignment would invoke Object.prototype's setter instead of copying the key.
+-				Object.defineProperty(result, key, { value, enumerable: true, configurable: true, writable: true });
+-			} else {
+-				(result as Record<string, unknown>)[key] = value;
+-			}
+-		}
+-		return result;
+-	}
+-	return data;
+-}
+-
+-function deserializeStructuredCloneMessage(message: IStructuredCloneMessage): IStructuredCloneMessage {
+-	// Structured cloning preserves the references in this table, including aliases
+-	// in Map keys and Set entries. Restore those wrappers directly without walking
+-	// or copying the received graph a second time.
+-	for (const value of message.vsBuffers ?? []) {
+-		if (value instanceof VSBuffer) {
+-			continue;
+-		}
+-		const buffer = VSBuffer.wrap(value.buffer);
+-		Object.setPrototypeOf(value, VSBuffer.prototype);
+-		Object.assign(value, buffer);
+-	}
+-	if (message.jsonBody) {
+-		message.body = JSON.parse(message.body as string);
+-		// IPCClient shares this frame between its ChannelClient and ChannelServer.
+-		message.jsonBody = false;
+-	}
+-	return message;
++function sendMessage(protocol: IChannelMessagePassingProtocol, header: unknown, body: any = undefined): number {
++	return isStructuredCloneProtocol(protocol) ? sendStructuredCloneMessage(protocol, header, body) : sendBufferMessage(protocol, header, body);
+ }
+ 
+ function sendBufferMessage(protocol: IMessagePassingProtocol, header: unknown, body: any): number {
+@@ -643,7 +421,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
+ 	private pendingRequests = new Map<string, PendingRequest[]>();
+ 
+ 	constructor(private protocol: IChannelMessagePassingProtocol, private ctx: TContext, private logger: IIPCLogger | null = null, private timeoutDelay = 1000) {
+-		this.protocolListener = protocol.type === 'structuredClone'
++		this.protocolListener = isStructuredCloneProtocol(protocol)
+ 			? protocol.onMessage(message => {
+ 				if (!isRequestHeader(message.header)) {
+ 					return;
+@@ -854,7 +632,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
+ 	readonly onDidInitialize = this._onDidInitialize.event;
+ 
+ 	constructor(private protocol: IChannelMessagePassingProtocol, logger: IIPCLogger | null = null) {
+-		this.protocolListener = protocol.type === 'structuredClone'
++		this.protocolListener = isStructuredCloneProtocol(protocol)
+ 			? protocol.onMessage(message => {
+ 				if (!isResponseHeader(message.header)) {
+ 					return;
+@@ -1147,7 +925,7 @@ export class IPCServer<TContext = string> implements IChannelServer<TContext>, I
+ 		this.disposables.add(onDidClientConnect(({ protocol, onDidClientDisconnect }) => {
+ 			const connectionDisposables = new DisposableStore();
+ 
+-			const onFirstMessageDisposable = (protocol.type === 'structuredClone'
++			const onFirstMessageDisposable = (isStructuredCloneProtocol(protocol)
+ 				? Event.once(protocol.onMessage)(message => this.initializeConnection(protocol, deserializeStructuredCloneMessage(message).header as TContext, onDidClientDisconnect, connectionDisposables, ipcLogger, timeoutDelay))
+ 				: Event.once(protocol.onMessage)(message => {
+ 					const reader = new BufferReader(message);
+diff --git a/src/vs/base/parts/ipc/electron-browser/ipc.electron.ts b/src/vs/base/parts/ipc/electron-browser/ipc.electron.ts
+index 2932c4c07d1a..fdda90e08551 100644
+--- a/src/vs/base/parts/ipc/electron-browser/ipc.electron.ts
++++ b/src/vs/base/parts/ipc/electron-browser/ipc.electron.ts
+@@ -6,7 +6,7 @@
+ import { Event } from '../../../common/event.js';
+ import { IDisposable } from '../../../common/lifecycle.js';
+ import { IPCClient, IStructuredCloneMessage } from '../common/ipc.js';
+-import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
++import { StructuredCloneProtocol as ElectronProtocol } from '../common/ipc.structuredClone.electron.js';
+ import { ipcRenderer } from '../../sandbox/electron-browser/globals.js';
+ 
+ /**
+diff --git a/src/vs/base/parts/ipc/electron-main/ipc.electron.ts b/src/vs/base/parts/ipc/electron-main/ipc.electron.ts
+index f1095f2867ca..c7e38ee40e48 100644
+--- a/src/vs/base/parts/ipc/electron-main/ipc.electron.ts
++++ b/src/vs/base/parts/ipc/electron-main/ipc.electron.ts
+@@ -8,7 +8,7 @@ import { validatedIpcMain } from './ipcMain.js';
+ import { Emitter, Event } from '../../../common/event.js';
+ import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
+ import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage } from '../common/ipc.js';
+-import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
++import { StructuredCloneProtocol as ElectronProtocol } from '../common/ipc.structuredClone.electron.js';
+ 
+ interface IIPCEvent {
+ 	event: { sender: WebContents };
+diff --git a/src/vs/base/parts/ipc/electron-main/ipc.mp.ts b/src/vs/base/parts/ipc/electron-main/ipc.mp.ts
+index 4f2dc1987b3a..dc7cdeb641ca 100644
+--- a/src/vs/base/parts/ipc/electron-main/ipc.mp.ts
++++ b/src/vs/base/parts/ipc/electron-main/ipc.mp.ts
+@@ -8,7 +8,7 @@ import { validatedIpcMain } from './ipcMain.js';
+ import { Event } from '../../../common/event.js';
+ import { IDisposable } from '../../../common/lifecycle.js';
+ import { generateUuid } from '../../../common/uuid.js';
+-import { Client as MessagePortClient } from '../common/ipc.mp.js';
++import { Client as MessagePortClient } from '../common/ipc.structuredClone.mp.js';
+ 
+ /**
+  * An implementation of a `IPCClient` on top of Electron `MessagePortMain`.
+diff --git a/src/vs/base/parts/ipc/node/ipc.mp.ts b/src/vs/base/parts/ipc/node/ipc.mp.ts
+index 473f1d12e10a..ade456373c0f 100644
+--- a/src/vs/base/parts/ipc/node/ipc.mp.ts
++++ b/src/vs/base/parts/ipc/node/ipc.mp.ts
+@@ -4,7 +4,8 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
+-import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
++import { VSBuffer } from '../../../common/buffer.js';
++import { ClientConnectionEvent, IMessagePassingProtocol, IPCServer } from '../common/ipc.js';
+ import { Emitter, Event } from '../../../common/event.js';
+ import { assertType } from '../../../common/types.js';
+ 
+@@ -12,20 +13,23 @@ import { assertType } from '../../../common/types.js';
+  * The MessagePort `Protocol` leverages MessagePortMain style IPC communication
+  * for the implementation of the `IMessagePassingProtocol`.
+  */
+-class Protocol implements IStructuredCloneMessagePassingProtocol {
++class Protocol implements IMessagePassingProtocol {
+ 
+-	readonly type = 'structuredClone';
+-	readonly onMessage: Event<IStructuredCloneMessage>;
++	readonly onMessage;
+ 
+ 	constructor(private port: MessagePortMain) {
+-		const onMessage = Event.fromNodeEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data as IStructuredCloneMessage);
+-		this.onMessage = Event.filter(onMessage, data => !!data);
++		this.onMessage = Event.fromNodeEventEmitter<VSBuffer>(this.port, 'message', (e: MessageEvent) => {
++			if (e.data) {
++				return VSBuffer.wrap(e.data as Uint8Array);
++			}
++			return VSBuffer.alloc(0);
++		});
+ 		// we must call start() to ensure messages are flowing
+ 		port.start();
+ 	}
+ 
+-	send(message: IStructuredCloneMessage): void {
+-		this.port.postMessage(message);
++	send(message: VSBuffer): void {
++		this.port.postMessage(message.buffer);
+ 	}
+ 
+ 	disconnect(): void {
+diff --git a/src/vs/base/parts/ipc/node/ipc.structuredClone.mp.ts b/src/vs/base/parts/ipc/node/ipc.structuredClone.mp.ts
+new file mode 100644
+index 000000000000..ca4128da55fe
+--- /dev/null
++++ b/src/vs/base/parts/ipc/node/ipc.structuredClone.mp.ts
+@@ -0,0 +1,105 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
++import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
++import { Emitter, Event } from '../../../common/event.js';
++import { assertType } from '../../../common/types.js';
++
++/**
++ * The MessagePort `Protocol` leverages MessagePortMain style IPC communication
++ * for the implementation of the `IMessagePassingProtocol`.
++ */
++class StructuredCloneProtocol implements IStructuredCloneMessagePassingProtocol {
++
++	readonly type = 'structuredClone';
++	readonly onMessage: Event<IStructuredCloneMessage>;
++
++	constructor(private port: MessagePortMain) {
++		const onMessage = Event.fromNodeEventEmitter<IStructuredCloneMessage>(this.port, 'message', (e: MessageEvent) => e.data as IStructuredCloneMessage);
++		this.onMessage = Event.filter(onMessage, data => !!data);
++		// we must call start() to ensure messages are flowing
++		port.start();
++	}
++
++	send(message: IStructuredCloneMessage): void {
++		this.port.postMessage(message);
++	}
++
++	disconnect(): void {
++		this.port.close();
++	}
++}
++
++export interface IClientConnectionFilter {
++
++	/**
++	 * Allows to filter incoming messages to the
++	 * server to handle them differently.
++	 *
++	 * @param e the message event to handle
++	 * @returns `true` if the event was handled
++	 * and should not be processed by the server.
++	 */
++	handledClientConnection(e: MessageEvent): boolean;
++}
++
++/**
++ * An implementation of a `IPCServer` on top of MessagePort style IPC communication.
++ * The clients register themselves via Electron Utility Process IPC transfer.
++ */
++export class Server extends IPCServer {
++
++	private static getOnDidClientConnect(filter?: IClientConnectionFilter): Event<ClientConnectionEvent> {
++		assertType(isUtilityProcess(process), 'Electron Utility Process');
++
++		const onCreateMessageChannel = new Emitter<MessagePortMain>();
++
++		process.parentPort.on('message', (e: MessageEvent) => {
++			if (filter?.handledClientConnection(e)) {
++				return;
++			}
++
++			const port = e.ports.at(0);
++			if (port) {
++				onCreateMessageChannel.fire(port);
++			}
++		});
++
++		return Event.map(onCreateMessageChannel.event, port => {
++			const protocol = new StructuredCloneProtocol(port);
++
++			const result: ClientConnectionEvent = {
++				protocol,
++				// Not part of the standard spec, but in Electron we get a `close` event
++				// when the other side closes. We can use this to detect disconnects
++				// (https://github.com/electron/electron/blob/11-x-y/docs/api/message-port-main.md#event-close)
++				onDidClientDisconnect: Event.fromNodeEventEmitter(port, 'close')
++			};
++
++			return result;
++		});
++	}
++
++	constructor(filter?: IClientConnectionFilter) {
++		super(Server.getOnDidClientConnect(filter));
++	}
++}
++
++interface INodeMessagePortFragment {
++	on(event: 'message', listener: (messageEvent: MessageEvent) => void): this;
++	removeListener(event: 'message', listener: (messageEvent: MessageEvent) => void): this;
++}
++
++export function once(port: INodeMessagePortFragment, message: unknown, callback: () => void): void {
++	const listener = (e: MessageEvent) => {
++		if (e.data === message) {
++			port.removeListener('message', listener);
++			callback();
++		}
++	};
++
++	port.on('message', listener);
++}
+diff --git a/src/vs/base/parts/ipc/test/common/ipc.test.ts b/src/vs/base/parts/ipc/test/common/ipc.test.ts
+index 0b97126f607e..699b6be701b9 100644
+--- a/src/vs/base/parts/ipc/test/common/ipc.test.ts
++++ b/src/vs/base/parts/ipc/test/common/ipc.test.ts
+@@ -564,6 +564,20 @@ suite('Base IPC', function () {
+ 			});
+ 		});
+ 
++		for (const size of [31, 32, 33, 64]) {
++			for (const kind of ['object', 'array', 'nested'] as const) {
++				test(`reads ${kind} accessors once at ${size} keys`, async () => {
++					let reads = 0;
++					const values = Array.from({ length: size }, () => 0);
++					const input = kind === 'array' ? values : Object.fromEntries(values.map((value, index) => [String(index), value]));
++					Object.defineProperty(input, String(size - 1), { enumerable: true, get: () => ++reads });
++					const data = kind === 'nested' ? { nested: input } : input;
++					await client.getChannel('echo').call('echo', data);
++					assert.strictEqual(reads, 1);
++				});
++			}
++		}
++
+ 		test('reads enumerable getters once without mutating frozen input', async () => {
+ 			let reads = 0;
+ 			const buffer = VSBuffer.fromString('getter');
+diff --git a/src/vs/base/parts/ipc/test/electron-browser/ipc.mp.test.ts b/src/vs/base/parts/ipc/test/electron-browser/ipc.mp.test.ts
+index 7b41da7ecaf4..a4972925b409 100644
+--- a/src/vs/base/parts/ipc/test/electron-browser/ipc.mp.test.ts
++++ b/src/vs/base/parts/ipc/test/electron-browser/ipc.mp.test.ts
+@@ -10,7 +10,7 @@ import { Event } from '../../../../common/event.js';
+ import { toDisposable } from '../../../../common/lifecycle.js';
+ import { URI } from '../../../../common/uri.js';
+ import { ChannelClient, ChannelServer } from '../../common/ipc.js';
+-import { Protocol } from '../../common/ipc.mp.js';
++import { StructuredCloneProtocol as Protocol } from '../../common/ipc.structuredClone.mp.js';
+ import { Client as MessagePortClient } from '../../browser/ipc.mp.js';
+ import { acquirePort, MessagePortAcquisitionError } from '../../electron-browser/ipc.mp.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
+diff --git a/src/vs/code/electron-utility/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-utility/sharedProcess/sharedProcessMain.ts
+index d09d30cded47..38bf6215763b 100644
+--- a/src/vs/code/electron-utility/sharedProcess/sharedProcessMain.ts
++++ b/src/vs/code/electron-utility/sharedProcess/sharedProcessMain.ts
+@@ -12,7 +12,7 @@ import { Schemas } from '../../../base/common/network.js';
+ import { URI } from '../../../base/common/uri.js';
+ import { Emitter } from '../../../base/common/event.js';
+ import { ProxyChannel, StaticRouter } from '../../../base/parts/ipc/common/ipc.js';
+-import { IClientConnectionFilter, Server as UtilityProcessMessagePortServer, once } from '../../../base/parts/ipc/node/ipc.mp.js';
++import { IClientConnectionFilter, Server as UtilityProcessMessagePortServer, once } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
+ import { CodeCacheCleaner } from './contrib/codeCacheCleaner.js';
+ import { LanguagePackCachedDataCleaner } from './contrib/languagePackCachedDataCleaner.js';
+ import { LocalizationsUpdater } from './contrib/localizationsUpdater.js';
+diff --git a/src/vs/platform/agentHost/electron-browser/localAgentHostService.ts b/src/vs/platform/agentHost/electron-browser/localAgentHostService.ts
+index 147f6f3bbfc2..e0d28cc068a6 100644
+--- a/src/vs/platform/agentHost/electron-browser/localAgentHostService.ts
++++ b/src/vs/platform/agentHost/electron-browser/localAgentHostService.ts
+@@ -17,7 +17,7 @@ import type { ArtifactIntegrationDescriptor } from '../../artifactIntegrations/c
+ import { ArtifactChatAction } from '../common/artifactIntegrationChat.js';
+ import { generateUuid } from '../../../base/common/uuid.js';
+ import { getDelayedChannel, IChannelClient, IChannelServer, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+-import { Client as MessagePortClient } from '../../../base/parts/ipc/common/ipc.mp.js';
++import { Client as MessagePortClient } from '../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
+ import { acquirePort, MessagePortAcquisitionError } from '../../../base/parts/ipc/electron-browser/ipc.mp.js';
+ import { ipcRenderer } from '../../../base/parts/sandbox/electron-browser/globals.js';
+ import { localize } from '../../../nls.js';
+diff --git a/src/vs/platform/agentHost/node/agentHostMain.ts b/src/vs/platform/agentHost/node/agentHostMain.ts
+index 44f7ac0e5b44..0d3bfb5f2d50 100644
+--- a/src/vs/platform/agentHost/node/agentHostMain.ts
++++ b/src/vs/platform/agentHost/node/agentHostMain.ts
+@@ -6,7 +6,7 @@
+ import { DeferredPromise } from '../../../base/common/async.js';
+ import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+ import { Server as ChildProcessServer } from '../../../base/parts/ipc/node/ipc.cp.js';
+-import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.mp.js';
++import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
+ import { isUtilityProcess } from '../../../base/parts/sandbox/node/electronTypes.js';
+ import { Emitter, type Event } from '../../../base/common/event.js';
+ import { DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+diff --git a/src/vs/platform/files/node/diskFileSystemProviderServer.ts b/src/vs/platform/files/node/diskFileSystemProviderServer.ts
+index 8aca3655965a..966e6edc9787 100644
+--- a/src/vs/platform/files/node/diskFileSystemProviderServer.ts
++++ b/src/vs/platform/files/node/diskFileSystemProviderServer.ts
+@@ -12,7 +12,7 @@ import { IURITransformer } from '../../../base/common/uriIpc.js';
+ import { URI, UriComponents } from '../../../base/common/uri.js';
+ import { VSBuffer } from '../../../base/common/buffer.js';
+ import { ReadableStreamEventPayload, listenStream } from '../../../base/common/stream.js';
+-import { IStat, IFileReadStreamOptions, IFileWriteOptions, IFileOpenOptions, IFileDeleteOptions, IFileOverwriteOptions, IFileChange, IWatchOptions, FileType, IFileAtomicReadOptions } from '../common/files.js';
++import { IStat, IFileReadStreamOptions, IFileWriteOptions, IFileOpenOptions, IFileDeleteOptions, IFileOverwriteOptions, IFileChange, IWatchOptions, FileType, IFileAtomicReadOptions, IFileSystemProviderError, toFileSystemProviderErrorCode } from '../common/files.js';
+ import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+ import { IEnvironmentService } from '../../environment/common/environment.js';
+ import { IRecursiveWatcherOptions } from '../common/watcher.js';
+@@ -124,7 +124,14 @@ export abstract class AbstractDiskFileSystemProviderChannel<T> extends Disposabl
+ 				const data = encodeIPCFileData(chunk);
+ 				emitter.fire(typeof data === 'string' ? { data } : data);
+ 			},
+-			onError: error => emitter.fire(error),
++			onError: error => {
++				const serialized: IFileSystemProviderError = {
++					name: error.name,
++					message: error.message,
++					code: toFileSystemProviderErrorCode(error)
++				};
++				emitter.fire(serialized);
++			},
+ 			onEnd: () => {
+ 
+ 				// Forward event
+diff --git a/src/vs/platform/files/node/watcher/watcherMain.ts b/src/vs/platform/files/node/watcher/watcherMain.ts
+index 82f77152dcdc..4cc1b9677c14 100644
+--- a/src/vs/platform/files/node/watcher/watcherMain.ts
++++ b/src/vs/platform/files/node/watcher/watcherMain.ts
+@@ -6,7 +6,7 @@
+ import { DisposableStore } from '../../../../base/common/lifecycle.js';
+ import { ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
+ import { Server as ChildProcessServer } from '../../../../base/parts/ipc/node/ipc.cp.js';
+-import { Server as UtilityProcessServer } from '../../../../base/parts/ipc/node/ipc.mp.js';
++import { Server as UtilityProcessServer } from '../../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
+ import { isUtilityProcess } from '../../../../base/parts/sandbox/node/electronTypes.js';
+ import { UniversalWatcher } from './watcher.js';
+ 
+diff --git a/src/vs/platform/files/test/common/files.test.ts b/src/vs/platform/files/test/common/files.test.ts
+index e9419252ef8a..76097397b8c1 100644
+--- a/src/vs/platform/files/test/common/files.test.ts
++++ b/src/vs/platform/files/test/common/files.test.ts
+@@ -14,6 +14,16 @@ import { FileChangesEvent, FileChangeType, IFileChange, isParent } from '../../c
+ 
+ suite('Files', () => {
+ 
++	test('IPC file data preserves BOM, invalid UTF-8, empty input and view offsets', () => {
++		for (const content of [
++			new Uint8Array(), Uint8Array.from([0xef, 0xbb, 0xbf, 65]),
++			Uint8Array.from([0xc3]), Uint8Array.from([0xed, 0xa0, 0x80]),
++			Uint8Array.from([0, 65, 66, 0]).subarray(1, 3)
++		]) {
++			assert.deepStrictEqual([...decodeIPCFileData(encodeIPCFileData(content))], [...content]);
++		}
++	});
++
+ 	test('IPC file data uses strings only for ordinary UTF-8', () => {
+ 		const utf8 = VSBuffer.fromString('Hello 🌍').buffer;
+ 		const binaryWithNull = Uint8Array.from([65, 0, 66]);
+diff --git a/src/vs/platform/files/test/node/diskFileSystemProviderIpc.test.ts b/src/vs/platform/files/test/node/diskFileSystemProviderIpc.test.ts
+new file mode 100644
+index 000000000000..45a25b949f18
+--- /dev/null
++++ b/src/vs/platform/files/test/node/diskFileSystemProviderIpc.test.ts
+@@ -0,0 +1,98 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import assert from 'assert';
++import { promises } from 'fs';
++import { tmpdir } from 'os';
++import { CancellationToken } from '../../../../base/common/cancellation.js';
++import { Emitter } from '../../../../base/common/event.js';
++import { Disposable } from '../../../../base/common/lifecycle.js';
++import { join } from '../../../../base/common/path.js';
++import { consumeStream, newWriteableStream } from '../../../../base/common/stream.js';
++import { URI, UriComponents } from '../../../../base/common/uri.js';
++import { DefaultURITransformer, IURITransformer } from '../../../../base/common/uriIpc.js';
++import { ChannelClient, ChannelServer } from '../../../../base/parts/ipc/common/ipc.js';
++import { createMessagePortProtocols } from '../../../../base/parts/ipc/test/node/ipcTestUtils.js';
++import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
++import { getRandomTestPath } from '../../../../base/test/node/testUtils.js';
++import { NullLogService } from '../../../log/common/log.js';
++import { DiskFileSystemProviderClient } from '../../common/diskFileSystemProviderClient.js';
++import { createFileSystemProviderError, FileSystemProviderErrorCode, IFileChange, toFileSystemProviderErrorCode } from '../../common/files.js';
++import { DiskFileSystemProvider } from '../../node/diskFileSystemProvider.js';
++import { AbstractDiskFileSystemProviderChannel, ISessionFileWatcher } from '../../node/diskFileSystemProviderServer.js';
++
++class TestDiskChannel extends AbstractDiskFileSystemProviderChannel<string> {
++	protected getUriTransformer(): IURITransformer { return DefaultURITransformer; }
++	protected transformIncoming(_transformer: IURITransformer, resource: UriComponents): URI { return URI.revive(resource); }
++	protected createSessionFileWatcher(_transformer: IURITransformer, _emitter: Emitter<IFileChange[] | string>): ISessionFileWatcher {
++		return { watch: () => Disposable.None, dispose: () => { } };
++	}
++}
++
++suite('DiskFileSystemProvider native IPC', () => {
++	const store = ensureNoDisposablesAreLeakedInTestSuite();
++	let directory: string;
++
++	setup(async () => {
++		directory = getRandomTestPath(tmpdir(), 'vsctests', 'native-file-ipc');
++		await promises.mkdir(directory, { recursive: true });
++	});
++	teardown(async () => { await promises.rm(directory, { recursive: true, force: true }); });
++
++	function connect(provider: DiskFileSystemProvider): DiskFileSystemProviderClient {
++		const [serverProtocol, clientProtocol] = createMessagePortProtocols(store);
++		const server = store.add(new ChannelServer(serverProtocol, 'test'));
++		server.registerChannel('files', store.add(new TestDiskChannel(provider, new NullLogService())));
++		const client = store.add(new ChannelClient(clientProtocol));
++		return store.add(new DiskFileSystemProviderClient(client.getChannel('files'), {}));
++	}
++
++	for (const code of [FileSystemProviderErrorCode.FileNotFound, FileSystemProviderErrorCode.NoPermissions, FileSystemProviderErrorCode.FileTooLarge]) {
++		test(`stream errors retain provider classification ${code} over a real MessagePort`, async () => {
++			const provider = store.add(new class extends DiskFileSystemProvider {
++				override readFileStream() {
++					const stream = newWriteableStream<Uint8Array>(null);
++					queueMicrotask(() => {
++						stream.error(createFileSystemProviderError('provider failure', code));
++						stream.end();
++					});
++					return stream;
++				}
++			}(new NullLogService()));
++			const client = connect(provider);
++			await assert.rejects(consumeStream(client.readFileStream(URI.file(join(directory, 'file')), {}, CancellationToken.None), chunks => chunks[0]), error =>
++				error instanceof Error && error.message === 'provider failure' && toFileSystemProviderErrorCode(error) === code);
++		});
++	}
++
++	test('real missing-file stream errors retain their classification', async () => {
++		const client = connect(store.add(new DiskFileSystemProvider(new NullLogService())));
++		await assert.rejects(consumeStream(client.readFileStream(URI.file(join(directory, 'missing')), {}, CancellationToken.None), chunks => chunks[0]), error =>
++			error instanceof Error && toFileSystemProviderErrorCode(error) === FileSystemProviderErrorCode.FileNotFound);
++	});
++
++	test('file contents, partial reads and write offsets preserve exact bytes', async () => {
++		const client = connect(store.add(new DiskFileSystemProvider(new NullLogService())));
++		const resource = URI.file(join(directory, 'bytes'));
++		const content = Uint8Array.from([0xef, 0xbb, 0xbf, 65, 66]);
++		await client.writeFile(resource, content, { create: true, overwrite: true, unlock: false, atomic: false });
++		assert.deepStrictEqual([...await client.readFile(resource)], [...content]);
++		const fd = await client.open(resource, { create: false });
++		try {
++			const target = new Uint8Array(8).fill(255);
++			const read = await client.read(fd, 3, target, 2, 5);
++			assert.deepStrictEqual({ read, target: [...target] }, { read: 2, target: [255, 255, 65, 66, 255, 255, 255, 255] });
++		} finally {
++			await client.close(fd);
++		}
++		const writable = await client.open(resource, { create: true, unlock: false });
++		try {
++			const written = await client.write(writable, 0, Uint8Array.from([90, 0xef, 0xbb, 0xbf, 88, 89, 90]), 1, 5);
++			assert.deepStrictEqual({ written, content: [...await client.readFile(resource)] }, { written: 5, content: [0xef, 0xbb, 0xbf, 88, 89] });
++		} finally {
++			await client.close(writable);
++		}
++	});
++});
+diff --git a/src/vs/platform/gpu/test/electron-main/fixtures/gpuProcessIntegrationPreload.ts b/src/vs/platform/gpu/test/electron-main/fixtures/gpuProcessIntegrationPreload.ts
+index e5f8caaf419c..03239d34c1f3 100644
+--- a/src/vs/platform/gpu/test/electron-main/fixtures/gpuProcessIntegrationPreload.ts
++++ b/src/vs/platform/gpu/test/electron-main/fixtures/gpuProcessIntegrationPreload.ts
+@@ -7,7 +7,7 @@ import { contextBridge, ipcRenderer } from 'electron';
+ import { Event } from '../../../../../base/common/event.js';
+ import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+ import { IChannel, IPCClient, IStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+-import { Protocol } from '../../../../../base/parts/ipc/common/ipc.electron.js';
++import { StructuredCloneProtocol as Protocol } from '../../../../../base/parts/ipc/common/ipc.structuredClone.electron.js';
+ 
+ interface IConnection {
+ 	readonly store: DisposableStore;
+diff --git a/src/vs/platform/localTranscription/node/localTranscriptionMain.ts b/src/vs/platform/localTranscription/node/localTranscriptionMain.ts
+index 4cf18f4bcdd8..2fe8c28692c8 100644
+--- a/src/vs/platform/localTranscription/node/localTranscriptionMain.ts
++++ b/src/vs/platform/localTranscription/node/localTranscriptionMain.ts
+@@ -5,7 +5,7 @@
+ 
+ import { DisposableStore } from '../../../base/common/lifecycle.js';
+ import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+-import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.mp.js';
++import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
+ import { isUtilityProcess } from '../../../base/parts/sandbox/node/electronTypes.js';
+ import { localTranscriptionChannelName } from '../common/localTranscription.js';
+ import { LocalTranscriptionService } from './localTranscriptionService.js';
+diff --git a/src/vs/platform/terminal/node/ptyHostMain.ts b/src/vs/platform/terminal/node/ptyHostMain.ts
+index 43488f3e5de1..fde147b4eb19 100644
+--- a/src/vs/platform/terminal/node/ptyHostMain.ts
++++ b/src/vs/platform/terminal/node/ptyHostMain.ts
+@@ -6,7 +6,7 @@
+ import { DefaultURITransformer } from '../../../base/common/uriIpc.js';
+ import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+ import { Server as ChildProcessServer } from '../../../base/parts/ipc/node/ipc.cp.js';
+-import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.mp.js';
++import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
+ import { localize } from '../../../nls.js';
+ import { OPTIONS, parseArgs } from '../../environment/node/argv.js';
+ import { NativeEnvironmentService } from '../../environment/node/environmentService.js';
+diff --git a/src/vs/workbench/api/common/extHostFileSystemConsumer.ts b/src/vs/workbench/api/common/extHostFileSystemConsumer.ts
+index 710b473ae618..20471e6bf6d7 100644
+--- a/src/vs/workbench/api/common/extHostFileSystemConsumer.ts
++++ b/src/vs/workbench/api/common/extHostFileSystemConsumer.ts
+@@ -261,8 +261,13 @@ export class ExtHostConsumerFileSystem {
+ 	// ---
+ 
+ 	addFileSystemProvider(scheme: string, provider: vscode.FileSystemProvider, options?: { isCaseSensitive?: boolean; isReadonly?: boolean | IMarkdownString }): IDisposable {
+-		this._fileSystemProvider.set(scheme, { impl: provider, extUri: options?.isCaseSensitive ? extUri : extUriIgnorePathCase, isReadonly: !!options?.isReadonly });
+-		return toDisposable(() => this._fileSystemProvider.delete(scheme));
++		const registration = { impl: provider, extUri: options?.isCaseSensitive ? extUri : extUriIgnorePathCase, isReadonly: !!options?.isReadonly };
++		this._fileSystemProvider.set(scheme, registration);
++		return toDisposable(() => {
++			if (this._fileSystemProvider.get(scheme) === registration) {
++				this._fileSystemProvider.delete(scheme);
++			}
++		});
+ 	}
+ 
+ 	getFileSystemProviderExtUri(scheme: string) {
+diff --git a/src/vs/workbench/api/common/extHostTerminalShellIntegration.ts b/src/vs/workbench/api/common/extHostTerminalShellIntegration.ts
+index 37a03148780d..11634387afad 100644
+--- a/src/vs/workbench/api/common/extHostTerminalShellIntegration.ts
++++ b/src/vs/workbench/api/common/extHostTerminalShellIntegration.ts
+@@ -12,7 +12,7 @@ import { IExtHostRpcService } from './extHostRpcService.js';
+ import { IExtHostTerminalService } from './extHostTerminalService.js';
+ import { Emitter, type Event } from '../../../base/common/event.js';
+ import { URI } from '../../../base/common/uri.js';
+-import { AsyncIterableObject, Barrier, type AsyncIterableEmitter } from '../../../base/common/async.js';
++import { AsyncIterableObject, AsyncIterableSource } from '../../../base/common/async.js';
+ 
+ export interface IExtHostTerminalShellIntegration extends ExtHostTerminalShellIntegrationShape {
+ 	readonly _serviceBrand: undefined;
+@@ -431,35 +431,28 @@ class InternalTerminalShellExecution {
+ }
+ 
+ class ShellExecutionDataStream extends Disposable {
+-	private _barrier: Barrier | undefined;
+-	private _iterables: AsyncIterableObject<string>[] = [];
+-	private _emitters: AsyncIterableEmitter<string>[] = [];
++	private readonly _sources: AsyncIterableSource<string>[] = [];
+ 
+ 	createIterable(): AsyncIterable<string> {
+-		if (!this._barrier) {
+-			this._barrier = new Barrier();
+-		}
+-		const barrier = this._barrier;
+-		const iterable = new AsyncIterableObject<string>(async emitter => {
+-			this._emitters.push(emitter);
+-			await barrier.wait();
+-		});
+-		this._iterables.push(iterable);
+-		return iterable;
++		const source = new AsyncIterableSource<string>();
++		this._sources.push(source);
++		return source.asyncIterable;
+ 	}
+ 
+ 	emitData(data: string): void {
+-		for (const emitter of this._emitters) {
+-			emitter.emitOne(data);
++		for (const source of this._sources) {
++			source.emitOne(data);
+ 		}
+ 	}
+ 
+ 	endExecution(): void {
+-		this._barrier?.open();
++		for (const source of this._sources) {
++			source.resolve();
++		}
+ 	}
+ 
+ 	async flush(): Promise<void> {
+-		await Promise.all(this._iterables.map(e => e.toPromise()));
++		await Promise.all(this._sources.map(source => source.asyncIterable.toPromise()));
+ 	}
+ }
+ 
+diff --git a/src/vs/workbench/api/common/extensionHostMain.ts b/src/vs/workbench/api/common/extensionHostMain.ts
+index 0883e52b7f12..c0741e70efc4 100644
+--- a/src/vs/workbench/api/common/extensionHostMain.ts
++++ b/src/vs/workbench/api/common/extensionHostMain.ts
+@@ -8,6 +8,8 @@ import * as performance from '../../../base/common/performance.js';
+ import { URI } from '../../../base/common/uri.js';
+ import { IURITransformer } from '../../../base/common/uriIpc.js';
+ import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
++import { StructuredCloneRPCProtocol } from '../../services/extensions/common/structuredCloneRPCProtocol.js';
++import { isStructuredCloneRPCTransport } from '../../services/extensions/common/rpcMessagePort.js';
+ import { MainContext, MainThreadConsoleShape } from './extHost.protocol.js';
+ import { IExtensionHostInitData } from '../../services/extensions/common/extensionHostProtocol.js';
+ import { RPCProtocol } from '../../services/extensions/common/rpcProtocol.js';
+@@ -161,7 +163,7 @@ export abstract class ErrorHandler {
+ export class ExtensionHostMain {
+ 
+ 	private readonly _hostUtils: IHostUtils;
+-	private readonly _rpcProtocol: RPCProtocol;
++	private readonly _rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol;
+ 	private readonly _extensionService: IExtHostExtensionService;
+ 	private readonly _logService: ILogService;
+ 
+@@ -173,7 +175,7 @@ export class ExtensionHostMain {
+ 		messagePorts?: ReadonlyMap<string, MessagePort>
+ 	) {
+ 		this._hostUtils = hostUtils;
+-		this._rpcProtocol = new RPCProtocol(protocol, null, uriTransformer);
++		this._rpcProtocol = isStructuredCloneRPCTransport(protocol) ? new StructuredCloneRPCProtocol(protocol, null, uriTransformer) : new RPCProtocol(protocol, null, uriTransformer);
+ 
+ 		// ensure URIs are transformed and revived
+ 		initData = ExtensionHostMain._transform(initData, this._rpcProtocol);
+@@ -219,7 +221,7 @@ export class ExtensionHostMain {
+ 		this._extensionService.terminate(reason);
+ 	}
+ 
+-	private static _transform(initData: IExtensionHostInitData, rpcProtocol: RPCProtocol): IExtensionHostInitData {
++	private static _transform(initData: IExtensionHostInitData, rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol): IExtensionHostInitData {
+ 		initData.extensions.allExtensions.forEach((ext) => {
+ 			(<Mutable<IExtensionDescription>>ext).extensionLocation = URI.revive(rpcProtocol.transformIncomingURIs(ext.extensionLocation));
+ 		});
+diff --git a/src/vs/workbench/api/node/extensionHostProcess.ts b/src/vs/workbench/api/node/extensionHostProcess.ts
+index 1cb428a57522..5b9d6f67ed38 100644
+--- a/src/vs/workbench/api/node/extensionHostProcess.ts
++++ b/src/vs/workbench/api/node/extensionHostProcess.ts
+@@ -13,8 +13,8 @@ import { Event } from '../../../base/common/event.js';
+ import * as performance from '../../../base/common/performance.js';
+ import { IURITransformer } from '../../../base/common/uriIpc.js';
+ import { Promises } from '../../../base/node/pfs.js';
+-import { IMessagePassingProtocol, IStructuredCloneMessage } from '../../../base/parts/ipc/common/ipc.js';
+-import { RPCMessagePort } from '../../services/extensions/common/rpcMessagePort.js';
++import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
++import { IRPCMessage, isStructuredCloneRPCTransport, RPCMessagePort } from '../../services/extensions/common/rpcMessagePort.js';
+ import { BufferedEmitter, PersistentProtocol, ProtocolConstants } from '../../../base/parts/ipc/common/ipc.net.js';
+ import { NodeSocket, WebSocketNodeSocket } from '../../../base/parts/ipc/node/ipc.net.js';
+ import type { MessagePortMain, MessageEvent as UtilityMessageEvent } from '../../../base/parts/sandbox/node/electronTypes.js';
+@@ -293,12 +293,12 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 
+ 	const protocol = await _createExtHostProtocol();
+ 
+-	return new class implements IMessagePassingProtocol {
++	const terminatingProtocol = new class implements IMessagePassingProtocol {
+ 
+ 		private readonly _onMessage = new BufferedEmitter<VSBuffer>();
+ 		readonly onMessage: Event<VSBuffer> = this._onMessage.event;
+ 
+-		private _terminating: boolean;
++		_terminating: boolean;
+ 		private _protocolListener: IDisposable;
+ 
+ 		constructor() {
+@@ -320,11 +320,6 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 			}
+ 		}
+ 
+-		readonly sendStructuredClone = protocol.sendStructuredClone ? (message: IStructuredCloneMessage): void => {
+-			if (!this._terminating) {
+-				protocol.sendStructuredClone!(message);
+-			}
+-		} : undefined;
+ 
+ 		async drain(): Promise<void> {
+ 			if (protocol.drain) {
+@@ -332,6 +327,27 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 			}
+ 		}
+ 	};
++	if (isStructuredCloneRPCTransport(protocol)) {
++		const onRPCMessage: Event<IRPCMessage> = (listener, thisArgs, disposables) => protocol.onRPCMessage(message => {
++			if (!terminatingProtocol._terminating) {
++				listener.call(thisArgs, message);
++			}
++		}, undefined, disposables);
++		return Object.assign(terminatingProtocol, {
++			onRPCMessage,
++			sendRPCBuffer: (message: VSBuffer) => {
++				if (!terminatingProtocol._terminating) {
++					protocol.sendRPCBuffer(message);
++				}
++			},
++			sendRPCMessage: (message: Parameters<typeof protocol.sendRPCMessage>[0]) => {
++				if (!terminatingProtocol._terminating) {
++					protocol.sendRPCMessage(message);
++				}
++			}
++		});
++	}
++	return terminatingProtocol;
+ }
+ 
+ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRendererConnection> {
+diff --git a/src/vs/workbench/api/test/browser/extHostFileSystemConsumer.test.ts b/src/vs/workbench/api/test/browser/extHostFileSystemConsumer.test.ts
+index 43daa7eecd4e..69457bc0b574 100644
+--- a/src/vs/workbench/api/test/browser/extHostFileSystemConsumer.test.ts
++++ b/src/vs/workbench/api/test/browser/extHostFileSystemConsumer.test.ts
+@@ -106,6 +106,15 @@ suite('ExtHostConsumerFileSystem activation', () => {
+ 		assert.strictEqual(beforeRelease, 2);
+ 	});
+ 
++	test('disposing an old registration does not remove its replacement', async () => {
++		let activations = 0;
++		const consumer = createConsumer(async () => { activations++; });
++		const previous = store.add(consumer.addFileSystemProvider(uri.scheme, createProvider()));
++		store.add(consumer.addFileSystemProvider(uri.scheme, createProvider()));
++		previous.dispose();
++		assert.deepStrictEqual({ bytes: [...await consumer.value.readFile(uri)], activations }, { bytes: [1, 2, 3], activations: 1 });
++	});
++
+ 	test('readonly, trash, rename, copy and nonlocal operations retain main-thread paths', async () => {
+ 		const calls: string[] = [];
+ 		const record = (name: string) => async () => { calls.push(name); };
+diff --git a/src/vs/workbench/api/test/browser/extHostFileSystemEventService.test.ts b/src/vs/workbench/api/test/browser/extHostFileSystemEventService.test.ts
+index e06c1ad48ea5..9a1edd09312d 100644
+--- a/src/vs/workbench/api/test/browser/extHostFileSystemEventService.test.ts
++++ b/src/vs/workbench/api/test/browser/extHostFileSystemEventService.test.ts
+@@ -15,7 +15,7 @@ import { RelativePattern } from '../../common/extHostTypes.js';
+ import { nullExtensionDescription } from '../../../services/extensions/common/extensions.js';
+ import { ExtHostConfigProvider } from '../../common/extHostConfiguration.js';
+ import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
+-import { RPCProtocol } from '../../../services/extensions/common/rpcProtocol.js';
++import { StructuredCloneRPCProtocol as RPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
+ import { IStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
+ import { mock } from '../../../../base/test/common/mock.js';
+ 
+diff --git a/src/vs/workbench/api/test/browser/extHostNotifications.test.ts b/src/vs/workbench/api/test/browser/extHostNotifications.test.ts
+index eebb5130c4af..964dc69754c8 100644
+--- a/src/vs/workbench/api/test/browser/extHostNotifications.test.ts
++++ b/src/vs/workbench/api/test/browser/extHostNotifications.test.ts
+@@ -15,7 +15,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
+ import { TerminalDataBufferer } from '../../../../platform/terminal/common/terminalDataBuffering.js';
+ import { ProxyIdentifier } from '../../../services/extensions/common/proxyIdentifier.js';
+ import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
+-import { RPCProtocol } from '../../../services/extensions/common/rpcProtocol.js';
++import { StructuredCloneRPCProtocol as RPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
+ import { IMarkerChange, MainContext, MainThreadDiagnosticsShape, MainThreadTerminalServiceShape } from '../../common/extHost.protocol.js';
+ import { DiagnosticCollection } from '../../common/extHostDiagnostics.js';
+ import { Diagnostic, Range } from '../../common/extHostTypes.js';
+diff --git a/src/vs/workbench/api/test/common/extHostTerminalShellIntegration.test.ts b/src/vs/workbench/api/test/common/extHostTerminalShellIntegration.test.ts
+index 23e544f1568f..f768c7623865 100644
+--- a/src/vs/workbench/api/test/common/extHostTerminalShellIntegration.test.ts
++++ b/src/vs/workbench/api/test/common/extHostTerminalShellIntegration.test.ts
+@@ -11,6 +11,19 @@ import { TerminalShellExecutionCommandLineConfidence } from '../../common/extHos
+ import { deepStrictEqual, notStrictEqual, strictEqual } from 'assert';
+ import type { URI } from '../../../../base/common/uri.js';
+ import { DeferredPromise } from '../../../../base/common/async.js';
++import { toDisposable } from '../../../../base/common/lifecycle.js';
++import { ProxyIdentifier } from '../../../services/extensions/common/proxyIdentifier.js';
++import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
++import { StructuredCloneRPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
++
++interface TerminalBurst {
++	$prime(): void;
++	$start(): void;
++	$data(): void;
++	$end(): void;
++	$barrier(): void;
++}
++const terminalBurst = new ProxyIdentifier<TerminalBurst>('terminalNativeBurst', ['$prime', '$start', '$data', '$end']);
+ 
+ function cmdLine(value: string): TerminalShellExecutionCommandLine {
+ 	return Object.freeze({
+@@ -113,6 +126,33 @@ suite('InternalTerminalShellIntegration', () => {
+ 		})));
+ 	});
+ 
++	test('an immediate reader retains start/data/end from a primed real MessagePort batch', async () => {
++		const channel = new MessageChannel();
++		store.add(toDisposable(() => { channel.port1.close(); channel.port2.close(); }));
++		const first = store.add(new RPCMessagePort(message => channel.port1.postMessage(message)));
++		const second = store.add(new RPCMessagePort(message => channel.port2.postMessage(message)));
++		channel.port1.onmessage = event => first.acceptMessage(event.data);
++		channel.port2.onmessage = event => second.acceptMessage(event.data);
++		const sender = store.add(new StructuredCloneRPCProtocol(first));
++		const receiver = store.add(new StructuredCloneRPCProtocol(second));
++		receiver.set(terminalBurst, {
++			$prime: () => { },
++			$start: () => si.startShellExecution(cmdLine(testCommandLine), undefined),
++			$data: () => si.emitData('complete output'),
++			$end: () => si.endShellExecution(cmdLine(testCommandLine), 0),
++			$barrier: () => { }
++		});
++		const proxy = sender.getProxy(terminalBurst);
++		await proxy.$barrier();
++		void proxy.$prime();
++		void proxy.$start();
++		void proxy.$data();
++		void proxy.$end();
++		await proxy.$barrier();
++		await Promise.all(readIteratorsFlushed);
++		assertDataTrackedEvents([{ type: 'data', commandLine: testCommandLine, data: 'complete output' }]);
++	});
++
+ 	test('simple execution', async () => {
+ 		const execution = await startExecutionAwaitObject(testCommandLine);
+ 		deepStrictEqual(execution.commandLine.value, testCommandLine);
+diff --git a/src/vs/workbench/contrib/terminal/electron-browser/localTerminalBackend.ts b/src/vs/workbench/contrib/terminal/electron-browser/localTerminalBackend.ts
+index 1e24b60ef579..ce592b7cdd3d 100644
+--- a/src/vs/workbench/contrib/terminal/electron-browser/localTerminalBackend.ts
++++ b/src/vs/workbench/contrib/terminal/electron-browser/localTerminalBackend.ts
+@@ -27,7 +27,7 @@ import { IProductService } from '../../../../platform/product/common/productServ
+ import { IEnvironmentVariableService } from '../common/environmentVariable.js';
+ import { BaseTerminalBackend } from '../browser/baseTerminalBackend.js';
+ import { INativeHostService } from '../../../../platform/native/common/native.js';
+-import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
++import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
+ import { acquirePort } from '../../../../base/parts/ipc/electron-browser/ipc.mp.js';
+ import { getDelayedChannel, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
+ import { mark, PerformanceMark } from '../../../../base/common/performance.js';
+diff --git a/src/vs/workbench/contrib/terminal/test/electron-browser/localPty.test.ts b/src/vs/workbench/contrib/terminal/test/electron-browser/localPty.test.ts
+index e0871bdc7771..290a9a0b544a 100644
+--- a/src/vs/workbench/contrib/terminal/test/electron-browser/localPty.test.ts
++++ b/src/vs/workbench/contrib/terminal/test/electron-browser/localPty.test.ts
+@@ -8,7 +8,7 @@ import { DeferredPromise } from '../../../../../base/common/async.js';
+ import { Emitter, Event } from '../../../../../base/common/event.js';
+ import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
+ import { ProxyChannel } from '../../../../../base/parts/ipc/common/ipc.js';
+-import { Client as MessagePortClient } from '../../../../../base/parts/ipc/common/ipc.mp.js';
++import { Client as MessagePortClient } from '../../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
+ import { upcastPartial } from '../../../../../base/test/common/mock.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+ import { IPtyHostProcessReplayEvent } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
+diff --git a/src/vs/workbench/services/extensions/common/extensionHostManager.ts b/src/vs/workbench/services/extensions/common/extensionHostManager.ts
+index 4c249c2abb60..ef68e5f31fa9 100644
+--- a/src/vs/workbench/services/extensions/common/extensionHostManager.ts
++++ b/src/vs/workbench/services/extensions/common/extensionHostManager.ts
+@@ -11,6 +11,8 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+ import { StopWatch } from '../../../../base/common/stopwatch.js';
+ import { URI } from '../../../../base/common/uri.js';
+ import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
++import { StructuredCloneRPCProtocol } from './structuredCloneRPCProtocol.js';
++import { isStructuredCloneRPCTransport } from './rpcMessagePort.js';
+ import * as nls from '../../../../nls.js';
+ import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
+ import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+@@ -67,7 +69,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
+ 	 */
+ 	private readonly _cachedActivationEvents: Map<string, Promise<void>>;
+ 	private readonly _resolvedActivationEvents: Set<string>;
+-	private _rpcProtocol: RPCProtocol | null;
++	private _rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol | null;
+ 	private readonly _customers: IDisposable[];
+ 	private readonly _extensionHost: IExtensionHost;
+ 	private _proxy: Promise<IExtensionHostProxy | null> | null;
+@@ -255,7 +257,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
+ 			logger = new TelemetryRPCLogger(this._telemetryService);
+ 		}
+ 
+-		this._rpcProtocol = new RPCProtocol(protocol, logger);
++		this._rpcProtocol = isStructuredCloneRPCTransport(protocol) ? new StructuredCloneRPCProtocol(protocol, logger) : new RPCProtocol(protocol, logger);
+ 		this._register(this._rpcProtocol.onDidChangeResponsiveState((responsiveState: ResponsiveState) => this._onDidChangeResponsiveState.fire(responsiveState)));
+ 		let extensionHostProxy: IExtensionHostProxy | null = null as IExtensionHostProxy | null;
+ 		let mainProxyIdentifiers: ProxyIdentifier<any>[] = [];
+diff --git a/src/vs/workbench/services/extensions/common/rpcMessagePort.ts b/src/vs/workbench/services/extensions/common/rpcMessagePort.ts
+index ce795a9fb611..267264004e39 100644
+--- a/src/vs/workbench/services/extensions/common/rpcMessagePort.ts
++++ b/src/vs/workbench/services/extensions/common/rpcMessagePort.ts
+@@ -6,52 +6,86 @@
+ import { VSBuffer } from '../../../../base/common/buffer.js';
+ import { Event } from '../../../../base/common/event.js';
+ import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+-import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
++import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+ import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
+ 
++/** Native RPC frame; routing fields are carried only by requests. */
++export interface IRPCMessage {
++	readonly header: number;
++	readonly body: unknown;
++}
++
++/** Local RPC transport; the byte stream is reserved for startup and termination handshakes. */
++export interface IStructuredCloneRPCTransport extends IMessagePassingProtocol {
++	readonly onRPCMessage: Event<IRPCMessage>;
++	sendRPCBuffer(message: VSBuffer): void;
++
++	sendRPCMessage(message: IRPCMessage): void;
++}
++
++export function isStructuredCloneRPCTransport(protocol: IMessagePassingProtocol): protocol is IStructuredCloneRPCTransport {
++	return 'onRPCMessage' in protocol && 'sendRPCMessage' in protocol && 'sendRPCBuffer' in protocol;
++}
++
+ /** Batch immutable native RPC frames while retaining binary/control ordering. */
+-export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
+-	private readonly messages = new BufferedEmitter<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>();
+-	private readonly legacyStore = new DisposableStore();
+-	private legacyDeliveryDepth = 0;
+-	readonly onMessageWithStructuredClone = this.messages.event;
+-	readonly onMessage = Event.map<VSBuffer | IStructuredCloneMessage, VSBuffer>((listener, thisArgs, disposables) => this.onMessageWithStructuredClone(message => {
+-		this.legacyDeliveryDepth++;
+-		try {
+-			if (Array.isArray(message)) {
+-				for (const frame of message) {
+-					if (this.disposed) {
+-						break;
+-					}
+-					listener.call(thisArgs, frame);
+-				}
+-			} else {
+-				listener.call(thisArgs, message as VSBuffer | IStructuredCloneMessage);
+-			}
+-		} finally {
+-			if (--this.legacyDeliveryDepth === 0 && this.disposed) {
+-				this.legacyStore.dispose();
+-			}
+-		}
+-	}, undefined, disposables), message => message instanceof VSBuffer ? message : wrapStructuredCloneMessage(message), this.legacyStore);
++export class RPCMessagePort implements IStructuredCloneRPCTransport, IDisposable {
++	private readonly messages = new BufferedEmitter<IRPCMessage>();
++	private readonly controls = new BufferedEmitter<VSBuffer>();
++	private readonly subscriptions = new DisposableStore();
++	readonly onRPCMessage = Event.map(this.messages.event, message => message, this.subscriptions);
++	readonly onMessage = Event.map(this.controls.event, message => message, this.subscriptions);
++	private deliveryDepth = 0;
+ 
+-	private pending: IStructuredCloneMessage[] | undefined;
++	private pending: IRPCMessage[] | undefined;
+ 	private pendingCharacters = 0;
+ 	private scheduled = false;
+ 	private nativeSentSinceReceive = false;
+ 	private disposed = false;
++	private readonly incoming: IRPCMessage[] = [];
++	private incomingIndex = 0;
++	private delivering = false;
+ 
+-	constructor(private readonly postMessage: (message: unknown) => void) { }
++	constructor(private readonly postMessage: (message: unknown) => void, private readonly batching = true) { }
+ 
+ 	acceptMessage(data: unknown): void {
+-		if (this.disposed) {
++		if (this.disposed || !data) {
+ 			return;
+ 		}
+ 		this.nativeSentSinceReceive = Array.isArray(data) && data.length > 1;
+ 		if (ArrayBuffer.isView(data)) {
+-			this.messages.fire(VSBuffer.wrap(data as Uint8Array));
++			if (data.byteLength > 0) {
++				this.fireMessage(VSBuffer.wrap(new Uint8Array(data.buffer, data.byteOffset, data.byteLength)));
++			}
+ 		} else {
+-			this.messages.fire(data as IStructuredCloneMessage | readonly IStructuredCloneMessage[]);
++			this.incoming.push(...(Array.isArray(data) ? data : [data]) as IRPCMessage[]);
++			if (this.delivering) {
++				return;
++			}
++			this.delivering = true;
++			try {
++				while (!this.disposed && this.incomingIndex < this.incoming.length) {
++					this.fireMessage(this.incoming[this.incomingIndex++]);
++				}
++			} finally {
++				this.incoming.length = 0;
++				this.incomingIndex = 0;
++				this.delivering = false;
++			}
++		}
++	}
++
++	private fireMessage(message: VSBuffer | IRPCMessage): void {
++		this.deliveryDepth++;
++		try {
++			if (message instanceof VSBuffer) {
++				this.controls.fire(message);
++			} else {
++				this.messages.fire(message);
++			}
++		} finally {
++			if (--this.deliveryDepth === 0 && this.disposed) {
++				this.subscriptions.dispose();
++			}
+ 		}
+ 	}
+ 
+@@ -62,11 +96,19 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
+ 		}
+ 	}
+ 
+-	sendStructuredClone(message: IStructuredCloneMessage): void {
++	/** Mixed payloads and cancellation use the byte codec inside an explicit native envelope. */
++	sendRPCBuffer(buffer: VSBuffer): void {
++		this.flush();
++		if (!this.disposed) {
++			this.postMessage({ header: 0, body: buffer.buffer } satisfies IRPCMessage);
++		}
++	}
++
++	sendRPCMessage(message: IRPCMessage): void {
+ 		if (this.disposed) {
+ 			return;
+ 		}
+-		if (!this.nativeSentSinceReceive) {
++		if (!this.batching || !this.nativeSentSinceReceive) {
+ 			this.nativeSentSinceReceive = true;
+ 			this.flush();
+ 			// A sequential request/reply exchange needs no batching microtask.
+@@ -110,10 +152,11 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
+ 		this.disposed = true;
+ 		this.pending = undefined;
+ 		this.pendingCharacters = 0;
++		this.incoming.length = 0;
+ 		this.messages.flushBuffer();
+-		// Finish broadcasting the current legacy frame before releasing its listeners.
+-		if (this.legacyDeliveryDepth === 0) {
+-			this.legacyStore.dispose();
++		this.controls.flushBuffer();
++		if (this.deliveryDepth === 0) {
++			this.subscriptions.dispose();
+ 		}
+ 	}
+ }
+diff --git a/src/vs/workbench/services/extensions/common/rpcProtocol.ts b/src/vs/workbench/services/extensions/common/rpcProtocol.ts
+index 48df121a8e00..ebb1a9cb1e60 100644
+--- a/src/vs/workbench/services/extensions/common/rpcProtocol.ts
++++ b/src/vs/workbench/services/extensions/common/rpcProtocol.ts
+@@ -9,11 +9,11 @@ import { CancellationToken, CancellationTokenSource } from '../../../../base/com
+ import { CharCode } from '../../../../base/common/charCode.js';
+ import * as errors from '../../../../base/common/errors.js';
+ import { Emitter, Event } from '../../../../base/common/event.js';
+-import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
++import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+ import { MarshalledObject } from '../../../../base/common/marshalling.js';
+ import { MarshalledId } from '../../../../base/common/marshallingIds.js';
+ import { IURITransformer, transformIncomingURIs } from '../../../../base/common/uriIpc.js';
+-import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
++import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+ import { CanceledLazyPromise, LazyPromise } from './lazyPromise.js';
+ import { getStringIdentifierForProxy, IRPCProtocol, Proxied, ProxyIdentifier, SerializableObjectWithBuffers } from './proxyIdentifier.js';
+ 
+@@ -62,39 +62,19 @@ export function stringifyJsonWithBufferRefs<T>(obj: T, replacer: JSONStringifyRe
+ }
+ 
+ export function parseJsonAndRestoreBufferRefs(jsonString: string, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): any {
+-	const value = JSON.parse(jsonString);
+-	// Normal JSON contains no reference placeholders. Unicode escapes require
+-	// inspection because a foreign sender can escape a marker's property name.
+-	if (!jsonString.includes(refSymbolName) && (!uriTransformer || !jsonString.includes('$mid')) && !jsonString.includes('\\u')) {
+-		return value;
+-	}
+-	return restoreBufferRefs(value, buffers, uriTransformer);
+-}
++	return JSON.parse(jsonString, (_key, value) => {
++		if (value) {
++			const ref = value[refSymbolName];
++			if (typeof ref === 'number') {
++				return buffers[ref];
++			}
+ 
+-function restoreBufferRefs(value: any, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): any {
+-	if (!value || typeof value !== 'object') {
+-		return value;
+-	}
+-	// Match JSON reviver's postorder, visiting objects rather than every scalar.
+-	for (const key of Object.keys(value)) {
+-		const child = value[key];
+-		if (child && typeof child === 'object') {
+-			const restored = restoreBufferRefs(child, buffers, uriTransformer);
+-			if (restored === undefined) {
+-				delete value[key];
+-			} else if (restored !== child) {
+-				value[key] = restored;
++			if (uriTransformer && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
++				return uriTransformer.transformIncoming(value);
+ 			}
+ 		}
+-	}
+-	const ref = value[refSymbolName];
+-	if (typeof ref === 'number') {
+-		return buffers[ref];
+-	}
+-	if (uriTransformer && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
+-		return uriTransformer.transformIncoming(value);
+-	}
+-	return value;
++		return value;
++	});
+ }
+ 
+ 
+@@ -132,29 +112,6 @@ export interface IRPCProtocolLogger {
+ const _RPCProtocolSymbol = Symbol.for('rpcProtocol');
+ const _RPCProxySymbol = Symbol.for('rpcProxy');
+ 
+-// Arithmetic packing retains full request IDs; bitwise ID shifts would truncate them.
+-const nativeMessageHeaderScale = 32;
+-const nativeMessageTypeMask = nativeMessageHeaderScale - 1;
+-
+-/** Flat native frames avoid a header array and preserve the existing JSON payload semantics. */
+-interface NativeRPCMessage extends IStructuredCloneMessage {
+-	header: number;
+-}
+-
+-/** Requests carry routing fields; acknowledgements and replies need only the packed header. */
+-interface NativeRPCRequestMessage extends NativeRPCMessage {
+-	rpcId: number;
+-	method: string;
+-	undefinedMask?: number;
+-}
+-
+-/** Pending reply behavior shared by lazy and explicitly observed native promises. */
+-interface IPendingRPCReply {
+-	acknowledged: boolean;
+-	resolveOk(value: unknown): void;
+-	resolveErr(error: unknown): void;
+-}
+-
+ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 
+ 	[_RPCProtocolSymbol] = true;
+@@ -173,13 +130,11 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 	private readonly _proxies: any[];
+ 	private _lastMessageId: number;
+ 	private readonly _cancelInvokedHandlers: { [req: string]: () => void };
+-	private readonly _pendingRPCReplies: { [msgId: string]: IPendingRPCReply };
++	private readonly _pendingRPCReplies: { [msgId: string]: PendingRPCReply };
+ 	private _responsiveState: ResponsiveState;
+ 	private _unacknowledgedCount: number;
+ 	private _unresponsiveTime: number;
+ 	private _asyncCheckUresponsive: RunOnceScheduler;
+-	// A native ACK can consume the port's immediate-send slot.
+-	private _flushNativeReplyAfterAck = false;
+ 
+ 	constructor(protocol: IMessagePassingProtocol, logger: IRPCProtocolLogger | null = null, transformer: IURITransformer | null = null) {
+ 		super();
+@@ -196,27 +151,12 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		}
+ 		this._lastMessageId = 0;
+ 		this._cancelInvokedHandlers = Object.create(null);
+-		this._pendingRPCReplies = Object.create(null);
++		this._pendingRPCReplies = {};
+ 		this._responsiveState = ResponsiveState.Responsive;
+ 		this._unacknowledgedCount = 0;
+ 		this._unresponsiveTime = 0;
+ 		this._asyncCheckUresponsive = this._register(new RunOnceScheduler(() => this._checkUnresponsive(), 1000));
+-		this._register(this._protocol.onMessageWithStructuredClone
+-			? this._protocol.onMessageWithStructuredClone(message => {
+-				if (message instanceof VSBuffer) {
+-					this._receiveOneMessage(message);
+-				} else if (Array.isArray(message)) {
+-					for (const frame of message) {
+-						if (this._isDisposed) {
+-							break;
+-						}
+-						this._receiveNativeMessage(frame);
+-					}
+-				} else {
+-					this._receiveNativeMessage(message as IStructuredCloneMessage);
+-				}
+-			})
+-			: this._protocol.onMessage(msg => this._receiveOneMessage(msg)));
++		this._register(this._protocol.onMessage((msg) => this._receiveOneMessage(msg)));
+ 	}
+ 
+ 	public override dispose(): void {
+@@ -251,18 +191,14 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		}
+ 	}
+ 
+-	private _onDidReceiveAcknowledge(pending: IPendingRPCReply | undefined): void {
+-		if (!pending || pending.acknowledged) {
+-			return;
+-		}
+-		pending.acknowledged = true;
++	private _onDidReceiveAcknowledge(req: number): void {
++		// The next possible unresponsive time is now + delta.
++		this._unresponsiveTime = Date.now() + RPCProtocol.UNRESPONSIVE_TIME;
+ 		this._unacknowledgedCount--;
+-		if (this._unacknowledgedCount > 0) {
+-			// Pending requests receive a fresh responsiveness deadline.
+-			this._unresponsiveTime = Date.now() + RPCProtocol.UNRESPONSIVE_TIME;
++		if (this._unacknowledgedCount === 0) {
++			// No more need to check for unresponsive
++			this._asyncCheckUresponsive.cancel();
+ 		}
+-		// Leave the one scheduled check in place. It exits when idle, avoiding
+-		// timer cancellation/allocation on every short successful request.
+ 		// The ext host is responsive!
+ 		this._setResponsiveState(ResponsiveState.Responsive);
+ 	}
+@@ -305,16 +241,18 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 	public getProxy<T>(identifier: ProxyIdentifier<T>): Proxied<T> {
+ 		const { nid: rpcId, sid } = identifier;
+ 		if (!this._proxies[rpcId]) {
+-			this._proxies[rpcId] = this._createProxy(rpcId, sid, identifier.notificationMethods, identifier.nativePromiseMethods);
++			this._proxies[rpcId] = this._createProxy(rpcId, sid);
+ 		}
+ 		return this._proxies[rpcId];
+ 	}
+ 
+-	private _createProxy<T>(rpcId: number, debugName: string, notificationMethods?: readonly string[], nativePromiseMethods?: readonly string[]): T {
++	private _createProxy<T>(rpcId: number, debugName: string): T {
+ 		const handler = {
+ 			get: (target: any, name: PropertyKey) => {
+ 				if (typeof name === 'string' && !target[name] && name.charCodeAt(0) === CharCode.DollarSign) {
+-					target[name] = this._createProxyMethod(rpcId, name, notificationMethods, nativePromiseMethods);
++					target[name] = (...myArgs: any[]) => {
++						return this._remoteCall(rpcId, name, myArgs);
++					};
+ 				}
+ 				if (name === _RPCProxySymbol) {
+ 					return debugName;
+@@ -325,15 +263,6 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		return new Proxy(Object.create(null), handler);
+ 	}
+ 
+-	/** Keep first-use method closures out of the frequently invoked proxy getter. */
+-	private _createProxyMethod(rpcId: number, name: string, notificationMethods?: readonly string[], nativePromiseMethods?: readonly string[]) {
+-		if (this._protocol.sendStructuredClone && notificationMethods?.includes(name)) {
+-			return (...args: unknown[]) => this._remoteNotification(rpcId, name, args);
+-		}
+-		const nativePromise = !!this._protocol.sendStructuredClone && !!nativePromiseMethods?.includes(name);
+-		return (...args: unknown[]) => this._remoteCall(rpcId, name, args, nativePromise);
+-	}
+-
+ 	public set<T, R extends T>(identifier: ProxyIdentifier<T>, value: R): R {
+ 		this._locals[identifier.nid] = value;
+ 		return value;
+@@ -348,75 +277,11 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		}
+ 	}
+ 
+-	private _receiveNativeMessage(message: IStructuredCloneMessage): void {
+-		if (this._isDisposed) {
+-			return;
+-		}
+-		const { header } = message as NativeRPCMessage;
+-		const type = header & nativeMessageTypeMask;
+-		const req = Math.floor(header / nativeMessageHeaderScale);
+-		switch (type) {
+-			case MessageType.Acknowledged:
+-				this._logger?.logIncoming(0, req, RequestInitiator.LocalSide, `ack`);
+-				this._onDidReceiveAcknowledge(this._pendingRPCReplies[req]);
+-				break;
+-			case MessageType.NotificationJSONArgs: {
+-				let args = JSON.parse(message.body as string);
+-				const { rpcId, method, undefinedMask } = message as NativeRPCRequestMessage;
+-				if (undefinedMask) {
+-					MessageIO.restoreUndefinedArguments(args, undefinedMask);
+-				}
+-				if (this._uriTransformer) {
+-					args = transformIncomingURIs(args, this._uriTransformer);
+-				}
+-				this._receiveNotification(req, rpcId, method, args);
+-				break;
+-			}
+-			case MessageType.RequestJSONArgs:
+-			case MessageType.RequestJSONArgsWithCancellation:
+-			case MessageType.RequestScalarArg:
+-			case MessageType.RequestScalarArgWithCancellation: {
+-				let args = type === MessageType.RequestScalarArg || type === MessageType.RequestScalarArgWithCancellation
+-					? [message.body] : JSON.parse(message.body as string);
+-				const { rpcId, method, undefinedMask } = message as NativeRPCRequestMessage;
+-				if (undefinedMask) {
+-					MessageIO.restoreUndefinedArguments(args, undefinedMask);
+-				}
+-				if (this._uriTransformer) {
+-					args = transformIncomingURIs(args, this._uriTransformer);
+-				}
+-				this._receiveRequest(0, req, rpcId, method, args, type === MessageType.RequestJSONArgsWithCancellation || type === MessageType.RequestScalarArgWithCancellation);
+-				break;
+-			}
+-			case MessageType.ReplyOKJSON: {
+-				let value = JSON.parse(message.body as string);
+-				if (this._uriTransformer) {
+-					value = transformIncomingURIs(value, this._uriTransformer);
+-				}
+-				this._receiveReply(0, req, value);
+-				break;
+-			}
+-			case MessageType.ReplyOKScalar:
+-				this._receiveReply(0, req, message.body);
+-				break;
+-			case MessageType.ReplyOKEmpty:
+-				this._receiveReply(0, req, undefined);
+-				break;
+-		}
+-	}
+-
+ 	private _receiveOneMessage(rawmsg: VSBuffer): void {
+ 		if (this._isDisposed) {
+ 			return;
+ 		}
+ 
+-		if (rawmsg.byteLength === 0) {
+-			const native = getStructuredCloneMessage(rawmsg);
+-			if (native) {
+-				this._receiveNativeMessage(native);
+-				return;
+-			}
+-		}
+ 		const msgLength = rawmsg.byteLength;
+ 		const buff = MessageBuffer.read(rawmsg, 0);
+ 		const messageType = <MessageType>buff.readUInt8();
+@@ -443,7 +308,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 			}
+ 			case MessageType.Acknowledged: {
+ 				this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `ack`);
+-				this._onDidReceiveAcknowledge(this._pendingRPCReplies[req]);
++				this._onDidReceiveAcknowledge(req);
+ 				break;
+ 			}
+ 			case MessageType.Cancel: {
+@@ -490,21 +355,9 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		}
+ 	}
+ 
+-	private _receiveNotification(req: number, rpcId: number, method: string, args: any[]): void {
+-		this._logger?.logIncoming(0, req, RequestInitiator.OtherSide, `notification ${getStringIdentifierForProxy(rpcId)}.${method}(`, args);
+-		try {
+-			const result = this._doInvokeHandler(rpcId, method, args);
+-			if (result && (typeof result === 'object' || typeof result === 'function')) {
+-				void Promise.resolve(result).catch(errors.onUnexpectedError);
+-			}
+-		} catch (error) {
+-			errors.onUnexpectedError(error);
+-		}
+-	}
+-
+ 	private _receiveRequest(msgLength: number, req: number, rpcId: number, method: string, args: any[], usesCancellationToken: boolean): void {
+ 		this._logger?.logIncoming(msgLength, req, RequestInitiator.OtherSide, `receiveRequest ${getStringIdentifierForProxy(rpcId)}.${method}(`, args);
+-		const callId = req;
++		const callId = String(req);
+ 
+ 		let promise: Promise<any>;
+ 		let cancel: (() => void) | undefined;
+@@ -521,79 +374,27 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 			this._cancelInvokedHandlers[callId] = cancel;
+ 		}
+ 
+-		let replied = false;
++		// Acknowledge the request
++		const msg = MessageIO.serializeAcknowledged(req);
++		this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
++		this._protocol.send(msg);
++
+ 		promise.then((r) => {
+-			if (cancel) {
+-				delete this._cancelInvokedHandlers[callId];
+-			}
+-			replied = true;
+-			const native = this._protocol.sendStructuredClone;
+-			if (native && !(r instanceof VSBuffer) && !(r instanceof SerializableObjectWithBuffers)) {
+-				let header = MessageType.ReplyOKEmpty;
+-				let body: unknown = undefined;
+-				if (typeof r === 'number') {
+-					header = MessageType.ReplyOKScalar;
+-					// Match JSON's nonfinite-number and negative-zero conversions.
+-					body = Number.isFinite(r) ? r + 0 : null;
+-				} else if (r === null || typeof r === 'string' || typeof r === 'boolean') {
+-					header = MessageType.ReplyOKScalar;
+-					body = r;
+-				} else if (typeof r !== 'undefined') {
+-					header = MessageType.ReplyOKJSON;
+-					body = safeStringify(r, this._uriReplacer);
+-				}
+-				this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `reply:`, r);
+-				const message: NativeRPCMessage = { header: req * nativeMessageHeaderScale + header, body };
+-				native.call(this._protocol, message);
+-				if (this._flushNativeReplyAfterAck) {
+-					this._flushNativeReplyAfterAck = false;
+-					void this._protocol.drain?.();
+-				}
+-				return;
+-			}
+-			this._flushNativeReplyAfterAck = false;
++			delete this._cancelInvokedHandlers[callId];
+ 			const msg = MessageIO.serializeReplyOK(req, r, this._uriReplacer);
+ 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `reply:`, r);
+ 			this._protocol.send(msg);
+ 		}, (err) => {
+-			if (cancel) {
+-				delete this._cancelInvokedHandlers[callId];
+-			}
+-			replied = true;
+-			this._flushNativeReplyAfterAck = false;
++			delete this._cancelInvokedHandlers[callId];
+ 			const msg = MessageIO.serializeReplyErr(req, err);
+ 			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `replyErr:`, err);
+ 			this._protocol.send(msg);
+ 		});
+-		// A brief microtask grace lets short promise chains acknowledge themselves
+-		// through their reply. Pending handlers still acknowledge without a task delay.
+-		queueMicrotask(() => {
+-			if (!replied && !this._isDisposed) {
+-				queueMicrotask(() => {
+-					if (!replied && !this._isDisposed) {
+-						queueMicrotask(() => {
+-							if (!replied && !this._isDisposed) {
+-								if (this._protocol.sendStructuredClone) {
+-									this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `ack`);
+-									this._flushNativeReplyAfterAck = true;
+-									const message: NativeRPCMessage = { header: req * nativeMessageHeaderScale + MessageType.Acknowledged, body: undefined };
+-									this._protocol.sendStructuredClone(message);
+-								} else {
+-									const msg = MessageIO.serializeAcknowledged(req);
+-									this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `ack`);
+-									this._protocol.send(msg);
+-								}
+-							}
+-						});
+-					}
+-				});
+-			}
+-		});
+ 	}
+ 
+ 	private _receiveCancel(msgLength: number, req: number): void {
+ 		this._logger?.logIncoming(msgLength, req, RequestInitiator.OtherSide, `receiveCancel`);
+-		const callId = req;
++		const callId = String(req);
+ 		const cancel = this._cancelInvokedHandlers[callId];
+ 		delete this._cancelInvokedHandlers[callId];
+ 		cancel?.();
+@@ -601,12 +402,12 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 
+ 	private _receiveReply(msgLength: number, req: number, value: any): void {
+ 		this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `receiveReply:`, value);
+-		const callId = req;
+-		const pendingReply = this._pendingRPCReplies[callId];
+-		if (!pendingReply) {
++		const callId = String(req);
++		if (!this._pendingRPCReplies.hasOwnProperty(callId)) {
+ 			return;
+ 		}
+-		this._onDidReceiveAcknowledge(pendingReply);
++
++		const pendingReply = this._pendingRPCReplies[callId];
+ 		delete this._pendingRPCReplies[callId];
+ 
+ 		pendingReply.resolveOk(value);
+@@ -615,12 +416,12 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 	private _receiveReplyErr(msgLength: number, req: number, value: any): void {
+ 		this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `receiveReplyErr:`, value);
+ 
+-		const callId = req;
+-		const pendingReply = this._pendingRPCReplies[callId];
+-		if (!pendingReply) {
++		const callId = String(req);
++		if (!this._pendingRPCReplies.hasOwnProperty(callId)) {
+ 			return;
+ 		}
+-		this._onDidReceiveAcknowledge(pendingReply);
++
++		const pendingReply = this._pendingRPCReplies[callId];
+ 		delete this._pendingRPCReplies[callId];
+ 
+ 		let err: any = undefined;
+@@ -657,34 +458,7 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 		return method.apply(actor, args);
+ 	}
+ 
+-	private _remoteNotification(rpcId: number, methodName: string, args: any[]): Promise<any> {
+-		if (this._isDisposed) {
+-			return new CanceledLazyPromise();
+-		}
+-		const native = this._protocol.sendStructuredClone;
+-		if (!native || args.length > 0 && CancellationToken.isCancellationToken(args[args.length - 1])) {
+-			return this._remoteCall(rpcId, methodName, args);
+-		}
+-		// Keep a regular request as a liveness probe at least once per second
+-		// when no other acknowledged traffic already monitors the connection.
+-		if (this._unacknowledgedCount === 0 && Date.now() >= this._unresponsiveTime - RPCProtocol.UNRESPONSIVE_TIME + 1000) {
+-			return this._remoteCall(rpcId, methodName, args);
+-		}
+-		const serialized = MessageIO.serializeNativeArguments(args, this._uriReplacer);
+-		if (!serialized) {
+-			return this._remoteCall(rpcId, methodName, args);
+-		}
+-		const req = ++this._lastMessageId;
+-		this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `notification: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
+-		const message: NativeRPCRequestMessage = { header: req * nativeMessageHeaderScale + MessageType.NotificationJSONArgs, body: serialized.args, rpcId, method: methodName };
+-		if (serialized.undefinedMask) {
+-			message.undefinedMask = serialized.undefinedMask;
+-		}
+-		native.call(this._protocol, message);
+-		return notificationResult;
+-	}
+-
+-	private _remoteCall(rpcId: number, methodName: string, args: any[], nativePromise = false): Promise<any> {
++	private _remoteCall(rpcId: number, methodName: string, args: any[]): Promise<any> {
+ 		if (this._isDisposed) {
+ 			return new CanceledLazyPromise();
+ 		}
+@@ -698,85 +472,31 @@ export class RPCProtocol extends Disposable implements IRPCProtocol {
+ 			return Promise.reject<any>(errors.canceled());
+ 		}
+ 
+-		const value = args[0];
+-		const scalarArgument = !!this._protocol.sendStructuredClone && args.length === 1 &&
+-			(value === null || typeof value !== 'object' && typeof value !== 'function' && typeof value !== 'symbol' && typeof value !== 'bigint');
+-		const undefinedMask = scalarArgument ? 0 : this._protocol.sendStructuredClone ? MessageIO.getSimpleArgumentMask(args, true) : null;
+-		// Keep JSON number normalization while skipping array JSON encoding for one scalar.
+-		const nativeArguments = scalarArgument
+-			? typeof value === 'number' ? Number.isFinite(value) ? value + 0 : null : value
+-			: undefinedMask !== null ? stringify(args, this._uriReplacer) : undefined;
+-		const serializedRequestArguments = undefinedMask === null ? MessageIO.serializeRequestArguments(args, this._uriReplacer, !!this._protocol.sendStructuredClone) : undefined;
++		const serializedRequestArguments = MessageIO.serializeRequestArguments(args, this._uriReplacer);
+ 
+ 		const req = ++this._lastMessageId;
+-		const callId = req;
++		const callId = String(req);
++		const result = new LazyPromise();
+ 
+-		const disposable = cancellationToken ? cancellationToken.onCancellationRequested(() => {
+-			const msg = MessageIO.serializeCancel(req);
+-			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `cancel`);
+-			this._protocol.send(msg);
+-		}) : Disposable.None;
+-
+-		let result: Promise<unknown>;
+-		let pending: IPendingRPCReply;
+-		if (nativePromise && undefinedMask !== null) {
+-			const reply = new NativePendingRPCReply(disposable);
+-			result = reply.promise;
+-			pending = reply;
+-		} else {
+-			const reply = new LazyPromise();
+-			result = reply;
+-			pending = new PendingRPCReply(reply, disposable);
++		const disposable = new DisposableStore();
++		if (cancellationToken) {
++			disposable.add(cancellationToken.onCancellationRequested(() => {
++				const msg = MessageIO.serializeCancel(req);
++				this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `cancel`);
++				this._protocol.send(msg);
++			}));
+ 		}
+-		this._pendingRPCReplies[callId] = pending;
++
++		this._pendingRPCReplies[callId] = new PendingRPCReply(result, disposable);
+ 		this._onWillSendRequest(req);
+-		if (undefinedMask !== null) {
+-			const type = scalarArgument
+-				? cancellationToken ? MessageType.RequestScalarArgWithCancellation : MessageType.RequestScalarArg
+-				: cancellationToken ? MessageType.RequestJSONArgsWithCancellation : MessageType.RequestJSONArgs;
+-			this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
+-			const message: NativeRPCRequestMessage = { header: req * nativeMessageHeaderScale + type, body: nativeArguments, rpcId, method: methodName };
+-			if (undefinedMask) {
+-				message.undefinedMask = undefinedMask;
+-			}
+-			this._protocol.sendStructuredClone!(message);
+-			return result;
+-		}
+-		const msg = MessageIO.serializeRequest(req, rpcId, methodName, serializedRequestArguments!, !!cancellationToken);
++		const msg = MessageIO.serializeRequest(req, rpcId, methodName, serializedRequestArguments, !!cancellationToken);
+ 		this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
+ 		this._protocol.send(msg);
+ 		return result;
+ 	}
+ }
+ 
+-/** Native promises avoid thenable assimilation only for audited, always-observed API bridges. */
+-class NativePendingRPCReply implements IPendingRPCReply {
+-	public acknowledged = false;
+-	public readonly promise: Promise<unknown>;
+-	private readonly _resolve: (value: unknown) => void;
+-	private readonly _reject: (error: unknown) => void;
+-
+-	constructor(private readonly _disposable: IDisposable) {
+-		const deferred = Promise.withResolvers<unknown>();
+-		this.promise = deferred.promise;
+-		this._resolve = deferred.resolve;
+-		this._reject = deferred.reject;
+-	}
+-
+-	public resolveOk(value: unknown): void {
+-		this._resolve(value);
+-		this._disposable.dispose();
+-	}
+-
+-	public resolveErr(error: unknown): void {
+-		this._reject(error);
+-		this._disposable.dispose();
+-	}
+-}
+-
+ class PendingRPCReply {
+-	public acknowledged = false;
+-
+ 	constructor(
+ 		private readonly _promise: LazyPromise,
+ 		private readonly _disposable: IDisposable
+@@ -796,7 +516,7 @@ class PendingRPCReply {
+ class MessageBuffer {
+ 
+ 	public static alloc(type: MessageType, req: number, messageSize: number): MessageBuffer {
+-		const result = new MessageBuffer(VSBuffer.alloc(messageSize + 1 /* type */ + 4 /* req */, { unpooled: true }), 0);
++		const result = new MessageBuffer(VSBuffer.alloc(messageSize + 1 /* type */ + 4 /* req */), 0);
+ 		result.writeUInt8(type);
+ 		result.writeUInt32(req);
+ 		return result;
+@@ -987,53 +707,29 @@ const enum SerializedRequestArgumentType {
+ }
+ 
+ type SerializedRequestArguments =
+-	| { readonly type: SerializedRequestArgumentType.Simple; args: string; undefinedMask?: number }
++	| { readonly type: SerializedRequestArgumentType.Simple; args: string }
+ 	| { readonly type: SerializedRequestArgumentType.Mixed; args: MixedArg[] };
+ 
+ 
+-const notificationResult = Promise.resolve(undefined);
+-
+ class MessageIO {
+ 
+-	public static serializeNativeArguments(args: any[], replacer: JSONStringifyReplacer | null): Extract<SerializedRequestArguments, { type: SerializedRequestArgumentType.Simple }> | undefined {
+-		const undefinedMask = this.getSimpleArgumentMask(args, true);
+-		if (undefinedMask === null) {
+-			return undefined;
+-		}
+-		return undefinedMask
+-			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
+-			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
+-	}
+-
+-	public static restoreUndefinedArguments(args: any[], undefinedMask: number): void {
+-		for (let i = 0; i < args.length; i++) {
+-			if (undefinedMask & 1 << i) {
+-				args[i] = undefined;
+-			}
+-		}
+-	}
+-
+-	/** Returns the JSON argument mask, or null when arguments require the mixed codec. */
+-	public static getSimpleArgumentMask(arr: any[], allowUndefined: boolean): number | null {
+-		let undefinedMask = 0;
++	private static _useMixedArgSerialization(arr: any[]): boolean {
+ 		for (let i = 0, len = arr.length; i < len; i++) {
+-			const value = arr[i];
+-			if (value instanceof VSBuffer || value instanceof SerializableObjectWithBuffers) {
+-				return null;
++			if (arr[i] instanceof VSBuffer) {
++				return true;
+ 			}
+-			if (typeof value === 'undefined') {
+-				if (!allowUndefined || len > 32) {
+-					return null;
+-				}
+-				undefinedMask |= 1 << i;
++			if (arr[i] instanceof SerializableObjectWithBuffers) {
++				return true;
++			}
++			if (typeof arr[i] === 'undefined') {
++				return true;
+ 			}
+ 		}
+-		return undefinedMask;
++		return false;
+ 	}
+ 
+-	public static serializeRequestArguments(args: any[], replacer: JSONStringifyReplacer | null, allowUndefined = false): SerializedRequestArguments {
+-		const undefinedMask = this.getSimpleArgumentMask(args, allowUndefined);
+-		if (undefinedMask === null) {
++	public static serializeRequestArguments(args: any[], replacer: JSONStringifyReplacer | null): SerializedRequestArguments {
++		if (this._useMixedArgSerialization(args)) {
+ 			const massagedArgs: MixedArg[] = [];
+ 			for (let i = 0, len = args.length; i < len; i++) {
+ 				const arg = args[i];
+@@ -1053,9 +749,10 @@ class MessageIO {
+ 				args: massagedArgs,
+ 			};
+ 		}
+-		return undefinedMask
+-			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
+-			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
++		return {
++			type: SerializedRequestArgumentType.Simple,
++			args: stringify(args, replacer)
++		};
+ 	}
+ 
+ 	public static serializeRequest(req: number, rpcId: number, method: string, serializedArgs: SerializedRequestArguments, usesCancellationToken: boolean): VSBuffer {
+@@ -1253,10 +950,6 @@ const enum MessageType {
+ 	ReplyOKJSONWithBuffers = 10,
+ 	ReplyErrError = 11,
+ 	ReplyErrEmpty = 12,
+-	NotificationJSONArgs = 13,
+-	ReplyOKScalar = 14,
+-	RequestScalarArg = 15,
+-	RequestScalarArgWithCancellation = 16,
+ }
+ 
+ const enum ArgType {
+diff --git a/src/vs/workbench/services/extensions/common/structuredCloneRPCProtocol.ts b/src/vs/workbench/services/extensions/common/structuredCloneRPCProtocol.ts
+new file mode 100644
+index 000000000000..66f91a6193a4
+--- /dev/null
++++ b/src/vs/workbench/services/extensions/common/structuredCloneRPCProtocol.ts
+@@ -0,0 +1,1206 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { RunOnceScheduler } from '../../../../base/common/async.js';
++import { VSBuffer } from '../../../../base/common/buffer.js';
++import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
++import { CharCode } from '../../../../base/common/charCode.js';
++import * as errors from '../../../../base/common/errors.js';
++import { Emitter, Event } from '../../../../base/common/event.js';
++import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
++import { MarshalledObject } from '../../../../base/common/marshalling.js';
++import { UriComponents } from '../../../../base/common/uri.js';
++import { MarshalledId } from '../../../../base/common/marshallingIds.js';
++import { IURITransformer, transformIncomingURIs } from '../../../../base/common/uriIpc.js';
++import { IRPCMessage, IStructuredCloneRPCTransport } from './rpcMessagePort.js';
++import { IRPCProtocolLogger, JSONStringifyReplacer, RequestInitiator, ResponsiveState, stringifyJsonWithBufferRefs } from './rpcProtocol.js';
++import { CanceledLazyPromise, LazyPromise } from './lazyPromise.js';
++import { getStringIdentifierForProxy, IRPCProtocol, Proxied, ProxyIdentifier, SerializableObjectWithBuffers } from './proxyIdentifier.js';
++
++function safeStringify(obj: unknown, replacer: JSONStringifyReplacer | null): string {
++	try {
++		return JSON.stringify(obj, <(key: string, value: unknown) => unknown>replacer);
++	} catch (err) {
++		return 'null';
++	}
++}
++
++const refSymbolName = '$$ref$$';
++
++export function parseJsonAndRestoreBufferRefs<T = unknown>(jsonString: string, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): T {
++	const value: unknown = JSON.parse(jsonString);
++	// Normal JSON contains no reference placeholders. Unicode escapes require
++	// inspection because a foreign sender can escape a marker's property name.
++	if (!jsonString.includes(refSymbolName) && (!uriTransformer || !jsonString.includes('$mid')) && !jsonString.includes('\\u')) {
++		return value as T;
++	}
++	return restoreBufferRefs(value, buffers, uriTransformer) as T;
++}
++
++function restoreBufferRefs(value: unknown, buffers: readonly VSBuffer[], uriTransformer: IURITransformer | null): unknown {
++	if (!value || typeof value !== 'object') {
++		return value;
++	}
++	const record = value as Record<string, unknown>;
++	// Match JSON reviver's postorder, visiting objects rather than every scalar.
++	for (const key of Object.keys(value)) {
++		const child = record[key];
++		if (child && typeof child === 'object') {
++			const restored = restoreBufferRefs(child, buffers, uriTransformer);
++			if (restored === undefined) {
++				delete record[key];
++			} else if (restored !== child) {
++				record[key] = restored;
++			}
++		}
++	}
++	const ref = record[refSymbolName];
++	if (typeof ref === 'number') {
++		return buffers[ref];
++	}
++	if (uriTransformer && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
++		return uriTransformer.transformIncoming(value as UriComponents);
++	}
++	return value;
++}
++
++
++function stringify(obj: unknown, replacer: JSONStringifyReplacer | null): string {
++	return JSON.stringify(obj, <(key: string, value: unknown) => unknown>replacer);
++}
++
++function createURIReplacer(transformer: IURITransformer | null): JSONStringifyReplacer | null {
++	if (!transformer) {
++		return null;
++	}
++	return (key: string, value: unknown): unknown => {
++		if (value && typeof value === 'object' && (<MarshalledObject>value).$mid === MarshalledId.Uri) {
++			return transformer.transformOutgoing(value as UriComponents);
++		}
++		return value;
++	};
++}
++
++const _StructuredCloneRPCProtocolSymbol = Symbol.for('rpcProtocol');
++const _RPCProxySymbol = Symbol.for('rpcProxy');
++
++// Arithmetic packing retains full request IDs; bitwise ID shifts would truncate them.
++const nativeMessageHeaderScale = 32;
++const nativeMessageTypeMask = nativeMessageHeaderScale - 1;
++
++/** Flat native frames avoid a header array and preserve the existing JSON payload semantics. */
++interface NativeRPCMessage extends IRPCMessage {
++	header: number;
++}
++
++/** Requests carry routing fields; acknowledgements and replies need only the packed header. */
++interface NativeRPCRequestMessage extends NativeRPCMessage {
++	rpcId: number;
++	method: string;
++	undefinedMask?: number;
++}
++
++/** Pending reply behavior shared by lazy and explicitly observed native promises. */
++interface IPendingRPCReply {
++	acknowledged: boolean;
++	resolveOk(value: unknown): void;
++	resolveErr(error: unknown): void;
++}
++
++export class StructuredCloneRPCProtocol extends Disposable implements IRPCProtocol {
++
++	[_StructuredCloneRPCProtocolSymbol] = true;
++
++	/** Preserve reply coalescing for short async handlers without delaying ACKs to another task. */
++	private static readonly ACKNOWLEDGEMENT_MICROTASKS = 3;
++	private static readonly UNRESPONSIVE_TIME = 3 * 1000; // 3s
++
++	private readonly _onDidChangeResponsiveState: Emitter<ResponsiveState> = this._register(new Emitter<ResponsiveState>());
++	public readonly onDidChangeResponsiveState: Event<ResponsiveState> = this._onDidChangeResponsiveState.event;
++
++	private readonly _protocol: IStructuredCloneRPCTransport;
++	private readonly _logger: IRPCProtocolLogger | null;
++	private readonly _uriTransformer: IURITransformer | null;
++	private readonly _uriReplacer: JSONStringifyReplacer | null;
++	private _isDisposed: boolean;
++	private readonly _locals: unknown[];
++	private readonly _proxies: unknown[];
++	private _lastMessageId: number;
++	private readonly _cancelInvokedHandlers: { [req: string]: () => void };
++	private readonly _pendingRPCReplies: { [msgId: string]: IPendingRPCReply };
++	private _responsiveState: ResponsiveState;
++	private _unacknowledgedCount: number;
++	private _unresponsiveTime: number;
++	private _asyncCheckUresponsive: RunOnceScheduler;
++
++	constructor(protocol: IStructuredCloneRPCTransport, logger: IRPCProtocolLogger | null = null, transformer: IURITransformer | null = null) {
++		super();
++		this._protocol = protocol;
++		this._logger = logger;
++		this._uriTransformer = transformer;
++		this._uriReplacer = createURIReplacer(this._uriTransformer);
++		this._isDisposed = false;
++		this._locals = [];
++		this._proxies = [];
++		for (let i = 0, len = ProxyIdentifier.count; i < len; i++) {
++			this._locals[i] = null;
++			this._proxies[i] = null;
++		}
++		this._lastMessageId = 0;
++		this._cancelInvokedHandlers = Object.create(null);
++		this._pendingRPCReplies = Object.create(null);
++		this._responsiveState = ResponsiveState.Responsive;
++		this._unacknowledgedCount = 0;
++		this._unresponsiveTime = 0;
++		this._asyncCheckUresponsive = this._register(new RunOnceScheduler(() => this._checkUnresponsive(), 1000));
++		this._register(this._protocol.onRPCMessage(message => {
++			if (message.header === 0 && message.body instanceof Uint8Array) {
++				this._receiveOneMessage(VSBuffer.wrap(message.body));
++			} else {
++				this._receiveNativeMessage(message);
++			}
++		}));
++	}
++
++	public override dispose(): void {
++		this._isDisposed = true;
++
++		// Release all outstanding promises with a canceled error
++		Object.keys(this._pendingRPCReplies).forEach((msgId) => {
++			const pending = this._pendingRPCReplies[msgId];
++			delete this._pendingRPCReplies[msgId];
++			pending.resolveErr(errors.canceled());
++		});
++
++		for (const req of Object.keys(this._cancelInvokedHandlers)) {
++			const cancel = this._cancelInvokedHandlers[req];
++			delete this._cancelInvokedHandlers[req];
++			cancel();
++		}
++
++		super.dispose();
++	}
++
++	public drain(): Promise<void> {
++		if (typeof this._protocol.drain === 'function') {
++			return this._protocol.drain();
++		}
++		return Promise.resolve();
++	}
++
++	private _onWillSendRequest(req: number): void {
++		if (this._unacknowledgedCount === 0) {
++			// Since this is the first request we are sending in a while,
++			// mark this moment as the start for the countdown to unresponsive time
++			this._unresponsiveTime = Date.now() + StructuredCloneRPCProtocol.UNRESPONSIVE_TIME;
++		}
++		this._unacknowledgedCount++;
++		if (!this._asyncCheckUresponsive.isScheduled()) {
++			this._asyncCheckUresponsive.schedule();
++		}
++	}
++
++	private _onDidReceiveAcknowledge(pending: IPendingRPCReply | undefined): void {
++		if (!pending || pending.acknowledged) {
++			return;
++		}
++		pending.acknowledged = true;
++		this._unacknowledgedCount--;
++		if (this._unacknowledgedCount > 0) {
++			// Pending requests receive a fresh responsiveness deadline.
++			this._unresponsiveTime = Date.now() + StructuredCloneRPCProtocol.UNRESPONSIVE_TIME;
++		}
++		// Leave the one scheduled check in place. It exits when idle, avoiding
++		// timer cancellation/allocation on every short successful request.
++		// The ext host is responsive!
++		this._setResponsiveState(ResponsiveState.Responsive);
++	}
++
++	private _checkUnresponsive(): void {
++		if (this._unacknowledgedCount === 0) {
++			// Not waiting for anything => cannot say if it is responsive or not
++			return;
++		}
++
++		if (Date.now() > this._unresponsiveTime) {
++			// Unresponsive!!
++			this._setResponsiveState(ResponsiveState.Unresponsive);
++		} else {
++			// Not (yet) unresponsive, be sure to check again soon
++			this._asyncCheckUresponsive.schedule();
++		}
++	}
++
++	private _setResponsiveState(newResponsiveState: ResponsiveState): void {
++		if (this._responsiveState === newResponsiveState) {
++			// no change
++			return;
++		}
++		this._responsiveState = newResponsiveState;
++		this._onDidChangeResponsiveState.fire(this._responsiveState);
++	}
++
++	public get responsiveState(): ResponsiveState {
++		return this._responsiveState;
++	}
++
++	public transformIncomingURIs<T>(obj: T): T {
++		if (!this._uriTransformer) {
++			return obj;
++		}
++		return transformIncomingURIs(obj, this._uriTransformer);
++	}
++
++	public getProxy<T>(identifier: ProxyIdentifier<T>): Proxied<T> {
++		const { nid: rpcId, sid } = identifier;
++		if (!this._proxies[rpcId]) {
++			this._proxies[rpcId] = this._createProxy(rpcId, sid, identifier.notificationMethods, identifier.nativePromiseMethods);
++		}
++		return this._proxies[rpcId] as Proxied<T>;
++	}
++
++	private _createProxy<T>(rpcId: number, debugName: string, notificationMethods?: readonly string[], nativePromiseMethods?: readonly string[]): T {
++		const handler = {
++			get: (target: Record<PropertyKey, unknown>, name: PropertyKey) => {
++				if (typeof name === 'string' && !target[name] && name.charCodeAt(0) === CharCode.DollarSign) {
++					target[name] = this._createProxyMethod(rpcId, name, notificationMethods, nativePromiseMethods);
++				}
++				if (name === _RPCProxySymbol) {
++					return debugName;
++				}
++				return target[name];
++			}
++		};
++		return new Proxy(Object.create(null), handler);
++	}
++
++	/** Keep first-use method closures out of the frequently invoked proxy getter. */
++	private _createProxyMethod(rpcId: number, name: string, notificationMethods?: readonly string[], nativePromiseMethods?: readonly string[]) {
++		if (notificationMethods?.includes(name)) {
++			return (...args: unknown[]) => this._remoteNotification(rpcId, name, args);
++		}
++		const nativePromise = !!nativePromiseMethods?.includes(name);
++		return (...args: unknown[]) => this._remoteCall(rpcId, name, args, nativePromise);
++	}
++
++	public set<T, R extends T>(identifier: ProxyIdentifier<T>, value: R): R {
++		this._locals[identifier.nid] = value;
++		return value;
++	}
++
++	public assertRegistered(identifiers: ProxyIdentifier<unknown>[]): void {
++		for (let i = 0, len = identifiers.length; i < len; i++) {
++			const identifier = identifiers[i];
++			if (!this._locals[identifier.nid]) {
++				throw new Error(`Missing proxy instance ${identifier.sid}`);
++			}
++		}
++	}
++
++	private _receiveNativeMessage(message: IRPCMessage): void {
++		if (this._isDisposed) {
++			return;
++		}
++		const { header } = message as NativeRPCMessage;
++		const type = header & nativeMessageTypeMask;
++		const req = Math.floor(header / nativeMessageHeaderScale);
++		switch (type) {
++			case MessageType.Acknowledged:
++				this._logger?.logIncoming(0, req, RequestInitiator.LocalSide, `ack`);
++				this._onDidReceiveAcknowledge(this._pendingRPCReplies[req]);
++				break;
++			case MessageType.NotificationJSONArgs: {
++				let args: unknown[] = JSON.parse(message.body as string);
++				const { rpcId, method, undefinedMask } = message as NativeRPCRequestMessage;
++				if (undefinedMask) {
++					MessageIO.restoreUndefinedArguments(args, undefinedMask);
++				}
++				if (this._uriTransformer) {
++					args = transformIncomingURIs(args, this._uriTransformer);
++				}
++				this._receiveNotification(req, rpcId, method, args);
++				break;
++			}
++			case MessageType.RequestJSONArgs:
++			case MessageType.RequestJSONArgsWithCancellation:
++			case MessageType.RequestScalarArg:
++			case MessageType.RequestScalarArgWithCancellation: {
++				let args: unknown[] = type === MessageType.RequestScalarArg || type === MessageType.RequestScalarArgWithCancellation
++					? [message.body] : JSON.parse(message.body as string);
++				const { rpcId, method, undefinedMask } = message as NativeRPCRequestMessage;
++				if (undefinedMask) {
++					MessageIO.restoreUndefinedArguments(args, undefinedMask);
++				}
++				if (this._uriTransformer) {
++					args = transformIncomingURIs(args, this._uriTransformer);
++				}
++				this._receiveRequest(0, req, rpcId, method, args, type === MessageType.RequestJSONArgsWithCancellation || type === MessageType.RequestScalarArgWithCancellation);
++				break;
++			}
++			case MessageType.ReplyOKJSON: {
++				let value: unknown = JSON.parse(message.body as string);
++				if (this._uriTransformer) {
++					value = transformIncomingURIs(value, this._uriTransformer);
++				}
++				this._receiveReply(0, req, value);
++				break;
++			}
++			case MessageType.ReplyOKScalar:
++				this._receiveReply(0, req, message.body);
++				break;
++			case MessageType.ReplyOKEmpty:
++				this._receiveReply(0, req, undefined);
++				break;
++		}
++	}
++
++	private _receiveOneMessage(rawmsg: VSBuffer): void {
++		if (this._isDisposed) {
++			return;
++		}
++
++		const msgLength = rawmsg.byteLength;
++		const buff = MessageBuffer.read(rawmsg, 0);
++		const messageType = <MessageType>buff.readUInt8();
++		const req = buff.readUInt32();
++
++		switch (messageType) {
++			case MessageType.RequestJSONArgs:
++			case MessageType.RequestJSONArgsWithCancellation: {
++				let { rpcId, method, args } = MessageIO.deserializeRequestJSONArgs(buff);
++				if (this._uriTransformer) {
++					args = transformIncomingURIs(args, this._uriTransformer);
++				}
++				this._receiveRequest(msgLength, req, rpcId, method, args, (messageType === MessageType.RequestJSONArgsWithCancellation));
++				break;
++			}
++			case MessageType.RequestMixedArgs:
++			case MessageType.RequestMixedArgsWithCancellation: {
++				let { rpcId, method, args } = MessageIO.deserializeRequestMixedArgs(buff);
++				if (this._uriTransformer) {
++					args = transformIncomingURIs(args, this._uriTransformer);
++				}
++				this._receiveRequest(msgLength, req, rpcId, method, args, (messageType === MessageType.RequestMixedArgsWithCancellation));
++				break;
++			}
++			case MessageType.Acknowledged: {
++				this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `ack`);
++				this._onDidReceiveAcknowledge(this._pendingRPCReplies[req]);
++				break;
++			}
++			case MessageType.Cancel: {
++				this._receiveCancel(msgLength, req);
++				break;
++			}
++			case MessageType.ReplyOKEmpty: {
++				this._receiveReply(msgLength, req, undefined);
++				break;
++			}
++			case MessageType.ReplyOKJSON: {
++				let value = MessageIO.deserializeReplyOKJSON(buff);
++				if (this._uriTransformer) {
++					value = transformIncomingURIs(value, this._uriTransformer);
++				}
++				this._receiveReply(msgLength, req, value);
++				break;
++			}
++			case MessageType.ReplyOKJSONWithBuffers: {
++				const value = MessageIO.deserializeReplyOKJSONWithBuffers(buff, this._uriTransformer);
++				this._receiveReply(msgLength, req, value);
++				break;
++			}
++			case MessageType.ReplyOKVSBuffer: {
++				const value = MessageIO.deserializeReplyOKVSBuffer(buff);
++				this._receiveReply(msgLength, req, value);
++				break;
++			}
++			case MessageType.ReplyErrError: {
++				let err = MessageIO.deserializeReplyErrError(buff);
++				if (this._uriTransformer) {
++					err = transformIncomingURIs(err, this._uriTransformer);
++				}
++				this._receiveReplyErr(msgLength, req, err);
++				break;
++			}
++			case MessageType.ReplyErrEmpty: {
++				this._receiveReplyErr(msgLength, req, undefined);
++				break;
++			}
++			default:
++				console.error(`received unexpected message`);
++				console.error(rawmsg);
++		}
++	}
++
++	private _receiveNotification(req: number, rpcId: number, method: string, args: unknown[]): void {
++		this._logger?.logIncoming(0, req, RequestInitiator.OtherSide, `notification ${getStringIdentifierForProxy(rpcId)}.${method}(`, args);
++		try {
++			const result = this._doInvokeHandler(rpcId, method, args);
++			if (result && (typeof result === 'object' || typeof result === 'function')) {
++				void Promise.resolve(result).catch(errors.onUnexpectedError);
++			}
++		} catch (error) {
++			errors.onUnexpectedError(error);
++		}
++	}
++
++	private _receiveRequest(msgLength: number, req: number, rpcId: number, method: string, args: unknown[], usesCancellationToken: boolean): void {
++		this._logger?.logIncoming(msgLength, req, RequestInitiator.OtherSide, `receiveRequest ${getStringIdentifierForProxy(rpcId)}.${method}(`, args);
++		const callId = req;
++
++		let cancellationTokenSource: CancellationTokenSource | undefined;
++		if (usesCancellationToken) {
++			cancellationTokenSource = new CancellationTokenSource();
++			const source = cancellationTokenSource;
++			args.push(source.token);
++			this._cancelInvokedHandlers[callId] = () => {
++				source.cancel();
++				source.dispose();
++			};
++		}
++		const promise = this._invokeHandler(rpcId, method, args);
++
++		let replied = false;
++		let acknowledged = false;
++		promise.then((r) => {
++			if (cancellationTokenSource) {
++				delete this._cancelInvokedHandlers[callId];
++				cancellationTokenSource.dispose();
++			}
++			replied = true;
++			if (this._isDisposed) {
++				return;
++			}
++			if (!(r instanceof VSBuffer) && !(r instanceof SerializableObjectWithBuffers)) {
++				let header = MessageType.ReplyOKEmpty;
++				let body: unknown = undefined;
++				if (typeof r === 'number') {
++					header = MessageType.ReplyOKScalar;
++					// Match JSON's nonfinite-number and negative-zero conversions.
++					body = Number.isFinite(r) ? r + 0 : null;
++				} else if (r === null || typeof r === 'string' || typeof r === 'boolean') {
++					header = MessageType.ReplyOKScalar;
++					body = r;
++				} else if (typeof r !== 'undefined') {
++					header = MessageType.ReplyOKJSON;
++					body = safeStringify(r, this._uriReplacer);
++				}
++				this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, `reply:`, r);
++				const message: NativeRPCMessage = { header: req * nativeMessageHeaderScale + header, body };
++				this._protocol.sendRPCMessage(message);
++				if (acknowledged) {
++					void this._protocol.drain?.();
++				}
++				return;
++			}
++			const msg = MessageIO.serializeReplyOK(req, r, this._uriReplacer);
++			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `reply:`, r);
++			this._protocol.sendRPCBuffer(msg);
++		}, (err) => {
++			if (cancellationTokenSource) {
++				delete this._cancelInvokedHandlers[callId];
++				cancellationTokenSource.dispose();
++			}
++			replied = true;
++			if (this._isDisposed) {
++				return;
++			}
++			const msg = MessageIO.serializeReplyErr(req, err);
++			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.OtherSide, `replyErr:`, err);
++			this._protocol.sendRPCBuffer(msg);
++		});
++		this._acknowledgePendingRequest(req, () => replied, () => { acknowledged = true; });
++	}
++
++	/** A bounded microtask grace lets short handlers reply; pending handlers still ACK in this task. */
++	private _acknowledgePendingRequest(req: number, hasReplied: () => boolean, onAcknowledged: () => void, remaining = StructuredCloneRPCProtocol.ACKNOWLEDGEMENT_MICROTASKS): void {
++		queueMicrotask(() => {
++			if (hasReplied() || this._isDisposed) {
++				return;
++			}
++			if (remaining > 1) {
++				this._acknowledgePendingRequest(req, hasReplied, onAcknowledged, remaining - 1);
++				return;
++			}
++			this._logger?.logOutgoing(0, req, RequestInitiator.OtherSide, 'ack');
++			onAcknowledged();
++			this._protocol.sendRPCMessage({ header: req * nativeMessageHeaderScale + MessageType.Acknowledged, body: undefined });
++		});
++	}
++
++	private _receiveCancel(msgLength: number, req: number): void {
++		this._logger?.logIncoming(msgLength, req, RequestInitiator.OtherSide, `receiveCancel`);
++		const callId = req;
++		const cancel = this._cancelInvokedHandlers[callId];
++		delete this._cancelInvokedHandlers[callId];
++		cancel?.();
++	}
++
++	private _receiveReply(msgLength: number, req: number, value: unknown): void {
++		this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `receiveReply:`, value);
++		const callId = req;
++		const pendingReply = this._pendingRPCReplies[callId];
++		if (!pendingReply) {
++			return;
++		}
++		this._onDidReceiveAcknowledge(pendingReply);
++		delete this._pendingRPCReplies[callId];
++
++		pendingReply.resolveOk(value);
++	}
++
++	private _receiveReplyErr(msgLength: number, req: number, value: unknown): void {
++		this._logger?.logIncoming(msgLength, req, RequestInitiator.LocalSide, `receiveReplyErr:`, value);
++
++		const callId = req;
++		const pendingReply = this._pendingRPCReplies[callId];
++		if (!pendingReply) {
++			return;
++		}
++		this._onDidReceiveAcknowledge(pendingReply);
++		delete this._pendingRPCReplies[callId];
++
++		let err: unknown = value || undefined;
++		if (value && typeof value === 'object' && (value as Partial<errors.SerializedError>).$isError) {
++			const serialized = value as errors.SerializedError;
++			const error = new Error(serialized.message);
++			error.name = serialized.name;
++			error.stack = serialized.stack;
++			err = error;
++		}
++		pendingReply.resolveErr(err);
++	}
++
++	private _invokeHandler(rpcId: number, methodName: string, args: unknown[]): Promise<unknown> {
++		try {
++			return Promise.resolve(this._doInvokeHandler(rpcId, methodName, args));
++		} catch (err) {
++			return Promise.reject(err);
++		}
++	}
++
++	private _doInvokeHandler(rpcId: number, methodName: string, args: unknown[]): unknown {
++		const actor = this._locals[rpcId] as Record<string, unknown> | null;
++		if (!actor) {
++			throw new Error('Unknown actor ' + getStringIdentifierForProxy(rpcId));
++		}
++		const method = actor[methodName];
++		if (typeof method !== 'function') {
++			throw new Error('Unknown method ' + methodName + ' on actor ' + getStringIdentifierForProxy(rpcId));
++		}
++		return method.apply(actor, args);
++	}
++
++	private _remoteNotification(rpcId: number, methodName: string, args: unknown[]): Promise<unknown> {
++		if (this._isDisposed) {
++			return new CanceledLazyPromise();
++		}
++		if (args.length > 0 && CancellationToken.isCancellationToken(args[args.length - 1])) {
++			return this._remoteCall(rpcId, methodName, args);
++		}
++		// Keep a regular request as a liveness probe at least once per second
++		// when no other acknowledged traffic already monitors the connection.
++		if (this._unacknowledgedCount === 0 && Date.now() >= this._unresponsiveTime - StructuredCloneRPCProtocol.UNRESPONSIVE_TIME + 1000) {
++			return this._remoteCall(rpcId, methodName, args);
++		}
++		const serialized = MessageIO.serializeNativeArguments(args, this._uriReplacer);
++		if (!serialized) {
++			return this._remoteCall(rpcId, methodName, args);
++		}
++		const req = ++this._lastMessageId;
++		this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `notification: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
++		const message: NativeRPCRequestMessage = { header: req * nativeMessageHeaderScale + MessageType.NotificationJSONArgs, body: serialized.args, rpcId, method: methodName };
++		if (serialized.undefinedMask) {
++			message.undefinedMask = serialized.undefinedMask;
++		}
++		this._protocol.sendRPCMessage(message);
++		return notificationResult;
++	}
++
++	private _remoteCall(rpcId: number, methodName: string, args: unknown[], nativePromise = false): Promise<unknown> {
++		if (this._isDisposed) {
++			return new CanceledLazyPromise();
++		}
++		let cancellationToken: CancellationToken | null = null;
++		if (args.length > 0 && CancellationToken.isCancellationToken(args[args.length - 1])) {
++			cancellationToken = args.pop() as CancellationToken;
++		}
++
++		if (cancellationToken && cancellationToken.isCancellationRequested) {
++			// No need to do anything...
++			return Promise.reject<unknown>(errors.canceled());
++		}
++
++		const value = args[0];
++		const scalarArgument = args.length === 1 &&
++			(value === null || typeof value !== 'object' && typeof value !== 'function' && typeof value !== 'symbol' && typeof value !== 'bigint');
++		const undefinedMask = scalarArgument ? 0 : MessageIO.getSimpleArgumentMask(args, true);
++		// Keep JSON number normalization while skipping array JSON encoding for one scalar.
++		const nativeArguments = scalarArgument
++			? typeof value === 'number' ? Number.isFinite(value) ? value + 0 : null : value
++			: undefinedMask !== null ? stringify(args, this._uriReplacer) : undefined;
++		const serializedRequestArguments = undefinedMask === null ? MessageIO.serializeRequestArguments(args, this._uriReplacer, true) : undefined;
++
++		const req = ++this._lastMessageId;
++		const callId = req;
++
++		const disposable = cancellationToken ? cancellationToken.onCancellationRequested(() => {
++			const msg = MessageIO.serializeCancel(req);
++			this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `cancel`);
++			this._protocol.sendRPCBuffer(msg);
++		}) : Disposable.None;
++
++		let result: Promise<unknown>;
++		let pending: IPendingRPCReply;
++		if (nativePromise && undefinedMask !== null) {
++			const reply = new NativePendingRPCReply(disposable);
++			result = reply.promise;
++			pending = reply;
++		} else {
++			const reply = new LazyPromise();
++			result = reply;
++			pending = new PendingRPCReply(reply, disposable);
++		}
++		this._pendingRPCReplies[callId] = pending;
++		this._onWillSendRequest(req);
++		if (undefinedMask !== null) {
++			const type = scalarArgument
++				? cancellationToken ? MessageType.RequestScalarArgWithCancellation : MessageType.RequestScalarArg
++				: cancellationToken ? MessageType.RequestJSONArgsWithCancellation : MessageType.RequestJSONArgs;
++			this._logger?.logOutgoing(0, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
++			const message: NativeRPCRequestMessage = { header: req * nativeMessageHeaderScale + type, body: nativeArguments, rpcId, method: methodName };
++			if (undefinedMask) {
++				message.undefinedMask = undefinedMask;
++			}
++			this._protocol.sendRPCMessage(message);
++			return result;
++		}
++		const msg = MessageIO.serializeRequest(req, rpcId, methodName, serializedRequestArguments!, !!cancellationToken);
++		this._logger?.logOutgoing(msg.byteLength, req, RequestInitiator.LocalSide, `request: ${getStringIdentifierForProxy(rpcId)}.${methodName}(`, args);
++		this._protocol.sendRPCBuffer(msg);
++		return result;
++	}
++}
++
++/** Native promises avoid thenable assimilation only for audited, always-observed API bridges. */
++class NativePendingRPCReply implements IPendingRPCReply {
++	public acknowledged = false;
++	public readonly promise: Promise<unknown>;
++	private readonly _resolve: (value: unknown) => void;
++	private readonly _reject: (error: unknown) => void;
++
++	constructor(private readonly _disposable: IDisposable) {
++		const deferred = Promise.withResolvers<unknown>();
++		this.promise = deferred.promise;
++		this._resolve = deferred.resolve;
++		this._reject = deferred.reject;
++	}
++
++	public resolveOk(value: unknown): void {
++		this._resolve(value);
++		this._disposable.dispose();
++	}
++
++	public resolveErr(error: unknown): void {
++		this._reject(error);
++		this._disposable.dispose();
++	}
++}
++
++class PendingRPCReply {
++	public acknowledged = false;
++
++	constructor(
++		private readonly _promise: LazyPromise,
++		private readonly _disposable: IDisposable
++	) { }
++
++	public resolveOk(value: unknown): void {
++		this._promise.resolveOk(value);
++		this._disposable.dispose();
++	}
++
++	public resolveErr(err: unknown): void {
++		this._promise.resolveErr(err);
++		this._disposable.dispose();
++	}
++}
++
++class MessageBuffer {
++
++	public static alloc(type: MessageType, req: number, messageSize: number): MessageBuffer {
++		const result = new MessageBuffer(VSBuffer.alloc(messageSize + 1 /* type */ + 4 /* req */, { unpooled: true }), 0);
++		result.writeUInt8(type);
++		result.writeUInt32(req);
++		return result;
++	}
++
++	public static read(buff: VSBuffer, offset: number): MessageBuffer {
++		return new MessageBuffer(buff, offset);
++	}
++
++	private _buff: VSBuffer;
++	private _offset: number;
++
++	public get buffer(): VSBuffer {
++		return this._buff;
++	}
++
++	private constructor(buff: VSBuffer, offset: number) {
++		this._buff = buff;
++		this._offset = offset;
++	}
++
++	public static sizeUInt8(): number {
++		return 1;
++	}
++
++	public static readonly sizeUInt32 = 4;
++
++	public writeUInt8(n: number): void {
++		this._buff.writeUInt8(n, this._offset); this._offset += 1;
++	}
++
++	public readUInt8(): number {
++		const n = this._buff.readUInt8(this._offset); this._offset += 1;
++		return n;
++	}
++
++	public writeUInt32(n: number): void {
++		this._buff.writeUInt32BE(n, this._offset); this._offset += 4;
++	}
++
++	public readUInt32(): number {
++		const n = this._buff.readUInt32BE(this._offset); this._offset += 4;
++		return n;
++	}
++
++	public static sizeShortString(str: VSBuffer): number {
++		return 1 /* string length */ + str.byteLength /* actual string */;
++	}
++
++	public writeShortString(str: VSBuffer): void {
++		this._buff.writeUInt8(str.byteLength, this._offset); this._offset += 1;
++		this._buff.set(str, this._offset); this._offset += str.byteLength;
++	}
++
++	public readShortString(): string {
++		const strByteLength = this._buff.readUInt8(this._offset); this._offset += 1;
++		const strBuff = this._buff.slice(this._offset, this._offset + strByteLength);
++		const str = strBuff.toString(); this._offset += strByteLength;
++		return str;
++	}
++
++	public static sizeLongString(str: VSBuffer): number {
++		return 4 /* string length */ + str.byteLength /* actual string */;
++	}
++
++	public writeLongString(str: VSBuffer): void {
++		this._buff.writeUInt32BE(str.byteLength, this._offset); this._offset += 4;
++		this._buff.set(str, this._offset); this._offset += str.byteLength;
++	}
++
++	public readLongString(): string {
++		const strByteLength = this._buff.readUInt32BE(this._offset); this._offset += 4;
++		const strBuff = this._buff.slice(this._offset, this._offset + strByteLength);
++		const str = strBuff.toString(); this._offset += strByteLength;
++		return str;
++	}
++
++	public writeBuffer(buff: VSBuffer): void {
++		this._buff.writeUInt32BE(buff.byteLength, this._offset); this._offset += 4;
++		this._buff.set(buff, this._offset); this._offset += buff.byteLength;
++	}
++
++	public static sizeVSBuffer(buff: VSBuffer): number {
++		return 4 /* buffer length */ + buff.byteLength /* actual buffer */;
++	}
++
++	public writeVSBuffer(buff: VSBuffer): void {
++		this._buff.writeUInt32BE(buff.byteLength, this._offset); this._offset += 4;
++		this._buff.set(buff, this._offset); this._offset += buff.byteLength;
++	}
++
++	public readVSBuffer(): VSBuffer {
++		const buffLength = this._buff.readUInt32BE(this._offset); this._offset += 4;
++		const buff = this._buff.slice(this._offset, this._offset + buffLength); this._offset += buffLength;
++		return buff;
++	}
++
++	public static sizeMixedArray(arr: readonly MixedArg[]): number {
++		let size = 0;
++		size += 1; // arr length
++		for (let i = 0, len = arr.length; i < len; i++) {
++			const el = arr[i];
++			size += 1; // arg type
++			switch (el.type) {
++				case ArgType.String:
++					size += this.sizeLongString(el.value);
++					break;
++				case ArgType.VSBuffer:
++					size += this.sizeVSBuffer(el.value);
++					break;
++				case ArgType.SerializedObjectWithBuffers:
++					size += this.sizeUInt32; // buffer count
++					size += this.sizeLongString(el.value);
++					for (let i = 0; i < el.buffers.length; ++i) {
++						size += this.sizeVSBuffer(el.buffers[i]);
++					}
++					break;
++				case ArgType.Undefined:
++					// empty...
++					break;
++			}
++		}
++		return size;
++	}
++
++	public writeMixedArray(arr: readonly MixedArg[]): void {
++		this._buff.writeUInt8(arr.length, this._offset); this._offset += 1;
++		for (let i = 0, len = arr.length; i < len; i++) {
++			const el = arr[i];
++			switch (el.type) {
++				case ArgType.String:
++					this.writeUInt8(ArgType.String);
++					this.writeLongString(el.value);
++					break;
++				case ArgType.VSBuffer:
++					this.writeUInt8(ArgType.VSBuffer);
++					this.writeVSBuffer(el.value);
++					break;
++				case ArgType.SerializedObjectWithBuffers:
++					this.writeUInt8(ArgType.SerializedObjectWithBuffers);
++					this.writeUInt32(el.buffers.length);
++					this.writeLongString(el.value);
++					for (let i = 0; i < el.buffers.length; ++i) {
++						this.writeBuffer(el.buffers[i]);
++					}
++					break;
++				case ArgType.Undefined:
++					this.writeUInt8(ArgType.Undefined);
++					break;
++			}
++		}
++	}
++
++	public readMixedArray(): Array<string | VSBuffer | SerializableObjectWithBuffers<unknown> | undefined> {
++		const arrLen = this._buff.readUInt8(this._offset); this._offset += 1;
++		const arr: Array<string | VSBuffer | SerializableObjectWithBuffers<unknown> | undefined> = new Array(arrLen);
++		for (let i = 0; i < arrLen; i++) {
++			const argType = <ArgType>this.readUInt8();
++			switch (argType) {
++				case ArgType.String:
++					arr[i] = this.readLongString();
++					break;
++				case ArgType.VSBuffer:
++					arr[i] = this.readVSBuffer();
++					break;
++				case ArgType.SerializedObjectWithBuffers: {
++					const bufferCount = this.readUInt32();
++					const jsonString = this.readLongString();
++					const buffers: VSBuffer[] = [];
++					for (let i = 0; i < bufferCount; ++i) {
++						buffers.push(this.readVSBuffer());
++					}
++					arr[i] = new SerializableObjectWithBuffers(parseJsonAndRestoreBufferRefs(jsonString, buffers, null));
++					break;
++				}
++				case ArgType.Undefined:
++					arr[i] = undefined;
++					break;
++			}
++		}
++		return arr;
++	}
++}
++
++const enum SerializedRequestArgumentType {
++	Simple,
++	Mixed,
++}
++
++type SerializedRequestArguments =
++	| { readonly type: SerializedRequestArgumentType.Simple; args: string; undefinedMask?: number }
++	| { readonly type: SerializedRequestArgumentType.Mixed; args: MixedArg[] };
++
++
++const notificationResult = Promise.resolve(undefined);
++
++class MessageIO {
++
++	public static serializeNativeArguments(args: unknown[], replacer: JSONStringifyReplacer | null): Extract<SerializedRequestArguments, { type: SerializedRequestArgumentType.Simple }> | undefined {
++		const undefinedMask = this.getSimpleArgumentMask(args, true);
++		if (undefinedMask === null) {
++			return undefined;
++		}
++		return undefinedMask
++			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
++			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
++	}
++
++	public static restoreUndefinedArguments(args: unknown[], undefinedMask: number): void {
++		for (let i = 0; i < args.length; i++) {
++			if (undefinedMask & 1 << i) {
++				args[i] = undefined;
++			}
++		}
++	}
++
++	/** Returns the JSON argument mask, or null when arguments require the mixed codec. */
++	public static getSimpleArgumentMask(arr: unknown[], allowUndefined: boolean): number | null {
++		let undefinedMask = 0;
++		for (let i = 0, len = arr.length; i < len; i++) {
++			const value = arr[i];
++			if (value instanceof VSBuffer || value instanceof SerializableObjectWithBuffers) {
++				return null;
++			}
++			if (typeof value === 'undefined') {
++				if (!allowUndefined || len > 32) {
++					return null;
++				}
++				undefinedMask |= 1 << i;
++			}
++		}
++		return undefinedMask;
++	}
++
++	public static serializeRequestArguments(args: unknown[], replacer: JSONStringifyReplacer | null, allowUndefined = false): SerializedRequestArguments {
++		const undefinedMask = this.getSimpleArgumentMask(args, allowUndefined);
++		if (undefinedMask === null) {
++			const massagedArgs: MixedArg[] = [];
++			for (let i = 0, len = args.length; i < len; i++) {
++				const arg = args[i];
++				if (arg instanceof VSBuffer) {
++					massagedArgs[i] = { type: ArgType.VSBuffer, value: arg };
++				} else if (typeof arg === 'undefined') {
++					massagedArgs[i] = { type: ArgType.Undefined };
++				} else if (arg instanceof SerializableObjectWithBuffers) {
++					const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(arg.value, replacer);
++					massagedArgs[i] = { type: ArgType.SerializedObjectWithBuffers, value: VSBuffer.fromString(jsonString), buffers: referencedBuffers };
++				} else {
++					massagedArgs[i] = { type: ArgType.String, value: VSBuffer.fromString(stringify(arg, replacer)) };
++				}
++			}
++			return {
++				type: SerializedRequestArgumentType.Mixed,
++				args: massagedArgs,
++			};
++		}
++		return undefinedMask
++			? { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer), undefinedMask }
++			: { type: SerializedRequestArgumentType.Simple, args: stringify(args, replacer) };
++	}
++
++	public static serializeRequest(req: number, rpcId: number, method: string, serializedArgs: SerializedRequestArguments, usesCancellationToken: boolean): VSBuffer {
++		switch (serializedArgs.type) {
++			case SerializedRequestArgumentType.Simple:
++				return this._requestJSONArgs(req, rpcId, method, serializedArgs.args, usesCancellationToken);
++			case SerializedRequestArgumentType.Mixed:
++				return this._requestMixedArgs(req, rpcId, method, serializedArgs.args, usesCancellationToken);
++		}
++	}
++
++	private static _requestJSONArgs(req: number, rpcId: number, method: string, args: string, usesCancellationToken: boolean): VSBuffer {
++		const methodBuff = VSBuffer.fromString(method);
++		const argsBuff = VSBuffer.fromString(args);
++
++		let len = 0;
++		len += MessageBuffer.sizeUInt8();
++		len += MessageBuffer.sizeShortString(methodBuff);
++		len += MessageBuffer.sizeLongString(argsBuff);
++
++		const result = MessageBuffer.alloc(usesCancellationToken ? MessageType.RequestJSONArgsWithCancellation : MessageType.RequestJSONArgs, req, len);
++		result.writeUInt8(rpcId);
++		result.writeShortString(methodBuff);
++		result.writeLongString(argsBuff);
++		return result.buffer;
++	}
++
++	public static deserializeRequestJSONArgs(buff: MessageBuffer): { rpcId: number; method: string; args: unknown[] } {
++		const rpcId = buff.readUInt8();
++		const method = buff.readShortString();
++		const args = buff.readLongString();
++		return {
++			rpcId: rpcId,
++			method: method,
++			args: JSON.parse(args)
++		};
++	}
++
++	private static _requestMixedArgs(req: number, rpcId: number, method: string, args: readonly MixedArg[], usesCancellationToken: boolean): VSBuffer {
++		const methodBuff = VSBuffer.fromString(method);
++
++		let len = 0;
++		len += MessageBuffer.sizeUInt8();
++		len += MessageBuffer.sizeShortString(methodBuff);
++		len += MessageBuffer.sizeMixedArray(args);
++
++		const result = MessageBuffer.alloc(usesCancellationToken ? MessageType.RequestMixedArgsWithCancellation : MessageType.RequestMixedArgs, req, len);
++		result.writeUInt8(rpcId);
++		result.writeShortString(methodBuff);
++		result.writeMixedArray(args);
++		return result.buffer;
++	}
++
++	public static deserializeRequestMixedArgs(buff: MessageBuffer): { rpcId: number; method: string; args: unknown[] } {
++		const rpcId = buff.readUInt8();
++		const method = buff.readShortString();
++		const rawargs = buff.readMixedArray();
++		const args: unknown[] = new Array(rawargs.length);
++		for (let i = 0, len = rawargs.length; i < len; i++) {
++			const rawarg = rawargs[i];
++			if (typeof rawarg === 'string') {
++				args[i] = JSON.parse(rawarg);
++			} else {
++				args[i] = rawarg;
++			}
++		}
++		return {
++			rpcId: rpcId,
++			method: method,
++			args: args
++		};
++	}
++
++	public static serializeCancel(req: number): VSBuffer {
++		return MessageBuffer.alloc(MessageType.Cancel, req, 0).buffer;
++	}
++
++	public static serializeReplyOK(req: number, res: unknown, replacer: JSONStringifyReplacer | null): VSBuffer {
++		if (typeof res === 'undefined') {
++			return this._serializeReplyOKEmpty(req);
++		} else if (res instanceof VSBuffer) {
++			return this._serializeReplyOKVSBuffer(req, res);
++		} else if (res instanceof SerializableObjectWithBuffers) {
++			const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(res.value, replacer, true);
++			return this._serializeReplyOKJSONWithBuffers(req, jsonString, referencedBuffers);
++		} else {
++			return this._serializeReplyOKJSON(req, safeStringify(res, replacer));
++		}
++	}
++
++	private static _serializeReplyOKEmpty(req: number): VSBuffer {
++		return MessageBuffer.alloc(MessageType.ReplyOKEmpty, req, 0).buffer;
++	}
++
++	private static _serializeReplyOKVSBuffer(req: number, res: VSBuffer): VSBuffer {
++		let len = 0;
++		len += MessageBuffer.sizeVSBuffer(res);
++
++		const result = MessageBuffer.alloc(MessageType.ReplyOKVSBuffer, req, len);
++		result.writeVSBuffer(res);
++		return result.buffer;
++	}
++
++	public static deserializeReplyOKVSBuffer(buff: MessageBuffer): VSBuffer {
++		return buff.readVSBuffer();
++	}
++
++	private static _serializeReplyOKJSON(req: number, res: string): VSBuffer {
++		const resBuff = VSBuffer.fromString(res);
++
++		let len = 0;
++		len += MessageBuffer.sizeLongString(resBuff);
++
++		const result = MessageBuffer.alloc(MessageType.ReplyOKJSON, req, len);
++		result.writeLongString(resBuff);
++		return result.buffer;
++	}
++
++	private static _serializeReplyOKJSONWithBuffers(req: number, res: string, buffers: readonly VSBuffer[]): VSBuffer {
++		const resBuff = VSBuffer.fromString(res);
++
++		let len = 0;
++		len += MessageBuffer.sizeUInt32; // buffer count
++		len += MessageBuffer.sizeLongString(resBuff);
++		for (const buffer of buffers) {
++			len += MessageBuffer.sizeVSBuffer(buffer);
++		}
++
++		const result = MessageBuffer.alloc(MessageType.ReplyOKJSONWithBuffers, req, len);
++		result.writeUInt32(buffers.length);
++		result.writeLongString(resBuff);
++		for (const buffer of buffers) {
++			result.writeBuffer(buffer);
++		}
++
++		return result.buffer;
++	}
++
++	public static deserializeReplyOKJSON(buff: MessageBuffer): unknown {
++		const res = buff.readLongString();
++		return JSON.parse(res);
++	}
++
++	public static deserializeReplyOKJSONWithBuffers(buff: MessageBuffer, uriTransformer: IURITransformer | null): SerializableObjectWithBuffers<unknown> {
++		const bufferCount = buff.readUInt32();
++		const res = buff.readLongString();
++
++		const buffers: VSBuffer[] = [];
++		for (let i = 0; i < bufferCount; ++i) {
++			buffers.push(buff.readVSBuffer());
++		}
++
++		return new SerializableObjectWithBuffers(parseJsonAndRestoreBufferRefs(res, buffers, uriTransformer));
++	}
++
++	public static serializeReplyErr(req: number, err: unknown): VSBuffer {
++		const errStr: string | undefined = (err ? safeStringify(errors.transformErrorForSerialization(err), null) : undefined);
++		if (typeof errStr !== 'string') {
++			return this._serializeReplyErrEmpty(req);
++		}
++		const errBuff = VSBuffer.fromString(errStr);
++
++		let len = 0;
++		len += MessageBuffer.sizeLongString(errBuff);
++
++		const result = MessageBuffer.alloc(MessageType.ReplyErrError, req, len);
++		result.writeLongString(errBuff);
++		return result.buffer;
++	}
++
++	public static deserializeReplyErrError(buff: MessageBuffer): Error {
++		const err = buff.readLongString();
++		return JSON.parse(err);
++	}
++
++	private static _serializeReplyErrEmpty(req: number): VSBuffer {
++		return MessageBuffer.alloc(MessageType.ReplyErrEmpty, req, 0).buffer;
++	}
++}
++
++const enum MessageType {
++	RequestJSONArgs = 1,
++	RequestJSONArgsWithCancellation = 2,
++	RequestMixedArgs = 3,
++	RequestMixedArgsWithCancellation = 4,
++	Acknowledged = 5,
++	Cancel = 6,
++	ReplyOKEmpty = 7,
++	ReplyOKVSBuffer = 8,
++	ReplyOKJSON = 9,
++	ReplyOKJSONWithBuffers = 10,
++	ReplyErrError = 11,
++	ReplyErrEmpty = 12,
++	NotificationJSONArgs = 13,
++	ReplyOKScalar = 14,
++	RequestScalarArg = 15,
++	RequestScalarArgWithCancellation = 16,
++}
++
++const enum ArgType {
++	String = 1,
++	VSBuffer = 2,
++	SerializedObjectWithBuffers = 3,
++	Undefined = 4,
++}
++
++
++type MixedArg =
++	| { readonly type: ArgType.String; readonly value: VSBuffer }
++	| { readonly type: ArgType.VSBuffer; readonly value: VSBuffer }
++	| { readonly type: ArgType.SerializedObjectWithBuffers; readonly value: VSBuffer; readonly buffers: readonly VSBuffer[] }
++	| { readonly type: ArgType.Undefined }
++	;
+diff --git a/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts b/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts
+index b89d0f25fe4b..b6293e873212 100644
+--- a/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts
++++ b/src/vs/workbench/services/extensions/test/common/rpcMessagePort.test.ts
+@@ -5,20 +5,52 @@
+ 
+ import assert from 'assert';
+ import { VSBuffer } from '../../../../../base/common/buffer.js';
+-import { getStructuredCloneMessage, IStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+-import { RPCMessagePort } from '../../common/rpcMessagePort.js';
++import { IRPCMessage as IStructuredCloneMessage, RPCMessagePort } from '../../common/rpcMessagePort.js';
+ 
+ suite('RPCMessagePort', () => {
+ 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+-	const frame = (id: number, length = 0): IStructuredCloneMessage => ({ header: [1, id], body: 'x'.repeat(length) });
++	const frame = (id: number, length = 0): IStructuredCloneMessage => ({ header: id, body: 'x'.repeat(length) });
++
++	test('handshake listeners do not consume native frames before the RPC engine subscribes', async () => {
++		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
++		const controls: number[] = [];
++		store.add(port.onMessage(message => controls.push(message.readUInt8(0))));
++		port.acceptMessage(new Uint8Array([1]));
++		port.acceptMessage(frame(42));
++		const received: IStructuredCloneMessage[] = [];
++		store.add(port.onRPCMessage(message => received.push(message)));
++		await Promise.resolve();
++		assert.deepStrictEqual({ controls, received }, { controls: [1], received: [frame(42)] });
++	});
++
++	test('unbatched transport sends every frame immediately', () => {
++		const sent: unknown[] = [];
++		const port = store.add(new RPCMessagePort(message => sent.push(message), false));
++		port.sendRPCMessage(frame(1));
++		port.sendRPCMessage(frame(2));
++		assert.deepStrictEqual(sent, [frame(1), frame(2)]);
++	});
++
++	test('reentrant delivery cannot overtake the rest of a received batch', () => {
++		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
++		const received: number[] = [];
++		store.add(port.onRPCMessage(message => {
++			received.push(message.header);
++			if (message.header === 1) {
++				port.acceptMessage(frame(3));
++			}
++		}));
++		port.acceptMessage([frame(1), frame(2)]);
++		assert.deepStrictEqual(received, [1, 2, 3]);
++	});
+ 
+ 	test('sends the first frame immediately and coalesces the rest of a burst', async () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+ 		const frames = [frame(1), frame(2), frame(3)];
+ 		for (const message of frames) {
+-			port.sendStructuredClone(message);
++			port.sendRPCMessage(message);
+ 		}
+ 		assert.deepStrictEqual(sent, [frames[0]]);
+ 		await Promise.resolve();
+@@ -28,9 +60,9 @@ suite('RPCMessagePort', () => {
+ 	test('receiving data keeps the next outgoing frame immediate', () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+-		port.sendStructuredClone(frame(1));
++		port.sendRPCMessage(frame(1));
+ 		port.acceptMessage(frame(2));
+-		port.sendStructuredClone(frame(3));
++		port.sendRPCMessage(frame(3));
+ 		assert.deepStrictEqual(sent, [frame(1), frame(3)]);
+ 	});
+ 
+@@ -38,7 +70,7 @@ suite('RPCMessagePort', () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+ 		for (let i = 0; i < 66; i++) {
+-			port.sendStructuredClone(frame(i));
++			port.sendRPCMessage(frame(i));
+ 		}
+ 		await Promise.resolve();
+ 		assert.strictEqual(sent.length, 3);
+@@ -52,7 +84,7 @@ suite('RPCMessagePort', () => {
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+ 		const frames = [frame(1, 9000), frame(2, 9000), frame(3, 9000)];
+ 		for (const message of frames) {
+-			port.sendStructuredClone(message);
++			port.sendRPCMessage(message);
+ 		}
+ 		await Promise.resolve();
+ 		assert.deepStrictEqual(sent, frames);
+@@ -61,43 +93,41 @@ suite('RPCMessagePort', () => {
+ 	test('binary controls flush native frames and preserve startup buffering order', async () => {
+ 		const packets: unknown[] = [];
+ 		const sender = store.add(new RPCMessagePort(message => packets.push(message)));
+-		sender.sendStructuredClone(frame(1));
+-		sender.send(VSBuffer.fromByteArray([2]));
+-		sender.sendStructuredClone(frame(3));
++		sender.sendRPCMessage(frame(1));
++		sender.sendRPCBuffer(VSBuffer.fromByteArray([2]));
++		sender.sendRPCMessage(frame(3));
+ 		await Promise.resolve();
+ 		const receiver = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+ 		for (const packet of packets) {
+ 			receiver.acceptMessage(packet);
+ 		}
+ 		const order: number[] = [];
+-		store.add(receiver.onMessage(buffer => {
+-			const native = getStructuredCloneMessage(buffer);
+-			order.push(native ? (native.header as number[])[1] : buffer.readUInt8(0));
++		store.add(receiver.onRPCMessage(buffer => {
++			order.push(buffer.header === 0 ? (buffer.body as Uint8Array)[0] : buffer.header);
+ 		}));
+ 		await Promise.resolve();
+ 		assert.deepStrictEqual(order, [1, 2, 3]);
+ 	});
+ 
+-	test('native receive stream preserves buffered frames and binary controls without wrappers', async () => {
++	test('native receive stream preserves buffered frames and binary codec envelopes', async () => {
+ 		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+ 		const frames = [frame(1), frame(3), frame(4)];
+ 		port.acceptMessage(frames[0]);
+-		port.acceptMessage(new Uint8Array([2]));
++		port.acceptMessage({ header: 0, body: new Uint8Array([2]) });
+ 		port.acceptMessage(frames.slice(1));
+ 		const received: (VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[])[] = [];
+-		store.add(port.onMessageWithStructuredClone(message => received.push(message)));
++		store.add(port.onRPCMessage(message => received.push(message)));
+ 		await Promise.resolve();
+-		assert.strictEqual(received.length, 3);
++		assert.strictEqual(received.length, 4);
+ 		assert.strictEqual(received[0], frames[0]);
+-		assert.ok(received[1] instanceof VSBuffer);
+-		assert.strictEqual(received[1].readUInt8(0), 2);
+-		assert.deepStrictEqual(received[2], frames.slice(1));
++		assert.strictEqual((received[1] as IStructuredCloneMessage).header, 0);
++		assert.deepStrictEqual(received.slice(2), frames.slice(1));
+ 	});
+ 
+ 	test('disposal during a native receive batch stops remaining delivery', () => {
+ 		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+ 		let received = 0;
+-		store.add(port.onMessageWithStructuredClone(() => {
++		store.add(port.onRPCMessage(() => {
+ 			received++;
+ 			port.dispose();
+ 		}));
+@@ -109,32 +139,32 @@ suite('RPCMessagePort', () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+ 		port.acceptMessage([frame(0), frame(1)]);
+-		port.sendStructuredClone(frame(2));
+-		port.sendStructuredClone(frame(3));
++		port.sendRPCMessage(frame(2));
++		port.sendRPCMessage(frame(3));
+ 		assert.deepStrictEqual(sent, []);
+ 		await Promise.resolve();
+ 		assert.deepStrictEqual(sent, [[frame(2), frame(3)]]);
+ 	});
+ 
+-	test('legacy listeners share the current frame when disposal stops the rest of a batch', () => {
++	test('native listeners share the current frame when disposal stops the rest of a batch', () => {
+ 		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+-		const received: VSBuffer[][] = [[], []];
+-		store.add(port.onMessage(message => {
++		const received: (VSBuffer | IStructuredCloneMessage)[][] = [[], []];
++		store.add(port.onRPCMessage(message => {
+ 			received[0].push(message);
+ 			port.dispose();
+ 		}));
+-		store.add(port.onMessage(message => received[1].push(message)));
++		store.add(port.onRPCMessage(message => received[1].push(message)));
+ 		port.acceptMessage([frame(1), frame(2)]);
+ 		assert.deepStrictEqual(received.map(messages => messages.length), [1, 1]);
+ 		assert.strictEqual(received[0][0], received[1][0]);
+-		assert.strictEqual((getStructuredCloneMessage(received[0][0])!.header as number[])[1], 1);
++		assert.strictEqual((received[0][0] as IStructuredCloneMessage).header, 1);
+ 	});
+ 
+ 	test('drain flushes a queued frame immediately', async () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+-		port.sendStructuredClone(frame(0));
+-		port.sendStructuredClone(frame(1));
++		port.sendRPCMessage(frame(0));
++		port.sendRPCMessage(frame(1));
+ 		assert.deepStrictEqual(sent, [frame(0)]);
+ 		await port.drain();
+ 		assert.deepStrictEqual(sent, [frame(0), frame(1)]);
+@@ -143,13 +173,13 @@ suite('RPCMessagePort', () => {
+ 	test('disposal drops queued sends and later incoming frames', async () => {
+ 		const sent: unknown[] = [];
+ 		const port = store.add(new RPCMessagePort(message => sent.push(message)));
+-		store.add(port.onMessage(() => assert.fail('unexpected incoming frame')));
+-		port.sendStructuredClone(frame(0));
+-		port.sendStructuredClone(frame(1));
++		store.add(port.onRPCMessage(() => assert.fail('unexpected incoming frame')));
++		port.sendRPCMessage(frame(0));
++		port.sendRPCMessage(frame(1));
+ 		port.dispose();
+ 		port.acceptMessage(frame(2));
+ 		port.send(VSBuffer.fromByteArray([3]));
+-		port.sendStructuredClone(frame(4));
++		port.sendRPCMessage(frame(4));
+ 		await Promise.resolve();
+ 		assert.deepStrictEqual(sent, [frame(0)]);
+ 	});
+@@ -157,7 +187,7 @@ suite('RPCMessagePort', () => {
+ 	test('disposal during a batch stops delivery of remaining frames', () => {
+ 		const port = store.add(new RPCMessagePort(() => assert.fail('unexpected send')));
+ 		let received = 0;
+-		store.add(port.onMessage(() => {
++		store.add(port.onRPCMessage(() => {
+ 			received++;
+ 			port.dispose();
+ 		}));
+diff --git a/src/vs/workbench/services/extensions/test/common/rpcProtocol.observedVoid.test.ts b/src/vs/workbench/services/extensions/test/common/rpcProtocol.observedVoid.test.ts
+index 22b05b7a29bb..954e1fd72dc3 100644
+--- a/src/vs/workbench/services/extensions/test/common/rpcProtocol.observedVoid.test.ts
++++ b/src/vs/workbench/services/extensions/test/common/rpcProtocol.observedVoid.test.ts
+@@ -9,7 +9,7 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+ import { ProxyIdentifier } from '../../common/proxyIdentifier.js';
+ import { RPCMessagePort } from '../../common/rpcMessagePort.js';
+-import { RPCProtocol } from '../../common/rpcProtocol.js';
++import { StructuredCloneRPCProtocol as RPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
+ 
+ interface ObservedVoidService {
+ 	$finish(): void;
+diff --git a/src/vs/workbench/services/extensions/test/common/rpcProtocol.serialization.test.ts b/src/vs/workbench/services/extensions/test/common/rpcProtocol.serialization.test.ts
+index 05e2191d4ab9..e21ff214a33d 100644
+--- a/src/vs/workbench/services/extensions/test/common/rpcProtocol.serialization.test.ts
++++ b/src/vs/workbench/services/extensions/test/common/rpcProtocol.serialization.test.ts
+@@ -5,10 +5,11 @@
+ 
+ import assert from 'assert';
+ import { VSBuffer } from '../../../../../base/common/buffer.js';
+-import { URI } from '../../../../../base/common/uri.js';
++import { URI, UriComponents } from '../../../../../base/common/uri.js';
+ import { URITransformer } from '../../../../../base/common/uriIpc.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+-import { parseJsonAndRestoreBufferRefs, stringifyJsonWithBufferRefs } from '../../common/rpcProtocol.js';
++import { stringifyJsonWithBufferRefs } from '../../common/rpcProtocol.js';
++import { parseJsonAndRestoreBufferRefs } from '../../common/structuredCloneRPCProtocol.js';
+ 
+ suite('RPC JSON buffer references', () => {
+ 	ensureNoDisposablesAreLeakedInTestSuite();
+@@ -22,7 +23,7 @@ suite('RPC JSON buffer references', () => {
+ 		const buffer = VSBuffer.fromString('payload');
+ 		const value = { first: buffer, nested: [buffer] };
+ 		const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(value);
+-		const result = parseJsonAndRestoreBufferRefs(jsonString, referencedBuffers, null);
++		const result = parseJsonAndRestoreBufferRefs<typeof value>(jsonString, referencedBuffers, null);
+ 		assert.strictEqual(result.first, buffer);
+ 		assert.strictEqual(result.nested[0], buffer);
+ 		assert.strictEqual(result.first.toString(), 'payload');
+@@ -31,7 +32,7 @@ suite('RPC JSON buffer references', () => {
+ 	test('undefined placeholders delete object fields and preserve array holes', () => {
+ 		const input = { omitted: undefined, values: [undefined, null, { omitted: undefined }] };
+ 		const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(input);
+-		const result = parseJsonAndRestoreBufferRefs(jsonString, referencedBuffers, null);
++		const result = parseJsonAndRestoreBufferRefs<typeof input>(jsonString, referencedBuffers, null);
+ 		assert.strictEqual(Object.hasOwn(result, 'omitted'), false);
+ 		assert.strictEqual(result.values.length, 3);
+ 		assert.strictEqual(Object.hasOwn(result.values, 0), false);
+@@ -60,13 +61,13 @@ suite('RPC JSON buffer references', () => {
+ 		const value = { $$ref$$: 0, resource: URI.file('/nested').toJSON() };
+ 		assert.strictEqual(parseJsonAndRestoreBufferRefs(JSON.stringify(value), [buffer], transformer), buffer);
+ 		assert.deepStrictEqual(seen, ['/nested']);
+-		const uri = parseJsonAndRestoreBufferRefs('{"\\u0024mid":1,"scheme":"file","path":"/escaped"}', [], transformer);
++		const uri = parseJsonAndRestoreBufferRefs<UriComponents>('{"\\u0024mid":1,"scheme":"file","path":"/escaped"}', [], transformer);
+ 		assert.strictEqual(uri.path, '/incoming/escaped');
+ 	});
+ 
+ 	test('restoring a __proto__ field preserves the parsed object prototype', () => {
+ 		const buffer = VSBuffer.fromString('prototype');
+-		const result = parseJsonAndRestoreBufferRefs('{"__proto__":{"$$ref$$":0}}', [buffer], null);
++		const result = parseJsonAndRestoreBufferRefs<{ __proto__: VSBuffer }>('{"__proto__":{"$$ref$$":0}}', [buffer], null);
+ 		assert.strictEqual(Object.getPrototypeOf(result), Object.prototype);
+ 		assert.strictEqual(Object.hasOwn(result, '__proto__'), true);
+ 		assert.strictEqual(result.__proto__, buffer);
+diff --git a/src/vs/workbench/services/extensions/test/common/rpcProtocol.test.ts b/src/vs/workbench/services/extensions/test/common/rpcProtocol.test.ts
+index f80b750f5ff5..2dcdd56f7acc 100644
+--- a/src/vs/workbench/services/extensions/test/common/rpcProtocol.test.ts
++++ b/src/vs/workbench/services/extensions/test/common/rpcProtocol.test.ts
+@@ -10,12 +10,17 @@ import { CancellationToken, CancellationTokenSource } from '../../../../../base/
+ import { errorHandler } from '../../../../../base/common/errors.js';
+ import { Emitter, Event } from '../../../../../base/common/event.js';
+ import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+-import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
+ import { URI } from '../../../../../base/common/uri.js';
+ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+ import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
+-import { RPCMessagePort } from '../../common/rpcMessagePort.js';
+-import { RPCProtocol } from '../../common/rpcProtocol.js';
++import { IRPCMessage as IStructuredCloneMessage, IStructuredCloneRPCTransport, RPCMessagePort } from '../../common/rpcMessagePort.js';
++import { RPCProtocol as ByteRPCProtocol } from '../../common/rpcProtocol.js';
++import { StructuredCloneRPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
++
++type TestMessage = VSBuffer | IStructuredCloneMessage;
++function getStructuredCloneMessage(message: TestMessage): IStructuredCloneMessage | undefined {
++	return message instanceof VSBuffer ? undefined : message;
++}
+ 
+ type ObservedRepliesService = {
+ 	$echo(value: unknown): unknown;
+@@ -24,57 +29,69 @@ type ObservedRepliesService = {
+ };
+ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('observedReplies', undefined, ['$echo', '$fail', '$hold']);
+ 
+-['binary', 'native JSON', 'batched JSON', 'batched native receive'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
++['binary', 'native JSON', 'batched JSON'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
+ 	const native = mode !== 'binary';
+ 	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
+ 
+ 	let disposables: DisposableStore;
+ 
+-	class MessagePassingProtocol implements IMessagePassingProtocol {
++	const RPCProtocol = native ? StructuredCloneRPCProtocol : ByteRPCProtocol;
++	type RPCProtocol = StructuredCloneRPCProtocol | ByteRPCProtocol;
++
++	class MessagePassingProtocol implements IStructuredCloneRPCTransport {
+ 		private _pair?: MessagePassingProtocol;
+ 		private readonly bufferedPort?: RPCMessagePort;
++		private readonly _onMessage = new Emitter<TestMessage>();
++		public readonly onMessage = Event.filter<VSBuffer, IStructuredCloneMessage>(this._onMessage.event, (message): message is VSBuffer => message instanceof VSBuffer);
++		public readonly onRPCMessage = Event.filter<IStructuredCloneMessage, VSBuffer>(this._onMessage.event, (message): message is IStructuredCloneMessage => !(message instanceof VSBuffer));
+ 
+-		private readonly _onMessage = new Emitter<VSBuffer>();
+-		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
+-
+-		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
+-		public readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
+-
+-		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
+-			if (mode === 'batched JSON' || mode === 'batched native receive') {
++		constructor(private readonly onSend?: (message: TestMessage) => void) {
++			if (mode === 'batched JSON') {
+ 				this.bufferedPort = disposables.add(new RPCMessagePort(data => {
+ 					if (ArrayBuffer.isView(data)) {
+ 						this.onSend?.(VSBuffer.wrap(data as Uint8Array));
+ 					} else {
+ 						for (const message of Array.isArray(data) ? data : [data]) {
+-							this.onSend?.(wrapStructuredCloneMessage(message));
++							this.onSend?.(message.header === 0 ? VSBuffer.wrap(message.body as Uint8Array) : message);
+ 						}
+ 					}
+-					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(data));
++					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(structuredClone(data)));
+ 				}));
+ 				this.onMessage = this.bufferedPort.onMessage;
+-				if (mode === 'batched native receive') {
+-					this.onMessageWithStructuredClone = this.bufferedPort.onMessageWithStructuredClone;
+-				}
+-				this.sendStructuredClone = message => this.bufferedPort!.sendStructuredClone(message);
+-			} else if (native) {
+-				this.sendStructuredClone = message => this.send(wrapStructuredCloneMessage(structuredClone(message)));
++				this.onRPCMessage = this.bufferedPort.onRPCMessage;
+ 			}
+ 		}
+ 
+-		public setPair(other: MessagePassingProtocol) {
++		public setPair(other: MessagePassingProtocol): void {
+ 			this._pair = other;
+ 		}
+ 
++		public sendRPCMessage(message: IStructuredCloneMessage): void {
++			if (this.bufferedPort) {
++				this.bufferedPort.sendRPCMessage(message);
++			} else {
++				this.onSend?.(message);
++				const cloned = structuredClone(message);
++				Promise.resolve().then(() => this._pair!._onMessage.fire(cloned));
++			}
++		}
++
++		public sendRPCBuffer(buffer: VSBuffer): void {
++			if (this.bufferedPort) {
++				this.bufferedPort.sendRPCBuffer(buffer);
++			} else {
++				this.onSend?.(buffer);
++				Promise.resolve().then(() => this._pair!._onMessage.fire({ header: 0, body: buffer.buffer }));
++			}
++		}
++
+ 		public send(buffer: VSBuffer): void {
+ 			if (this.bufferedPort) {
+ 				this.bufferedPort.send(buffer);
+-				return;
++			} else {
++				this.onSend?.(buffer);
++				Promise.resolve().then(() => this._pair!._onMessage.fire(buffer));
+ 			}
+-			this.onSend?.(buffer);
+-			Promise.resolve().then(() => {
+-				this._pair!._onMessage.fire(buffer);
+-			});
+ 		}
+ 	}
+ 
+@@ -115,7 +132,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	ensureNoDisposablesAreLeakedInTestSuite();
+ 
+ 	/** Use the same transport modes for observed promises and the legacy mixed fallback. */
+-	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: VSBuffer[]) {
++	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: TestMessage[]) {
+ 		const one = new MessagePassingProtocol(message => sent?.push(message));
+ 		const two = new MessagePassingProtocol();
+ 		one.setPair(two);
+@@ -159,7 +176,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	});
+ 
+ 	test('single scalar request bodies preserve argument normalization and object fallback', async () => {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const { proxy } = createAuditedPromiseRPC(value => ({ kind: typeof value, value, negativeZero: Object.is(value, -0) }), sent);
+ 		const text = String.fromCharCode(0, 0xd800, 0xdc00, 0xd800, 34, 92) + '😊';
+ 		const cases = [
+@@ -196,7 +213,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	});
+ 
+ 	test('native optional arguments preserve undefined masks at every boundary', async () => {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const one = new MessagePassingProtocol(message => sent.push(message));
+ 		const two = new MessagePassingProtocol();
+ 		one.setPair(two);
+@@ -225,7 +242,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 					assert.deepStrictEqual({ type: messageType(sent[0]), body: frame.body, undefinedMask: Reflect.get(frame, 'undefinedMask') }, { type: 15, body: undefined, undefinedMask: undefined });
+ 				} else if (native && length <= 32) {
+ 					assert.ok(frame);
+-					assert.strictEqual(Reflect.get(frame, 'undefinedMask') ?? (frame.header as number[])[4], 1 << position);
++					assert.strictEqual(Reflect.get(frame, 'undefinedMask'), 1 << position);
+ 				} else {
+ 					assert.strictEqual(frame, undefined);
+ 				}
+@@ -258,7 +275,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	});
+ 
+ 	test('optional native arguments preserve cancellation-token delivery', async () => {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const one = new MessagePassingProtocol(message => sent.push(message));
+ 		const two = new MessagePassingProtocol();
+ 		one.setPair(two);
+@@ -288,28 +305,36 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 		assert.strictEqual(await result, true);
+ 	});
+ 
+-	test('native IPC messages own tightly sized backing buffers', async () => {
+-		const sent: { length: number; backingLength: number }[] = [];
+-		const record = (buffer: VSBuffer) => sent.push({ length: buffer.byteLength, backingLength: buffer.buffer.buffer.byteLength });
+-		const one = new MessagePassingProtocol(record);
+-		const two = new MessagePassingProtocol(record);
+-		one.setPair(two);
+-		two.setPair(one);
+-		const client = disposables.add(new RPCProtocol(one));
+-		const server = disposables.add(new RPCProtocol(two));
+-		const service = { $echo: async (value: string) => value };
+-		const identifier = new ProxyIdentifier<typeof service>('tightlySized');
+-		server.set(identifier, service);
+-
+-		const reply = await client.getProxy(identifier).$echo('small RPC payload');
+-
+-		assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
+-			reply: 'small RPC payload', tightlySized: true
++	if (native) {
++		test('native IPC messages own tightly sized backing buffers', async () => {
++			const sent: { length: number; backingLength: number }[] = [];
++			const record = (message: TestMessage) => {
++				if (message instanceof VSBuffer) {
++					sent.push({ length: message.byteLength, backingLength: message.buffer.buffer.byteLength });
++				} else {
++					sent.push({ length: 0, backingLength: 0 });
++				}
++			};
++			const one = new MessagePassingProtocol(record);
++			const two = new MessagePassingProtocol(record);
++			one.setPair(two);
++			two.setPair(one);
++			const client = disposables.add(new RPCProtocol(one));
++			const server = disposables.add(new RPCProtocol(two));
++			const service = { $echo: async (value: string) => value };
++			const identifier = new ProxyIdentifier<typeof service>('tightlySized');
++			server.set(identifier, service);
++
++			const reply = await client.getProxy(identifier).$echo('small RPC payload');
++
++			assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
++				reply: 'small RPC payload', tightlySized: true
++			});
+ 		});
+-	});
++	}
+ 
+ 	function createObservedRPC(service: { $call: () => unknown }) {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
+ 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+ 		one.setPair(two);
+@@ -324,14 +349,14 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	test('immediate replies acknowledge requests without a separate message', async () => {
+ 		const { client, proxy, sent } = createObservedRPC({ $call: () => 42 });
+ 		assert.strictEqual(await proxy.$call(), 42);
+-		assert.strictEqual(sent.length, 2);
++		assert.strictEqual(sent.length, native ? 2 : 3);
+ 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+ 	});
+ 
+ 	test('immediate errors acknowledge requests without a separate message', async () => {
+ 		const { client, proxy, sent } = createObservedRPC({ $call: () => { throw new Error('expected failure'); } });
+ 		await assert.rejects(proxy.$call(), /expected failure/);
+-		assert.strictEqual(sent.length, 2);
++		assert.strictEqual(sent.length, native ? 2 : 3);
+ 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+ 	});
+ 
+@@ -352,7 +377,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 			} else {
+ 				assert.strictEqual(await proxy.$call(), 42);
+ 			}
+-			assert.strictEqual(sent.length, 2);
++			assert.strictEqual(sent.length, native ? 2 : 3);
+ 			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+ 		});
+ 	}
+@@ -404,68 +429,88 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 		});
+ 	}
+ 
+-	test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
+-		const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
+-		assert.strictEqual(await proxy.$call(), 42);
+-		const ack = VSBuffer.alloc(5);
+-		ack.writeUInt8(5, 0); // Acknowledged
+-		const first = getStructuredCloneMessage(sent[0]);
+-		ack.writeUInt32BE(first ? typeof first.header === 'number' ? Math.floor(first.header / 32) : (first.header as number[])[1] : sent[0].readUInt32BE(1), 1);
+-		two.send(ack);
+-		two.send(ack);
+-		await new Promise(r => setTimeout(r, 0));
+-		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+-		assert.strictEqual(await proxy.$call(), 42);
+-		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+-	});
++	if (native) {
++		test('disposing the native engine cancels pending actors and suppresses late replies', async () => {
++			let token: CancellationToken | undefined;
++			let release!: (value: number) => void;
++			delegate = (_value, incomingToken) => {
++				token = incomingToken;
++				return new Promise<number>(resolve => { release = resolve; });
++			};
++			const source = disposables.add(new CancellationTokenSource());
++			const pending = bProxy.$m(42, source.token);
++			await new Promise(resolve => setTimeout(resolve, 0));
++			bProtocol.dispose();
++			assert.deepStrictEqual({ canceled: token?.isCancellationRequested, actors: Object.keys(Reflect.get(bProtocol, '_cancelInvokedHandlers')).length }, { canceled: true, actors: 0 });
++			release(42);
++			disposables.dispose();
++			await assert.rejects(pending);
++		});
+ 
+-	test('short calls reuse a responsiveness check until it expires', async () => {
+-		const clock = sinon.useFakeTimers(timerOptions);
+-		try {
+-			const { client, proxy } = createObservedRPC({ $call: () => 42 });
+-			const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
+-			for (let i = 0; i < 100; i++) {
++		test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
++			const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
++			assert.strictEqual(await proxy.$call(), 42);
++			const ack = VSBuffer.alloc(5);
++			ack.writeUInt8(5, 0); // Acknowledged
++			const first = getStructuredCloneMessage(sent[0]);
++			ack.writeUInt32BE(first ? Math.floor(first.header / 32) : (sent[0] as VSBuffer).readUInt32BE(1), 1);
++			two.sendRPCBuffer(ack);
++			two.sendRPCBuffer(ack);
++			await new Promise(r => setTimeout(r, 0));
++			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
++			assert.strictEqual(await proxy.$call(), 42);
++			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
++		});
++
++		test('short calls reuse a responsiveness check until it expires', async () => {
++			const clock = sinon.useFakeTimers(timerOptions);
++			try {
++				const { client, proxy } = createObservedRPC({ $call: () => 42 });
++				const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
++				for (let i = 0; i < 100; i++) {
++					assert.strictEqual(await proxy.$call(), 42);
++				}
++				assert.strictEqual(schedule.callCount, 1);
++				assert.strictEqual(clock.countTimers(), 1);
++				await clock.tickAsync(1001);
++				assert.strictEqual(clock.countTimers(), 0);
+ 				assert.strictEqual(await proxy.$call(), 42);
++				assert.strictEqual(schedule.callCount, 2);
++				client.dispose();
++				assert.strictEqual(clock.countTimers(), 0);
++			} finally {
++				clock.restore();
+ 			}
+-			assert.strictEqual(schedule.callCount, 1);
+-			assert.strictEqual(clock.countTimers(), 1);
+-			await clock.tickAsync(1001);
+-			assert.strictEqual(clock.countTimers(), 0);
+-			assert.strictEqual(await proxy.$call(), 42);
+-			assert.strictEqual(schedule.callCount, 2);
+-			client.dispose();
+-			assert.strictEqual(clock.countTimers(), 0);
+-		} finally {
+-			clock.restore();
+-		}
+-	});
++		});
+ 
+-	test('a reused check still detects an unresponsive peer and recovers', async () => {
+-		const clock = sinon.useFakeTimers(timerOptions);
+-		try {
+-			let release!: (value: number) => void;
+-			let held = false;
+-			const { client, proxy, two } = createObservedRPC({ $call: () => held ? new Promise<number>(resolve => release = resolve) : 42 });
+-			assert.strictEqual(await proxy.$call(), 42);
+-			held = true;
+-			const dropAcknowledgement = sinon.stub(two, 'send');
+-			const dropNativeAcknowledgement = two.sendStructuredClone ? sinon.stub(two, 'sendStructuredClone') : undefined;
+-			const reply = proxy.$call();
+-			await clock.tickAsync(1001);
+-			assert.strictEqual(client.responsiveState, 0);
+-			await clock.tickAsync(4001);
+-			assert.strictEqual(client.responsiveState, 1);
+-			dropAcknowledgement.restore();
+-			dropNativeAcknowledgement?.restore();
+-			release(42);
+-			assert.strictEqual(await reply, 42);
+-			assert.strictEqual(client.responsiveState, 0);
+-			client.dispose();
+-			assert.strictEqual(clock.countTimers(), 0);
+-		} finally {
+-			clock.restore();
+-		}
+-	});
++		test('a reused check still detects an unresponsive peer and recovers', async () => {
++			const clock = sinon.useFakeTimers(timerOptions);
++			try {
++				let release!: (value: number) => void;
++				let held = false;
++				const { client, proxy, two } = createObservedRPC({ $call: () => held ? new Promise<number>(resolve => release = resolve) : 42 });
++				assert.strictEqual(await proxy.$call(), 42);
++				held = true;
++				const dropAcknowledgement = sinon.stub(two, native ? 'sendRPCBuffer' : 'send');
++				const dropNativeAcknowledgement = native ? sinon.stub(two, 'sendRPCMessage') : undefined;
++				const reply = proxy.$call();
++				await clock.tickAsync(1001);
++				assert.strictEqual(client.responsiveState, 0);
++				await clock.tickAsync(4001);
++				assert.strictEqual(client.responsiveState, 1);
++				dropAcknowledgement.restore();
++				dropNativeAcknowledgement?.restore();
++				release(42);
++				assert.strictEqual(await reply, 42);
++				assert.strictEqual(client.responsiveState, 0);
++				client.dispose();
++				assert.strictEqual(clock.countTimers(), 0);
++			} finally {
++				clock.restore();
++			}
++		});
++
++	}
+ 
+ 	for (const fail of [false, true]) {
+ 		test(`releases the caller cancellation subscription after ${fail ? 'error' : 'success'}`, async () => {
+@@ -493,7 +538,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	}
+ 
+ 	function createNotificationRPC(service: NotificationTestService) {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
+ 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+ 		one.setPair(two);
+@@ -504,12 +549,13 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 		return { client, server, two, sent, proxy: client.getProxy(notificationIdentifier) };
+ 	}
+ 
+-	function messageType(buffer: VSBuffer): number {
++	function messageType(buffer: TestMessage): number {
+ 		const message = getStructuredCloneMessage(buffer);
+ 		if (!message) {
++			assert.ok(buffer instanceof VSBuffer);
+ 			return buffer.readUInt8(0);
+ 		}
+-		return typeof message.header === 'number' ? message.header & 31 : (message.header as number[])[0];
++		return message.header & 31;
+ 	}
+ 
+ 	test('explicit notifications deliver every update before an ordinary barrier request', async () => {
+@@ -614,9 +660,9 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 				await proxy.$notify();
+ 				assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 0);
+ 				await clock.tickAsync(1100);
+-				sinon.stub(two, 'send');
+-				if (two.sendStructuredClone) {
+-					sinon.stub(two, 'sendStructuredClone');
++				sinon.stub(two, native ? 'sendRPCBuffer' : 'send');
++				if (native) {
++					sinon.stub(two, 'sendRPCMessage');
+ 				}
+ 				const probe = proxy.$notify();
+ 				const rejected = assert.rejects(probe, /Canceled/);
+@@ -662,7 +708,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
+ 	});
+ 
+ 	test('native scalar replies retain JSON conversions and object fallback', async () => {
+-		const sent: VSBuffer[] = [];
++		const sent: TestMessage[] = [];
+ 		const one = new MessagePassingProtocol();
+ 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
+ 		one.setPair(two);
+diff --git a/src/vs/workbench/services/sharedProcess/electron-browser/sharedProcessService.ts b/src/vs/workbench/services/sharedProcess/electron-browser/sharedProcessService.ts
+index ed735cbe689d..b4e194f9a410 100644
+--- a/src/vs/workbench/services/sharedProcess/electron-browser/sharedProcessService.ts
++++ b/src/vs/workbench/services/sharedProcess/electron-browser/sharedProcessService.ts
+@@ -3,7 +3,7 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
+-import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
++import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
+ import { IChannel, IServerChannel, getDelayedChannel } from '../../../../base/parts/ipc/common/ipc.js';
+ import { ILogService } from '../../../../platform/log/common/log.js';
+ import { Disposable } from '../../../../base/common/lifecycle.js';
+diff --git a/src/vs/workbench/services/utilityProcess/electron-browser/utilityProcessWorkerWorkbenchService.ts b/src/vs/workbench/services/utilityProcess/electron-browser/utilityProcessWorkerWorkbenchService.ts
+index d074d17baeb8..13b9ca142b2f 100644
+--- a/src/vs/workbench/services/utilityProcess/electron-browser/utilityProcessWorkerWorkbenchService.ts
++++ b/src/vs/workbench/services/utilityProcess/electron-browser/utilityProcessWorkerWorkbenchService.ts
+@@ -6,7 +6,7 @@
+ import { ILogService } from '../../../../platform/log/common/log.js';
+ import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+ import { IMainProcessService } from '../../../../platform/ipc/common/mainProcessService.js';
+-import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
++import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
+ import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+ import { IPCClient, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
+ import { generateUuid } from '../../../../base/common/uuid.js';
