@@ -7,7 +7,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { IChannel, IPCClient, IStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
-import { Protocol } from '../../../../../base/parts/ipc/common/ipc.electron.js';
+import { StructuredCloneProtocol as Protocol } from '../../../../../base/parts/ipc/common/ipc.structuredClone.electron.js';
 
 interface IConnection {
 	readonly store: DisposableStore;

@@ -564,6 +564,20 @@ suite('Base IPC', function () {
 			});
 		});
 
+		for (const size of [31, 32, 33, 64]) {
+			for (const kind of ['object', 'array', 'nested'] as const) {
+				test(`reads ${kind} accessors once at ${size} keys`, async () => {
+					let reads = 0;
+					const values = Array.from({ length: size }, () => 0);
+					const input = kind === 'array' ? values : Object.fromEntries(values.map((value, index) => [String(index), value]));
+					Object.defineProperty(input, String(size - 1), { enumerable: true, get: () => ++reads });
+					const data = kind === 'nested' ? { nested: input } : input;
+					await client.getChannel('echo').call('echo', data);
+					assert.strictEqual(reads, 1);
+				});
+			}
+		}
+
 		test('reads enumerable getters once without mutating frozen input', async () => {
 			let reads = 0;
 			const buffer = VSBuffer.fromString('getter');

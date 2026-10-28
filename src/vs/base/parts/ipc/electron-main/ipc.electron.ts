@@ -8,7 +8,7 @@ import { validatedIpcMain } from './ipcMain.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage } from '../common/ipc.js';
-import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
+import { StructuredCloneProtocol as ElectronProtocol } from '../common/ipc.structuredClone.electron.js';
 
 interface IIPCEvent {
 	event: { sender: WebContents };

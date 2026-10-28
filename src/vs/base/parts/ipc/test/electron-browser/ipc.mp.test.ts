@@ -10,7 +10,7 @@ import { Event } from '../../../../common/event.js';
 import { toDisposable } from '../../../../common/lifecycle.js';
 import { URI } from '../../../../common/uri.js';
 import { ChannelClient, ChannelServer } from '../../common/ipc.js';
-import { Protocol } from '../../common/ipc.mp.js';
+import { StructuredCloneProtocol as Protocol } from '../../common/ipc.structuredClone.mp.js';
 import { Client as MessagePortClient } from '../../browser/ipc.mp.js';
 import { acquirePort, MessagePortAcquisitionError } from '../../electron-browser/ipc.mp.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';

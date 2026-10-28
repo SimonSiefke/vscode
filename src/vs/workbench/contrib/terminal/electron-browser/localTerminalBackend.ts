@@ -27,7 +27,7 @@ import { IProductService } from '../../../../platform/product/common/productServ
 import { IEnvironmentVariableService } from '../common/environmentVariable.js';
 import { BaseTerminalBackend } from '../browser/baseTerminalBackend.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
-import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
+import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
 import { acquirePort } from '../../../../base/parts/ipc/electron-browser/ipc.mp.js';
 import { getDelayedChannel, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { mark, PerformanceMark } from '../../../../base/common/performance.js';

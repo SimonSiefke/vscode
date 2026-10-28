@@ -6,7 +6,7 @@
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IMainProcessService } from '../../../../platform/ipc/common/mainProcessService.js';
-import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.mp.js';
+import { Client as MessagePortClient } from '../../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IPCClient, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { generateUuid } from '../../../../base/common/uuid.js';

@@ -6,7 +6,7 @@
 import { Event } from '../../../common/event.js';
 import { IDisposable } from '../../../common/lifecycle.js';
 import { IPCClient, IStructuredCloneMessage } from '../common/ipc.js';
-import { Protocol as ElectronProtocol } from '../common/ipc.electron.js';
+import { StructuredCloneProtocol as ElectronProtocol } from '../common/ipc.structuredClone.electron.js';
 import { ipcRenderer } from '../../sandbox/electron-browser/globals.js';
 
 /**

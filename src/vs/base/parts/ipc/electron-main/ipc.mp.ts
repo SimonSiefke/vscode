@@ -8,7 +8,7 @@ import { validatedIpcMain } from './ipcMain.js';
 import { Event } from '../../../common/event.js';
 import { IDisposable } from '../../../common/lifecycle.js';
 import { generateUuid } from '../../../common/uuid.js';
-import { Client as MessagePortClient } from '../common/ipc.mp.js';
+import { Client as MessagePortClient } from '../common/ipc.structuredClone.mp.js';
 
 /**
  * An implementation of a `IPCClient` on top of Electron `MessagePortMain`.

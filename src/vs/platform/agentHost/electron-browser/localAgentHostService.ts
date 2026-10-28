@@ -17,7 +17,7 @@ import type { ArtifactIntegrationDescriptor } from '../../artifactIntegrations/c
 import { ArtifactChatAction } from '../common/artifactIntegrationChat.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import { getDelayedChannel, IChannelClient, IChannelServer, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
-import { Client as MessagePortClient } from '../../../base/parts/ipc/common/ipc.mp.js';
+import { Client as MessagePortClient } from '../../../base/parts/ipc/common/ipc.structuredClone.mp.js';
 import { acquirePort, MessagePortAcquisitionError } from '../../../base/parts/ipc/electron-browser/ipc.mp.js';
 import { ipcRenderer } from '../../../base/parts/sandbox/electron-browser/globals.js';
 import { localize } from '../../../nls.js';
