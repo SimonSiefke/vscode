@@ -106,6 +106,15 @@ suite('ExtHostConsumerFileSystem activation', () => {
 		assert.strictEqual(beforeRelease, 2);
 	});
 
+	test('disposing an old registration does not remove its replacement', async () => {
+		let activations = 0;
+		const consumer = createConsumer(async () => { activations++; });
+		const previous = store.add(consumer.addFileSystemProvider(uri.scheme, createProvider()));
+		store.add(consumer.addFileSystemProvider(uri.scheme, createProvider()));
+		previous.dispose();
+		assert.deepStrictEqual({ bytes: [...await consumer.value.readFile(uri)], activations }, { bytes: [1, 2, 3], activations: 1 });
+	});
+
 	test('readonly, trash, rename, copy and nonlocal operations retain main-thread paths', async () => {
 		const calls: string[] = [];
 		const record = (name: string) => async () => { calls.push(name); };

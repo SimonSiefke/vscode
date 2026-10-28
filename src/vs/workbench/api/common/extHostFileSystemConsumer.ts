@@ -261,8 +261,13 @@ export class ExtHostConsumerFileSystem {
 	// ---
 
 	addFileSystemProvider(scheme: string, provider: vscode.FileSystemProvider, options?: { isCaseSensitive?: boolean; isReadonly?: boolean | IMarkdownString }): IDisposable {
-		this._fileSystemProvider.set(scheme, { impl: provider, extUri: options?.isCaseSensitive ? extUri : extUriIgnorePathCase, isReadonly: !!options?.isReadonly });
-		return toDisposable(() => this._fileSystemProvider.delete(scheme));
+		const registration = { impl: provider, extUri: options?.isCaseSensitive ? extUri : extUriIgnorePathCase, isReadonly: !!options?.isReadonly };
+		this._fileSystemProvider.set(scheme, registration);
+		return toDisposable(() => {
+			if (this._fileSystemProvider.get(scheme) === registration) {
+				this._fileSystemProvider.delete(scheme);
+			}
+		});
 	}
 
 	getFileSystemProviderExtUri(scheme: string) {
