@@ -15,7 +15,7 @@ import { RelativePattern } from '../../common/extHostTypes.js';
 import { nullExtensionDescription } from '../../../services/extensions/common/extensions.js';
 import { ExtHostConfigProvider } from '../../common/extHostConfiguration.js';
 import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
-import { RPCProtocol } from '../../../services/extensions/common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol as RPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
 import { IStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
 import { mock } from '../../../../base/test/common/mock.js';
 

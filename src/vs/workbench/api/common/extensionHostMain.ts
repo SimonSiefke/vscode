@@ -8,6 +8,8 @@ import * as performance from '../../../base/common/performance.js';
 import { URI } from '../../../base/common/uri.js';
 import { IURITransformer } from '../../../base/common/uriIpc.js';
 import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
+import { StructuredCloneRPCProtocol } from '../../services/extensions/common/structuredCloneRPCProtocol.js';
+import { isStructuredCloneRPCTransport } from '../../services/extensions/common/rpcMessagePort.js';
 import { MainContext, MainThreadConsoleShape } from './extHost.protocol.js';
 import { IExtensionHostInitData } from '../../services/extensions/common/extensionHostProtocol.js';
 import { RPCProtocol } from '../../services/extensions/common/rpcProtocol.js';
@@ -161,7 +163,7 @@ export abstract class ErrorHandler {
 export class ExtensionHostMain {
 
 	private readonly _hostUtils: IHostUtils;
-	private readonly _rpcProtocol: RPCProtocol;
+	private readonly _rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol;
 	private readonly _extensionService: IExtHostExtensionService;
 	private readonly _logService: ILogService;
 
@@ -173,7 +175,7 @@ export class ExtensionHostMain {
 		messagePorts?: ReadonlyMap<string, MessagePort>
 	) {
 		this._hostUtils = hostUtils;
-		this._rpcProtocol = new RPCProtocol(protocol, null, uriTransformer);
+		this._rpcProtocol = isStructuredCloneRPCTransport(protocol) ? new StructuredCloneRPCProtocol(protocol, null, uriTransformer) : new RPCProtocol(protocol, null, uriTransformer);
 
 		// ensure URIs are transformed and revived
 		initData = ExtensionHostMain._transform(initData, this._rpcProtocol);
@@ -219,7 +221,7 @@ export class ExtensionHostMain {
 		this._extensionService.terminate(reason);
 	}
 
-	private static _transform(initData: IExtensionHostInitData, rpcProtocol: RPCProtocol): IExtensionHostInitData {
+	private static _transform(initData: IExtensionHostInitData, rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol): IExtensionHostInitData {
 		initData.extensions.allExtensions.forEach((ext) => {
 			(<Mutable<IExtensionDescription>>ext).extensionLocation = URI.revive(rpcProtocol.transformIncomingURIs(ext.extensionLocation));
 		});

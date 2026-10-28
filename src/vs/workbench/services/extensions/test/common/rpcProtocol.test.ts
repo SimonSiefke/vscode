@@ -10,12 +10,17 @@ import { CancellationToken, CancellationTokenSource } from '../../../../../base/
 import { errorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { getStructuredCloneMessage, IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../../base/parts/ipc/common/ipc.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
-import { RPCMessagePort } from '../../common/rpcMessagePort.js';
-import { RPCProtocol } from '../../common/rpcProtocol.js';
+import { IRPCMessage as IStructuredCloneMessage, IStructuredCloneRPCTransport, RPCMessagePort } from '../../common/rpcMessagePort.js';
+import { RPCProtocol as ByteRPCProtocol } from '../../common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
+
+type TestMessage = VSBuffer | IStructuredCloneMessage;
+function getStructuredCloneMessage(message: TestMessage): IStructuredCloneMessage | undefined {
+	return message instanceof VSBuffer ? undefined : message;
+}
 
 type ObservedRepliesService = {
 	$echo(value: unknown): unknown;
@@ -24,57 +29,69 @@ type ObservedRepliesService = {
 };
 const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('observedReplies', undefined, ['$echo', '$fail', '$hold']);
 
-['binary', 'native JSON', 'batched JSON', 'batched native receive'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
+['binary', 'native JSON', 'batched JSON'].forEach(mode => suite(`RPCProtocol (${mode})`, () => {
 	const native = mode !== 'binary';
 	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
 
 	let disposables: DisposableStore;
 
-	class MessagePassingProtocol implements IMessagePassingProtocol {
+	const RPCProtocol = native ? StructuredCloneRPCProtocol : ByteRPCProtocol;
+	type RPCProtocol = StructuredCloneRPCProtocol | ByteRPCProtocol;
+
+	class MessagePassingProtocol implements IStructuredCloneRPCTransport {
 		private _pair?: MessagePassingProtocol;
 		private readonly bufferedPort?: RPCMessagePort;
+		private readonly _onMessage = new Emitter<TestMessage>();
+		public readonly onMessage = Event.filter<VSBuffer, IStructuredCloneMessage>(this._onMessage.event, (message): message is VSBuffer => message instanceof VSBuffer);
+		public readonly onRPCMessage = Event.filter<IStructuredCloneMessage, VSBuffer>(this._onMessage.event, (message): message is IStructuredCloneMessage => !(message instanceof VSBuffer));
 
-		private readonly _onMessage = new Emitter<VSBuffer>();
-		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
-
-		public readonly sendStructuredClone?: (message: IStructuredCloneMessage) => void;
-		public readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
-
-		constructor(private readonly onSend?: (buffer: VSBuffer) => void) {
-			if (mode === 'batched JSON' || mode === 'batched native receive') {
+		constructor(private readonly onSend?: (message: TestMessage) => void) {
+			if (mode === 'batched JSON') {
 				this.bufferedPort = disposables.add(new RPCMessagePort(data => {
 					if (ArrayBuffer.isView(data)) {
 						this.onSend?.(VSBuffer.wrap(data as Uint8Array));
 					} else {
 						for (const message of Array.isArray(data) ? data : [data]) {
-							this.onSend?.(wrapStructuredCloneMessage(message));
+							this.onSend?.(message.header === 0 ? VSBuffer.wrap(message.body as Uint8Array) : message);
 						}
 					}
-					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(data));
+					Promise.resolve().then(() => this._pair!.bufferedPort!.acceptMessage(structuredClone(data)));
 				}));
 				this.onMessage = this.bufferedPort.onMessage;
-				if (mode === 'batched native receive') {
-					this.onMessageWithStructuredClone = this.bufferedPort.onMessageWithStructuredClone;
-				}
-				this.sendStructuredClone = message => this.bufferedPort!.sendStructuredClone(message);
-			} else if (native) {
-				this.sendStructuredClone = message => this.send(wrapStructuredCloneMessage(structuredClone(message)));
+				this.onRPCMessage = this.bufferedPort.onRPCMessage;
 			}
 		}
 
-		public setPair(other: MessagePassingProtocol) {
+		public setPair(other: MessagePassingProtocol): void {
 			this._pair = other;
+		}
+
+		public sendRPCMessage(message: IStructuredCloneMessage): void {
+			if (this.bufferedPort) {
+				this.bufferedPort.sendRPCMessage(message);
+			} else {
+				this.onSend?.(message);
+				const cloned = structuredClone(message);
+				Promise.resolve().then(() => this._pair!._onMessage.fire(cloned));
+			}
+		}
+
+		public sendRPCBuffer(buffer: VSBuffer): void {
+			if (this.bufferedPort) {
+				this.bufferedPort.sendRPCBuffer(buffer);
+			} else {
+				this.onSend?.(buffer);
+				Promise.resolve().then(() => this._pair!._onMessage.fire({ header: 0, body: buffer.buffer }));
+			}
 		}
 
 		public send(buffer: VSBuffer): void {
 			if (this.bufferedPort) {
 				this.bufferedPort.send(buffer);
-				return;
+			} else {
+				this.onSend?.(buffer);
+				Promise.resolve().then(() => this._pair!._onMessage.fire(buffer));
 			}
-			this.onSend?.(buffer);
-			Promise.resolve().then(() => {
-				this._pair!._onMessage.fire(buffer);
-			});
 		}
 	}
 
@@ -115,7 +132,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	/** Use the same transport modes for observed promises and the legacy mixed fallback. */
-	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: VSBuffer[]) {
+	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: TestMessage[]) {
 		const one = new MessagePassingProtocol(message => sent?.push(message));
 		const two = new MessagePassingProtocol();
 		one.setPair(two);
@@ -159,7 +176,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	});
 
 	test('single scalar request bodies preserve argument normalization and object fallback', async () => {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const { proxy } = createAuditedPromiseRPC(value => ({ kind: typeof value, value, negativeZero: Object.is(value, -0) }), sent);
 		const text = String.fromCharCode(0, 0xd800, 0xdc00, 0xd800, 34, 92) + '😊';
 		const cases = [
@@ -196,7 +213,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	});
 
 	test('native optional arguments preserve undefined masks at every boundary', async () => {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const one = new MessagePassingProtocol(message => sent.push(message));
 		const two = new MessagePassingProtocol();
 		one.setPair(two);
@@ -225,7 +242,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 					assert.deepStrictEqual({ type: messageType(sent[0]), body: frame.body, undefinedMask: Reflect.get(frame, 'undefinedMask') }, { type: 15, body: undefined, undefinedMask: undefined });
 				} else if (native && length <= 32) {
 					assert.ok(frame);
-					assert.strictEqual(Reflect.get(frame, 'undefinedMask') ?? (frame.header as number[])[4], 1 << position);
+					assert.strictEqual(Reflect.get(frame, 'undefinedMask'), 1 << position);
 				} else {
 					assert.strictEqual(frame, undefined);
 				}
@@ -258,7 +275,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	});
 
 	test('optional native arguments preserve cancellation-token delivery', async () => {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const one = new MessagePassingProtocol(message => sent.push(message));
 		const two = new MessagePassingProtocol();
 		one.setPair(two);
@@ -288,28 +305,36 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 		assert.strictEqual(await result, true);
 	});
 
-	test('native IPC messages own tightly sized backing buffers', async () => {
-		const sent: { length: number; backingLength: number }[] = [];
-		const record = (buffer: VSBuffer) => sent.push({ length: buffer.byteLength, backingLength: buffer.buffer.buffer.byteLength });
-		const one = new MessagePassingProtocol(record);
-		const two = new MessagePassingProtocol(record);
-		one.setPair(two);
-		two.setPair(one);
-		const client = disposables.add(new RPCProtocol(one));
-		const server = disposables.add(new RPCProtocol(two));
-		const service = { $echo: async (value: string) => value };
-		const identifier = new ProxyIdentifier<typeof service>('tightlySized');
-		server.set(identifier, service);
+	if (native) {
+		test('native IPC messages own tightly sized backing buffers', async () => {
+			const sent: { length: number; backingLength: number }[] = [];
+			const record = (message: TestMessage) => {
+				if (message instanceof VSBuffer) {
+					sent.push({ length: message.byteLength, backingLength: message.buffer.buffer.byteLength });
+				} else {
+					sent.push({ length: 0, backingLength: 0 });
+				}
+			};
+			const one = new MessagePassingProtocol(record);
+			const two = new MessagePassingProtocol(record);
+			one.setPair(two);
+			two.setPair(one);
+			const client = disposables.add(new RPCProtocol(one));
+			const server = disposables.add(new RPCProtocol(two));
+			const service = { $echo: async (value: string) => value };
+			const identifier = new ProxyIdentifier<typeof service>('tightlySized');
+			server.set(identifier, service);
 
-		const reply = await client.getProxy(identifier).$echo('small RPC payload');
+			const reply = await client.getProxy(identifier).$echo('small RPC payload');
 
-		assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
-			reply: 'small RPC payload', tightlySized: true
+			assert.deepStrictEqual({ reply, tightlySized: sent.length > 0 && sent.every(message => message.length === message.backingLength) }, {
+				reply: 'small RPC payload', tightlySized: true
+			});
 		});
-	});
+	}
 
 	function createObservedRPC(service: { $call: () => unknown }) {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
 		one.setPair(two);
@@ -324,14 +349,14 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	test('immediate replies acknowledge requests without a separate message', async () => {
 		const { client, proxy, sent } = createObservedRPC({ $call: () => 42 });
 		assert.strictEqual(await proxy.$call(), 42);
-		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(sent.length, native ? 2 : 3);
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
 
 	test('immediate errors acknowledge requests without a separate message', async () => {
 		const { client, proxy, sent } = createObservedRPC({ $call: () => { throw new Error('expected failure'); } });
 		await assert.rejects(proxy.$call(), /expected failure/);
-		assert.strictEqual(sent.length, 2);
+		assert.strictEqual(sent.length, native ? 2 : 3);
 		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 	});
 
@@ -352,7 +377,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 			} else {
 				assert.strictEqual(await proxy.$call(), 42);
 			}
-			assert.strictEqual(sent.length, 2);
+			assert.strictEqual(sent.length, native ? 2 : 3);
 			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
 		});
 	}
@@ -404,68 +429,88 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 		});
 	}
 
-	test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
-		const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
-		assert.strictEqual(await proxy.$call(), 42);
-		const ack = VSBuffer.alloc(5);
-		ack.writeUInt8(5, 0); // Acknowledged
-		const first = getStructuredCloneMessage(sent[0]);
-		ack.writeUInt32BE(first ? typeof first.header === 'number' ? Math.floor(first.header / 32) : (first.header as number[])[1] : sent[0].readUInt32BE(1), 1);
-		two.send(ack);
-		two.send(ack);
-		await new Promise(r => setTimeout(r, 0));
-		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
-		assert.strictEqual(await proxy.$call(), 42);
-		assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
-	});
-
-	test('short calls reuse a responsiveness check until it expires', async () => {
-		const clock = sinon.useFakeTimers(timerOptions);
-		try {
-			const { client, proxy } = createObservedRPC({ $call: () => 42 });
-			const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
-			for (let i = 0; i < 100; i++) {
-				assert.strictEqual(await proxy.$call(), 42);
-			}
-			assert.strictEqual(schedule.callCount, 1);
-			assert.strictEqual(clock.countTimers(), 1);
-			await clock.tickAsync(1001);
-			assert.strictEqual(clock.countTimers(), 0);
-			assert.strictEqual(await proxy.$call(), 42);
-			assert.strictEqual(schedule.callCount, 2);
-			client.dispose();
-			assert.strictEqual(clock.countTimers(), 0);
-		} finally {
-			clock.restore();
-		}
-	});
-
-	test('a reused check still detects an unresponsive peer and recovers', async () => {
-		const clock = sinon.useFakeTimers(timerOptions);
-		try {
+	if (native) {
+		test('disposing the native engine cancels pending actors and suppresses late replies', async () => {
+			let token: CancellationToken | undefined;
 			let release!: (value: number) => void;
-			let held = false;
-			const { client, proxy, two } = createObservedRPC({ $call: () => held ? new Promise<number>(resolve => release = resolve) : 42 });
-			assert.strictEqual(await proxy.$call(), 42);
-			held = true;
-			const dropAcknowledgement = sinon.stub(two, 'send');
-			const dropNativeAcknowledgement = two.sendStructuredClone ? sinon.stub(two, 'sendStructuredClone') : undefined;
-			const reply = proxy.$call();
-			await clock.tickAsync(1001);
-			assert.strictEqual(client.responsiveState, 0);
-			await clock.tickAsync(4001);
-			assert.strictEqual(client.responsiveState, 1);
-			dropAcknowledgement.restore();
-			dropNativeAcknowledgement?.restore();
+			delegate = (_value, incomingToken) => {
+				token = incomingToken;
+				return new Promise<number>(resolve => { release = resolve; });
+			};
+			const source = disposables.add(new CancellationTokenSource());
+			const pending = bProxy.$m(42, source.token);
+			await new Promise(resolve => setTimeout(resolve, 0));
+			bProtocol.dispose();
+			assert.deepStrictEqual({ canceled: token?.isCancellationRequested, actors: Object.keys(Reflect.get(bProtocol, '_cancelInvokedHandlers')).length }, { canceled: true, actors: 0 });
 			release(42);
-			assert.strictEqual(await reply, 42);
-			assert.strictEqual(client.responsiveState, 0);
-			client.dispose();
-			assert.strictEqual(clock.countTimers(), 0);
-		} finally {
-			clock.restore();
-		}
-	});
+			disposables.dispose();
+			await assert.rejects(pending);
+		});
+
+		test('late and duplicate acknowledgements do not corrupt responsiveness accounting', async () => {
+			const { client, proxy, sent, two } = createObservedRPC({ $call: () => 42 });
+			assert.strictEqual(await proxy.$call(), 42);
+			const ack = VSBuffer.alloc(5);
+			ack.writeUInt8(5, 0); // Acknowledged
+			const first = getStructuredCloneMessage(sent[0]);
+			ack.writeUInt32BE(first ? Math.floor(first.header / 32) : (sent[0] as VSBuffer).readUInt32BE(1), 1);
+			two.sendRPCBuffer(ack);
+			two.sendRPCBuffer(ack);
+			await new Promise(r => setTimeout(r, 0));
+			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+			assert.strictEqual(await proxy.$call(), 42);
+			assert.strictEqual(Reflect.get(client, '_unacknowledgedCount'), 0);
+		});
+
+		test('short calls reuse a responsiveness check until it expires', async () => {
+			const clock = sinon.useFakeTimers(timerOptions);
+			try {
+				const { client, proxy } = createObservedRPC({ $call: () => 42 });
+				const schedule = sinon.spy(Reflect.get(client, '_asyncCheckUresponsive'), 'schedule');
+				for (let i = 0; i < 100; i++) {
+					assert.strictEqual(await proxy.$call(), 42);
+				}
+				assert.strictEqual(schedule.callCount, 1);
+				assert.strictEqual(clock.countTimers(), 1);
+				await clock.tickAsync(1001);
+				assert.strictEqual(clock.countTimers(), 0);
+				assert.strictEqual(await proxy.$call(), 42);
+				assert.strictEqual(schedule.callCount, 2);
+				client.dispose();
+				assert.strictEqual(clock.countTimers(), 0);
+			} finally {
+				clock.restore();
+			}
+		});
+
+		test('a reused check still detects an unresponsive peer and recovers', async () => {
+			const clock = sinon.useFakeTimers(timerOptions);
+			try {
+				let release!: (value: number) => void;
+				let held = false;
+				const { client, proxy, two } = createObservedRPC({ $call: () => held ? new Promise<number>(resolve => release = resolve) : 42 });
+				assert.strictEqual(await proxy.$call(), 42);
+				held = true;
+				const dropAcknowledgement = sinon.stub(two, native ? 'sendRPCBuffer' : 'send');
+				const dropNativeAcknowledgement = native ? sinon.stub(two, 'sendRPCMessage') : undefined;
+				const reply = proxy.$call();
+				await clock.tickAsync(1001);
+				assert.strictEqual(client.responsiveState, 0);
+				await clock.tickAsync(4001);
+				assert.strictEqual(client.responsiveState, 1);
+				dropAcknowledgement.restore();
+				dropNativeAcknowledgement?.restore();
+				release(42);
+				assert.strictEqual(await reply, 42);
+				assert.strictEqual(client.responsiveState, 0);
+				client.dispose();
+				assert.strictEqual(clock.countTimers(), 0);
+			} finally {
+				clock.restore();
+			}
+		});
+
+	}
 
 	for (const fail of [false, true]) {
 		test(`releases the caller cancellation subscription after ${fail ? 'error' : 'success'}`, async () => {
@@ -493,7 +538,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	}
 
 	function createNotificationRPC(service: NotificationTestService) {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const one = new MessagePassingProtocol(buffer => sent.push(buffer));
 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
 		one.setPair(two);
@@ -504,12 +549,13 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 		return { client, server, two, sent, proxy: client.getProxy(notificationIdentifier) };
 	}
 
-	function messageType(buffer: VSBuffer): number {
+	function messageType(buffer: TestMessage): number {
 		const message = getStructuredCloneMessage(buffer);
 		if (!message) {
+			assert.ok(buffer instanceof VSBuffer);
 			return buffer.readUInt8(0);
 		}
-		return typeof message.header === 'number' ? message.header & 31 : (message.header as number[])[0];
+		return message.header & 31;
 	}
 
 	test('explicit notifications deliver every update before an ordinary barrier request', async () => {
@@ -614,9 +660,9 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 				await proxy.$notify();
 				assert.strictEqual(Object.keys(Reflect.get(client, '_pendingRPCReplies')).length, 0);
 				await clock.tickAsync(1100);
-				sinon.stub(two, 'send');
-				if (two.sendStructuredClone) {
-					sinon.stub(two, 'sendStructuredClone');
+				sinon.stub(two, native ? 'sendRPCBuffer' : 'send');
+				if (native) {
+					sinon.stub(two, 'sendRPCMessage');
 				}
 				const probe = proxy.$notify();
 				const rejected = assert.rejects(probe, /Canceled/);
@@ -662,7 +708,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	});
 
 	test('native scalar replies retain JSON conversions and object fallback', async () => {
-		const sent: VSBuffer[] = [];
+		const sent: TestMessage[] = [];
 		const one = new MessagePassingProtocol();
 		const two = new MessagePassingProtocol(buffer => sent.push(buffer));
 		one.setPair(two);

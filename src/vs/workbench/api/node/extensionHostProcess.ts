@@ -13,8 +13,8 @@ import { Event } from '../../../base/common/event.js';
 import * as performance from '../../../base/common/performance.js';
 import { IURITransformer } from '../../../base/common/uriIpc.js';
 import { Promises } from '../../../base/node/pfs.js';
-import { IMessagePassingProtocol, IStructuredCloneMessage } from '../../../base/parts/ipc/common/ipc.js';
-import { RPCMessagePort } from '../../services/extensions/common/rpcMessagePort.js';
+import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
+import { IRPCMessage, isStructuredCloneRPCTransport, RPCMessagePort } from '../../services/extensions/common/rpcMessagePort.js';
 import { BufferedEmitter, PersistentProtocol, ProtocolConstants } from '../../../base/parts/ipc/common/ipc.net.js';
 import { NodeSocket, WebSocketNodeSocket } from '../../../base/parts/ipc/node/ipc.net.js';
 import type { MessagePortMain, MessageEvent as UtilityMessageEvent } from '../../../base/parts/sandbox/node/electronTypes.js';
@@ -293,12 +293,12 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 
 	const protocol = await _createExtHostProtocol();
 
-	return new class implements IMessagePassingProtocol {
+	const terminatingProtocol = new class implements IMessagePassingProtocol {
 
 		private readonly _onMessage = new BufferedEmitter<VSBuffer>();
 		readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
-		private _terminating: boolean;
+		_terminating: boolean;
 		private _protocolListener: IDisposable;
 
 		constructor() {
@@ -320,11 +320,6 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 			}
 		}
 
-		readonly sendStructuredClone = protocol.sendStructuredClone ? (message: IStructuredCloneMessage): void => {
-			if (!this._terminating) {
-				protocol.sendStructuredClone!(message);
-			}
-		} : undefined;
 
 		async drain(): Promise<void> {
 			if (protocol.drain) {
@@ -332,6 +327,27 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 			}
 		}
 	};
+	if (isStructuredCloneRPCTransport(protocol)) {
+		const onRPCMessage: Event<IRPCMessage> = (listener, thisArgs, disposables) => protocol.onRPCMessage(message => {
+			if (!terminatingProtocol._terminating) {
+				listener.call(thisArgs, message);
+			}
+		}, undefined, disposables);
+		return Object.assign(terminatingProtocol, {
+			onRPCMessage,
+			sendRPCBuffer: (message: VSBuffer) => {
+				if (!terminatingProtocol._terminating) {
+					protocol.sendRPCBuffer(message);
+				}
+			},
+			sendRPCMessage: (message: Parameters<typeof protocol.sendRPCMessage>[0]) => {
+				if (!terminatingProtocol._terminating) {
+					protocol.sendRPCMessage(message);
+				}
+			}
+		});
+	}
+	return terminatingProtocol;
 }
 
 function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRendererConnection> {

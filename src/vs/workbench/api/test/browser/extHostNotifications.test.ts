@@ -15,7 +15,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { TerminalDataBufferer } from '../../../../platform/terminal/common/terminalDataBuffering.js';
 import { ProxyIdentifier } from '../../../services/extensions/common/proxyIdentifier.js';
 import { RPCMessagePort } from '../../../services/extensions/common/rpcMessagePort.js';
-import { RPCProtocol } from '../../../services/extensions/common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol as RPCProtocol } from '../../../services/extensions/common/structuredCloneRPCProtocol.js';
 import { IMarkerChange, MainContext, MainThreadDiagnosticsShape, MainThreadTerminalServiceShape } from '../../common/extHost.protocol.js';
 import { DiagnosticCollection } from '../../common/extHostDiagnostics.js';
 import { Diagnostic, Range } from '../../common/extHostTypes.js';

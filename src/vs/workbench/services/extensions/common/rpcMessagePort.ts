@@ -6,52 +6,86 @@
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
-import { IMessagePassingProtocol, IStructuredCloneMessage, wrapStructuredCloneMessage } from '../../../../base/parts/ipc/common/ipc.js';
+import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
 import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 
-/** Batch immutable native RPC frames while retaining binary/control ordering. */
-export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
-	private readonly messages = new BufferedEmitter<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>();
-	private readonly legacyStore = new DisposableStore();
-	private legacyDeliveryDepth = 0;
-	readonly onMessageWithStructuredClone = this.messages.event;
-	readonly onMessage = Event.map<VSBuffer | IStructuredCloneMessage, VSBuffer>((listener, thisArgs, disposables) => this.onMessageWithStructuredClone(message => {
-		this.legacyDeliveryDepth++;
-		try {
-			if (Array.isArray(message)) {
-				for (const frame of message) {
-					if (this.disposed) {
-						break;
-					}
-					listener.call(thisArgs, frame);
-				}
-			} else {
-				listener.call(thisArgs, message as VSBuffer | IStructuredCloneMessage);
-			}
-		} finally {
-			if (--this.legacyDeliveryDepth === 0 && this.disposed) {
-				this.legacyStore.dispose();
-			}
-		}
-	}, undefined, disposables), message => message instanceof VSBuffer ? message : wrapStructuredCloneMessage(message), this.legacyStore);
+/** Native RPC frame; routing fields are carried only by requests. */
+export interface IRPCMessage {
+	readonly header: number;
+	readonly body: unknown;
+}
 
-	private pending: IStructuredCloneMessage[] | undefined;
+/** Local RPC transport; the byte stream is reserved for startup and termination handshakes. */
+export interface IStructuredCloneRPCTransport extends IMessagePassingProtocol {
+	readonly onRPCMessage: Event<IRPCMessage>;
+	sendRPCBuffer(message: VSBuffer): void;
+
+	sendRPCMessage(message: IRPCMessage): void;
+}
+
+export function isStructuredCloneRPCTransport(protocol: IMessagePassingProtocol): protocol is IStructuredCloneRPCTransport {
+	return 'onRPCMessage' in protocol && 'sendRPCMessage' in protocol && 'sendRPCBuffer' in protocol;
+}
+
+/** Batch immutable native RPC frames while retaining binary/control ordering. */
+export class RPCMessagePort implements IStructuredCloneRPCTransport, IDisposable {
+	private readonly messages = new BufferedEmitter<IRPCMessage>();
+	private readonly controls = new BufferedEmitter<VSBuffer>();
+	private readonly subscriptions = new DisposableStore();
+	readonly onRPCMessage = Event.map(this.messages.event, message => message, this.subscriptions);
+	readonly onMessage = Event.map(this.controls.event, message => message, this.subscriptions);
+	private deliveryDepth = 0;
+
+	private pending: IRPCMessage[] | undefined;
 	private pendingCharacters = 0;
 	private scheduled = false;
 	private nativeSentSinceReceive = false;
 	private disposed = false;
+	private readonly incoming: IRPCMessage[] = [];
+	private incomingIndex = 0;
+	private delivering = false;
 
-	constructor(private readonly postMessage: (message: unknown) => void) { }
+	constructor(private readonly postMessage: (message: unknown) => void, private readonly batching = true) { }
 
 	acceptMessage(data: unknown): void {
-		if (this.disposed) {
+		if (this.disposed || !data) {
 			return;
 		}
 		this.nativeSentSinceReceive = Array.isArray(data) && data.length > 1;
 		if (ArrayBuffer.isView(data)) {
-			this.messages.fire(VSBuffer.wrap(data as Uint8Array));
+			if (data.byteLength > 0) {
+				this.fireMessage(VSBuffer.wrap(new Uint8Array(data.buffer, data.byteOffset, data.byteLength)));
+			}
 		} else {
-			this.messages.fire(data as IStructuredCloneMessage | readonly IStructuredCloneMessage[]);
+			this.incoming.push(...(Array.isArray(data) ? data : [data]) as IRPCMessage[]);
+			if (this.delivering) {
+				return;
+			}
+			this.delivering = true;
+			try {
+				while (!this.disposed && this.incomingIndex < this.incoming.length) {
+					this.fireMessage(this.incoming[this.incomingIndex++]);
+				}
+			} finally {
+				this.incoming.length = 0;
+				this.incomingIndex = 0;
+				this.delivering = false;
+			}
+		}
+	}
+
+	private fireMessage(message: VSBuffer | IRPCMessage): void {
+		this.deliveryDepth++;
+		try {
+			if (message instanceof VSBuffer) {
+				this.controls.fire(message);
+			} else {
+				this.messages.fire(message);
+			}
+		} finally {
+			if (--this.deliveryDepth === 0 && this.disposed) {
+				this.subscriptions.dispose();
+			}
 		}
 	}
 
@@ -62,11 +96,19 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
 		}
 	}
 
-	sendStructuredClone(message: IStructuredCloneMessage): void {
+	/** Mixed payloads and cancellation use the byte codec inside an explicit native envelope. */
+	sendRPCBuffer(buffer: VSBuffer): void {
+		this.flush();
+		if (!this.disposed) {
+			this.postMessage({ header: 0, body: buffer.buffer } satisfies IRPCMessage);
+		}
+	}
+
+	sendRPCMessage(message: IRPCMessage): void {
 		if (this.disposed) {
 			return;
 		}
-		if (!this.nativeSentSinceReceive) {
+		if (!this.batching || !this.nativeSentSinceReceive) {
 			this.nativeSentSinceReceive = true;
 			this.flush();
 			// A sequential request/reply exchange needs no batching microtask.
@@ -110,10 +152,11 @@ export class RPCMessagePort implements IMessagePassingProtocol, IDisposable {
 		this.disposed = true;
 		this.pending = undefined;
 		this.pendingCharacters = 0;
+		this.incoming.length = 0;
 		this.messages.flushBuffer();
-		// Finish broadcasting the current legacy frame before releasing its listeners.
-		if (this.legacyDeliveryDepth === 0) {
-			this.legacyStore.dispose();
+		this.controls.flushBuffer();
+		if (this.deliveryDepth === 0) {
+			this.subscriptions.dispose();
 		}
 	}
 }

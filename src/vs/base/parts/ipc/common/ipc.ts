@@ -107,13 +107,8 @@ interface IHandler {
 }
 
 export interface IMessagePassingProtocol {
-	readonly type?: undefined;
 	send(buffer: VSBuffer): void;
-	/** Optional native path; received values use the same ordered message stream. */
-	sendStructuredClone?(message: IStructuredCloneMessage): void;
 	readonly onMessage: Event<VSBuffer>;
-	/** Optional ordered receive stream that avoids wrapping native values in byte buffers. */
-	readonly onMessageWithStructuredClone?: Event<VSBuffer | IStructuredCloneMessage | readonly IStructuredCloneMessage[]>;
 	/**
 	 * Wait for the write buffer (if applicable) to become empty.
 	 */
@@ -127,19 +122,6 @@ export interface IStructuredCloneMessage {
 	jsonBody?: boolean;
 	/** References to VSBuffer wrappers in the header and body, preserved by structured cloning. */
 	vsBuffers?: readonly { buffer: Uint8Array }[];
-}
-
-const structuredCloneMessage = Symbol('structuredCloneMessage');
-const emptyMessageBuffer = VSBuffer.wrap(new Uint8Array(0)).buffer;
-
-/** Carry native frames through the existing ordered, buffered handshake/RPC stream. */
-export function wrapStructuredCloneMessage(message: IStructuredCloneMessage): VSBuffer {
-	return Object.assign(VSBuffer.wrap(emptyMessageBuffer), { [structuredCloneMessage]: message });
-}
-
-/** Read a locally wrapped native frame; ordinary binary messages have no attachment. */
-export function getStructuredCloneMessage(buffer: VSBuffer): IStructuredCloneMessage | undefined {
-	return (buffer as VSBuffer & { [structuredCloneMessage]?: IStructuredCloneMessage })[structuredCloneMessage];
 }
 
 export interface IStructuredCloneMessagePassingProtocol {

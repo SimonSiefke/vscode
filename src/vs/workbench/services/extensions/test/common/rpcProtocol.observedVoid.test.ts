@@ -9,7 +9,7 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier } from '../../common/proxyIdentifier.js';
 import { RPCMessagePort } from '../../common/rpcMessagePort.js';
-import { RPCProtocol } from '../../common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol as RPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
 
 interface ObservedVoidService {
 	$finish(): void;

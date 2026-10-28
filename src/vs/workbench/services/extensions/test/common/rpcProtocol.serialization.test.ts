@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
-import { URI } from '../../../../../base/common/uri.js';
+import { URI, UriComponents } from '../../../../../base/common/uri.js';
 import { URITransformer } from '../../../../../base/common/uriIpc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { parseJsonAndRestoreBufferRefs, stringifyJsonWithBufferRefs } from '../../common/rpcProtocol.js';
+import { stringifyJsonWithBufferRefs } from '../../common/rpcProtocol.js';
+import { parseJsonAndRestoreBufferRefs } from '../../common/structuredCloneRPCProtocol.js';
 
 suite('RPC JSON buffer references', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -22,7 +23,7 @@ suite('RPC JSON buffer references', () => {
 		const buffer = VSBuffer.fromString('payload');
 		const value = { first: buffer, nested: [buffer] };
 		const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(value);
-		const result = parseJsonAndRestoreBufferRefs(jsonString, referencedBuffers, null);
+		const result = parseJsonAndRestoreBufferRefs<typeof value>(jsonString, referencedBuffers, null);
 		assert.strictEqual(result.first, buffer);
 		assert.strictEqual(result.nested[0], buffer);
 		assert.strictEqual(result.first.toString(), 'payload');
@@ -31,7 +32,7 @@ suite('RPC JSON buffer references', () => {
 	test('undefined placeholders delete object fields and preserve array holes', () => {
 		const input = { omitted: undefined, values: [undefined, null, { omitted: undefined }] };
 		const { jsonString, referencedBuffers } = stringifyJsonWithBufferRefs(input);
-		const result = parseJsonAndRestoreBufferRefs(jsonString, referencedBuffers, null);
+		const result = parseJsonAndRestoreBufferRefs<typeof input>(jsonString, referencedBuffers, null);
 		assert.strictEqual(Object.hasOwn(result, 'omitted'), false);
 		assert.strictEqual(result.values.length, 3);
 		assert.strictEqual(Object.hasOwn(result.values, 0), false);
@@ -60,13 +61,13 @@ suite('RPC JSON buffer references', () => {
 		const value = { $$ref$$: 0, resource: URI.file('/nested').toJSON() };
 		assert.strictEqual(parseJsonAndRestoreBufferRefs(JSON.stringify(value), [buffer], transformer), buffer);
 		assert.deepStrictEqual(seen, ['/nested']);
-		const uri = parseJsonAndRestoreBufferRefs('{"\\u0024mid":1,"scheme":"file","path":"/escaped"}', [], transformer);
+		const uri = parseJsonAndRestoreBufferRefs<UriComponents>('{"\\u0024mid":1,"scheme":"file","path":"/escaped"}', [], transformer);
 		assert.strictEqual(uri.path, '/incoming/escaped');
 	});
 
 	test('restoring a __proto__ field preserves the parsed object prototype', () => {
 		const buffer = VSBuffer.fromString('prototype');
-		const result = parseJsonAndRestoreBufferRefs('{"__proto__":{"$$ref$$":0}}', [buffer], null);
+		const result = parseJsonAndRestoreBufferRefs<{ __proto__: VSBuffer }>('{"__proto__":{"$$ref$$":0}}', [buffer], null);
 		assert.strictEqual(Object.getPrototypeOf(result), Object.prototype);
 		assert.strictEqual(Object.hasOwn(result, '__proto__'), true);
 		assert.strictEqual(result.__proto__, buffer);
