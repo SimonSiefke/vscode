@@ -14,6 +14,7 @@ import * as performance from '../../../base/common/performance.js';
 import { IURITransformer } from '../../../base/common/uriIpc.js';
 import { Promises } from '../../../base/node/pfs.js';
 import { IMessagePassingProtocol } from '../../../base/parts/ipc/common/ipc.js';
+import { IRPCMessage, isStructuredCloneRPCTransport, RPCMessagePort } from '../../services/extensions/common/rpcMessagePort.js';
 import { BufferedEmitter, PersistentProtocol, ProtocolConstants } from '../../../base/parts/ipc/common/ipc.net.js';
 import { NodeSocket, WebSocketNodeSocket } from '../../../base/parts/ipc/node/ipc.net.js';
 import type { MessagePortMain, MessageEvent as UtilityMessageEvent } from '../../../base/parts/sandbox/node/electronTypes.js';
@@ -186,17 +187,15 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 
 			const withPorts = (ports: MessagePortMain[]) => {
 				const port = ports[0];
-				const onMessage = new BufferedEmitter<VSBuffer>();
-				port.on('message', (e) => onMessage.fire(VSBuffer.wrap(e.data as Uint8Array)));
+				const protocol = new RPCMessagePort(message => port.postMessage(message));
+				port.on('message', e => protocol.acceptMessage(e.data));
 				port.on('close', () => {
+					protocol.dispose();
 					onTerminate('renderer closed the MessagePort');
 				});
 				port.start();
 
-				resolve({
-					onMessage: onMessage.event,
-					send: message => port.postMessage(message.buffer)
-				});
+				resolve(protocol);
 			};
 
 			(process as unknown as { parentPort: { on: (event: 'message', listener: (messageEvent: UtilityMessageEvent) => void) => void } }).parentPort.on('message', (e: UtilityMessageEvent) => withPorts(e.ports));
@@ -294,12 +293,12 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 
 	const protocol = await _createExtHostProtocol();
 
-	return new class implements IMessagePassingProtocol {
+	const terminatingProtocol = new class implements IMessagePassingProtocol {
 
 		private readonly _onMessage = new BufferedEmitter<VSBuffer>();
 		readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
-		private _terminating: boolean;
+		_terminating: boolean;
 		private _protocolListener: IDisposable;
 
 		constructor() {
@@ -327,6 +326,22 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 			}
 		}
 	};
+	if (isStructuredCloneRPCTransport(protocol)) {
+		const onRPCMessage: Event<IRPCMessage> = (listener, thisArgs, disposables) => protocol.onRPCMessage(message => {
+			if (!terminatingProtocol._terminating) {
+				listener.call(thisArgs, message);
+			}
+		}, undefined, disposables);
+		return Object.assign(terminatingProtocol, {
+			onRPCMessage,
+			sendRPCMessage: (message: Parameters<typeof protocol.sendRPCMessage>[0]) => {
+				if (!terminatingProtocol._terminating) {
+					protocol.sendRPCMessage(message);
+				}
+			}
+		});
+	}
+	return terminatingProtocol;
 }
 
 function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRendererConnection> {
