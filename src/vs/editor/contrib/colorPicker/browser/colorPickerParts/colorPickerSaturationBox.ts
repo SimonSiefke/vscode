@@ -57,7 +57,7 @@ export class SaturationBox extends Disposable {
 		if (!e.target || !(e.target instanceof Element)) {
 			return;
 		}
-		this.monitor = this._register(new GlobalPointerMoveMonitor());
+		this.monitor = new GlobalPointerMoveMonitor();
 		const origin = dom.getDomNodePagePosition(this._domNode);
 
 		if (e.target !== this.selection) {
