@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { basename, dirname, isEqualOrParent } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -169,6 +169,8 @@ export class CustomizationsTelemetryService implements ICustomizationsTelemetryS
 export class CustomizationsTelemetryContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.customizationsTelemetry';
 
+	private readonly _pendingReports = this._register(new DisposableMap<string, DisposableStore>());
+
 	constructor(
 		@IChatService chatService: IChatService,
 		@ICustomizationsTelemetryService customizationsTelemetryService: ICustomizationsTelemetryService,
@@ -184,9 +186,16 @@ export class CustomizationsTelemetryContribution extends Disposable implements I
 				return;
 			}
 			const requestId = model.lastRequest?.id;
-			this._register(Event.once(Event.filter(model.onDidChange, change =>
+			const key = event.chatSessionResource.toString();
+			const pending = new DisposableStore();
+			this._pendingReports.set(key, pending);
+			pending.add(model.onDidDispose(() => this._pendingReports.deleteAndDispose(key)));
+			pending.add(Event.once(Event.filter(model.onDidChange, change =>
 				change.kind === 'completedRequest' && (!requestId || change.request.id === requestId)
-			))(() => customizationsTelemetryService.reportNewSession(event.chatSessionResource)));
+			))(() => {
+				this._pendingReports.deleteAndDispose(key);
+				customizationsTelemetryService.reportNewSession(event.chatSessionResource);
+			}));
 		}));
 	}
 }

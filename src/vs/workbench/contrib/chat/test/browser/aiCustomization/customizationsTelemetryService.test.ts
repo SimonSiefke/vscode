@@ -21,7 +21,7 @@ import { IChatChangeEvent, IChatModel, IChatRequestModel } from '../../../common
 import { CustomizationsTelemetryContribution, CustomizationsTelemetryService, ICustomizationsTelemetryService } from '../../../browser/aiCustomization/customizationsTelemetryService.js';
 
 suite('CustomizationsTelemetryService', () => {
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('reports source counts once from the completed session snapshot', () => {
 		const customizationService = new class extends mock<IAgentHostCustomizationService>() {
@@ -111,6 +111,31 @@ suite('CustomizationsTelemetryService', () => {
 		});
 	});
 
+	test('stops waiting when a new session is disposed', () => {
+		const requests = disposables.add(new Emitter<IChatRequestAcceptedEvent>());
+		const changes = disposables.add(new Emitter<IChatChangeEvent>());
+		const disposed = disposables.add(new Emitter<void>());
+		const request = new class extends mock<IChatRequestModel>() { override readonly id = 'first'; }();
+		const model = new class extends mock<IChatModel>() {
+			override readonly onDidChange = changes.event;
+			override readonly onDidDispose = disposed.event;
+			override readonly lastRequest = request;
+		}();
+		const reported: string[] = [];
+		disposables.add(new CustomizationsTelemetryContribution(new class extends mock<IChatService>() {
+			override readonly onDidAcceptRequest = requests.event;
+			override getSession(): IChatModel { return model; }
+		}(), new class extends mock<ICustomizationsTelemetryService>() {
+			override reportNewSession(resource: URI): void { reported.push(resource.toString()); }
+		}()));
+
+		requests.fire({ chatSessionResource: URI.parse('agent-host-copilotcli:/disposed'), isNewSession: true });
+		disposed.fire();
+		changes.fire({ kind: 'completedRequest', request });
+
+		assert.deepStrictEqual({ listening: changes.hasListeners(), reported }, { listening: false, reported: [] });
+	});
+
 	test('reports after the first accepted request for a new session completes', () => {
 		const requests = new Emitter<IChatRequestAcceptedEvent>();
 		const reported: string[] = [];
@@ -121,10 +146,12 @@ suite('CustomizationsTelemetryService', () => {
 		const models = new Map<string, IChatModel>([
 			['agent-host-copilotcli:/one', new class extends mock<IChatModel>() {
 				override readonly onDidChange = firstModelChanges.event;
+				override readonly onDidDispose = Event.None;
 				override readonly lastRequest = firstRequest;
 			}()],
 			['agent-host-claude:/two', new class extends mock<IChatModel>() {
 				override readonly onDidChange = secondModelChanges.event;
+				override readonly onDidDispose = Event.None;
 				override readonly lastRequest = secondRequest;
 			}()],
 		]);
