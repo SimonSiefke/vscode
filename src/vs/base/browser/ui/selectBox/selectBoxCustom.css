@@ -55,7 +55,7 @@
 	padding-left: 2px;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row > .option-text {
+.select-box-option-text {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	padding-left: 6px;
