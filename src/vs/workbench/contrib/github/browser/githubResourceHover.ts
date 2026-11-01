@@ -107,7 +107,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	referenceLink.onblur = titleLayout.showBoundedTitle;
 	titleElement.title = title;
 
-	const statusRow = append(hoverElement, $('.sessions-issue-hover-status-row'));
+	const statusRow = append(hoverElement, $('.sessions-issue-hover-status-row.github-resource-hover-status-row'));
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getIssueResourceStatus(data.issue);
@@ -147,7 +147,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	referenceLink.onblur = titleLayout.showBoundedTitle;
 	titleElement.title = title;
 
-	const statusRow = append(hoverElement, $('.sessions-pr-hover-status-row'));
+	const statusRow = append(hoverElement, $('.sessions-pr-hover-status-row.github-resource-hover-status-row'));
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getPullRequestResourceStatus(data.pullRequest);

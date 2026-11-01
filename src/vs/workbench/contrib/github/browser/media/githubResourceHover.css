@@ -27,7 +27,7 @@
 	flex-shrink: 0;
 }
 
-:is(.sessions-issue-hover-status-row, .sessions-pr-hover-status-row) {
+.github-resource-hover-status-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--vscode-spacing-size80);

@@ -1343,7 +1343,7 @@ suite('SessionChatInputToolbar', () => {
 				contentOrder: [
 					'sessions-pr-hover-header github-resource-hover-header',
 					'sessions-pr-hover-title github-resource-hover-title',
-					'sessions-pr-hover-status-row',
+					'sessions-pr-hover-status-row github-resource-hover-status-row',
 					'sessions-pr-hover-description github-resource-hover-description',
 					'sessions-pr-hover-branches',
 					'sessions-pr-hover-author github-resource-hover-metadata',
@@ -1393,7 +1393,7 @@ suite('SessionChatInputToolbar', () => {
 				contentOrder: [
 					'sessions-issue-hover-header github-resource-hover-header',
 					'sessions-issue-hover-title github-resource-hover-title',
-					'sessions-issue-hover-status-row',
+					'sessions-issue-hover-status-row github-resource-hover-status-row',
 					'sessions-issue-hover-description github-resource-hover-description',
 					'sessions-issue-hover-author github-resource-hover-metadata',
 				],
