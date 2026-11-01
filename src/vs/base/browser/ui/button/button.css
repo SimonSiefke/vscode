@@ -100,7 +100,7 @@
 	border-right-width: 0 !important;
 }
 
-.monaco-button-dropdown .monaco-button-dropdown-separator {
+.monaco-button-dropdown-separator {
 	padding: 4px 0;
 	cursor: default;
 }
