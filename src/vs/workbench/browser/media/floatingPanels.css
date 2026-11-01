@@ -498,7 +498,11 @@
 	--modern-ui-floating-card-right-border-color: transparent;
 }
 
-.monaco-workbench.floating-panels.modern-ui-compact .part:is(.activitybar, .sidebar, .panel, .auxiliarybar, .editor) {
+.monaco-workbench.floating-panels.modern-ui-compact .part.activitybar,
+.monaco-workbench.floating-panels.modern-ui-compact .part.sidebar,
+.monaco-workbench.floating-panels.modern-ui-compact .part.panel,
+.monaco-workbench.floating-panels.modern-ui-compact .part.auxiliarybar,
+.monaco-workbench.floating-panels.modern-ui-compact .part.editor {
 	background-image:
 		linear-gradient(var(--modern-ui-floating-card-top-border-color), var(--modern-ui-floating-card-top-border-color)),
 		linear-gradient(var(--modern-ui-floating-card-right-border-color, var(--modern-ui-floating-card-stroke-color)), var(--modern-ui-floating-card-right-border-color, var(--modern-ui-floating-card-stroke-color))),
