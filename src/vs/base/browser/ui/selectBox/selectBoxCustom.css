@@ -98,7 +98,7 @@
 	display: none;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row.option-separator > .option-decorator-right {
+.monaco-list-row.option-separator > .select-box-option-decorator-right {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 }
