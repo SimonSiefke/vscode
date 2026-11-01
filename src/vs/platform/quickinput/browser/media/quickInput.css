@@ -319,7 +319,7 @@
 	justify-content: center;
 }
 
-.quick-input-list .quick-input-list-rows {
+.quick-input-list-rows {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: flex;
