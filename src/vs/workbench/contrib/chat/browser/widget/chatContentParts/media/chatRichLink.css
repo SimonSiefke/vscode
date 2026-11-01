@@ -179,7 +179,7 @@
 	color: var(--vscode-charts-green);
 }
 
-.chat-rich-link[data-chat-rich-link-secondary-status='success'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-secondary-success .chat-rich-link-secondary-status {
 	color: var(--vscode-charts-green);
 }
 
