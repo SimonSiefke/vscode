@@ -105,7 +105,7 @@
 	cursor: default;
 }
 
-.monaco-button-dropdown .monaco-button-dropdown-separator > div {
+.monaco-button-dropdown-separator-line {
 	height: 100%;
 	width: 1px;
 }

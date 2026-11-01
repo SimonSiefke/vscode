@@ -444,6 +444,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		this.separatorContainer.classList.add('monaco-button-dropdown-separator');
 
 		this.separator = document.createElement('div');
+		this.separator.classList.add('monaco-button-dropdown-separator-line');
 		this.separatorContainer.appendChild(this.separator);
 		this.element.appendChild(this.separatorContainer);
 
