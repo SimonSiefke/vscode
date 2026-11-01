@@ -420,7 +420,7 @@
 .monaco-list:focus .monaco-list-row.focused .chat-debug-log-created {
 	color: inherit;
 }
-.chat-debug-log-row .chat-debug-log-name {
+.chat-debug-log-name {
 	width: 200px;
 	flex-shrink: 0;
 	font-weight: var(--vscode-fontWeight-semiBold);
