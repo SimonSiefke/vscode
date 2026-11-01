@@ -370,10 +370,7 @@
 	display: inline-flex;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status .chat-rich-link-status-label {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .chat-rich-link-status-label {
 	display: none;
 }
 
