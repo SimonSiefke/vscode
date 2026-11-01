@@ -374,13 +374,8 @@
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status :is(
-	.chat-rich-link-status-icon,
-	.monaco-pixel-spinner
-) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .chat-rich-link-status-icon,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status .monaco-pixel-spinner {
 	width: var(--vscode-codiconFontSize-compact);
 	height: var(--vscode-codiconFontSize-compact);
 	font-size: var(--vscode-codiconFontSize-compact);
