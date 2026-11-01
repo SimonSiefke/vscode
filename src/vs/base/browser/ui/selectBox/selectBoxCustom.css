@@ -88,7 +88,7 @@
 	padding: 0;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row.option-separator > .option-text {
+.monaco-list-row.option-separator > .select-box-option-text {
 	visibility: hidden;
 	width: 0;
 	float: none;
