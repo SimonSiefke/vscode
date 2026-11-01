@@ -136,7 +136,7 @@
 	max-height: 0px;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-container-width-control > .width-control-div > .option-text-width-control {
+.option-text-width-control {
 	padding-left: 8px;
 	padding-right: 8px;
 	white-space: nowrap;
