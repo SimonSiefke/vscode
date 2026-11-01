@@ -357,10 +357,7 @@
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-primary-status {
 	display: none;
 	align-items: center;
 	height: var(--vscode-codiconFontSize-compact);
