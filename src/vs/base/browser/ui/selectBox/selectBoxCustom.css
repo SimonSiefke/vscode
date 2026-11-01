@@ -125,7 +125,7 @@
 	overflow: hidden;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-container-width-control {
+.select-box-dropdown-container-width-control {
 	flex: 1 1 auto;
 	align-self: flex-start;
 	opacity: 0;
