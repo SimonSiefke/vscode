@@ -19,7 +19,7 @@
 	text-overflow: ellipsis;
 }
 
-:is(.sessions-issue-hover-date, .sessions-pr-hover-date, .sessions-commit-hover-date, .sessions-issue-hover-author, .sessions-pr-hover-author, .sessions-commit-hover-author) {
+.github-resource-hover-metadata {
 	color: var(--vscode-descriptionForeground);
 }
 

@@ -95,7 +95,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.issue.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-issue-hover-date', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-issue-hover-date.github-resource-hover-metadata', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.issue.title || localize('github.issueHover.titleFallback', "Issue #{0}", data.number);
@@ -124,7 +124,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	refreshStatus.hidden = true;
 
 	appendDescription(hoverElement, 'sessions-issue-hover', data.issue.body, localize('github.issueHover.bodyFallback', "No description provided."));
-	append(hoverElement, $('.sessions-issue-hover-author', undefined, localize('github.issueHover.author', "@{0} opened this issue", data.issue.author.login)));
+	append(hoverElement, $('.sessions-issue-hover-author.github-resource-hover-metadata', undefined, localize('github.issueHover.author', "@{0} opened this issue", data.issue.author.login)));
 	return { element: hoverElement, tabbableElements: [repositoryLink, referenceLink], statusRow, refreshStatus, liveElements: [statusRow] };
 }
 
@@ -135,7 +135,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.pullRequest.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-pr-hover-date', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-pr-hover-date.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.pullRequest.title || localize('github.pullRequestHover.titleFallback', "Pull Request #{0}", data.number);
@@ -170,7 +170,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	const branchArrow = append(branchRow, $('span.sessions-pr-hover-branch-arrow', undefined, '\u2190'));
 	branchArrow.setAttribute('aria-hidden', 'true');
 	const headBranch = appendBranchPill(branchRow, data.pullRequest.headRef || localize('github.pullRequestHover.headFallback', "source"), 'head', data.onDidClickHeadBranch);
-	append(hoverElement, $('.sessions-pr-hover-author', undefined, localize('github.pullRequestHover.author', "@{0} opened this pull request", data.pullRequest.author.login)));
+	append(hoverElement, $('.sessions-pr-hover-author.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.author', "@{0} opened this pull request", data.pullRequest.author.login)));
 
 	return {
 		element: hoverElement,
@@ -188,7 +188,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const committedAt = getGitHubHoverDate(data.commit.committedAt);
 	if (committedAt) {
-		append(header, $('span.sessions-commit-hover-date', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
+		append(header, $('span.sessions-commit-hover-date.github-resource-hover-metadata', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
 	}
 
 	const [headline, ...descriptionLines] = data.commit.message.split(/\r?\n/);
@@ -203,7 +203,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 	titleElement.title = title;
 
 	appendDescription(hoverElement, 'sessions-commit-hover', descriptionLines.join('\n').trim(), localize('github.commitHover.bodyFallback', "No additional commit message."));
-	append(hoverElement, $('.sessions-commit-hover-author', undefined, localize('github.commitHover.author', "@{0} committed this change", data.commit.author.login)));
+	append(hoverElement, $('.sessions-commit-hover-author.github-resource-hover-metadata', undefined, localize('github.commitHover.author', "@{0} committed this change", data.commit.author.login)));
 	return { element: hoverElement, tabbableElements: [repositoryLink, referenceLink] };
 }
 
