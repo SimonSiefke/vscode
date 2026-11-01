@@ -452,7 +452,7 @@
 	background-color: var(--vscode-inputValidation-warningBackground,
 				rgba(255, 204, 0, 0.1)) !important;
 }
-.chat-debug-log-row.chat-debug-log-trace {
+.chat-debug-log-trace {
 	opacity: 0.7;
 }
 .chat-debug-detail-panel {
