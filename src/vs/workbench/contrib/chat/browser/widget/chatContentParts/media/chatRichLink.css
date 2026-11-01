@@ -154,13 +154,7 @@
 	color: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-status='open'],
-	[data-chat-rich-link-status='closed'],
-	[data-chat-rich-link-status='merged'],
-	[data-chat-rich-link-status='draft'],
-	[data-chat-rich-link-status='notPlanned']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-lifecycle-status .chat-rich-link-primary-status {
 	align-self: baseline;
 	padding: 0;
 	border: 0;
