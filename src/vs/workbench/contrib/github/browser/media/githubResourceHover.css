@@ -80,7 +80,7 @@
 	overflow-wrap: anywhere;
 }
 
-:is(.sessions-issue-hover-title-tail, .sessions-pr-hover-title-tail, .sessions-commit-hover-title-tail) {
+.github-resource-hover-title-tail {
 	white-space: nowrap;
 }
 
