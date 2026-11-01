@@ -215,7 +215,7 @@
 }
 
 .chat-rich-link.chat-rich-link-primary-draft .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-status='notPlanned'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-notPlanned .chat-rich-link-primary-status {
 	color: var(--vscode-descriptionForeground);
 }
 
