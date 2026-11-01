@@ -219,7 +219,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'][data-chat-rich-link-secondary-status='error'] .chat-rich-link-secondary-status {
+.chat-rich-link.chat-rich-link-kind-pull-request.chat-rich-link-secondary-error .chat-rich-link-secondary-status {
 	color: var(--vscode-charts-red);
 }
 
