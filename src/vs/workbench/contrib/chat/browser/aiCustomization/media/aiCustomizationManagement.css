@@ -880,7 +880,8 @@ per-word capitalization does not survive translation. */
 	overflow: hidden;
 }
 
-.mcp-server-item .mcp-server-secondary-line > * {
+.mcp-server-secondary-line > .mcp-server-compatibility-message,
+.mcp-server-secondary-line > .mcp-server-source-path {
 	flex-shrink: 1;
 	min-width: 0;
 }
