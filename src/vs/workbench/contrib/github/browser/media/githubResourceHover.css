@@ -85,7 +85,7 @@
 }
 
 .sessions-issue-hover-reference,
-.sessions-pr-hover .sessions-pr-hover-reference {
+.sessions-pr-hover-reference {
 	font-weight: var(--vscode-fontWeight-regular);
 	overflow-wrap: normal;
 	white-space: nowrap;
