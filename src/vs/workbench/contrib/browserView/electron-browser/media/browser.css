@@ -689,7 +689,7 @@
 			outline-offset: -1px !important;
 		}
 
-		.codicon {
+		.browser-site-info-icon {
 			font-size: 15px;
 			margin: 0;
 			color: var(--vscode-statusBarItem-errorForeground);

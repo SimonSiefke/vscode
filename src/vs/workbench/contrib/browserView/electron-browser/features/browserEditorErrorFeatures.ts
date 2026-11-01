@@ -323,7 +323,7 @@ class SiteInfoWidget extends Disposable {
 		this._indicator.tabIndex = 0;
 		this._indicator.role = 'button';
 		this._indicator.ariaLabel = localize('browser.notSecure', "Not Secure");
-		this._indicator.appendChild(renderIcon(Codicon.workspaceUntrusted));
+		this._indicator.appendChild(renderIcon(Codicon.workspaceUntrusted)).classList.add('browser-site-info-icon');
 		this._container.appendChild(this._indicator);
 
 		parent.appendChild(this._container);
