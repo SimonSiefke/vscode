@@ -115,6 +115,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computeIssueIcon(data.issue.state, data.issue.stateReason);
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
+	statusIconElement.classList.add('github-resource-hover-status-icon');
 	statusIconElement.setAttribute('aria-hidden', 'true');
 	if (statusIcon.color) {
 		statusIconElement.style.color = asCssVariable(statusIcon.color.id);
@@ -155,6 +156,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computePullRequestIcon(status.kind, { hasFailingChecks: data.checksStatus === 'failure' });
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
+	statusIconElement.classList.add('github-resource-hover-status-icon');
 	statusIconElement.setAttribute('aria-hidden', 'true');
 	if (statusIcon.color) {
 		statusIconElement.style.color = asCssVariable(statusIcon.color.id);
@@ -317,6 +319,7 @@ function appendChecksStatus(container: HTMLElement, pullRequest: IGitHubPullRequ
 	const checksElement = append(container, $('span.sessions-pr-hover-checks.github-resource-hover-status'));
 	checksElement.dataset.status = status.kind;
 	const checksIcon = append(checksElement, renderIcon(status.icon));
+	checksIcon.classList.add('github-resource-hover-status-icon');
 	checksIcon.setAttribute('aria-hidden', 'true');
 	append(checksElement, $('span.sessions-pr-hover-checks-label', undefined, status.label));
 }
