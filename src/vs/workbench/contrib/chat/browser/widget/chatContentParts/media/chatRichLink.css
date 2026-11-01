@@ -210,7 +210,7 @@
 	color: var(--vscode-charts-purple);
 }
 
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'][data-chat-rich-link-status='closed'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-kind-pull-request.chat-rich-link-primary-closed .chat-rich-link-primary-status {
 	color: var(--vscode-charts-red);
 }
 
