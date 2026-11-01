@@ -329,7 +329,7 @@
 	margin-left: 5px;
 }
 
-.quick-input-list .quick-input-list-rows > .quick-input-list-row {
+.quick-input-list-row {
 	display: flex;
 	align-items: center;
 }
