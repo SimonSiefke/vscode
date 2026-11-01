@@ -41,7 +41,7 @@
 .monaco-icon-label-container.disabled {
 	color: var(--vscode-disabledForeground);
 }
-.monaco-icon-label > .monaco-icon-label-container {
+.monaco-icon-label-container {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
