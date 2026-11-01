@@ -371,6 +371,7 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 		// Label
 		data.label = new IconLabel(row1, { supportHighlights: true, supportDescriptionHighlights: true, supportIcons: true, hoverDelegate: this.hoverDelegate });
 		data.toDisposeTemplate.add(data.label);
+		data.label.element.classList.add('quick-input-list-icon-label');
 		data.icon = dom.prepend(data.label.element, $('.quick-input-list-icon'));
 
 		// Keybinding
@@ -382,6 +383,7 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 		const detailContainer = dom.append(row2, $('.quick-input-list-label-meta'));
 		data.detail = new IconLabel(detailContainer, { supportHighlights: true, supportIcons: true, hoverDelegate: this.hoverDelegate });
 		data.toDisposeTemplate.add(data.detail);
+		data.detail.element.classList.add('quick-input-list-icon-label');
 
 		// Separator
 		data.separator = dom.append(data.entry, $('.quick-input-list-separator'));
@@ -510,13 +512,14 @@ class QuickPickItemElementRenderer extends BaseQuickInputListRenderer<QuickPickI
 			};
 		}
 		const options: IIconLabelValueOptions = {
+			extraClasses: ['quick-input-list-icon-label'],
 			matches: labelHighlights || [],
 			// If we have a tooltip, we want that to be shown and not any other hover
 			descriptionTitle,
 			descriptionMatches: descriptionHighlights || [],
 			labelEscapeNewLines: true
 		};
-		options.extraClasses = mainItem.iconClasses;
+		options.extraClasses = ['quick-input-list-icon-label', ...(mainItem.iconClasses ?? [])];
 		options.italic = mainItem.italic;
 		options.strikethrough = mainItem.strikethrough;
 		data.entry.classList.remove('quick-input-list-separator-as-item');
@@ -540,6 +543,7 @@ class QuickPickItemElementRenderer extends BaseQuickInputListRenderer<QuickPickI
 			}
 			data.detail.element.style.display = '';
 			data.detail.setLabel(element.saneDetail, undefined, {
+				extraClasses: ['quick-input-list-icon-label'],
 				matches: detailHighlights,
 				title,
 				labelEscapeNewLines: true
@@ -652,6 +656,7 @@ class QuickPickSeparatorElementRenderer extends BaseQuickInputListRenderer<Quick
 			};
 		}
 		const options: IIconLabelValueOptions = {
+			extraClasses: ['quick-input-list-icon-label'],
 			matches: labelHighlights || [],
 			// If we have a tooltip, we want that to be shown and not any other hover
 			descriptionTitle,
