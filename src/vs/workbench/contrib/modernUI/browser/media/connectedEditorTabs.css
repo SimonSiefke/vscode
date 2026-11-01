@@ -297,7 +297,8 @@
 	background-color: transparent;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row):is(.sticky-compact, .sticky-shrink) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row).sticky-compact,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row).sticky-shrink {
 	z-index: 9;
 }
 
