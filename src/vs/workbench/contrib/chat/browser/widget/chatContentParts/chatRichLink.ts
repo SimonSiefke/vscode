@@ -259,6 +259,10 @@ function updateRichLinkStatus(
 	status: IChatLinkPresentationStatus | undefined,
 	dataKey: 'chatRichLinkStatus' | 'chatRichLinkSecondaryStatus',
 ): void {
+	const statusClassPrefix = dataKey === 'chatRichLinkStatus' ? 'chat-rich-link-primary-' : 'chat-rich-link-secondary-';
+	for (const kind of ['pending', 'success', 'warning', 'error', 'open', 'closed', 'merged', 'draft', 'notPlanned']) {
+		element.classList.toggle(`${statusClassPrefix}${kind}`, status?.kind === kind);
+	}
 	if (!status) {
 		delete element.dataset[dataKey];
 		resetRichLinkStatus(dom);
