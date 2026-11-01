@@ -555,6 +555,9 @@ class CollapsedCodeOverlayWidget extends ViewZoneOverlayWidget {
 			}
 
 			if (this._compactControl && children.length > 0) {
+				for (const child of children) {
+					child.classList.add('diff-hidden-lines-disclosure-content-item');
+				}
 				const content = h('div.disclosure-content', children).root;
 				reader.store.add(this._hoverService.setupDelayedHover(content, { content: content.textContent ?? '' }));
 				reset(this._nodes.others, h('div.line-left').root, content, h('div.line-right').root);

@@ -207,7 +207,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-editor .diff-hidden-lines-disclosure .disclosure-content > * {
+.diff-hidden-lines-disclosure-content-item {
 	flex-shrink: 0;
 }
 
