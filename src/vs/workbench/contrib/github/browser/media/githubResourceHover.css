@@ -84,7 +84,7 @@
 	white-space: nowrap;
 }
 
-.sessions-issue-hover .sessions-issue-hover-reference,
+.sessions-issue-hover-reference,
 .sessions-pr-hover .sessions-pr-hover-reference {
 	font-weight: var(--vscode-fontWeight-regular);
 	overflow-wrap: normal;
