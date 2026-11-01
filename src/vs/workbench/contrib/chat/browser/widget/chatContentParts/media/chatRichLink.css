@@ -206,7 +206,7 @@
 }
 
 .chat-rich-link.chat-rich-link-kind-issue.chat-rich-link-primary-closed .chat-rich-link-primary-status,
-.chat-rich-link[data-chat-rich-link-status='merged'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-merged .chat-rich-link-primary-status {
 	color: var(--vscode-charts-purple);
 }
 
