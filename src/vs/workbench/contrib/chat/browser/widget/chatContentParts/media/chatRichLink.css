@@ -196,10 +196,8 @@
 }
 
 .chat-rich-link.chat-rich-link-kind-issue .chat-rich-link-primary-status .chat-rich-link-status-label,
-.chat-rich-link[data-chat-rich-link-kind='pullRequest'] :is(
-	.chat-rich-link-primary-status,
-	.chat-rich-link-secondary-status
-) .chat-rich-link-status-label {
+.chat-rich-link.chat-rich-link-kind-pull-request .chat-rich-link-primary-status .chat-rich-link-status-label,
+.chat-rich-link.chat-rich-link-kind-pull-request .chat-rich-link-secondary-status .chat-rich-link-status-label {
 	display: none;
 }
 
