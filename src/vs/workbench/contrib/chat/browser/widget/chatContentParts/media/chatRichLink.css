@@ -183,7 +183,7 @@
 	color: var(--vscode-charts-green);
 }
 
-.chat-rich-link[data-chat-rich-link-status='warning'] .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-primary-warning .chat-rich-link-primary-status,
 .chat-rich-link[data-chat-rich-link-secondary-status='warning'] .chat-rich-link-secondary-status,
 .chat-rich-link[data-chat-rich-link-status='pending'] .chat-rich-link-primary-status,
 .chat-rich-link[data-chat-rich-link-secondary-status='pending'] .chat-rich-link-secondary-status {
