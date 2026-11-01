@@ -97,7 +97,7 @@
 	white-space: nowrap;
 }
 
-:is(.sessions-issue-hover-description, .sessions-pr-hover-description, .sessions-commit-hover-description) {
+.github-resource-hover-description {
 	font-size: var(--vscode-fontSize-body1);
 	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
