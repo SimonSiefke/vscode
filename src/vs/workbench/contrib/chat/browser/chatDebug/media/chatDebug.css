@@ -434,7 +434,7 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.chat-debug-log-row.chat-debug-log-error,
+.chat-debug-log-error,
 .chat-debug-log-row.chat-debug-log-error:hover {
 	background-color: var(--vscode-inputValidation-errorBackground,
 				rgba(255, 0, 0, 0.1)) !important;
