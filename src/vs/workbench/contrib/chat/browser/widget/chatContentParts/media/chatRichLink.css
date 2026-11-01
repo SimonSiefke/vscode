@@ -316,10 +316,7 @@
 	color: var(--vscode-button-secondaryForeground);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) .chat-rich-link-icon {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-icon {
 	display: inline-flex;
 	flex: 0 0 var(--vscode-codiconFontSize);
 	align-items: center;
