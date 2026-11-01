@@ -111,7 +111,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getIssueResourceStatus(data.issue);
-	const statusElement = append(statusRow, $('span.sessions-issue-hover-status'));
+	const statusElement = append(statusRow, $('span.sessions-issue-hover-status.github-resource-hover-status'));
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computeIssueIcon(data.issue.state, data.issue.stateReason);
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
@@ -151,7 +151,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	statusRow.setAttribute('aria-live', 'polite');
 	statusRow.setAttribute('aria-atomic', 'true');
 	const status = getPullRequestResourceStatus(data.pullRequest);
-	const statusElement = append(statusRow, $('span.sessions-pr-hover-status'));
+	const statusElement = append(statusRow, $('span.sessions-pr-hover-status.github-resource-hover-status'));
 	statusElement.dataset.state = status.kind;
 	const statusIcon = computePullRequestIcon(status.kind, { hasFailingChecks: data.checksStatus === 'failure' });
 	const statusIconElement = append(statusElement, renderIcon(statusIcon));
@@ -314,7 +314,7 @@ function appendChecksStatus(container: HTMLElement, pullRequest: IGitHubPullRequ
 	if (!status) {
 		return;
 	}
-	const checksElement = append(container, $('span.sessions-pr-hover-checks'));
+	const checksElement = append(container, $('span.sessions-pr-hover-checks.github-resource-hover-status'));
 	checksElement.dataset.status = status.kind;
 	const checksIcon = append(checksElement, renderIcon(status.icon));
 	checksIcon.setAttribute('aria-hidden', 'true');

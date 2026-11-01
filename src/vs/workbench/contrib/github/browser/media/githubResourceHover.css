@@ -38,7 +38,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-:is(.sessions-issue-hover-status, .sessions-pr-hover-status, .sessions-pr-hover-checks) {
+.github-resource-hover-status {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
