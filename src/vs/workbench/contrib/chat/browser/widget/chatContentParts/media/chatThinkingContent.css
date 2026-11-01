@@ -305,7 +305,8 @@
 
 /* The row container class keeps these ahead of the legacy `.interactive-item-container .value > …`
 	spacing rules, which otherwise tie on specificity and fall back to stylesheet order. */
-.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress :is(.value, .completed-response-disclosure) {
+.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress .value,
+.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress .completed-response-disclosure {
 	> .completed-response-disclosure,
 	> .chat-tool-chain,
 	> .chat-persistent-reasoning,
