@@ -757,7 +757,8 @@
 }
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab:first-child.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge),
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-fill,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-connected-edge {
 	left: calc(-1 * var(--vscode-spacing-size20));
 }
 
