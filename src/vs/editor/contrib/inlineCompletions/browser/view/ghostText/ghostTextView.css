@@ -72,7 +72,7 @@
 }
 
 .ghost-text-view-warning-widget-icon {
-	.codicon {
+	.ghost-text-warning-icon {
 		color: var(--vscode-editorWarning-foreground) !important;
 	}
 }
