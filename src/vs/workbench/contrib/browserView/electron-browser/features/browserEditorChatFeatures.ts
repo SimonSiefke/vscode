@@ -215,6 +215,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		}));
 		this._shareButton.element.classList.add('browser-share-toggle');
 		this._shareButton.label = '$(share-window)';
+		this._shareButton.element.lastElementChild?.classList.toggle('browser-share-toggle-icon', true);
 
 		this._register(this._shareButton.onDidClick(() => {
 			void this._toggleShareWithAgent();
@@ -353,6 +354,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		this._shareButton.label = isShared
 			? localize('browser.sharingWithAgent', "Sharing with Agent") + ' $(share-window)'
 			: '$(share-window)';
+		this._shareButton.element.lastElementChild?.classList.toggle('browser-share-toggle-icon', true);
 
 		const opensShareableCopy = !isShared
 			&& !!model
