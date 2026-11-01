@@ -428,7 +428,7 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.chat-debug-log-row .chat-debug-log-details {
+.chat-debug-log-details {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
