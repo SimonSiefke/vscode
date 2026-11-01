@@ -474,7 +474,8 @@
 	transition: opacity 160ms ease, transform 160ms ease;
 }
 
-.interactive-item-container .chat-response-flip-reset .chat-response-timing > * {
+.chat-response-flip-reset .chat-response-timing > .chat-response-completed-at,
+.chat-response-flip-reset .chat-response-timing > .chat-response-alternate {
 	transition: none;
 }
 
