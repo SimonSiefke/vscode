@@ -291,7 +291,7 @@
 	border-top-style: none;
 }
 
-.quick-input-list .quick-input-list-label {
+.quick-input-list-label {
 	overflow: hidden;
 	display: flex;
 	height: 100%;
