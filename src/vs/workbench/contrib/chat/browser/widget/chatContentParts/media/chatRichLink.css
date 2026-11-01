@@ -190,7 +190,7 @@
 	color: var(--vscode-editorWarning-foreground);
 }
 
-.chat-rich-link[data-chat-rich-link-status='error'] .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-primary-error .chat-rich-link-primary-status,
 .chat-rich-link[data-chat-rich-link-secondary-status='error'] .chat-rich-link-secondary-status {
 	color: var(--vscode-errorForeground);
 }
