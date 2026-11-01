@@ -269,10 +269,7 @@
 	height: 1.25em;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) .chat-rich-link-status-icon {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-status-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
