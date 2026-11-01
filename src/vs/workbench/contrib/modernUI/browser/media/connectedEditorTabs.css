@@ -446,7 +446,8 @@
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container > .monaco-scrollable-element > .tab-connected-overflow-edge.connected-tab-left-clipped,
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container > .monaco-scrollable-element > .tab-connected-overflow-edge.connected-tab-right-clipped,
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge:is(.connected-tab-left-clipped, .connected-tab-right-clipped) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge.connected-tab-left-clipped,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge.connected-tab-right-clipped {
 	display: block;
 	position: absolute;
 	z-index: 8;
