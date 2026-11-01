@@ -444,7 +444,7 @@
 	background-color: var(--vscode-inputValidation-errorBackground,
 				rgba(255, 0, 0, 0.1)) !important;
 }
-.chat-debug-log-row.chat-debug-log-warning {
+.chat-debug-log-warning {
 	background-color: var(--vscode-inputValidation-warningBackground,
 				rgba(255, 204, 0, 0.1)) !important;
 }
