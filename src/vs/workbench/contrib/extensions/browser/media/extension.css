@@ -272,7 +272,7 @@
 	margin-top: 2px;
 }
 
-.extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .action-dropdown-item-separator > .action-dropdown-item-separator-line {
 	height: 10px;
 }
 
