@@ -67,6 +67,7 @@ export class ChatRichLink implements IDisposable {
 		this.element.classList.toggle('chat-rich-link-kind-pull-request', presentation.kind === 'pullRequest');
 		this.element.classList.toggle('chat-rich-link-github', presentation.kind === 'issue' || presentation.kind === 'pullRequest');
 		this.element.classList.toggle('chat-rich-link-session', presentation.kind === 'session' || presentation.kind === 'chat');
+		this.element.classList.toggle('chat-rich-link-session-alert', ['pending', 'warning', 'error'].includes(presentation.status?.kind ?? ''));
 		this.element.dataset.chatRichLinkKind = presentation.kind;
 		this.element.classList.toggle('chat-rich-link-loading', presentation.isLoading === true);
 		this.element.setAttribute('aria-busy', String(presentation.isLoading === true));

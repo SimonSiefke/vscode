@@ -366,14 +366,7 @@
 	line-height: var(--vscode-codiconFontSize-compact);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-):is(
-	[data-chat-rich-link-status='pending'],
-	[data-chat-rich-link-status='warning'],
-	[data-chat-rich-link-status='error']
-) .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-session.chat-rich-link-session-alert .chat-rich-link-primary-status {
 	display: inline-flex;
 }
 
