@@ -252,7 +252,7 @@ export class IconLabel extends Disposable {
 	private getOrCreateSuffixNode() {
 		if (!this.suffixNode) {
 			const suffixContainer = this._register(new FastLabelNode(dom.after(this.nameContainer, dom.$('span.monaco-icon-suffix-container'))));
-			this.suffixNode = this._register(new FastLabelNode(dom.append(suffixContainer.element, dom.$('span.label-suffix'))));
+			this.suffixNode = this._register(new FastLabelNode(dom.append(suffixContainer.element, dom.$('span.label-suffix.monaco-icon-label-suffix'))));
 		}
 
 		return this.suffixNode;

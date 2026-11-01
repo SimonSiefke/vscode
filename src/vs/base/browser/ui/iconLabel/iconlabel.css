@@ -58,7 +58,7 @@
 	opacity: 0.5;
 }
 
-.monaco-icon-label > .monaco-icon-label-container > .monaco-icon-suffix-container > .label-suffix {
+.label-suffix.monaco-icon-label-suffix {
 	opacity: .7;
 	white-space: pre;
 }
