@@ -53,7 +53,7 @@
 	white-space: pre; /* enable to show labels that include multiple whitespaces */
 }
 
-.monaco-icon-label > .monaco-icon-label-container > .monaco-icon-name-container > .label-name > .label-separator {
+.label-separator.monaco-icon-label-name-separator {
 	margin: 0 2px;
 	opacity: 0.5;
 }

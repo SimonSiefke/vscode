@@ -385,7 +385,7 @@ class LabelWithHighlights extends Disposable {
 				highlightedLabel.set(l, m, undefined, options?.labelEscapeNewLines, supportIcons);
 
 				if (i < label.length - 1) {
-					dom.append(name, dom.$('span.label-separator', undefined, separator));
+					dom.append(name, dom.$('span.label-separator.monaco-icon-label-name-separator', undefined, separator));
 				}
 			}
 		}
