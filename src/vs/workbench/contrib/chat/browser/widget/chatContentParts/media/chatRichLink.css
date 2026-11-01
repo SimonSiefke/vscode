@@ -350,15 +350,10 @@
 	white-space: nowrap;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) :is(
-	.chat-rich-link-detail,
-	.chat-rich-link-reference,
-	.chat-rich-link-changes,
-	.chat-rich-link-secondary-status
-) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-detail,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-reference,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-changes,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-secondary-status {
 	display: none;
 }
 
