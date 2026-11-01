@@ -164,7 +164,7 @@
 	margin-right: var(--vscode-spacing-size20);
 }
 
-.voice-mode-onboarding-voice-icon > * {
+.voice-mode-onboarding-voice-content {
 	position: absolute;
 	display: flex;
 	align-items: center;
