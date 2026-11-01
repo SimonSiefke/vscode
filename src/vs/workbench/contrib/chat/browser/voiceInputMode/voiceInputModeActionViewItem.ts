@@ -419,7 +419,7 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		this._dictationCell = dom.append(this._reel, dom.$('button.monaco-segmented-icon-toggle-cell.chat-voice-input-mode-cell.dictation'));
 		this._dictationCell.setAttribute('type', 'button');
 		this._dictationCell.setAttribute('role', 'button');
-		this._dictationIcon = dom.append(this._dictationCell, dom.$('span.chat-voice-input-mode-icon'));
+		this._dictationIcon = dom.append(this._dictationCell, dom.$('span.chat-voice-input-mode-icon.monaco-segmented-icon-toggle-content'));
 		this._register(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), this._dictationCell,
 			() => (this._options?.isDictationActive?.get() ?? this._options?.isActive?.get() ?? true) && this.chatSpeechToTextService.isPreparingModel
 				? getDictationDownloadHoverContent(this.chatSpeechToTextService)
@@ -440,11 +440,11 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		this._voiceCell = dom.append(this._reel, dom.$('button.monaco-segmented-icon-toggle-cell.chat-voice-input-mode-cell.voice'));
 		this._voiceCell.setAttribute('type', 'button');
 		this._voiceCell.setAttribute('role', 'button');
-		this._voiceBars = dom.append(this._voiceCell, dom.$('span.chat-voice-input-mode-bars'));
+		this._voiceBars = dom.append(this._voiceCell, dom.$('span.chat-voice-input-mode-bars.monaco-segmented-icon-toggle-content'));
 		// Connect/reconnect spinner. Swapped in for the bars while a socket is being
 		// established, so a retry loop reads as "working on it" rather than as a live
 		// session. CSS hides whichever of the two the `connecting` class deselects.
-		dom.append(this._voiceCell, dom.$(`span.chat-voice-input-mode-icon.chat-voice-input-mode-spinner${ThemeIcon.asCSSSelector(Codicon.loadingCompact)}`));
+		dom.append(this._voiceCell, dom.$(`span.chat-voice-input-mode-icon.monaco-segmented-icon-toggle-content.chat-voice-input-mode-spinner${ThemeIcon.asCSSSelector(Codicon.loadingCompact)}`));
 		for (let i = 0; i < WAVEFORM_BAR_COUNT; i++) {
 			this._voiceBarEls.push(dom.append(this._voiceBars, dom.$('span.chat-voice-input-mode-bar')));
 		}
@@ -483,7 +483,7 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		this._listenCell = dom.append(this._reel, dom.$('button.monaco-segmented-icon-toggle-cell.chat-voice-input-mode-cell.listen'));
 		this._listenCell.setAttribute('type', 'button');
 		this._listenCell.setAttribute('role', 'button');
-		this._listenIcon = dom.append(this._listenCell, dom.$('span.chat-voice-input-mode-icon'));
+		this._listenIcon = dom.append(this._listenCell, dom.$('span.chat-voice-input-mode-icon.monaco-segmented-icon-toggle-content'));
 		this._updateAriaLabels();
 		this._register(this.keybindingService.onDidUpdateKeybindings(() => this._updateAriaLabels()));
 		this._register(addMicButtonContextMenuListener(
@@ -518,7 +518,7 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		this._muteCell = dom.append(this._reel, dom.$('button.monaco-segmented-icon-toggle-cell.chat-voice-input-mode-cell.mute'));
 		this._muteCell.setAttribute('type', 'button');
 		this._muteCell.setAttribute('role', 'button');
-		this._muteIcon = dom.append(this._muteCell, dom.$('span.chat-voice-input-mode-icon'));
+		this._muteIcon = dom.append(this._muteCell, dom.$('span.chat-voice-input-mode-icon.monaco-segmented-icon-toggle-content'));
 		this._register(addMicButtonContextMenuListener(
 			this._muteCell,
 			() => getVoiceModeContextMenuActions(this.commandService, this.configurationService, this.keybindingService, AGENTS_VOICE_TOGGLE_MUTE_COMMAND_ID),
@@ -636,7 +636,7 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 			const dictationIcon = dictationBusy
 				? dictationDownloading.read(reader) ? Codicon.micDownloadCompact : Codicon.loadingCompact
 				: isDictating ? Codicon.micFilled : Codicon.micCompact;
-			this._dictationIcon!.className = `chat-voice-input-mode-icon ${ThemeIcon.asClassName(dictationIcon)}`;
+			this._dictationIcon!.className = `chat-voice-input-mode-icon monaco-segmented-icon-toggle-content ${ThemeIcon.asClassName(dictationIcon)}`;
 
 			// Wrap the download glyph in a determinate progress ring during an
 			// actual on-disk download, matching the standalone toolbar button.
@@ -671,13 +671,13 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 			this._listenCell!.classList.toggle('active', listening);
 			this._listenCell!.classList.toggle('muted', !listening);
 			this._listenCell!.setAttribute('aria-pressed', String(listening));
-			this._listenIcon!.className = `chat-voice-input-mode-icon ${ThemeIcon.asClassName(listening ? Codicon.personVoiceFilledCompact : Codicon.personVoiceCompact)}`;
+			this._listenIcon!.className = `chat-voice-input-mode-icon monaco-segmented-icon-toggle-content ${ThemeIcon.asClassName(listening ? Codicon.personVoiceFilledCompact : Codicon.personVoiceCompact)}`;
 
 			// Mute / unmute toggle: the glyph describes the action available.
 			this._muteCell!.classList.toggle('collapsed', !mutePresent);
 			this._muteCell!.classList.toggle('active', muted);
 			this._muteCell!.setAttribute('aria-pressed', String(muted));
-			this._muteIcon!.className = `chat-voice-input-mode-icon ${ThemeIcon.asClassName(muted ? Codicon.micCompact : Codicon.micOffCompact)}`;
+			this._muteIcon!.className = `chat-voice-input-mode-icon monaco-segmented-icon-toggle-content ${ThemeIcon.asClassName(muted ? Codicon.micCompact : Codicon.micOffCompact)}`;
 			this._updateAriaLabels();
 
 			// Audio-reactive bars only while live (and not hovering the disconnect preview).

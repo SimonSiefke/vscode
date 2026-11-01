@@ -56,7 +56,7 @@
 }
 
 /* Icon content sits above the hover background. */
-.monaco-segmented-icon-toggle-cell > * {
+.monaco-segmented-icon-toggle-content {
 	position: relative;
 	z-index: 1;
 }
