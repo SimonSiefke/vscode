@@ -192,7 +192,7 @@ export class AgentSessionHoverWidget extends Disposable {
 		// Provider icon + name + Duration or start time
 		const providerType = getAgentSessionProvider(session.providerType);
 		const providerIcon = providerType ? getAgentSessionProviderIcon(providerType) : session.icon;
-		dom.append(detailsRow, renderIcon(providerIcon));
+		dom.append(detailsRow, renderIcon(providerIcon)).classList.add('agent-session-hover-detail-icon');
 		dom.append(detailsRow, dom.$('span', undefined, session.providerLabel));
 		dom.append(detailsRow, dom.$('span.separator', undefined, '•'));
 
@@ -247,7 +247,7 @@ export class AgentSessionHoverWidget extends Disposable {
 		// Archived indicator
 		if (session.isArchived()) {
 			dom.append(detailsRow, dom.$('span.separator', undefined, '•'));
-			dom.append(detailsRow, renderIcon(Codicon.archive));
+			dom.append(detailsRow, renderIcon(Codicon.archive)).classList.add('agent-session-hover-detail-icon');
 			dom.append(detailsRow, dom.$('span', undefined, localize('tooltip.archived', "Archived")));
 		}
 	}
