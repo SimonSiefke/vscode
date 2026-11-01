@@ -348,7 +348,7 @@
 	opacity: 1;
 }
 
-.quick-input-list .quick-input-list-entry .quick-input-list-entry-keybinding {
+.quick-input-list-entry-keybinding {
 	margin-right: 8px;
 	/* separate from the separator label or scrollbar if any */
 }
