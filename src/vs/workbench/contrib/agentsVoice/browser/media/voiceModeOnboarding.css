@@ -247,6 +247,6 @@
  * state rather than motion.
  */
 .monaco-reduce-motion .voice-mode-onboarding-voice-icon,
-.monaco-reduce-motion .voice-mode-onboarding-voice-icon > * {
+.monaco-reduce-motion .voice-mode-onboarding-voice-content {
 	transition: none;
 }
