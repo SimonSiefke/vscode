@@ -256,7 +256,8 @@
 
 .chat-subagent-open-chat-toolbar {
 	.action-item.chat-subagent-pill-widget {
-		&:is(.chat-subagent-running, .chat-subagent-waiting) {
+		&.chat-subagent-running,
+		&.chat-subagent-waiting {
 			gap: var(--vscode-spacing-size40);
 		}
 
