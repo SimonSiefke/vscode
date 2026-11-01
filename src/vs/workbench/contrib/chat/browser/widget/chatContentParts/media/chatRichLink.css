@@ -201,7 +201,7 @@
 	display: none;
 }
 
-.chat-rich-link[data-chat-rich-link-status='open'] .chat-rich-link-primary-status {
+.chat-rich-link.chat-rich-link-primary-open .chat-rich-link-primary-status {
 	color: var(--vscode-charts-green);
 }
 
