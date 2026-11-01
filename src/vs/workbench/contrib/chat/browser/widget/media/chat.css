@@ -466,7 +466,8 @@
 	overflow: hidden;
 }
 
-.interactive-item-container .chat-response-timing > * {
+.chat-response-timing > .chat-response-completed-at,
+.chat-response-timing > .chat-response-alternate {
 	grid-area: 1 / 1;
 	justify-self: end;
 	text-align: right;
@@ -559,7 +560,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.interactive-item-container .chat-response-timing > *,
+	.chat-response-timing > .chat-response-completed-at,
+	.chat-response-timing > .chat-response-alternate,
 	.interactive-item-container .chat-request-timing > * {
 		transition: none;
 	}
