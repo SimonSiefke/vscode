@@ -63,7 +63,7 @@
 	white-space: pre;
 }
 
-.monaco-icon-label > .monaco-icon-label-container > .monaco-icon-description-container > .label-description {
+.label-description.monaco-icon-label-description {
 	opacity: .7;
 	margin-left: 0.5em;
 	font-size: 0.9em;
