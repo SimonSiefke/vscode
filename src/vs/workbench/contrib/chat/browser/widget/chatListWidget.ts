@@ -726,6 +726,7 @@ export class ChatListWidget extends Disposable {
 		this._scrollDownButton.label = `$(${chatScrollToLatestIcon.id})`;
 		for (const child of this._scrollDownButton.element.children) {
 			if (child.classList.contains('codicon')) {
+				child.classList.add('chat-scroll-down-icon');
 				child.setAttribute('aria-hidden', 'true');
 			}
 		}

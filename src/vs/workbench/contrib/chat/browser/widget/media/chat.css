@@ -4284,7 +4284,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	padding: 0;
 	box-shadow: var(--vscode-shadow-md);
 
-	.codicon {
+	.chat-scroll-down-icon {
 		margin: 0;
 		flex-shrink: 0;
 		font-size: var(--vscode-codiconFontSize);
