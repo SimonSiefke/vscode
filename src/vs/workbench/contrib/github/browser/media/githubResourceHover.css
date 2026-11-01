@@ -104,7 +104,7 @@
 	overflow-wrap: anywhere;
 }
 
-:is(.sessions-issue-hover-description-content, .sessions-pr-hover-description-content, .sessions-commit-hover-description-content) {
+.github-resource-hover-description-content {
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;

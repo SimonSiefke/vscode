@@ -306,7 +306,7 @@ function appendHoverLink(container: HTMLElement, className: string, href: string
 
 function appendDescription(container: HTMLElement, classPrefix: string, body: string, fallback: string): void {
 	const description = append(container, $(`.${classPrefix}-description.github-resource-hover-description`));
-	append(description, $(`.${classPrefix}-description-content`, undefined, getGitHubHoverDescription(body, fallback)));
+	append(description, $(`.${classPrefix}-description-content.github-resource-hover-description-content`, undefined, getGitHubHoverDescription(body, fallback)));
 }
 
 function appendChecksStatus(container: HTMLElement, pullRequest: IGitHubPullRequestHoverModel, checksStatus: GitHubChecksStatus | undefined): void {
