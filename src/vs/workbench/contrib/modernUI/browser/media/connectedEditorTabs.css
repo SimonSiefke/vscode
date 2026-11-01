@@ -189,7 +189,8 @@
 	padding-bottom: 0;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > :is(.editor-actions, .editor-layout-actions) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > .editor-actions,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > .editor-layout-actions {
 	margin-bottom: 0;
 }
 
