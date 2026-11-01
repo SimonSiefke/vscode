@@ -522,7 +522,8 @@
 	transition: opacity 160ms ease, transform 160ms ease;
 }
 
-.interactive-item-container .chat-request-flip-reset .chat-request-timing > * {
+.chat-request-flip-reset .chat-request-timing > .chat-request-relative,
+.chat-request-flip-reset .chat-request-timing > .chat-request-full-date {
 	transition: none;
 }
 
