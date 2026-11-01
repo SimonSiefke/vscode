@@ -92,7 +92,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	const hoverElement = createChatPillHoverElement('sessions-issue-hover', data.density);
 
 	const header = append(hoverElement, $('.sessions-issue-hover-header.github-resource-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.issue.createdAt);
 	if (createdAt) {
 		append(header, $('span.sessions-issue-hover-date.github-resource-hover-metadata', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
@@ -132,7 +132,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	const hoverElement = createChatPillHoverElement('sessions-pr-hover', data.density);
 
 	const header = append(hoverElement, $('.sessions-pr-hover-header.github-resource-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.pullRequest.createdAt);
 	if (createdAt) {
 		append(header, $('span.sessions-pr-hover-date.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
@@ -185,7 +185,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 	const hoverElement = createChatPillHoverElement('sessions-commit-hover', data.density);
 
 	const header = append(hoverElement, $('.sessions-commit-hover-header.github-resource-hover-header'));
-	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
+	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const committedAt = getGitHubHoverDate(data.commit.committedAt);
 	if (committedAt) {
 		append(header, $('span.sessions-commit-hover-date.github-resource-hover-metadata', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));

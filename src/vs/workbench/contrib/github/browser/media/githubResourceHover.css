@@ -12,7 +12,7 @@
 	line-height: 1.4;
 }
 
-:is(.sessions-issue-hover-repository, .sessions-pr-hover-repository, .sessions-commit-hover-repository) {
+.github-resource-hover-repository {
 	min-width: 0;
 	overflow: hidden;
 	white-space: nowrap;
