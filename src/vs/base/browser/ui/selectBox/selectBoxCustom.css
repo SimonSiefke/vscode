@@ -41,7 +41,7 @@
 	box-sizing: border-box;
 }
 
-.monaco-select-box-dropdown-container > .select-box-details-pane {
+.select-box-details-pane {
 	padding: 5px 6px;
 }
 
