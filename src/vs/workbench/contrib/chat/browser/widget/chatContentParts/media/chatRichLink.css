@@ -255,10 +255,8 @@
 	line-height: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) :is(.chat-rich-link-label, .chat-rich-link-title) {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-title {
 	position: relative;
 	top: 0.25px;
 	max-width: 200px;
