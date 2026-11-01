@@ -383,7 +383,7 @@
 	/* separate from keybindings or actions */
 }
 
-.quick-input-list .quick-input-list-entry-action-bar {
+.quick-input-list-entry-action-bar {
 	display: flex;
 	flex: 0;
 	overflow: visible;
@@ -409,11 +409,11 @@
 	margin-right: 4px;
 }
 
-.quick-input-list .quick-input-list-entry-action-bar {
+.quick-input-list-entry-action-bar {
 	margin-top: 1px;
 }
 
-.quick-input-list .quick-input-list-entry-action-bar {
+.quick-input-list-entry-action-bar {
 	margin-right: 4px;
 	/* separate from scrollbar */
 }
