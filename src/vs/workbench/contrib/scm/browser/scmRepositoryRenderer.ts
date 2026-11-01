@@ -105,6 +105,8 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 	}
 
 	renderElement(arg: ISCMRepository | ITreeNode<ISCMRepository, FuzzyScore>, index: number, templateData: RepositoryTemplate): void {
+		templateData.elementDisposables.clear();
+
 		const repository = isSCMRepository(arg) ? arg : arg.element;
 
 		templateData.elementDisposables.add(autorun(reader => {
