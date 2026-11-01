@@ -96,7 +96,7 @@
 			color: var(--vscode-statusBarItem-warningForeground);
 		}
 
-		.codicon {
+		.browser-remote-indicator-icon {
 			color: inherit;
 		}
 	}
