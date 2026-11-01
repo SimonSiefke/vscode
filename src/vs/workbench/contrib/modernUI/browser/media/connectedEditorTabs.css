@@ -168,7 +168,8 @@
 	align-self: stretch;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > :is(.editor-actions, .editor-layout-actions) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > .editor-actions,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > .editor-layout-actions {
 	align-self: stretch;
 	height: auto;
 	margin-bottom: var(--vscode-strokeThickness);
