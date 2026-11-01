@@ -411,7 +411,7 @@
 	height: 28px;
 	font-size: 12px;
 }
-.chat-debug-log-row .chat-debug-log-created {
+.chat-debug-log-created {
 	width: 160px;
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
