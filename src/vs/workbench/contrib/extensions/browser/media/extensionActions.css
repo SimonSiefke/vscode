@@ -72,11 +72,11 @@
 	background-color: var(--vscode-extensionButton-hoverBackground);
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.action-dropdown-item-separator-line {
 	background-color: var(--vscode-extensionButton-separator, var(--vscode-extensionButton-border));
 }
 
-.vscode-high-contrast .monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.vscode-high-contrast .action-dropdown-item-separator-line {
 	background-color: var(--vscode-button-border);
 }
 

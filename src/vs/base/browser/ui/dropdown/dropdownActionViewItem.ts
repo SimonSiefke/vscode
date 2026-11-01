@@ -221,7 +221,7 @@ export class ActionWithDropdownActionViewItem extends ActionViewItem {
 			};
 
 			const menuActionClassNames = (<IActionWithDropdownActionViewItemOptions>this.options).menuActionClassNames || [];
-			const separator = h('div.action-dropdown-item-separator', [h('div', {})]).root;
+			const separator = h('div.action-dropdown-item-separator', [h('div.action-dropdown-item-separator-line', {})]).root;
 			separator.classList.toggle('prominent', menuActionClassNames.includes('prominent'));
 			append(this.element, separator);
 
