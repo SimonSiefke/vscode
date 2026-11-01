@@ -738,7 +738,8 @@
 	border: var(--vscode-strokeThickness) solid transparent;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-fill,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-connected-edge {
 	left: 0;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
