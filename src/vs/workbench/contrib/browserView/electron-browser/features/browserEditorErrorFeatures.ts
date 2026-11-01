@@ -126,7 +126,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 
 		const errorIcon = $('.browser-error-icon');
 		errorIcon.classList.toggle('cert-error', isCertError);
-		errorIcon.appendChild(renderIcon(isCertError ? Codicon.workspaceUntrusted : Codicon.globe));
+		errorIcon.appendChild(renderIcon(isCertError ? Codicon.workspaceUntrusted : Codicon.globe)).classList.add('browser-error-glyph');
 
 		const errorTitle = $('.browser-error-title');
 		errorTitle.textContent = isCertError

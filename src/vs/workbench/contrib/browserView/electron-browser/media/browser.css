@@ -736,7 +736,7 @@
 	.browser-error-icon {
 		margin-bottom: 12px;
 
-		.codicon {
+		.browser-error-glyph {
 			font-size: 32px;
 		}
 
