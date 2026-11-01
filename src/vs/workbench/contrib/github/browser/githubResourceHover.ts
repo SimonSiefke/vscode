@@ -99,7 +99,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	}
 
 	const title = data.issue.title || localize('github.issueHover.titleFallback', "Issue #{0}", data.number);
-	const titleElement = append(hoverElement, $('.sessions-issue-hover-title'));
+	const titleElement = append(hoverElement, $('.sessions-issue-hover-title.github-resource-hover-title'));
 	const titleContent = append(titleElement, $('.sessions-issue-hover-title-content.github-resource-hover-title-content'));
 	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-issue-hover-title-tail');
 	const referenceLink = appendHoverLink(titleLayout.referenceContainer, 'sessions-issue-hover-reference', data.referenceHref, `#${data.number}`, data.onDidClickReference, localize('github.issueHover.reference', "Issue #{0}", data.number));
@@ -139,7 +139,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	}
 
 	const title = data.pullRequest.title || localize('github.pullRequestHover.titleFallback', "Pull Request #{0}", data.number);
-	const titleElement = append(hoverElement, $('.sessions-pr-hover-title'));
+	const titleElement = append(hoverElement, $('.sessions-pr-hover-title.github-resource-hover-title'));
 	const titleContent = append(titleElement, $('.sessions-pr-hover-title-content.github-resource-hover-title-content'));
 	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-pr-hover-title-tail');
 	const referenceLink = appendHoverLink(titleLayout.referenceContainer, 'sessions-pr-hover-reference', data.referenceHref, `#${data.number}`, data.onDidClickReference, localize('github.pullRequestHover.reference', "Pull Request #{0}", data.number));
@@ -193,7 +193,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 
 	const [headline, ...descriptionLines] = data.commit.message.split(/\r?\n/);
 	const title = headline || data.commit.sha;
-	const titleElement = append(hoverElement, $('.sessions-commit-hover-title'));
+	const titleElement = append(hoverElement, $('.sessions-commit-hover-title.github-resource-hover-title'));
 	const titleContent = append(titleElement, $('.sessions-commit-hover-title-content.github-resource-hover-title-content'));
 	const titleLayout = appendGitHubHoverTitle(titleContent, title, 'sessions-commit-hover-title-tail');
 	const shortSha = data.commit.sha.slice(0, 12);

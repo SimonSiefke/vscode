@@ -67,7 +67,7 @@
 	color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
 }
 
-:is(.sessions-issue-hover-title, .sessions-pr-hover-title, .sessions-commit-hover-title) {
+.github-resource-hover-title {
 	min-width: 0;
 	font-size: var(--vscode-fontSize-body1);
 	font-weight: var(--vscode-fontWeight-semiBold);

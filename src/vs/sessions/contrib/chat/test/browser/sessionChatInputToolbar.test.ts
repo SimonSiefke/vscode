@@ -1342,7 +1342,7 @@ suite('SessionChatInputToolbar', () => {
 				className: 'chat-pill-hover-content sessions-pr-hover',
 				contentOrder: [
 					'sessions-pr-hover-header github-resource-hover-header',
-					'sessions-pr-hover-title',
+					'sessions-pr-hover-title github-resource-hover-title',
 					'sessions-pr-hover-status-row',
 					'sessions-pr-hover-description github-resource-hover-description',
 					'sessions-pr-hover-branches',
@@ -1392,7 +1392,7 @@ suite('SessionChatInputToolbar', () => {
 				className: 'chat-pill-hover-content sessions-issue-hover',
 				contentOrder: [
 					'sessions-issue-hover-header github-resource-hover-header',
-					'sessions-issue-hover-title',
+					'sessions-issue-hover-title github-resource-hover-title',
 					'sessions-issue-hover-status-row',
 					'sessions-issue-hover-description github-resource-hover-description',
 					'sessions-issue-hover-author github-resource-hover-metadata',
