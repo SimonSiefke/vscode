@@ -292,7 +292,7 @@ class Label {
 			if (!this.singleLabel) {
 				this.container.textContent = '';
 				this.container.classList.remove('multiple');
-				this.singleLabel = dom.append(this.container, dom.$('a.label-name', { id: options?.domId }));
+				this.singleLabel = dom.append(this.container, dom.$('a.label-name.monaco-icon-label-name', { id: options?.domId }));
 			}
 
 			this.singleLabel.textContent = label;
@@ -305,7 +305,7 @@ class Label {
 				const l = label[i];
 				const id = options?.domId && `${options?.domId}_${i}`;
 
-				dom.append(this.container, dom.$('a.label-name', { id, 'data-icon-label-count': label.length, 'data-icon-label-index': i, 'role': 'treeitem' }, l));
+				dom.append(this.container, dom.$('a.label-name.monaco-icon-label-name', { id, 'data-icon-label-count': label.length, 'data-icon-label-index': i, 'role': 'treeitem' }, l));
 
 				if (i < label.length - 1) {
 					dom.append(this.container, dom.$('span.label-separator', undefined, options?.separator || '/'));
@@ -362,7 +362,7 @@ class LabelWithHighlights extends Disposable {
 				this._labelDisposables.clear();
 				this.container.textContent = '';
 				this.container.classList.remove('multiple');
-				this.singleLabel = this._labelDisposables.add(new HighlightedLabel(dom.append(this.container, dom.$('a.label-name', { id: options?.domId }))));
+				this.singleLabel = this._labelDisposables.add(new HighlightedLabel(dom.append(this.container, dom.$('a.label-name.monaco-icon-label-name', { id: options?.domId }))));
 			}
 
 			this.singleLabel.set(label, options?.matches, undefined, options?.labelEscapeNewLines, supportIcons);
@@ -380,7 +380,7 @@ class LabelWithHighlights extends Disposable {
 				const m = matches ? matches[i] : undefined;
 				const id = options?.domId && `${options?.domId}_${i}`;
 
-				const name = dom.$('a.label-name', { id, 'data-icon-label-count': label.length, 'data-icon-label-index': i, 'role': 'treeitem' });
+				const name = dom.$('a.label-name.monaco-icon-label-name', { id, 'data-icon-label-count': label.length, 'data-icon-label-index': i, 'role': 'treeitem' });
 				const highlightedLabel = this._labelDisposables.add(new HighlightedLabel(dom.append(this.container, name)));
 				highlightedLabel.set(l, m, undefined, options?.labelEscapeNewLines, supportIcons);
 

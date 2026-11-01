@@ -48,7 +48,7 @@
 	flex: 1;
 }
 
-.monaco-icon-label > .monaco-icon-label-container > .monaco-icon-name-container > .label-name {
+.label-name.monaco-icon-label-name {
 	color: inherit;
 	white-space: pre; /* enable to show labels that include multiple whitespaces */
 }
