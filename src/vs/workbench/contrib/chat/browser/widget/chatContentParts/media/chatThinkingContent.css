@@ -72,7 +72,8 @@
 }
 
 /* Preserve the text-column width while anchoring artwork to the icon gutter. */
-.interactive-session .interactive-response .value .chat-tool-call-with-icon :is(.chat-image-generation-placeholder, .chat-generated-image-tool-result) {
+.interactive-session .interactive-response .value .chat-tool-call-with-icon .chat-image-generation-placeholder,
+.interactive-session .interactive-response .value .chat-tool-call-with-icon .chat-generated-image-tool-result {
 	position: relative;
 	left: var(--chat-persistent-icon-left, calc(var(--vscode-codiconFontSize-compact) * 0.2));
 	margin-left: calc(-1 * var(--vscode-spacing-size240));
