@@ -225,6 +225,9 @@ export class GhostTextView extends Disposable {
 		} else if (this._useSyntaxHighlighting.read(reader)) {
 			extraClasses.push('syntax-highlighted');
 		}
+		if (!extraClasses.includes('syntax-highlighted')) {
+			extraClasses.push('ghost-text-unhighlighted');
+		}
 		const extraClassNames = extraClasses.map(c => ` ${c}`).join('');
 		return extraClassNames;
 	});
