@@ -23,7 +23,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-:is(.sessions-issue-hover-date, .sessions-pr-hover-date, .sessions-commit-hover-date) {
+.github-resource-hover-date {
 	flex-shrink: 0;
 }
 

@@ -95,7 +95,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.issue.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-issue-hover-date.github-resource-hover-metadata', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-issue-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.issueHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.issue.title || localize('github.issueHover.titleFallback', "Issue #{0}", data.number);
@@ -135,7 +135,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.pullRequest.createdAt);
 	if (createdAt) {
-		append(header, $('span.sessions-pr-hover-date.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
+		append(header, $('span.sessions-pr-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.pullRequestHover.createdDate', "on {0}", createdAt)));
 	}
 
 	const title = data.pullRequest.title || localize('github.pullRequestHover.titleFallback', "Pull Request #{0}", data.number);
@@ -188,7 +188,7 @@ export function createCommitResourceHover(data: ICommitResourceHoverData): IGitH
 	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository github-resource-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const committedAt = getGitHubHoverDate(data.commit.committedAt);
 	if (committedAt) {
-		append(header, $('span.sessions-commit-hover-date.github-resource-hover-metadata', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
+		append(header, $('span.sessions-commit-hover-date.github-resource-hover-date.github-resource-hover-metadata', undefined, localize('github.commitHover.committedDate', "on {0}", committedAt)));
 	}
 
 	const [headline, ...descriptionLines] = data.commit.message.split(/\r?\n/);
