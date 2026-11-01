@@ -266,7 +266,7 @@
 			transition: opacity 0.3s ease;
 		}
 
-		.codicon {
+		.browser-link-opened-hint-icon {
 			color: inherit;
 			font-size: 14px;
 			flex-shrink: 0;
