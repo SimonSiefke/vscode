@@ -278,7 +278,7 @@
 	padding: 0 6px;
 }
 
-.quick-input-list .quick-input-list-entry.quick-input-list-separator-border {
+.quick-input-list-entry.quick-input-list-separator-border {
 	border-top-width: 1px;
 	border-top-style: solid;
 }
