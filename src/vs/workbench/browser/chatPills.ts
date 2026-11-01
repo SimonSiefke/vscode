@@ -511,6 +511,12 @@ export class ChatPillsRow extends Disposable {
 		}));
 	}
 
+	/** Appends an interactive child to the row's otherwise click-through content. */
+	appendChild<T extends HTMLElement>(element: T): T {
+		element.classList.add('chat-pills-row-item');
+		return this.content.appendChild(element);
+	}
+
 	/** Observes size changes; supplying the current pill buttons enables automatic compaction. */
 	observe(element: HTMLElement, getPillElements?: () => readonly HTMLElement[]): void {
 		this._register(this._resizeObserver.observe(element));

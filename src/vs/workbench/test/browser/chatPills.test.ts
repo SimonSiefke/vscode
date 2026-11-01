@@ -287,6 +287,17 @@ suite('ChatPills', () => {
 		});
 	});
 
+	test('row content stays interactive inside a click-through host', () => {
+		const host = mainWindow.document.createElement('div');
+		host.style.pointerEvents = 'none';
+		mainWindow.document.body.appendChild(host);
+		store.add(toDisposable(() => host.remove()));
+		const row = store.add(new ChatPillsRow('ChatPills.pointerEventsTest'));
+		host.appendChild(row.element);
+		const button = row.appendChild(mainWindow.document.createElement('button'));
+		assert.strictEqual(mainWindow.getComputedStyle(button).pointerEvents, 'auto');
+	});
+
 	test('keeps an empty compact pill row keyboard-accessible', async () => {
 		const disposables = store.add(new DisposableStore());
 		const row = disposables.add(new ChatPillsRow('ChatPills.test', { compact: true }));
@@ -316,7 +327,7 @@ suite('ChatPills', () => {
 			contextTarget: contextMenuTarget === row.content,
 		};
 		const pill = mainWindow.document.createElement('button');
-		row.content.appendChild(pill);
+		row.appendChild(pill);
 		row.setEmpty(false, '');
 		row.restoreFocus(() => [pill]);
 		await timeout(0);
@@ -888,7 +899,7 @@ suite('ChatPills', () => {
 			resourceName.className = 'monaco-icon-label';
 			button.append(icon, label, counter, chevron, resourceIcon, resourceName);
 			item.appendChild(button);
-			row.content.appendChild(item);
+			row.appendChild(item);
 
 			const compactState = {
 				iconVisible: mainWindow.getComputedStyle(icon).display !== 'none',
@@ -940,7 +951,7 @@ suite('ChatPills', () => {
 		const initialPills: readonly IChatPill[] = actions.map(action => ({ action }));
 		const pills = observableValue('ChatPills.responsive.pills', initialPills);
 		const widget = disposables.add(instantiationService.createInstance(ChatPillsWidget, { pills }, undefined));
-		row.content.appendChild(widget.element);
+		row.appendChild(widget.element);
 		row.observe(widget.element, () => widget.getPillElements());
 		const items = () => widget.getPillElements();
 		const collapsed = () => items().flatMap((item, index) => item.classList.contains('compact') ? [index] : []);

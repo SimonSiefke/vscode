@@ -359,7 +359,7 @@
 	flex-shrink: 0;
 }
 
-.chat-pills-row-content > * {
+.chat-pills-row-item {
 	pointer-events: auto;
 }
 
