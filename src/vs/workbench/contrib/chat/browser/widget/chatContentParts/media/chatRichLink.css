@@ -246,15 +246,10 @@
 	display: none;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='issue'],
-	[data-chat-rich-link-kind='pullRequest']
-) :is(
-	.chat-rich-link-label,
-	.chat-rich-link-title,
-	.chat-rich-link-primary-status,
-	.chat-rich-link-secondary-status
-) {
+.chat-rich-link.chat-rich-link-github .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-title,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-primary-status,
+.chat-rich-link.chat-rich-link-github .chat-rich-link-secondary-status {
 	align-self: center;
 	font-size: inherit;
 	line-height: inherit;
