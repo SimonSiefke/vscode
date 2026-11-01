@@ -56,7 +56,10 @@
 	justify-content: safe center;
 }
 
-.chat-update-required-content .chat-welcome-view > :is(.chat-welcome-view-title, .chat-welcome-view-message, .chat-welcome-view-disclaimer, .chat-welcome-view-tips) {
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-title,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-message,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-disclaimer,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-tips {
 	box-sizing: border-box;
 	overflow-wrap: anywhere;
 }
