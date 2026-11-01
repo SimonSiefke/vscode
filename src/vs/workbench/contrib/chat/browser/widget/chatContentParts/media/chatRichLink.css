@@ -334,10 +334,7 @@
 	top: auto;
 }
 
-.interactive-item-container .value .rendered-markdown a.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) {
+.interactive-item-container .value .rendered-markdown a.chat-rich-link.chat-rich-link-session {
 	color: var(--vscode-button-secondaryForeground);
 }
 
