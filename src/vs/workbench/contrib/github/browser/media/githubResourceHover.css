@@ -91,7 +91,7 @@
 	white-space: nowrap;
 }
 
-.sessions-commit-hover .sessions-commit-hover-reference {
+.sessions-commit-hover-reference {
 	font-weight: var(--vscode-fontWeight-regular);
 	overflow-wrap: normal;
 	white-space: nowrap;
