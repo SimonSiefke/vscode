@@ -287,10 +287,7 @@
 	line-height: inherit;
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) {
+.chat-rich-link.chat-rich-link-session {
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
 	max-width: 100%;
