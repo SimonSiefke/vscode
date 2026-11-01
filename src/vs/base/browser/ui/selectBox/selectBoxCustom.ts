@@ -50,7 +50,7 @@ class SelectListRenderer implements IListRenderer<ISelectOptionItem, ISelectList
 		const data: ISelectListTemplateData = Object.create(null);
 		data.root = container;
 		data.text = dom.append(container, $('.option-text.select-box-option-text'));
-		data.detail = dom.append(container, $('.option-detail'));
+		data.detail = dom.append(container, $('.option-detail.select-box-option-detail'));
 		data.decoratorRight = dom.append(container, $('.option-decorator-right'));
 
 		return data;
