@@ -74,7 +74,7 @@
 	line-height: 1.4;
 }
 
-:is(.sessions-issue-hover-title-content, .sessions-pr-hover-title-content, .sessions-commit-hover-title-content) {
+.github-resource-hover-title-content {
 	display: block;
 	min-width: 0;
 	overflow-wrap: anywhere;
