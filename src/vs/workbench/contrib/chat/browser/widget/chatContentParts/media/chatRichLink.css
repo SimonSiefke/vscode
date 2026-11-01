@@ -75,10 +75,6 @@
 	max-width: 200px;
 }
 
-.chat-rich-link[data-chat-rich-link-kind='session'] :is(.chat-rich-link-label, .chat-rich-link-title) {
-	max-width: 150px;
-}
-
 .chat-rich-link-label[hidden],
 .chat-rich-link-title[hidden],
 .chat-rich-link-reference[hidden] {
