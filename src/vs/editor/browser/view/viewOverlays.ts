@@ -21,11 +21,11 @@ export class ViewOverlays extends ViewPart {
 	private _dynamicOverlays: DynamicViewOverlay[] = [];
 	private _isFocused: boolean = false;
 
-	constructor(context: ViewContext) {
+	constructor(context: ViewContext, lineClassName: string = 'view-overlay-line') {
 		super(context);
 
 		this._visibleLines = new VisibleLinesCollection(this._context, {
-			createLine: () => new ViewOverlayLine(this._dynamicOverlays)
+			createLine: () => new ViewOverlayLine(this._dynamicOverlays, lineClassName)
 		});
 		this.domNode = this._visibleLines.domNode;
 
@@ -136,7 +136,7 @@ export class ViewOverlayLine implements IVisibleLine {
 	private _domNode: FastDomNode<HTMLElement> | null;
 	private _renderedContent: string | null;
 
-	constructor(dynamicOverlays: DynamicViewOverlay[]) {
+	constructor(dynamicOverlays: DynamicViewOverlay[], private readonly _className: string) {
 		this._dynamicOverlays = dynamicOverlays;
 
 		this._domNode = null;
@@ -174,7 +174,7 @@ export class ViewOverlayLine implements IVisibleLine {
 
 		this._renderedContent = result;
 
-		sb.appendString('<div style="top:');
+		sb.appendString('<div class="' + this._className + '" style="top:');
 		sb.appendString(String(deltaTop));
 		sb.appendString('px;height:');
 		sb.appendString(String(lineHeight));
@@ -235,7 +235,7 @@ export class MarginViewOverlays extends ViewOverlays {
 	private _contentLeft: number;
 
 	constructor(context: ViewContext) {
-		super(context);
+		super(context, 'margin-view-overlay-line');
 
 		const options = this._context.configuration.options;
 		const layoutInfo = options.get(EditorOption.layoutInfo);
