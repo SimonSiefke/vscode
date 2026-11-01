@@ -338,10 +338,8 @@
 	color: var(--vscode-button-secondaryForeground);
 }
 
-.chat-rich-link:is(
-	[data-chat-rich-link-kind='session'],
-	[data-chat-rich-link-kind='chat']
-) :is(.chat-rich-link-label, .chat-rich-link-title) {
+.chat-rich-link.chat-rich-link-session .chat-rich-link-label,
+.chat-rich-link.chat-rich-link-session .chat-rich-link-title {
 	flex: 1 1 auto;
 	min-width: 0;
 	max-width: 100%;
