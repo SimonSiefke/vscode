@@ -91,7 +91,7 @@ export interface ICommitResourceHoverData extends IGitHubResourceHoverData {
 export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-issue-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-issue-hover-header'));
+	const header = append(hoverElement, $('.sessions-issue-hover-header.github-resource-hover-header'));
 	const repositoryLink = appendHoverLink(header, 'sessions-issue-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.issue.createdAt);
 	if (createdAt) {
@@ -131,7 +131,7 @@ export function createIssueResourceHover(data: IIssueResourceHoverData): IGitHub
 export function createPullRequestResourceHover(data: IPullRequestResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-pr-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-pr-hover-header'));
+	const header = append(hoverElement, $('.sessions-pr-hover-header.github-resource-hover-header'));
 	const repositoryLink = appendHoverLink(header, 'sessions-pr-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const createdAt = getGitHubHoverDate(data.pullRequest.createdAt);
 	if (createdAt) {
@@ -184,7 +184,7 @@ export function createPullRequestResourceHover(data: IPullRequestResourceHoverDa
 export function createCommitResourceHover(data: ICommitResourceHoverData): IGitHubResourceHover {
 	const hoverElement = createChatPillHoverElement('sessions-commit-hover', data.density);
 
-	const header = append(hoverElement, $('.sessions-commit-hover-header'));
+	const header = append(hoverElement, $('.sessions-commit-hover-header.github-resource-hover-header'));
 	const repositoryLink = appendHoverLink(header, 'sessions-commit-hover-repository', data.repositoryHref, `${data.owner}/${data.repo}`, data.onDidClickRepository);
 	const committedAt = getGitHubHoverDate(data.commit.committedAt);
 	if (committedAt) {

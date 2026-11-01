@@ -1341,7 +1341,7 @@ suite('SessionChatInputToolbar', () => {
 				pillHoverContentOwnsPadding: true,
 				className: 'chat-pill-hover-content sessions-pr-hover',
 				contentOrder: [
-					'sessions-pr-hover-header',
+					'sessions-pr-hover-header github-resource-hover-header',
 					'sessions-pr-hover-title',
 					'sessions-pr-hover-status-row',
 					'sessions-pr-hover-description',
@@ -1391,7 +1391,7 @@ suite('SessionChatInputToolbar', () => {
 				pillHoverContentOwnsPadding: true,
 				className: 'chat-pill-hover-content sessions-issue-hover',
 				contentOrder: [
-					'sessions-issue-hover-header',
+					'sessions-issue-hover-header github-resource-hover-header',
 					'sessions-issue-hover-title',
 					'sessions-issue-hover-status-row',
 					'sessions-issue-hover-description',

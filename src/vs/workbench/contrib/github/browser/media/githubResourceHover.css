@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-:is(.sessions-issue-hover-header, .sessions-pr-hover-header, .sessions-commit-hover-header) {
+.github-resource-hover-header {
 	display: flex;
 	align-items: baseline;
 	gap: var(--vscode-spacing-size40);
