@@ -1064,6 +1064,7 @@ export class FilesRenderer implements ICompressibleTreeRenderer<ExplorerItem, Fu
 			}
 		}, {
 			value,
+			inputBoxClassName: 'explorer-inline-input-box',
 			ariaLabel: localize('fileInputAriaLabel', "Type file name. Press Enter to confirm or Escape to cancel."),
 			selection: { start: 0, end: lastDot > 0 && !stat.isDirectory ? lastDot : value.length }
 		})).inputBox;

@@ -32,7 +32,7 @@
 }
 
 .explorer-folders-view .explorer-item,
-.explorer-folders-view .explorer-item .monaco-inputbox {
+.explorer-folders-view .explorer-item .explorer-inline-input-box {
 	flex: 1;
 }
 
@@ -48,7 +48,7 @@
 	opacity: 0.5;
 }
 
-.explorer-folders-view .explorer-item .monaco-inputbox {
+.explorer-folders-view .explorer-item .explorer-inline-input-box {
 	width: 100%;
 	line-height: normal;
 }
