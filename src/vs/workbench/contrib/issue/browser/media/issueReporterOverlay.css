@@ -789,7 +789,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	max-width: 480px;
 }
 
-.issue-reporter-wizard .wizard-extension-field.hidden {
+.issue-reporter-wizard .hidden.wizard-extension-field {
 	display: none;
 }
 
