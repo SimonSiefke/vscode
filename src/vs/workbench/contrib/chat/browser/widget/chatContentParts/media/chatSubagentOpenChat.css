@@ -10,7 +10,7 @@
 
 .chat-subagent-open-chat-toolbar .chat-subagent-toolbar-root,
 .chat-subagent-open-chat-toolbar .chat-subagent-action-bar,
-.chat-subagent-open-chat-toolbar .actions-container {
+.chat-subagent-open-chat-toolbar .chat-subagent-toolbar-actions {
 	width: 100%;
 	min-width: 0;
 }

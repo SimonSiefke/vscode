@@ -290,6 +290,7 @@ export class ChatSubagentContentPart extends ChatThinkingStyleContentPart implem
 		this.headerContainer.appendChild(container);
 		this._openChatToolbar = this._register(this.instantiationService.createInstance(WorkbenchToolBar, container, {
 			actionBarClassName: 'chat-subagent-action-bar',
+			actionsContainerClassName: 'chat-subagent-toolbar-actions',
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			actionViewItemProvider: (action, options) => isPhase
 				? this.instantiationService.createInstance(FusionPhasePillActionViewItem, undefined, action, { ...options, showElapsedOnly: true }, false)

@@ -1846,7 +1846,7 @@ suite('ChatSubagentContentPart', () => {
 			const ready = observableValue('ready', false);
 			viewItem.trackEnabled((_context, update) => autorun(reader => update(ready.read(reader))));
 			const container = $('li.action-item');
-			const toolbar = $('.chat-subagent-open-chat-toolbar', undefined, $('.actions-container', undefined, container));
+			const toolbar = $('.chat-subagent-open-chat-toolbar', undefined, $('.actions-container.chat-subagent-toolbar-actions', undefined, container));
 			mainWindow.document.body.appendChild(toolbar);
 			disposables.add({ dispose: () => toolbar.remove() });
 			viewItem.render(container);
