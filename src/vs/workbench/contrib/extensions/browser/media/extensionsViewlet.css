@@ -244,7 +244,7 @@
 .monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
 .monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
 .monaco-workbench.vs .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph),
-.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon {
+.monaco-workbench.vs-dark .extensions-viewlet > .extensions .monaco-list-row.disabled:not(.selected) > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph) {
 	opacity: 0.5;
 }
 
