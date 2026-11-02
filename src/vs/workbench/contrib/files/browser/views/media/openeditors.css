@@ -28,7 +28,7 @@
 
 .open-editors .monaco-list .monaco-list-row:hover > .monaco-action-bar,
 .open-editors .monaco-list .monaco-list-row.focused > .monaco-action-bar:where(.open-editors-row-action-bar),
-.open-editors .monaco-list .monaco-list-row.dirty > .monaco-action-bar,
+.open-editors .monaco-list .monaco-list-row.dirty > .monaco-action-bar:where(.open-editors-row-action-bar),
 .open-editors .monaco-list .monaco-list-row.sticky > .monaco-action-bar {
 	visibility: visible;
 }
