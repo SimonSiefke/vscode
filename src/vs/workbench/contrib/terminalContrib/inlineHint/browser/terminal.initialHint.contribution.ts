@@ -265,7 +265,7 @@ class TerminalInitialHintWidget extends Disposable {
 			}
 		};
 
-		const hintElement = $('div.terminal-initial-hint');
+		const hintElement = $('div.terminal-initial-hint.terminal-initial-hint-content');
 		hintElement.style.display = 'block';
 
 		const aiFeaturesHidden = this._chatEntitlementService.sentiment.hidden;
@@ -353,6 +353,10 @@ class TerminalInitialHintWidget extends Disposable {
 		hintElement.appendChild(typeToDismissCompactRendered);
 		ariaLabelParts.push(localize('hintTextDismissAriaLabel', 'Start typing to dismiss or don\'t show this again.'));
 
+		for (const child of hintElement.children) {
+			child.classList.add('terminal-initial-hint-content');
+		}
+
 		return { ariaLabel: ariaLabelParts.join(' '), hintElement };
 	}
 
@@ -364,7 +368,7 @@ class TerminalInitialHintWidget extends Disposable {
 			}
 			const { hintElement, ariaLabel } = result;
 
-			this._domNode = $('.terminal-initial-hint');
+			this._domNode = $('.terminal-initial-hint.terminal-initial-hint-content');
 			this._domNode!.style.paddingLeft = '4px';
 
 			this._domNode.append(hintElement);
