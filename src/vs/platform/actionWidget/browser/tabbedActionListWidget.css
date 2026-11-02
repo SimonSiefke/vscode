@@ -98,7 +98,7 @@
 }
 
 .action-widget .tabbed-action-list-tabbar .tabbed-action-list-tabbar-action:hover:not(.disabled),
-.action-widget .tabbed-action-list-tabbar .tabbed-action-list-tabbar-action.checked {
+.action-widget .tabbed-action-list-tabbar .checked.tabbed-action-list-tabbar-action {
 	background-color: var(--vscode-toolbar-hoverBackground);
 	color: var(--vscode-foreground);
 }
