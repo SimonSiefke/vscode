@@ -47,7 +47,7 @@
 	pointer-events: none !important;
 }
 
-.monaco-sash.vertical {
+.monaco-sash.vertical:where(.monaco-vertical-sash) {
 	cursor: ew-resize;
 	top: 0;
 	width: var(--vscode-sash-size);

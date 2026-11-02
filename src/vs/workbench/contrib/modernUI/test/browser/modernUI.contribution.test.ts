@@ -2072,10 +2072,10 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const workbenchSash = appendElement(root, 'monaco-sash vertical');
+		const workbenchSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const modal = appendElement(root, 'monaco-modal-editor-block');
 		const resizable = appendElement(modal, 'modal-editor-resizable');
-		const verticalSash = appendElement(resizable, 'monaco-sash vertical');
+		const verticalSash = appendElement(resizable, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(resizable, 'monaco-sash horizontal');
 		const sashes = [verticalSash, horizontalSash];
 		const targetWindow = getWindow(root);
@@ -2107,7 +2107,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(root, 'monaco-sash horizontal');
 		const targetWindow = getWindow(root);
 
@@ -2127,7 +2127,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(root, 'monaco-sash horizontal');
 		const targetWindow = getWindow(root);
 		const verticalStyle = targetWindow.getComputedStyle(verticalSash, '::after');
@@ -2163,7 +2163,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const targetWindow = getWindow(root);
 		const attachedStyle = targetWindow.getComputedStyle(verticalSash, '::before');
 		const attachedInsets = [attachedStyle.top, attachedStyle.bottom];
