@@ -251,7 +251,7 @@
 	color: var(--vscode-editorWarning-foreground);
 }
 
-.monaco-workbench .inline-chat .status .label > .codicon {
+.monaco-workbench .inline-chat .status .label > .codicon:where(.inline-chat-status-glyph) {
 	padding: 0 3px;
 	font-size: 12px;
 	line-height: 18px;

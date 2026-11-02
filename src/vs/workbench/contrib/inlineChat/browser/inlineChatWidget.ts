@@ -407,7 +407,7 @@ export abstract class InlineChatWidget {
 
 	updateInfo(message: string): void {
 		this._elements.infoLabel.classList.toggle('hidden', !message);
-		const renderedMessage = renderLabelWithIcons(message);
+		const renderedMessage = renderLabelWithIcons(message, undefined, 'inline-chat-status-glyph');
 		reset(this._elements.infoLabel, ...renderedMessage);
 		this._onDidChangeHeight.fire();
 	}
@@ -422,7 +422,7 @@ export abstract class InlineChatWidget {
 				this.updateStatus(statusLabel, { classes, keepMessage: true, title });
 			}, ops.resetAfter);
 		}
-		const renderedMessage = renderLabelWithIcons(message);
+		const renderedMessage = renderLabelWithIcons(message, undefined, 'inline-chat-status-glyph');
 		reset(this._elements.statusLabel, ...renderedMessage);
 		this._elements.statusLabel.className = `label status inline-chat-status-label ${(ops.classes ?? []).join(' ')}`;
 		this._elements.statusLabel.classList.toggle('hidden', !message);
