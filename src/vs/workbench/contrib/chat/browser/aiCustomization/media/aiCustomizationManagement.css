@@ -3471,7 +3471,7 @@ per-word capitalization does not survive translation. */
 	width: auto;
 }
 
-.plugin-list-widget .plugin-card-section-actions .plugin-update-button.monaco-button {
+.plugin-list-widget .plugin-card-section-actions .monaco-button.plugin-update-button {
 	width: var(--vscode-spacing-size240);
 	min-width: var(--vscode-spacing-size240);
 	height: var(--vscode-spacing-size240);
