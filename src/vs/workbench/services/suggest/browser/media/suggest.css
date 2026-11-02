@@ -164,7 +164,7 @@
 
 /** Styles for each row in the list **/
 
-.workbench-suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated {
+.workbench-suggest-widget .monaco-list .monaco-list-row .deprecated.workbench-suggest-item-label {
 	opacity: 0.66;
 	text-decoration: unset;
 }
