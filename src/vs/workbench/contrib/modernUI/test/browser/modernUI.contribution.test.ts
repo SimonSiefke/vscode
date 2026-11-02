@@ -118,6 +118,9 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	if (element.classList.contains('title') && parent.classList.contains('part')) {
 		element.classList.add('workbench-part-title');
 	}
+	if (element.classList.contains('monaco-action-bar') && parent.classList.contains('composite-bar')) {
+		element.classList.add('composite-switcher-action-bar');
+	}
 	if (element.classList.contains('actions-container') && parent.closest('.composite-bar')) {
 		element.classList.add('composite-bar-toolbar-actions');
 	}
