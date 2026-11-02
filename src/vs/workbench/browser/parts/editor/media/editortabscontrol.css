@@ -21,14 +21,14 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:where(.monaco-icon-label-name) {
 	font-size: 13px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .monaco-icon-label::before,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .monaco-icon-label::before,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:where(.monaco-icon-label-name),
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label h2,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label span {
 	cursor: pointer;
