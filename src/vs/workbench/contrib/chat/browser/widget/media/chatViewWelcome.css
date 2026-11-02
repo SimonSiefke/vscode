@@ -85,7 +85,7 @@
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.chat-update-required-content .chat-welcome-view > .monaco-button {
+.chat-update-required-content .chat-welcome-view > .chat-welcome-action-button {
 	margin-top: var(--vscode-spacing-size120);
 }
 

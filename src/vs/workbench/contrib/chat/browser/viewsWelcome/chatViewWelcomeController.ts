@@ -208,6 +208,7 @@ export class ChatViewWelcomePart extends Disposable {
 			if (content.primaryAction) {
 				const action = content.primaryAction;
 				const button = this._register(new Button(this.element, defaultButtonStyles));
+				button.element.classList.add('chat-welcome-action-button');
 				button.label = action.label;
 				this._register(button.onDidClick(() => this.openerService.open(action.href, { allowCommands: true })));
 			}
@@ -234,6 +235,7 @@ export class ChatViewWelcomePart extends Disposable {
 		if (firstLink) {
 			const target = firstLink.getAttribute('data-href');
 			const button = this._register(new Button(firstLink.parentElement!, defaultButtonStyles));
+			button.element.classList.add('chat-welcome-action-button');
 			button.label = firstLink.textContent ?? '';
 			if (target) {
 				this._register(button.onDidClick(() => {
