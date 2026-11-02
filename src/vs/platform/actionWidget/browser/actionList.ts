@@ -412,7 +412,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 
 		const labelIcon = dom.append(container, dom.$('span.action-list-label-icon', { 'aria-hidden': 'true' }));
 		const text = document.createElement('span');
-		text.className = 'title';
+		text.className = 'title action-widget-title';
 		container.append(text);
 
 		const badge = document.createElement('span');
