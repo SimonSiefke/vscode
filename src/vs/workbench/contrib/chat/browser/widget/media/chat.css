@@ -2204,7 +2204,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	}
 }
 
-.interactive-session .chat-input-toolbar .chat-input-picker-item .action-label,
+.interactive-session .chat-input-toolbar .chat-input-picker-item .action-label:where(.chat-input-picker-trigger),
 .interactive-session .chat-input-toolbar .chat-sessionPicker-item .action-label {
 	box-sizing: border-box;
 	height: var(--chat-input-control-height);
