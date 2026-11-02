@@ -314,7 +314,7 @@
 	width: auto;
 }
 
-.action-widget-action-bar .action-label {
+.action-widget-action-bar .action-widget-footer-label {
 	color: var(--vscode-textLink-activeForeground);
 	font-size: 12px;
 	line-height: 22px;
