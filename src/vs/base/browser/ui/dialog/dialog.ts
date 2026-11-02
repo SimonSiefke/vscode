@@ -343,6 +343,9 @@ export class Dialog extends Disposable {
 				}
 
 				button.element.classList.add('dialog-footer-action');
+				if (button instanceof ButtonWithDropdown) {
+					button.primaryButton.element.classList.add('dialog-footer-primary-action');
+				}
 
 				if (buttonOptions?.styleButton) {
 					buttonOptions.styleButton(button);
