@@ -214,7 +214,7 @@
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.selected:not(.focused) > .monaco-tl-row {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.selected:not(.focused) > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) dotted var(--vscode-contrastActiveBorder);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
