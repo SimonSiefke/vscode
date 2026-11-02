@@ -257,7 +257,7 @@
 	height: 16px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .label.extension-action {
 	margin-right: 2px;
 }
 
@@ -267,7 +267,7 @@
 
 /* single install */
 .extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .label.extension-action,
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .label.extension-action {
 	border-radius: 4px;
 }
 
