@@ -239,7 +239,7 @@
 			max-width: 200px;
 			padding: 3px 6px;
 
-			span {
+			span:where(.browser-link-hint-content) {
 				opacity: 1;
 			}
 
