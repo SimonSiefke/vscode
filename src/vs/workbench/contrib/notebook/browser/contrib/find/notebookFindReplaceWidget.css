@@ -127,7 +127,7 @@
 	cursor: default;
 }
 
-.monaco-workbench .simple-fr-find-part-wrapper .monaco-custom-toggle.disabled {
+.monaco-workbench .simple-fr-find-part-wrapper .disabled.monaco-custom-toggle {
 	opacity: 0.3;
 	cursor: default;
 	user-select: none;
