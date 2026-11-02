@@ -77,7 +77,7 @@
 }
 
 .monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
-.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .mirror,
+.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror,
 .monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
 .monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding-top: 2px;
