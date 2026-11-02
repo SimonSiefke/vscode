@@ -114,8 +114,3 @@
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 }
-
-.monaco-editor .monaco-hover .hover-copy-button .codicon {
-	font-size: 16px;
-	color: var(--vscode-foreground);
-}
