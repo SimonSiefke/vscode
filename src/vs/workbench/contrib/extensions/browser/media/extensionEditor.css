@@ -189,7 +189,7 @@
 	display: inherit;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar:where(.extension-header-action-bar) {
 	text-align: initial;
 }
 

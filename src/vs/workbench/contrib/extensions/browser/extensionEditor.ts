@@ -360,6 +360,7 @@ export class ExtensionEditor extends EditorPane {
 
 		const actionsAndStatusContainer = append(details, $('.actions-status-container'));
 		const extensionActionBar = this._register(new ActionBar(actionsAndStatusContainer, {
+			className: 'extension-header-action-bar',
 			actionsContainerClassName: 'extension-header-actions',
 			actionViewItemProvider: (action: IAction, options) => {
 				if (action instanceof DropDownExtensionAction) {
