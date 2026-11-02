@@ -424,7 +424,7 @@
 				content: none;
 			}
 
-			.header {
+			.header:where(.multi-diff-file-header) {
 				.header-content {
 					margin: var(--vscode-spacing-size40) 0 0;
 					border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-editorWidget-border, transparent));
