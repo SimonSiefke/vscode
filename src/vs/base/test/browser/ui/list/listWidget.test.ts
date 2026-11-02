@@ -20,7 +20,7 @@ suite('ListWidget', function () {
 			const container = document.createElement('div');
 			const neighbor = document.createElement('div');
 			const style = document.createElement('style');
-			style.textContent = '.monaco-list .test-owner-list-row { padding-left: 11px; }';
+			style.textContent = '.monaco-list .test-owner-list-row { padding-left: 11px; } .monaco-list > .test-owner-list-scrollable { padding-right: 13px; }';
 			document.body.append(container, neighbor, style);
 			store.add(toDisposable(() => { container.remove(); neighbor.remove(); style.remove(); }));
 			const delegate: IListVirtualDelegate<number> = {
@@ -43,8 +43,10 @@ suite('ListWidget', function () {
 				disposeTemplate() { }
 			};
 			const list = store.add(new List<number>('test', container, delegate, [styledRenderer], {
-				rowClassName: 'test-owner-list-row', supportDynamicHeights
+				rowClassName: 'test-owner-list-row', scrollableClassName: 'test-owner-list-scrollable', supportDynamicHeights
 			}));
+			const viewport = container.querySelector<HTMLElement>('.test-owner-list-scrollable')!;
+			assert.strictEqual(getWindow(viewport).getComputedStyle(viewport).paddingRight, '13px');
 			list.layout(20, 200);
 			list.splice(0, 0, [1]);
 			const row = container.querySelector<HTMLElement>('.test-owner-list-row')!;
@@ -66,6 +68,7 @@ suite('ListWidget', function () {
 			defaultList.layout(20, 200);
 			defaultList.splice(0, 0, [3]);
 			assert.strictEqual(neighbor.querySelector('.test-owner-list-row'), null);
+			assert.strictEqual(neighbor.querySelector('.test-owner-list-scrollable'), null);
 		});
 	}
 

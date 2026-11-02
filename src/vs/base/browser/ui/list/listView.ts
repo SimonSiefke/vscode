@@ -88,6 +88,8 @@ export interface IListViewOptionsUpdate {
 export interface IListViewOptions<T> extends IListViewOptionsUpdate {
 	/** CSS class applied to each row before its renderer creates the template. */
 	readonly rowClassName?: string;
+	/** CSS class applied to the scrollable viewport during creation. */
+	readonly scrollableClassName?: string;
 	readonly dnd?: IListViewDragAndDrop<T>;
 	readonly useShadows?: boolean;
 	readonly verticalScrollMode?: ScrollbarVisibility;
@@ -440,6 +442,7 @@ export class ListView<T> implements IListView<T> {
 			scheduleAtNextAnimationFrame: cb => scheduleAtNextAnimationFrame(getWindow(this.domNode), cb)
 		}));
 		this.scrollableElement = this.disposables.add(new SmoothScrollableElement(this.rowsContainer, {
+			className: options.scrollableClassName,
 			alwaysConsumeMouseWheel: options.alwaysConsumeMouseWheel ?? DefaultOptions.alwaysConsumeMouseWheel,
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: options.verticalScrollMode ?? DefaultOptions.verticalScrollMode,

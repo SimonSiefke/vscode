@@ -815,6 +815,7 @@ export class QuickInputList extends Disposable {
 				},
 				accessibilityProvider: new QuickInputAccessibilityProvider(),
 				rowClassName: 'quick-input-tree-row',
+				scrollableClassName: 'quick-input-tree-scrollable',
 				setRowLineHeight: false,
 				multipleSelectionSupport: false,
 				hideTwistiesOfChildlessElements: true,
