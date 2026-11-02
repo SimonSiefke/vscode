@@ -10,7 +10,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-action-bar .action-item > .action-label.extension-action.label,
+.monaco-action-bar .action-item > .action-label.label.extension-action,
 .monaco-action-bar .action-dropdown-item > .action-label.extension-action.label {
 	padding: 0 5px;
 }
