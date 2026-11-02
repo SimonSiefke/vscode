@@ -702,6 +702,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 		this.tree = this.treeDisposables.add(this.instantiationService.createInstance(Tree, this.id, this.treeContainer!, new TreeViewDelegate(), [renderer],
 			dataSource, {
+			rowClassName: 'custom-view-list-row',
 			identityProvider: new TreeViewIdentityProvider(),
 			accessibilityProvider: {
 				getAriaLabel(element: ITreeItem): string | null {

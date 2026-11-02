@@ -61,6 +61,7 @@ suite('Custom tree action backgrounds', () => {
 					getHeight: () => 22,
 					getTemplateId: () => 'item',
 				}, [renderer], {
+					rowClassName: 'custom-view-list-row',
 					horizontalScrolling: true,
 					accessibilityProvider: { getAriaLabel: element => element, getWidgetAriaLabel: () => 'Scripts' },
 				}));
@@ -68,6 +69,7 @@ suite('Custom tree action backgrounds', () => {
 				tree.layout(100, 160);
 				tree.setChildren(null, [{ element: 'script' }]);
 				const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+				assert.strictEqual(getWindow(row).getComputedStyle(row).paddingRight, '12px');
 				const actions = row.querySelector<HTMLElement>('.actions')!;
 				const snapshots: { state: string; base: string; tintMatches: boolean; visible: boolean; coversTrailingText: boolean }[] = [];
 				const record = async (state: string) => {
