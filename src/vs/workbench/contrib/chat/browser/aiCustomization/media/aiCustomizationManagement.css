@@ -725,7 +725,7 @@ per-word capitalization does not survive translation. */
 	background: transparent;
 }
 
-.hc-light .customization-toggle .monaco-switch.checked,
+.hc-light .customization-toggle .checked.monaco-switch,
 .hc-light .customization-toggle .monaco-switch.mixed {
 	border-color: var(--vscode-contrastActiveBorder);
 }
