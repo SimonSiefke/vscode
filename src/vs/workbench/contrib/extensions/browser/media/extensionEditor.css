@@ -29,7 +29,7 @@
 	position: relative;
 }
 
-.extension-editor > .header > .icon-container .extension-icon .icon {
+.extension-editor > .header > .icon-container .extension-icon .icon:where(.extension-widget-icon-image) {
 	height: 128px;
 	width: 128px;
 }
