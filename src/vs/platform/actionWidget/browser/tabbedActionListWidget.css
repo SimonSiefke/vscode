@@ -43,7 +43,7 @@
 	overflow: hidden;
 }
 
-.action-widget .tabbed-action-list-tabbar .monaco-custom-radio .monaco-button.label-collapsing > span:not(.codicon) {
+.action-widget .tabbed-action-list-tabbar .monaco-custom-radio .monaco-button.label-collapsing > span:where(.monaco-radio-button-content):not(.codicon) {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;

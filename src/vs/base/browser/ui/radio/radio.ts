@@ -145,6 +145,7 @@ export class Radio extends Widget {
 				title: item.tooltip,
 				ariaLabel: item.ariaLabel,
 				supportIcons: true,
+				contentClassName: 'monaco-radio-button-content',
 			}));
 			button.element.setAttribute('role', 'radio');
 			button.enabled = !item.disabled;
