@@ -4162,7 +4162,7 @@ per-word capitalization does not survive translation. */
 	margin-right: 4px;
 }
 
-.ai-customization-management-editor .editor-save-indicator.visible {
+.ai-customization-management-editor .visible.editor-save-indicator {
 	opacity: 0.7;
 }
 
