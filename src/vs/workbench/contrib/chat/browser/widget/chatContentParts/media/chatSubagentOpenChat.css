@@ -9,7 +9,7 @@
 }
 
 .chat-subagent-open-chat-toolbar .chat-subagent-toolbar-root,
-.chat-subagent-open-chat-toolbar .monaco-action-bar,
+.chat-subagent-open-chat-toolbar .chat-subagent-action-bar,
 .chat-subagent-open-chat-toolbar .actions-container {
 	width: 100%;
 	min-width: 0;
