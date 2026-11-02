@@ -477,7 +477,7 @@
 	display: flex;
 }
 
-.modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .monaco-icon-name-container,
+.modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .editor-tab-name-container,
 .modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .monaco-icon-description-container {
 	min-width: 0;
 	overflow: hidden;
