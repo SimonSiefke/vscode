@@ -234,7 +234,7 @@
 
 /* Compact pills keep only their icon; the compact padding rules also drop the reserved space. */
 .monaco-workbench .chat-pills-row.compact .chat-pill-item > .codicon.chat-pill-promoted-action,
-.monaco-workbench .chat-pill-item > .chat-pill-button.compact + .chat-pill-promoted-action.codicon {
+.monaco-workbench .chat-pill-item > .chat-pill-button.compact + .codicon.chat-pill-promoted-action {
 	display: none;
 }
 
