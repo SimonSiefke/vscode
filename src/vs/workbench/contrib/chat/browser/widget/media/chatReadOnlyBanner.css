@@ -18,7 +18,7 @@
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.chat-readonly-banner.hidden {
+.hidden.chat-readonly-banner {
 	display: none;
 }
 
