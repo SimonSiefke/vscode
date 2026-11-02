@@ -137,7 +137,7 @@
 		user-select: none;
 		-webkit-user-select: none;
 
-		.modal-editor-nav-button.monaco-button {
+		.monaco-button.modal-editor-nav-button {
 			display: flex;
 			align-items: center;
 			justify-content: center;
