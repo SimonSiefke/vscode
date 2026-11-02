@@ -13,7 +13,7 @@
 		padding: 0 6px;
 	}
 
-	.agent-sessions-workbench .pane-body & .monaco-scrollable-element {
+	.agent-sessions-workbench .pane-body & .agent-sessions-list-scrollable {
 		padding: 0 12px;
 	}
 
