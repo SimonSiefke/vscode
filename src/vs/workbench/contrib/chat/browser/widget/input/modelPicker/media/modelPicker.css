@@ -73,7 +73,7 @@
 	justify-content: center;
 }
 
-.chat-input-picker-item .action-label.model-picker-split.compact .model-picker-name > .codicon {
+.chat-input-picker-item .action-label.model-picker-split.compact .model-picker-name > .chat-input-picker-glyph {
 	width: var(--vscode-codiconFontSize-compact);
 	height: var(--vscode-codiconFontSize-compact);
 	line-height: var(--vscode-codiconFontSize-compact);
