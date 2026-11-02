@@ -113,7 +113,8 @@
 	--modern-ui-tab-terminal-gutter: var(--vscode-spacing-size40);
 }
 
-.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > :is(.tab.last-tab, .tabs-bar-add-tab) {
+.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-tab,
+.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tabs-bar-add-tab.tabs-bar-add-tab {
 	margin-inline: 0 calc(var(--last-tab-margin-right) + var(--modern-ui-tab-terminal-gutter));
 }
 
