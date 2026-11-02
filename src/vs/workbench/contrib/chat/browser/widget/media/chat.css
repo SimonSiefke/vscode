@@ -1490,7 +1490,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	border-radius: var(--vscode-cornerRadius-circle);
 }
 
-.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button > .action-label {
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button > .action-label:where(.chat-submit-action-label) {
 	box-sizing: border-box;
 	width: var(--chat-input-control-height);
 	height: var(--chat-input-control-height);
