@@ -161,7 +161,7 @@
 		outline: 1px solid var(--vscode-menu-selectionBorder, transparent);
 		outline-offset: -1px;
 
-		.monaco-keybinding-key {
+		.monaco-keybinding-key:where(.inline-edit-menu-key) {
 			color: var(--vscode-editorActionList-focusForeground);
 		}
 	}
