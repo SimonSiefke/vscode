@@ -322,7 +322,7 @@
 	pointer-events: all;
 }
 
-.action-widget-action-bar .action-item {
+.action-widget-action-bar .action-widget-footer-item {
 	margin-right: 16px;
 	pointer-events: none;
 }

@@ -307,7 +307,7 @@ export class ActionWidgetService extends Disposable implements IActionWidgetServ
 		}
 
 		const container = dom.$(className);
-		const actionBar = new ActionBar(container);
+		const actionBar = new ActionBar(container, { actionItemClassName: 'action-widget-footer-item' });
 		actionBar.push(actions, { icon: false, label: true });
 		return actionBar;
 	}
