@@ -55,7 +55,7 @@
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.sessions-pr-hover-checks[data-status='pending'] .codicon {
+.sessions-pr-hover-checks[data-status='pending'] .codicon:where(.github-resource-hover-status-icon) {
 	color: var(--vscode-testing-iconQueued, var(--vscode-editorWarning-foreground));
 }
 
