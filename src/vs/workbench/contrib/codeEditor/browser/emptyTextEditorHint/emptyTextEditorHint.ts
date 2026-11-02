@@ -260,6 +260,7 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 			]
 		}, '[[Select a language]] ({0}) to get started. Start typing to dismiss or [[don\'t show]] this again.', keybindingLabels.at(1) ?? '')).replaceAll(' ()', '');
 		const hintElement = renderFormattedText(hintMsg, {
+			linkClassName: 'empty-editor-hint-link',
 			actionHandler: hintHandler,
 			renderCodeSegments: false,
 		});
