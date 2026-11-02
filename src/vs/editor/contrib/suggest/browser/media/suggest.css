@@ -315,7 +315,7 @@
 
 /** Styles for each row in the list **/
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row .deprecated.editor-suggest-item-label {
 	opacity: 0.66;
 	text-decoration: unset;
 }
