@@ -309,7 +309,7 @@
 					.actions {
 						padding: 0 var(--vscode-spacing-size80);
 
-						.actions-container {
+						.multi-diff-file-toolbar-actions {
 							gap: var(--vscode-spacing-size40);
 
 							.action-item:not(.multi-diff-action-always-visible) {
