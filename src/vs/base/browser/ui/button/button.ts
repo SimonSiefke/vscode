@@ -27,6 +27,8 @@ import { IActionProvider } from '../dropdown/dropdown.js';
 import { safeSetInnerHtml, DomSanitizerConfig } from '../../domSanitize.js';
 
 export interface IButtonOptions extends Partial<IButtonStyles> {
+	/** CSS class applied to the button during creation. */
+	readonly buttonClassName?: string;
 	readonly title?: boolean | string;
 	/**
 	 * Will fallback to `title` if not set.
@@ -130,6 +132,9 @@ export class Button extends Disposable implements IButton {
 
 		this._element = document.createElement('a');
 		this._element.classList.add('monaco-button');
+		if (options.buttonClassName) {
+			this._element.classList.add(options.buttonClassName);
+		}
 		this._element.tabIndex = 0;
 		this._element.setAttribute('role', 'button');
 

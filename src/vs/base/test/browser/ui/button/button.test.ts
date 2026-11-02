@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { getWindow } from '../../../../browser/dom.js';
-import { Button, unthemedButtonStyles } from '../../../../browser/ui/button/button.js';
+import { Button, ButtonWithDropdown, unthemedButtonStyles } from '../../../../browser/ui/button/button.js';
+import { Codicon } from '../../../../common/codicons.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 suite('Button', () => {
@@ -33,6 +34,32 @@ suite('Button', () => {
 			paddings,
 			otherKeepsOwnPadding: [...other.element.children].every(child => targetWindow.getComputedStyle(child).paddingTop !== '7px'),
 		}, { paddings: Array(6).fill('7px'), otherKeepsOwnPadding: true });
+	});
+
+	test('creation styling reaches both dropdown buttons and survives label and icon updates', () => {
+		const container = document.createElement('div');
+		container.style.cssText = 'position: fixed; top: 0; left: 0;';
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+		const style = container.appendChild(document.createElement('style'));
+		style.textContent = '.test-owned-button { min-width: 31px; }';
+		const button = store.add(new ButtonWithDropdown(container, {
+			...unthemedButtonStyles,
+			buttonClassName: 'test-owned-button',
+			actions: [],
+			contextMenuProvider: { showContextMenu() { } }
+		}));
+		const widths = () => [button.primaryButton, button.dropdownButton].map(part => getWindow(part.element).getComputedStyle(part.element).minWidth);
+		assert.deepStrictEqual(widths(), ['31px', '31px']);
+		for (const icon of [Codicon.check, Codicon.sync]) {
+			button.label = icon.id;
+			button.icon = icon;
+			button.enabled = false;
+			button.enabled = true;
+			assert.deepStrictEqual(widths(), ['31px', '31px']);
+		}
+		const other = store.add(new Button(container, unthemedButtonStyles));
+		assert.notStrictEqual(getWindow(other.element).getComputedStyle(other.element).minWidth, '31px');
 	});
 
 	test('disabling a hovered button clears its hover background', () => {
