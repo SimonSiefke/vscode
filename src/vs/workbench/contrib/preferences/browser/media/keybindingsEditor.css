@@ -111,7 +111,7 @@
 	flex: 1;
 }
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row.selected .monaco-table-tr .monaco-table-td .actions .monaco-action-bar,
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row.selected .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.keybindings-row-action-bar),
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table.focused .monaco-list-row.focused .monaco-table-tr .monaco-table-td .actions .monaco-action-bar,
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row:hover .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
 	display: flex;
