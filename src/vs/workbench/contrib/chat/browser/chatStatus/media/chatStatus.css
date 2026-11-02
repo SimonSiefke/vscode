@@ -171,7 +171,7 @@
 	font-weight: 400;
 }
 
-.chat-status-bar-entry-tooltip div.header .monaco-action-bar {
+.chat-status-bar-entry-tooltip div.header .monaco-action-bar:where(.chat-status-header-action-bar) {
 	flex-shrink: 0;
 }
 
