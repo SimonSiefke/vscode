@@ -1120,7 +1120,7 @@
 
 .modern-ui-tabs .part.editor > .content .editor-group-container:not(.active) > .title .tabs-container > .tab.active .tab-label:not(.monaco-decoration-itemColor),
 .modern-ui-tabs .part.editor > .content .editor-group-container:not(.active) > .title .tabs-container > .tab.active > .tab-actions .action-label,
-.modern-ui-tabs .modern-ui-editor-tab-group:not(.modern-ui-editor-tab-group-active) .modern-ui-editor-tab.active {
+.modern-ui-tabs .modern-ui-editor-tab-group:not(.modern-ui-editor-tab-group-active) .active.modern-ui-editor-tab {
 	color: var(--modern-ui-editor-tab-unfocused-active-foreground) !important;
 }
 
