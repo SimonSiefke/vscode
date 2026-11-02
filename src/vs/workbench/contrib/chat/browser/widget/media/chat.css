@@ -2868,7 +2868,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	margin: 16px 0px;
 }
 
-.interactive-response-progress-tree.focused {
+.focused.interactive-response-progress-tree {
 	border-color: var(--vscode-focusBorder, transparent);
 }
 
