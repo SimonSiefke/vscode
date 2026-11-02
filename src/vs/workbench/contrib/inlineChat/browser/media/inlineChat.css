@@ -99,7 +99,7 @@
 		padding: 8px 0 4px 0;
 	}
 
-	.interactive-session .chat-input-container.focused,
+	.interactive-session .focused.chat-input-container,
 	.interactive-session .chat-input-container {
 		border-color: var(--vscode-inlineChat-background);
 		background-color: var(--vscode-inlineChat-background);
