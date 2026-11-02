@@ -445,7 +445,7 @@ export class RecommendationWidget extends ExtensionWidget {
 		if (extRecommendations[this.extension.identifier.id.toLowerCase()]) {
 			this.element = append(this.parent, $('div.extension-bookmark'));
 			const recommendation = append(this.element, $('.recommendation'));
-			append(recommendation, $('span' + ThemeIcon.asCSSSelector(ratingIcon)));
+			append(recommendation, $('span.extension-bookmark-glyph' + ThemeIcon.asCSSSelector(ratingIcon)));
 		}
 	}
 
@@ -475,7 +475,7 @@ export class PreReleaseBookmarkWidget extends ExtensionWidget {
 		if (this.extension?.state === ExtensionState.Installed ? this.extension.preRelease : this.extension?.hasPreReleaseVersion) {
 			this.element = append(this.parent, $('div.extension-bookmark'));
 			const preRelease = append(this.element, $('.pre-release'));
-			append(preRelease, $('span' + ThemeIcon.asCSSSelector(preReleaseIcon)));
+			append(preRelease, $('span.extension-bookmark-glyph' + ThemeIcon.asCSSSelector(preReleaseIcon)));
 		}
 	}
 
