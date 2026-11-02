@@ -925,6 +925,7 @@ export class ChatThinkingContentPart extends ChatThinkingStyleContentPart implem
 		// wrap content in scrollable element for fixed scrolling mode
 		if (this.fixedScrollingMode) {
 			this.scrollableElement = this._register(new DomScrollableElement(this.wrapper, {
+				className: 'chat-thinking-content-scrollable',
 				vertical: ScrollbarVisibility.Auto,
 				horizontal: ScrollbarVisibility.Hidden,
 				handleMouseWheel: true,

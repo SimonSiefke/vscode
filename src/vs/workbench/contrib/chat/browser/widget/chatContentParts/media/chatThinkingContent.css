@@ -801,7 +801,7 @@
 	}
 
 	/* Directional fade indicators via mask-image on the scrollable viewport */
-	&.chat-thinking-fade-top > .monaco-scrollable-element {
+	&.chat-thinking-fade-top > .chat-thinking-content-scrollable {
 		mask-image: linear-gradient(to bottom, transparent 0px, black 20px);
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px);
 	}
