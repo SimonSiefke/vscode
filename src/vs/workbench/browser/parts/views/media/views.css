@@ -110,7 +110,7 @@
 	max-width: 100%;
 }
 
-.monaco-workbench .pane > .pane-body .welcome-view-content > .button-container > .monaco-button {
+.monaco-workbench .pane > .pane-body .welcome-view-content > .button-container > .welcome-view-button {
 	max-width: 300px;
 }
 
