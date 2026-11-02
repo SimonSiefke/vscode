@@ -300,7 +300,7 @@
 	background-size: 16px;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon.codicon {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .codicon.window-appicon {
 	line-height: 30px;
 }
 
