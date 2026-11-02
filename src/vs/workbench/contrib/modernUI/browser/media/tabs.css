@@ -1063,7 +1063,7 @@
 	border-bottom-width: 0 !important;
 }
 
-.modern-ui-tabs .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a {
+.modern-ui-tabs .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:where(.monaco-icon-label-name) {
 	font-size: var(--vscode-fontSize-body1);
 }
 
