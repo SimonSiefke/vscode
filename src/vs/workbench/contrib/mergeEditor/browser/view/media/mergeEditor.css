@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .merge-editor .code-view > .header {
+.monaco-workbench .merge-editor .code-view > .merge-editor-code-header {
 	padding: 0 10px;
 	height: 30px;
 	display: flex;

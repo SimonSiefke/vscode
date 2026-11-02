@@ -59,7 +59,7 @@ export abstract class CodeEditorView extends Disposable {
 		super();
 		this.model = this.viewModel.map(m => /** @description model */ m?.model);
 		this.htmlElements = h('div.code-view', [
-			h('div.header@header', [
+			h('div.header.merge-editor-code-header@header', [
 				h('span.title@title'),
 				h('span.description@description'),
 				h('span.detail@detail'),
