@@ -43,7 +43,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-inputbox > .ibwrapper > textarea.input {
+.monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	display: block;
 	scrollbar-width: none; /* Firefox: hide scrollbars */
 	outline: none;
