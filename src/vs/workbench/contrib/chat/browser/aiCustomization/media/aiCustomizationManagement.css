@@ -3233,7 +3233,7 @@ per-word capitalization does not survive translation. */
 	opacity: 0.6;
 }
 
-.plugin-list-widget .plugin-home-row.disabled {
+.plugin-list-widget .disabled.plugin-home-row {
 	opacity: 1;
 }
 
