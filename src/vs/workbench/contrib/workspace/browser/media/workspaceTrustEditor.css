@@ -290,12 +290,6 @@
 	padding-right: 3px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button {
-	height: 18px;
-	padding-left: 8px;
-	padding-right: 8px;
-}
-
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
 	display: none;
 	flex: 1;
