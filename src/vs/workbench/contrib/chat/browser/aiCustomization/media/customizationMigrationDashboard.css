@@ -212,7 +212,7 @@
 	white-space: nowrap;
 }
 
-.customization-migration-dashboard .migration-tree-group-destination.monaco-button {
+.customization-migration-dashboard .monaco-button.migration-tree-group-destination {
 	display: block;
 	padding: 0;
 	text-align: left;
