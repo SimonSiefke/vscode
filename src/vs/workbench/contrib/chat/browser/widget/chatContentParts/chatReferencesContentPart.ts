@@ -232,6 +232,7 @@ export class CollapsibleListPool extends Disposable {
 			[this.instantiationService.createInstance(CollapsibleListRenderer, resourceLabels, this.menuId)],
 			{
 				...this.listOptions,
+				scrollableClassName: 'chat-reference-list-scrollable',
 				alwaysConsumeMouseWheel: false,
 				accessibilityProvider: {
 					getAriaLabel: (element: IChatCollapsibleListItem) => {

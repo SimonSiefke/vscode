@@ -510,7 +510,7 @@
 		display: none;
 	}
 
-	.chat-editing-session-list .monaco-scrollable-element {
+	.chat-editing-session-list .chat-reference-list-scrollable {
 		border-radius: 0;
 	}
 
