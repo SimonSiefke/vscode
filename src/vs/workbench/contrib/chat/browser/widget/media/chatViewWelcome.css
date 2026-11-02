@@ -211,7 +211,7 @@ div.chat-welcome-view {
 			margin: 0;
 		}
 
-		a {
+		a:where(.chat-welcome-message-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 
