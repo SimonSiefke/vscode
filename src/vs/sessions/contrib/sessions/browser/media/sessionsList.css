@@ -824,7 +824,7 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label2);
 
-	&.visible {
+	&.visible:where(.session-search-hint-title) {
 		display: flex;
 	}
 }
