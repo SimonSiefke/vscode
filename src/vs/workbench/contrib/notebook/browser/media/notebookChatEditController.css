@@ -44,7 +44,7 @@
 	font-family: var(--notebook-editor-font-family);
 }
 
-.monaco-workbench .notebookOverlay .view-zones .cell-editor-container > div > div span {
+.monaco-workbench .notebookOverlay .view-zones .cell-editor-container > div > div span:where(.notebook-deleted-cell-token) {
 	font-family: var(--notebook-editor-font-family);
 	font-size: var(--notebook-editor-font-size);
 	font-weight: var(--notebook-editor-font-weight);

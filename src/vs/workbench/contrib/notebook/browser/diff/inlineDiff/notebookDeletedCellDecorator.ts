@@ -197,7 +197,7 @@ export class NotebookDeletedCellWidget extends Disposable {
 	public async render() {
 		const code = this.code;
 		const languageId = this.language;
-		const codeHtml = await tokenizeToString(this.languageService, code, languageId);
+		const codeHtml = await tokenizeToString(this.languageService, code, languageId, 'notebook-deleted-cell-token');
 
 		// const colorMap = this.getDefaultColorMap();
 		const fontInfo = this._notebookEditor.getBaseCellEditorOptions(languageId).value;
