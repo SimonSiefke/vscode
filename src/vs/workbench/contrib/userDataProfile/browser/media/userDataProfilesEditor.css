@@ -174,7 +174,7 @@
 	cursor: default;
 }
 
-.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container .codicon {
+.profiles-editor .contents-container .profile-body .profile-row-container .profile-icon-container .codicon:where(.profile-editor-icon-control) {
 	cursor: pointer;
 	margin-right: 4px;
 	padding: 2px;

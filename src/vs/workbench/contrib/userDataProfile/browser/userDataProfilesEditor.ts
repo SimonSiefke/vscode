@@ -1041,7 +1041,7 @@ class ProfileIconRenderer extends ProfilePropertyRenderer {
 		const iconContainer = append(parent, $('.profile-row-container'));
 		append(iconContainer, $('.profile-label-element', undefined, localize('icon-label', "Icon")));
 		const iconValueContainer = append(iconContainer, $('.profile-icon-container'));
-		const iconElement = append(iconValueContainer, $(`${ThemeIcon.asCSSSelector(DEFAULT_ICON)}`, { 'tabindex': '0', 'role': 'button', 'aria-label': localize('icon', "Profile Icon") }));
+		const iconElement = append(iconValueContainer, $(`${ThemeIcon.asCSSSelector(DEFAULT_ICON)}.profile-editor-icon-control`, { 'tabindex': '0', 'role': 'button', 'aria-label': localize('icon', "Profile Icon") }));
 		const iconHover = disposables.add(this.hoverService.setupManagedHover(this.hoverDelegate, iconElement, ''));
 
 		const iconSelectBox = disposables.add(this.instantiationService.createInstance(WorkbenchIconSelectBox, { icons: ICONS, inputBoxStyles: defaultInputBoxStyles }));
@@ -1114,9 +1114,9 @@ class ProfileIconRenderer extends ProfilePropertyRenderer {
 				iconValueContainer.classList.remove('disabled');
 			}
 			if (profileElement.root.icon) {
-				iconElement.className = ThemeIcon.asClassName(ThemeIcon.fromId(profileElement.root.icon));
+				iconElement.className = 'profile-editor-icon-control ' + ThemeIcon.asClassName(ThemeIcon.fromId(profileElement.root.icon));
 			} else {
-				iconElement.className = ThemeIcon.asClassName(ThemeIcon.fromId(DEFAULT_ICON.id));
+				iconElement.className = 'profile-editor-icon-control ' + ThemeIcon.asClassName(ThemeIcon.fromId(DEFAULT_ICON.id));
 			}
 		};
 
