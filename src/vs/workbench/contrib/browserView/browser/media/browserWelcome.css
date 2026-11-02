@@ -26,7 +26,7 @@
 	min-height: 40px;
 }
 
-.browser-root .browser-welcome-icon .codicon {
+.browser-root .browser-welcome-icon .codicon:where(.browser-welcome-glyph) {
 	font-size: 40px;
 	margin-bottom: 24px;
 	color: var(--vscode-descriptionForeground);
