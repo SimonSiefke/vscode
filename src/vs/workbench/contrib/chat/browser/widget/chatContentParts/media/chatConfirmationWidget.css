@@ -437,7 +437,7 @@
 		text-overflow: ellipsis;
 		align-content: center;
 
-		.monaco-button {
+		.chat-working-set-title-button {
 			width: fit-content;
 			max-width: 100%;
 			padding: 4px 6px 4px 0;
