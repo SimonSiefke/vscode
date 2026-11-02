@@ -314,7 +314,7 @@
 	flex-wrap: wrap;
 }
 
-.chat-pet-custom-color-inputs .monaco-inputbox {
+.chat-pet-custom-color-inputs .chat-pet-color-input-box {
 	width: 120px;
 }
 
