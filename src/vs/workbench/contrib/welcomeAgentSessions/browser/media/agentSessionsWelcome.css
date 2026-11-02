@@ -405,7 +405,7 @@
 	color: var(--vscode-checkbox-foreground) !important;
 }
 
-.agentSessionsWelcome-checkbox.checked {
+.checked.agentSessionsWelcome-checkbox {
 	background-color: var(--vscode-descriptionForeground) !important;
 	border-color: var(--vscode-descriptionForeground) !important;
 	color: var(--vscode-editor-background) !important;
