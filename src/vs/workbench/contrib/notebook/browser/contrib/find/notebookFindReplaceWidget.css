@@ -98,7 +98,7 @@
 	pointer-events: all;
 }
 
-.monaco-workbench .simple-fr-find-part-wrapper.visible {
+.monaco-workbench .visible.simple-fr-find-part-wrapper {
 	visibility: visible;
 }
 
