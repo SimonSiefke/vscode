@@ -112,7 +112,7 @@
 	background-color: transparent;
 }
 
-.chat-input-picker-item .action-label.model-picker-split.disabled .codicon {
+.chat-input-picker-item .action-label.model-picker-split.disabled .chat-input-picker-glyph {
 	color: var(--vscode-disabledForeground);
 }
 
