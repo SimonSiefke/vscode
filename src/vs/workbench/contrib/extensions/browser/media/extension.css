@@ -276,7 +276,7 @@
 	height: 10px;
 }
 
-.extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .monaco-dropdown .extension-action.label {
+.extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .monaco-dropdown .label.extension-action {
 	border-left-width: 0;
 }
 
