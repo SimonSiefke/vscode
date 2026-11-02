@@ -3632,7 +3632,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-descriptionForeground);
 }
 
-.chat-collapsible-hover-chevron.expanded {
+.expanded.chat-collapsible-hover-chevron {
 	opacity: 1;
 	transform: rotate(90deg);
 }
