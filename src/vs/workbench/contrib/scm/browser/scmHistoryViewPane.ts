@@ -571,7 +571,7 @@ class HistoryItemRenderer implements ICompressibleTreeRenderer<SCMHistoryItemVie
 					display: historyItemRefs.length > 1 ? '' : 'none'
 				}
 			}),
-			h('div.icon@icon'),
+			h('div.icon.scm-history-ref-glyph@icon'),
 			h('div.description@description', {
 				style: {
 					display: showDescription ? '' : 'none'

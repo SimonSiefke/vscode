@@ -223,7 +223,7 @@
 	padding-left: 4px;
 }
 
-.scm-view .monaco-list-row .history-item > .label-container > .label > .codicon {
+.scm-view .monaco-list-row .history-item > .label-container > .label > .codicon:where(.scm-history-ref-glyph) {
 	color: inherit !important;
 	padding: 1px;
 }
