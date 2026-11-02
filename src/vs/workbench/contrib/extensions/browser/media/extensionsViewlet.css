@@ -200,7 +200,7 @@
 	box-shadow: var(--vscode-shadow-md);
 }
 
-.extensions-viewlet > .extensions .extension-list-item.loading {
+.extensions-viewlet > .extensions .loading.extension-list-item {
 	background: url('loading.svg') center center no-repeat;
 }
 
