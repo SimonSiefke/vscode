@@ -268,7 +268,7 @@
 	gap: 10px;
 	flex-wrap: wrap;
 }
-.chat-debug-overview-action-button.monaco-button {
+.monaco-button.chat-debug-overview-action-button {
 	width: auto;
 }
 .monaco-button.chat-debug-icon-button {
