@@ -1114,7 +1114,7 @@
 	color: var(--modern-ui-editor-tab-active-foreground) !important;
 }
 
-.modern-ui-tabs .modern-ui-editor-tab-group.modern-ui-editor-tab-group-active .modern-ui-editor-tab.active {
+.modern-ui-tabs .modern-ui-editor-tab-group.modern-ui-editor-tab-group-active .active.modern-ui-editor-tab {
 	color: var(--modern-ui-editor-tab-active-foreground) !important;
 }
 
