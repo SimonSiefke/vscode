@@ -50,7 +50,7 @@
 	padding-right: 2px;
 }
 
-.scm-view .scm-provider > .monaco-icon-label {
+.scm-view .scm-provider > .scm-provider-label {
 	min-width: 0;
 	flex: 0 1 auto;
 }
