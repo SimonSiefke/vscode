@@ -116,7 +116,7 @@
 }
 
 /* Hover changes the focused row without moving DOM focus, including while a combobox owns it. */
-.action-widget .monaco-list.mouse-navigation .monaco-list-row.action.focused:not(.option-disabled),
+.action-widget .monaco-list.mouse-navigation .action.focused:not(.option-disabled).action-widget-list-row,
 .action-widget .monaco-list:not(.keyboard-navigation):not(:focus-visible) .monaco-list-row.action.focused:not(.option-disabled) {
 	outline-color: var(--vscode-contrastActiveBorder, transparent);
 }
