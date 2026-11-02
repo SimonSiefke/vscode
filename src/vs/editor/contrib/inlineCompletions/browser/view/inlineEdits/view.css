@@ -57,14 +57,6 @@
 				transform: rotate(-90deg);
 			}
 		}
-
-		.icon {
-			display: flex;
-			align-items: center;
-			margin: 0 2px;
-			transform: none;
-			transition: transform 0.2s ease-in-out
-		}
 	}
 
 	.inline-edits-view .editorContainer {
