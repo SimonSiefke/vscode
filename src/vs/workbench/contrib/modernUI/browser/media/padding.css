@@ -48,13 +48,13 @@
 
 /* Tighten part chrome from 35px to 32px.
  * KEEP IN SYNC WITH: part.ts PartLayout.AREA_HEIGHT_MODERN_UI */
-.modern-ui.monaco-workbench .part > .title,
+.modern-ui.monaco-workbench .part > .title:where(.workbench-part-title),
 .modern-ui.monaco-workbench .part > .header-or-footer {
 	height: 32px;
 	padding-left: var(--vscode-spacing-size20);
 }
 
-.modern-ui.monaco-workbench .part > .title {
+.modern-ui.monaco-workbench .part > .title:where(.workbench-part-title) {
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
 }
