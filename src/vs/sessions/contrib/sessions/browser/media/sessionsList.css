@@ -1504,7 +1504,7 @@
 			line-height: 18px;
 		}
 
-		.monaco-inputbox .input {
+		.monaco-inputbox .monaco-inputbox-input {
 			padding: 0 4px;
 			font-size: var(--vscode-fontSize-label2, 11px);
 		}
