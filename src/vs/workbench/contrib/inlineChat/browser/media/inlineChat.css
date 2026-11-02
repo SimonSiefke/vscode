@@ -361,7 +361,7 @@
 	width: 100%;
 }
 
-.monaco-workbench .inline-chat-terminated-card > .monaco-scrollable-element.hidden {
+.monaco-workbench .inline-chat-terminated-card > .hidden.monaco-scrollable-element {
 	display: none;
 }
 
