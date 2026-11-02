@@ -428,7 +428,7 @@
 	outline-color: var(--vscode-list-activeSelectionForeground)
 }
 
-.monaco-workbench .search-container .monaco-custom-toggle.disabled {
+.monaco-workbench .search-container .disabled.monaco-custom-toggle {
 	opacity: 0.3;
 	cursor: default;
 	user-select: none;
