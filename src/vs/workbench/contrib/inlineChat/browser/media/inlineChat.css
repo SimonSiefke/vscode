@@ -247,7 +247,7 @@
 	color: var(--vscode-errorForeground);
 }
 
-.monaco-workbench .inline-chat .status .label.warn {
+.monaco-workbench .inline-chat .status .label:where(.inline-chat-status-label).warn {
 	color: var(--vscode-editorWarning-foreground);
 }
 
