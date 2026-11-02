@@ -139,6 +139,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 
 			// nested toolbar
 			const toolbar = this._instaService.createInstance(WorkbenchToolBar, container, {
+				actionBarClassName: 'command-center-action-bar',
 				actionsContainerClassName: 'command-center-toolbar-actions',
 				hiddenItemStrategy: HiddenItemStrategy.NoHide,
 				telemetrySource: 'commandCenterCenter',
