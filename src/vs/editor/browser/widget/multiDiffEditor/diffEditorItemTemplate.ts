@@ -106,10 +106,10 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 					h('div.collapse-button@collapseButton'),
 					h('div.file-path', [
 						// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
-						h('div.title.modified.show-file-icons@primaryPath', [] as any),
+						h('div.title.multi-diff-file-title.modified.show-file-icons@primaryPath', [] as any),
 						h('div.status.deleted@status', ['R']),
 						// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
-						h('div.title.original.show-file-icons@secondaryPath', [] as any),
+						h('div.title.multi-diff-file-title.original.show-file-icons@secondaryPath', [] as any),
 					]),
 					h('div.actions@actions'),
 				]),
