@@ -511,7 +511,7 @@
 						border-radius: 4px;
 						background: var(--vscode-editorGutter-itemBackground);
 
-						.action-item {
+						.diff-gutter-action-item {
 							&:hover {
 								background: var(--vscode-toolbar-hoverBackground);
 							}
