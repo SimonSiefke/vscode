@@ -45,7 +45,7 @@ session with no pull requests shows one rule and a quick chat none. */
 	border-top: none;
 }
 
-.session-summary-hover-section.hidden {
+.hidden.session-summary-hover-section {
 	display: none;
 }
 
