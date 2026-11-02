@@ -118,7 +118,7 @@
 		font-size: var(--vscode-codiconFontSize-compact);
 		pointer-events: none;
 
-		&.visible {
+		&.visible:where(.agent-session-pending-voice-indicator) {
 			display: flex;
 		}
 	}
