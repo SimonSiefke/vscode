@@ -701,7 +701,7 @@
 	color: var(--vscode-disabledForeground);
 }
 
-.monaco-toolbar .action-label.scm-graph-repository-picker .codicon,
+.monaco-toolbar .action-label.scm-graph-repository-picker .codicon:where(.scm-repository-picker-glyph),
 .monaco-toolbar .action-label.scm-graph-history-item-picker .codicon {
 	color: inherit;
 }

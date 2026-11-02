@@ -90,7 +90,7 @@ class SCMRepositoryActionViewItem extends ActionViewItem {
 		if (this.options.label && this.label) {
 			this.label.classList.add('scm-graph-repository-picker');
 
-			const icon = $('.icon');
+			const icon = $('.icon.scm-repository-picker-glyph');
 			const iconClassNameArray = ThemeIcon.isThemeIcon(this._repository.provider.iconPath)
 				? ThemeIcon.asClassNameArray(this._repository.provider.iconPath)
 				: ThemeIcon.asClassNameArray(Codicon.repo);
