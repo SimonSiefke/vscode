@@ -450,6 +450,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		}
 
 		this.primaryButton = this._register(new Button(this.element, options));
+		this.primaryButton.element.classList.add('monaco-dropdown-action-button');
 		this._register(this.primaryButton.onDidClick(e => this._onDidClick.fire(e)));
 		this.action = toAction({ id: 'primaryAction', label: renderAsPlaintext(this.primaryButton.label), run: async () => this._onDidClick.fire(undefined) });
 
@@ -473,6 +474,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		this.separator.style.backgroundColor = options.buttonSeparator ?? '';
 
 		this.dropdownButton = this._register(new Button(this.element, { ...options, title: localize("button dropdown more actions", 'More Actions...'), supportIcons: true }));
+		this.dropdownButton.element.classList.add('monaco-dropdown-action-button');
 		this.dropdownButton.element.setAttribute('aria-haspopup', 'true');
 		this.dropdownButton.element.setAttribute('aria-expanded', 'false');
 		this.dropdownButton.element.classList.add('monaco-dropdown-button');
