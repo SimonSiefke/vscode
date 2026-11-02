@@ -203,6 +203,7 @@ export class SimpleSuggestDetailsWidget {
 					updateSize();
 				}
 			});
+			renderedContents.element.classList.add('simple-suggest-documentation');
 			this._docs.appendChild(renderedContents.element);
 			this._renderDisposeable.add(renderedContents);
 		} else {
