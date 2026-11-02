@@ -276,7 +276,7 @@
 					background: transparent;
 
 					.file-path {
-						.title {
+						.title:where(.multi-diff-file-title) {
 							font-size: var(--vscode-fontSize-body1);
 						}
 
