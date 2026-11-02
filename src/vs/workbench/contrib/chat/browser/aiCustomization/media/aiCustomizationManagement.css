@@ -3925,7 +3925,7 @@ per-word capitalization does not survive translation. */
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.ai-customization-management-editor .editor-item-icon .codicon {
+.ai-customization-management-editor .editor-item-icon .codicon:where(.customization-marketplace-fallback-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
