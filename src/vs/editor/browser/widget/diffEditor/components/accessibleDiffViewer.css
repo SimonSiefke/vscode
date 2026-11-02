@@ -61,7 +61,7 @@
 		z-index: 100;
 	}
 
-	.diff-review-actions .action-label {
+	.diff-review-actions .close-diff-review {
 		width: 16px;
 		height: 16px;
 		margin: 2px 0;
