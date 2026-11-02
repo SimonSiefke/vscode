@@ -339,7 +339,7 @@
 		gap: 0;
 
 		> .chat-used-context-label .monaco-button.monaco-icon-button,
-		> .chat-confirmation-widget-title.monaco-button {
+		> .monaco-button.chat-confirmation-widget-title {
 			padding-block: var(--vscode-spacing-size40);
 			vertical-align: top;
 			/* Preserve the padded hit target without adding a second visual gap. */
