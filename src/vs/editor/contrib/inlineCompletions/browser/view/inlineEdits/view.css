@@ -68,14 +68,6 @@
 				color: var(--vscode-inlineEdit-gutterIndicator-primaryForeground);
 			}
 		}
-
-		.label {
-			margin: 0 2px;
-
-			display: flex;
-			justify-content: center;
-			width: 100%;
-		}
 	}
 
 	.inline-edits-view .editorContainer {
