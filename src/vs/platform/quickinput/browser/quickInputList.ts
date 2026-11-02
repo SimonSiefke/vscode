@@ -12,7 +12,7 @@ import type { IHoverWidget, IManagedHoverTooltipMarkdownString } from '../../../
 import { IHoverDelegate } from '../../../base/browser/ui/hover/hoverDelegate.js';
 import { HoverPosition } from '../../../base/browser/ui/hover/hoverWidget.js';
 import { IIconLabelValueOptions, IconLabel } from '../../../base/browser/ui/iconLabel/iconLabel.js';
-import { KeybindingLabel } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
+import { KeybindingLabel, unthemedKeybindingLabelOptions } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { IListVirtualDelegate } from '../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider, IListStyles } from '../../../base/browser/ui/list/listWidget.js';
 import { Checkbox, createToggleActionViewItemProvider, IToggleStyles } from '../../../base/browser/ui/toggle/toggle.js';
@@ -376,7 +376,7 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 
 		// Keybinding
 		const keybindingContainer = dom.append(row1, $('.quick-input-list-entry-keybinding'));
-		data.keybinding = new KeybindingLabel(keybindingContainer, OS);
+		data.keybinding = new KeybindingLabel(keybindingContainer, OS, { ...unthemedKeybindingLabelOptions, keyClassName: 'quick-input-list-key' });
 		data.toDisposeTemplate.add(data.keybinding);
 
 		// Detail

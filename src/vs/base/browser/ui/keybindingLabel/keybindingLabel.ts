@@ -31,6 +31,8 @@ export interface Matches {
 }
 
 export interface KeybindingLabelOptions extends IKeybindingLabelStyles {
+	/** Class added to each key, including regenerated chords and the unbound label. */
+	readonly keyClassName?: string;
 	renderUnboundKeybindings?: boolean;
 	/**
 	 * Default false.
@@ -158,6 +160,9 @@ export class KeybindingLabel extends Disposable {
 
 	private createKeyElement(label: string, extraClass = ''): HTMLElement {
 		const keyElement = $('span.monaco-keybinding-key' + extraClass, undefined, label);
+		if (this.options.keyClassName) {
+			keyElement.classList.add(this.options.keyClassName);
+		}
 		this.keyElements.add(keyElement);
 
 		if (this.options.keybindingLabelBackground) {
