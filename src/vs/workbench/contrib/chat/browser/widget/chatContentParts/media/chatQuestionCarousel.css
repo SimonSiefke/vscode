@@ -614,7 +614,7 @@
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 
-	.chat-question-summary-option.selected {
+	.selected.chat-question-summary-option {
 		background: var(--vscode-list-inactiveSelectionBackground);
 		color: var(--vscode-foreground);
 	}
