@@ -949,10 +949,6 @@
 }
 
 /* Keymap pills with icons */
-.onboarding-a-keymap-pill .codicon {
-	font-size: 13px;
-	opacity: 0.7;
-}
 
 @media (prefers-reduced-motion: reduce) {
 	.onboarding-a-overlay,
