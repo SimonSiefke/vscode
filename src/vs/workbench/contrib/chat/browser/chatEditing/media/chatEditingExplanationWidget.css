@@ -99,7 +99,7 @@
 	opacity: 1;
 }
 
-.chat-explanation-read-indicator.unread .codicon {
+.chat-explanation-read-indicator.unread .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 
