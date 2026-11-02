@@ -158,7 +158,7 @@
 	padding: 10px 5px;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.markdownMessage {
 	display: none;
 }
 
