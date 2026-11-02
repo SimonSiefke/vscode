@@ -79,7 +79,7 @@
 	padding-right: 8px;
 }
 
-.monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-label {
+.monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .suggest-status-action-label {
 	color: var(--vscode-editorSuggestWidgetStatus-foreground);
 }
 
