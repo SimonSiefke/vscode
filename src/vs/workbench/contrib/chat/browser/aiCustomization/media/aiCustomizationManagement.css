@@ -3870,7 +3870,7 @@ per-word capitalization does not survive translation. */
 	transition: background-color 0.1s ease, opacity 0.1s ease;
 }
 
-.ai-customization-management-editor .editor-back-button .codicon {
+.ai-customization-management-editor .editor-back-button .codicon:where(.customization-editor-back-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 	line-height: 1;
 }
