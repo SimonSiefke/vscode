@@ -537,7 +537,7 @@ export class ExtensionIconBadge extends Disposable {
 	}
 
 	private render(): void {
-		append(this.element, $('span' + ThemeIcon.asCSSSelector(this.icon)));
+		append(this.element, $('span.extension-badge-glyph' + ThemeIcon.asCSSSelector(this.icon)));
 
 		const applyBadgeStyle = () => {
 			if (!this.element) {
