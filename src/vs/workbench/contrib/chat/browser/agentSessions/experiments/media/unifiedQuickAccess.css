@@ -78,7 +78,7 @@
 	outline-offset: 1px;
 }
 
-.unified-send-button .codicon {
+.unified-send-button .codicon:where(.unified-send-icon) {
 	font-size: var(--vscode-codiconFontSize-compact) !important;
 	color: var(--vscode-button-foreground) !important;
 }
