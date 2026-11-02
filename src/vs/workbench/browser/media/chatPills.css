@@ -368,7 +368,7 @@
 }
 
 .chat-pills-row.compact .chat-pills-row-content,
-.chat-pills-row.compact .chat-pills .monaco-action-bar .actions-container {
+.chat-pills-row.compact .chat-pills .monaco-action-bar .actions-container:where(.chat-pills-toolbar-actions) {
 	gap: var(--vscode-spacing-size40);
 }
 
