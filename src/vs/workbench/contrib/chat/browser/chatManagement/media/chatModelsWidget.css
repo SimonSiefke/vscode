@@ -305,7 +305,7 @@
 	justify-content: space-between;
 }
 
-.models-widget .models-table-container .monaco-table-tr.models-model-row .models-gutter-column .monaco-action-bar .actions-container {
+.models-widget .models-table-container .monaco-table-tr.models-model-row .models-gutter-column .monaco-action-bar .actions-container:where(.models-table-gutter-actions) {
 	justify-content: flex-end;
 }
 
