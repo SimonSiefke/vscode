@@ -590,7 +590,7 @@
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row.action.checked {
+.action-widget .chat-model-picker-tabbed .action.checked.action-widget-list-row {
 	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--vscode-button-background) 18%, var(--vscode-menu-background));
 }
