@@ -1210,7 +1210,7 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.chat-model-card-option.checked {
+.checked.chat-model-card-option {
 	background-color: color-mix(in srgb, var(--vscode-button-background) 18%, var(--vscode-menu-background));
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
