@@ -329,7 +329,7 @@ export class InlineEditsWordReplacementView extends Disposable implements IInlin
 								}, [
 									keybinding,
 									$('div.inline-edit-alternative-action-label-separator'),
-									altAction.icon ? renderIcon(altAction.icon) : undefined,
+									altAction.icon ? renderIcon(altAction.icon, undefined, 'inline-edit-alternative-glyph') : undefined,
 									altAction.label,
 								]);
 							})

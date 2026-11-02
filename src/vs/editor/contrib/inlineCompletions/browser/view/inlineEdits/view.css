@@ -183,7 +183,7 @@
 	background: var(--vscode-editorWidget-background);
 }
 
-.inline-edit-alternative-action-label .codicon {
+.inline-edit-alternative-action-label .codicon:where(.inline-edit-alternative-glyph) {
 	font-size: 12px !important;
 	padding-right: 4px;
 }
