@@ -79,7 +79,7 @@
 	background-color: var(--vscode-button-hoverBackground);
 }
 
-.chat-editor-overlay-widget.busy .chat-editor-overlay-progress .codicon {
+.chat-editor-overlay-widget.busy .chat-editor-overlay-progress .codicon:where(.chat-editor-progress-glyph) {
 	color: var(--vscode-foreground);
 }
 
