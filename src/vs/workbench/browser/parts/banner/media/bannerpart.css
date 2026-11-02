@@ -75,7 +75,7 @@
 	padding: 0 10px 0 6px;
 }
 
-.monaco-workbench .part.banner .action-container .codicon {
+.monaco-workbench .part.banner .action-container .banner-close-glyph {
 	color: var(--vscode-banner-foreground);
 }
 

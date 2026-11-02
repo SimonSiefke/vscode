@@ -244,7 +244,7 @@ export class BannerPart extends Part implements IBannerService {
 		const label = item.closeLabel ?? localize('closeBanner', "Close Banner");
 		const activeItem = item;
 		const closeAction = this.itemDisposables.add(new Action('banner.close', label, ThemeIcon.asClassName(widgetClose), true, () => this.close(activeItem)));
-		this.actionBar.push(closeAction, { icon: true, label: false });
+		this.actionBar.push(closeAction, { icon: true, label: false, labelClassName: 'banner-close-glyph' });
 		this.actionBar.setFocusable(false);
 
 		this.setVisibility(true);
