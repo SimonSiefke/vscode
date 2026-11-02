@@ -150,7 +150,7 @@
 	gap: 4px;
 }
 
-.update-tooltip .state-message-icon.codicon[class*='codicon-'] {
+.update-tooltip .codicon[class*='codicon-'].state-message-icon {
 	font-size: 16px;
 	flex-shrink: 0;
 	margin-top: 2px;
