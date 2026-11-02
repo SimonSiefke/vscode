@@ -23,7 +23,7 @@
 			place-content: center;
 			visibility: hidden;
 
-			&.visible {
+			&.visible:where(.multi-diff-editor-layer) {
 				visibility: visible;
 			}
 		}
