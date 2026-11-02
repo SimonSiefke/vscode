@@ -272,7 +272,7 @@
 }
 
 /* split install */
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .label.extension-action {
 	border-radius: 4px 0 0 4px;
 }
 
