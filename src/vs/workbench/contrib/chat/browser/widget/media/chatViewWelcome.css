@@ -162,7 +162,7 @@ div.chat-welcome-view {
 		}
 	}
 
-	.monaco-button {
+	.chat-welcome-action-button {
 		display: inline-block;
 		width: initial;
 	}
