@@ -330,6 +330,7 @@ export class ChatTodoListWidget extends Disposable {
 				new TodoListDelegate(),
 				[new TodoListRenderer()],
 				{
+					rowClassName: 'chat-todo-list-row',
 					alwaysConsumeMouseWheel: false,
 					accessibilityProvider: {
 						getAriaLabel: (todo: IChatTodo) => {
