@@ -527,7 +527,7 @@
 	background-image: none;
 }
 
-.onboarding-a-provider-mark.github-enterprise .codicon {
+.onboarding-a-provider-mark.github-enterprise .codicon:where(.onboarding-provider-glyph) {
 	font-size: 18px;
 	color: currentColor;
 }
