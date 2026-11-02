@@ -342,6 +342,8 @@ export class Dialog extends Disposable {
 					button = this._register(buttonBar.addButton({ secondary: !primary, ...this.buttonStyles }));
 				}
 
+				button.element.classList.add('dialog-footer-action');
+
 				if (buttonOptions?.styleButton) {
 					buttonOptions.styleButton(button);
 				}
