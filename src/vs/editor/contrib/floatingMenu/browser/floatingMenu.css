@@ -81,7 +81,7 @@
 	border-color: var(--vscode-contrastBorder);
 	background-color: var(--vscode-editorWidget-background);
 	padding: 0;
-	.action-item > .action-label,
+	.floating-menu-actions .floating-menu-action-label,
 	.action-item > .action-label.codicon:not(.separator) {
 		box-shadow: none;
 	}
