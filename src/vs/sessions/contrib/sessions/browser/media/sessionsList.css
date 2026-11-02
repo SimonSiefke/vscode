@@ -448,7 +448,7 @@
 		font-size: var(--vscode-fontSize-label2);
 		font-weight: var(--vscode-fontWeight-regular);
 
-		&.visible {
+		&.visible:where(.session-comparison-attempt-status) {
 			display: flex;
 		}
 	}
