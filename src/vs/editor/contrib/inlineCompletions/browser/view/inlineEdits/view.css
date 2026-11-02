@@ -127,7 +127,7 @@
 
 
 		.monaco-keybinding {
-			.monaco-keybinding-key {
+			.monaco-keybinding-key:where(.inline-edit-jump-key) {
 				font-size: 11px;
 				padding: 1px 2px 2px 2px;
 			}
