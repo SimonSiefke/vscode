@@ -263,7 +263,7 @@
 			line-height: normal;
 		}
 
-		.monaco-inputbox > .ibwrapper > .input {
+		.monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 			height: 20px;
 			padding: 0;
 		}
