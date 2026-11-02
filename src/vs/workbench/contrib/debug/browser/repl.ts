@@ -680,6 +680,7 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 			{
 				filter: this.filter,
 				contentsClassName: 'debug-repl-tree-contents',
+				twistieAdditionalCssClass: () => 'debug-repl-tree-twistie',
 				accessibilityProvider: new ReplAccessibilityProvider(),
 				identityProvider,
 				userSelection: true,
