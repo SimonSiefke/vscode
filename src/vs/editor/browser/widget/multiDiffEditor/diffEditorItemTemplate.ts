@@ -101,7 +101,7 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 		});
 		const binaryFileChangedLabel = localize('binaryFileChanged', "Binary file changed");
 		this._elements = h('div.multiDiffEntry', [
-			h('div.header@header', [
+			h('div.header.multi-diff-file-header@header', [
 				h('div.header-content', [
 					h('div.collapse-button@collapseButton'),
 					h('div.file-path', [

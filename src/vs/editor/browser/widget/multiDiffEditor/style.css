@@ -49,7 +49,7 @@
 			cursor: pointer;
 		}
 
-		.header {
+		.header:where(.multi-diff-file-header) {
 			z-index: 1000;
 
 			.header-content {
