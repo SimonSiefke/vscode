@@ -11,7 +11,7 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .merge-editor .code-view > .header > span {
+.monaco-workbench .merge-editor .code-view > :where(.header) > span.merge-editor-header-part {
 	align-self: center;
 	text-overflow: ellipsis;
 	overflow: hidden;
