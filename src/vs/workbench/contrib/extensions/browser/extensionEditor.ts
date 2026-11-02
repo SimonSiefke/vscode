@@ -107,7 +107,7 @@ class NavBar extends Disposable {
 		super();
 		const element = append(container, $('.navbar'));
 		this.actions = [];
-		this.actionbar = this._register(new ActionBar(element));
+		this.actionbar = this._register(new ActionBar(element, { actionsContainerClassName: 'extension-navbar-actions' }));
 	}
 
 	push(id: string, label: string, tooltip: string): void {

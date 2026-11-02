@@ -378,7 +378,7 @@
 	border-bottom: 1px solid var(--vscode-panelSection-border);
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container {
+.extension-editor > .body > .navbar > .monaco-action-bar > .extension-navbar-actions {
 	justify-content: initial;
 }
 
