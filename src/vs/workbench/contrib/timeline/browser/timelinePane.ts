@@ -1481,6 +1481,7 @@ export class TimelineTreeRenderer extends Disposable implements ITreeRenderer<Tr
 		template.container.classList.toggle('timeline-item-editing', !!editableData);
 		if (editableData) {
 			template.elementDisposables.add(this.instantiationService.createInstance(InlineEditInputBox, template.container, editableData, {
+				inputBoxClassName: 'timeline-inline-input-box',
 				ariaLabel: localize('timelineInputAriaLabel', "Type timeline item name. Press Enter to confirm or Escape to cancel.")
 			}));
 		}
