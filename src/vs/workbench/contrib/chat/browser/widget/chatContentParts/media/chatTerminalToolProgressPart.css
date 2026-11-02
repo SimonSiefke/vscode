@@ -224,7 +224,7 @@
 	border-bottom: 0;
 }
 
-.chat-terminal-output-container.expanded {
+.expanded.chat-terminal-output-container {
 	display: block;
 }
 
