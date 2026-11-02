@@ -711,7 +711,7 @@
 	border-radius: 4px;
 }
 
-.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a,
+.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a:where(.select-box-description-node),
 .monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a > code {
 	color: var(--vscode-textLink-foreground);
 }
