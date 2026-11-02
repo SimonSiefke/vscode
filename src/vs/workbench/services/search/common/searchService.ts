@@ -32,6 +32,7 @@ export class SearchService extends Disposable implements ISearchService {
 	private readonly fileSearchProviders = new Map<string, ISearchResultProvider>();
 	private readonly textSearchProviders = new Map<string, ISearchResultProvider>();
 	private readonly aiTextSearchProviders = new Map<string, ISearchResultProvider>();
+	private readonly pendingFileSearches = new Map<string, Set<Promise<ISearchComplete>>>();
 
 	private deferredFileSearchesByScheme = new Map<string, DeferredPromise<ISearchResultProvider>>();
 	private deferredTextSearchesByScheme = new Map<string, DeferredPromise<ISearchResultProvider>>();
@@ -179,7 +180,7 @@ export class SearchService extends Disposable implements ISearchService {
 		schemesInQuery.forEach(scheme => providerActivations.push(this.extensionService.activateByEvent(`onSearch:${scheme}`)));
 		providerActivations.push(this.extensionService.activateByEvent('onSearch:file'));
 
-		const providerPromise = (async () => {
+		let providerPromise: Promise<ISearchComplete> = (async () => {
 			await Promise.all(providerActivations);
 			await this.extensionService.whenInstalledExtensionsRegistered();
 
@@ -217,6 +218,20 @@ export class SearchService extends Disposable implements ISearchService {
 				aiKeywords: completes.flatMap((c: ISearchComplete) => c.aiKeywords).filter(keyword => keyword !== undefined),
 			};
 		})();
+
+		if (query.type === QueryType.File && query.cacheKey) {
+			const cacheKey = query.cacheKey;
+			const pending = this.pendingFileSearches.get(cacheKey) ?? new Set<Promise<ISearchComplete>>();
+			this.pendingFileSearches.set(cacheKey, pending);
+			const tracked: Promise<ISearchComplete> = providerPromise.finally(() => {
+				pending.delete(tracked);
+				if (pending.size === 0) {
+					this.pendingFileSearches.delete(cacheKey);
+				}
+			});
+			pending.add(tracked);
+			providerPromise = tracked;
+		}
 
 		return token ? raceCancellationError<ISearchComplete>(providerPromise, token) : providerPromise;
 	}
@@ -590,6 +605,12 @@ export class SearchService extends Disposable implements ISearchService {
 	}
 
 	async clearCache(cacheKey: string): Promise<void> {
+		// A search can still be waiting for activation or filesystem checks before
+		// reaching its provider. Clearing earlier would let it recreate the cache.
+		while (this.pendingFileSearches.has(cacheKey)) {
+			await Promise.allSettled(this.pendingFileSearches.get(cacheKey)!);
+		}
+
 		const clearPs = Array.from(this.fileSearchProviders.values())
 			.map(provider => provider && provider.clearCache(cacheKey));
 		await Promise.all(clearPs);
