@@ -3015,7 +3015,7 @@ per-word capitalization does not survive translation. */
 }
 
 .mcp-server-item .mcp-server-sign-in.monaco-button,
-.mcp-server-item .mcp-server-start.monaco-button,
+.mcp-server-item .monaco-button.mcp-server-start,
 .mcp-server-item .mcp-server-show-output.monaco-button,
 .tools-list-connected-row .mcp-server-sign-in.monaco-button,
 .tools-list-connected-row .mcp-server-start.monaco-button,
