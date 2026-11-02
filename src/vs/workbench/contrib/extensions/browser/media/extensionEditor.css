@@ -418,7 +418,7 @@
 }
 
 .extension-editor > .body > .content > .extension-editor-content-scrollable,
-.extension-editor > .body > .content > .details > .content-container > .monaco-scrollable-element {
+.extension-editor > .body > .content > .details > .content-container > .extension-editor-content-scrollable {
 	height: 100%;
 }
 
