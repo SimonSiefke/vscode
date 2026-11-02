@@ -1986,7 +1986,7 @@ per-word capitalization does not survive translation. */
 	list-style: none;
 }
 
-.ai-customization-management-editor .marketplace-detail-query-list > li {
+.ai-customization-management-editor .marketplace-detail-query-list > li:where(.marketplace-detail-query-item) {
 	min-width: 0;
 }
 

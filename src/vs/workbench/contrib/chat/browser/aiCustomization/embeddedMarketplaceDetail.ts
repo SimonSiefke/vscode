@@ -310,7 +310,7 @@ export class EmbeddedMarketplaceDetail extends Disposable {
 			section.style.display = resource.representativeQueries.length ? '' : 'none';
 		}
 		for (const query of resource.representativeQueries.slice(0, maxRepresentativeQueries)) {
-			const item = DOM.append(this.queriesEl, $('li'));
+			const item = DOM.append(this.queriesEl, $('li.marketplace-detail-query-item'));
 			const button = this.renderDisposables.add(new Button(item, {
 				...defaultButtonStyles,
 				secondary: true,
