@@ -945,7 +945,7 @@
 		right: 0;
 		bottom: 0;
 
-		a {
+		a:where(.chat-tool-see-more-link) {
 			color: var(--vscode-textLink-foreground);
 			text-decoration: underline;
 			cursor: pointer;
