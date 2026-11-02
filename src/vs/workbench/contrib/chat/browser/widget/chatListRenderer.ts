@@ -2351,7 +2351,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 			icon = Codicon.account;
 		}
 		if (icon instanceof URI) {
-			const avatarIcon = dom.$<HTMLImageElement>('img.icon');
+			const avatarIcon = dom.$<HTMLImageElement>('img.icon.chat-avatar-image');
 			avatarIcon.src = FileAccess.uriToBrowserUri(icon).toString(true);
 			templateData.avatarContainer.replaceChildren(dom.$('.avatar', undefined, avatarIcon));
 		} else {

@@ -279,7 +279,7 @@
 	margin-left: -8px;
 }
 
-.interactive-item-container .header .avatar .icon {
+.interactive-item-container .header .avatar .icon:where(.chat-avatar-image) {
 	width: 24px;
 	height: 24px;
 	border-radius: var(--vscode-cornerRadius-circle);
