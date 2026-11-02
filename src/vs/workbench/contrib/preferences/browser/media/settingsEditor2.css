@@ -220,7 +220,7 @@
 	outline: none !important;
 }
 
-.settings-editor > .settings-body .settings-tree-container .monaco-list-row .monaco-tl-twistie {
+.settings-editor > .settings-body .settings-tree-container .monaco-list-row .settings-editor-tree-twistie {
 	/* Hide twisties */
 	display: none !important;
 }

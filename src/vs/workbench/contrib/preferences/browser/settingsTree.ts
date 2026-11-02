@@ -2691,6 +2691,7 @@ export class SettingsTree extends WorkbenchObjectTree<SettingsTreeElement> {
 			renderers,
 			{
 				contentsClassName: 'settings-editor-tree-contents',
+				twistieAdditionalCssClass: () => 'settings-editor-tree-twistie',
 				horizontalScrolling: false,
 				supportDynamicHeights: true,
 				scrollToActiveElement: true,
