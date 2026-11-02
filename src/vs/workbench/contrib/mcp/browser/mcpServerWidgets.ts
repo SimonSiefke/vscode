@@ -73,7 +73,7 @@ export class McpServerIconWidget extends McpServerWidget {
 		this.iconElement = dom.append(this.element, dom.$('img.icon.extension-widget-icon-image', { alt: '' }));
 		this.iconElement.style.display = 'none';
 
-		this.codiconIconElement = dom.append(this.element, dom.$(ThemeIcon.asCSSSelector(mcpServerIcon)));
+		this.codiconIconElement = dom.append(this.element, dom.$(ThemeIcon.asCSSSelector(mcpServerIcon) + '.extension-widget-fallback-glyph'));
 		this.codiconIconElement.style.display = 'none';
 
 		this.render();
@@ -86,7 +86,7 @@ export class McpServerIconWidget extends McpServerWidget {
 		this.iconElement.src = '';
 		this.iconElement.style.display = 'none';
 		this.codiconIconElement.style.display = 'none';
-		this.codiconIconElement.className = ThemeIcon.asClassName(mcpServerIcon);
+		this.codiconIconElement.className = 'extension-widget-fallback-glyph ' + ThemeIcon.asClassName(mcpServerIcon);
 		this.iconLoadingDisposable.clear();
 	}
 
@@ -119,7 +119,7 @@ export class McpServerIconWidget extends McpServerWidget {
 			this.iconUrl = undefined;
 			this.iconElement.style.display = 'none';
 			this.iconElement.src = '';
-			this.codiconIconElement.className = this.mcpServer.codicon ? `codicon ${this.mcpServer.codicon}` : ThemeIcon.asClassName(mcpServerIcon);
+			this.codiconIconElement.className = 'extension-widget-fallback-glyph ' + (this.mcpServer.codicon ? `codicon ${this.mcpServer.codicon}` : ThemeIcon.asClassName(mcpServerIcon));
 			this.codiconIconElement.style.display = 'inherit';
 			this.iconLoadingDisposable.clear();
 		}

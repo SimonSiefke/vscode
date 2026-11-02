@@ -12,7 +12,7 @@
 	object-fit: contain;
 }
 
-.extension-icon .codicon {
+.extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	padding-right: 16px;
 	font-size: 36px !important;
 }

@@ -92,7 +92,7 @@ export class ExtensionIconWidget extends ExtensionWidget {
 		this.iconElement = append(this.element, $('img.icon.extension-widget-icon-image', { alt: '' }));
 		this.iconElement.style.display = 'none';
 
-		this.defaultIconElement = append(this.element, $(ThemeIcon.asCSSSelector(extensionDefaultIcon)));
+		this.defaultIconElement = append(this.element, $(ThemeIcon.asCSSSelector(extensionDefaultIcon) + '.extension-widget-fallback-glyph'));
 		this.defaultIconElement.style.display = 'none';
 
 		this.render();
