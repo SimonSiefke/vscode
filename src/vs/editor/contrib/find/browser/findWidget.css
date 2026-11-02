@@ -50,7 +50,7 @@
 	outline-color: var(--vscode-focusBorder);
 }
 
-.monaco-editor .find-widget .monaco-inputbox .input {
+.monaco-editor .find-widget .monaco-inputbox .monaco-inputbox-input {
 	background-color: transparent;
 	min-height: 0;
 }
