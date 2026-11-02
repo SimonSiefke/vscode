@@ -324,7 +324,7 @@
 	line-height: 18px;
 }
 
-.monaco-workbench.vs .viewpane-filter-container > .viewpane-filter .monaco-inputbox {
+.monaco-workbench.vs .viewpane-filter-container > .viewpane-filter .viewpane-filter-input-box {
 	height: 25px;
 }
 
