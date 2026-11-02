@@ -637,6 +637,7 @@ export class ChatListWidget extends Disposable {
 				horizontalScrolling: false,
 				alwaysConsumeMouseWheel: false,
 				rowClassName: 'chat-message-list-row',
+				twistieAdditionalCssClass: () => 'chat-message-tree-twistie',
 				supportDynamicHeights: true,
 				paddingBottom: this._paddingBottom,
 				hideTwistiesOfChildlessElements: true,
