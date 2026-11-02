@@ -38,7 +38,7 @@
 	padding: 2px;
 }
 
-.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .codicon {
+.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .codicon:where(.open-editors-action-label) {
 	color: inherit;
 }
 
