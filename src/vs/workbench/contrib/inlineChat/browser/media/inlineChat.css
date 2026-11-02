@@ -220,7 +220,7 @@
 	display: none;
 }
 
-.monaco-workbench .inline-chat .status .label {
+.monaco-workbench .inline-chat .status .label:where(.inline-chat-status-label) {
 	overflow: hidden;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
