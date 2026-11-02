@@ -3332,7 +3332,7 @@ per-word capitalization does not survive translation. */
 	margin-left: auto;
 }
 
-.plugin-list-widget .plugin-list-item-action .plugin-card-icon-button.monaco-button {
+.plugin-list-widget .plugin-list-item-action .monaco-button.plugin-card-icon-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
