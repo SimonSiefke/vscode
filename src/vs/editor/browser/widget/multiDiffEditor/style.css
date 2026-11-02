@@ -259,7 +259,7 @@
 				}
 			}
 
-			.header {
+			.header:where(.multi-diff-file-header) {
 				position: relative;
 				background: var(--vscode-multiDiffEditor-background);
 
