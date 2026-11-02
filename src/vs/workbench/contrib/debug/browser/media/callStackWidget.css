@@ -35,7 +35,7 @@
 			border-bottom: 1px solid var(--vscode-multiDiffEditor-border);
 		}
 
-		.editorParent {
+		.editorParent:where(.call-stack-frame-editor-parent) {
 			display: none;
 		}
 	}

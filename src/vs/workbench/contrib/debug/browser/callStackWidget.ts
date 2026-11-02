@@ -315,7 +315,7 @@ const makeFrameElements = () => dom.h('div.multiCallStackFrame', [
 		dom.h('div.actions.call-stack-frame-actions@actions'),
 	]),
 
-	dom.h('div.editorParent', [
+	dom.h('div.editorParent.call-stack-frame-editor-parent', [
 		dom.h('div.editorContainer@editor'),
 	])
 ]);
