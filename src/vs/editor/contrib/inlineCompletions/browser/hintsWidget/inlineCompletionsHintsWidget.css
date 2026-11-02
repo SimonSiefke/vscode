@@ -37,7 +37,7 @@
 	padding: 2px 3px;
 }
 
-.monaco-editor .inlineSuggestionsHints .availableSuggestionCount a {
+.monaco-editor .inlineSuggestionsHints .availableSuggestionCount a:where(.inline-suggestion-count-label) {
 	display: flex;
 	min-width: 19px;
 	justify-content: center;

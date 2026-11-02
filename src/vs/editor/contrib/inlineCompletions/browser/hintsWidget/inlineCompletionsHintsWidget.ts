@@ -234,7 +234,7 @@ export class InlineSuggestionHintsContentWidget extends Disposable implements IC
 					return instantiationService.createInstance(StatusBarViewItem, action, undefined);
 				}
 				if (action === this.availableSuggestionCountAction) {
-					const a = new ActionViewItemWithClassName(undefined, action, { label: true, icon: false });
+					const a = new ActionViewItemWithClassName(undefined, action, { label: true, icon: false, labelClassName: 'inline-suggestion-count-label' });
 					a.setClass('availableSuggestionCount');
 					return a;
 				}
