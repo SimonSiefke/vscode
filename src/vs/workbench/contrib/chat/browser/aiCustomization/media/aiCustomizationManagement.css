@@ -75,7 +75,7 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.ai-customization-management-editor .sidebar-home-button.selected {
+.ai-customization-management-editor .selected.sidebar-home-button {
 	background-color: var(--vscode-list-inactiveSelectionBackground);
 	color: var(--vscode-list-inactiveSelectionForeground);
 	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, transparent);
