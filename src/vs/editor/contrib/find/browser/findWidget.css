@@ -76,7 +76,7 @@
 	padding-right: 22px;
 }
 
-.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .input,
+.monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
 .monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .mirror,
 .monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .input,
 .monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .mirror {
