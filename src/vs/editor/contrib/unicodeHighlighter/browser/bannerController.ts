@@ -136,7 +136,7 @@ class Banner extends Disposable {
 					}
 				}
 			)
-		), { icon: true, label: false });
+		), { icon: true, label: false, labelClassName: 'editor-banner-close-label' });
 		this.actionBar.setFocusable(false);
 	}
 }
