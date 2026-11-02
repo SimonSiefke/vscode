@@ -5043,7 +5043,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: none;
 }
 
-.chat-row-disabled-overlay.disabled,
+.disabled.chat-row-disabled-overlay,
 .chat-input-overlay.disabled {
 	position: absolute;
 	inset: 0;
