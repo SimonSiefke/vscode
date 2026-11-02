@@ -83,7 +83,7 @@
 	text-decoration: underline;
 }
 
-.chat-inline-references-link-style .chat-inline-anchor-widget .icon {
+.chat-inline-references-link-style .chat-inline-anchor-widget .icon:where(.chat-file-reference-icon) {
 	display: none;
 }
 
