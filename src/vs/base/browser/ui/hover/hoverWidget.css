@@ -18,7 +18,7 @@
 	animation: fadein 100ms linear;
 }
 
-.monaco-hover.hidden {
+.hidden.monaco-hover {
 	display: none;
 }
 
