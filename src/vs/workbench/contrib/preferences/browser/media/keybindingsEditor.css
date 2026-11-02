@@ -139,10 +139,6 @@
 
 /** Keybinding column styling **/
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .keybinding .monaco-highlighted-label {
-	padding-left: 10px;
-}
-
 /** When column styling **/
 
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .when {
