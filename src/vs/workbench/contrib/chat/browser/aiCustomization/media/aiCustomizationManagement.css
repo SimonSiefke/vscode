@@ -787,7 +787,7 @@ per-word capitalization does not survive translation. */
 	order: 11;
 }
 
-.ai-customization-list-item.disabled {
+.disabled.ai-customization-list-item {
 	opacity: 0.5;
 }
 
