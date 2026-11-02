@@ -580,7 +580,7 @@
 
 /* "You are here": the dot for the prompt the transcript is scrolled to takes the accent, so the
  * resting handle doubles as a position indicator that tracks scrolling. */
-.prompt-timeline-gutter-dot.active {
+.active.prompt-timeline-gutter-dot {
 	background-color: var(--vscode-focusBorder);
 	opacity: 1;
 	transform: scale(1.5);
