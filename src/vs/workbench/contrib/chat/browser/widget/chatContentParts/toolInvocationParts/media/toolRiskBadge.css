@@ -32,7 +32,7 @@
 
 /* Outrank `.monaco-workbench .codicon[class*='codicon-']` so these compact
  * badge icons are not promoted to the workbench's base codicon size. */
-.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-icon.codicon,
+.chat-confirmation-widget2 > .tool-risk-badge .codicon.tool-risk-icon,
 .chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon.codicon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
