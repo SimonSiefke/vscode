@@ -789,7 +789,7 @@
 	padding: 2px 0;
 }
 
-.scm-history-view .history-item-load-more .history-item-placeholder.shimmer .monaco-icon-label-container {
+.scm-history-view .history-item-load-more .history-item-placeholder.shimmer .monaco-icon-label-container:where(.scm-history-placeholder-label-container) {
 	height: 18px;
 	background: var(--vscode-scmGraph-historyItemHoverDefaultLabelBackground);
 	border-radius: 2px;

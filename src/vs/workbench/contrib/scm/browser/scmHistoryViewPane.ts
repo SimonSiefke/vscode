@@ -773,7 +773,7 @@ class HistoryItemLoadMoreRenderer implements ICompressibleTreeRenderer<SCMHistor
 		const element = append(container, $('.history-item-load-more.scm-tree-item'));
 		const graphPlaceholder = append(element, $('.graph-placeholder'));
 		const historyItemPlaceholderContainer = append(element, $('.history-item-placeholder'));
-		const historyItemPlaceholderLabel = new IconLabel(historyItemPlaceholderContainer, { supportIcons: true, highlightedLabelClassName: 'scm-history-placeholder-highlighted-label' });
+		const historyItemPlaceholderLabel = new IconLabel(historyItemPlaceholderContainer, { supportIcons: true, highlightedLabelClassName: 'scm-history-placeholder-highlighted-label', labelContainerClassName: 'scm-history-placeholder-label-container' });
 
 		return { element, graphPlaceholder, historyItemPlaceholderContainer, historyItemPlaceholderLabel, elementDisposables: new DisposableStore(), disposables: historyItemPlaceholderLabel };
 	}
