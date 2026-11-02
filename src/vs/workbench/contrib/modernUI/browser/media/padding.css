@@ -158,7 +158,7 @@
 	}
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row:not(.drop-target).selected {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row:not(.drop-target).selected.agent-session-list-row {
 	background-color: transparent;
 	outline: none;
 
