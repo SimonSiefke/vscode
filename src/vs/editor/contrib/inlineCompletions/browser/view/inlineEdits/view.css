@@ -51,11 +51,7 @@
 		}
 
 		&.bottom {
-			opacity: 1;
-
-			.icon {
-				transform: rotate(-90deg);
-			}
+			opacity: 1
 		}
 	}
 
