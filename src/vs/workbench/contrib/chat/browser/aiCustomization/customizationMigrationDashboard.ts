@@ -771,6 +771,7 @@ export class CustomizationMigrationDashboard extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				horizontalScrolling: false,
 				// Rows with migration warnings grow to fit all of them instead of clipping at a fixed height.

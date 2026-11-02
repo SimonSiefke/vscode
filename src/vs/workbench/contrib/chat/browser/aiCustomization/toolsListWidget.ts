@@ -751,6 +751,7 @@ export class ToolsListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				horizontalScrolling: false,
 				openOnSingleClick: true,

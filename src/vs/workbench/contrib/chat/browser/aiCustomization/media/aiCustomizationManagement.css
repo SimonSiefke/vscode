@@ -473,7 +473,7 @@
 	flex: 1;
 }
 
-.customization-tree-container .monaco-list-row,
+.customization-tree-container .ai-customization-tree-row,
 .ai-customization-list-widget .list-container .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small);
 }
