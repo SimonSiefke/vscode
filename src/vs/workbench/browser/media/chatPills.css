@@ -62,7 +62,7 @@
 }
 
 /* Take hit-testing back from the click-through row the pills may float in. */
-.chat-pills .monaco-action-bar .action-item {
+.chat-pills .monaco-action-bar .chat-pills-action-item {
 	pointer-events: auto;
 }
 
