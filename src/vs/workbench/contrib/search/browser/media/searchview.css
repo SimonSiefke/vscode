@@ -311,7 +311,7 @@
 	padding: 0 0.8em 0 0.4em;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-item {
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .search-result-action-item {
 	margin: 0;
 }
 
@@ -321,7 +321,7 @@
 	display: inline-block;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-item {
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .search-result-action-item {
 	margin-right: 0.2em;
 }
 
