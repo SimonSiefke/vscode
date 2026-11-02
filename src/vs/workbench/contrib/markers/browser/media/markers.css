@@ -125,7 +125,7 @@
 	justify-content: center;
 }
 
-.markers-panel .monaco-tl-contents .actions .monaco-action-bar {
+.markers-panel .monaco-tl-contents .actions .monaco-action-bar:where(.markers-row-action-bar) {
 	display: none;
 }
 
