@@ -211,6 +211,7 @@ export class InputBox extends Widget {
 		if (this.options.actions) {
 			this.actionbar = this._register(new ActionBar(this.element, {
 				actionItemClassName: 'inputbox-action-item',
+				className: 'inputbox-action-bar',
 				actionViewItemProvider: this.options.actionViewItemProvider
 			}));
 			this.actionbar.push(this.options.actions, { icon: true, label: false });
@@ -228,6 +229,7 @@ export class InputBox extends Widget {
 		} else if (actions) {
 			this.actionbar = this._register(new ActionBar(this.element, {
 				actionItemClassName: 'inputbox-action-item',
+				className: 'inputbox-action-bar',
 				actionViewItemProvider: actionViewItemProvider ?? this.options.actionViewItemProvider
 			}));
 			this.actionbar.push(actions, { icon: true, label: false });

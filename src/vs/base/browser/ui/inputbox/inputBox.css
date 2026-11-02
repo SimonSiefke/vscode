@@ -89,7 +89,7 @@
 }
 
 /* Action bar support */
-.monaco-inputbox .monaco-action-bar {
+.monaco-inputbox .inputbox-action-bar {
 	position: absolute;
 	right: 2px;
 	top: 4px;
