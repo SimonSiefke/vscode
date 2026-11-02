@@ -395,6 +395,7 @@ export class CodeBlockPart extends Disposable {
 			}
 			this._toolbarFactory = undefined;
 			const toolbar = this._register(factory());
+			toolbar.getElement().classList.add('chat-code-block-toolbar-root');
 			this.toolbar = toolbar;
 
 			this._register(toolbar.onDidChangeDropdownVisibility(e => {
@@ -790,6 +791,7 @@ export class CodeCompareBlockPart extends Disposable {
 				shouldForwardArgs: true
 			}
 		}));
+		this.toolbar.getElement().classList.add('chat-code-block-toolbar-root');
 
 		this._configureForScreenReader();
 		this._register(this.accessibilityService.onDidChangeScreenReaderOptimized(() => this._configureForScreenReader()));
