@@ -1525,7 +1525,7 @@ per-word capitalization does not survive translation. */
 	flex-shrink: 0;
 }
 
-.ai-customization-management-editor .tools-inventory-section-actions .monaco-button {
+.ai-customization-management-editor .tools-inventory-section-actions .tools-inventory-browse-button {
 	width: auto;
 }
 

@@ -1128,6 +1128,7 @@ export class ToolsListWidget extends Disposable {
 		const browseLabel = localize('toolsBrowseExtensions', "Browse Extensions");
 		const actions = DOM.append(container, $('.tools-inventory-section-actions'));
 		const browseButton = disposables.add(new Button(actions, {
+			buttonClassName: 'tools-inventory-browse-button',
 			...getButtonStyles({
 				buttonSecondaryBackground: undefined,
 				buttonSecondaryForeground: undefined,
