@@ -19,6 +19,8 @@ import { URI } from '../../../common/uri.js';
 import { ThemeIcon } from '../../../common/themables.js';
 
 export interface IIconLabelCreationOptions {
+	/** Classes retained when the label content and value styling change. */
+	readonly extraClasses?: readonly string[];
 	readonly supportHighlights?: boolean;
 	readonly supportDescriptionHighlights?: boolean;
 	readonly supportIcons?: boolean;
@@ -112,6 +114,9 @@ export class IconLabel extends Disposable {
 		this.creationOptions = options;
 
 		this.domNode = this._register(new FastLabelNode(dom.append(container, dom.$('.monaco-icon-label'))));
+		if (options?.extraClasses) {
+			this.domNode.element.classList.add(...options.extraClasses);
+		}
 
 		this.labelContainer = dom.append(this.domNode.element, dom.$('.monaco-icon-label-container'));
 
@@ -132,6 +137,9 @@ export class IconLabel extends Disposable {
 
 	setLabel(label: string | string[], description?: string, options?: IIconLabelValueOptions): void {
 		const labelClasses = ['monaco-icon-label'];
+		if (this.creationOptions?.extraClasses) {
+			labelClasses.push(...this.creationOptions.extraClasses);
+		}
 		const containerClasses = ['monaco-icon-label-container'];
 		let ariaLabel: string = '';
 		if (options) {

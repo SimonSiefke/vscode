@@ -444,7 +444,7 @@ export class ModalEditorPart {
 		}));
 
 		// Create label
-		const label = disposables.add(scopedInstantiationService.createInstance(ResourceLabel, titleElement, {}));
+		const label = disposables.add(scopedInstantiationService.createInstance(ResourceLabel, titleElement, { extraClasses: ['modal-editor-resource-label'] }));
 		const labelChangeDisposable = disposables.add(new MutableDisposable());
 		let trackedEditor: EditorInput | undefined;
 		const updateLabel = () => {

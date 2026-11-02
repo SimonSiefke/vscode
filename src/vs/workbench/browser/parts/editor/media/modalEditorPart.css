@@ -113,7 +113,7 @@
 		color: var(--vscode-titleBar-activeForeground);
 		overflow: hidden;
 
-		.monaco-icon-label {
+		.modal-editor-resource-label {
 			color: inherit;
 			height: 32px;
 			line-height: 32px;
