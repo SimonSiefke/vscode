@@ -86,7 +86,7 @@ export class ExceptionWidget extends ZoneWidget {
 		label.textContent = this.exceptionInfo.id ? nls.localize('exceptionThrownWithId', 'Exception has occurred: {0}', this.exceptionInfo.id) : nls.localize('exceptionThrown', 'Exception has occurred.');
 		let ariaLabel = label.textContent;
 
-		const actionBar = this._disposables.add(new ActionBar(actions));
+		const actionBar = this._disposables.add(new ActionBar(actions, { actionsContainerClassName: 'debug-exception-toolbar-actions' }));
 		actionBar.push(new Action('editor.copyExceptionInfo', nls.localize('copy', "Copy"), ThemeIcon.asClassName(Codicon.copy), true, async () => {
 			const clipboardText = this.buildExceptionText();
 			await this.clipboardService.writeText(clipboardText);

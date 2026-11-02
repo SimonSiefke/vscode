@@ -28,7 +28,7 @@
 	flex: 1;
 }
 
-.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .monaco-action-bar .actions-container {
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .monaco-action-bar .actions-container:where(.debug-exception-toolbar-actions) {
 	justify-content: flex-end;
 }
 
