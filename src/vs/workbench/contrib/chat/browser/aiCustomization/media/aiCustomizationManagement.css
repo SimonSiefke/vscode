@@ -3714,7 +3714,7 @@ per-word capitalization does not survive translation. */
 	min-height: 24px;
 }
 
-.plugin-list-widget .plugin-card-actions .plugin-card-icon-button.monaco-button {
+.plugin-list-widget .plugin-card-actions .monaco-button.plugin-card-icon-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
