@@ -738,7 +738,7 @@
 	font-weight: bold;
 }
 
-.scm-history-view .scm-provider .monaco-icon-label {
+.scm-history-view .scm-provider .scm-provider-label {
 	align-items: center;
 }
 
