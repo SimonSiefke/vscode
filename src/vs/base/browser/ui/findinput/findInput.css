@@ -24,7 +24,7 @@
 }
 
 /* Theming */
-.vs-dark .monaco-findInput.disabled {
+.vs-dark .disabled.monaco-findInput {
 	background-color: #333;
 }
 
