@@ -275,7 +275,7 @@
 	margin: 0 2px 6px 2px;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewDiff.hidden,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewDiff,
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewCreate.hidden,
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewCreateTitle.hidden {
 	display: none;
