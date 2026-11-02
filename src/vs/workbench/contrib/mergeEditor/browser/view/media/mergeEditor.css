@@ -99,7 +99,7 @@
 	border: 1px solid var(--vscode-mergeEditor-conflict-unhandledUnfocused-border);
 }
 
-.monaco-workbench .merge-editor .merge-editor-block:not(.handled).focused {
+.monaco-workbench .merge-editor :not(.handled).focused.merge-editor-block {
 	border: 2px solid var(--vscode-mergeEditor-conflict-unhandledFocused-border);
 }
 
