@@ -351,7 +351,7 @@
 	display: none;
 }
 
-.workbench-suggest-widget .suggest-details > .monaco-scrollable-element {
+.workbench-suggest-widget .suggest-details > .workbench-suggest-details-scrollable {
 	flex: 1;
 }
 

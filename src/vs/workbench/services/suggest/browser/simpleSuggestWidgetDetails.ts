@@ -65,6 +65,7 @@ export class SimpleSuggestDetailsWidget {
 		this._body = dom.$('.body');
 
 		this._scrollbar = new DomScrollableElement(this._body, {
+			className: 'workbench-suggest-details-scrollable',
 			alwaysConsumeMouseWheel: true,
 		});
 		dom.append(this.domNode, this._scrollbar.getDomNode());
