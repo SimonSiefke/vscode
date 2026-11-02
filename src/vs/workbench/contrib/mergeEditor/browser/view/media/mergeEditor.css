@@ -23,7 +23,7 @@
 	flex-shrink: 0;
 }
 
-.monaco-workbench .merge-editor .code-view > .header > span.description {
+.monaco-workbench .merge-editor .code-view > .header > span.merge-editor-header-description {
 	flex-shrink: 0;
 	display: flex;
 	font-size: 12px;
