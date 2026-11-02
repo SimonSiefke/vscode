@@ -455,7 +455,7 @@
 /* In light/dark themes the widget shadow can be transparent, leaving the key borders invisible
 	against the focus/hover background. Derive the border from the foreground instead. High contrast
 	themes are excluded so their stronger borders are preserved. */
-:is(.vs, .vs-dark) .quick-input-list .monaco-list-row.focused .monaco-keybinding-key,
+:is(.vs, .vs-dark) .quick-input-list .monaco-list-row.focused .monaco-keybinding-key:where(.quick-input-list-key),
 :is(.vs, .vs-dark) .quick-input-list .monaco-list-row:hover .monaco-keybinding-key {
 	border-color: color-mix(in srgb, currentColor 30%, transparent);
 }
