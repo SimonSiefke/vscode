@@ -156,7 +156,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > .categories-column > div {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > :where(.categories-column) > div.index-list {
 	margin-bottom: 32px;
 }
 
