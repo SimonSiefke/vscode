@@ -47,7 +47,7 @@
 	white-space: pre; /* Preserve whitespace but don't wrap */
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible + .monaco-tl-contents,
+.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible + .debug-repl-tree-contents,
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible {
 	cursor: pointer;
 }
