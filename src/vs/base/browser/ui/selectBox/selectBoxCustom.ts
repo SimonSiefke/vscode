@@ -797,6 +797,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 		this.listRenderer = new SelectListRenderer();
 
 		this.selectList = this._register(new List('SelectBoxCustom', this.selectDropDownListContainer, this, [this.listRenderer], {
+			rowClassName: 'select-box-list-row',
 			useShadows: false,
 			verticalScrollMode: ScrollbarVisibility.Visible,
 			keyboardSupport: false,

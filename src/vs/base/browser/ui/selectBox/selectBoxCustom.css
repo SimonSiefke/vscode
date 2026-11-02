@@ -50,7 +50,7 @@
 	outline: 0 !important;
 }
 
-.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row {
+.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .select-box-list-row {
 	cursor: pointer;
 	padding-left: 2px;
 }
