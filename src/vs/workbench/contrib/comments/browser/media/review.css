@@ -460,7 +460,7 @@
 }
 
 .review-widget .head .review-actions > .comment-thread-header-action-bar,
-.review-widget .head .review-actions > .monaco-action-bar > .actions-container {
+.review-widget .head .review-actions > .monaco-action-bar > .comment-thread-header-actions {
 	height: 100%;
 }
 

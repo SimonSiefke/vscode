@@ -64,6 +64,7 @@ export class CommentThreadHeader<T = IRange> extends Disposable {
 
 		const actionsContainer = dom.append(this._headElement, dom.$('.review-actions'));
 		this._actionbarWidget = new ActionBar(actionsContainer, {
+			actionsContainerClassName: 'comment-thread-header-actions',
 			actionViewItemProvider: createActionViewItem.bind(undefined, this._instantiationService)
 		});
 
