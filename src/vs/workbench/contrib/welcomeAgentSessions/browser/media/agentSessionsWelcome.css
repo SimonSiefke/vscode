@@ -377,10 +377,6 @@
 	color: var(--vscode-textLink-foreground);
 }
 
-.agentSessionsWelcome-footerLink .codicon {
-	color: var(--vscode-descriptionForeground);
-}
-
 .agentSessionsWelcome-showOnStartup {
 	display: flex;
 	align-items: center;
