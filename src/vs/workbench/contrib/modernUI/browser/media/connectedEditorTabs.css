@@ -27,7 +27,7 @@
 	--modern-ui-connected-well-border: var(--vscode-modernPanel-border, var(--vscode-contrastBorder));
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .editor-group-container.active,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .active.editor-group-container,
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .modern-ui-editor-tab-group.modern-ui-editor-tab-group-active {
 	--modern-ui-connected-tab-border: var(--vscode-focusBorder);
 }
