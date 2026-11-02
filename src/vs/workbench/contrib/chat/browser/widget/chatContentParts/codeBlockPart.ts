@@ -781,7 +781,7 @@ export class CodeCompareBlockPart extends Disposable {
 			...this.getEditorOptionsFromConfig(),
 		});
 
-		this.resourceLabel = this._register(scopedInstantiationService.createInstance(ResourceLabel, editorHeader, { supportIcons: true, extraClasses: ['chat-compare-resource-label'], labelContainerClassName: 'chat-compare-label-container' }));
+		this.resourceLabel = this._register(scopedInstantiationService.createInstance(ResourceLabel, editorHeader, { supportIcons: true, extraClasses: ['chat-compare-resource-label'], nameContainerClassName: 'chat-compare-name-container', labelContainerClassName: 'chat-compare-label-container' }));
 
 		const editorScopedService = this._register(this.diffEditor.getModifiedEditor().contextKeyService.createScoped(editorHeader));
 		const editorScopedInstantiationService = this._register(scopedInstantiationService.createChild(new ServiceCollection([IContextKeyService, editorScopedService])));

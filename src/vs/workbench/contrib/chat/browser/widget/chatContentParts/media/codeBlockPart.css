@@ -172,7 +172,7 @@
 				display: flex;
 				align-items: baseline;
 
-				& > .monaco-icon-name-container {
+				& > .chat-compare-name-container {
 					flex-shrink: 0;
 
 					& > .label-name {
