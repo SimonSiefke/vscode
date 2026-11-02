@@ -516,7 +516,7 @@
 								background: var(--vscode-toolbar-hoverBackground);
 							}
 
-							.action-label {
+							.diff-gutter-action-label {
 								color: var(--vscode-editorGutter-itemGlyphForeground);
 								padding: 1px 2px;
 							}
