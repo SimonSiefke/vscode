@@ -39,7 +39,7 @@
 	display: flex;
 }
 
-.monaco-editor .find-widget.visible {
+.monaco-editor .visible.find-widget {
 	transform: translateY(0);
 }
 
