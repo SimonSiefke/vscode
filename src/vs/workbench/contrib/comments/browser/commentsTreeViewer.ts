@@ -199,7 +199,7 @@ export class CommentNodeRenderer implements IListRenderer<ITreeNode<CommentNode>
 		const separator = dom.append(metadata, dom.$('.separator'));
 		const commentPreview = dom.append(metadata, dom.$('.text'));
 		const rangeContainer = dom.append(metadata, dom.$('.range'));
-		const range = dom.$('p');
+		const range = dom.$('p.comment-range-label');
 		rangeContainer.appendChild(range);
 
 		const threadMetadata = {

@@ -93,7 +93,7 @@
 }
 
 .comments-panel .comments-panel-container .tree-container .comment-thread-container .text :where(.comment-preview-node),
-.comments-panel .comments-panel-container .tree-container .comment-thread-container .range * {
+.comments-panel .comments-panel-container .tree-container .comment-thread-container .range :where(.comment-range-label) {
 	margin: 0;
 	padding-right: 5px;
 }
@@ -103,7 +103,7 @@
 	overflow: hidden;
 }
 
-.comments-panel .comments-panel-container .tree-container .comment-thread-container .range * {
+.comments-panel .comments-panel-container .tree-container .comment-thread-container .range :where(.comment-range-label) {
 	overflow: visible;
 	white-space: nowrap;
 }
