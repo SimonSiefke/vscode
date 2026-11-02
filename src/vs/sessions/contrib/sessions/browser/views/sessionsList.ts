@@ -1396,6 +1396,7 @@ function renderApprovalRowContent(
 
 	elements.buttonContainer.textContent = '';
 	const button = store.add(new Button(elements.buttonContainer, {
+		buttonClassName: 'sessions-approval-action-button',
 		title: localize('allowActionOnce', "Allow once"),
 		// All simultaneously visible "Allow" buttons share the same visible label
 		// and tooltip, so give each an explicit accessible name that names the
