@@ -39,7 +39,7 @@
 	padding-top: 10px;
 }
 
-.monaco-workbench .bulk-edit-panel .content .buttons .monaco-button {
+.monaco-workbench .bulk-edit-panel .content .buttons .bulk-edit-preview-button {
 	display: inline-flex;
 	width: inherit;
 	margin: 0 4px;
