@@ -41,6 +41,8 @@ export interface ActionTrigger {
 }
 
 export interface IActionBarOptions {
+	/** Class applied to the action bar root for component styling. */
+	readonly className?: string;
 	readonly orientation?: ActionsOrientation;
 	readonly context?: unknown;
 	readonly actionViewItemProvider?: IActionViewItemProvider;
@@ -139,6 +141,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 
 		this.domNode = document.createElement('div');
 		this.domNode.className = 'monaco-action-bar';
+		if (options.className) {
+			this.domNode.classList.add(options.className);
+		}
 
 		let previousKeys: KeyCode[];
 		let nextKeys: KeyCode[];

@@ -503,7 +503,7 @@
 
 			.diff-gutter-toolbar {
 				height: fit-content;
-				.monaco-action-bar  {
+				.diff-gutter-action-bar  {
 					line-height: 1;
 
 					.diff-gutter-toolbar-actions {

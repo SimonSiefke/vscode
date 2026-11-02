@@ -40,6 +40,8 @@ export interface IToolBarResponsiveBehaviorOptions {
 }
 
 export interface IToolBarOptions {
+	/** Class applied to the action bar root for component styling. */
+	actionBarClassName?: string;
 	orientation?: ActionsOrientation;
 	actionViewItemProvider?: IActionViewItemProvider;
 	ariaLabel?: string;
@@ -130,6 +132,7 @@ export class ToolBar extends Disposable {
 		container.appendChild(this.element);
 
 		this.actionBar = this._register(new ActionBar(this.element, {
+			className: options.actionBarClassName,
 			orientation: options.orientation,
 			ariaLabel: options.ariaLabel,
 			actionsContainerClassName: options.actionsContainerClassName,

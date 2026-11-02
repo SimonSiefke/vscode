@@ -253,6 +253,7 @@ class DiffToolBar extends Disposable implements IGutterItemView {
 			this._elements.buttons.replaceChildren();
 			const i = store.add(instantiationService.createInstance(MenuWorkbenchToolBar, this._elements.buttons, this._menuId.read(reader), {
 				actionsContainerClassName: 'diff-gutter-toolbar-actions',
+				actionBarClassName: 'diff-gutter-action-bar',
 				orientation: ActionsOrientation.VERTICAL,
 				hoverDelegate,
 				toolbarOptions: {

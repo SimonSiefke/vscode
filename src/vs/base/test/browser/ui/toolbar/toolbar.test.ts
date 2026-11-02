@@ -57,13 +57,13 @@ suite('ToolBar', () => {
 		container.remove();
 	});
 
-	test('component list styling survives replacing actions and stays local to its toolbar', () => {
+	test('component styling survives replacing actions and stays local to its toolbar', () => {
 		const style = document.createElement('style');
-		style.textContent = '.test-toolbar-actions { gap: 11px; }';
+		style.textContent = '.test-toolbar-actions { gap: 11px; } .test-toolbar-action-bar { line-height: 31px; }';
 		container.appendChild(style);
 		const first = store.add(new Action('first', 'First'));
 		const second = store.add(new Action('second', 'Second'));
-		const toolbar = store.add(new ToolBar(container, contextMenuProvider, { actionsContainerClassName: 'test-toolbar-actions' }));
+		const toolbar = store.add(new ToolBar(container, contextMenuProvider, { actionsContainerClassName: 'test-toolbar-actions', actionBarClassName: 'test-toolbar-action-bar' }));
 		const other = store.add(new ToolBar(container, contextMenuProvider));
 		toolbar.setActions([first]);
 		other.setActions([second]);
@@ -72,6 +72,9 @@ suite('ToolBar', () => {
 		const otherActions = other.getItemElement(0)!.parentElement!;
 		const otherGap = targetWindow.getComputedStyle(otherActions).gap;
 		const before = targetWindow.getComputedStyle(actions).gap;
+		const actionBar = actions.parentElement!;
+		const beforeLineHeight = targetWindow.getComputedStyle(actionBar).lineHeight;
+		const otherLineHeight = targetWindow.getComputedStyle(otherActions.parentElement!).lineHeight;
 		toolbar.setActions([]);
 		toolbar.setActions([second]);
 		assert.deepStrictEqual({
@@ -79,7 +82,11 @@ suite('ToolBar', () => {
 			after: targetWindow.getComputedStyle(toolbar.getItemElement(0)!.parentElement!).gap,
 			otherUnchanged: targetWindow.getComputedStyle(otherActions).gap === otherGap,
 			otherHasOwnGap: otherGap !== '11px',
-		}, { before: '11px', after: '11px', otherUnchanged: true, otherHasOwnGap: true });
+			beforeLineHeight,
+			afterLineHeight: targetWindow.getComputedStyle(actionBar).lineHeight,
+			otherLineHeightUnchanged: targetWindow.getComputedStyle(otherActions.parentElement!).lineHeight === otherLineHeight,
+			otherHasOwnLineHeight: otherLineHeight !== '31px',
+		}, { before: '11px', after: '11px', otherUnchanged: true, otherHasOwnGap: true, beforeLineHeight: '31px', afterLineHeight: '31px', otherLineHeightUnchanged: true, otherHasOwnLineHeight: true });
 	});
 
 	test('only updates current dropdown contexts after repeated responsive overflow', () => {
