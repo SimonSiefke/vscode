@@ -327,7 +327,7 @@
 	align-items: center;
 	gap: 6px;
 }
-.chat-debug-troubleshoot-button.monaco-button {
+.monaco-button.chat-debug-troubleshoot-button {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
