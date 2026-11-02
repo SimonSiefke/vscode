@@ -380,7 +380,7 @@
 	border-color: var(--vscode-focusBorder);
 }
 
-.monaco-editor .suggest-details a {
+.monaco-editor .suggest-details a:where(.editor-suggest-documentation-link) {
 	color: var(--vscode-textLink-foreground);
 }
 

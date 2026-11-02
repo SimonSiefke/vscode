@@ -178,6 +178,7 @@ export class SuggestDetailsWidget {
 			this._docs.classList.add('markdown-docs');
 			dom.clearNode(this._docs);
 			const renderedContents = this._markdownRendererService.render(documentation, {
+				linkClassName: 'editor-suggest-documentation-link',
 				context: this._editor,
 				asyncRenderCallback: () => {
 					this.layout(this._size.width, this._type.clientHeight + this._docs.clientHeight);
