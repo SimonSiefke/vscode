@@ -10,7 +10,7 @@
 	box-shadow: var(--vscode-shadow-lg);
 }
 
-.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown * {
+.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown :where(.select-box-description-node) {
 	margin: 0;
 }
 

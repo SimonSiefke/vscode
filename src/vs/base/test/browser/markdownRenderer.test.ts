@@ -33,6 +33,16 @@ suite('MarkdownRenderer', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('element styling covers parsed code and preserves generated and raw theme icons', () => {
+		const rendered = store.add(renderMarkdown(new MarkdownString('$(add) [link](https://example.com) <span class="codicon codicon-check"></span>\n\n```text\ncode\n```', { supportHtml: true, supportThemeIcons: true }), { elementClassName: 'test-markdown-created-element' }));
+		const elements = Array.from(rendered.element.querySelectorAll('*'));
+		assert.ok(elements.length > 5);
+		assert.ok(elements.every(element => element.classList.contains('test-markdown-created-element')));
+		assert.deepStrictEqual(Array.from(rendered.element.querySelectorAll('span.codicon'), element => [element.classList.contains('codicon-add'), element.classList.contains('codicon-check')]), [[true, false], [false, true]]);
+		assert.strictEqual(rendered.element.querySelector('a')?.getAttribute('data-href'), 'https://example.com');
+		assert.strictEqual(rendered.element.querySelector('code')?.textContent, 'code\n');
+	});
+
 	test('link creation styling preserves rewriting and activation across target updates', () => {
 		const host = mainWindow.document.createElement('div');
 		host.style.cssText = 'position: fixed; top: 0; left: 0;';
