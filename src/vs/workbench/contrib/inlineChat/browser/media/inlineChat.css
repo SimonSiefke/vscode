@@ -352,7 +352,7 @@
 	gap: 8px;
 }
 
-.monaco-workbench .inline-chat-terminated-card.hidden {
+.monaco-workbench .hidden.inline-chat-terminated-card {
 	display: none;
 }
 
