@@ -193,7 +193,7 @@
 	text-align: initial;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container:where(.extension-header-actions) {
 	flex-wrap: wrap;
 }
 
