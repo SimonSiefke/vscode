@@ -1386,7 +1386,7 @@
 	margin-bottom: var(--vscode-spacing-size80);
 }
 
-.model-picker-comparison .model-picker-comparison-count > span {
+.model-picker-comparison .model-picker-comparison-count > span:where(.model-picker-comparison-count-label) {
 	flex-shrink: 0;
 }
 
