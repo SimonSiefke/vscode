@@ -103,7 +103,7 @@
 	padding-right: 50px;
 }
 
-.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .monaco-action-bar {
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .setting-list-row-action-bar {
 	display: none;
 	position: absolute;
 	right: 0px;

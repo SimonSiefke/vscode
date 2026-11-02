@@ -322,7 +322,7 @@ export abstract class AbstractListSettingWidget<TDataItem extends object> extend
 		rowElement.setAttribute('tabindex', item.selected ? '0' : '-1');
 		rowElement.classList.toggle('selected', item.selected);
 
-		const actionBar = new ActionBar(rowElement);
+		const actionBar = new ActionBar(rowElement, { className: 'setting-list-row-action-bar' });
 		this.listDisposables.add(actionBar);
 
 		actionBar.push(this.getActionsForItem(item, idx), { icon: true, label: true });
