@@ -524,7 +524,7 @@
 		visibility: hidden;
 		transition: opacity 200ms ease-in;
 
-		&.visible {
+		&.visible:where(.browser-overlay-paused) {
 			opacity: 1;
 			visibility: visible;
 		}
