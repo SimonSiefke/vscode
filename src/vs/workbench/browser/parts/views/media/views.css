@@ -319,7 +319,7 @@
 	flex: 1;
 }
 
-.pane-header .viewpane-filter-container > .viewpane-filter .monaco-inputbox .monaco-inputbox {
+.pane-header .viewpane-filter-container > .viewpane-filter .monaco-inputbox .viewpane-filter-input-box {
 	height: 20px;
 	line-height: 18px;
 }
