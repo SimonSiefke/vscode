@@ -1129,7 +1129,7 @@
 }
 
 /* Ensure decoration color cascades to every part of the tab label. */
-.modern-ui-tabs .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label.monaco-decoration-itemColor a,
+.modern-ui-tabs .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label.monaco-decoration-itemColor a:where(.monaco-icon-label-name),
 .modern-ui-tabs .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label.monaco-decoration-itemColor .label-description {
 	color: inherit !important;
 }
