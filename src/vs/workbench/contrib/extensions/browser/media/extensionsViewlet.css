@@ -225,7 +225,7 @@
 	height: 24px;
 	padding-right: 8px;
 }
-.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .codicon {
+.extensions-viewlet.narrow > .extensions .extension-list-item > .icon-container > .extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	font-size: 24px !important;
 	padding-right: 8px;
 }
