@@ -57,7 +57,7 @@
 	min-width: 0;
 }
 
-.chat-pills.hidden {
+.hidden.chat-pills {
 	display: none;
 }
 
