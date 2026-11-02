@@ -68,7 +68,7 @@
 
 /* Vertical actions */
 
-.monaco-action-bar.vertical {
+.monaco-action-bar.vertical:where(.monaco-vertical-action-bar) {
 	text-align: left;
 }
 

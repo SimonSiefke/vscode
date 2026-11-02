@@ -160,7 +160,7 @@ export class ActionBar extends Disposable implements IActionRunner {
 			case ActionsOrientation.VERTICAL:
 				previousKeys = [KeyCode.UpArrow];
 				nextKeys = [KeyCode.DownArrow];
-				this.domNode.className += ' vertical';
+				this.domNode.className += ' vertical monaco-vertical-action-bar';
 				break;
 		}
 
