@@ -396,7 +396,7 @@
 	border-radius: 0px !important;
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label.checked {
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .checked.extension-navbar-action-label {
 	border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
 	color: var(--vscode-panelTitle-activeForeground);
 }
