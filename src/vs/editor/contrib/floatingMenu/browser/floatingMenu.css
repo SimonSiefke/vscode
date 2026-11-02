@@ -64,7 +64,7 @@
 	}
 
 	.action-item.primary > .floating-menu-action-label,
-	.action-item.primary > .action-label.action-label.codicon:not(.separator) {
+	.action-item.primary > .floating-menu-action-label.action-label.codicon:not(.separator) {
 		background-color: var(--vscode-button-background);
 		color: var(--vscode-button-foreground);
 	}
