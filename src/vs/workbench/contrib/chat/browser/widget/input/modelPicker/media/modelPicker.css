@@ -1530,7 +1530,7 @@
 	border-radius: var(--vscode-cornerRadius-medium);
 }
 
-.chat-local-model-card-message > .codicon {
+.chat-local-model-card-message > .codicon:where(.chat-local-model-message-glyph) {
 	flex-shrink: 0;
 	line-height: var(--vscode-spacing-size160);
 	font-size: var(--vscode-codiconFontSize-compact);

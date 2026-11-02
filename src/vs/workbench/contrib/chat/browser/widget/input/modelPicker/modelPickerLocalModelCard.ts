@@ -483,7 +483,7 @@ export class LocalModelCard extends DisposableStore {
 
 	private _message(container: HTMLElement, text: string, severity: 'error' | 'warning'): void {
 		const banner = dom.append(container, dom.$(`.chat-local-model-card-message.${severity}`));
-		const icon = renderIcon(severity === 'error' ? Codicon.error : Codicon.warning);
+		const icon = renderIcon(severity === 'error' ? Codicon.error : Codicon.warning, undefined, 'chat-local-model-message-glyph');
 		icon.setAttribute('aria-hidden', 'true');
 		banner.appendChild(icon);
 		dom.append(banner, dom.$('p', undefined, text));
