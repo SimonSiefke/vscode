@@ -106,7 +106,7 @@
 
 /** Actions column styling **/
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.keybindings-row-action-bar) {
 	display: none;
 	flex: 1;
 }

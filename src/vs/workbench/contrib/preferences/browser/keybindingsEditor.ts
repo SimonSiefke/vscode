@@ -886,7 +886,7 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 
 	renderTemplate(container: HTMLElement): IActionsColumnTemplateData {
 		const element = DOM.append(container, $('.actions'));
-		const actionBar = new ActionBar(element);
+		const actionBar = new ActionBar(element, { className: 'keybindings-row-action-bar' });
 		return { actionBar };
 	}
 
