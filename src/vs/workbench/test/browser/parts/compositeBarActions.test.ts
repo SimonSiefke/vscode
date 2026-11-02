@@ -29,6 +29,29 @@ suite('CompositeBarActionViewItem', () => {
 		workbench.remove();
 	});
 
+	for (const icon of [false, true]) {
+		test(`preserves composite label padding after item updates (icon=${icon})`, () => {
+			const part = append(workbench, $('.pane-composite-part'));
+			const title = append(part, $('.title'));
+			const compositeBar = append(append(title, $('.composite-bar-container')), $('.composite-bar'));
+			const actions = append(append(compositeBar, $('.monaco-action-bar')), $('ul.actions-container'));
+			const container = append(actions, $('li.action-item'));
+			const action = store.add(new CompositeBarAction({ id: 'testing', name: 'Testing' }));
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			const viewItem = store.add(instantiationService.createInstance(CompositeBarActionViewItem, action, {
+				icon,
+				colors: () => ({}),
+				hoverOptions: { position: () => HoverPosition.RIGHT },
+			}, () => true));
+			viewItem.render(container);
+			const label = container.querySelector<HTMLElement>('.action-label')!;
+			const padding = [mainWindow.getComputedStyle(label).padding];
+			action.compositeBarActionItem = { id: 'testing', name: 'Renamed', classNames: ['codicon', 'codicon-terminal'] };
+			padding.push(mainWindow.getComputedStyle(label).padding);
+			assert.deepStrictEqual(padding, ['2px', '2px']);
+		});
+	}
+
 	const layouts = [
 		{ name: 'top activity bar', section: '.header-or-footer.header', compact: true, icon: true, size: 13 },
 		{ name: 'bottom activity bar', section: '.header-or-footer.footer', compact: true, icon: true, size: 13 },
