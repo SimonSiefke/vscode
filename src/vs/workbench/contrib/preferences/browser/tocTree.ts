@@ -218,6 +218,7 @@ export class TOCTree extends WorkbenchObjectTree<SettingsTreeGroupElement> {
 
 		const filter = instantiationService.createInstance(SettingsTreeFilter, viewState, false);
 		const options: IWorkbenchObjectTreeOptions<SettingsTreeGroupElement, void> = {
+			scrollableClassName: 'settings-toc-scrollable',
 			filter,
 			multipleSelectionSupport: false,
 			identityProvider: {
