@@ -1030,7 +1030,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		tabContainer.appendChild(tabBorderTopContainer);
 
 		// Tab Editor Label
-		const editorLabel = this.tabResourceLabels.create(tabContainer, { hoverTargetOverride: tabContainer, extraClasses: ['editor-tab-resource-label'], nameContainerClassName: 'editor-tab-name-container', labelContainerClassName: 'editor-tab-label-container' });
+		const editorLabel = this.tabResourceLabels.create(tabContainer, { hoverTargetOverride: tabContainer, extraClasses: ['editor-tab-resource-label'], descriptionContainerClassName: 'editor-tab-description-container', nameContainerClassName: 'editor-tab-name-container', labelContainerClassName: 'editor-tab-label-container' });
 
 		// Tab Actions
 		const tabActionsContainer = $('.tab-actions');

@@ -478,7 +478,7 @@
 }
 
 .modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .editor-tab-name-container,
-.modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .monaco-icon-description-container {
+.modern-ui-tabs.monaco-workbench .part.editor .tabs-container > .tab:not(.sticky-compact) .editor-tab-description-container {
 	min-width: 0;
 	overflow: hidden;
 	white-space: nowrap;
