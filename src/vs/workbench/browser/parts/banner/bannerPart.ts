@@ -216,7 +216,7 @@ export class BannerPart extends Part implements IBannerService {
 		iconContainer.setAttribute('aria-hidden', 'true');
 
 		if (ThemeIcon.isThemeIcon(item.icon)) {
-			iconContainer.appendChild($(`div${ThemeIcon.asCSSSelector(item.icon)}`));
+			iconContainer.appendChild($(`div.banner-main-glyph${ThemeIcon.asCSSSelector(item.icon)}`));
 		} else {
 			iconContainer.classList.add('custom-icon');
 
