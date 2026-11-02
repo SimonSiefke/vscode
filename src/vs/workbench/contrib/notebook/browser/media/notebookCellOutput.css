@@ -92,7 +92,7 @@
 	font-style: italic;
 }
 
-.output-show-more a {
+.output-show-more a:where(.notebook-output-more-link) {
 	cursor: pointer;
 }
 
