@@ -1641,7 +1641,7 @@ export class GettingStartedPage extends EditorPane {
 					this.buildMarkdownDescription(container, step.description);
 
 					const stepTitle = $('h3.step-title.max-lines-3', { 'x-step-title-for': step.id });
-					reset(stepTitle, ...renderLabelWithIcons(step.title));
+					reset(stepTitle, ...renderLabelWithIcons(step.title, undefined, 'getting-started-step-title-glyph'));
 
 					const stepDescription = $('.step-container', {},
 						stepTitle,

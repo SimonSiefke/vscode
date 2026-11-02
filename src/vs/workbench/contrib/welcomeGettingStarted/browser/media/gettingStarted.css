@@ -503,7 +503,7 @@
 	width: inherit;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-title .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-title .getting-started-step-title-glyph {
 	position: relative;
 	top: 2px;
 }
