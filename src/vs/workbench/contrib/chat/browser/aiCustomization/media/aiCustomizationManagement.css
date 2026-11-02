@@ -3352,7 +3352,7 @@ per-word capitalization does not survive translation. */
 	color: var(--vscode-foreground);
 }
 
-.plugin-list-widget .mcp-server-actions .plugin-card-icon-button.monaco-button {
+.plugin-list-widget .mcp-server-actions .monaco-button.plugin-card-icon-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
