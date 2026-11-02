@@ -442,7 +442,7 @@ export class ListView<T> implements IListView<T> {
 			scheduleAtNextAnimationFrame: cb => scheduleAtNextAnimationFrame(getWindow(this.domNode), cb)
 		}));
 		this.scrollableElement = this.disposables.add(new SmoothScrollableElement(this.rowsContainer, {
-			className: options.scrollableClassName,
+			className: options.scrollableClassName ? `monaco-list-scrollable ${options.scrollableClassName}` : 'monaco-list-scrollable',
 			alwaysConsumeMouseWheel: options.alwaysConsumeMouseWheel ?? DefaultOptions.alwaysConsumeMouseWheel,
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: options.verticalScrollMode ?? DefaultOptions.verticalScrollMode,
