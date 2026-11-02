@@ -360,7 +360,7 @@
 	display: none;
 }
 
-.hc-black .chat-pet-color-card.monaco-button,
+.hc-black .monaco-button.chat-pet-color-card,
 .hc-light .monaco-button.chat-pet-color-card,
 .hc-black .chat-pet-custom-color,
 .hc-light .chat-pet-custom-color {
