@@ -15,7 +15,7 @@
 		padding: 0 5px;
 	}
 
-	.title {
+	.title:where(.call-stack-frame-title) {
 		flex-grow: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
