@@ -133,7 +133,7 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown > .chat-plan-review-action-button,
-.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .monaco-button {
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .chat-plan-review-action-button {
 	height: 22px;
 	box-sizing: border-box;
 }
