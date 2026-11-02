@@ -102,7 +102,7 @@
 	flex: 1;
 }
 
-.monaco-editor .find-widget .monaco-findInput .monaco-scrollable-element {
+.monaco-editor .find-widget .monaco-findInput .monaco-inputbox-scrollable {
 	/* Make sure textarea inherits the width correctly */
 	width: 100%;
 }
