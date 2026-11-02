@@ -18,7 +18,7 @@
 }
 
 .monaco-editor .codelens-decoration > span:where(.codelens-text-part),
-.monaco-editor .codelens-decoration > a {
+.monaco-editor .codelens-decoration > a:where(.codelens-command-link) {
 	user-select: none;
 	-webkit-user-select: none;
 	white-space: nowrap;
@@ -27,7 +27,7 @@
 	align-items: center;
 }
 
-.monaco-editor .codelens-decoration > a {
+.monaco-editor .codelens-decoration > a:where(.codelens-command-link) {
 	text-decoration: none;
 }
 
