@@ -357,7 +357,7 @@
 }
 
 /* Markdown scrollable area */
-.monaco-workbench .inline-chat-terminated-card > .monaco-scrollable-element {
+.monaco-workbench .inline-chat-terminated-card > .inline-chat-terminated-scrollable {
 	width: 100%;
 }
 
