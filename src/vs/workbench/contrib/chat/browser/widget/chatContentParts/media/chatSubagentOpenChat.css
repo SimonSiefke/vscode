@@ -179,7 +179,7 @@
 	line-height: 1.4em;
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-active-tool.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-active-tool {
 	display: none;
 }
 
