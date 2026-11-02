@@ -238,7 +238,7 @@
 	opacity: 1;
 }
 
-.chat-explanation-item-read.unread .codicon {
+.chat-explanation-item-read.unread .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 
