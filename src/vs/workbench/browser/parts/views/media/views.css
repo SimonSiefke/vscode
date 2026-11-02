@@ -227,7 +227,7 @@
 	margin-left: -6px;
 }
 
-.customview-tree .monaco-list .monaco-list-row.selected .custom-view-tree-node-item > .custom-view-tree-node-item-resourceLabel > .custom-view-tree-node-item-icon.codicon {
+.customview-tree .monaco-list .monaco-list-row.selected .custom-view-tree-node-item > .custom-view-tree-node-item-resourceLabel > .codicon.custom-view-tree-node-item-icon {
 	color: currentColor !important;
 }
 
