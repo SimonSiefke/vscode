@@ -1018,7 +1018,7 @@
 
 :is(.hc-black, .hc-light).modern-ui-tabs.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .composite-bar-action-label,
 :is(.hc-black, .hc-light).modern-ui-tabs.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label,
-:is(.hc-black, .hc-light).modern-ui-tabs.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+:is(.hc-black, .hc-light).modern-ui-tabs.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .composite-bar-action-label,
 :is(.hc-black, .hc-light).modern-ui-tabs.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label {
 	outline: none !important;
 }
