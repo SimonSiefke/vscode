@@ -382,7 +382,7 @@
 	justify-content: initial;
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item {
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .extension-navbar-action-item {
 	height: 100%;
 }
 
