@@ -491,7 +491,7 @@ label/control gap, so the buttons must not add their own margin. */
 	border-color: var(--vscode-inputValidation-errorBorder, #be1100) !important;
 }
 
-.issue-reporter-wizard .monaco-button.wizard-type-btn.hidden {
+.issue-reporter-wizard .monaco-button.hidden.wizard-type-btn {
 	display: none;
 }
 
