@@ -247,7 +247,7 @@
 	max-width: 250px;
 }
 
-.chat-status-bar-entry-tooltip .monaco-button {
+.chat-status-bar-entry-tooltip .chat-status-action-button {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
