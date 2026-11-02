@@ -213,7 +213,7 @@
 }
 
 /* Keep collapsed output fully hidden so it cannot contribute an extra border line. */
-.chat-terminal-output-container.collapsed,
+.collapsed.chat-terminal-output-container,
 .chat-terminal-output-container:not(.expanded) {
 	display: none;
 }
