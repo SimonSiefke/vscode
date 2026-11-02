@@ -321,7 +321,7 @@
 .chat-debug-editor-header .viewpane-filter-container .monaco-inputbox {
 	border-color: var(--vscode-panelInput-border, transparent) !important;
 }
-.chat-debug-view-mode-toggle.monaco-button {
+.monaco-button.chat-debug-view-mode-toggle {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
