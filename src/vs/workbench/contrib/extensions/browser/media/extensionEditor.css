@@ -801,7 +801,7 @@
 	padding-right: 2px;
 }
 
-.monaco-workbench .extension-editor > .header > .details > .recommendation .codicon {
+.monaco-workbench .extension-editor > .header > .details > .recommendation .codicon:where(.extension-recommendation-glyph) {
 	color: var(--vscode-extensionButton-prominentBackground);
 }
 
