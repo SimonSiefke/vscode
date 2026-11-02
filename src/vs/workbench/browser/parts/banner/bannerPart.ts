@@ -135,7 +135,7 @@ export class BannerPart extends Part implements IBannerService {
 			return element;
 		}
 
-		return this.itemDisposables.add(this.markdownRendererService.render(message)).element;
+		return this.itemDisposables.add(this.markdownRendererService.render(message, { linkClassName: 'banner-message-link' })).element;
 	}
 
 	private setVisibility(visible: boolean): void {

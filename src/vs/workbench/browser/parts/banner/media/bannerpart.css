@@ -43,7 +43,7 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part.banner .message-container a {
+.monaco-workbench .part.banner .message-container a:where(.banner-message-link) {
 	color: var(--vscode-banner-foreground);
 }
 
@@ -66,7 +66,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .part.banner .message-container a {
+.monaco-workbench .part.banner .message-container a:where(.banner-message-link) {
 	text-decoration: underline;
 	cursor: pointer;
 }
