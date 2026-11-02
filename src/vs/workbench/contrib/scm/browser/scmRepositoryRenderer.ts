@@ -119,8 +119,8 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 			const showSelectedIcon = icon.id === Codicon.repo.id && isVisible && this.scmViewService.repositories.length > 1;
 
 			templateData.icon.className = showSelectedIcon
-				? `icon ${ThemeIcon.asClassName(Codicon.repoSelected)}`
-				: `icon ${ThemeIcon.asClassName(icon)}`;
+				? `icon scm-provider-icon ${ThemeIcon.asClassName(Codicon.repoSelected)}`
+				: `icon scm-provider-icon ${ThemeIcon.asClassName(icon)}`;
 		}));
 
 		// Use the description to disambiguate repositories with the same name and have

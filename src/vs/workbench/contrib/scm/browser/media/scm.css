@@ -46,7 +46,7 @@
 	display: none;
 }
 
-.scm-view .scm-provider > .codicon {
+.scm-view .scm-provider > .scm-provider-icon {
 	padding-right: 2px;
 }
 
