@@ -3449,7 +3449,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	padding-right: var(--vscode-spacing-size120);
 }
 
-.interactive-session .chat-session-working-set .working-set-title .monaco-button .codicon {
+.interactive-session .chat-session-working-set .working-set-title .monaco-button .codicon:where(.chat-working-set-title-content) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
