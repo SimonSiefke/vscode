@@ -3580,7 +3580,7 @@ per-word capitalization does not survive translation. */
 	font-size: var(--vscode-fontSize-body2);
 }
 
-.plugin-list-widget .plugin-marketplace-home-row .plugin-list-item-install-button.monaco-button {
+.plugin-list-widget .plugin-marketplace-home-row .monaco-button.plugin-list-item-install-button {
 	width: auto;
 	flex: 0 0 auto;
 }
