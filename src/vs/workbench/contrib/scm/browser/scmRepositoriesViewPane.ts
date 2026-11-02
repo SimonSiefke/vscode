@@ -95,7 +95,7 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 
 	renderTemplate(container: HTMLElement): ArtifactGroupTemplate {
 		const element = append(container, $('.scm-artifact-group.scm-tree-item'));
-		const icon = append(element, $('.icon'));
+		const icon = append(element, $('.icon.scm-artifact-icon'));
 		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 
 		const actionsContainer = append(element, $('.actions'));
@@ -109,7 +109,7 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 		const artifactGroup = node.element.artifactGroup;
 
 		templateData.icon.className = ThemeIcon.isThemeIcon(artifactGroup.icon)
-			? `icon ${ThemeIcon.asClassName(artifactGroup.icon)}`
+			? `icon scm-artifact-icon ${ThemeIcon.asClassName(artifactGroup.icon)}`
 			: '';
 		templateData.label.setLabel(artifactGroup.name);
 
@@ -162,7 +162,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 
 	renderTemplate(container: HTMLElement): ArtifactTemplate {
 		const element = append(container, $('.scm-artifact.scm-tree-item'));
-		const icon = append(element, $('.icon'));
+		const icon = append(element, $('.icon.scm-artifact-icon'));
 		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 
 		const timestampContainer = append(element, $('.timestamp-container'));
@@ -185,7 +185,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 
 			const artifactIcon = artifact.icon ?? artifactOrFolder.group.icon;
 			templateData.icon.className = ThemeIcon.isThemeIcon(artifactIcon)
-				? `icon ${ThemeIcon.asClassName(artifactIcon)}`
+				? `icon scm-artifact-icon ${ThemeIcon.asClassName(artifactIcon)}`
 				: '';
 
 			const artifactLabel = artifactGroup.supportsFolders
@@ -198,7 +198,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 			templateData.timestampContainer.style.display = '';
 		} else if (isSCMArtifactNode(artifactOrFolder)) {
 			// Folder
-			templateData.icon.className = `icon ${ThemeIcon.asClassName(Codicon.folder)}`;
+			templateData.icon.className = `icon scm-artifact-icon ${ThemeIcon.asClassName(Codicon.folder)}`;
 			templateData.label.setLabel(basename(artifactOrFolder.uri));
 
 			templateData.timestamp.textContent = '';
@@ -221,7 +221,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 
 			const artifactIcon = artifact.icon ?? artifactOrFolder.group.icon;
 			templateData.icon.className = ThemeIcon.isThemeIcon(artifactIcon)
-				? `icon ${ThemeIcon.asClassName(artifactIcon)}`
+				? `icon scm-artifact-icon ${ThemeIcon.asClassName(artifactIcon)}`
 				: '';
 
 			templateData.label.setLabel(artifact.name, artifact.description);
@@ -231,7 +231,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 			templateData.timestampContainer.style.display = '';
 		} else if (isSCMArtifactNode(artifactOrFolder)) {
 			// Folder
-			templateData.icon.className = `icon ${ThemeIcon.asClassName(Codicon.folder)}`;
+			templateData.icon.className = `icon scm-artifact-icon ${ThemeIcon.asClassName(Codicon.folder)}`;
 			templateData.label.setLabel(artifactOrFolder.uri.fsPath.substring(1));
 
 			templateData.timestamp.textContent = '';

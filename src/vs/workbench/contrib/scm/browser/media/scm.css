@@ -570,7 +570,7 @@
 	display: flex;
 	align-items: center;
 
-	.icon {
+	.icon:where(.scm-artifact-icon) {
 		margin-right: 2px;
 	}
 }
