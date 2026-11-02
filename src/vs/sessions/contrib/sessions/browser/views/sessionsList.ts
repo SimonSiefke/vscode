@@ -2330,6 +2330,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 				template.ciButtonContainer.textContent = '';
 				// Match the chat input CI banner's prominent orange action button.
 				const button = buttonStore.add(new Button(template.ciButtonContainer, {
+					buttonClassName: 'sessions-ci-action-button',
 					title: localize('ci.fixCITooltip', "Fix failing CI checks"),
 					...defaultButtonStyles,
 					buttonBackground: asCssVariable(chartsOrange),
