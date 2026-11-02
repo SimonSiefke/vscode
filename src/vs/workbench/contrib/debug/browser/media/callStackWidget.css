@@ -31,7 +31,7 @@
 	}
 
 	&.collapsed {
-		.header {
+		.header:where(.call-stack-frame-header) {
 			border-bottom: 1px solid var(--vscode-multiDiffEditor-border);
 		}
 
