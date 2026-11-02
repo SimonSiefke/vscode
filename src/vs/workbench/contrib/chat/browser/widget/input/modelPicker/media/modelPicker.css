@@ -989,7 +989,7 @@
 	gap: var(--vscode-spacing-size80);
 }
 
-.chat-model-picker-welcome-icon.codicon {
+.codicon.chat-model-picker-welcome-icon {
 	font-size: 32px;
 	color: var(--vscode-descriptionForeground);
 }
