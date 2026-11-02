@@ -55,7 +55,7 @@
 	flex: 0 1 auto;
 }
 
-.scm-view .scm-provider > .monaco-icon-label .monaco-icon-name-container {
+.scm-view .scm-provider > .monaco-icon-label .scm-provider-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
