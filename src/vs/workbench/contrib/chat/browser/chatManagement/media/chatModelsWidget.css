@@ -301,7 +301,7 @@
 	width: 100%;
 }
 
-.models-widget .models-table-container .monaco-table-tr.models-vendor-row .models-gutter-column .monaco-action-bar .actions-container {
+.models-widget .models-table-container .monaco-table-tr.models-vendor-row .models-gutter-column .monaco-action-bar .actions-container:where(.models-table-gutter-actions) {
 	justify-content: space-between;
 }
 

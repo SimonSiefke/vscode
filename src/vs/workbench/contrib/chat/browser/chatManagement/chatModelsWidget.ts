@@ -439,7 +439,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 		const disposables = new DisposableStore();
 		const elementDisposables = new DisposableStore();
 		container.classList.add('models-gutter-column');
-		const actionBar = disposables.add(new ActionBar(container));
+		const actionBar = disposables.add(new ActionBar(container, { actionsContainerClassName: 'models-table-gutter-actions' }));
 		return {
 			listRowElement: container.parentElement?.parentElement ?? null,
 			container,
