@@ -880,7 +880,7 @@
 		0 0 0 4px var(--vscode-focusBorder);
 }
 
-.onboarding-a-signin-btn.primary .onboarding-a-provider-mark.github .codicon {
+.onboarding-a-signin-btn.primary .onboarding-a-provider-mark.github .codicon:where(.onboarding-provider-glyph) {
 	color: var(--vscode-button-foreground);
 }
 
