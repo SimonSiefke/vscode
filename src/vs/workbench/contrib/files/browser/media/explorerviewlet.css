@@ -83,7 +83,7 @@
 	text-decoration: underline;
 }
 
-.explorer-folders-view .explorer-item .monaco-icon-name-container.multiple > .label-name.drop-target > .monaco-highlighted-label {
+.explorer-folders-view .explorer-item .monaco-icon-name-container.multiple > .label-name.drop-target > .explorer-item-highlighted-label {
 	background-color: var(--vscode-list-dropBackground);
 }
 
