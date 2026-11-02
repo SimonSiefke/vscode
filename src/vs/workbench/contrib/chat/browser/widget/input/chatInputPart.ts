@@ -5581,6 +5581,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		const workingSetContainer = innerContainer.querySelector('.chat-editing-session-list') as HTMLElement ?? dom.append(innerContainer, $('.chat-editing-session-list'));
 
 		const button = this._chatEditsActionsDisposables.add(new ButtonWithIcon(overviewTitle, {
+			buttonClassName: 'chat-working-set-title-button',
 			supportIcons: true,
 			secondary: true,
 			ariaLabel: localize('chatEditingSession.toggleWorkingSet', 'Toggle changed files.'),
