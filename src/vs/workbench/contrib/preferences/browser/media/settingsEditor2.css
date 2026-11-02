@@ -123,7 +123,7 @@
 	border-bottom-color: var(--vscode-settings-headerForeground);
 }
 
-.settings-editor > .settings-header .settings-tabs-widget > .monaco-action-bar .action-item .action-label {
+.settings-editor > .settings-header .settings-tabs-widget > .monaco-action-bar .action-item .settings-tab-action-label {
 	margin-right: 0px;
 }
 
