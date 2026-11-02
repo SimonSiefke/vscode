@@ -2119,7 +2119,7 @@ export class CollapsedCellOverlayWidget extends Disposable implements IDiffCellM
 				role: 'button',
 				onclick: () => { this._action.fire(); }
 			},
-				...renderLabelWithIcons('$(unfold)'))]
+				...renderLabelWithIcons('$(unfold)', undefined, 'notebook-diff-collapse-glyph'))]
 		),
 	]);
 
@@ -2158,7 +2158,7 @@ export class UnchangedCellOverlayWidget extends Disposable implements IDiffCellM
 				role: 'button',
 				onclick: () => { this._action.fire(); }
 			},
-				...renderLabelWithIcons('$(fold)')
+				...renderLabelWithIcons('$(fold)', undefined, 'notebook-diff-collapse-glyph')
 			),
 		]
 		),

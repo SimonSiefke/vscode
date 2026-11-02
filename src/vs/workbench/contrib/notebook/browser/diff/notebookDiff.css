@@ -458,7 +458,7 @@
 	padding-left: 2px;
 }
 
-.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center span.codicon,
+.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center span.codicon:where(.notebook-diff-collapse-glyph),
 .notebook-text-diff-editor .cell-placeholder-body .text {
 	vertical-align: middle;
 }
