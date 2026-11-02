@@ -45,7 +45,7 @@
 	border-right-width: 0;
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .monaco-dropdown .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item > .monaco-dropdown .action-label.label.extension-action {
 	border-left-width: 0;
 }
 
