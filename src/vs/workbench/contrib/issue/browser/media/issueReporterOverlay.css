@@ -141,7 +141,7 @@
 	max-width: none;
 }
 
-.issue-reporter-floating-bar * {
+.issue-reporter-floating-bar :where(.wizard-floating-drag, .wizard-floating-drag-glyph, .wizard-segmented-btn, .wizard-segmented-main, .wizard-segmented-dropdown, .wizard-segmented-label-part, .wizard-record-btn, .wizard-floating-record-part) {
 	flex-shrink: 0;
 }
 

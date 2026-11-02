@@ -332,7 +332,7 @@ export class IssueReporterOverlay {
 
 		// Drag handle
 		const dragArea = append(this.floatingBar, $('div.wizard-floating-drag'));
-		dragArea.appendChild(renderIcon(Codicon.gripper));
+		dragArea.appendChild(renderIcon(Codicon.gripper, undefined, 'wizard-floating-drag-glyph'));
 
 		// Segmented screenshot button: [Screenshot | options]
 		const segmented = append(this.floatingBar, $('div.wizard-segmented-btn'));
@@ -445,7 +445,7 @@ export class IssueReporterOverlay {
 
 		// Record button
 		if (this.recordingSupported) {
-			this.captureStripRecordBtn = this.disposables.add(new Button(this.floatingBar, { ...defaultButtonStyles, secondary: true, supportIcons: true }));
+			this.captureStripRecordBtn = this.disposables.add(new Button(this.floatingBar, { ...defaultButtonStyles, secondary: true, supportIcons: true, contentClassName: 'wizard-floating-record-part' }));
 			this.captureStripRecordBtn.label = `$(record) ${localize('recordVideo', "Record video")}`;
 			this.captureStripRecordBtn.element.classList.add('wizard-record-btn');
 			this.disposables.add(this.captureStripRecordBtn.onDidClick(() => {
