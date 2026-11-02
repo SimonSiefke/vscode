@@ -4631,12 +4631,6 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		transition: opacity 80ms ease-out;
 	}
 
-	.interactive-item-container.interactive-request .value .chat-request-attachment-cards .chat-attached-context-attachment.image-attachment .chat-attached-context-download-button .codicon {
-		color: var(--vscode-foreground) !important;
-		font-size: var(--vscode-codiconFontSize);
-		margin: 0 !important;
-	}
-
 	.interactive-item-container.interactive-request .value .chat-request-attachment-cards .chat-attached-context-attachment.image-attachment:hover .chat-attached-context-download-button,
 	.interactive-item-container.interactive-request .value .chat-request-attachment-cards .chat-attached-context-attachment.image-attachment:focus-within .chat-attached-context-download-button {
 		visibility: visible;
