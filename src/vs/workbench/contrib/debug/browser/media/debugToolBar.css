@@ -20,7 +20,7 @@
 	margin-right: 4px;
 }
 
-.monaco-workbench .debug-toolbar .monaco-action-bar .action-item.select-container {
+.monaco-workbench .debug-toolbar .monaco-action-bar .select-container.debug-toolbar-action-item {
 	margin-right: 2px;
 }
 
