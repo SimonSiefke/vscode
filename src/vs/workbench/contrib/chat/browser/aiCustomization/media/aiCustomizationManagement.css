@@ -1318,7 +1318,7 @@ per-word capitalization does not survive translation. */
 	flex: 1;
 }
 
-.ai-customization-management-editor .tools-list-search-container .monaco-inputbox {
+.ai-customization-management-editor .tools-list-search-container .tools-list-search-box {
 	width: 100%;
 }
 

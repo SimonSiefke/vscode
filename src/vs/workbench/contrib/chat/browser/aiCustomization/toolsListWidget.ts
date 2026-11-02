@@ -699,6 +699,7 @@ export class ToolsListWidget extends Disposable {
 		this._searchRow = DOM.append(this.element, $('.tools-list-search-and-button-container'));
 		const searchContainer = DOM.append(this._searchRow, $('.tools-list-search-container'));
 		this._searchInput = this._register(new InputBox(searchContainer, this._contextViewService, {
+			inputBoxClassName: 'tools-list-search-box',
 			placeholder: localize('searchPlaceholder', "Type to search..."),
 			inputBoxStyles: defaultInputBoxStyles,
 			ariaLabel: localize('toolsSearchAria', "Search tools"),
