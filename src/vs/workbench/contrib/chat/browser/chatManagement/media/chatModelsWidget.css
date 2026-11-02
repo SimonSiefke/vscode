@@ -258,7 +258,7 @@
 	border-color: var(--vscode-radio-inactiveBorder, transparent);
 }
 
-.models-widget .models-table-container .monaco-table-td .model-capability.active {
+.models-widget .models-table-container .monaco-table-td .active.model-capability {
 	background-color: var(--vscode-toolbar-hoverBackground);
 	opacity: 0.8;
 }
