@@ -162,7 +162,7 @@
 
 .chat-model-hover-warning-text > .chat-model-banner-icon,
 .chat-model-hover-info-text > .chat-model-banner-icon,
-.chat-model-hover-promo-text > .codicon {
+.chat-model-hover-promo-text > .chat-model-banner-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -172,7 +172,7 @@
 }
 
 .chat-model-hover-info-text > .chat-model-banner-icon,
-.chat-model-hover-promo-text > .codicon {
+.chat-model-hover-promo-text > .chat-model-banner-icon {
 	flex-shrink: 0;
 	color: var(--vscode-notificationsInfoIcon-foreground);
 }
