@@ -22,7 +22,7 @@
 		width: calc(100% - 24px);
 	}
 
-	.monaco-list-row {
+	.agent-sessions-tree-row {
 		border-radius: 6px;
 	}
 
