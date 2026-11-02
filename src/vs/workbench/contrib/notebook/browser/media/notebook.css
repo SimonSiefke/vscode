@@ -386,7 +386,7 @@
 
 
 /** Notebook editor background */
-.notebookOverlay .cell-drag-image .cell-editor-container > div {
+.notebookOverlay .cell-drag-image .cell-editor-container > div:where(.notebook-drag-rich-text) {
 	background: var(--vscode-editor-background) !important;
 }
 
