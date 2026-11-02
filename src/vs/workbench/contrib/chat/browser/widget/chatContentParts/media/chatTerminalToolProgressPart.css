@@ -228,7 +228,7 @@
 	display: block;
 }
 
-.chat-terminal-output-container > .monaco-scrollable-element {
+.chat-terminal-output-container > .chat-terminal-output-scrollable {
 	width: 100%;
 	background: inherit;
 }
