@@ -27,6 +27,8 @@ export interface IIconLabelCreationOptions {
 	readonly descriptionContainerClassName?: string;
 	/** Class applied to the name container for component styling. */
 	readonly nameContainerClassName?: string;
+	/** Class applied to highlighted name and description elements at creation. */
+	readonly highlightedLabelClassName?: string;
 	readonly supportHighlights?: boolean;
 	readonly supportDescriptionHighlights?: boolean;
 	readonly supportIcons?: boolean;
@@ -135,7 +137,7 @@ export class IconLabel extends Disposable {
 		}
 
 		if (options?.supportHighlights || options?.supportIcons) {
-			this.nameNode = this._register(new LabelWithHighlights(this.nameContainer, !!options.supportIcons));
+			this.nameNode = this._register(new LabelWithHighlights(this.nameContainer, !!options.supportIcons, options.highlightedLabelClassName));
 		} else {
 			this.nameNode = new Label(this.nameContainer);
 		}
@@ -289,6 +291,9 @@ export class IconLabel extends Disposable {
 			}
 			if (this.creationOptions?.supportDescriptionHighlights) {
 				this.descriptionNode = this._register(new HighlightedLabel(dom.append(descriptionContainer.element, dom.$('span.label-description.monaco-icon-label-description'))));
+				if (this.creationOptions.highlightedLabelClassName) {
+					this.descriptionNode.element.classList.add(this.creationOptions.highlightedLabelClassName);
+				}
 			} else {
 				this.descriptionNode = this._register(new FastLabelNode(dom.append(descriptionContainer.element, dom.$('span.label-description.monaco-icon-label-description'))));
 			}
@@ -368,7 +373,7 @@ class LabelWithHighlights extends Disposable {
 	private options: IIconLabelValueOptions | undefined;
 	private readonly _labelDisposables = this._register(new DisposableStore());
 
-	constructor(private container: HTMLElement, private supportIcons: boolean) {
+	constructor(private container: HTMLElement, private supportIcons: boolean, private readonly highlightedLabelClassName?: string) {
 		super();
 	}
 
@@ -389,6 +394,9 @@ class LabelWithHighlights extends Disposable {
 				this.container.textContent = '';
 				this.container.classList.remove('multiple');
 				this.singleLabel = this._labelDisposables.add(new HighlightedLabel(dom.append(this.container, dom.$('a.label-name.monaco-icon-label-name', { id: options?.domId }))));
+				if (this.highlightedLabelClassName) {
+					this.singleLabel.element.classList.add(this.highlightedLabelClassName);
+				}
 			}
 
 			this.singleLabel.set(label, options?.matches, undefined, options?.labelEscapeNewLines, supportIcons);
@@ -408,6 +416,9 @@ class LabelWithHighlights extends Disposable {
 
 				const name = dom.$('a.label-name.monaco-icon-label-name', { id, 'data-icon-label-count': label.length, 'data-icon-label-index': i, 'role': 'treeitem' });
 				const highlightedLabel = this._labelDisposables.add(new HighlightedLabel(dom.append(this.container, name)));
+				if (this.highlightedLabelClassName) {
+					highlightedLabel.element.classList.add(this.highlightedLabelClassName);
+				}
 				highlightedLabel.set(l, m, undefined, options?.labelEscapeNewLines, supportIcons);
 
 				if (i < label.length - 1) {

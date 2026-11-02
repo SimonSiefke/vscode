@@ -773,7 +773,7 @@
 	flex-grow: 1;
 }
 
-.scm-history-view .history-item-load-more .history-item-placeholder .monaco-highlighted-label {
+.scm-history-view .history-item-load-more .history-item-placeholder .monaco-highlighted-label:where(.scm-history-placeholder-highlighted-label) {
 	display: flex;
 	align-items: center;
 	justify-content: center;

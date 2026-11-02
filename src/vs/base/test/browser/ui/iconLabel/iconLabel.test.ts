@@ -42,6 +42,41 @@ suite('IconLabel', () => {
 		assert.deepStrictEqual({ heights, paddings, namePaddings, descriptionPaddings }, { heights: Array(5).fill('31px'), paddings: Array(5).fill('7px'), namePaddings: Array(5).fill('9px'), descriptionPaddings: Array(4).fill('5px') });
 	});
 
+	test('highlighted creation styling survives scalar, multipart and lazy description updates', () => {
+		const container = $('.icon-label-test');
+		container.style.cssText = 'position: fixed; top: 0; left: 0;';
+		mainWindow.document.body.appendChild(container);
+		disposables.add(toDisposable(() => container.remove()));
+		const style = mainWindow.document.createElement('style');
+		style.textContent = '.icon-label-created-highlight { padding-left: 6px; }';
+		container.appendChild(style);
+		const label = disposables.add(new IconLabel(container, { supportHighlights: true, supportDescriptionHighlights: true, highlightedLabelClassName: 'icon-label-created-highlight' }));
+		const read = () => {
+			const description = label.element.querySelector('.monaco-icon-description-container .monaco-highlighted-label');
+			return {
+				names: Array.from(label.element.querySelectorAll('.monaco-icon-name-container .monaco-highlighted-label'), element => mainWindow.getComputedStyle(element).paddingLeft),
+				description: description ? mainWindow.getComputedStyle(description).paddingLeft : null,
+			};
+		};
+		label.setLabel('one', undefined, { matches: [{ start: 0, end: 1 }] });
+		const states = [read()];
+		label.setLabel(['one', 'two'], undefined, { matches: [{ start: 0, end: 7 }] });
+		states.push(read());
+		label.setLabel('three', 'detail', { matches: [{ start: 1, end: 2 }], descriptionMatches: [{ start: 0, end: 2 }] });
+		states.push(read());
+		label.setLabel(['four', 'five'], 'more', { matches: [{ start: 0, end: 9 }], descriptionMatches: [{ start: 0, end: 2 }] });
+		states.push(read());
+		label.setLabel('final', 'last');
+		states.push(read());
+		assert.deepStrictEqual(states, [
+			{ names: ['6px'], description: null },
+			{ names: ['6px', '6px'], description: null },
+			{ names: ['6px'], description: '6px' },
+			{ names: ['6px', '6px'], description: '6px' },
+			{ names: ['6px'], description: '6px' },
+		]);
+	});
+
 	for (const supportHighlights of [false, true]) {
 		test(`name, suffix and description share state styles (highlights: ${supportHighlights})`, () => {
 			const container = $('.icon-label-test');
