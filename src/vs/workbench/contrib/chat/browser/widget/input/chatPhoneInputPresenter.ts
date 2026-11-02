@@ -208,12 +208,12 @@ export class MobileChatInputCombinedPickerActionItem extends BaseActionViewItem 
 		const currentMode = this._modeDelegate.currentMode.get();
 		const modeIcon = currentMode.icon.get();
 		if (modeIcon) {
-			dom.append(trigger, renderIcon(modeIcon));
+			dom.append(trigger, renderIcon(modeIcon, undefined, 'chat-input-picker-glyph'));
 		}
 
 		const currentModel = this._modelDelegate.currentModel.get();
 		if (currentModel && this._modelDelegate.getPresentationOptions().showModelIcon) {
-			dom.append(trigger, renderIcon(getModelProviderIcon(currentModel)));
+			dom.append(trigger, renderIcon(getModelProviderIcon(currentModel), undefined, 'chat-input-picker-glyph'));
 		}
 		const labelText = currentModel?.metadata.name
 			?? localize('chatPhoneInput.autoLabel', "Auto");

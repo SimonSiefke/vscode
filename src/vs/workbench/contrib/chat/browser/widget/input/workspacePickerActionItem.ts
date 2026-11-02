@@ -112,7 +112,7 @@ export class WorkspacePickerActionItem extends ChatInputPickerActionViewItem {
 		const compact = this.pickerOptions.compact.get();
 		element.classList.toggle('icon-only', compact);
 
-		labelElements.push(...renderLabelWithIcons(`$(folder-compact)`));
+		labelElements.push(...renderLabelWithIcons(`$(folder-compact)`, undefined, 'chat-input-picker-glyph'));
 		if (!compact) {
 			labelElements.push(dom.$('span.chat-input-picker-label', undefined, label));
 		}

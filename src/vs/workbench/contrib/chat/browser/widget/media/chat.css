@@ -2083,7 +2083,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 				margin-left: 6px;
 			}
 
-			.codicon {
+			.chat-input-picker-glyph {
 				font-size: var(--vscode-codiconFontSize-compact);
 			}
 		}

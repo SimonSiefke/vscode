@@ -154,7 +154,7 @@ export class AgentHostFolderPickerActionItem extends ChatInputPickerActionViewIt
 		element.classList.toggle('icon-only', compact);
 		dom.reset(
 			element,
-			...renderLabelWithIcons(`$(folder-compact)`),
+			...renderLabelWithIcons(`$(folder-compact)`, undefined, 'chat-input-picker-glyph'),
 			...(!compact ? [dom.$('span.chat-input-picker-label', undefined, label)] : []),
 		);
 		// Set the aria label after the visible text is in place: the base class

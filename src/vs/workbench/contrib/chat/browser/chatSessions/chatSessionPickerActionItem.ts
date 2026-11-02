@@ -247,7 +247,7 @@ export class ChatSessionPickerActionItem extends ActionWidgetDropdownActionViewI
 		element.classList.toggle('icon-only', compact && !!this.currentOption?.icon);
 
 		if (this.currentOption?.icon) {
-			domChildren.push(renderIcon(getCompactCodicon(this.currentOption.icon)));
+			domChildren.push(renderIcon(getCompactCodicon(this.currentOption.icon), undefined, 'chat-input-picker-glyph'));
 		}
 
 		if (!isDefaultWithIcon && (!compact || !this.currentOption?.icon)) {
