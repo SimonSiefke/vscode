@@ -146,7 +146,7 @@
 	color: var(--vscode-problemsInfoIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.info .codicon {
+.agent-host-chat-input-picker-slot .action-label.info .agent-host-picker-icon {
 	color: var(--vscode-problemsInfoIcon-foreground) !important;
 }
 
