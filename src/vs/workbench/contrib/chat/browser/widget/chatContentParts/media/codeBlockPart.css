@@ -164,7 +164,7 @@
 		box-sizing: border-box;
 		border-bottom: solid 1px var(--vscode-chat-requestBorder);
 
-		& .monaco-icon-label {
+		& .chat-compare-resource-label {
 			flex: 1;
 			min-width: 0;
 
