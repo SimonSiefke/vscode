@@ -160,7 +160,7 @@
 	display: flex;
 }
 
-.extension-list-item > .details > .header-container > .header .sync-ignored > .codicon {
+.extension-list-item > .details > .header-container > .header .sync-ignored > .codicon:where(.extension-sync-ignored) {
 	font-size: 100%;
 }
 
