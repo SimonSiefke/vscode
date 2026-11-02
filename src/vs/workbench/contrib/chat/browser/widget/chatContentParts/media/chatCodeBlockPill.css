@@ -82,7 +82,11 @@
 			display: block;
 		}
 
-		.icon, .icon-label, .label-detail, span.label-added, span.label-removed {
+		.icon:where(.chat-file-reference-icon),
+		.icon-label,
+		.label-detail,
+		span.label-added,
+		span.label-removed {
 			position: relative;
 			z-index: 1;
 		}
