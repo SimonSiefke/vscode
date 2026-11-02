@@ -627,7 +627,7 @@
 	visibility: hidden;
 }
 
-.customization-discovery-result-stats .codicon {
+.customization-discovery-result-stats .codicon:where(.customization-discovery-stats-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 

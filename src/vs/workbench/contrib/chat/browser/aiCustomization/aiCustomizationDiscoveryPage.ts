@@ -828,7 +828,7 @@ class DiscoveryResultRenderer implements IListRenderer<DiscoveryListEntry, IDisc
 			if (element.resource.stars !== undefined) {
 				const starsLabel = localize('customizationDiscovery.stars', "{0} stars", element.resource.stars.toLocaleString());
 				templateData.stats.setAttribute('aria-label', starsLabel);
-				const star = DOM.append(templateData.stats, $('.codicon'));
+				const star = DOM.append(templateData.stats, $('.codicon.customization-discovery-stats-glyph'));
 				star.classList.add(...ThemeIcon.asClassNameArray(Codicon.starFull));
 				star.setAttribute('aria-hidden', 'true');
 				DOM.append(templateData.stats, $('span')).textContent = formatCompactCount(element.resource.stars);
