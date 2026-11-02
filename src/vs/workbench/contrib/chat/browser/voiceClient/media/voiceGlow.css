@@ -221,7 +221,7 @@
 .hc-black :where(.voice-glow-rim) > .voice-glow-rim-layer,
 .hc-light .voice-glow-rim::before,
 .hc-light .voice-glow-rim::after,
-.hc-light .voice-glow-rim > * {
+.hc-light :where(.voice-glow-rim) > .voice-glow-rim-layer {
 	display: none;
 }
 
