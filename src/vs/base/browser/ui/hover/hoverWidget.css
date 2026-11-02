@@ -201,7 +201,7 @@
 	user-select: none;
 }
 
-.monaco-hover-content .action-container.disabled {
+.monaco-hover-content .disabled.action-container {
 	pointer-events: none;
 	opacity: 0.4;
 	cursor: default;
