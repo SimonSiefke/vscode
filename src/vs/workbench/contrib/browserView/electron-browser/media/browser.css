@@ -248,7 +248,7 @@
 			}
 		}
 
-		&.visible {
+		&.visible:where(.browser-link-opened-hint-pill) {
 			display: flex;
 		}
 
