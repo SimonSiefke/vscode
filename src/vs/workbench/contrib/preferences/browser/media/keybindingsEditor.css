@@ -162,7 +162,7 @@
 	cursor: pointer;
 }
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row:not(.focused):not(.selected) .monaco-table-tr .monaco-table-td .source a {
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row:not(.focused):not(.selected) .monaco-table-tr .monaco-table-td .source a:where(.extension-label) {
 	color: var(--vscode-textLink-foreground);
 }
 
