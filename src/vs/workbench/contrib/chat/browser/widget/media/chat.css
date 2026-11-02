@@ -2094,7 +2094,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	}
 }
 
-.interactive-session .chat-secondary-toolbar .chat-input-picker-item .action-label {
+.interactive-session .chat-secondary-toolbar .chat-input-picker-item .action-label:where(.chat-input-picker-trigger) {
 	box-sizing: border-box;
 	height: var(--chat-input-control-height);
 	padding: 0 var(--vscode-spacing-size60);
