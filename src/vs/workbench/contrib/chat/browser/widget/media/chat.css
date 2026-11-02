@@ -1900,7 +1900,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	background-color: var(--vscode-list-focusBackground);
 }
 
-.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-item > .todo-status-icon.codicon {
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-item > .codicon.todo-status-icon {
 	flex-shrink: 0;
 	font-size: var(--vscode-codiconFontSize);
 }
