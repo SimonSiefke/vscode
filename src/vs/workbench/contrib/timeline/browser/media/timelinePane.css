@@ -31,7 +31,7 @@
 	height: 22px;
 }
 
-.timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item.timeline-item-editing > .monaco-inputbox > .ibwrapper > .input {
+.timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item.timeline-item-editing > .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0;
 	height: 20px;
 }
