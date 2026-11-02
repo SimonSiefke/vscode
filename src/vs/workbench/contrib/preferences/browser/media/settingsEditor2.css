@@ -712,7 +712,7 @@
 }
 
 .monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a:where(.select-box-description-node),
-.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a > code {
+.monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown a > code:where(.select-box-description-node) {
 	color: var(--vscode-textLink-foreground);
 }
 
