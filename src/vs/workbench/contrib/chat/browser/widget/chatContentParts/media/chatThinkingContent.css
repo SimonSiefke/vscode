@@ -912,7 +912,7 @@
 	background: var(--vscode-editor-background);
 }
 
-.monaco-reduce-motion .chat-thinking-fixed-mode > .monaco-scrollable-element,
+.monaco-reduce-motion .chat-thinking-fixed-mode > .chat-thinking-content-scrollable,
 .monaco-workbench.monaco-reduce-motion .chat-thinking-fixed-mode > .monaco-scrollable-element {
 	transition: none !important;
 }
