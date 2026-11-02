@@ -1837,11 +1837,6 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	outline-offset: 1px;
 }
 
-.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button .codicon {
-	font-size: var(--vscode-codiconFontSize-compact);
-	color: var(--vscode-foreground);
-}
-
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .expand-icon {
 	flex-shrink: 0;
