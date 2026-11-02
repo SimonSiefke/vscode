@@ -323,6 +323,7 @@ class SeparatorRenderer<T> implements IListRenderer<IActionListItem<T>, ISeparat
 		container.classList.add('separator');
 
 		const text = document.createElement('span');
+		text.classList.add('action-list-separator-text');
 		container.append(text);
 		const badges = dom.append(container, dom.$('span.action-item-additional-badges', { 'aria-hidden': 'true' }));
 		const detail = dom.append(container, dom.$('span.detail'));

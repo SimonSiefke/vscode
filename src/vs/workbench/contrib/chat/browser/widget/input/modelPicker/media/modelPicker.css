@@ -619,7 +619,7 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row.separator.has-detail > span {
+.action-widget .chat-model-picker-tabbed .monaco-list-row.separator.has-detail > span:where(.action-list-separator-text, .action-item-additional-badges, .detail) {
 	display: block;
 	height: auto;
 	line-height: 1.4;
