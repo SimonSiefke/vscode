@@ -19,7 +19,7 @@
 	right: 2px;
 }
 
-.vs .monaco-findInput.disabled {
+.vs .disabled.monaco-findInput {
 	background-color: #E1E1E1;
 }
 
