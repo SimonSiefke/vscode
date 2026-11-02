@@ -3101,7 +3101,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		width: 100%;
 	}
 
-	.checkpoint-file-changes-summary-header .chat-file-changes-label .monaco-button .codicon {
+	.checkpoint-file-changes-summary-header .chat-file-changes-label .monaco-button .codicon:where(.chat-file-changes-button-glyph) {
 		font-size: var(--vscode-codiconFontSize);
 	}
 
