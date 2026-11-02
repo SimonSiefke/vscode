@@ -191,6 +191,7 @@ export class QuickInputController extends Disposable {
 
 		const rightActionBar = this._register(new ToolBar(titleBar, this.contextMenuService, {
 			actionsContainerClassName: 'quick-input-right-actions',
+			actionItemClassName: 'quick-input-right-action-item',
 			hoverDelegate: this.options.hoverDelegate,
 			actionViewItemProvider: createToggleActionViewItemProvider(this.styles.toggle),
 			icon: true,

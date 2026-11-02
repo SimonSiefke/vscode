@@ -59,11 +59,11 @@ suite('ToolBar', () => {
 
 	test('component styling survives replacing actions and stays local to its toolbar', () => {
 		const style = document.createElement('style');
-		style.textContent = '.test-toolbar-actions { gap: 11px; } .test-toolbar-action-bar { line-height: 31px; }';
+		style.textContent = '.test-toolbar-actions { gap: 11px; } .test-toolbar-action-bar { line-height: 31px; } .test-toolbar-action-item { margin-right: 9px; }';
 		container.appendChild(style);
 		const first = store.add(new Action('first', 'First'));
 		const second = store.add(new Action('second', 'Second'));
-		const toolbar = store.add(new ToolBar(container, contextMenuProvider, { actionsContainerClassName: 'test-toolbar-actions', actionBarClassName: 'test-toolbar-action-bar' }));
+		const toolbar = store.add(new ToolBar(container, contextMenuProvider, { actionsContainerClassName: 'test-toolbar-actions', actionBarClassName: 'test-toolbar-action-bar', actionItemClassName: 'test-toolbar-action-item' }));
 		const other = store.add(new ToolBar(container, contextMenuProvider));
 		toolbar.setActions([first]);
 		other.setActions([second]);
@@ -75,6 +75,8 @@ suite('ToolBar', () => {
 		const actionBar = actions.parentElement!;
 		const beforeLineHeight = targetWindow.getComputedStyle(actionBar).lineHeight;
 		const otherLineHeight = targetWindow.getComputedStyle(otherActions.parentElement!).lineHeight;
+		const beforeItemMargin = targetWindow.getComputedStyle(toolbar.getItemElement(0)!).marginRight;
+		const otherItemMargin = targetWindow.getComputedStyle(other.getItemElement(0)!).marginRight;
 		toolbar.setActions([]);
 		toolbar.setActions([second]);
 		assert.deepStrictEqual({
@@ -86,7 +88,15 @@ suite('ToolBar', () => {
 			afterLineHeight: targetWindow.getComputedStyle(actionBar).lineHeight,
 			otherLineHeightUnchanged: targetWindow.getComputedStyle(otherActions.parentElement!).lineHeight === otherLineHeight,
 			otherHasOwnLineHeight: otherLineHeight !== '31px',
-		}, { before: '11px', after: '11px', otherUnchanged: true, otherHasOwnGap: true, beforeLineHeight: '31px', afterLineHeight: '31px', otherLineHeightUnchanged: true, otherHasOwnLineHeight: true });
+			beforeItemMargin,
+			afterItemMargin: targetWindow.getComputedStyle(toolbar.getItemElement(0)!).marginRight,
+			otherItemMarginUnchanged: targetWindow.getComputedStyle(other.getItemElement(0)!).marginRight === otherItemMargin,
+			otherHasOwnItemMargin: otherItemMargin !== '9px',
+		}, {
+			before: '11px', after: '11px', otherUnchanged: true, otherHasOwnGap: true,
+			beforeLineHeight: '31px', afterLineHeight: '31px', otherLineHeightUnchanged: true, otherHasOwnLineHeight: true,
+			beforeItemMargin: '9px', afterItemMargin: '9px', otherItemMarginUnchanged: true, otherHasOwnItemMargin: true,
+		});
 	});
 
 	test('only updates current dropdown contexts after repeated responsive overflow', () => {

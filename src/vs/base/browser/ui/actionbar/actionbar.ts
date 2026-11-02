@@ -43,6 +43,8 @@ export interface ActionTrigger {
 export interface IActionBarOptions {
 	/** Class applied to the action bar root for component styling. */
 	readonly className?: string;
+	/** Class applied to each action item wrapper for component styling. */
+	readonly actionItemClassName?: string;
 	readonly orientation?: ActionsOrientation;
 	readonly context?: unknown;
 	readonly actionViewItemProvider?: IActionViewItemProvider;
@@ -393,6 +395,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 			item.actionRunner = this._actionRunner;
 			item.setActionContext(this.context);
 			item.render(actionViewItemElement);
+			if (this.options.actionItemClassName) {
+				actionViewItemElement.classList.add(this.options.actionItemClassName);
+			}
 			if (options.itemClassName) {
 				actionViewItemElement.classList.add(options.itemClassName);
 			}

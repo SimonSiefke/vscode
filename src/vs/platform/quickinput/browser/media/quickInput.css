@@ -133,7 +133,7 @@
 	justify-content: flex-end;
 }
 
-.quick-input-right-action-bar .actions-container > .action-item {
+.quick-input-right-action-bar .actions-container > .quick-input-right-action-item {
 	margin-left: 4px;
 }
 
