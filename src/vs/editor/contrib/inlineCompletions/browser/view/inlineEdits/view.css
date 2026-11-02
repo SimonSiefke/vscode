@@ -37,10 +37,6 @@
 			transition: opacity 0.2s ease-in-out;
 			transition-delay: 0.4s;
 		}
-
-		&.visible {
-			opacity: 1;
-		}
 	}
 
 	.inline-edits-view .editorContainer {
