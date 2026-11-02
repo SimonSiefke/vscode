@@ -90,7 +90,7 @@
 .quick-input-widget.no-drag .quick-input-header {
 	cursor: default;
 }
-.quick-input-widget .monaco-inputbox .monaco-action-bar {
+.quick-input-widget .monaco-inputbox .monaco-action-bar:where(.inputbox-action-bar) {
 	top: 0;
 }
 
