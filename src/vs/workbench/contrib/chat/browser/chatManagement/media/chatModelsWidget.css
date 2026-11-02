@@ -173,7 +173,7 @@
 	gap: 4px;
 }
 
-.models-widget .models-table-container .monaco-table-td .model-name-container .model-deprecation-link .monaco-link .model-deprecation-link-label .codicon {
+.models-widget .models-table-container .monaco-table-td .model-name-container .model-deprecation-link .monaco-link .model-deprecation-link-label .model-deprecation-link-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
