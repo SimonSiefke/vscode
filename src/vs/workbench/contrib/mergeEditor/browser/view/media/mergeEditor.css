@@ -63,7 +63,7 @@
 	opacity: .5;
 	padding-right: 3px;
 }
-.monaco-workbench .merge-editor .code-view.input > .header > span.detail {
+.monaco-workbench .merge-editor .code-view.input > .header > span.merge-editor-header-detail {
 	margin-left: 0;
 }
 .monaco-workbench .merge-editor .code-view.input > .header > span.toolbar {
