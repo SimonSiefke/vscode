@@ -43,7 +43,7 @@
 	gap: 6px;
 }
 
-.chat-editor-overlay-widget .chat-editor-overlay-progress > .codicon {
+.chat-editor-overlay-widget .chat-editor-overlay-progress > .codicon:where(.chat-editor-progress-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 

@@ -131,7 +131,7 @@ class ChatEditorOverlayWidget extends Disposable {
 
 		const progressNode = document.createElement('div');
 		progressNode.classList.add('chat-editor-overlay-progress');
-		append(progressNode, renderIcon(ThemeIcon.modify(Codicon.loadingCompact, 'spin')));
+		append(progressNode, renderIcon(ThemeIcon.modify(Codicon.loadingCompact, 'spin'), undefined, 'chat-editor-progress-glyph'));
 		const textProgress = append(progressNode, $('span.progress-message'));
 		this._domNode.appendChild(progressNode);
 
