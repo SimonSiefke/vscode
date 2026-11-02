@@ -586,7 +586,7 @@
 }
 
 .scm-repositories-view .scm-artifact-group .scm-artifact-label,
-.scm-repositories-view .scm-artifact .monaco-icon-label {
+.scm-repositories-view .scm-artifact .scm-artifact-label {
 	flex-grow: 1;
 }
 
