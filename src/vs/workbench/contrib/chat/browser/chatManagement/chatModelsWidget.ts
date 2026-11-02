@@ -497,7 +497,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 			class: `model-visibility-toggle ${ThemeIcon.asClassName(hidden ? Codicon.eyeClosed : Codicon.eye)}`,
 			enabled: true,
 			run: () => this.viewModel.toggleGroupHidden(entry),
-		}, { icon: true, label: false });
+		}, { icon: true, label: false, itemClassName: 'model-visibility-toggle-item' });
 	}
 
 	private renderModelVisibilityElement(entry: ILanguageModelEntry, templateData: IToggleCollapseColumnTemplateData): void {
@@ -513,7 +513,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 			class: `model-visibility-toggle ${ThemeIcon.asClassName(hidden ? Codicon.eyeClosed : Codicon.eye)}`,
 			enabled: true,
 			run: () => this.viewModel.toggleModelHidden(entry),
-		}, { icon: true, label: false });
+		}, { icon: true, label: false, itemClassName: 'model-visibility-toggle-item' });
 	}
 }
 

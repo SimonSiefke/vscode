@@ -317,7 +317,7 @@
 	visibility: hidden;
 }
 
-.models-widget .models-table-container .models-gutter-column .monaco-action-bar .action-item:has(.model-visibility-toggle) {
+.models-widget .models-table-container .models-gutter-column .monaco-action-bar .action-item.model-visibility-toggle-item {
 	margin-right: 4px;
 }
 

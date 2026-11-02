@@ -65,6 +65,8 @@ export interface IActionBarOptions {
 }
 
 export interface IActionOptions extends IActionViewItemOptions {
+	/** Class applied to the action item wrapper for component styling. */
+	readonly itemClassName?: string;
 	index?: number;
 }
 
@@ -391,6 +393,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 			item.actionRunner = this._actionRunner;
 			item.setActionContext(this.context);
 			item.render(actionViewItemElement);
+			if (options.itemClassName) {
+				actionViewItemElement.classList.add(options.itemClassName);
+			}
 
 			if (index === null || index < 0 || index >= this.actionsList.children.length) {
 				this.actionsList.appendChild(actionViewItemElement);
