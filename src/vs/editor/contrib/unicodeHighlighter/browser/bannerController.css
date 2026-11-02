@@ -80,6 +80,6 @@
 	color: var(--vscode-banner-foreground);
 }
 
-.editor-banner .icon-container .codicon {
+.editor-banner .icon-container .codicon:where(.editor-banner-main-glyph) {
 	color: var(--vscode-banner-iconForeground);
 }
