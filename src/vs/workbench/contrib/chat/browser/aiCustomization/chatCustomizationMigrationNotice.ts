@@ -93,7 +93,7 @@ export class ChatCustomizationMigrationNotice extends Disposable {
 					.catch(error => this.logService.error('Failed to open customization migrations', error));
 			},
 		}));
-		const actions = this._register(new ActionBar(this.element));
+		const actions = this._register(new ActionBar(this.element, { className: 'customization-migration-action-bar' }));
 		actions.push(this._register(new Action(
 			'chatCustomizationMigrationNotice.dismiss',
 			localize('dismissMigrationNotice', "Dismiss Migration Notice for This Workspace"),
