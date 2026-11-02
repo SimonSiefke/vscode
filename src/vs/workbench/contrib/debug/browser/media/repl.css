@@ -11,13 +11,13 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-contents,
+.monaco-workbench .repl .repl-tree .debug-repl-tree-contents,
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie {
 	user-select: text;
 	-webkit-user-select: text;
 }
 
-.monaco-workbench .repl .repl-tree .monaco-tl-contents {
+.monaco-workbench .repl .repl-tree .debug-repl-tree-contents {
 	white-space: pre;
 }
 

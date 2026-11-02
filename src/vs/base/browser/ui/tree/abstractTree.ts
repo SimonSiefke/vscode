@@ -360,6 +360,7 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 	private indentGuidesDisposable: IDisposable = Disposable.None;
 
 	private readonly disposables = new DisposableStore();
+	private readonly contentsClassName: string | undefined;
 
 	constructor(
 		private readonly renderer: ITreeRenderer<T, TFilterData, TTemplateData>,
@@ -367,9 +368,10 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 		onDidChangeCollapseState: Event<ICollapseStateChangeEvent<T, TFilterData>>,
 		private readonly activeNodes: Collection<ITreeNode<T, TFilterData>>,
 		private readonly renderedIndentGuides: SetMap<ITreeNode<T, TFilterData>, HTMLDivElement>,
-		options: ITreeRendererOptions<T> = {}
+		options: IAbstractTreeOptions<T, TFilterData> = {}
 	) {
 		this.templateId = renderer.templateId;
+		this.contentsClassName = options.contentsClassName;
 		this.updateOptions(options);
 
 		Event.map(onDidChangeCollapseState, e => e.node)(this.onDidChangeNodeTwistieState, this, this.disposables);
@@ -434,6 +436,9 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 		const indent = append(el, $('.monaco-tl-indent'));
 		const twistie = append(el, $('.monaco-tl-twistie'));
 		const contents = append(el, $('.monaco-tl-contents'));
+		if (this.contentsClassName) {
+			contents.classList.add(this.contentsClassName);
+		}
 		const templateData = this.renderer.renderTemplate(contents);
 
 		return { container, indent, twistie, indentGuidesDisposable: Disposable.None, indentSize: 0, templateData };
@@ -2389,6 +2394,8 @@ export interface IAbstractTreeOptionsUpdate<T> extends ITreeRendererOptions<T> {
 }
 
 export interface IAbstractTreeOptions<T, TFilterData = void> extends IAbstractTreeOptionsUpdate<T>, IListOptions<T> {
+	/** Class applied to each contents element at template creation, before the renderer runs. */
+	readonly contentsClassName?: string;
 	readonly contextViewProvider?: IContextViewProvider;
 	readonly collapseByDefault?: boolean; // defaults to false
 	readonly allowNonCollapsibleParents?: boolean; // defaults to false

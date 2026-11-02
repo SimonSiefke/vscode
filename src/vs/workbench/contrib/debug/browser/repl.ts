@@ -679,6 +679,7 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 			this.replDataSource,
 			{
 				filter: this.filter,
+				contentsClassName: 'debug-repl-tree-contents',
 				accessibilityProvider: new ReplAccessibilityProvider(),
 				identityProvider,
 				userSelection: true,
