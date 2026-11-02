@@ -64,7 +64,7 @@
 	white-space: pre
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents.category {
+.monaco-workbench .bulk-edit-panel .category.bulk-edit-tree-contents {
 	display: flex;
 	flex: 1;
 	flex-flow: row nowrap;
