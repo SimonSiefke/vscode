@@ -1523,7 +1523,7 @@ export class GettingStartedPage extends EditorPane {
 					if (keybinding) {
 						const shortcutMessage = $('span.shortcut-message', {}, localize('gettingStarted.keyboardTip', 'Tip: Use keyboard shortcut '));
 						container.appendChild(shortcutMessage);
-						const label = new KeybindingLabel(shortcutMessage, OS, { ...defaultKeybindingLabelStyles });
+						const label = new KeybindingLabel(shortcutMessage, OS, { ...defaultKeybindingLabelStyles, keyClassName: 'getting-started-shortcut-key' });
 						label.set(keybinding);
 						this.detailsPageDisposables.add(label);
 					}

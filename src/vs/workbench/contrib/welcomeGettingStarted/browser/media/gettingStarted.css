@@ -538,7 +538,7 @@
 	font-weight: 600;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .shortcut-message .monaco-keybinding > .monaco-keybinding-key {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .shortcut-message .monaco-keybinding > .monaco-keybinding-key:where(.getting-started-shortcut-key) {
 	display: inline-block;
 	border-style: solid;
 	border-width: 1px;
