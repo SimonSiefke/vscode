@@ -305,7 +305,7 @@
 	max-width: 100%;
 }
 
-.workbench-suggest-widget .monaco-list .monaco-list-row.string-label > .contents > .main > .left > .monaco-icon-label {
+.workbench-suggest-widget .monaco-list .monaco-list-row.string-label > .contents > .main > .left > .workbench-suggest-item-label {
 	flex-shrink: 1;
 }
 
