@@ -18,7 +18,7 @@
 	z-index: 5000;
 }
 
-.scm-view .monaco-tl-contents > div {
+.scm-view :where(.monaco-tl-contents) > div.scm-tree-item {
 	padding-right: 12px;
 	overflow: hidden;
 }

@@ -89,7 +89,7 @@ export class RepositoryRenderer implements ICompressibleTreeRenderer<ISCMReposit
 	}
 
 	renderTemplate(container: HTMLElement): RepositoryTemplate {
-		const provider = append(container, $('.scm-provider'));
+		const provider = append(container, $('.scm-provider.scm-tree-item'));
 		const icon = append(provider, $('.icon'));
 		const label = new IconLabel(provider, { extraClasses: ['scm-provider-label'], nameContainerClassName: 'scm-provider-name', supportIcons: false });
 

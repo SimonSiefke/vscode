@@ -94,7 +94,7 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 	) { }
 
 	renderTemplate(container: HTMLElement): ArtifactGroupTemplate {
-		const element = append(container, $('.scm-artifact-group'));
+		const element = append(container, $('.scm-artifact-group.scm-tree-item'));
 		const icon = append(element, $('.icon'));
 		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 
@@ -161,7 +161,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	) { }
 
 	renderTemplate(container: HTMLElement): ArtifactTemplate {
-		const element = append(container, $('.scm-artifact'));
+		const element = append(container, $('.scm-artifact.scm-tree-item'));
 		const icon = append(element, $('.icon'));
 		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 

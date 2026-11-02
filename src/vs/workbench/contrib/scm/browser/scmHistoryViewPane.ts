@@ -459,7 +459,7 @@ class HistoryItemRenderer implements ICompressibleTreeRenderer<SCMHistoryItemVie
 	}
 
 	renderTemplate(container: HTMLElement): HistoryItemTemplate {
-		const element = append(container, $('.history-item'));
+		const element = append(container, $('.history-item.scm-tree-item'));
 		const graphContainer = append(element, $('.graph-container'));
 		const iconLabel = new IconLabel(element, {
 			extraClasses: ['scm-history-label'], supportIcons: true, supportHighlights: true, supportDescriptionHighlights: true
@@ -673,7 +673,7 @@ class HistoryItemChangeRenderer implements ICompressibleTreeRenderer<SCMHistoryI
 
 	renderTemplate(container: HTMLElement): HistoryItemChangeTemplate {
 		const rowElement = container.parentElement! as HTMLElement;
-		const element = append(container, $('.history-item-change'));
+		const element = append(container, $('.history-item-change.scm-tree-item'));
 		const graphPlaceholder = append(element, $('.graph-placeholder'));
 
 		const labelContainer = append(element, $('.label-container'));
@@ -770,7 +770,7 @@ class HistoryItemLoadMoreRenderer implements ICompressibleTreeRenderer<SCMHistor
 	) { }
 
 	renderTemplate(container: HTMLElement): LoadMoreTemplate {
-		const element = append(container, $('.history-item-load-more'));
+		const element = append(container, $('.history-item-load-more.scm-tree-item'));
 		const graphPlaceholder = append(element, $('.graph-placeholder'));
 		const historyItemPlaceholderContainer = append(element, $('.history-item-placeholder'));
 		const historyItemPlaceholderLabel = new IconLabel(historyItemPlaceholderContainer, { supportIcons: true });
