@@ -116,7 +116,7 @@ class NavBar extends Disposable {
 		action.tooltip = tooltip;
 
 		this.actions.push(action);
-		this.actionbar.push(action);
+		this.actionbar.push(action, { labelClassName: 'extension-navbar-action-label' });
 
 		if (this.actions.length === 1) {
 			this.update(id);
