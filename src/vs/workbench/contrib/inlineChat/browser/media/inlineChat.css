@@ -243,7 +243,7 @@
 	display: none;
 }
 
-.monaco-workbench .inline-chat .status .label.error {
+.monaco-workbench .inline-chat .status .label:where(.inline-chat-status-label).error {
 	color: var(--vscode-errorForeground);
 }
 
