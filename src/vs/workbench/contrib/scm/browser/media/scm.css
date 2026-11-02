@@ -702,7 +702,7 @@
 }
 
 .monaco-toolbar .action-label.scm-graph-repository-picker .codicon:where(.scm-repository-picker-glyph),
-.monaco-toolbar .action-label.scm-graph-history-item-picker .codicon {
+.monaco-toolbar .action-label.scm-graph-history-item-picker .codicon:where(.scm-history-picker-glyph) {
 	color: inherit;
 }
 

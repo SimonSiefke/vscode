@@ -123,7 +123,7 @@ class SCMHistoryItemRefsActionViewItem extends ActionViewItem {
 		if (this.options.label && this.label) {
 			this.label.classList.add('scm-graph-history-item-picker');
 
-			const icon = $('.icon');
+			const icon = $('.icon.scm-history-picker-glyph');
 			icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.gitBranch));
 
 			const name = $('.name');
