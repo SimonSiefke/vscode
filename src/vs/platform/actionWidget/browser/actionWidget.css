@@ -399,7 +399,7 @@
 	text-overflow: ellipsis;
 }
 
-.action-widget .monaco-list-row.action .action-list-item-toggle-info.codicon {
+.action-widget .monaco-list-row.action .codicon.action-list-item-toggle-info {
 	flex-shrink: 0;
 	margin-left: 6px;
 	font-size: 12px;
