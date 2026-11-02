@@ -158,7 +158,7 @@ export class ChatViewWelcomePart extends Disposable {
 			}
 			if (content.icon) {
 				if (ThemeIcon.isThemeIcon(content.icon)) {
-					const iconElement = renderIcon(content.icon);
+					const iconElement = renderIcon(content.icon, undefined, 'chat-welcome-view-glyph');
 					icon.appendChild(iconElement);
 				} else if (URI.isUri(content.icon)) {
 					const cssUrl = asCSSUrl(content.icon);

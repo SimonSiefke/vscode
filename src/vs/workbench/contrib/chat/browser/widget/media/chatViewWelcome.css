@@ -99,7 +99,7 @@ div.chat-welcome-view {
 		min-height: 40px;
 	}
 
-	& > .chat-welcome-view-icon .codicon {
+	& > .chat-welcome-view-icon .codicon:where(.chat-welcome-view-glyph) {
 		color: var(--vscode-descriptionForeground);
 		font-size: 40px;
 		margin-bottom: 24px;
