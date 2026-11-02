@@ -325,7 +325,7 @@ export abstract class AbstractListSettingWidget<TDataItem extends object> extend
 		const actionBar = new ActionBar(rowElement, { className: 'setting-list-row-action-bar' });
 		this.listDisposables.add(actionBar);
 
-		actionBar.push(this.getActionsForItem(item, idx), { icon: true, label: true });
+		actionBar.push(this.getActionsForItem(item, idx), { icon: true, label: true, labelClassName: 'setting-list-row-action-label' });
 		this.addTooltipsToRow(rowElementGroup, item);
 
 		if (item.selected && listFocused) {
