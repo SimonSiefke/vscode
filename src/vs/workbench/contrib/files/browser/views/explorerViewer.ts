@@ -871,7 +871,7 @@ export class FilesRenderer implements ICompressibleTreeRenderer<ExplorerItem, Fu
 
 	renderTemplate(container: HTMLElement): IFileTemplateData {
 		const templateDisposables = new DisposableStore();
-		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true, nameContainerClassName: 'explorer-item-name' }));
+		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true, nameContainerClassName: 'explorer-item-name', highlightedLabelClassName: 'explorer-item-highlighted-label' }));
 		templateDisposables.add(label.onDidRender(() => {
 			// schedule this on the next animation frame to avoid rendering reentry
 			DOM.scheduleAtNextAnimationFrame(DOM.getWindow(templateData.container), () => {

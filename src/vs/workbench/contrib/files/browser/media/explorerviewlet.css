@@ -74,7 +74,7 @@
 	display: inline-block;
 }
 
-.explorer-folders-view .explorer-item .monaco-icon-name-container.multiple > .label-name > .monaco-highlighted-label {
+.explorer-folders-view .explorer-item .monaco-icon-name-container.multiple > .label-name > .explorer-item-highlighted-label {
 	border-radius: 3px;
 }
 
