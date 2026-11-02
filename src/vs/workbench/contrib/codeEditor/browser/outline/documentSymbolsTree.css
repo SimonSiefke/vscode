@@ -16,7 +16,7 @@
 	align-items: center;
 }
 
-.monaco-list .outline-element .monaco-highlighted-label {
+.monaco-list .outline-element .outline-highlighted-label {
 	color: var(--outline-element-color);
 }
 
