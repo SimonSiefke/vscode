@@ -43,11 +43,11 @@
 	.collapse-button {
 		width: 16px;
 		min-height: 1px; /* show even if empty */
-		line-height: 0;
+		line-height: 0
+	}
 
-		a {
-			cursor: pointer;
-		}
+	:where(.collapse-button) a.call-stack-collapse-toggle {
+		cursor: pointer;
 	}
 
 	.actions {

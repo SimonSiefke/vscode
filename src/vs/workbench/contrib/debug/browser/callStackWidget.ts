@@ -383,7 +383,7 @@ abstract class AbstractFrameRenderer<T extends IAbstractFrameRendererTemplateDat
 
 	private setupCollapseButton(item: IFrameLikeItem, { elementStore, elements, collapse }: T) {
 		elementStore.add(autorun(reader => {
-			collapse.element.className = '';
+			collapse.element.className = 'call-stack-collapse-toggle';
 			const collapsed = item.collapsed.read(reader);
 			collapse.icon = collapsed ? Codicon.chevronRight : Codicon.chevronDown;
 			collapse.element.ariaExpanded = String(!collapsed);
