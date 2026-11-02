@@ -36,7 +36,7 @@
 	right: 10px;
 }
 
-.interactive-result-code-block .monaco-toolbar .action-item {
+.interactive-result-code-block .monaco-toolbar .chat-code-block-action-item {
 	height: 24px;
 	width: 24px;
 	margin: 1px 2px;

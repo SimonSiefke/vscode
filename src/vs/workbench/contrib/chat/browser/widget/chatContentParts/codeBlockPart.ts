@@ -218,6 +218,7 @@ export class CodeBlockPart extends Disposable {
 		// blocks, so defer creation until the user actually interacts with
 		// this code block (hover, editor focus, or screen reader mode).
 		this._toolbarFactory = () => editorScopedInstantiationService.createInstance(MenuWorkbenchToolBar, toolbarElement, menuId, {
+			actionItemClassName: 'chat-code-block-action-item',
 			menuOptions: {
 				shouldForwardArgs: true
 			}
@@ -784,6 +785,7 @@ export class CodeCompareBlockPart extends Disposable {
 		const editorScopedService = this._register(this.diffEditor.getModifiedEditor().contextKeyService.createScoped(editorHeader));
 		const editorScopedInstantiationService = this._register(scopedInstantiationService.createChild(new ServiceCollection([IContextKeyService, editorScopedService])));
 		this.toolbar = this._register(editorScopedInstantiationService.createInstance(MenuWorkbenchToolBar, editorHeader, menuId, {
+			actionItemClassName: 'chat-code-block-action-item',
 			menuOptions: {
 				shouldForwardArgs: true
 			}
