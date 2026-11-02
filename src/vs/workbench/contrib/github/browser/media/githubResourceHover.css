@@ -63,7 +63,7 @@
 	color: var(--vscode-testing-iconFailed, var(--vscode-errorForeground));
 }
 
-.sessions-pr-hover-checks[data-status='success'] .codicon {
+.sessions-pr-hover-checks[data-status='success'] .codicon:where(.github-resource-hover-status-icon) {
 	color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
 }
 
