@@ -4708,7 +4708,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		height: 26px;
 	}
 
-	.request-hover.expanded:not(.checkpoints-enabled) {
+	.expanded:not(.checkpoints-enabled).request-hover {
 		width: 50px;
 	}
 
