@@ -375,7 +375,7 @@
 	/* Allow validation errors to flow out of the tree container. Override inline style from ScrollableElement. */
 }
 
-.settings-editor > .settings-body .settings-tree-container .monaco-list-row .monaco-tl-contents {
+.settings-editor > .settings-body .settings-tree-container .monaco-list-row .settings-editor-tree-contents {
 	max-width: min(100%, 1400px);
 	/* We don't want the widgets to be too long */
 	margin: auto;
