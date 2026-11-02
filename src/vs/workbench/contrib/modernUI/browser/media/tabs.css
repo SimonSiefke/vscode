@@ -522,7 +522,7 @@
 	border-right: var(--vscode-strokeThickness) solid transparent;
 }
 
-.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .monaco-action-bar {
+.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .editor-tab-action-bar {
 	width: 24px;
 }
 
