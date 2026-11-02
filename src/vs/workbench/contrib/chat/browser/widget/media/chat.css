@@ -3593,7 +3593,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
 }
 
-.interactive-session .chat-file-changes-label .monaco-button .codicon,
+.interactive-session .chat-file-changes-label .monaco-button .codicon:where(.chat-file-changes-button-glyph),
 .interactive-session .chat-used-context-label .monaco-button .codicon {
 	font-size: var(--vscode-codiconFontSize-compact);
 	color: var(--vscode-icon-foreground) !important;
