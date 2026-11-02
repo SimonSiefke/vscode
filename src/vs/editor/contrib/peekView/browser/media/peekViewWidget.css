@@ -76,7 +76,7 @@
 	position: relative;
 }
 
-.monaco-editor .peekview-widget .head .peekview-title .codicon {
+.monaco-editor .peekview-widget .head .peekview-title .peek-view-title-icon {
 	margin-right: 4px;
 	align-self: center;
 }
