@@ -119,7 +119,7 @@
 	align-items: center;
 }
 
-.monaco-button-dropdown > .monaco-button.monaco-dropdown-button.secondary {
+.monaco-button-dropdown > .monaco-button.secondary.monaco-dropdown-button {
 	border-color: var(--vscode-button-secondaryBorder, var(--vscode-button-border, transparent));
 }
 
