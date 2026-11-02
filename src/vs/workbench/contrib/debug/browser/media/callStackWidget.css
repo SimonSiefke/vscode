@@ -50,7 +50,7 @@
 		cursor: pointer;
 	}
 
-	.actions {
+	.actions:where(.call-stack-frame-actions) {
 		display: flex;
 		align-items: center;
 		gap: 8px;

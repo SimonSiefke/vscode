@@ -312,7 +312,7 @@ const makeFrameElements = () => dom.h('div.multiCallStackFrame', [
 	dom.h('div.header@header', [
 		dom.h('div.collapse-button@collapseButton'),
 		dom.h('div.title.call-stack-frame-title.show-file-icons@title'),
-		dom.h('div.actions@actions'),
+		dom.h('div.actions.call-stack-frame-actions@actions'),
 	]),
 
 	dom.h('div.editorParent', [
