@@ -579,7 +579,7 @@ export class Dialog extends Disposable {
 			}
 
 			if (!this.options.disableCloseAction && !this.options.disableCloseButton) {
-				const actionBar = this._register(new ActionBar(this.toolbarContainer, {}));
+				const actionBar = this._register(new ActionBar(this.toolbarContainer, { actionsContainerClassName: 'dialog-header-actions' }));
 
 				const action = this._register(new Action('dialog.close', localize('dialogClose', "Close Dialog"), ThemeIcon.asClassName(Codicon.dialogClose), true, async () => {
 					resolve({
