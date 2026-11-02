@@ -189,7 +189,8 @@
 	box-shadow: var(--vscode-shadow-sm);
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > :is(.tab.last-tab, .tabs-bar-add-tab) {
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-tab,
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tabs-bar-add-tab.tabs-bar-add-tab {
 	margin-inline-end: var(--last-tab-margin-right); /* Reserve the trailing toolbar region on the final flex item. */
 }
 
