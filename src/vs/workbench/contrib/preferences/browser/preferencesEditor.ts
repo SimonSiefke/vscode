@@ -126,7 +126,7 @@ export class PreferencesEditor extends EditorPane {
 				if (index !== -1) {
 					const action = new PreferenceTabAction(desc, () => this.onDidSelectPreferencesEditorPane(desc.id));
 					this.preferencesTabActions.splice(index, 0, action);
-					this.preferencesTabActionBar.push(action, { index });
+					this.preferencesTabActionBar.push(action, { index, labelClassName: 'preferences-tab-action-label' });
 				}
 			}
 		}

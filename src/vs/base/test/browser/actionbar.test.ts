@@ -21,28 +21,33 @@ suite('Actionbar', () => {
 		document.body.appendChild(container);
 		store.add(toDisposable(() => container.remove()));
 		const style = append(container, $('style'));
-		style.textContent = '.test-styled-action-item { margin-right: 9px; }';
+		style.textContent = '.test-styled-action-item { margin-right: 9px; } .monaco-action-bar .test-styled-action-label { padding-right: 13px; }';
 		const bar = store.add(new ActionBar(container));
 		const action = store.add(new Action('styled', 'Styled', 'initial-icon'));
 		const other = store.add(new Action('other', 'Other'));
-		bar.push(action, { icon: true, label: false, itemClassName: 'test-styled-action-item' });
+		bar.push(action, { icon: true, label: false, itemClassName: 'test-styled-action-item', labelClassName: 'test-styled-action-label' });
 		bar.push(other, { icon: true, label: false });
 		const list = bar.domNode.querySelector('.actions-container')!;
 		const targetWindow = getWindow(container);
 		const margin = (element: Element) => targetWindow.getComputedStyle(element).marginRight;
+		const labelPadding = (element: Element) => targetWindow.getComputedStyle(element.querySelector('.action-label')!).paddingRight;
 		const before = margin(list.children[0]);
+		const beforeLabelPadding = labelPadding(list.children[0]);
 		const otherMargin = margin(list.children[1]);
 		action.class = 'replacement-icon';
 		const updated = margin(list.children[0]);
+		const updatedLabelPadding = labelPadding(list.children[0]);
 		bar.pull(0);
-		bar.push(action, { icon: true, label: false, itemClassName: 'test-styled-action-item' });
+		bar.push(action, { icon: true, label: false, itemClassName: 'test-styled-action-item', labelClassName: 'test-styled-action-label' });
 		assert.deepStrictEqual({
 			before,
 			updated,
 			replaced: margin(list.children[1]),
 			otherUnchanged: margin(list.children[0]) === otherMargin,
 			otherHasOwnMargin: otherMargin !== '9px',
-		}, { before: '9px', updated: '9px', replaced: '9px', otherUnchanged: true, otherHasOwnMargin: true });
+			labelPaddings: [beforeLabelPadding, updatedLabelPadding, labelPadding(list.children[1])],
+			otherHasOwnLabelPadding: labelPadding(list.children[0]) !== '13px',
+		}, { before: '9px', updated: '9px', replaced: '9px', otherUnchanged: true, otherHasOwnMargin: true, labelPaddings: ['13px', '13px', '13px'], otherHasOwnLabelPadding: true });
 	});
 
 	test('prepareActions()', function () {
