@@ -284,7 +284,7 @@
 	flex-shrink: 0;
 }
 
-.action-widget .monaco-list-row.action .monaco-keybinding > .monaco-keybinding-key {
+.action-widget .monaco-list-row.action .monaco-keybinding > .monaco-keybinding-key:where(.action-list-key) {
 	background-color: var(--vscode-keybindingLabel-background);
 	color: var(--vscode-keybindingLabel-foreground);
 	border-style: solid;

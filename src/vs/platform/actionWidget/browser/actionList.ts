@@ -10,7 +10,7 @@ import { EventType as TouchEventType } from '../../../base/browser/touch.js';
 import { ActionBar } from '../../../base/browser/ui/actionbar/actionbar.js';
 import { ActionViewItem } from '../../../base/browser/ui/actionbar/actionViewItems.js';
 import { getAnchorRect, IAnchor, IContextViewCloseAnimation } from '../../../base/browser/ui/contextview/contextview.js';
-import { KeybindingLabel } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
+import { KeybindingLabel, unthemedKeybindingLabelOptions } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { IHoverAction } from '../../../base/browser/ui/hover/hover.js';
 import { HoverAction } from '../../../base/browser/ui/hover/hoverWidget.js';
 import { DomScrollableElement } from '../../../base/browser/ui/scrollbar/scrollableElement.js';
@@ -435,7 +435,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 		detail.className = 'detail';
 		container.append(detail);
 
-		const keybinding = new KeybindingLabel(container, OS);
+		const keybinding = new KeybindingLabel(container, OS, { ...unthemedKeybindingLabelOptions, keyClassName: 'action-list-key' });
 
 		const toolbar = document.createElement('div');
 		toolbar.className = 'action-list-item-toolbar';
