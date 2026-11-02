@@ -52,11 +52,11 @@
 	display: flex;
 }
 
-.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
+.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .editor-placeholder-button {
 	margin: 4px 5px;
 }
 
-.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
+.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .editor-placeholder-button {
 	width: fit-content;
 	outline-offset: 2px !important;
 }

@@ -126,6 +126,7 @@ export abstract class EditorPlaceholder extends EditorPane {
 					secondary: i !== 0
 				}));
 
+				button.element.classList.add('editor-placeholder-button');
 				button.label = actions[i].label;
 				disposables.add(button.onDidClick(e => {
 					if (e) {
