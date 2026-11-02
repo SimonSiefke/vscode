@@ -519,7 +519,7 @@
 	background: transparent;
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row {
+.action-widget .chat-model-picker-tabbed .action-widget-list-row {
 	box-sizing: border-box;
 	width: calc(100% - var(--vscode-spacing-size80));
 	margin-left: var(--vscode-spacing-size40);
