@@ -145,7 +145,7 @@
 				display: block;
 			}
 
-			.header {
+			.header:where(.multi-diff-file-header) {
 				background: var(--vscode-editor-background);
 
 				&:not(.collapsed) .header-content {
