@@ -19,12 +19,12 @@
 	padding: 0;
 }
 
-.monaco-action-bar .action-item .action-label.extension-action.label {
+.monaco-action-bar .action-item .action-label.label.extension-action {
 	outline-offset: 1px;
 }
 
 .monaco-action-bar .action-item .action-label.extension-action.text,
-.monaco-action-bar .action-item .action-label.extension-action.label,
+.monaco-action-bar .action-item .action-label.label.extension-action,
 .monaco-action-bar .action-dropdown-item .action-label.extension-action.label {
 	width: auto;
 	height: auto;
@@ -35,7 +35,7 @@
 	border-color: var(--vscode-foreground);
 }
 
-.monaco-action-bar .action-item .action-label.extension-action.label,
+.monaco-action-bar .action-item .action-label.label.extension-action,
 .monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator {
 	background-color: var(--vscode-extensionButton-background);
 	border: 1px solid var(--vscode-extensionButton-border, transparent);
@@ -64,7 +64,7 @@
 
 .monaco-list-row.focused .extension-list-item .monaco-action-bar .action-item .action-label.extension-action.label,
 .monaco-list-row.selected .extension-list-item .monaco-action-bar .action-item .action-label.extension-action.label,
-.monaco-action-bar .action-item .action-label.extension-action.label {
+.monaco-action-bar .action-item .action-label.label.extension-action {
 	color: var(--vscode-extensionButton-foreground);
 }
 
