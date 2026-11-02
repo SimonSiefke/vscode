@@ -80,7 +80,7 @@
 	> .agent-host-generic-chip-slot {
 		cursor: pointer;
 
-		.action-label {
+		.agent-host-picker-action-label {
 			font-size: 11px;
 
 			&:hover {
