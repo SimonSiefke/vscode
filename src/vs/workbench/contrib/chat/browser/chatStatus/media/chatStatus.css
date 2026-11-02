@@ -529,10 +529,6 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.chat-status-bar-entry-tooltip .suggest-option-selection .suggest-option-action-bar .codicon {
-	color: var(--vscode-descriptionForeground);
-}
-
 /* Snoozing */
 
 .chat-status-bar-entry-tooltip .snooze-completions {
