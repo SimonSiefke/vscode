@@ -92,7 +92,7 @@
 	transition: top 0.3s;
 }
 
-.monaco-tree-type-filter.disabled {
+.disabled.monaco-tree-type-filter {
 	top: -40px !important;
 }
 
