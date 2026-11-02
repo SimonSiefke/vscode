@@ -150,7 +150,7 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.tabbed-action-list-details-header > .monaco-action-bar {
+.tabbed-action-list-details-header > .monaco-action-bar:where(.tabbed-details-back-action-bar) {
 	flex: 0 0 auto;
 }
 
