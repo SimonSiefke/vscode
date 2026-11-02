@@ -244,7 +244,7 @@
 	margin-top: 2px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .extension-action.label,
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .label.extension-action,
 .extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item .extension-action.label {
 	max-width: 300px;
 }
@@ -266,7 +266,7 @@
 }
 
 /* single install */
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .extension-action.label,
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .label.extension-action,
 .extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action.label {
 	border-radius: 4px;
 }
