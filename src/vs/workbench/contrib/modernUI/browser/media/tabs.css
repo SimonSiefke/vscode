@@ -268,7 +268,7 @@
 }
 
 .modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit:not(.sticky-compact) > .tab-label,
-.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit:not(.sticky-compact) > .tab-label > .monaco-icon-label-container {
+.modern-ui-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit:not(.sticky-compact) > .tab-label > .editor-tab-label-container {
 	overflow: hidden;
 }
 
