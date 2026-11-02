@@ -472,7 +472,7 @@
 	margin-bottom: 6px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .expanded.getting-started-step {
 	cursor: default !important;
 	border: 1px solid var(--vscode-welcomePage-tileBorder);
 }
