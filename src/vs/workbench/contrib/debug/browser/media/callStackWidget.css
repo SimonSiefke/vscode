@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 .multiCallStackFrame {
-	.header {
+	.header:where(.call-stack-frame-header) {
 		display: flex;
 
 		align-items: center;
