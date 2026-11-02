@@ -51,7 +51,7 @@
 }
 
 .search-editor .search-widget .monaco-inputbox > .ibwrapper > .mirror,
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	padding: 3px;
 	padding-left: 6px;
 }
@@ -61,7 +61,7 @@
 }
 
 /* NOTE: height is also used in searchWidget.ts as a constant*/
-.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-editor .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	overflow: initial;
 	height: 26px; /* set initial height before measure */
 }
