@@ -38,7 +38,7 @@
 .monaco-workbench .merge-editor .code-view.result > .header > .merge-editor-header-detail {
 	flex-shrink: 0;
 }
-.monaco-workbench .merge-editor .code-view.result > .header > .toolbar {
+.monaco-workbench .merge-editor .code-view.result > .header > .merge-editor-header-toolbar {
 	flex-shrink: 0;
 }
 

@@ -63,7 +63,7 @@ export abstract class CodeEditorView extends Disposable {
 				h('span.title.merge-editor-header-part.merge-editor-header-title@title'),
 				h('span.description.merge-editor-header-part.merge-editor-header-description@description'),
 				h('span.detail.merge-editor-header-part.merge-editor-header-detail@detail'),
-				h('span.toolbar.merge-editor-header-part@toolbar'),
+				h('span.toolbar.merge-editor-header-part.merge-editor-header-toolbar@toolbar'),
 			]),
 			h('div.container', [
 				h('div.gutter@gutterDiv'),
