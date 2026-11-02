@@ -379,7 +379,7 @@ class ActionsContentWidget extends FixedZoneWidget {
 			const title = renderLabelWithIcons(item.text);
 
 			if (item.action) {
-				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!() }, ...title));
+				children.push($('a.merge-conflict-action-link', { title: item.tooltip, role: 'button', onclick: () => item.action!() }, ...title));
 			} else {
 				children.push($('span.merge-conflict-action-text', { title: item.tooltip }, ...title));
 			}

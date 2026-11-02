@@ -246,13 +246,13 @@
 }
 
 .merge-editor-conflict-actions > span:where(.merge-conflict-action-text),
-.merge-editor-conflict-actions > a {
+.merge-editor-conflict-actions > a:where(.merge-conflict-action-link) {
 	user-select: none;
 	-webkit-user-select: none;
 	white-space: nowrap;
 }
 
-.merge-editor-conflict-actions > a {
+.merge-editor-conflict-actions > a:where(.merge-conflict-action-link) {
 	text-decoration: none;
 }
 
