@@ -1320,7 +1320,7 @@
 		flex-shrink: 0;
 		margin-left: var(--vscode-spacing-size40);
 
-		&.visible {
+		&.visible:where(.session-section-keybinding) {
 			display: inline-flex;
 		}
 	}
