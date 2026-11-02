@@ -42,7 +42,7 @@
 	color: var(--vscode-foreground);
 }
 
-.chat-goal-banner .chat-goal-banner-text.loading {
+.chat-goal-banner .loading.chat-goal-banner-text {
 	color: var(--vscode-descriptionForeground);
 	font-style: italic;
 }
