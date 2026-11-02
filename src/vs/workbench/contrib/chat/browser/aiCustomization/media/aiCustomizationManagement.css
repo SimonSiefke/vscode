@@ -2282,7 +2282,7 @@ per-word capitalization does not survive translation. */
 	color: var(--vscode-textLink-foreground);
 }
 
-.ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .embedded-detail-disable-button.monaco-button {
+.ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .monaco-button.embedded-detail-disable-button {
 	color: var(--vscode-descriptionForeground);
 }
 
