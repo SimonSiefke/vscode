@@ -36,6 +36,14 @@ suite('Editor Modes - textToHtmlTokenizer', () => {
 		return resultArr.join('');
 	}
 
+	test('escapes optional element styling on tokens, line breaks and the source wrapper', () => {
+		const mode = disposables.add(instantiationService.createInstance(Mode));
+		const support = TokenizationRegistry.get(mode.languageId)!;
+		const html = _tokenizeToString('<\n&', new LanguageIdCodec(), support, 'owner"<>&\'');
+		const marker = 'owner&quot;&lt;&gt;&amp;&apos;';
+		assert.strictEqual(html, `<div class="monaco-tokenized-source ${marker}"><span class="mtk9 ${marker}">&lt;</span><br class="${marker}"/><span class="mtk9 ${marker}">&amp;</span></div>`);
+	});
+
 	test('TextToHtmlTokenizer 1', () => {
 		const mode = disposables.add(instantiationService.createInstance(Mode));
 		const support = TokenizationRegistry.get(mode.languageId)!;

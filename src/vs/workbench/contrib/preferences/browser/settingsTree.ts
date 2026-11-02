@@ -1102,6 +1102,7 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 
 		const renderedMarkdown = disposables.add(this._markdownRendererService.render({ value: text, isTrusted: true }, {
 			linkClassName: 'setting-description-markdown-link',
+			elementClassName: 'setting-description-node',
 			actionHandler: (content: string) => {
 				if (content.startsWith('#')) {
 					const e: ISettingLinkClickEvent = {

@@ -564,7 +564,7 @@
 	appearance: textfield !important;
 }
 
-.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-markdown * {
+.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-markdown :where(.setting-description-node) {
 	margin: 0px;
 }
 
