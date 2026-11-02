@@ -31,12 +31,7 @@
 		animation-iteration-count: 3;
 		*/
 
-		opacity: 0;
-
-		&.contained {
-			transition: opacity 0.2s ease-in-out;
-			transition-delay: 0.4s;
-		}
+		opacity: 0
 	}
 
 	.inline-edits-view .editorContainer {
