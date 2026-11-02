@@ -320,7 +320,7 @@
 	padding-top: 0;
 }
 
-.modern-ui-tabs.monaco-workbench .part.editor .tabs-and-actions-container:not(.wrapping) > .monaco-scrollable-element {
+.modern-ui-tabs.monaco-workbench .part.editor .tabs-and-actions-container:not(.wrapping) > .editor-tabs-scrollable {
 	padding-bottom: 0;
 }
 
