@@ -89,7 +89,7 @@ export class ExtensionIconWidget extends ExtensionWidget {
 		super();
 		this.element = append(container, $('.extension-icon'));
 
-		this.iconElement = append(this.element, $('img.icon', { alt: '' }));
+		this.iconElement = append(this.element, $('img.icon.extension-widget-icon-image', { alt: '' }));
 		this.iconElement.style.display = 'none';
 
 		this.defaultIconElement = append(this.element, $(ThemeIcon.asCSSSelector(extensionDefaultIcon)));

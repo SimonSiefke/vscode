@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.extension-icon .icon {
+.extension-icon .icon:where(.extension-widget-icon-image) {
 	width: 36px;
 	height: 36px;
 	margin-right: 16px;
