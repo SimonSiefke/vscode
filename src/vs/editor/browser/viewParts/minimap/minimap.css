@@ -53,7 +53,7 @@
 	pointer-events: none;
 }
 .minimap.minimap-autohide-mouseover:hover,
-.minimap.minimap-autohide-scroll.active {
+.minimap.active.minimap-autohide-scroll {
 	opacity: 1;
 	pointer-events: auto;
 }
