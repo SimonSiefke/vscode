@@ -209,7 +209,7 @@
 }
 
 .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list:focus .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row,
-.context-menu-visible .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list.last-focused .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row {
+.context-menu-visible .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list.last-focused .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) solid var(--vscode-list-focusOutline);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
