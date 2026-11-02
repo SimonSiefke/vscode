@@ -213,7 +213,7 @@
 		}
 
 		/* Single-select: highlight entire row when selected (list not focused) */
-		.chat-question-list-item.selected {
+		.selected.chat-question-list-item {
 			background-color: var(--vscode-list-inactiveSelectionBackground, var(--vscode-list-hoverBackground));
 			color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 
