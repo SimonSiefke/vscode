@@ -232,7 +232,7 @@
 			top: 0;
 		}
 
-		.actions-container {
+		.session-title-toolbar-actions {
 			gap: var(--vscode-spacing-size40);
 		}
 	}
