@@ -450,7 +450,7 @@
 	white-space: nowrap;
 }
 
-.scm-view .scm-editor.hidden {
+.scm-view .hidden.scm-editor {
 	display: none;
 }
 
