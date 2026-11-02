@@ -1040,7 +1040,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	flex-shrink: 0;
 }
 
-.issue-reporter-wizard .review-diag-toggle.monaco-button {
+.issue-reporter-wizard .monaco-button.review-diag-toggle {
 	flex-shrink: 0;
 	font-size: 12px;
 	padding: 2px 8px 2px 4px;
