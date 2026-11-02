@@ -3427,7 +3427,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		padding: 0 var(--vscode-spacing-size20) 0 var(--vscode-spacing-size40);
 	}
 
-	.monaco-icon-label.excluded {
+	.excluded.chat-file-list-label {
 		color: var(--vscode-notificationsWarningIcon-foreground)
 	}
 }
