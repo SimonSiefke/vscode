@@ -92,7 +92,7 @@
 }
 
 .monaco-workbench.linux .explorer-folders-view .explorer-item .explorer-inline-input-box,
-.monaco-workbench.mac .explorer-folders-view .explorer-item .monaco-inputbox {
+.monaco-workbench.mac .explorer-folders-view .explorer-item .explorer-inline-input-box {
 	height: 22px;
 }
 
