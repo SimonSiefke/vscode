@@ -299,7 +299,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 		for (const entry of entries) {
 			const button = append(container, $('button.agentSessionsWelcome-startEntry'));
-			button.appendChild(renderIcon(entry.icon));
+			button.appendChild(renderIcon(entry.icon, undefined, 'agent-welcome-start-glyph'));
 			button.appendChild(document.createTextNode(entry.label));
 			button.onclick = () => {
 				this.telemetryService.publicLog2<AgentSessionsWelcomeActionEvent, AgentSessionsWelcomeActionClassification>(

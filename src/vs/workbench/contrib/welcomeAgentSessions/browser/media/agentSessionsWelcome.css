@@ -81,7 +81,7 @@
 	color: var(--vscode-textLink-foreground);
 }
 
-.agentSessionsWelcome-startEntry .codicon {
+.agentSessionsWelcome-startEntry .codicon:where(.agent-welcome-start-glyph) {
 	color: var(--vscode-descriptionForeground) !important;
 }
 
