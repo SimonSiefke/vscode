@@ -8,7 +8,7 @@
 }
 
 .chat-thinking-box .chat-used-context.chat-hook-outcome-blocked > .chat-used-context-label .codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron),
-.chat-thinking-box .chat-used-context.chat-hook-outcome-warning > .chat-used-context-label .codicon {
+.chat-thinking-box .chat-used-context.chat-hook-outcome-warning > .chat-used-context-label .codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron) {
 	display: none;
 }
 
