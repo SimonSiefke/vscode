@@ -80,10 +80,6 @@
 	color: currentColor !important;
 }
 
-.ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-resourceLabel .monaco-icon-label-container > .monaco-icon-name-container {
-	flex: 1;
-}
-
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-resourceLabel::after {
 	padding-right: 0px;
 }
