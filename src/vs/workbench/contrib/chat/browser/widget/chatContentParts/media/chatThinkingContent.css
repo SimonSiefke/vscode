@@ -816,7 +816,7 @@
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 	}
 
-	> .monaco-scrollable-element:has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)) {
+	> :has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)).chat-thinking-content-scrollable {
 		overflow: hidden;
 		height: auto;
 		opacity: 1;
