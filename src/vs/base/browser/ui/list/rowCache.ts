@@ -20,7 +20,7 @@ export class RowCache<T> implements IDisposable {
 	private readonly transactionNodesPendingRemoval = new Set<HTMLElement>();
 	private inTransaction = false;
 
-	constructor(private renderers: Map<string, IListRenderer<T, any>>) { }
+	constructor(private renderers: Map<string, IListRenderer<T, any>>, private readonly rowClassName?: string) { }
 
 	/**
 	 * Returns a row either by creating a new one or reusing
@@ -36,6 +36,9 @@ export class RowCache<T> implements IDisposable {
 			isStale = this.transactionNodesPendingRemoval.delete(result.domNode);
 		} else {
 			const domNode = $('.monaco-list-row');
+			if (this.rowClassName) {
+				domNode.classList.add(this.rowClassName);
+			}
 			const renderer = this.getRenderer(templateId);
 			const templateData = renderer.renderTemplate(domNode);
 			result = { domNode, templateId, templateData };

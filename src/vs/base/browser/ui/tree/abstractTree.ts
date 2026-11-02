@@ -1963,6 +1963,9 @@ class StickyScrollWidget<T, TFilterData, TRef> implements IDisposable {
 
 		stickyElement.classList.add('monaco-tree-sticky-row');
 		stickyElement.classList.add('monaco-list-row');
+		if (this.tree.options.rowClassName) {
+			stickyElement.classList.add(this.tree.options.rowClassName);
+		}
 		stickyElement.classList.toggle('source-node-partially-visible', stickyNode.sourceNodePartiallyVisible);
 
 		stickyElement.setAttribute('data-index', `${nodeIndex}`);

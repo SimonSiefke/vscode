@@ -68,7 +68,7 @@
 	flex: 1;
 }
 
-.open-editors .monaco-list .monaco-list-row {
+.open-editors .monaco-list .open-editors-list-row {
 	padding-left: 8px;
 	display: flex;
 }

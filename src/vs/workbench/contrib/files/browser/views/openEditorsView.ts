@@ -261,6 +261,7 @@ export class OpenEditorsView extends ViewPane {
 			new EditorGroupRenderer(this.keybindingService, this.instantiationService),
 			new OpenEditorRenderer(this.listLabels, this.instantiationService, this.keybindingService, this.configurationService)
 		], {
+			rowClassName: 'open-editors-list-row',
 			identityProvider: { getId: (element: OpenEditor | IEditorGroup) => this.getElementId(element) },
 			dnd: this.dnd,
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles,

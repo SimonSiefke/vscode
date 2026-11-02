@@ -86,6 +86,8 @@ export interface IListViewOptionsUpdate {
 }
 
 export interface IListViewOptions<T> extends IListViewOptionsUpdate {
+	/** CSS class applied to each row before its renderer creates the template. */
+	readonly rowClassName?: string;
 	readonly dnd?: IListViewDragAndDrop<T>;
 	readonly useShadows?: boolean;
 	readonly verticalScrollMode?: ScrollbarVisibility;
@@ -400,7 +402,7 @@ export class ListView<T> implements IListView<T> {
 			this.renderers.set(renderer.templateId, renderer);
 		}
 
-		this.cache = this.disposables.add(new RowCache(this.renderers));
+		this.cache = this.disposables.add(new RowCache(this.renderers, options.rowClassName));
 
 		this.lastRenderTop = 0;
 		this.lastRenderHeight = 0;
