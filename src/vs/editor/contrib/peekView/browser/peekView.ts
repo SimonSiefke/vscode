@@ -199,6 +199,7 @@ export abstract class PeekViewWidget extends ZoneWidget {
 		const actionBarOptions = this._getActionBarOptions();
 		this._actionbarWidget = new ActionBar(actionsContainer, actionBarOptions);
 		this._disposables.add(this._actionbarWidget);
+		this._actionbarWidget.domNode.classList.add('peek-view-action-bar');
 
 		if (!noCloseAction) {
 			this._actionbarWidget.push(this._disposables.add(new Action('peekview.close', nls.localize('label.close', "Close"), ThemeIcon.asClassName(Codicon.close), true, () => {
