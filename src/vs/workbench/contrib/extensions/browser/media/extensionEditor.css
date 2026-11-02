@@ -583,7 +583,7 @@
 	border-bottom: 1px solid rgba(128, 128, 128, 0.22);
 }
 
-.extension-editor > .body > .content > .details > .content-container > .extension-pack-readme > .extension-pack > .extension-pack-content > .monaco-scrollable-element {
+.extension-editor > .body > .content > .details > .content-container > .extension-pack-readme > .extension-pack > .extension-pack-content > .extension-editor-content-scrollable {
 	height: 100%;
 }
 
