@@ -74,7 +74,7 @@ export class HoverAction extends Disposable {
 		this.action = dom.append(this.actionContainer, $('a.action'));
 		this.action.setAttribute('role', 'button');
 		if (actionOptions.iconClass) {
-			const iconElement = dom.append(this.action, $(`span.icon`));
+			const iconElement = dom.append(this.action, $('span.icon.hover-status-action-icon'));
 			iconElement.classList.add(...actionOptions.iconClass.split(' '));
 		}
 		this.actionRenderedLabel = keybindingLabel ? `${actionOptions.label} (${keybindingLabel})` : actionOptions.label;
