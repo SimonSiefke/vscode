@@ -809,7 +809,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .prev-button .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .prev-button .getting-started-back-glyph {
 	position: relative;
 	top: 3px;
 	left: -4px;
