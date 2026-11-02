@@ -442,7 +442,7 @@
 	min-height: calc(1rem + 8px);
 }
 
-.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .docs.markdown-docs > div,
+.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .docs.markdown-docs > div:where(.editor-suggest-documentation),
 .monaco-editor .suggest-details > .monaco-scrollable-element > .body > .docs.markdown-docs > span:not(:empty) {
 	padding: 4px 5px;
 }

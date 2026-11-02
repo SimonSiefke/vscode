@@ -185,6 +185,7 @@ export class SuggestDetailsWidget {
 					this._onDidChangeContents.fire(this);
 				}
 			});
+			renderedContents.element.classList.add('editor-suggest-documentation');
 			this._docs.appendChild(renderedContents.element);
 			this._renderDisposeable.add(renderedContents);
 		}
