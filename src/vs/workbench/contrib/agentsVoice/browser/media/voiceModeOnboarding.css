@@ -125,7 +125,7 @@
 	outline-offset: 2px;
 }
 
-.voice-mode-onboarding-voice.selected {
+.selected.voice-mode-onboarding-voice {
 	background-color: var(--vscode-list-activeSelectionBackground);
 	border-color: var(--vscode-focusBorder);
 	color: var(--vscode-list-activeSelectionForeground);
