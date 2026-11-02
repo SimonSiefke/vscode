@@ -72,7 +72,7 @@
 	font-size: 11px;
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.enabled {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .enabled.hover-verbosity-action-icon {
 	color: var(--vscode-textLink-foreground);
 }
 
