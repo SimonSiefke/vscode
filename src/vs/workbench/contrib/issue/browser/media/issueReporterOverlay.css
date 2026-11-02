@@ -1336,7 +1336,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	border-color: #000;
 }
 
-.issue-reporter-annotation-overlay .annotation-size-button.active {
+.issue-reporter-annotation-overlay .active.annotation-size-button {
 	background: var(--vscode-list-activeSelectionBackground, rgba(0, 122, 204, 0.25));
 	color: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground, #fff));
 	border-color: transparent;
