@@ -210,7 +210,7 @@
 }
 
 .monaco-workbench .inline-chat > .status {
-	.label,
+	.label:where(.inline-chat-status-label),
 	.actions {
 		padding: 4px 0;
 	}

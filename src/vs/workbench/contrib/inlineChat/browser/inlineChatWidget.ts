@@ -78,11 +78,11 @@ export abstract class InlineChatWidget {
 			h('div.chat-widget@chatWidget'),
 			h('div.accessibleViewer@accessibleViewer'),
 			h('div.status@status', [
-				h('div.label.info.hidden@infoLabel'),
+				h('div.label.inline-chat-status-label.info.hidden@infoLabel'),
 				h('div.actions.hidden@toolbar1'),
-				h('div.label.status.hidden@statusLabel'),
+				h('div.label.inline-chat-status-label.status.hidden@statusLabel'),
 				h('div.actions.secondary.hidden@toolbar2'),
-				h('div.label.disclaimer.hidden@disclaimerLabel'),
+				h('div.label.inline-chat-status-label.disclaimer.hidden@disclaimerLabel'),
 			]),
 		]
 	);
@@ -424,7 +424,7 @@ export abstract class InlineChatWidget {
 		}
 		const renderedMessage = renderLabelWithIcons(message);
 		reset(this._elements.statusLabel, ...renderedMessage);
-		this._elements.statusLabel.className = `label status ${(ops.classes ?? []).join(' ')}`;
+		this._elements.statusLabel.className = `label status inline-chat-status-label ${(ops.classes ?? []).join(' ')}`;
 		this._elements.statusLabel.classList.toggle('hidden', !message);
 		if (isTempMessage) {
 			this._elements.statusLabel.dataset['state'] = 'temp';
