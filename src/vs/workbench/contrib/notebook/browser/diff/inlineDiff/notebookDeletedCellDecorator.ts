@@ -226,6 +226,7 @@ export class NotebookDeletedCellWidget extends Disposable {
 
 			const scopedInstaService = this._register(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this._notebookEditor.scopedContextKeyService])));
 			const toolbarWidget = scopedInstaService.createInstance(MenuWorkbenchToolBar, toolbar, this._toolbarOptions.menuId, {
+				actionsContainerClassName: 'chat-diff-overlay-actions',
 				telemetrySource: this._toolbarOptions.telemetrySource,
 				hiddenItemStrategy: HiddenItemStrategy.NoHide,
 				toolbarOptions: { primaryGroup: () => true },

@@ -25,7 +25,7 @@
 	overflow: hidden;
 }
 
-.chat-diff-change-content-widget .monaco-action-bar .actions-container {
+.chat-diff-change-content-widget .monaco-action-bar .actions-container:where(.chat-diff-overlay-actions) {
 	gap: 4px;
 }
 
