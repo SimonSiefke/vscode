@@ -4311,7 +4311,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: flex;
 	gap: 6px;
 
-	.monaco-button {
+	.chat-limit-action-button {
 		width: fit-content;
 	}
 

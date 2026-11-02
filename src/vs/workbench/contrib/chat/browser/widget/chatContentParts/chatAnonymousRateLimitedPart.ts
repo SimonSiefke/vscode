@@ -41,7 +41,7 @@ export class ChatAnonymousRateLimitedPart extends Disposable implements IChatCon
 
 		const signInButton = this._register(new Button(messageContainer, { ...defaultButtonStyles, supportIcons: true }));
 		signInButton.label = localize('enableMoreAIFeatures', "Enable more AI features");
-		signInButton.element.classList.add('chat-rate-limited-button');
+		signInButton.element.classList.add('chat-rate-limited-button', 'chat-limit-action-button');
 
 		this._register(signInButton.onDidClick(async () => {
 			const commandId = 'workbench.action.chat.triggerSetup';
