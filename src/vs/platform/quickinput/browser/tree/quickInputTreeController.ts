@@ -103,6 +103,7 @@ export class QuickInputTreeController extends Disposable {
 			[this._renderer],
 			{
 				accessibilityProvider: new QuickTreeAccessibilityProvider(this.onDidChangeCheckboxState),
+				twistieAdditionalCssClass: () => 'quick-input-flat-tree-twistie',
 				horizontalScrolling: false,
 				multipleSelectionSupport: false,
 				findWidgetEnabled: false,

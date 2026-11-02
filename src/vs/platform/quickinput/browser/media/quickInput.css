@@ -499,7 +499,7 @@
 }
 
 .quick-input-tree.quick-input-tree-flat .monaco-tl-indent,
-.quick-input-tree.quick-input-tree-flat .monaco-tl-twistie {
+.quick-input-tree.quick-input-tree-flat .quick-input-flat-tree-twistie {
 	display: none !important;
 }
 
