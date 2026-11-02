@@ -495,7 +495,7 @@
 	border: var(--vscode-strokeThickness) solid transparent;
 }
 
-.action-widget .chat-model-picker-tabbar .tabbed-action-list-tabbar-action[data-id='comparison'].checked {
+.action-widget .chat-model-picker-tabbar [data-id='comparison'].checked.tabbed-action-list-tabbar-action {
 	color: var(--vscode-inputOption-activeForeground);
 	background: var(--vscode-inputOption-activeBackground);
 	border-color: var(--vscode-inputOption-activeBorder);
