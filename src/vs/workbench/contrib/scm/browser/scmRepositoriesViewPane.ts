@@ -96,7 +96,7 @@ class ArtifactGroupRenderer implements ICompressibleTreeRenderer<SCMArtifactGrou
 	renderTemplate(container: HTMLElement): ArtifactGroupTemplate {
 		const element = append(container, $('.scm-artifact-group'));
 		const icon = append(element, $('.icon'));
-		const label = new IconLabel(element, { supportIcons: false });
+		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 
 		const actionsContainer = append(element, $('.actions'));
 		const actionBar = new WorkbenchToolBar(actionsContainer, { actionViewItemProvider: this.actionViewItemProvider }, this._menuService, this._contextKeyService, this._contextMenuService, this._keybindingService, this._commandService, this._telemetryService);
@@ -163,7 +163,7 @@ class ArtifactRenderer implements ICompressibleTreeRenderer<SCMArtifactTreeEleme
 	renderTemplate(container: HTMLElement): ArtifactTemplate {
 		const element = append(container, $('.scm-artifact'));
 		const icon = append(element, $('.icon'));
-		const label = new IconLabel(element, { supportIcons: false });
+		const label = new IconLabel(element, { extraClasses: ['scm-artifact-label'], supportIcons: false });
 
 		const timestampContainer = append(element, $('.timestamp-container'));
 		const timestamp = append(timestampContainer, $('.timestamp'));

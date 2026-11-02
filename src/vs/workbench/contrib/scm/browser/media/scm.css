@@ -585,7 +585,7 @@
 	}
 }
 
-.scm-repositories-view .scm-artifact-group .monaco-icon-label,
+.scm-repositories-view .scm-artifact-group .scm-artifact-label,
 .scm-repositories-view .scm-artifact .monaco-icon-label {
 	flex-grow: 1;
 }
