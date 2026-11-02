@@ -41,7 +41,7 @@
 	border: 1px solid var(--vscode-extensionButton-border, transparent);
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item > .action-label.label.extension-action {
 	border-right-width: 0;
 }
 
