@@ -571,7 +571,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 			const chips = DOM.append(container, $('.chat-debug-cache-session-health-chips'));
 			for (const stat of report.byCategory) {
 				const chip = DOM.append(chips, $(`span.chat-debug-cache-session-health-chip.cause-${stat.category}`));
-				DOM.append(chip, $(`span.codicon.codicon-${categoryIcon(stat.category)}`, { 'aria-hidden': 'true' }));
+				DOM.append(chip, $(`span.codicon.chat-cache-health-glyph.codicon-${categoryIcon(stat.category)}`, { 'aria-hidden': 'true' }));
 				DOM.append(chip, $('span', undefined, localize('chatDebug.cache.sessionHealthChip', "{0} ×{1} · {2} tok", cacheBreakCategoryLabel(stat.category), stat.count, numberFormatter.value.format(stat.lostTokens))));
 			}
 		}
