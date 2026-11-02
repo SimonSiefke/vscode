@@ -654,6 +654,8 @@ export class ChatPillsWidget extends Disposable {
 			},
 		}));
 
+		this._toolbar.getElement().classList.add('chat-pills-toolbar-root');
+
 		this.isVisible = derived(this, reader => model.pills.read(reader).length > 0);
 		this._register(autorun(reader => {
 			const pills = model.pills.read(reader);

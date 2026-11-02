@@ -49,7 +49,7 @@
 }
 
 .chat-pills,
-.chat-pills .monaco-toolbar,
+.chat-pills .chat-pills-toolbar-root,
 .chat-pills .monaco-action-bar,
 .chat-pills .monaco-action-bar .actions-container {
 	display: flex;
