@@ -807,7 +807,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	margin-bottom: 0;
 }
 
-.issue-reporter-wizard .wizard-ai-title-btn.monaco-button {
+.issue-reporter-wizard .monaco-button.wizard-ai-title-btn {
 	width: auto;
 	padding: 2px 6px 2px 4px;
 	display: flex;
