@@ -558,7 +558,7 @@
 	text-overflow: ellipsis;
 }
 
-.interactive-item-container.interactive-response .chat-footer-toolbar .chat-footer-details.hidden {
+.interactive-item-container.interactive-response .chat-footer-toolbar .hidden.chat-footer-details {
 	display: none;
 }
 
