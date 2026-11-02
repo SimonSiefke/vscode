@@ -4911,7 +4911,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 			padding: 0 var(--vscode-spacing-size60);
 		}
 
-		.monaco-toolbar .action-label.chat-restore-checkpoint-cancel.hidden {
+		.monaco-toolbar .action-label.hidden.chat-restore-checkpoint-cancel {
 			display: none;
 		}
 	}
