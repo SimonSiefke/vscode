@@ -43,7 +43,7 @@ class EditorTextRenderer {
 			+ `line-height: ${fontInfo.lineHeight}px;`
 			+ `white-space: pre;`;
 
-		const element = DOM.$('div', { style });
+		const element = DOM.$('div.notebook-drag-rich-text', { style });
 
 		const fontSize = fontInfo.fontSize;
 		const fontWeight = fontInfo.fontWeight;
