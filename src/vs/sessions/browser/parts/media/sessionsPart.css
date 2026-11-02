@@ -106,7 +106,7 @@
 }
 
 .hc-black .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .composite-bar-action-label,
-.hc-light .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
+.hc-light .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .composite-bar-action-label {
 	border-radius: 0px;
 }
 
