@@ -1337,6 +1337,7 @@ export class ChatModelsWidget extends Disposable {
 		this.tableViewport = $('.models-table-viewport');
 		this.tableInner = DOM.append(this.tableViewport, $('.models-table-inner'));
 		this.tableScrollable = this.tableDisposables.add(new DomScrollableElement(this.tableViewport, {
+			className: 'chat-models-table-scrollable',
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: ScrollbarVisibility.Hidden,
 			useShadows: false,

@@ -62,7 +62,7 @@
 	overflow: hidden;
 }
 
-.models-widget .models-table-container > .monaco-scrollable-element {
+.models-widget .models-table-container > .chat-models-table-scrollable {
 	width: 100%;
 	height: 100%;
 }
