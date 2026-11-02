@@ -2540,7 +2540,8 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	content: none;
 }
 
-.interactive-session.chat-floating-persistent-content .interactive-input-part > .chat-input-persistent-content > * {
+.interactive-session.chat-floating-persistent-content .interactive-input-part > :where(.chat-input-persistent-content) > .chat-pills-row,
+.interactive-session.chat-floating-persistent-content .interactive-input-part > :where(.chat-input-persistent-content) > .chat-sticky-progress {
 	position: relative;
 	z-index: 1;
 }
