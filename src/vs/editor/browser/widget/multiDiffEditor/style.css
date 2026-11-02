@@ -159,7 +159,7 @@
 					background: var(--vscode-multiDiffEditor-headerBackground);
 
 					.file-path {
-						.title {
+						.title:where(.multi-diff-file-title) {
 							font-size: 14px;
 						}
 
