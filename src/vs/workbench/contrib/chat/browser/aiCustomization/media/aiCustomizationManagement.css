@@ -2927,7 +2927,7 @@ per-word capitalization does not survive translation. */
 	color: var(--vscode-errorForeground);
 }
 
-.ai-customization-management-editor .mcp-server-compatibility-message > .mcp-server-compatibility-icon.codicon {
+.ai-customization-management-editor .mcp-server-compatibility-message > .codicon.mcp-server-compatibility-icon {
 	margin-right: var(--vscode-spacing-size40);
 	font-size: var(--vscode-codiconFontSize-compact);
 	color: inherit;
