@@ -1233,7 +1233,7 @@ export class GettingStartedPage extends EditorPane {
 			}
 
 			const titleContent = $('h3.category-title.max-lines-3', { 'x-category-title-for': category.id });
-			reset(titleContent, ...renderLabelWithIcons(category.title));
+			reset(titleContent, ...renderLabelWithIcons(category.title, undefined, 'getting-started-category-title-glyph'));
 
 			return $('button.getting-started-category' + (category.isFeatured && this.showFeaturedWalkthrough ? '.featured' : ''),
 				{
@@ -1584,7 +1584,7 @@ export class GettingStartedPage extends EditorPane {
 			$('.getting-started-category',
 				{},
 				$('.category-description-container', {},
-					$('h2.category-title.max-lines-3', { 'x-category-title-for': category.id }, ...renderLabelWithIcons(category.title)),
+					$('h2.category-title.max-lines-3', { 'x-category-title-for': category.id }, ...renderLabelWithIcons(category.title, undefined, 'getting-started-category-title-glyph')),
 					descriptionContainer));
 
 		const stepListContainer = $('.step-list-container');

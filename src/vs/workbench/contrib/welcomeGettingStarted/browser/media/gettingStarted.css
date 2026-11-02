@@ -832,7 +832,7 @@
 	margin: 0 0 8px 0;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails h2 .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails h2 .codicon:where(.getting-started-category-title-glyph) {
 	font-size: 20px;
 }
 
