@@ -3512,7 +3512,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	background-color: var(--vscode-list-hoverBackground) !important;
 }
 
-.interactive-session .chat-used-context-list .monaco-list .monaco-list-row {
+.interactive-session .chat-used-context-list .monaco-list .chat-reference-file-row {
 	border-radius: var(--vscode-cornerRadius-xSmall);
 }
 
