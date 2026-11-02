@@ -155,7 +155,7 @@
 		min-width: unset;
 	}
 
-	&.active {
+	&.active:where(.monaco-menu-option) {
 		background: var(--vscode-editorActionList-focusBackground);
 		color: var(--vscode-editorActionList-focusForeground);
 		outline: 1px solid var(--vscode-menu-selectionBorder, transparent);
