@@ -448,7 +448,7 @@
 	max-width: 320px;
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox {
+.onboarding-a-signin-ghe-input .onboarding-ghe-input-box {
 	height: 40px;
 	border-radius: 8px;
 	font-size: 13px;

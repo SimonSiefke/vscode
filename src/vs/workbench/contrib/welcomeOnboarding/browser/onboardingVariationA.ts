@@ -601,6 +601,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		));
 
 		const inputBox = this.stepDisposables.add(new InputBox(container, undefined, {
+			inputBoxClassName: 'onboarding-ghe-input-box',
 			placeholder: localize('onboarding.signIn.enterprise.placeholder', 'i.e. "octocat" or "https://octocat.ghe.com"...'),
 			ariaLabel: enterprisePromptLabel,
 			actions: [submitAction],
