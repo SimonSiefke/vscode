@@ -636,6 +636,7 @@ export class ChatListWidget extends Disposable {
 				identityProvider: { getId: (e: ChatTreeItem) => e.id },
 				horizontalScrolling: false,
 				alwaysConsumeMouseWheel: false,
+				rowClassName: 'chat-message-list-row',
 				supportDynamicHeights: true,
 				paddingBottom: this._paddingBottom,
 				hideTwistiesOfChildlessElements: true,
