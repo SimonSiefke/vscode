@@ -612,6 +612,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 					return this._buttonStore.add(button);
 				}) as (Action | Separator)[],
 			});
+			approveButton.element.classList.add('chat-plan-review-action-dropdown');
 		} else {
 			approveButton = new Button(container, { ...defaultButtonStyles, secondary: this._isFeedbackMode, supportIcons: true, buttonClassName: 'chat-plan-review-action-button' });
 		}
