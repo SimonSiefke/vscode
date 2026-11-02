@@ -1163,6 +1163,7 @@ export class ActionListWidget<T> extends Disposable {
 			new HeaderRenderer(),
 			new SeparatorRenderer(this._hoverService),
 		], {
+			rowClassName: 'action-widget-list-row',
 			supportDynamicHeights: this._options?.wrapDetails,
 			keyboardSupport: false,
 			multipleSelectionSupport: this._options?.multipleSelectionSupport ?? true,

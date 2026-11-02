@@ -100,7 +100,7 @@
 }
 
 /** Styles for each row in the list element **/
-.action-widget .monaco-list .monaco-list-row {
+.action-widget .monaco-list .action-widget-list-row {
 	padding: 0 12px 0 6px;
 	white-space: nowrap;
 	cursor: pointer;
