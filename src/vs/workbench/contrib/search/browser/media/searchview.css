@@ -72,7 +72,7 @@
 	opacity: 0;
 }
 
-.search-view .monaco-inputbox > .ibwrapper > textarea.input {
+.search-view .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	/* Firefox: hide scrollbar */
 	scrollbar-width: none;
 }
