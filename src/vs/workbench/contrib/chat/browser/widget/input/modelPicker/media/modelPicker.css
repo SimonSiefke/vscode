@@ -1463,7 +1463,7 @@
 	font-size: var(--vscode-fontSize-label3);
 }
 
-.action-widget.chat-model-picker-widget.model-picker-comparison .monaco-list-row.action .icon.chat-model-picker-comparison-checkbox.checked {
+.action-widget.chat-model-picker-widget.model-picker-comparison .monaco-list-row.action .icon.checked.chat-model-picker-comparison-checkbox {
 	border-color: var(--vscode-button-background);
 	background-color: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
