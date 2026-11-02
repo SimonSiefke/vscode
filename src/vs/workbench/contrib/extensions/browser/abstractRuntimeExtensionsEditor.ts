@@ -370,7 +370,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 				clearNode(data.msgContainer);
 
 				if (this._getUnresponsiveProfile(element.description.identifier)) {
-					const el = $('span', undefined, ...renderLabelWithIcons(` $(alert) Unresponsive`));
+					const el = $('span', undefined, ...renderLabelWithIcons(` $(alert) Unresponsive`, undefined, 'runtime-extension-status-glyph'));
 					const extensionHostFreezTitle = nls.localize('unresponsive.title', "Extension has caused the extension host to freeze.");
 					data.elementDisposables.push(this._hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), el, extensionHostFreezTitle));
 
@@ -378,12 +378,12 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 				}
 
 				if (isNonEmptyArray(element.status.runtimeErrors)) {
-					const el = $('span', undefined, ...renderLabelWithIcons(`$(bug) ${nls.localize('errors', "{0} uncaught errors", element.status.runtimeErrors.length)}`));
+					const el = $('span', undefined, ...renderLabelWithIcons(`$(bug) ${nls.localize('errors', "{0} uncaught errors", element.status.runtimeErrors.length)}`, undefined, 'runtime-extension-status-glyph'));
 					data.msgContainer.appendChild(el);
 				}
 
 				if (element.status.messages && element.status.messages.length > 0) {
-					const el = $('span', undefined, ...renderLabelWithIcons(`$(alert) ${element.status.messages[0].message}`));
+					const el = $('span', undefined, ...renderLabelWithIcons(`$(alert) ${element.status.messages[0].message}`, undefined, 'runtime-extension-status-glyph'));
 					data.msgContainer.appendChild(el);
 				}
 
@@ -404,7 +404,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 				}
 
 				if (extraLabel) {
-					const el = $('span', undefined, ...renderLabelWithIcons(extraLabel));
+					const el = $('span', undefined, ...renderLabelWithIcons(extraLabel, undefined, 'runtime-extension-status-glyph'));
 					data.msgContainer.appendChild(el);
 				}
 
@@ -415,7 +415,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 						const status = accessData?.current?.status;
 						if (status) {
 							data.msgContainer.appendChild($('span', undefined, `${feature.label}: `));
-							data.msgContainer.appendChild($('span', undefined, ...renderLabelWithIcons(`$(${status.severity === Severity.Error ? errorIcon.id : warningIcon.id}) ${status.message}`)));
+							data.msgContainer.appendChild($('span', undefined, ...renderLabelWithIcons(`$(${status.severity === Severity.Error ? errorIcon.id : warningIcon.id}) ${status.message}`, undefined, 'runtime-extension-status-glyph')));
 						}
 						if (accessData?.accessTimes.length > 0) {
 							const element = $('span', undefined, `${nls.localize('requests count', "{0} Usage: {1} Requests", feature.label, accessData.accessTimes.length)}${accessData.current ? nls.localize('session requests count', ", {0} Requests (Session)", accessData.current.accessTimes.length) : ''}`);

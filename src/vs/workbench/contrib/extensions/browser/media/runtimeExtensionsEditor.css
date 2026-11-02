@@ -22,7 +22,7 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
-.runtime-extensions-editor .extension .desc .msg .codicon {
+.runtime-extensions-editor .extension .desc .msg .codicon:where(.runtime-extension-status-glyph) {
 	vertical-align: middle;
 }
 
