@@ -151,7 +151,7 @@
 }
 
 .monaco-workbench .simple-fr-find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
-.monaco-workbench .simple-fr-replace-part .monaco-inputbox > .ibwrapper > .input {
+.monaco-workbench .simple-fr-replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	height: 24px;
 }
 .monaco-workbench .simple-fr-find-part-wrapper .monaco-sash {
