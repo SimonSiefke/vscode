@@ -52,7 +52,7 @@
 		background-color: var(--vscode-toolbar-hoverBackground);
 	}
 
-	.chart-toggle-button.active {
+	.active.chart-toggle-button {
 		opacity: 1;
 		background-color: var(--vscode-toolbar-activeBackground);
 	}
