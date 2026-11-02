@@ -527,7 +527,7 @@
 	}
 
 	.monaco-button.hidden,
-	.chat-pinned-preview.hidden {
+	.hidden.chat-pinned-preview {
 		display: none;
 	}
 
