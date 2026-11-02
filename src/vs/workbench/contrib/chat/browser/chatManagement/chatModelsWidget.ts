@@ -1002,6 +1002,7 @@ class ActionsColumnRenderer extends ModelsTableColumnRenderer<IActionsColumnTemp
 			{
 				icon: true,
 				label: false,
+				actionBarClassName: 'models-row-action-bar',
 				actionsContainerClassName: 'models-table-row-actions',
 				moreIcon: Codicon.gear,
 				anchorAlignmentProvider: () => AnchorAlignment.RIGHT

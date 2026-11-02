@@ -200,7 +200,7 @@
 	display: flex;
 }
 
-.models-widget .models-table-container .monaco-table-td .models-actions-column .actions-container .monaco-action-bar {
+.models-widget .models-table-container .monaco-table-td .models-actions-column .actions-container .monaco-action-bar:where(.models-row-action-bar) {
 	margin-right: 9px;
 }
 
