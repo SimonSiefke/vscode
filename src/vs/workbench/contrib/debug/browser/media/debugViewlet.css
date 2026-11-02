@@ -160,7 +160,7 @@
 	text-overflow: ellipsis;
 }
 
-.debug-pane .debug-call-stack .thread > .state.label,
+.debug-pane .debug-call-stack .thread > .state.label:where(.debug-call-stack-state),
 .debug-pane .debug-call-stack .session > .state.label {
 	overflow: hidden;
 	text-overflow: ellipsis;
