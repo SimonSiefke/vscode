@@ -43,6 +43,8 @@ export interface IToolBarOptions {
 	orientation?: ActionsOrientation;
 	actionViewItemProvider?: IActionViewItemProvider;
 	ariaLabel?: string;
+	/** Class applied to the actions list for component styling. */
+	actionsContainerClassName?: string;
 	getKeyBinding?: (action: IAction) => ResolvedKeybinding | undefined;
 	/**
 	 * Returns the index at which the secondary-actions trigger is inserted
@@ -130,6 +132,7 @@ export class ToolBar extends Disposable {
 		this.actionBar = this._register(new ActionBar(this.element, {
 			orientation: options.orientation,
 			ariaLabel: options.ariaLabel,
+			actionsContainerClassName: options.actionsContainerClassName,
 			actionRunner: options.actionRunner,
 			allowContextMenu: options.allowContextMenu,
 			highlightToggledItems: options.highlightToggledItems,

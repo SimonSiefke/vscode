@@ -104,6 +104,7 @@ export class FloatingEditorToolbarWidget extends Disposable {
 
 			// Toolbar
 			const toolbar = instantiationService.createInstance(MenuWorkbenchToolBar, this.element, _menuId, {
+				actionsContainerClassName: 'floating-menu-actions',
 				actionViewItemProvider: (action, options) => {
 					if (!(action instanceof MenuItemAction)) {
 						return undefined;

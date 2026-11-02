@@ -6,7 +6,7 @@
 import assert from 'assert';
 import * as sinon from 'sinon';
 import { IContextMenuProvider } from '../../../../browser/contextmenu.js';
-import { addDisposableListener } from '../../../../browser/dom.js';
+import { addDisposableListener, getWindow } from '../../../../browser/dom.js';
 import { ActionBar } from '../../../../browser/ui/actionbar/actionbar.js';
 import { BaseActionViewItem } from '../../../../browser/ui/actionbar/actionViewItems.js';
 import { ActionWithDropdownActionViewItem, DropdownMenuActionViewItem } from '../../../../browser/ui/dropdown/dropdownActionViewItem.js';
@@ -55,6 +55,31 @@ suite('ToolBar', () => {
 	teardown(() => {
 		sinon.restore();
 		container.remove();
+	});
+
+	test('component list styling survives replacing actions and stays local to its toolbar', () => {
+		const style = document.createElement('style');
+		style.textContent = '.test-toolbar-actions { gap: 11px; }';
+		container.appendChild(style);
+		const first = store.add(new Action('first', 'First'));
+		const second = store.add(new Action('second', 'Second'));
+		const toolbar = store.add(new ToolBar(container, contextMenuProvider, { actionsContainerClassName: 'test-toolbar-actions' }));
+		const other = store.add(new ToolBar(container, contextMenuProvider));
+		toolbar.setActions([first]);
+		other.setActions([second]);
+		const actions = toolbar.getItemElement(0)!.parentElement!;
+		const targetWindow = getWindow(container);
+		const otherActions = other.getItemElement(0)!.parentElement!;
+		const otherGap = targetWindow.getComputedStyle(otherActions).gap;
+		const before = targetWindow.getComputedStyle(actions).gap;
+		toolbar.setActions([]);
+		toolbar.setActions([second]);
+		assert.deepStrictEqual({
+			before,
+			after: targetWindow.getComputedStyle(toolbar.getItemElement(0)!.parentElement!).gap,
+			otherUnchanged: targetWindow.getComputedStyle(otherActions).gap === otherGap,
+			otherHasOwnGap: otherGap !== '11px',
+		}, { before: '11px', after: '11px', otherUnchanged: true, otherHasOwnGap: true });
 	});
 
 	test('only updates current dropdown contexts after repeated responsive overflow', () => {

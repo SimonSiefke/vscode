@@ -47,6 +47,8 @@ export interface IActionBarOptions {
 	readonly actionRunner?: IActionRunner;
 	readonly ariaLabel?: string;
 	readonly ariaRole?: string;
+	/** Class applied to the actions list for component styling. */
+	readonly actionsContainerClassName?: string;
 	readonly triggerKeys?: ActionTrigger;
 	readonly allowContextMenu?: boolean;
 	readonly preventLoopNavigation?: boolean;
@@ -222,6 +224,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 
 		this.actionsList = document.createElement('ul');
 		this.actionsList.className = 'actions-container';
+		if (this.options.actionsContainerClassName) {
+			this.actionsList.classList.add(this.options.actionsContainerClassName);
+		}
 		if (this.options.highlightToggledItems) {
 			this.actionsList.classList.add('highlight-toggled');
 		}
