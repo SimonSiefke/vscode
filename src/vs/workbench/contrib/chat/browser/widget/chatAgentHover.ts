@@ -85,6 +85,7 @@ export class ChatAgentHover extends Disposable {
 			this.icon.replaceChildren(dom.$('.avatar', undefined, avatarIcon));
 		} else if (agent.metadata.themeIcon) {
 			const avatarIcon = dom.$(ThemeIcon.asCSSSelector(agent.metadata.themeIcon));
+			avatarIcon.classList.add('chat-agent-hover-glyph');
 			this.icon.replaceChildren(dom.$('.avatar.codicon-avatar', undefined, avatarIcon));
 		}
 

@@ -15,7 +15,7 @@
 }
 
 .chat-agent-hover-icon img,
-.chat-agent-hover-icon .codicon {
+.chat-agent-hover-icon .chat-agent-hover-glyph {
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
