@@ -306,7 +306,7 @@
 						}
 					}
 
-					.actions {
+					.actions:where(.multi-diff-file-actions) {
 						padding: 0 var(--vscode-spacing-size80);
 
 						.multi-diff-file-toolbar-actions {
