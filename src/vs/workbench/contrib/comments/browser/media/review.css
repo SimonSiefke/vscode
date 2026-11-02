@@ -42,7 +42,7 @@
 	margin-left: auto;
 }
 
-.review-widget .body .review-comment .comment-actions .monaco-toolbar {
+.review-widget .body .review-comment .comment-actions .review-comment-toolbar-root {
 	height: 22px;
 }
 

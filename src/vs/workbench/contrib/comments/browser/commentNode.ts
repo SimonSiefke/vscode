@@ -313,6 +313,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 			orientation: ActionsOrientation.HORIZONTAL
 		});
 
+		this.toolbar.value.getElement().classList.add('review-comment-toolbar-root');
 		this.toolbar.value.context = this.commentNodeContext;
 		this.toolbar.value.actionRunner = this._actionRunner;
 	}
