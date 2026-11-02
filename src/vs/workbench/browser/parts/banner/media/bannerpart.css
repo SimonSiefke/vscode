@@ -86,7 +86,7 @@
 }
 
 .monaco-workbench .part.banner.neutral .message-actions-container a,
-.monaco-workbench .part.banner.neutral .action-container .codicon,
+.monaco-workbench .part.banner.neutral .action-container .banner-close-glyph,
 .monaco-workbench .part.banner.neutral .icon-container .banner-main-glyph {
 	color: var(--vscode-foreground);
 }
