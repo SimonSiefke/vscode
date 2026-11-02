@@ -124,7 +124,7 @@
 .modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row {
 	background-color: transparent;
 
-	> .monaco-tl-row {
+	> .monaco-tl-row:where(.agent-sessions-tree-contents) {
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 }

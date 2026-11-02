@@ -367,6 +367,51 @@ suite('ObjectTree', function () {
 		}
 	});
 
+	test('inner tree-row styling reaches normal, sticky and recycled wrappers', function () {
+		const container = mainWindow.document.createElement('div');
+		container.style.cssText = 'position: fixed; top: 0; left: 0; width: 200px; height: 100px;';
+		const style = mainWindow.document.createElement('style');
+		style.textContent = '.monaco-list .monaco-list-row > .monaco-tl-row:where(.test-owner-inner-tree-row) { padding-left: 7px; }';
+		mainWindow.document.body.append(container, style);
+		const renderer = new class extends Renderer {
+			override renderTemplate(contents: HTMLElement): HTMLElement {
+				assert.ok(contents.parentElement?.classList.contains('test-owner-inner-tree-row'));
+				assert.ok(!contents.classList.contains('test-owner-inner-tree-row'));
+				return super.renderTemplate(contents);
+			}
+		};
+		const tree = new ObjectTree<number>('test', container, new Delegate(), [renderer], {
+			treeRowClassName: 'test-owner-inner-tree-row',
+			enableStickyScroll: true,
+			stickyScrollMaxItemCount: 1,
+		});
+		try {
+			tree.layout(100, 200);
+			tree.setChildren(null, [{ element: 0, children: Array.from({ length: 25 }, (_, i) => ({ element: i + 1 })) }]);
+			const normal = () => container.querySelector<HTMLElement>('.monaco-list-row:not(.monaco-tree-sticky-row) .monaco-tl-row');
+			const sticky = () => tree.stickyScrollDomNode?.querySelector<HTMLElement>('.monaco-tree-sticky-row .monaco-tl-row');
+			const padding = (contents: HTMLElement | null | undefined) => {
+				assert.ok(contents);
+				return mainWindow.getComputedStyle(contents).paddingLeft;
+			};
+			const values = [padding(normal())];
+			tree.scrollTop = 1;
+			values.push(padding(sticky()));
+			tree.updateOptions({ enableStickyScroll: false });
+			tree.scrollTop = 0;
+			tree.updateOptions({ enableStickyScroll: true });
+			tree.scrollTop = 2;
+			values.push(padding(sticky()));
+			tree.scrollTop = 300;
+			values.push(padding(normal()));
+			assert.deepStrictEqual(values, ['7px', '7px', '7px', '7px']);
+		} finally {
+			tree.dispose();
+			container.remove();
+			style.remove();
+		}
+	});
+
 	test('tracks the sticky scroll DOM node across runtime toggles', function () {
 		const disabledContainer = document.createElement('div');
 		disabledContainer.style.width = '200px';

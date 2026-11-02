@@ -357,6 +357,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 				dnd: this.instantiationService.createInstance(AgentSessionsDragAndDrop),
 				scrollableClassName: 'agent-sessions-list-scrollable',
 				rowClassName: 'agent-sessions-tree-row',
+				treeRowClassName: 'agent-sessions-tree-contents',
 				identityProvider: new AgentSessionsIdentityProvider(),
 				horizontalScrolling: false,
 				multipleSelectionSupport: true,

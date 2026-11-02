@@ -361,6 +361,7 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 
 	private readonly disposables = new DisposableStore();
 	private readonly contentsClassName: string | undefined;
+	private readonly treeRowClassName: string | undefined;
 
 	constructor(
 		private readonly renderer: ITreeRenderer<T, TFilterData, TTemplateData>,
@@ -372,6 +373,7 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 	) {
 		this.templateId = renderer.templateId;
 		this.contentsClassName = options.contentsClassName;
+		this.treeRowClassName = options.treeRowClassName;
 		this.updateOptions(options);
 
 		Event.map(onDidChangeCollapseState, e => e.node)(this.onDidChangeNodeTwistieState, this, this.disposables);
@@ -433,6 +435,9 @@ export class TreeRenderer<T, TFilterData, TRef, TTemplateData> implements IListR
 			container.classList.add(this.renderer.rowClassName);
 		}
 		const el = append(container, $('.monaco-tl-row'));
+		if (this.treeRowClassName) {
+			el.classList.add(this.treeRowClassName);
+		}
 		const indent = append(el, $('.monaco-tl-indent'));
 		const twistie = append(el, $('.monaco-tl-twistie'));
 		const contents = append(el, $('.monaco-tl-contents'));
@@ -2396,6 +2401,8 @@ export interface IAbstractTreeOptionsUpdate<T> extends ITreeRendererOptions<T> {
 export interface IAbstractTreeOptions<T, TFilterData = void> extends IAbstractTreeOptionsUpdate<T>, IListOptions<T> {
 	/** Class applied to each contents element at template creation, before the renderer runs. */
 	readonly contentsClassName?: string;
+	/** Class applied to the inner tree-row wrapper at template creation, before the renderer runs. */
+	readonly treeRowClassName?: string;
 	readonly contextViewProvider?: IContextViewProvider;
 	readonly collapseByDefault?: boolean; // defaults to false
 	readonly allowNonCollapsibleParents?: boolean; // defaults to false
