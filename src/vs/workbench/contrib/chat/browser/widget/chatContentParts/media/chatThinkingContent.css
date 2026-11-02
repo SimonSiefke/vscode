@@ -585,7 +585,7 @@
 				display: none !important;
 			}
 
-			.chat-collapsible-hover-chevron.codicon {
+			.codicon.chat-collapsible-hover-chevron {
 				display: inline-flex;
 			}
 
