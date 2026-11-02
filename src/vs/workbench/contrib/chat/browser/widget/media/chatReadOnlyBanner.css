@@ -29,7 +29,7 @@
 	color: var(--vscode-icon-foreground);
 }
 
-.chat-readonly-banner-icon .codicon {
+.chat-readonly-banner-icon .codicon:where(.chat-readonly-lock-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
