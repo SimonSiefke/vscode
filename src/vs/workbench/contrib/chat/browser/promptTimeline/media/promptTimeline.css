@@ -612,7 +612,7 @@
 	transition: opacity 140ms ease, background-color 140ms ease;
 }
 
-.monaco-reduce-motion .prompt-timeline-gutter-dot.active,
+.monaco-reduce-motion .active.prompt-timeline-gutter-dot,
 .monaco-reduce-motion .prompt-timeline-gutter-dot.preview {
 	transform: none;
 }
