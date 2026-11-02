@@ -56,7 +56,7 @@
 	height: 100%;
 }
 
-.search-view .search-widget .monaco-inputbox > .ibwrapper > .mirror,
+.search-view .search-widget .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror,
 .search-view .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	padding: 3px 0px 3px 6px;
 }
