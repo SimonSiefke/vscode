@@ -4795,7 +4795,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 			margin-right: var(--vscode-spacing-size60);
 		}
 
-		.monaco-toolbar .action-label.codicon,
+		.monaco-toolbar .action-label.codicon:where(.chat-checkpoint-action-label),
 		.monaco-toolbar .action-label .codicon {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
