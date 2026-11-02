@@ -191,7 +191,7 @@
 	pointer-events: none;
 }
 
-.chat-pet-sprite.hidden {
+.hidden.chat-pet-sprite {
 	display: none;
 }
 
