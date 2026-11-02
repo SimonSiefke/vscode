@@ -447,6 +447,7 @@ export class ChangesSummaryFileListPool extends Disposable {
 			new CollapsibleChangesSummaryListDelegate(),
 			[renderer],
 			{
+				scrollableClassName: 'chat-summary-list-scrollable',
 				alwaysConsumeMouseWheel: false,
 				identityProvider: { getId: diff => getComparisonKey(diff.modifiedURI) },
 				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: diff => diff.modifiedURI.path },
