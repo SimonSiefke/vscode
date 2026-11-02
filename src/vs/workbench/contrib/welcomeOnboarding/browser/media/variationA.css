@@ -461,7 +461,7 @@
 	transform: translateY(-50%);
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox.error {
+.onboarding-a-signin-ghe-input .error.onboarding-ghe-input-box {
 	box-shadow: inset 0 0 0 1px var(--vscode-inputValidation-errorBorder);
 }
 
