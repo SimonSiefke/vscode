@@ -243,7 +243,7 @@
 .chat-confirmation-widget .chat-confirmation-widget-message .see-more {
 	margin-top: -4px;
 
-	a {
+	a:where(.chat-tool-see-more-link) {
 		color: var(--vscode-textLink-foreground);
 		text-decoration: underline;
 		display: block;
