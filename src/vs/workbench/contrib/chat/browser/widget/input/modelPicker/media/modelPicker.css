@@ -1536,7 +1536,7 @@
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.chat-local-model-card-message.error > .codicon {
+.chat-local-model-card-message.error > .codicon:where(.chat-local-model-message-glyph) {
 	color: var(--vscode-notificationsErrorIcon-foreground);
 }
 
