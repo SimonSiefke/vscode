@@ -312,11 +312,6 @@
 	flex: 1;
 	min-height: 0;
 }
-
-.monaco-workbench .pane-body.integrated-terminal .tabs-container > .monaco-toolbar {
-	padding: 4px 0 2px;
-	margin: auto;
-}
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-entry.is-active::before {
 	display: block;
 	position: absolute;
