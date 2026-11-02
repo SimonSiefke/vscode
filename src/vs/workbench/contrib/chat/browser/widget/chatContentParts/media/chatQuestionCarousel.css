@@ -630,7 +630,7 @@
 		color: inherit;
 	}
 
-	.chat-question-summary-option-selected > .codicon {
+	.chat-question-summary-option-selected > .codicon:where(.chat-question-selected-glyph) {
 		font-size: var(--vscode-codiconFontSize-compact);
 	}
 }

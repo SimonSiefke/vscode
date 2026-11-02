@@ -1840,7 +1840,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 
 	private renderSelectedOptionState(): HTMLElement {
 		const selectedState = dom.$('span.chat-question-summary-option-selected');
-		const selectedIcon = dom.$('span');
+		const selectedIcon = dom.$('span.chat-question-selected-glyph');
 		selectedIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.checkCompact));
 		selectedIcon.setAttribute('aria-hidden', 'true');
 		selectedState.appendChild(selectedIcon);
