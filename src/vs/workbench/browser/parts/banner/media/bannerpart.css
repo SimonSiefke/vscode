@@ -58,7 +58,7 @@
 	line-height: 26px;
 }
 
-.monaco-workbench .part.banner .message-actions-container a {
+.monaco-workbench .part.banner .message-actions-container a:where(.monaco-link) {
 	color: var(--vscode-banner-foreground);
 	padding: 3px;
 	margin-left: 12px;
