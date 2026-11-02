@@ -462,7 +462,7 @@ class HistoryItemRenderer implements ICompressibleTreeRenderer<SCMHistoryItemVie
 		const element = append(container, $('.history-item'));
 		const graphContainer = append(element, $('.graph-container'));
 		const iconLabel = new IconLabel(element, {
-			supportIcons: true, supportHighlights: true, supportDescriptionHighlights: true
+			extraClasses: ['scm-history-label'], supportIcons: true, supportHighlights: true, supportDescriptionHighlights: true
 		});
 
 		const labelContainer = append(element, $('.label-container'));

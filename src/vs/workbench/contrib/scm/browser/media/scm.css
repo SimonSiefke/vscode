@@ -143,7 +143,7 @@
 	align-items: center;
 }
 
-.scm-view .monaco-list-row .history-item .monaco-icon-label {
+.scm-view .monaco-list-row .history-item .scm-history-label {
 	flex-grow: 1;
 	align-items: center;
 }
