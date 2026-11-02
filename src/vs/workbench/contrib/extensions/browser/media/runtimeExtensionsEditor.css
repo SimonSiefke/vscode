@@ -61,7 +61,7 @@
 	padding: var(--vscode-spacing-size100) var(--vscode-spacing-size100) var(--vscode-spacing-size100) 0;
 }
 
-.runtime-extensions-editor .extension > .icon-container .extension-icon-badge .codicon {
+.runtime-extensions-editor .extension > .icon-container .extension-icon-badge .codicon:where(.extension-badge-glyph) {
 	color: currentColor;
 }
 
