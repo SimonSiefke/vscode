@@ -3762,7 +3762,7 @@ per-word capitalization does not survive translation. */
 	border-color: transparent;
 }
 
-.plugin-list-widget .plugin-card-actions .plugin-card-ghost-button.monaco-button,
+.plugin-list-widget .plugin-card-actions .monaco-button.plugin-card-ghost-button,
 .plugin-list-widget .plugin-card-section-header .monaco-button.plugin-card-ghost-button,
 .plugin-list-widget .plugin-marketplace-page-header .plugin-card-ghost-button.monaco-button,
 .ai-customization-group-header .plugin-card-ghost-button.monaco-button {
