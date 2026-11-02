@@ -456,7 +456,7 @@
 	height: 22px;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox > .ibwrapper > .input {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0 6px;
 	height: 100%;
 	line-height: 22px;
