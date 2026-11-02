@@ -372,6 +372,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 			actionsContainer,
 			MenuId.BrowserEmulationToolbar,
 			{
+				actionsContainerClassName: 'browser-emulation-actions',
 				hoverDelegate,
 				highlightToggledItems: true,
 				toolbarOptions: { primaryGroup: () => true },
