@@ -1538,7 +1538,7 @@ per-word capitalization does not survive translation. */
 	width: 100%;
 }
 
-.ai-customization-management-editor .tools-list-widget.narrow-layout .tools-inventory-section-actions .monaco-button {
+.ai-customization-management-editor .tools-list-widget.narrow-layout .tools-inventory-section-actions .tools-inventory-browse-button {
 	width: 100%;
 }
 
