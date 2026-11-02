@@ -2873,7 +2873,7 @@ export class ChatThinkingContentPart extends ChatThinkingStyleContentPart implem
 		this._titleFileWidgetStore.clear();
 
 		const markdownTitle = typeof title === 'string' ? new MarkdownString(title) : title;
-		const result = this.chatContentMarkdownRenderer.render(markdownTitle);
+		const result = this.chatContentMarkdownRenderer.render(markdownTitle, { elementClassName: 'chat-thinking-title-node' });
 		result.element.classList.add('collapsible-title-content', 'chat-thinking-title-detail');
 		renderFileWidgets(result.element, this.instantiationService, this.chatMarkdownAnchorService, this._titleFileWidgetStore);
 		this._titleFileWidgetStore.add(addDisposableListener(result.element, EventType.CLICK, event => {

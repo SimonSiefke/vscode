@@ -37,6 +37,8 @@ export interface IButtonOptions extends Partial<IButtonStyles> {
 	readonly supportIcons?: boolean;
 	/** Class applied to element parts of icon-supported string labels. */
 	readonly contentClassName?: string;
+	/** Class applied to the separate icon element in ButtonWithIcon. */
+	readonly iconClassName?: string;
 	readonly supportShortLabel?: boolean;
 	readonly secondary?: boolean;
 	readonly small?: boolean;
@@ -709,6 +711,9 @@ export class ButtonWithIcon extends Button {
 
 		this._element.classList.add('monaco-icon-button');
 		this._iconElement = $('');
+		if (options.iconClassName) {
+			this._iconElement.classList.add(options.iconClassName);
+		}
 		this._mdlabelElement = $('.monaco-button-mdlabel');
 		this._element.append(this._iconElement, this._mdlabelElement);
 	}
@@ -763,7 +768,7 @@ export class ButtonWithIcon extends Button {
 	}
 
 	override set icon(icon: ThemeIcon) {
-		this._iconElement.classList.value = '';
+		this._iconElement.className = this.options.iconClassName ?? '';
 		this._iconElement.classList.add(...ThemeIcon.asClassNameArray(icon));
 		this._setAriaLabel();
 	}

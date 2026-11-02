@@ -465,7 +465,7 @@
 			font-size: var(--vscode-chat-font-size-body-s);
 		}
 
-		.codicon {
+		.codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron, .chat-thinking-title-node) {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
 

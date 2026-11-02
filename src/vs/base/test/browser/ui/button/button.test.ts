@@ -5,13 +5,32 @@
 
 import assert from 'assert';
 import { getWindow } from '../../../../browser/dom.js';
-import { Button, ButtonWithDropdown, unthemedButtonStyles } from '../../../../browser/ui/button/button.js';
+import { Button, ButtonWithDropdown, ButtonWithIcon, unthemedButtonStyles } from '../../../../browser/ui/button/button.js';
 import { Codicon } from '../../../../common/codicons.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 suite('Button', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('leading icon styling survives icon replacement and stays local to its button', () => {
+		const container = document.body.appendChild(document.createElement('div'));
+		store.add({ dispose: () => container.remove() });
+		const style = container.appendChild(document.createElement('style'));
+		style.textContent = '.monaco-button .test-leading-glyph { padding-top: 7px; }';
+		const button = store.add(new ButtonWithIcon(container, { ...unthemedButtonStyles, iconClassName: 'test-leading-glyph' }));
+		const other = store.add(new ButtonWithIcon(container, unthemedButtonStyles));
+		const targetWindow = getWindow(container);
+		assert.strictEqual(targetWindow.getComputedStyle(button.iconElement).paddingTop, '7px');
+		for (const icon of [Codicon.check, Codicon.sync, Codicon.error]) {
+			button.icon = icon;
+			button.label = icon.id;
+			assert.ok(button.iconElement.classList.contains(`codicon-${icon.id}`));
+			assert.strictEqual(targetWindow.getComputedStyle(button.iconElement).paddingTop, '7px');
+		}
+		other.icon = Codicon.check;
+		assert.notStrictEqual(targetWindow.getComputedStyle(other.iconElement).paddingTop, '7px');
+	});
 
 	test('label-part styling follows icon labels, countdown text and content replacement', () => {
 		const container = document.createElement('div');
