@@ -335,7 +335,7 @@
 	border-color: var(--vscode-focusBorder);
 }
 
-.workbench-suggest-widget .suggest-details a {
+.workbench-suggest-widget .suggest-details a:where(.simple-suggest-documentation-link) {
 	color: var(--vscode-textLink-foreground);
 }
 

@@ -198,6 +198,7 @@ export class SimpleSuggestDetailsWidget {
 			this._docs.classList.add('markdown-docs');
 			dom.clearNode(this._docs);
 			const renderedContents = this.markdownRendererService.render(documentation, {
+				linkClassName: 'simple-suggest-documentation-link',
 				asyncRenderCallback: () => {
 					updateSize();
 				}
