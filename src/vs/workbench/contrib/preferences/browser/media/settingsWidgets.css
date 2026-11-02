@@ -132,7 +132,7 @@
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row.drag-hover {
 	background-color: var(--vscode-list-dropBackground);
 }
-.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row.drag-hover * {
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row.drag-hover :where(.setting-list-value, .setting-list-sibling, .setting-list-row-action-bar, .setting-list-row-toolbar-actions, .setting-list-row-toolbar-item, .setting-list-row-action-label) {
 	pointer-events: none;
 }
 
