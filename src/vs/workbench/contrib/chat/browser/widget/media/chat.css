@@ -1768,7 +1768,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	width: 100%;
 }
 
-.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .monaco-button {
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .chat-todo-expand-button {
 	display: flex;
 	align-items: center;
 	gap: 4px;

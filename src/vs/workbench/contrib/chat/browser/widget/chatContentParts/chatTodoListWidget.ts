@@ -184,6 +184,7 @@ export class ChatTodoListWidget extends Disposable {
 		this.expandoButton = this._register(new Button(expandoContainer, {
 			supportIcons: true
 		}));
+		this.expandoButton.element.classList.add('chat-todo-expand-button');
 		this.expandoButton.element.setAttribute('aria-expanded', String(this._isExpanded));
 		this.expandoButton.element.setAttribute('aria-controls', 'todo-list-container');
 
