@@ -168,7 +168,7 @@
 			flex: 1;
 			min-width: 0;
 
-			& > .monaco-icon-label-container {
+			& > .chat-compare-label-container {
 				display: flex;
 				align-items: baseline;
 
