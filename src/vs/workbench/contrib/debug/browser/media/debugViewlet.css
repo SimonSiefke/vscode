@@ -292,7 +292,7 @@
 	height: 19px;
 }
 
-.debug-pane .monaco-inputbox > .ibwrapper > .input {
+.debug-pane .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0px;
 	color: initial;
 }
