@@ -70,7 +70,7 @@ export class McpServerIconWidget extends McpServerWidget {
 		super();
 		this.element = dom.append(container, dom.$('.extension-icon'));
 
-		this.iconElement = dom.append(this.element, dom.$('img.icon', { alt: '' }));
+		this.iconElement = dom.append(this.element, dom.$('img.icon.extension-widget-icon-image', { alt: '' }));
 		this.iconElement.style.display = 'none';
 
 		this.codiconIconElement = dom.append(this.element, dom.$(ThemeIcon.asCSSSelector(mcpServerIcon)));
