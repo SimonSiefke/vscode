@@ -345,7 +345,7 @@ export class IssueReporterOverlay {
 
 		// Delay/options dropdown using VS Code's context menu
 		const delayOptions = this.getScreenshotDelayOptions();
-		const delayDropdownButton = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true }));
+		const delayDropdownButton = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true, contentClassName: 'wizard-segmented-label-part' }));
 		delayDropdownButton.element.classList.add('wizard-segmented-dropdown');
 		delayDropdownButton.element.title = localize('captureOptions', "Capture options");
 		delayDropdownButton.element.setAttribute('aria-label', localize('captureOptions', "Capture options"));

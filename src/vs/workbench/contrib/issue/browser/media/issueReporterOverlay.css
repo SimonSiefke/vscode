@@ -279,7 +279,7 @@
 	background: var(--vscode-button-background, #0e639c);
 }
 
-.issue-reporter-floating-bar .wizard-segmented-dropdown > * {
+.issue-reporter-floating-bar :where(.wizard-segmented-dropdown) > .wizard-segmented-label-part {
 	display: flex;
 	align-items: center;
 }
