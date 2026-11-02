@@ -172,7 +172,7 @@
 .customization-migration-dashboard .migration-guidance-card .mcp-detail-diagnostic-message + .mcp-detail-diagnostic-message {
 	margin-top: var(--vscode-spacing-size60);
 }
-.customization-migration-dashboard .migration-tree .monaco-list-row {
+.customization-migration-dashboard .migration-tree .ai-customization-tree-row {
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
