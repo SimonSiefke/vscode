@@ -83,7 +83,7 @@
 	margin-left: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-agent-type.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-agent-type {
 	display: none;
 }
 
