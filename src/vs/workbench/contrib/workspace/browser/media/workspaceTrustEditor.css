@@ -198,10 +198,6 @@
 	margin: 8px 4px; /* allows button focus outline to be visible */
 }
 
-.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons .monaco-button-dropdown .monaco-dropdown-button {
-	padding: 0 4px;
-}
-
 .workspace-trust-limitations {
 	width: 50%;
 	max-width: 400px;
