@@ -53,7 +53,7 @@
 	align-self: center;
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents .monaco-icon-label.delete .monaco-icon-label-container {
+.monaco-workbench .bulk-edit-panel .monaco-tl-contents .monaco-icon-label.delete .monaco-icon-label-container:where(.bulk-edit-file-label-container) {
 	text-decoration: line-through;
 }
 
