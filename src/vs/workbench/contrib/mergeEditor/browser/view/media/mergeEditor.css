@@ -245,7 +245,7 @@
 	color: var(--vscode-editorCodeLens-foreground)
 }
 
-.merge-editor-conflict-actions > span,
+.merge-editor-conflict-actions > span:where(.merge-conflict-action-text),
 .merge-editor-conflict-actions > a {
 	user-select: none;
 	-webkit-user-select: none;
