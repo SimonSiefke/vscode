@@ -34,7 +34,7 @@
 	color:  var(--vscode-editorLightBulbAutoFix-foreground);
 }
 
-.markers-panel .markers-panel-container .tree-container.hidden {
+.markers-panel .markers-panel-container .hidden.tree-container {
 	display: none;
 	visibility: hidden;
 }
