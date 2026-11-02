@@ -95,7 +95,7 @@
 }
 
 .chat-subagent-part .chat-subagent-open-chat-toolbar .chat-subagent-action-bar,
-.chat-subagent-part .chat-subagent-open-chat-toolbar .actions-container {
+.chat-subagent-part .chat-subagent-open-chat-toolbar .chat-subagent-toolbar-actions {
 	min-width: 0;
 	max-width: 100%;
 }
