@@ -506,7 +506,7 @@
 				.monaco-action-bar  {
 					line-height: 1;
 
-					.actions-container {
+					.diff-gutter-toolbar-actions {
 						width: fit-content;
 						border-radius: 4px;
 						background: var(--vscode-editorGutter-itemBackground);
