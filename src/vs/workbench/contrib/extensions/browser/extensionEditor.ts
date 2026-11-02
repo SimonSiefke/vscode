@@ -912,7 +912,7 @@ export class ExtensionEditor extends EditorPane {
 
 	private renderAdditionalDetails(container: HTMLElement, extension: IExtension): void {
 		const content = $('div', { class: 'additional-details-content', tabindex: '0' });
-		const scrollableContent = new DomScrollableElement(content, {});
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable' });
 		const layout = () => scrollableContent.scanDomNode();
 		const removeLayoutParticipant = arrays.insert(this.layoutParticipants, { layout });
 		this.contentDisposables.add(toDisposable(removeLayoutParticipant));
@@ -960,7 +960,7 @@ export class ExtensionEditor extends EditorPane {
 		}
 
 		const content = $('div', { class: 'subcontent' });
-		const scrollableContent = new DomScrollableElement(content, {});
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable' });
 		append(contentContainer, scrollableContent.getDomNode());
 		this.contentDisposables.add(scrollableContent);
 
@@ -1005,7 +1005,7 @@ export class ExtensionEditor extends EditorPane {
 		}
 
 		const content = $('div', { class: 'subcontent' });
-		const scrollableContent = new DomScrollableElement(content, { useShadows: false });
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable', useShadows: false });
 		append(parent, scrollableContent.getDomNode());
 
 		const extensionsGridView = this.instantiationService.createInstance(ExtensionsGridView, content, new Delegate());
