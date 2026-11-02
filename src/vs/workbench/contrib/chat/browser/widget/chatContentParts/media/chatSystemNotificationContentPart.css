@@ -155,7 +155,7 @@
 	transition: opacity 0.1s ease-in-out;
 }
 
-.chat-system-notification-timing.hidden {
+.hidden.chat-system-notification-timing {
 	display: none;
 }
 
