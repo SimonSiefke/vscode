@@ -83,7 +83,7 @@
 }
 
 .extension-bookmark > .recommendation > .codicon:where(.extension-bookmark-glyph),
-.extension-bookmark > .pre-release > .codicon {
+.extension-bookmark > .pre-release > .codicon:where(.extension-bookmark-glyph) {
 	color: inherit;
 	font-size: 12px !important;
 	line-height: 12px;
