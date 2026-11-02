@@ -830,7 +830,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 		};
 		const appendGapMarker = (gapMinutes: number): void => {
 			const gap = DOM.append(this.railList, $('.chat-debug-cache-rail-gap'));
-			DOM.append(gap, $('span.codicon.codicon-clock', { 'aria-hidden': 'true' }));
+			DOM.append(gap, $('span.codicon.codicon-clock.chat-cache-rail-gap-glyph', { 'aria-hidden': 'true' }));
 			DOM.append(gap, $('span', undefined, localize('chatDebug.cache.railGap', "{0} min idle · cache likely expired", gapMinutes.toFixed(1))));
 		};
 

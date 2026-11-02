@@ -1223,7 +1223,7 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	color: var(--vscode-charts-yellow);
 	opacity: 0.9;
 }
-.chat-debug-cache-rail-gap .codicon {
+.chat-debug-cache-rail-gap .codicon:where(.chat-cache-rail-gap-glyph) {
 	font-size: 11px;
 }
 .chat-debug-cache-rail-gap::before,
