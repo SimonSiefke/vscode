@@ -1092,7 +1092,7 @@ export class ExtensionRecommendationWidget extends ExtensionWidget {
 		const recommendationStatus = this.getRecommendationStatus();
 		if (recommendationStatus) {
 			if (recommendationStatus.icon) {
-				append(this.container, $(`div${ThemeIcon.asCSSSelector(recommendationStatus.icon)}`));
+				append(this.container, $(`div.extension-recommendation-glyph${ThemeIcon.asCSSSelector(recommendationStatus.icon)}`));
 			}
 			append(this.container, $(`div.recommendation-text`, undefined, recommendationStatus.message));
 		}

@@ -353,7 +353,7 @@
 	margin-top: 5px;
 }
 
-.extension-editor > .header > .details > .recommendation .codicon {
+.extension-editor > .header > .details > .recommendation .codicon:where(.extension-recommendation-glyph) {
 	font-size: inherit;
 	margin-right: 5px;
 }
