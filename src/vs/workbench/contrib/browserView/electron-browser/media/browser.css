@@ -321,7 +321,7 @@
 			gap: 4px;
 			outline: none !important;
 
-			> span:not(.codicon) {
+			> span:where(.browser-share-button-content):not(.codicon) {
 				min-width: 0;
 				overflow: hidden;
 				text-overflow: ellipsis;

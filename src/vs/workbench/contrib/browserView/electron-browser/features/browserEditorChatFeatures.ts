@@ -209,6 +209,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		this._shareButtonContainer = $('.browser-share-toggle-container');
 		this._shareButton = this._register(new Button(this._shareButtonContainer, {
 			supportIcons: true,
+			contentClassName: 'browser-share-button-content',
 			title: localize('browser.shareWithAgent', "Share with Agent"),
 			small: true,
 			hoverDelegate
