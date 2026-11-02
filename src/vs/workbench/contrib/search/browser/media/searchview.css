@@ -106,7 +106,7 @@
 	right: 2px;
 }
 
-.search-view .search-widget .replace-container.disabled {
+.search-view .search-widget .disabled.replace-container {
 	display: none;
 }
 
