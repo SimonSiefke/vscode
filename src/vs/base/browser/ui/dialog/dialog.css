@@ -225,7 +225,7 @@
 }
 
 /** Dialog: Dropdown */
-.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+.monaco-dialog-box:not(.align-vertical) > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button-dropdown).dialog-footer-action {
 	margin: 4px 5px;
 }
 
