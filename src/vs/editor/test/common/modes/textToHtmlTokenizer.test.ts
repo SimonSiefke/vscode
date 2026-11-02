@@ -90,6 +90,13 @@ suite('Editor Modes - textToHtmlTokenizer', () => {
 		assert.strictEqual(actual, expectedStr);
 	});
 
+	test('tokenizeLineToHTML escapes optional element styling while preserving token styles and text', () => {
+		const tokens = new TestLineTokens([new TestLineToken(2, (1 << MetadataConsts.FOREGROUND_OFFSET) >>> 0)]);
+		const html = tokenizeLineToHTML('<&', tokens, ['', '#000000'], 0, 2, 4, false, 'line"<>&');
+		const marker = 'line&quot;&lt;&gt;&amp;';
+		assert.strictEqual(html, `<div class="${marker}"><span class="${marker}" style="color: #000000;">&lt;&amp;</span></div>`);
+	});
+
 	test('tokenizeLineToHTML', () => {
 		const text = 'Ciao hello world!';
 		const lineTokens = new TestLineTokens([

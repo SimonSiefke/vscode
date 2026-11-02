@@ -30,8 +30,10 @@ export async function tokenizeToString(languageService: ILanguageService, text: 
 	return _tokenizeToString(text, languageService.languageIdCodec, tokenizationSupport || fallback, elementClassName);
 }
 
-export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens, colorMap: string[], startOffset: number, endOffset: number, tabSize: number, useNbsp: boolean): string {
-	let result = `<div>`;
+export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens, colorMap: string[], startOffset: number, endOffset: number, tabSize: number, useNbsp: boolean, elementClassName?: string): string {
+	const elementClass = elementClassName ? strings.htmlAttributeEncodeValue(elementClassName) : '';
+	const classAttribute = elementClass ? ` class="${elementClass}"` : '';
+	let result = `<div${classAttribute}>`;
 	let charIndex = 0;
 	let width = 0;
 
@@ -127,7 +129,7 @@ export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens
 			continue;
 		}
 
-		result += `<span style="${viewLineTokens.getInlineStyle(tokenIndex, colorMap)}">${partContent}</span>`;
+		result += `<span${classAttribute} style="${viewLineTokens.getInlineStyle(tokenIndex, colorMap)}">${partContent}</span>`;
 
 		if (tokenEndIndex > endOffset || charIndex >= endOffset || startOffset >= endOffset) {
 			break;
