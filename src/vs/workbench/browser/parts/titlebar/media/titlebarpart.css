@@ -357,7 +357,7 @@
 	width: 138px;
 }
 
-.monaco-workbench:not(.web):not(.mac) .part.titlebar .titlebar-container:not(.counter-zoom) .window-controls-container * {
+.monaco-workbench:not(.web):not(.mac) .part.titlebar .titlebar-container:not(.counter-zoom) :where(.window-controls-container) .window-icon {
 	zoom: calc(1 / var(--zoom-factor, 1));
 }
 
