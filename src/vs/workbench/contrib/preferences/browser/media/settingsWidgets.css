@@ -353,7 +353,7 @@
 	border: 1px solid #ddd;
 }
 
-.settings-header-widget > .settings-search-container > .settings-search-input > .monaco-inputbox .input {
+.settings-header-widget > .settings-search-container > .settings-search-input > .monaco-inputbox .monaco-inputbox-input {
 	font-size: 14px;
 	padding-left:10px;
 }
