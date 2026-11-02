@@ -1208,7 +1208,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 }
 
 .issue-reporter-annotation-overlay .annotation-toolbar .active.tool-btn,
-.issue-reporter-annotation-overlay .annotation-toolbar .tool-btn.active .codicon {
+.issue-reporter-annotation-overlay .annotation-toolbar .tool-btn.active .codicon:where(.issue-annotation-tool-glyph) {
 	color: var(--vscode-button-foreground, #fff) !important;
 }
 
