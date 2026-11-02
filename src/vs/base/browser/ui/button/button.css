@@ -156,7 +156,7 @@
 /* default color styles - based on CSS variables */
 
 .monaco-button.default-colors,
-.monaco-button-dropdown.default-colors > .monaco-button{
+.monaco-button-dropdown.default-colors > .monaco-dropdown-action-button{
 	color: var(--vscode-button-foreground);
 	background-color: var(--vscode-button-background);
 }
