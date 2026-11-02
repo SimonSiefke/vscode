@@ -10,7 +10,7 @@
 	position: relative;
 }
 
-.monaco-tl-row.disabled {
+.disabled.monaco-tl-row {
 	cursor: default;
 }
 .monaco-tl-indent {
