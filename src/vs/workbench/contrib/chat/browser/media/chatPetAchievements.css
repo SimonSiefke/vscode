@@ -376,7 +376,7 @@
 	grid-template-columns: minmax(0, 1fr);
 }
 
-.chat-pet-achievement-card.monaco-button {
+.monaco-button.chat-pet-achievement-card {
 	box-sizing: border-box;
 	display: block;
 	position: relative;
