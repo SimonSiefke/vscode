@@ -5,7 +5,7 @@
 
 /* Card chrome, header, title and the close button come from widget/media/chatCard.css. */
 
-.chat-feedback-survey-widget.hidden {
+.hidden.chat-feedback-survey-widget {
 	display: none;
 }
 
