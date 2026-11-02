@@ -177,7 +177,7 @@
 	height: 100%;
 }
 
-.workbench-suggest-widget .monaco-list .monaco-list-row .icon {
+.workbench-suggest-widget .monaco-list .monaco-list-row .icon:where(.simple-suggest-row-icon) {
 	display: block;
 	height: 16px;
 	width: 16px;
