@@ -58,7 +58,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .voice-mode-onboarding-microphone-icon.codicon[class*='codicon-'] {
+.monaco-workbench .codicon[class*='codicon-'].voice-mode-onboarding-microphone-icon {
 	flex-shrink: 0;
 	font-size: var(--vscode-codiconFontSize-compact);
 	line-height: 1;
