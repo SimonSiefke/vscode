@@ -689,7 +689,7 @@
 
 /* ---- File list: settings gear button ---- */
 .monaco-button.chat-debug-settings-gear,
-.chat-debug-section-copy-btn.monaco-button {
+.monaco-button.chat-debug-section-copy-btn {
 	flex-shrink: 0;
 	opacity: 0.7;
 	border-radius: 3px;
