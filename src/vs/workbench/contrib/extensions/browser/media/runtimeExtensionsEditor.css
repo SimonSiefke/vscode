@@ -39,7 +39,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.runtime-extensions-editor .monaco-action-bar  {
+.runtime-extensions-editor .monaco-action-bar:where(.runtime-extension-action-bar)  {
 	height: unset;
 }
 

@@ -248,7 +248,7 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 
 				const msgContainer = append(desc, $('div.msg'));
 
-				const actionbar = new ActionBar(desc);
+				const actionbar = new ActionBar(desc, { className: 'runtime-extension-action-bar' });
 				const listener = actionbar.onDidRun(({ error }) => error && this._notificationService.error(error));
 
 				const timeContainer = append(element, $('.time'));
