@@ -112,7 +112,7 @@
 	flex: 2;
 }
 
-.modern-ui.monaco-workbench .pane-body .agent-sessions-viewer .monaco-scrollable-element {
+.modern-ui.monaco-workbench .pane-body .agent-sessions-viewer .agent-sessions-list-scrollable {
 	padding: 0 var(--vscode-spacing-size80);
 }
 
