@@ -1389,12 +1389,12 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		}
 
 		if (styles.listInactiveSelectionBackground) {
-			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .monaco-list-row.selected { background-color:  ${styles.listInactiveSelectionBackground}; }`);
+			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .selected.notebook-main-list-row { background-color:  ${styles.listInactiveSelectionBackground}; }`);
 			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .monaco-list-row.selected:hover { background-color:  ${styles.listInactiveSelectionBackground}; }`); // overwrite :hover style in this case!
 		}
 
 		if (styles.listInactiveSelectionForeground) {
-			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .monaco-list-row.selected { color: ${styles.listInactiveSelectionForeground}; }`);
+			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .selected.notebook-main-list-row { color: ${styles.listInactiveSelectionForeground}; }`);
 		}
 
 		if (styles.listHoverBackground) {
@@ -1406,7 +1406,7 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		}
 
 		if (styles.listSelectionOutline) {
-			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .monaco-list-row.selected { outline: 1px dotted ${styles.listSelectionOutline}; outline-offset: -1px; }`);
+			content.push(`.monaco-list${suffix} > div.monaco-scrollable-element > .monaco-list-rows > .selected.notebook-main-list-row { outline: 1px dotted ${styles.listSelectionOutline}; outline-offset: -1px; }`);
 		}
 
 		if (styles.listFocusOutline) {
