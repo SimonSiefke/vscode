@@ -29,11 +29,11 @@
 	overflow: visible !important;
 }
 
-.monaco-workbench .notebookOverlay .cell-list-container .overflowingContentWidgets > div {
+.monaco-workbench .notebookOverlay .cell-list-container .overflowingContentWidgets > div:where([widgetid]) {
 	white-space: normal;
 }
 
-.monaco-workbench .notebookOverlay .cell-list-container .overflowingContentWidgets > div {
+.monaco-workbench .notebookOverlay .cell-list-container .overflowingContentWidgets > div:where([widgetid]) {
 	/* @rebornix: larger than the editor title bar */
 	z-index: 600 !important;
 }
