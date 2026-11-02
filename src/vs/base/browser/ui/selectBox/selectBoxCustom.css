@@ -82,7 +82,7 @@
 
 
 /* Separator styling */
-.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row.option-separator {
+.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .option-separator.select-box-list-row {
 	cursor: default;
 	border-radius: 0;
 	padding: 0;
