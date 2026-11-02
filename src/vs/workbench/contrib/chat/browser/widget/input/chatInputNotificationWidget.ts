@@ -528,6 +528,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 							buttonSecondaryBorder: undefined,
 						} : {}),
 						supportIcons: true,
+						contentClassName: 'chat-input-notification-action-part',
 						secondary: !isPrimary,
 					}));
 					button.element.classList.add('chat-input-notification-action-button');
