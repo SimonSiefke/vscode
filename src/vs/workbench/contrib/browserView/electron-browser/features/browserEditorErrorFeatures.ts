@@ -233,6 +233,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 		this._certActionButton.value = buttonBar;
 
 		const primaryButton = buttonBar.addButton({ ...defaultButtonStyles });
+		primaryButton.element.classList.add('browser-cert-action-button');
 		primaryButton.label = canGoBack
 			? localize('browser.certGoBack', "Go Back")
 			: localize('browser.certCloseTab', "Close Tab");
@@ -245,6 +246,7 @@ class BrowserEditorErrorFeatures extends BrowserEditorContribution {
 		});
 
 		const secondaryButton = buttonBar.addButton({ ...defaultButtonStyles, secondary: true });
+		secondaryButton.element.classList.add('browser-cert-action-button');
 		secondaryButton.label = localize('browser.certProceed', "Proceed anyway (unsafe)");
 		secondaryButton.onDidClick(() => {
 			this.editor.model?.trustCertificate(certError.host, certError.fingerprint);

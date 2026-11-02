@@ -793,7 +793,7 @@
 			justify-content: flex-start;
 		}
 
-		.monaco-button {
+		.browser-cert-action-button {
 			width: fit-content;
 		}
 	}
