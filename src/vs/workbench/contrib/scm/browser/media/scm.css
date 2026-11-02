@@ -438,7 +438,7 @@
 	min-width: 0;
 }
 
-.scm-view .button-container > .monaco-button-dropdown > .monaco-button.monaco-text-button > span:not(.codicon) {
+.scm-view .button-container > .monaco-button-dropdown > .monaco-button.monaco-text-button > span:where(.scm-command-button-content):not(.codicon) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

@@ -2371,6 +2371,7 @@ export class SCMActionButton implements IDisposable {
 				actions: actions,
 				addPrimaryActionToDropdown: false,
 				contextMenuProvider: this.contextMenuService,
+				contentClassName: 'scm-command-button-content',
 				title: button.command.tooltip,
 				supportIcons: true,
 				...defaultButtonStyles
