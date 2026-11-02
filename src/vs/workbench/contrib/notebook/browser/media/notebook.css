@@ -435,7 +435,7 @@
 /** Focused cell background */
 
 .notebookOverlay .code-cell-row.focused .cell-focus-indicator,
-.notebookOverlay .markdown-cell-row.focused,
+.notebookOverlay .focused.markdown-cell-row,
 .notebookOverlay .code-cell-row.focused .input-collapse-container {
 	background-color: var(--vscode-notebook-focusedCellBackground) !important;
 }
