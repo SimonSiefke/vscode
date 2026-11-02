@@ -1355,7 +1355,7 @@
 	margin: 0;
 }
 
-.chat-model-card-description a,
+.chat-model-card-description a:where(.chat-model-description-link),
 .chat-model-card-description a:visited {
 	color: var(--vscode-textLink-foreground);
 }
