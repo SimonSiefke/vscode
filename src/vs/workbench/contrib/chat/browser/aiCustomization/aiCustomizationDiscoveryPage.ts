@@ -693,6 +693,9 @@ class DiscoveryResultRenderer implements IListRenderer<DiscoveryListEntry, IDisc
 		verified.appendChild(renderIcon(verifiedPublisherIcon));
 		const description = DOM.append(identity, $('.customization-discovery-result-description'));
 		const aside = DOM.append(root, $('.customization-discovery-result-aside'));
+		for (const child of [primaryAction, linkedConnectionLabel, icon, identity, aside]) {
+			child.classList.add('customization-discovery-result-body');
+		}
 		const stats = DOM.append(aside, $('.customization-discovery-result-stats'));
 		const actions = DOM.append(aside, $('.customization-discovery-result-actions'));
 		return {

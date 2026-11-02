@@ -108,7 +108,7 @@
 	display: inline-grid;
 }
 
-.customization-discovery-result-content.loading > :not(.customization-discovery-result-loading) {
+.customization-discovery-result-content.loading > .customization-discovery-result-body {
 	visibility: hidden;
 }
 
