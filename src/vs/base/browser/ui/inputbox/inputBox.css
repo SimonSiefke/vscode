@@ -53,7 +53,7 @@
 	display: none; /* Chrome + Safari: hide scrollbar */
 }
 
-.monaco-inputbox > .ibwrapper > textarea.input.empty {
+.monaco-inputbox > .ibwrapper > textarea.empty.monaco-inputbox-input {
 	white-space: nowrap;
 }
 
