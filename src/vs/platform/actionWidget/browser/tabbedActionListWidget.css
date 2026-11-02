@@ -7,7 +7,7 @@
  * popup. Styles are intentionally minimal so consumers can override via
  * the `tabBarClassName` option. */
 
-.action-widget .tabbed-action-list-body.collapsed {
+.action-widget .collapsed.tabbed-action-list-body {
 	height: 0;
 	overflow: clip;
 	visibility: hidden;
