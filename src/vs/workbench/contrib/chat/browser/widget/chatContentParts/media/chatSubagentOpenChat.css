@@ -295,7 +295,7 @@
 	background-color: color-mix(in srgb, var(--vscode-list-warningForeground) 8%, transparent);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget:is(.chat-subagent-running, .chat-subagent-waiting) .chat-subagent-pill-icon .chat-subagent-pill-open-icon.codicon {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget:is(.chat-subagent-running, .chat-subagent-waiting) .chat-subagent-pill-icon .codicon.chat-subagent-pill-open-icon {
 	display: none;
 }
 
