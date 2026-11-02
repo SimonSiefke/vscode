@@ -15,7 +15,7 @@
 }
 
 .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
-.monaco-inputbox > .ibwrapper > .mirror {
+.monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 
 	/* Customizable */
 	padding: 4px 6px;
@@ -57,7 +57,7 @@
 	white-space: nowrap;
 }
 
-.monaco-inputbox > .ibwrapper > .mirror {
+.monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	position: absolute;
 	display: inline-block;
 	width: 100%;

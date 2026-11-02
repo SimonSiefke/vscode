@@ -161,7 +161,7 @@ export class InputBox extends Widget {
 		if (this.options.flexibleHeight) {
 			this.maxHeight = typeof this.options.flexibleMaxHeight === 'number' ? this.options.flexibleMaxHeight : Number.POSITIVE_INFINITY;
 
-			this.mirror = dom.append(wrapper, $('div.mirror'));
+			this.mirror = dom.append(wrapper, $('div.mirror.monaco-inputbox-mirror'));
 			this.mirror.innerText = '\u00a0';
 
 			this.scrollableElement = new ScrollableElement(this.element, { className: 'monaco-inputbox-scrollable', vertical: ScrollbarVisibility.Auto });
