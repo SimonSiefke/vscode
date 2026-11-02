@@ -399,7 +399,7 @@
 
 /* Include the tab owner to outrank `.monaco-inputbox > .ibwrapper > .input`,
  * which otherwise restores the base 4px 6px padding around the rename input. */
-.chat-composite-bar-tab .chat-composite-bar-tab-input.monaco-inputbox .input {
+.chat-composite-bar-tab .chat-composite-bar-tab-input.monaco-inputbox .monaco-inputbox-input {
 	font-family: inherit;
 	font-weight: inherit;
 	font-size: inherit;
