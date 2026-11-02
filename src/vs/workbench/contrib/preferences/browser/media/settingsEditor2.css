@@ -447,7 +447,7 @@
 	border-radius: 4px;
 }
 
-.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-title .codicon {
+.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-title .codicon:where(.setting-title-glyph) {
 	vertical-align: middle;
 	padding-left: 1px;
 }

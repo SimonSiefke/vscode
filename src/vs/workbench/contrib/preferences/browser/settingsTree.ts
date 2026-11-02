@@ -935,7 +935,7 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 		const labelCategoryContainer = DOM.append(titleElement, $('.setting-item-cat-label-container'));
 		const categoryElement = DOM.append(labelCategoryContainer, $('span.setting-item-category'));
 		const labelElementContainer = DOM.append(labelCategoryContainer, $('span.setting-item-label'));
-		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer));
+		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer, 'setting-title-glyph'));
 		const indicatorsLabel = toDispose.add(this._instantiationService.createInstance(SettingsTreeIndicatorsLabel, titleElement));
 
 		const descriptionElement = DOM.append(container, $('.setting-item-description'));
@@ -2065,7 +2065,7 @@ class SettingBoolRenderer extends AbstractSettingRenderer implements ITreeRender
 		const titleElement = DOM.append(container, $('.setting-item-title'));
 		const categoryElement = DOM.append(titleElement, $('span.setting-item-category'));
 		const labelElementContainer = DOM.append(titleElement, $('span.setting-item-label'));
-		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer));
+		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer, 'setting-title-glyph'));
 		const indicatorsLabel = toDispose.add(this._instantiationService.createInstance(SettingsTreeIndicatorsLabel, titleElement));
 
 		const descriptionAndValueElement = DOM.append(container, $('.setting-item-value-description'));
