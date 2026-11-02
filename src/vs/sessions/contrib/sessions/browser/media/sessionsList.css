@@ -246,7 +246,7 @@
 		font-size: 12px;
 		pointer-events: none;
 
-		&.visible {
+		&.visible:where(.session-pending-voice-indicator) {
 			display: flex;
 		}
 	}
