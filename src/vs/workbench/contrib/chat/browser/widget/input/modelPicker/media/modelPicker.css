@@ -1295,7 +1295,7 @@
 	visibility: hidden;
 }
 
-.chat-model-card-pricing-body.expanded {
+.expanded.chat-model-card-pricing-body {
 	grid-template-rows: 1fr;
 	visibility: visible;
 }
@@ -1321,7 +1321,7 @@
 		transition: grid-template-rows 150ms ease-out, visibility 0s linear 150ms;
 	}
 
-	.chat-model-card-pricing-body.expanded {
+	.expanded.chat-model-card-pricing-body {
 		transition-delay: 0s;
 	}
 }
