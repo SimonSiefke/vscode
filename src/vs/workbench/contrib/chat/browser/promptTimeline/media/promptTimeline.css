@@ -386,7 +386,7 @@
 	pointer-events: auto;
 }
 
-.prompt-timeline-ruler-mark.hidden {
+.hidden.prompt-timeline-ruler-mark {
 	display: none;
 }
 
