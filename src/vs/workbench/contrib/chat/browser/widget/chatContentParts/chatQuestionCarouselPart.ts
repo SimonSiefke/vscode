@@ -884,6 +884,9 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 		}
 
 		this.renderInput(inputContainer, question);
+		for (const child of inputContainer.children) {
+			child.classList.add('chat-question-input-section');
+		}
 
 		const inputScrollable = questionRenderStore.add(new DomScrollableElement(inputContainer, {
 			vertical: ScrollbarVisibility.Visible,

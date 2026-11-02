@@ -323,7 +323,7 @@
 	}
 }
 
-.interactive-session .chat-question-carousel-container .chat-question-input-container > * {
+.interactive-session .chat-question-carousel-container :where(.chat-question-input-container) > .chat-question-input-section {
 	flex-shrink: 0;
 }
 
