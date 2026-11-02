@@ -650,7 +650,7 @@
 		color: var(--vscode-editor-foreground);
 		align-items: center;
 
-		&.visible {
+		&.visible:where(.session-ci-row) {
 			display: flex;
 		}
 
