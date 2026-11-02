@@ -93,7 +93,7 @@ export class ChatEditPillElement extends Disposable {
 		this.pillElement.tabIndex = 0;
 		this.pillElement.role = 'button';
 		this.progressFillEl = $('span.progress-fill');
-		this.fileIconEl = $('span.icon', { 'aria-hidden': 'true' });
+		this.fileIconEl = $('span.icon.chat-file-reference-icon', { 'aria-hidden': 'true' });
 		this.fileIconLabelEl = $('span.icon-label');
 		this.labelDetailEl = $('span.label-detail', {}, '');
 		this.pillElement.append(this.progressFillEl, this.fileIconEl, this.fileIconLabelEl, this.labelDetailEl);

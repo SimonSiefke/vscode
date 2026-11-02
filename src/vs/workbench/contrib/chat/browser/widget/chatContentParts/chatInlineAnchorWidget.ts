@@ -285,7 +285,7 @@ export class InlineAnchorWidget extends Disposable {
 			}
 		}
 
-		const iconEl = dom.$('span.icon');
+		const iconEl = dom.$('span.icon.chat-file-reference-icon');
 		iconEl.classList.add(...iconClasses);
 		element.replaceChildren(iconEl, dom.$('span.icon-label', {}, ...iconText));
 
