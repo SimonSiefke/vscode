@@ -40,7 +40,7 @@
 	color: var(--vscode-editorLink-activeForeground) !important;
 }
 
-.monaco-editor .codelens-decoration .codicon[class*='codicon-'] {
+.monaco-editor .codelens-decoration .codicon[class*='codicon-']:where(.codelens-content-glyph) {
 	vertical-align: middle;
 	color: currentColor !important;
 	color: var(--vscode-editorCodeLens-foreground);

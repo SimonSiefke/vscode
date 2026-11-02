@@ -95,7 +95,7 @@ class CodeLensContentWidget implements IContentWidget {
 			}
 			hasSymbol = true;
 			if (lens.command) {
-				const title = renderLabelWithIcons(lens.command.title.trim());
+				const title = renderLabelWithIcons(lens.command.title.trim(), undefined, 'codelens-content-glyph');
 				if (lens.command.id) {
 					const id = `c${(CodeLensContentWidget._idPool++)}`;
 					children.push(dom.$('a.codelens-command-link', { id, title: lens.command.tooltip, role: 'button' }, ...title));
