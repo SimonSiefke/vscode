@@ -207,7 +207,7 @@
 }
 
 /* The submenu indicator keeps the regular codicon size even in compact lists */
-.action-widget .actionList.compact-icons .monaco-list-row.action .action-list-submenu-indicator.codicon {
+.action-widget .actionList.compact-icons .monaco-list-row.action .codicon.action-list-submenu-indicator {
 	font-size: var(--vscode-codiconFontSize, 16px);
 }
 
