@@ -1615,7 +1615,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: inherit;
 }
 
-.interactive-session .chat-editing-session .chat-editing-session-container.show-file-icons .monaco-scrollable-element .monaco-list-rows .monaco-list-row {
+.interactive-session .chat-editing-session .chat-editing-session-container.show-file-icons .monaco-scrollable-element .monaco-list-rows .chat-reference-file-row {
 	border-radius: var(--vscode-cornerRadius-xSmall);
 }
 
