@@ -141,7 +141,7 @@
 	margin-left: auto;
 }
 
-.chat-input-notification-widget .chat-input-notification-actions.compact {
+.chat-input-notification-widget .compact.chat-input-notification-actions {
 	gap: var(--vscode-spacing-size40);
 }
 
