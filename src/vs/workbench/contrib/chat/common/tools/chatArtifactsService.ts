@@ -361,6 +361,15 @@ export class ChatArtifactsService extends Disposable implements IChatArtifactsSe
 	) {
 		super();
 		this._storage = new ChatArtifactsStorage(storageService);
+		this._register(this._chatService.onDidDisposeSession(({ sessionResources, reason }) => {
+			for (const resource of sessionResources) {
+				const key = chatSessionResourceToId(resource);
+				this._instances.deleteAndDispose(key);
+				if (reason === 'cleared') {
+					this._storage.delete(key);
+				}
+			}
+		}));
 	}
 
 	getArtifacts(sessionResource: URI): IChatArtifacts {
