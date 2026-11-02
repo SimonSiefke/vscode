@@ -1096,7 +1096,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			const iconEl = append(card, $('span.onboarding-a-ai-pref-card-icon'));
 			iconEl.setAttribute('aria-hidden', 'true');
 			const icon = Codicon[option.icon as keyof typeof Codicon] ?? Codicon.sparkle;
-			iconEl.appendChild(renderIcon(icon));
+			iconEl.appendChild(renderIcon(icon, undefined, 'onboarding-ai-preference-glyph'));
 
 			const titleEl = append(card, $('div.onboarding-a-ai-pref-card-title'));
 			titleEl.textContent = option.label;

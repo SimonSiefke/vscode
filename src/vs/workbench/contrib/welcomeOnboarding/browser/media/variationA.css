@@ -760,7 +760,7 @@
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 18%, transparent);
 }
 
-.onboarding-a-ai-pref-card-icon .codicon {
+.onboarding-a-ai-pref-card-icon .codicon:where(.onboarding-ai-preference-glyph) {
 	font-size: 48px;
 	color: var(--vscode-textLink-foreground, #3794ff);
 }
