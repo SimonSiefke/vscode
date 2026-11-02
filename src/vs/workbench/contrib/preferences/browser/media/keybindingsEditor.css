@@ -158,7 +158,7 @@
 }
 
 /** Source column styling **/
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .source a {
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .source a:where(.extension-label) {
 	cursor: pointer;
 }
 
