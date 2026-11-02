@@ -109,7 +109,7 @@ export class CodeCellDragImageRenderer {
 	private getDragImageImpl(templateData: BaseCellRenderTemplate, editor: ICodeEditor, type: 'code' | 'markdown'): HTMLElement | null {
 		const dragImageContainer = templateData.container.cloneNode(true) as HTMLElement;
 		dragImageContainer.classList.forEach(c => dragImageContainer.classList.remove(c));
-		dragImageContainer.classList.add('cell-drag-image', 'monaco-list-row', 'focused', `${type}-cell-row`);
+		dragImageContainer.classList.add('cell-drag-image', 'monaco-list-row', 'notebook-main-list-row', 'focused', `${type}-cell-row`);
 
 		// eslint-disable-next-line no-restricted-syntax
 		const editorContainer: HTMLElement | null = dragImageContainer.querySelector('.cell-editor-container');

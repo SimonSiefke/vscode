@@ -137,7 +137,7 @@ export class MarkupCellRenderer extends AbstractCellRenderer implements IListRen
 	}
 
 	renderTemplate(rootContainer: HTMLElement): MarkdownCellRenderTemplate {
-		rootContainer.classList.add('markdown-cell-row');
+		rootContainer.classList.add('markdown-cell-row', 'notebook-main-list-row');
 		const container = DOM.append(rootContainer, DOM.$('.cell-inner-container'));
 		const templateDisposables = new DisposableStore();
 		const contextKeyService = templateDisposables.add(this.contextKeyServiceProvider(container));
@@ -259,7 +259,7 @@ export class CodeCellRenderer extends AbstractCellRenderer implements IListRende
 	}
 
 	renderTemplate(rootContainer: HTMLElement): CodeCellRenderTemplate {
-		rootContainer.classList.add('code-cell-row');
+		rootContainer.classList.add('code-cell-row', 'notebook-main-list-row');
 		const container = DOM.append(rootContainer, DOM.$('.cell-inner-container'));
 		const templateDisposables = new DisposableStore();
 		const contextKeyService = templateDisposables.add(this.contextKeyServiceProvider(container));
