@@ -47,7 +47,7 @@
 	cursor: pointer;
 }
 
-.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row .monaco-tl-contents {
+.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row .debug-hover-tree-contents {
 	user-select: text;
 	-webkit-user-select: text;
 	white-space: pre;

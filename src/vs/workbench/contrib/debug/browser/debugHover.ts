@@ -143,6 +143,7 @@ export class DebugHoverWidget implements IContentWidget {
 		],
 			dataSource, {
 			accessibilityProvider: new DebugHoverAccessibilityProvider(),
+			contentsClassName: 'debug-hover-tree-contents',
 			mouseSupport: false,
 			horizontalScrolling: true,
 			useShadows: false,
