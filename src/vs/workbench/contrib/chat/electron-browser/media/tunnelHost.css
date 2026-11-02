@@ -30,7 +30,7 @@
 	align-items: center;
 }
 
-.tunnel-host-toggle.sharing .tunnel-host-icon .codicon {
+.tunnel-host-toggle.sharing .tunnel-host-icon .tunnel-host-glyph {
 	color: var(--vscode-focusBorder) !important;
 }
 
