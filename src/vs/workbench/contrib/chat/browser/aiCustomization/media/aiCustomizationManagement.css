@@ -3132,7 +3132,7 @@ per-word capitalization does not survive translation. */
 	padding-block: var(--vscode-spacing-size40);
 }
 
-.plugin-list-widget .mcp-list-container .monaco-list-row {
+.plugin-list-widget .mcp-list-container .ai-customization-tree-row {
 	border-radius: var(--vscode-cornerRadius-small);
 	overflow: hidden;
 }
