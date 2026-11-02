@@ -204,7 +204,7 @@
 	background: url('loading.svg') center center no-repeat;
 }
 
-.monaco-workbench.vs-dark .extensions-viewlet > .extensions .extension-list-item.loading {
+.monaco-workbench.vs-dark .extensions-viewlet > .extensions .loading.extension-list-item {
 	background-image: url('loading-dark.svg');
 }
 
