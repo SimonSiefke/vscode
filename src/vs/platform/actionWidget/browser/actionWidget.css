@@ -440,7 +440,7 @@
 	/* Override the row gap so group-title and toolbar sit flush */
 	gap: 0;
 
-	.title {
+	.title:where(.action-widget-title) {
 		flex: 0 1 auto;
 		min-width: 0;
 		margin-left: 6px;
