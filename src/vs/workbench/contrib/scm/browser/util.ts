@@ -151,6 +151,7 @@ class StatusBarActionViewItem extends ActionViewItem {
 				.map(element => {
 					if (typeof element === 'string') {
 						const span = document.createElement('span');
+						span.classList.add('scm-status-bar-text-part');
 						span.textContent = element;
 						return span;
 					}
