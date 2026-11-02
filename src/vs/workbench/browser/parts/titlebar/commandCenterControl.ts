@@ -240,6 +240,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 					});
 				}
 			});
+			toolbar.getElement().classList.add('command-center-toolbar');
 			toolbar.setActions(group);
 			this._store.add(toolbar);
 
