@@ -265,7 +265,7 @@
 	display: block; /* show toolbar when more than one editor group or always when auxiliary or locked */
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .actions-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .editor-group-empty-actions {
 	justify-content: flex-end;
 }
 
