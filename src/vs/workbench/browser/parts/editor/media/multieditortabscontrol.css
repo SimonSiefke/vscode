@@ -432,7 +432,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .monaco-icon-label.italic > .monaco-icon-label-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .monaco-icon-label.italic > .editor-tab-label-container {
 	/**
 	 * Browser rendering engines seem to have trouble to render italic labels
 	 * fully without clipping in case the parent container has `overflow: hidden`
