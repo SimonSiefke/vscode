@@ -401,6 +401,7 @@ class MarkerWidget extends Disposable {
 				} else {
 					const container = dom.$('.marker-code');
 					const code = this.disposables.add(new HighlightedLabel(container));
+					code.element.classList.add('markers-code-link-label');
 					const link = marker.code.target.toString(true);
 					this.disposables.add(new Link(parent, { href: link, label: container, title: link }, undefined, this._hoverService, this._openerService));
 					const codeMatches = filterData && filterData.codeMatches || [];
