@@ -334,7 +334,8 @@
 	> .chat-thinking-conversation,
 	> .chat-tool-chain-collapsible,
 	.chat-tool-chain .chat-thinking-tool-wrapper > .chat-used-context,
-	.chat-tool-call-with-icon :is(.chat-terminal-thinking-collapsible, .chat-confirmation-widget-collapsible) {
+	.chat-tool-call-with-icon .chat-terminal-thinking-collapsible,
+	.chat-tool-call-with-icon .chat-confirmation-widget-collapsible {
 		gap: 0;
 
 		> .chat-used-context-label .monaco-button.monaco-icon-button,
