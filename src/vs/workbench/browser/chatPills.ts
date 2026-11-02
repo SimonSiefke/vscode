@@ -646,6 +646,7 @@ export class ChatPillsWidget extends Disposable {
 		this.element = $('.chat-pills.hidden');
 		this._toolbar = this._register(new ChatPillsToolBar(this.element, contextMenuService, {
 			actionBarClassName: 'chat-pills-action-bar',
+			actionsContainerClassName: 'chat-pills-toolbar-actions',
 			ariaLabel: options?.ariaLabel ?? localize('chatPills.ariaLabel', "Chat status"),
 			actionRunner: options?.actionRunner,
 			allowContextMenu: options?.allowContextMenu,
