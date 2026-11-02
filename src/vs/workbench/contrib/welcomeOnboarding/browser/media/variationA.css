@@ -622,7 +622,7 @@
 	outline-offset: 2px;
 }
 
-.onboarding-a-theme-card.selected {
+.selected.onboarding-a-theme-card {
 	border-color: var(--vscode-focusBorder, #007acc);
 	box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007acc);
 }
