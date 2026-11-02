@@ -2850,7 +2850,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label1);
 
-	a {
+	a:where(.quick-chat-disclaimer-link) {
 		color: var(--vscode-textLink-foreground);
 	}
 
