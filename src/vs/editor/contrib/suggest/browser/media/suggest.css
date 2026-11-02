@@ -255,7 +255,7 @@
 	overflow: hidden;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row > .contents > .main > .left > .monaco-icon-label {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row > .contents > .main > .left > .editor-suggest-item-label {
 	flex-shrink: 0;
 }
 
