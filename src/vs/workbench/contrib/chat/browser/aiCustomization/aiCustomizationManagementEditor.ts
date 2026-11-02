@@ -5580,7 +5580,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		const markdown = new MarkdownString(bodyContent, { supportThemeIcons: true });
 		markdown.baseUri = parsedPromptFile.uri;
-		const renderedMarkdown = this.editorPreviewDisposables.add(this.markdownRendererService.render(markdown));
+		const renderedMarkdown = this.editorPreviewDisposables.add(this.markdownRendererService.render(markdown, { elementClassName: 'customization-preview-node' }));
 		this.editorPreviewBodyContainer.appendChild(renderedMarkdown.element);
 		return true;
 	}

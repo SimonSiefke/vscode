@@ -4462,7 +4462,7 @@ per-word capitalization does not survive translation. */
 	line-height: 1.5;
 }
 
-.ai-customization-management-editor .customization-detail-mode .editor-preview-body-content :is(ul, ol) {
+.ai-customization-management-editor .customization-detail-mode .editor-preview-body-content :is(ul, ol):where(.customization-preview-node) {
 	margin-block: var(--vscode-spacing-size80);
 }
 
