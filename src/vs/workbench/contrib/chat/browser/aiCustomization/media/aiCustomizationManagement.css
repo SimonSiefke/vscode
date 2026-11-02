@@ -454,7 +454,7 @@
 	flex: 1;
 }
 
-.ai-customization-list-widget .list-search-container .monaco-inputbox,
+.ai-customization-list-widget .list-search-container .customization-list-search-box,
 .mcp-list-widget .list-search-container .monaco-inputbox {
 	width: 100%;
 }

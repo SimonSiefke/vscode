@@ -854,6 +854,7 @@ export class AICustomizationListWidget extends Disposable {
 		this.searchContainer = DOM.append(this.searchAndButtonContainer, $('.list-search-container'));
 		const searchLabel = getCustomizationSearchAriaLabel(this.currentSection);
 		this.searchInput = this._register(new InputBox(this.searchContainer, this.contextViewService, {
+			inputBoxClassName: 'customization-list-search-box',
 			placeholder: searchLabel,
 			ariaLabel: searchLabel,
 			inputBoxStyles: defaultInputBoxStyles,
