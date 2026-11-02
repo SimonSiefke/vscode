@@ -320,7 +320,7 @@
 	text-decoration: unset;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated > .monaco-icon-label-container > .monaco-icon-name-container {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated > .monaco-icon-label-container > .editor-suggest-name-container {
 	text-decoration: line-through;
 }
 

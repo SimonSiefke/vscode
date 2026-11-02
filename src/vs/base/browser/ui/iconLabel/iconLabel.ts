@@ -23,6 +23,8 @@ export interface IIconLabelCreationOptions {
 	readonly extraClasses?: readonly string[];
 	/** Class retained on the label container when value styling changes. */
 	readonly labelContainerClassName?: string;
+	/** Class applied to the name container for component styling. */
+	readonly nameContainerClassName?: string;
 	readonly supportHighlights?: boolean;
 	readonly supportDescriptionHighlights?: boolean;
 	readonly supportIcons?: boolean;
@@ -126,6 +128,9 @@ export class IconLabel extends Disposable {
 		}
 
 		this.nameContainer = dom.append(this.labelContainer, dom.$('span.monaco-icon-name-container'));
+		if (options?.nameContainerClassName) {
+			this.nameContainer.classList.add(options.nameContainerClassName);
+		}
 
 		if (options?.supportHighlights || options?.supportIcons) {
 			this.nameNode = this._register(new LabelWithHighlights(this.nameContainer, !!options.supportIcons));

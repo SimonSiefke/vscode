@@ -119,7 +119,7 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 		const left = append(main, $('span.left'));
 		const right = append(main, $('span.right'));
 
-		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true, extraClasses: ['editor-suggest-item-label'] });
+		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true, extraClasses: ['editor-suggest-item-label'], nameContainerClassName: 'editor-suggest-name-container' });
 		disposables.add(iconLabel);
 
 		const parametersLabel = append(left, $('span.signature-label'));
