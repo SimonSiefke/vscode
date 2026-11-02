@@ -363,7 +363,7 @@
 	pointer-events: auto;
 }
 
-.chat-pills-row.hidden {
+.hidden.chat-pills-row {
 	display: none;
 }
 
