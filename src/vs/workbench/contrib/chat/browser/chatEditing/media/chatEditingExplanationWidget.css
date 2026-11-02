@@ -89,7 +89,7 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.chat-explanation-read-indicator > .codicon,
+.chat-explanation-read-indicator > .codicon:where(.chat-explanation-read-glyph),
 .chat-explanation-item-read > .codicon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
