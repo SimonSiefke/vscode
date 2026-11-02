@@ -76,7 +76,7 @@
 	color: var(--vscode-textLink-foreground);
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.disabled {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .disabled.hover-verbosity-action-icon {
 	opacity: 0.6;
 }
 
