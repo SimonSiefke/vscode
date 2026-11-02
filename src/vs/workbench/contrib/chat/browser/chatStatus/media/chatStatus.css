@@ -354,7 +354,7 @@
 
 /* Compact Quota Indicator (2x2 grid: plan name + percentage, reset + label) */
 
-.chat-status-bar-entry-tooltip .quota-indicator.compact {
+.chat-status-bar-entry-tooltip .compact.quota-indicator {
 	display: grid;
 	grid-template-columns: 1fr auto;
 	grid-template-rows: auto auto;
