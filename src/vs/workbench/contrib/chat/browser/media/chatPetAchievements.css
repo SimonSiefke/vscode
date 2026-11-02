@@ -454,7 +454,7 @@
 	line-height: 1;
 }
 
-.chat-pet-achievement-new-badge.hidden {
+.hidden.chat-pet-achievement-new-badge {
 	display: none;
 }
 
