@@ -83,6 +83,10 @@ export function trackChatInputPickerFocus(container: HTMLElement): IDisposable {
 export abstract class ChatInputPickerActionViewItem extends ActionWidgetDropdownActionViewItem {
 	private _externalAnchor: HTMLElement | undefined;
 
+	protected override get labelClassName(): string {
+		return 'chat-input-picker-trigger';
+	}
+
 	constructor(
 		action: IAction,
 		actionWidgetOptions: Omit<IActionWidgetDropdownOptions, 'label' | 'labelRenderer'>,

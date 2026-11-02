@@ -2067,7 +2067,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		overflow: visible;
 		flex-shrink: 0;
 
-		.action-label {
+		.action-label:where(.chat-input-picker-trigger) {
 			min-width: 0px;
 			overflow: visible;
 			position: relative;

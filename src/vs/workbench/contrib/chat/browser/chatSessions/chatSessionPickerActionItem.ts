@@ -235,6 +235,10 @@ export class ChatSessionPickerActionItem extends ActionWidgetDropdownActionViewI
 		return this._pickerOptions?.getOverflowAnchor?.() ?? this.element!;
 	}
 
+	protected override get labelClassName(): string {
+		return 'chat-input-picker-trigger';
+	}
+
 	protected override renderLabel(element: HTMLElement): IDisposable | null {
 		const domChildren = [];
 		element.classList.add('chat-session-option-picker');

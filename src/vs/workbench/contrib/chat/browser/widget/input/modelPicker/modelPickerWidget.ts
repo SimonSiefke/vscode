@@ -479,7 +479,7 @@ export class ModelPickerWidget extends Disposable {
 	}
 
 	render(container: HTMLElement): void {
-		this._domNode = dom.append(container, dom.$('div.action-label.model-picker-split'));
+		this._domNode = dom.append(container, dom.$('div.action-label.chat-input-picker-trigger.model-picker-split'));
 		const { primaryButton, secondaryButton } = renderChatInputPickerSplit(this._domNode);
 
 		// Apply initial minimal state now that _domNode exists

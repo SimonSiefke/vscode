@@ -318,7 +318,7 @@ export function getConfigPickerListOptions(property: string): IActionListOptions
 
 function renderPickerTrigger(slot: HTMLElement, disabled: boolean, disposables: DisposableStore, onOpen: () => void, combined = false): HTMLElement {
 	const trigger = dom.append(slot, disabled ? dom.$('span.action-label') : dom.$(combined ? 'div.action-label' : 'a.action-label'));
-	trigger.classList.add('agent-host-picker-action-label');
+	trigger.classList.add('agent-host-picker-action-label', 'chat-input-picker-trigger');
 	if (disabled) {
 		trigger.setAttribute('aria-readonly', 'true');
 	} else if (!combined) {

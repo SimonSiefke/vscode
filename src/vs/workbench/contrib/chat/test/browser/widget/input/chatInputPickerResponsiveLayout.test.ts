@@ -651,7 +651,7 @@ suite('ChatInputPickerResponsiveLayout', () => {
 
 		const modelItem = dom.append(row, dom.$('.chat-input-picker-item.model-picker-item'));
 		modelItem.style.width = '100px';
-		const modelLabel = dom.append(modelItem, dom.$('div.action-label.model-picker-split'));
+		const modelLabel = dom.append(modelItem, dom.$('div.action-label.chat-input-picker-trigger.model-picker-split'));
 		const { primaryButton: modelName, secondaryButton: modelConfig } = renderChatInputPickerSplit(modelLabel);
 		modelName.classList.add('model-picker-section', 'model-picker-name');
 		modelConfig.classList.add('model-picker-section', 'model-picker-config');
@@ -712,8 +712,8 @@ suite('ChatInputPickerResponsiveLayout', () => {
 		const renderPicker = (toolbarClass: string, itemClass: string) => {
 			const toolbar = dom.append(host, dom.$(`.${toolbarClass}`));
 			const item = dom.append(toolbar, dom.$(`.${itemClass}`));
-			const actionLabel = dom.append(item, dom.$('a.action-label'));
-			const icon = dom.append(actionLabel, dom.$('span.codicon'));
+			const actionLabel = dom.append(item, dom.$('a.action-label.chat-input-picker-trigger'));
+			const icon = dom.append(actionLabel, dom.$('span.codicon.chat-input-picker-glyph'));
 			const pickerLabel = dom.append(actionLabel, dom.$('span.chat-input-picker-label'));
 			pickerLabel.textContent = 'Picker';
 
@@ -768,12 +768,12 @@ suite('ChatInputPickerResponsiveLayout', () => {
 		const toolbar = dom.append(host, dom.$('.chat-input-toolbar'));
 		const item = dom.append(toolbar, dom.$('.chat-input-picker-item.model-picker-item.compact-picker'));
 		item.style.width = '22px';
-		const actionLabel = dom.append(item, dom.$('div.action-label.model-picker-split.compact.icon-only'));
+		const actionLabel = dom.append(item, dom.$('div.action-label.chat-input-picker-trigger.model-picker-split.compact.icon-only'));
 		const { primaryButton: button, secondaryButton } = renderChatInputPickerSplit(actionLabel);
 		button.classList.add('model-picker-section', 'model-picker-name');
 		secondaryButton.style.display = 'none';
 		button.style.minWidth = '22px';
-		const icon = dom.append(button, dom.$('span.codicon'));
+		const icon = dom.append(button, dom.$('span.codicon.chat-input-picker-glyph'));
 
 		const measure = () => {
 			const actionBounds = actionLabel.getBoundingClientRect();
