@@ -212,7 +212,7 @@
 	text-decoration: underline;
 }
 
-.settings-editor.narrow-width > .settings-body .settings-tree-container .monaco-list-row .monaco-tl-contents {
+.settings-editor.narrow-width > .settings-body .settings-tree-container .monaco-list-row .settings-editor-tree-contents {
 	padding-left: 33px;
 }
 

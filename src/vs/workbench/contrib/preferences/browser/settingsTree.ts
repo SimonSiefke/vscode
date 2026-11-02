@@ -2690,6 +2690,7 @@ export class SettingsTree extends WorkbenchObjectTree<SettingsTreeElement> {
 			new SettingsTreeDelegate(),
 			renderers,
 			{
+				contentsClassName: 'settings-editor-tree-contents',
 				horizontalScrolling: false,
 				supportDynamicHeights: true,
 				scrollToActiveElement: true,
