@@ -210,7 +210,7 @@
 	padding-right: calc(var(--vscode-spacing-size40) + var(--vscode-spacing-size160) + var(--vscode-spacing-size20));
 }
 
-.monaco-workbench .chat-pill-item > .chat-pill-promoted-action.codicon {
+.monaco-workbench .chat-pill-item > .codicon.chat-pill-promoted-action {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
