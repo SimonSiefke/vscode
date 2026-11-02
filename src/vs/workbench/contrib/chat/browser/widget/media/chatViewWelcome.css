@@ -147,7 +147,7 @@ div.chat-welcome-view {
 		color: var(--vscode-descriptionForeground);
 		font-size: 12px;
 
-		a {
+		a:where(.chat-welcome-message-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 
