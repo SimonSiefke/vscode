@@ -257,7 +257,7 @@
 	line-height: 18px;
 }
 
-.monaco-workbench .inline-chat .status .actions {
+.monaco-workbench .inline-chat .status .actions:where(.inline-chat-status-toolbar) {
 
 	display: flex;
 	height: 18px;
@@ -293,7 +293,7 @@
 	}
 }
 
-.monaco-workbench .inline-chat .status .actions {
+.monaco-workbench .inline-chat .status .actions:where(.inline-chat-status-toolbar) {
 	gap: 4px;
 }
 
