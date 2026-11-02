@@ -15,7 +15,7 @@
 	height: 100%;
 }
 
-.comments-panel .comments-panel-container .tree-container.hidden {
+.comments-panel .comments-panel-container .hidden.tree-container {
 	display: none;
 	visibility: hidden;
 }
