@@ -740,7 +740,7 @@
 			font-size: 32px;
 		}
 
-		&.cert-error .codicon {
+		&.cert-error .codicon:where(.browser-error-glyph) {
 			color: var(--vscode-errorForeground);
 		}
 	}
