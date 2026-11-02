@@ -4651,7 +4651,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	.request-hover.has-no-actions,
 	.request-hover.hidden,
 	.request-hover.checkpoints-enabled.has-no-actions,
-	.checkpoint-container.hidden,
+	.hidden.checkpoint-container,
 	.checkpoint-container.has-no-actions,
 	.hidden.checkpoint-restore-container {
 		display: none;
