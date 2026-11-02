@@ -1540,7 +1540,7 @@
 	color: var(--vscode-notificationsErrorIcon-foreground);
 }
 
-.chat-local-model-card-message.warning > .codicon {
+.chat-local-model-card-message.warning > .codicon:where(.chat-local-model-message-glyph) {
 	color: var(--vscode-notificationsWarningIcon-foreground);
 }
 
