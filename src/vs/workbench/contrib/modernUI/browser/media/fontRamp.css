@@ -110,15 +110,10 @@
 
 /* View pane (sidebar / panel section) header titles. */
 .modern-ui .monaco-pane-view .pane > .pane-header > .title,
-/* Part titles (sidebar, auxiliary bar, panel) — but never editor filenames. */
 .modern-ui.monaco-workbench .part:not(.editor) > .title > .title-label h2,
-/* Notifications center header. */
 .modern-ui.monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-title,
-/* Debug call-stack session state labels. */
-.modern-ui .debug-pane .debug-call-stack .session > .state.label,
-/* Settings editor section headers. */
+.modern-ui .debug-pane .debug-call-stack .session > .state.label:where(.debug-call-stack-state),
 .modern-ui .monaco-editor .settings-header-widget .title-container .title,
-/* Agent sessions list header ("SESSIONS"). */
 .modern-ui .chat-viewpane.has-sessions-control .agent-sessions-container .agent-sessions-title-container {
 	text-transform: capitalize;
 	font-size: var(--vscode-fontSize-label1);
@@ -179,7 +174,7 @@
 	border-bottom-color: transparent !important;
 }
 
-.modern-ui .debug-pane .debug-call-stack .session > .state.label {
+.modern-ui .debug-pane .debug-call-stack .session > .state.label:where(.debug-call-stack-state) {
 	font-size: var(--vscode-fontSize-label2);
 }
 
