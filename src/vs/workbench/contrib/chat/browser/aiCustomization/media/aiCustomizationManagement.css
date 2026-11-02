@@ -3229,7 +3229,7 @@ per-word capitalization does not survive translation. */
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.plugin-list-widget .plugin-list-item.disabled {
+.plugin-list-widget .disabled.plugin-list-item {
 	opacity: 0.6;
 }
 
