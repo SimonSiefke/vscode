@@ -328,7 +328,7 @@
 	height: 100%;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row .icon {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row .icon:where(.editor-suggest-row-icon) {
 	display: block;
 	height: 16px;
 	width: 16px;
