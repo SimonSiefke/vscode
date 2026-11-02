@@ -315,7 +315,7 @@
 	margin-right: 0;
 	margin-left: var(--vscode-spacing-size40);
 }
-.modern-ui.monaco-workbench .scm-view .monaco-tl-contents > div {
+.modern-ui.monaco-workbench .scm-view :where(.monaco-tl-contents) > div.scm-tree-item {
 	padding-right: var(--vscode-spacing-size40);
 }
 
