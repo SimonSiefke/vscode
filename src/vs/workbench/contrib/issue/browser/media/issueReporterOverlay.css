@@ -288,7 +288,7 @@
 /* Only dimmed via JS disabled class at N-1 attachments */
 
 /* Disabled state for segmented buttons when max attachments reached */
-.issue-reporter-floating-bar .wizard-segmented-main.disabled,
+.issue-reporter-floating-bar .disabled.wizard-segmented-main,
 .issue-reporter-floating-bar .wizard-segmented-dropdown.disabled,
 .issue-reporter-floating-bar .monaco-button.wizard-segmented-main.disabled,
 .issue-reporter-floating-bar .monaco-button.disabled.wizard-segmented-dropdown {
