@@ -322,15 +322,6 @@
 	width: 1px;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-container.has-text > .monaco-toolbar {
-	padding: 4px 7px 2px;
-	margin: 0;
-}
-
-.monaco-workbench .pane-body.integrated-terminal .tabs-container.has-text > .monaco-toolbar {
-	text-align: left;
-}
-
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry {
 	flex-shrink: 0;
 	height: 22px;
