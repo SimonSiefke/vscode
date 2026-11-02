@@ -549,7 +549,7 @@
 }
 
 .quick-input-tree .quick-input-tree-rows > .quick-input-tree-row .quick-input-tree-item-label,
-.quick-input-tree .quick-input-tree-rows > .quick-input-tree-row .monaco-icon-label .monaco-icon-label-container > .monaco-icon-name-container {
+.quick-input-tree .quick-input-tree-rows > .quick-input-tree-row .monaco-icon-label .monaco-icon-label-container > .quick-input-tree-name-container {
 	flex: 1;
 	/* make sure the icon label grows within the row */
 }
