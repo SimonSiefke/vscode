@@ -317,6 +317,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 		const scopedInstantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyService])));
 		const titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.titleToolbar, MenuId.AgentSessionItemToolbar, {
 			menuOptions: { shouldForwardArgs: true },
+			actionsContainerClassName: 'agent-session-title-toolbar-actions',
 		}));
 		titleToolbar.getElement().classList.add('agent-session-title-toolbar-root');
 
@@ -833,6 +834,7 @@ export class AgentSessionChatRenderer implements ICompressibleTreeRenderer<IAgen
 		const scopedInstantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyService])));
 		const titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.titleToolbar, AgentSessionChatToolbar, {
 			menuOptions: { shouldForwardArgs: true },
+			actionsContainerClassName: 'agent-session-title-toolbar-actions',
 		}));
 		titleToolbar.getElement().classList.add('agent-session-title-toolbar-root');
 		for (const type of ['pointerdown', 'pointerup', 'click', 'dblclick'] as const) {

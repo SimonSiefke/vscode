@@ -229,7 +229,7 @@
 }
 
 .modern-ui.monaco-workbench .chat-viewpane {
-	.agent-session-item .agent-session-title-toolbar .actions-container {
+	.agent-session-item .agent-session-title-toolbar .actions-container:where(.agent-session-title-toolbar-actions) {
 		gap: var(--vscode-spacing-size40);
 	}
 	&.chat-view-location-auxiliarybar {
