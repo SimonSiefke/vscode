@@ -462,7 +462,7 @@
 	display: none;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .terminal-tab-inline-input-box {
 	flex: 1;
 	min-width: 0;
 	width: 100%;
