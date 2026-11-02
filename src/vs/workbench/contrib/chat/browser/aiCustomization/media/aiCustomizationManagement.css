@@ -3021,7 +3021,7 @@ per-word capitalization does not survive translation. */
 .tools-list-connected-row .monaco-button.mcp-server-start,
 .plugin-list-widget .mcp-installed-home-row .mcp-server-sign-in.monaco-button,
 .plugin-list-widget .mcp-installed-home-row .mcp-server-start.monaco-button,
-.plugin-list-widget .mcp-installed-home-row .mcp-server-show-output.monaco-button {
+.plugin-list-widget .mcp-installed-home-row .monaco-button.mcp-server-show-output {
 	width: auto;
 	flex: 0 0 auto;
 	min-width: 0;
