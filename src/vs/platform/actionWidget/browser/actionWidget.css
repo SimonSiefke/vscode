@@ -177,7 +177,7 @@
 	outline: 0 solid !important;
 }
 
-.action-widget .monaco-list-row.action {
+.action-widget .action.action-widget-list-row {
 	display: flex;
 	gap: 6px;
 	align-items: center;
