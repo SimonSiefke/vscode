@@ -198,7 +198,7 @@
 	padding-right: 0;
 }
 
-.modern-ui-tabs .part.editor .tabs-container > .tab.sticky-compact.has-icon > .tab-label > .monaco-icon-label-container {
+.modern-ui-tabs .part.editor .tabs-container > .tab.sticky-compact.has-icon > .tab-label > .editor-tab-label-container {
 	display: none;
 }
 
