@@ -153,7 +153,7 @@
 	text-decoration: var(--text-link-decoration);
 }
 
-.hover-row.status-bar .actions .action-container a .icon.codicon {
+.hover-row.status-bar .actions .action-container a .codicon.hover-status-action-icon {
 	color: var(--vscode-textLink-foreground);
 }
 
