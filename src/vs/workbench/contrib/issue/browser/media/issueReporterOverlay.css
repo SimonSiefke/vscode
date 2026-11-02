@@ -241,7 +241,7 @@
 	background: var(--vscode-button-background, #0e639c);
 }
 
-.issue-reporter-floating-bar .wizard-segmented-main > * {
+.issue-reporter-floating-bar :where(.wizard-segmented-main) > .wizard-segmented-label-part {
 	display: flex;
 	align-items: center;
 }

@@ -338,7 +338,7 @@ export class IssueReporterOverlay {
 		const segmented = append(this.floatingBar, $('div.wizard-segmented-btn'));
 		const floatingButtonStyles = this.getFloatingBarButtonStyles(targetWindow);
 
-		const captureBtn = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true }));
+		const captureBtn = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true, contentClassName: 'wizard-segmented-label-part' }));
 		captureBtn.element.classList.add('wizard-segmented-main');
 		captureBtn.label = `$(device-camera) ${localize('screenshot', "Screenshot")}`;
 		this.captureStripCaptureBtn = captureBtn;

@@ -33,6 +33,8 @@ export interface IButtonOptions extends Partial<IButtonStyles> {
 	 */
 	readonly ariaLabel?: string;
 	readonly supportIcons?: boolean;
+	/** Class applied to element parts of icon-supported string labels. */
+	readonly contentClassName?: string;
 	readonly supportShortLabel?: boolean;
 	readonly secondary?: boolean;
 	readonly small?: boolean;
@@ -233,6 +235,12 @@ export class Button extends Disposable implements IButton {
 				elements.push(node);
 			} else {
 				elements.push(segment);
+			}
+		}
+
+		if (this.options.contentClassName) {
+			for (const element of elements) {
+				element.classList.add(this.options.contentClassName);
 			}
 		}
 
