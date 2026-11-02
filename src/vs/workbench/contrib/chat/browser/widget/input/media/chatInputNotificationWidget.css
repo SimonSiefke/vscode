@@ -47,7 +47,7 @@
 
 /* A running operation shows the in-progress indicator of an active session, in its colour. */
 .chat-input-notification-widget .chat-input-notification-icon.busy,
-.chat-input-notification-widget .chat-input-notification-icon.busy .codicon {
+.chat-input-notification-widget .chat-input-notification-icon.busy .chat-input-notification-busy-glyph {
 	color: var(--vscode-textLink-foreground);
 }
 
