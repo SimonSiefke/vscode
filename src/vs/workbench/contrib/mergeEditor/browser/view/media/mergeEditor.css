@@ -42,7 +42,7 @@
 	flex-shrink: 0;
 }
 
-.monaco-workbench .merge-editor .code-view > .header > span.description .codicon {
+.monaco-workbench .merge-editor .code-view > .header > span.description .merge-editor-description-glyph {
 	font-size: 14px;
 	color: var(--vscode-descriptionForeground);
 }
