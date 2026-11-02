@@ -88,7 +88,7 @@
 	justify-content: center;
 }
 
-.monaco-editor .diff-hidden-lines .center span.codicon {
+.monaco-editor .diff-hidden-lines .center span.codicon:where(.diff-hidden-lines-glyph) {
 	vertical-align: middle;
 }
 
