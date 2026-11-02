@@ -194,6 +194,7 @@ class ChatEditorOverlayWidget extends Disposable {
 		this._showStore.add(toDisposable(() => this._toolbarNode.remove()));
 
 		this._showStore.add(this._instaService.createInstance(MenuWorkbenchToolBar, this._toolbarNode, MenuId.ChatEditingEditorContent, {
+			actionsContainerClassName: 'chat-editor-overlay-actions',
 			telemetrySource: 'chatEditor.overlayToolbar',
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {

@@ -66,7 +66,7 @@
 	border-radius: 4px; /* same as overlay widget */
 }
 
-.chat-editor-overlay-widget .monaco-action-bar .actions-container {
+.chat-editor-overlay-widget .monaco-action-bar .actions-container:where(.chat-editor-overlay-actions) {
 	gap: 4px;
 }
 
