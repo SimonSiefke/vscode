@@ -229,7 +229,7 @@
 	margin: 4px 5px;
 }
 
-.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+.monaco-dialog-box.align-vertical > .dialog-buttons-row > .dialog-buttons > :where(.monaco-button-dropdown).dialog-footer-action {
 	width: 100%;
 }
 
