@@ -714,7 +714,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 			mark.classList.add(providerClass);
 			mark.setAttribute('aria-hidden', 'true');
 			if (providerClass === 'github' || providerClass === 'github-enterprise') {
-				mark.appendChild(renderIcon(Codicon.github));
+				mark.appendChild(renderIcon(Codicon.github, undefined, 'onboarding-provider-glyph'));
 			}
 		}
 
