@@ -522,7 +522,7 @@
 		background-color: var(--vscode-list-hoverBackground) !important;
 	}
 
-	.chat-editing-session-list .monaco-icon-label {
+	.chat-editing-session-list .chat-file-list-label {
 		padding: 0 3px;
 	}
 
