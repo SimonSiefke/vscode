@@ -146,7 +146,7 @@
 	display: flex;
 }
 
-.workbench-suggest-widget .monaco-list .monaco-list-row:not(.focused) > .contents > .main .monaco-icon-label {
+.workbench-suggest-widget .monaco-list .monaco-list-row:not(.focused) > .contents > .main .workbench-suggest-item-label {
 	color: var(--vscode-editorSuggestWidget-foreground);
 }
 

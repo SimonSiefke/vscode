@@ -93,7 +93,7 @@ export class SimpleSuggestWidgetItemRenderer implements IListRenderer<SimpleComp
 		const left = append(main, $('span.left'));
 		const right = append(main, $('span.right'));
 
-		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true });
+		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true, extraClasses: ['workbench-suggest-item-label'] });
 		disposables.add(iconLabel);
 
 		const parametersLabel = append(left, $('span.signature-label'));
