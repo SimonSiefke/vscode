@@ -655,7 +655,7 @@
 	cursor: pointer;
 }
 
-.settings-editor > .settings-body .settings-tree-container .setting-item-bool .setting-item-description.disabled {
+.settings-editor > .settings-body .settings-tree-container .setting-item-bool .disabled.setting-item-description {
 	cursor: initial;
 }
 
