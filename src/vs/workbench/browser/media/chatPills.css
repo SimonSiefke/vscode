@@ -24,7 +24,7 @@
 	width: auto;
 }
 
-.chat-pill-hover-content.compact {
+.compact.chat-pill-hover-content {
 	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
 }
 
