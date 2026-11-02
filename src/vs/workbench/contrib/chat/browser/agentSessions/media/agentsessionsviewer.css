@@ -129,7 +129,7 @@
 		height: 16px;
 		display: none;
 
-		.monaco-toolbar {
+		.agent-session-title-toolbar-root {
 			/* this is required because the overal height (including the padding needed for hover feedback) would push down the title otherwise */
 			position: relative;
 			right: 0;
