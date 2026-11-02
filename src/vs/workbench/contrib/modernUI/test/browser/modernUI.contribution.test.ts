@@ -115,6 +115,9 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	if (element.classList.contains('monaco-list-row') && parent.closest('.multi-diff-editor-with-file-list-files')) {
 		element.classList.add('multi-diff-file-list-row');
 	}
+	if (element.classList.contains('title') && parent.classList.contains('part')) {
+		element.classList.add('workbench-part-title');
+	}
 	if (element.classList.contains('action-label') && parent.closest('.composite-bar')) {
 		// CompositeBarActionViewItem supplies this class in the product.
 		element.classList.add('composite-bar-action-label');
