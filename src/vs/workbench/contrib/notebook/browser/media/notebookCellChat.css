@@ -59,7 +59,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .content .input .editor-placeholder.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .content .input .hidden.editor-placeholder {
 	display: none;
 }
 
