@@ -225,7 +225,7 @@
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.chat-pet-color-card.monaco-button {
+.monaco-button.chat-pet-color-card {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
