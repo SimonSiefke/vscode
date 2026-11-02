@@ -367,7 +367,7 @@
 	border-color: var(--vscode-contrastBorder);
 }
 
-.hc-black .chat-pet-color-card.monaco-button.selected,
+.hc-black .monaco-button.selected.chat-pet-color-card,
 .hc-light .chat-pet-color-card.monaco-button.selected {
 	border-color: var(--vscode-focusBorder);
 }
