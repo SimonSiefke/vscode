@@ -318,7 +318,7 @@
 	max-width: 500px;
 	margin-right: auto;
 }
-.chat-debug-editor-header .viewpane-filter-container .monaco-inputbox {
+.chat-debug-editor-header .viewpane-filter-container .viewpane-filter-input-box {
 	border-color: var(--vscode-panelInput-border, transparent) !important;
 }
 .monaco-button.chat-debug-view-mode-toggle {
