@@ -52,7 +52,7 @@
 	flex: 1;
 }
 
-.monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .actions-container {
+.monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .actions-container:where(.notifications-center-header-actions) {
 	justify-content: flex-end;
 }
 
