@@ -675,7 +675,7 @@ label/control gap, so the buttons must not add their own margin. */
 	color: var(--vscode-focusBorder, #007acc);
 }
 
-.issue-reporter-wizard .wizard-screenshot-add.disabled {
+.issue-reporter-wizard .disabled.wizard-screenshot-add {
 	opacity: 0.4;
 	cursor: default;
 }
