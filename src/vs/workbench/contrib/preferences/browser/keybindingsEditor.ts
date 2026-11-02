@@ -954,10 +954,13 @@ class CommandColumnRenderer implements ITableRenderer<IKeybindingItemEntry, ICom
 		const commandColumnHover = this._hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), commandColumn, '');
 		const commandLabelContainer = DOM.append(commandColumn, $('.command-label'));
 		const commandLabel = new HighlightedLabel(commandLabelContainer);
+		commandLabel.element.classList.add('keybindings-table-text-label');
 		const commandDefaultLabelContainer = DOM.append(commandColumn, $('.command-default-label'));
 		const commandDefaultLabel = new HighlightedLabel(commandDefaultLabelContainer);
+		commandDefaultLabel.element.classList.add('keybindings-table-text-label');
 		const commandIdLabelContainer = DOM.append(commandColumn, $('.command-id.code'));
 		const commandIdLabel = new HighlightedLabel(commandIdLabelContainer);
+		commandIdLabel.element.classList.add('keybindings-table-text-label');
 		return { commandColumn, commandColumnHover, commandLabelContainer, commandLabel, commandDefaultLabelContainer, commandDefaultLabel, commandIdLabelContainer, commandIdLabel };
 	}
 
