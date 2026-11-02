@@ -140,7 +140,7 @@ function createEditorTabLabel(parent: HTMLElement, extraClasses?: string): { lab
 	nameContainer.appendChild(name);
 	const descriptionContainer = appendElement(labelContainer, 'monaco-icon-description-container');
 	const description = document.createElement('span');
-	description.className = 'label-description';
+	description.className = 'label-description monaco-icon-label-description';
 	descriptionContainer.appendChild(description);
 	return { label, name, description };
 }
