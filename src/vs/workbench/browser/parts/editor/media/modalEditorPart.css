@@ -179,7 +179,7 @@
 		.modal-editor-toolbar-actions {
 			gap: 4px;
 
-			.codicon {
+			.codicon:where(.modal-editor-action-label) {
 				color: inherit;
 			}
 		}
