@@ -2939,7 +2939,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	width: 100%;
 }
 
-.chat-artifacts-widget .chat-artifacts-expand .monaco-button {
+.chat-artifacts-widget .chat-artifacts-expand .chat-artifacts-expand-button {
 	display: flex;
 	align-items: center;
 	gap: 4px;
