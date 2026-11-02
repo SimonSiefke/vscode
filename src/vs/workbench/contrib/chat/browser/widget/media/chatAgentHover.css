@@ -48,7 +48,7 @@
 	margin-top: 1px;
 }
 
-.chat-agent-hover .chat-agent-hover-warning .codicon {
+.chat-agent-hover .chat-agent-hover-warning .chat-agent-hover-warning-icon {
 	color: var(--vscode-notificationsWarningIcon-foreground) !important;
 	margin-right: 3px;
 }

@@ -73,7 +73,8 @@ export class ChatAgentHover extends Disposable {
 			verifiedBadge,
 			this.publisherName);
 
-		hoverElement.warning.appendChild(renderIcon(Codicon.warning));
+		const warningIcon = hoverElement.warning.appendChild(renderIcon(Codicon.warning));
+		warningIcon.classList.add('chat-agent-hover-warning-icon');
 		hoverElement.warning.appendChild(dom.$('span', undefined, localize('reservedName', "This chat extension is using a reserved name.")));
 	}
 
