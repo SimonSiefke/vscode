@@ -23,7 +23,7 @@
 	outline: none;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer.loading {
+.monaco-workbench .part.editor > .content .loading.gettingStartedContainer {
 	display: none;
 }
 
