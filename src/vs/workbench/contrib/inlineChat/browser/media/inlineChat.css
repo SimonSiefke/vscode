@@ -216,7 +216,7 @@
 	}
 }
 
-.monaco-workbench .inline-chat .status .actions.hidden {
+.monaco-workbench .inline-chat .status .actions:where(.inline-chat-status-toolbar).hidden {
 	display: none;
 }
 
