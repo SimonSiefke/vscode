@@ -104,7 +104,7 @@
 	height: 23px;
 }
 
-.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .input,
+.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
 .monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .mirror {
 	padding: 2px 4px;
 }
