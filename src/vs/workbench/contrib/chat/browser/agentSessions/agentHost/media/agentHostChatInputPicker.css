@@ -142,7 +142,7 @@
 	color: var(--vscode-problemsWarningIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.info {
+.agent-host-chat-input-picker-slot .info.agent-host-picker-action-label {
 	color: var(--vscode-problemsInfoIcon-foreground);
 }
 
