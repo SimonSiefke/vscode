@@ -918,7 +918,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	margin-bottom: 2px;
 }
 
-.issue-reporter-wizard .review-diag-toggle-all.monaco-button {
+.issue-reporter-wizard .monaco-button.review-diag-toggle-all {
 	font-size: 12px;
 	padding: 2px 8px;
 	width: auto;
