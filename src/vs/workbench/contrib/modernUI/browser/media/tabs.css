@@ -871,7 +871,7 @@
 	z-index: 1;
 }
 
-.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon) .action-label {
+.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:not(.icon) .composite-bar-action-label {
 	font-size: var(--vscode-fontSize-body1);
 	font-weight: var(--vscode-fontWeight-regular);
 	line-height: 22px; /* keep consistent with other 22px title/control heights */
