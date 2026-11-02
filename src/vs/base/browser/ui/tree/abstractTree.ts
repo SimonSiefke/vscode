@@ -930,7 +930,7 @@ class FindWidget<T, TFilterData> extends Disposable {
 		}));
 
 		const closeAction = this._register(new Action('close', localize('close', "Close"), 'codicon codicon-close', true, () => this.dispose()));
-		this.actionbar.push(closeAction, { icon: true, label: false });
+		this.actionbar.push(closeAction, { icon: true, label: false, labelClassName: 'monaco-tree-find-close-label' });
 
 		this.onDidChangeValue = this.findInput.onDidChange;
 	}
