@@ -653,7 +653,7 @@
 	}
 }
 
-.interactive-item-container .completed-response-summary * {
+.interactive-item-container .completed-response-summary :where(.monaco-button, .monaco-button-mdlabel, .chat-collapsible-hover-chevron, .label-added, .label-removed) {
 	cursor: inherit;
 }
 
