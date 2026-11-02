@@ -429,7 +429,7 @@
 	height: 24px;
 }
 
-.notebook-text-diff-editor .cell-body.full div.diff-hidden-cells .center span.codicon {
+.notebook-text-diff-editor .cell-body.full div.diff-hidden-cells .center span.codicon:where(.notebook-diff-collapse-glyph) {
 	vertical-align: middle;
 }
 
