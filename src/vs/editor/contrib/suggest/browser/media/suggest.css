@@ -125,7 +125,7 @@
 	outline-offset: -1px;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused .codicon {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused .codicon:where(.editor-suggest-row-icon, .monaco-highlighted-label-part, .readMore) {
 	color: var(--vscode-editorSuggestWidget-selectedIconForeground);
 }
 
