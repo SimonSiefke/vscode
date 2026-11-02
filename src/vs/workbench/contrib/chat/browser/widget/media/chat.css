@@ -1812,7 +1812,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	opacity: 1;
 }
 
-.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button {
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .chat-todo-clear-button {
 	background-color: transparent;
 	border-color: transparent;
 	color: var(--vscode-foreground);
