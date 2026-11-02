@@ -35,7 +35,7 @@
 	display: inline;
 	flex-shrink: 1;
 }
-.monaco-workbench .merge-editor .code-view.result > .header > .detail {
+.monaco-workbench .merge-editor .code-view.result > .header > .merge-editor-header-detail {
 	flex-shrink: 0;
 }
 .monaco-workbench .merge-editor .code-view.result > .header > .toolbar {
