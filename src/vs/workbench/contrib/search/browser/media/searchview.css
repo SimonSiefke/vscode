@@ -246,7 +246,7 @@
 }
 
 .pane-body:not(.wide) .search-view .foldermatch .search-result-resource-label,
-.pane-body:not(.wide) .search-view .filematch .monaco-icon-label {
+.pane-body:not(.wide) .search-view .filematch .search-result-resource-label {
 	flex: 1;
 }
 
