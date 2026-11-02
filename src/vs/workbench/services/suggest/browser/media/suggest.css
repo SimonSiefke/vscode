@@ -197,7 +197,7 @@
 	margin-right: 4px;
 }
 
-.workbench-suggest-widget.no-icons .monaco-list .monaco-list-row .icon,
+.workbench-suggest-widget.no-icons .monaco-list .monaco-list-row .icon:where(.simple-suggest-row-icon),
 .workbench-suggest-widget.no-icons .monaco-list .monaco-list-row .suggest-icon::before {
 	display: none;
 }
