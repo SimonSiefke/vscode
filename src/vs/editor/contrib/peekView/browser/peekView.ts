@@ -197,7 +197,7 @@ export abstract class PeekViewWidget extends ZoneWidget {
 		dom.append(this._headElement!, actionsContainer);
 
 		const actionBarOptions = this._getActionBarOptions();
-		this._actionbarWidget = new ActionBar(actionsContainer, actionBarOptions);
+		this._actionbarWidget = new ActionBar(actionsContainer, { ...actionBarOptions, actionsContainerClassName: 'peek-view-toolbar-actions' });
 		this._disposables.add(this._actionbarWidget);
 		this._actionbarWidget.domNode.classList.add('peek-view-action-bar');
 
