@@ -30,7 +30,7 @@
 	color: var(--vscode-breadcrumb-foreground);
 }
 
-.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type.hidden {
+.monaco-workbench .breadcrumbs-control.with-editor-type > .hidden.breadcrumbs-editor-type {
 	display: none;
 }
 
