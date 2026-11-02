@@ -150,7 +150,7 @@ export class InputBox extends Widget {
 		const tagName = this.options.flexibleHeight ? 'textarea' : 'input';
 
 		const wrapper = dom.append(this.element, $('.ibwrapper'));
-		this.input = dom.append(wrapper, $(tagName + '.input.empty'));
+		this.input = dom.append(wrapper, $(tagName + '.input.empty.monaco-inputbox-input'));
 		this.input.setAttribute('autocorrect', 'off');
 		this.input.setAttribute('autocapitalize', 'off');
 		this.input.setAttribute('spellcheck', 'false');
