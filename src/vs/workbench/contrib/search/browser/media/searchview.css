@@ -305,7 +305,7 @@
 	text-align: right;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar {
+.search-view .monaco-list .monaco-list-row .search-result-action-bar {
 	line-height: 1em;
 	display: none;
 	padding: 0 0.8em 0 0.4em;
