@@ -490,10 +490,6 @@
 	margin-left: auto;
 }
 
-.chat-status-bar-entry-tooltip .model-selection .model-action-bar .codicon {
-	color: var(--vscode-descriptionForeground);
-}
-
 /* SelectBox containers */
 
 .chat-status-bar-entry-tooltip .model-select-container,
