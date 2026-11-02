@@ -147,7 +147,7 @@
 	visibility: hidden;
 }
 
-.monaco-workbench .part.titlebar.inactive > * {
+.monaco-workbench .titlebar.inactive > .titlebar-container {
 	opacity: 0.6;
 }
 
