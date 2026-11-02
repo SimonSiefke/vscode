@@ -221,6 +221,7 @@ export class TOCTree extends WorkbenchObjectTree<SettingsTreeGroupElement> {
 			scrollableClassName: 'settings-toc-scrollable',
 			rowClassName: 'settings-toc-tree-row',
 			contentsClassName: 'settings-toc-tree-contents',
+			twistieAdditionalCssClass: () => 'settings-toc-twistie',
 			filter,
 			multipleSelectionSupport: false,
 			identityProvider: {

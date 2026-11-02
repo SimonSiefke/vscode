@@ -777,7 +777,7 @@
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-bool .codicon,
-.settings-editor > .settings-body .settings-toc-container .monaco-list-row.focused .codicon,
+.settings-editor > .settings-body .settings-toc-container .monaco-list-row.focused .codicon:where(.settings-toc-twistie),
 .settings-editor > .settings-body .settings-tree-container .monaco-list-row.focused .setting-item-contents .codicon {
 	color: inherit !important;
 }
