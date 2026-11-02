@@ -106,6 +106,9 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	if (element.classList.contains('monaco-action-bar') && parent.classList.contains('tab-actions')) {
 		element.classList.add('editor-tab-action-bar');
 	}
+	if (element.classList.contains('actions-container') && parent.classList.contains('editor-tab-action-bar')) {
+		element.classList.add('editor-tab-toolbar-actions');
+	}
 	return element;
 }
 
