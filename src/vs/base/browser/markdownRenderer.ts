@@ -37,6 +37,9 @@ export interface MarkdownRenderOptions {
 
 	readonly actionHandler?: MarkdownActionHandler;
 
+	/** Class applied to link elements emitted by the Markdown parser. */
+	readonly linkClassName?: string;
+
 	/** Rewrites parsed Markdown link and image destinations before sanitization. */
 	readonly transformUri?: (href: string, kind: 'link' | 'image') => string;
 
@@ -496,6 +499,9 @@ function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRender
 			// drop the link
 			el.replaceWith(...el.childNodes);
 		} else {
+			if (options.linkClassName) {
+				el.classList.add(options.linkClassName);
+			}
 			let resolvedHref = massageHref(markdown, href, false);
 			if (markdown.baseUri) {
 				resolvedHref = resolveWithBaseUri(URI.from(markdown.baseUri), href);

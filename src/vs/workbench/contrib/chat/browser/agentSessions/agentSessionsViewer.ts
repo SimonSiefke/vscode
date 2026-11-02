@@ -557,6 +557,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 			container.textContent = content;
 		} else {
 			disposables.add(this.markdownRendererService.render(content, {
+				linkClassName: 'agent-session-markdown-link',
 				sanitizerConfig: {
 					replaceWithPlaintext: true,
 					allowedTags: {
