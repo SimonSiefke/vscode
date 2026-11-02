@@ -52,7 +52,7 @@
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.agent-host-chat-input-picker-slot.disabled span.action-label {
+.agent-host-chat-input-picker-slot.disabled span.agent-host-picker-action-label {
 	opacity: 0.6;
 	cursor: default;
 }
