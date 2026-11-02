@@ -96,7 +96,7 @@
 	opacity: 0.4 !important;
 }
 
-.monaco-button-dropdown > .monaco-button.monaco-text-button {
+.monaco-button-dropdown > .monaco-text-button.monaco-dropdown-action-button {
 	border-right-width: 0 !important;
 }
 
@@ -123,7 +123,7 @@
 	border-color: var(--vscode-button-secondaryBorder, var(--vscode-button-border, transparent));
 }
 
-.monaco-button-dropdown > .monaco-button.monaco-text-button {
+.monaco-button-dropdown > .monaco-text-button.monaco-dropdown-action-button {
 	border-radius: 4px 0 0 4px;
 }
 
