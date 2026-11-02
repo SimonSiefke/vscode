@@ -185,7 +185,7 @@ export class InstallCountWidget extends ExtensionWidget {
 		}
 
 		const parent = this.small ? this.container : append(this.container, $('span.install', { tabIndex: 0 }));
-		append(parent, $('span' + ThemeIcon.asCSSSelector(installCountIcon)));
+		append(parent, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(installCountIcon)));
 		const count = append(parent, $('span.count'));
 		count.textContent = installLabel;
 
@@ -272,7 +272,7 @@ export class RatingsWidget extends ExtensionWidget {
 
 		const rating = Math.round(this.extension.rating * 2) / 2;
 		if (this.small) {
-			append(this.container, $('span' + ThemeIcon.asCSSSelector(starFullIcon)));
+			append(this.container, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(starFullIcon)));
 
 			const count = append(this.container, $('span.count'));
 			count.textContent = String(rating);
@@ -280,11 +280,11 @@ export class RatingsWidget extends ExtensionWidget {
 			const element = append(this.container, $('span.rating.clickable', { tabIndex: 0 }));
 			for (let i = 1; i <= 5; i++) {
 				if (rating >= i) {
-					append(element, $('span' + ThemeIcon.asCSSSelector(starFullIcon)));
+					append(element, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(starFullIcon)));
 				} else if (rating >= i - 0.5) {
-					append(element, $('span' + ThemeIcon.asCSSSelector(starHalfIcon)));
+					append(element, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(starHalfIcon)));
 				} else {
-					append(element, $('span' + ThemeIcon.asCSSSelector(starEmptyIcon)));
+					append(element, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(starEmptyIcon)));
 				}
 			}
 			if (this.extension.ratingCount) {
@@ -763,7 +763,7 @@ export class ExtensionRuntimeStatusWidget extends ExtensionWidget {
 			if (feature?.icon && accessData) {
 				const featureAccessTimeElement = append(this.container, $('span.activationTime'));
 				featureAccessTimeElement.textContent = localize('feature access label', "{0} reqs", accessData.accessTimes.length);
-				const iconElement = append(this.container, $('span' + ThemeIcon.asCSSSelector(feature.icon)));
+				const iconElement = append(this.container, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(feature.icon)));
 				iconElement.style.paddingLeft = '4px';
 				return;
 			}
@@ -772,7 +772,7 @@ export class ExtensionRuntimeStatusWidget extends ExtensionWidget {
 		const extensionStatus = this.extensionsWorkbenchService.getExtensionRuntimeStatus(this.extension);
 		if (extensionStatus?.activationTimes) {
 			const activationTime = extensionStatus.activationTimes.codeLoadingTime + extensionStatus.activationTimes.activateCallTime;
-			append(this.container, $('span' + ThemeIcon.asCSSSelector(activationTimeIcon)));
+			append(this.container, $('span.extension-header-widget-glyph' + ThemeIcon.asCSSSelector(activationTimeIcon)));
 			const activationTimeElement = append(this.container, $('span.activationTime'));
 			activationTimeElement.textContent = `${activationTime}ms`;
 		}
