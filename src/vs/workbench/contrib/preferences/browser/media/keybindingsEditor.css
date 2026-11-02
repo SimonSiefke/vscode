@@ -227,7 +227,7 @@
 	color: var(--vscode-list-focusForeground);
 }
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table.focused .monaco-list-row.selected .monaco-table-tr .monaco-table-td .monaco-keybinding-key {
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table.focused .monaco-list-row.selected .monaco-table-tr .monaco-table-td .monaco-keybinding-key:where(.keybindings-table-key) {
 	color: var(--vscode-list-activeSelectionForeground);
 	border-color: var(--vscode-widget-shadow) !important;
 }
