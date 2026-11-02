@@ -226,7 +226,7 @@
 		flex-shrink: 0;
 		margin-left: auto;
 
-		.monaco-toolbar {
+		.session-title-toolbar-root {
 			position: relative;
 			right: 0;
 			top: 0;
