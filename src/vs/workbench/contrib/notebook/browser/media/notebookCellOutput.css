@@ -97,7 +97,7 @@
 }
 
 /** Cell output show more*/
-.notebookOverlay .output-show-more-container a,
+.notebookOverlay .output-show-more-container a:where(.notebook-output-more-link),
 .notebookOverlay div.output-show-more a {
 	color: var(--vscode-textLink-foreground);
 }
