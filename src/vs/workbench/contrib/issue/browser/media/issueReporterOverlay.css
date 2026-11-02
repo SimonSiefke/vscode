@@ -993,7 +993,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-foreground, #ccc);
 }
 
-.issue-reporter-wizard .review-performance-refresh.monaco-button {
+.issue-reporter-wizard .monaco-button.review-performance-refresh {
 	flex: none;
 	width: auto;
 	font-size: 12px;
