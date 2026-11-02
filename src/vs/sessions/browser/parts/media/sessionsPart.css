@@ -125,7 +125,7 @@
 	color: var(--vscode-agentsPanel-foreground) !important;
 }
 
-.monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .composite-bar-action-label,
 .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label {
 	outline: var(--vscode-contrastActiveBorder, unset) solid 1px !important;
 }
