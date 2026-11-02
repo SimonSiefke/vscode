@@ -221,7 +221,7 @@
 	z-index: 20;
 }
 
-.prompt-timeline-card.hidden {
+.hidden.prompt-timeline-card {
 	display: none;
 }
 
