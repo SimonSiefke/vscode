@@ -133,7 +133,7 @@
 }
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.active,
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab.active {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .active.modern-ui-editor-tab {
 	--modern-ui-connected-tab-current-background: var(--modern-ui-connected-tab-active-background);
 }
 
