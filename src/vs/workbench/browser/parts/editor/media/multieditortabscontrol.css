@@ -561,7 +561,7 @@
 	display: none;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .editor-title-action-item {
 	margin-right: 4px;
 }
 
