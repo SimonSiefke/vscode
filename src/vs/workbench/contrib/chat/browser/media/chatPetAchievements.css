@@ -361,7 +361,7 @@
 }
 
 .hc-black .chat-pet-color-card.monaco-button,
-.hc-light .chat-pet-color-card.monaco-button,
+.hc-light .monaco-button.chat-pet-color-card,
 .hc-black .chat-pet-custom-color,
 .hc-light .chat-pet-custom-color {
 	border-color: var(--vscode-contrastBorder);
