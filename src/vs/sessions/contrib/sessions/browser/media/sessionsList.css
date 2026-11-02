@@ -567,7 +567,7 @@
 		max-width: 40%;
 		margin-left: var(--vscode-spacing-size60);
 
-		&.visible {
+		&.visible:where(.session-external-application-badge-title) {
 			display: flex;
 		}
 	}
