@@ -583,6 +583,7 @@ class TextEditElementTemplate {
 		container.appendChild(this._icon);
 
 		this._label = this._disposables.add(new HighlightedLabel(container));
+		this._label.element.classList.add('bulk-edit-text-highlighted-label');
 	}
 
 	dispose(): void {
