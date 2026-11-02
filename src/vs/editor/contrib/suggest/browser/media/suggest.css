@@ -263,7 +263,7 @@
 	max-width: 100%;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row.string-label > .contents > .main > .left > .monaco-icon-label {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row.string-label > .contents > .main > .left > .editor-suggest-item-label {
 	flex-shrink: 1;
 }
 
