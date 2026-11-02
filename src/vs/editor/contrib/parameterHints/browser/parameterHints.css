@@ -87,7 +87,7 @@
 	display: none;
 }
 
-.monaco-editor .parameter-hints-widget .docs a {
+.monaco-editor .parameter-hints-widget .docs a:where(.parameter-hints-doc-link) {
 	color: var(--vscode-textLink-foreground);
 }
 

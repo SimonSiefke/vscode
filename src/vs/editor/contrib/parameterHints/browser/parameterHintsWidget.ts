@@ -270,6 +270,7 @@ export class ParameterHintsWidget extends Disposable implements IContentWidget {
 
 	private renderMarkdownDocs(markdown: IMarkdownString): IRenderedMarkdown {
 		const renderedContents = this.renderDisposeables.add(this.markdownRendererService.render(markdown, {
+			linkClassName: 'parameter-hints-doc-link',
 			context: this.editor,
 			asyncRenderCallback: () => {
 				this.domNodes?.scrollbar.scanDomNode();
