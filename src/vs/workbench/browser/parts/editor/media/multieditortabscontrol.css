@@ -452,7 +452,7 @@
 	width: 28px;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .monaco-action-bar {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .editor-tab-action-bar {
 	width: 28px;
 }
 

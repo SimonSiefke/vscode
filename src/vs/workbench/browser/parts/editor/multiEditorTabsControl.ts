@@ -1042,7 +1042,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			get editorIndex() { return that.toEditorIndex(tabIndex); }
 		});
 
-		const tabActionBar = new ActionBar(tabActionsContainer, { ariaLabel: localize('ariaLabelTabActions', "Tab actions"), actionRunner: tabActionRunner });
+		const tabActionBar = new ActionBar(tabActionsContainer, { className: 'editor-tab-action-bar', ariaLabel: localize('ariaLabelTabActions', "Tab actions"), actionRunner: tabActionRunner });
 		const tabActionListener = tabActionBar.onWillRun(e => {
 			if (e.action.id === this.closeEditorAction.id || e.action.id === this.closeOtherEditorTabsInGroupAction.id) {
 				this.blockRevealActiveTabOnce();
