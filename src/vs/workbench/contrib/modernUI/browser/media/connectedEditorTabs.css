@@ -527,7 +527,7 @@
 	border-radius: var(--modern-ui-connected-tab-radius) 0 0 0;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab > .tab-actions .actions-container {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab > .tab-actions .editor-tab-toolbar-actions {
 	justify-content: center;
 }
 
