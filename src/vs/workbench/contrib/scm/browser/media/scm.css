@@ -61,12 +61,6 @@
 	white-space: nowrap;
 }
 
-.scm-view .scm-provider .monaco-highlighted-label {
-	display: flex;
-	align-items: center;
-	font-weight: bold;
-}
-
 .scm-view .scm-provider > .actions {
 	min-width: 24px;
 	flex: 1 10000 auto;
