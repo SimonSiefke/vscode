@@ -277,7 +277,7 @@
 
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewDiff,
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewCreate,
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .previewCreateTitle.hidden {
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .hidden.previewCreateTitle {
 	display: none;
 }
 
