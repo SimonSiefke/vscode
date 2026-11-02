@@ -102,6 +102,7 @@ export class NotificationsList extends Disposable {
 			{
 				...options,
 				rowClassName: 'notification-list-row',
+				scrollableClassName: 'notification-list-scrollable',
 				setRowLineHeight: false,
 				horizontalScrolling: false,
 				overrideStyles: {
