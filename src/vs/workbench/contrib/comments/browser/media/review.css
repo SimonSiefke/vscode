@@ -455,11 +455,11 @@
 	padding-right: 2px;
 }
 
-.review-widget .head .review-actions > .monaco-action-bar {
+.review-widget .head .review-actions > .comment-thread-header-action-bar {
 	display: inline-block;
 }
 
-.review-widget .head .review-actions > .monaco-action-bar,
+.review-widget .head .review-actions > .comment-thread-header-action-bar,
 .review-widget .head .review-actions > .monaco-action-bar > .actions-container {
 	height: 100%;
 }

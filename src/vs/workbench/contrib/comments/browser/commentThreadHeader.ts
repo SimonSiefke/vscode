@@ -68,6 +68,7 @@ export class CommentThreadHeader<T = IRange> extends Disposable {
 		});
 
 		this._register(this._actionbarWidget);
+		this._actionbarWidget.domNode.classList.add('comment-thread-header-action-bar');
 
 		const collapseClass = threadHasComments(this._commentThread.comments) ? COLLAPSE_ACTION_CLASS : DELETE_ACTION_CLASS;
 		this._collapseAction = new Action(CommentCommandId.Hide, nls.localize('label.collapse', "Collapse"), collapseClass, true, () => this._delegate.collapse());
