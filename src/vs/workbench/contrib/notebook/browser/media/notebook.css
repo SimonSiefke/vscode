@@ -441,7 +441,7 @@
 }
 
 /** Selected cell background */
-.notebookOverlay .monaco-list.selection-multiple .markdown-cell-row.selected,
+.notebookOverlay .monaco-list.selection-multiple .selected.markdown-cell-row,
 .notebookOverlay .monaco-list.selection-multiple .markdown-cell-row.selected .cell-focus-indicator-bottom,
 .notebookOverlay .monaco-list.selection-multiple .code-cell-row.selected .cell-focus-indicator-top,
 .notebookOverlay .monaco-list.selection-multiple .code-cell-row.selected .cell-focus-indicator-left,
