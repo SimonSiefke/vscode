@@ -69,7 +69,7 @@
 }
 
 .modern-ui.modern-ui-compact .monaco-pane-view .pane-body:not(.chat-viewpane) .monaco-list-row,
-.modern-ui.modern-ui-compact .multi-diff-editor-with-file-list-files .monaco-list-row {
+.modern-ui.modern-ui-compact .multi-diff-editor-with-file-list-files .multi-diff-file-list-row {
 	left: var(--vscode-spacing-size20);
 	right: var(--vscode-spacing-size20);
 }
