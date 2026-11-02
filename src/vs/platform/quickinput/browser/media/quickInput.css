@@ -129,7 +129,7 @@
 	margin-right: 4px;
 }
 
-.quick-input-right-action-bar .actions-container {
+.quick-input-right-action-bar .quick-input-right-actions {
 	justify-content: flex-end;
 }
 
