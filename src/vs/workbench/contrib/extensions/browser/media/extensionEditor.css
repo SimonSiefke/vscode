@@ -52,7 +52,7 @@
 	justify-content: center;
 }
 
-.extension-editor > .header > .icon-container .extension-icon-badge .codicon {
+.extension-editor > .header > .icon-container .extension-icon-badge .codicon:where(.extension-badge-glyph) {
 	color: currentColor;
 	font-size: 28px;
 }
