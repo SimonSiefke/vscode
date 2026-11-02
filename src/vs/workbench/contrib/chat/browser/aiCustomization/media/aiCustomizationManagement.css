@@ -3318,7 +3318,7 @@ per-word capitalization does not survive translation. */
 	background-color: color-mix(in srgb, var(--vscode-terminal-ansiGreen) 50%, transparent);
 }
 
-.plugin-list-widget .plugin-list-item-status.disabled {
+.plugin-list-widget .disabled.plugin-list-item-status {
 	color: var(--vscode-badge-foreground);
 	background-color: color-mix(in srgb, var(--vscode-badge-background) 50%, transparent);
 }
