@@ -1626,7 +1626,7 @@ export class GettingStartedPage extends EditorPane {
 
 			reset(stepListContainer, ...renderedSteps
 				.map(step => {
-					const codicon = $('.codicon' + (step.done ? '.complete' + ThemeIcon.asCSSSelector(gettingStartedCheckedCodicon) : ThemeIcon.asCSSSelector(gettingStartedUncheckedCodicon)),
+					const codicon = $('.codicon.getting-started-step-completion-glyph' + (step.done ? '.complete' + ThemeIcon.asCSSSelector(gettingStartedCheckedCodicon) : ThemeIcon.asCSSSelector(gettingStartedUncheckedCodicon)),
 						{
 							'data-done-step-id': step.id,
 							'x-dispatch': 'toggleStepCompletion:' + step.id,

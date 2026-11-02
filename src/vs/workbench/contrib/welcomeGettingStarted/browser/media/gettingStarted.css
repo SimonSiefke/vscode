@@ -481,7 +481,7 @@
 	color: var(--vscode-walkthrough-stepTitle-foreground);
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded > .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded > .getting-started-step-completion-glyph {
 	cursor: pointer !important;
 }
 
