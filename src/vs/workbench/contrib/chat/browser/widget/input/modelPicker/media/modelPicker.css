@@ -352,7 +352,7 @@
 	gap: 6px;
 }
 
-.chat-model-hover-configurable-buttons > .monaco-button {
+.chat-model-hover-configurable-buttons > .chat-model-configuration-button {
 	width: auto;
 	padding: 2px 8px;
 	font-size: 11px;

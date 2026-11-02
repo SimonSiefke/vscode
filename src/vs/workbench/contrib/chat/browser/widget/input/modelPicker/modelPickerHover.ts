@@ -186,6 +186,7 @@ export function getModelHoverContent(
 			const buttonsContainer = dom.$('.chat-model-hover-configurable-buttons');
 			for (const { group, label } of configButtons) {
 				const button = disposables.add(new Button(buttonsContainer, {
+					buttonClassName: 'chat-model-configuration-button',
 					...defaultButtonStyles,
 					secondary: true,
 					title: label,
