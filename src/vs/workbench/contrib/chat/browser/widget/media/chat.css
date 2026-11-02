@@ -1798,7 +1798,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	line-height: 22px;
 }
 
-.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .todo-list-title-section .codicon {
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .todo-list-title-section .codicon:where(.expand-icon) {
 	font-size: var(--vscode-codiconFontSize);
 	line-height: 22px;
 	flex-shrink: 0;
