@@ -193,7 +193,7 @@ div.chat-welcome-view {
 			gap: 6px;
 			margin: 6px 0 0 0;
 
-			.codicon {
+			.codicon:where(.chat-welcome-tip-node) {
 				padding-top: 1px;
 			}
 		}
