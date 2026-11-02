@@ -251,7 +251,7 @@
 	width: 100%;
 }
 
-.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button {
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > :where(.monaco-dropdown-button).dialog-footer-menu-action {
 	padding: 0 4px;
 }
 
