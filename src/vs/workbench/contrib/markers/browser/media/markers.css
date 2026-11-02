@@ -142,7 +142,7 @@
 }
 
 .markers-panel .monaco-tl-contents .actions,
-.markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar {
+.markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar:where(.markers-row-action-bar) {
 	height: 22px;
 }
 
