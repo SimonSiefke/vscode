@@ -134,7 +134,7 @@
 	color: var(--vscode-problemsWarningIcon-foreground);
 }
 
-.agent-host-chat-input-picker-slot .action-label.warning .codicon {
+.agent-host-chat-input-picker-slot .action-label.warning .agent-host-picker-icon {
 	color: var(--vscode-problemsWarningIcon-foreground) !important;
 }
 
