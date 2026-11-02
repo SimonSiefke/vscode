@@ -271,7 +271,7 @@
 .chat-debug-overview-action-button.monaco-button {
 	width: auto;
 }
-.chat-debug-icon-button.monaco-button {
+.monaco-button.chat-debug-icon-button {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
