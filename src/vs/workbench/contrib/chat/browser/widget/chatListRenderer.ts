@@ -1665,6 +1665,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				shouldInlineSubmenu: submenu => submenu.actions.length <= 1
 			},
 		}));
+		checkpointToolbar.getElement().classList.add('chat-checkpoint-toolbar-root');
 
 		dom.append(checkpointContainer, $('.checkpoint-line-right'));
 
@@ -1735,6 +1736,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				shouldInlineSubmenu: submenu => submenu.actions.length <= 1
 			},
 		}));
+		checkpointRestoreToolbar.getElement().classList.add('chat-checkpoint-toolbar-root');
 
 		dom.append(checkpointRestoreContainer, $('.checkpoint-line-right'));
 

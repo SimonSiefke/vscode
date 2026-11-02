@@ -4772,7 +4772,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 			-webkit-mask-image: linear-gradient(to left, transparent, black);
 		}
 
-		.monaco-toolbar {
+		.chat-checkpoint-toolbar-root {
 			height: fit-content;
 			width: fit-content;
 			user-select: none;
