@@ -139,7 +139,7 @@
 	opacity: 0.4 !important;
 }
 
-.monaco-action-bar .action-item.checkbox-action-item.disabled {
+.monaco-action-bar .action-item.disabled.checkbox-action-item {
 	display: none;
 }
 
