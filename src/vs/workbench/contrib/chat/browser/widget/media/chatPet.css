@@ -314,7 +314,7 @@
 	height: 72px;
 }
 
-.chat-pet-speech-bubble.hidden {
+.hidden.chat-pet-speech-bubble {
 	display: none;
 }
 
