@@ -214,7 +214,7 @@
 	flex: 1;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:has(.compact-mode) > .monaco-toolbar > .monaco-action-bar > .actions-container {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center.command-center-compact > .monaco-toolbar > .monaco-action-bar > .command-center-toolbar-actions {
 	margin: 0;
 }
 
