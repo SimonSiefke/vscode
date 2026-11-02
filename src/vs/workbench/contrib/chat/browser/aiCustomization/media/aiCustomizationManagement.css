@@ -914,7 +914,7 @@ per-word capitalization does not survive translation. */
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.ai-customization-list-widget.show-item-type-icons .ai-customization-list-item .item-type-icon .codicon {
+.ai-customization-list-widget.show-item-type-icons .ai-customization-list-item .item-type-icon .codicon:where(.customization-marketplace-fallback-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
