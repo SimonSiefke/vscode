@@ -36,11 +36,6 @@
 	display: inherit;
 }
 
-.notebook-chat-editor-overlay-widget .action-item > .action-label {
-	padding: 5px;
-	font-size: 12px;
-}
-
 .notebook-chat-editor-overlay-widget .action-item:first-child > .action-label {
 	padding-left: 9px;
 }
