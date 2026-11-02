@@ -27,6 +27,8 @@ import { DisposableStore, MutableDisposable, type IDisposable } from '../../../c
 const $ = dom.$;
 
 export interface IInputOptions {
+	/** CSS class applied to the input box before its contents are created. */
+	readonly inputBoxClassName?: string;
 	readonly placeholder?: string;
 	readonly showPlaceholderOnFocus?: boolean;
 	readonly tooltip?: string;
@@ -141,6 +143,9 @@ export class InputBox extends Widget {
 		}
 
 		this.element = dom.append(container, $('.monaco-inputbox.idle'));
+		if (options.inputBoxClassName) {
+			this.element.classList.add(options.inputBoxClassName);
+		}
 
 		const tagName = this.options.flexibleHeight ? 'textarea' : 'input';
 

@@ -8,7 +8,7 @@
 	position: relative;
 }
 
-.monaco-findInput .monaco-inputbox {
+.monaco-findInput .find-input-box {
 	font-size: 13px;
 	width: 100%;
 }
