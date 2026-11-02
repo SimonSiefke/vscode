@@ -167,7 +167,7 @@
 
 /** ReadMore Icon styles **/
 
-.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close,
+.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close:where(.suggest-details-close-control),
 .monaco-editor .suggest-widget .monaco-list .monaco-list-row > .contents > .main > .right > .readMore::before {
 	color: inherit;
 	opacity: 1;
@@ -175,7 +175,7 @@
 	cursor: pointer;
 }
 
-.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close {
+.monaco-editor .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close:where(.suggest-details-close-control) {
 	position: absolute;
 	top: 6px;
 	right: 2px;
