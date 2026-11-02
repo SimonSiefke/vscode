@@ -125,7 +125,7 @@
 	white-space: nowrap;
 }
 
-.chat-workspace-transition .chat-workspace-transition-label .chat-workspace-transition-icon.codicon {
+.chat-workspace-transition .chat-workspace-transition-label .codicon.chat-workspace-transition-icon {
 	margin-inline: var(--vscode-spacing-size40);
 	font-size: var(--vscode-codiconFontSize-compact);
 	vertical-align: text-bottom;
