@@ -108,7 +108,7 @@
 	transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.onboarding-a-progress-dot.active {
+.active.onboarding-a-progress-dot {
 	width: 24px;
 	border-radius: 4px;
 	background: var(--vscode-focusBorder, #007acc);
