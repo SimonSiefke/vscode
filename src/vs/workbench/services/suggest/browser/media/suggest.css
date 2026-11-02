@@ -106,7 +106,7 @@
 
 /** Styles for each row in the list element **/
 
-.workbench-suggest-widget .monaco-list .monaco-list-row {
+.workbench-suggest-widget .monaco-list .workbench-suggest-list-row {
 	display: flex;
 	-mox-box-sizing: border-box;
 	box-sizing: border-box;
