@@ -321,7 +321,7 @@
 	margin-right: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-duration.hidden,
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-duration,
 .chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-credits {
 	display: none;
 }
