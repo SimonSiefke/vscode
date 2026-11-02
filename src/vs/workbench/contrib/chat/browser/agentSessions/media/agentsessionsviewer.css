@@ -528,7 +528,7 @@
 			/* for the absolute positioning of the toolbar below */
 			position: relative;
 
-			.monaco-toolbar {
+			.agent-session-section-toolbar-root {
 				/* this is required because the overal height (including the padding needed for hover feedback) would push down the label otherwise */
 				position: absolute;
 				right: 0;

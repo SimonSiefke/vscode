@@ -955,6 +955,7 @@ export class AgentSessionSectionRenderer implements ICompressibleTreeRenderer<IA
 		const toolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.toolbar, MenuId.AgentSessionSectionToolbar, {
 			menuOptions: { shouldForwardArgs: true },
 		}));
+		toolbar.getElement().classList.add('agent-session-section-toolbar-root');
 
 		container.appendChild(elements.container);
 
