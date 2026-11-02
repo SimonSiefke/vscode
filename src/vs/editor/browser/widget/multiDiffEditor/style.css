@@ -98,7 +98,7 @@
 					}
 				}
 
-				.actions {
+				.actions:where(.multi-diff-file-actions) {
 					flex: 0 0 auto;
 				}
 			}

@@ -111,7 +111,7 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 						// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
 						h('div.title.multi-diff-file-title.original.show-file-icons@secondaryPath', [] as any),
 					]),
-					h('div.actions@actions'),
+					h('div.actions.multi-diff-file-actions@actions'),
 				]),
 			]),
 
