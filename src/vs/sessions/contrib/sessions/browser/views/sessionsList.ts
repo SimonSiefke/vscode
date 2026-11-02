@@ -4943,6 +4943,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 				placeholderRenderer,
 			],
 			{
+				treeRowClassName: 'sessions-list-tree-contents',
 				accessibilityProvider: new SessionsAccessibilityProvider(sectionRenderer.automationStatus, {
 					grouping: this.options.grouping,
 					getChatHarnessLabel: (session, chat, reader) => getDistinctChatHarnessLabel(session, chat, sessionsProvidersService, reader),
@@ -9753,6 +9754,7 @@ export class SessionsFlatList extends Disposable {
 			this._delegate,
 			[sessionRenderer],
 			{
+				treeRowClassName: 'sessions-list-tree-contents',
 				accessibilityProvider: new SessionsAccessibilityProvider(undefined, {
 					grouping: () => SessionsGrouping.Date,
 					isPinned: session => this._sessionsListModelService.isSessionPinned(session),

@@ -95,7 +95,7 @@
 		width: auto;
 		border-radius: var(--vscode-cornerRadius-small);
 
-		> .monaco-tl-row {
+		> .monaco-tl-row:where(.sessions-list-tree-contents) {
 			border-radius: inherit;
 		}
 	}
