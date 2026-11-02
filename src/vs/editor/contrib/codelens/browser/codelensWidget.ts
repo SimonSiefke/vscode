@@ -101,17 +101,17 @@ class CodeLensContentWidget implements IContentWidget {
 					children.push(dom.$('a', { id, title: lens.command.tooltip, role: 'button' }, ...title));
 					this._commands.set(id, lens.command);
 				} else {
-					children.push(dom.$('span', { title: lens.command.tooltip }, ...title));
+					children.push(dom.$('span.codelens-text-part', { title: lens.command.tooltip }, ...title));
 				}
 				if (i + 1 < lenses.length) {
-					children.push(dom.$('span', undefined, '\u00a0|\u00a0'));
+					children.push(dom.$('span.codelens-text-part', undefined, '\u00a0|\u00a0'));
 				}
 			}
 		}
 
 		if (!hasSymbol) {
 			// symbols but no commands
-			dom.reset(this._domNode, dom.$('span', undefined, 'no commands'));
+			dom.reset(this._domNode, dom.$('span.codelens-text-part', undefined, 'no commands'));
 
 		} else {
 			// symbols and commands

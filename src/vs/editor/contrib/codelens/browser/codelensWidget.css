@@ -17,7 +17,7 @@
 	font-family: var(--vscode-editorCodeLens-fontFamily), var(--vscode-editorCodeLens-fontFamilyDefault);
 }
 
-.monaco-editor .codelens-decoration > span,
+.monaco-editor .codelens-decoration > span:where(.codelens-text-part),
 .monaco-editor .codelens-decoration > a {
 	user-select: none;
 	-webkit-user-select: none;
