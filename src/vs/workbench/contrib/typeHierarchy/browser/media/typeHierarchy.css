@@ -42,7 +42,7 @@
 	align-items: center;
 }
 
-.monaco-workbench .type-hierarchy .tree .typehierarchy-element .monaco-icon-label {
+.monaco-workbench .type-hierarchy .tree .typehierarchy-element .type-hierarchy-item-label {
 	padding-left: 4px;
 }
 

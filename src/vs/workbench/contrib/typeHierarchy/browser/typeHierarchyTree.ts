@@ -108,7 +108,7 @@ export class TypeRenderer implements ITreeRenderer<Type, FuzzyScore, TypeRenderi
 		container.classList.add('typehierarchy-element');
 		const icon = document.createElement('div');
 		container.appendChild(icon);
-		const label = new IconLabel(container, { supportHighlights: true });
+		const label = new IconLabel(container, { supportHighlights: true, extraClasses: ['type-hierarchy-item-label'] });
 		return new TypeRenderingTemplate(icon, label);
 	}
 
