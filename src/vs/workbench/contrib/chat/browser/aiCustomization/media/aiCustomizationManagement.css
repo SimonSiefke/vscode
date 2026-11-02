@@ -4466,7 +4466,7 @@ per-word capitalization does not survive translation. */
 	margin-block: var(--vscode-spacing-size80);
 }
 
-.ai-customization-management-editor .customization-detail-mode .editor-preview-body-content li {
+.ai-customization-management-editor .customization-detail-mode .editor-preview-body-content li:where(.customization-preview-node) {
 	margin-block: var(--vscode-spacing-size20);
 }
 
