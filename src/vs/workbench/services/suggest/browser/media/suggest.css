@@ -212,7 +212,7 @@
 
 /** ReadMore Icon styles **/
 
-.workbench-suggest-widget .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close,
+.workbench-suggest-widget .suggest-details > .monaco-scrollable-element > .body > .header > .codicon-close:where(.suggest-details-close-control),
 .workbench-suggest-widget .suggest-widget .monaco-list .monaco-list-row > .contents > .main > .right > .readMore::before {
 	color: inherit;
 	opacity: 1;
