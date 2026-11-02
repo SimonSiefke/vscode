@@ -822,7 +822,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 }
 
 .issue-reporter-wizard .wizard-ai-title-btn.monaco-button[disabled],
-.issue-reporter-wizard .wizard-ai-title-btn.monaco-button.disabled {
+.issue-reporter-wizard .monaco-button.disabled.wizard-ai-title-btn {
 	opacity: 0.55;
 	cursor: default;
 }
