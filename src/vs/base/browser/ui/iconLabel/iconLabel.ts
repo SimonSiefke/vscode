@@ -23,6 +23,8 @@ export interface IIconLabelCreationOptions {
 	readonly extraClasses?: readonly string[];
 	/** Class retained on the label container when value styling changes. */
 	readonly labelContainerClassName?: string;
+	/** Class applied to the description container for component styling. */
+	readonly descriptionContainerClassName?: string;
 	/** Class applied to the name container for component styling. */
 	readonly nameContainerClassName?: string;
 	readonly supportHighlights?: boolean;
@@ -282,6 +284,9 @@ export class IconLabel extends Disposable {
 	private getOrCreateDescriptionNode() {
 		if (!this.descriptionNode) {
 			const descriptionContainer = this._register(new FastLabelNode(dom.append(this.labelContainer, dom.$('span.monaco-icon-description-container'))));
+			if (this.creationOptions?.descriptionContainerClassName) {
+				descriptionContainer.element.classList.add(this.creationOptions.descriptionContainerClassName);
+			}
 			if (this.creationOptions?.supportDescriptionHighlights) {
 				this.descriptionNode = this._register(new HighlightedLabel(dom.append(descriptionContainer.element, dom.$('span.label-description.monaco-icon-label-description'))));
 			} else {

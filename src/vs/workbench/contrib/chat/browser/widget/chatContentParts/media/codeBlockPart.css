@@ -180,7 +180,7 @@
 					}
 				}
 
-				& > .monaco-icon-description-container {
+				& > .chat-compare-description-container {
 					min-width: 0;
 					flex: 1;
 
