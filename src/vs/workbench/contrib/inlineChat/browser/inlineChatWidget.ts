@@ -79,9 +79,9 @@ export abstract class InlineChatWidget {
 			h('div.accessibleViewer@accessibleViewer'),
 			h('div.status@status', [
 				h('div.label.inline-chat-status-label.info.hidden@infoLabel'),
-				h('div.actions.hidden@toolbar1'),
+				h('div.actions.inline-chat-status-toolbar.hidden@toolbar1'),
 				h('div.label.inline-chat-status-label.status.hidden@statusLabel'),
-				h('div.actions.secondary.hidden@toolbar2'),
+				h('div.actions.inline-chat-status-toolbar.secondary.hidden@toolbar2'),
 				h('div.label.inline-chat-status-label.disclaimer.hidden@disclaimerLabel'),
 			]),
 		]
