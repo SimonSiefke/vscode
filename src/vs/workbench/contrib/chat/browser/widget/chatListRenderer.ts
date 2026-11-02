@@ -1703,6 +1703,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 				return createActionViewItem(scopedInstantiationService, action, options);
 			}
 		}));
+		footerToolbar.getElement().classList.add('chat-footer-toolbar-root');
 
 		// Insert the details container into the toolbar's internal element structure
 		const footerDetailsContainer = dom.append(footerToolbar.getElement(), $('.chat-footer-details'));

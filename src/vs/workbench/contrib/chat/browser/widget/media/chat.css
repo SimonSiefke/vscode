@@ -404,7 +404,7 @@
 	padding-top: var(--vscode-spacing-size160);
 	height: var(--chat-response-footer-height);
 
-	.monaco-toolbar {
+	.chat-footer-toolbar-root {
 		min-height: var(--chat-response-footer-height);
 	}
 
