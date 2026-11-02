@@ -3735,7 +3735,7 @@ per-word capitalization does not survive translation. */
 }
 
 .plugin-list-widget .plugin-card-icon-button.monaco-button:not(.disabled),
-.ai-customization-group-header .plugin-card-icon-button.monaco-button:not(.disabled),
+.ai-customization-group-header .monaco-button:not(.disabled).plugin-card-icon-button,
 .copilot-customization-tree-actions .plugin-card-icon-button.monaco-button:not(.disabled) {
 	cursor: pointer;
 }
