@@ -63,7 +63,7 @@
 	opacity: 1;
 }
 
-.chat-system-notification-disclosure-icon.codicon {
+.codicon.chat-system-notification-disclosure-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
