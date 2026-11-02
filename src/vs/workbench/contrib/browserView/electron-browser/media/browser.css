@@ -46,7 +46,7 @@
 		align-items: center;
 		flex-shrink: 0;
 
-		.actions-container {
+		.browser-toolbar-actions {
 			gap: 4px;
 		}
 	}
