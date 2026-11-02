@@ -138,7 +138,7 @@
 	text-overflow: ellipsis;
 }
 
-.hover-row.status-bar .actions .action-container .action {
+.hover-row.status-bar .actions .action-container .hover-status-action-link {
 	display: inline-flex;
 	align-items: center;
 }
