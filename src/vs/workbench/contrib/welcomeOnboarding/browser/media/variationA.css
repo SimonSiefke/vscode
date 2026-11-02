@@ -754,7 +754,7 @@
 	outline-offset: -2px;
 }
 
-.onboarding-a-ai-pref-card.selected {
+.selected.onboarding-a-ai-pref-card {
 	border-color: var(--vscode-focusBorder);
 	background: color-mix(in srgb, var(--vscode-focusBorder) 8%, var(--vscode-editor-background));
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 18%, transparent);
