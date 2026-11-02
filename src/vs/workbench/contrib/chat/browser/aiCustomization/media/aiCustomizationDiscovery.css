@@ -462,7 +462,7 @@
 	min-height: 0;
 }
 
-.customization-discovery-list .monaco-list-row {
+.customization-discovery-list .customization-discovery-result-row {
 	box-sizing: border-box;
 	border-radius: var(--vscode-cornerRadius-small);
 }
