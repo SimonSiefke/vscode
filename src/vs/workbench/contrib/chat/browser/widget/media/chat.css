@@ -1932,7 +1932,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	position: relative;
 }
 
-.interactive-session .chat-input-container.focused {
+.interactive-session .focused.chat-input-container {
 	border-color: var(--vscode-focusBorder);
 }
 
