@@ -70,7 +70,7 @@
 	/* overflow: hidden; */
 }
 
-.notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row {
+.notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .notebook-diff-list-row {
 	cursor: default;
 }
 

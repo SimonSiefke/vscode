@@ -85,6 +85,7 @@ export class CellDiffPlaceholderRenderer implements IListRenderer<DiffElementPla
 	}
 
 	renderTemplate(container: HTMLElement): CellDiffPlaceholderRenderTemplate {
+		container.classList.add('notebook-diff-list-row');
 		const body = DOM.$('.cell-placeholder-body');
 		DOM.append(container, body);
 
@@ -136,6 +137,7 @@ export class NotebookDocumentMetadataDiffRenderer implements IListRenderer<Noteb
 	}
 
 	renderTemplate(container: HTMLElement): NotebookDocumentDiffElementRenderTemplate {
+		container.classList.add('notebook-diff-list-row');
 		const body = DOM.$('.cell-body');
 		DOM.append(container, body);
 		const diffEditorContainer = DOM.$('.cell-diff-editor-container');
@@ -223,6 +225,7 @@ export class CellDiffSingleSideRenderer implements IListRenderer<SingleSideDiffE
 	}
 
 	renderTemplate(container: HTMLElement): CellDiffSingleSideRenderTemplate {
+		container.classList.add('notebook-diff-list-row');
 		const body = DOM.$('.cell-body');
 		DOM.append(container, body);
 		const diffEditorContainer = DOM.$('.cell-diff-editor-container');
@@ -317,6 +320,7 @@ export class CellDiffSideBySideRenderer implements IListRenderer<SideBySideDiffE
 	}
 
 	renderTemplate(container: HTMLElement): CellDiffSideBySideRenderTemplate {
+		container.classList.add('notebook-diff-list-row');
 		const body = DOM.$('.cell-body');
 		DOM.append(container, body);
 		const diffEditorContainer = DOM.$('.cell-diff-editor-container');
