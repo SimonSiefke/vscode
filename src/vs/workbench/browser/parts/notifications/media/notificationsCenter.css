@@ -29,7 +29,7 @@
 	top: 7px;
 }
 
-.monaco-workbench > .notifications-center.visible {
+.monaco-workbench > .visible.notifications-center {
 	display: block;
 }
 
