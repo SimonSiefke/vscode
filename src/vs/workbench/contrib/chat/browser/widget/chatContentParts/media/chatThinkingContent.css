@@ -811,7 +811,7 @@
 		-webkit-mask-image: linear-gradient(to top, transparent 0px, black 20px);
 	}
 
-	&.chat-thinking-fade-top.chat-thinking-fade-bottom > .monaco-scrollable-element {
+	&.chat-thinking-fade-top.chat-thinking-fade-bottom > .chat-thinking-content-scrollable {
 		mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 	}
