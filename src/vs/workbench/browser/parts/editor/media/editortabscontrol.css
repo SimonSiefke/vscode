@@ -29,7 +29,6 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .monaco-icon-label::before,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a:where(.monaco-icon-label-name),
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:where(.monaco-icon-label-name),
-.monaco-workbench .part.editor > .content .editor-group-container > .title .title-label h2,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label span:where(.monaco-icon-name-container, .monaco-icon-description-container, .monaco-icon-label-description, .monaco-icon-suffix-container, .monaco-icon-label-suffix, .label-separator) {
 	cursor: pointer;
 }
