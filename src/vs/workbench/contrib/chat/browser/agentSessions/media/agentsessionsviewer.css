@@ -232,7 +232,7 @@
 					}
 				}
 
-				a {
+				a:where(.agent-session-markdown-link) {
 					color: var(--vscode-descriptionForeground);
 				}
 			}
