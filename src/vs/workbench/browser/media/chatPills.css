@@ -240,7 +240,7 @@
 
 /* The chevron shares the leading glyph's compact box. `chevron-down-compact` is
 	drawn on that box's centre, so it needs no nudge to sit on the label. */
-.monaco-workbench .chat-pill-chevron.codicon {
+.monaco-workbench .codicon.chat-pill-chevron {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
