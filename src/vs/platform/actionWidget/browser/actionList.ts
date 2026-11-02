@@ -456,6 +456,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 	renderElement(element: IActionListItem<T>, _index: number, data: IActionMenuTemplateData): void {
 		// Clear previous element disposables
 		data.elementDisposables.clear();
+		data.text.classList.remove('action-list-toggle-info-label');
 
 		if (element.iconClasses?.length) {
 			data.icon.className = ['icon', ...element.iconClasses].join(' ');
@@ -581,6 +582,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 			toggleLabel.textContent = stripNewlines(toggleConfig.label);
 			if (toggleConfig.showInfoIcon) {
 				const labelContainer = element.standaloneToggle ? data.text : toggleLabel;
+				labelContainer.classList.add('action-list-toggle-info-label');
 				labelContainer.replaceChildren(dom.$('span.action-list-item-toggle-label-text', undefined, labelContainer.textContent ?? ''));
 				const infoIcon = dom.append(labelContainer, dom.$('span.action-list-item-toggle-info'));
 				infoIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.info));
