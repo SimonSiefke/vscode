@@ -8,7 +8,7 @@
 	max-width: 100%;
 }
 
-.chat-subagent-open-chat-toolbar .monaco-toolbar,
+.chat-subagent-open-chat-toolbar .chat-subagent-toolbar-root,
 .chat-subagent-open-chat-toolbar .monaco-action-bar,
 .chat-subagent-open-chat-toolbar .actions-container {
 	width: 100%;

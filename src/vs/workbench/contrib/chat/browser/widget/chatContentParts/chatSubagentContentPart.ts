@@ -295,6 +295,7 @@ export class ChatSubagentContentPart extends ChatThinkingStyleContentPart implem
 				: this.actionViewItemService.lookUp(MenuId.ChatSubagentContent, CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID)?.(action, options, this.instantiationService, dom.getWindow(container).vscodeWindowId)
 				?? this.instantiationService.createInstance(OpenSubagentChatActionViewItem, undefined, action, options, !this.environmentService.isSessionsWindow),
 		}));
+		this._openChatToolbar.getElement().classList.add('chat-subagent-toolbar-root');
 		this._openChatToolbar.setActions([menuAction]);
 		this._updateOpenChatOnlyMode();
 	}
