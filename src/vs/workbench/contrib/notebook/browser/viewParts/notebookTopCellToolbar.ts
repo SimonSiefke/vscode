@@ -112,6 +112,7 @@ export class ListTopCellToolbar extends Disposable {
 				},
 				hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			});
+			toolbar.getElement().classList.add('notebook-top-cell-toolbar-root');
 
 			if (this.notebookEditor.hasModel()) {
 				toolbar.context = {
