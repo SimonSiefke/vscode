@@ -28,7 +28,7 @@ export class ChatPullRequestContentPart extends Disposable implements IChatConte
 		const contentContainer = dom.append(container, dom.$('.content-container'));
 
 		const titleContainer = dom.append(contentContainer, dom.$('.title-container'));
-		const icon = dom.append(titleContainer, dom.$('.icon'));
+		const icon = dom.append(titleContainer, dom.$('.icon.chat-pull-request-icon'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.gitPullRequest));
 		const titleLink: HTMLAnchorElement = dom.append(titleContainer, dom.$('a.title'));
 		titleLink.textContent = `${this.pullRequestContent.title} - ${this.pullRequestContent.author}`;
