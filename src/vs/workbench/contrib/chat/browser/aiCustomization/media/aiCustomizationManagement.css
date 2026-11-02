@@ -907,7 +907,7 @@ per-word capitalization does not survive translation. */
 	height: var(--vscode-spacing-size240);
 }
 
-.ai-customization-list-widget.show-item-type-icons .ai-customization-list-item .item-type-icon img {
+.ai-customization-list-widget.show-item-type-icons .ai-customization-list-item .item-type-icon img:where(.customization-marketplace-image) {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
