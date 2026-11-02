@@ -9,7 +9,7 @@
 }
 
 .ports-view .monaco-list .monaco-list-row:hover:not(.highlighted) .monaco-icon-label,
-.ports-view .monaco-list .monaco-list-row.focused .monaco-icon-label {
+.ports-view .monaco-list .monaco-list-row.focused .ports-view-item-label {
 	flex: 1;
 }
 
