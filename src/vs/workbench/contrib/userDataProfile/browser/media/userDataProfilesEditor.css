@@ -67,7 +67,7 @@
 	align-items: center;
 }
 
-.profiles-editor .sidebar-container .profiles-list .profile-list-item > * {
+.profiles-editor .sidebar-container .profiles-list :where(.profile-list-item) > .profile-list-item-child {
 	margin-right: 5px;
 }
 

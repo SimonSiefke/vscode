@@ -448,6 +448,9 @@ class ProfileElementRenderer implements IListRenderer<AbstractUserDataProfileEle
 		append(description, $(`span${ThemeIcon.asCSSSelector(Codicon.check)}`), $('span', undefined, localize('activeProfile', "Active")));
 
 		const actionsContainer = append(container, $('.profile-tree-item-actions-container'));
+		for (const child of [icon, label, dirty, description, actionsContainer]) {
+			child.classList.add('profile-list-item-child');
+		}
 		const actionBar = disposables.add(this.instantiationService.createInstance(WorkbenchToolBar,
 			actionsContainer,
 			{
@@ -463,7 +466,7 @@ class ProfileElementRenderer implements IListRenderer<AbstractUserDataProfileEle
 		templateData.elementDisposables.clear();
 		templateData.label.textContent = element.name;
 		templateData.label.classList.toggle('new-profile', element instanceof NewProfileElement);
-		templateData.icon.className = ThemeIcon.asClassName(element.icon ? ThemeIcon.fromId(element.icon) : DEFAULT_ICON);
+		templateData.icon.className = 'profile-list-item-child ' + ThemeIcon.asClassName(element.icon ? ThemeIcon.fromId(element.icon) : DEFAULT_ICON);
 		templateData.dirty.classList.toggle('hide', !(element instanceof NewProfileElement));
 		templateData.description.classList.toggle('hide', !element.active);
 		templateData.elementDisposables.add(element.onDidChange(e => {
@@ -472,9 +475,9 @@ class ProfileElementRenderer implements IListRenderer<AbstractUserDataProfileEle
 			}
 			if (e.icon) {
 				if (element.icon) {
-					templateData.icon.className = ThemeIcon.asClassName(ThemeIcon.fromId(element.icon));
+					templateData.icon.className = 'profile-list-item-child ' + ThemeIcon.asClassName(ThemeIcon.fromId(element.icon));
 				} else {
-					templateData.icon.className = 'hide';
+					templateData.icon.className = 'profile-list-item-child hide';
 				}
 			}
 			if (e.active) {
