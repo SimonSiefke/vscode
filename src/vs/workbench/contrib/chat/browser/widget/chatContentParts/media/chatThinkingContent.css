@@ -918,7 +918,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.chat-thinking-fixed-mode > .monaco-scrollable-element {
+	.chat-thinking-fixed-mode > .chat-thinking-content-scrollable {
 		transition: none !important;
 	}
 }
