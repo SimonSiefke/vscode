@@ -346,7 +346,7 @@
 	margin-left: 28px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlide .getting-started-category .description-content > .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlide .getting-started-category .description-content > .getting-started-description-glyph {
 	padding-right: 2px;
 	font-size: 16px;
 }

@@ -1229,7 +1229,7 @@ export class GettingStartedPage extends EditorPane {
 
 			if (category.isFeatured && this.showFeaturedWalkthrough) {
 				reset(featuredBadge, $('.featured', {}, $('span.featured-icon.codicon.codicon-star-full')));
-				reset(descriptionContent, ...renderLabelWithIcons(category.description));
+				reset(descriptionContent, ...renderLabelWithIcons(category.description, undefined, 'getting-started-description-glyph'));
 			}
 
 			const titleContent = $('h3.category-title.max-lines-3', { 'x-category-title-for': category.id });
