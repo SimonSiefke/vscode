@@ -2969,7 +2969,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	line-height: 22px;
 }
 
-.chat-artifacts-widget .chat-artifacts-expand .chat-artifacts-title-section .codicon {
+.chat-artifacts-widget .chat-artifacts-expand .chat-artifacts-title-section .codicon:where(.expand-icon) {
 	font-size: var(--vscode-codiconFontSize);
 	line-height: 22px;
 	flex-shrink: 0;
