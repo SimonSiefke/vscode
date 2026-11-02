@@ -31,7 +31,7 @@
 	height: 100%;
 }
 
-.agent-host-chat-input-picker-slot a.action-label,
+.agent-host-chat-input-picker-slot a.agent-host-picker-action-label,
 .agent-host-chat-input-picker-slot span.action-label {
 	display: inline-flex;
 	align-items: center;

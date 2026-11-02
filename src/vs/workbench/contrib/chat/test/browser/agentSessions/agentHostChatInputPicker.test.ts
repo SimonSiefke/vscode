@@ -1297,6 +1297,9 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 				const actionItem = dom.append(actions, dom.$('li.action-item'));
 				const slot = dom.append(actionItem, dom.$(`.${surface.className}`));
 				const trigger = dom.append(slot, dom.$('div.action-label'));
+				if (surface.className === 'agent-host-chat-input-picker-slot') {
+					trigger.classList.add('agent-host-picker-action-label');
+				}
 				const rendered = store.add(renderModePickerTrigger(trigger, mode, permissionPresentations[0], () => { }));
 				const icon = rendered.modeButton.querySelector<HTMLElement>('.codicon')!;
 				const modeLabel = rendered.modeButton.querySelector<HTMLElement>('.agent-host-chat-input-picker-label')!;
@@ -1381,6 +1384,9 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 				const item = dom.append(actions, dom.$(`li.action-item.${pickerClass}`));
 				const slot = pickerClass === 'agent-host-chat-input-picker-host' ? dom.append(item, dom.$('.agent-host-chat-input-picker-slot')) : item;
 				const button = dom.append(slot, dom.$('a.action-label'));
+				if (pickerClass === 'agent-host-chat-input-picker-host') {
+					button.classList.add('agent-host-picker-action-label');
+				}
 				const icon = dom.append(button, renderIcon(Codicon.rocketCompact));
 				const labelClassName = pickerClass === 'agent-host-chat-input-picker-host' ? 'agent-host-chat-input-picker-label' : 'chat-input-picker-label';
 				const label = dom.append(button, dom.$(`span.${labelClassName}`, undefined, 'Autopilot'));
@@ -2184,7 +2190,7 @@ suite('AgentHostChatInputPicker - compact layout', () => {
 		actionsContainer.style.display = 'flex';
 		const item = dom.append(actionsContainer, dom.$('.action-item.agent-host-chat-input-picker-host'));
 		const slot = dom.append(item, dom.$('.agent-host-chat-input-picker-slot'));
-		const label = dom.append(slot, dom.$('a.action-label'));
+		const label = dom.append(slot, dom.$('a.action-label.agent-host-picker-action-label'));
 		const icon = dom.append(label, renderIcon(Codicon.rocketCompact));
 		dom.append(label, dom.$('span.agent-host-chat-input-picker-label', undefined, 'Autopilot'));
 
