@@ -2193,7 +2193,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		}
 
 		.action-label.disabled {
-			.codicon {
+			.chat-input-picker-glyph {
 				color: var(--vscode-disabledForeground);
 			}
 		}
