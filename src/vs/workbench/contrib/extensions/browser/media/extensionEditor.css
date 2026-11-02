@@ -782,7 +782,7 @@
 
 .monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
 .monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
-.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon,
+.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph),
 .monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon {
 	opacity: 0.5;
 }
