@@ -9,7 +9,7 @@
 	height: 100%;
 	min-height: 0;
 
-	.pane-body & .monaco-scrollable-element {
+	.pane-body & .agent-sessions-list-scrollable {
 		padding: 0 6px;
 	}
 
