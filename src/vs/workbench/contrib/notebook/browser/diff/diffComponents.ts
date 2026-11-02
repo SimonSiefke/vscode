@@ -209,10 +209,10 @@ class PropertyHeader extends Disposable {
 
 	private _updateFoldingIcon() {
 		if (this.accessor.getFoldingState() === PropertyFoldingState.Collapsed) {
-			DOM.reset(this._foldingIndicator, renderIcon(collapsedIcon));
+			DOM.reset(this._foldingIndicator, renderIcon(collapsedIcon, undefined, 'notebook-diff-property-folding-glyph'));
 			this._propertyExpanded?.set(false);
 		} else {
-			DOM.reset(this._foldingIndicator, renderIcon(expandedIcon));
+			DOM.reset(this._foldingIndicator, renderIcon(expandedIcon, undefined, 'notebook-diff-property-folding-glyph'));
 			this._propertyExpanded?.set(true);
 		}
 
