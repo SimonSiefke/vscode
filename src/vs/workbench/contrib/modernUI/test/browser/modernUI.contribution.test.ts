@@ -112,6 +112,9 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	if (element.classList.contains('monaco-list-row') && parent.closest('.notifications-list-container')) {
 		element.classList.add('notification-list-row');
 	}
+	if (element.classList.contains('monaco-list-row') && parent.closest('.multi-diff-editor-with-file-list-files')) {
+		element.classList.add('multi-diff-file-list-row');
+	}
 	return element;
 }
 

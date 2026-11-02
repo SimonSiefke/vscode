@@ -186,6 +186,7 @@ export class MultiDiffEditorFileList extends Disposable {
 				new MultiDiffEditorFolderRenderer(labels, labelService),
 			],
 			{
+				rowClassName: 'multi-diff-file-list-row',
 				identityProvider: { getId: element => isFolder(element) ? `folder:${element.uri.toString()}` : element.getKey() },
 				keyboardNavigationLabelProvider: {
 					getKeyboardNavigationLabel: element => isFolder(element) ? element.name : basename(getItemUri(element)),
