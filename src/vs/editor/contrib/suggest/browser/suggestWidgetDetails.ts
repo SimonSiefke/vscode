@@ -56,6 +56,7 @@ export class SuggestDetailsWidget {
 		this._body = dom.$('.body');
 
 		this._scrollbar = new DomScrollableElement(this._body, {
+			className: 'editor-suggest-details-scrollable',
 			alwaysConsumeMouseWheel: true,
 		});
 		dom.append(this.domNode, this._scrollbar.getDomNode());

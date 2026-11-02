@@ -396,7 +396,7 @@
 	display: none;
 }
 
-.monaco-editor .suggest-details > .monaco-scrollable-element {
+.monaco-editor .suggest-details > .editor-suggest-details-scrollable {
 	flex: 1;
 }
 
