@@ -242,7 +242,7 @@
 	width: inherit;
 }
 
-.settings-tabs-widget > .monaco-action-bar .action-item.disabled {
+.settings-tabs-widget > .monaco-action-bar .disabled.settings-tab-action-item {
 	display: none;
 }
 
