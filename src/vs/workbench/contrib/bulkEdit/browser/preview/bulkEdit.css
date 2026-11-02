@@ -45,7 +45,7 @@
 	margin: 0 4px;
 }
 
-.monaco-workbench .bulk-edit-panel .monaco-tl-contents {
+.monaco-workbench .bulk-edit-panel .bulk-edit-tree-contents {
 	display: flex;
 }
 
