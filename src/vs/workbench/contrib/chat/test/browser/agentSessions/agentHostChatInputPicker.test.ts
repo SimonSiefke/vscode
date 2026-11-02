@@ -1383,11 +1383,11 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 			for (const pickerClass of ['chat-input-picker-item', 'chat-sessionPicker-item', 'agent-host-chat-input-picker-host']) {
 				const item = dom.append(actions, dom.$(`li.action-item.${pickerClass}`));
 				const slot = pickerClass === 'agent-host-chat-input-picker-host' ? dom.append(item, dom.$('.agent-host-chat-input-picker-slot')) : item;
-				const button = dom.append(slot, dom.$('a.action-label'));
+				const button = dom.append(slot, dom.$('a.action-label.chat-input-picker-trigger'));
 				if (pickerClass === 'agent-host-chat-input-picker-host') {
 					button.classList.add('agent-host-picker-action-label');
 				}
-				const icon = dom.append(button, renderIcon(Codicon.rocketCompact));
+				const icon = dom.append(button, renderIcon(Codicon.rocketCompact, undefined, 'chat-input-picker-glyph'));
 				if (pickerClass === 'agent-host-chat-input-picker-host') {
 					icon.classList.add('agent-host-picker-icon', 'chat-input-picker-glyph');
 				}
@@ -2193,7 +2193,7 @@ suite('AgentHostChatInputPicker - compact layout', () => {
 		actionsContainer.style.display = 'flex';
 		const item = dom.append(actionsContainer, dom.$('.action-item.agent-host-chat-input-picker-host'));
 		const slot = dom.append(item, dom.$('.agent-host-chat-input-picker-slot'));
-		const label = dom.append(slot, dom.$('a.action-label.agent-host-picker-action-label'));
+		const label = dom.append(slot, dom.$('a.action-label.agent-host-picker-action-label.chat-input-picker-trigger'));
 		const icon = dom.append(label, renderIcon(Codicon.rocketCompact));
 		icon.classList.add('agent-host-picker-icon', 'chat-input-picker-glyph');
 		dom.append(label, dom.$('span.agent-host-chat-input-picker-label', undefined, 'Autopilot'));

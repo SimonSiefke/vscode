@@ -64,7 +64,7 @@ suite('Suggestion menu corners', () => {
 				renderTemplate: () => { },
 				renderElement: () => { },
 				disposeTemplate: () => { },
-			}]));
+			}], { rowClassName: kind === 'editor' ? 'editor-suggest-list-row' : 'workbench-suggest-list-row' }));
 			list.layout(60, 200);
 			list.splice(0, 0, range(count));
 			if (withStatusBar) {
