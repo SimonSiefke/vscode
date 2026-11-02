@@ -318,7 +318,7 @@
 }
 
 /* Wrapped scrolling does not add the pill-style bottom gutter. */
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping > .monaco-scrollable-element {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping > .editor-tabs-scrollable {
 	padding-bottom: 0;
 }
 
