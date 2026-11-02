@@ -138,11 +138,11 @@
 	&.multiDiffEditor-standard {
 		.multiDiffEntry {
 			.collapse-button {
-				margin: 0 var(--vscode-spacing-size60);
+				margin: 0 var(--vscode-spacing-size60)
+			}
 
-				a {
-					display: block;
-				}
+			:where(.collapse-button) a.multi-diff-collapse-toggle {
+				display: block;
 			}
 
 			.header {

@@ -180,7 +180,7 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 		const activateItem = () => this._viewModel.get()?.setActive(undefined);
 
 		this._register(autorun(reader => {
-			btn.element.className = '';
+			btn.element.className = 'multi-diff-collapse-toggle';
 			btn.icon = this._collapsed.read(reader) ? Codicon.chevronRight : Codicon.chevronDown;
 		}));
 		this._register(btn.onDidClick(() => {
