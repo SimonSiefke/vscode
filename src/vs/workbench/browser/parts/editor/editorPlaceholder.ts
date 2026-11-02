@@ -103,7 +103,7 @@ export abstract class EditorPlaceholder extends EditorPane {
 
 		// Icon
 		const iconContainer = container.appendChild($('.editor-placeholder-icon-container'));
-		const iconWidget = disposables.add(new SimpleIconLabel(iconContainer));
+		const iconWidget = disposables.add(new SimpleIconLabel(iconContainer, 'editor-placeholder-glyph'));
 		iconWidget.text = icon;
 
 		// Label

@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { isHTMLElement } from '../../browser/dom.js';
+import { getWindow, isHTMLElement } from '../../browser/dom.js';
 import { renderLabelWithIcons } from '../../browser/ui/iconLabel/iconLabels.js';
+import { SimpleIconLabel } from '../../browser/ui/iconLabel/simpleIconLabel.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 
 suite('renderLabelWithIcons', () => {
@@ -53,4 +54,36 @@ suite('renderLabelWithIcons', () => {
 	};
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+});
+
+
+suite('SimpleIconLabel', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('glyph styling follows label updates and stays local to its owner', () => {
+		const container = document.createElement('div');
+		container.className = 'test-simple-icon-label';
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+		const style = container.appendChild(document.createElement('style'));
+		style.textContent = '.test-simple-icon-label .test-simple-label-glyph { padding-left: 9px; }';
+		const labelContainer = container.appendChild(document.createElement('div'));
+		const otherContainer = container.appendChild(document.createElement('div'));
+		const label = store.add(new SimpleIconLabel(labelContainer, 'test-simple-label-glyph'));
+		const other = store.add(new SimpleIconLabel(otherContainer));
+		const targetWindow = getWindow(container);
+		const paddings: string[][] = [];
+		const texts: (string | null)[] = [];
+		for (const text of ['$(info) Opening', '$(warning) Waiting', 'Ready', '$(check) Complete']) {
+			label.text = text;
+			paddings.push([...labelContainer.children].map(child => targetWindow.getComputedStyle(child).paddingLeft));
+			texts.push(labelContainer.textContent);
+		}
+		other.text = '$(info) Other';
+		assert.deepStrictEqual({
+			paddings,
+			texts,
+			otherKeepsOwnPadding: [...otherContainer.children].every(child => targetWindow.getComputedStyle(child).paddingLeft !== '9px'),
+		}, { paddings: [['9px'], ['9px'], [], ['9px']], texts: [' Opening', ' Waiting', 'Ready', ' Complete'], otherKeepsOwnPadding: true });
+	});
 });
