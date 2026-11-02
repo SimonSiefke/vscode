@@ -64,7 +64,7 @@
 					color: var(--vscode-panelTitle-inactiveForeground);
 				}
 
-				.action-label.checked {
+				.checked.preferences-tab-action-label {
 					opacity: 1;
 					color: var(--vscode-settings-headerForeground);
 					border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
