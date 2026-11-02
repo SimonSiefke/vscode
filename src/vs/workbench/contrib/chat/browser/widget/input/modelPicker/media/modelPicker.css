@@ -96,7 +96,7 @@
 	flex-shrink: 0;
 }
 
-.chat-input-picker-item .action-label.model-picker-split .model-picker-section .codicon {
+.chat-input-picker-item .action-label.model-picker-split .model-picker-section .chat-input-picker-glyph {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
