@@ -1201,13 +1201,13 @@ extension field is hidden (no fixed-width placeholder needed). */
 	background: transparent;
 }
 
-.issue-reporter-annotation-overlay .annotation-toolbar .tool-btn.active {
+.issue-reporter-annotation-overlay .annotation-toolbar .active.tool-btn {
 	background: var(--vscode-button-background, #0e639c);
 	color: var(--vscode-button-foreground, #fff);
 	border-color: var(--vscode-button-background, #0e639c);
 }
 
-.issue-reporter-annotation-overlay .annotation-toolbar .tool-btn.active,
+.issue-reporter-annotation-overlay .annotation-toolbar .active.tool-btn,
 .issue-reporter-annotation-overlay .annotation-toolbar .tool-btn.active .codicon {
 	color: var(--vscode-button-foreground, #fff) !important;
 }
