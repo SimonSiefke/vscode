@@ -135,7 +135,7 @@
 	display: none;
 }
 
-.monaco-action-bar .action-item.disabled .action-label.extension-action.label {
+.monaco-action-bar .action-item.disabled .action-label.label.extension-action {
 	opacity: 0.4 !important;
 }
 
