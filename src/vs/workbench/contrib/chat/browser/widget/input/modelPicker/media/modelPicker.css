@@ -47,7 +47,7 @@
 	overflow: hidden;
 }
 
-.interactive-session .chat-input-toolbar .chat-input-picker-item.compact-picker .action-label.model-picker-split.compact {
+.interactive-session .chat-input-toolbar .chat-input-picker-item.compact-picker .action-label.compact.model-picker-split {
 	justify-content: flex-start;
 }
 
