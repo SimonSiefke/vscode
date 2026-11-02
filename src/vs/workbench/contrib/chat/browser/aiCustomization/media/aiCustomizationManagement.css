@@ -2865,7 +2865,7 @@ per-word capitalization does not survive translation. */
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.mcp-list-widget.show-mcp-item-icons .mcp-server-item .mcp-server-icon .codicon {
+.mcp-list-widget.show-mcp-item-icons .mcp-server-item .mcp-server-icon .codicon:where(.customization-marketplace-fallback-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
