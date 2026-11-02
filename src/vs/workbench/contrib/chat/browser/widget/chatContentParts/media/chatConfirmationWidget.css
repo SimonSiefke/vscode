@@ -373,7 +373,7 @@
 			margin: 0 !important;
 		}
 
-		.codicon {
+		.codicon:where(.chat-confirmation-title-node) {
 			margin-right: 4px;
 		}
 	}

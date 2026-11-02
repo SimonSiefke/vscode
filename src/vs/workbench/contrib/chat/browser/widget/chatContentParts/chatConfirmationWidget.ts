@@ -392,7 +392,7 @@ abstract class BaseChatConfirmationWidget<T> extends Disposable {
 			elements.title,
 			new MarkdownString(icon ? `$(${icon.id}) ${typeof title === 'string' ? title : title.value}` : typeof title === 'string' ? title : title.value),
 			subtitle,
-			undefined,
+			{ markdownRenderOptions: { elementClassName: 'chat-confirmation-title-node' } },
 		));
 
 		this.messageElement = elements.message;
