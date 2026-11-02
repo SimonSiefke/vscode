@@ -3444,7 +3444,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	padding: 0;
 }
 
-.interactive-session .chat-session-working-set .monaco-icon-label {
+.interactive-session .chat-session-working-set .chat-file-list-label {
 	display: flex;
 	min-width: 0;
 }
