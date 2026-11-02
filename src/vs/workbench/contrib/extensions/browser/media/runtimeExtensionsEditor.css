@@ -57,7 +57,7 @@
 	align-items: center;
 }
 
-.runtime-extensions-editor .extension > .icon-container > .extension-icon .icon {
+.runtime-extensions-editor .extension > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image) {
 	padding: var(--vscode-spacing-size100) var(--vscode-spacing-size100) var(--vscode-spacing-size100) 0;
 }
 
