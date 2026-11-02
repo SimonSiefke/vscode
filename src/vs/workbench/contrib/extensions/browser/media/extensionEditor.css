@@ -34,7 +34,7 @@
 	width: 128px;
 }
 
-.extension-editor > .header > .icon-container > .extension-icon .codicon {
+.extension-editor > .header > .icon-container > .extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	font-size: 128px !important;
 }
 
