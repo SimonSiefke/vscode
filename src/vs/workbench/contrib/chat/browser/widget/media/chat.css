@@ -3412,7 +3412,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-used-context-list {
 	padding: var(--vscode-spacing-size40);
 
-	.monaco-icon-label {
+	.chat-file-list-label {
 		padding: 0 var(--vscode-spacing-size40);
 
 		&::before {

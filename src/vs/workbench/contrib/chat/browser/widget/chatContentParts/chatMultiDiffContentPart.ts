@@ -304,7 +304,7 @@ class ChatMultiDiffListRenderer implements IListRenderer<IChatMultiDiffItem, ICh
 	constructor(private labels: ResourceLabels) { }
 
 	renderTemplate(container: HTMLElement): IChatMultiDiffItemTemplate {
-		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true });
+		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true, extraClasses: ['chat-file-list-label'] });
 
 		return {
 			label,

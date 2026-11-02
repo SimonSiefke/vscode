@@ -548,7 +548,7 @@ class CollapsibleChangesSummaryListRenderer implements IListRenderer<IEditSessio
 	}
 
 	renderTemplate(container: HTMLElement): ICollapsibleChangesSummaryListTemplate {
-		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true });
+		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true, extraClasses: ['chat-file-list-label'] });
 		const elementDisposables = new DisposableStore();
 		let actionsContainer: HTMLElement | undefined;
 		let changesContainer = label.element;
