@@ -3814,7 +3814,7 @@ per-word capitalization does not survive translation. */
 	flex-wrap: wrap;
 }
 
-.plugin-list-widget .plugin-browse-all-button.monaco-button {
+.plugin-list-widget .monaco-button.plugin-browse-all-button {
 	width: fit-content;
 	flex: 0 0 auto;
 }
