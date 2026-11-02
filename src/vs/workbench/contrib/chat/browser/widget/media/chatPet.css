@@ -47,7 +47,7 @@
 	transition: transform 200ms ease-out;
 }
 
-.chat-pet-button.hidden {
+.hidden.chat-pet-button {
 	display: none;
 }
 
