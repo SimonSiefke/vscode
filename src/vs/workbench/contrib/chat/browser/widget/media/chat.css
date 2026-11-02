@@ -5004,7 +5004,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .editor-instance .interactive-session .interactive-item-container.interactive-response .checkpoint-restore-container {
 
 	.checkpoint-label-text,
-	.monaco-toolbar {
+	.chat-checkpoint-toolbar-root {
 		background-color: var(--vscode-editor-background);
 	}
 }
