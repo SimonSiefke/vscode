@@ -121,7 +121,7 @@
 	white-space: nowrap;
 }
 
-.monaco-workbench .pane > .pane-body .welcome-view-content > p {
+.monaco-workbench .pane > .pane-body :where(.welcome-view-content) > p.welcome-view-content-item {
 	width: 100%;
 }
 
