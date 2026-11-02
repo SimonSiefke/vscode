@@ -167,7 +167,7 @@
 }
 
 .monaco-button.default-colors.secondary,
-.monaco-button-dropdown.default-colors > .monaco-button.secondary {
+.monaco-button-dropdown.default-colors > .secondary.monaco-dropdown-action-button {
 	color: var(--vscode-button-secondaryForeground);
 	background-color: var(--vscode-button-secondaryBackground);
 }
