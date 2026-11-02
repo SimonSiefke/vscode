@@ -128,7 +128,7 @@ class PropertyHeader extends Disposable {
 		this._foldingIndicator = DOM.append(this.propertyHeaderContainer, DOM.$('.property-folding-indicator'));
 		this._foldingIndicator.classList.add(this.accessor.prefix);
 		const metadataStatus = DOM.append(this.propertyHeaderContainer, DOM.$('div.property-status'));
-		this._statusSpan = DOM.append(metadataStatus, DOM.$('span'));
+		this._statusSpan = DOM.append(metadataStatus, DOM.$('span.notebook-diff-property-status-text'));
 		this._description = DOM.append(metadataStatus, DOM.$('span.property-description'));
 
 		const cellToolbarContainer = DOM.append(this.propertyHeaderContainer, DOM.$('div.property-toolbar'));
