@@ -34,12 +34,12 @@
 	}
 }
 
-.monaco-workbench .terminal-initial-hint a {
+.monaco-workbench .terminal-initial-hint a:where(.terminal-initial-hint-link) {
 	cursor: pointer;
 	color: var(--vscode-textLink-foreground);
 }
 
-.monaco-workbench .terminal-initial-hint a,
+.monaco-workbench .terminal-initial-hint a:where(.terminal-initial-hint-link),
 .monaco-workbench .terminal-initial-hint .detail {
 	font-style: italic;
 }
