@@ -592,7 +592,7 @@
 		padding: 0px 4px 0 3px;
 	}
 
-	.monaco-button-dropdown > .monaco-button.monaco-dropdown-button.codicon[class*='codicon-'] {
+	.monaco-button-dropdown > .monaco-button.codicon[class*='codicon-'].monaco-dropdown-button {
 		font-size: var(--vscode-codiconFontSize-compact);
 	}
 }
