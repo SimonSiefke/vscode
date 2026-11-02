@@ -246,7 +246,7 @@
 	display: none;
 }
 
-.settings-tabs-widget > .monaco-action-bar .action-item {
+.settings-tabs-widget > .monaco-action-bar .settings-tab-action-item {
 	max-width: 300px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -273,7 +273,7 @@
 	display: flex;
 }
 
-.settings-tabs-widget > .monaco-action-bar .action-item {
+.settings-tabs-widget > .monaco-action-bar .settings-tab-action-item {
 	padding: 3px 0px;
 }
 
