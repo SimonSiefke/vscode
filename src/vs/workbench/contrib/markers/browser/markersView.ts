@@ -508,6 +508,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 				accessibilityProvider: this.widgetAccessibilityProvider,
 				identityProvider: this.widgetIdentityProvider,
 				dnd: this.instantiationService.createInstance(MarkersListDnDHandler),
+				contentsClassName: 'problems-tree-contents',
 				expandOnlyOnTwistieClick: (e: MarkerElement) => e instanceof Marker && e.relatedInformation.length > 0,
 				overrideStyles: this.getLocationBasedColors().listOverrideStyles,
 				selectionNavigation: true,

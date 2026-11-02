@@ -39,7 +39,7 @@
 	visibility: hidden;
 }
 
-.markers-panel .markers-panel-container .tree-container .monaco-tl-contents {
+.markers-panel .markers-panel-container .tree-container .problems-tree-contents {
 	display: flex;
 	line-height: 22px;
 	padding-right: 10px;
