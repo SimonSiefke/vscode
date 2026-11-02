@@ -119,6 +119,7 @@ export class AgentEditorCommentsOverlayWidget extends Disposable {
 			this._domNode.appendChild(this._toolbarNode);
 		}
 		const toolbar = this._showStore.add(this._instantiationService.createInstance(MenuWorkbenchToolBar, this._toolbarNode, this._options.menuId, {
+			actionsContainerClassName: 'agent-comments-overlay-actions',
 			telemetrySource: this._options.telemetrySource,
 			hiddenItemStrategy: HiddenItemStrategy.Ignore,
 			toolbarOptions: {
