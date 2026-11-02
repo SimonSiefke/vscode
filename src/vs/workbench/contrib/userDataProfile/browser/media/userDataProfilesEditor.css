@@ -251,11 +251,6 @@
 	align-items: center;
 }
 
-.profiles-editor .contents-container .profile-content-tree-header > .options-header .codicon {
-	cursor: pointer;
-	padding-left: 2px;
-}
-
 .profiles-editor .contents-container .profile-content-tree-header.default-profile {
 	grid-template-columns: 30px repeat(1, 1fr) 80px;
 }
