@@ -263,7 +263,7 @@
 	padding-left: 5px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon {
+.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon:where(.workspace-trust-action-label) {
 	display: flex;
 	align-items: center;
 	justify-content: center;

@@ -482,7 +482,7 @@ class TrustedUriActionsColumnRenderer implements ITableRenderer<ITrustedUriItem,
 		}
 		actions.push(this.createEditAction(item));
 		actions.push(this.createDeleteAction(item));
-		templateData.actionBar.push(actions, { icon: true });
+		templateData.actionBar.push(actions, { icon: true, labelClassName: 'workspace-trust-action-label' });
 	}
 
 	private createEditAction(item: ITrustedUriItem): IAction {
