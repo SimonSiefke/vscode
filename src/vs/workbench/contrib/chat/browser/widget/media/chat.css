@@ -3297,7 +3297,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		text-align: right;
 	}
 
-	.chat-summary-list .monaco-scrollable-element {
+	.chat-summary-list .chat-summary-list-scrollable {
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 
