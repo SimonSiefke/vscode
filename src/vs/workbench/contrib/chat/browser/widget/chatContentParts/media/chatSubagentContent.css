@@ -100,7 +100,7 @@
 	max-width: 100%;
 }
 
-.chat-subagent-part .chat-subagent-open-chat-toolbar.hidden,
+.chat-subagent-part .hidden.chat-subagent-open-chat-toolbar,
 .chat-subagent-part .chat-subagent-open-chat-toolbar.has-no-actions {
 	display: none;
 }
