@@ -159,7 +159,7 @@
 	margin-right: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-model.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-model {
 	display: none;
 }
 
