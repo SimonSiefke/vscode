@@ -67,7 +67,7 @@
 	position: relative;
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .hover-verbosity-action-icon {
 	cursor: pointer;
 	font-size: 11px;
 }
