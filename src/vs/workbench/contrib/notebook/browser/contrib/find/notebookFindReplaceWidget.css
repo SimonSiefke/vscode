@@ -150,7 +150,7 @@
 	padding: 0;
 }
 
-.monaco-workbench .simple-fr-find-part .monaco-inputbox > .ibwrapper > .input,
+.monaco-workbench .simple-fr-find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
 .monaco-workbench .simple-fr-replace-part .monaco-inputbox > .ibwrapper > .input {
 	height: 24px;
 }
