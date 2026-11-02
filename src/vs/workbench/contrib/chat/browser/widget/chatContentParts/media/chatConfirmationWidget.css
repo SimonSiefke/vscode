@@ -506,7 +506,7 @@
 		margin-top: 4px;
 	}
 
-	.chat-editing-session-list.collapsed {
+	.collapsed.chat-editing-session-list {
 		display: none;
 	}
 
