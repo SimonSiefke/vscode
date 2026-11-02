@@ -33,7 +33,7 @@
 	visibility: visible;
 }
 
-.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label {
+.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label:where(.open-editors-action-label) {
 	display: block;
 	padding: 2px;
 }
