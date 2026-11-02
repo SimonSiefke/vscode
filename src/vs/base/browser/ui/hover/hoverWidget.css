@@ -148,7 +148,7 @@
 	font-size: inherit;
 }
 
-.hover-row.status-bar .actions .action-container a {
+.hover-row.status-bar :where(.actions) .action-container a.hover-status-action-link {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: var(--text-link-decoration);
 }
