@@ -297,7 +297,7 @@
 	justify-content: center;
 }
 
-.agentSessionsWelcome-walkthroughCard-icon .codicon {
+.agentSessionsWelcome-walkthroughCard-icon .codicon:where(.agent-welcome-card-glyph) {
 	font-size: 20px;
 	color: var(--vscode-descriptionForeground);
 }
