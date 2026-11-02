@@ -66,7 +66,7 @@
 }
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar:where(.composite-switcher-action-bar),
-.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar {
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar:where(.composite-switcher-action-bar) {
 	line-height: 27px; /* matches panel titles in settings */
 }
 
