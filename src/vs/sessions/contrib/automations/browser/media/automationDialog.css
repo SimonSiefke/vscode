@@ -1046,7 +1046,7 @@
 	height: 100%;
 }
 
-.automation-cron-segment .monaco-inputbox input.input {
+.automation-cron-segment .monaco-inputbox input.monaco-inputbox-input {
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size60);
 	line-height: 1.4;
 	text-align: center;
