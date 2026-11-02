@@ -47,7 +47,7 @@ export class ChatResourcePillActionViewItem extends ChatPillActionViewItemBase {
 
 	protected override renderContent(button: Button): void {
 		button.element.appendChild($(`span.chat-pill-icon.chat-resource-pill-compact-icon${ThemeIcon.asCSSSelector(Codicon.file)}`, { 'aria-hidden': 'true' }));
-		const label = this._register(this._resourceLabels.create(button.element));
+		const label = this._register(this._resourceLabels.create(button.element, { extraClasses: ['chat-resource-pill-label'] }));
 		this._register(autorun(reader => {
 			const entry = this._entry.read(reader);
 			if (entry?.resource) {

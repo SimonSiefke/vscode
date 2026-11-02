@@ -260,7 +260,7 @@
 	display: none;
 }
 
-.chat-resource-pill-button .monaco-icon-label {
+.chat-resource-pill-button .chat-resource-pill-label {
 	align-items: center;
 	min-width: 0;
 	overflow: hidden;

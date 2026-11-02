@@ -881,7 +881,7 @@ suite('ChatPills', () => {
 			disposables.add(toDisposable(() => row.element.remove()));
 
 			const button = mainWindow.document.createElement('button');
-			button.className = 'monaco-button chat-pill-button chat-resource-pill-button';
+			button.className = 'monaco-button chat-pill-button';
 			const item = mainWindow.document.createElement('div');
 			item.className = 'chat-pill-item';
 			button.classList.toggle('compact', scope === 'pill');
@@ -893,13 +893,23 @@ suite('ChatPills', () => {
 			counter.className = 'monaco-animated-counter';
 			const chevron = mainWindow.document.createElement('span');
 			chevron.className = 'chat-pill-chevron';
-			const resourceIcon = mainWindow.document.createElement('span');
-			resourceIcon.className = 'chat-resource-pill-compact-icon';
-			const resourceName = mainWindow.document.createElement('span');
-			resourceName.className = 'monaco-icon-label';
-			button.append(icon, label, counter, chevron, resourceIcon, resourceName);
+			button.append(icon, label, counter, chevron);
 			item.appendChild(button);
 			row.appendChild(item);
+
+			const instantiationService = workbenchInstantiationService(undefined, disposables);
+			const resourceLabels = disposables.add(instantiationService.createInstance(ResourceLabels, DEFAULT_LABELS_CONTAINER));
+			const entry: IChatPillEntry = { id: 'file', label: 'file.ts', resource: URI.file('/repo/file.ts'), open: () => { } };
+			const action = disposables.add(new Action('resource', 'Resource'));
+			const viewItem = disposables.add(instantiationService.createInstance(ChatResourcePillActionViewItem, action, {}, constObservable(entry), resourceLabels));
+			const resourceItem = mainWindow.document.createElement('div');
+			resourceItem.className = 'chat-pill-item';
+			viewItem.render(resourceItem);
+			row.appendChild(resourceItem);
+			const resourceButton = resourceItem.querySelector<HTMLElement>('.chat-resource-pill-button')!;
+			resourceButton.classList.toggle('compact', scope === 'pill');
+			const resourceIcon = resourceButton.querySelector<HTMLElement>('.chat-resource-pill-compact-icon')!;
+			const resourceName = resourceButton.querySelector<HTMLElement>('.monaco-icon-label')!;
 
 			const compactState = {
 				iconVisible: mainWindow.getComputedStyle(icon).display !== 'none',
@@ -911,6 +921,7 @@ suite('ChatPills', () => {
 			};
 			row.element.classList.remove('compact');
 			button.classList.remove('compact');
+			resourceButton.classList.remove('compact');
 
 			assert.deepStrictEqual({
 				compactState,
