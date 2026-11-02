@@ -44,7 +44,7 @@
 		gap: 4px;
 	}
 
-	.action-item > .action-label {
+	.floating-menu-actions .floating-menu-action-label {
 		padding: 4px 6px;
 		font-size: 11px;
 		line-height: 14px;

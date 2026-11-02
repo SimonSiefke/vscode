@@ -144,6 +144,22 @@ export class FloatingEditorToolbarWidget extends Disposable {
 			});
 
 			reader.store.add(toolbar);
+
+			const markActionLabels = () => {
+				for (let index = 0; index < toolbar.getItemsLength(); index++) {
+					const item = toolbar.getItemElement(index);
+					if (!item) {
+						continue;
+					}
+					for (const child of item.children) {
+						if (child.classList.contains('action-label')) {
+							child.classList.toggle('floating-menu-action-label', true);
+						}
+					}
+				}
+			};
+			markActionLabels();
+			reader.store.add(toolbar.onDidChangeMenuItems(markActionLabels));
 			reader.store.add(autorun(reader => {
 				const context = _toolbarContext.read(reader);
 				toolbar.context = context;
