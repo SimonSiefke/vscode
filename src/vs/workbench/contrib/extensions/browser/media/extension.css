@@ -86,7 +86,7 @@
 	align-items: center;
 }
 
-.extension-list-item > .details > .header-container > .header > .restart-required > .codicon {
+.extension-list-item > .details > .header-container > .header > .restart-required > .codicon:where(.extension-restart-required) {
 	font-size: 100%;
 }
 
