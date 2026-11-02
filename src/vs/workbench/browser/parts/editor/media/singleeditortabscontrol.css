@@ -116,7 +116,7 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .hidden.title-actions,
-.monaco-workbench .part.editor > .content .editor-group-container > .title > .single-tab-and-actions-container > .title-actions.hidden {
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .single-tab-and-actions-container > .hidden.title-actions {
 	display: none;
 }
 
