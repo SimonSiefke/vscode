@@ -325,7 +325,7 @@
 	display: none;
 }
 
-.interactive-item-container .chat-footer-toolbar.hidden {
+.interactive-item-container .hidden.chat-footer-toolbar {
 	display: none !important;
 }
 
