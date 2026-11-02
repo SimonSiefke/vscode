@@ -36,6 +36,8 @@ export interface IDropdownMenuActionViewItemOptions extends IBaseActionViewItemO
 	readonly actionRunner?: IActionRunner;
 	readonly classNames?: string[] | string;
 	readonly menuClassName?: string;
+	/** Class applied to the trigger label and labels of menu items. */
+	readonly labelClassName?: string;
 	readonly closeAnimation?: IContextViewCloseAnimation;
 	readonly getAnchor?: () => HTMLElement;
 	readonly anchorAlignmentProvider?: IAnchorAlignmentProvider;
@@ -77,6 +79,9 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 
 		const labelRenderer: ILabelRenderer = (el: HTMLElement): IDisposable | null => {
 			this.element = append(el, $('a.action-label'));
+			if (this.options.labelClassName) {
+				this.element.classList.add(this.options.labelClassName);
+			}
 			this.setAriaLabelAttributes(this.element);
 			return this.renderLabel(this.element);
 		};
@@ -106,6 +111,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 			actionViewItemProvider: this.options.actionViewItemProvider,
 			actionRunner: this.actionRunner,
 			getKeyBinding: this.options.keybindingProvider,
+			labelClassName: this.options.labelClassName,
 			context: this._context
 		};
 

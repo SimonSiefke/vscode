@@ -1638,6 +1638,7 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		dom.append(checkpointContainer, $('.checkpoint-line-left'));
 
 		const checkpointToolbar = templateDisposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, checkpointContainer, MenuId.ChatMessageCheckpoint, {
+			actionLabelClassName: 'chat-checkpoint-action-label',
 			actionViewItemProvider: (action, options) => {
 				if (action instanceof MenuItemAction) {
 					if (action.item.id === RestoreCheckpointActionId || action.item.id === StartOverActionId) {
@@ -1648,12 +1649,12 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 						const confirmTooltip = isStartOver
 							? localize('chat.startOver.confirmTooltip', "Confirm starting over and discarding all edits")
 							: localize('chat.restoreCheckpoint.confirmTooltip', "Confirm restoring this checkpoint and discarding later edits");
-						return this.instantiationService.createInstance(ChatRestoreCheckpointActionViewItem, action, { hoverDelegate: options.hoverDelegate }, (context: unknown) => this.discardEditsActionNeedsConfirmation(context), cancelLabel, confirmTooltip);
+						return this.instantiationService.createInstance(ChatRestoreCheckpointActionViewItem, action, { hoverDelegate: options.hoverDelegate, labelClassName: options.labelClassName }, (context: unknown) => this.discardEditsActionNeedsConfirmation(context), cancelLabel, confirmTooltip);
 					}
 					if (action.item.id === ForkConversationActionId) {
-						return this.instantiationService.createInstance(ChatForkActionViewItem, action, { hoverDelegate: options.hoverDelegate });
+						return this.instantiationService.createInstance(ChatForkActionViewItem, action, { hoverDelegate: options.hoverDelegate, labelClassName: options.labelClassName });
 					}
-					return this.instantiationService.createInstance(CodiconActionViewItem, action, { hoverDelegate: options.hoverDelegate });
+					return this.instantiationService.createInstance(CodiconActionViewItem, action, { hoverDelegate: options.hoverDelegate, labelClassName: options.labelClassName });
 				}
 				return undefined;
 			},
@@ -1722,9 +1723,10 @@ export class ChatListItemRenderer extends Disposable implements ITreeRenderer<Ch
 		dot.textContent = '\u00B7';
 		dot.setAttribute('aria-hidden', 'true');
 		const checkpointRestoreToolbar = templateDisposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, checkpointRestoreContainer, MenuId.ChatMessageRestoreCheckpoint, {
+			actionLabelClassName: 'chat-checkpoint-action-label',
 			actionViewItemProvider: (action, options) => {
 				if (action instanceof MenuItemAction) {
-					return this.instantiationService.createInstance(CodiconActionViewItem, action, { hoverDelegate: options.hoverDelegate });
+					return this.instantiationService.createInstance(CodiconActionViewItem, action, { hoverDelegate: options.hoverDelegate, labelClassName: options.labelClassName });
 				}
 				return undefined;
 			},

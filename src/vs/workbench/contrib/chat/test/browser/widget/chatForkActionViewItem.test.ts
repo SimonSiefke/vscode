@@ -34,7 +34,7 @@ suite('ChatForkActionViewItem', () => {
 			tooltip: 'Fork conversation from this point',
 			icon: Codicon.repoForked,
 		}, undefined, undefined, undefined, undefined);
-		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, undefined));
+		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, { labelClassName: 'chat-checkpoint-action-label' }));
 		const context = Object.freeze(upcastPartial<IChatRequestViewModel>({
 			id: 'request-2',
 			sessionResource: URI.parse('test-chat:/source'),
@@ -122,7 +122,7 @@ suite('ChatForkActionViewItem', () => {
 			tooltip: 'Fork conversation from this point',
 			icon: Codicon.repoForked,
 		}, undefined, undefined, undefined, undefined);
-		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, undefined));
+		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, { labelClassName: 'chat-checkpoint-action-label' }));
 		const session = append(mainWindow.document.body, $('.interactive-session'));
 		store.add(toDisposable(() => session.remove()));
 		session.style.setProperty('--vscode-codiconFontSize-compact', '12px');
@@ -248,7 +248,7 @@ suite('ChatForkActionViewItem', () => {
 			tooltip: 'Fork conversation from this point',
 			icon: Codicon.repoForked,
 		}, undefined, undefined, undefined, undefined);
-		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, undefined));
+		const viewItem = store.add(instantiationService.createInstance(ChatForkActionViewItem, action, { labelClassName: 'chat-checkpoint-action-label' }));
 		const session = append(mainWindow.document.body, $('.interactive-session'));
 		store.add(toDisposable(() => session.remove()));
 		session.style.setProperty('--vscode-codiconFontSize-compact', '12px');

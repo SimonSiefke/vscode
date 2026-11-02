@@ -50,6 +50,8 @@ export interface IMenuDirection {
 }
 
 export interface IMenuOptions {
+	/** Class applied to menu labels, including nested submenu labels. */
+	labelClassName?: string;
 	context?: unknown;
 	actionViewItemProvider?: IActionViewItemProvider;
 	actionRunner?: IActionRunner;
@@ -425,6 +427,7 @@ export class Menu extends ActionBar {
 				enableMnemonics: options.enableMnemonics,
 				useEventAsContext: options.useEventAsContext,
 				getKeyBinding: options.getKeyBinding,
+				labelClassName: options.labelClassName,
 			};
 
 			const menuActionViewItem = new BaseMenuActionViewItem(options.context, action, menuItemOptions, this.menuStyles);
@@ -572,6 +575,9 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 		this.check.setAttribute('role', 'none');
 
 		this.label = append(this.item, $('span.action-label'));
+		if (this.options.labelClassName) {
+			this.label.classList.add(this.options.labelClassName);
+		}
 
 		if (this.options.label && (this.options.getKeyBinding || this.options.keybinding)) {
 			this._keybinding = append(this.item, $('span.keybinding'));

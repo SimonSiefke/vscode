@@ -10,6 +10,7 @@ import { addDisposableListener, getWindow } from '../../../../browser/dom.js';
 import { ActionBar } from '../../../../browser/ui/actionbar/actionbar.js';
 import { BaseActionViewItem } from '../../../../browser/ui/actionbar/actionViewItems.js';
 import { ActionWithDropdownActionViewItem, DropdownMenuActionViewItem } from '../../../../browser/ui/dropdown/dropdownActionViewItem.js';
+import { Menu, unthemedMenuStyles } from '../../../../browser/ui/menu/menu.js';
 import { ToggleMenuAction, ToolBar } from '../../../../browser/ui/toolbar/toolbar.js';
 import { Action, IAction, Separator, SubmenuAction } from '../../../../common/actions.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
@@ -55,6 +56,66 @@ suite('ToolBar', () => {
 	teardown(() => {
 		sinon.restore();
 		container.remove();
+	});
+
+	test('label styling reaches primary, submenu and overflow actions through responsive changes', () => {
+		let availableWidth = 400;
+		const style = document.createElement('style');
+		style.textContent = '.test-toolbar-label { padding-left: 13px !important; }';
+		container.appendChild(style);
+		const renderedMenus: string[][] = [];
+		const provider: IContextMenuProvider = {
+			showContextMenu: delegate => {
+				const host = document.createElement('div');
+				container.appendChild(host);
+				store.add(new Menu(host, delegate.getActions(), { labelClassName: delegate.labelClassName }, unthemedMenuStyles));
+				renderedMenus.push(Array.from(host.querySelectorAll<HTMLElement>('.action-label'), label => getWindow(label).getComputedStyle(label).paddingLeft));
+			},
+		};
+		const first = store.add(new Action('first', 'First'));
+		const child = store.add(new Action('child', 'Child'));
+		const submenu = new SubmenuAction('submenu', 'Submenu', [child]);
+		const toolbar = store.add(new ToolBar(container, provider, {
+			actionLabelClassName: 'test-toolbar-label',
+			responsiveBehavior: { enabled: true, kind: 'all', actionMinWidth: 24, reserveMinWidth: false, getAvailableWidth: () => availableWidth },
+		}));
+		const other = store.add(new ToolBar(container, contextMenuProvider));
+		other.setActions([child]);
+		const otherLabel = other.getItemElement(0)!.querySelector<HTMLElement>('.action-label')!;
+		const unrelatedPadding = getWindow(otherLabel).getComputedStyle(otherLabel).paddingLeft;
+		const readPadding = () => Array.from(toolbar.getElement().querySelectorAll<HTMLElement>('.action-label'), label => getWindow(label).getComputedStyle(label).paddingLeft);
+		toolbar.setActions([first, submenu]);
+		const initial = readPadding();
+		const submenuItem = toolbar.getItemViewItem(1);
+		assert.ok(submenuItem instanceof DropdownMenuActionViewItem);
+		submenuItem.show();
+		availableWidth = 24;
+		toolbar.relayout();
+		const overflow = readPadding();
+		const more = toolbar.getItemViewItem(0);
+		assert.ok(more instanceof DropdownMenuActionViewItem);
+		more.show();
+		availableWidth = 400;
+		toolbar.relayout();
+		const restored = readPadding();
+		toolbar.setActions([first], [child]);
+		const replaced = readPadding();
+		assert.deepStrictEqual({ initial, overflow, restored, replaced, renderedMenus }, {
+			initial: ['13px', '13px'], overflow: ['13px'], restored: ['13px', '13px'], replaced: ['13px', '13px'], renderedMenus: [['13px'], ['13px', '13px']],
+		});
+		assert.strictEqual(getWindow(otherLabel).getComputedStyle(otherLabel).paddingLeft, unrelatedPadding);
+		assert.ok(!otherLabel.classList.contains('test-toolbar-label'));
+	});
+
+	test('dropdown label class is available before custom rendering', () => {
+		class StyledDropdown extends DropdownMenuActionViewItem {
+			protected override renderLabel(element: HTMLElement) {
+				assert.ok(element.classList.contains('test-toolbar-label'));
+				return super.renderLabel(element);
+			}
+		}
+		const action = store.add(new Action('dropdown', 'Dropdown'));
+		store.add(new StyledDropdown(action, [], contextMenuProvider, { labelClassName: 'test-toolbar-label' })).render(container);
 	});
 
 	test('component styling survives replacing actions and stays local to its toolbar', () => {
