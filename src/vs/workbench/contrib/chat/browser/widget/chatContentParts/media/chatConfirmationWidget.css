@@ -640,7 +640,7 @@
 			font-feature-settings: "tnum";
 		}
 
-		.codicon {
+		.codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron, .chat-confirmation-title-node, .chat-file-reference-icon) {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
 

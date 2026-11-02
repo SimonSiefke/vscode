@@ -194,7 +194,7 @@ abstract class BaseSimpleChatConfirmationWidget<T> extends Disposable {
 			elements.title,
 			title,
 			subtitle,
-			undefined,
+			{ markdownRenderOptions: { elementClassName: 'chat-confirmation-title-node' } },
 		));
 
 		this.messageElement = elements.message;

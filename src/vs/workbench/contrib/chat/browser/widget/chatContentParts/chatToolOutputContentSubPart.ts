@@ -88,7 +88,7 @@ export class ChatToolOutputContentSubPart extends Disposable {
 		const firstPart = parts[0];
 		if (firstPart.title) {
 			const title = dom.$('div.chat-confirmation-widget-title');
-			const renderedTitle = this._register(this._markdownRendererService.render(this.toMdString(firstPart.title)));
+			const renderedTitle = this._register(this._markdownRendererService.render(this.toMdString(firstPart.title), { elementClassName: 'chat-confirmation-title-node' }));
 			title.appendChild(renderedTitle.element);
 			container.appendChild(title);
 		}
