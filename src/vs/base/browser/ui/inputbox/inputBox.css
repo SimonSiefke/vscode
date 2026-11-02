@@ -39,7 +39,7 @@
 	color: inherit;
 }
 
-.monaco-inputbox > .ibwrapper > input {
+.monaco-inputbox > :where(.ibwrapper) > input.monaco-inputbox-input {
 	text-overflow: ellipsis;
 }
 
