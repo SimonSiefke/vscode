@@ -313,7 +313,7 @@
 	position: relative;
 }
 
-.viewpane-filter-container > .viewpane-filter .monaco-inputbox {
+.viewpane-filter-container > .viewpane-filter .viewpane-filter-input-box {
 	height: 24px;
 	font-size: 12px;
 	flex: 1;

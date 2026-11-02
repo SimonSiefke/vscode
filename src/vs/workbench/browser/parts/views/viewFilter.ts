@@ -210,6 +210,7 @@ export class FilterWidget extends Widget {
 	private createInput(container: HTMLElement): [ContextScopedHistoryInputBox, DOM.IFocusTracker] {
 		const history = this.options.history || [];
 		const inputBox = this._register(this.instantiationService.createInstance(ContextScopedHistoryInputBox, container, this.contextViewService, {
+			inputBoxClassName: 'viewpane-filter-input-box',
 			placeholder: this.options.placeholder,
 			ariaLabel: this.options.ariaLabel,
 			history: new Set(history),
