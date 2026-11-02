@@ -148,10 +148,6 @@
 	opacity: 0.9;
 }
 
-.unified-quick-access-pr-badge .codicon {
-	font-size: var(--vscode-codiconFontSize-compact);
-}
-
 /* Action text styling (e.g., "Run 'zsh' command?") */
 .unified-quick-access-action-text {
 	font-style: italic;
