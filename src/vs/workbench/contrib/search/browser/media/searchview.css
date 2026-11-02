@@ -253,7 +253,7 @@
 .pane-body:not(.wide) .search-view .monaco-list .monaco-list-row:hover:not(.highlighted) .foldermatch .monaco-icon-label,
 .pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .foldermatch .search-result-resource-label,
 .pane-body:not(.wide) .search-view .monaco-list .monaco-list-row:hover:not(.highlighted) .filematch .monaco-icon-label,
-.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .filematch .monaco-icon-label {
+.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .filematch .search-result-resource-label {
 	flex: 1;
 }
 
