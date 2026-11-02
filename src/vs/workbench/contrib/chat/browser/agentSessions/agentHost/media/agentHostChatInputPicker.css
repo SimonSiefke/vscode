@@ -171,7 +171,7 @@
 }
 
 /* A chat's own value is still loading: show the session's value dimmed until it arrives. */
-.agent-host-chat-input-picker-slot.resolving .action-label {
+.agent-host-chat-input-picker-slot.resolving .agent-host-picker-action-label {
 	opacity: 0.6;
 	cursor: default;
 }
