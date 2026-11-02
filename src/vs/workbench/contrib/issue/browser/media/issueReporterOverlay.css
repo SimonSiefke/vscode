@@ -690,7 +690,7 @@ label/control gap, so the buttons must not add their own margin. */
 	gap: 8px;
 }
 
-.issue-reporter-wizard .wizard-field.hidden {
+.issue-reporter-wizard .hidden.wizard-field {
 	display: none;
 }
 
