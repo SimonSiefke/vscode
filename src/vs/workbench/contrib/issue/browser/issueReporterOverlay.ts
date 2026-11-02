@@ -650,7 +650,7 @@ export class IssueReporterOverlay {
 		};
 
 		for (const { type, label, icon } of this.getAllIssueTypeOptions()) {
-			const btn = this.disposables.add(new Button(this.typeButtonGroup, { ...defaultButtonStyles, secondary: true, supportIcons: true }));
+			const btn = this.disposables.add(new Button(this.typeButtonGroup, { ...defaultButtonStyles, secondary: true, supportIcons: true, contentClassName: 'issue-wizard-type-content' }));
 			btn.element.classList.add('wizard-type-btn');
 			btn.element.setAttribute('data-type', String(type));
 			btn.element.setAttribute('aria-pressed', 'false');

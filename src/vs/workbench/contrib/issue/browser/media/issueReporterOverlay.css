@@ -450,7 +450,7 @@ label/control gap, so the buttons must not add their own margin. */
 	background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.06)) !important;
 }
 
-.issue-reporter-wizard .monaco-button.wizard-type-btn .codicon {
+.issue-reporter-wizard .monaco-button.wizard-type-btn .codicon:where(.issue-wizard-type-content) {
 	margin-right: 0;
 }
 
