@@ -20,7 +20,7 @@
 	pointer-events: initial;
 }
 
-.monaco-split-view2 > .monaco-scrollable-element {
+.monaco-split-view2 > .monaco-split-view-scrollable {
 	width: 100%;
 	height: 100%;
 }
