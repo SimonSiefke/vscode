@@ -376,7 +376,7 @@
 	align-content: center;
 	padding-right: 6px;
 
-	.title {
+	.title:where(.action-widget-title) {
 		line-height: 14px;
 	}
 }
