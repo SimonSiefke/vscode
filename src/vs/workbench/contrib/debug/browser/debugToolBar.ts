@@ -102,6 +102,7 @@ export class DebugToolBar extends Themable implements IWorkbenchContribution {
 
 		this.activeActions = [];
 		this.actionBar = this._register(new ActionBar(actionBarContainer, {
+			actionItemClassName: 'debug-toolbar-action-item',
 			orientation: ActionsOrientation.HORIZONTAL,
 			actionViewItemProvider: (action: IAction, options: IBaseActionViewItemOptions) => {
 				if (action.id === FOCUS_SESSION_ID) {
