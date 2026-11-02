@@ -343,7 +343,7 @@
 	border-radius: 2px;
 }
 
-.viewpane-filter > .viewpane-filter-controls > .viewpane-filter-badge.hidden,
+.viewpane-filter > .viewpane-filter-controls > .hidden.viewpane-filter-badge,
 .viewpane-filter.small > .viewpane-filter-controls > .viewpane-filter-badge {
 	display: none;
 }
