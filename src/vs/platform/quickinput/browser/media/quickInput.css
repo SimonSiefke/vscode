@@ -582,7 +582,7 @@
 	padding: 2px;
 }
 
-.quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon {
+.quick-input-tree .quick-input-tree-entry-action-bar .codicon.monaco-custom-toggle {
 	margin-right: 4px;
 }
 
