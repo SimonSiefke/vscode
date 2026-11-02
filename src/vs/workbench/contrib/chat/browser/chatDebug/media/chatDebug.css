@@ -473,7 +473,7 @@
 	padding: 8px 16px 0;
 	flex-shrink: 0;
 }
-.chat-debug-detail-button.monaco-button {
+.monaco-button.chat-debug-detail-button {
 	width: auto;
 	border: none;
 	background: transparent;
