@@ -305,7 +305,7 @@
 	opacity: 0.9;
 }
 
-.settings-editor > .settings-body .settings-toc-container .monaco-list-row .monaco-tl-contents {
+.settings-editor > .settings-body .settings-toc-container .monaco-list-row .settings-toc-tree-contents {
 	display: flex;
 }
 
