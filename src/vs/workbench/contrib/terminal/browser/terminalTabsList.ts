@@ -294,6 +294,7 @@ class TerminalTabsRenderer implements IListRenderer<ITerminalInstance, ITerminal
 		const templateDisposables = new DisposableStore();
 
 		const label = templateDisposables.add(this._labels.create(element, {
+			nameContainerClassName: 'terminal-tab-name',
 			supportHighlights: true,
 			supportDescriptionHighlights: true,
 			supportIcons: true,

@@ -451,7 +451,7 @@
 	align-items: center;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-icon-name-container {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .terminal-tab-name {
 	flex-shrink: 0;
 	margin-right: var(--vscode-spacing-size40);
 }
