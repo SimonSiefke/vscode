@@ -293,7 +293,7 @@
 	pointer-events: none;
 }
 
-.chat-pet-respawn-effect.hidden {
+.hidden.chat-pet-respawn-effect {
 	display: none;
 }
 
