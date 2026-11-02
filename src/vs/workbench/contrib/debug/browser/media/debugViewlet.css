@@ -202,7 +202,7 @@
 	text-overflow: ellipsis;
 }
 
-.debug-pane .debug-call-stack .stack-frame.label {
+.debug-pane .debug-call-stack .label.stack-frame {
 	text-align: center;
 	font-style: italic;
 }
