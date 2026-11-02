@@ -31,7 +31,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .merge-editor .code-view.result > .header > .description {
+.monaco-workbench .merge-editor .code-view.result > .header > .merge-editor-header-description {
 	display: inline;
 	flex-shrink: 1;
 }
