@@ -169,7 +169,7 @@
 	text-decoration: unset;
 }
 
-.workbench-suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated > .monaco-icon-label-container > .monaco-icon-name-container {
+.workbench-suggest-widget .monaco-list .monaco-list-row .monaco-icon-label.deprecated > .monaco-icon-label-container > .workbench-suggest-name-container {
 	text-decoration: line-through;
 }
 
