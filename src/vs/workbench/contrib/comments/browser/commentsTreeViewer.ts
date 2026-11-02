@@ -109,7 +109,7 @@ export class ResourceWithCommentsRenderer implements IListRenderer<ITreeNode<Res
 
 	renderTemplate(container: HTMLElement) {
 		const labelContainer = dom.append(container, dom.$('.resource-container'));
-		const resourceLabel = this.labels.create(labelContainer);
+		const resourceLabel = this.labels.create(labelContainer, { extraClasses: ['comments-panel-resource-label'] });
 		const separator = dom.append(labelContainer, dom.$('.separator'));
 		const owner = labelContainer.appendChild(dom.$('.owner'));
 

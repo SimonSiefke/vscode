@@ -117,7 +117,7 @@
 	font-family: var(--monaco-monospace-font);
 }
 
-.comments-panel .comments-panel-container .tree-container .monaco-icon-label {
+.comments-panel .comments-panel-container .tree-container .comments-panel-resource-label {
 	padding-right: 5px;
 }
 
