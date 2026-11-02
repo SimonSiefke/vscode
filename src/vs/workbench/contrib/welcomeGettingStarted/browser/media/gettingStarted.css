@@ -508,10 +508,6 @@
 	top: 2px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-columns .getting-started-detail-left > div {
-	width: 100%;
-}
-
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step:not(.expanded) .step-description-container {
 	visibility: hidden;
 }
