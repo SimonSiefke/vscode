@@ -156,7 +156,7 @@
 			background-color: var(--vscode-commandCenter-activeBackground);
 		}
 
-		.modal-editor-nav-button.monaco-button.disabled {
+		.monaco-button.disabled.modal-editor-nav-button {
 			opacity: 0.3;
 		}
 
