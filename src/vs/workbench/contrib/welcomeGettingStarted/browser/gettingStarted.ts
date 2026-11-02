@@ -973,6 +973,9 @@ export class GettingStartedPage extends EditorPane {
 		));
 
 		const footer = $('.footer', {}, ...footerChildren);
+		for (const section of [header, leftColumn, rightColumn, footer]) {
+			section.classList.add('getting-started-category-section');
+		}
 		const categoriesContainer = $('.gettingStartedCategoriesContainer', {}, header, leftColumn, rightColumn, footer,);
 		const graphic = derived(reader => agentsBanner.visible.read(reader) ? agentsWindowGraphic.shownDesign.read(reader) : undefined);
 		const layoutAgentsWindowGraphic = () => this.fitAgentsWindowGraphic(categoriesContainer, graphic.get() !== undefined);

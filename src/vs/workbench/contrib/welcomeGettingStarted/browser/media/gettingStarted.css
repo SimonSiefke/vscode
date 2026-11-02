@@ -151,7 +151,7 @@
 	display: unset;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > * {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > :where(.gettingStartedCategoriesContainer) > .getting-started-category-section {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
