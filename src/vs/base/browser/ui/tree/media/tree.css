@@ -105,7 +105,7 @@
 }
 
 .monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
-.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-tree-type-filter-input .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding: 2px 4px;
 }
 
