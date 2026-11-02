@@ -130,7 +130,7 @@
  *   .info    → Bypass / autoApprove (blue)
  * Toggled in `AgentHostChatInputPicker._renderTrigger`.
  */
-.agent-host-chat-input-picker-slot .action-label.warning {
+.agent-host-chat-input-picker-slot .warning.agent-host-picker-action-label {
 	color: var(--vscode-problemsWarningIcon-foreground);
 }
 
