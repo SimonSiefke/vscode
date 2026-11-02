@@ -118,7 +118,7 @@ suite('Dictation onboarding', () => {
 				telemetryEvents,
 			},
 			{
-				shownFirstTime: true, shown: true, closeIcon: 'action-label codicon codicon-close-compact dictation-onboarding-close chat-input-notice-dismiss',
+				shownFirstTime: true, shown: true, closeIcon: 'action-label chat-input-notice-action-label codicon codicon-close-compact dictation-onboarding-close chat-input-notice-dismiss',
 				hasMicrophoneControls: true,
 				hasWaveform: true,
 				visibleAfterClose: false,
