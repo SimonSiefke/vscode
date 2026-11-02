@@ -181,7 +181,7 @@ class NotificationMessageRenderer {
 					title = node.href;
 				}
 
-				const anchor = $('a', { href: node.href, title, tabIndex: 0 }, node.label);
+				const anchor = $('a.notification-message-link', { href: node.href, title, tabIndex: 0 }, node.label);
 
 				if (actionHandler) {
 					const handleOpen = (e: unknown) => {
