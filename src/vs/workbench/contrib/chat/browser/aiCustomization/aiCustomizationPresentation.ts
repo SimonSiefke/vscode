@@ -34,7 +34,7 @@ export function renderCustomizationMarketplaceIcon(
 	if (!iconUri) {
 		return;
 	}
-	const image = DOM.append(container, DOM.$('img')) as HTMLImageElement;
+	const image = DOM.append(container, DOM.$('img.customization-marketplace-image')) as HTMLImageElement;
 	image.alt = '';
 	image.loading = 'lazy';
 	image.referrerPolicy = 'no-referrer';

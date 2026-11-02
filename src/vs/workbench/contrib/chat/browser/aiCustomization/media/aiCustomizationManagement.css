@@ -2066,7 +2066,7 @@ per-word capitalization does not survive translation. */
 	font-size: var(--vscode-codiconFontSize);
 }
 
-.ai-customization-management-editor .marketplace-detail-icon > img {
+.ai-customization-management-editor .marketplace-detail-icon > img:where(.customization-marketplace-image) {
 	width: 100%;
 	height: 100%;
 	border-radius: var(--vscode-cornerRadius-small);
