@@ -373,7 +373,7 @@
 }
 
 .chat-pills-row.compact .chat-pill-item .monaco-button.chat-pill-button,
-.chat-pills-row .chat-pill-item .monaco-button.chat-pill-button.compact {
+.chat-pills-row .chat-pill-item .monaco-button.compact.chat-pill-button {
 	gap: var(--vscode-spacing-size20);
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
