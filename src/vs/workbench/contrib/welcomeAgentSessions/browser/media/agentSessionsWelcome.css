@@ -169,7 +169,7 @@
 }
 
 /* 2-column grid layout using CSS transforms on virtualized list */
-.agentSessionsWelcome-sessionsGrid .monaco-list-row {
+.agentSessionsWelcome-sessionsGrid .agent-sessions-tree-row {
 	width: 50% !important;
 }
 
