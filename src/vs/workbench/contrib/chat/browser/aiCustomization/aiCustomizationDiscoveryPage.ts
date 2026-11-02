@@ -1366,6 +1366,7 @@ export class AICustomizationDiscoveryPage extends Disposable implements IAICusto
 			},
 		}, this.titleDescription);
 		for (const link of this.titleDescription.children) {
+			link.classList.add('customization-discovery-description-link');
 			link.setAttribute('href', docsUrl);
 			link.setAttribute('aria-label', localize('customizationDiscovery.learnMore', "Learn more about agent customizations"));
 		}

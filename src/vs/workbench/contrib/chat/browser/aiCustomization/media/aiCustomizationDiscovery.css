@@ -69,7 +69,7 @@
 	line-height: 1.4;
 }
 
-.customization-discovery-description a {
+.customization-discovery-description a:where(.customization-discovery-description-link) {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: none;
 }
