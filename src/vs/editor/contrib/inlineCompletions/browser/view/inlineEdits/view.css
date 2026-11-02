@@ -49,10 +49,6 @@
 				transform: rotate(90deg);
 			}
 		}
-
-		&.bottom {
-			opacity: 1
-		}
 	}
 
 	.inline-edits-view .editorContainer {
