@@ -38,7 +38,7 @@
 }
 
 
-.monaco-workbench .notebookOverlay .view-zones .cell-editor-container > div > div {
+.monaco-workbench .notebookOverlay .view-zones .cell-editor-container > div > div:where(.monaco-tokenized-source) {
 	line-height: initial;
 	overflow-x: hidden;
 	font-family: var(--notebook-editor-font-family);
