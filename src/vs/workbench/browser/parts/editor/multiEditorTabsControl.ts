@@ -330,6 +330,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private createTabsScrollbar(scrollable: HTMLElement): ScrollableElement {
 		const tabsScrollbar = this._register(new ScrollableElement(scrollable, {
+			className: 'editor-tabs-scrollable',
 			horizontal: this.getTabsScrollbarVisibility(),
 			horizontalScrollbarSize: this.getTabsScrollbarSizing(),
 			vertical: ScrollbarVisibility.Hidden,
