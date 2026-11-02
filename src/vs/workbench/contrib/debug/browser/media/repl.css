@@ -48,7 +48,7 @@
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible + .debug-repl-tree-contents,
-.monaco-workbench .repl .repl-tree .monaco-tl-twistie.collapsible {
+.monaco-workbench .repl .repl-tree .collapsible.debug-repl-tree-twistie {
 	cursor: pointer;
 }
 
