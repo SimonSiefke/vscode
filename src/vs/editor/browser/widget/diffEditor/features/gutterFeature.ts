@@ -274,6 +274,7 @@ class DiffToolBar extends Disposable implements IGutterItemView {
 					shouldForwardArgs: true,
 				},
 			}));
+			i.getElement().classList.add('diff-gutter-toolbar');
 			store.add(i.onDidChangeMenuItems(() => {
 				if (this._lastItemRange) {
 					this.layout(this._lastItemRange, this._lastViewRange!);

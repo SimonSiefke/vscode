@@ -501,7 +501,7 @@
 			justify-content: center;
 			align-items: center;
 
-			.monaco-toolbar {
+			.diff-gutter-toolbar {
 				height: fit-content;
 				.monaco-action-bar  {
 					line-height: 1;
