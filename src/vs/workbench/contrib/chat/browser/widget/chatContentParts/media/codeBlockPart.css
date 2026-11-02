@@ -13,7 +13,6 @@
 	pointer-events: none;
 }
 
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-action-bar,
 .interactive-result-code-block .interactive-result-code-block-toolbar > .chat-code-block-toolbar-root {
 	position: absolute;
 	top: -15px;
@@ -26,10 +25,6 @@
 	max-width: 70%;
 	text-overflow: ellipsis;
 	overflow: hidden;
-}
-
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-action-bar {
-	left: 0px
 }
 
 .interactive-result-code-block .interactive-result-code-block-toolbar > .chat-code-block-toolbar-root {
