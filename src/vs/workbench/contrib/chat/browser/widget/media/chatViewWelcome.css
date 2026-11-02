@@ -171,7 +171,7 @@ div.chat-welcome-view {
 		max-width: 250px;
 		margin: 10px 5px 0px;
 
-		a {
+		a:where(.chat-welcome-tip-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 

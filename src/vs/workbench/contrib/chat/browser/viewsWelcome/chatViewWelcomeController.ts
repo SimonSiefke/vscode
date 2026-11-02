@@ -201,7 +201,7 @@ export class ChatViewWelcomePart extends Disposable {
 			// Tips
 			if (content.tips) {
 				const tips = dom.append(this.element, $('.chat-welcome-view-tips'));
-				const tipsResult = this._register(this.markdownRendererService.render(content.tips));
+				const tipsResult = this._register(this.markdownRendererService.render(content.tips, { linkClassName: 'chat-welcome-tip-link' }));
 				tips.appendChild(tipsResult.element);
 			}
 
