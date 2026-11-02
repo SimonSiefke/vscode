@@ -72,14 +72,14 @@
 }
 
 
-.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding-right: 22px;
 }
 
 .monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
 .monaco-editor .find-widget > .find-part .monaco-inputbox > .ibwrapper > .mirror,
 .monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-input,
-.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .mirror {
+.monaco-editor .find-widget > .replace-part .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror {
 	padding-top: 2px;
 	padding-bottom: 2px;
 }
