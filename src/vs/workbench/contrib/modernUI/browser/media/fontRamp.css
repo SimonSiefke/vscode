@@ -70,7 +70,7 @@
 	font-weight: var(--vscode-fontWeight-regular);
 }
 
-.modern-ui.monaco-workbench .part.auxiliarybar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label.codicon {
+.modern-ui.monaco-workbench .part.auxiliarybar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .codicon.composite-bar-action-label {
 	font-weight: var(--vscode-fontWeight-regular);
 }
 
