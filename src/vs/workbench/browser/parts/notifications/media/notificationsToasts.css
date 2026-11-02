@@ -50,7 +50,7 @@
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast,
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-scrollable-element,
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list:not(.element-focused):focus:before,
-.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list-row {
+.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .notification-list-row {
 	border-radius: 4px;
 }
 
