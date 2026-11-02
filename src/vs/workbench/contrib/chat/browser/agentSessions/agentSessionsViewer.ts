@@ -757,6 +757,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 				template.approvalButtonContainer.textContent = '';
 				const isActive = this._activeSessionResource.read(reader)?.toString() === session.element.resource.toString();
 				const button = buttonStore.add(new Button(template.approvalButtonContainer, {
+					buttonClassName: 'agent-session-approval-action-button',
 					title: localize('allowActionOnce', "Allow once"),
 					secondary: isActive,
 					...defaultButtonStyles

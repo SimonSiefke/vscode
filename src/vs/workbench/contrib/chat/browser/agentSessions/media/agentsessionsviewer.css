@@ -374,7 +374,7 @@
 			.agent-session-approval-button {
 				flex-shrink: 0;
 
-				.monaco-button {
+				.agent-session-approval-action-button {
 					padding: var(--vscode-spacing-size20) var(--vscode-spacing-size100);
 					font-size: var(--vscode-fontSize-label1);
 					white-space: nowrap;
