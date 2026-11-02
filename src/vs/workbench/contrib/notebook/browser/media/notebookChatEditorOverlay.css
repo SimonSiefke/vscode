@@ -45,7 +45,6 @@
 }
 
 .notebook-chat-editor-overlay-widget .action-item.disabled > .action-label.codicon::before,
-.notebook-chat-editor-overlay-widget .action-item.disabled > .action-label.codicon,
 .notebook-chat-editor-overlay-widget .action-item.disabled > .action-label,
 .notebook-chat-editor-overlay-widget .action-item.disabled > .action-label:hover {
 	color: var(--vscode-button-foreground);
