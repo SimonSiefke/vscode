@@ -2062,7 +2062,7 @@ per-word capitalization does not survive translation. */
 	margin-inline-end: var(--vscode-spacing-size120);
 }
 
-.ai-customization-management-editor .marketplace-detail-icon > .codicon {
+.ai-customization-management-editor .marketplace-detail-icon > .codicon:where(.customization-marketplace-fallback-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
