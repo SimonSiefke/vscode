@@ -2000,7 +2000,7 @@ per-word capitalization does not survive translation. */
 	text-align: left;
 }
 
-.ai-customization-management-editor .monaco-button.marketplace-detail-query-button.disabled {
+.ai-customization-management-editor .monaco-button.disabled.marketplace-detail-query-button {
 	cursor: wait;
 }
 
