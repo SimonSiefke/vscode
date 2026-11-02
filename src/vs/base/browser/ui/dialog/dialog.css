@@ -80,7 +80,7 @@
 	font-size: 64px;
 }
 
-.monaco-dialog-box:not(.align-vertical) .dialog-message-row > .dialog-icon.codicon {
+.monaco-dialog-box:not(.align-vertical) .dialog-message-row > .codicon.dialog-icon {
 	align-self: baseline;
 }
 
