@@ -54,7 +54,7 @@
 	border-right-width: 0;
 }
 
-.monaco-action-bar .action-item.action-dropdown-item.empty > .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item.empty > .action-label.label.extension-action {
 	border-right-width: 1px;
 }
 
