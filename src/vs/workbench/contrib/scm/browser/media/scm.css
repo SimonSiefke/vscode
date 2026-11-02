@@ -580,7 +580,6 @@
 	flex-grow: 1;
 }
 
-.scm-repositories-view .scm-artifact-group .monaco-highlighted-label,
 .scm-repositories-view .scm-artifact .monaco-highlighted-label {
 	display: flex;
 	align-items: center;
