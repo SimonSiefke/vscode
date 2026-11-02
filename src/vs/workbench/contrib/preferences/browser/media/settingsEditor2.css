@@ -132,7 +132,7 @@
 	padding-top: 3px;
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item {
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .settings-tab-action-item {
 	padding: 0px;
 	/* padding must be on action-label because it has the bottom-border, because that's where the .checked class is */
 }
