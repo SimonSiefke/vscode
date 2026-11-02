@@ -116,7 +116,7 @@
 	padding: 0 var(--vscode-spacing-size80);
 }
 
-.modern-ui.modern-ui-compact.monaco-workbench .pane-body .agent-sessions-viewer .monaco-scrollable-element {
+.modern-ui.modern-ui-compact.monaco-workbench .pane-body .agent-sessions-viewer .agent-sessions-list-scrollable {
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
 }
