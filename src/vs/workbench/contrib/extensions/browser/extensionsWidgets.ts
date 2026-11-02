@@ -406,7 +406,7 @@ export class SponsorWidget extends ExtensionWidget {
 		const sponsor = append(this.container, $('span.sponsor.clickable', { tabIndex: 0 }));
 		this.disposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), sponsor, this.extension?.publisherSponsorLink.toString() ?? ''));
 		sponsor.setAttribute('role', 'link'); // #132645
-		const sponsorIconElement = renderIcon(sponsorIcon);
+		const sponsorIconElement = renderIcon(sponsorIcon, undefined, 'extension-sponsor-glyph');
 		const label = $('span', undefined, localize('sponsor', "Sponsor"));
 		append(sponsor, sponsorIconElement, label);
 		this.disposables.add(onClick(sponsor, () => {

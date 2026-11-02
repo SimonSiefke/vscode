@@ -158,7 +158,7 @@
 	align-items: center;
 }
 
-.extension-editor > .header > .details > .subtitle .sponsor .codicon {
+.extension-editor > .header > .details > .subtitle .sponsor .codicon:where(.extension-sponsor-glyph) {
 	padding-right: 3px;
 }
 
