@@ -300,7 +300,7 @@
 	display: none;
 }
 
-.settings-editor > .settings-body .settings-toc-container .monaco-list-row:not(.selected) {
+.settings-editor > .settings-body .settings-toc-container .monaco-list-row:where(.settings-toc-tree-row):not(.selected) {
 	color: var(--vscode-foreground);
 	opacity: 0.9;
 }
