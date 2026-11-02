@@ -637,7 +637,7 @@ export class ExtensionKindIndicatorWidget extends ExtensionWidget {
 		if (this.extension?.private) {
 			this.element = append(this.container, $('.extension-kind-indicator'));
 			if (!this.small || (this.extensionGalleryManifest?.capabilities.extensions?.includePublicExtensions && this.extensionGalleryManifest?.capabilities.extensions?.includePrivateExtensions)) {
-				append(this.element, $('span' + ThemeIcon.asCSSSelector(privateExtensionIcon)));
+				append(this.element, $('span.extension-kind-glyph' + ThemeIcon.asCSSSelector(privateExtensionIcon)));
 			}
 			if (!this.small) {
 				append(this.element, $('span.private-extension-label', undefined, localize('privateExtension', "Private Extension")));
