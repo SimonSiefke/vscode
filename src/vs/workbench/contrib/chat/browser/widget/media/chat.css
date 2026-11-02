@@ -5044,7 +5044,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 }
 
 .disabled.chat-row-disabled-overlay,
-.chat-input-overlay.disabled {
+.disabled.chat-input-overlay {
 	position: absolute;
 	inset: 0;
 	background-color: var(--vscode-sideBar-background);
@@ -5056,7 +5056,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 }
 
 /* Scrim the content floating above the input along with the composer. */
-.chat-input-overlay.disabled {
+.disabled.chat-input-overlay {
 	top: calc(-1 * var(--vscode-chat-persistent-content-height, 0px));
 }
 
