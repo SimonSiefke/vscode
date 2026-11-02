@@ -372,7 +372,7 @@
 	padding: 2px;
 }
 
-.viewpane-filter > .viewpane-filter-controls .monaco-action-bar .monaco-dropdown .action-label.codicon.codicon-filter.checked {
+.viewpane-filter > .viewpane-filter-controls .monaco-action-bar .monaco-dropdown .action-label.codicon.checked.codicon-filter {
 	color: var(--vscode-inputOption-activeForeground);
 	background-color: var(--vscode-inputOption-activeBackground);
 	border: 1px solid var(--vscode-inputOption-activeBorder);
