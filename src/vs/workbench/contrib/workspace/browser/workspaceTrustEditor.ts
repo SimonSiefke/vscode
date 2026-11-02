@@ -174,7 +174,7 @@ export class WorkspaceTrustedUrisTable extends Disposable {
 		}));
 
 		const buttonBar = this._register(new ButtonBar(addButtonBarElement));
-		const addButton = this._register(buttonBar.addButton({ title: localize('addButton', "Add Folder"), ...defaultButtonStyles }));
+		const addButton = this._register(buttonBar.addButton({ title: localize('addButton', "Add Folder"), ...defaultButtonStyles, buttonClassName: 'workspace-trust-add-folder-button' }));
 		addButton.label = localize('addButton', "Add Folder");
 
 		this._register(addButton.onDidClick(async () => {

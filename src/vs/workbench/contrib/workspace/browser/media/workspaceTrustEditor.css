@@ -187,7 +187,7 @@
 	margin-top: 8px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .workspace-trust-add-folder-button {
 	width: fit-content;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -196,7 +196,7 @@
 
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button,
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown,
-.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .workspace-trust-add-folder-button {
 	margin: 8px 4px; /* allows button focus outline to be visible */
 }
 
