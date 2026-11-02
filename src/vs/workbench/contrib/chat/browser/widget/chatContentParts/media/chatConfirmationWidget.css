@@ -107,7 +107,7 @@
 	color: var(--vscode-errorForeground) !important;
 }
 
-.chat-confirmation-widget .chat-confirmation-widget-title.monaco-button {
+.chat-confirmation-widget .monaco-button.chat-confirmation-widget-title {
 
 	.monaco-button-mdlabel {
 		display: flex;
