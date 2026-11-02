@@ -19,7 +19,7 @@
 	white-space: nowrap;
 }
 
-.monaco-workbench .merge-editor .code-view > .header > span.title {
+.monaco-workbench .merge-editor .code-view > .header > span.merge-editor-header-title {
 	flex-shrink: 0;
 }
 
