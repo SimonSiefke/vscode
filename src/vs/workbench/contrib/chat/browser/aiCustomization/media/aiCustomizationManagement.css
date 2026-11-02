@@ -1037,7 +1037,7 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-list-widget .section-title-header .section-title-actions > .customization-browse-action-button,
-.mcp-list-widget .section-title-header .section-title-actions > .monaco-button,
+.mcp-list-widget .section-title-header .section-title-actions > .mcp-section-browse-button,
 .ai-customization-management-editor .tools-list-widget .section-title-header .section-title-actions > .monaco-button {
 	width: auto;
 	height: var(--vscode-spacing-size240);
