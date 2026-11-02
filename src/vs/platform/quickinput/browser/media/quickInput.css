@@ -405,7 +405,7 @@
 	padding: 2px;
 }
 
-.quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon {
+.quick-input-list .quick-input-list-entry-action-bar .codicon.monaco-custom-toggle {
 	margin-right: 4px;
 }
 
