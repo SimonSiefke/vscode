@@ -1489,7 +1489,7 @@
 	pointer-events: none;
 }
 
-.chat-local-model-card-header .chat-local-model-card-busy .codicon {
+.chat-local-model-card-header .chat-local-model-card-busy .codicon:where(.chat-local-model-busy-glyph) {
 	color: inherit;
 }
 

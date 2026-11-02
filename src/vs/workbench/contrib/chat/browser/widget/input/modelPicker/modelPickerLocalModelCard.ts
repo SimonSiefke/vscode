@@ -276,7 +276,7 @@ class LocalModelStateActionViewItem extends ActionViewItem {
 		}
 		const indicator = this._indicator = dom.append(label, dom.$('span.chat-local-model-card-busy', { 'aria-hidden': 'true' }));
 		if (this._accessibilityService.isMotionReduced()) {
-			indicator.appendChild(renderIcon(Codicon.sessionInProgress));
+			indicator.appendChild(renderIcon(Codicon.sessionInProgress, undefined, 'chat-local-model-busy-glyph'));
 		} else {
 			this._spinner.value = createPixelSpinner(indicator, { variant: 'grid' });
 		}
