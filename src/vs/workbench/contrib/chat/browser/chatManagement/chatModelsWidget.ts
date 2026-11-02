@@ -995,13 +995,14 @@ class ActionsColumnRenderer extends ModelsTableColumnRenderer<IActionsColumnTemp
 		const disposables = new DisposableStore();
 		const elementDisposables = new DisposableStore();
 		container.classList.add('models-actions-column');
-		const parent = DOM.append(container, $('.actions-container'));
+		const parent = DOM.append(container, $('.actions-container.models-table-row-actions'));
 		const actionBar = disposables.add(this.instantiationService.createInstance(ToolBar,
 			parent,
 			this.contextMenuService,
 			{
 				icon: true,
 				label: false,
+				actionsContainerClassName: 'models-table-row-actions',
 				moreIcon: Codicon.gear,
 				anchorAlignmentProvider: () => AnchorAlignment.RIGHT
 			}
