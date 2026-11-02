@@ -44,7 +44,7 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type > .codicon {
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type > .codicon:where(.breadcrumbs-editor-type-chevron) {
 	font-size: 13px;
 	margin-left: 2px;
 }
