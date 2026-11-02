@@ -164,11 +164,11 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row {
+.monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .notebook-diff-list-row {
 	overflow: visible !important;
 }
 
-.monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row,
+.monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .notebook-diff-list-row,
 .monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row:hover,
 .monaco-workbench .notebook-text-diff-editor > .notebook-diff-list-view > .monaco-list > .monaco-scrollable-element > .monaco-list-rows > .monaco-list-row.focused {
 	outline: none !important;
