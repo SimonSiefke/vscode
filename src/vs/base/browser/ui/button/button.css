@@ -82,7 +82,7 @@
 	cursor: pointer;
 }
 
-.monaco-button-dropdown.disabled {
+.disabled.monaco-button-dropdown {
 	cursor: default;
 }
 
