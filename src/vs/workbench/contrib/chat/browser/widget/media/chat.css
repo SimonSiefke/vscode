@@ -666,7 +666,7 @@
 	outline-offset: calc(-1 * var(--vscode-strokeThickness));
 }
 
-.interactive-item-container .completed-response-summary .chat-collapsible-hover-chevron.codicon {
+.interactive-item-container .completed-response-summary .codicon.chat-collapsible-hover-chevron {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
