@@ -297,7 +297,7 @@
 	opacity: 0.55;
 }
 
-.models-widget .models-table-container .models-gutter-column .monaco-action-bar {
+.models-widget .models-table-container .models-gutter-column .monaco-action-bar:where(.models-gutter-action-bar) {
 	width: 100%;
 }
 
