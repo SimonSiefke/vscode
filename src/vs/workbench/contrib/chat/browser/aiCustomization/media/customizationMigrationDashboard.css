@@ -136,7 +136,7 @@
 	cursor: pointer;
 }
 
-.customization-migration-dashboard .migration-icon-button .codicon {
+.customization-migration-dashboard .migration-icon-button .codicon:where(.migration-button-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 

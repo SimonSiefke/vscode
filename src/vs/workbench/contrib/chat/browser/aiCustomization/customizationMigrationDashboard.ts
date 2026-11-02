@@ -1057,7 +1057,7 @@ export class CustomizationMigrationDashboard extends Disposable {
 		button.element.classList.add(`migration-${kind}-button`);
 		button.label = label;
 		if (icon) {
-			DOM.append(button.element, $('span', { class: ThemeIcon.asClassName(icon), 'aria-hidden': 'true' }));
+			DOM.append(button.element, $('span', { class: ThemeIcon.asClassName(icon) + ' migration-button-glyph', 'aria-hidden': 'true' }));
 		}
 		this.focusTargets.set(key, button.element);
 		this.hover(button.element, hoverContent, disposables);
