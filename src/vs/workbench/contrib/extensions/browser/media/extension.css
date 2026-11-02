@@ -223,7 +223,7 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .extension-action.label {
+.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .label.extension-action {
 	max-width: 150px;
 	line-height: 16px;
 }
