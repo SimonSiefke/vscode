@@ -309,7 +309,7 @@
 
 /* Move the bottom gutter into the scrollable element so the horizontal
  * scrollbar sits below the tab pills without increasing total height. */
-.modern-ui-tabs .part.editor .tabs-and-actions-container > .monaco-scrollable-element {
+.modern-ui-tabs .part.editor .tabs-and-actions-container > .editor-tabs-scrollable {
 	min-width: 0;
 	padding-bottom: var(--vscode-spacing-size40);
 }
