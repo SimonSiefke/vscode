@@ -565,10 +565,6 @@
 	display: block;
 }
 
-.scm-view.scm-repositories-view .monaco-highlighted-label {
-	font-weight: normal;
-}
-
 .scm-repositories-view .scm-artifact-group,
 .scm-repositories-view .scm-artifact {
 	display: flex;
