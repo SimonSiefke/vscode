@@ -2017,7 +2017,7 @@ export class IssueReporterOverlay {
 			this.attachmentCards.set(attachment.id, card);
 
 			const deleteBtn = append(card, $('div.wizard-screenshot-delete'));
-			deleteBtn.appendChild(renderIcon(Codicon.close));
+			deleteBtn.appendChild(renderIcon(Codicon.close, undefined, 'issue-wizard-attachment-delete-glyph'));
 			this.registerAttachmentAction(deleteBtn, localize('removeAttachment', "Remove {0}", name), () => {
 				this.attachments.splice(this.attachments.indexOf(attachment), 1);
 				this.attachmentsChanged();

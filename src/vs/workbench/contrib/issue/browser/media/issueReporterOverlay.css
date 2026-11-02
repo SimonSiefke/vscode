@@ -648,7 +648,7 @@ label/control gap, so the buttons must not add their own margin. */
 	background: var(--vscode-button-hoverBackground, var(--vscode-button-background, #1177bb));
 }
 
-.issue-reporter-wizard .wizard-screenshot-delete .codicon {
+.issue-reporter-wizard .wizard-screenshot-delete .codicon:where(.issue-wizard-attachment-delete-glyph) {
 	color: inherit;
 }
 
