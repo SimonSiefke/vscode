@@ -2245,7 +2245,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	align-items: center;
 	justify-content: center;
 
-	.codicon {
+	.chat-input-picker-glyph {
 		width: var(--vscode-codiconFontSize-compact);
 		height: var(--vscode-codiconFontSize-compact);
 		line-height: var(--vscode-codiconFontSize-compact);
