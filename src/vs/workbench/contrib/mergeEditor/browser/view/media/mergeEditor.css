@@ -121,7 +121,7 @@
 
 /* END: .merge-editor-block */
 
-.gutter.monaco-editor > div {
+.gutter.monaco-editor > div:where(.merge-gutter-child, .merge-accept-gutter-marker) {
 	position: absolute;
 }
 
