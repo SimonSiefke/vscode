@@ -96,7 +96,7 @@
 	flex: auto;
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .action-label {
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .settings-tab-action-label {
 	opacity: 0.9;
 	border-radius: 0;
 	color: var(--vscode-foreground);
