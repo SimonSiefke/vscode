@@ -557,7 +557,7 @@
 	height: var(--editor-group-tab-height);
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions.hidden {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .hidden.editor-actions {
 	display: none;
 }
 
