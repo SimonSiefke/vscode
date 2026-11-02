@@ -137,7 +137,7 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button.selected {
+.ai-customization-management-editor .sidebar-migration-shortcut > button.selected.sidebar-migration-button {
 	background-color: var(--vscode-list-activeSelectionBackground);
 	color: var(--vscode-list-activeSelectionForeground);
 }
