@@ -218,7 +218,7 @@
 	color: inherit;
 }
 
-.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table .monaco-list-row.selected .monaco-table-tr .monaco-table-td .monaco-keybinding-key,
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table .monaco-list-row.selected .monaco-table-tr .monaco-table-td .monaco-keybinding-key:where(.keybindings-table-key),
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table .monaco-list-row.selected.focused .monaco-table-tr .monaco-table-td .monaco-keybinding-key {
 	color: var(--vscode-list-inactiveSelectionForeground);
 }

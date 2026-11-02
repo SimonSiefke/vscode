@@ -1021,7 +1021,7 @@ class KeybindingColumnRenderer implements ITableRenderer<IKeybindingItemEntry, I
 
 	renderTemplate(container: HTMLElement): IKeybindingColumnTemplateData {
 		const element = DOM.append(container, $('.keybinding'));
-		const keybindingLabel = new KeybindingLabel(DOM.append(element, $('div.keybinding-label')), OS, defaultKeybindingLabelStyles);
+		const keybindingLabel = new KeybindingLabel(DOM.append(element, $('div.keybinding-label')), OS, { ...defaultKeybindingLabelStyles, keyClassName: 'keybindings-table-key' });
 		return { keybindingLabel };
 	}
 
