@@ -14,7 +14,7 @@
 	margin-bottom: 4px;
 }
 
-.chat-agent-hover-icon img,
+:where(.chat-agent-hover-icon) img.chat-agent-hover-avatar,
 .chat-agent-hover-icon .chat-agent-hover-glyph {
 	width: 32px;
 	height: 32px;

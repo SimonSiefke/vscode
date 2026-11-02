@@ -81,7 +81,7 @@ export class ChatAgentHover extends Disposable {
 	setAgent(id: string): void {
 		const agent = this.chatAgentService.getAgent(id)!;
 		if (agent.metadata.icon instanceof URI) {
-			const avatarIcon = dom.$<HTMLImageElement>('img.icon');
+			const avatarIcon = dom.$<HTMLImageElement>('img.icon.chat-agent-hover-avatar');
 			avatarIcon.src = FileAccess.uriToBrowserUri(agent.metadata.icon).toString(true);
 			this.icon.replaceChildren(dom.$('.avatar', undefined, avatarIcon));
 		} else if (agent.metadata.themeIcon) {
