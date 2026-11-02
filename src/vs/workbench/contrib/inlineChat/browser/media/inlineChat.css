@@ -309,7 +309,7 @@
 }
 
 .monaco-workbench .inline-chat .status .disclaimer {
-	a {
+	a:where(.inline-chat-disclaimer-link) {
 		color: var(--vscode-textLink-foreground);
 	}
 
