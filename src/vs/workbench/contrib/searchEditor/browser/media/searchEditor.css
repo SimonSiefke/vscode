@@ -105,7 +105,7 @@
 	right: 2px;
 }
 
-.search-editor .search-widget .replace-container.disabled {
+.search-editor .search-widget .disabled.replace-container {
 	display: none;
 }
 
