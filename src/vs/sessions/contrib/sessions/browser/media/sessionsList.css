@@ -1488,7 +1488,7 @@
 		font-weight: var(--vscode-fontWeight-regular);
 		line-height: 14px;
 
-		&.visible {
+		&.visible:where(.session-group-description) {
 			display: block;
 		}
 	}
