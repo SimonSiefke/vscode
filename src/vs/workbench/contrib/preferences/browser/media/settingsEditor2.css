@@ -269,7 +269,7 @@
 	opacity: 1;
 }
 
-.settings-editor > .settings-header .search-container .search-container-widgets .monaco-custom-toggle.disabled {
+.settings-editor > .settings-header .search-container .search-container-widgets .disabled.monaco-custom-toggle {
 	pointer-events: initial;
 }
 
