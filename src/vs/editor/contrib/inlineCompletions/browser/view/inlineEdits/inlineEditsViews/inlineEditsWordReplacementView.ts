@@ -293,7 +293,7 @@ export class InlineEditsWordReplacementView extends Disposable implements IInlin
 									return undefined;
 								}
 								const keybinding = document.createElement('div');
-								const keybindingLabel = reader.store.add(new KeybindingLabel(keybinding, OS, { ...unthemedKeybindingLabelOptions, disableTitle: true }));
+								const keybindingLabel = reader.store.add(new KeybindingLabel(keybinding, OS, { ...unthemedKeybindingLabelOptions, disableTitle: true, keyClassName: 'inline-edit-alternative-key' }));
 								keybindingLabel.set(altAction.keybinding);
 
 								return n.div({

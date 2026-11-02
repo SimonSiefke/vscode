@@ -188,7 +188,7 @@
 	padding-right: 4px;
 }
 
-.inline-edit-alternative-action-label .monaco-keybinding-key {
+.inline-edit-alternative-action-label .monaco-keybinding-key:where(.inline-edit-alternative-key) {
 	padding: 2px 3px;
 }
 
