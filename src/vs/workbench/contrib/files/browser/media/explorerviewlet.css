@@ -96,7 +96,7 @@
 	height: 22px;
 }
 
-.monaco-workbench .explorer-folders-view .explorer-item .monaco-inputbox > .ibwrapper > .input {
+.monaco-workbench .explorer-folders-view .explorer-item .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0;
 	height: 20px;
 }
