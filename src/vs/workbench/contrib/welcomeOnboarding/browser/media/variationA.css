@@ -455,7 +455,7 @@
 	line-height: 40px;
 }
 
-.onboarding-a-signin-ghe-input .monaco-inputbox .monaco-action-bar {
+.onboarding-a-signin-ghe-input .monaco-inputbox .monaco-action-bar:where(.inputbox-action-bar) {
 	top: 50%;
 	right: 6px;
 	transform: translateY(-50%);
