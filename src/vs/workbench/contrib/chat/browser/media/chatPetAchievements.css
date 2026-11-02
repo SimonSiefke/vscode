@@ -247,7 +247,7 @@
 	cursor: pointer;
 }
 
-.chat-pet-color-card.monaco-button.selected {
+.monaco-button.selected.chat-pet-color-card {
 	border-color: var(--vscode-focusBorder);
 	background: var(--vscode-list-inactiveSelectionBackground);
 }
