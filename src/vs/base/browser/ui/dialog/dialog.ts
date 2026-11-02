@@ -225,6 +225,7 @@ export class Dialog extends Disposable {
 				const inputRowElement = this.messageContainer.appendChild($('.dialog-message-input'));
 
 				const inputBox = this._register(new InputBox(inputRowElement, undefined, {
+					inputBoxClassName: 'dialog-message-input-box',
 					placeholder: input.placeholder,
 					type: input.type ?? 'text',
 					inputBoxStyles: options.inputBoxStyles
