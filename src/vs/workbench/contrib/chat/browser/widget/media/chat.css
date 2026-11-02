@@ -3121,7 +3121,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 		border-radius: 0px;
 	}
 
-	.chat-summary-list .monaco-icon-label {
+	.chat-summary-list .chat-file-list-label {
 		display: flex;
 	}
 
