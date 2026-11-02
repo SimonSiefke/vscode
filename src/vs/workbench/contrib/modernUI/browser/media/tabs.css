@@ -798,11 +798,11 @@
 .modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container,
 .modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar,
 .modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar,
-.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar > .actions-container {
+.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar > .actions-container:where(.composite-bar-toolbar-actions) {
 	height: 100%;
 }
 
-.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar > .actions-container {
+.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar > .actions-container:where(.composite-bar-toolbar-actions) {
 	align-items: stretch;
 	gap: 0;
 }

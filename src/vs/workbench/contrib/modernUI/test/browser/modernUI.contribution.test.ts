@@ -118,6 +118,9 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	if (element.classList.contains('title') && parent.classList.contains('part')) {
 		element.classList.add('workbench-part-title');
 	}
+	if (element.classList.contains('actions-container') && parent.closest('.composite-bar')) {
+		element.classList.add('composite-bar-toolbar-actions');
+	}
 	if (element.classList.contains('action-label') && parent.closest('.composite-bar')) {
 		// CompositeBarActionViewItem supplies this class in the product.
 		element.classList.add('composite-bar-action-label');
