@@ -340,7 +340,7 @@
 	grid-row: 1;
 	grid-column: 1;
 }
-.chat-debug-view-mode-label.hidden {
+.hidden.chat-debug-view-mode-label {
 	visibility: hidden;
 }
 .chat-debug-table-header {
