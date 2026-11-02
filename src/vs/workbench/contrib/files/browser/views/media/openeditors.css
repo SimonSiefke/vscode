@@ -73,7 +73,7 @@
 	display: flex;
 }
 
-.open-editors .monaco-list .monaco-list-row > .monaco-action-bar {
+.open-editors .monaco-list .monaco-list-row > .monaco-action-bar:where(.open-editors-row-action-bar) {
 	visibility: hidden;
 	display: flex;
 	align-items: center;
