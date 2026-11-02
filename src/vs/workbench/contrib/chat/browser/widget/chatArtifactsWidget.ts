@@ -162,6 +162,7 @@ export class ChatArtifactsWidget extends Disposable {
 				],
 				{
 					alwaysConsumeMouseWheel: false,
+					rowClassName: 'chat-artifacts-tree-row',
 					accessibilityProvider: new ChatArtifactsAccessibilityProvider(),
 				},
 			));

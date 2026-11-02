@@ -2982,7 +2982,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	box-sizing: border-box;
 }
 
-.chat-artifacts-widget .chat-artifacts-list .monaco-list .monaco-list-row {
+.chat-artifacts-widget .chat-artifacts-list .monaco-list .chat-artifacts-tree-row {
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
