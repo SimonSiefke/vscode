@@ -261,6 +261,7 @@ export abstract class InlineChatWidget {
 
 		// secondary toolbar
 		const toolbar2 = scopedInstaService.createInstance(MenuWorkbenchToolBar, this._elements.toolbar2, options.secondaryMenuId ?? MenuId.for(''), {
+			actionsContainerClassName: 'inline-chat-status-actions',
 			telemetrySource: options.chatWidgetViewOptions?.menus?.telemetrySource,
 			menuOptions: { renderShortTitle: true, shouldForwardArgs: true },
 			actionViewItemProvider: (action: IAction, options: IActionViewItemOptions) => {
