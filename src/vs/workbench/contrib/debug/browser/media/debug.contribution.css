@@ -11,7 +11,7 @@
 	opacity: 0.4 !important;
 }
 
-.inline-breakpoint-widget.codicon {
+.codicon.inline-breakpoint-widget {
 	display: flex !important;
 	align-items: center;
 }
