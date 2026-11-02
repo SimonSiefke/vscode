@@ -199,7 +199,7 @@
 	outline: none;
 }
 
-.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row {
+.modern-ui.monaco-workbench .agent-sessions-viewer .monaco-list-row.agent-session-list-row.focused > .monaco-tl-row:where(.agent-sessions-tree-contents) {
 	outline: var(--vscode-strokeThickness) dotted var(--vscode-list-inactiveFocusOutline);
 	outline-offset: calc(var(--vscode-strokeThickness) * -1);
 }
