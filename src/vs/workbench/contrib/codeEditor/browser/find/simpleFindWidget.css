@@ -41,7 +41,7 @@
 	transition: top 0ms linear;
 }
 
-.monaco-workbench .simple-find-part.visible {
+.monaco-workbench .visible.simple-find-part {
 	visibility: visible;
 }
 
