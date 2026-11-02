@@ -242,7 +242,7 @@
 	text-align: center;
 }
 
-.chat-pet-color-card.monaco-button:not(.disabled),
+.monaco-button:not(.disabled).chat-pet-color-card,
 .monaco-button:not(.disabled).chat-pet-achievement-card {
 	cursor: pointer;
 }
