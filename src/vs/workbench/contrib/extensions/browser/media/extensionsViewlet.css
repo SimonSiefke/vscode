@@ -208,7 +208,7 @@
 	background-image: url('loading-dark.svg');
 }
 
-.monaco-workbench.hc-black .extensions-viewlet > .extensions .extension-list-item.loading {
+.monaco-workbench.hc-black .extensions-viewlet > .extensions .loading.extension-list-item {
 	background-image: url('loading-hc.svg');
 }
 
