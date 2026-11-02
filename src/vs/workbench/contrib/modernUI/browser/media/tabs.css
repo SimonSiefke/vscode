@@ -889,7 +889,7 @@
 	background-color: var(--vscode-modernTab-activeBackground) !important;
 }
 
-.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked > .action-label.codicon {
+.modern-ui-tabs .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon.checked > .codicon.composite-bar-action-label {
 	color: var(--vscode-modernTab-activeForeground) !important;
 }
 
