@@ -893,7 +893,7 @@
 		display: block;
 	}
 
-	&:not(.chat-used-context-collapsed) > .monaco-scrollable-element:has(.chat-thinking-streaming) {
+	&:not(.chat-used-context-collapsed) > :has(.chat-thinking-streaming).chat-thinking-content-scrollable {
 		overflow: visible;
 		height: auto;
 	}
