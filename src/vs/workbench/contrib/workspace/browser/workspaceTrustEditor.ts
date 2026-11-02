@@ -462,7 +462,7 @@ class TrustedUriActionsColumnRenderer implements ITableRenderer<ITrustedUriItem,
 
 	renderTemplate(container: HTMLElement): IActionsColumnTemplateData {
 		const element = container.appendChild($('.actions'));
-		const actionBar = new ActionBar(element, { actionsContainerClassName: 'workspace-trust-uri-actions' });
+		const actionBar = new ActionBar(element, { className: 'workspace-trust-row-action-bar', actionsContainerClassName: 'workspace-trust-uri-actions' });
 		return { actionBar };
 	}
 

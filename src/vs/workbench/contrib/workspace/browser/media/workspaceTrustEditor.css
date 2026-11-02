@@ -290,7 +290,7 @@
 	padding-right: 3px;
 }
 
-.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
+.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar:where(.workspace-trust-row-action-bar) {
 	display: none;
 	flex: 1;
 }
