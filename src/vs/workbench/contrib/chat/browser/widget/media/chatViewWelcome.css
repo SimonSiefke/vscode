@@ -115,7 +115,7 @@ div.chat-welcome-view {
 		min-height: 72px;
 	}
 
-	& > .chat-welcome-view-icon.large-icon .codicon {
+	& > .chat-welcome-view-icon.large-icon .codicon:where(.chat-welcome-view-glyph) {
 		font-size: 72px;
 		width: 72px;
 		height: 72px;
