@@ -23,7 +23,7 @@
 		padding: 0;
 		overflow: visible;
 
-		.action-item > .action-label,
+		.floating-menu-actions .floating-menu-action-label,
 		.action-item > .action-label.codicon:not(.separator) {
 			height: 28px;
 			line-height: 28px;
@@ -31,7 +31,7 @@
 			box-shadow: 0 2px 8px var(--vscode-widget-shadow);
 		}
 
-		.action-item > .action-label {
+		.floating-menu-actions .floating-menu-action-label {
 			padding: 0 8px;
 		}
 
