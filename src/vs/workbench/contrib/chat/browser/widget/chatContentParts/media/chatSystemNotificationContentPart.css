@@ -45,7 +45,7 @@
 	cursor: pointer;
 }
 
-.chat-system-notification-disclosure-header.monaco-button {
+.monaco-button.chat-system-notification-disclosure-header {
 	padding: 0;
 }
 
