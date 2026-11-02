@@ -137,7 +137,7 @@
 	/* padding must be on action-label because it has the bottom-border, because that's where the .checked class is */
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label {
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .settings-tab-action-label {
 	text-transform: none;
 	font-size: 13px;
 	padding-bottom: 6.5px;
