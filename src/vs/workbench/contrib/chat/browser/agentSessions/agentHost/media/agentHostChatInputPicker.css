@@ -48,7 +48,7 @@
 	opacity: 0.75;
 }
 
-.agent-host-chat-input-picker-slot .action-label .codicon {
+.agent-host-chat-input-picker-slot .action-label .agent-host-picker-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 

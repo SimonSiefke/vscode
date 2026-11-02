@@ -873,7 +873,7 @@ export class AgentHostChatInputPicker extends Disposable {
 		const permissions = this._getModePickerPermissions();
 		if (permissions) {
 			trigger.ariaLabel = getModePickerAriaLabel(label, permissions);
-			this._splitTrigger.value = renderModePickerTrigger(trigger, { label, icon, labelClassName: 'agent-host-chat-input-picker-label' }, permissions, (anchor, openPermissions) => {
+			this._splitTrigger.value = renderModePickerTrigger(trigger, { label, icon, labelClassName: 'agent-host-chat-input-picker-label', iconClassName: 'agent-host-picker-icon' }, permissions, (anchor, openPermissions) => {
 				void this._showPicker(anchor, openPermissions).catch(onUnexpectedError);
 			}, previous);
 			return;
@@ -881,7 +881,9 @@ export class AgentHostChatInputPicker extends Disposable {
 		trigger.classList.remove('agent-host-mode-permissions-trigger', 'chat-input-picker-split');
 		dom.clearNode(trigger);
 		if (icon) {
-			dom.append(trigger, renderIcon(getCompactCodicon(icon))).ariaHidden = 'true';
+			const iconElement = dom.append(trigger, renderIcon(getCompactCodicon(icon)));
+			iconElement.classList.add('agent-host-picker-icon');
+			iconElement.ariaHidden = 'true';
 		}
 		// Mirror the sessions-side picker: elevated approval levels get themed colors.
 		if (!this._generic && this._property === SessionConfigKey.AutoApprove) {
@@ -893,7 +895,7 @@ export class AgentHostChatInputPicker extends Disposable {
 		const sandboxed = this._isSandboxed();
 		if (sandboxed) {
 			const sandboxIcon = dom.append(trigger, renderIcon(Codicon.shield));
-			sandboxIcon.classList.add('agent-host-chat-input-picker-sandbox-icon');
+			sandboxIcon.classList.add('agent-host-chat-input-picker-sandbox-icon', 'agent-host-picker-icon');
 			sandboxIcon.ariaHidden = 'true';
 		}
 		const accessibleLabel = getConfigPickerAccessibleTriggerLabel(label, sandboxed);
