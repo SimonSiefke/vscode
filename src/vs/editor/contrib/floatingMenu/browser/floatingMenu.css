@@ -24,7 +24,7 @@
 		overflow: visible;
 
 		.floating-menu-actions .floating-menu-action-label,
-		.action-item > .action-label.codicon:not(.separator) {
+		.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 			height: 28px;
 			line-height: 28px;
 			border-radius: var(--vscode-cornerRadius-medium);
@@ -35,7 +35,7 @@
 			padding: 0 8px;
 		}
 
-		.action-item > .action-label.codicon:not(.separator) {
+		.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 			width: 28px;
 		}
 	}
