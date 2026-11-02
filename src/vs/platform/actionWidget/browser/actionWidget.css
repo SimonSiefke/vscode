@@ -388,7 +388,7 @@
 }
 
 .action-widget .monaco-list-row.action .title.action-list-toggle-info-label,
-.action-widget .monaco-list-row.action .action-list-item-inline-toggle-label:has(> .action-list-item-toggle-info) {
+.action-widget .monaco-list-row.action .action-list-item-inline-toggle-label.action-list-toggle-info-label {
 	display: flex;
 	align-items: center;
 }
