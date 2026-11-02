@@ -253,6 +253,7 @@ export class NotificationRenderer implements IListRenderer<INotificationViewItem
 		data.toolbar = new ActionBar(
 			toolbarContainer,
 			{
+				actionItemClassName: 'notification-row-action-item',
 				ariaLabel: localize('notificationActions', "Notification Actions"),
 				actionViewItemProvider: (action, options) => {
 					if (action instanceof ConfigureNotificationAction) {
