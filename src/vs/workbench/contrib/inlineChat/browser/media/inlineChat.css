@@ -228,7 +228,7 @@
 	white-space: nowrap;
 }
 
-.monaco-workbench .inline-chat .status .label.info {
+.monaco-workbench .inline-chat .status .label:where(.inline-chat-status-label).info {
 	margin-right: auto;
 }
 
