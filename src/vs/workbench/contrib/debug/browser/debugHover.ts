@@ -131,7 +131,7 @@ export class DebugHoverWidget implements IContentWidget {
 	private create(): void {
 		this.domNode = $('.debug-hover-widget');
 		this.complexValueContainer = dom.append(this.domNode, $('.complex-value'));
-		this.complexValueTitle = dom.append(this.complexValueContainer, $('.title'));
+		this.complexValueTitle = dom.append(this.complexValueContainer, $('.title.debug-hover-complex-title'));
 		this.treeContainer = dom.append(this.complexValueContainer, $('.debug-hover-tree'));
 		this.treeContainer.setAttribute('role', 'tree');
 		const tip = dom.append(this.complexValueContainer, $('.tip'));
