@@ -41,7 +41,7 @@
 }
 
 .keybindings-editor > .keybindings-header.small > .search-container > .keybindings-search-actions-container > .recording-badge,
-.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container > .recording-badge.disabled {
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container > .disabled.recording-badge {
 	display: none;
 }
 
