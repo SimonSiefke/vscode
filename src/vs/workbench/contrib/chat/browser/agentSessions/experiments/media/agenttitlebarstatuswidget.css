@@ -194,7 +194,7 @@
 	opacity: 1;
 }
 
-.agent-status-send.hidden { display: none; }
+.hidden.agent-status-send { display: none; }
 .agent-status-search:hover { opacity: 1; }
 .agent-status-search:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
 
