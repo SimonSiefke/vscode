@@ -506,7 +506,7 @@ label/control gap, so the buttons must not add their own margin. */
 	min-height: 1.4em;
 }
 
-.issue-reporter-wizard .wizard-field-error.hidden {
+.issue-reporter-wizard .hidden.wizard-field-error {
 	visibility: hidden;
 	min-height: 1.4em;
 }
