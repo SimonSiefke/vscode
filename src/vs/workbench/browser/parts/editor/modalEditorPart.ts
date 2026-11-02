@@ -413,6 +413,7 @@ export class ModalEditorPart {
 		// Create editor toolbar
 		const editorActionsToolbarContainer = append(actionBarContainer, $('div.modal-editor-editor-actions'));
 		const editorActionsToolbar = disposables.add(scopedInstantiationService.createInstance(WorkbenchToolBar, editorActionsToolbarContainer, {
+			actionsContainerClassName: 'modal-editor-toolbar-actions',
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			highlightToggledItems: true,
 		}));
@@ -436,6 +437,7 @@ export class ModalEditorPart {
 
 		// Create global toolbar
 		disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.ModalEditorTitle, {
+			actionsContainerClassName: 'modal-editor-toolbar-actions',
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			highlightToggledItems: true,
 			menuOptions: { shouldForwardArgs: true }
