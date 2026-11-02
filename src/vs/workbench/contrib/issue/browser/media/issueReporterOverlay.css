@@ -291,7 +291,7 @@
 .issue-reporter-floating-bar .wizard-segmented-main.disabled,
 .issue-reporter-floating-bar .wizard-segmented-dropdown.disabled,
 .issue-reporter-floating-bar .monaco-button.wizard-segmented-main.disabled,
-.issue-reporter-floating-bar .monaco-button.wizard-segmented-dropdown.disabled {
+.issue-reporter-floating-bar .monaco-button.disabled.wizard-segmented-dropdown {
 	opacity: 0.4;
 	cursor: default;
 }
