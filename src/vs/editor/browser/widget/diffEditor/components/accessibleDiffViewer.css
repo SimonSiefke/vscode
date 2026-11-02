@@ -71,7 +71,7 @@
 		cursor: pointer;
 	}
 
-	.action-label {
+	.close-diff-review {
 		background: var(--vscode-editorActionList-background);
 	}
 }
