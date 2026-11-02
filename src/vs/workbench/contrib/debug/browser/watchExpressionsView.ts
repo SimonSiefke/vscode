@@ -99,6 +99,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 			],
 			this.instantiationService.createInstance(WatchExpressionsDataSource), {
 			accessibilityProvider: new WatchExpressionsAccessibilityProvider(),
+			contentsClassName: 'debug-view-tree-contents',
 			identityProvider: { getId: (element: IExpression) => element.getId() },
 			keyboardNavigationLabelProvider: {
 				getKeyboardNavigationLabel: (e: IExpression) => {

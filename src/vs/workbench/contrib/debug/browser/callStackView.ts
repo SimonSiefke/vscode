@@ -249,6 +249,7 @@ export class CallStackView extends ViewPane {
 			new ShowMoreRenderer()
 		], this.dataSource, {
 			accessibilityProvider: new CallStackAccessibilityProvider(),
+			contentsClassName: 'debug-view-tree-contents',
 			compressionEnabled: true,
 			autoExpandSingleChildren: true,
 			identityProvider: {

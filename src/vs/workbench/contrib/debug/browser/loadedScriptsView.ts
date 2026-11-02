@@ -487,6 +487,7 @@ export class LoadedScriptsView extends ViewPane {
 				},
 				filter: this.filter,
 				accessibilityProvider: new LoadedSciptsAccessibilityProvider(),
+				contentsClassName: 'debug-view-tree-contents',
 				overrideStyles: this.getLocationBasedColors().listOverrideStyles
 			}
 		);
