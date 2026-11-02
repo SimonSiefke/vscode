@@ -147,7 +147,7 @@ class StatusBarActionViewItem extends ActionViewItem {
 		if (this.options.label && this.label) {
 			// Convert text nodes to span elements to enable
 			// text overflow on the left hand side of the label
-			const elements = renderLabelWithIcons(this._commandTitle ?? this.action.label)
+			const elements = renderLabelWithIcons(this._commandTitle ?? this.action.label, undefined, 'scm-status-bar-glyph')
 				.map(element => {
 					if (typeof element === 'string') {
 						const span = document.createElement('span');
