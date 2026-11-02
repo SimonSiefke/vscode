@@ -92,13 +92,13 @@
 	font-size: var(--vscode-fontSize-body1);
 }
 
-.comments-panel .comments-panel-container .tree-container .comment-thread-container .text *,
+.comments-panel .comments-panel-container .tree-container .comment-thread-container .text :where(.comment-preview-node),
 .comments-panel .comments-panel-container .tree-container .comment-thread-container .range * {
 	margin: 0;
 	padding-right: 5px;
 }
 
-.comments-panel .comments-panel-container .tree-container .comment-thread-container .text * {
+.comments-panel .comments-panel-container .tree-container .comment-thread-container .text :where(.comment-preview-node) {
 	text-overflow: ellipsis;
 	overflow: hidden;
 }

@@ -245,12 +245,12 @@ export class CommentNodeRenderer implements IListRenderer<ITreeNode<CommentNode>
 	}
 
 	private getRenderedComment(commentBody: IMarkdownString) {
-		const renderedComment = renderMarkdown(commentBody, {}, document.createElement('span'));
+		const renderedComment = renderMarkdown(commentBody, { elementClassName: 'comment-preview-node' }, dom.$('span.comment-preview-node'));
 		// eslint-disable-next-line no-restricted-syntax
 		const images = renderedComment.element.getElementsByTagName('img');
 		for (let i = 0; i < images.length; i++) {
 			const image = images[i];
-			const textDescription = dom.$('');
+			const textDescription = dom.$('.comment-preview-node');
 			textDescription.textContent = image.alt ? nls.localize('imageWithLabel', "Image: {0}", image.alt) : nls.localize('image', "Image");
 			image.replaceWith(textDescription);
 		}
