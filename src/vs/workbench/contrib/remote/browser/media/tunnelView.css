@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 .ports-view .ports-view-item-label,
-.ports-view .monaco-icon-label {
+.ports-view .ports-view-item-label {
 	flex: 1;
 }
 
