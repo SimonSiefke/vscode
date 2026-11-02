@@ -1286,7 +1286,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	--chat-input-radius: var(--vscode-cornerRadius-xSmall);
 }
 
-.interactive-session .interactive-input-part.compact {
+.interactive-session .compact.interactive-input-part {
 	--chat-input-radius: var(--vscode-cornerRadius-small);
 }
 
@@ -2562,7 +2562,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: none;
 }
 
-.interactive-session .interactive-input-part.compact {
+.interactive-session .compact.interactive-input-part {
 	margin: 0;
 	padding: 8px 0 0 0
 }
