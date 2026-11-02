@@ -43,7 +43,7 @@
 	height: unset;
 }
 
-.runtime-extensions-editor .monaco-action-bar .actions-container {
+.runtime-extensions-editor .monaco-action-bar .actions-container:where(.runtime-extension-actions-list) {
 	justify-content: left;
 }
 
