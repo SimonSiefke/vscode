@@ -1258,7 +1258,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	text-align: center;
 }
 
-.chat-dnd-overlay .attach-context-overlay-text .codicon {
+.chat-dnd-overlay .attach-context-overlay-text .codicon:where(.chat-drag-overlay-glyph) {
 	height: var(--vscode-codiconFontSize-compact);
 	font-size: var(--vscode-codiconFontSize-compact);
 	margin-right: var(--vscode-spacing-size40);
