@@ -231,31 +231,31 @@
 			}
 
 			.collapse-button {
-				margin: 0 var(--vscode-spacing-size60);
+				margin: 0 var(--vscode-spacing-size60)
+			}
 
-				a {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					padding: var(--vscode-spacing-size40);
-					border-radius: var(--vscode-cornerRadius-medium);
+			:where(.collapse-button) a.multi-diff-collapse-toggle {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: var(--vscode-spacing-size40);
+				border-radius: var(--vscode-cornerRadius-medium);
 
-					&:hover {
-						background: var(--vscode-toolbar-hoverBackground);
-					}
+				&:hover {
+					background: var(--vscode-toolbar-hoverBackground);
+				}
 
-					&:active {
-						background: var(--vscode-toolbar-activeBackground);
-					}
+				&:active {
+					background: var(--vscode-toolbar-activeBackground);
+				}
 
-					&:focus-visible {
-						outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-						outline-offset: calc(-1 * var(--vscode-strokeThickness));
-					}
+				&:focus-visible {
+					outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+					outline-offset: calc(-1 * var(--vscode-strokeThickness));
+				}
 
-					&:focus:not(:focus-visible) {
-						outline: none;
-					}
+				&:focus:not(:focus-visible) {
+					outline: none;
 				}
 			}
 
