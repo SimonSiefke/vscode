@@ -112,7 +112,7 @@ export class CallRenderer implements ITreeRenderer<Call, FuzzyScore, CallRenderi
 		container.classList.add('callhierarchy-element');
 		const icon = document.createElement('div');
 		container.appendChild(icon);
-		const label = new IconLabel(container, { supportHighlights: true });
+		const label = new IconLabel(container, { supportHighlights: true, extraClasses: ['call-hierarchy-item-label'] });
 		return new CallRenderingTemplate(icon, label);
 	}
 
