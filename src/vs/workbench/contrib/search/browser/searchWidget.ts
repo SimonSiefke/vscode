@@ -588,7 +588,7 @@ export class SearchWidget extends Widget {
 
 		this.replaceAllAction = this._register(new ReplaceAllAction(this));
 		this.replaceAllAction.label = SearchWidget.REPLACE_ALL_DISABLED_LABEL;
-		this.replaceActionBar = this._register(new ActionBar(this.replaceContainer));
+		this.replaceActionBar = this._register(new ActionBar(this.replaceContainer, { className: 'search-replace-action-bar' }));
 		this.replaceActionBar.push([this.replaceAllAction], { icon: true, label: false });
 		this.onkeydown(this.replaceActionBar.domNode, (keyboardEvent) => this.onReplaceActionbarKeyDown(keyboardEvent));
 

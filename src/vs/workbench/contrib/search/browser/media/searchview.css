@@ -110,7 +110,7 @@
 	display: none;
 }
 
-.search-view .search-widget .replace-container .monaco-action-bar {
+.search-view .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	height: 25px;
 	margin-left: 4px;
 }
