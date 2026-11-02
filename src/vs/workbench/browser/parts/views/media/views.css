@@ -217,7 +217,7 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item > .custom-view-tree-node-item-resourceLabel > .custom-view-tree-node-item-icon.disabled {
+.customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item > .custom-view-tree-node-item-resourceLabel > .disabled.custom-view-tree-node-item-icon {
 	opacity: 0.6;
 }
 
