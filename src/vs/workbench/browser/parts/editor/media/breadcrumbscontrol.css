@@ -13,7 +13,7 @@
 	align-items: stretch;
 }
 
-.monaco-workbench .breadcrumbs-control.with-editor-type > .monaco-scrollable-element {
+.monaco-workbench .breadcrumbs-control.with-editor-type > .monaco-breadcrumbs-scrollable {
 	flex: 1 1 auto;
 	min-width: 0;
 }
