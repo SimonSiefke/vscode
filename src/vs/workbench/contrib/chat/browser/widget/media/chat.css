@@ -1159,7 +1159,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	height: 18px;
 }
 
-.interactive-item-container.interactive-item-compact .header .avatar .icon {
+.interactive-item-container.interactive-item-compact .header .avatar .icon:where(.chat-avatar-image) {
 	width: 16px;
 	height: 16px;
 }
