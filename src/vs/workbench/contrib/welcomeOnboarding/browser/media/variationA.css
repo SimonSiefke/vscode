@@ -702,7 +702,7 @@
 	outline-offset: 1px;
 }
 
-.onboarding-a-keymap-pill.selected {
+.selected.onboarding-a-keymap-pill {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
 	border-color: var(--vscode-button-background);
