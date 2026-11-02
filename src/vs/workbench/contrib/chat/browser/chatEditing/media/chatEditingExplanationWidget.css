@@ -90,7 +90,7 @@
 }
 
 .chat-explanation-read-indicator > .codicon:where(.chat-explanation-read-glyph),
-.chat-explanation-item-read > .codicon {
+.chat-explanation-item-read > .codicon:where(.chat-explanation-read-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
