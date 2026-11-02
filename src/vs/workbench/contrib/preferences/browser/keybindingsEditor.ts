@@ -1077,9 +1077,11 @@ class SourceColumnRenderer implements ITableRenderer<IKeybindingItemEntry, ISour
 		const sourceColumn = DOM.append(container, $('.source'));
 		const sourceColumnHover = this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), sourceColumn, '');
 		const sourceLabel = new HighlightedLabel(DOM.append(sourceColumn, $('.source-label')));
+		sourceLabel.element.classList.add('keybindings-table-text-label');
 		const extensionContainer = DOM.append(sourceColumn, $('.extension-container'));
 		const extensionLabel = DOM.append<HTMLAnchorElement>(extensionContainer, $('a.extension-label', { tabindex: 0 }));
 		const extensionId = new HighlightedLabel(DOM.append(extensionContainer, $('.extension-id-container.code')));
+		extensionId.element.classList.add('keybindings-table-text-label');
 		return { sourceColumn, sourceColumnHover, sourceLabel, extensionLabel, extensionContainer, extensionId, disposables: new DisposableStore() };
 	}
 
