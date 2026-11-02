@@ -76,7 +76,7 @@
 	padding-right: 3px;
 }
 
-.ports-view .monaco-list .monaco-list-row.selected .ports-view-actionbar-cell > .ports-view-actionbar-cell-icon.codicon {
+.ports-view .monaco-list .monaco-list-row.selected .ports-view-actionbar-cell > .codicon.ports-view-actionbar-cell-icon {
 	color: currentColor !important;
 }
 
