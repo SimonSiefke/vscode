@@ -913,7 +913,7 @@
 }
 
 .monaco-reduce-motion .chat-thinking-fixed-mode > .chat-thinking-content-scrollable,
-.monaco-workbench.monaco-reduce-motion .chat-thinking-fixed-mode > .monaco-scrollable-element {
+.monaco-workbench.monaco-reduce-motion .chat-thinking-fixed-mode > .chat-thinking-content-scrollable {
 	transition: none !important;
 }
 
