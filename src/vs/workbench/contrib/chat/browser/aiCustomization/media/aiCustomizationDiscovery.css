@@ -578,7 +578,7 @@
 	pointer-events: none;
 }
 
-.customization-discovery-result-icon img {
+.customization-discovery-result-icon img:where(.customization-marketplace-image) {
 	position: absolute;
 	inset: 0;
 	width: 100%;
