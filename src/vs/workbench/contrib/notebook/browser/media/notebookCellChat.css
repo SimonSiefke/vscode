@@ -162,10 +162,6 @@
 	display: none;
 }
 
-.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage .message * {
-	margin: unset;
-}
-
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .markdownMessage .message code {
 	font-family: var(--monaco-monospace-font);
 	font-size: 12px;
