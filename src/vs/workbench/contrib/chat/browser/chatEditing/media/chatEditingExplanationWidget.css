@@ -108,7 +108,7 @@
 	opacity: 0.6;
 }
 
-.chat-explanation-read-indicator.partial .codicon {
+.chat-explanation-read-indicator.partial .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 
