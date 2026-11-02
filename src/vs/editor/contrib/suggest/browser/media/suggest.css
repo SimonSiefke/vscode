@@ -149,7 +149,7 @@
 	display: flex;
 }
 
-.monaco-editor .suggest-widget .monaco-list .monaco-list-row:not(.focused) > .contents > .main .monaco-icon-label {
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row:not(.focused) > .contents > .main .editor-suggest-item-label {
 	color: var(--vscode-editorSuggestWidget-foreground);
 }
 
