@@ -58,7 +58,7 @@
 	display: none;
 }
 
-.explorer-folders-view .explorer-item.highlight-badge > .monaco-icon-label-container {
+.explorer-folders-view .explorer-item.highlight-badge > .monaco-icon-label-container:where(.explorer-item-label-container) {
 	display: flex;
 	align-items: center;
 }
