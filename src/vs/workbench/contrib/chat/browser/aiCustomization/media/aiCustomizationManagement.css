@@ -474,7 +474,7 @@
 }
 
 .customization-tree-container .ai-customization-tree-row,
-.ai-customization-list-widget .list-container .monaco-list-row {
+.ai-customization-list-widget .list-container .ai-customization-tree-row {
 	border-radius: var(--vscode-cornerRadius-small);
 }
 

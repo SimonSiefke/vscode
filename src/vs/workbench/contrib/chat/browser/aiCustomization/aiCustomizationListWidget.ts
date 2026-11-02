@@ -924,6 +924,7 @@ export class AICustomizationListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				identityProvider: {
 					getId: (entry: IListEntry) => entry.type === 'group-header' ? entry.id : entry.item.id,
 				},
