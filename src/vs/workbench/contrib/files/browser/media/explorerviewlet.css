@@ -10,7 +10,7 @@
 }
 
 .explorer-folders-view .explorer-folders-view.highlight .monaco-list .explorer-item:not(.explorer-item-edited),
-.explorer-folders-view .explorer-folders-view.highlight .monaco-list .monaco-tl-twistie {
+.explorer-folders-view .explorer-folders-view.highlight .monaco-list .monaco-tl-twistie:where(.explorer-folder-twistie) {
 	opacity: 0.3;
 }
 

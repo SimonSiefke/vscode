@@ -528,6 +528,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		this.tree = this.instantiationService.createInstance(WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, 'FileExplorer', container, new ExplorerDelegate(), new ExplorerCompressionDelegate(), [this.renderer],
 			this.instantiationService.createInstance(ExplorerDataSource, this.filter, this.findProvider), {
 			compressionEnabled: isCompressionEnabled(),
+			twistieAdditionalCssClass: () => 'explorer-folder-twistie',
 			accessibilityProvider: this.renderer,
 			identityProvider,
 			keyboardNavigationLabelProvider: {
