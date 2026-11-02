@@ -32,7 +32,7 @@
 	outline: none;
 }
 
-.chat-subagent-open-chat-toolbar .actions-container .action-item.chat-subagent-pill-widget.hidden {
+.chat-subagent-open-chat-toolbar .actions-container .action-item.hidden.chat-subagent-pill-widget {
 	display: none;
 }
 
