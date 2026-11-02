@@ -3071,7 +3071,7 @@ per-word capitalization does not survive translation. */
 	outline-offset: -1px;
 }
 
-.mcp-server-item.disabled {
+.disabled.mcp-server-item {
 	opacity: 0.5;
 }
 
