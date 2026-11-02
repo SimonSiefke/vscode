@@ -238,7 +238,7 @@
 	transform-origin: 50% 12.5%;
 }
 
-.chat-pet-eye-accessory.hidden {
+.hidden.chat-pet-eye-accessory {
 	display: none;
 }
 
