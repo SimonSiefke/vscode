@@ -4649,7 +4649,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 
 	.interactive-request .header.header-disabled,
 	.request-hover.has-no-actions,
-	.request-hover.hidden,
+	.hidden.request-hover,
 	.request-hover.checkpoints-enabled.has-no-actions,
 	.hidden.checkpoint-container,
 	.checkpoint-container.has-no-actions,
