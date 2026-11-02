@@ -153,7 +153,7 @@
 	background-color: transparent;
 	outline: none;
 
-	> .monaco-tl-row {
+	> .monaco-tl-row:where(.agent-sessions-tree-contents) {
 		background-color: var(--vscode-list-inactiveFocusBackground);
 	}
 }
