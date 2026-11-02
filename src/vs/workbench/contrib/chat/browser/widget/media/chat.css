@@ -3366,7 +3366,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	align-items: center;
 }
 
-.interactive-session .chat-summary-list-row-with-actions > .monaco-icon-label {
+.interactive-session .chat-summary-list-row-with-actions > .chat-file-list-label {
 	flex: 1 1 auto;
 	min-width: 0;
 }
