@@ -88,6 +88,7 @@ export class ParameterHintsWidget extends Disposable implements IContentWidget {
 
 		const body = $('.body');
 		const scrollbar = new DomScrollableElement(body, {
+			className: 'parameter-hints-scrollable',
 			alwaysConsumeMouseWheel: true,
 		});
 		this._register(scrollbar);
