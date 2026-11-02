@@ -598,7 +598,7 @@
 }
 
 .chat-confirmation-widget2 .interactive-result-code-block.compare {
-	.interactive-result-header .monaco-toolbar {
+	.interactive-result-header .chat-code-block-toolbar-root {
 		display: none;
 		/* Don't show keep/discard for diffs shown within confirmation */
 	}
