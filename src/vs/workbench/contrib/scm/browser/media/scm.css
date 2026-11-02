@@ -107,7 +107,7 @@
 	overflow: hidden;
 }
 
-.scm-view .scm-provider > .actions > .monaco-toolbar > .monaco-action-bar > .actions-container  > .action-item > .action-label > .codicon {
+.scm-view .scm-provider > .actions > .monaco-toolbar > .monaco-action-bar > .actions-container  > .action-item > .action-label > .codicon:where(.scm-status-bar-glyph) {
 	justify-content: center;
 }
 
