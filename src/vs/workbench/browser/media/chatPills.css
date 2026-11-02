@@ -50,7 +50,7 @@
 
 .chat-pills,
 .chat-pills .chat-pills-toolbar-root,
-.chat-pills .monaco-action-bar,
+.chat-pills .chat-pills-action-bar,
 .chat-pills .monaco-action-bar .actions-container {
 	display: flex;
 	align-items: center;
