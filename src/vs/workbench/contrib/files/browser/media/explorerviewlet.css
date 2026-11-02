@@ -63,7 +63,7 @@
 	align-items: center;
 }
 
-.explorer-folders-view .explorer-item.highlight-badge .monaco-icon-name-container {
+.explorer-folders-view .explorer-item.highlight-badge .explorer-item-name {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
