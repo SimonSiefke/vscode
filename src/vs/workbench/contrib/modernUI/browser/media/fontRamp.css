@@ -146,7 +146,7 @@
 .modern-ui.modern-ui-uppercase-view-headers .monaco-pane-view .pane > .pane-header > .title,
 .modern-ui.modern-ui-uppercase-view-headers.monaco-workbench .part:not(.editor) > .title > .title-label h2,
 .modern-ui.modern-ui-uppercase-view-headers.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .composite-bar-action-label,
-.modern-ui.modern-ui-uppercase-view-headers.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,
+.modern-ui.modern-ui-uppercase-view-headers.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .composite-bar-action-label,
 .modern-ui.modern-ui-uppercase-view-headers .monaco-pane-view .pane > .pane-header > .icon.codicon-explorer-view-icon + .title {
 	text-transform: uppercase;
 }
