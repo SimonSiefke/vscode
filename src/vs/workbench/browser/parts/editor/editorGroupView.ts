@@ -447,6 +447,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Toolbar
 		const containerToolbar = this._register(new ActionBar(toolbarContainer, {
+			actionItemClassName: 'editor-group-empty-action-item',
 			ariaLabel: localize('ariaLabelGroupActions', "Empty editor group actions"),
 			highlightToggledItems: true
 		}));
