@@ -109,11 +109,11 @@
 	display: none;
 }
 
-.search-editor .search-widget .replace-container .monaco-action-bar {
+.search-editor .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	margin-left: 0;
 }
 
-.search-editor .search-widget .replace-container .monaco-action-bar {
+.search-editor .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	height: 25px;
 }
 
