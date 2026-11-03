@@ -88,4 +88,50 @@ suite('SearchService cache disposal', () => {
 		await Promise.all([rejected, clearing]);
 		assert.deepStrictEqual(events, ['clear']);
 	});
+
+	for (const outcome of ['resolve', 'reject', 'throw'] as const) {
+		test(`waits for a sibling provider to create its cache when the first provider ${outcome}s`, async () => {
+			const slowStarted = new DeferredPromise<void>();
+			const finishSlow = new DeferredPromise<void>();
+			const { service } = createService();
+			const events: string[] = [];
+			const caches = new Set<string>();
+			disposables.add(service.registerSearchResultProvider('fast', SearchProviderType.file, new class extends mock<ISearchResultProvider>() {
+				override fileSearch() {
+					if (outcome === 'throw') {
+						throw new Error('provider failed');
+					}
+					return outcome === 'reject' ? Promise.reject(new Error('provider failed')) : Promise.resolve({ results: [], messages: [] });
+				}
+				override async clearCache() { }
+			}));
+			disposables.add(service.registerSearchResultProvider('slow', SearchProviderType.file, new class extends mock<ISearchResultProvider>() {
+				override async fileSearch(query: IFileQuery) {
+					slowStarted.complete();
+					await finishSlow.p;
+					caches.add(query.cacheKey!);
+					events.push('create');
+					return { results: [], messages: [] };
+				}
+				override async clearCache(cacheKey: string) {
+					caches.delete(cacheKey);
+					events.push('clear');
+				}
+			}));
+			const search = service.fileSearch({
+				...query,
+				folderQueries: ['fast', 'slow'].map(scheme => ({ folder: URI.from({ scheme, path: '/workspace' }) }))
+			});
+			const result = outcome === 'resolve' ? search : assert.rejects(search, /provider failed/);
+			await slowStarted.p;
+			if (outcome !== 'resolve') {
+				// The caller still receives the error before the sibling finishes.
+				await result;
+			}
+			const clearing = service.clearCache(query.cacheKey!);
+			await finishSlow.complete();
+			await Promise.all([result, clearing]);
+			assert.deepStrictEqual({ events, caches: [...caches] }, { events: ['create', 'clear'], caches: [] });
+		});
+	}
 });
