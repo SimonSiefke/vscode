@@ -77,19 +77,27 @@ interface IResponseCache {
 	readonly artifacts: IChatArtifact[];
 }
 
+interface IStoredChatArtifacts {
+	readonly agentArtifacts: readonly IChatArtifact[];
+	readonly ruleOverrides?: IArtifactRuleOverrides;
+	readonly subagentArtifacts?: readonly [string, { readonly name: string | undefined; readonly artifacts: readonly IChatArtifact[] }][];
+	readonly sourceSequences?: readonly [string, number][];
+}
+
 class ChatArtifactsStorage {
-	private readonly _memento: Memento<Record<string, IChatArtifact[]>>;
+	private readonly _memento: Memento<Record<string, IChatArtifact[] | IStoredChatArtifacts>>;
 
 	constructor(@IStorageService storageService: IStorageService) {
 		this._memento = new Memento('chat-artifacts', storageService);
 	}
 
-	get(key: string): IChatArtifact[] {
+	get(key: string): IStoredChatArtifacts | undefined {
 		const storage = this._memento.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE);
-		return storage[key] || [];
+		const stored = storage[key];
+		return Array.isArray(stored) ? { agentArtifacts: stored } : stored;
 	}
 
-	set(key: string, artifacts: IChatArtifact[]): void {
+	set(key: string, artifacts: IStoredChatArtifacts): void {
 		const storage = this._memento.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		storage[key] = artifacts;
 		this._memento.saveMemento();
@@ -136,11 +144,17 @@ class UnifiedChatArtifacts extends Disposable implements IChatArtifacts {
 	) {
 		super();
 
-		// Restore persisted agent artifacts
 		const restored = this._storage.get(this._storageKey);
-		this._agentArtifacts.set(restored, undefined);
+		this._agentArtifacts.set(restored?.agentArtifacts ?? [], undefined);
+		this._ruleOverrides.set(restored?.ruleOverrides, undefined);
+		this._subagentArtifacts.set(new Map(restored?.subagentArtifacts), undefined);
 		this._sourceSequences.set('rules', 0);
-		if (restored.length > 0) {
+		if (restored?.sourceSequences) {
+			for (const [key, sequence] of restored.sourceSequences) {
+				this._sourceSequences.set(key, sequence);
+				this._nextSequence = Math.max(this._nextSequence, sequence + 1);
+			}
+		} else if (restored?.agentArtifacts.length) {
 			this._sourceSequences.set('agent', this._nextSequence++);
 		}
 
@@ -306,7 +320,7 @@ class UnifiedChatArtifacts extends Disposable implements IChatArtifacts {
 			this._sourceSequences.set('agent', this._nextSequence++);
 		}
 		this._agentArtifacts.set(artifacts, undefined);
-		this._storage.set(this._storageKey, artifacts);
+		this._saveState();
 	}
 
 	setSubagentArtifacts(invocationId: string, name: string | undefined, artifacts: IChatArtifact[]): void {
@@ -321,21 +335,33 @@ class UnifiedChatArtifacts extends Disposable implements IChatArtifacts {
 			map.set(invocationId, { name, artifacts });
 		}
 		this._subagentArtifacts.set(map, undefined);
+		this._saveState();
 	}
 
 	setRuleOverrides(rules: IArtifactRuleOverrides | undefined): void {
 		this._ruleOverrides.set(rules, undefined);
+		this._saveState();
 	}
 
 	clearAgentArtifacts(): void {
 		this._agentArtifacts.set([], undefined);
-		this._storage.set(this._storageKey, []);
+		this._saveState();
 	}
 
 	clearSubagentArtifacts(invocationId: string): void {
 		const map = new Map(this._subagentArtifacts.get());
 		map.delete(invocationId);
 		this._subagentArtifacts.set(map, undefined);
+		this._saveState();
+	}
+
+	private _saveState(): void {
+		this._storage.set(this._storageKey, {
+			agentArtifacts: this._agentArtifacts.get(),
+			ruleOverrides: this._ruleOverrides.get(),
+			subagentArtifacts: [...this._subagentArtifacts.get()],
+			sourceSequences: [...this._sourceSequences],
+		});
 	}
 
 	migrate(target: IChatArtifacts): void {
