@@ -374,7 +374,7 @@ export class CloudSandboxSessionsProvider extends RemoteAgentHostSessionsProvide
 	removeDeletedSession(rawId: string): void {
 		const cached = this.getCachedSession(rawId);
 		const key = cached ? this._sessionKeyFromChatId(cached.sessionId) : undefined;
-		const session = key ? this._removeCachedSession(key) : undefined;
+		const session = key ? this._removeDeletedSession(key) : undefined;
 		const taskKey = AgentSession.uri(CLOUD_SANDBOX_SESSION_SCHEME, rawId).toString();
 		this.removeTaskOwnership(rawId);
 		this._withheldSessions.delete(taskKey);

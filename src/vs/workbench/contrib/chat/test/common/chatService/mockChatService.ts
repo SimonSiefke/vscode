@@ -161,6 +161,10 @@ export class MockChatService implements IChatService {
 
 	async removeHistoryEntry(_resource: URI): Promise<void> { }
 
+	notifySessionDeleted(sessionResources: readonly URI[]): void {
+		this.fireDidDisposeSession([...sessionResources]);
+	}
+
 	readonly onDidPerformUserAction = Event.None;
 
 	notifyUserAction(_event: IChatUserActionEvent): void { }

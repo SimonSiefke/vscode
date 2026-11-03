@@ -44,6 +44,8 @@ import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck } fro
 import { IUserDataProfilesService, toUserDataProfile } from '../../../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IWorkspaceContextService } from '../../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace } from '../../../../../../platform/workspace/test/common/testWorkspace.js';
+import { Memento } from '../../../../../common/memento.js';
+import { ChatArtifactsService } from '../../../common/tools/chatArtifactsService.js';
 import { IWorkbenchAssignmentService } from '../../../../../services/assignment/common/assignmentService.js';
 import { NullWorkbenchAssignmentService } from '../../../../../services/assignment/test/common/nullAssignmentService.js';
 import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
@@ -71,7 +73,7 @@ import { ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, IL
 import { ChatModel, IChatModel, ISerializableChatData, ISerializableChatModelInputState } from '../../../common/model/chatModel.js';
 import { ChatToolInvocation } from '../../../common/model/chatProgressTypes/chatToolInvocation.js';
 import { ChatSessionOperationLog } from '../../../common/model/chatSessionOperationLog.js';
-import { IChatSessionIndex } from '../../../common/model/chatSessionStore.js';
+import { ChatSessionStore, IChatSessionIndex } from '../../../common/model/chatSessionStore.js';
 import { getChatSessionType, LocalChatSessionUri } from '../../../common/model/chatUri.js';
 import { ChatViewModel, isPendingDividerVM, isRequestVM, isResponseVM } from '../../../common/model/chatViewModel.js';
 import { ChatAgentService, IChatAgent, IChatAgentData, IChatAgentImplementation, IChatAgentRequest, IChatAgentService } from '../../../common/participants/chatAgents.js';
@@ -4219,6 +4221,24 @@ suite('ChatService', () => {
 			return { resource, provided, resolutionCount: () => resolutions };
 		}
 
+		for (const deleted of [false, true]) {
+			test(`provider model unload persists metadata only for surviving sessions (deleted=${deleted})`, async () => {
+				const { resource } = setupRemoteProvider({});
+				const service = createChatService();
+				const ref = await service.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+				assert.ok(ref);
+				testDisposables.add(ref);
+				if (deleted) {
+					service.notifySessionDeleted([resource]);
+				}
+
+				ref.dispose();
+				await service.waitForModelDisposals();
+
+				assert.strictEqual(!!await service.getMetadataForSession(resource), !deleted);
+			});
+		}
+
 		async function waitForRequestCount(model: IChatModel, count: number): Promise<void> {
 			if (model.getRequests().length >= count) {
 				return;
@@ -7066,6 +7086,94 @@ suite('ChatService', () => {
 			firstLogEntryKind: 0,
 			history: [resource],
 			requests: ['message in detached window'],
+		});
+	});
+
+	for (const keepOpen of [false, true]) {
+		test(`clearAllHistoryEntries deletes ${keepOpen ? 'loaded' : 'unloaded'} artifact state without deleting provider state`, async () => {
+			Memento.clear(StorageScope.WORKSPACE);
+			const testService = createChatService();
+			const storage = instantiationService.get(IStorageService) as TestStorageService;
+			const configuration = instantiationService.get(IConfigurationService);
+			const artifacts = testDisposables.add(new ChatArtifactsService(storage, testService, configuration));
+			const providerResource = URI.parse('agent-host-copilotcli:/surviving');
+			const child = { label: 'Child', uri: 'file:///child.md', type: 'plan' as const };
+			artifacts.getArtifacts(providerResource).setSubagentArtifacts('child', 'Child', [child]);
+			const ref = startSessionModel(testService);
+			const resource = ref.object.sessionResource;
+			const model = ref.object as ChatModel;
+			model.setCustomTitle('Saved chat');
+			const instance = artifacts.getArtifacts(resource);
+			instance.setRuleOverrides({ byFilePath: { '**/*.md': { groupName: 'Documents' } } });
+			instance.setSubagentArtifacts('child', 'Child', [child]);
+			storage.testEmitWillSaveState(WillSaveStateReason.NONE);
+			await testService.getHistorySessionItems();
+			if (!keepOpen) {
+				ref.dispose();
+				await testService.waitForModelDisposals();
+			}
+			const cleared: string[][] = [];
+			testDisposables.add(testService.onDidDisposeSession(e => {
+				if (e.reason === 'cleared') {
+					cleared.push(e.sessionResources.map(resource => resource.toString()));
+				}
+			}));
+
+			await testService.clearAllHistoryEntries();
+			ref.dispose();
+			await testService.waitForModelDisposals();
+			artifacts.dispose();
+			Memento.clear(StorageScope.WORKSPACE);
+			const recreated = testDisposables.add(new ChatArtifactsService(storage, testService, configuration));
+
+			assert.deepStrictEqual({
+				cleared,
+				local: recreated.getArtifacts(resource).artifactGroups.get(),
+				provider: recreated.getArtifacts(providerResource).artifactGroups.get(),
+				stored: Object.keys(storage.getObject('memento/chat-artifacts', StorageScope.WORKSPACE, {})),
+				history: await testService.getHistorySessionItems(),
+				deleted: model.isDeleted,
+			}, {
+				cleared: [[resource.toString()]],
+				local: [],
+				provider: [{ source: { kind: 'subagent', invocationId: 'child', name: 'Child' }, artifacts: [child] }],
+				stored: [providerResource.toString()],
+				history: [],
+				deleted: keepOpen,
+			});
+			Memento.clear(StorageScope.WORKSPACE);
+		});
+	}
+
+	test('clearAllHistoryEntries does not publish deletion if clearing the store fails', async () => {
+		const testService = createChatService();
+		const store = Reflect.get(testService, '_chatSessionStore') as ChatSessionStore;
+		const clear = stub(store, 'clearAllSessions').rejects(new Error('clear failed'));
+		testDisposables.add(toDisposable(() => clear.restore()));
+		const deleted: URI[] = [];
+		testDisposables.add(testService.onDidDisposeSession(e => deleted.push(...e.sessionResources)));
+
+		await assert.rejects(testService.clearAllHistoryEntries(), /clear failed/);
+
+		assert.deepStrictEqual(deleted, []);
+	});
+
+	test('notifySessionDeleted broadcasts exact provider resources and marks loaded models deleted', async () => {
+		const testService = createChatService();
+		const resource = URI.parse('agent-host-copilotcli:/deleted');
+		const ref = startSessionModel(testService);
+		const deleted: URI[] = [];
+		testDisposables.add(testService.onDidDisposeSession(e => {
+			if (e.reason === 'cleared') {
+				deleted.push(...e.sessionResources);
+			}
+		}));
+
+		testService.notifySessionDeleted([ref.object.sessionResource, resource]);
+		testService.notifySessionDeleted([]);
+
+		assert.deepStrictEqual({ deleted, marked: (ref.object as ChatModel).isDeleted }, {
+			deleted: [ref.object.sessionResource, resource], marked: true,
 		});
 	});
 
