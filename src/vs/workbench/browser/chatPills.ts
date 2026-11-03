@@ -511,6 +511,12 @@ export class ChatPillsRow extends Disposable {
 		}));
 	}
 
+	/** Appends an interactive child to the row's otherwise click-through content. */
+	appendChild<T extends HTMLElement>(element: T): T {
+		element.classList.add('chat-pills-row-item');
+		return this.content.appendChild(element);
+	}
+
 	/** Observes size changes; supplying the current pill buttons enables automatic compaction. */
 	observe(element: HTMLElement, getPillElements?: () => readonly HTMLElement[]): void {
 		this._register(this._resizeObserver.observe(element));
@@ -639,6 +645,9 @@ export class ChatPillsWidget extends Disposable {
 
 		this.element = $('.chat-pills.hidden');
 		this._toolbar = this._register(new ChatPillsToolBar(this.element, contextMenuService, {
+			actionBarClassName: 'chat-pills-action-bar',
+			actionsContainerClassName: 'chat-pills-toolbar-actions',
+			actionItemClassName: 'chat-pills-action-item',
 			ariaLabel: options?.ariaLabel ?? localize('chatPills.ariaLabel', "Chat status"),
 			actionRunner: options?.actionRunner,
 			allowContextMenu: options?.allowContextMenu,
@@ -647,6 +656,8 @@ export class ChatPillsWidget extends Disposable {
 				return viewItem;
 			},
 		}));
+
+		this._toolbar.getElement().classList.add('chat-pills-toolbar-root');
 
 		this.isVisible = derived(this, reader => model.pills.read(reader).length > 0);
 		this._register(autorun(reader => {

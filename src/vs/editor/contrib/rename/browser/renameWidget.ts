@@ -884,6 +884,7 @@ class RenameCandidateListView {
 			virtualDelegate,
 			[renderer],
 			{
+				rowClassName: 'rename-candidate-list-row',
 				keyboardSupport: false, // @ulugbekna: because we handle keyboard events through proper commands & keybinding service, see `rename.ts`
 				mouseSupport: true,
 				multipleSelectionSupport: false,

@@ -235,6 +235,10 @@ export class ChatSessionPickerActionItem extends ActionWidgetDropdownActionViewI
 		return this._pickerOptions?.getOverflowAnchor?.() ?? this.element!;
 	}
 
+	protected override get labelClassName(): string {
+		return 'chat-input-picker-trigger';
+	}
+
 	protected override renderLabel(element: HTMLElement): IDisposable | null {
 		const domChildren = [];
 		element.classList.add('chat-session-option-picker');
@@ -247,7 +251,7 @@ export class ChatSessionPickerActionItem extends ActionWidgetDropdownActionViewI
 		element.classList.toggle('icon-only', compact && !!this.currentOption?.icon);
 
 		if (this.currentOption?.icon) {
-			domChildren.push(renderIcon(getCompactCodicon(this.currentOption.icon)));
+			domChildren.push(renderIcon(getCompactCodicon(this.currentOption.icon), undefined, 'chat-input-picker-glyph'));
 		}
 
 		if (!isDefaultWithIcon && (!compact || !this.currentOption?.icon)) {

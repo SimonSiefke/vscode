@@ -83,7 +83,7 @@ export class ChatMultiDiffContentPart extends Disposable implements IChatContent
 
 	private renderHeader(container: HTMLElement): IDisposable {
 		const viewListButtonContainer = container.appendChild($('.chat-file-changes-label'));
-		const viewListButton = new ButtonWithIcon(viewListButtonContainer, {});
+		const viewListButton = new ButtonWithIcon(viewListButtonContainer, { iconClassName: 'chat-file-changes-button-glyph' });
 		this._register(autorun(reader => {
 			const fileCount = this.diffData.read(reader).resources.length;
 			viewListButton.label = fileCount === 1
@@ -304,7 +304,8 @@ class ChatMultiDiffListRenderer implements IListRenderer<IChatMultiDiffItem, ICh
 	constructor(private labels: ResourceLabels) { }
 
 	renderTemplate(container: HTMLElement): IChatMultiDiffItemTemplate {
-		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true });
+		container.classList.add('chat-summary-file-row');
+		const label = this.labels.create(container, { supportHighlights: true, supportIcons: true, extraClasses: ['chat-file-list-label'] });
 
 		return {
 			label,

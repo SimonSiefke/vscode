@@ -129,7 +129,7 @@ suite('SessionChangesEditor spacing', () => {
 					for (const first of [true, false]) {
 						const entry = append(widget, $('.multiDiffEntry'));
 						entry.classList.toggle('first-diff-entry', first);
-						const header = append(entry, $('.header'));
+						const header = append(entry, $('.header.multi-diff-file-header'));
 						header.setAttribute('aria-expanded', 'true');
 						const content = append(header, $('.header-content'));
 						for (const sticky of [false, true]) {
@@ -160,7 +160,7 @@ suite('SessionChangesEditor spacing', () => {
 		const content = append(widget, $('div'));
 		const entry = append(content, $('.multiDiffEntry.first-diff-entry'));
 		entry.style.cssText = 'position: absolute; width: 800px; height: 1000px;';
-		const header = append(entry, $('.header'));
+		const header = append(entry, $('.header.multi-diff-file-header'));
 		header.setAttribute('aria-expanded', 'true');
 		const headerContent = append(header, $('.header-content'));
 		const body = append(entry, $('.editorParent'));

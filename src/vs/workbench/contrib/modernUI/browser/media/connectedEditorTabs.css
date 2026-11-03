@@ -27,7 +27,7 @@
 	--modern-ui-connected-well-border: var(--vscode-modernPanel-border, var(--vscode-contrastBorder));
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .editor-group-container.active,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .active.editor-group-container,
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench:is(.hc-black, .hc-light) .modern-ui-editor-tab-group.modern-ui-editor-tab-group-active {
 	--modern-ui-connected-tab-border: var(--vscode-focusBorder);
 }
@@ -133,7 +133,7 @@
 }
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.active,
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab.active {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .active.modern-ui-editor-tab {
 	--modern-ui-connected-tab-current-background: var(--modern-ui-connected-tab-active-background);
 }
 
@@ -168,7 +168,8 @@
 	align-self: stretch;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > :is(.editor-actions, .editor-layout-actions) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > .editor-actions,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container:not(.wrapping) > .editor-toolbars > .editor-layout-actions {
 	align-self: stretch;
 	height: auto;
 	margin-bottom: var(--vscode-strokeThickness);
@@ -188,7 +189,8 @@
 	padding-bottom: 0;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > :is(.editor-actions, .editor-layout-actions) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > .editor-actions,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.connected-tab-upper-bar > .editor-toolbars > .editor-layout-actions {
 	margin-bottom: 0;
 }
 
@@ -295,7 +297,8 @@
 	background-color: transparent;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row):is(.sticky-compact, .sticky-shrink) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row).sticky-compact,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container:not(.disable-sticky-tabs) > .tab.active.sticky:not(.connected-tab-upper-row).sticky-shrink {
 	z-index: 9;
 }
 
@@ -315,7 +318,7 @@
 }
 
 /* Wrapped scrolling does not add the pill-style bottom gutter. */
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping > .monaco-scrollable-element {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping > .editor-tabs-scrollable {
 	padding-bottom: 0;
 }
 
@@ -444,7 +447,8 @@
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container > .monaco-scrollable-element > .tab-connected-overflow-edge.connected-tab-left-clipped,
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container > .monaco-scrollable-element > .tab-connected-overflow-edge.connected-tab-right-clipped,
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge:is(.connected-tab-left-clipped, .connected-tab-right-clipped) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge.connected-tab-left-clipped,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .modern-ui-editor-tab-strip .tab-connected-overflow-edge.connected-tab-right-clipped {
 	display: block;
 	position: absolute;
 	z-index: 8;
@@ -523,7 +527,7 @@
 	border-radius: var(--modern-ui-connected-tab-radius) 0 0 0;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab > .tab-actions .actions-container {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab > .tab-actions .editor-tab-toolbar-actions {
 	justify-content: center;
 }
 
@@ -737,7 +741,8 @@
 	border: var(--vscode-strokeThickness) solid transparent;
 }
 
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-fill,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-connected-edge {
 	left: 0;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
@@ -754,7 +759,8 @@
 }
 
 .modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab:first-child.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge),
-.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > :is(.tab-fill, .tab-connected-edge) {
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-fill,
+.modern-ui-tabs.modern-ui-connected-editor-tabs.monaco-workbench .part.editor > .content .editor-group-container > .title.tabs > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-in-row + .tab.active:not(.connected-tab-upper-row) > .tab-connected-edge {
 	left: calc(-1 * var(--vscode-spacing-size20));
 }
 

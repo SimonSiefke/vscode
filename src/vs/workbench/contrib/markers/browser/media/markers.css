@@ -34,19 +34,19 @@
 	color:  var(--vscode-editorLightBulbAutoFix-foreground);
 }
 
-.markers-panel .markers-panel-container .tree-container.hidden {
+.markers-panel .markers-panel-container .hidden.tree-container {
 	display: none;
 	visibility: hidden;
 }
 
-.markers-panel .markers-panel-container .tree-container .monaco-tl-contents {
+.markers-panel .markers-panel-container .tree-container .problems-tree-contents {
 	display: flex;
 	line-height: 22px;
 	padding-right: 10px;
 }
 
-.monaco-workbench.hc-black .markers-panel .markers-panel-container .tree-container .monaco-tl-contents,
-.monaco-workbench.hc-light .markers-panel .markers-panel-container .tree-container .monaco-tl-contents {
+.monaco-workbench.hc-black .markers-panel .markers-panel-container .tree-container .problems-tree-contents,
+.monaco-workbench.hc-light .markers-panel .markers-panel-container .tree-container .problems-tree-contents {
 	line-height: 20px;
 }
 
@@ -86,7 +86,7 @@
 	color: inherit;
 }
 
-.markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link .monaco-highlighted-label {
+.markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link .monaco-highlighted-label:where(.markers-code-link-label) {
 	text-decoration: underline;
 	text-underline-position: under;
 }
@@ -125,7 +125,7 @@
 	justify-content: center;
 }
 
-.markers-panel .monaco-tl-contents .actions .monaco-action-bar {
+.markers-panel .monaco-tl-contents .actions .monaco-action-bar:where(.markers-row-action-bar) {
 	display: none;
 }
 
@@ -136,13 +136,13 @@
 }
 
 .markers-panel .monaco-list-row:hover .monaco-tl-contents .actions .monaco-action-bar,
-.markers-panel .monaco-list-row.selected .monaco-tl-contents .actions .monaco-action-bar,
-.markers-panel .monaco-list-row.focused .monaco-tl-contents .actions .monaco-action-bar {
+.markers-panel .monaco-list-row.selected .monaco-tl-contents .actions .monaco-action-bar:where(.markers-row-action-bar),
+.markers-panel .monaco-list-row.focused .monaco-tl-contents .actions .monaco-action-bar:where(.markers-row-action-bar) {
 	display: block;
 }
 
 .markers-panel .monaco-tl-contents .actions,
-.markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar {
+.markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar:where(.markers-row-action-bar) {
 	height: 22px;
 }
 

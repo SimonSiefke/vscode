@@ -147,7 +147,7 @@
 	visibility: hidden;
 }
 
-.monaco-workbench .part.titlebar.inactive > * {
+.monaco-workbench .titlebar.inactive > .titlebar-container {
 	opacity: 0.6;
 }
 
@@ -214,15 +214,15 @@
 	flex: 1;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:has(.compact-mode) > .monaco-toolbar > .monaco-action-bar > .actions-container {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center.command-center-compact > .monaco-toolbar > .monaco-action-bar > .command-center-toolbar-actions {
 	margin: 0;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:has(.compact-mode) > .monaco-toolbar {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center.command-center-compact > .command-center-toolbar {
 	flex: 1;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:has(.compact-mode) > .monaco-toolbar > .monaco-action-bar {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center.command-center-compact > .monaco-toolbar > .command-center-action-bar {
 	width: 100%;
 }
 
@@ -300,7 +300,7 @@
 	background-size: 16px;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon.codicon {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .codicon.window-appicon {
 	line-height: 30px;
 }
 
@@ -357,7 +357,7 @@
 	width: 138px;
 }
 
-.monaco-workbench:not(.web):not(.mac) .part.titlebar .titlebar-container:not(.counter-zoom) .window-controls-container * {
+.monaco-workbench:not(.web):not(.mac) .part.titlebar .titlebar-container:not(.counter-zoom) :where(.window-controls-container) .window-icon {
 	zoom: calc(1 / var(--zoom-factor, 1));
 }
 

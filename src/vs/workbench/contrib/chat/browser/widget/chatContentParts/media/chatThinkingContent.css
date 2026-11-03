@@ -72,7 +72,8 @@
 }
 
 /* Preserve the text-column width while anchoring artwork to the icon gutter. */
-.interactive-session .interactive-response .value .chat-tool-call-with-icon :is(.chat-image-generation-placeholder, .chat-generated-image-tool-result) {
+.interactive-session .interactive-response .value .chat-tool-call-with-icon .chat-image-generation-placeholder,
+.interactive-session .interactive-response .value .chat-tool-call-with-icon .chat-generated-image-tool-result {
 	position: relative;
 	left: var(--chat-persistent-icon-left, calc(var(--vscode-codiconFontSize-compact) * 0.2));
 	margin-left: calc(-1 * var(--vscode-spacing-size240));
@@ -304,7 +305,8 @@
 
 /* The row container class keeps these ahead of the legacy `.interactive-item-container .value > …`
 	spacing rules, which otherwise tie on specificity and fall back to stylesheet order. */
-.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress :is(.value, .completed-response-disclosure) {
+.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress .value,
+.interactive-session .interactive-item-container.interactive-response.chat-persistent-progress .completed-response-disclosure {
 	> .completed-response-disclosure,
 	> .chat-tool-chain,
 	> .chat-persistent-reasoning,
@@ -332,11 +334,12 @@
 	> .chat-thinking-conversation,
 	> .chat-tool-chain-collapsible,
 	.chat-tool-chain .chat-thinking-tool-wrapper > .chat-used-context,
-	.chat-tool-call-with-icon :is(.chat-terminal-thinking-collapsible, .chat-confirmation-widget-collapsible) {
+	.chat-tool-call-with-icon .chat-terminal-thinking-collapsible,
+	.chat-tool-call-with-icon .chat-confirmation-widget-collapsible {
 		gap: 0;
 
 		> .chat-used-context-label .monaco-button.monaco-icon-button,
-		> .chat-confirmation-widget-title.monaco-button {
+		> .monaco-button.chat-confirmation-widget-title {
 			padding-block: var(--vscode-spacing-size40);
 			vertical-align: top;
 			/* Preserve the padded hit target without adding a second visual gap. */
@@ -462,7 +465,7 @@
 			font-size: var(--vscode-chat-font-size-body-s);
 		}
 
-		.codicon {
+		.codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron, .chat-thinking-title-node) {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
 
@@ -524,7 +527,7 @@
 	}
 
 	.monaco-button.hidden,
-	.chat-pinned-preview.hidden {
+	.hidden.chat-pinned-preview {
 		display: none;
 	}
 
@@ -582,7 +585,7 @@
 				display: none !important;
 			}
 
-			.chat-collapsible-hover-chevron.codicon {
+			.codicon.chat-collapsible-hover-chevron {
 				display: inline-flex;
 			}
 
@@ -798,22 +801,22 @@
 	}
 
 	/* Directional fade indicators via mask-image on the scrollable viewport */
-	&.chat-thinking-fade-top > .monaco-scrollable-element {
+	&.chat-thinking-fade-top > .chat-thinking-content-scrollable {
 		mask-image: linear-gradient(to bottom, transparent 0px, black 20px);
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px);
 	}
 
-	&.chat-thinking-fade-bottom > .monaco-scrollable-element {
+	&.chat-thinking-fade-bottom > .chat-thinking-content-scrollable {
 		mask-image: linear-gradient(to top, transparent 0px, black 20px);
 		-webkit-mask-image: linear-gradient(to top, transparent 0px, black 20px);
 	}
 
-	&.chat-thinking-fade-top.chat-thinking-fade-bottom > .monaco-scrollable-element {
+	&.chat-thinking-fade-top.chat-thinking-fade-bottom > .chat-thinking-content-scrollable {
 		mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 		-webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 	}
 
-	> .monaco-scrollable-element:has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)) {
+	> :has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)).chat-thinking-content-scrollable {
 		overflow: hidden;
 		height: auto;
 		opacity: 1;
@@ -823,13 +826,13 @@
 		}
 	}
 
-	&.chat-thinking-fixed-mode-animated > .monaco-scrollable-element {
+	&.chat-thinking-fixed-mode-animated > .chat-thinking-content-scrollable {
 		transition:
 			max-height 180ms cubic-bezier(0.2, 0, 0, 1),
 			opacity 140ms cubic-bezier(0.2, 0, 0, 1);
 	}
 
-	&.chat-used-context-collapsed > .monaco-scrollable-element:has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)) {
+	&.chat-used-context-collapsed > :has(.chat-used-context-list.chat-thinking-collapsible:not(.chat-thinking-streaming)).chat-thinking-content-scrollable {
 		display: block;
 		opacity: 0;
 
@@ -890,7 +893,7 @@
 		display: block;
 	}
 
-	&:not(.chat-used-context-collapsed) > .monaco-scrollable-element:has(.chat-thinking-streaming) {
+	&:not(.chat-used-context-collapsed) > :has(.chat-thinking-streaming).chat-thinking-content-scrollable {
 		overflow: visible;
 		height: auto;
 	}
@@ -909,13 +912,13 @@
 	background: var(--vscode-editor-background);
 }
 
-.monaco-reduce-motion .chat-thinking-fixed-mode > .monaco-scrollable-element,
-.monaco-workbench.monaco-reduce-motion .chat-thinking-fixed-mode > .monaco-scrollable-element {
+.monaco-reduce-motion .chat-thinking-fixed-mode > .chat-thinking-content-scrollable,
+.monaco-workbench.monaco-reduce-motion .chat-thinking-fixed-mode > .chat-thinking-content-scrollable {
 	transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.chat-thinking-fixed-mode > .monaco-scrollable-element {
+	.chat-thinking-fixed-mode > .chat-thinking-content-scrollable {
 		transition: none !important;
 	}
 }

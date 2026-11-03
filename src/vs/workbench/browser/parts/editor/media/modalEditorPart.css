@@ -113,7 +113,7 @@
 		color: var(--vscode-titleBar-activeForeground);
 		overflow: hidden;
 
-		.monaco-icon-label {
+		.modal-editor-resource-label {
 			color: inherit;
 			height: 32px;
 			line-height: 32px;
@@ -137,7 +137,7 @@
 		user-select: none;
 		-webkit-user-select: none;
 
-		.modal-editor-nav-button.monaco-button {
+		.monaco-button.modal-editor-nav-button {
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -156,7 +156,7 @@
 			background-color: var(--vscode-commandCenter-activeBackground);
 		}
 
-		.modal-editor-nav-button.monaco-button.disabled {
+		.monaco-button.disabled.modal-editor-nav-button {
 			opacity: 0.3;
 		}
 
@@ -176,10 +176,10 @@
 		align-items: center;
 		justify-content: flex-end;
 
-		.actions-container {
+		.modal-editor-toolbar-actions {
 			gap: 4px;
 
-			.codicon {
+			.codicon:where(.modal-editor-action-label) {
 				color: inherit;
 			}
 		}

@@ -668,7 +668,7 @@ export class TabbedActionListWidget extends Disposable {
 						: details.backLabel;
 					let back: ActionBar | Button;
 					if (details.renderHeader) {
-						back = store.add(new ActionBar(header, { ariaLabel: details.backLabel }));
+						back = store.add(new ActionBar(header, { className: 'tabbed-details-back-action-bar', ariaLabel: details.backLabel }));
 						back.push(toAction({
 							id: 'details.back',
 							label: details.backLabel,

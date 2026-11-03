@@ -58,7 +58,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-.monaco-workbench .voice-mode-onboarding-microphone-icon.codicon[class*='codicon-'] {
+.monaco-workbench .codicon[class*='codicon-'].voice-mode-onboarding-microphone-icon {
 	flex-shrink: 0;
 	font-size: var(--vscode-codiconFontSize-compact);
 	line-height: 1;
@@ -125,7 +125,7 @@
 	outline-offset: 2px;
 }
 
-.voice-mode-onboarding-voice.selected {
+.selected.voice-mode-onboarding-voice {
 	background-color: var(--vscode-list-activeSelectionBackground);
 	border-color: var(--vscode-focusBorder);
 	color: var(--vscode-list-activeSelectionForeground);
@@ -164,7 +164,7 @@
 	margin-right: var(--vscode-spacing-size20);
 }
 
-.voice-mode-onboarding-voice-icon > * {
+.voice-mode-onboarding-voice-content {
 	position: absolute;
 	display: flex;
 	align-items: center;
@@ -173,7 +173,7 @@
 	transition: opacity 120ms ease-out;
 }
 
-.monaco-workbench .voice-mode-onboarding-voice-icon .codicon[class*='codicon-'] {
+.monaco-workbench .voice-mode-onboarding-voice-icon .codicon[class*='codicon-']:where(.voice-mode-onboarding-voice-idle, .voice-mode-onboarding-voice-chosen) {
 	font-size: var(--vscode-codiconFontSize-compact);
 	line-height: 1;
 	color: inherit;
@@ -247,6 +247,6 @@
  * state rather than motion.
  */
 .monaco-reduce-motion .voice-mode-onboarding-voice-icon,
-.monaco-reduce-motion .voice-mode-onboarding-voice-icon > * {
+.monaco-reduce-motion .voice-mode-onboarding-voice-content {
 	transition: none;
 }

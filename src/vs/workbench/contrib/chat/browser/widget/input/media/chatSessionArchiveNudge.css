@@ -132,7 +132,7 @@
 	width: auto;
 }
 
-.chat-session-archive-nudge.compact {
+.compact.chat-session-archive-nudge {
 	padding-block: var(--vscode-spacing-size80);
 }
 

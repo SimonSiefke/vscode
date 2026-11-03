@@ -7,7 +7,7 @@
  * popup. Styles are intentionally minimal so consumers can override via
  * the `tabBarClassName` option. */
 
-.action-widget .tabbed-action-list-body.collapsed {
+.action-widget .collapsed.tabbed-action-list-body {
 	height: 0;
 	overflow: clip;
 	visibility: hidden;
@@ -43,7 +43,7 @@
 	overflow: hidden;
 }
 
-.action-widget .tabbed-action-list-tabbar .monaco-custom-radio .monaco-button.label-collapsing > span:not(.codicon) {
+.action-widget .tabbed-action-list-tabbar .monaco-custom-radio .monaco-button.label-collapsing > span:where(.monaco-radio-button-content):not(.codicon) {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -98,7 +98,7 @@
 }
 
 .action-widget .tabbed-action-list-tabbar .tabbed-action-list-tabbar-action:hover:not(.disabled),
-.action-widget .tabbed-action-list-tabbar .tabbed-action-list-tabbar-action.checked {
+.action-widget .tabbed-action-list-tabbar .checked.tabbed-action-list-tabbar-action {
 	background-color: var(--vscode-toolbar-hoverBackground);
 	color: var(--vscode-foreground);
 }
@@ -150,7 +150,7 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.tabbed-action-list-details-header > .monaco-action-bar {
+.tabbed-action-list-details-header > .monaco-action-bar:where(.tabbed-details-back-action-bar) {
 	flex: 0 0 auto;
 }
 

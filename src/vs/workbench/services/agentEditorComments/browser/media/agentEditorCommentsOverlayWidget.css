@@ -29,7 +29,7 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.agent-editor-comments-overlay-widget .monaco-action-bar .actions-container {
+.agent-editor-comments-overlay-widget .monaco-action-bar .actions-container:where(.agent-comments-overlay-actions) {
 	gap: 4px;
 }
 

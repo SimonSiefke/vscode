@@ -105,7 +105,7 @@ class Banner extends Disposable {
 		iconContainer.setAttribute('aria-hidden', 'true');
 
 		if (item.icon) {
-			iconContainer.appendChild($(`div${ThemeIcon.asCSSSelector(item.icon)}`));
+			iconContainer.appendChild($(`div.editor-banner-main-glyph${ThemeIcon.asCSSSelector(item.icon)}`));
 		}
 
 		// Message
@@ -136,7 +136,7 @@ class Banner extends Disposable {
 					}
 				}
 			)
-		), { icon: true, label: false });
+		), { icon: true, label: false, labelClassName: 'editor-banner-close-label' });
 		this.actionBar.setFocusable(false);
 	}
 }

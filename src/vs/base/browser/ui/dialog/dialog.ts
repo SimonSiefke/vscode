@@ -225,6 +225,7 @@ export class Dialog extends Disposable {
 				const inputRowElement = this.messageContainer.appendChild($('.dialog-message-input'));
 
 				const inputBox = this._register(new InputBox(inputRowElement, undefined, {
+					inputBoxClassName: 'dialog-message-input-box',
 					placeholder: input.placeholder,
 					type: input.type ?? 'text',
 					inputBoxStyles: options.inputBoxStyles
@@ -339,6 +340,12 @@ export class Dialog extends Disposable {
 					button = this._register(buttonBar.addButtonWithDescription({ secondary: !primary, ...this.buttonStyles }));
 				} else {
 					button = this._register(buttonBar.addButton({ secondary: !primary, ...this.buttonStyles }));
+				}
+
+				button.element.classList.add('dialog-footer-action');
+				if (button instanceof ButtonWithDropdown) {
+					button.primaryButton.element.classList.add('dialog-footer-primary-action');
+					button.dropdownButton.element.classList.add('dialog-footer-menu-action');
 				}
 
 				if (buttonOptions?.styleButton) {
@@ -572,7 +579,7 @@ export class Dialog extends Disposable {
 			}
 
 			if (!this.options.disableCloseAction && !this.options.disableCloseButton) {
-				const actionBar = this._register(new ActionBar(this.toolbarContainer, {}));
+				const actionBar = this._register(new ActionBar(this.toolbarContainer, { actionsContainerClassName: 'dialog-header-actions' }));
 
 				const action = this._register(new Action('dialog.close', localize('dialogClose', "Close Dialog"), ThemeIcon.asClassName(Codicon.dialogClose), true, async () => {
 					resolve({

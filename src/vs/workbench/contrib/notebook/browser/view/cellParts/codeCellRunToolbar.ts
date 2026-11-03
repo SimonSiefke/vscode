@@ -113,6 +113,7 @@ export class RunToolbar extends CellContentPart {
 			},
 			renderDropdownAsChildElement: true
 		}));
+		this.toolbar.getElement().classList.add('notebook-cell-run-toolbar-root');
 	}
 }
 

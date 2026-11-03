@@ -802,6 +802,7 @@ export class AICustomizationListWidget extends Disposable {
 		const titleActions = DOM.append(titleRow, $('.section-title-actions'));
 		const browseLabel = localize('browseSkills', "Browse");
 		this.browseCustomizationsButton = this._register(new Button(titleActions, {
+			buttonClassName: 'customization-browse-action-button',
 			...defaultButtonStyles,
 			secondary: true,
 			small: true,
@@ -854,6 +855,7 @@ export class AICustomizationListWidget extends Disposable {
 		this.searchContainer = DOM.append(this.searchAndButtonContainer, $('.list-search-container'));
 		const searchLabel = getCustomizationSearchAriaLabel(this.currentSection);
 		this.searchInput = this._register(new InputBox(this.searchContainer, this.contextViewService, {
+			inputBoxClassName: 'customization-list-search-box',
 			placeholder: searchLabel,
 			ariaLabel: searchLabel,
 			inputBoxStyles: defaultInputBoxStyles,
@@ -922,6 +924,7 @@ export class AICustomizationListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				identityProvider: {
 					getId: (entry: IListEntry) => entry.type === 'group-header' ? entry.id : entry.item.id,
 				},

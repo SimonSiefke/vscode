@@ -1993,7 +1993,7 @@ suite('ChatThinkingContentPart', () => {
 				thinkingAgain: { title: 'Thinking', ariaLabel: 'Thinking', expanded: false },
 				finished: { title: 'Planning the fix', ariaLabel: 'Planning the fix', expanded: false },
 				sectionClasses: ['chat-thinking-conversation'],
-				headerIcons: ['codicon-chevron-right-compact'],
+				headerIcons: ['chat-collapsible-leading-glyph codicon-chevron-right-compact'],
 				body: ['Planning the fix', 'Check the renderer.', 'Read renderer.ts', 'Compare the results.'],
 			});
 		});

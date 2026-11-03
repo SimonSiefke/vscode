@@ -67,16 +67,16 @@
 	position: relative;
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .hover-verbosity-action-icon {
 	cursor: pointer;
 	font-size: 11px;
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.enabled {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .enabled.hover-verbosity-action-icon {
 	color: var(--vscode-textLink-foreground);
 }
 
-.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.disabled {
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .disabled.hover-verbosity-action-icon {
 	opacity: 0.6;
 }
 
@@ -113,9 +113,4 @@
 .monaco-editor .monaco-hover .hover-copy-button:focus {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
-}
-
-.monaco-editor .monaco-hover .hover-copy-button .codicon {
-	font-size: 16px;
-	color: var(--vscode-foreground);
 }

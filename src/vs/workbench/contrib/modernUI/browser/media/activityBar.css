@@ -131,7 +131,10 @@
  * so lift it explicitly; otherwise the indicator (appended last in the DOM)
  * would paint over the icon.
  */
-.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon :is(.action-label, .badge) {
+.modern-ui .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .composite-bar-action-label,
+.modern-ui .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge,
+.modern-ui .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .composite-bar-action-label,
+.modern-ui .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .badge {
 	position: relative;
 	z-index: 1;
 }
@@ -187,7 +190,7 @@
 }
 
 /* Render the composite icons at the standard 16px size. */
-.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .action-label.codicon {
+.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.icon .codicon.composite-bar-action-label {
 	font-size: 16px;
 	line-height: 12px;
 	font-weight: var(--vscode-fontWeight-regular);

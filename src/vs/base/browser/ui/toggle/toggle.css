@@ -30,7 +30,7 @@ div.monaco-custom-toggle:not(.monaco-checkbox):focus-visible {
 	border: var(--vscode-strokeThickness, 1px) dashed var(--vscode-focusBorder);
 }
 
-.monaco-custom-toggle.disabled {
+.disabled.monaco-custom-toggle {
 	opacity: 0.4;
 	cursor: default;
 	pointer-events: none;

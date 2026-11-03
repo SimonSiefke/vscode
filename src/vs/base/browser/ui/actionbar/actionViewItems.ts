@@ -280,6 +280,8 @@ export class BaseActionViewItem extends Disposable implements IActionViewItem {
 export interface IActionViewItemOptions extends IBaseActionViewItemOptions {
 	icon?: boolean;
 	label?: boolean;
+	/** Class applied to the rendered label for component styling. */
+	readonly labelClassName?: string;
 	readonly keybinding?: string | null;
 	readonly keybindingNotRenderedWithLabel?: boolean;
 	readonly toggleStyles?: IToggleStyles;
@@ -310,6 +312,9 @@ export class ActionViewItem extends BaseActionViewItem {
 
 		const label = document.createElement('a');
 		label.classList.add('action-label');
+		if (this.options.labelClassName) {
+			label.classList.add(this.options.labelClassName);
+		}
 		label.setAttribute('role', this.getDefaultAriaRole());
 
 		this.label = label;

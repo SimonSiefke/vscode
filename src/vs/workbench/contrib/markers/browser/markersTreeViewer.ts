@@ -294,6 +294,7 @@ class MarkerWidget extends Disposable {
 	) {
 		super();
 		this.actionBar = this._register(new ActionBar(dom.append(parent, dom.$('.actions')), {
+			className: 'markers-row-action-bar',
 			actionViewItemProvider: (action: IAction, options) => action.id === QuickFixAction.ID ? _instantiationService.createInstance(QuickFixActionViewItem, <QuickFixAction>action, options) : undefined
 		}));
 
@@ -342,6 +343,7 @@ class MarkerWidget extends Disposable {
 
 	private renderMultilineActionbar(marker: Marker, parent: HTMLElement): void {
 		const multilineActionbar = this.disposables.add(new ActionBar(dom.append(parent, dom.$('.multiline-actions')), {
+			className: 'markers-row-action-bar',
 			actionViewItemProvider: (action, options) => {
 				if (action.id === toggleMultilineAction) {
 					return new ToggleMultilineActionViewItem(undefined, action, { ...options, icon: true });
@@ -399,6 +401,7 @@ class MarkerWidget extends Disposable {
 				} else {
 					const container = dom.$('.marker-code');
 					const code = this.disposables.add(new HighlightedLabel(container));
+					code.element.classList.add('markers-code-link-label');
 					const link = marker.code.target.toString(true);
 					this.disposables.add(new Link(parent, { href: link, label: container, title: link }, undefined, this._hoverService, this._openerService));
 					const codeMatches = filterData && filterData.codeMatches || [];

@@ -23,35 +23,35 @@
 		padding: 0;
 		overflow: visible;
 
-		.action-item > .action-label,
-		.action-item > .action-label.codicon:not(.separator) {
+		.floating-menu-actions .floating-menu-action-label,
+		.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 			height: 28px;
 			line-height: 28px;
 			border-radius: var(--vscode-cornerRadius-medium);
 			box-shadow: 0 2px 8px var(--vscode-widget-shadow);
 		}
 
-		.action-item > .action-label {
+		.floating-menu-actions .floating-menu-action-label {
 			padding: 0 8px;
 		}
 
-		.action-item > .action-label.codicon:not(.separator) {
+		.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 			width: 28px;
 		}
 	}
 
-	.actions-container {
+	.floating-menu-actions {
 		gap: 4px;
 	}
 
-	.action-item > .action-label {
+	.floating-menu-actions .floating-menu-action-label {
 		padding: 4px 6px;
 		font-size: 11px;
 		line-height: 14px;
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 
-	.action-item > .action-label.codicon:not(.separator) {
+	.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 		color: var(--vscode-foreground);
 		width: 22px;
 		height: 22px;
@@ -63,8 +63,8 @@
 		justify-content: center;
 	}
 
-	.action-item.primary > .action-label,
-	.action-item.primary > .action-label.action-label.codicon:not(.separator) {
+	.action-item.primary > .floating-menu-action-label,
+	.action-item.primary > .floating-menu-action-label.action-label.codicon:not(.separator) {
 		background-color: var(--vscode-button-background);
 		color: var(--vscode-button-foreground);
 	}
@@ -81,8 +81,8 @@
 	border-color: var(--vscode-contrastBorder);
 	background-color: var(--vscode-editorWidget-background);
 	padding: 0;
-	.action-item > .action-label,
-	.action-item > .action-label.codicon:not(.separator) {
+	.floating-menu-actions .floating-menu-action-label,
+	.floating-menu-actions .floating-menu-action-label.codicon:not(.separator) {
 		box-shadow: none;
 	}
 }

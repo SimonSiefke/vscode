@@ -476,11 +476,11 @@ export class MarkupCell extends Disposable {
 				break;
 			case CellFoldingState.Collapsed:
 				this.templateData.foldingIndicator.style.display = '';
-				DOM.reset(this.templateData.foldingIndicator, renderIcon(collapsedIcon));
+				DOM.reset(this.templateData.foldingIndicator, renderIcon(collapsedIcon, undefined, 'notebook-folding-glyph'));
 				break;
 			case CellFoldingState.Expanded:
 				this.templateData.foldingIndicator.style.display = '';
-				DOM.reset(this.templateData.foldingIndicator, renderIcon(expandedIcon));
+				DOM.reset(this.templateData.foldingIndicator, renderIcon(expandedIcon, undefined, 'notebook-folding-glyph'));
 				break;
 
 			default:

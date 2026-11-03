@@ -200,7 +200,7 @@ export class ViewLine implements IVisibleLine {
 		sb.appendString(ViewLine.CLASS_NAME);
 		sb.appendString('">');
 
-		const output = renderViewLine(renderLineInput, sb);
+		const output = renderViewLine(renderLineInput, sb, 'editor-view-line-content');
 
 		sb.appendString('</div>');
 

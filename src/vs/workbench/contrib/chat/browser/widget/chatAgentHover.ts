@@ -73,18 +73,20 @@ export class ChatAgentHover extends Disposable {
 			verifiedBadge,
 			this.publisherName);
 
-		hoverElement.warning.appendChild(renderIcon(Codicon.warning));
+		const warningIcon = hoverElement.warning.appendChild(renderIcon(Codicon.warning));
+		warningIcon.classList.add('chat-agent-hover-warning-icon');
 		hoverElement.warning.appendChild(dom.$('span', undefined, localize('reservedName', "This chat extension is using a reserved name.")));
 	}
 
 	setAgent(id: string): void {
 		const agent = this.chatAgentService.getAgent(id)!;
 		if (agent.metadata.icon instanceof URI) {
-			const avatarIcon = dom.$<HTMLImageElement>('img.icon');
+			const avatarIcon = dom.$<HTMLImageElement>('img.icon.chat-agent-hover-avatar');
 			avatarIcon.src = FileAccess.uriToBrowserUri(agent.metadata.icon).toString(true);
 			this.icon.replaceChildren(dom.$('.avatar', undefined, avatarIcon));
 		} else if (agent.metadata.themeIcon) {
 			const avatarIcon = dom.$(ThemeIcon.asCSSSelector(agent.metadata.themeIcon));
+			avatarIcon.classList.add('chat-agent-hover-glyph');
 			this.icon.replaceChildren(dom.$('.avatar.codicon-avatar', undefined, avatarIcon));
 		}
 

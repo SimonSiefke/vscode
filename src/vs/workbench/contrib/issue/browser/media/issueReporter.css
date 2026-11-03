@@ -48,10 +48,6 @@
 	padding-bottom: .5rem;
 }
 
-.issue-reporter-body .block-settingsSearchResults-details > div {
-	padding: .5rem .75rem;
-}
-
 .issue-reporter-body .section {
 	margin-bottom: .5em;
 }
@@ -449,7 +445,7 @@ body.issue-reporter-body  {
 	text-overflow: ellipsis;
 }
 
-.issue-reporter-body .issues-container > .issue > .issue-state .codicon {
+.issue-reporter-body .issues-container > .issue > .issue-state .codicon:where(.issue-reporter-state-glyph) {
 	width: 16px;
 }
 

@@ -5,7 +5,7 @@
 
 /* Card chrome, header, title and the close button come from widget/media/chatCard.css. */
 
-.chat-feedback-survey-widget.hidden {
+.hidden.chat-feedback-survey-widget {
 	display: none;
 }
 
@@ -55,7 +55,7 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.chat-feedback-survey-list-item.active {
+.active.chat-feedback-survey-list-item {
 	background-color: var(--vscode-list-inactiveSelectionBackground, var(--vscode-list-hoverBackground));
 	color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 }

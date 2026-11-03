@@ -29,12 +29,12 @@
 	position: relative;
 }
 
-.extension-editor > .header > .icon-container .extension-icon .icon {
+.extension-editor > .header > .icon-container .extension-icon .icon:where(.extension-widget-icon-image) {
 	height: 128px;
 	width: 128px;
 }
 
-.extension-editor > .header > .icon-container > .extension-icon .codicon {
+.extension-editor > .header > .icon-container > .extension-icon .codicon:where(.extension-widget-fallback-glyph) {
 	font-size: 128px !important;
 }
 
@@ -52,7 +52,7 @@
 	justify-content: center;
 }
 
-.extension-editor > .header > .icon-container .extension-icon-badge .codicon {
+.extension-editor > .header > .icon-container .extension-icon-badge .codicon:where(.extension-badge-glyph) {
 	color: currentColor;
 	font-size: 28px;
 }
@@ -158,7 +158,7 @@
 	align-items: center;
 }
 
-.extension-editor > .header > .details > .subtitle .sponsor .codicon {
+.extension-editor > .header > .details > .subtitle .sponsor .codicon:where(.extension-sponsor-glyph) {
 	padding-right: 3px;
 }
 
@@ -166,7 +166,7 @@
 	margin-left: 6px;
 }
 
-.extension-editor > .header > .details > .subtitle .extension-kind-indicator > .codicon {
+.extension-editor > .header > .details > .subtitle .extension-kind-indicator > .codicon:where(.extension-kind-glyph) {
 	margin-right: 6px;
 }
 
@@ -189,11 +189,11 @@
 	display: inherit;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar:where(.extension-header-action-bar) {
 	text-align: initial;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container:where(.extension-header-actions) {
 	flex-wrap: wrap;
 }
 
@@ -244,8 +244,8 @@
 	margin-top: 2px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .extension-action.label,
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .label.extension-action,
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item .label.extension-action {
 	max-width: 300px;
 }
 
@@ -253,11 +253,11 @@
 	height: 22px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item > .action-dropdown-item-separator > .action-dropdown-item-separator-line {
 	height: 16px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .label.extension-action {
 	margin-right: 2px;
 }
 
@@ -266,17 +266,17 @@
 }
 
 /* single install */
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .extension-action.label,
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item > .label.extension-action,
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .label.extension-action {
 	border-radius: 4px;
 }
 
 /* split install */
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .label.extension-action {
 	border-radius: 4px 0 0 4px;
 }
 
-.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .monaco-dropdown .extension-action.label {
+.extension-editor > .header > .details > .actions-status-container > .monaco-action-bar > .actions-container > .action-item.action-dropdown-item:not(.empty) > .monaco-dropdown .label.extension-action {
 	border-left-width: 0;
 	border-radius: 0 4px 4px 0;
 	padding: 0 2px;
@@ -326,7 +326,6 @@
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link,
-.extension-editor > .header > .details > .pre-release-text a,
 .extension-editor > .header > .details > .actions-status-container > .status a {
 	color: var(--vscode-textLink-foreground)
 }
@@ -354,7 +353,7 @@
 	margin-top: 5px;
 }
 
-.extension-editor > .header > .details > .recommendation .codicon {
+.extension-editor > .header > .details > .recommendation .codicon:where(.extension-recommendation-glyph) {
 	font-size: inherit;
 	margin-right: 5px;
 }
@@ -378,15 +377,15 @@
 	border-bottom: 1px solid var(--vscode-panelSection-border);
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container {
+.extension-editor > .body > .navbar > .monaco-action-bar > .extension-navbar-actions {
 	justify-content: initial;
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item {
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .extension-navbar-action-item {
 	height: 100%;
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label {
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .extension-navbar-action-label {
 	padding: 0 10px;
 	font-size: 11px;
 	font-weight: normal;
@@ -396,7 +395,7 @@
 	border-radius: 0px !important;
 }
 
-.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label.checked {
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .checked.extension-navbar-action-label {
 	border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
 	color: var(--vscode-panelTitle-activeForeground);
 }
@@ -417,8 +416,8 @@
 	background: url('loading.svg') center center no-repeat;
 }
 
-.extension-editor > .body > .content > .monaco-scrollable-element,
-.extension-editor > .body > .content > .details > .content-container > .monaco-scrollable-element {
+.extension-editor > .body > .content > .extension-editor-content-scrollable,
+.extension-editor > .body > .content > .details > .content-container > .extension-editor-content-scrollable {
 	height: 100%;
 }
 
@@ -454,7 +453,7 @@
 	display: none;
 }
 
-.extension-editor > .body > .content > .details > .additional-details-container > .monaco-scrollable-element {
+.extension-editor > .body > .content > .details > .additional-details-container > .extension-editor-content-scrollable {
 	height: 100%;
 }
 
@@ -583,7 +582,7 @@
 	border-bottom: 1px solid rgba(128, 128, 128, 0.22);
 }
 
-.extension-editor > .body > .content > .details > .content-container > .extension-pack-readme > .extension-pack > .extension-pack-content > .monaco-scrollable-element {
+.extension-editor > .body > .content > .details > .content-container > .extension-pack-readme > .extension-pack > .extension-pack-content > .extension-editor-content-scrollable {
 	height: 100%;
 }
 
@@ -781,10 +780,10 @@
 	text-decoration: underline;
 }
 
-.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon,
-.monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon,
-.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon,
-.monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon {
+.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
+.monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .icon-container > .extension-icon .icon:where(.extension-widget-icon-image),
+.monaco-workbench.vs .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph),
+.monaco-workbench.vs-dark .extension-editor .extensions-grid-view > .extension-container.disabled > .extension-list-item > .details > .header-container .codicon:where(.extension-header-widget-glyph, .extension-restart-required, .extension-sync-ignored, .extension-kind-glyph) {
 	opacity: 0.5;
 }
 
@@ -798,11 +797,7 @@
 	margin: 5px;
 }
 
-.extension-editor > .body > .content .runtime-status .message-entry .codicon {
-	padding-right: 2px;
-}
-
-.monaco-workbench .extension-editor > .header > .details > .recommendation .codicon {
+.monaco-workbench .extension-editor > .header > .details > .recommendation .codicon:where(.extension-recommendation-glyph) {
 	color: var(--vscode-extensionButton-prominentBackground);
 }
 

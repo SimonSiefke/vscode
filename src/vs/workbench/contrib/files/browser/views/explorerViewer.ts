@@ -871,7 +871,7 @@ export class FilesRenderer implements ICompressibleTreeRenderer<ExplorerItem, Fu
 
 	renderTemplate(container: HTMLElement): IFileTemplateData {
 		const templateDisposables = new DisposableStore();
-		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true }));
+		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true, labelContainerClassName: 'explorer-item-label-container', nameContainerClassName: 'explorer-item-name', highlightedLabelClassName: 'explorer-item-highlighted-label' }));
 		templateDisposables.add(label.onDidRender(() => {
 			// schedule this on the next animation frame to avoid rendering reentry
 			DOM.scheduleAtNextAnimationFrame(DOM.getWindow(templateData.container), () => {
@@ -1064,6 +1064,7 @@ export class FilesRenderer implements ICompressibleTreeRenderer<ExplorerItem, Fu
 			}
 		}, {
 			value,
+			inputBoxClassName: 'explorer-inline-input-box',
 			ariaLabel: localize('fileInputAriaLabel', "Type file name. Press Enter to confirm or Escape to cancel."),
 			selection: { start: 0, end: lastDot > 0 && !stat.isDirectory ? lastDot : value.length }
 		})).inputBox;

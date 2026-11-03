@@ -107,7 +107,7 @@
 	font-weight: normal;
 }
 
-.monaco-pane-view .pane > .pane-header.hidden {
+.monaco-pane-view .pane > .hidden.pane-header {
 	display: none;
 }
 

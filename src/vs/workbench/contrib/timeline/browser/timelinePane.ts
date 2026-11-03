@@ -1275,7 +1275,7 @@ class TimelineElementTemplate implements IDisposable {
 		container.classList.add('custom-view-tree-node-item');
 		this.icon = DOM.append(container, DOM.$('.custom-view-tree-node-item-icon'));
 
-		this.resourceLabel = labels.create(container, { supportHighlights: true, supportIcons: true, hoverDelegate });
+		this.resourceLabel = labels.create(container, { extraClasses: ['timeline-item-label'], supportHighlights: true, supportIcons: true, hoverDelegate });
 
 		const timestampContainer = DOM.append(this.resourceLabel.element, DOM.$('.timeline-timestamp-container'));
 		this.timestamp = DOM.append(timestampContainer, DOM.$('span.timeline-timestamp'));
@@ -1481,6 +1481,7 @@ export class TimelineTreeRenderer extends Disposable implements ITreeRenderer<Tr
 		template.container.classList.toggle('timeline-item-editing', !!editableData);
 		if (editableData) {
 			template.elementDisposables.add(this.instantiationService.createInstance(InlineEditInputBox, template.container, editableData, {
+				inputBoxClassName: 'timeline-inline-input-box',
 				ariaLabel: localize('timelineInputAriaLabel', "Type timeline item name. Press Enter to confirm or Escape to cancel.")
 			}));
 		}

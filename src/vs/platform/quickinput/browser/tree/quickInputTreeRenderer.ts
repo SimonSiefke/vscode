@@ -85,6 +85,7 @@ export class QuickInputTreeRenderer<T extends IQuickTreeItem> extends Disposable
 		const row1 = dom.append(rows, $('.quick-input-tree-row'));
 		const icon = dom.prepend(row1, $('.quick-input-tree-icon'));
 		const label = store.add(new IconLabel(row1, {
+			extraClasses: ['quick-input-tree-item-label'], nameContainerClassName: 'quick-input-tree-name-container',
 			supportHighlights: true,
 			supportDescriptionHighlights: true,
 			supportIcons: true,

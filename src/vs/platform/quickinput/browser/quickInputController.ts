@@ -191,6 +191,8 @@ export class QuickInputController extends Disposable {
 		const title = dom.append(titleBar, $('.quick-input-title'));
 
 		const rightActionBar = this._register(new ToolBar(titleBar, this.contextMenuService, {
+			actionsContainerClassName: 'quick-input-right-actions',
+			actionItemClassName: 'quick-input-right-action-item',
 			hoverDelegate: this.options.hoverDelegate,
 			actionViewItemProvider: createToggleActionViewItemProvider(this.styles.toggle),
 			icon: true,
@@ -230,6 +232,7 @@ export class QuickInputController extends Disposable {
 		const count = this._register(new CountBadge(countContainer, { countFormat: localize({ key: 'quickInput.countSelected', comment: ['This tells the user how many items are selected in a list of items to select from. The items can be anything.'] }, "{0} Selected") }, this.styles.countBadge));
 
 		const inlineActionBar = this._register(new ToolBar(headerContainer, this.contextMenuService, {
+			actionItemClassName: 'quick-input-inline-action-item',
 			hoverDelegate: this.options.hoverDelegate,
 			actionViewItemProvider: createToggleActionViewItemProvider(this.styles.toggle),
 			icon: true,

@@ -39,6 +39,10 @@ export class ActionWidgetDropdownActionViewItem extends BaseActionViewItem {
 
 		const labelRenderer: ILabelRenderer = (el: HTMLElement): IDisposable | null => {
 			this.element = append(el, $('a.action-label'));
+			const labelClassName = this.labelClassName;
+			if (labelClassName) {
+				this.element.classList.add(labelClassName);
+			}
 			return this.renderLabel(this.element);
 		};
 
@@ -49,6 +53,10 @@ export class ActionWidgetDropdownActionViewItem extends BaseActionViewItem {
 
 		this.updateTooltip();
 		this.updateEnabled();
+	}
+
+	protected get labelClassName(): string | undefined {
+		return undefined;
 	}
 
 	protected renderLabel(element: HTMLElement): IDisposable | null {

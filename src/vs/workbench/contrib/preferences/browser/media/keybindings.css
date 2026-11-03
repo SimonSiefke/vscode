@@ -16,7 +16,7 @@
 	text-align: center;
 }
 
-.defineKeybindingWidget .monaco-inputbox,
+.defineKeybindingWidget .define-keybinding-input-box,
 .defineKeybindingWidget .output,
 .defineKeybindingWidget .existing {
 	margin-top:10px;

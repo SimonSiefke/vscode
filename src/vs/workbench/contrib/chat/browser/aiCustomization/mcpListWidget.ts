@@ -2123,6 +2123,7 @@ export class McpListWidget extends Disposable {
 		const titleActions = DOM.append(titleRow, $('.section-title-actions'));
 		const browseLabel = localize('browseMcps', "Browse");
 		this.browseCustomizationsButton = this._register(new Button(titleActions, {
+			buttonClassName: 'mcp-section-browse-button',
 			...defaultButtonStyles,
 			secondary: true,
 			small: true,
@@ -2275,6 +2276,7 @@ export class McpListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				setRowLineHeight: false,
 				horizontalScrolling: false,

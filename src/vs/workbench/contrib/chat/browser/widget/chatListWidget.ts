@@ -636,6 +636,8 @@ export class ChatListWidget extends Disposable {
 				identityProvider: { getId: (e: ChatTreeItem) => e.id },
 				horizontalScrolling: false,
 				alwaysConsumeMouseWheel: false,
+				rowClassName: 'chat-message-list-row',
+				twistieAdditionalCssClass: () => 'chat-message-tree-twistie',
 				supportDynamicHeights: true,
 				paddingBottom: this._paddingBottom,
 				hideTwistiesOfChildlessElements: true,
@@ -726,6 +728,7 @@ export class ChatListWidget extends Disposable {
 		this._scrollDownButton.label = `$(${chatScrollToLatestIcon.id})`;
 		for (const child of this._scrollDownButton.element.children) {
 			if (child.classList.contains('codicon')) {
+				child.classList.add('chat-scroll-down-icon');
 				child.setAttribute('aria-hidden', 'true');
 			}
 		}

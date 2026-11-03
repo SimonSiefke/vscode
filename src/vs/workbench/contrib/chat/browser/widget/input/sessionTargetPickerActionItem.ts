@@ -496,7 +496,7 @@ export class SessionTypePickerActionItem extends ChatInputPickerActionViewItem {
 		const icon = this._getSessionIcon({ type: currentType, label, hoverDescription: '', commandId: '' });
 
 		const labelElements = [];
-		labelElements.push(...renderLabelWithIcons(`$(${getCompactCodicon(icon).id})`));
+		labelElements.push(...renderLabelWithIcons(`$(${getCompactCodicon(icon).id})`, undefined, 'chat-input-picker-glyph'));
 		const compact = this.pickerOptions.compact.get();
 		element.classList.toggle('icon-only', compact);
 		if (!compact) {

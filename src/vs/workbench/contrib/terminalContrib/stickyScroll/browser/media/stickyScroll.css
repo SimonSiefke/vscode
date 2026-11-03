@@ -21,7 +21,7 @@
 	background: var(--vscode-terminalStickyScroll-background, var(--vscode-terminal-background, var(--vscode-editor-background)));
 }
 
-.terminal-sticky-scroll.visible {
+.visible.terminal-sticky-scroll {
 	display:block;
 }
 

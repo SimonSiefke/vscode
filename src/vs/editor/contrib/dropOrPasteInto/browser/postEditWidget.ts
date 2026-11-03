@@ -101,6 +101,7 @@ class PostEditWidget<T extends DocumentPasteEdit | DocumentDropEdit> extends Dis
 
 		this.button = this._register(new Button(this.domNode, {
 			supportIcons: true,
+			contentClassName: 'post-edit-button-content',
 		}));
 		this.button.label = '$(insert)';
 

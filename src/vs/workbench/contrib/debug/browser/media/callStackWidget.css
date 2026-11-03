@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 .multiCallStackFrame {
-	.header {
+	.header:where(.call-stack-frame-header) {
 		display: flex;
 
 		align-items: center;
@@ -15,7 +15,7 @@
 		padding: 0 5px;
 	}
 
-	.title {
+	.title:where(.call-stack-frame-title) {
 		flex-grow: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -31,11 +31,11 @@
 	}
 
 	&.collapsed {
-		.header {
+		.header:where(.call-stack-frame-header) {
 			border-bottom: 1px solid var(--vscode-multiDiffEditor-border);
 		}
 
-		.editorParent {
+		.editorParent:where(.call-stack-frame-editor-parent) {
 			display: none;
 		}
 	}
@@ -43,14 +43,14 @@
 	.collapse-button {
 		width: 16px;
 		min-height: 1px; /* show even if empty */
-		line-height: 0;
-
-		a {
-			cursor: pointer;
-		}
+		line-height: 0
 	}
 
-	.actions {
+	:where(.collapse-button) a.call-stack-collapse-toggle {
+		cursor: pointer;
+	}
+
+	.actions:where(.call-stack-frame-actions) {
 		display: flex;
 		align-items: center;
 		gap: 8px;

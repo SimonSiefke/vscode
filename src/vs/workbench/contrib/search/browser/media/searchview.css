@@ -56,13 +56,13 @@
 	height: 100%;
 }
 
-.search-view .search-widget .monaco-inputbox > .ibwrapper > .mirror,
-.search-view .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-view .search-widget .monaco-inputbox > .ibwrapper > .monaco-inputbox-mirror,
+.search-view .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	padding: 3px 0px 3px 6px;
 }
 
 /* NOTE: height is also used in searchWidget.ts as a constant*/
-.search-view .search-widget .monaco-inputbox > .ibwrapper > textarea.input {
+.search-view .search-widget .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	overflow: initial;
 	/* set initial height before measure */
 	height: 26px;
@@ -72,7 +72,7 @@
 	opacity: 0;
 }
 
-.search-view .monaco-inputbox > .ibwrapper > textarea.input {
+.search-view .monaco-inputbox > .ibwrapper > textarea.monaco-inputbox-input {
 	/* Firefox: hide scrollbar */
 	scrollbar-width: none;
 }
@@ -106,11 +106,11 @@
 	right: 2px;
 }
 
-.search-view .search-widget .replace-container.disabled {
+.search-view .search-widget .disabled.replace-container {
 	display: none;
 }
 
-.search-view .search-widget .replace-container .monaco-action-bar {
+.search-view .search-widget .replace-container .monaco-action-bar:where(.search-replace-action-bar, .inputbox-action-bar) {
 	height: 25px;
 	margin-left: 4px;
 }
@@ -245,15 +245,15 @@
 	padding-right: 3px;
 }
 
-.pane-body:not(.wide) .search-view .foldermatch .monaco-icon-label,
-.pane-body:not(.wide) .search-view .filematch .monaco-icon-label {
+.pane-body:not(.wide) .search-view .foldermatch .search-result-resource-label,
+.pane-body:not(.wide) .search-view .filematch .search-result-resource-label {
 	flex: 1;
 }
 
 .pane-body:not(.wide) .search-view .monaco-list .monaco-list-row:hover:not(.highlighted) .foldermatch .monaco-icon-label,
-.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .foldermatch .monaco-icon-label,
+.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .foldermatch .search-result-resource-label,
 .pane-body:not(.wide) .search-view .monaco-list .monaco-list-row:hover:not(.highlighted) .filematch .monaco-icon-label,
-.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .filematch .monaco-icon-label {
+.pane-body:not(.wide) .search-view .monaco-list .monaco-list-row.focused .filematch .search-result-resource-label {
 	flex: 1;
 }
 
@@ -305,13 +305,13 @@
 	text-align: right;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar {
+.search-view .monaco-list .monaco-list-row .search-result-action-bar {
 	line-height: 1em;
 	display: none;
 	padding: 0 0.8em 0 0.4em;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-item {
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .search-result-action-item {
 	margin: 0;
 }
 
@@ -321,7 +321,7 @@
 	display: inline-block;
 }
 
-.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-item {
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .search-result-action-item {
 	margin-right: 0.2em;
 }
 
@@ -428,7 +428,7 @@
 	outline-color: var(--vscode-list-activeSelectionForeground)
 }
 
-.monaco-workbench .search-container .monaco-custom-toggle.disabled {
+.monaco-workbench .search-container .disabled.monaco-custom-toggle {
 	opacity: 0.3;
 	cursor: default;
 	user-select: none;

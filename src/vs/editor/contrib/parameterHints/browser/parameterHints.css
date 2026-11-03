@@ -47,7 +47,7 @@
 	margin: 8px 0;
 }
 
-.monaco-editor .parameter-hints-widget .monaco-scrollable-element,
+.monaco-editor .parameter-hints-widget .parameter-hints-scrollable,
 .monaco-editor .parameter-hints-widget .body {
 	display: flex;
 	flex: 1;
@@ -87,7 +87,7 @@
 	display: none;
 }
 
-.monaco-editor .parameter-hints-widget .docs a {
+.monaco-editor .parameter-hints-widget .docs a:where(.parameter-hints-doc-link) {
 	color: var(--vscode-textLink-foreground);
 }
 

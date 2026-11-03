@@ -702,6 +702,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 		this.tree = this.treeDisposables.add(this.instantiationService.createInstance(Tree, this.id, this.treeContainer!, new TreeViewDelegate(), [renderer],
 			dataSource, {
+			rowClassName: 'custom-view-list-row',
 			identityProvider: new TreeViewIdentityProvider(),
 			accessibilityProvider: {
 				getAriaLabel(element: ITreeItem): string | null {
@@ -1297,7 +1298,7 @@ class TreeRenderer extends Disposable implements ITreeRenderer<ITreeItem, FuzzyS
 		container.classList.add('custom-view-tree-node-item');
 
 		const checkboxContainer = DOM.append(container, DOM.$(''));
-		const resourceLabel = this.labels.create(container, { supportHighlights: true, hoverDelegate: this._hoverDelegate });
+		const resourceLabel = this.labels.create(container, { nameContainerClassName: 'custom-view-tree-name', supportHighlights: true, hoverDelegate: this._hoverDelegate });
 		const icon = DOM.prepend(resourceLabel.element, DOM.$('.custom-view-tree-node-item-icon'));
 		const actionsContainer = DOM.append(resourceLabel.element, DOM.$('.actions'));
 		const actionBar = new ActionBar(actionsContainer, {

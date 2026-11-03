@@ -508,7 +508,7 @@ suite('Sessions - Agents Part Card', () => {
 		const { container } = createCard(true, true);
 		const titles = ['panel', 'auxiliarybar'].map(className => {
 			const part = append(container, $(`.part.${className}`));
-			const title = append(part, $('.title'));
+			const title = append(part, $('.title.workbench-part-title'));
 			const tabs = append(title, $('.composite-bar-container'));
 			tabs.style.width = '100px';
 			append(title, $('.title-actions'));

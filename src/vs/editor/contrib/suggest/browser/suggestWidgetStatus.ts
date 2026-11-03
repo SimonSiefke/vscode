@@ -40,9 +40,9 @@ export class SuggestWidgetStatus {
 
 		const actionViewItemProvider = <IActionViewItemProvider>(action => {
 			if (options?.showIconsNoKeybindings) {
-				return action instanceof MenuItemAction ? instantiationService.createInstance(MenuEntryActionViewItem, action, undefined) : undefined;
+				return action instanceof MenuItemAction ? instantiationService.createInstance(MenuEntryActionViewItem, action, { labelClassName: 'suggest-status-action-label' }) : undefined;
 			} else {
-				return action instanceof MenuItemAction ? instantiationService.createInstance(TextOnlyMenuEntryActionViewItem, action, { useComma: false }) : undefined;
+				return action instanceof MenuItemAction ? instantiationService.createInstance(TextOnlyMenuEntryActionViewItem, action, { useComma: false, labelClassName: 'suggest-status-action-label' }) : undefined;
 			}
 		});
 		this._leftActions = new ActionBar(this.element, { actionViewItemProvider });
@@ -72,9 +72,9 @@ export class SuggestWidgetStatus {
 				}
 			}
 			this._leftActions.clear();
-			this._leftActions.push(left);
+			this._leftActions.push(left, { labelClassName: 'suggest-status-action-label' });
 			this._rightActions.clear();
-			this._rightActions.push(right);
+			this._rightActions.push(right, { labelClassName: 'suggest-status-action-label' });
 		};
 		this._menuDisposables.add(menu.onDidChange(() => renderMenu()));
 		this._menuDisposables.add(menu);

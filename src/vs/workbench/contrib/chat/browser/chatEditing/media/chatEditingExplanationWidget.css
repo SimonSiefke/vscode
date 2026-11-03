@@ -19,7 +19,7 @@
 	z-index: 10;
 }
 
-.chat-explanation-widget.visible {
+.visible.chat-explanation-widget {
 	opacity: 1;
 }
 
@@ -89,8 +89,8 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.chat-explanation-read-indicator > .codicon,
-.chat-explanation-item-read > .codicon {
+.chat-explanation-read-indicator > .codicon:where(.chat-explanation-read-glyph),
+.chat-explanation-item-read > .codicon:where(.chat-explanation-read-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -99,7 +99,7 @@
 	opacity: 1;
 }
 
-.chat-explanation-read-indicator.unread .codicon {
+.chat-explanation-read-indicator.unread .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 
@@ -108,7 +108,7 @@
 	opacity: 0.6;
 }
 
-.chat-explanation-read-indicator.partial .codicon {
+.chat-explanation-read-indicator.partial .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 
@@ -172,7 +172,7 @@
 	transition: max-height 0.2s ease-in-out, padding 0.2s ease-in-out;
 }
 
-.chat-explanation-body.collapsed {
+.collapsed.chat-explanation-body {
 	max-height: 0;
 	overflow: hidden;
 	padding: 0;
@@ -238,7 +238,7 @@
 	opacity: 1;
 }
 
-.chat-explanation-item-read.unread .codicon {
+.chat-explanation-item-read.unread .codicon:where(.chat-explanation-read-glyph) {
 	color: var(--vscode-textLink-foreground) !important;
 }
 

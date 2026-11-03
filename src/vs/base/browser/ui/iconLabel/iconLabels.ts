@@ -7,7 +7,7 @@ import * as dom from '../../dom.js';
 import { ThemeIcon } from '../../../common/themables.js';
 
 const labelWithIconsRegex = new RegExp(`(\\\\)?\\$\\((${ThemeIcon.iconNameExpression}(?:${ThemeIcon.iconModifierExpression})?)\\)`, 'g');
-export function renderLabelWithIcons(text: string, renderIconsInDefaultColor?: boolean): Array<HTMLSpanElement | string> {
+export function renderLabelWithIcons(text: string, renderIconsInDefaultColor?: boolean, iconClassName?: string): Array<HTMLSpanElement | string> {
 	const elements = new Array<HTMLSpanElement | string>();
 	let match: RegExpExecArray | null;
 
@@ -20,7 +20,7 @@ export function renderLabelWithIcons(text: string, renderIconsInDefaultColor?: b
 		textStart = (match.index || 0) + match[0].length;
 
 		const [, escaped, codicon] = match;
-		elements.push(escaped ? `$(${codicon})` : renderIcon({ id: codicon }, renderIconsInDefaultColor));
+		elements.push(escaped ? `$(${codicon})` : renderIcon({ id: codicon }, renderIconsInDefaultColor, iconClassName));
 	}
 
 	if (textStart < text.length) {
@@ -29,11 +29,14 @@ export function renderLabelWithIcons(text: string, renderIconsInDefaultColor?: b
 	return elements;
 }
 
-export function renderIcon(icon: ThemeIcon, renderDefaultColor?: boolean): HTMLSpanElement {
+export function renderIcon(icon: ThemeIcon, renderDefaultColor?: boolean, iconClassName?: string): HTMLSpanElement {
 	const node = dom.$(`span`);
 	const classes = ThemeIcon.asClassNameArray(icon);
 	if (renderDefaultColor) {
 		classes.push('codicon-colored');
+	}
+	if (iconClassName) {
+		classes.push(iconClassName);
 	}
 	node.classList.add(...classes);
 	return node;

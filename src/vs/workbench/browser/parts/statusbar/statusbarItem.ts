@@ -323,14 +323,14 @@ class StatusBarCodiconLabel extends SimpleIconLabel {
 	constructor(
 		private readonly container: HTMLElement
 	) {
-		super(container);
+		super(container, 'statusbar-item-glyph');
 	}
 
 	set showProgress(showProgress: boolean | 'loading' | 'syncing') {
 		if (this.currentShowProgress !== showProgress) {
 			this.currentShowProgress = showProgress;
 			if (showProgress) {
-				this.progressCodicon = renderIcon(showProgress === 'syncing' ? syncing : spinningLoading);
+				this.progressCodicon = renderIcon(showProgress === 'syncing' ? syncing : spinningLoading, undefined, 'statusbar-item-glyph');
 			}
 			this.text = this.currentText;
 		}
@@ -361,7 +361,7 @@ class StatusBarCodiconLabel extends SimpleIconLabel {
 			}
 
 			// Append new elements
-			append(this.container, ...renderLabelWithIcons(textContent));
+			append(this.container, ...renderLabelWithIcons(textContent, undefined, 'statusbar-item-glyph'));
 		}
 
 		// No Progress: no special handling

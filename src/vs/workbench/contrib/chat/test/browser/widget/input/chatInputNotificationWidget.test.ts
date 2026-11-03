@@ -1544,7 +1544,7 @@ suite('ChatInputNotificationWidget', () => {
 		assert.deepStrictEqual({ running, updated, reduced, done: icon() }, {
 			running: { busy: true, spinner: true, codicon: undefined },
 			updated: { busy: true, spinner: true, codicon: undefined, sameSpinner: true },
-			reduced: { busy: true, spinner: false, codicon: `codicon codicon-${Codicon.sessionInProgress.id}` },
+			reduced: { busy: true, spinner: false, codicon: `codicon codicon-${Codicon.sessionInProgress.id} chat-input-notification-busy-glyph` },
 			done: { busy: false, spinner: false, codicon: `codicon codicon-${Codicon.info.id}` },
 		});
 	});

@@ -14,7 +14,7 @@
 	touch-action: none;
 }
 
-.monaco-sash.disabled {
+.disabled.monaco-sash {
 	pointer-events: none;
 }
 
@@ -42,12 +42,12 @@
 	cursor: n-resize;
 }
 
-.monaco-sash.disabled {
+.disabled.monaco-sash {
 	cursor: default !important;
 	pointer-events: none !important;
 }
 
-.monaco-sash.vertical {
+.monaco-sash.vertical:where(.monaco-vertical-sash) {
 	cursor: ew-resize;
 	top: 0;
 	width: var(--vscode-sash-size);

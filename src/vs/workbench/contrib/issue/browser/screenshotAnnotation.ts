@@ -312,7 +312,7 @@ export class ScreenshotAnnotationEditor {
 
 		// 2. Crop tool
 		const cropBtn = append(toolbar, $('button.tool-btn.crop-btn'));
-		cropBtn.appendChild(renderIcon(Codicon.screenCut));
+		cropBtn.appendChild(renderIcon(Codicon.screenCut, undefined, 'issue-annotation-tool-glyph'));
 		cropBtn.title = localize('crop', "Crop");
 		cropBtn.setAttribute('aria-label', localize('crop', "Crop"));
 		this.toolButtons.push({ element: cropBtn, tool: AnnotationTool.Crop });
@@ -353,7 +353,7 @@ export class ScreenshotAnnotationEditor {
 
 		// 6. Undo button
 		const undoBtn = append(toolbar, $('button.tool-btn')) as HTMLButtonElement;
-		undoBtn.appendChild(renderIcon(Codicon.discard));
+		undoBtn.appendChild(renderIcon(Codicon.discard, undefined, 'issue-annotation-tool-glyph'));
 		undoBtn.title = localize('undo', "Undo");
 		undoBtn.setAttribute('aria-label', localize('undo', "Undo"));
 		this.disposables.add(addDisposableListener(undoBtn, EventType.CLICK, () => this.undo()));
@@ -361,7 +361,7 @@ export class ScreenshotAnnotationEditor {
 
 		// 7. Redo button
 		const redoBtn = append(toolbar, $('button.tool-btn')) as HTMLButtonElement;
-		redoBtn.appendChild(renderIcon(Codicon.redo));
+		redoBtn.appendChild(renderIcon(Codicon.redo, undefined, 'issue-annotation-tool-glyph'));
 		redoBtn.title = localize('redo', "Redo");
 		redoBtn.setAttribute('aria-label', localize('redo', "Redo"));
 		this.disposables.add(addDisposableListener(redoBtn, EventType.CLICK, () => this.redo()));
@@ -542,6 +542,7 @@ export class ScreenshotAnnotationEditor {
 
 	private addToolButton(toolbar: HTMLElement, tool: AnnotationTool, label: string, icon: HTMLSpanElement): void {
 		const btn = append(toolbar, $('button.tool-btn'));
+		icon.classList.add('issue-annotation-tool-glyph');
 		btn.appendChild(icon);
 		btn.title = label;
 		btn.setAttribute('aria-label', label);

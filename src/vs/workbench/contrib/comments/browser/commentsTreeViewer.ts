@@ -109,7 +109,7 @@ export class ResourceWithCommentsRenderer implements IListRenderer<ITreeNode<Res
 
 	renderTemplate(container: HTMLElement) {
 		const labelContainer = dom.append(container, dom.$('.resource-container'));
-		const resourceLabel = this.labels.create(labelContainer);
+		const resourceLabel = this.labels.create(labelContainer, { extraClasses: ['comments-panel-resource-label'] });
 		const separator = dom.append(labelContainer, dom.$('.separator'));
 		const owner = labelContainer.appendChild(dom.$('.owner'));
 
@@ -199,7 +199,7 @@ export class CommentNodeRenderer implements IListRenderer<ITreeNode<CommentNode>
 		const separator = dom.append(metadata, dom.$('.separator'));
 		const commentPreview = dom.append(metadata, dom.$('.text'));
 		const rangeContainer = dom.append(metadata, dom.$('.range'));
-		const range = dom.$('p');
+		const range = dom.$('p.comment-range-label');
 		rangeContainer.appendChild(range);
 
 		const threadMetadata = {
@@ -245,12 +245,12 @@ export class CommentNodeRenderer implements IListRenderer<ITreeNode<CommentNode>
 	}
 
 	private getRenderedComment(commentBody: IMarkdownString) {
-		const renderedComment = renderMarkdown(commentBody, {}, document.createElement('span'));
+		const renderedComment = renderMarkdown(commentBody, { elementClassName: 'comment-preview-node' }, dom.$('span.comment-preview-node'));
 		// eslint-disable-next-line no-restricted-syntax
 		const images = renderedComment.element.getElementsByTagName('img');
 		for (let i = 0; i < images.length; i++) {
 			const image = images[i];
-			const textDescription = dom.$('');
+			const textDescription = dom.$('.comment-preview-node');
 			textDescription.textContent = image.alt ? nls.localize('imageWithLabel', "Image: {0}", image.alt) : nls.localize('image', "Image");
 			image.replaceWith(textDescription);
 		}

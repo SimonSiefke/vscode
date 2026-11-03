@@ -7222,7 +7222,7 @@ suite('ChatListRenderer', () => {
 			const iconRules = getLoadedStyleRules(rule =>
 				(rule.selectorText.startsWith('.monaco-workbench .chat-pill-icon.codicon') && !!rule.style.display)
 				|| (rule.selectorText === '.monaco-action-bar .action-item .codicon' && !!rule.style.width)
-				|| (rule.selectorText.startsWith('.monaco-workbench .codicon[') && !!rule.style.fontSize)
+				|| (rule.selectorText === '.monaco-workbench .codicon[class*="codicon-"]' && !!rule.style.fontSize)
 			);
 			assert.strictEqual(iconRules.length, 3, iconRules.map(rule => rule.cssText).join('\n'));
 			// Exercise the product ordering with the shared icon rules loaded after chat.
@@ -9593,7 +9593,7 @@ suite('ChatListRenderer', () => {
 			configurePersistentProgressTypography(container, fontSize);
 			// Exercise the product ordering, where the workbench's base codicon size loads after chat.
 			container.classList.add('monaco-workbench');
-			const workbenchCodiconSize = getLoadedStyleRules(rule => rule.selectorText.startsWith('.monaco-workbench .codicon[') && !!rule.style.fontSize);
+			const workbenchCodiconSize = getLoadedStyleRules(rule => rule.selectorText === '.monaco-workbench .codicon[class*="codicon-"]' && !!rule.style.fontSize);
 			assert.strictEqual(workbenchCodiconSize.length, 1, workbenchCodiconSize.map(rule => rule.cssText).join('\n'));
 			dom.append(container, dom.$('style')).textContent = workbenchCodiconSize[0].cssText;
 			configurationService.setUserConfiguration(ChatConfiguration.CollapseCompletedResponses, true);

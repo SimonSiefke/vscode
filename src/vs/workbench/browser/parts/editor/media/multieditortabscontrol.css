@@ -62,7 +62,7 @@
 	height: 1px;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container > .monaco-scrollable-element {
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container > .editor-tabs-scrollable {
 	flex: 1;
 }
 
@@ -91,7 +91,7 @@
 	height: var(--editor-group-tab-height);
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab.hidden {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .hidden.tabs-bar-add-tab {
 	display: none;
 }
 
@@ -189,7 +189,8 @@
 	box-shadow: var(--vscode-shadow-sm);
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > :is(.tab.last-tab, .tabs-bar-add-tab) {
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tab.last-tab,
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container > .tabs-bar-add-tab.tabs-bar-add-tab {
 	margin-inline-end: var(--last-tab-margin-right); /* Reserve the trailing toolbar region on the final flex item. */
 }
 
@@ -403,12 +404,12 @@
 	padding-right: 5px; /* ensure that the gradient does not show when tab actions show https://github.com/microsoft/vscode/issues/189625*/
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sticky-compact:not(.has-icon) .monaco-icon-label {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sticky-compact:not(.has-icon) .editor-tab-resource-label {
 	text-align: center; /* ensure that sticky-compact tabs without icon have label centered */
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit .monaco-icon-label,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit .monaco-icon-label > .monaco-icon-label-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit .editor-tab-resource-label,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit .monaco-icon-label > .editor-tab-label-container {
 	overflow-x: visible; /* fixes https://github.com/microsoft/vscode/issues/20182 by ensuring the horizontal overflow is visible */
 
 	scrollbar-width: none; /* Firefox */
@@ -418,20 +419,20 @@
 	}
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .monaco-icon-label-container,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .monaco-icon-label-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .editor-tab-label-container,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .editor-tab-label-container {
 	text-overflow: clip;
 	flex: none;
 }
 
-.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .monaco-icon-label-container,
-.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .monaco-icon-label-container,
-.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .monaco-icon-label-container,
-.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .monaco-icon-label-container {
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .editor-tab-label-container,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink > .monaco-icon-label > .editor-tab-label-container,
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .editor-tab-label-container,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fixed > .monaco-icon-label > .editor-tab-label-container {
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .monaco-icon-label.italic > .monaco-icon-label-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .monaco-icon-label.italic > .editor-tab-label-container {
 	/**
 	 * Browser rendering engines seem to have trouble to render italic labels
 	 * fully without clipping in case the parent container has `overflow: hidden`
@@ -451,7 +452,7 @@
 	width: 28px;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .monaco-action-bar {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions > .editor-tab-action-bar {
 	width: 28px;
 }
 
@@ -486,7 +487,7 @@
 	opacity: 1;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .actions-container {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .editor-tab-toolbar-actions {
 	justify-content: center;
 }
 
@@ -556,11 +557,11 @@
 	height: var(--editor-group-tab-height);
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions.hidden {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .hidden.editor-actions {
 	display: none;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item {
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .editor-title-action-item {
 	margin-right: 4px;
 }
 

@@ -62,7 +62,7 @@
  * used outside a stack keeps its own rounding and one inside a run follows the
  * run - no member has to know which input it is docked to.
  */
-.chat-input-stack > * {
+.chat-input-stack > .chat-input-stack-member {
 	--chat-input-stack-radius-top: var(--chat-input-stack-radius-outer);
 }
 

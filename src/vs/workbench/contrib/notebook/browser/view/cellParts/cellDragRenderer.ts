@@ -43,7 +43,7 @@ class EditorTextRenderer {
 			+ `line-height: ${fontInfo.lineHeight}px;`
 			+ `white-space: pre;`;
 
-		const element = DOM.$('div', { style });
+		const element = DOM.$('div.notebook-drag-rich-text', { style });
 
 		const fontSize = fontInfo.fontSize;
 		const fontWeight = fontInfo.fontWeight;
@@ -75,7 +75,7 @@ class EditorTextRenderer {
 			if (lineContent === '') {
 				result += '<br>';
 			} else {
-				result += tokenizeLineToHTML(lineContent, lineTokens.inflate(), colorMap, startOffset, endOffset, tabSize, platform.isWindows);
+				result += tokenizeLineToHTML(lineContent, lineTokens.inflate(), colorMap, startOffset, endOffset, tabSize, platform.isWindows, 'notebook-drag-rich-text-line');
 			}
 		}
 
@@ -109,7 +109,7 @@ export class CodeCellDragImageRenderer {
 	private getDragImageImpl(templateData: BaseCellRenderTemplate, editor: ICodeEditor, type: 'code' | 'markdown'): HTMLElement | null {
 		const dragImageContainer = templateData.container.cloneNode(true) as HTMLElement;
 		dragImageContainer.classList.forEach(c => dragImageContainer.classList.remove(c));
-		dragImageContainer.classList.add('cell-drag-image', 'monaco-list-row', 'focused', `${type}-cell-row`);
+		dragImageContainer.classList.add('cell-drag-image', 'monaco-list-row', 'notebook-main-list-row', 'focused', `${type}-cell-row`);
 
 		// eslint-disable-next-line no-restricted-syntax
 		const editorContainer: HTMLElement | null = dragImageContainer.querySelector('.cell-editor-container');

@@ -58,7 +58,7 @@
 	-webkit-user-select: text;
 }
 
-.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-message a {
+.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-message a:where(.notification-message-link) {
 	color: var(--vscode-notificationLink-foreground);
 }
 

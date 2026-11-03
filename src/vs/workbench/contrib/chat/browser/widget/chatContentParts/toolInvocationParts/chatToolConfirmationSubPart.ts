@@ -178,7 +178,7 @@ export class ToolConfirmationSubPart extends AbstractToolConfirmationSubPart {
 				dom.h('.message@messageContainer', [
 					dom.h('.message-wrapper@message'),
 					dom.h('.see-more@showMore', [
-						dom.h('a', [localize('showMore', "Show More")])
+						dom.h('a.chat-tool-see-more-link', [localize('showMore', "Show More")])
 					]),
 				]),
 				dom.h('.editor@editor'),
@@ -282,7 +282,7 @@ export class ToolConfirmationSubPart extends AbstractToolConfirmationSubPart {
 				elements.editor.append(editor.object.element);
 
 				if (canSeeMore) {
-					const seeMore = dom.h('div.see-more', [dom.h('a@link')]);
+					const seeMore = dom.h('div.see-more', [dom.h('a.chat-tool-see-more-link@link')]);
 					seeMore.link.textContent = localize('seeMore', "See more");
 					this._register(dom.addDisposableGenericMouseDownListener(seeMore.link, () => {
 						try {

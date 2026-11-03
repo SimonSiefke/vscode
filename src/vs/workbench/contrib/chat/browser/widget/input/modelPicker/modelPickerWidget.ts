@@ -479,7 +479,7 @@ export class ModelPickerWidget extends Disposable {
 	}
 
 	render(container: HTMLElement): void {
-		this._domNode = dom.append(container, dom.$('div.action-label.model-picker-split'));
+		this._domNode = dom.append(container, dom.$('div.action-label.chat-input-picker-trigger.model-picker-split'));
 		const { primaryButton, secondaryButton } = renderChatInputPickerSplit(this._domNode);
 
 		// Apply initial minimal state now that _domNode exists
@@ -849,7 +849,7 @@ export class ModelPickerWidget extends Disposable {
 		if (this._badgeIcon) {
 			if (this._badge) {
 				const icon = this._badge === 'info' ? Codicon.info : Codicon.warningCompact;
-				dom.reset(this._badgeIcon, renderIcon(icon));
+				dom.reset(this._badgeIcon, renderIcon(icon, undefined, 'chat-input-picker-glyph'));
 				this._badgeIcon.style.display = '';
 				this._badgeIcon.classList.toggle('info', this._badge === 'info');
 				this._badgeIcon.classList.toggle('warning', this._badge === 'warning');
@@ -897,7 +897,7 @@ export class ModelPickerWidget extends Disposable {
 				: shownModel.metadata.statusIcon ? getCompactCodicon(shownModel.metadata.statusIcon) : undefined)
 			: undefined;
 		if (modelIcon && !noModelsAvailable) {
-			nameChildren.push(renderIcon(modelIcon));
+			nameChildren.push(renderIcon(modelIcon, undefined, 'chat-input-picker-glyph'));
 		}
 		// A "Models" placeholder (no badge) beats a dead-end label while unavailable — the hover and
 		// dropdown carry the Restricted Mode explanation and the Trust Workspace / Sign In action.

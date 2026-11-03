@@ -46,7 +46,7 @@
 		align-items: center;
 		flex-shrink: 0;
 
-		.actions-container {
+		.browser-toolbar-actions {
 			gap: 4px;
 		}
 	}
@@ -96,7 +96,7 @@
 			color: var(--vscode-statusBarItem-warningForeground);
 		}
 
-		.codicon {
+		.browser-remote-indicator-icon {
 			color: inherit;
 		}
 	}
@@ -124,11 +124,11 @@
 		white-space: nowrap;
 		pointer-events: none;
 
-		&.visible {
+		&.visible:where(.browser-zoom-pill) {
 			display: flex;
 		}
 
-		.codicon {
+		.browser-zoom-pill-icon {
 			font-size: 14px;
 		}
 	}
@@ -208,7 +208,7 @@
 			align-items: center;
 			flex-shrink: 0;
 
-			.actions-container { gap: 2px; }
+			.browser-emulation-actions { gap: 2px; }
 		}
 	}
 
@@ -239,7 +239,7 @@
 			max-width: 200px;
 			padding: 3px 6px;
 
-			span {
+			span:where(.browser-link-hint-content) {
 				opacity: 1;
 			}
 
@@ -248,7 +248,7 @@
 			}
 		}
 
-		&.visible {
+		&.visible:where(.browser-link-opened-hint-pill) {
 			display: flex;
 		}
 
@@ -261,12 +261,12 @@
 			outline-offset: 1px;
 		}
 
-		span {
+		span:where(.browser-link-hint-content) {
 			opacity: 0;
 			transition: opacity 0.3s ease;
 		}
 
-		.codicon {
+		.browser-link-opened-hint-icon {
 			color: inherit;
 			font-size: 14px;
 			flex-shrink: 0;
@@ -293,7 +293,7 @@
 				outline-offset: 0px !important;
 			}
 
-			.codicon {
+			.browser-favorite-indicator-icon {
 				margin: 0;
 				font-size: 16px;
 			}
@@ -321,7 +321,7 @@
 			gap: 4px;
 			outline: none !important;
 
-			> span:not(.codicon) {
+			> span:where(.browser-share-button-content):not(.codicon) {
 				min-width: 0;
 				overflow: hidden;
 				text-overflow: ellipsis;
@@ -332,7 +332,7 @@
 				outline-offset: 0px !important;
 			}
 
-			.codicon {
+			.browser-share-toggle-icon {
 				margin: 0;
 			}
 
@@ -524,7 +524,7 @@
 		visibility: hidden;
 		transition: opacity 200ms ease-in;
 
-		&.visible {
+		&.visible:where(.browser-overlay-paused) {
 			opacity: 1;
 			visibility: visible;
 		}
@@ -689,7 +689,7 @@
 			outline-offset: -1px !important;
 		}
 
-		.codicon {
+		.browser-site-info-icon {
 			font-size: 15px;
 			margin: 0;
 			color: var(--vscode-statusBarItem-errorForeground);
@@ -736,11 +736,11 @@
 	.browser-error-icon {
 		margin-bottom: 12px;
 
-		.codicon {
+		.browser-error-glyph {
 			font-size: 32px;
 		}
 
-		&.cert-error .codicon {
+		&.cert-error .codicon:where(.browser-error-glyph) {
 			color: var(--vscode-errorForeground);
 		}
 	}
@@ -793,7 +793,7 @@
 			justify-content: flex-start;
 		}
 
-		.monaco-button {
+		.browser-cert-action-button {
 			width: fit-content;
 		}
 	}

@@ -593,7 +593,7 @@ export class BreadcrumbsControl {
 		this._editorTypeLabel.classList.add('label');
 		this._editorTypeNode.appendChild(this._editorTypeLabel);
 		const editorTypeChevron = document.createElement('span');
-		editorTypeChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
+		editorTypeChevron.classList.add('breadcrumbs-editor-type-chevron', ...ThemeIcon.asClassNameArray(Codicon.chevronDown));
 		this._editorTypeNode.appendChild(editorTypeChevron);
 		dom.append(this.domNode, this._editorTypeNode);
 		this._editorTypeHover = this._editorTypeDisposables.add(this._hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this._editorTypeNode, ''));

@@ -57,13 +57,14 @@ export class SuggestDetailsWidget {
 		this._body = dom.$('.body');
 
 		this._scrollbar = new DomScrollableElement(this._body, {
+			className: 'editor-suggest-details-scrollable',
 			alwaysConsumeMouseWheel: true,
 		});
 		dom.append(this.domNode, this._scrollbar.getDomNode());
 		this._disposables.add(this._scrollbar);
 
 		this._header = dom.append(this._body, dom.$('.header'));
-		this._close = dom.append(this._header, dom.$('span' + ThemeIcon.asCSSSelector(Codicon.close)));
+		this._close = dom.append(this._header, dom.$('span.suggest-details-close-control' + ThemeIcon.asCSSSelector(Codicon.close)));
 		this._close.title = nls.localize('details.close', "Close");
 		this._close.ariaLabel = nls.localize('details.close', "Close");
 		this._close.role = 'button';
@@ -178,6 +179,7 @@ export class SuggestDetailsWidget {
 			this._docs.classList.add('markdown-docs');
 			dom.clearNode(this._docs);
 			const renderedContents = this._markdownRendererService.render(documentation, {
+				linkClassName: 'editor-suggest-documentation-link',
 				context: this._editor,
 				sanitizerConfig: getEditorMarkdownSanitizerConfig(this._editor),
 				asyncRenderCallback: () => {
@@ -185,6 +187,7 @@ export class SuggestDetailsWidget {
 					this._onDidChangeContents.fire(this);
 				}
 			});
+			renderedContents.element.classList.add('editor-suggest-documentation');
 			this._docs.appendChild(renderedContents.element);
 			this._renderDisposeable.add(renderedContents);
 		}

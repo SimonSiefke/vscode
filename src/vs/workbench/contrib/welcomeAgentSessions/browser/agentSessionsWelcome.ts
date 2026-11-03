@@ -299,7 +299,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 		for (const entry of entries) {
 			const button = append(container, $('button.agentSessionsWelcome-startEntry'));
-			button.appendChild(renderIcon(entry.icon));
+			button.appendChild(renderIcon(entry.icon, undefined, 'agent-welcome-start-glyph'));
 			button.appendChild(document.createTextNode(entry.label));
 			button.onclick = () => {
 				this.telemetryService.publicLog2<AgentSessionsWelcomeActionEvent, AgentSessionsWelcomeActionClassification>(
@@ -659,7 +659,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 			// Update icon
 			clearNode(iconContainer);
 			if (walkthrough.icon.type === 'icon') {
-				iconContainer.appendChild(renderIcon(walkthrough.icon.icon));
+				iconContainer.appendChild(renderIcon(walkthrough.icon.icon, undefined, 'agent-welcome-card-glyph'));
 			}
 
 			// Update content
@@ -738,7 +738,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 		// Icon
 		const iconContainer = append(tosCard, $('.agentSessionsWelcome-walkthroughCard-icon'));
-		iconContainer.appendChild(renderIcon(Codicon.chatSparkle));
+		iconContainer.appendChild(renderIcon(Codicon.chatSparkle, undefined, 'agent-welcome-card-glyph'));
 
 		// Content
 		const content = append(tosCard, $('.agentSessionsWelcome-walkthroughCard-content'));

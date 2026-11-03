@@ -213,7 +213,7 @@
 		}
 
 		/* Single-select: highlight entire row when selected (list not focused) */
-		.chat-question-list-item.selected {
+		.selected.chat-question-list-item {
 			background-color: var(--vscode-list-inactiveSelectionBackground, var(--vscode-list-hoverBackground));
 			color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 
@@ -323,7 +323,7 @@
 	}
 }
 
-.interactive-session .chat-question-carousel-container .chat-question-input-container > * {
+.interactive-session .chat-question-carousel-container :where(.chat-question-input-container) > .chat-question-input-section {
 	flex-shrink: 0;
 }
 
@@ -614,7 +614,7 @@
 		border-radius: var(--vscode-cornerRadius-small);
 	}
 
-	.chat-question-summary-option.selected {
+	.selected.chat-question-summary-option {
 		background: var(--vscode-list-inactiveSelectionBackground);
 		color: var(--vscode-foreground);
 	}
@@ -630,7 +630,7 @@
 		color: inherit;
 	}
 
-	.chat-question-summary-option-selected > .codicon {
+	.chat-question-summary-option-selected > .codicon:where(.chat-question-selected-glyph) {
 		font-size: var(--vscode-codiconFontSize-compact);
 	}
 }

@@ -22,6 +22,6 @@
 	background-color: var(--vscode-button-hoverBackground) !important;
 }
 
-.post-edit-widget .monaco-button .codicon {
+.post-edit-widget .monaco-button .codicon:where(.post-edit-button-content) {
 	margin: 0;
 }

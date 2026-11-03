@@ -69,7 +69,7 @@
 	line-height: 1.4;
 }
 
-.customization-discovery-description a {
+.customization-discovery-description a:where(.customization-discovery-description-link) {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: none;
 }
@@ -108,7 +108,7 @@
 	display: inline-grid;
 }
 
-.customization-discovery-result-content.loading > :not(.customization-discovery-result-loading) {
+.customization-discovery-result-content.loading > .customization-discovery-result-body {
 	visibility: hidden;
 }
 
@@ -312,12 +312,12 @@
 	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 20%, transparent));
 }
 
-.customization-discovery-card-icon:not(.is-fallback) > .codicon,
-.customization-discovery-result-icon:not(.is-fallback) > .codicon {
+.customization-discovery-card-icon:not(.is-fallback) > .codicon:where(.customization-marketplace-fallback-glyph),
+.customization-discovery-result-icon:not(.is-fallback) > .codicon:where(.customization-marketplace-fallback-glyph) {
 	display: none;
 }
 
-.customization-discovery-card-icon img {
+.customization-discovery-card-icon img:where(.customization-marketplace-image) {
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -462,7 +462,7 @@
 	min-height: 0;
 }
 
-.customization-discovery-list .monaco-list-row {
+.customization-discovery-list .customization-discovery-result-row {
 	box-sizing: border-box;
 	border-radius: var(--vscode-cornerRadius-small);
 }
@@ -484,7 +484,7 @@
 	border-radius: var(--vscode-cornerRadius-medium) var(--vscode-cornerRadius-medium) 0 0;
 }
 
-.customization-discovery-list .monaco-list-row:has(> .customization-discovery-result-content.linked-alternative) {
+.customization-discovery-list :has(> .customization-discovery-result-content.linked-alternative).customization-discovery-result-row {
 	overflow: visible;
 }
 
@@ -578,7 +578,7 @@
 	pointer-events: none;
 }
 
-.customization-discovery-result-icon img {
+.customization-discovery-result-icon img:where(.customization-marketplace-image) {
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -627,7 +627,7 @@
 	visibility: hidden;
 }
 
-.customization-discovery-result-stats .codicon {
+.customization-discovery-result-stats .codicon:where(.customization-discovery-stats-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 

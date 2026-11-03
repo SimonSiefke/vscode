@@ -43,7 +43,7 @@ import { ISessionsChatViewStateService } from './chatViewStateService.js';
 import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { ChatInputNoticeLane } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeHost.js';
 import { ChatInputNoticeVariant, ChatInputNoticeWidget } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeWidget.js';
-import { chatInputStackClass, ChatInputStackSlot, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
+import { chatInputStackClass, ChatInputStackSlot, refreshChatInputStack, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
 
 // #region --- New Chat In Session Widget ---
 
@@ -322,6 +322,7 @@ export class NewChatInSessionWidget extends Disposable {
 		// so the pet stands on it rather than on the composer boundary.
 		this._renderSubSessionTip();
 
+		refreshChatInputStack(chatWidgetContent);
 		chatWidgetContainer.classList.add('revealed');
 	}
 

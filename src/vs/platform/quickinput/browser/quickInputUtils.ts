@@ -154,7 +154,7 @@ export function renderQuickInputDescription(description: string, container: HTML
 				title = node.href;
 			}
 
-			const anchor = dom.$('a', { href: node.href, title, tabIndex: tabIndex++ }, node.label);
+			const anchor = dom.$('a.quick-input-description-link', { href: node.href, title, tabIndex: tabIndex++ }, node.label);
 			anchor.style.textDecoration = 'underline';
 			const handleOpen = (e: unknown) => {
 				if (dom.isEventLike(e)) {

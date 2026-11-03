@@ -151,7 +151,7 @@
 		width: auto;
 		border-radius: var(--vscode-cornerRadius-small);
 
-		> .monaco-tl-row {
+		> .monaco-tl-row:where(.sessions-list-tree-contents) {
 			border-radius: inherit;
 		}
 	}
@@ -282,13 +282,13 @@
 		flex-shrink: 0;
 		margin-left: auto;
 
-		.monaco-toolbar {
+		.session-title-toolbar-root {
 			position: relative;
 			right: 0;
 			top: 0;
 		}
 
-		.actions-container {
+		.session-title-toolbar-actions {
 			gap: var(--vscode-spacing-size40);
 		}
 	}
@@ -302,7 +302,7 @@
 		font-size: 12px;
 		pointer-events: none;
 
-		&.visible {
+		&.visible:where(.session-pending-voice-indicator) {
 			display: flex;
 		}
 	}
@@ -319,7 +319,7 @@
 			line-height: normal;
 		}
 
-		.monaco-inputbox > .ibwrapper > .input {
+		.monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 			height: 20px;
 			padding: 0;
 		}
@@ -504,7 +504,7 @@
 		font-size: var(--vscode-fontSize-label2);
 		font-weight: var(--vscode-fontWeight-regular);
 
-		&.visible {
+		&.visible:where(.session-comparison-attempt-status) {
 			display: flex;
 		}
 	}
@@ -623,7 +623,7 @@
 		max-width: 40%;
 		margin-left: var(--vscode-spacing-size60);
 
-		&.visible {
+		&.visible:where(.session-external-application-badge-title) {
 			display: flex;
 		}
 	}
@@ -706,7 +706,7 @@
 		color: var(--vscode-editor-foreground);
 		align-items: center;
 
-		&.visible {
+		&.visible:where(.session-ci-row) {
 			display: flex;
 		}
 
@@ -722,7 +722,7 @@
 		.session-ci-button {
 			flex-shrink: 0;
 
-			.monaco-button {
+			.sessions-ci-action-button {
 				padding: 2px 10px;
 				font-size: var(--vscode-fontSize-label1, 12px);
 				white-space: nowrap;
@@ -880,7 +880,7 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label2);
 
-	&.visible {
+	&.visible:where(.session-search-hint-title) {
 		display: flex;
 	}
 }
@@ -906,7 +906,7 @@
 	color: var(--vscode-editor-foreground);
 	align-items: center;
 
-	&.visible {
+	&.visible:where(.session-approval-row) {
 		display: flex;
 	}
 
@@ -934,7 +934,7 @@
 	.session-approval-button {
 		flex-shrink: 0;
 
-		.monaco-button {
+		.sessions-approval-action-button {
 			padding: 2px 10px;
 			font-size: var(--vscode-fontSize-label1, 12px);
 			white-space: nowrap;
@@ -1376,7 +1376,7 @@
 		flex-shrink: 0;
 		margin-left: var(--vscode-spacing-size40);
 
-		&.visible {
+		&.visible:where(.session-section-keybinding) {
 			display: inline-flex;
 		}
 	}
@@ -1546,7 +1546,7 @@
 		font-weight: var(--vscode-fontWeight-regular);
 		line-height: 14px;
 
-		&.visible {
+		&.visible:where(.session-group-description) {
 			display: block;
 		}
 	}
@@ -1562,7 +1562,7 @@
 			line-height: 18px;
 		}
 
-		.monaco-inputbox .input {
+		.monaco-inputbox .monaco-inputbox-input {
 			padding: 0 4px;
 			font-size: var(--vscode-fontSize-label2, 11px);
 		}

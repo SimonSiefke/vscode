@@ -8,9 +8,9 @@
 	max-width: 100%;
 }
 
-.chat-subagent-open-chat-toolbar .monaco-toolbar,
-.chat-subagent-open-chat-toolbar .monaco-action-bar,
-.chat-subagent-open-chat-toolbar .actions-container {
+.chat-subagent-open-chat-toolbar .chat-subagent-toolbar-root,
+.chat-subagent-open-chat-toolbar .chat-subagent-action-bar,
+.chat-subagent-open-chat-toolbar .chat-subagent-toolbar-actions {
 	width: 100%;
 	min-width: 0;
 }
@@ -32,7 +32,7 @@
 	outline: none;
 }
 
-.chat-subagent-open-chat-toolbar .actions-container .action-item.chat-subagent-pill-widget.hidden {
+.chat-subagent-open-chat-toolbar .actions-container .action-item.hidden.chat-subagent-pill-widget {
 	display: none;
 }
 
@@ -83,7 +83,7 @@
 	margin-left: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-agent-type.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-agent-type {
 	display: none;
 }
 
@@ -159,7 +159,7 @@
 	margin-right: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-model.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-model {
 	display: none;
 }
 
@@ -179,7 +179,7 @@
 	line-height: 1.4em;
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-active-tool.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-active-tool {
 	display: none;
 }
 
@@ -229,7 +229,7 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-content.focused {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .focused.chat-subagent-pill-content {
 	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 }
@@ -256,7 +256,8 @@
 
 .chat-subagent-open-chat-toolbar {
 	.action-item.chat-subagent-pill-widget {
-		&:is(.chat-subagent-running, .chat-subagent-waiting) {
+		&.chat-subagent-running,
+		&.chat-subagent-waiting {
 			gap: var(--vscode-spacing-size40);
 		}
 
@@ -294,7 +295,7 @@
 	background-color: color-mix(in srgb, var(--vscode-list-warningForeground) 8%, transparent);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget:is(.chat-subagent-running, .chat-subagent-waiting) .chat-subagent-pill-icon .chat-subagent-pill-open-icon.codicon {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget:is(.chat-subagent-running, .chat-subagent-waiting) .chat-subagent-pill-icon .codicon.chat-subagent-pill-open-icon {
 	display: none;
 }
 
@@ -320,8 +321,8 @@
 	margin-right: var(--vscode-spacing-size40);
 }
 
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-duration.hidden,
-.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-credits.hidden {
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-duration,
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .hidden.chat-subagent-pill-credits {
 	display: none;
 }
 

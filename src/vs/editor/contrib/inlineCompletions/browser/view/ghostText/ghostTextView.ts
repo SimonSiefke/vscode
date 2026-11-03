@@ -158,6 +158,8 @@ export class GhostTextView extends Disposable {
 			}
 
 			const lineHeight = this._editorObs.getOption(EditorOption.lineHeight);
+			const warningIcon = renderIcon(state.icon);
+			warningIcon.classList.add('ghost-text-warning-icon');
 			store.add(this._editorObs.createContentWidget({
 				position: constObservable<IContentWidgetPosition>({
 					position: new Position(state.lineNumber, Number.MAX_SAFE_INTEGER),
@@ -188,7 +190,7 @@ export class GhostTextView extends Disposable {
 							alignItems: 'center',
 						}
 					},
-						[renderIcon(state.icon)]
+						[warningIcon]
 					)
 				]).keepUpdated(store).element,
 			}));
@@ -224,6 +226,9 @@ export class GhostTextView extends Disposable {
 			extraClasses.push('short-text');
 		} else if (this._useSyntaxHighlighting.read(reader)) {
 			extraClasses.push('syntax-highlighted');
+		}
+		if (!extraClasses.includes('syntax-highlighted')) {
+			extraClasses.push('ghost-text-unhighlighted');
 		}
 		const extraClassNames = extraClasses.map(c => ` ${c}`).join('');
 		return extraClassNames;

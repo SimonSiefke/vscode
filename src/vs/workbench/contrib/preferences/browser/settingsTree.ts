@@ -935,7 +935,7 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 		const labelCategoryContainer = DOM.append(titleElement, $('.setting-item-cat-label-container'));
 		const categoryElement = DOM.append(labelCategoryContainer, $('span.setting-item-category'));
 		const labelElementContainer = DOM.append(labelCategoryContainer, $('span.setting-item-label'));
-		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer));
+		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer, 'setting-title-glyph'));
 		const indicatorsLabel = toDispose.add(this._instantiationService.createInstance(SettingsTreeIndicatorsLabel, titleElement));
 
 		const descriptionElement = DOM.append(container, $('.setting-item-description'));
@@ -1101,6 +1101,8 @@ export abstract class AbstractSettingRenderer extends Disposable implements ITre
 		text = fixSettingLinks(text);
 
 		const renderedMarkdown = disposables.add(this._markdownRendererService.render({ value: text, isTrusted: true }, {
+			linkClassName: 'setting-description-markdown-link',
+			elementClassName: 'setting-description-node',
 			actionHandler: (content: string) => {
 				if (content.startsWith('#')) {
 					const e: ISettingLinkClickEvent = {
@@ -2063,7 +2065,7 @@ class SettingBoolRenderer extends AbstractSettingRenderer implements ITreeRender
 		const titleElement = DOM.append(container, $('.setting-item-title'));
 		const categoryElement = DOM.append(titleElement, $('span.setting-item-category'));
 		const labelElementContainer = DOM.append(titleElement, $('span.setting-item-label'));
-		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer));
+		const labelElement = toDispose.add(new SimpleIconLabel(labelElementContainer, 'setting-title-glyph'));
 		const indicatorsLabel = toDispose.add(this._instantiationService.createInstance(SettingsTreeIndicatorsLabel, titleElement));
 
 		const descriptionAndValueElement = DOM.append(container, $('.setting-item-value-description'));
@@ -2690,6 +2692,8 @@ export class SettingsTree extends WorkbenchObjectTree<SettingsTreeElement> {
 			new SettingsTreeDelegate(),
 			renderers,
 			{
+				contentsClassName: 'settings-editor-tree-contents',
+				twistieAdditionalCssClass: () => 'settings-editor-tree-twistie',
 				horizontalScrolling: false,
 				supportDynamicHeights: true,
 				scrollToActiveElement: true,

@@ -110,6 +110,7 @@ export class FindInput extends Widget {
 		this.domNode.classList.add('monaco-findInput');
 
 		this.inputBox = this._register(new HistoryInputBox(this.domNode, contextViewProvider, {
+			inputBoxClassName: 'find-input-box',
 			placeholder: this.placeholder || '',
 			ariaLabel: this.label || '',
 			validationOptions: {

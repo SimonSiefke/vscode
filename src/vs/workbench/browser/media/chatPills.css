@@ -24,7 +24,7 @@
 	width: auto;
 }
 
-.chat-pill-hover-content.compact {
+.compact.chat-pill-hover-content {
 	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
 }
 
@@ -49,24 +49,24 @@
 }
 
 .chat-pills,
-.chat-pills .monaco-toolbar,
-.chat-pills .monaco-action-bar,
-.chat-pills .monaco-action-bar .actions-container {
+.chat-pills .chat-pills-toolbar-root,
+.chat-pills .chat-pills-action-bar,
+.chat-pills .monaco-action-bar .chat-pills-toolbar-actions {
 	display: flex;
 	align-items: center;
 	min-width: 0;
 }
 
-.chat-pills.hidden {
+.hidden.chat-pills {
 	display: none;
 }
 
 /* Take hit-testing back from the click-through row the pills may float in. */
-.chat-pills .monaco-action-bar .action-item {
+.chat-pills .monaco-action-bar .chat-pills-action-item {
 	pointer-events: auto;
 }
 
-.chat-pills .monaco-action-bar .actions-container {
+.chat-pills .monaco-action-bar .chat-pills-toolbar-actions {
 	gap: var(--vscode-spacing-size60);
 }
 
@@ -210,7 +210,7 @@
 	padding-right: calc(var(--vscode-spacing-size40) + var(--vscode-spacing-size160) + var(--vscode-spacing-size20));
 }
 
-.monaco-workbench .chat-pill-item > .chat-pill-promoted-action.codicon {
+.monaco-workbench .chat-pill-item > .codicon.chat-pill-promoted-action {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
@@ -233,14 +233,14 @@
 }
 
 /* Compact pills keep only their icon; the compact padding rules also drop the reserved space. */
-.monaco-workbench .chat-pills-row.compact .chat-pill-item > .chat-pill-promoted-action.codicon,
-.monaco-workbench .chat-pill-item > .chat-pill-button.compact + .chat-pill-promoted-action.codicon {
+.monaco-workbench .chat-pills-row.compact .chat-pill-item > .codicon.chat-pill-promoted-action,
+.monaco-workbench .chat-pill-item > .chat-pill-button.compact + .codicon.chat-pill-promoted-action {
 	display: none;
 }
 
 /* The chevron shares the leading glyph's compact box. `chevron-down-compact` is
 	drawn on that box's centre, so it needs no nudge to sit on the label. */
-.monaco-workbench .chat-pill-chevron.codicon {
+.monaco-workbench .codicon.chat-pill-chevron {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -260,7 +260,7 @@
 	display: none;
 }
 
-.chat-resource-pill-button .monaco-icon-label {
+.chat-resource-pill-button .chat-resource-pill-label {
 	align-items: center;
 	min-width: 0;
 	overflow: hidden;
@@ -359,21 +359,21 @@
 	flex-shrink: 0;
 }
 
-.chat-pills-row-content > * {
+.chat-pills-row-item {
 	pointer-events: auto;
 }
 
-.chat-pills-row.hidden {
+.hidden.chat-pills-row {
 	display: none;
 }
 
 .chat-pills-row.compact .chat-pills-row-content,
-.chat-pills-row.compact .chat-pills .monaco-action-bar .actions-container {
+.chat-pills-row.compact .chat-pills .monaco-action-bar .actions-container:where(.chat-pills-toolbar-actions) {
 	gap: var(--vscode-spacing-size40);
 }
 
 .chat-pills-row.compact .chat-pill-item .monaco-button.chat-pill-button,
-.chat-pills-row .chat-pill-item .monaco-button.chat-pill-button.compact {
+.chat-pills-row .chat-pill-item .monaco-button.compact.chat-pill-button {
 	gap: var(--vscode-spacing-size20);
 	padding-left: var(--vscode-spacing-size40);
 	padding-right: var(--vscode-spacing-size40);
@@ -384,12 +384,12 @@
 .chat-pills-row.compact .changes-stats-files,
 .chat-pills-row.compact .monaco-animated-counter,
 .chat-pills-row.compact .chat-pill-chevron,
-.chat-pills-row.compact .chat-resource-pill-button .monaco-icon-label,
+.chat-pills-row.compact .chat-resource-pill-button .chat-resource-pill-label,
 .chat-pills-row .chat-pill-button.compact .chat-pill-label,
 .chat-pills-row .chat-pill-button.compact .changes-stats-files,
 .chat-pills-row .chat-pill-button.compact .monaco-animated-counter,
 .chat-pills-row .chat-pill-button.compact .chat-pill-chevron,
-.chat-pills-row .chat-resource-pill-button.compact .monaco-icon-label {
+.chat-pills-row .chat-resource-pill-button.compact .chat-resource-pill-label {
 	display: none;
 }
 

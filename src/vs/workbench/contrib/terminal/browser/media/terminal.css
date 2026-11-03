@@ -312,11 +312,6 @@
 	flex: 1;
 	min-height: 0;
 }
-
-.monaco-workbench .pane-body.integrated-terminal .tabs-container > .monaco-toolbar {
-	padding: 4px 0 2px;
-	margin: auto;
-}
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-entry.is-active::before {
 	display: block;
 	position: absolute;
@@ -325,15 +320,6 @@
 	top: 0;
 	bottom: 0;
 	width: 1px;
-}
-
-.monaco-workbench .pane-body.integrated-terminal .tabs-container.has-text > .monaco-toolbar {
-	padding: 4px 7px 2px;
-	margin: 0;
-}
-
-.monaco-workbench .pane-body.integrated-terminal .tabs-container.has-text > .monaco-toolbar {
-	text-align: left;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry {
@@ -451,18 +437,18 @@
 	align-items: center;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-icon-name-container {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .terminal-tab-name {
 	flex-shrink: 0;
 	margin-right: var(--vscode-spacing-size40);
 }
 
 /* There is not enough room for the icon next to the input box when tabs only show icons */
-.monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .tabs-list .editable-tab .monaco-icon-name-container,
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-icon-description-container {
+.monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .tabs-list .editable-tab .terminal-tab-name,
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .terminal-tab-description {
 	display: none;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .terminal-tab-inline-input-box {
 	flex: 1;
 	min-width: 0;
 	width: 100%;
@@ -470,7 +456,7 @@
 	height: 22px;
 }
 
-.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox > .ibwrapper > .input {
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .editable-tab .monaco-inputbox > .ibwrapper > .monaco-inputbox-input {
 	padding: 0 6px;
 	height: 100%;
 	line-height: 22px;

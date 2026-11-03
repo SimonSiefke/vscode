@@ -30,11 +30,11 @@
 	align-items: center;
 }
 
-.tunnel-host-toggle.sharing .tunnel-host-icon .codicon {
+.tunnel-host-toggle.sharing .tunnel-host-icon .tunnel-host-glyph {
 	color: var(--vscode-focusBorder) !important;
 }
 
-.tunnel-host-toggle.connecting .tunnel-host-icon .codicon {
+.tunnel-host-toggle.connecting .tunnel-host-icon .tunnel-host-glyph {
 	animation: tunnel-host-pulse 1.5s ease-in-out infinite;
 }
 
@@ -57,7 +57,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.tunnel-host-toggle.connecting .tunnel-host-icon .codicon {
+	.tunnel-host-toggle.connecting .tunnel-host-icon .tunnel-host-glyph {
 		animation: none;
 	}
 }

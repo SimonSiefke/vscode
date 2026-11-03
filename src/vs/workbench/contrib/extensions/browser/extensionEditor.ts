@@ -107,7 +107,7 @@ class NavBar extends Disposable {
 		super();
 		const element = append(container, $('.navbar'));
 		this.actions = [];
-		this.actionbar = this._register(new ActionBar(element));
+		this.actionbar = this._register(new ActionBar(element, { actionsContainerClassName: 'extension-navbar-actions' }));
 	}
 
 	push(id: string, label: string, tooltip: string): void {
@@ -116,7 +116,7 @@ class NavBar extends Disposable {
 		action.tooltip = tooltip;
 
 		this.actions.push(action);
-		this.actionbar.push(action);
+		this.actionbar.push(action, { labelClassName: 'extension-navbar-action-label', itemClassName: 'extension-navbar-action-item' });
 
 		if (this.actions.length === 1) {
 			this.update(id);
@@ -360,6 +360,8 @@ export class ExtensionEditor extends EditorPane {
 
 		const actionsAndStatusContainer = append(details, $('.actions-status-container'));
 		const extensionActionBar = this._register(new ActionBar(actionsAndStatusContainer, {
+			className: 'extension-header-action-bar',
+			actionsContainerClassName: 'extension-header-actions',
 			actionViewItemProvider: (action: IAction, options) => {
 				if (action instanceof DropDownExtensionAction) {
 					return action.createActionViewItem(options);
@@ -912,7 +914,7 @@ export class ExtensionEditor extends EditorPane {
 
 	private renderAdditionalDetails(container: HTMLElement, extension: IExtension): void {
 		const content = $('div', { class: 'additional-details-content', tabindex: '0' });
-		const scrollableContent = new DomScrollableElement(content, {});
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable' });
 		const layout = () => scrollableContent.scanDomNode();
 		const removeLayoutParticipant = arrays.insert(this.layoutParticipants, { layout });
 		this.contentDisposables.add(toDisposable(removeLayoutParticipant));
@@ -960,7 +962,7 @@ export class ExtensionEditor extends EditorPane {
 		}
 
 		const content = $('div', { class: 'subcontent' });
-		const scrollableContent = new DomScrollableElement(content, {});
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable' });
 		append(contentContainer, scrollableContent.getDomNode());
 		this.contentDisposables.add(scrollableContent);
 
@@ -1005,7 +1007,7 @@ export class ExtensionEditor extends EditorPane {
 		}
 
 		const content = $('div', { class: 'subcontent' });
-		const scrollableContent = new DomScrollableElement(content, { useShadows: false });
+		const scrollableContent = new DomScrollableElement(content, { className: 'extension-editor-content-scrollable', useShadows: false });
 		append(parent, scrollableContent.getDomNode());
 
 		const extensionsGridView = this.instantiationService.createInstance(ExtensionsGridView, content, new Delegate());

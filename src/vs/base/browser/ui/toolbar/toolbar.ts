@@ -40,9 +40,17 @@ export interface IToolBarResponsiveBehaviorOptions {
 }
 
 export interface IToolBarOptions {
+	/** Class applied to the action bar root for component styling. */
+	actionBarClassName?: string;
+	/** Class applied to each action item wrapper for component styling. */
+	actionItemClassName?: string;
+	/** Class applied to action labels, including dropdown labels and menu items. */
+	actionLabelClassName?: string;
 	orientation?: ActionsOrientation;
 	actionViewItemProvider?: IActionViewItemProvider;
 	ariaLabel?: string;
+	/** Class applied to the actions list for component styling. */
+	actionsContainerClassName?: string;
 	getKeyBinding?: (action: IAction) => ResolvedKeybinding | undefined;
 	/**
 	 * Returns the index at which the secondary-actions trigger is inserted
@@ -128,8 +136,11 @@ export class ToolBar extends Disposable {
 		container.appendChild(this.element);
 
 		this.actionBar = this._register(new ActionBar(this.element, {
+			className: options.actionBarClassName,
+			actionItemClassName: options.actionItemClassName,
 			orientation: options.orientation,
 			ariaLabel: options.ariaLabel,
+			actionsContainerClassName: options.actionsContainerClassName,
 			actionRunner: options.actionRunner,
 			allowContextMenu: options.allowContextMenu,
 			highlightToggledItems: options.highlightToggledItems,
@@ -145,6 +156,7 @@ export class ToolBar extends Disposable {
 							actionRunner: this.actionRunner,
 							keybindingProvider: this.options.getKeyBinding,
 							classNames: ThemeIcon.asClassNameArray(options.moreIcon ?? Codicon.toolBarMore),
+							labelClassName: this.options.actionLabelClassName,
 							menuClassName: this.options.dropdownMenuClassName,
 							closeAnimation: this.options.dropdownMenuCloseAnimation,
 							anchorAlignmentProvider: this.options.anchorAlignmentProvider,
@@ -178,6 +190,7 @@ export class ToolBar extends Disposable {
 							actionRunner: this.actionRunner,
 							keybindingProvider: this.options.getKeyBinding,
 							classNames: action.class,
+							labelClassName: this.options.actionLabelClassName,
 							menuClassName: this.options.dropdownMenuClassName,
 							closeAnimation: this.options.dropdownMenuCloseAnimation,
 							anchorAlignmentProvider: this.options.anchorAlignmentProvider,
@@ -326,7 +339,7 @@ export class ToolBar extends Disposable {
 		}
 
 		primaryActionsToSet.forEach(action => {
-			this.actionBar.push(action, { icon: this.options.icon ?? true, label: this.options.label ?? false, keybinding: this.getKeybindingLabel(action) });
+			this.actionBar.push(action, { icon: this.options.icon ?? true, label: this.options.label ?? false, labelClassName: this.options.actionLabelClassName, keybinding: this.getKeybindingLabel(action) });
 		});
 
 		this.updateOverflowClassName();
@@ -680,6 +693,7 @@ export class ToolBar extends Disposable {
 					this.actionBar.push(this.toggleMenuAction, {
 						icon: this.options.icon ?? true,
 						label: this.options.label ?? false,
+						labelClassName: this.options.actionLabelClassName,
 						keybinding: this.getKeybindingLabel(this.toggleMenuAction),
 						index: this.getToggleMenuActionInsertionIndex(),
 					});
@@ -705,6 +719,7 @@ export class ToolBar extends Disposable {
 					this.actionBar.push(action, {
 						icon: this.options.icon ?? true,
 						label: this.options.label ?? false,
+						labelClassName: this.options.actionLabelClassName,
 						keybinding: this.getKeybindingLabel(action),
 						index: this.getPrimaryActionInsertionIndex(action),
 					});

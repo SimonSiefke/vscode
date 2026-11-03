@@ -164,6 +164,8 @@ function fillInActions(
 }
 
 export interface IMenuEntryActionViewItemOptions {
+	/** Class applied to the rendered label for component styling. */
+	readonly labelClassName?: string;
 	readonly draggable?: boolean;
 	readonly keybinding?: string | null;
 	readonly hoverDelegate?: IHoverDelegate;
@@ -190,7 +192,7 @@ export class MenuEntryActionViewItem<T extends IMenuEntryActionViewItemOptions =
 		@IContextMenuService protected readonly _contextMenuService: IContextMenuService,
 		@IAccessibilityService private readonly _accessibilityService: IAccessibilityService
 	) {
-		super(undefined, action, { icon: !!(action.class || action.item.icon), label: !action.class && !action.item.icon, draggable: _options?.draggable, keybinding: _options?.keybinding, hoverDelegate: _options?.hoverDelegate, keybindingNotRenderedWithLabel: _options?.keybindingNotRenderedWithLabel });
+		super(undefined, action, { icon: !!(action.class || action.item.icon), label: !action.class && !action.item.icon, labelClassName: _options?.labelClassName, draggable: _options?.draggable, keybinding: _options?.keybinding, hoverDelegate: _options?.hoverDelegate, keybindingNotRenderedWithLabel: _options?.keybindingNotRenderedWithLabel });
 		this._altKey = ModifierKeyEmitter.getInstance();
 	}
 

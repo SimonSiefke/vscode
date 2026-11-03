@@ -32,8 +32,8 @@
 
 /* Outrank `.monaco-workbench .codicon[class*='codicon-']` so these compact
  * badge icons are not promoted to the workbench's base codicon size. */
-.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-icon.codicon,
-.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon.codicon {
+.chat-confirmation-widget2 > .tool-risk-badge .codicon.tool-risk-icon,
+.chat-confirmation-widget2 > .tool-risk-badge .codicon.tool-risk-details-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -59,7 +59,7 @@
 	outline-offset: 1px;
 }
 
-.chat-confirmation-widget2 > .tool-risk-badge.loading {
+.chat-confirmation-widget2 > .loading.tool-risk-badge {
 	opacity: 0.7;
 }
 

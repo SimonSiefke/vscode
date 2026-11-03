@@ -163,7 +163,7 @@ export class CellExecutionPart extends CellContentPart {
 					// Only recreate the content if we're newly becoming sticky
 					DOM.clearNode(this._executionOrderContent);
 					const icon = ThemeIcon.modify(executingStateIcon, 'spin');
-					DOM.append(this._executionOrderContent, ...renderLabelWithIcons(`$(${icon.id})`));
+					DOM.append(this._executionOrderContent, ...renderLabelWithIcons(`$(${icon.id})`, undefined, 'notebook-execution-order-glyph'));
 				}
 				// When already sticky, we don't need to recreate the content
 			} else if (!statusBarVisible && cellIsRunning) {

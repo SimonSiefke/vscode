@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { toDisposable } from '../../../../../../../base/common/lifecycle.js';
 import { mainWindow } from '../../../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../base/test/common/utils.js';
 import { ChatRichLink } from '../../../../browser/widget/chatContentParts/chatRichLink.js';
@@ -11,6 +12,47 @@ import { ChatRichLink } from '../../../../browser/widget/chatContentParts/chatRi
 suite('ChatRichLink', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('presentation changes preserve status visibility and colors on a reused link', () => {
+		const anchor = mainWindow.document.createElement('a');
+		mainWindow.document.body.appendChild(anchor);
+		store.add(toDisposable(() => anchor.remove()));
+		for (const [name, value] of Object.entries({
+			'--vscode-descriptionForeground': 'rgb(90, 90, 90)',
+			'--vscode-editorWarning-foreground': 'rgb(160, 120, 0)',
+			'--vscode-charts-green': 'rgb(0, 128, 0)',
+			'--vscode-charts-purple': 'rgb(128, 0, 128)',
+			'--vscode-charts-red': 'rgb(192, 0, 0)',
+			'--vscode-errorForeground': 'rgb(192, 0, 0)',
+		})) {
+			anchor.style.setProperty(name, value);
+		}
+		const link = store.add(ChatRichLink.mount(anchor, mainWindow.document.createElement('span')));
+		const presentations = [
+			{ kind: 'session', status: { kind: 'pending', label: 'Working' } },
+			{ kind: 'chat', status: { kind: 'success', label: 'Completed' } },
+			{ kind: 'issue', status: { kind: 'closed', label: 'Closed' } },
+			{ kind: 'pullRequest', status: { kind: 'closed', label: 'Closed' }, secondaryStatus: { kind: 'error', label: 'Failed checks' } },
+			{ kind: 'resource' },
+		] as const;
+		const states = presentations.map(presentation => {
+			link.update(presentation);
+			const status = anchor.querySelector<HTMLElement>('.chat-rich-link-primary-status')!;
+			return {
+				visible: mainWindow.getComputedStyle(status).display !== 'none',
+				label: mainWindow.getComputedStyle(status.querySelector('.chat-rich-link-status-label')!).display !== 'none',
+				color: mainWindow.getComputedStyle(status).color,
+				secondaryColor: mainWindow.getComputedStyle(anchor.querySelector('.chat-rich-link-secondary-status')!).color,
+			};
+		});
+		assert.deepStrictEqual(states, [
+			{ visible: true, label: false, color: 'rgb(160, 120, 0)', secondaryColor: 'rgb(90, 90, 90)' },
+			{ visible: false, label: false, color: 'rgb(0, 128, 0)', secondaryColor: 'rgb(90, 90, 90)' },
+			{ visible: true, label: false, color: 'rgb(128, 0, 128)', secondaryColor: 'rgb(90, 90, 90)' },
+			{ visible: true, label: false, color: 'rgb(192, 0, 0)', secondaryColor: 'rgb(192, 0, 0)' },
+			{ visible: false, label: true, color: 'rgb(90, 90, 90)', secondaryColor: 'rgb(90, 90, 90)' },
+		]);
+	});
 
 	test('renders semantic icons for session and chat pills', () => {
 		const sessionAnchor = mainWindow.document.createElement('a');

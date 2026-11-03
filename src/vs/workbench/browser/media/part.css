@@ -8,7 +8,7 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part > .drop-block-overlay.visible {
+.monaco-workbench .part > .visible.drop-block-overlay {
 	visibility: visible;
 }
 
@@ -22,12 +22,12 @@
 	z-index: 12;
 }
 
-.monaco-workbench .part > .title,
+.monaco-workbench .part > .title:where(.workbench-part-title),
 .monaco-workbench .part > .header-or-footer {
 	display: none; /* Parts have to opt in to show area */
 }
 
-.monaco-workbench .part > .title,
+.monaco-workbench .part > .title:where(.workbench-part-title),
 .monaco-workbench .part > .header-or-footer {
 	height: 35px;
 	display: flex;
@@ -35,7 +35,7 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part > .title {
+.monaco-workbench .part > .title:where(.workbench-part-title) {
 	padding-left: 8px;
 	padding-right: 8px;
 }

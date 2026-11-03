@@ -66,7 +66,7 @@ import { buildNewSessionPrompt } from '../../agentFeedback/browser/agentFeedback
 import { SessionInputBannerWidget } from '../../sessionInputBanners/browser/sessionInputBannerWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ChatInputTipPresenter } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputTipPresenter.js';
-import { chatInputStackClass, chatInputStackSlotClass, chatInputSurfaceStackClass, ChatInputStackSlot, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
+import { chatInputStackClass, chatInputStackSlotClass, chatInputSurfaceStackClass, ChatInputStackSlot, refreshChatInputStack, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
 import { IChatPetService } from '../../../../workbench/contrib/chat/browser/chatPetService.js';
 import type { IChatPetPlatformOccupation } from '../../../../workbench/contrib/chat/browser/widget/chatPetWidget.js';
 import { IChatTipService } from '../../../../workbench/contrib/chat/browser/chatTipService.js';
@@ -992,6 +992,7 @@ export class NewChatWidget extends Disposable {
 			}));
 		}
 
+		refreshChatInputStack(chatWidgetContent);
 		chatWidgetContainer.classList.add('revealed');
 	}
 

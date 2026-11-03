@@ -10,7 +10,7 @@ import { EventType as TouchEventType } from '../../../base/browser/touch.js';
 import { ActionBar } from '../../../base/browser/ui/actionbar/actionbar.js';
 import { ActionViewItem } from '../../../base/browser/ui/actionbar/actionViewItems.js';
 import { getAnchorRect, IAnchor, IContextViewCloseAnimation } from '../../../base/browser/ui/contextview/contextview.js';
-import { KeybindingLabel } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
+import { KeybindingLabel, unthemedKeybindingLabelOptions } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { IHoverAction } from '../../../base/browser/ui/hover/hover.js';
 import { HoverAction } from '../../../base/browser/ui/hover/hoverWidget.js';
 import { DomScrollableElement } from '../../../base/browser/ui/scrollbar/scrollableElement.js';
@@ -323,6 +323,7 @@ class SeparatorRenderer<T> implements IListRenderer<IActionListItem<T>, ISeparat
 		container.classList.add('separator');
 
 		const text = document.createElement('span');
+		text.classList.add('action-list-separator-text');
 		container.append(text);
 		const badges = dom.append(container, dom.$('span.action-item-additional-badges', { 'aria-hidden': 'true' }));
 		const detail = dom.append(container, dom.$('span.detail'));
@@ -412,7 +413,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 
 		const labelIcon = dom.append(container, dom.$('span.action-list-label-icon', { 'aria-hidden': 'true' }));
 		const text = document.createElement('span');
-		text.className = 'title';
+		text.className = 'title action-widget-title';
 		container.append(text);
 
 		const badge = document.createElement('span');
@@ -434,7 +435,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 		detail.className = 'detail';
 		container.append(detail);
 
-		const keybinding = new KeybindingLabel(container, OS);
+		const keybinding = new KeybindingLabel(container, OS, { ...unthemedKeybindingLabelOptions, keyClassName: 'action-list-key' });
 
 		const toolbar = document.createElement('div');
 		toolbar.className = 'action-list-item-toolbar';
@@ -456,6 +457,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 	renderElement(element: IActionListItem<T>, _index: number, data: IActionMenuTemplateData): void {
 		// Clear previous element disposables
 		data.elementDisposables.clear();
+		data.text.classList.remove('action-list-toggle-info-label');
 
 		if (element.iconClasses?.length) {
 			data.icon.className = ['icon', ...element.iconClasses].join(' ');
@@ -581,6 +583,7 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 			toggleLabel.textContent = stripNewlines(toggleConfig.label);
 			if (toggleConfig.showInfoIcon) {
 				const labelContainer = element.standaloneToggle ? data.text : toggleLabel;
+				labelContainer.classList.add('action-list-toggle-info-label');
 				labelContainer.replaceChildren(dom.$('span.action-list-item-toggle-label-text', undefined, labelContainer.textContent ?? ''));
 				const infoIcon = dom.append(labelContainer, dom.$('span.action-list-item-toggle-info'));
 				infoIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.info));
@@ -1161,6 +1164,7 @@ export class ActionListWidget<T> extends Disposable {
 			new HeaderRenderer(),
 			new SeparatorRenderer(this._hoverService),
 		], {
+			rowClassName: 'action-widget-list-row',
 			supportDynamicHeights: this._options?.wrapDetails,
 			keyboardSupport: false,
 			multipleSelectionSupport: this._options?.multipleSelectionSupport ?? true,

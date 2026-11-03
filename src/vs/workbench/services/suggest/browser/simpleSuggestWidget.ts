@@ -234,6 +234,7 @@ export class SimpleSuggestWidget<TModel extends SimpleCompletionModel<TItem>, TI
 			getHeight: (): number => this._getLayoutInfo().itemHeight,
 			getTemplateId: (): string => 'suggestion'
 		}, [renderer], {
+			rowClassName: 'workbench-suggest-list-row',
 			alwaysConsumeMouseWheel: true,
 			useShadows: false,
 			mouseSupport: false,

@@ -1015,9 +1015,11 @@ class SessionChatItemRenderer implements ITreeRenderer<SessionListItem, FuzzySco
 		const isStandaloneContext = SessionChatItemIsStandaloneContext.bindTo(contextKeyService);
 		const scopedInstantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyService])));
 		const titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, titleToolbarContainer, Menus.SessionChatItemToolbar, {
+			actionsContainerClassName: 'session-title-toolbar-actions',
 			menuOptions: { shouldForwardArgs: true },
 			telemetrySource: 'sessionsList.chatRow',
 		}));
+		titleToolbar.getElement().classList.add('session-title-toolbar-root');
 
 		// Approval row — mirrors the session row's approval prompt but scoped to
 		// this specific chat (see the "Approval Row Content" region above).
@@ -1425,6 +1427,7 @@ function renderApprovalRowContent(
 
 	elements.buttonContainer.textContent = '';
 	const button = store.add(new Button(elements.buttonContainer, {
+		buttonClassName: 'sessions-approval-action-button',
 		title: localize('allowActionOnce', "Allow once"),
 		// All simultaneously visible "Allow" buttons share the same visible label
 		// and tooltip, so give each an explicit accessible name that names the
@@ -1796,6 +1799,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			const actionRunner = disposables.add(new SessionItemActionRunner(this.options.getMultiSelectedSessions, this.options.handleToolbarAction));
 			const actionViewItemProvider = createSessionActionViewItemProvider(scopedInstantiationService, this.configurationService);
 			titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, titleToolbarContainer, this.options.toolbarMenuId, {
+				actionsContainerClassName: 'session-title-toolbar-actions',
 				menuOptions: { shouldForwardArgs: true },
 				actionRunner,
 				telemetrySource: this.options.toolbarTelemetrySource,
@@ -1816,6 +1820,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 					}, action, getSessionArchiveActionViewItemOptions(options, this.configurationService));
 				},
 			}));
+			titleToolbar.getElement().classList.add('session-title-toolbar-root');
 		}
 
 		return { container, statusIcon, title, titleRow, titleContainer, externalApplicationBadge, externalApplicationBadgeLabel, titleSearchHint, titleInputContainer, compactHoverDescription, titleToolbar, renderedSession, pendingVoiceIndicator, comparisonAttemptStatus, comparisonAttemptStatusLabel, detailsRow, approvalRow, approvalLabel, approvalButtonContainer, inputNeededRow, inputNeededLabel, ciRow, ciLabel, ciButtonContainer, contextKeyService, statusContext, isReadContext, isArchivedContext, isQuickChatContext, supportsMultipleChatsContext, supportsDeleteContext, disposables, elementDisposables };
@@ -2358,6 +2363,7 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 				template.ciButtonContainer.textContent = '';
 				// Match the chat input CI banner's prominent orange action button.
 				const button = buttonStore.add(new Button(template.ciButtonContainer, {
+					buttonClassName: 'sessions-ci-action-button',
 					title: localize('ci.fixCITooltip', "Fix failing CI checks"),
 					...defaultButtonStyles,
 					buttonBackground: asCssVariable(chartsOrange),
@@ -5035,6 +5041,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 				placeholderRenderer,
 			],
 			{
+				treeRowClassName: 'sessions-list-tree-contents',
 				accessibilityProvider: new SessionsAccessibilityProvider(sectionRenderer.automationStatus, {
 					grouping: this.options.grouping,
 					getChatHarnessLabel: (session, chat, reader) => getDistinctChatHarnessLabel(session, chat, sessionsProvidersService, reader),
@@ -9919,6 +9926,7 @@ export class SessionsFlatList extends Disposable {
 			this._delegate,
 			[sessionRenderer],
 			{
+				treeRowClassName: 'sessions-list-tree-contents',
 				accessibilityProvider: new SessionsAccessibilityProvider(undefined, {
 					grouping: () => SessionsGrouping.Date,
 					isPinned: session => this._sessionsListModelService.isSessionPinned(session),

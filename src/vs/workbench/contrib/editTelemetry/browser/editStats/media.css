@@ -28,11 +28,6 @@
 		color: var(--vscode-descriptionForeground);
 	}
 
-	.monaco-button {
-		margin-top: 5px;
-		margin-bottom: 5px;
-	}
-
 	/* Chart toggle buttons */
 	.chart-view-toggle {
 		display: flex;
@@ -52,7 +47,7 @@
 		background-color: var(--vscode-toolbar-hoverBackground);
 	}
 
-	.chart-toggle-button.active {
+	.active.chart-toggle-button {
 		opacity: 1;
 		background-color: var(--vscode-toolbar-activeBackground);
 	}

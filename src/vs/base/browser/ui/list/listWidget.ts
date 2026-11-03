@@ -1101,6 +1101,10 @@ export interface IListOptions<T> extends IListOptionsUpdate {
 	readonly keyboardNavigationEventFilter?: IKeyboardNavigationEventFilter;
 
 	// list view options
+	/** CSS class applied to each row before its renderer creates the template. */
+	readonly rowClassName?: string;
+	/** CSS class applied to the scrollable viewport during creation. */
+	readonly scrollableClassName?: string;
 	readonly useShadows?: boolean;
 	readonly verticalScrollMode?: ScrollbarVisibility;
 	readonly setRowLineHeight?: boolean;

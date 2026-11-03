@@ -81,7 +81,7 @@
 	color: var(--vscode-textLink-foreground);
 }
 
-.agentSessionsWelcome-startEntry .codicon {
+.agentSessionsWelcome-startEntry .codicon:where(.agent-welcome-start-glyph) {
 	color: var(--vscode-descriptionForeground) !important;
 }
 
@@ -169,7 +169,7 @@
 }
 
 /* 2-column grid layout using CSS transforms on virtualized list */
-.agentSessionsWelcome-sessionsGrid .monaco-list-row {
+.agentSessionsWelcome-sessionsGrid .agent-sessions-tree-row {
 	width: 50% !important;
 }
 
@@ -297,7 +297,7 @@
 	justify-content: center;
 }
 
-.agentSessionsWelcome-walkthroughCard-icon .codicon {
+.agentSessionsWelcome-walkthroughCard-icon .codicon:where(.agent-welcome-card-glyph) {
 	font-size: 20px;
 	color: var(--vscode-descriptionForeground);
 }
@@ -377,10 +377,6 @@
 	color: var(--vscode-textLink-foreground);
 }
 
-.agentSessionsWelcome-footerLink .codicon {
-	color: var(--vscode-descriptionForeground);
-}
-
 .agentSessionsWelcome-showOnStartup {
 	display: flex;
 	align-items: center;
@@ -405,7 +401,7 @@
 	color: var(--vscode-checkbox-foreground) !important;
 }
 
-.agentSessionsWelcome-checkbox.checked {
+.checked.agentSessionsWelcome-checkbox {
 	background-color: var(--vscode-descriptionForeground) !important;
 	border-color: var(--vscode-descriptionForeground) !important;
 	color: var(--vscode-editor-background) !important;
@@ -440,7 +436,7 @@
 	flex-shrink: 0;
 }
 
-.agentSessionsWelcome-tosCard .agentSessionsWelcome-walkthroughCard-icon .codicon {
+.agentSessionsWelcome-tosCard .agentSessionsWelcome-walkthroughCard-icon .codicon:where(.agent-welcome-card-glyph) {
 	font-size: 20px;
 	color: var(--vscode-descriptionForeground);
 }

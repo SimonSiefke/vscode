@@ -39,7 +39,7 @@ export class ChatReadOnlyBanner extends Disposable {
 		this.domNode.setAttribute('role', 'status');
 
 		const icon = dom.append(this.domNode, dom.$('.chat-readonly-banner-icon'));
-		const renderedIcon = renderIcon(Codicon.lock);
+		const renderedIcon = renderIcon(Codicon.lock, undefined, 'chat-readonly-lock-glyph');
 		renderedIcon.setAttribute('aria-hidden', 'true');
 		icon.appendChild(renderedIcon);
 

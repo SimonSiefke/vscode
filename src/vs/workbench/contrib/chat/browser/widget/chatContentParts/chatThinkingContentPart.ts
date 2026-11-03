@@ -930,6 +930,7 @@ export class ChatThinkingContentPart extends ChatThinkingStyleContentPart implem
 		// wrap content in scrollable element for fixed scrolling mode
 		if (this.fixedScrollingMode) {
 			this.scrollableElement = this._register(new DomScrollableElement(this.wrapper, {
+				className: 'chat-thinking-content-scrollable',
 				vertical: ScrollbarVisibility.Auto,
 				horizontal: ScrollbarVisibility.Hidden,
 				handleMouseWheel: true,
@@ -2877,7 +2878,7 @@ export class ChatThinkingContentPart extends ChatThinkingStyleContentPart implem
 		this._titleFileWidgetStore.clear();
 
 		const markdownTitle = typeof title === 'string' ? new MarkdownString(title) : title;
-		const result = this.chatContentMarkdownRenderer.render(markdownTitle);
+		const result = this.chatContentMarkdownRenderer.render(markdownTitle, { elementClassName: 'chat-thinking-title-node' });
 		result.element.classList.add('collapsible-title-content', 'chat-thinking-title-detail');
 		renderFileWidgets(result.element, this.instantiationService, this.chatMarkdownAnchorService, this._titleFileWidgetStore);
 		this._titleFileWidgetStore.add(addDisposableListener(result.element, EventType.CLICK, event => {

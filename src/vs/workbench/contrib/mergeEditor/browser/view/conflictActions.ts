@@ -374,14 +374,14 @@ class ActionsContentWidget extends FixedZoneWidget {
 			if (isFirst) {
 				isFirst = false;
 			} else {
-				children.push($('span', undefined, '\u00a0|\u00a0'));
+				children.push($('span.merge-conflict-action-text', undefined, '\u00a0|\u00a0'));
 			}
 			const title = renderLabelWithIcons(item.text);
 
 			if (item.action) {
-				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!() }, ...title));
+				children.push($('a.merge-conflict-action-link', { title: item.tooltip, role: 'button', onclick: () => item.action!() }, ...title));
 			} else {
-				children.push($('span', { title: item.tooltip }, ...title));
+				children.push($('span.merge-conflict-action-text', { title: item.tooltip }, ...title));
 			}
 		}
 

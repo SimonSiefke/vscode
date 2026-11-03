@@ -332,20 +332,20 @@ export class IssueReporterOverlay {
 
 		// Drag handle
 		const dragArea = append(this.floatingBar, $('div.wizard-floating-drag'));
-		dragArea.appendChild(renderIcon(Codicon.gripper));
+		dragArea.appendChild(renderIcon(Codicon.gripper, undefined, 'wizard-floating-drag-glyph'));
 
 		// Segmented screenshot button: [Screenshot | options]
 		const segmented = append(this.floatingBar, $('div.wizard-segmented-btn'));
 		const floatingButtonStyles = this.getFloatingBarButtonStyles(targetWindow);
 
-		const captureBtn = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true }));
+		const captureBtn = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true, contentClassName: 'wizard-segmented-label-part' }));
 		captureBtn.element.classList.add('wizard-segmented-main');
 		captureBtn.label = `$(device-camera) ${localize('screenshot', "Screenshot")}`;
 		this.captureStripCaptureBtn = captureBtn;
 
 		// Delay/options dropdown using VS Code's context menu
 		const delayOptions = this.getScreenshotDelayOptions();
-		const delayDropdownButton = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true }));
+		const delayDropdownButton = this.disposables.add(new Button(segmented, { ...floatingButtonStyles, supportIcons: true, contentClassName: 'wizard-segmented-label-part' }));
 		delayDropdownButton.element.classList.add('wizard-segmented-dropdown');
 		delayDropdownButton.element.title = localize('captureOptions', "Capture options");
 		delayDropdownButton.element.setAttribute('aria-label', localize('captureOptions', "Capture options"));
@@ -445,7 +445,7 @@ export class IssueReporterOverlay {
 
 		// Record button
 		if (this.recordingSupported) {
-			this.captureStripRecordBtn = this.disposables.add(new Button(this.floatingBar, { ...defaultButtonStyles, secondary: true, supportIcons: true }));
+			this.captureStripRecordBtn = this.disposables.add(new Button(this.floatingBar, { ...defaultButtonStyles, secondary: true, supportIcons: true, contentClassName: 'wizard-floating-record-part' }));
 			this.captureStripRecordBtn.label = `$(record) ${localize('recordVideo', "Record video")}`;
 			this.captureStripRecordBtn.element.classList.add('wizard-record-btn');
 			this.disposables.add(this.captureStripRecordBtn.onDidClick(() => {
@@ -650,7 +650,7 @@ export class IssueReporterOverlay {
 		};
 
 		for (const { type, label, icon } of this.getAllIssueTypeOptions()) {
-			const btn = this.disposables.add(new Button(this.typeButtonGroup, { ...defaultButtonStyles, secondary: true, supportIcons: true }));
+			const btn = this.disposables.add(new Button(this.typeButtonGroup, { ...defaultButtonStyles, secondary: true, supportIcons: true, contentClassName: 'issue-wizard-type-content' }));
 			btn.element.classList.add('wizard-type-btn');
 			btn.element.setAttribute('data-type', String(type));
 			btn.element.setAttribute('aria-pressed', 'false');
@@ -2017,7 +2017,7 @@ export class IssueReporterOverlay {
 			this.attachmentCards.set(attachment.id, card);
 
 			const deleteBtn = append(card, $('div.wizard-screenshot-delete'));
-			deleteBtn.appendChild(renderIcon(Codicon.close));
+			deleteBtn.appendChild(renderIcon(Codicon.close, undefined, 'issue-wizard-attachment-delete-glyph'));
 			this.registerAttachmentAction(deleteBtn, localize('removeAttachment', "Remove {0}", name), () => {
 				this.attachments.splice(this.attachments.indexOf(attachment), 1);
 				this.attachmentsChanged();

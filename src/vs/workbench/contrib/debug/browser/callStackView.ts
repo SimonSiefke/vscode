@@ -249,6 +249,7 @@ export class CallStackView extends ViewPane {
 			new ShowMoreRenderer()
 		], this.dataSource, {
 			accessibilityProvider: new CallStackAccessibilityProvider(),
+			contentsClassName: 'debug-view-tree-contents',
 			compressionEnabled: true,
 			autoExpandSingleChildren: true,
 			identityProvider: {
@@ -553,7 +554,7 @@ class SessionsRenderer implements ICompressibleTreeRenderer<IDebugSession, Fuzzy
 		const session = dom.append(container, $('.session'));
 		dom.append(session, $(ThemeIcon.asCSSSelector(icons.callstackViewSession)));
 		const name = dom.append(session, $('.name'));
-		const stateLabel = dom.append(session, $('span.state.label.monaco-count-badge.long'));
+		const stateLabel = dom.append(session, $('span.state.label.debug-call-stack-state.monaco-count-badge.long'));
 		const templateDisposable = new DisposableStore();
 		const label = templateDisposable.add(new HighlightedLabel(name));
 
@@ -666,7 +667,7 @@ class ThreadsRenderer implements ICompressibleTreeRenderer<IThread, FuzzyScore, 
 	renderTemplate(container: HTMLElement): IThreadTemplateData {
 		const thread = dom.append(container, $('.thread'));
 		const name = dom.append(thread, $('.name'));
-		const stateLabel = dom.append(thread, $('span.state.label.monaco-count-badge.long'));
+		const stateLabel = dom.append(thread, $('span.state.label.debug-call-stack-state.monaco-count-badge.long'));
 
 		const templateDisposable = new DisposableStore();
 		const label = templateDisposable.add(new HighlightedLabel(name));

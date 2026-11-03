@@ -158,7 +158,7 @@ export class ChatViewWelcomePart extends Disposable {
 			}
 			if (content.icon) {
 				if (ThemeIcon.isThemeIcon(content.icon)) {
-					const iconElement = renderIcon(content.icon);
+					const iconElement = renderIcon(content.icon, undefined, 'chat-welcome-view-glyph');
 					icon.appendChild(iconElement);
 				} else if (URI.isUri(content.icon)) {
 					const cssUrl = asCSSUrl(content.icon);
@@ -201,13 +201,14 @@ export class ChatViewWelcomePart extends Disposable {
 			// Tips
 			if (content.tips) {
 				const tips = dom.append(this.element, $('.chat-welcome-view-tips'));
-				const tipsResult = this._register(this.markdownRendererService.render(content.tips));
+				const tipsResult = this._register(this.markdownRendererService.render(content.tips, { linkClassName: 'chat-welcome-tip-link', elementClassName: 'chat-welcome-tip-node' }));
 				tips.appendChild(tipsResult.element);
 			}
 
 			if (content.primaryAction) {
 				const action = content.primaryAction;
 				const button = this._register(new Button(this.element, defaultButtonStyles));
+				button.element.classList.add('chat-welcome-action-button');
 				button.label = action.label;
 				this._register(button.onDidClick(() => this.openerService.open(action.href, { allowCommands: true })));
 			}
@@ -228,12 +229,13 @@ export class ChatViewWelcomePart extends Disposable {
 	}
 
 	private renderMarkdownMessageContent(content: IMarkdownString, options: IChatViewWelcomeRenderOptions | undefined): IRenderedMarkdown {
-		const messageResult = this._register(this.markdownRendererService.render(content));
+		const messageResult = this._register(this.markdownRendererService.render(content, { linkClassName: 'chat-welcome-message-link' }));
 		// eslint-disable-next-line no-restricted-syntax
 		const firstLink = options?.firstLinkToButton ? messageResult.element.querySelector('a') : undefined;
 		if (firstLink) {
 			const target = firstLink.getAttribute('data-href');
-			const button = this._register(new Button(firstLink.parentElement!, defaultButtonStyles));
+			const button = this._register(new Button(firstLink.parentElement!, { ...defaultButtonStyles, buttonClassName: 'chat-welcome-message-link' }));
+			button.element.classList.add('chat-welcome-action-button');
 			button.label = firstLink.textContent ?? '';
 			if (target) {
 				this._register(button.onDidClick(() => {

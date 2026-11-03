@@ -137,6 +137,7 @@ export class InlineChatZoneWidget extends ZoneWidget {
 		this.#terminationMarkdownMessage = $('div.markdown-message');
 		this.#terminationMarkdownContainer.appendChild(this.#terminationMarkdownMessage);
 		this.#terminationMarkdownScrollable = this._disposables.add(new DomScrollableElement(this.#terminationMarkdownContainer, {
+			className: 'inline-chat-terminated-scrollable',
 			consumeMouseWheelIfScrollbarIsNeeded: true,
 			horizontal: ScrollbarVisibility.Hidden,
 			vertical: ScrollbarVisibility.Auto,

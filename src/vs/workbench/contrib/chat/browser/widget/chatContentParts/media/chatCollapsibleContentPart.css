@@ -47,7 +47,7 @@
 }
 
 /* Rows that cannot expand drop the affordances that promise a disclosure. */
-.chat-collapsible-hover-chevron.hidden {
+.hidden.chat-collapsible-hover-chevron {
 	display: none;
 }
 

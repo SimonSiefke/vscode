@@ -26,6 +26,8 @@ export interface IMarkdownRendererExtraOptions {
 	 * The context in which the markdown is being rendered.
 	 */
 	readonly context?: unknown;
+	/** Class applied to elements created by the default code-block renderer. */
+	readonly elementClassName?: string;
 }
 
 export interface IMarkdownCodeBlockRenderer {
@@ -72,7 +74,14 @@ export class MarkdownRendererService implements IMarkdownRendererService {
 
 		if (!resolvedOptions.codeBlockRenderer) {
 			resolvedOptions.codeBlockRenderer = (alias, value) => {
-				return this._defaultCodeBlockRenderer?.renderCodeBlock(alias, value, resolvedOptions ?? {}) ?? Promise.resolve(document.createElement('span'));
+				if (this._defaultCodeBlockRenderer) {
+					return this._defaultCodeBlockRenderer.renderCodeBlock(alias, value, resolvedOptions);
+				}
+				const empty = document.createElement('span');
+				if (resolvedOptions.elementClassName) {
+					empty.classList.add(resolvedOptions.elementClassName);
+				}
+				return Promise.resolve(empty);
 			};
 		}
 

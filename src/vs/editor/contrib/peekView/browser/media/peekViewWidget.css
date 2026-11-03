@@ -62,12 +62,12 @@
 	padding-right: 2px;
 }
 
-.monaco-editor .peekview-widget .head .peekview-actions > .monaco-action-bar {
+.monaco-editor .peekview-widget .head .peekview-actions > .peek-view-action-bar {
 	display: inline-block;
 }
 
-.monaco-editor .peekview-widget .head .peekview-actions > .monaco-action-bar,
-.monaco-editor .peekview-widget .head .peekview-actions > .monaco-action-bar > .actions-container {
+.monaco-editor .peekview-widget .head .peekview-actions > .peek-view-action-bar,
+.monaco-editor .peekview-widget .head .peekview-actions > .monaco-action-bar > .peek-view-toolbar-actions {
 	height: 100%;
 }
 
@@ -76,7 +76,7 @@
 	position: relative;
 }
 
-.monaco-editor .peekview-widget .head .peekview-title .codicon {
+.monaco-editor .peekview-widget .head .peekview-title .peek-view-title-icon {
 	margin-right: 4px;
 	align-self: center;
 }

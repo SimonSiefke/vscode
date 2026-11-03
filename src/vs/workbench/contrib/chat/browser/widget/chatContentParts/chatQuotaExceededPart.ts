@@ -63,7 +63,7 @@ export class ChatQuotaExceededPart extends Disposable implements IChatContentPar
 		if (primaryButtonLabel) {
 			const primaryButton = this._register(new Button(messageContainer, { ...defaultButtonStyles, supportIcons: true }));
 			primaryButton.label = primaryButtonLabel;
-			primaryButton.element.classList.add('chat-quota-error-button');
+			primaryButton.element.classList.add('chat-quota-error-button', 'chat-limit-action-button');
 
 			this._register(primaryButton.onDidClick(async () => {
 				const commandId = chatEntitlementService.entitlement === ChatEntitlement.Free ? 'workbench.action.chat.upgradePlan' : 'workbench.action.chat.manageAdditionalSpend';

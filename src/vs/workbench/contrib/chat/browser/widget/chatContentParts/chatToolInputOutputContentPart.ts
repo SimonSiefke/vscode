@@ -124,12 +124,12 @@ export class ChatCollapsibleInputOutputContentPart extends Disposable {
 			titleEl.root,
 			title,
 			subtitle,
-			{ markdownRenderOptions: getChatMarkdownRenderOptions(), renderFileWidgets: true },
+			{ markdownRenderOptions: getChatMarkdownRenderOptions({ elementClassName: 'chat-confirmation-title-node' }), renderFileWidgets: true },
 		));
 		const spacer = document.createElement('span');
 		spacer.style.flexGrow = '1';
 
-		const btn = this._register(new ButtonWithIcon(elements.root, {}));
+		const btn = this._register(new ButtonWithIcon(elements.root, { iconClassName: 'chat-collapsible-leading-glyph' }));
 		btn.element.classList.add('chat-confirmation-widget-title', 'monaco-text-button');
 		btn.labelElement.append(titleEl.root);
 		elements.root.appendChild(contentAnimation.root);

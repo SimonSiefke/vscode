@@ -1657,6 +1657,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 
 	private async _createScrollableContainer(): Promise<void> {
 		this._scrollableContainer = this._register(new DomScrollableElement(this._outputBody, {
+			className: 'chat-terminal-output-scrollable',
 			vertical: ScrollbarVisibility.Hidden,
 			horizontal: ScrollbarVisibility.Hidden,
 			handleMouseWheel: true

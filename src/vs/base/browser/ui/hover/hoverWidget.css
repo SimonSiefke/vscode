@@ -18,7 +18,7 @@
 	animation: fadein 100ms linear;
 }
 
-.monaco-hover.hidden {
+.hidden.monaco-hover {
 	display: none;
 }
 
@@ -138,22 +138,22 @@
 	text-overflow: ellipsis;
 }
 
-.hover-row.status-bar .actions .action-container .action {
+.hover-row.status-bar .actions .action-container .hover-status-action-link {
 	display: inline-flex;
 	align-items: center;
 }
 
-.hover-row.status-bar .actions .action-container .action .icon {
+.hover-row.status-bar .actions .action-container .action .hover-status-action-icon {
 	padding-right: 4px;
 	font-size: inherit;
 }
 
-.hover-row.status-bar .actions .action-container a {
+.hover-row.status-bar :where(.actions) .action-container a.hover-status-action-link {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: var(--text-link-decoration);
 }
 
-.hover-row.status-bar .actions .action-container a .icon.codicon {
+.hover-row.status-bar .actions .action-container a .codicon.hover-status-action-icon {
 	color: var(--vscode-textLink-foreground);
 }
 
@@ -201,7 +201,7 @@
 	user-select: none;
 }
 
-.monaco-hover-content .action-container.disabled {
+.monaco-hover-content .disabled.action-container {
 	pointer-events: none;
 	opacity: 0.4;
 	cursor: default;

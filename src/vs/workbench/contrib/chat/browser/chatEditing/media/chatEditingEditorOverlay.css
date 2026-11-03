@@ -43,7 +43,7 @@
 	gap: 6px;
 }
 
-.chat-editor-overlay-widget .chat-editor-overlay-progress > .codicon {
+.chat-editor-overlay-widget .chat-editor-overlay-progress > .codicon:where(.chat-editor-progress-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -66,7 +66,7 @@
 	border-radius: 4px; /* same as overlay widget */
 }
 
-.chat-editor-overlay-widget .monaco-action-bar .actions-container {
+.chat-editor-overlay-widget .monaco-action-bar .actions-container:where(.chat-editor-overlay-actions) {
 	gap: 4px;
 }
 
@@ -79,7 +79,7 @@
 	background-color: var(--vscode-button-hoverBackground);
 }
 
-.chat-editor-overlay-widget.busy .chat-editor-overlay-progress .codicon {
+.chat-editor-overlay-widget.busy .chat-editor-overlay-progress .codicon:where(.chat-editor-progress-glyph) {
 	color: var(--vscode-foreground);
 }
 

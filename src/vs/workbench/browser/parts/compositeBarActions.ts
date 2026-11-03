@@ -391,7 +391,7 @@ export class CompositeBarActionViewItem extends BaseActionViewItem {
 	}
 
 	protected override updateLabel(): void {
-		this.label.className = 'action-label';
+		this.label.className = 'action-label composite-bar-action-label';
 
 		if (this.compositeBarActionItem.classNames) {
 			this.label.classList.add(...this.compositeBarActionItem.classNames);

@@ -18,7 +18,7 @@
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.chat-readonly-banner.hidden {
+.hidden.chat-readonly-banner {
 	display: none;
 }
 
@@ -29,7 +29,7 @@
 	color: var(--vscode-icon-foreground);
 }
 
-.chat-readonly-banner-icon .codicon {
+.chat-readonly-banner-icon .codicon:where(.chat-readonly-lock-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 

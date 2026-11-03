@@ -775,6 +775,8 @@ class DiffHunkWidget implements IOverlayWidget, IModifiedFileEntryChangeHunk {
 			return;
 		}
 		const toolbar = this._toolbarStore.add(this._instantiationService.createInstance(MenuWorkbenchToolBar, this._domNode, MenuId.ChatEditingEditorHunk, {
+			actionBarClassName: 'chat-diff-overlay-action-bar',
+			actionsContainerClassName: 'chat-diff-overlay-actions',
 			telemetrySource: 'chatEditingEditorHunk',
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			toolbarOptions: { primaryGroup: () => true, },
