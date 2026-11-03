@@ -15,6 +15,7 @@ import * as nls from '../../../../nls.js';
 import { isHighContrast } from '../../../../platform/theme/common/theme.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition } from '../../../browser/editorBrowser.js';
+import { getEditorMarkdownSanitizerConfig } from '../../../browser/editorMarkdownSanitizer.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
 import { CompletionItem } from './suggest.js';
@@ -180,6 +181,7 @@ export class SuggestDetailsWidget {
 			const renderedContents = this._markdownRendererService.render(documentation, {
 				linkClassName: 'editor-suggest-documentation-link',
 				context: this._editor,
+				sanitizerConfig: getEditorMarkdownSanitizerConfig(this._editor),
 				asyncRenderCallback: () => {
 					this.layout(this._size.width, this._type.clientHeight + this._docs.clientHeight);
 					this._onDidChangeContents.fire(this);
