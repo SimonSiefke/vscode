@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
@@ -25,11 +25,11 @@ suite('ChatArtifactsService', () => {
 
 	function createService(model?: IChatModel, storage = disposables.add(new InMemoryStorageService())) {
 		const disposed = disposables.add(new Emitter<{ readonly sessionResources: readonly URI[]; readonly reason: 'cleared' | 'disposed' }>());
-		const chatService = new class extends mock<IChatService>() {
-			override readonly onDidDisposeSession = disposed.event;
-			override readonly onDidCreateModel = Event.None;
-			override getSession() { return model; }
-		}();
+		const chatService = upcastPartial<IChatService>({
+			onDidDisposeSession: disposed.event,
+			onDidCreateModel: Event.None,
+			getSession: () => model,
+		});
 		const configuration = new TestConfigurationService();
 		disposables.add(configuration.onDidChangeConfigurationEmitter);
 		const service = disposables.add(new ChatArtifactsService(storage, chatService, configuration));
@@ -52,8 +52,9 @@ suite('ChatArtifactsService', () => {
 	for (const resource of [LocalChatSessionUri.forSession('artifacts'), URI.parse('agent-host-copilotcli:/artifacts')]) {
 		test(`preserves ${resource.scheme} rules across repeated model unloads`, () => {
 			const { service, disposed } = createService(restoredModel());
-			service.getArtifacts(resource).setRuleOverrides({ byFilePath: { '**/*.md': { groupName: 'Documents' } } });
-			const expected = service.getArtifacts(resource).artifactGroups.get();
+			const instance = service.getArtifacts(resource);
+			instance.setRuleOverrides({ byFilePath: { '**/*.md': { groupName: 'Documents' } } });
+			const expected = instance.artifactGroups.get();
 			assert.strictEqual(expected[0].artifacts[0].groupName, 'Documents');
 
 			for (let i = 0; i < 3; i++) {

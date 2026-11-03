@@ -77,11 +77,16 @@ interface IResponseCache {
 	readonly artifacts: IChatArtifact[];
 }
 
+interface ISubagentArtifacts {
+	readonly name: string | undefined;
+	readonly artifacts: readonly IChatArtifact[];
+}
+
 interface IStoredChatArtifacts {
 	readonly agentArtifacts: readonly IChatArtifact[];
 	readonly ruleOverrides?: IArtifactRuleOverrides;
-	readonly subagentArtifacts?: readonly [string, { readonly name: string | undefined; readonly artifacts: readonly IChatArtifact[] }][];
-	readonly sourceSequences?: readonly [string, number][];
+	readonly subagentArtifacts?: readonly [invocationId: string, artifacts: ISubagentArtifacts][];
+	readonly sourceSequences?: readonly [source: string, sequence: number][];
 }
 
 class ChatArtifactsStorage {
@@ -124,7 +129,7 @@ class UnifiedChatArtifacts extends Disposable implements IChatArtifacts {
 		[],
 	);
 
-	private readonly _subagentArtifacts = observableValueOpts<ReadonlyMap<string, { readonly name: string | undefined; readonly artifacts: readonly IChatArtifact[] }>>(
+	private readonly _subagentArtifacts = observableValueOpts<ReadonlyMap<string, ISubagentArtifacts>>(
 		{ owner: this, equalsFn: () => false },
 		new Map(),
 	);
