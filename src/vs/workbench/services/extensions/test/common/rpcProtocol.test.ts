@@ -33,6 +33,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	const native = mode !== 'binary';
 	const timerOptions = { toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldClearNativeTimers: true };
 
+	const testDisposables = ensureNoDisposablesAreLeakedInTestSuite();
 	let disposables: DisposableStore;
 
 	const RPCProtocol = native ? StructuredCloneRPCProtocol : ByteRPCProtocol;
@@ -110,7 +111,7 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 	const notificationIdentifier = new ProxyIdentifier<NotificationTestService>('notifications', ['$notify']);
 
 	setup(() => {
-		disposables = new DisposableStore();
+		disposables = testDisposables.add(new DisposableStore());
 
 		const a_protocol = new MessagePassingProtocol();
 		const b_protocol = new MessagePassingProtocol();
@@ -124,12 +125,6 @@ const observedRepliesIdentifier = new ProxyIdentifier<ObservedRepliesService>('o
 		bProtocol.set(bIdentifier, bInstance);
 		bProxy = A.getProxy(bIdentifier);
 	});
-
-	teardown(() => {
-		disposables.dispose();
-	});
-
-	ensureNoDisposablesAreLeakedInTestSuite();
 
 	/** Use the same transport modes for observed promises and the legacy mixed fallback. */
 	function createAuditedPromiseRPC(echo: (value: unknown) => unknown = value => value, sent?: TestMessage[]) {

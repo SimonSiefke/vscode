@@ -29,6 +29,7 @@ if /i "%~1"=="-f" (set "GREP_PATTERN=%~2"& shift & shift & goto parse_args)
 if /i "%~1"=="--runGlob" (set "RUN_GLOB=%~2"& set HAS_FILTER=1& shift & shift & goto parse_args)
 if /i "%~1"=="--glob" (set "RUN_GLOB=%~2"& set HAS_FILTER=1& shift & shift & goto parse_args)
 if /i "%~1"=="--runGrep" (set "RUN_GLOB=%~2"& set HAS_FILTER=1& shift & shift & goto parse_args)
+if /i "%~1"=="--runList" (set HAS_FILTER=1& shift & shift & goto parse_args)
 if /i "%~1"=="--suite" (set "SUITE_FILTER=%~2"& shift & shift & goto parse_args)
 if /i "%~1"=="--only-node-tests" (set ONLY_NODE_TESTS=1& shift & goto parse_args)
 if /i "%~1"=="--only-extension-host-tests" (set ONLY_EXTENSION_HOST_TESTS=1& shift & goto parse_args)
@@ -43,8 +44,9 @@ if defined SHOW_HELP (
 	echo ^(node.js integration tests + extension host tests^) are run.
 	echo Agent Host E2E suites are not included; run them with scripts\test-agent-host-e2e.bat.
 	echo.
-	echo --run and --runGlob select which node.js integration test files to load.
-	echo Extension host tests are skipped when these options are used.
+	echo --run and --runGlob select which node.js integration test files to load, and
+	echo --runList runs only the files that a list names. Extension host tests are
+	echo skipped when these options are used.
 	echo.
 	echo --grep filters test cases by name across all test runners. When used alone,
 	echo the pattern is applied to both node.js integration tests and all extension
@@ -60,6 +62,7 @@ if defined SHOW_HELP (
 	echo   --build                      use the out-build directory for node.js and JSON tests
 	echo   --run ^<file^>                  run tests from a specific file ^(src/ path^)
 	echo   --runGlob, --glob ^<pattern^>   select test files by path glob ^(e.g. '**\*.integrationTest.js'^)
+	echo   --runList ^<file^>              run only the test files listed in ^<file^>, one per line ^(src/ paths^)
 	echo   --grep, -g, -f ^<pattern^>      filter test cases by name ^(matched against test titles^)
 	echo   --suite ^<pattern^>             run only matching extension host test suites
 	echo                                 supports comma-separated list
@@ -95,7 +98,7 @@ if defined ONLY_NODE_TESTS if defined SUITE_FILTER (
 	exit /b 1
 )
 if defined ONLY_EXTENSION_HOST_TESTS if defined HAS_FILTER (
-	echo Error: --only-extension-host-tests cannot be combined with --run or --runGlob
+	echo Error: --only-extension-host-tests cannot be combined with --run, --runGlob or --runList
 	exit /b 1
 )
 
@@ -202,9 +205,9 @@ call :should_run_suite colorize || goto skip_colorize
 echo.
 echo ### Colorize tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l vscode-colorize-tests --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l vscode-colorize-tests --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l vscode-colorize-tests
+	call pnpm run test-extension -l vscode-colorize-tests
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_colorize
@@ -213,9 +216,9 @@ call :should_run_suite terminal-suggest || goto skip_terminal_suggest
 echo.
 echo ### Terminal Suggest tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests
+	call pnpm run test-extension -l terminal-suggest --enable-proposed-api=vscode.vscode-api-tests
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_terminal_suggest
@@ -231,9 +234,9 @@ call :should_run_suite markdown || goto skip_markdown
 echo.
 echo ### Markdown tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l markdown-language-features --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l markdown-language-features --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l markdown-language-features
+	call pnpm run test-extension -l markdown-language-features
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_markdown
@@ -259,9 +262,9 @@ call :should_run_suite git-base || goto skip_git_base
 echo.
 echo ### Git Base tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l git-base --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l git-base --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l git-base
+	call pnpm run test-extension -l git-base
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_git_base
@@ -270,9 +273,9 @@ call :should_run_suite ipynb || goto skip_ipynb
 echo.
 echo ### Ipynb tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l ipynb --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l ipynb --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l ipynb
+	call pnpm run test-extension -l ipynb
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_ipynb
@@ -281,9 +284,9 @@ call :should_run_suite notebook-renderers || goto skip_notebook_renderers
 echo.
 echo ### Notebook Output tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l notebook-renderers --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l notebook-renderers --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l notebook-renderers
+	call pnpm run test-extension -l notebook-renderers
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_notebook_renderers
@@ -292,9 +295,9 @@ call :should_run_suite configuration-editing || goto skip_configuration_editing
 echo.
 echo ### Configuration editing tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l configuration-editing --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l configuration-editing --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l configuration-editing
+	call pnpm run test-extension -l configuration-editing
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_configuration_editing
@@ -303,9 +306,9 @@ call :should_run_suite github-authentication || goto skip_github_authentication
 echo.
 echo ### GitHub Authentication tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l github-authentication --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l github-authentication --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l github-authentication
+	call pnpm run test-extension -l github-authentication
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_github_authentication
@@ -314,9 +317,9 @@ call :should_run_suite copilot || goto skip_copilot
 echo.
 echo ### Copilot tests
 if defined GREP_PATTERN (
-	call npm run test-extension -- -l copilot --grep "%GREP_PATTERN%"
+	call pnpm run test-extension -l copilot --grep "%GREP_PATTERN%"
 ) else (
-	call npm run test-extension -- -l copilot
+	call pnpm run test-extension -l copilot
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
 :skip_copilot

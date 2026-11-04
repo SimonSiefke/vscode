@@ -510,6 +510,9 @@ export class ExtHostChatAgents2 extends Disposable implements ExtHostChatAgentsS
 
 	private readonly _inFlightRequests = new Set<InFlightChatRequest>();
 
+	// Request ids asked to yield before $invokeAgent registered them
+	private readonly _yieldRequestedBeforeInvoke = new Set<string>();
+
 	// Map of requestId -> resolveId -> deferred promise for question carousel answers
 	private readonly _pendingCarouselResolvers = new Map<string, Map<string, DeferredPromise<Record<string, unknown> | undefined>>>();
 
@@ -973,6 +976,10 @@ export class ExtHostChatAgents2 extends Disposable implements ExtHostChatAgentsS
 		const request = [...this._inFlightRequests].find(r => r.requestId === requestId);
 		if (request) {
 			request.yieldRequested = value;
+		} else if (value) {
+			this._yieldRequestedBeforeInvoke.add(requestId);
+		} else {
+			this._yieldRequestedBeforeInvoke.delete(requestId);
 		}
 	}
 
@@ -1009,7 +1016,7 @@ export class ExtHostChatAgents2 extends Disposable implements ExtHostChatAgentsS
 				agent.extension,
 				this._logService
 			);
-			inFlightRequest = { requestId: requestDto.requestId, extRequest, extension: agent.extension, hooks: request.hooks, yieldRequested: false };
+			inFlightRequest = { requestId: requestDto.requestId, extRequest, extension: agent.extension, hooks: request.hooks, yieldRequested: this._yieldRequestedBeforeInvoke.delete(requestDto.requestId) };
 			this._inFlightRequests.add(inFlightRequest);
 
 
@@ -1084,6 +1091,7 @@ export class ExtHostChatAgents2 extends Disposable implements ExtHostChatAgentsS
 			return { errorDetails: { message: toErrorMessage(e), responseIsIncomplete: true, isQuotaExceeded, isRateLimited, isExpectedError }, errorCallstack, errorName };
 
 		} finally {
+			this._yieldRequestedBeforeInvoke.delete(requestDto.requestId);
 			if (inFlightRequest) {
 				this._inFlightRequests.delete(inFlightRequest);
 			}

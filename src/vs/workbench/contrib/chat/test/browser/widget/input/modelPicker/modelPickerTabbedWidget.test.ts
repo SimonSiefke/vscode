@@ -19,6 +19,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../../..
 import { MutableDisposable, toDisposable } from '../../../../../../../../base/common/lifecycle.js';
 import { constObservable, observableValue } from '../../../../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../../../../base/common/themables.js';
+import { URI } from '../../../../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../../base/test/common/utils.js';
 import { IAccessibilityService } from '../../../../../../../../platform/accessibility/common/accessibility.js';
@@ -40,9 +41,11 @@ import { NullOpenerService } from '../../../../../../../../platform/opener/test/
 import { InMemoryStorageService, IStorageService } from '../../../../../../../../platform/storage/common/storage.js';
 import { StateType } from '../../../../../../../../platform/update/common/update.js';
 import { ChatEntitlement, IChatEntitlementService } from '../../../../../../../services/chat/common/chatEntitlementService.js';
+import { IEditorService } from '../../../../../../../services/editor/common/editorService.js';
+import { IResourceEditorInput } from '../../../../../../../../platform/editor/common/editor.js';
 import { ITabbedModelPickerContext, TabbedModelPicker } from '../../../../../browser/widget/input/modelPicker/modelPickerTabbedWidget.js';
 import { ILanguageModelChatMetadata, ILanguageModelChatMetadataAndIdentifier, ILanguageModelProviderDescriptor, ILanguageModelsService, IModelConfigurationAccess, IModelControlEntry, IModelsControlManifest } from '../../../../../common/languageModels.js';
-import type { IModelConfigPropertySchema } from '../../../../../browser/widget/input/modelPicker/modelPickerModelConfig.js';
+import { withoutFusionEffortLevel, type IModelConfigPropertySchema } from '../../../../../browser/widget/input/modelPicker/modelPickerModelConfig.js';
 import { ChatConfiguration } from '../../../../../common/constants.js';
 import { IModelPickerComparison, IModelPickerComparisonState, ModelComparisonAvailableContext, ModelComparisonPickerFocusedContext } from '../../../../../browser/widget/input/modelPicker/modelPickerComparison.js';
 import { createLocalModelPickerPresentation, IModelPickerLocalModels } from '../../../../../browser/widget/input/modelPicker/modelPickerLocalModelItems.js';
@@ -148,6 +151,7 @@ suite('TabbedModelPicker', () => {
 	const models = [model('First'), model('Second'), model('Fixed', false)];
 
 	function createPicker(options: {
+		agentModelPreferences?: ITabbedModelPickerContext['agentModelPreferences'];
 		models?: ILanguageModelChatMetadataAndIdentifier[];
 		access?: IModelConfigurationAccess;
 		details?: string;
@@ -228,6 +232,11 @@ suite('TabbedModelPicker', () => {
 		instantiationService.set(IContextViewService, contextView);
 		instantiationService.set(IHoverService, NullHoverService);
 		instantiationService.set(IOpenerService, NullOpenerService);
+		const openedEditors: IResourceEditorInput[] = [];
+		instantiationService.stub(IEditorService, {}, 'openEditor', async (input: IResourceEditorInput) => {
+			openedEditors.push(input);
+			return undefined;
+		});
 		const keybindingService = new MockKeybindingService();
 		if (options.comparisonKeybinding) {
 			const binding = decodeKeybinding(options.comparisonKeybinding, OS)!;
@@ -259,7 +268,7 @@ suite('TabbedModelPicker', () => {
 			getLanguageModelGroups: () => [],
 			getModelsControlManifest: () => options.controlManifest ?? { free: {}, paid: {} },
 		}));
-		const changed = disposables.add(new Emitter<string>());
+		const changed = disposables.add(new Emitter<readonly string[]>());
 		const values = new Map<string, IStringDictionary<unknown>>();
 		const access: IModelConfigurationAccess = options.access ?? {
 			getModelConfiguration: id => values.get(id),
@@ -269,7 +278,7 @@ suite('TabbedModelPicker', () => {
 					await options.beforeSave(next);
 				}
 				values.set(id, { ...values.get(id), ...next });
-				changed.fire(id);
+				changed.fire([id]);
 			},
 			onDidChange: changed.event,
 		};
@@ -279,6 +288,7 @@ suite('TabbedModelPicker', () => {
 		let hintDismissed = false;
 		const availableModels = options.models ?? models;
 		const context: ITabbedModelPickerContext = {
+			agentModelPreferences: options.agentModelPreferences,
 			comparison: options.comparison,
 			localModels: options.localModels,
 			models: availableModels, selectedModelId: options.selectedModelId ?? availableModels[0]?.identifier,
@@ -300,7 +310,7 @@ suite('TabbedModelPicker', () => {
 		const picker = disposables.add(instantiationService.createInstance(TabbedModelPicker));
 		picker.show(anchor, context, options.details, false, options.contextViewLayer);
 		return {
-			picker, popup, anchor, context, selections, pins, values, changed, configurationService, configurationChanges, contextKeyService,
+			picker, popup, anchor, context, selections, pins, values, changed, configurationService, configurationChanges, contextKeyService, openedEditors,
 			dismiss: () => contextView.hideContextView(),
 			setEntitlement: (value: ChatEntitlement) => {
 				entitlement = value;
@@ -570,9 +580,9 @@ suite('TabbedModelPicker', () => {
 		action.click();
 		assert.deepStrictEqual({
 			disabled: action.getAttribute('aria-disabled'),
-			title: action.title,
+			description: action.getAttribute('aria-description'),
 			stillOpen: picker.isVisible,
-		}, { disabled: 'true', title: 'Not supported here', stillOpen: true });
+		}, { disabled: 'true', description: 'Not supported here', stillOpen: true });
 	});
 
 	test('comparison footer shows the configured shortcut and the shortcut opens Attempts without selecting a model', () => {
@@ -580,6 +590,7 @@ suite('TabbedModelPicker', () => {
 		const comparison: IModelPickerComparison = {
 			showPickerHint: constObservable(true),
 			available: constObservable(true), summary: constObservable(undefined), state, label: 'Compare Models', startCommandId: 'test.compareModels',
+			description: constObservable('Run one prompt in parallel and compare results.'),
 			start: () => state.set({
 				title: 'Attempts', description: 'Select models.', summary: '', selectedModelIds: [],
 				multiple: true, maxSelections: 10, canGoBack: false, canGoNext: false, canFinish: false,
@@ -607,7 +618,7 @@ suite('TabbedModelPicker', () => {
 		}, {
 			label: `Send Query to Multiple Models (${shortcutLabel})`,
 			addIcon: false,
-			toggleLabel: `Compare Models (${shortcutLabel})`,
+			toggleLabel: `Compare Models (${shortcutLabel})\n\nRun one prompt in parallel and compare results.`,
 			step: 'Attempts', selections: [], visible: true, footer: true, toggle: true,
 		});
 	});
@@ -1279,6 +1290,69 @@ suite('TabbedModelPicker', () => {
 		assert.ok(popup.querySelector('.monaco-list-row.focused'));
 	});
 
+	for (const required of [false, true]) {
+		test(`agent ${required ? 'required' : 'preferred'} badges preserve exact-ID precedence over aliases`, () => {
+			const sonnet = model('sonnet');
+			const exact = { ...sonnet, identifier: 'sonnet', metadata: { ...sonnet.metadata, name: 'Exact Sonnet' } };
+			const alias = model('alias');
+			const { popup } = createPicker({
+				models: [exact, { ...alias, metadata: { ...alias.metadata, name: 'sonnet' } }],
+				agentModelPreferences: { models: ['sonnet'], required },
+			});
+			const rows = Array.from(popup.querySelectorAll('.monaco-list-row'));
+			assert.deepStrictEqual({
+				visible: rows.filter(row => row.textContent?.includes('Agent ')).map(row => row.querySelector('.title')?.textContent),
+				accessible: rows.filter(row => row.getAttribute('aria-label')?.includes(required ? 'Agent Required' : 'Agent Preferred')).map(row => row.getAttribute('aria-label')?.includes('Exact Sonnet')),
+			}, { visible: ['Exact Sonnet'], accessible: [true] });
+		});
+
+		test(`announces authored models as agent ${required ? 'required' : 'preferred'} after an override`, () => {
+			const { popup } = createPicker({
+				agentModelPreferences: { models: ['First'], required },
+				selectedModelId: models[1].identifier,
+			});
+			const rows = Array.from(popup.querySelectorAll('.monaco-list-row'));
+			assert.deepStrictEqual(rows.filter(row => row.textContent?.includes('Agent ')).map(row => ({
+				preferred: row.textContent?.includes('First'),
+				label: row.getAttribute('aria-label')?.includes(required ? 'Agent Required' : 'Agent Preferred'),
+			})), [{ preferred: true, label: true }]);
+		});
+	}
+
+	for (const activation of ['click', 'Enter', 'Space'] as const) {
+		test(`required models link opens the agent definition with ${activation}`, () => {
+			const uri = URI.file('/agents/review.agent.md');
+			const { popup, picker, openedEditors, selections } = createPicker({
+				agentModelPreferences: { models: ['First'], required: true, source: { name: 'Review', uri } },
+				cacheWarm: true,
+			});
+			const link = element(popup, '.chat-model-picker-agent-notice a');
+			const label = link.textContent;
+			const cacheHint = popup.textContent?.includes('Changing options resets the prompt cache.');
+			if (activation === 'click') {
+				link.click();
+			} else {
+				link.dispatchEvent(new KeyboardEvent('keydown', { key: activation === 'Enter' ? 'Enter' : ' ', keyCode: activation === 'Enter' ? 13 : 32, bubbles: true }));
+			}
+			assert.deepStrictEqual({ label, cacheHint, visible: picker.isVisible, opened: openedEditors, selections }, {
+				label: 'Models defined by Review', cacheHint: true, visible: false, opened: [{ resource: uri, options: { override: 'default' } }], selections: [],
+			});
+		});
+	}
+
+	test('required models without a source still explain the restriction', () => {
+		const { popup } = createPicker({ agentModelPreferences: { models: ['First'], required: true } });
+		const notice = element(popup, '.chat-model-picker-agent-notice');
+		assert.deepStrictEqual({ text: notice.textContent, link: !!notice.querySelector('a') }, {
+			text: 'Models defined by the current agent', link: false,
+		});
+	});
+
+	test('preferred models do not show a required-model explanation', () => {
+		const { popup } = createPicker({ agentModelPreferences: { models: ['First'], required: false } });
+		assert.strictEqual(popup.querySelector('.chat-model-picker-agent-notice'), null);
+	});
+
 	for (const initiallyAuto of [false, true]) {
 		test(`provider changes retain the popup size when opened with ${initiallyAuto ? 'Auto' : 'a manual model'} selected`, () => {
 			const older = model('example-5.5');
@@ -1535,7 +1609,7 @@ suite('TabbedModelPicker', () => {
 			name: result.popup.querySelector('.tabbed-action-list-details .chat-model-card-name')?.textContent,
 			description: result.popup.querySelector('.tabbed-action-list-details .chat-model-card > .chat-model-card-description')?.textContent,
 			headings: Array.from(result.popup.querySelectorAll('.tabbed-action-list-details .chat-model-card-section-title'), heading => heading.textContent),
-			options: Array.from(result.popup.querySelectorAll('.tabbed-action-list-details [role="radiogroup"][aria-label="HydraFusion tier"] [role="radio"]'), option => option.textContent),
+			options: Array.from(result.popup.querySelectorAll('.tabbed-action-list-details [role="radiogroup"][aria-label="Copilot Fusion effort level"] [role="radio"]'), option => option.textContent),
 			active: result.popup.querySelector('.tabbed-action-list-details [role="radio"][aria-checked="true"]')?.textContent,
 		});
 		const list = { rows: listRows(result.popup), hydraFusion: hydraFusionRow() };
@@ -1700,6 +1774,40 @@ suite('TabbedModelPicker', () => {
 		const result = createPicker({ models: [...models, providerFusion, createHydraFusionModel(), createHydraFusionMaxModel()], selectedModelId: models[0].identifier });
 		openDetails(result.popup, copilotFusionName);
 		assert.deepStrictEqual(autoTiers(result.popup), ['Standard', 'High']);
+	});
+
+	test('in inline chat, Fusion whose host pins its tier there shows no effort level, offers none, and offers no HydraFusion; otherwise it keeps them', () => {
+		const open = (inlineChatTier: string | undefined) => {
+			const base = createFusionModel();
+			const fusion = { ...base, metadata: { ...base.metadata, autoModelFusionInlineChatTier: inlineChatTier } };
+			const available = [...models, fusion, createHydraFusionModel(), createHydraFusionMaxModel()];
+			const values = new Map<string, IStringDictionary<unknown>>([[fusion.identifier, { tier: 'hydrafusion' }]]);
+			const access = withoutFusionEffortLevel({
+				getModelConfiguration: id => values.get(id),
+				getModelConfigurationActions: () => [],
+				setModelConfiguration: async (id, next) => { values.set(id, { ...values.get(id), ...next }); },
+			}, id => available.find(model => model.identifier === id)?.metadata);
+			const result = createPicker({ models: available, access, selectedModelId: models[0].identifier });
+			const fusionRow = Array.from(result.popup.querySelectorAll<HTMLElement>('.chat-model-picker-model')).find(row => row.querySelector('.title')?.textContent === copilotFusionName)!;
+			const row = { readout: fusionRow.querySelector('.action-label')?.textContent, ariaLabel: fusionRow.getAttribute('aria-label') };
+			const rows = listRows(result.popup);
+			openDetails(result.popup, copilotFusionName);
+			return { rows, row, tiers: autoTiers(result.popup), saved: values.get(fusion.identifier) };
+		};
+		assert.deepStrictEqual({ pinned: open('fast'), notPinned: open(undefined) }, {
+			pinned: {
+				rows: [copilotFusionName, '--', 'First', 'Fixed', 'Second'],
+				row: { readout: 'Details', ariaLabel: 'Copilot Fusion, 10% discount, Picks or combines the best models for your task' },
+				tiers: [],
+				saved: { tier: 'hydrafusion' },
+			},
+			notPinned: {
+				rows: [copilotFusionName, '--', 'First', 'Fixed', 'Second'],
+				row: { readout: 'High', ariaLabel: 'Copilot Fusion, 10% discount, Picks or combines the best models for your task, Effort Level: High' },
+				tiers: ['Standard', 'High', 'Max'],
+				saved: { tier: 'hydrafusion' },
+			},
+		});
 	});
 
 	test('a chat on a HydraFusion model is shown on the provider tier of the same name, which moves it to Fusion', async () => {
@@ -2407,7 +2515,7 @@ suite('TabbedModelPicker', () => {
 		{ name: 'Auto with tiers', routing: [createAutoModel()], requested: 'auto', expected: { model: 'Auto', groups: ['Optimize for'] } },
 		{ name: 'Auto without a schema', routing: [model('auto', false)], requested: 'auto', expected: { model: 'auto', groups: [] } },
 		{ name: 'HydraFusion as Fusion\'s tier', routing: [createFusionModel(), createHydraFusionModel()], requested: 'hydrafusion', expected: { model: copilotFusionName, groups: ['Effort Level'] } },
-		{ name: 'HydraFusion with Default and Max', routing: [createAutoModel(), createHydraFusionModel(), createHydraFusionMaxModel()], requested: 'hydrafusion-max', expected: { model: 'HydraFusion', groups: ['HydraFusion tier'] } },
+		{ name: 'HydraFusion with Default and Max', routing: [createAutoModel(), createHydraFusionModel(), createHydraFusionMaxModel()], requested: 'hydrafusion-max', expected: { model: 'HydraFusion', groups: ['Copilot Fusion effort level'] } },
 		{ name: 'HydraFusion without HydraFusion Max', routing: [createAutoModel(), createHydraFusionModel()], requested: 'hydrafusion', expected: undefined },
 		{ name: 'HydraFusion without an Auto to join', routing: [createHydraFusionModel()], requested: 'hydrafusion', expected: undefined },
 	]) {
@@ -2502,7 +2610,7 @@ suite('TabbedModelPicker', () => {
 		}, {
 			rows: [
 				{ name: 'First', summary: 'Low · 32K', details: 'First Details, Low · 32K', infoIcon: false },
-				{ name: 'Fixed', summary: '200K', details: 'Fixed Details, 200K', infoIcon: false },
+				{ name: 'Fixed', summary: 'Max 200K', details: 'Fixed Details, Max 200K', infoIcon: false },
 				{ name: 'Second', summary: 'Low · 32K', details: 'Second Details, Low · 32K', infoIcon: false },
 				{ name: 'Unknown', summary: 'Details', details: 'Unknown Details', infoIcon: false },
 			],
@@ -2730,7 +2838,7 @@ suite('TabbedModelPicker', () => {
 		const auto = model('auto');
 		const result = createPicker({ models: [auto, ...models], details: auto.identifier });
 		result.values.set(auto.identifier, { effort: 'high' });
-		result.changed.fire(auto.identifier);
+		result.changed.fire([auto.identifier]);
 		const tier = result.popup.querySelector('.tabbed-action-list-details [role="radio"][aria-checked="true"]')?.textContent;
 		goBack(result.popup);
 		assert.deepStrictEqual({
@@ -2748,7 +2856,7 @@ suite('TabbedModelPicker', () => {
 
 		const reopen = (configuration: IStringDictionary<unknown>) => {
 			result.values.set(currentModel.identifier, configuration);
-			result.changed.fire(currentModel.identifier);
+			result.changed.fire([currentModel.identifier]);
 			const row = Array.from(result.popup.querySelectorAll('.chat-model-picker-model')).find(row => row.querySelector('.title')?.textContent === currentModel.metadata.name)!;
 			const summary = row.querySelector('.action-label')?.textContent;
 			openDetails(result.popup, currentModel.metadata.name);
@@ -2777,7 +2885,7 @@ suite('TabbedModelPicker', () => {
 		const currentModel = models[0];
 		const providerSchema = currentModel.metadata.configurationSchema!;
 		let schema = providerSchema;
-		const changed = disposables.add(new Emitter<string>());
+		const changed = disposables.add(new Emitter<readonly string[]>());
 		const result = createPicker({
 			details: currentModel.identifier,
 			access: {
@@ -2795,7 +2903,7 @@ suite('TabbedModelPicker', () => {
 				context: { ...providerSchema.properties!.context, default: 64000 },
 			},
 		};
-		changed.fire(currentModel.identifier);
+		changed.fire([currentModel.identifier]);
 		openDetails(result.popup, currentModel.metadata.name);
 		assert.deepStrictEqual({
 			selected: Array.from(result.popup.querySelectorAll('.chat-model-card [role="radio"][aria-checked="true"]'), option => option.textContent),
