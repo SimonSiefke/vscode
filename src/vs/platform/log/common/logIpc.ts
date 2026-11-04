@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { onUnexpectedError } from '../../../base/common/errors.js';
+import { ResourceMap } from '../../../base/common/map.js';
+import { generateUuid } from '../../../base/common/uuid.js';
 import { URI } from '../../../base/common/uri.js';
 import { Event } from '../../../base/common/event.js';
 import { IChannel, IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
@@ -11,6 +14,8 @@ import { Disposable } from '../../../base/common/lifecycle.js';
 import { IURITransformer } from '../../../base/common/uriIpc.js';
 
 export class LoggerChannelClient extends AbstractLoggerService implements ILoggerService {
+
+	private readonly references = new ResourceMap<string>();
 
 	constructor(private readonly windowId: number | undefined, logLevel: LogLevel, logsHome: URI, loggers: ILoggerResource[], private readonly channel: IChannel) {
 		super(logLevel, logsHome, loggers);
@@ -27,7 +32,10 @@ export class LoggerChannelClient extends AbstractLoggerService implements ILogge
 				super.registerLogger({ ...loggerResource, resource: URI.revive(loggerResource.resource) });
 			}
 			for (const loggerResource of removed) {
-				super.deregisterLogger(loggerResource.resource);
+				const resource = URI.revive(loggerResource.resource);
+				if (!this.references.has(resource)) {
+					super.deregisterLogger(resource);
+				}
 			}
 		}));
 	}
@@ -42,13 +50,13 @@ export class LoggerChannelClient extends AbstractLoggerService implements ILogge
 
 	override registerLogger(logger: ILoggerResource): void {
 		super.registerLogger(logger);
-		this.channel.call('registerLogger', [logger, this.windowId]);
+		this.channel.call('registerLogger', [logger, this.windowId, this.getReference(logger.resource)]);
 	}
 
 	override deregisterLogger(idOrResource: URI | string): void {
 		const resource = this.toResource(idOrResource);
+		this.releaseReference(resource);
 		super.deregisterLogger(resource);
-		this.channel.call('deregisterLogger', [resource, this.windowId]);
 	}
 
 	override setLogLevel(logLevel: LogLevel): void;
@@ -64,7 +72,32 @@ export class LoggerChannelClient extends AbstractLoggerService implements ILogge
 	}
 
 	protected doCreateLogger(file: URI, logLevel: LogLevel, options?: ILoggerOptions): ILogger {
-		return new Logger(this.channel, file, logLevel, options, this.windowId);
+		const id = this.getReference(file);
+		return new Logger(this.channel, file, logLevel, options, this.windowId, id, () => this.releaseReference(file, id));
+	}
+
+	private getReference(resource: URI): string {
+		let id = this.references.get(resource);
+		if (!id) {
+			id = generateUuid();
+			this.references.set(resource, id);
+		}
+		return id;
+	}
+
+	private releaseReference(resource: URI, id = this.references.get(resource)): void {
+		if (id && this.references.get(resource) === id) {
+			this.references.delete(resource);
+			this.channel.call('deregisterLogger', [id]);
+			super.deregisterLogger(resource);
+		}
+	}
+
+	override dispose(): void {
+		for (const resource of this.references.keys()) {
+			this.releaseReference(resource);
+		}
+		super.dispose();
 	}
 
 	public static setLogLevel(channel: IChannel, level: LogLevel): Promise<void>;
@@ -78,25 +111,37 @@ export class LoggerChannelClient extends AbstractLoggerService implements ILogge
 class Logger extends AbstractMessageLogger {
 
 	private isLoggerCreated: boolean = false;
+	private isDisposed = false;
 	private buffer: [LogLevel, string][] = [];
 
 	constructor(
 		private readonly channel: IChannel,
-		private readonly file: URI,
+		file: URI,
 		logLevel: LogLevel,
-		loggerOptions?: ILoggerOptions,
-		windowId?: number | undefined
+		loggerOptions: ILoggerOptions | undefined,
+		windowId: number | undefined,
+		private readonly referenceId: string,
+		private readonly release: () => void
 	) {
 		super(loggerOptions?.logLevel === 'always');
 		this.setLevel(logLevel);
-		this.channel.call('createLogger', [file, loggerOptions, windowId])
+		this.channel.call('createLogger', [file, loggerOptions, windowId, referenceId])
 			.then(() => {
-				this.doLog(this.buffer);
-				this.isLoggerCreated = true;
+				if (!this.isDisposed) {
+					this.doLog(this.buffer);
+					this.buffer = [];
+					this.isLoggerCreated = true;
+				}
+			}, error => {
+				this.dispose();
+				onUnexpectedError(error);
 			});
 	}
 
 	protected log(level: LogLevel, message: string) {
+		if (this.isDisposed) {
+			return;
+		}
 		const messages: [LogLevel, string][] = [[level, message]];
 		if (this.isLoggerCreated) {
 			this.doLog(messages);
@@ -105,8 +150,15 @@ class Logger extends AbstractMessageLogger {
 		}
 	}
 
+	override dispose(): void {
+		this.isDisposed = true;
+		this.buffer = [];
+		this.release();
+		super.dispose();
+	}
+
 	private doLog(messages: [LogLevel, string][]) {
-		this.channel.call('log', [this.file, messages]);
+		this.channel.call('log', [this.referenceId, messages]);
 	}
 }
 

@@ -98,6 +98,21 @@ suite('DecorationsService', function () {
 		reg.dispose();
 	});
 
+
+	test('releasing a decoration twice preserves shared CSS until the final release', () => {
+		store.add(service.registerDecorationsProvider({ label: 'Shared CSS', onDidChange: Event.None, provideDecorations: () => ({ letter: 'M' }) }));
+		const uri = URI.file('/shared-css.txt');
+		const first = service.getDecoration(uri, false)!;
+		const second = service.getDecoration(uri, false)!;
+		const hasRule = () => [...document.styleSheets].some(sheet => [...sheet.cssRules].some(rule => rule.cssText.includes(first.badgeClassName)));
+		assert.strictEqual(first.badgeClassName, second.badgeClassName);
+		first.dispose();
+		first.dispose();
+		assert.ok(hasRule());
+		second.dispose();
+		assert.ok(!hasRule());
+	});
+
 	test('Classifies text, icon, and bubbled badges', function () {
 		const textUri = URI.parse('file:///text.txt');
 		const iconUri = URI.parse('file:///icon.txt');
