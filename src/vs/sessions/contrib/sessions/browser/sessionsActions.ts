@@ -31,7 +31,7 @@ import { observableConfigValue } from '../../../../platform/observable/common/pl
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IWorkbenchContribution } from '../../../../workbench/common/contributions.js';
 import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
-import { EditorAreaFocusContext, FocusedViewContext, IsAuxiliaryWindowContext, IsSessionsWindowContext } from '../../../../workbench/common/contextkeys.js';
+import { ActiveEditorContext, EditorAreaFocusContext, FocusedViewContext, IsAuxiliaryWindowContext, IsSessionsWindowContext } from '../../../../workbench/common/contextkeys.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../workbench/services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../../workbench/services/views/common/viewsService.js';
 import { getQuickNavigateHandler, inQuickPickContext } from '../../../../workbench/browser/quickaccess.js';
@@ -41,9 +41,9 @@ import { CanGoBackContext, CanGoForwardContext, MultipleSessionsVisibleContext, 
 import { ARRANGE_SESSIONS_COMMAND_ID, CLOSE_CHAT_COMMAND_ID, CLOSE_SESSION_COMMAND_ID, DETACH_CHAT_COMMAND_ID, FOCUS_ACTIVE_SESSION_COMMAND_ID, FOCUS_NEXT_CHAT_GROUP_COMMAND_ID, FOCUS_PREVIOUS_CHAT_GROUP_COMMAND_ID, MOVE_CHAT_TO_NEXT_GROUP_COMMAND_ID, MOVE_CHAT_TO_PREVIOUS_GROUP_COMMAND_ID, RENAME_CHAT_COMMAND_ID, RENAME_SESSION_COMMAND_ID, SESSION_GRID_FOCUS_COMMANDS, SPLIT_CHAT_GROUP_DOWN_COMMAND_ID, SPLIT_CHAT_GROUP_RIGHT_COMMAND_ID, TOGGLE_PIN_CHAT_COMMAND_ID, TOGGLE_PIN_SESSION_COMMAND_ID } from '../../../common/sessionCommands.js';
 import { IActiveSession, ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
-import { ChatOriginKind, getChatCapabilities, getGitHubPullRequestRefs, getHighestPriorityPullRequestIcon, getUntitledSessionTitle, IChat, isSideChatOf, ISession, SessionStatus } from '../../../services/sessions/common/session.js';
+import { WindowCanvasInput } from '../../../services/canvas/browser/windowCanvasService.js';
+import { ChatOriginKind, getChatCapabilities, getGitHubPullRequestRefs, getHighestPriorityPullRequestIcon, getSessionPresentationWorkspace, getSessionWorkspaceKind, getUntitledSessionTitle, IChat, isSideChatOf, ISession, SessionStatus, SessionWorkspaceKind } from '../../../services/sessions/common/session.js';
 import { ISessionsPartService } from '../../../services/sessions/browser/sessionsPartService.js';
-import { ISessionGroupsService } from '../../../services/sessions/browser/sessionGroupsService.js';
 import { ISessionsListModelService } from '../../../services/sessions/browser/sessionsListModelService.js';
 import { $, append, EventHelper, isMouseEvent, ModifierKeyEmitter, reset } from '../../../../base/browser/dom.js';
 import { BaseActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
@@ -76,7 +76,7 @@ import { ChatContextKeys } from '../../../../workbench/contrib/chat/common/actio
 import { ChatMoveSettingId } from '../../../../platform/agentHost/common/agentHostChatMove.js';
 import { IChatEntitlementService } from '../../../../workbench/services/chat/common/chatEntitlementService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { getChatMoveDestinations, getSessionMoveDestinations, isChatMoveDndEnabled, ISessionsListMoveDestination, runSessionsListMove, SessionsListMove } from './views/sessionsListChatMove.js';
+import { getChatMoveDestinations, getSessionMoveDestinations, isChatMoveDndEnabled, isCrossAgentChatMoveEnabled, ISessionsListMoveDestination, runSessionsListMove, SessionsListMove } from './views/sessionsListChatMove.js';
 
 export const NEW_SESSION_BUTTON_STYLE_SETTING = 'sessions.newSessionButton.style';
 export const NEW_SESSION_BUTTON_STYLE_TREATMENT = 'agentSessionsNewSessionButtonStyle';
@@ -138,8 +138,9 @@ registerAction2(class ShowSessionsPickerAction extends Action2 {
 			// left gutter).
 			const detailParts: string[] = [];
 			if (workspace?.label) {
-				const isWorkspaceFolder = workspace.folders.length > 0 && workspace.folders[0]?.gitRepository?.workTreeUri === undefined;
-				const workspaceIcon = workspace.typeIcon ?? (workspace.isVirtualWorkspace ? Codicon.cloud : isWorkspaceFolder ? Codicon.folder : Codicon.worktree);
+				const presentationWorkspace = getSessionPresentationWorkspace(session, reader);
+				const kind = getSessionWorkspaceKind(presentationWorkspace);
+				const workspaceIcon = presentationWorkspace?.typeIcon ?? (kind === SessionWorkspaceKind.Virtual ? Codicon.cloud : kind === SessionWorkspaceKind.Folder ? Codicon.folder : Codicon.worktree);
 				detailParts.push(`$(${Codicon.blank.id}) $(${workspaceIcon.id}) ${workspace.label}`);
 			} else {
 				detailParts.push(`$(${Codicon.blank.id})`);
@@ -273,6 +274,9 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 
 // -- Go Back --
 
+const sessionNavigationWhen = ContextKeyExpr.and(IsSessionsWindowContext,
+	ContextKeyExpr.or(EditorAreaFocusContext.toNegated(), ActiveEditorContext.isEqualTo(WindowCanvasInput.EDITOR_ID)));
+
 registerAction2(class GoBackAction extends Action2 {
 	constructor() {
 		super({
@@ -293,11 +297,11 @@ registerAction2(class GoBackAction extends Action2 {
 				win: { primary: KeyMod.Alt | KeyCode.LeftArrow, secondary: [KeyCode.BrowserBack, KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Tab] },
 				mac: { primary: KeyMod.WinCtrl | KeyCode.Minus, secondary: [KeyCode.BrowserBack, KeyMod.WinCtrl | KeyMod.Shift | KeyCode.Tab] },
 				linux: { primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyCode.Minus, secondary: [KeyMod.Alt | KeyCode.LeftArrow, KeyCode.BrowserBack, KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Tab] },
-				when: ContextKeyExpr.and(IsSessionsWindowContext, EditorAreaFocusContext.toNegated()),
+				when: sessionNavigationWhen,
 			}, {
 				weight: KeybindingWeight.SessionsContrib,
 				mac: { primary: KeyMod.Alt | KeyCode.LeftArrow },
-				when: ContextKeyExpr.and(IsSessionsWindowContext, EditorAreaFocusContext.toNegated(), InputFocusedContext.negate(), EditorContextKeys.textInputFocus.negate()),
+				when: ContextKeyExpr.and(sessionNavigationWhen, InputFocusedContext.negate(), EditorContextKeys.textInputFocus.negate()),
 			}],
 			menu: [{
 				id: Menus.TitleBarCenterLeft,
@@ -339,11 +343,11 @@ registerAction2(class GoForwardAction extends Action2 {
 				win: { primary: KeyMod.Alt | KeyCode.RightArrow, secondary: [KeyCode.BrowserForward, KeyMod.CtrlCmd | KeyCode.Tab] },
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Shift | KeyCode.Minus, secondary: [KeyCode.BrowserForward, KeyMod.WinCtrl | KeyCode.Tab] },
 				linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Minus, secondary: [KeyMod.Alt | KeyCode.RightArrow, KeyCode.BrowserForward, KeyMod.CtrlCmd | KeyCode.Tab] },
-				when: ContextKeyExpr.and(IsSessionsWindowContext, EditorAreaFocusContext.toNegated()),
+				when: sessionNavigationWhen,
 			}, {
 				weight: KeybindingWeight.SessionsContrib,
 				mac: { primary: KeyMod.Alt | KeyCode.RightArrow },
-				when: ContextKeyExpr.and(IsSessionsWindowContext, EditorAreaFocusContext.toNegated(), InputFocusedContext.negate(), EditorContextKeys.textInputFocus.negate()),
+				when: ContextKeyExpr.and(sessionNavigationWhen, InputFocusedContext.negate(), EditorContextKeys.textInputFocus.negate()),
 			}],
 			menu: [{
 				id: Menus.TitleBarCenterLeft,
@@ -767,14 +771,10 @@ registerAction2(class PromoteChatToSessionAction extends Action2 {
 			return false;
 		}
 		const move: SessionsListMove = { kind: 'chat', session: context.session, chat: context.chat, destination: { kind: 'newSession' } };
-		const viewsService = accessor.get(IViewsService);
 		const sessionsList = getSessionsList(accessor);
-		// Like a drop on the list, report the move in the list's notice when the list shows, and reveal and select the
-		// new session in the list once it shows it.
+		// Like a drop on the list, reveal and select the new session in the list once it shows it.
 		return runSessionsListMove(move, sessionsManagementService, accessor.get(INotificationService), accessor.get(ILogService), {
-			notice: viewsService.isViewVisible(SessionsViewId) ? viewsService.getViewWithId<SessionsView>(SessionsViewId)?.listNotification : undefined,
 			watch: sessionsList && (watched => sessionsList.watchMoveForReveal(watched)),
-			placementServices: { sessionsListModelService: accessor.get(ISessionsListModelService), sessionGroupsService: accessor.get(ISessionGroupsService) },
 		});
 	}
 });
@@ -811,13 +811,9 @@ function getMoveRunner(accessor: ServicesAccessor): (move: SessionsListMove) => 
 	const sessionsManagementService = accessor.get(ISessionsManagementService);
 	const notificationService = accessor.get(INotificationService);
 	const logService = accessor.get(ILogService);
-	const viewsService = accessor.get(IViewsService);
 	const sessionsList = getSessionsList(accessor);
-	const placementServices = { sessionsListModelService: accessor.get(ISessionsListModelService), sessionGroupsService: accessor.get(ISessionGroupsService) };
 	return move => runSessionsListMove(move, sessionsManagementService, notificationService, logService, {
-		notice: viewsService.isViewVisible(SessionsViewId) ? viewsService.getViewWithId<SessionsView>(SessionsViewId)?.listNotification : undefined,
 		watch: sessionsList && (watched => sessionsList.watchMoveForReveal(watched)),
-		placementServices,
 	});
 }
 
@@ -840,10 +836,12 @@ registerAction2(class MoveChatToSessionAction extends Action2 {
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
 		const quickInputService = accessor.get(IQuickInputService);
 		const runMove = getMoveRunner(accessor);
-		if (!context || !isChatMoveDndEnabled(accessor.get(IConfigurationService), accessor.get(IChatEntitlementService))) {
+		const configurationService = accessor.get(IConfigurationService);
+		if (!context || !isChatMoveDndEnabled(configurationService, accessor.get(IChatEntitlementService))) {
 			return false;
 		}
-		const destinations = getChatMoveDestinations(context.session, context.chat, sessionsManagementService.getSessions(), sessionsManagementService);
+		const crossAgent = isCrossAgentChatMoveEnabled(configurationService);
+		const destinations = getChatMoveDestinations(context.session, context.chat, sessionsManagementService.getSessions(), sessionsManagementService, crossAgent);
 		if (!destinations.length) {
 			return false;
 		}
@@ -855,7 +853,7 @@ registerAction2(class MoveChatToSessionAction extends Action2 {
 			return false;
 		}
 		// The pick is asynchronous: check the destination still takes the chat.
-		const current = getChatMoveDestinations(context.session, context.chat, sessionsManagementService.getSessions(), sessionsManagementService).find(candidate => candidate.session === destination.session);
+		const current = getChatMoveDestinations(context.session, context.chat, sessionsManagementService.getSessions(), sessionsManagementService, crossAgent).find(candidate => candidate.session === destination.session);
 		if (!current) {
 			return false;
 		}
@@ -884,10 +882,12 @@ registerAction2(class MoveSessionIntoSessionAction extends Action2 {
 		const quickInputService = accessor.get(IQuickInputService);
 		const runMove = getMoveRunner(accessor);
 		const session = Array.isArray(context) ? (context.length === 1 ? context[0] : undefined) : context;
-		if (!session || !isChatMoveDndEnabled(accessor.get(IConfigurationService), accessor.get(IChatEntitlementService))) {
+		const configurationService = accessor.get(IConfigurationService);
+		if (!session || !isChatMoveDndEnabled(configurationService, accessor.get(IChatEntitlementService))) {
 			return false;
 		}
-		const destinations = getSessionMoveDestinations(session, sessionsManagementService.getSessions(), sessionsManagementService);
+		const crossAgent = isCrossAgentChatMoveEnabled(configurationService);
+		const destinations = getSessionMoveDestinations(session, sessionsManagementService.getSessions(), sessionsManagementService, crossAgent);
 		if (!destinations.length) {
 			return false;
 		}
@@ -898,7 +898,7 @@ registerAction2(class MoveSessionIntoSessionAction extends Action2 {
 		if (!destination) {
 			return false;
 		}
-		const current = getSessionMoveDestinations(session, sessionsManagementService.getSessions(), sessionsManagementService).find(candidate => candidate.session === destination.session);
+		const current = getSessionMoveDestinations(session, sessionsManagementService.getSessions(), sessionsManagementService, crossAgent).find(candidate => candidate.session === destination.session);
 		if (!current) {
 			return false;
 		}
@@ -1929,6 +1929,14 @@ export class SessionConversationActionsContribution extends Disposable implement
 }
 
 for (const menu of SessionHeaderMenus) {
+	MenuRegistry.appendMenuItem(menu, {
+		submenu: MenuId.ChatViewMode,
+		title: localize2('chat.viewMode', "View Mode"),
+		group: 'secondary/4_manage',
+		order: 10,
+		when: ChatContextKeys.enabled,
+	});
+
 	MenuRegistry.appendMenuItem(menu, {
 		submenu: Menus.SessionConversations,
 		title: localize2('chatCompositeBar.sideChats', "Side Chats"),

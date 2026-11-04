@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ProxyChannel } from '../../../../../base/parts/ipc/common/ipc.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -25,6 +25,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { IBrowserViewNetworkResolver, IBrowserViewWorkbenchService } from '../../common/browserView.js';
 import { IBrowserZoomService } from '../../common/browserZoomService.js';
 import { BrowserViewWorkbenchService } from '../../electron-browser/browserViewWorkbenchService.js';
+import { IUnattendedRestartService } from '../../../../services/lifecycle/common/unattendedRestart.js';
 
 suite('BrowserViewWorkbenchService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -97,7 +98,8 @@ suite('BrowserViewWorkbenchService', () => {
 		const service = store.add(instantiationService.createInstance(BrowserViewWorkbenchService));
 		instantiationService.stub(IBrowserViewWorkbenchService, service);
 		const workspaceTrustService = instantiationService.get(IWorkspaceTrustManagementService);
-		return { service, events, creationOptions, loadedUrls, windowConfigurations, configurationService, workspaceTrustService, publishing };
+		const unattendedRestartService = instantiationService.get(IUnattendedRestartService);
+		return { service, events, creationOptions, loadedUrls, windowConfigurations, configurationService, workspaceTrustService, publishing, unattendedRestartService };
 	}
 
 	function info(id: string, presentation = BrowserViewPresentation.Listed): IBrowserViewInfo {
@@ -174,7 +176,7 @@ suite('BrowserViewWorkbenchService', () => {
 		const [restoredSerialized, restoredScreenshot] = serializeBrowserViewInfo(restored);
 		events.fire([{ type: 'snapshot', windowId: 1, views: [restoredSerialized] }, [restoredScreenshot]]);
 
-		const externalModel = await service.createExternalBrowserView('https://example.test/preview', 'canvas');
+		const externalModel = store.add(await service.createExternalBrowserView('https://example.test/preview', 'canvas'));
 		const externalRequests: string[] = [];
 		store.add(externalModel.onDidRequestOpenExternal(url => externalRequests.push(url)));
 		events.fire([{ type: 'changed', windowId: 1, id: externalModel.id, event: 'onDidRequestOpenExternal', data: 'http://localhost:3000/details' }, []]);
@@ -185,26 +187,47 @@ suite('BrowserViewWorkbenchService', () => {
 		const listedInput = service.getKnownBrowserViews().get('listed-page');
 		assert.ok(listedInput);
 
-		try {
-			assert.deepStrictEqual({
-				creationPresentations: creationOptions.map(options => options.presentation),
-				creationUrls: creationOptions.map(options => options.initialUrl),
-				openSources: creationOptions.map(options => options.openSource),
-				loadedUrls,
-				externalRequests,
-				knownIds: [...service.getKnownBrowserViews().keys()],
-			}, {
-				creationPresentations: [BrowserViewPresentation.Unlisted],
-				creationUrls: [undefined],
-				openSources: ['canvas'],
-				loadedUrls: [{ id: externalModel.id, url: 'https://example.test/preview' }],
-				externalRequests: ['http://localhost:3000/details'],
-				knownIds: ['listed-page'],
-			});
-		} finally {
-			listedInput.dispose();
-			externalModel.dispose();
-		}
+		store.add(toDisposable(() => listedInput.dispose()));
+		assert.deepStrictEqual({
+			creationPresentations: creationOptions.map(options => options.presentation),
+			creationUrls: creationOptions.map(options => options.initialUrl),
+			openSources: creationOptions.map(options => options.openSource),
+			loadedUrls,
+			externalRequests,
+			knownIds: [...service.getKnownBrowserViews().keys()],
+		}, {
+			creationPresentations: [BrowserViewPresentation.Unlisted],
+			creationUrls: [undefined],
+			openSources: ['canvas'],
+			loadedUrls: [{ id: externalModel.id, url: 'https://example.test/preview' }],
+			externalRequests: ['http://localhost:3000/details'],
+			knownIds: ['listed-page'],
+		});
+	});
+
+	test('blocks unattended restarts while a page is live', async () => {
+		const { service, events, unattendedRestartService } = createService();
+		const results: (readonly string[])[] = [];
+		const check = async () => results.push((await unattendedRestartService.canRestartUnattended()).blockers);
+
+		const restored = store.add(service.getOrCreateLazy({ id: 'restored', url: 'https://saved.example/' }));
+		await check();
+
+		const [serialized, screenshot] = serializeBrowserViewInfo(info('page'));
+		events.fire([{ type: 'created', windowId: 1, data: { info: serialized } }, [screenshot]]);
+		const page = store.add(service.getKnownBrowserViews().get('page')!);
+		await check();
+		page.dispose();
+		await check();
+
+		const canvas = await service.createExternalBrowserView('https://example.test/canvas', 'canvas');
+		await check();
+		canvas.dispose();
+		await check();
+
+		restored.dispose();
+		await Promise.resolve();
+		assert.deepStrictEqual(results, [[], ['browser.livePage'], [], ['browser.livePage'], []]);
 	});
 
 	test('cleans event lifetimes when embedded canvas models are repeatedly disposed', async () => {
@@ -344,6 +367,56 @@ suite('BrowserViewWorkbenchService', () => {
 			// A host that cannot proxy browsers leaves the view on the local network, without changing the saved request.
 			session: { scope: BrowserViewStorageScope.Workspace },
 			saved: { scope: BrowserViewStorageScope.Workspace, network: { authority: 'host' } },
+		});
+	});
+
+	test('embedded views require their owner\'s network instead of falling back to the local network', async () => {
+		const embed = async (proxySupported: boolean, enableRemoteProxy: boolean) => {
+			const { service, events, creationOptions, configurationService } = createService();
+			events.fire([{ type: 'snapshot', windowId: 1, views: [] }, []]);
+			const proxyCalls: string[] = [];
+			registerProxyProvider(service, proxyCalls);
+			store.add(service.registerNetworkResolver({ resolveNetwork: () => ({ authority: 'host' }), ...hostStatuses({ host: proxySupported }) }));
+			await configurationService.setUserConfiguration('workbench.browser.enableRemoteProxy', enableRemoteProxy);
+			const outcome = await service.createExternalBrowserView('http://127.0.0.1:3000/', 'canvas', { type: 'agent', sessionId: 'chat' }).then(model => {
+				model.dispose();
+				return 'created';
+			}, (error: Error) => error.message);
+			return { outcome, sessions: creationOptions.map(options => options.session), proxyCalls };
+		};
+
+		assert.deepStrictEqual({
+			supported: await embed(true, true),
+			proxyDisabled: await embed(true, false),
+			hostUnsupported: await embed(false, true),
+		}, {
+			supported: { outcome: 'created', sessions: [{ scope: BrowserViewStorageScope.Ephemeral, network: { authority: 'host' } }], proxyCalls: ['acquire host', 'release host'] },
+			proxyDisabled: { outcome: 'The required remote network is unavailable.', sessions: [], proxyCalls: [] },
+			hostUnsupported: { outcome: 'The required remote network is unavailable.', sessions: [], proxyCalls: [] },
+		});
+	});
+
+	test('embedded views use the network their owner had when requested, and fail for unknown owners', async () => {
+		const { service, events, creationOptions, publishing } = createService();
+		events.fire([{ type: 'snapshot', windowId: 1, views: [] }, []]);
+		registerProxyProvider(service, []);
+		let ownerNetwork: IBrowserViewNetwork | null | undefined = { authority: 'host' };
+		store.add(service.registerNetworkResolver({ resolveNetwork: () => ownerNetwork, ...hostStatuses({ host: true }) }));
+
+		// The owner goes away while the window configuration is still being published.
+		const published = new DeferredPromise<void>();
+		publishing.value = published.p;
+		const created = service.createExternalBrowserView('http://127.0.0.1:3000/', 'canvas', { type: 'agent', sessionId: 'chat' });
+		ownerNetwork = null;
+		published.complete();
+		(await created).dispose();
+		publishing.value = undefined;
+		const unknownOwner = await service.createExternalBrowserView('http://127.0.0.1:3000/', 'canvas', { type: 'agent', sessionId: 'gone' })
+			.then(() => 'created', (error: Error) => error.message);
+
+		assert.deepStrictEqual({ sessions: creationOptions.map(options => options.session), unknownOwner }, {
+			sessions: [{ scope: BrowserViewStorageScope.Ephemeral, network: { authority: 'host' } }],
+			unknownOwner: 'The required remote network is unavailable.',
 		});
 	});
 

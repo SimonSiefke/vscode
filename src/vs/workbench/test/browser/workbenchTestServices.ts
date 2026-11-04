@@ -146,6 +146,7 @@ import { EnvironmentVariableService } from '../../contrib/terminal/common/enviro
 import { IRegisterContributedProfileArgs, IShellLaunchConfigResolveOptions, ITerminalProfileProvider, ITerminalProfileResolverService, ITerminalProfileService, type ITerminalConfiguration } from '../../contrib/terminal/common/terminal.js';
 import { IChatEntitlementService } from '../../services/chat/common/chatEntitlementService.js';
 import { ChatSideChatService, IChatSideChatService } from '../../contrib/chat/common/chatSideChatService.js';
+import { IChatThinkingTitleService } from '../../contrib/chat/common/chatThinkingTitleService.js';
 import { ChatRequestOriginService, IChatRequestOriginService } from '../../contrib/chat/common/chatRequestOrigin.js';
 import { IManagedSettingsService, NullManagedSettingsService } from '../../../platform/policy/common/copilotManagedSettings.js';
 import { AccountPolicyGateState, IAccountPolicyGateService } from '../../services/policies/common/accountPolicyService.js';
@@ -171,6 +172,7 @@ import { LabelService } from '../../services/label/common/labelService.js';
 import { ILanguageDetectionService } from '../../services/languageDetection/common/languageDetectionWorkerService.js';
 import { IPartVisibilityChangeEvent, IWorkbenchLayoutService, PanelAlignment, Position as PartPosition, Parts, SINGLE_WINDOW_PARTS } from '../../services/layout/browser/layoutService.js';
 import { ILifecycleService, InternalBeforeShutdownEvent, IWillShutdownEventJoiner, ShutdownReason, WillShutdownEvent } from '../../services/lifecycle/common/lifecycle.js';
+import { IUnattendedRestartService, UnattendedRestartService } from '../../services/lifecycle/common/unattendedRestart.js';
 import { IPaneCompositePartService } from '../../services/panecomposite/browser/panecomposite.js';
 import { IPathService } from '../../services/path/common/pathService.js';
 import { ICopilotHomeService } from '../../../platform/environment/common/copilotHome.js';
@@ -290,6 +292,7 @@ export function workbenchInstantiationService(
 	instantiationService.stub(IEnvironmentService, environmentService);
 	instantiationService.stub(IWorkbenchEnvironmentService, environmentService);
 	instantiationService.stub(ILogService, new NullLogService());
+	instantiationService.stub(IUnattendedRestartService, new UnattendedRestartService(new NullLogService()));
 	const contextKeyService = overrides?.contextKeyService ? overrides.contextKeyService(instantiationService) : instantiationService.createInstance(MockContextKeyService);
 	instantiationService.stub(IContextKeyService, contextKeyService);
 	instantiationService.stub(IProgressService, new TestProgressService());
@@ -393,6 +396,7 @@ export function workbenchInstantiationService(
 	instantiationService.stub(IHoverService, NullHoverService);
 	instantiationService.stub(IChatEntitlementService, new TestChatEntitlementService());
 	instantiationService.stub(IChatSideChatService, disposables.add(new ChatSideChatService()));
+	instantiationService.stub(IChatThinkingTitleService, { getCachedTitle: () => undefined, generateTitle: async () => undefined });
 	instantiationService.stub(IChatRequestOriginService, disposables.add(new ChatRequestOriginService()));
 	instantiationService.stub(IAgentHostConnectionsService, { resolveSessionResourceIdentity: () => undefined });
 	instantiationService.stub(IManagedSettingsService, new NullManagedSettingsService());
@@ -902,6 +906,7 @@ export class TestEditorGroupsService implements IEditorGroupsService {
 	readonly onDidChangeGroupLabel: Event<IEditorGroup> = Event.None;
 	readonly onDidChangeGroupLocked: Event<IEditorGroup> = Event.None;
 	readonly onDidChangeGroupMaximized: Event<boolean> = Event.None;
+	readonly onDidFocus: Event<void> = Event.None;
 	readonly onDidLayout: Event<IDimension> = Event.None;
 	onDidChangeEditorPartOptions = Event.None;
 	onDidScroll = Event.None;
