@@ -337,7 +337,7 @@ function createSession(id: string, opts?: { session?: URI; provider?: string; su
 	};
 }
 
-function createProvider(disposables: DisposableStore, connection: MockAgentConnection, overrides?: { fileDialogService?: IFileDialogService; address?: string; preferenceKey?: string; connectionName?: string | undefined; chatService?: IChatService; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; onDidAcceptRequest?: Event<IChatRequestAcceptedEvent>; openSession?: boolean; storageService?: IStorageService; localAgentHostService?: IAgentHostService; remoteAgentHostService?: IRemoteAgentHostService; noConnection?: boolean; connectOnDemand?: () => Promise<void>; isWebPlatform?: boolean; workspaceTrusted?: boolean; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; configurationService?: IConfigurationService; composerService?: INewSessionComposerService; omitHostFromWorkspaceLabel?: boolean; workspaceTypeIcon?: ThemeIcon; sessionSchemeAlias?: IAgentHostSessionSchemeAlias; defaultChangesetKind?: IRemoteAgentHostSessionsProviderConfig['defaultChangesetKind']; sessionResolutionPolicies?: Array<{ authority: string; policy: IAgentHostSessionResolutionPolicy }>; devContainerWorktreeScope?: string; devContainerLifecycle?: IRemoteAgentHostSessionsProviderConfig['devContainerLifecycle']; devContainerSourceWorkspace?: URI; resolveDevContainerWorktreeConnection?: IRemoteAgentHostSessionsProviderConfig['resolveDevContainerWorktreeConnection']; readOnlyWhenDisconnected?: boolean; ctor?: typeof RemoteAgentHostSessionsProvider; labelService?: ILabelService; logService?: ILogService; defaultDirectory?: string; activeSession?: IObservable<IActiveSession | undefined>; deleteSessionsOnDemand?: IRemoteAgentHostSessionsProviderConfig['deleteSessionsOnDemand']; telemetryService?: ITelemetryService }, configOverrides: Partial<IRemoteAgentHostSessionsProviderConfig> = {}): RemoteAgentHostSessionsProvider {
+function createProvider(disposables: DisposableStore, connection: MockAgentConnection, overrides?: { notifySessionDeleted?: (resources: readonly URI[]) => void; fileDialogService?: IFileDialogService; address?: string; preferenceKey?: string; connectionName?: string | undefined; chatService?: IChatService; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; onDidAcceptRequest?: Event<IChatRequestAcceptedEvent>; openSession?: boolean; storageService?: IStorageService; localAgentHostService?: IAgentHostService; remoteAgentHostService?: IRemoteAgentHostService; noConnection?: boolean; connectOnDemand?: () => Promise<void>; isWebPlatform?: boolean; workspaceTrusted?: boolean; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; configurationService?: IConfigurationService; composerService?: INewSessionComposerService; omitHostFromWorkspaceLabel?: boolean; workspaceTypeIcon?: ThemeIcon; sessionSchemeAlias?: IAgentHostSessionSchemeAlias; defaultChangesetKind?: IRemoteAgentHostSessionsProviderConfig['defaultChangesetKind']; sessionResolutionPolicies?: Array<{ authority: string; policy: IAgentHostSessionResolutionPolicy }>; devContainerWorktreeScope?: string; devContainerLifecycle?: IRemoteAgentHostSessionsProviderConfig['devContainerLifecycle']; devContainerSourceWorkspace?: URI; resolveDevContainerWorktreeConnection?: IRemoteAgentHostSessionsProviderConfig['resolveDevContainerWorktreeConnection']; readOnlyWhenDisconnected?: boolean; ctor?: typeof RemoteAgentHostSessionsProvider; labelService?: ILabelService; logService?: ILogService; defaultDirectory?: string; activeSession?: IObservable<IActiveSession | undefined>; deleteSessionsOnDemand?: IRemoteAgentHostSessionsProviderConfig['deleteSessionsOnDemand']; telemetryService?: ITelemetryService }, configOverrides: Partial<IRemoteAgentHostSessionsProviderConfig> = {}): RemoteAgentHostSessionsProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
 	instantiationService.stub(IRemoteAgentHostAuthenticationService, new RemoteAgentHostAuthenticationService());
@@ -362,6 +362,7 @@ function createProvider(disposables: DisposableStore, connection: MockAgentConne
 		getOrCreateChatSession: async () => ({ onWillDispose: () => ({ dispose() { } }), sessionResource: URI.from({ scheme: 'test' }), history: [], dispose() { } }),
 	});
 	instantiationService.stub(IChatService, overrides?.chatService ?? {
+		notifySessionDeleted: overrides?.notifySessionDeleted ?? (() => { }),
 		onDidAcceptRequest: overrides?.onDidAcceptRequest ?? Event.None,
 		acquireOrLoadSession: async () => undefined,
 		sendRequest: overrides?.sendRequest ?? (async (): Promise<ChatSendResult> => ({ kind: 'sent' as const, data: {} as ChatSendResult extends { kind: 'sent'; data: infer D } ? D : never })),
@@ -2657,7 +2658,8 @@ suite('RemoteAgentHostSessionsProvider', () => {
 	}));
 
 	test('deleteSession calls disposeSession with backend agent URI and removes from cache', async () => {
-		const provider = createProvider(disposables, connection);
+		const cleared: (readonly URI[])[] = [];
+		const provider = createProvider(disposables, connection, { notifySessionDeleted: resources => cleared.push(resources) });
 		fireSessionAdded(connection, 'del-sess', { title: 'To Delete' });
 
 		const sessions = provider.getSessions();
@@ -2675,6 +2677,36 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		// Session should no longer appear in getSessions
 		const remaining = provider.getSessions();
 		assert.strictEqual(remaining.find((s) => s.title.get() === 'To Delete'), undefined);
+		assert.deepStrictEqual(cleared, [[target.resource]]);
+	});
+
+	test('confirmed deletion cleans captured resources after a catalog refresh evicts the adapter', async () => {
+		class RefreshableProvider extends RemoteAgentHostSessionsProvider {
+			refresh(): Promise<void> { return this._refreshSessions(); }
+		}
+		const confirmation = new DeferredPromise<void>();
+		const connection = disposables.add(new class extends MockAgentConnection {
+			override async disposeSession(resource: URI): Promise<void> {
+				await super.disposeSession(resource);
+				await confirmation.p;
+			}
+		}());
+		const cleared: string[][] = [];
+		const provider = createProvider(disposables, connection, {
+			ctor: RefreshableProvider,
+			notifySessionDeleted: resources => cleared.push(resources.map(resource => resource.toString())),
+		}) as RefreshableProvider;
+		await provider.refresh();
+		fireSessionAdded(connection, 'delete-during-refresh');
+		const target = provider.getSessions()[0];
+
+		const deletion = provider.deleteSession(target.sessionId);
+		await provider.refresh();
+		const beforeConfirmation = [...cleared];
+		confirmation.complete();
+		await deletion;
+
+		assert.deepStrictEqual({ beforeConfirmation, cleared }, { beforeConfirmation: [], cleared: [[target.resource.toString()]] });
 	});
 
 	test('only offers Dev Containers for its own non-container workspaces', async () => {
@@ -6517,8 +6549,10 @@ suite('CloudSandboxSessionsProvider deletion', () => {
 			const connection = store.add(new MockAgentConnection());
 			const deleted: string[][] = [];
 			const removed: string[] = [];
+			const cleared: (readonly URI[])[] = [];
 			let connects = 0;
 			const provider = createProvider(store.add(new DisposableStore()), connection, {
+				notifySessionDeleted: resources => cleared.push(resources),
 				address: 'cloudsandbox:delete-test',
 				ctor: CloudSandboxSessionsProvider,
 				sessionSchemeAlias: { ui: 'copilot', backend: 'ahp-session' },
@@ -6548,19 +6582,21 @@ suite('CloudSandboxSessionsProvider deletion', () => {
 			const supportsDelete = session.capabilities.get().supportsDelete;
 			await provider.deleteSession(session.sessionId);
 			assert.deepStrictEqual({
-				supportsDelete, deleted, removed, connects,
+				supportsDelete, deleted, removed, connects, cleared,
 				hostDeletions: connection.disposedSessions, remaining: provider.getSessions().map(session => session.sessionId),
 			}, {
 				supportsDelete: true, deleted: [['sandbox-session']], removed: [session.sessionId],
-				connects: 0, hostDeletions: [], remaining: [],
+				connects: 0, hostDeletions: [], remaining: [], cleared: [[session.resource]],
 			});
 		});
 	}
 
 	test('keeps cached sessions when owner deletion fails', async () => {
+		const cleared: (readonly URI[])[] = [];
 		const connection = store.add(new MockAgentConnection());
 		const provider = createProvider(store.add(new DisposableStore()), connection, {
 			ctor: CloudSandboxSessionsProvider, noConnection: true,
+			notifySessionDeleted: resources => cleared.push(resources),
 			deleteSessionsOnDemand: {
 				ownsSession: session => session.toString() === 'copilotcli:/sandbox-session',
 				deleteSessions: async () => { throw new Error('Mission Control rejected deletion'); },
@@ -6569,7 +6605,7 @@ suite('CloudSandboxSessionsProvider deletion', () => {
 		provider.seedSessions([createSession('sandbox-session')]);
 		const session = provider.getSessions()[0];
 		await assert.rejects(provider.deleteSession(session.sessionId), /rejected deletion/);
-		assert.deepStrictEqual(provider.getSessions(), [session]);
+		assert.deepStrictEqual({ sessions: provider.getSessions(), cleared }, { sessions: [session], cleared: [] });
 	});
 });
 

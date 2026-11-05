@@ -2282,6 +2282,8 @@ export interface IChatService {
 	getLocalSessionHistory(): Promise<IChatDetail[]>;
 	clearAllHistoryEntries(): Promise<void>;
 	removeHistoryEntry(sessionResource: URI): Promise<void>;
+	/** Notify consumers after sessions have been permanently deleted by their owner. */
+	notifySessionDeleted(sessionResources: readonly URI[]): void;
 	getChatStorageFolder(): URI;
 	logChatIndex(): void;
 	getLiveSessionItems(): Promise<IChatDetail[]>;
