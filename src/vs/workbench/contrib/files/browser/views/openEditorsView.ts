@@ -26,7 +26,7 @@ import { IListVirtualDelegate, IListRenderer, IListContextMenuEvent, IListDragAn
 import { ResourceLabels, IResourceLabel } from '../../../../browser/labels.js';
 import { ActionBar } from '../../../../../base/browser/ui/actionbar/actionbar.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { DisposableMap, IDisposable, dispose } from '../../../../../base/common/lifecycle.js';
+import { DisposableMap, DisposableStore, IDisposable, dispose } from '../../../../../base/common/lifecycle.js';
 import { MenuId, Action2, registerAction2, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { OpenEditorsDirtyEditorContext, OpenEditorsGroupContext, OpenEditorsReadonlyEditorContext, SAVE_ALL_LABEL, SAVE_ALL_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, OpenEditorsSelectedFileOrUntitledContext } from '../fileConstants.js';
 import { ResourceContextKey, MultipleEditorGroupsContext } from '../../../../common/contextkeys.js';
@@ -645,6 +645,7 @@ interface IOpenEditorTemplateData {
 	root: IResourceLabel;
 	actionBar: ActionBar;
 	actionRunner: OpenEditorActionRunner;
+	elementDisposables: DisposableStore;
 }
 
 interface IEditorGroupTemplateData {
@@ -752,12 +753,20 @@ export class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditor
 		editorTemplate.actionRunner = new OpenEditorActionRunner();
 		editorTemplate.actionBar = new ActionBar(container, { actionRunner: editorTemplate.actionRunner });
 		editorTemplate.root = this.labels.create(container);
+		editorTemplate.elementDisposables = new DisposableStore();
 
 		return editorTemplate;
 	}
 
 	renderElement(openedEditor: OpenEditor, _index: number, templateData: IOpenEditorTemplateData): void {
+		templateData.elementDisposables.clear();
 		const editor = openedEditor.editor;
+		if (editor.isDisposed()) {
+			this.disposeElement(openedEditor, _index, templateData);
+			return;
+		}
+		// Rows can outlive their inputs while a hidden or delayed list refresh is pending.
+		templateData.elementDisposables.add(editor.onWillDispose(() => this.disposeElement(openedEditor, _index, templateData)));
 		templateData.actionRunner.editor = openedEditor;
 		templateData.container.classList.toggle('dirty', editor.isDirty() && !editor.isSaving());
 		templateData.container.classList.toggle('sticky', openedEditor.isSticky());
@@ -782,11 +791,13 @@ export class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditor
 	}
 
 	disposeElement(_openedEditor: OpenEditor, _index: number, templateData: IOpenEditorTemplateData): void {
+		templateData.elementDisposables.clear();
 		templateData.root.clear();
 		templateData.actionRunner.editor = undefined;
 	}
 
 	disposeTemplate(templateData: IOpenEditorTemplateData): void {
+		templateData.elementDisposables.dispose();
 		templateData.actionBar.dispose();
 		templateData.root.dispose();
 		templateData.actionRunner.dispose();
