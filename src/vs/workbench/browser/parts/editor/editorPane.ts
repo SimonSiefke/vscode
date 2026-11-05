@@ -91,6 +91,12 @@ export abstract class EditorPane<MementoType extends object = object> extends Co
 		storageService: IStorageService
 	) {
 		super(id, telemetryService, themeService, storageService);
+
+		this._register(Event.once(group.onWillDispose)(() => {
+			for (const editorMemento of EditorPane.EDITOR_MEMENTOS.values()) {
+				editorMemento.clearEditorGroupState(group);
+			}
+		}));
 	}
 
 	override create(parent: HTMLElement): void {
@@ -221,6 +227,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 	private cleanedUp = false;
 	private editorDisposables: Map<EditorInput, IDisposable> | undefined;
 	private shareEditorState = false;
+	private readonly disposedGroups = new WeakSet<IEditorGroup>();
 
 	constructor(
 		readonly id: string,
@@ -250,7 +257,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 	saveEditorState(group: IEditorGroup, editor: EditorInput, state: T): void;
 	saveEditorState(group: IEditorGroup, resourceOrEditor: URI | EditorInput, state: T): void {
 		const resource = this.doGetResource(resourceOrEditor);
-		if (!resource || !group) {
+		if (!resource || !group || this.disposedGroups.has(group)) {
 			return; // we are not in a good state to save any state for a resource
 		}
 
@@ -274,6 +281,28 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 		// Automatically clear when editor input gets disposed if any
 		if (isEditorInput(resourceOrEditor)) {
 			this.clearEditorStateOnDispose(resource, resourceOrEditor);
+		}
+	}
+
+	/**
+	 * Releases a closing group's states and prevents late saves from restoring them.
+	 */
+	clearEditorGroupState(group: IEditorGroup): void {
+		if (this.disposedGroups.has(group)) {
+			return;
+		}
+		this.disposedGroups.add(group);
+
+		const cache = this.cache;
+		if (!cache) {
+			return;
+		}
+
+		for (const [resource, mementosForResource] of [...cache.entries()]) {
+			delete mementosForResource[group.id];
+			if (isEmptyObject(mementosForResource)) {
+				cache.delete(resource);
+			}
 		}
 	}
 
