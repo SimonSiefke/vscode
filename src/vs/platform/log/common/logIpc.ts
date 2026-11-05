@@ -27,7 +27,7 @@ export class LoggerChannelClient extends AbstractLoggerService implements ILogge
 				super.registerLogger({ ...loggerResource, resource: URI.revive(loggerResource.resource) });
 			}
 			for (const loggerResource of removed) {
-				super.deregisterLogger(loggerResource.resource);
+				super.deregisterLogger(URI.revive(loggerResource.resource));
 			}
 		}));
 	}
@@ -168,7 +168,7 @@ export class RemoteLoggerChannelClient extends Disposable {
 				loggerService.registerLogger({ ...loggerResource, resource: URI.revive(loggerResource.resource) });
 			}
 			for (const loggerResource of removed) {
-				loggerService.deregisterLogger(loggerResource.resource);
+				loggerService.deregisterLogger(URI.revive(loggerResource.resource));
 			}
 		}));
 
