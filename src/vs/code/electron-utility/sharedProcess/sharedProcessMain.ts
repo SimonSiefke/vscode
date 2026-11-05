@@ -12,7 +12,7 @@ import { Schemas } from '../../../base/common/network.js';
 import { URI } from '../../../base/common/uri.js';
 import { Emitter } from '../../../base/common/event.js';
 import { ProxyChannel, StaticRouter } from '../../../base/parts/ipc/common/ipc.js';
-import { IClientConnectionFilter, Server as UtilityProcessMessagePortServer, once } from '../../../base/parts/ipc/node/ipc.mp.js';
+import { IClientConnectionFilter, Server as UtilityProcessMessagePortServer, once } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
 import { CodeCacheCleaner } from './contrib/codeCacheCleaner.js';
 import { LanguagePackCachedDataCleaner } from './contrib/languagePackCachedDataCleaner.js';
 import { LocalizationsUpdater } from './contrib/localizationsUpdater.js';
