@@ -50,6 +50,16 @@ suite('KeybindingsEditorModel', () => {
 		disposables.add(CommandsRegistry.registerCommand('command_without_keybinding', () => { }));
 	});
 
+	test('disposal releases keybinding data in both sort orders', async () => {
+		prepareKeybindingService(aResolvedKeybindingItem({ command: 'test.disposal', firstChord: { keyCode: KeyCode.Escape } }));
+		await testObject.resolve();
+		assert.ok(testObject.fetch('').length > 0);
+
+		testObject.dispose();
+
+		assert.deepStrictEqual([testObject.fetch(''), testObject.fetch('', true)], [[], []]);
+	});
+
 	test('fetch returns default keybindings', async () => {
 		const expected = prepareKeybindingService(
 			aResolvedKeybindingItem({ command: 'a' + uuid.generateUuid(), firstChord: { keyCode: KeyCode.Escape } }),

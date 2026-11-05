@@ -229,6 +229,12 @@ export class KeybindingsEditorModel extends EditorModel {
 		return super.resolve();
 	}
 
+	override dispose(): void {
+		super.dispose();
+		this._keybindingItems = [];
+		this._keybindingItemsSortedByPrecedence = [];
+	}
+
 	private static getId(keybindingItem: IKeybindingItem): string {
 		return keybindingItem.command + (keybindingItem?.keybinding?.getAriaLabel() ?? '') + keybindingItem.when + (isString(keybindingItem.source) ? keybindingItem.source : keybindingItem.source.identifier.value);
 	}
