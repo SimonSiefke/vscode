@@ -725,7 +725,7 @@ class EditorGroupRenderer implements IListRenderer<IEditorGroup, IEditorGroupTem
 	}
 }
 
-class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplateData> {
+export class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplateData> {
 	static readonly ID = 'openeditor';
 
 	private readonly closeEditorAction;
@@ -779,6 +779,11 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 			}
 			templateData.actionBar.push(editorAction, { icon: true, label: false, keybinding: this.keybindingService.lookupKeybinding(editorAction.id)?.getLabel() });
 		}
+	}
+
+	disposeElement(_openedEditor: OpenEditor, _index: number, templateData: IOpenEditorTemplateData): void {
+		templateData.root.clear();
+		templateData.actionRunner.editor = undefined;
 	}
 
 	disposeTemplate(templateData: IOpenEditorTemplateData): void {

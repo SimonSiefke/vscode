@@ -589,6 +589,7 @@ export class TestDecorationsService implements IDecorationsService {
 	readonly onDidChangeDecorations: Event<IResourceDecorationChangeEvent> = Event.None;
 
 	registerDecorationsProvider(_provider: IDecorationsProvider): IDisposable { return Disposable.None; }
+	clearCachedDecorations(_uri: URI): void { }
 	getDecoration(_uri: URI, _includeChildren: boolean, _overwrite?: IDecorationData): IDecoration | undefined { return undefined; }
 }
 

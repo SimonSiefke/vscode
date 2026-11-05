@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getWindow } from '../../../../base/browser/dom.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { toAction } from '../../../../base/common/actions.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
@@ -128,6 +129,7 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 		webview: IOverlayWebview,
 		options: { startsDirty?: boolean; backupId?: string; untitledDocumentData?: VSBuffer; readonly oldResource?: URI },
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@IWebviewWorkbenchService webviewWorkbenchService: IWebviewWorkbenchService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ILabelService private readonly labelService: ILabelService,
@@ -140,7 +142,7 @@ export class CustomEditorInput extends LazilyResolvedWebviewEditorInput {
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@ICustomEditorLabelService private readonly customEditorLabelService: ICustomEditorLabelService,
 	) {
-		super({ providedId: init.viewType, viewType: init.viewType, name: init.preferredName ?? '', iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService);
+		super({ providedId: init.viewType, viewType: init.viewType, name: init.preferredName ?? '', iconPath: init.iconPath }, webview, themeService, webviewWorkbenchService, decorationsService);
 		this._editorResource = init.resource;
 		this.oldResource = options.oldResource;
 		this._defaultDirtyState = options.startsDirty;
