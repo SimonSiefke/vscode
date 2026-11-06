@@ -6,7 +6,7 @@
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../base/common/map.js';
-import { derived, IObservable, observableValue } from '../../../../base/common/observable.js';
+import { derivedOpts, IObservable, observableValue } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IChatRequestVariableEntry } from './attachments/chatVariableEntries.js';
@@ -122,7 +122,14 @@ export class ChatSideChatService extends Disposable implements IChatSideChatServ
 	observeSideChatOrigin(sessionResource: URI): IObservable<IChatSideChatOrigin | undefined> {
 		let origin = this._sideChatOrigins.get(sessionResource);
 		if (!origin) {
-			origin = derived(this, reader => {
+			origin = derivedOpts({
+				owner: this,
+				onLastObserverRemoved: () => {
+					if (this._sideChatOrigins.get(sessionResource) === origin) {
+						this._sideChatOrigins.delete(sessionResource);
+					}
+				},
+			}, reader => {
 				for (const provider of this._providers.read(reader)) {
 					const providerOrigin = provider.observeSideChatOrigin(sessionResource).read(reader);
 					if (providerOrigin !== undefined) {
