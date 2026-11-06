@@ -393,7 +393,7 @@ export class PaneCompositeBar extends Disposable {
 	}
 
 	private toCompositeBarActionItem(id: string, name: string, icon: URI | ThemeIcon | undefined, keybindingId: string | undefined): ICompositeBarActionItem {
-		let classNames: string[] | undefined = undefined;
+		let classNames: readonly string[] | undefined = undefined;
 		let iconUrl: URI | undefined = undefined;
 		if (this.options.icon) {
 			if (URI.isUri(icon)) {
