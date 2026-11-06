@@ -138,7 +138,7 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 	constructor(
 		readonly resource: URI,
 		readonly hasAssociatedFilePath: boolean,
-		private readonly initialValue: string | undefined,
+		private initialValue: string | undefined,
 		private preferredLanguageId: string | undefined,
 		private preferredEncoding: string | undefined,
 		@ILanguageService languageService: ILanguageService,
@@ -325,6 +325,7 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 	private ignoreDirtyOnModelContentChange = false;
 
 	override async resolve(): Promise<void> {
+		const initialValue = this.initialValue;
 
 		// Create text editor model if not yet done
 		let createdUntitledModel = false;
@@ -338,7 +339,7 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 				untitledContents = backup.value;
 				hasBackup = true;
 			} else {
-				untitledContents = bufferToStream(VSBuffer.fromString(this.initialValue || ''));
+				untitledContents = bufferToStream(VSBuffer.fromString(initialValue || ''));
 			}
 
 			// Determine untitled contents based on backup
@@ -367,19 +368,21 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 		if (createdUntitledModel) {
 
 			// Name
-			if (hasBackup || this.initialValue) {
+			if (hasBackup || initialValue) {
 				this.updateNameFromFirstLine(textEditorModel);
 			}
 
 			// Untitled associated to file path are dirty right away as well as untitled with content
-			this.setDirty(this.hasAssociatedFilePath || !!hasBackup || !!this.initialValue);
+			this.setDirty(this.hasAssociatedFilePath || !!hasBackup || !!initialValue);
 
 			// If we have initial contents, make sure to emit this
 			// as the appropiate events to the outside.
-			if (hasBackup || this.initialValue) {
+			if (hasBackup || initialValue) {
 				this._onDidChangeContent.fire();
 			}
 		}
+
+		this.initialValue = undefined;
 
 		return super.resolve();
 	}
