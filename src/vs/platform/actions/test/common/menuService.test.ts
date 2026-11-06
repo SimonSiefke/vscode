@@ -446,6 +446,39 @@ suite('MenuService', function () {
 		});
 	});
 
+	test('getMenuActions updates hidden defaults while preserving user overrides', async () => {
+		const item = {
+			command: { id: 'changingDefault', title: 'Changing Default' },
+			isHiddenByDefault: true,
+		};
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, item));
+		const getAction = () => menuService.getMenuActions(testMenuId, contextKeyService)[0][1][0];
+		const getState = () => {
+			const hide = getAction().hideActions;
+			return { hidden: hide?.isHidden, modified: hide?.isModifiedFromDefault };
+		};
+
+		const initial = getState();
+		item.isHiddenByDefault = false;
+		const visibleByDefault = getState();
+		await getAction().hideActions?.toggle.run();
+		const overridden = getState();
+		item.isHiddenByDefault = true;
+		const changedDefault = getState();
+		menuService.resetHiddenStates([testMenuId]);
+		const reset = getState();
+		item.isHiddenByDefault = false;
+
+		assert.deepStrictEqual({ initial, visibleByDefault, overridden, changedDefault, reset, visibleAgain: getState() }, {
+			initial: { hidden: true, modified: false },
+			visibleByDefault: { hidden: false, modified: false },
+			overridden: { hidden: true, modified: true },
+			changedDefault: { hidden: false, modified: true },
+			reset: { hidden: true, modified: false },
+			visibleAgain: { hidden: false, modified: false },
+		});
+	});
+
 	test('isModifiedFromDefault reflects divergence from the default state', async () => {
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
 			command: { id: 'hiddenByDefault', title: 'Hidden By Default' },
