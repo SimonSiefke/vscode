@@ -2041,6 +2041,7 @@ export class ModifierKeyEmitter extends event.Emitter<IModifierKeyStatus> {
 		return hasModifierKeys(this._keyStatus);
 	}
 
+
 	/**
 	 * Allows to explicitly reset the key status based on more knowledge (#109062)
 	 */
