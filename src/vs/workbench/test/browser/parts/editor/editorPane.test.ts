@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { EditorPane, EditorMemento } from '../../../../browser/parts/editor/editorPane.js';
 import { WorkspaceTrustRequiredPlaceholderEditor } from '../../../../browser/parts/editor/editorPlaceholder.js';
-import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorPane } from '../../../../common/editor.js';
+import { IEditorSerializer, IEditorFactoryRegistry, EditorExtensions, EditorInputCapabilities, IEditorDescriptor, IEditorPane, IEditorMemento } from '../../../../common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
@@ -28,6 +28,7 @@ import { IWorkspaceTrustManagementService } from '../../../../../platform/worksp
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Emitter } from '../../../../../base/common/event.js';
 
 const NullThemeService = new TestThemeService();
 
@@ -44,8 +45,25 @@ class TestEditor extends EditorPane {
 	}
 
 	override getId(): string { return 'testEditor'; }
+	getTestMemento<T>(editorGroupService: IEditorGroupsService, configurationService: TestTextResourceConfigurationService, key: string): IEditorMemento<T> {
+		return this.getEditorMemento<T>(editorGroupService, configurationService, key);
+	}
 	layout(): void { }
 	protected createEditor(): any { }
+}
+
+function createLifecycleTestGroup(id: number, disposables: DisposableStore) {
+	const onWillDispose = disposables.add(new Emitter<void>());
+	const group = new class extends TestEditorGroupView {
+		override readonly onWillDispose = onWillDispose.event;
+	}(id);
+	return {
+		group,
+		fireWillDispose: () => {
+			group.disposed = true;
+			onWillDispose.fire();
+		}
+	};
 }
 
 class OtherTestEditor extends EditorPane {
@@ -208,6 +226,77 @@ suite('EditorPane', () => {
 
 		// throws when registering serializer for same type
 		assert.throws(() => editorInputRegistry.registerEditorSerializer(testInput.typeId, TestInputSerializer));
+	});
+
+	test('EditorMemento - group disposal preserves live state and ignores late saves', () => {
+		const first = createLifecycleTestGroup(10001, disposables);
+		const second = createLifecycleTestGroup(10002, disposables);
+		const firstEditor = disposables.add(new TestEditor(first.group));
+		disposables.add(new TestEditor(second.group));
+		const groups = new TestEditorGroupsService([first.group, second.group]);
+		const memento = firstEditor.getTestMemento<{ line: number }>(groups, new TestTextResourceConfigurationService(), 'closedGroupState');
+		const resource = URI.file('/group-state.txt');
+		const otherResource = URI.file('/closed-only.txt');
+		const lateResource = URI.file('/late-group-state.txt');
+
+		memento.saveEditorState(first.group, resource, { line: 1 });
+		memento.saveEditorState(second.group, resource, { line: 2 });
+		memento.saveEditorState(first.group, otherResource, { line: 3 });
+		first.fireWillDispose();
+		memento.saveEditorState(first.group, lateResource, { line: 4 });
+
+		assert.deepStrictEqual({
+			closed: memento.loadEditorState(first.group, resource),
+			closedOnly: memento.loadEditorState(first.group, otherResource),
+			late: memento.loadEditorState(first.group, lateResource),
+			live: memento.loadEditorState(second.group, resource)
+		}, { closed: undefined, closedOnly: undefined, late: undefined, live: { line: 2 } });
+	});
+
+	test('EditorMemento - group disposal preserves shared view state', () => {
+		const first = createLifecycleTestGroup(10003, disposables);
+		const second = createLifecycleTestGroup(10004, disposables);
+		const firstEditor = disposables.add(new TestEditor(first.group));
+		disposables.add(new TestEditor(second.group));
+		const groups = new TestEditorGroupsService([first.group, second.group]);
+		const configuration = new TestTextResourceConfigurationService(new TestConfigurationService({ workbench: { editor: { sharedViewState: true } } }));
+		const memento = firstEditor.getTestMemento<{ line: number }>(groups, configuration, 'closedSharedGroupState');
+		const resource = URI.file('/shared-group-state.txt');
+
+		memento.saveEditorState(first.group, resource, { line: 1 });
+		memento.saveEditorState(second.group, resource, { line: 2 });
+		second.fireWillDispose();
+		memento.saveEditorState(second.group, resource, { line: 3 });
+
+		assert.deepStrictEqual({
+			live: memento.loadEditorState(first.group, resource),
+			shared: memento.loadEditorState(new TestEditorGroupView(10005), resource)
+		}, { live: { line: 1 }, shared: { line: 2 } });
+	});
+
+	test('EditorMemento - later groups clean shared mementos after the first pane is disposed', () => {
+		const first = createLifecycleTestGroup(10006, disposables);
+		const second = createLifecycleTestGroup(10007, disposables);
+		const firstEditor = disposables.add(new TestEditor(first.group));
+		const secondEditor = disposables.add(new TestEditor(second.group));
+		const groups = new TestEditorGroupsService([first.group, second.group]);
+		const configuration = new TestTextResourceConfigurationService();
+		const memento = firstEditor.getTestMemento<{ line: number }>(groups, configuration, 'sharedMementoLifetime');
+		secondEditor.getTestMemento<{ line: number }>(groups, configuration, 'sharedMementoLifetime');
+		const firstResource = URI.file('/first-pane.txt');
+		const secondResource = URI.file('/second-pane.txt');
+
+		memento.saveEditorState(first.group, firstResource, { line: 1 });
+		memento.saveEditorState(second.group, secondResource, { line: 2 });
+		first.fireWillDispose();
+		firstEditor.dispose();
+		second.fireWillDispose();
+		memento.saveEditorState(second.group, secondResource, { line: 3 });
+
+		assert.deepStrictEqual([
+			memento.loadEditorState(first.group, firstResource),
+			memento.loadEditorState(second.group, secondResource)
+		], [undefined, undefined]);
 	});
 
 	test('EditorMemento - basics', function () {
