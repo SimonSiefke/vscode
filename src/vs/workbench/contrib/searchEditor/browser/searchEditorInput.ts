@@ -35,6 +35,7 @@ import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 
 export const SEARCH_EDITOR_EXT = '.code-search';
 
@@ -99,6 +100,7 @@ export class SearchEditorInput extends EditorInput {
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IPathService private readonly pathService: IPathService,
 		@IStorageService storageService: IStorageService,
+		@IDecorationsService private readonly decorationsService: IDecorationsService,
 	) {
 		super();
 
@@ -245,6 +247,7 @@ export class SearchEditorInput extends EditorInput {
 		this.model.dispose();
 		this.modelService.destroyModel(this.modelUri);
 		super.dispose();
+		this.decorationsService.clearCachedDecorations(this.modelUri);
 	}
 
 	override matches(other: EditorInput | IUntypedEditorInput): boolean {

@@ -69,5 +69,8 @@ export interface IDecorationsService {
 
 	registerDecorationsProvider(provider: IDecorationsProvider): IDisposable;
 
+	/** Clears cached data and cancels pending requests for the resource. */
+	clearCachedDecorations(uri: URI): void;
+
 	getDecoration(uri: URI, includeChildren: boolean): IDecoration | undefined;
 }
