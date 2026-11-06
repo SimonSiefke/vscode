@@ -10,17 +10,29 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IMessagePassingProtocol } from '../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
-import { RPCProtocol } from '../../common/rpcProtocol.js';
+import { RPCProtocol as ByteRPCProtocol } from '../../common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
+import { IRPCMessage, IStructuredCloneRPCTransport } from '../../common/rpcMessagePort.js';
 
-suite('RPCProtocol', () => {
+[false, true].forEach(native => suite(`RPCProtocol (${native ? 'structured clone' : 'byte'})`, () => {
+	const RPCProtocol = native ? StructuredCloneRPCProtocol : ByteRPCProtocol;
+	type RPCProtocol = StructuredCloneRPCProtocol | ByteRPCProtocol;
 
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	class MessagePassingProtocol implements IMessagePassingProtocol {
+	class MessagePassingProtocol implements IMessagePassingProtocol, IStructuredCloneRPCTransport {
 		private _pair?: MessagePassingProtocol;
 
 		private readonly _onMessage = new Emitter<VSBuffer>();
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
+
+		private readonly _onRPCMessage = new Emitter<IRPCMessage>();
+		public readonly onRPCMessage = this._onRPCMessage.event;
+
+		public sendRPCMessage(message: IRPCMessage): void {
+			const cloned = structuredClone(message);
+			Promise.resolve().then(() => this._pair!._onRPCMessage.fire(cloned));
+		}
 
 		public setPair(other: MessagePassingProtocol) {
 			this._pair = other;
@@ -282,4 +294,4 @@ suite('RPCProtocol', () => {
 			done(null);
 		}, done);
 	});
-});
+}));

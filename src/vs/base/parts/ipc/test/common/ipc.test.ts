@@ -12,7 +12,7 @@ import { Emitter, Event } from '../../../../common/event.js';
 import { DisposableStore } from '../../../../common/lifecycle.js';
 import { isEqual } from '../../../../common/resources.js';
 import { URI } from '../../../../common/uri.js';
-import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, getDelayedChannel, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, ProxyChannel, serialize } from '../../common/ipc.js';
+import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, getDelayedChannel, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol, ProxyChannel, serialize } from '../../common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
 
 class QueueProtocol implements IMessagePassingProtocol {
@@ -53,6 +53,52 @@ class QueueProtocol implements IMessagePassingProtocol {
 function createProtocolPair(): [IMessagePassingProtocol, IMessagePassingProtocol] {
 	const one = new QueueProtocol();
 	const other = new QueueProtocol();
+	one.other = other;
+	other.other = one;
+
+	return [one, other];
+}
+
+class StructuredCloneQueueProtocol implements IStructuredCloneMessagePassingProtocol {
+
+	readonly type = 'structuredClone';
+	private buffering = true;
+	private messages: IStructuredCloneMessage[] = [];
+	private readonly _onMessage = new Emitter<IStructuredCloneMessage>({
+		onDidAddFirstListener: () => {
+			for (const message of this.messages) {
+				this._onMessage.fire(message);
+			}
+
+			this.messages = [];
+			this.buffering = false;
+		},
+		onDidRemoveLastListener: () => {
+			this.buffering = true;
+		}
+	});
+
+	readonly onMessage = this._onMessage.event;
+	other!: StructuredCloneQueueProtocol;
+	lastSent: IStructuredCloneMessage | undefined;
+
+	send(message: IStructuredCloneMessage): void {
+		this.lastSent = message;
+		this.other.receive(structuredClone(message));
+	}
+
+	private receive(message: IStructuredCloneMessage): void {
+		if (this.buffering) {
+			this.messages.push(message);
+		} else {
+			this._onMessage.fire(message);
+		}
+	}
+}
+
+function createStructuredCloneProtocolPair(): [StructuredCloneQueueProtocol, StructuredCloneQueueProtocol] {
+	const one = new StructuredCloneQueueProtocol();
+	const other = new StructuredCloneQueueProtocol();
 	one.other = other;
 	other.other = one;
 
@@ -247,6 +293,597 @@ suite('Base IPC', function () {
 
 		assert.strictEqual(b1, b2);
 		assert.strictEqual(b3, b4);
+	});
+
+	test('structured clone protocol preserves native cloneable values', async function () {
+		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+		const channelDisposables = store.add(new DisposableStore());
+		const server = store.add(new ChannelServer(serverProtocol, 'ctx'));
+		server.registerChannel('echo', ProxyChannel.fromService({
+			echo: (value: unknown) => value
+		}, channelDisposables));
+		const client = store.add(new ChannelClient(clientProtocol));
+		const service = ProxyChannel.toService<{ echo(value: unknown): Promise<unknown> }>(client.getChannel('echo'));
+		const cycle: { value: string; self?: unknown } = { value: 'cycle' };
+		cycle.self = cycle;
+		const input = {
+			regexp: /structured/gi,
+			bytes: Uint8Array.from([1, 2, 3]),
+			map: new Map([['answer', 42]]),
+			cycle
+		};
+
+		const result = await service.echo(input) as typeof input;
+
+		assert.deepStrictEqual({
+			headerIsArray: Array.isArray(clientProtocol.lastSent?.header),
+			messageIsBuffer: clientProtocol.lastSent instanceof VSBuffer,
+			regexp: result.regexp.toString(),
+			bytesIsUint8Array: result.bytes instanceof Uint8Array,
+			bytes: [...result.bytes],
+			map: result.map.get('answer'),
+			cycle: result.cycle.self === result.cycle
+		}, {
+			headerIsArray: true,
+			messageIsBuffer: false,
+			regexp: '/structured/gi',
+			bytesIsUint8Array: true,
+			bytes: [1, 2, 3],
+			map: 42,
+			cycle: true
+		});
+	});
+
+	suite('structured clone marshalling', () => {
+		let server: ChannelServer;
+		let client: ChannelClient;
+
+		setup(() => {
+			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+			server = store.add(new ChannelServer(serverProtocol, 'ctx'));
+			client = store.add(new ChannelClient(clientProtocol));
+			server.registerChannel('echo', {
+				call: async (_ctx, _command, arg) => arg,
+				listen: () => Event.None
+			});
+		});
+
+		test('bidirectional clients dispatch structured frames', async () => {
+			const [one, two] = createStructuredCloneProtocolPair();
+			const first = store.add(new IPCClient(one, 'first'));
+			const second = store.add(new IPCClient(two, 'second'));
+			const echo: IServerChannel = { call: async (_ctx, _command, arg) => arg, listen: () => Event.None };
+			first.registerChannel('echo', echo);
+			second.registerChannel('echo', echo);
+			const values = [{ side: 'first', values: [1, 2, 3] }, { side: 'second', value: { enabled: true } }];
+			const result = await Promise.all([
+				first.getChannel('echo').call('echo', values[0]),
+				second.getChannel('echo').call('echo', values[1])
+			]);
+			assert.deepStrictEqual(result, values);
+			const bytes = await first.getChannel('echo').call<VSBuffer>('echo', VSBuffer.fromString('bidirectional bytes'));
+			assert.ok(bytes instanceof VSBuffer);
+			assert.strictEqual(bytes.toString(), 'bidirectional bytes');
+		});
+
+		for (const role of ['client', 'server']) {
+			test(`${role} ignores payloads addressed to the other channel role`, () => {
+				const messages = store.add(new Emitter<IStructuredCloneMessage>());
+				const protocol: IStructuredCloneMessagePassingProtocol = { type: 'structuredClone', onMessage: messages.event, send: () => { } };
+				store.add(role === 'client' ? new ChannelClient(protocol) : new ChannelServer(protocol, 'test'));
+				let reads = 0;
+				let body: unknown = '{}';
+				messages.fire({
+					header: role === 'client' ? [100, 0, 'unused', 'unused'] : [201, 0],
+					get body() { reads++; return body; },
+					set body(value: unknown) { body = value; }
+				});
+				assert.strictEqual(reads, 0);
+			});
+		}
+
+		test('omits local callbacks from object payloads', async () => {
+			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+			const echoServer = store.add(new ChannelServer(serverProtocol, 'ctx'));
+			echoServer.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
+			const echoClient = store.add(new ChannelClient(clientProtocol));
+			const input = { executable: 'shell', waitOnExit: () => 'Press any key', optional: undefined };
+
+			const result = await echoClient.getChannel('echo').call('echo', input);
+
+			assert.deepStrictEqual(result, { executable: 'shell', optional: undefined });
+			assert.strictEqual(typeof clientProtocol.lastSent?.body, 'object');
+			assert.strictEqual(input.waitOnExit(), 'Press any key');
+		});
+
+		test('serializes class instances containing local callbacks', async () => {
+			class Workspace {
+				readonly id = 'workspace';
+				readonly folders = [URI.file('/workspace')];
+				readonly onDidChange = () => { };
+			}
+			const result = await client.getChannel('echo').call('echo', new Workspace());
+			assert.deepStrictEqual(result, { id: 'workspace', folders: [URI.file('/workspace').toJSON()] });
+		});
+
+		test('mixed object payloads preserve buffer aliases and ordinary buffer properties', async () => {
+			const buffer = VSBuffer.fromString('shared');
+			const input = { buffers: [buffer, buffer], ordinary: { buffer: 'ordinary' } };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.ok(result.buffers[0] instanceof VSBuffer);
+			assert.strictEqual(result.buffers[0], result.buffers[1]);
+			assert.strictEqual(result.buffers[0].toString(), 'shared');
+			assert.deepStrictEqual(result.ordinary, input.ordinary);
+			assert.strictEqual(input.buffers[0], buffer);
+		});
+
+		test('preserves numeric buffer metadata alongside VSBuffer values', async () => {
+			const input = { reference: { $$vscode_buffer: 0 }, buffer: VSBuffer.fromString('real') };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual(result.reference, input.reference);
+			assert.ok(result.buffer instanceof VSBuffer);
+			assert.strictEqual(result.buffer.toString(), 'real');
+		});
+
+		test('omits local callbacks when native binary data requires the graph path', async () => {
+			const input = { bytes: Uint8Array.from([1, 2, 3]), callback: () => { } };
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, { bytes: input.bytes });
+		});
+
+		test('preserves aliases in acyclic object graphs', async () => {
+			const shared = { value: 42 };
+			const result = await client.getChannel('echo').call<{ first: object; second: object }>('echo', { first: shared, second: shared });
+			assert.strictEqual(result.first, result.second);
+		});
+
+		test('falls back for bigint, non-finite numbers and negative zero', async () => {
+			const input = { large: 12345678901234567890n, nan: NaN, positive: Infinity, negative: -Infinity, zero: -0 };
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual({
+				large: result.large.toString(),
+				largeType: typeof result.large,
+				nan: Number.isNaN(result.nan),
+				positive: result.positive === Infinity,
+				negative: result.negative === -Infinity,
+				negativeZero: Object.is(result.zero, -0)
+			}, {
+				large: input.large.toString(),
+				largeType: 'bigint',
+				nan: true,
+				positive: true,
+				negative: true,
+				negativeZero: true
+			});
+		});
+
+		test('bulk DTOs preserve nested object graphs', async () => {
+			const shared = { theme: 'dark' };
+			const input = Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, { value: index, metadata: shared }]));
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, JSON.parse(JSON.stringify(input)));
+		});
+
+		test('bulk URI arrays retain URI marshalling', async () => {
+			const input = Array.from({ length: 64 }, (_, index) => URI.file(`/workspace/file${index}`));
+			const result = await client.getChannel('echo').call('echo', input);
+			assert.deepStrictEqual(result, input.map(uri => uri.toJSON()));
+		});
+
+		test('bulk objects with native binary properties retain the graph path', async () => {
+			const input = { values: Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, index])), buffer: VSBuffer.fromString('bulk') };
+			const argument = { ...input.values, buffer: input.buffer };
+			const result = await client.getChannel('echo').call<typeof argument>('echo', argument);
+			assert.deepStrictEqual({ values: Object.keys(result).length, isVSBuffer: result.buffer instanceof VSBuffer, text: result.buffer.toString() }, {
+				values: 65, isVSBuffer: true, text: 'bulk'
+			});
+		});
+
+		test('bulk objects with nested cycles fall back to the graph path', async () => {
+			const input = { ...Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`setting${index}`, index])), nested: {} as { self?: object } };
+			input.nested.self = input;
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.strictEqual(result.nested.self, result);
+		});
+
+		test('bulk sparse arrays retain their holes', async () => {
+			const input = Array.from({ length: 64 }, (_, index) => index);
+			delete input[10];
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual(result, input);
+		});
+
+		test('bulk arrays retain named binary properties', async () => {
+			const input = Object.assign(Array.from({ length: 64 }, (_, index) => index), { extra: VSBuffer.fromString('extra') });
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+			assert.deepStrictEqual({ values: [...result], extra: result.extra.toString() }, { values: [...input], extra: 'extra' });
+		});
+
+		test('copies own enumerable properties without invoking prototype setters', async () => {
+			const input: { constructor: VSBuffer; toString: VSBuffer; __proto__: { buffer: VSBuffer } } = Object.assign(Object.create(null), {
+				constructor: VSBuffer.fromString('constructor'),
+				toString: VSBuffer.fromString('toString')
+			});
+			Object.defineProperty(input, '__proto__', { value: { buffer: VSBuffer.fromString('prototype') }, enumerable: true });
+			Object.defineProperty(input, 'hidden', { value: () => { } });
+			Object.defineProperty(input, Symbol('hidden'), { value: () => { }, enumerable: true });
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				keys: Object.keys(result),
+				prototype: Object.getPrototypeOf(result),
+				ownPrototype: Object.hasOwn(result, '__proto__'),
+				buffer: result.__proto__.buffer.toString(),
+				constructor: result.constructor.toString(),
+				toString: result.toString.toString()
+			}, {
+				keys: ['constructor', 'toString', '__proto__'],
+				prototype: Object.prototype,
+				ownPrototype: true,
+				buffer: 'prototype',
+				constructor: 'constructor',
+				toString: 'toString'
+			});
+		});
+
+		test('preserves sparse arrays and enumerable array properties', async () => {
+			const input: VSBuffer[] & { extra?: VSBuffer } = new Array(6);
+			input[2] = VSBuffer.fromString('array');
+			input.extra = input[2];
+			Object.defineProperty(input, '__proto__', { value: input[2], enumerable: true });
+			Object.freeze(input);
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				length: result.length,
+				keys: Object.keys(result),
+				text: result[2].toString(),
+				extraAlias: result.extra === result[2],
+				prototypeAlias: Object.getOwnPropertyDescriptor(result, '__proto__')?.value === result[2],
+				prototype: Object.getPrototypeOf(result)
+			}, {
+				length: 6, keys: ['2', 'extra', '__proto__'], text: 'array',
+				extraAlias: true, prototypeAlias: true, prototype: Array.prototype
+			});
+		});
+
+		for (const size of [31, 32, 33, 64]) {
+			for (const kind of ['object', 'array', 'nested'] as const) {
+				test(`reads ${kind} accessors once at ${size} keys`, async () => {
+					let reads = 0;
+					const values = Array.from({ length: size }, () => 0);
+					const input = kind === 'array' ? values : Object.fromEntries(values.map((value, index) => [String(index), value]));
+					Object.defineProperty(input, String(size - 1), { enumerable: true, get: () => ++reads });
+					const data = kind === 'nested' ? { nested: input } : input;
+					await client.getChannel('echo').call('echo', data);
+					assert.strictEqual(reads, 1);
+				});
+			}
+		}
+
+		test('reads enumerable getters once without mutating frozen input', async () => {
+			let reads = 0;
+			const buffer = VSBuffer.fromString('getter');
+			const input = Object.freeze({
+				get value() {
+					reads++;
+					return buffer;
+				},
+				alias: buffer
+			});
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({ reads, text: result.value.toString(), alias: result.value === result.alias }, {
+				reads: 1, text: 'getter', alias: true
+			});
+		});
+
+		test('reads sibling properties in native structured clone order', async () => {
+			const input = {
+				nested: {
+					get value() {
+						input.later = 2;
+						return 1;
+					}
+				},
+				later: 1
+			};
+			const expected = structuredClone(input);
+			input.later = 1;
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual(result, expected);
+		});
+
+		const getterMutationCases: { name: string; createInput: () => object }[] = [
+			{
+				name: 'omits own properties deleted by an earlier nested getter',
+				createInput: () => {
+					const input: { nested: { readonly value: number }; later?: number } = {
+						nested: {
+							get value() {
+								delete input.later;
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'does not replace a deleted own property with an inherited value',
+				createInput: () => {
+					const input: { nested: { readonly value: number }; later?: number } = {
+						nested: {
+							get value() {
+								delete input.later;
+								Object.setPrototypeOf(input, { later: 99 });
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'preserves holes created when a nested getter shrinks an array',
+				createInput: () => {
+					const input = [{
+						get value() {
+							input.length = 1;
+							return 1;
+						}
+					}, 2, 3];
+					return input;
+				}
+			},
+			{
+				name: 'retains initially enumerable keys when a getter makes them non-enumerable',
+				createInput: () => {
+					const input = {
+						nested: {
+							get value() {
+								Object.defineProperty(input, 'later', { enumerable: false });
+								return 1;
+							}
+						},
+						later: 2
+					};
+					return input;
+				}
+			},
+			{
+				name: 'snapshots map entries before getters mutate the map',
+				createInput: () => {
+					const input = new Map<string, number | { readonly value: number }>();
+					input.set('nested', {
+						get value() {
+							input.delete('later');
+							input.set('added', 3);
+							return 1;
+						}
+					});
+					input.set('later', 2);
+					return input;
+				}
+			},
+			{
+				name: 'snapshots set entries before getters mutate the set',
+				createInput: () => {
+					const input = new Set<number | { readonly value: number }>();
+					input.add({
+						get value() {
+							input.delete(2);
+							input.add(3);
+							return 1;
+						}
+					});
+					input.add(2);
+					return input;
+				}
+			},
+			{
+				name: 'ignores Symbol.toStringTag getters on plain objects',
+				createInput: () => Object.defineProperty({ value: 1 }, Symbol.toStringTag, {
+					get: () => {
+						throw new Error('Symbol.toStringTag must not be read');
+					}
+				})
+			},
+			{
+				name: 'ignores Symbol.toStringTag getters on null-prototype objects',
+				createInput: () => Object.defineProperty(Object.assign(Object.create(null), { value: 1 }), Symbol.toStringTag, {
+					get: () => {
+						throw new Error('Symbol.toStringTag must not be read');
+					}
+				})
+			},
+			{
+				name: 'uses map entries without invoking an overridden iterator',
+				createInput: () => {
+					const input = new Map([['real', 1]]);
+					Object.defineProperty(input, Symbol.iterator, { value: () => new Map([['fake', 2]]).entries() });
+					return input;
+				}
+			},
+			{
+				name: 'uses set entries without invoking an overridden iterator',
+				createInput: () => {
+					const input = new Set([1]);
+					Object.defineProperty(input, Symbol.iterator, { value: () => new Set([2]).values() });
+					return input;
+				}
+			}
+		];
+
+		for (const { name, createInput } of getterMutationCases) {
+			test(name, async () => {
+				const expected = structuredClone(createInput());
+				const result = await client.getChannel('echo').call<object>('echo', createInput());
+				assert.deepStrictEqual(result, expected);
+			});
+		}
+
+		test('preserves cycles through map keys, sets and arrays', async () => {
+			const buffer = VSBuffer.fromString('graph');
+			const input = { map: new Map<object, object>(), set: new Set<object>(), array: [] as object[], buffer };
+			input.map.set(input, input.set);
+			input.map.set(buffer, input.array);
+			input.set.add(input);
+			input.set.add(buffer);
+			input.array.push(input.map, input, buffer);
+			Object.freeze(input);
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				mapKey: result.map.get(result) === result.set,
+				bufferKey: result.map.get(result.buffer) === result.array,
+				setCycle: result.set.has(result),
+				setBuffer: result.set.has(result.buffer),
+				arrayCycle: result.array[0] === result.map && result.array[1] === result && result.array[2] === result.buffer,
+				text: result.buffer.toString()
+			}, { mapKey: true, bufferKey: true, setCycle: true, setBuffer: true, arrayCycle: true, text: 'graph' });
+		});
+
+		test('proxy calls revive nested URI arguments and results', async () => {
+			const uri = URI.parse('file:///folder/test%20file?query#fragment');
+			const channelDisposables = store.add(new DisposableStore());
+			server.registerChannel('uris', ProxyChannel.fromService({
+				open: (openables: { folderUri: URI }[]) => {
+					assert.ok(openables[0].folderUri instanceof URI);
+					assert.strictEqual(openables[0].folderUri.toString(), uri.toString());
+					return { resource: openables[0].folderUri };
+				}
+			}, channelDisposables));
+			const service = ProxyChannel.toService<{ open(openables: { folderUri: URI }[]): Promise<{ resource: URI }> }>(client.getChannel('uris'));
+			const input = [{ folderUri: uri }];
+
+			const result = await service.open(input);
+
+			assert.deepStrictEqual({
+				isURI: result.resource instanceof URI,
+				uri: result.resource.toString(),
+				inputUnchanged: input[0].folderUri === uri
+			}, { isURI: true, uri: uri.toString(), inputUnchanged: true });
+		});
+
+		test('VSBuffer arguments and responses retain their methods', async () => {
+			const channelDisposables = store.add(new DisposableStore());
+			server.registerChannel('buffers', ProxyChannel.fromService({
+				readClipboardBuffer: () => VSBuffer.fromString('clipboard'),
+				writeClipboardBuffer: (value: VSBuffer) => value.toString()
+			}, channelDisposables));
+			const service = ProxyChannel.toService<{
+				readClipboardBuffer(): Promise<VSBuffer>;
+				writeClipboardBuffer(value: VSBuffer): Promise<string>;
+			}>(client.getChannel('buffers'));
+
+			const buffer = await service.readClipboardBuffer();
+			const text = await service.writeClipboardBuffer(buffer);
+
+			assert.deepStrictEqual({ isVSBuffer: buffer instanceof VSBuffer, text: buffer.toString(), written: text }, {
+				isVSBuffer: true, text: 'clipboard', written: 'clipboard'
+			});
+		});
+
+		test('nested buffers preserve cycles, aliases and native binary values', async () => {
+			const buffer = VSBuffer.wrap(Uint8Array.from([0, 97, 98, 99, 0]).subarray(1, 4));
+			const ordinary = { buffer: buffer.buffer, byteLength: buffer.byteLength };
+			const input = {
+				buffer,
+				array: [buffer],
+				map: new Map([[buffer, buffer]]),
+				set: new Set([buffer]),
+				bytes: buffer.buffer,
+				ordinary,
+				cycle: {} as { self?: unknown; buffer?: VSBuffer }
+			};
+			input.cycle.self = input.cycle;
+			input.cycle.buffer = buffer;
+
+			const result = await client.getChannel('echo').call<typeof input>('echo', input);
+
+			assert.deepStrictEqual({
+				isVSBuffer: result.buffer instanceof VSBuffer,
+				text: result.buffer.toString(),
+				length: result.buffer.byteLength,
+				arrayAlias: result.array[0] === result.buffer,
+				mapAlias: result.map.get(result.buffer) === result.buffer,
+				setAlias: result.set.has(result.buffer),
+				cycle: result.cycle.self === result.cycle,
+				cycleAlias: result.cycle.buffer === result.buffer,
+				bytesAreNative: result.bytes instanceof Uint8Array,
+				bytes: [...result.bytes],
+				ordinaryIsVSBuffer: result.ordinary instanceof VSBuffer,
+				ordinaryBytes: [...result.ordinary.buffer],
+				inputUnchanged: input.array[0] === buffer && input.cycle.buffer === buffer && input.ordinary === ordinary
+			}, {
+				isVSBuffer: true, text: 'abc', length: 3,
+				arrayAlias: true, mapAlias: true, setAlias: true, cycle: true, cycleAlias: true,
+				bytesAreNative: true, bytes: [97, 98, 99], ordinaryIsVSBuffer: false, ordinaryBytes: [97, 98, 99],
+				inputUnchanged: true
+			});
+		});
+
+		test('events restore VSBuffer payloads and subscription arguments', async () => {
+			const emitter = store.add(new Emitter<VSBuffer>());
+			server.registerChannel('events', {
+				call: async () => { throw new Error('not implemented'); },
+				listen: <T>(_ctx: string, _event: string, arg?: VSBuffer): Event<T> => {
+					assert.ok(arg instanceof VSBuffer);
+					assert.strictEqual(arg.toString(), 'subscription');
+					return emitter.event as Event<T>;
+				}
+			});
+			const resultPromise = Event.toPromise(client.getChannel('events').listen<VSBuffer>('event', VSBuffer.fromString('subscription')));
+			emitter.fire(VSBuffer.fromString('event'));
+
+			const result = await resultPromise;
+
+			assert.deepStrictEqual({ isVSBuffer: result instanceof VSBuffer, text: result.toString() }, { isVSBuffer: true, text: 'event' });
+		});
+
+		test('disabled URI marshalling still restores VSBuffer values', async () => {
+			const uri = URI.file('/folder/file');
+			const channelDisposables = store.add(new DisposableStore());
+			server.registerChannel('raw', ProxyChannel.fromService({ echo: (value: unknown) => value }, channelDisposables, { disableMarshalling: true }));
+			const service = ProxyChannel.toService<{ echo(value: unknown): Promise<{ uri: object; buffer: VSBuffer }> }>(client.getChannel('raw'), { disableMarshalling: true });
+
+			const result = await service.echo({ uri, buffer: VSBuffer.fromString('raw') });
+
+			assert.deepStrictEqual({
+				uri: result.uri,
+				isURI: result.uri instanceof URI,
+				isVSBuffer: result.buffer instanceof VSBuffer,
+				text: result.buffer.toString()
+			}, { uri: uri.toJSON(), isURI: false, isVSBuffer: true, text: 'raw' });
+		});
+
+		test('connection contexts restore VSBuffer values', async () => {
+			const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+			const connections = store.add(new Emitter<ClientConnectionEvent>());
+			const ipcServer = store.add(new IPCServer<{ buffer: VSBuffer }>(connections.event));
+			ipcServer.registerChannel('context', {
+				call: async (ctx, _command, arg) => {
+					assert.strictEqual(ctx.buffer.toString(), arg);
+					return arg;
+				},
+				listen: () => Event.None
+			});
+			const ipcClient = store.add(new IPCClient(clientProtocol, { buffer: VSBuffer.fromString('context') }));
+			connections.fire({ protocol: serverProtocol, onDidClientDisconnect: Event.None });
+
+			assert.strictEqual(await ipcClient.getChannel('context').call('read', 'context'), 'context');
+		});
 	});
 
 	suite('one to one', function () {
