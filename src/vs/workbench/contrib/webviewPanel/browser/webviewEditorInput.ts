@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CodeWindow } from '../../../../base/browser/window.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -70,6 +71,7 @@ export class WebviewInput extends EditorInput {
 		init: WebviewInputInitInfo,
 		webview: IOverlayWebview,
 		@IThemeService private readonly _themeService: IThemeService,
+		@IDecorationsService private readonly _decorationsService: IDecorationsService,
 	) {
 		super();
 
@@ -87,12 +89,16 @@ export class WebviewInput extends EditorInput {
 	}
 
 	override dispose() {
-		if (!this.isDisposed()) {
-			if (!this._hasTransferred) {
-				this._webview?.dispose();
-			}
+		if (this.isDisposed()) {
+			return;
+		}
+		if (!this._hasTransferred) {
+			this._webview?.dispose();
 		}
 		super.dispose();
+		if (this.resource.scheme === Schemas.webviewPanel) {
+			this._decorationsService.clearCachedDecorations(this.resource);
+		}
 	}
 
 	public override getName(): string {

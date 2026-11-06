@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { TestDecorationsService } from '../../../../test/browser/workbenchTestServices.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { CancellationError, isCancellationError } from '../../../../../base/common/errors.js';
@@ -34,6 +35,7 @@ suite('LazilyResolvedWebviewEditorInput', () => {
 			},
 			new TestThemeService(),
 			webviewWorkbenchService,
+			new TestDecorationsService(),
 		));
 
 		return { input, webviewWorkbenchService };
