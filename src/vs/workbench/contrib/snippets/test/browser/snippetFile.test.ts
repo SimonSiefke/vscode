@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as sinon from 'sinon';
 import { SnippetFile, Snippet, SnippetSource } from '../../browser/snippetsFile.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { SnippetParser } from '../../../../../editor/contrib/snippet/browser/snippetParser.js';
@@ -12,7 +13,9 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 suite('Snippets', function () {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	teardown(() => sinon.restore());
 
 	class TestSnippetFile extends SnippetFile {
 		constructor(filepath: URI, snippets: Snippet[]) {
@@ -86,6 +89,29 @@ suite('Snippets', function () {
 		assertNeedsClipboard('foo${clipboard}', false);
 		assertNeedsClipboard('baba', false);
 	});
+
+	for (const warm of [false, true]) {
+		for (const [body, expected] of [
+			['plain text', false],
+			['${SELECTION}', true],
+			['$TM_SELECTED_TEXT', true],
+			['${1:${TM_SELECTED_TEXT}}', true],
+			['$CLIPBOARD', false],
+		] as const) {
+			test(`Snippet#usesSelection reuses one parse (${warm ? 'warm' : 'cold'}, ${body})`, () => {
+				const parse = sinon.spy(SnippetParser.prototype, 'parse');
+				const snippet = store.add(new Snippet(false, [], 'selection', '', '', body, 'test', SnippetSource.User, generateUuid()));
+				if (warm) {
+					void snippet.codeSnippet;
+				}
+
+				const first = snippet.usesSelection;
+				const second = snippet.usesSelection;
+				void snippet.codeSnippet;
+				assert.deepStrictEqual({ first, second, parses: parse.callCount }, { first: expected, second: expected, parses: 1 });
+			});
+		}
+	}
 
 	test('Snippet#isTrivial', function () {
 
