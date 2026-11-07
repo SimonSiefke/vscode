@@ -29,6 +29,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { EditorPart } from './editorPart.js';
+import { EditorPane } from './editorPane.js';
 import { IModalEditorPart, GroupActivationReason } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService, USE_MODAL_EDITOR_SETTING, UseModalEditorMode } from '../../../services/editor/common/editorService.js';
 import { EditorPartModalCanMoveToEditorAreaContext, EditorPartModalContext, EditorPartModalMaximizedContext, EditorPartModalNavigationContext, EditorPartModalSidebarContext, EditorPartModalSidebarVisibleContext } from '../../../common/contextkeys.js';
@@ -1158,6 +1159,10 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 			this.previousMainWindowActiveElement.focus();
 		}
 
+		for (const group of this.groups) {
+			EditorPane.clearEditorGroupState(group);
+		}
+
 		this._onWillClose.fire();
 	}
 
@@ -1184,6 +1189,10 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 					return false; // user cancelled
 				}
 			}
+		}
+
+		for (const group of this.groups) {
+			EditorPane.clearEditorGroupState(group);
 		}
 
 		this._onWillClose.fire();

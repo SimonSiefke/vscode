@@ -12,7 +12,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
-import { workbenchInstantiationService, TestEditorGroupView, TestEditorGroupsService, registerTestResourceEditor, TestEditorInput, createEditorPart, TestTextResourceConfigurationService } from '../../workbenchTestServices.js';
+import { workbenchInstantiationService, TestEditorGroupView, TestEditorGroupsService, registerTestResourceEditor, TestEditorInput, createEditorPart, createEditorParts, TestTextResourceConfigurationService } from '../../workbenchTestServices.js';
 import { TextResourceEditorInput } from '../../../../common/editor/textResourceEditorInput.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -23,12 +23,18 @@ import { TestStorageService, TestWorkspaceTrustManagementService } from '../../.
 import { extUri } from '../../../../../base/common/resources.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IWorkspaceTrustManagementService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { mock } from '../../../../../base/test/common/mock.js';
+import { MockScopableContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
+import { IAuxiliaryWindowService } from '../../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
+import { Event } from '../../../../../base/common/event.js';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { AuxiliaryEditorPartImpl } from '../../../../browser/parts/editor/auxiliaryEditorPart.js';
 
 const NullThemeService = new TestThemeService();
 
@@ -48,22 +54,11 @@ class TestEditor extends EditorPane {
 	getTestMemento<T>(editorGroupService: IEditorGroupsService, configurationService: TestTextResourceConfigurationService, key: string): IEditorMemento<T> {
 		return this.getEditorMemento<T>(editorGroupService, configurationService, key);
 	}
+	saveTestState(): void {
+		this.saveState();
+	}
 	layout(): void { }
 	protected createEditor(): any { }
-}
-
-function createLifecycleTestGroup(id: number, disposables: DisposableStore) {
-	const onWillDispose = disposables.add(new Emitter<void>());
-	const group = new class extends TestEditorGroupView {
-		override readonly onWillDispose = onWillDispose.event;
-	}(id);
-	return {
-		group,
-		fireWillDispose: () => {
-			group.disposed = true;
-			onWillDispose.fire();
-		}
-	};
 }
 
 class OtherTestEditor extends EditorPane {
@@ -228,75 +223,160 @@ suite('EditorPane', () => {
 		assert.throws(() => editorInputRegistry.registerEditorSerializer(testInput.typeId, TestInputSerializer));
 	});
 
-	test('EditorMemento - group disposal preserves live state and ignores late saves', () => {
-		const first = createLifecycleTestGroup(10001, disposables);
-		const second = createLifecycleTestGroup(10002, disposables);
-		const firstEditor = disposables.add(new TestEditor(first.group));
-		disposables.add(new TestEditor(second.group));
-		const groups = new TestEditorGroupsService([first.group, second.group]);
-		const memento = firstEditor.getTestMemento<{ line: number }>(groups, new TestTextResourceConfigurationService(), 'closedGroupState');
-		const resource = URI.file('/group-state.txt');
-		const otherResource = URI.file('/closed-only.txt');
-		const lateResource = URI.file('/late-group-state.txt');
+	test('EditorMemento - permanent removal clears an empty group without a pane', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const part = await createEditorPart(instantiationService, disposables);
+		const liveGroup = part.activeGroup;
+		const emptyGroup = part.addGroup(liveGroup, GroupDirection.RIGHT);
+		const editor = disposables.add(new TestEditor(liveGroup));
+		const memento = editor.getTestMemento<{ line: number }>(part, new TestTextResourceConfigurationService(), 'emptyGroupRemoval');
+		const resource = URI.file('/empty-group.txt');
+		const lateResource = URI.file('/late-group.txt');
 
-		memento.saveEditorState(first.group, resource, { line: 1 });
-		memento.saveEditorState(second.group, resource, { line: 2 });
-		memento.saveEditorState(first.group, otherResource, { line: 3 });
-		first.fireWillDispose();
-		memento.saveEditorState(first.group, lateResource, { line: 4 });
+		memento.saveEditorState(liveGroup, resource, { line: 1 });
+		memento.saveEditorState(emptyGroup, resource, { line: 2 });
+		editor.saveTestState(); // Initial storage cleanup must not hide a missing removal hook.
+		part.removeGroup(emptyGroup);
+		memento.saveEditorState(emptyGroup, lateResource, { line: 3 });
 
 		assert.deepStrictEqual({
-			closed: memento.loadEditorState(first.group, resource),
-			closedOnly: memento.loadEditorState(first.group, otherResource),
-			late: memento.loadEditorState(first.group, lateResource),
-			live: memento.loadEditorState(second.group, resource)
-		}, { closed: undefined, closedOnly: undefined, late: undefined, live: { line: 2 } });
+			removed: memento.loadEditorState(emptyGroup, resource),
+			late: memento.loadEditorState(emptyGroup, lateResource),
+			live: memento.loadEditorState(liveGroup, resource)
+		}, { removed: undefined, late: undefined, live: { line: 1 } });
 	});
 
-	test('EditorMemento - group disposal preserves shared view state', () => {
-		const first = createLifecycleTestGroup(10003, disposables);
-		const second = createLifecycleTestGroup(10004, disposables);
-		const firstEditor = disposables.add(new TestEditor(first.group));
-		disposables.add(new TestEditor(second.group));
-		const groups = new TestEditorGroupsService([first.group, second.group]);
+	test('EditorMemento - permanent removal preserves shared state after the creator pane closes', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const part = await createEditorPart(instantiationService, disposables);
+		const liveGroup = part.activeGroup;
+		const emptyGroup = part.addGroup(liveGroup, GroupDirection.RIGHT);
+		const editor = disposables.add(new TestEditor(liveGroup));
 		const configuration = new TestTextResourceConfigurationService(new TestConfigurationService({ workbench: { editor: { sharedViewState: true } } }));
-		const memento = firstEditor.getTestMemento<{ line: number }>(groups, configuration, 'closedSharedGroupState');
-		const resource = URI.file('/shared-group-state.txt');
+		const memento = editor.getTestMemento<{ line: number }>(part, configuration, 'sharedEmptyGroupRemoval');
+		const resource = URI.file('/shared-empty-group.txt');
 
-		memento.saveEditorState(first.group, resource, { line: 1 });
-		memento.saveEditorState(second.group, resource, { line: 2 });
-		second.fireWillDispose();
-		memento.saveEditorState(second.group, resource, { line: 3 });
+		memento.saveEditorState(liveGroup, resource, { line: 1 });
+		memento.saveEditorState(emptyGroup, resource, { line: 2 });
+		editor.dispose();
+		part.removeGroup(emptyGroup);
+		memento.saveEditorState(emptyGroup, resource, { line: 3 });
 
 		assert.deepStrictEqual({
-			live: memento.loadEditorState(first.group, resource),
+			live: memento.loadEditorState(liveGroup, resource),
 			shared: memento.loadEditorState(new TestEditorGroupView(10005), resource)
 		}, { live: { line: 1 }, shared: { line: 2 } });
 	});
 
-	test('EditorMemento - later groups clean shared mementos after the first pane is disposed', () => {
-		const first = createLifecycleTestGroup(10006, disposables);
-		const second = createLifecycleTestGroup(10007, disposables);
-		const firstEditor = disposables.add(new TestEditor(first.group));
-		const secondEditor = disposables.add(new TestEditor(second.group));
-		const groups = new TestEditorGroupsService([first.group, second.group]);
-		const configuration = new TestTextResourceConfigurationService();
-		const memento = firstEditor.getTestMemento<{ line: number }>(groups, configuration, 'sharedMementoLifetime');
-		secondEditor.getTestMemento<{ line: number }>(groups, configuration, 'sharedMementoLifetime');
-		const firstResource = URI.file('/first-pane.txt');
-		const secondResource = URI.file('/second-pane.txt');
+	test('EditorMemento - working-set round trips preserve view state', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const part = await createEditorPart(instantiationService, disposables);
+		const originalGroup = part.activeGroup;
+		const otherGroup = part.addGroup(originalGroup, GroupDirection.RIGHT);
+		const editor = disposables.add(new TestEditor(originalGroup));
+		const memento = editor.getTestMemento<{ line: number }>(part, new TestTextResourceConfigurationService(), 'workingSetRoundTrip');
+		const resource = URI.file('/working-set.txt');
+		memento.saveEditorState(originalGroup, resource, { line: 42 });
+		memento.saveEditorState(otherGroup, resource, { line: 84 });
+		const originalState = part.createState();
 
-		memento.saveEditorState(first.group, firstResource, { line: 1 });
-		memento.saveEditorState(second.group, secondResource, { line: 2 });
-		first.fireWillDispose();
-		firstEditor.dispose();
-		second.fireWillDispose();
-		memento.saveEditorState(second.group, secondResource, { line: 3 });
+		await part.applyState(originalState);
+		const replacement = part.activeGroup;
+		const otherReplacement = part.getGroup(otherGroup.id)!;
+		memento.saveEditorState(originalGroup, resource, { line: 100 });
+		memento.saveEditorState(otherGroup, resource, { line: 200 });
+		EditorPane.clearEditorGroupState(originalGroup); // A late window-close notification must not clear the replacement.
+		const sameIdState = memento.loadEditorState(replacement, resource);
+		const otherState = memento.loadEditorState(otherReplacement, resource);
+		part.addGroup(replacement, GroupDirection.RIGHT);
+		part.removeGroup(replacement);
+		const differentState = part.createState();
+		await part.applyState(originalState);
+		memento.saveEditorState(part.activeGroup, resource, { line: 43 });
+		await part.applyState(differentState);
+		await part.applyState(originalState);
 
-		assert.deepStrictEqual([
-			memento.loadEditorState(first.group, firstResource),
-			memento.loadEditorState(second.group, secondResource)
-		], [undefined, undefined]);
+		assert.deepStrictEqual({
+			replaced: replacement !== originalGroup,
+			sameId: sameIdState,
+			other: otherState,
+			roundTrip: memento.loadEditorState(part.activeGroup, resource)
+		}, { replaced: true, sameId: { line: 42 }, other: { line: 84 }, roundTrip: { line: 43 } });
+	});
+
+	test('EditorMemento - working sets clear permanently closed modal groups', async () => {
+		const instantiationService = workbenchInstantiationService({ contextKeyService: service => service.createInstance(MockScopableContextKeyService) }, disposables);
+		instantiationService.invokeFunction(accessor => editorInputRegistry.start(accessor));
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const parts = await createEditorParts(instantiationService, disposables);
+		instantiationService.stub(IEditorGroupsService, parts);
+		const container = parts.testMainPart.getContainer()!;
+		mainWindow.document.body.appendChild(container);
+		disposables.add({ dispose: () => container.remove() });
+
+		const editor = disposables.add(new TestEditor(parts.activeGroup));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'modalWorkingSetRemoval');
+		const resource = URI.file('/modal-working-set.txt');
+		memento.saveEditorState(parts.activeGroup, resource, { line: 1 });
+		editor.saveTestState();
+		const workingSet = parts.saveWorkingSet('modal cleanup');
+
+		async function applyWithModal() {
+			const modal = await parts.createModalEditorPart();
+			const group = modal.activeGroup;
+			memento.saveEditorState(group, resource, { line: 42 });
+			const closed = Event.toPromise(modal.onWillDispose);
+			const applied = await parts.applyWorkingSet(workingSet);
+			await closed;
+			memento.saveEditorState(group, resource, { line: 99 });
+			return { applied, removed: memento.loadEditorState(group, resource), live: memento.loadEditorState(parts.activeGroup, resource) };
+		}
+
+		try {
+			assert.deepStrictEqual([await applyWithModal(), await applyWithModal()], [
+				{ applied: true, removed: undefined, live: { line: 1 } },
+				{ applied: true, removed: undefined, live: { line: 1 } }
+			]);
+		} finally {
+			parts.deleteWorkingSet(workingSet);
+		}
+	});
+
+	test('EditorMemento - cancelled auxiliary close remains live and saves state', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const parts = await createEditorParts(instantiationService, disposables);
+		const enteredConfirmation = new DeferredPromise<void>();
+		const confirmation = new DeferredPromise<boolean>();
+		let confirm = () => { enteredConfirmation.complete(); return confirmation.p; };
+		const part = disposables.add(instantiationService.createInstance(AuxiliaryEditorPartImpl, mainWindow.vscodeWindowId, parts, undefined, 'Auxiliary', () => confirm(), async () => { part.handleWindowUnload(); registration.dispose(); part.dispose(); return true; }));
+		const registration = disposables.add(parts.registerPart(part));
+		part.create(mainWindow.document.createElement('div'));
+		part.layout(400, 300, 0, 0);
+		await part.whenReady;
+		const group = part.activeGroup;
+		const editor = disposables.add(new TestEditor(group));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'cancelledAuxiliaryClose');
+		const resource = URI.file('/cancelled-auxiliary.txt');
+		memento.saveEditorState(group, resource, { line: 42 });
+		editor.saveTestState();
+
+		const closing = part.close();
+		await enteredConfirmation.p;
+		assert.strictEqual(part.close(), closing, 'concurrent callers join the pending close');
+		assert.deepStrictEqual(memento.loadEditorState(group, resource), { line: 42 });
+		confirmation.complete(false);
+		const cancelled = await closing;
+		memento.saveEditorState(group, resource, { line: 84 });
+		assert.deepStrictEqual({ cancelled, disposed: group.disposed, saved: memento.loadEditorState(group, resource) }, {
+			cancelled: false, disposed: false, saved: { line: 84 }
+		});
+
+		confirm = async () => true;
+		const closed = await part.close();
+		memento.saveEditorState(group, resource, { line: 99 });
+		assert.deepStrictEqual({ closed, disposed: group.disposed, saved: memento.loadEditorState(group, resource) }, {
+			closed: true, disposed: true, saved: undefined
+		});
 	});
 
 	test('EditorMemento - basics', function () {

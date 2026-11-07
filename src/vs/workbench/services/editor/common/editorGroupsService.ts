@@ -533,9 +533,9 @@ export interface IAuxiliaryEditorPart extends IEditorPart {
 	 * dirty editors of all groups back to the main editor
 	 * part.
 	 *
-	 * @returns `false` if an editor could not be moved back.
+	 * @returns `false` if moving an editor or confirming the close was vetoed.
 	 */
-	close(): boolean;
+	close(): Promise<boolean>;
 }
 
 /**

@@ -9,6 +9,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { GroupIdentifier, IEditorPartOptions } from '../../../common/editor.js';
 import { EditorPart, IEditorPartUIState, MainEditorPart } from './editorPart.js';
+import { EditorPane } from './editorPane.js';
 import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -722,6 +723,17 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	private async applyState(state: IEditorPartsUIState | 'empty'): Promise<boolean> {
+		const preservedState = EditorPane.preserveEditorGroupState(this.persistableParts
+			.filter(part => this.auxiliaryWindowService.getWindow(part.windowId) !== undefined)
+			.flatMap(part => part.groups));
+		try {
+			return await this.doApplyState(state);
+		} finally {
+			preservedState.dispose();
+		}
+	}
+
+	private async doApplyState(state: IEditorPartsUIState | 'empty'): Promise<boolean> {
 
 		// Before closing windows, try to close as many editors as
 		// possible, but skip over those that would trigger a dialog
@@ -733,11 +745,14 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 				continue; // main part takes care on its own and transient parts are managed by their owner
 			}
 
-			for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
-				await group.closeAllEditors({ excludeConfirming: true, force: true });
+			// Auxiliary parts own this preparation, including last-group auto-close.
+			if (!this.auxiliaryWindowService.getWindow(part.windowId)) {
+				for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
+					await group.closeAllEditors({ excludeConfirming: true, force: true });
+				}
 			}
 
-			const closed = (part as unknown as IAuxiliaryEditorPart).close(); // will move remaining editors to main part
+			const closed = await (part as unknown as IAuxiliaryEditorPart).close(); // will move remaining editors to main part
 			if (!closed) {
 				return false; // this indicates that closing was vetoed
 			}

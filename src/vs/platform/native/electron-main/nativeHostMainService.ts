@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from 'fs';
+import { closeAuxiliaryWindow } from '../node/closeAuxiliaryWindow.js';
 import { exec } from 'child_process';
 import { app, BrowserWindow, clipboard, contentTracing, desktopCapturer, Display, Menu, MessageBoxOptions, MessageBoxReturnValue, nativeImage, Notification, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, powerMonitor, powerSaveBlocker, SaveDialogOptions, SaveDialogReturnValue, screen, shell, systemPreferences, webContents } from 'electron';
 import { arch, cpus, freemem, loadavg, platform, release, totalmem, type } from 'os';
@@ -1217,6 +1218,19 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 	async closeWindow(windowId: number | undefined, options?: INativeHostOptions): Promise<void> {
 		const window = this.windowById(options?.targetWindowId, windowId);
 		return window?.win?.close();
+	}
+
+	async closeAuxiliaryWindow(windowId: number | undefined, targetWindowId: number): Promise<boolean> {
+		const auxiliary = this.auxiliaryWindowById(targetWindowId);
+		const window = auxiliary?.win;
+		if (!window || window.isDestroyed()) {
+			return true;
+		}
+		if (auxiliary.parentId !== windowId) {
+			throw new Error('Cannot close an auxiliary window owned by another window');
+		}
+
+		return closeAuxiliaryWindow(window);
 	}
 
 	async quit(windowId: number | undefined): Promise<void> {

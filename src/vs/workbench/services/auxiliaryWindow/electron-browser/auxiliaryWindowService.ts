@@ -45,14 +45,14 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 		stylesHaveLoaded: Barrier,
 		@IConfigurationService configurationService: IConfigurationService,
 		@INativeHostService private readonly nativeHostService: INativeHostService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService instantiationService: IInstantiationService,
 		@IHostService hostService: IHostService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService
 	) {
-		super(window, container, stylesHaveLoaded, configurationService, hostService, environmentService, contextMenuService, layoutService);
+		super(window, container, stylesHaveLoaded, configurationService, hostService, environmentService, contextMenuService, layoutService, instantiationService);
 
 		if (!isMacintosh) {
 			// For now, limit this to platforms that have clear maximised
@@ -105,10 +105,12 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 		return this.nativeHostService.positionWindow(bounds, { targetWindowId: this.window.vscodeWindowId });
 	}
 
-	protected override async handleVetoBeforeClose(e: BeforeUnloadEvent, veto: string): Promise<void> {
-		this.preventUnload(e);
+	protected override closeWindow(): Promise<boolean> {
+		return this.nativeHostService.closeAuxiliaryWindow(this.window.vscodeWindowId);
+	}
 
-		await this.dialogService.error(veto, localize('backupErrorDetails', "Try saving or reverting the editors with unsaved changes first and then try again."));
+	protected override async showCloseVeto(reason: string): Promise<void> {
+		await this.dialogService.error(reason, localize('backupErrorDetails', "Try saving or reverting the editors with unsaved changes first and then try again."));
 	}
 
 	protected override async confirmBeforeClose(e: BeforeUnloadEvent): Promise<void> {
@@ -149,13 +151,13 @@ export class NativeAuxiliaryWindowService extends BrowserAuxiliaryWindowService 
 		@IConfigurationService configurationService: IConfigurationService,
 		@INativeHostService private readonly nativeHostService: INativeHostService,
 		@IDialogService dialogService: IDialogService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService instantiationService: IInstantiationService,
 		@ITelemetryService telemetryService: ITelemetryService,
 		@IHostService hostService: IHostService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 	) {
-		super(layoutService, dialogService, configurationService, telemetryService, hostService, environmentService, contextMenuService);
+		super(layoutService, dialogService, configurationService, telemetryService, hostService, environmentService, contextMenuService, instantiationService);
 	}
 
 	protected override async resolveWindowId(auxiliaryWindow: NativeCodeWindow): Promise<number> {

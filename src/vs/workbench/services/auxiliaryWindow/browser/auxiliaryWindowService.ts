@@ -8,7 +8,7 @@ import { $, Dimension, EventHelper, EventType, ModifierKeyEmitter, addDisposable
 import { cloneGlobalStylesheets, isGlobalStylesheet } from '../../../../base/browser/domStylesheets.js';
 import { CodeWindow, ensureCodeWindow, mainWindow } from '../../../../base/browser/window.js';
 import { coalesce } from '../../../../base/common/arrays.js';
-import { Barrier } from '../../../../base/common/async.js';
+import { Barrier, DeferredPromise } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -21,13 +21,14 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { DEFAULT_AUX_WINDOW_SIZE, IRectangle, WindowMinimumSize } from '../../../../platform/window/common/window.js';
 import { BaseWindow } from '../../../browser/window.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { IHostService } from '../../host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../layout/browser/layoutService.js';
+import { ShutdownReason } from '../../lifecycle/common/lifecycle.js';
 
 export const IAuxiliaryWindowService = createDecorator<IAuxiliaryWindowService>('auxiliaryWindowService');
 
@@ -88,6 +89,12 @@ export interface IAuxiliaryWindow extends IDisposable {
 	readonly window: CodeWindow;
 	readonly container: HTMLElement;
 
+	/** Confirm a programmatic close before the owner commits its disposal. */
+	confirmClose(): Promise<boolean>;
+
+	/** Request a confirmed close and report whether the window actually closed. */
+	close(): Promise<boolean>;
+
 	updateOptions(options: { compact: boolean } | undefined): void;
 
 	setBounds(bounds: IRectangle): Promise<void>;
@@ -119,6 +126,8 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 	readonly whenStylesHaveLoaded: Promise<void>;
 
 	private compact = false;
+	private closeConfirmed = false;
+	private closeResult: DeferredPromise<boolean> | undefined;
 
 	constructor(
 		readonly window: CodeWindow,
@@ -128,7 +137,8 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 		@IHostService hostService: IHostService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IContextMenuService contextMenuService: IContextMenuService,
-		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService
+		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
+		@IInstantiationService protected readonly instantiationService: IInstantiationService
 	) {
 		super(window, undefined, hostService, environmentService, contextMenuService, layoutService);
 
@@ -171,7 +181,21 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 
 	private handleBeforeUnload(e: BeforeUnloadEvent): void {
 
-		// Check for veto from a listening component
+		const veto = this.getCloseVeto();
+		if (veto) {
+			this.closeResult?.complete(false);
+			this.handleVetoBeforeClose(e, veto);
+
+			return;
+		}
+
+		// Check for confirm before close setting
+		if (!this.closeConfirmed && this.shouldConfirmBeforeClose()) {
+			this.confirmBeforeClose(e);
+		}
+	}
+
+	private getCloseVeto(): string | undefined {
 		let veto: string | undefined;
 		this._onBeforeUnload.fire({
 			veto(reason) {
@@ -180,22 +204,40 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 				}
 			}
 		});
-		if (veto) {
-			this.handleVetoBeforeClose(e, veto);
-
-			return;
-		}
-
-		// Check for confirm before close setting
-		const confirmBeforeCloseSetting = this.configurationService.getValue<'always' | 'never' | 'keyboardOnly'>('window.confirmBeforeClose');
-		const confirmBeforeClose = confirmBeforeCloseSetting === 'always' || (confirmBeforeCloseSetting === 'keyboardOnly' && ModifierKeyEmitter.getInstance().isModifierPressed);
-		if (confirmBeforeClose) {
-			this.confirmBeforeClose(e);
-		}
+		return veto;
 	}
+
+	private shouldConfirmBeforeClose(): boolean {
+		const setting = this.configurationService.getValue<'always' | 'never' | 'keyboardOnly'>('window.confirmBeforeClose');
+		return setting === 'always' || (setting === 'keyboardOnly' && ModifierKeyEmitter.getInstance().isModifierPressed);
+	}
+
+	async confirmClose(): Promise<boolean> {
+		let veto = this.getCloseVeto();
+		if (veto) {
+			await this.showCloseVeto(veto);
+			return false;
+		}
+
+		if (this.shouldConfirmBeforeClose() && !await this.instantiationService.invokeFunction(accessor => BaseWindow.confirmOnShutdown(accessor, ShutdownReason.CLOSE))) {
+			return false;
+		}
+
+		// Editors can change while the confirmation dialog is open.
+		veto = this.getCloseVeto();
+		if (veto) {
+			await this.showCloseVeto(veto);
+			return false;
+		}
+
+		return !this._store.isDisposed;
+	}
+
+	protected async showCloseVeto(reason: string): Promise<void> { }
 
 	protected handleVetoBeforeClose(e: BeforeUnloadEvent, reason: string): void {
 		this.preventUnload(e);
+		void this.showCloseVeto(reason);
 	}
 
 	protected preventUnload(e: BeforeUnloadEvent): void {
@@ -209,8 +251,10 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 
 	private handleUnload(): void {
 
-		// Event
+		const result = this.closeResult;
+		this.closeResult = undefined;
 		this._onUnload.fire();
+		result?.complete(true);
 	}
 
 	layout(): void {
@@ -240,11 +284,31 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
 		};
 	}
 
+	async close(): Promise<boolean> {
+		this.closeConfirmed = true;
+		try {
+			return await this.closeWindow();
+		} finally {
+			this.closeConfirmed = false;
+		}
+	}
+
+	protected closeWindow(): Promise<boolean> {
+		const result = this.closeResult = new DeferredPromise<boolean>();
+		try {
+			this.window.close();
+		} catch (error) {
+			result.error(error);
+		}
+		return result.p.finally(() => this.closeResult = undefined);
+	}
+
 	override dispose(): void {
 		if (this._store.isDisposed) {
 			return;
 		}
 
+		this.closeResult?.complete(false);
 		this._onWillDispose.fire();
 
 		super.dispose();
@@ -270,6 +334,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 		@IHostService protected readonly hostService: IHostService,
 		@IWorkbenchEnvironmentService protected readonly environmentService: IWorkbenchEnvironmentService,
 		@IContextMenuService protected readonly contextMenuService: IContextMenuService,
+		@IInstantiationService protected readonly instantiationService: IInstantiationService,
 	) {
 		super();
 	}
@@ -297,9 +362,13 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 		registryDisposables.add(toDisposable(() => this.windows.delete(targetWindow.vscodeWindowId)));
 
 		const eventDisposables = new DisposableStore();
+		let unloading = false;
+		eventDisposables.add(Event.once(auxiliaryWindow.onUnload)(() => unloading = true));
 
 		Event.once(auxiliaryWindow.onWillDispose)(() => {
-			targetWindow.close();
+			if (!unloading) {
+				targetWindow.close();
+			}
 
 			containerDisposables.dispose();
 			registryDisposables.dispose();
@@ -325,7 +394,7 @@ export class BrowserAuxiliaryWindowService extends Disposable implements IAuxili
 	}
 
 	protected createAuxiliaryWindow(targetWindow: CodeWindow, container: HTMLElement, stylesLoaded: Barrier): AuxiliaryWindow {
-		return new AuxiliaryWindow(targetWindow, container, stylesLoaded, this.configurationService, this.hostService, this.environmentService, this.contextMenuService, this.layoutService);
+		return new AuxiliaryWindow(targetWindow, container, stylesLoaded, this.configurationService, this.hostService, this.environmentService, this.contextMenuService, this.layoutService, this.instantiationService);
 	}
 
 	private async openWindow(options?: IAuxiliaryWindowOpenOptions): Promise<Window | undefined> {
