@@ -6,7 +6,7 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import { Dimension } from '../../../../../base/browser/dom.js';
-import { DeferredPromise } from '../../../../../base/common/async.js';
+import { DeferredPromise, Delayer } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { Action } from '../../../../../base/common/actions.js';
@@ -76,29 +76,25 @@ suite('KeybindingsEditor lifecycle', () => {
 		const { editor, table, createInput } = createEditor();
 		const input = createInput();
 		await editor.setInput(input, undefined, context, CancellationToken.None);
-		const clock = sinon.useFakeTimers();
-		try {
-			editor.search('test.command');
-			await clock.tickAsync(300);
-			const sort = Reflect.get(editor, 'sortByPrecedenceAction') as Action;
-			sort.checked = true;
-			assert.ok(table.length > 5);
-			table.setSelection([5]);
-			table.setFocus([5]);
-			table.scrollTop = 120;
-			const before = { selection: table.getSelection(), focus: table.getFocus(), scrollTop: table.scrollTop };
+		const filtering = sinon.spy(Reflect.get(editor, 'delayedFiltering') as Delayer<void>, 'trigger');
+		editor.search('test.command');
+		await filtering.lastCall.returnValue;
+		const sort = Reflect.get(editor, 'sortByPrecedenceAction') as Action;
+		sort.checked = true;
+		assert.ok(table.length > 5);
+		table.setSelection([5]);
+		table.setFocus([5]);
+		table.scrollTop = 120;
+		const before = { selection: table.getSelection(), focus: table.getFocus(), scrollTop: table.scrollTop };
 
-			editor.clearInput();
-			input.dispose();
-			const next = createInput();
-			await editor.setInput(next, { preserveFocus: true }, context, CancellationToken.None);
+		editor.clearInput();
+		input.dispose();
+		const next = createInput();
+		await editor.setInput(next, { preserveFocus: true }, context, CancellationToken.None);
 
-			assert.deepStrictEqual({ selection: table.getSelection(), focus: table.getFocus(), scrollTop: table.scrollTop, search: next.searchOptions?.searchValue, sort: next.searchOptions?.sortByPrecedence }, {
-				...before, search: 'test.command', sort: true
-			});
-		} finally {
-			clock.restore();
-		}
+		assert.deepStrictEqual({ selection: table.getSelection(), focus: table.getFocus(), scrollTop: table.scrollTop, search: next.searchOptions?.searchValue, sort: next.searchOptions?.sortByPrecedence }, {
+			...before, search: 'test.command', sort: true
+		});
 	});
 
 	test('does not restore a closed pane when input resolution finishes late', async () => {
