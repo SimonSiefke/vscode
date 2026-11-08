@@ -352,10 +352,15 @@ export class DebugSession implements IDebugSession {
 
 		try {
 			const debugAdapter = await dbgr.createDebugAdapter(this);
-			this.raw = this.instantiationService.createInstance(RawDebugSession, debugAdapter, dbgr, this.id, this.configuration.name);
+			const raw = this.instantiationService.createInstance(RawDebugSession, debugAdapter, dbgr, this.id, this.configuration.name);
+			this.raw = raw;
 
-			await this.raw.start();
+			// Termination can arrive while the adapter is still starting.
 			this.registerListeners();
+			await raw.start();
+			if (this.raw !== raw) {
+				throw canceled();
+			}
 			await this.raw.initialize({
 				clientID: 'vscode',
 				clientName: this.productService.nameLong,
