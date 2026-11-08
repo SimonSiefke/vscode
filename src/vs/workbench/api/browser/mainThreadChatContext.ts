@@ -28,7 +28,7 @@ function reviveContextItems(items: IChatContextItemDto[]): IChatContextItem[] {
 @extHostNamedCustomer(MainContext.MainThreadChatContext)
 export class MainThreadChatContext extends Disposable implements MainThreadChatContextShape {
 	private readonly _proxy: Proxied<ExtHostChatContextShape>;
-	private readonly _providers = new Map<number, { id: string; selector?: ITabSelectorDto }>();
+	private readonly _providers = new Map<number, { id: string; selector?: ITabSelectorDto; isWorkspaceProvider?: boolean }>();
 
 	constructor(
 		extHostContext: IExtHostContext,
@@ -40,7 +40,7 @@ export class MainThreadChatContext extends Disposable implements MainThreadChatC
 	}
 
 	$registerChatWorkspaceContextProvider(handle: number, id: string): void {
-		this._providers.set(handle, { id });
+		this._providers.set(handle, { id, isWorkspaceProvider: true });
 		this._chatContextService.registerChatWorkspaceContextProvider(id, {
 			provideWorkspaceChatContext: async (token: CancellationToken) => {
 				const items = await this._proxy.$provideWorkspaceChatContext(handle, token);
@@ -82,7 +82,7 @@ export class MainThreadChatContext extends Disposable implements MainThreadChatC
 		if (!provider) {
 			return;
 		}
-		this._chatContextService.unregisterChatContextProvider(provider.id);
+		this._chatContextService.unregisterChatContextProvider(provider.id, !!provider.isWorkspaceProvider);
 		this._providers.delete(handle);
 	}
 
