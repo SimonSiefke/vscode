@@ -111,6 +111,19 @@ suite('BrowserEditorInput', () => {
 		return input;
 	}
 
+	test('a final release veto allows the browser to be acquired again', () => {
+		const input = createInput({ id: 'session-browser' });
+		const veto = disposables.add(input.onBeforeDispose(e => e.veto()));
+		disposables.add(input.acquire()).dispose();
+		assert.strictEqual(input.isDisposed(), false);
+
+		const restored = disposables.add(input.acquire());
+		veto.dispose();
+		restored.dispose();
+		assert.strictEqual(input.isDisposed(), true);
+		assert.throws(() => input.acquire());
+	});
+
 	test('uses the browser resource for regular inputs', () => {
 		const input = createInput({ id: 'regular-browser' });
 		const untyped = input.toUntyped();

@@ -1553,8 +1553,24 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 			this.mostRecentActiveGroups = state.mostRecentActiveGroups;
 
 			// Grid Widget
+			let restoreFailure: { error: unknown } | undefined;
 			try {
 				this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, options);
+			} catch (error) {
+				restoreFailure = { error };
+
+				// Discard partially restored groups and give the preserved dirty
+				// editors a live group before releasing their temporary references.
+				this.disposeGroups();
+				const initialGroup = this.doCreateGroupView();
+				this.doSetGridWidget(new SerializableGrid(initialGroup));
+				this.doSetGroupActive(initialGroup);
+				if (this._contentDimension) {
+					this.doLayout(this._contentDimension);
+				}
+				this.updateContainer();
+				this._onDidAddGroup.fire(initialGroup);
+				this.notifyGroupIndexChange();
 			} finally {
 				// It is very important to keep this order: first resume the events for
 				// removed groups and then for added groups. Many listeners may store
@@ -1573,6 +1589,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 						editor, options: { pinned: true, preserveFocus: true, inactive: true }
 					}))
 			);
+
+			if (restoreFailure) {
+				throw restoreFailure.error;
+			}
 		} finally {
 			references.dispose();
 		}

@@ -78,7 +78,12 @@ export abstract class EditorInput extends AbstractEditorInput {
 		return Object.assign(toDisposable(() => {
 			if (--this.references === 0 && !this.isDisposed() && !this.disposingReferences) {
 				this.disposingReferences = true;
-				this.dispose();
+				try {
+					this.dispose();
+				} finally {
+					// Subclasses can veto disposal and remain available to future owners.
+					this.disposingReferences = false;
+				}
 			}
 		}), { object: this });
 	}

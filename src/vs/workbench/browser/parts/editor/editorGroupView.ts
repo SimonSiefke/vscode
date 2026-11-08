@@ -180,17 +180,22 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	) {
 		super(themeService);
 
-		if (from instanceof EditorGroupView) {
-			this.model = this._register(from.model.clone());
-		} else if (isSerializedEditorGroupModel(from)) {
-			this.model = this._register(instantiationService.createInstance(EditorGroupModel, from));
-		} else {
-			this.model = this._register(instantiationService.createInstance(EditorGroupModel, undefined));
-		}
+		try {
+			if (from instanceof EditorGroupView) {
+				this.model = this._register(from.model.clone());
+			} else if (isSerializedEditorGroupModel(from)) {
+				this.model = this._register(instantiationService.createInstance(EditorGroupModel, from));
+			} else {
+				this.model = this._register(instantiationService.createInstance(EditorGroupModel, undefined));
+			}
 
-		this.editorReferences = this._register(new DisposableMap<EditorInput>());
-		for (const editor of this.model.getEditors(EditorsOrder.SEQUENTIAL)) {
-			this.editorReferences.set(editor, editor.acquire());
+			this.editorReferences = this._register(new DisposableMap<EditorInput>());
+			for (const editor of this.model.getEditors(EditorsOrder.SEQUENTIAL)) {
+				this.editorReferences.set(editor, editor.acquire());
+			}
+		} catch (error) {
+			super.dispose();
+			throw error;
 		}
 
 		//#region create()

@@ -127,7 +127,13 @@ export class SearchEditorInput extends EditorInput {
 			revert(options?: IRevertOptions): Promise<void> { return input.revert(0, options); }
 		};
 
-		this._register(this.workingCopyService.registerWorkingCopy(workingCopyAdapter));
+		try {
+			this._register(this.workingCopyService.registerWorkingCopy(workingCopyAdapter));
+		} catch (error) {
+			// A failed reconstruction must not destroy an existing input's shared model.
+			super.dispose();
+			throw error;
+		}
 	}
 
 	override async save(group: GroupIdentifier, options?: ITextFileSaveOptions): Promise<EditorInput | undefined> {
@@ -195,7 +201,12 @@ export class SearchEditorInput extends EditorInput {
 				this.setDirty(false);
 				if (!isEqual(path, this.modelUri)) {
 					const input = this.instantiationService.invokeFunction(getOrMakeSearchEditorInput, { fileUri: path, from: 'existingFile' });
-					input.setMatchRanges(this.getMatchRanges());
+					try {
+						await input.setMatchRanges(this.getMatchRanges());
+					} catch (error) {
+						input.dispose();
+						throw error;
+					}
 					return input;
 				}
 				return this;
