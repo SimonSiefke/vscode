@@ -640,6 +640,26 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'markdownDescription': localize('secondarySideBarShowLabels', "Controls whether activity items in the secondary side bar title are shown as label or icon. This setting only has an effect when {0} is not set to {1}.", '`#workbench.activityBar.location#`', '`top`'),
 				agentsWindow: { default: true, readOnly: true },
 			},
+			'workbench.statusBar.items': {
+				'type': 'object',
+				'default': {},
+				'additionalProperties': false,
+				'properties': {
+					'left': {
+						'type': 'array',
+						'items': { 'type': 'string' },
+						'uniqueItems': true,
+						'description': localize('statusBarItemsLeft', "Status bar item IDs to display on the left, in left-to-right order."),
+					},
+					'right': {
+						'type': 'array',
+						'items': { 'type': 'string' },
+						'uniqueItems': true,
+						'description': localize('statusBarItemsRight', "Status bar item IDs to display on the right, in left-to-right order."),
+					},
+				},
+				'markdownDescription': localize('statusBarItems', "Controls the location and order of status bar items by ID, for example `status.editor.selection`, `status.editor.indentation`, `status.editor.encoding`, or `status.scm.0`. Listed items appear first on their configured side. Unlisted items keep their default side and order. Unknown IDs are ignored until the item appears. When an ID appears more than once, its first occurrence is used, checking the left list before the right list. Changes apply immediately."),
+			},
 			'workbench.statusBar.visible': {
 				'type': 'boolean',
 				'default': true,
