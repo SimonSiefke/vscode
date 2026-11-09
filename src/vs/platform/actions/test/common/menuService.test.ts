@@ -366,7 +366,7 @@ suite('MenuService', function () {
 	});
 
 	test('getMenuActions reevaluates enablement, toggled state and alternate actions', () => {
-		const context = disposables.add(new ObservableTestContextKeyService());
+		const context = disposables.add(new TestContextKeyService());
 		const enabled = context.createKey<boolean>('enabled', true);
 		const toggled = context.createKey<boolean>('toggled', false);
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
@@ -400,7 +400,7 @@ suite('MenuService', function () {
 	});
 
 	test('createMenu refreshes cached hide action labels when the active contribution changes', async () => {
-		const context = disposables.add(new TestContextKeyService());
+		const context = disposables.add(new ObservableTestContextKeyService());
 		const isFollowingKey = `isFollowing-${generateUuid()}`;
 		const isFollowing = context.createKey<boolean>(isFollowingKey, false);
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
