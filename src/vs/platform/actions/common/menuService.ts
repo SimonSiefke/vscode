@@ -436,10 +436,6 @@ class MenuInfo extends MenuInfoSnapshot {
 		super.refresh();
 	}
 
-	invalidateSubmenuInfoCache(): void {
-		this._submenuInfoCache.clear();
-	}
-
 	createActionGroups(options: IMenuActionOptions | undefined): [string, Array<MenuItemAction | SubmenuItemAction>][] {
 		const result: [string, Array<MenuItemAction | SubmenuItemAction>][] = [];
 
@@ -634,17 +630,13 @@ class MenuImpl implements IMenu {
 	}
 
 	private onDidChangeMenuRegistry(e: IMenuRegistryChangeEvent): void {
-		for (const id of this._menuInfo.submenuMenuIds) {
-			if (e.has(id)) {
-				this._menuInfo.invalidateSubmenuInfoCache();
-				break;
-			}
-		}
-		for (const id of this._menuInfo.allMenuIds) {
-			if (e.has(id)) {
-				this._rebuildMenuSoon.schedule();
-				break;
-			}
+		const shouldNotify = [...this._menuInfo.allMenuIds].some(id => e.has(id));
+		const shouldRefresh = shouldNotify || [...this._menuInfo.submenuMenuIds].some(id => e.has(id));
+		if (shouldNotify) {
+			this._rebuildMenuSoon.schedule();
+		} else if (shouldRefresh) {
+			// Refresh the descendant ID set as well as cached submenu snapshots, without forwarding an event.
+			this._menuInfo.refresh();
 		}
 	}
 
