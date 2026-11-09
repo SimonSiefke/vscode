@@ -336,14 +336,14 @@ suite('MenuService', function () {
 		const nestedAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(submenuId)));
 		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
 		await nestedAdded;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 
 		const childAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
 		await childAdded;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		const [, [submenu]] = menu.getActions()[0];
 		assert.ok(submenu instanceof SubmenuItemAction);
@@ -354,7 +354,7 @@ suite('MenuService', function () {
 		const childRemoved = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		registration.dispose();
 		await childRemoved;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 	});
@@ -374,14 +374,14 @@ suite('MenuService', function () {
 		const nestedAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(submenuId)));
 		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
 		await nestedAdded;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 
 		const childAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
 		await childAdded;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		const [, [submenu]] = menu.getActions()[0];
 		assert.ok(submenu instanceof SubmenuItemAction);
@@ -392,7 +392,7 @@ suite('MenuService', function () {
 		const childRemoved = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		registration.dispose();
 		await childRemoved;
-		await clock.tickAsync(0);
+		await clock.tickAsync(2);
 		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 	});
@@ -435,6 +435,7 @@ suite('MenuService', function () {
 		const context = disposables.add(new ObservableTestContextKeyService());
 		const isFollowingKey = `isFollowing-${generateUuid()}`;
 		const isFollowing = context.createKey<boolean>(isFollowingKey, false);
+		const registrationsChanged = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(testMenuId)));
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
 			command: { id: 'toggleFollowing', title: 'Pin the Current Timeline' },
 			when: ContextKeyExpr.has(isFollowingKey),
@@ -443,6 +444,7 @@ suite('MenuService', function () {
 			command: { id: 'toggleFollowing', title: 'Unpin the Current Timeline' },
 			when: ContextKeyExpr.not(isFollowingKey),
 		}));
+		await registrationsChanged;
 		const menu = disposables.add(menuService.createMenu(testMenuId, context));
 
 		const getLabels = () => {
