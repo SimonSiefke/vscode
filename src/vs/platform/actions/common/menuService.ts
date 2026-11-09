@@ -214,10 +214,10 @@ class ConfigureKeybindingAction implements IAction {
 		private readonly when: ContextKeyExpression | undefined,
 	) { }
 
-	run(): void {
+	run(): Promise<unknown> {
 		const hasKeybinding = !!this.keybindingService.lookupKeybinding(this.commandId);
 		const whenValue = !hasKeybinding && this.when ? this.when.serialize() : undefined;
-		this.commandService.executeCommand('workbench.action.openGlobalKeybindings', `@command:${this.commandId}` + (whenValue ? ` +when:${whenValue}` : ''));
+		return this.commandService.executeCommand('workbench.action.openGlobalKeybindings', `@command:${this.commandId}` + (whenValue ? ` +when:${whenValue}` : ''));
 	}
 }
 
@@ -360,12 +360,27 @@ class MenuInfoSnapshot {
 				MenuInfoSnapshot._fillInKbExprKeys(toggledExpression, this._toggledContextKeys);
 			}
 
-		} else if (this._collectContextKeysForSubmenus) {
-			// recursively collect context keys from submenus so that this
-			// menu fires events when context key changes affect submenus
-			MenuRegistry.getMenuItems(item.submenu).forEach(this._collectContextKeysAndSubmenuIds, this);
+		} else {
+			// Always observe submenu registry changes so cached submenu snapshots stay current.
+			if (this._collectContextKeysForSubmenus) {
+				// Recursively collect context keys when this menu forwards submenu changes.
+				MenuRegistry.getMenuItems(item.submenu).forEach(this._collectContextKeysAndSubmenuIds, this);
+			} else {
+				this._collectSubmenuIds(item.submenu);
+			}
+		}
+	}
 
-			this._allMenuIds.add(item.submenu);
+	private _collectSubmenuIds(menuId: MenuId): void {
+		if (this._allMenuIds.has(menuId)) {
+			return;
+		}
+
+		this._allMenuIds.add(menuId);
+		for (const item of MenuRegistry.getMenuItems(menuId)) {
+			if (isISubmenuItem(item)) {
+				this._collectSubmenuIds(item.submenu);
+			}
 		}
 	}
 

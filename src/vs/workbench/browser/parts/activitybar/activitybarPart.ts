@@ -41,7 +41,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 
-class ActivityBarPositionAction implements IAction {
+export class ActivityBarPositionAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -54,12 +54,12 @@ class ActivityBarPositionAction implements IAction {
 		private readonly position: ActivityBarPosition,
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	run(): Promise<void> {
+		return this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
 	}
 }
 
-class ToggleMenuBarVisibilityAction implements IAction {
+export class ToggleMenuBarVisibilityAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -72,12 +72,12 @@ class ToggleMenuBarVisibilityAction implements IAction {
 		private readonly newVisibility: 'toggle' | 'compact',
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue(MenuSettings.MenuBarVisibility, this.newVisibility);
+	run(): Promise<void> {
+		return this.configurationService.updateValue(MenuSettings.MenuBarVisibility, this.newVisibility);
 	}
 }
 
-class ActivityBarSizeAction implements IAction {
+export class ActivityBarSizeAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -90,12 +90,12 @@ class ActivityBarSizeAction implements IAction {
 		private readonly compact: boolean,
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_COMPACT, this.compact);
+	run(): Promise<void> {
+		return this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_COMPACT, this.compact);
 	}
 }
 
-class SidebarLayoutAction implements IAction {
+export class SidebarLayoutAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -107,8 +107,8 @@ class SidebarLayoutAction implements IAction {
 		private readonly actionFactory: () => { run(accessor: ServicesAccessor): unknown },
 	) { }
 
-	run(): void {
-		this.instantiationService.invokeFunction(accessor => this.actionFactory().run(accessor));
+	run(): unknown {
+		return this.instantiationService.invokeFunction(accessor => this.actionFactory().run(accessor));
 	}
 }
 

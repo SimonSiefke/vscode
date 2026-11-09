@@ -288,6 +288,28 @@ suite('MenuService', function () {
 		});
 	});
 
+	test('createMenu refreshes nested submenu registrations when change events are disabled', async () => {
+		const submenuId = new MenuId(`testo/${generateUuid()}`);
+		const nestedSubmenuId = new MenuId(`testo/${generateUuid()}`);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Submenu', submenu: submenuId }));
+		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
+		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService, { emitEventsForSubmenuChanges: false, eventDebounceDelay: 0 }));
+		assert.deepStrictEqual(menu.getActions(), []);
+
+		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
+		await Event.toPromise(menu.onDidChange);
+		const [, [submenu]] = menu.getActions()[0];
+		assert.ok(submenu instanceof SubmenuItemAction);
+		const [nestedSubmenu] = submenu.actions;
+		assert.ok(nestedSubmenu instanceof SubmenuItemAction);
+		assert.deepStrictEqual(nestedSubmenu.actions.map(action => action.id), ['nested']);
+
+		const removed = Event.toPromise(menu.onDidChange);
+		registration.dispose();
+		await removed;
+		assert.deepStrictEqual(menu.getActions(), []);
+	});
+
 	test('getMenuActions reevaluates enablement, toggled state and alternate actions', () => {
 		const context = disposables.add(new TestContextKeyService());
 		const enabled = context.createKey<boolean>('enabled', true);

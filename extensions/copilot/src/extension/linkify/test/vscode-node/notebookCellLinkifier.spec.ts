@@ -5,10 +5,11 @@
 
 import { suite, test } from 'vitest';
 import assert from 'assert';
-import type { NotebookCell, NotebookDocument, TextDocument } from 'vscode';
+import type { NotebookCell, NotebookDocument, NotebookDocumentChangeEvent, TextDocument } from 'vscode';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../util/common/test/testUtils';
+import type { Event } from '../../../../util/vs/base/common/event';
 import { ILogger, ILogService } from '../../../../platform/log/common/logService';
 import { TestWorkspaceService } from '../../../../platform/test/node/testWorkspaceService';
-import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { StringSHA1 } from '../../../../util/vs/base/common/hash';
 import { NotebookCellKind, Uri } from '../../../../vscodeTypes';
@@ -17,6 +18,7 @@ import { NotebookCellLinkifier } from '../../vscode-node/notebookCellLinkifier';
 import { assertPartsEqual } from '../node/util';
 
 suite('Notebook Cell Linkifier', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	// The cell ID prefix from helpers.ts
 	const CELL_ID_PREFIX = '#VSC-';
@@ -53,7 +55,7 @@ suite('Notebook Cell Linkifier', () => {
 		} as NotebookDocument;
 	}
 
-	function createMockWorkspaceService(notebooks: NotebookDocument[]): IWorkspaceService {
+	function createMockWorkspaceService(notebooks: NotebookDocument[]): TestWorkspaceService {
 		return new TestWorkspaceService([], [], notebooks);
 	}
 
@@ -62,17 +64,17 @@ suite('Notebook Cell Linkifier', () => {
 		public closeNotebookListenerCount = 0;
 		public changeNotebookListenerCount = 0;
 
-		public override readonly onDidOpenNotebookDocument = listener => {
+		public override readonly onDidOpenNotebookDocument: Event<NotebookDocument> = listener => {
 			this.openNotebookListenerCount++;
 			return this.didOpenNotebookDocumentEmitter.event(listener);
 		};
 
-		public override readonly onDidCloseNotebookDocument = listener => {
+		public override readonly onDidCloseNotebookDocument: Event<NotebookDocument> = listener => {
 			this.closeNotebookListenerCount++;
 			return this.didCloseNotebookDocumentEmitter.event(listener);
 		};
 
-		public override readonly onDidChangeNotebookDocument = listener => {
+		public override readonly onDidChangeNotebookDocument: Event<NotebookDocumentChangeEvent> = listener => {
 			this.changeNotebookListenerCount++;
 			return this.didChangeNotebookDocumentEmitter.event(listener);
 		};
@@ -134,13 +136,13 @@ suite('Notebook Cell Linkifier', () => {
 		const cell2 = createMockNotebookCell(cellUri2, 1);
 
 		const notebook = createMockNotebookDocument([cell1, cell2]);
-		const workspaceService = createMockWorkspaceService([notebook]);
+		const workspaceService = store.add(createMockWorkspaceService([notebook]));
 
 		// Generate the expected cell IDs
 		const cellId1 = generateCellId(cellUri1);
 		const cellId2 = generateCellId(cellUri2);
 
-		const linkifier = new NotebookCellLinkifier(workspaceService, mockLogger);
+		const linkifier = store.add(new NotebookCellLinkifier(workspaceService, mockLogger));
 
 		const testText = `Below is a list of the cells that were executed\n* Cell Id ${cellId1}\n* Cell Id ${cellId2}\n Cell 1: code cell, id=${cellId1}, nor markdown, language=Python\n Cell 2(${cellId2}), nor markdown, language=Python`;
 
@@ -167,9 +169,9 @@ suite('Notebook Cell Linkifier', () => {
 		const cellUri = Uri.parse('vscode-notebook-cell:/test/notebook.ipynb#cell1');
 		const cell = createMockNotebookCell(cellUri, 0);
 		const notebook = createMockNotebookDocument([cell]);
-		const workspaceService = new CountingWorkspaceService([], [], [notebook]);
+		const workspaceService = store.add(new CountingWorkspaceService([], [], [notebook]));
 		const cellId = generateCellId(cellUri);
-		const linkifier = new NotebookCellLinkifier(workspaceService, mockLogger);
+		const linkifier = store.add(new NotebookCellLinkifier(workspaceService, mockLogger));
 
 		await linkifier.linkify(`Cell Id ${cellId}`, { requestId: undefined, references: [] }, CancellationToken.None);
 		await linkifier.linkify(`Cell Id ${cellId}`, { requestId: undefined, references: [] }, CancellationToken.None);
@@ -177,5 +179,9 @@ suite('Notebook Cell Linkifier', () => {
 		assert.strictEqual(workspaceService.openNotebookListenerCount, 1);
 		assert.strictEqual(workspaceService.closeNotebookListenerCount, 1);
 		assert.strictEqual(workspaceService.changeNotebookListenerCount, 1);
+		linkifier.dispose();
+		assert.strictEqual(workspaceService.didOpenNotebookDocumentEmitter.hasListeners(), false);
+		assert.strictEqual(workspaceService.didCloseNotebookDocumentEmitter.hasListeners(), false);
+		assert.strictEqual(workspaceService.didChangeNotebookDocumentEmitter.hasListeners(), false);
 	});
 });

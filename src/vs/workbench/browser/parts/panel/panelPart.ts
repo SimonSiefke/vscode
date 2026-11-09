@@ -33,7 +33,7 @@ import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { Extensions } from '../../panecomposite.js';
 
-class PanelConfigurationAction implements IAction {
+export class PanelConfigurationAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -45,12 +45,12 @@ class PanelConfigurationAction implements IAction {
 		private readonly value: boolean,
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue('workbench.panel.showLabels', this.value);
+	run(): Promise<void> {
+		return this.configurationService.updateValue('workbench.panel.showLabels', this.value);
 	}
 }
 
-class PanelCommandAction implements IAction {
+export class PanelCommandAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -61,8 +61,8 @@ class PanelCommandAction implements IAction {
 		private readonly commandService: ICommandService,
 	) { }
 
-	run(): void {
-		this.commandService.executeCommand(this.id);
+	run(): Promise<unknown> {
+		return this.commandService.executeCommand(this.id);
 	}
 }
 

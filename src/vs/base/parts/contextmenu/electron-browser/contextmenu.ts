@@ -42,7 +42,11 @@ export function popup(items: IContextMenuItem[], options?: IPopupOptions, onHide
 		const item = processedItems[itemId];
 		const click = item?.click;
 		cleanup();
-		click?.(context);
+		if (itemId === -1) {
+			onHide?.();
+		} else {
+			click?.(context);
+		}
 	};
 
 	ipcRenderer.once(onClickChannel, onClickChannelHandler);

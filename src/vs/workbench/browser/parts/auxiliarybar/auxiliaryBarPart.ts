@@ -35,7 +35,7 @@ import { VisibleViewContainersTracker } from '../visibleViewContainersTracker.js
 import { Extensions } from '../../panecomposite.js';
 import { IToolBarResponsiveBehaviorOptions } from '../../../../base/browser/ui/toolbar/toolbar.js';
 
-class ActivityBarPositionAction implements IAction {
+export class ActivityBarPositionAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -48,12 +48,12 @@ class ActivityBarPositionAction implements IAction {
 		private readonly position: ActivityBarPosition,
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
+	run(): Promise<void> {
+		return this.configurationService.updateValue(LayoutSettings.ACTIVITY_BAR_LOCATION, this.position);
 	}
 }
 
-class AuxiliaryBarConfigurationAction implements IAction {
+export class AuxiliaryBarConfigurationAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 
@@ -66,12 +66,12 @@ class AuxiliaryBarConfigurationAction implements IAction {
 		private readonly value: boolean,
 	) { }
 
-	run(): void {
-		this.configurationService.updateValue(this.key, this.value);
+	run(): Promise<void> {
+		return this.configurationService.updateValue(this.key, this.value);
 	}
 }
 
-class AuxiliaryBarCommandAction implements IAction {
+export class AuxiliaryBarCommandAction implements IAction {
 	readonly tooltip = '';
 	readonly class = undefined;
 	readonly enabled = true;
@@ -82,8 +82,8 @@ class AuxiliaryBarCommandAction implements IAction {
 		private readonly commandService: ICommandService,
 	) { }
 
-	run(): void {
-		this.commandService.executeCommand(this.id);
+	run(): Promise<unknown> {
+		return this.commandService.executeCommand(this.id);
 	}
 }
 
