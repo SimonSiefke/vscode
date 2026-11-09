@@ -225,6 +225,7 @@ class MenuItemHideActions implements IMenuItemHide {
 	constructor(
 		readonly hide: IAction,
 		readonly toggle: IAction,
+		readonly isHidden: boolean,
 	) { }
 
 	updateTitle(title: string): void {
@@ -232,8 +233,12 @@ class MenuItemHideActions implements IMenuItemHide {
 		this.toggle.label = title;
 	}
 
-	get isHidden(): boolean {
-		return !this.toggle.checked;
+	snapshot(): IMenuItemHide {
+		return {
+			hide: this.hide,
+			toggle: this.toggle,
+			isHidden: !this.toggle.checked,
+		};
 	}
 }
 
@@ -300,6 +305,7 @@ function createActionGroups(
 class MenuInfoSnapshot {
 	protected _menuGroups: MenuItemGroup[] = [];
 	private _allMenuIds: Set<MenuId> = new Set();
+	private _submenuMenuIds: Set<MenuId> = new Set();
 	private _structureContextKeys: Set<string> = new Set();
 	private _preconditionContextKeys: Set<string> = new Set();
 	private _toggledContextKeys: Set<string> = new Set();
@@ -313,6 +319,10 @@ class MenuInfoSnapshot {
 
 	get allMenuIds(): ReadonlySet<MenuId> {
 		return this._allMenuIds;
+	}
+
+	get submenuMenuIds(): ReadonlySet<MenuId> {
+		return this._submenuMenuIds;
 	}
 
 	get structureContextKeys(): ReadonlySet<string> {
@@ -331,6 +341,7 @@ class MenuInfoSnapshot {
 
 		// reset
 		this._allMenuIds.clear();
+		this._submenuMenuIds.clear();
 		this._structureContextKeys.clear();
 		this._preconditionContextKeys.clear();
 		this._toggledContextKeys.clear();
@@ -366,7 +377,7 @@ class MenuInfoSnapshot {
 			}
 
 		} else {
-			// Always observe submenu registry changes so cached submenu snapshots stay current.
+			// Track nested menu IDs so cached submenu snapshots stay current in both event modes.
 			this._collectSubmenuIds(item.submenu);
 			if (this._collectContextKeysForSubmenus) {
 				// Recursively collect context keys when this menu forwards submenu changes.
@@ -376,11 +387,14 @@ class MenuInfoSnapshot {
 	}
 
 	private _collectSubmenuIds(menuId: MenuId): void {
-		if (this._allMenuIds.has(menuId)) {
+		if (this._submenuMenuIds.has(menuId)) {
 			return;
 		}
 
-		this._allMenuIds.add(menuId);
+		this._submenuMenuIds.add(menuId);
+		if (this._collectContextKeysForSubmenus) {
+			this._allMenuIds.add(menuId);
+		}
 		for (const item of MenuRegistry.getMenuItems(menuId)) {
 			if (isISubmenuItem(item)) {
 				this._collectSubmenuIds(item.submenu);
@@ -420,6 +434,10 @@ class MenuInfo extends MenuInfoSnapshot {
 		this._menuKeybindingCache.clear();
 		this._submenuInfoCache.clear();
 		super.refresh();
+	}
+
+	invalidateSubmenuInfoCache(): void {
+		this._submenuInfoCache.clear();
 	}
 
 	createActionGroups(options: IMenuActionOptions | undefined): [string, Array<MenuItemAction | SubmenuItemAction>][] {
@@ -470,7 +488,7 @@ class MenuInfo extends MenuInfoSnapshot {
 				menuHide.updateTitle(title);
 			}
 		}
-		return menuHide;
+		return menuHide instanceof MenuItemHideActions ? menuHide.snapshot() : menuHide;
 	}
 
 	private getOrCreateConfigureKeybindingAction(commandId: string, when: ContextKeyExpression | undefined): IAction {
@@ -616,6 +634,12 @@ class MenuImpl implements IMenu {
 	}
 
 	private onDidChangeMenuRegistry(e: IMenuRegistryChangeEvent): void {
+		for (const id of this._menuInfo.submenuMenuIds) {
+			if (e.has(id)) {
+				this._menuInfo.invalidateSubmenuInfoCache();
+				break;
+			}
+		}
 		for (const id of this._menuInfo.allMenuIds) {
 			if (e.has(id)) {
 				this._rebuildMenuSoon.schedule();
@@ -655,7 +679,7 @@ function createMenuHide(menu: MenuId, command: ICommandAction | ISubmenuItem, st
 	const hide = new HideMenuAction(`hide/${menu.id}/${id}`, localize('hide.label', 'Hide \'{0}\'', title), menu, id, states);
 	const toggle = new ToggleMenuAction(`toggle/${menu.id}/${id}`, title, menu, id, states);
 
-	return new MenuItemHideActions(hide, toggle);
+	return new MenuItemHideActions(hide, toggle, !toggle.checked);
 }
 
 export function createConfigureKeybindingAction(commandService: ICommandService, keybindingService: IKeybindingService, commandId: string, when: ContextKeyExpression | undefined = undefined, enabled = true): IAction {

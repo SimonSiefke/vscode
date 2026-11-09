@@ -321,47 +321,61 @@ suite('MenuService', function () {
 		assert.deepStrictEqual(menu.getActions(), []);
 	});
 
-	test('createMenu refreshes child-only submenu changes with default submenu events', async () => {
+	test('createMenu refreshes child-only submenu changes without emitting default submenu events', async () => {
 		const submenuId = new MenuId(`testo/${generateUuid()}`);
 		const nestedSubmenuId = new MenuId(`testo/${generateUuid()}`);
+		const setupChanged = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(submenuId)));
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Submenu', submenu: submenuId }));
 		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
+		await setupChanged;
 		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService, { eventDebounceDelay: 0 }));
 		assert.deepStrictEqual(menu.getActions(), []);
+		let menuChangeCount = 0;
+		disposables.add(menu.onDidChange(() => menuChangeCount++));
 
+		const childAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
-		await Event.toPromise(menu.onDidChange);
+		await childAdded;
+		assert.strictEqual(menuChangeCount, 0);
 		const [, [submenu]] = menu.getActions()[0];
 		assert.ok(submenu instanceof SubmenuItemAction);
 		const [nestedSubmenu] = submenu.actions;
 		assert.ok(nestedSubmenu instanceof SubmenuItemAction);
 		assert.deepStrictEqual(nestedSubmenu.actions.map(action => action.id), ['nested']);
 
-		const removed = Event.toPromise(menu.onDidChange);
+		const childRemoved = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		registration.dispose();
-		await removed;
+		await childRemoved;
+		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 	});
 
 	test('createMenu refreshes nested submenu registrations when change events are disabled', async () => {
 		const submenuId = new MenuId(`testo/${generateUuid()}`);
 		const nestedSubmenuId = new MenuId(`testo/${generateUuid()}`);
+		const setupChanged = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(submenuId)));
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Submenu', submenu: submenuId }));
 		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
+		await setupChanged;
 		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService, { emitEventsForSubmenuChanges: false, eventDebounceDelay: 0 }));
 		assert.deepStrictEqual(menu.getActions(), []);
+		let menuChangeCount = 0;
+		disposables.add(menu.onDidChange(() => menuChangeCount++));
 
+		const childAdded = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
-		await Event.toPromise(menu.onDidChange);
+		await childAdded;
+		assert.strictEqual(menuChangeCount, 0);
 		const [, [submenu]] = menu.getActions()[0];
 		assert.ok(submenu instanceof SubmenuItemAction);
 		const [nestedSubmenu] = submenu.actions;
 		assert.ok(nestedSubmenu instanceof SubmenuItemAction);
 		assert.deepStrictEqual(nestedSubmenu.actions.map(action => action.id), ['nested']);
 
-		const removed = Event.toPromise(menu.onDidChange);
+		const childRemoved = Event.toPromise(Event.filter(MenuRegistry.onDidChangeMenu, e => e.has(nestedSubmenuId)));
 		registration.dispose();
-		await removed;
+		await childRemoved;
+		assert.strictEqual(menuChangeCount, 0);
 		assert.deepStrictEqual(menu.getActions(), []);
 	});
 
@@ -438,10 +452,13 @@ suite('MenuService', function () {
 		assert.ok(first.hideActions);
 		const hidden = [first.hideActions.isHidden];
 		await first.hideActions.toggle.run();
+		assert.strictEqual(first.hideActions.isHidden, true);
 		const second = menuService.getMenuActions(testMenuId, contextKeyService, { arg: 'second' })[0][1][0];
 		assert.ok(second.hideActions);
+		assert.strictEqual(second.hideActions.isHidden, false);
 		hidden.push(second.hideActions.isHidden);
 		menuService.resetHiddenStates([testMenuId]);
+		assert.strictEqual(second.hideActions.isHidden, false);
 		const third = menuService.getMenuActions(testMenuId, contextKeyService)[0][1][0];
 		assert.ok(third.hideActions);
 		hidden.push(third.hideActions.isHidden);
