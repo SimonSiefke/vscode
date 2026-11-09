@@ -496,6 +496,20 @@ suite('MenuService', function () {
 		});
 	});
 
+	test('createMenu preserves hidden-state snapshots across action reads', async () => {
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { command: { id: 'command', title: 'Command' } }));
+		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService));
+		const first = menu.getActions()[0][1][0];
+		assert.ok(first.hideActions);
+		assert.strictEqual(first.hideActions.isHidden, false);
+
+		await first.hideActions.hide.run();
+		assert.strictEqual(first.hideActions.isHidden, false);
+		const second = menu.getActions()[0][1][0];
+		assert.ok(second.hideActions);
+		assert.strictEqual(second.hideActions.isHidden, true);
+	});
+
 	test('group sorting', function () {
 
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
