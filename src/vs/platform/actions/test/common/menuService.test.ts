@@ -5,13 +5,13 @@
 
 import assert from 'assert';
 import sinon from 'sinon';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IMenuItem, isIMenuItem, MenuId, MenuRegistry, SubmenuItemAction } from '../../common/actions.js';
 import { MenuService } from '../../common/menuService.js';
 import { NullCommandService } from '../../../commands/test/common/nullCommandService.js';
-import { ContextKeyExpr, ContextKeyExpression } from '../../../contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression, ContextKeyValue, IContextKey, IContextKeyChangeEvent } from '../../../contextkey/common/contextkey.js';
 import { MockContextKeyService, MockKeybindingService } from '../../../keybinding/test/common/mockKeybindingService.js';
 import { InMemoryStorageService } from '../../../storage/common/storage.js';
 
@@ -20,6 +20,34 @@ import { InMemoryStorageService } from '../../../storage/common/storage.js';
 class TestContextKeyService extends MockContextKeyService {
 	override contextMatchesRules(rules: ContextKeyExpression | undefined) {
 		return !rules || rules.evaluate({ getValue: key => this.getContextKeyValue(key) });
+	}
+}
+
+class ObservableTestContextKeyService extends TestContextKeyService {
+	private readonly _onDidChangeContext = new Emitter<IContextKeyChangeEvent>();
+
+	override get onDidChangeContext(): Event<IContextKeyChangeEvent> {
+		return this._onDidChangeContext.event;
+	}
+
+	override createKey<T extends ContextKeyValue>(key: string, defaultValue: T | undefined): IContextKey<T> {
+		const contextKey = super.createKey(key, defaultValue);
+		const fireChange = () => {
+			this._onDidChangeContext.fire({
+				affectsSome: keys => keys.has(key),
+				allKeysContainedIn: keys => keys.has(key),
+			});
+		};
+		return {
+			set: value => { contextKey.set(value); fireChange(); },
+			reset: () => { contextKey.reset(); fireChange(); },
+			get: () => contextKey.get(),
+		};
+	}
+
+	override dispose(): void {
+		this._onDidChangeContext.dispose();
+		super.dispose();
 	}
 }
 
@@ -338,7 +366,7 @@ suite('MenuService', function () {
 	});
 
 	test('getMenuActions reevaluates enablement, toggled state and alternate actions', () => {
-		const context = disposables.add(new TestContextKeyService());
+		const context = disposables.add(new ObservableTestContextKeyService());
 		const enabled = context.createKey<boolean>('enabled', true);
 		const toggled = context.createKey<boolean>('toggled', false);
 		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {

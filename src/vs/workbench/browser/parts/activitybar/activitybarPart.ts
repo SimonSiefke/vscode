@@ -67,7 +67,7 @@ export class ToggleMenuBarVisibilityAction implements IAction {
 	constructor(
 		readonly id: string,
 		public label: string,
-		readonly checked: boolean,
+		readonly checked: boolean | undefined,
 		private readonly configurationService: IConfigurationService,
 		private readonly newVisibility: 'toggle' | 'compact',
 	) { }
@@ -569,7 +569,7 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
 		if (menuBarVisibility === 'compact' && this.menuBarContainer && e?.target) {
 			if (isAncestor(e.target as Node, this.menuBarContainer)) {
 				actions.unshift(...[
-					new ToggleMenuBarVisibilityAction('hideCompactMenu', localize('hideMenu', "Hide Menu"), false, this.configurationService, 'toggle'),
+					new ToggleMenuBarVisibilityAction('hideCompactMenu', localize('hideMenu', "Hide Menu"), undefined, this.configurationService, 'toggle'),
 					new Separator()
 				]);
 			}

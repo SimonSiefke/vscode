@@ -99,7 +99,7 @@ export class GlobalCompositeBar extends Disposable {
 						contextMenuAlignmentOptions,
 						(actions: IAction[]) => {
 							actions.unshift(...[
-								new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
+								new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), undefined, storageService, false),
 								new Separator()
 							]);
 						});
@@ -194,7 +194,7 @@ class SetAccountsVisibilityAction implements IAction {
 	constructor(
 		readonly id: string,
 		public label: string,
-		readonly checked: boolean,
+		readonly checked: boolean | undefined,
 		private readonly storageService: IStorageService,
 		private readonly visible: boolean,
 	) { }
@@ -926,7 +926,7 @@ function simpleActivityContextMenuActions(storageService: IStorageService, isAcc
 	const currentElementContextMenuActions: IAction[] = [];
 	if (isAccount) {
 		currentElementContextMenuActions.push(
-			new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), false, storageService, false),
+			new SetAccountsVisibilityAction('hideAccounts', localize('hideAccounts', "Hide Accounts"), undefined, storageService, false),
 			new Separator()
 		);
 	}
