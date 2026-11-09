@@ -227,6 +227,11 @@ class MenuItemHideActions implements IMenuItemHide {
 		readonly toggle: IAction,
 	) { }
 
+	updateTitle(title: string): void {
+		this.hide.label = localize('hide.label', 'Hide \'{0}\'', title);
+		this.toggle.label = title;
+	}
+
 	get isHidden(): boolean {
 		return !this.toggle.checked;
 	}
@@ -362,11 +367,10 @@ class MenuInfoSnapshot {
 
 		} else {
 			// Always observe submenu registry changes so cached submenu snapshots stay current.
+			this._collectSubmenuIds(item.submenu);
 			if (this._collectContextKeysForSubmenus) {
 				// Recursively collect context keys when this menu forwards submenu changes.
 				MenuRegistry.getMenuItems(item.submenu).forEach(this._collectContextKeysAndSubmenuIds, this);
-			} else {
-				this._collectSubmenuIds(item.submenu);
 			}
 		}
 	}
@@ -460,6 +464,11 @@ class MenuInfo extends MenuInfoSnapshot {
 		if (!menuHide) {
 			menuHide = createMenuHide(this._id, command, this._hiddenStates);
 			this._menuHideCache.set(id, menuHide);
+		} else {
+			const title = typeof command.title === 'string' ? command.title : command.title.value;
+			if (menuHide instanceof MenuItemHideActions) {
+				menuHide.updateTitle(title);
+			}
 		}
 		return menuHide;
 	}

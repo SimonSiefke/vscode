@@ -272,7 +272,7 @@ suite('MenuService', function () {
 		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService, { emitEventsForSubmenuChanges: true, eventDebounceDelay: 0 }));
 		const before = menu.getActions();
 		const changed = Event.toPromise(menu.onDidChange);
-		disposables.add(MenuRegistry.appendMenuItem(submenuId, { command: { id: 'nested', title: 'Nested' } }));
+		const registration = disposables.add(MenuRegistry.appendMenuItem(submenuId, { command: { id: 'nested', title: 'Nested' } }));
 		const event = await changed;
 		const submenu = menu.getActions()[0][1][0];
 		assert.ok(submenu instanceof SubmenuItemAction);
@@ -286,6 +286,33 @@ suite('MenuService', function () {
 			actions: ['nested'],
 			changes: [true, true, true],
 		});
+
+		const removed = Event.toPromise(menu.onDidChange);
+		registration.dispose();
+		await removed;
+		assert.deepStrictEqual(menu.getActions(), []);
+	});
+
+	test('createMenu refreshes child-only submenu changes with default submenu events', async () => {
+		const submenuId = new MenuId(`testo/${generateUuid()}`);
+		const nestedSubmenuId = new MenuId(`testo/${generateUuid()}`);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Submenu', submenu: submenuId }));
+		disposables.add(MenuRegistry.appendMenuItem(submenuId, { title: 'Nested submenu', submenu: nestedSubmenuId }));
+		const menu = disposables.add(menuService.createMenu(testMenuId, contextKeyService, { eventDebounceDelay: 0 }));
+		assert.deepStrictEqual(menu.getActions(), []);
+
+		const registration = disposables.add(MenuRegistry.appendMenuItem(nestedSubmenuId, { command: { id: 'nested', title: 'Nested' } }));
+		await Event.toPromise(menu.onDidChange);
+		const [, [submenu]] = menu.getActions()[0];
+		assert.ok(submenu instanceof SubmenuItemAction);
+		const [nestedSubmenu] = submenu.actions;
+		assert.ok(nestedSubmenu instanceof SubmenuItemAction);
+		assert.deepStrictEqual(nestedSubmenu.actions.map(action => action.id), ['nested']);
+
+		const removed = Event.toPromise(menu.onDidChange);
+		registration.dispose();
+		await removed;
+		assert.deepStrictEqual(menu.getActions(), []);
 	});
 
 	test('createMenu refreshes nested submenu registrations when change events are disabled', async () => {
@@ -342,6 +369,35 @@ suite('MenuService', function () {
 			{ enabled: false, checked: true, label: 'Toggled', altEnabled: false },
 		];
 		assert.deepStrictEqual(snapshots, [...expected, ...expected]);
+	});
+
+	test('createMenu refreshes cached hide action labels when the active contribution changes', async () => {
+		const context = disposables.add(new TestContextKeyService());
+		const isFollowingKey = `isFollowing-${generateUuid()}`;
+		const isFollowing = context.createKey<boolean>(isFollowingKey, false);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
+			command: { id: 'toggleFollowing', title: 'Pin the Current Timeline' },
+			when: ContextKeyExpr.has(isFollowingKey),
+		}));
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
+			command: { id: 'toggleFollowing', title: 'Unpin the Current Timeline' },
+			when: ContextKeyExpr.not(isFollowingKey),
+		}));
+		const menu = disposables.add(menuService.createMenu(testMenuId, context));
+
+		const getLabels = () => {
+			const hideActions = menu.getActions()[0][1][0].hideActions;
+			assert.ok(hideActions);
+			return [hideActions.hide.label, hideActions.toggle.label];
+		};
+		// eslint-disable-next-line local/code-no-unexternalized-strings
+		assert.deepStrictEqual(getLabels(), ["Hide 'Unpin the Current Timeline'", "Unpin the Current Timeline"]);
+
+		const changed = Event.toPromise(menu.onDidChange);
+		isFollowing.set(true);
+		await changed;
+		// eslint-disable-next-line local/code-no-unexternalized-strings
+		assert.deepStrictEqual(getLabels(), ["Hide 'Pin the Current Timeline'", "Pin the Current Timeline"]);
 	});
 
 	test('getMenuActions preserves per-call options and current hidden state', async () => {
