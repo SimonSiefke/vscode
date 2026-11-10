@@ -415,7 +415,8 @@ abstract class BaseQuickInputListRenderer<T extends IQuickPickElement> extends D
 			data.element.element = undefined;
 		}
 		data.element = undefined;
-		data.label.setLabel([]);
+		// Reuse the existing main label, while avoiding a new label for missing details.
+		data.label.setLabel('');
 		data.detail.setLabel([]);
 		data.keybinding.set(undefined);
 		data.checkbox.value?.setTitle('');

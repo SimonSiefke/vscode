@@ -224,15 +224,23 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		assert.deepStrictEqual(picker.selectedItems, [current]);
 	});
 
-	test('reusing simple rows does not create labels for missing details', () => {
+	test('reuses main labels without creating labels for missing details', () => {
 		controller.layout({ height: 500, width: 600 }, 0);
 		const picker = store.add(controller.createQuickPick());
 		picker.items = [{ label: 'old command' }];
 		picker.show();
+		const initialLabel = fixture.querySelector<HTMLElement>('.quick-input-list .monaco-list-row .label-name');
+		assert.ok(initialLabel);
 		picker.items = [];
+		const rowReleased = !fixture.querySelector('.quick-input-list .monaco-list-row');
 		picker.items = [{ label: 'current command' }];
 		const row = fixture.querySelector<HTMLElement>('.quick-input-list .monaco-list-row')!;
-		assert.deepStrictEqual([...row.querySelectorAll('.label-name')].map(label => label.textContent), ['current command']);
+		const labels = [...row.querySelectorAll('.label-name')];
+		assert.deepStrictEqual({
+			rowReleased,
+			mainLabelReused: labels[0] === initialLabel,
+			labels: labels.map(label => label.textContent)
+		}, { rowReleased: true, mainLabelReused: true, labels: ['current command'] });
 	});
 
 	test('removes its widget from the container when disposed', () => {
