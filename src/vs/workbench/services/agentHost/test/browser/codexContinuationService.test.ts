@@ -22,7 +22,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryData } from '../../../../../platform/telemetry/common/telemetry.js';
 import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../chat/common/chatEntitlementService.js';
+import { ChatEntitlement, IChatEntitlementService, IChatSentiment } from '../../../chat/common/chatEntitlementService.js';
 import { IWorkbenchEnvironmentService } from '../../../environment/common/environmentService.js';
 import { IHostService } from '../../../host/browser/host.js';
 import { ICodexAccountService } from '../../browser/codexAccountService.js';
@@ -33,7 +33,7 @@ suite('Codex continuation coordination', () => {
 	const source: SessionModelInfo = { provider: 'codex', id: '@provider=openai:gpt', name: 'GPT', _meta: { modelSourceId: 'chatgptSubscription' } };
 	const target: SessionModelInfo = { provider: 'codex', id: '@provider=vscode-proxy:gpt', name: 'GPT Copilot' };
 
-	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true, initialAccount?: ICodexAccountInfo) {
+	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true, initialAccount?: ICodexAccountInfo, initialSentiment: IChatSentiment = { installed: true }) {
 		const order: string[] = [];
 		const activity = { listSessions: 0, refreshAccount: 0 };
 		const backend = AgentSession.uri('codex', 'existing');
@@ -68,13 +68,14 @@ suite('Codex continuation coordination', () => {
 			override account: ICodexAccountInfo = initialAccount ?? { status: 'signedIn', planType: 'plus', observedAt: Date.now(), rateLimits: [{ usedPercent: 95, windowDurationMins: 300 }] };
 		}();
 		const quotaChanged = store.add(new Emitter<void>());
+		const sentimentChanged = store.add(new Emitter<void>());
 		const entitlement = new class extends mock<IChatEntitlementService>() {
 			override onDidChangeEntitlement = Event.None;
 			override onDidChangeQuotaRemaining = quotaChanged.event;
 			override onDidChangeQuotaExceeded = Event.None;
-			override onDidChangeSentiment = Event.None;
+			override onDidChangeSentiment = sentimentChanged.event;
 			override entitlement = ChatEntitlement.Pro;
-			override sentiment = { installed: true };
+			override sentiment = initialSentiment;
 			override quotas: IChatEntitlementService['quotas'] = { premiumChat: { unlimited: false, percentRemaining: 0 }, additionalUsageEnabled: true };
 		}();
 		const host = new class extends mock<IHostService>() {
@@ -96,7 +97,26 @@ suite('Codex continuation coordination', () => {
 
 		const service = store.add(new CodexContinuationService(agent, connections, account, entitlement, host, storage, telemetry, config, environment));
 		service.setSelectableModels([{ id: target.id, vendor: 'agent-host-codex' }]);
-		return { service, order, telemetry, config, host, account, accountChanged, entitlement, session, activity, notifications, quotaChanged, registered };
+		return { service, order, telemetry, config, host, account, accountChanged, entitlement, session, activity, notifications, quotaChanged, sentimentChanged, registered };
+	}
+
+	for (const [state, sentiment] of [
+		['not installed', {}],
+		['disabled globally', { installed: true, disabled: true }],
+		['disabled in the workspace', { installed: true, disabledInWorkspace: true }],
+		['blocked by workspace trust', { installed: true, untrusted: true }],
+	] satisfies [string, IChatSentiment][]) {
+		test(`does not refresh or resolve while Copilot is ${state}`, async () => {
+			const { service, activity, entitlement, sentimentChanged } = create(store.add(new InMemoryStorageService()), true, true, undefined, sentiment);
+			service.refresh();
+			assert.deepStrictEqual({ candidate: await service.resolve(), ...activity }, { candidate: undefined, listSessions: 0, refreshAccount: 0 });
+
+			entitlement.sentiment = { installed: true };
+			sentimentChanged.fire();
+			assert.strictEqual(activity.refreshAccount, 1);
+			service.refresh();
+			assert.deepStrictEqual({ candidate: !!await service.resolve(), ...activity }, { candidate: true, listSessions: 1, refreshAccount: 1 });
+		});
 	}
 
 	test('does not discover an unknown account before explicit Codex use', () => {

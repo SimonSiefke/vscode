@@ -110,7 +110,7 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 		this._register(_entitlement.onDidChangeEntitlement(schedule));
 		this._register(_entitlement.onDidChangeQuotaRemaining(schedule));
 		this._register(_entitlement.onDidChangeQuotaExceeded(schedule));
-		this._register(_entitlement.onDidChangeSentiment(schedule));
+		this._register(_entitlement.onDidChangeSentiment(() => { bind(); this.refresh(); }));
 		this._register(_configuration.onDidChangeConfiguration(() => { bind(); this.refresh(); }));
 		this._register(_host.onDidChangeFocus(focused => { if (focused) { this.refresh(); } schedule(); }));
 		this._register(_storage.onDidChangeValue(StorageScope.APPLICATION_SHARED, CODEX_CONTINUATION_STORAGE_KEY, this._store)(() => {
@@ -195,8 +195,10 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 	}
 
 	private _enabled(): boolean {
+		const sentiment = this._entitlement.sentiment;
 		return shouldShowCodexAccount(this._configuration, this._environment.isSessionsWindow)
-			&& !this._entitlement.sentiment.hidden && !this._entitlement.sentiment.disabledInWorkspace;
+			&& sentiment.installed === true && !sentiment.disabled && !sentiment.untrusted
+			&& !sentiment.hidden && !sentiment.disabledInWorkspace;
 	}
 
 	private _baseEligible(): boolean {
