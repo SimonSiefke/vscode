@@ -33,9 +33,9 @@ suite('Codex continuation coordination', () => {
 	const source: SessionModelInfo = { provider: 'codex', id: '@provider=openai:gpt', name: 'GPT', _meta: { modelSourceId: 'chatgptSubscription' } };
 	const target: SessionModelInfo = { provider: 'codex', id: '@provider=vscode-proxy:gpt', name: 'GPT Copilot' };
 
-	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true) {
+	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true, initialAccount?: ICodexAccountInfo) {
 		const order: string[] = [];
-		const activity = { listSessions: 0 };
+		const activity = { listSessions: 0, refreshAccount: 0 };
 		const backend = AgentSession.uri('codex', 'existing');
 		const session: { session: URI; provider?: string; startTime: number; modifiedTime: number; model?: { id: string } } = { session: backend, startTime: 1, modifiedTime: 2, model: { id: source.id } };
 		const registered = new Map<string, URI>();
@@ -47,7 +47,7 @@ suite('Codex continuation coordination', () => {
 		const agent = new class extends NullAgentHostService {
 			override get rootState() { return root; }
 			override readonly onDidNotification = notifications.event;
-			override dispatch(): void { }
+			override dispatch(): void { activity.refreshAccount++; }
 			override async listSessions() { activity.listSessions++; return [session]; }
 		}();
 		const connections = new class extends mock<IAgentHostConnectionsService>() {
@@ -65,7 +65,7 @@ suite('Codex continuation coordination', () => {
 		const accountChanged = store.add(new Emitter<ICodexAccountInfo>());
 		const account = new class extends mock<ICodexAccountService>() {
 			override onDidChangeAccount = accountChanged.event;
-			override account: ICodexAccountInfo = { status: 'signedIn', planType: 'plus', observedAt: Date.now(), rateLimits: [{ usedPercent: 95, windowDurationMins: 300 }] };
+			override account: ICodexAccountInfo = initialAccount ?? { status: 'signedIn', planType: 'plus', observedAt: Date.now(), rateLimits: [{ usedPercent: 95, windowDurationMins: 300 }] };
 		}();
 		const quotaChanged = store.add(new Emitter<void>());
 		const entitlement = new class extends mock<IChatEntitlementService>() {
@@ -97,6 +97,24 @@ suite('Codex continuation coordination', () => {
 		const service = store.add(new CodexContinuationService(agent, connections, account, entitlement, host, storage, telemetry, config, environment));
 		service.setSelectableModels([{ id: target.id, vendor: 'agent-host-codex' }]);
 		return { service, order, telemetry, config, host, account, accountChanged, entitlement, session, activity, notifications, quotaChanged, registered };
+	}
+
+	test('does not discover an unknown account before explicit Codex use', () => {
+		const { service, account, activity } = create(store.add(new InMemoryStorageService()), true, true, { status: 'unknown' });
+		service.refresh();
+		assert.strictEqual(activity.refreshAccount, 0);
+
+		account.account = { status: 'signedIn', planType: 'plus' };
+		service.refresh();
+		service.refresh();
+		assert.strictEqual(activity.refreshAccount, 1);
+	});
+
+	for (const status of ['signedIn', 'signedOut', 'error'] as const) {
+		test(`refreshes a known ${status} account`, () => {
+			const { activity } = create(store.add(new InMemoryStorageService()), true, true, { status });
+			assert.strictEqual(activity.refreshAccount, 1);
+		});
 	}
 
 	for (const resource of ['ahp-session:/existing', 'session-store://tenant/opaque?revision=2']) {

@@ -152,7 +152,8 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 	}
 
 	refresh(): void {
-		if (!this._host.hasFocus || !this._enabled() || Date.now() - this._lastRefresh < CODEX_CONTINUATION_MAX_AGE) {
+		// Account discovery starts Codex; leave it to explicit use while the account is unknown.
+		if (this._account.account.status === 'unknown' || !this._host.hasFocus || !this._enabled() || Date.now() - this._lastRefresh < CODEX_CONTINUATION_MAX_AGE) {
 			return;
 		}
 		this._lastRefresh = Date.now();
