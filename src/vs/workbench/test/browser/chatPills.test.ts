@@ -977,8 +977,7 @@ suite('ChatPills', () => {
 			for (let index = 0; index < allItems.length; index++) {
 				allItems[index].classList.toggle('compact', index >= allItems.length - count);
 			}
-			// Keep the below-threshold probes outside the row's one-pixel overflow tolerance.
-			return Math.floor(widget.element.getBoundingClientRect().width);
+			return widget.element.getBoundingClientRect().width;
 		};
 		return { row, widget, actions, pills, initialPills, collapsed, labelsVisible, resize, widthWithCollapsed };
 	}
@@ -990,9 +989,9 @@ suite('ChatPills', () => {
 		buttons[2].focus();
 		const ariaLabels = buttons.map(button => button.getAttribute('aria-label'));
 		const shrinking = widths.flatMap((width, count) => count < 4
-			? [harness.resize(width), harness.resize(width - 2)]
-			: [harness.resize(width)]);
-		const growing = [...widths].reverse().map(width => harness.resize(width));
+			? [harness.resize(Math.ceil(width)), harness.resize(Math.floor(width) - 2)]
+			: [harness.resize(Math.ceil(width))]);
+		const growing = [...widths].reverse().map(width => harness.resize(Math.ceil(width)));
 		harness.row.layout();
 
 		assert.deepStrictEqual({

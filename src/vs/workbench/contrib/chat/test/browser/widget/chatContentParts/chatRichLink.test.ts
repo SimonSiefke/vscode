@@ -33,7 +33,7 @@ suite('ChatRichLink', () => {
 			{ kind: 'chat', status: { kind: 'success', label: 'Completed' } },
 			{ kind: 'issue', status: { kind: 'closed', label: 'Closed' } },
 			{ kind: 'pullRequest', status: { kind: 'closed', label: 'Closed' }, secondaryStatus: { kind: 'error', label: 'Failed checks' } },
-			{ kind: 'resource' },
+			{ kind: 'resource', status: { kind: 'neutral', label: 'Available' }, secondaryStatus: { kind: 'neutral', label: 'Ready' } },
 		] as const;
 		const states = presentations.map(presentation => {
 			link.update(presentation);
@@ -50,7 +50,24 @@ suite('ChatRichLink', () => {
 			{ visible: false, label: false, color: 'rgb(0, 128, 0)', secondaryColor: 'rgb(90, 90, 90)' },
 			{ visible: true, label: false, color: 'rgb(128, 0, 128)', secondaryColor: 'rgb(90, 90, 90)' },
 			{ visible: true, label: false, color: 'rgb(192, 0, 0)', secondaryColor: 'rgb(192, 0, 0)' },
-			{ visible: false, label: true, color: 'rgb(90, 90, 90)', secondaryColor: 'rgb(90, 90, 90)' },
+			{ visible: true, label: true, color: 'rgb(90, 90, 90)', secondaryColor: 'rgb(90, 90, 90)' },
+		]);
+		const secondaryStatus = anchor.querySelector<HTMLElement>('.chat-rich-link-secondary-status')!;
+		assert.deepStrictEqual({
+			visible: mainWindow.getComputedStyle(secondaryStatus).display !== 'none',
+			label: mainWindow.getComputedStyle(secondaryStatus.querySelector('.chat-rich-link-status-label')!).display !== 'none',
+		}, { visible: true, label: true });
+
+		link.update({ kind: 'pullRequest', status: { kind: 'closed', label: 'Closed' }, secondaryStatus: { kind: 'error', label: 'Failed checks' } });
+		link.update({ kind: 'resource' });
+		assert.deepStrictEqual([...anchor.querySelectorAll<HTMLElement>('.chat-rich-link-status')].map(status => ({
+			hidden: status.hidden,
+			display: mainWindow.getComputedStyle(status).display,
+			color: mainWindow.getComputedStyle(status).color,
+			label: status.querySelector('.chat-rich-link-status-label')!.textContent,
+		})), [
+			{ hidden: true, display: 'none', color: 'rgb(90, 90, 90)', label: '' },
+			{ hidden: true, display: 'none', color: 'rgb(90, 90, 90)', label: '' },
 		]);
 	});
 

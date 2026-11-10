@@ -182,6 +182,7 @@ export class ChatMultiDiffContentPart extends Disposable implements IChatContent
 			new ChatMultiDiffListDelegate(),
 			[this.instantiationService.createInstance(ChatMultiDiffListRenderer, resourceLabels)],
 			{
+				scrollableClassName: 'chat-summary-list-scrollable',
 				identityProvider: {
 					getId: (element: IChatMultiDiffItem) => element.uri.toString()
 				},
