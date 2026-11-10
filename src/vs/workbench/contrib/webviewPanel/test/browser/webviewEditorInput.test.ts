@@ -4,13 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import sinon from 'sinon';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { RunOnceWorker } from '../../../../../base/common/async.js';
+import { WindowTitle } from '../../../../browser/parts/titlebar/windowTitle.js';
+import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
+import { IDecorationsService } from '../../../../services/decorations/common/decorations.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { DecorationsService } from '../../../../services/decorations/browser/decorationsService.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestViewsService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IOverlayWebview } from '../../../webview/browser/webview.js';
 import { WebviewInput } from '../../browser/webviewEditorInput.js';
 import { IWebviewWorkbenchService, LazilyResolvedWebviewEditorInput } from '../../browser/webviewWorkbenchService.js';
@@ -22,6 +30,7 @@ suite('WebviewInput', () => {
 
 	class TestWebview extends mock<IOverlayWebview>() {
 		disposeCount = 0;
+		override setTitle(): void { }
 		override dispose(): void {
 			this.disposeCount++;
 		}
@@ -44,6 +53,53 @@ suite('WebviewInput', () => {
 		const cache = Reflect.get(decorations, '_data') as { get(uri: URI): object | undefined };
 		return { decorations, cache };
 	}
+
+	test('queued window title update cannot recreate a disposed panel decoration', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const originalTitle = mainWindow.document.title;
+		const clock = sinon.useFakeTimers();
+		try {
+			const activeChanges = store.add(new Emitter<void>());
+			const decorations = store.add(instantiationService.createInstance(DecorationsService));
+			store.add(decorations.registerDecorationsProvider({ label: 'Test', onDidChange: Event.None, provideDecorations: () => undefined }));
+			const input = store.add(new WebviewInput(init, new TestWebview(), new TestThemeService(), decorations));
+			let activeEditor: EditorInput | undefined = input;
+			instantiationService.stub(IDecorationsService, decorations);
+			instantiationService.stub(IViewsService, new TestViewsService());
+			instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
+				override get activeEditor() { return activeEditor; }
+				override readonly onDidActiveEditorChange = activeChanges.event;
+			});
+			const title = store.add(instantiationService.createInstance(WindowTitle, mainWindow));
+			// EditorGroupView defers closing inputs so that replacements can finish first.
+			const closeWorker = store.add(new RunOnceWorker<EditorInput>(() => {
+				activeEditor = undefined;
+				activeChanges.fire();
+				input.dispose();
+			}, 0));
+			store.add(input.onWillDispose(() => closeWorker.work(input)));
+			try {
+				activeChanges.fire();
+				await clock.runAllAsync();
+				const cache = Reflect.get(decorations, '_data') as { get(uri: URI): object | undefined };
+				assert.ok(cache.get(input.resource));
+				input.setWebviewTitle('Closing');
+				input.dispose();
+				assert.strictEqual(cache.get(input.resource), undefined);
+				await clock.runAllAsync();
+				assert.deepStrictEqual({ activeEditor, cached: cache.get(input.resource) }, { activeEditor: undefined, cached: undefined });
+			} finally {
+				title.dispose();
+				closeWorker.dispose();
+				input.dispose();
+				decorations.dispose();
+				await clock.runAllAsync();
+			}
+		} finally {
+			clock.restore();
+			mainWindow.document.title = originalTitle;
+		}
+	});
 
 	test('clears cached decorations when disposed', () => {
 		const { decorations, cache } = createDecorations();

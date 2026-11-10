@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { stub } from 'sinon';
+import { stub, useFakeTimers } from 'sinon';
 import { $, Dimension, EventType, ModifierKeyEmitter, reset, scheduleAtNextAnimationFrame } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
@@ -23,6 +23,9 @@ import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { TestColorTheme, TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { DEFAULT_EDITOR_PART_OPTIONS, IEditorGroupMenuIds, IEditorGroupsView, IEditorGroupView, IEditorPartsView } from '../../../../browser/parts/editor/editor.js';
+import { SingleEditorTabsControl } from '../../../../browser/parts/editor/singleEditorTabsControl.js';
+import { WebviewInput } from '../../../../contrib/webviewPanel/browser/webviewEditorInput.js';
+import { IOverlayWebview } from '../../../../contrib/webview/browser/webview.js';
 import { MultiEditorTabsControl } from '../../../../browser/parts/editor/multiEditorTabsControl.js';
 import { MultiRowEditorControl } from '../../../../browser/parts/editor/multiRowEditorTabsControl.js';
 import { EditorInputCapabilities, EditorsOrder, IEditorPartOptions, Verbosity } from '../../../../common/editor.js';
@@ -141,6 +144,60 @@ suite('MultiEditorTabsControl', () => {
 		container.remove();
 		disposables.dispose();
 	});
+
+
+	for (const kind of ['multiple', 'single'] as const) {
+		test(`${kind} tab labels release disposed panels before deferred group removal`, async () => {
+			control.dispose();
+			reset(container);
+			const decorations = disposables.add(instantiationService.createInstance(DecorationsService));
+			instantiationService.stub(IDecorationsService, decorations);
+			disposables.add(decorations.registerDecorationsProvider({ label: 'Test', onDidChange: Event.None, provideDecorations: () => undefined }));
+			let input = disposables.add(new WebviewInput({ viewType: 'test', providedId: 'test', name: 'Preview', iconPath: undefined }, new class extends mock<IOverlayWebview>() { override dispose(): void { } }, instantiationService.get(IThemeService), decorations));
+			model.openEditor(input, { pinned: true, active: true });
+			const tabs = kind === 'multiple'
+				? disposables.add(instantiationService.createInstance(MultiEditorTabsControl, container, editorPartsView, groupsView, groupView, model, undefined, false, false))
+				: disposables.add(instantiationService.createInstance(SingleEditorTabsControl, container, editorPartsView, groupsView, groupView, model, undefined, false, false));
+			tabs.openEditors(model.getEditors(EditorsOrder.SEQUENTIAL));
+			const cache = Reflect.get(decorations, '_data') as { get(uri: URI): object | undefined };
+			assert.ok(cache.get(input.resource));
+			const clock = useFakeTimers();
+			try {
+				const listeners = Reflect.get(input, '_onWillDispose') as { _size: number };
+				const listenerCount = listeners._size;
+				tabs.updateEditorLabel(input);
+				tabs.updateEditorLabel(input);
+				assert.strictEqual(listeners._size, listenerCount);
+				const retired = input;
+				model.closeEditor(retired);
+				tabs.closeEditor(retired);
+				input = disposables.add(new WebviewInput({ viewType: 'test', providedId: 'current', name: 'Current Preview', iconPath: undefined }, new class extends mock<IOverlayWebview>() { override dispose(): void { } }, instantiationService.get(IThemeService), decorations));
+				model.openEditor(input, { pinned: true, active: true });
+				tabs.openEditor(input);
+				retired.dispose();
+				await clock.runAllAsync();
+				assert.ok(container.textContent?.includes('Current Preview'));
+				assert.ok(cache.get(input.resource));
+				input.dispose();
+				assert.strictEqual(model.activeEditor, input);
+				await clock.runAllAsync();
+				tabs.updateEditorLabel(input);
+				assert.strictEqual(cache.get(input.resource), undefined);
+				model.closeEditor(input);
+				tabs.closeEditor(input);
+				await clock.runAllAsync();
+				assert.strictEqual(cache.get(input.resource), undefined);
+			} finally {
+				try {
+					tabs.dispose();
+					decorations.dispose();
+					await clock.runAllAsync();
+				} finally {
+					clock.restore();
+				}
+			}
+		});
+	}
 
 	function tabActions(): string[] {
 		return Array.from(container.querySelectorAll('.tabs-container > .tab')).map(tab => {

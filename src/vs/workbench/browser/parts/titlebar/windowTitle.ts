@@ -304,7 +304,8 @@ export class WindowTitle extends Disposable {
 	 * {activeEditorState}: e.g. Modified
 	 */
 	getWindowTitle(): string {
-		const editor = this.editorService.activeEditor;
+		const activeEditor = this.editorService.activeEditor;
+		const editor = activeEditor?.isDisposed() ? undefined : activeEditor;
 		const workspace = this.contextService.getWorkspace();
 
 		// Compute root
