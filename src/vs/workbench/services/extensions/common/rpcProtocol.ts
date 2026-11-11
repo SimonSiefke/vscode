@@ -105,8 +105,8 @@ export const enum ResponsiveState {
 }
 
 export interface IRPCProtocolLogger {
-	logIncoming(msgLength: number, req: number, initiator: RequestInitiator, str: string, data?: any): void;
-	logOutgoing(msgLength: number, req: number, initiator: RequestInitiator, str: string, data?: any): void;
+	logIncoming(msgLength: number | undefined, req: number, initiator: RequestInitiator, str: string, data?: any): void;
+	logOutgoing(msgLength: number | undefined, req: number, initiator: RequestInitiator, str: string, data?: any): void;
 }
 
 const _RPCProtocolSymbol = Symbol.for('rpcProtocol');

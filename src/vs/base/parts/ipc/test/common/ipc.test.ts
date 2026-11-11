@@ -10,9 +10,10 @@ import { CancellationToken, CancellationTokenSource } from '../../../../common/c
 import { canceled } from '../../../../common/errors.js';
 import { Emitter, Event } from '../../../../common/event.js';
 import { DisposableStore } from '../../../../common/lifecycle.js';
+import { MarshalledId } from '../../../../common/marshallingIds.js';
 import { isEqual } from '../../../../common/resources.js';
 import { URI } from '../../../../common/uri.js';
-import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, getDelayedChannel, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol, ProxyChannel, serialize } from '../../common/ipc.js';
+import { BufferReader, BufferWriter, ChannelClient, ChannelServer, ClientConnectionEvent, deserialize, getDelayedChannel, IChannel, IMessagePassingProtocol, IPCClient, IPCServer, IServerChannel, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol, IPCLogger, ProxyChannel, RequestInitiator, serialize } from '../../common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../test/common/utils.js';
 
 class QueueProtocol implements IMessagePassingProtocol {
@@ -332,6 +333,92 @@ suite('Base IPC', function () {
 			map: 42,
 			cycle: true
 		});
+	});
+
+
+	test('structured clone proxies revive shared values in requests and replies', async () => {
+		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+		const channelDisposables = store.add(new DisposableStore());
+		const server = store.add(new ChannelServer(serverProtocol, 'ctx'));
+		const createGraph = () => {
+			const uri = URI.file('/proxy-graph');
+			const regexp = { $mid: MarshalledId.Regexp, source: 'proxy', flags: 'gi' };
+			const date = { $mid: MarshalledId.Date, source: '2026-01-01T00:00:00.000Z' };
+			return { uri, regexp, date, aliases: [uri, regexp, date] };
+		};
+		const checkGraph = (value: unknown) => {
+			const graph = value as { uri: URI; regexp: RegExp; date: Date; aliases: unknown[] };
+			assert.deepStrictEqual({
+				uri: graph.uri instanceof URI, regexp: graph.regexp instanceof RegExp, date: graph.date instanceof Date,
+				aliases: graph.aliases.map((entry, i) => entry === [graph.uri, graph.regexp, graph.date][i])
+			}, { uri: true, regexp: true, date: true, aliases: [true, true, true] });
+		};
+		server.registerChannel('echo', ProxyChannel.fromService({
+			echo(value: unknown, uri: URI) { checkGraph(value); assert.strictEqual((value as { uri: URI }).uri, uri); return createGraph(); }
+		}, channelDisposables));
+		const client = store.add(new ChannelClient(clientProtocol));
+		const service = ProxyChannel.toService<{ echo(value: unknown, uri: URI): Promise<unknown> }>(client.getChannel('echo'));
+		const request = createGraph();
+
+		checkGraph(await service.echo(request, request.uri));
+	});
+
+
+	test('structured clone proxies preserve the existing argument revival depth budget', async () => {
+		const [clientProtocol, serverProtocol] = createStructuredCloneProtocolPair();
+		const channelDisposables = store.add(new DisposableStore());
+		const server = store.add(new ChannelServer(serverProtocol, 'ctx'));
+		server.registerChannel('depth', ProxyChannel.fromService({
+			check(value: unknown, depth: number) {
+				for (let i = 0; i < depth; i++) {
+					value = (value as { child: unknown }).child;
+				}
+				return value instanceof URI;
+			}
+		}, channelDisposables));
+		const client = store.add(new ChannelClient(clientProtocol));
+		const service = ProxyChannel.toService<{ check(value: unknown, depth: number): Promise<boolean> }>(client.getChannel('depth'));
+		const result: boolean[] = [];
+		for (const depth of [200, 201]) {
+			let value: object = URI.file('/boundary');
+			for (let i = 0; i < depth; i++) {
+				value = { child: value };
+			}
+			result.push(await service.check(value, depth));
+		}
+		assert.deepStrictEqual(result, [true, false]);
+	});
+
+	for (const native of [false, true]) {
+		test(`logs ${native ? 'unknown native' : 'measured byte'} channel sizes`, async () => {
+			const lengths: (number | undefined)[] = [];
+			const trace: string[] = [];
+			const logger = {
+				logIncoming: (length: number | undefined, _id: number, _initiator: RequestInitiator, description: string) => { lengths.push(length); trace.push('in ' + description); },
+				logOutgoing: (length: number | undefined, _id: number, _initiator: RequestInitiator, description: string) => { lengths.push(length); trace.push('out ' + description); }
+			};
+			const [clientProtocol, serverProtocol] = native ? createStructuredCloneProtocolPair() : createProtocolPair();
+			const server = store.add(new ChannelServer(serverProtocol, 'ctx', logger));
+			server.registerChannel('echo', { call: async (_ctx, _command, arg) => arg, listen: () => Event.None });
+			const client = store.add(new ChannelClient(clientProtocol, logger));
+
+			assert.strictEqual(await client.getChannel('echo').call('echo', 'nonempty'), 'nonempty');
+			// Buffered initialization arrives before the client's logger is assigned.
+			assert.deepStrictEqual(trace, ['out init', 'in req: echo.echo', 'out req: echo.echo', 'in reply:', 'out reply:']);
+			assert.ok(lengths.every(length => native ? length === undefined : typeof length === 'number' && length > 0));
+		});
+	}
+
+	test('channel logger distinguishes unknown totals from measured zero', () => {
+		const messages: string[] = [];
+		const logger = new IPCLogger('out', 'in', (...args) => messages.push(String(args[0])));
+		logger.logOutgoing(18, 1, RequestInitiator.LocalSide, 'known');
+		logger.logOutgoing(undefined, 2, RequestInitiator.LocalSide, 'unknown');
+		logger.logOutgoing(8, 3, RequestInitiator.LocalSide, 'later');
+		logger.logIncoming(0, 1, RequestInitiator.LocalSide, 'zero');
+		assert.deepStrictEqual(messages.map(message => /\[ *([^\]]+)\]%c\[len: *([^\]]+)\]/.exec(message)?.slice(1)), [
+			['18', '18'], ['unknown', 'unknown'], ['unknown', '8'], ['0', '0']
+		]);
 	});
 
 	suite('structured clone marshalling', () => {

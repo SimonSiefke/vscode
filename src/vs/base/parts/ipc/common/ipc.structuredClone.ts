@@ -8,7 +8,7 @@ import { URI } from '../../../common/uri.js';
 import type { IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from './ipc.js';
 
 /** Marshal channel data without exposing native frames to byte transports. */
-export function sendStructuredCloneMessage(protocol: IStructuredCloneMessagePassingProtocol, header: unknown, body: unknown): number {
+export function sendStructuredCloneMessage(protocol: IStructuredCloneMessagePassingProtocol, header: unknown, body: unknown): undefined {
 	const vsBuffers: { buffer: Uint8Array }[] = [];
 	const message = transformStructuredCloneData({ header, body }, value => {
 		if (value instanceof URI) {
@@ -25,7 +25,7 @@ export function sendStructuredCloneMessage(protocol: IStructuredCloneMessagePass
 		message.vsBuffers = vsBuffers;
 	}
 	protocol.send(message);
-	return 0;
+	return undefined;
 }
 
 /**

@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { MessagePortMain, isUtilityProcess, MessageEvent } from '../../sandbox/node/electronTypes.js';
+import { MessagePortMain, isUtilityProcess, MessageEvent, ParentPort } from '../../sandbox/node/electronTypes.js';
 import { ClientConnectionEvent, IPCServer, IStructuredCloneMessage, IStructuredCloneMessagePassingProtocol } from '../common/ipc.js';
-import { Emitter, Event } from '../../../common/event.js';
+import { Event } from '../../../common/event.js';
 import { assertType } from '../../../common/types.js';
 
 /**
@@ -52,23 +52,13 @@ export interface IClientConnectionFilter {
  */
 export class Server extends IPCServer {
 
-	private static getOnDidClientConnect(filter?: IClientConnectionFilter): Event<ClientConnectionEvent> {
-		assertType(isUtilityProcess(process), 'Electron Utility Process');
+	private static getOnDidClientConnect(parentPort: ParentPort, filter?: IClientConnectionFilter): Event<ClientConnectionEvent> {
 
-		const onCreateMessageChannel = new Emitter<MessagePortMain>();
+		const onMessage = Event.fromNodeEventEmitter<MessageEvent>(parentPort, 'message');
+		const onCreateMessageChannel = Event.filter(onMessage, e => !filter?.handledClientConnection(e) && !!e.ports.at(0));
 
-		process.parentPort.on('message', (e: MessageEvent) => {
-			if (filter?.handledClientConnection(e)) {
-				return;
-			}
-
-			const port = e.ports.at(0);
-			if (port) {
-				onCreateMessageChannel.fire(port);
-			}
-		});
-
-		return Event.map(onCreateMessageChannel.event, port => {
+		return Event.map(onCreateMessageChannel, e => {
+			const port = e.ports[0];
 			const protocol = new StructuredCloneProtocol(port);
 
 			const result: ClientConnectionEvent = {
@@ -83,7 +73,11 @@ export class Server extends IPCServer {
 		});
 	}
 
-	constructor(filter?: IClientConnectionFilter) {
-		super(Server.getOnDidClientConnect(filter));
+	constructor(filter?: IClientConnectionFilter, parentPort?: ParentPort) {
+		if (!parentPort) {
+			assertType(isUtilityProcess(process), 'Electron Utility Process');
+			parentPort = process.parentPort;
+		}
+		super(Server.getOnDidClientConnect(parentPort, filter));
 	}
 }

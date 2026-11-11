@@ -375,7 +375,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 					return;
 				}
 				const { header, body } = deserializeStructuredCloneMessage(message);
-				this.onMessage(header, body, 0);
+				this.onMessage(header, body, undefined);
 			})
 			: protocol.onMessage(message => this.onRawMessage(message));
 		this.sendResponse({ type: ResponseType.Initialize });
@@ -407,7 +407,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 		}
 	}
 
-	private send(header: unknown, body: any = undefined): number {
+	private send(header: unknown, body: any = undefined): number | undefined {
 		if (isStructuredCloneProtocol(this.protocol)) {
 			return sendStructuredCloneMessage(this.protocol, header, body);
 		}
@@ -440,7 +440,7 @@ export class ChannelServer<TContext = string> implements IChannelServer<TContext
 		this.onMessage(header, body, message.byteLength);
 	}
 
-	private onMessage(header: any, body: any, messageLength: number): void {
+	private onMessage(header: any, body: any, messageLength: number | undefined): void {
 		const type = header[0] as RequestType;
 
 		switch (type) {
@@ -581,8 +581,8 @@ export const enum RequestInitiator {
 }
 
 export interface IIPCLogger {
-	logIncoming(msgLength: number, requestId: number, initiator: RequestInitiator, str: string, data?: any): void;
-	logOutgoing(msgLength: number, requestId: number, initiator: RequestInitiator, str: string, data?: any): void;
+	logIncoming(msgLength: number | undefined, requestId: number, initiator: RequestInitiator, str: string, data?: any): void;
+	logOutgoing(msgLength: number | undefined, requestId: number, initiator: RequestInitiator, str: string, data?: any): void;
 }
 
 export class ChannelClient implements IChannelClient, IDisposable {
@@ -605,7 +605,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 					return;
 				}
 				const { header, body } = deserializeStructuredCloneMessage(message);
-				this.onMessage(header, body, 0);
+				this.onMessage(header, body, undefined);
 			})
 			: protocol.onMessage(message => this.onBuffer(message));
 		this.logger = logger;
@@ -783,7 +783,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 		}
 	}
 
-	private send(header: unknown, body: any = undefined): number {
+	private send(header: unknown, body: any = undefined): number | undefined {
 		if (isStructuredCloneProtocol(this.protocol)) {
 			return sendStructuredCloneMessage(this.protocol, header, body);
 		}
@@ -816,7 +816,7 @@ export class ChannelClient implements IChannelClient, IDisposable {
 		this.onMessage(header, body, message.byteLength);
 	}
 
-	private onMessage(header: any, body: any, messageLength: number): void {
+	private onMessage(header: any, body: any, messageLength: number | undefined): void {
 		const type: ResponseType = header[0];
 
 		switch (type) {
@@ -1269,9 +1269,8 @@ export namespace ProxyChannel {
 
 					// Revive unless marshalling disabled
 					if (!disableMarshalling && Array.isArray(args)) {
-						for (let i = 0; i < args.length; i++) {
-							args[i] = revive(args[i]);
-						}
+						// Keep each argument at depth zero while sharing graph identity.
+						args = revive(args, -1);
 					}
 
 					let res = target.apply(handler, args);
@@ -1393,37 +1392,38 @@ function pretty(data: unknown): any {
 	return prettyWithoutArrays(data);
 }
 
-function logWithColors(direction: string, totalLength: number, msgLength: number, req: number, initiator: RequestInitiator, str: string, data: any): void {
+function logWithColors(direction: string, totalLength: number | undefined, msgLength: number | undefined, req: number, initiator: RequestInitiator, str: string, data: any, consoleLog: (...args: unknown[]) => void): void {
 	data = pretty(data);
 
 	const colorTable = colorTables[initiator];
 	const color = colorTable[req % colorTable.length];
-	let args = [`%c[${direction}]%c[${String(totalLength).padStart(7, ' ')}]%c[len: ${String(msgLength).padStart(5, ' ')}]%c${String(req).padStart(5, ' ')} - ${str}`, 'color: darkgreen', 'color: grey', 'color: grey', `color: ${color}`];
+	let args: unknown[] = [`%c[${direction}]%c[${String(totalLength ?? 'unknown').padStart(7, ' ')}]%c[len: ${String(msgLength ?? 'unknown').padStart(5, ' ')}]%c${String(req).padStart(5, ' ')} - ${str}`, 'color: darkgreen', 'color: grey', 'color: grey', `color: ${color}`];
 	if (/\($/.test(str)) {
 		args = args.concat(data);
 		args.push(')');
 	} else {
 		args.push(data);
 	}
-	console.log.apply(console, args as [string, ...string[]]);
+	consoleLog(...args);
 }
 
 export class IPCLogger implements IIPCLogger {
-	private _totalIncoming = 0;
-	private _totalOutgoing = 0;
+	private _totalIncoming: number | undefined = 0;
+	private _totalOutgoing: number | undefined = 0;
 
 	constructor(
 		private readonly _outgoingPrefix: string,
 		private readonly _incomingPrefix: string,
+		private readonly _consoleLog: (...args: unknown[]) => void = (...args) => console.log(...args),
 	) { }
 
-	public logOutgoing(msgLength: number, requestId: number, initiator: RequestInitiator, str: string, data?: any): void {
-		this._totalOutgoing += msgLength;
-		logWithColors(this._outgoingPrefix, this._totalOutgoing, msgLength, requestId, initiator, str, data);
+	public logOutgoing(msgLength: number | undefined, requestId: number, initiator: RequestInitiator, str: string, data?: any): void {
+		this._totalOutgoing = this._totalOutgoing === undefined || msgLength === undefined ? undefined : this._totalOutgoing + msgLength;
+		logWithColors(this._outgoingPrefix, this._totalOutgoing, msgLength, requestId, initiator, str, data, this._consoleLog);
 	}
 
-	public logIncoming(msgLength: number, requestId: number, initiator: RequestInitiator, str: string, data?: any): void {
-		this._totalIncoming += msgLength;
-		logWithColors(this._incomingPrefix, this._totalIncoming, msgLength, requestId, initiator, str, data);
+	public logIncoming(msgLength: number | undefined, requestId: number, initiator: RequestInitiator, str: string, data?: any): void {
+		this._totalIncoming = this._totalIncoming === undefined || msgLength === undefined ? undefined : this._totalIncoming + msgLength;
+		logWithColors(this._incomingPrefix, this._totalIncoming, msgLength, requestId, initiator, str, data, this._consoleLog);
 	}
 }
