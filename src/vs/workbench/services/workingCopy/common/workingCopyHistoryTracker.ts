@@ -100,7 +100,13 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 	}
 
 	private onDidChangeContent(workingCopy: IWorkingCopy): void {
-		if (!this.isSupportedResource(workingCopy.resource)) {
+		// Preserve tracked versions across workspace scheme changes.
+		if (
+			!this.isSupportedResource(workingCopy.resource) &&
+			!this.workingCopyContentVersion.has(workingCopy.resource) &&
+			!this.historyEntryContentVersion.has(workingCopy.resource) &&
+			!this.pendingAddHistoryEntryOperations.has(workingCopy.resource)
+		) {
 			return;
 		}
 
