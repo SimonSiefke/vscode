@@ -36,6 +36,12 @@ suite('DefaultSettings', () => {
 		const expected = disposables.add(new DefaultSettings(['test.lazySetting'], ConfigurationTarget.USER, configurationService));
 
 		const groups = settings.getSettingsGroups();
+		const commonlyUsedSetting = groups[0].sections[0].settings[0];
+		assert.deepStrictEqual({
+			key: [commonlyUsedSetting.keyRange.startLineNumber, commonlyUsedSetting.keyRange.startColumn],
+			value: [commonlyUsedSetting.valueRange.startLineNumber, commonlyUsedSetting.valueRange.startColumn],
+			description: commonlyUsedSetting.descriptionRanges.map(range => [range.startLineNumber, range.startColumn])
+		}, { key: [3, 4], value: [3, 23], description: [[2, 6]] });
 		assert.deepStrictEqual({
 			content: Reflect.get(settings, '_content'),
 			contentWithoutMostCommonlyUsed: Reflect.get(settings, '_contentWithoutMostCommonlyUsed')
