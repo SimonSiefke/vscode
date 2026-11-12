@@ -1021,6 +1021,7 @@ export class ContextKeyNotInExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.NotIn;
+	private _keys: string[] | undefined;
 
 	private readonly _negated: ContextKeyInExpr;
 
@@ -1058,7 +1059,7 @@ export class ContextKeyNotInExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._negated.keys();
+		return this._keys ??= [this.key, this.valueKey];
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
@@ -1584,6 +1585,7 @@ export class ContextKeyNotRegexExpr implements IContextKeyExpression {
 	}
 
 	public readonly type = ContextKeyExprType.NotRegex;
+	private _keys: string[] | undefined;
 
 	private constructor(private readonly _actual: ContextKeyRegexExpr) {
 		//
@@ -1616,7 +1618,12 @@ export class ContextKeyNotRegexExpr implements IContextKeyExpression {
 	}
 
 	public keys(): string[] {
-		return this._actual.keys();
+		if (!this._keys) {
+			const result: string[] = [];
+			this.collectKeys({ add: key => result.push(key) });
+			this._keys = result;
+		}
+		return this._keys;
 	}
 
 	public collectKeys(target: IContextKeyCollector): void {
