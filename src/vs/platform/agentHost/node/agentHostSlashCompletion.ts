@@ -78,7 +78,7 @@ export function matchesSlashCompletion(typed: string, name: string): boolean {
 	if (typed.length === 0 || name.toLowerCase().startsWith(typed.toLowerCase())) {
 		return true;
 	}
-	return typed.length > 1 && matchesFuzzy2(typed, name) !== null;
+	return typed.length > 1 && matchesFuzzy2(typed, name).length > 0;
 }
 
 function isSlashTokenWhitespace(ch: number): boolean {

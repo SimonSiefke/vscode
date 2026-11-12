@@ -862,6 +862,20 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		assert.strictEqual(value, quickpick.value);
 	});
 
+	test('filtering skips unmatched labels and clears focus when nothing matches', () => {
+		const quickpick = store.add(controller.createQuickPick());
+		const items = [{ label: 'Hello' }, { label: '$(zap) World', description: 'description' }];
+		quickpick.items = items;
+		quickpick.show();
+		quickpick.value = 'world';
+		assert.deepStrictEqual(quickpick.activeItems, [items[1]]);
+		quickpick.value = 'xyz';
+		assert.deepStrictEqual(quickpick.activeItems, []);
+		quickpick.matchOnDescription = true;
+		quickpick.value = 'description';
+		assert.deepStrictEqual(quickpick.activeItems, [items[1]]);
+	});
+
 	test('keepScrollPosition - works with activeItems', async () => {
 		const quickpick = store.add(controller.createQuickPick() as QuickPick<IQuickPickItem>);
 

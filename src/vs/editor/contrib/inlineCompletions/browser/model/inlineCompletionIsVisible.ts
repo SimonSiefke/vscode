@@ -46,5 +46,5 @@ export function inlineCompletionIsVisible(singleTextEdit: TextReplacement, origi
 	}
 
 	return filterTextBefore.startsWith(originalValueBefore)
-		&& !!matchesSubString(originalValueAfter, filterTextAfter);
+		&& matchesSubString(originalValueAfter, filterTextAfter).length > 0;
 }

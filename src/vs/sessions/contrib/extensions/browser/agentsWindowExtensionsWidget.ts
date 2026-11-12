@@ -20,7 +20,7 @@ import { Delayer } from '../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
-import { IMatch, matchesContiguousSubString } from '../../../../base/common/filters.js';
+import { Matches, matchesContiguousSubString } from '../../../../base/common/filters.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
@@ -114,7 +114,7 @@ export const enum AgentsWindowExtensionGroup {
 export interface IAgentsWindowExtensionEntry {
 	readonly type: 'extension';
 	readonly extension: IExtension;
-	readonly nameMatches: IMatch[] | undefined;
+	readonly nameMatches: Matches | undefined;
 	readonly group: AgentsWindowExtensionGroup;
 }
 
@@ -158,8 +158,9 @@ export function groupAgentsWindowExtensions(extensions: readonly IExtension[], q
 		if (extension.isBuiltin || !extension.local || extension.state !== ExtensionState.Installed) {
 			continue;
 		}
-		const nameMatches = trimmedQuery ? matchesContiguousSubString(trimmedQuery, extension.displayName) ?? undefined : undefined;
-		if (trimmedQuery && !nameMatches && !marketplaceMatches.has(ExtensionIdentifier.toKey(extension.identifier.id)) && ![extension.identifier.id, extension.publisherDisplayName, extension.description].some(text => !!text && !!matchesContiguousSubString(trimmedQuery, text))) {
+		const matches = trimmedQuery ? matchesContiguousSubString(trimmedQuery, extension.displayName) : undefined;
+		const nameMatches = matches?.length ? matches : undefined;
+		if (trimmedQuery && !nameMatches?.length && !marketplaceMatches.has(ExtensionIdentifier.toKey(extension.identifier.id)) && ![extension.identifier.id, extension.publisherDisplayName, extension.description].some(text => !!text && matchesContiguousSubString(trimmedQuery, text).length > 0)) {
 			continue;
 		}
 		const group = isSuggested(extension) ? AgentsWindowExtensionGroup.Suggested : supportsAgentsWindow(extension) ? AgentsWindowExtensionGroup.Supported : AgentsWindowExtensionGroup.Other;

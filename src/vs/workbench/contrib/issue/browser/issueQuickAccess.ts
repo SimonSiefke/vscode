@@ -43,7 +43,7 @@ export class IssueQuickAccess extends PickerQuickAccessProvider<IPickerQuickAcce
 		const marketPlaceFilter = matchesFuzzy(filter, marketPlaceLabel, true);
 
 		// Add product pick if product filter matches
-		if (productFilter) {
+		if (productFilter.length > 0) {
 			issuePicksConst.push({
 				label: productLabel,
 				ariaLabel: productLabel,
@@ -53,7 +53,7 @@ export class IssueQuickAccess extends PickerQuickAccessProvider<IPickerQuickAcce
 		}
 
 		// Add marketplace pick if marketplace filter matches
-		if (marketPlaceFilter) {
+		if (marketPlaceFilter.length > 0) {
 			issuePicksConst.push({
 				label: marketPlaceLabel,
 				ariaLabel: marketPlaceLabel,
@@ -138,7 +138,7 @@ export class IssueQuickAccess extends PickerQuickAccessProvider<IPickerQuickAcce
 		}
 
 		const highlights = matchesFuzzy(filter, label, true);
-		if (highlights) {
+		if (highlights.length > 0) {
 			return {
 				label,
 				highlights: { label: highlights },

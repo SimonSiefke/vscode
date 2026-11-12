@@ -21,7 +21,7 @@ import { basename, isEqual } from '../../../../base/common/resources.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { ITreeFilter, TreeVisibility, TreeFilterResult, ITreeRenderer, ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 import { FilterOptions } from './markersFilterOptions.js';
-import { IMatch } from '../../../../base/common/filters.js';
+import { Matches } from '../../../../base/common/filters.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { isUndefinedOrNull } from '../../../../base/common/types.js';
@@ -131,20 +131,20 @@ const enum FilterDataType {
 
 interface ResourceMarkersFilterData {
 	type: FilterDataType.ResourceMarkers;
-	uriMatches: IMatch[];
+	uriMatches: Matches;
 }
 
 interface MarkerFilterData {
 	type: FilterDataType.Marker;
-	lineMatches: IMatch[][];
-	sourceMatches: IMatch[];
-	codeMatches: IMatch[];
+	lineMatches: Matches[];
+	sourceMatches: Matches;
+	codeMatches: Matches;
 }
 
 interface RelatedInformationFilterData {
 	type: FilterDataType.RelatedInformation;
-	uriMatches: IMatch[];
-	messageMatches: IMatch[];
+	uriMatches: Matches;
+	messageMatches: Matches;
 }
 
 export type FilterData = ResourceMarkersFilterData | MarkerFilterData | RelatedInformationFilterData;
@@ -488,8 +488,8 @@ export class Filter implements ITreeFilter<MarkerElement, FilterData> {
 		// Fiter by text. Do not apply negated filters on resources instead use exclude patterns
 		if (this.options.textFilter.text && !this.options.textFilter.negate) {
 			const uriMatches = FilterOptions._filter(this.options.textFilter.text, basename(resourceMarkers.resource));
-			if (uriMatches) {
-				return { visibility: true, data: { type: FilterDataType.ResourceMarkers, uriMatches: uriMatches || [] } };
+			if (uriMatches.length > 0) {
+				return { visibility: true, data: { type: FilterDataType.ResourceMarkers, uriMatches } };
 			}
 		}
 
@@ -515,15 +515,15 @@ export class Filter implements ITreeFilter<MarkerElement, FilterData> {
 			return true;
 		}
 
-		const lineMatches: IMatch[][] = [];
+		const lineMatches: Matches[] = [];
 		for (const line of marker.lines) {
 			const lineMatch = FilterOptions._messageFilter(this.options.textFilter.text, line);
-			lineMatches.push(lineMatch || []);
+			lineMatches.push(lineMatch);
 		}
 
 		const sourceMatches = marker.marker.source ? FilterOptions._filter(this.options.textFilter.text, marker.marker.source) : undefined;
 		const codeMatches = marker.marker.code ? FilterOptions._filter(this.options.textFilter.text, typeof marker.marker.code === 'string' ? marker.marker.code : marker.marker.code.value) : undefined;
-		const matched = sourceMatches || codeMatches || lineMatches.some(lineMatch => lineMatch.length > 0);
+		const matched = sourceMatches?.length || codeMatches?.length || lineMatches.some(lineMatch => lineMatch.length > 0);
 
 		// Matched and not negated
 		if (matched && !this.options.textFilter.negate) {
@@ -550,11 +550,11 @@ export class Filter implements ITreeFilter<MarkerElement, FilterData> {
 
 		const uriMatches = FilterOptions._filter(this.options.textFilter.text, basename(relatedInformation.raw.resource));
 		const messageMatches = FilterOptions._messageFilter(this.options.textFilter.text, paths.basename(relatedInformation.raw.message));
-		const matched = uriMatches || messageMatches;
+		const matched = uriMatches.length > 0 || messageMatches.length > 0;
 
 		// Matched and not negated
 		if (matched && !this.options.textFilter.negate) {
-			return { visibility: true, data: { type: FilterDataType.RelatedInformation, uriMatches: uriMatches || [], messageMatches: messageMatches || [] } };
+			return { visibility: true, data: { type: FilterDataType.RelatedInformation, uriMatches, messageMatches: messageMatches || [] } };
 		}
 
 		// Matched and negated - exclude it only if parent visibility is not set

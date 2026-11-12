@@ -7,7 +7,7 @@ import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IQuickAccessController } from './quickAccess.js';
-import { IMatch } from '../../../base/common/filters.js';
+import { Matches } from '../../../base/common/filters.js';
 import { IItemAccessor } from '../../../base/common/fuzzyScorer.js';
 import { ResolvedKeybinding } from '../../../base/common/keybindings.js';
 import { IDisposable } from '../../../base/common/lifecycle.js';
@@ -19,12 +19,12 @@ import { URI } from '../../../base/common/uri.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
 
 export interface IQuickItemHighlights {
-	label?: IMatch[];
-	description?: IMatch[];
+	label?: Matches;
+	description?: Matches;
 }
 
 export interface IQuickPickItemHighlights extends IQuickItemHighlights {
-	detail?: IMatch[];
+	detail?: Matches;
 }
 
 export type QuickPickItem = IQuickPickSeparator | IQuickPickItem;

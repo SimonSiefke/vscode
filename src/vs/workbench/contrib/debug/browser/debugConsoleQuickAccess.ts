@@ -51,7 +51,7 @@ export class DebugConsoleQuickAccess extends PickerQuickAccessProvider<IPickerQu
 		const label = session.name;
 
 		const highlights = matchesFuzzy(filter, label, true);
-		if (highlights) {
+		if (highlights.length > 0) {
 			return {
 				label,
 				highlights: { label: highlights },

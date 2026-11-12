@@ -480,7 +480,7 @@ export class MarkersTable extends Disposable implements IProblemsWidget {
 					const messageMatches = FilterOptions._messageFilter(this.filterOptions.textFilter.text, marker.marker.message) ?? undefined;
 					const fileMatches = FilterOptions._messageFilter(this.filterOptions.textFilter.text, this.labelService.getUriLabel(marker.resource, { relative: true })) ?? undefined;
 
-					const matched = sourceMatches || codeMatches || messageMatches || fileMatches;
+					const matched = sourceMatches?.length || codeMatches?.length || messageMatches.length || fileMatches.length;
 					if ((matched && !this.filterOptions.textFilter.negate) || (!matched && this.filterOptions.textFilter.negate)) {
 						items.push(new MarkerTableItem(marker, sourceMatches, codeMatches, messageMatches, fileMatches));
 					}

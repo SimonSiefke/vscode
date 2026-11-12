@@ -51,12 +51,12 @@ export class ReplFilter implements ITreeFilter<IReplElement, FuzzyScore> {
 		const text = element.toString(true);
 
 		for (const { type, query } of this._parsedQueries) {
-			if (type === 'exclude' && ReplFilter.matchQuery(query, text)) {
+			if (type === 'exclude' && ReplFilter.matchQuery(query, text).length > 0) {
 				// If exclude query matches, ignore all other queries and hide
 				return false;
 			} else if (type === 'include') {
 				includeQueryPresent = true;
-				if (ReplFilter.matchQuery(query, text)) {
+				if (ReplFilter.matchQuery(query, text).length > 0) {
 					includeQueryMatched = true;
 				}
 			}

@@ -36,9 +36,14 @@ export function matchesCustomizationSearchQuery(query: string, target: string): 
 	}
 	const normalizedTarget = normalizeSeparators(target);
 	const collapsedQuery = trimmedQuery.replace(/\s+/g, ' ');
-	return matchesContiguousSubString(trimmedQuery, normalizedTarget)
-		?? (collapsedQuery !== trimmedQuery ? matchesContiguousSubString(collapsedQuery, normalizedTarget) : null)
-		?? matchesWords(collapsedQuery, normalizedTarget, true);
+	let matches = matchesContiguousSubString(trimmedQuery, normalizedTarget);
+	if (matches.length === 0 && collapsedQuery !== trimmedQuery) {
+		matches = matchesContiguousSubString(collapsedQuery, normalizedTarget);
+	}
+	if (matches.length === 0) {
+		matches = matchesWords(collapsedQuery, normalizedTarget, true);
+	}
+	return matches.length > 0 ? [...matches] : null;
 }
 
 /**

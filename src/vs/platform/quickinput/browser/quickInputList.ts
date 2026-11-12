@@ -24,7 +24,7 @@ import { compareAnything } from '../../../base/common/comparers.js';
 import { memoize } from '../../../base/common/decorators.js';
 import { isCancellationError } from '../../../base/common/errors.js';
 import { Emitter, Event, EventBufferer, IValueWithChangeEvent } from '../../../base/common/event.js';
-import { IMatch } from '../../../base/common/filters.js';
+import { IMatch, Matches } from '../../../base/common/filters.js';
 import { KeyCode } from '../../../base/common/keyCodes.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
 import { IParsedLabelWithIcons, getCodiconAriaLabel, matchesFuzzyIconAware, parseLabelWithIcons } from '../../../base/common/iconLabels.js';
@@ -64,9 +64,9 @@ interface IQuickPickElement extends IQuickInputItemLazyParts {
 	readonly saneTooltip?: string | IMarkdownString | HTMLElement;
 	hidden: boolean;
 	element?: HTMLElement;
-	labelHighlights?: IMatch[];
-	descriptionHighlights?: IMatch[];
-	detailHighlights?: IMatch[];
+	labelHighlights?: Matches;
+	descriptionHighlights?: Matches;
+	detailHighlights?: Matches;
 	separator?: IQuickPickSeparator;
 }
 
@@ -168,27 +168,27 @@ class BaseQuickPickItemElement implements IQuickPickElement {
 		this._saneTooltip = value;
 	}
 
-	protected _labelHighlights?: IMatch[];
+	protected _labelHighlights?: Matches;
 	get labelHighlights() {
 		return this._labelHighlights;
 	}
-	set labelHighlights(value: IMatch[] | undefined) {
+	set labelHighlights(value: Matches | undefined) {
 		this._labelHighlights = value;
 	}
 
-	protected _descriptionHighlights?: IMatch[];
+	protected _descriptionHighlights?: Matches;
 	get descriptionHighlights() {
 		return this._descriptionHighlights;
 	}
-	set descriptionHighlights(value: IMatch[] | undefined) {
+	set descriptionHighlights(value: Matches | undefined) {
 		this._descriptionHighlights = value;
 	}
 
-	protected _detailHighlights?: IMatch[];
+	protected _detailHighlights?: Matches;
 	get detailHighlights() {
 		return this._detailHighlights;
 	}
-	set detailHighlights(value: IMatch[] | undefined) {
+	set detailHighlights(value: Matches | undefined) {
 		this._detailHighlights = value;
 	}
 }
@@ -1469,16 +1469,16 @@ export class QuickInputList extends Disposable {
 		else {
 			let currentSeparator: IQuickPickSeparator | undefined;
 			this._itemElements.forEach(element => {
-				let labelHighlights: IMatch[] | undefined;
+				let labelHighlights: Matches | undefined;
 				if (this.matchOnLabelMode === 'fuzzy') {
-					labelHighlights = this.matchOnLabel ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneLabel)) ?? undefined : undefined;
+					labelHighlights = this.matchOnLabel ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneLabel)) : undefined;
 				} else {
 					labelHighlights = this.matchOnLabel ? matchesContiguousIconAware(queryWithWhitespace, parseLabelWithIcons(element.saneLabel)) ?? undefined : undefined;
 				}
-				const descriptionHighlights = this.matchOnDescription ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneDescription || '')) ?? undefined : undefined;
-				const detailHighlights = this.matchOnDetail ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneDetail || '')) ?? undefined : undefined;
+				const descriptionHighlights = this.matchOnDescription ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneDescription || '')) : undefined;
+				const detailHighlights = this.matchOnDetail ? matchesFuzzyIconAware(query, parseLabelWithIcons(element.saneDetail || '')) : undefined;
 
-				if (labelHighlights || descriptionHighlights || detailHighlights) {
+				if (labelHighlights?.length || descriptionHighlights?.length || detailHighlights?.length) {
 					element.labelHighlights = labelHighlights;
 					element.descriptionHighlights = descriptionHighlights;
 					element.detailHighlights = detailHighlights;

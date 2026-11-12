@@ -45,7 +45,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 		let lastGroup: string | undefined;
 		for (const config of configManager.getAllConfigurations()) {
 			const highlights = matchesFuzzy(filter, config.name, true);
-			if (highlights) {
+			if (highlights.length > 0) {
 
 				const pick = {
 					label: config.name,
@@ -102,7 +102,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 
 		configManager.getRecentDynamicConfigurations().forEach(({ name, type }) => {
 			const highlights = matchesFuzzy(filter, name, true);
-			if (highlights) {
+			if (highlights.length > 0) {
 				picks.push({
 					label: name,
 					highlights: { label: highlights },
@@ -161,7 +161,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 			picks.push({
 				label,
 				description: this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE ? launch.name : '',
-				highlights: { label: matchesFuzzy(filter, label, true) ?? undefined },
+				highlights: { label: matchesFuzzy(filter, label, true) },
 				accept: () => this.commandService.executeCommand(ADD_CONFIGURATION_ID, launch.uri.toString())
 			});
 		}

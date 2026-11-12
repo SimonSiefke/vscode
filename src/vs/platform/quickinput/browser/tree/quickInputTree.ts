@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMatch } from '../../../../base/common/filters.js';
+import { Matches } from '../../../../base/common/filters.js';
 import { IQuickTreeItem } from '../../common/quickInput.js';
 import { IObjectTreeElement, ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 
 export interface IQuickTreeFilterData {
-	readonly labelHighlights?: IMatch[];
-	readonly descriptionHighlights?: IMatch[];
+	readonly labelHighlights?: Matches;
+	readonly descriptionHighlights?: Matches;
 }
 
 export function getParentNodeState(parentChildren: ITreeNode<IQuickTreeItem | null, IQuickTreeFilterData>[] | IObjectTreeElement<IQuickTreeItem>[]): boolean | 'mixed' {

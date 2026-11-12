@@ -5,7 +5,7 @@
 
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../base/common/event.js';
-import { IMatch } from '../../../../../base/common/filters.js';
+import { Matches } from '../../../../../base/common/filters.js';
 import { Disposable, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { parse as parseJSONC } from '../../../../../base/common/json.js';
 import { ResourceMap } from '../../../../../base/common/map.js';
@@ -115,8 +115,8 @@ export interface IAICustomizationListItem {
 	readonly syncable?: boolean;
 	/** When true, this syncable item is currently selected for syncing. */
 	readonly synced?: boolean;
-	nameMatches?: IMatch[];
-	secondaryTextMatches?: IMatch[];
+	nameMatches?: Matches;
+	secondaryTextMatches?: Matches;
 }
 
 /**

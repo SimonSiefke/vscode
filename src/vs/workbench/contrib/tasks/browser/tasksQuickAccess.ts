@@ -52,7 +52,7 @@ export class TasksQuickAccessProvider extends PickerQuickAccessProvider<IPickerQ
 
 		for (const entry of topLevelPicks.entries) {
 			const highlights = matchesFuzzy(filter, entry.label!);
-			if (!highlights) {
+			if (highlights.length === 0) {
 				continue;
 			}
 

@@ -8,7 +8,7 @@ import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Codicon } from '../../../base/common/codicons.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
 import { isCancellationError } from '../../../base/common/errors.js';
-import { IMatch, matchesBaseContiguousSubString, matchesWords, or } from '../../../base/common/filters.js';
+import { Matches, matchesBaseContiguousSubString, matchesWords, or } from '../../../base/common/filters.js';
 import { createSingleCallFunction } from '../../../base/common/functional.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
 import { LRUCache } from '../../../base/common/map.js';
@@ -99,15 +99,15 @@ export abstract class AbstractCommandsQuickAccessProvider extends PickerQuickAcc
 		// Filter
 		const filteredCommandPicks: ICommandQuickPick[] = [];
 		for (const commandPick of allCommandPicks) {
-			const labelHighlights = AbstractCommandsQuickAccessProvider.WORD_FILTER(filter, commandPick.label) ?? undefined;
+			const labelHighlights = AbstractCommandsQuickAccessProvider.WORD_FILTER(filter, commandPick.label);
 
-			let aliasHighlights: IMatch[] | undefined;
+			let aliasHighlights: Matches | undefined;
 			if (commandPick.commandAlias) {
-				aliasHighlights = AbstractCommandsQuickAccessProvider.WORD_FILTER(filter, commandPick.commandAlias) ?? undefined;
+				aliasHighlights = AbstractCommandsQuickAccessProvider.WORD_FILTER(filter, commandPick.commandAlias);
 			}
 
 			// Add if matching in label or alias
-			if (labelHighlights || aliasHighlights) {
+			if (labelHighlights.length > 0 || aliasHighlights?.length) {
 				commandPick.highlights = {
 					label: labelHighlights,
 					detail: this.options.showAlias ? aliasHighlights : undefined

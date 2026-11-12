@@ -5,7 +5,7 @@
 
 import { isNonEmptyArray } from '../../../../base/common/arrays.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { IMatch } from '../../../../base/common/filters.js';
+import { Matches } from '../../../../base/common/filters.js';
 import { hash } from '../../../../base/common/hash.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { basename, extUri } from '../../../../base/common/resources.js';
@@ -121,10 +121,10 @@ export class Marker {
 export class MarkerTableItem extends Marker {
 	constructor(
 		marker: Marker,
-		readonly sourceMatches?: IMatch[],
-		readonly codeMatches?: IMatch[],
-		readonly messageMatches?: IMatch[],
-		readonly fileMatches?: IMatch[]
+		readonly sourceMatches?: Matches,
+		readonly codeMatches?: Matches,
+		readonly messageMatches?: Matches,
+		readonly fileMatches?: Matches
 	) {
 		super(marker.id, marker.marker, marker.relatedInformation);
 	}

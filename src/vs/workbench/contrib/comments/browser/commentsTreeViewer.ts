@@ -23,7 +23,7 @@ import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 import { commentViewThreadStateColorVar, getCommentThreadStateIconColor } from './commentColors.js';
 import { CommentThreadApplicability, CommentThreadState, CommentState } from '../../../../editor/common/languages.js';
 import { Color } from '../../../../base/common/color.js';
-import { IMatch } from '../../../../base/common/filters.js';
+import { Matches } from '../../../../base/common/filters.js';
 import { FilterOptions } from './commentsFilterOptions.js';
 import { basename } from '../../../../base/common/resources.js';
 import { IStyleOverride } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -373,12 +373,12 @@ const enum FilterDataType {
 
 interface ResourceFilterData {
 	type: FilterDataType.Resource;
-	uriMatches: IMatch[];
+	uriMatches: Matches;
 }
 
 interface CommentFilterData {
 	type: FilterDataType.Comment;
-	textMatches: IMatch[];
+	textMatches: Matches;
 }
 
 type FilterData = ResourceFilterData | CommentFilterData;
@@ -403,8 +403,8 @@ export class Filter implements ITreeFilter<ResourceWithCommentThreads | CommentN
 		// Filter by text. Do not apply negated filters on resources instead use exclude patterns
 		if (this.options.textFilter.text && !this.options.textFilter.negate) {
 			const uriMatches = FilterOptions._filter(this.options.textFilter.text, basename(resourceMarkers.resource));
-			if (uriMatches) {
-				return { visibility: true, data: { type: FilterDataType.Resource, uriMatches: uriMatches || [] } };
+			if (uriMatches.length > 0) {
+				return { visibility: true, data: { type: FilterDataType.Resource, uriMatches } };
 			}
 		}
 
@@ -423,18 +423,17 @@ export class Filter implements ITreeFilter<ResourceWithCommentThreads | CommentN
 			return true;
 		}
 
-		const textMatches =
-			// Check body of comment for value
-			FilterOptions._messageFilter(this.options.textFilter.text, typeof comment.comment.body === 'string' ? comment.comment.body : comment.comment.body.value)
-			// Check first user for value
-			|| FilterOptions._messageFilter(this.options.textFilter.text, comment.comment.userName)
-			// Check all replies for value
-			|| (comment.replies.map(reply => {
-				// Check user for value
-				return FilterOptions._messageFilter(this.options.textFilter.text, reply.comment.userName)
-					// Check body of reply for value
-					|| FilterOptions._messageFilter(this.options.textFilter.text, typeof reply.comment.body === 'string' ? reply.comment.body : reply.comment.body.value);
-			}).filter(value => !!value) as IMatch[][]).flat();
+		// Prefer matches in the comment body, then the author, then its replies.
+		let textMatches = FilterOptions._messageFilter(this.options.textFilter.text, typeof comment.comment.body === 'string' ? comment.comment.body : comment.comment.body.value);
+		if (textMatches.length === 0) {
+			textMatches = FilterOptions._messageFilter(this.options.textFilter.text, comment.comment.userName);
+		}
+		if (textMatches.length === 0) {
+			textMatches = comment.replies.flatMap(reply => {
+				const userMatches = FilterOptions._messageFilter(this.options.textFilter.text, reply.comment.userName);
+				return userMatches.length > 0 ? userMatches : FilterOptions._messageFilter(this.options.textFilter.text, typeof reply.comment.body === 'string' ? reply.comment.body : reply.comment.body.value);
+			});
+		}
 
 		// Matched and not negated
 		if (textMatches.length && !this.options.textFilter.negate) {

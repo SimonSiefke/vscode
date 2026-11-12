@@ -3,30 +3,54 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
-import { anyScore, createMatches, fuzzyScore, fuzzyScoreGraceful, fuzzyScoreGracefulAggressive, FuzzyScorer, IFilter, IMatch, matchesBaseContiguousSubString, matchesCamelCase, matchesContiguousSubString, matchesPrefix, matchesStrictPrefix, matchesSubString, matchesWords, or } from '../../common/filters.js';
+import { anyScore, createMatches, emptyMatches, fuzzyScore, fuzzyScoreGraceful, fuzzyScoreGracefulAggressive, FuzzyScorer, IFilter, matchesBaseContiguousSubString, matchesCamelCase, matchesContiguousSubString, matchesFuzzy, matchesFuzzy2, matchesPrefix, matchesStrictPrefix, matchesSubString, matchesWords, or } from '../../common/filters.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 
 function filterOk(filter: IFilter, word: string, wordToMatchAgainst: string, highlights?: { start: number; end: number }[]) {
 	const r = filter(word, wordToMatchAgainst);
-	assert(r, `${word} didn't match ${wordToMatchAgainst}`);
+	assert(r.length > 0, `${word} didn't match ${wordToMatchAgainst}`);
 	if (highlights) {
 		assert.deepStrictEqual(r, highlights);
 	}
 }
 
 function filterNotOk(filter: IFilter, word: string, wordToMatchAgainst: string) {
-	assert(!filter(word, wordToMatchAgainst), `${word} matched ${wordToMatchAgainst}`);
+	assert.strictEqual(filter(word, wordToMatchAgainst), emptyMatches, `${word} matched ${wordToMatchAgainst}`);
 }
 
 suite('Filters', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('empty queries share matches', () => {
+		for (const filter of [matchesFuzzy, matchesContiguousSubString, matchesBaseContiguousSubString]) {
+			const first = filter('', 'first');
+			const second = filter('', '');
+			assert.strictEqual(first, second);
+			assert.deepStrictEqual(second, [{ start: 0, end: 0 }]);
+		}
+	});
+
+	test('unsuccessful filters share the empty array', () => {
+		for (const filter of [matchesStrictPrefix, matchesPrefix, matchesFuzzy, matchesFuzzy2, matchesContiguousSubString, matchesBaseContiguousSubString, matchesSubString, matchesCamelCase, matchesWords]) {
+			assert.strictEqual(filter('xyz', 'first'), emptyMatches);
+			assert.strictEqual(filter('xyz', ''), emptyMatches);
+		}
+		assert.deepStrictEqual(emptyMatches, []);
+	});
+
+	test('successful filters without highlights contain a zero-width range', () => {
+		for (const filter of [matchesStrictPrefix, matchesPrefix, matchesFuzzy, matchesContiguousSubString, matchesBaseContiguousSubString, matchesSubString, matchesCamelCase, matchesWords]) {
+			assert.deepStrictEqual(filter('', 'first'), [{ start: 0, end: 0 }]);
+		}
+		assert.strictEqual(matchesFuzzy2('', 'first'), emptyMatches);
+		assert.deepStrictEqual(or(matchesWords, matchesContiguousSubString)('.', ':'), [{ start: 0, end: 0 }]);
+	});
+
 	test('or', () => {
 		let filter: IFilter;
 		let counters: number[];
 		const newFilter = function (i: number, r: boolean): IFilter {
-			// eslint-disable-next-line local/code-no-any-casts
-			return function (): IMatch[] { counters[i]++; return r as any; };
+			return () => { counters[i]++; return r ? [{ start: 0, end: 1 }] : emptyMatches; };
 		};
 
 		counters = [0, 0];
@@ -52,7 +76,7 @@ suite('Filters', () => {
 
 	test('PrefixFilter - case sensitive', function () {
 		filterNotOk(matchesStrictPrefix, '', '');
-		filterOk(matchesStrictPrefix, '', 'anything', []);
+		filterOk(matchesStrictPrefix, '', 'anything', [{ start: 0, end: 0 }]);
 		filterOk(matchesStrictPrefix, 'alpha', 'alpha', [{ start: 0, end: 5 }]);
 		filterOk(matchesStrictPrefix, 'alpha', 'alphasomething', [{ start: 0, end: 5 }]);
 		filterNotOk(matchesStrictPrefix, 'alpha', 'alp');
@@ -76,7 +100,7 @@ suite('Filters', () => {
 
 	test('CamelCaseFilter', () => {
 		filterNotOk(matchesCamelCase, '', '');
-		filterOk(matchesCamelCase, '', 'anything', []);
+		filterOk(matchesCamelCase, '', 'anything', [{ start: 0, end: 0 }]);
 		filterOk(matchesCamelCase, 'alpha', 'alpha', [{ start: 0, end: 5 }]);
 		filterOk(matchesCamelCase, 'AlPhA', 'alpha', [{ start: 0, end: 5 }]);
 		filterOk(matchesCamelCase, 'alpha', 'alphasomething', [{ start: 0, end: 5 }]);
@@ -232,10 +256,10 @@ suite('Filters', () => {
 		filterOk(matchesWords, 'C++', 'C/C++: command', [{ start: 2, end: 5 }]);
 
 		// Handles issue #154533
-		filterOk(matchesWords, '.', ':', []);
+		filterOk(matchesWords, '.', ':', [{ start: 0, end: 0 }]);
 		filterOk(matchesWords, '.', '.', [{ start: 0, end: 1 }]);
 
-		// assert.ok(matchesWords('gipu', 'Category: Git: Pull', true) === null);
+		// assert.ok(matchesWords('gipu', 'Category: Git: Pull', true).length === 0);
 		// assert.deepStrictEqual(matchesWords('pu', 'Category: Git: Pull', true), [{ start: 15, end: 17 }]);
 
 		filterOk(matchesWords, 'bar', 'foo-bar');

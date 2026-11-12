@@ -575,7 +575,7 @@ class TypeNavigationController<T> implements IDisposable {
 				if (typeof labelStr !== 'undefined') {
 
 					// If prefix is found, focus and return early
-					if (matchesPrefix(word, labelStr)) {
+					if (matchesPrefix(word, labelStr).length > 0) {
 						this.previouslyFocused = start;
 						this.list.setFocus([index]);
 						this.list.reveal(index);
@@ -584,7 +584,7 @@ class TypeNavigationController<T> implements IDisposable {
 
 					const fuzzy = matchesFuzzy2(word, labelStr);
 
-					if (fuzzy) {
+					if (fuzzy.length > 0) {
 						const fuzzyScore = fuzzy[0].end - fuzzy[0].start;
 						// ensures that when fuzzy matching, doesn't clash with prefix matching (1 input vs 1+ should be prefix and fuzzy respecitvely). Also makes sure that exact matches are prioritized.
 						if (fuzzyScore > 1 && fuzzy.length === 1) {
@@ -595,7 +595,7 @@ class TypeNavigationController<T> implements IDisposable {
 						}
 					}
 				}
-			} else if (typeof labelStr === 'undefined' || matchesPrefix(word, labelStr)) {
+			} else if (typeof labelStr === 'undefined' || matchesPrefix(word, labelStr).length > 0) {
 				this.previouslyFocused = start;
 				this.list.setFocus([index]);
 				this.list.reveal(index);

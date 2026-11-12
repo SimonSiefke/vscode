@@ -684,21 +684,21 @@ class ModelItemMatches {
 	}
 
 	private matches(searchValue: string | null, wordToMatchAgainst: string, wordMatchesFilter: IFilter, words: string[]): IMatch[] | null {
-		let matches = searchValue ? wordFilter(searchValue, wordToMatchAgainst) : null;
-		if (!matches) {
+		let matches = searchValue ? [...wordFilter(searchValue, wordToMatchAgainst)] : null;
+		if (!matches?.length) {
 			matches = this.matchesWords(words, wordToMatchAgainst, wordMatchesFilter);
 		}
 		if (matches) {
 			matches = this.filterAndSort(matches);
 		}
-		return matches;
+		return matches?.length ? matches : null;
 	}
 
 	private matchesWords(words: string[], wordToMatchAgainst: string, wordMatchesFilter: IFilter): IMatch[] | null {
 		let matches: IMatch[] | null = [];
 		for (const word of words) {
 			const wordMatches = wordMatchesFilter(word, wordToMatchAgainst);
-			if (wordMatches) {
+			if (wordMatches.length > 0) {
 				matches = [...(matches || []), ...wordMatches];
 			} else {
 				matches = null;

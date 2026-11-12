@@ -56,10 +56,11 @@ export class ViewQuickAccessProvider extends PickerQuickAccessProvider<IViewQuic
 			}
 
 			// Match fuzzy on label
-			entry.highlights = { label: matchesFuzzy(filter, entry.label, true) ?? undefined };
+			const labelHighlights = matchesFuzzy(filter, entry.label, true);
+			entry.highlights = { label: labelHighlights };
 
 			// Return if we have a match on label or container
-			return entry.highlights.label || fuzzyContains(entry.containerLabel, filter);
+			return labelHighlights.length > 0 || fuzzyContains(entry.containerLabel, filter);
 		});
 
 		// Map entries to container labels

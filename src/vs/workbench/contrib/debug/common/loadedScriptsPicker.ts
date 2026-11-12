@@ -91,7 +91,7 @@ function _createPick(source: Source, filter: string, editorService: IEditorServi
 	// manually filter so that headers don't get filtered out
 	const labelHighlights = matchesFuzzy(filter, label, true);
 	const descHighlights = matchesFuzzy(filter, desc, true);
-	if (labelHighlights || descHighlights) {
+	if (labelHighlights.length > 0 || descHighlights.length > 0) {
 		return {
 			label,
 			description: desc === '.' ? undefined : desc,

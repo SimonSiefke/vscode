@@ -102,7 +102,7 @@ export class TerminalQuickAccessProvider extends PickerQuickAccessProvider<IPick
 			iconClasses.push(...uriClasses);
 		}
 		const highlights = matchesFuzzyIconAware(filter, parseLabelWithIcons(label), true);
-		if (highlights) {
+		if (highlights.length > 0) {
 			return {
 				label,
 				description: terminal.description,

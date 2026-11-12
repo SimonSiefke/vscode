@@ -104,7 +104,7 @@ function _getSessionInfo(session: IDebugSession): { label: string; description: 
 function _createPick(session: IDebugSession, filter: string, debugService: IDebugService, viewsService: IViewsService, commandService: ICommandService): IPickerDebugItem | undefined {
 	const pickInfo = _getSessionInfo(session);
 	const highlights = matchesFuzzy(filter, pickInfo.label, true);
-	if (highlights) {
+	if (highlights.length > 0) {
 		return {
 			label: pickInfo.label,
 			description: pickInfo.description,

@@ -185,7 +185,7 @@ export function getCopilotConfigSlashCommandItems(typed: string, state?: ICopilo
 	for (const command of getConfigSlashCommands()) {
 		if (typedLower
 			&& !command.command.toLowerCase().startsWith(typedLower)
-			&& (typedLower.length === 1 || matchesFuzzy2(typedLower, command.command) === null)
+			&& (typedLower.length === 1 || matchesFuzzy2(typedLower, command.command).length === 0)
 		) {
 			continue;
 		}

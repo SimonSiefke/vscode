@@ -10,14 +10,22 @@ import { tryNormalizeToBase } from './normalization.js';
 import * as strings from './strings.js';
 
 export interface IFilter {
-	// Returns null if word doesn't match.
-	(word: string, wordToMatchAgainst: string): IMatch[] | null;
+	// Returns an empty array if word does not match; successful matches contain at least one range.
+	(word: string, wordToMatchAgainst: string): Matches;
 }
 
 export interface IMatch {
 	start: number;
 	end: number;
 }
+
+export type Matches = readonly Readonly<IMatch>[];
+
+/** Shared result for a query that does not match. */
+export const emptyMatches: Matches = [];
+
+/** Successful matches without highlights still need a range to distinguish them from failure. */
+const emptyQueryMatches: Matches = [{ start: 0, end: 0 }];
 
 // Combined filters
 
@@ -28,14 +36,14 @@ export interface IMatch {
  * filter.
  */
 export function or(...filter: IFilter[]): IFilter {
-	return function (word: string, wordToMatchAgainst: string): IMatch[] | null {
+	return (word: string, wordToMatchAgainst: string): Matches => {
 		for (let i = 0, len = filter.length; i < len; i++) {
 			const match = filter[i](word, wordToMatchAgainst);
-			if (match) {
+			if (match.length > 0) {
 				return match;
 			}
 		}
-		return null;
+		return emptyMatches;
 	};
 }
 
@@ -44,9 +52,9 @@ export function or(...filter: IFilter[]): IFilter {
 export const matchesStrictPrefix: IFilter = _matchesPrefix.bind(undefined, false);
 export const matchesPrefix: IFilter = _matchesPrefix.bind(undefined, true);
 
-function _matchesPrefix(ignoreCase: boolean, word: string, wordToMatchAgainst: string): IMatch[] | null {
+function _matchesPrefix(ignoreCase: boolean, word: string, wordToMatchAgainst: string): Matches {
 	if (!wordToMatchAgainst || wordToMatchAgainst.length < word.length) {
-		return null;
+		return emptyMatches;
 	}
 
 	let matches: boolean;
@@ -57,37 +65,45 @@ function _matchesPrefix(ignoreCase: boolean, word: string, wordToMatchAgainst: s
 	}
 
 	if (!matches) {
-		return null;
+		return emptyMatches;
 	}
 
-	return word.length > 0 ? [{ start: 0, end: word.length }] : [];
+	return word.length > 0 ? [{ start: 0, end: word.length }] : emptyQueryMatches;
 }
 
 // Contiguous Substring
 
-export function matchesContiguousSubString(word: string, wordToMatchAgainst: string): IMatch[] | null {
+export function matchesContiguousSubString(word: string, wordToMatchAgainst: string): Matches {
+	if (word.length === 0) {
+		return emptyQueryMatches;
+	}
+
 	if (word.length > wordToMatchAgainst.length) {
-		return null;
+		return emptyMatches;
 	}
 
 	const index = wordToMatchAgainst.toLowerCase().indexOf(word.toLowerCase());
 	if (index === -1) {
-		return null;
+		return emptyMatches;
 	}
 
 	return [{ start: index, end: index + word.length }];
 }
 
-export function matchesBaseContiguousSubString(word: string, wordToMatchAgainst: string): IMatch[] | null {
+export function matchesBaseContiguousSubString(word: string, wordToMatchAgainst: string): Matches {
+	if (word.length === 0) {
+		return emptyQueryMatches;
+	}
+
 	if (word.length > wordToMatchAgainst.length) {
-		return null;
+		return emptyMatches;
 	}
 
 	word = tryNormalizeToBase(word);
 	wordToMatchAgainst = tryNormalizeToBase(wordToMatchAgainst);
 	const index = wordToMatchAgainst.indexOf(word);
 	if (index === -1) {
-		return null;
+		return emptyMatches;
 	}
 
 	return [{ start: index, end: index + word.length }];
@@ -95,12 +111,16 @@ export function matchesBaseContiguousSubString(word: string, wordToMatchAgainst:
 
 // Substring
 
-export function matchesSubString(word: string, wordToMatchAgainst: string): IMatch[] | null {
+export function matchesSubString(word: string, wordToMatchAgainst: string): Matches {
 	if (word.length > wordToMatchAgainst.length) {
-		return null;
+		return emptyMatches;
 	}
 
-	return _matchesSubString(word.toLowerCase(), wordToMatchAgainst.toLowerCase(), 0, 0);
+	if (word.length === 0) {
+		return emptyQueryMatches;
+	}
+
+	return _matchesSubString(word.toLowerCase(), wordToMatchAgainst.toLowerCase(), 0, 0) ?? emptyMatches;
 }
 
 function _matchesSubString(word: string, wordToMatchAgainst: string, i: number, j: number): IMatch[] | null {
@@ -289,19 +309,19 @@ function isCamelCasePattern(word: string): boolean {
 	}
 }
 
-export function matchesCamelCase(word: string, camelCaseWord: string): IMatch[] | null {
+export function matchesCamelCase(word: string, camelCaseWord: string): Matches {
 	if (!camelCaseWord) {
-		return null;
+		return emptyMatches;
 	}
 
 	camelCaseWord = camelCaseWord.trim();
 
 	if (camelCaseWord.length === 0) {
-		return null;
+		return emptyMatches;
 	}
 
 	if (!isCamelCasePattern(word)) {
-		return null;
+		return emptyMatches;
 	}
 
 	// TODO: Consider removing this check
@@ -313,7 +333,7 @@ export function matchesCamelCase(word: string, camelCaseWord: string): IMatch[] 
 
 	if (!isCamelCaseWord(analysis)) {
 		if (!isUpperCaseWord(analysis)) {
-			return null;
+			return emptyMatches;
 		}
 
 		camelCaseWord = camelCaseWord.toLowerCase();
@@ -327,7 +347,7 @@ export function matchesCamelCase(word: string, camelCaseWord: string): IMatch[] 
 		i = nextAnchor(camelCaseWord, i + 1);
 	}
 
-	return result;
+	return result === null ? emptyMatches : result.length > 0 ? result : emptyQueryMatches;
 }
 
 // Matches beginning of words supporting non-ASCII languages
@@ -335,9 +355,9 @@ export function matchesCamelCase(word: string, camelCaseWord: string): IMatch[] 
 // Otherwise also matches sub string of the word with beginnings of the words in the target. E.g. "gp" or "g p" will match "Git: Pull"
 // Useful in cases where the target is words (e.g. command labels)
 
-export function matchesWords(word: string, target: string, contiguous: boolean = false): IMatch[] | null {
+export function matchesWords(word: string, target: string, contiguous: boolean = false): Matches {
 	if (!target || target.length === 0) {
-		return null;
+		return emptyMatches;
 	}
 
 	let result: IMatch[] | null = null;
@@ -358,7 +378,7 @@ export function matchesWords(word: string, target: string, contiguous: boolean =
 		targetIndex = nextWord(target, targetIndex + 1);
 	}
 
-	return result;
+	return result === null ? emptyMatches : result.length > 0 ? result : emptyQueryMatches;
 }
 
 function cloneMatches(matches: IMatch[] | null): IMatch[] | null {
@@ -456,9 +476,12 @@ const fuzzyContiguousFilter = or(matchesPrefix, matchesCamelCase, matchesContigu
 const fuzzySeparateFilter = or(matchesPrefix, matchesCamelCase, matchesSubString);
 const fuzzyRegExpCache = new LRUCache<string, RegExp>(10000); // bounded to 10000 elements
 
-export function matchesFuzzy(word: string, wordToMatchAgainst: string, enableSeparateSubstringMatching = false): IMatch[] | null {
+export function matchesFuzzy(word: string, wordToMatchAgainst: string, enableSeparateSubstringMatching = false): Matches {
 	if (typeof word !== 'string' || typeof wordToMatchAgainst !== 'string') {
-		return null; // return early for invalid input
+		return emptyMatches; // return early for invalid input
+	}
+	if (word.length === 0) {
+		return emptyQueryMatches;
 	}
 
 	// Form RegExp for wildcard matches
@@ -482,9 +505,13 @@ export function matchesFuzzy(word: string, wordToMatchAgainst: string, enableSep
  * Match pattern against word in a fuzzy way. As in IntelliSense and faster and more
  * powerful than `matchesFuzzy`
  */
-export function matchesFuzzy2(pattern: string, word: string): IMatch[] | null {
+export function matchesFuzzy2(pattern: string, word: string): Matches {
 	const score = fuzzyScore(pattern, pattern.toLowerCase(), 0, word, word.toLowerCase(), 0, { firstMatchCanBeWeak: true, boostFullMatch: true });
-	return score ? createMatches(score) : null;
+	if (!score) {
+		return emptyMatches;
+	}
+	const matches = createMatches(score);
+	return matches.length > 0 ? matches : emptyQueryMatches;
 }
 
 export function anyScore(pattern: string, lowPattern: string, patternPos: number, word: string, lowWord: string, wordPos: number): FuzzyScore {

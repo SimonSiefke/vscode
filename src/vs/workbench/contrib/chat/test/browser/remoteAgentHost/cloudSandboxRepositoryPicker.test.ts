@@ -45,7 +45,7 @@ class TestQuickPick extends mock<IQuickPick<IQuickPickItem>>() {
 	/** Items surviving the label filter the real quick pick applies to the typed value. */
 	get visibleItems(): readonly IQuickPickItem[] {
 		const filter = this.filterValue(this.value).trim();
-		return filter ? this.items.filter(item => matchesFuzzy(filter, item.label, true)) : this.items;
+		return filter ? this.items.filter(item => matchesFuzzy(filter, item.label, true).length > 0) : this.items;
 	}
 
 	override show(): void { this.shown = true; }

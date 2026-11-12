@@ -514,7 +514,7 @@ function doScoreItemFuzzySingle(label: string, description: string | undefined, 
 			// beginning.
 			const labelPrefixMatch = matchesPrefix(query.normalized, label);
 			let baseScore: number;
-			if (labelPrefixMatch) {
+			if (labelPrefixMatch.length > 0) {
 				baseScore = LABEL_PREFIX_SCORE_THRESHOLD;
 
 				// We give another boost to labels that are short, e.g. given
@@ -528,7 +528,7 @@ function doScoreItemFuzzySingle(label: string, description: string | undefined, 
 				baseScore = LABEL_SCORE_THRESHOLD;
 			}
 
-			return { score: baseScore + labelScore, labelMatch: labelPrefixMatch || createMatches(labelPositions) };
+			return { score: baseScore + labelScore, labelMatch: labelPrefixMatch.length > 0 ? [...labelPrefixMatch] : createMatches(labelPositions) };
 		}
 	}
 

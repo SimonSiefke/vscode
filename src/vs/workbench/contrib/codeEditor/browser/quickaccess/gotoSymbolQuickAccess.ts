@@ -309,7 +309,7 @@ export class GotoSymbolQuickAccessProvider extends AbstractGotoSymbolQuickAccess
 				}
 
 				item.score = score[1];
-				item.highlights = { label: matchesFuzzyIconAware(trimmedQuery, parsedLabel) ?? undefined };
+				item.highlights = { label: matchesFuzzyIconAware(trimmedQuery, parsedLabel) };
 				return true;
 			});
 

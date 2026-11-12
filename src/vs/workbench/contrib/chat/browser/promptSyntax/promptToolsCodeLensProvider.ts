@@ -236,7 +236,7 @@ export class PromptToolsCodeLensProvider extends Disposable implements CodeLensP
 					picker.setItemTree([allTools, ...groups.values()]);
 					return;
 				}
-				const matches = (text: string | undefined) => !!text && !!matchesFuzzy(query, text);
+				const matches = (text: string | undefined) => !!text && matchesFuzzy(query, text).length > 0;
 				const filteredGroups = [...groups.values()].flatMap(group => {
 					const children = matches(group.label) ? group.children : group.children.filter(item => matches(item.id) || matches(item.description));
 					return children.length ? [{ ...group, children }] : [];
