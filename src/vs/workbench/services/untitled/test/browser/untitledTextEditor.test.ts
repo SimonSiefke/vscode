@@ -331,6 +331,55 @@ suite('Untitled text editors', () => {
 		}
 	});
 
+	test('disposed models do not resolve', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Discarded initial contents' }));
+		model.dispose();
+
+		await model.resolve();
+
+		assert.strictEqual(accessor.workingCopyBackupService.resolved.has(model), false);
+		assert.strictEqual(accessor.modelService.getModel(model.resource), null);
+		assert.strictEqual(accessor.untitledTextEditorService.get(model.resource), undefined);
+	});
+
+	test('disposing while resolving a backup does not create a text model', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Discarded initial contents' }));
+		await accessor.workingCopyBackupService.backup(model, (await model.backup(CancellationToken.None)).content);
+		const resolving = model.resolve();
+		model.dispose();
+
+		await resolving;
+
+		assert.strictEqual(accessor.modelService.getModel(model.resource), null);
+		assert.strictEqual(accessor.untitledTextEditorService.get(model.resource), undefined);
+	});
+
+	test('disposing while decoding initial contents does not create a text model', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Discarded initial contents' }));
+		const decoding = new DeferredPromise<void>();
+		const continueDecoding = new DeferredPromise<void>();
+		const getDecodedStream = accessor.textFileService.getDecodedStream.bind(accessor.textFileService);
+		const stub = sinon.stub(accessor.textFileService, 'getDecodedStream').callsFake(async (...args) => {
+			const stream = await getDecodedStream(...args);
+			await decoding.complete();
+			await continueDecoding.p;
+			return stream;
+		});
+		try {
+			const resolving = model.resolve();
+			await decoding.p;
+			model.dispose();
+			await continueDecoding.complete();
+			await resolving;
+
+			assert.strictEqual(accessor.modelService.getModel(model.resource), null);
+			assert.strictEqual(accessor.untitledTextEditorService.get(model.resource), undefined);
+		} finally {
+			await continueDecoding.complete();
+			stub.restore();
+		}
+	});
+
 	test('created with files.defaultLanguage setting', () => {
 		const defaultLanguage = 'javascript';
 		const config = accessor.testConfigurationService;

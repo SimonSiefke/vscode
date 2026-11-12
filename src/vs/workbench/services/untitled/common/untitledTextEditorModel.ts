@@ -325,6 +325,10 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 	private ignoreDirtyOnModelContentChange = false;
 
 	override async resolve(): Promise<void> {
+		if (this.isDisposed()) {
+			return;
+		}
+
 		const initialValue = this.initialValue;
 
 		// Create text editor model if not yet done
@@ -347,6 +351,9 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 			// to create the text factory to respect encodings
 			// accordingly.
 			const untitledContentsFactory = await createTextBufferFactoryFromStream(await this.textFileService.getDecodedStream(this.resource, untitledContents, { encoding: UTF8 }));
+			if (this.isDisposed()) {
+				return;
+			}
 
 			this.createTextEditorModel(untitledContentsFactory, this.resource, this.preferredLanguageId);
 			createdUntitledModel = true;
