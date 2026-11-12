@@ -451,6 +451,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 				this.editorService.openEditor({
 					resource: undefined,
+					untitledOrigin: 'tabBarDoubleClick',
 					options: {
 						pinned: true,
 						index: this.groupView.count, // always at the end
