@@ -444,6 +444,18 @@ export class MenuBar extends Disposable {
 			this.overflowMenuActionsDirty = true;
 			this.scheduleOverflowLayout();
 		}
+
+		// The overflow menu holds its own submenu actions for menus that do not fit
+		// (or all menus in compact mode), so keep the matching entry in sync
+		const overflowSubmenuId = MenuBar.getOverflowSubmenuId(menu.label);
+		const overflowIndex = this.overflowMenu.actions.findIndex(action => action.id === overflowSubmenuId);
+		if (overflowIndex !== -1) {
+			this.overflowMenu.actions[overflowIndex] = new SubmenuAction(overflowSubmenuId, menu.label, menu.actions);
+		}
+	}
+
+	private static getOverflowSubmenuId(label: string): string {
+		return `menubar.submenu.${label}`;
 	}
 
 	override dispose(): void {
@@ -554,7 +566,7 @@ export class MenuBar extends Disposable {
 		if (this.isCompact) {
 			this.overflowMenu.actions = [];
 			for (let idx = this.numMenusShown; idx < this.menus.length; idx++) {
-				this.overflowMenu.actions.push(new SubmenuAction(`menubar.submenu.${this.menus[idx].label}`, this.menus[idx].label, this.menus[idx].actions || []));
+				this.overflowMenu.actions.push(new SubmenuAction(MenuBar.getOverflowSubmenuId(this.menus[idx].label), this.menus[idx].label, this.menus[idx].actions || []));
 			}
 
 			const compactMenuActions = this.options.getCompactMenuActions?.();
@@ -567,7 +579,7 @@ export class MenuBar extends Disposable {
 		} else if (full) {
 			this.overflowMenu.actions = [];
 			for (let idx = this.numMenusShown; idx < showableMenus.length; idx++) {
-				this.overflowMenu.actions.push(new SubmenuAction(`menubar.submenu.${showableMenus[idx].label}`, showableMenus[idx].label, showableMenus[idx].actions || []));
+				this.overflowMenu.actions.push(new SubmenuAction(MenuBar.getOverflowSubmenuId(showableMenus[idx].label), showableMenus[idx].label, showableMenus[idx].actions || []));
 			}
 
 			if (this.overflowMenu.buttonElement.nextElementSibling !== showableMenus[this.numMenusShown].buttonElement) {
