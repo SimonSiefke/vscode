@@ -24,13 +24,7 @@ export class TunnelService extends AbstractTunnelService {
 		return false;
 	}
 
-	protected retainOrCreateTunnel(tunnelProvider: IAddressProvider | ITunnelProvider, remoteHost: string, remotePort: number, _localHost: string, localPort: number | undefined, elevateIfNeeded: boolean, privacy?: string, protocol?: string): Promise<RemoteTunnel | string | undefined> | undefined {
-		const existing = this.getTunnelFromMap(remoteHost, remotePort);
-		if (existing) {
-			++existing.refcount;
-			return existing.value;
-		}
-
+	protected createTunnel(tunnelProvider: IAddressProvider | ITunnelProvider, remoteHost: string, remotePort: number, _localHost: string, localPort: number | undefined, elevateIfNeeded: boolean, privacy?: string, protocol?: string): Promise<RemoteTunnel | string | undefined> | undefined {
 		if (isTunnelProvider(tunnelProvider)) {
 			return this.createWithProvider(tunnelProvider, remoteHost, remotePort, localPort, elevateIfNeeded, privacy, protocol);
 		}
