@@ -16,7 +16,7 @@ import { ActiveClientToolSet } from '../activeClientState.js';
 import { toAgentMessageDelegationMeta } from '../../common/meta/agentMessageDelegationMeta.js';
 import { parseCodexDelegation } from './codexDelegation.js';
 import { unwrapShellInvocation } from './codexShellCommand.js';
-import { codexRetainedCommandOutputContent } from './codexTerminalOutput.js';
+import { codexInlineCommandOutput, codexRetainedCommandOutputContent } from './codexTerminalOutput.js';
 import type { AgentMessageDeltaNotification } from './protocol/generated/v2/AgentMessageDeltaNotification.js';
 import type { CommandExecutionOutputDeltaNotification } from './protocol/generated/v2/CommandExecutionOutputDeltaNotification.js';
 import type { FileChangeOutputDeltaNotification } from './protocol/generated/v2/FileChangeOutputDeltaNotification.js';
@@ -152,6 +152,8 @@ export interface ICodexToolCallEntry {
 	readonly turnId: string;
 	readonly toolName: string;
 	output: string;
+	/** The newest streamed {@link output}, bounded because every delta republishes it. Cleared when {@link output} is replaced. */
+	liveOutput?: string;
 	/** Latest `mcpToolCall/progress` message, kept out of {@link output} so it never becomes the result. */
 	progressMessage?: string;
 	/** The `_meta` emitted at start, re-spread by later actions since the reducer replaces the whole bag. */
@@ -336,6 +338,10 @@ export function codexImageGenerationLabels(status?: string): { readonly displayN
 		failedMessage: localize('codex.imageGeneration.failed', "Failed to generate image"),
 		errorMessage: localize('codex.imageGeneration.error', "Image generation {0}", status ?? ''),
 	};
+}
+
+export function codexImageGenerationToolInput(revisedPrompt: string | null): string | undefined {
+	return revisedPrompt ? JSON.stringify({ prompt: revisedPrompt }) : undefined;
 }
 
 function jsonValueToText(value: JsonValue): string {
@@ -739,7 +745,7 @@ function mapItemStartedBody(
 				turnId: params.turnId,
 				toolCallId,
 				invocationMessage: labels.invocationMessage,
-				toolInput: JSON.stringify({ prompt: params.item.revisedPrompt ?? labels.displayName }),
+				toolInput: codexImageGenerationToolInput(params.item.revisedPrompt),
 				confirmed: ToolCallConfirmationReason.NotNeeded,
 			},
 		];
@@ -972,12 +978,11 @@ export function mapCommandExecutionOutputDelta(
 	if (!entry) {
 		return [];
 	}
-	entry.output += params.delta;
 	return [{
 		type: ActionType.ChatToolCallContentChanged,
 		turnId: entry.turnId,
 		toolCallId: entry.toolCallId,
-		content: [{ type: ToolResultContentType.Text, text: entry.output }],
+		content: [{ type: ToolResultContentType.Text, text: appendStreamedOutput(entry, params.delta) }],
 	}];
 }
 
@@ -990,6 +995,7 @@ export function mapFileChangePatchUpdated(
 		return [];
 	}
 	entry.output = fileChangeOutput(params.changes);
+	entry.liveOutput = undefined;
 	return [{
 		type: ActionType.ChatToolCallContentChanged,
 		turnId: entry.turnId,
@@ -1006,13 +1012,23 @@ export function mapFileChangeOutputDelta(
 	if (!entry) {
 		return [];
 	}
-	entry.output += params.delta;
 	return [{
 		type: ActionType.ChatToolCallContentChanged,
 		turnId: entry.turnId,
 		toolCallId: entry.toolCallId,
-		content: [{ type: ToolResultContentType.Text, text: entry.output }],
+		content: [{ type: ToolResultContentType.Text, text: appendStreamedOutput(entry, params.delta) }],
 	}];
+}
+
+/**
+ * Each delta republishes the live output, so only its newest characters are shown: otherwise a command's traffic
+ * to every client grows with the square of its output. The live text is built from the bounded previous text, since
+ * slicing the growing full output would copy all of it on every delta. The full output is kept for completion.
+ */
+function appendStreamedOutput(entry: ICodexToolCallEntry, delta: string): string {
+	entry.liveOutput = codexInlineCommandOutput((entry.liveOutput ?? codexInlineCommandOutput(entry.output)) + delta);
+	entry.output += delta;
+	return entry.liveOutput;
 }
 
 /**
@@ -1163,7 +1179,19 @@ export function mapItemCompleted(
 	if (params.item.type === 'imageGeneration') {
 		const success = params.item.status === 'completed' && params.item.result.length > 0;
 		const labels = codexImageGenerationLabels(params.item.status);
-		return [{
+		const actions: ChatAction[] = [];
+		const toolInput = codexImageGenerationToolInput(params.item.revisedPrompt);
+		if (toolInput !== undefined) {
+			actions.push({
+				type: ActionType.ChatToolCallReady,
+				turnId: entry.turnId,
+				toolCallId: entry.toolCallId,
+				invocationMessage: labels.invocationMessage,
+				toolInput,
+				confirmed: ToolCallConfirmationReason.NotNeeded,
+			});
+		}
+		actions.push({
 			type: ActionType.ChatToolCallComplete,
 			turnId: entry.turnId,
 			toolCallId: entry.toolCallId,
@@ -1177,7 +1205,8 @@ export function mapItemCompleted(
 				}] : undefined,
 				...(success ? {} : { error: { message: labels.errorMessage } }),
 			},
-		}];
+		});
+		return actions;
 	}
 	if (params.item.type === 'fileChange') {
 		const output = fileChangeOutput(params.item.changes) || entry.output;
