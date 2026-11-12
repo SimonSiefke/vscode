@@ -6,7 +6,7 @@
 import { RunOnceScheduler } from '../../../base/common/async.js';
 import { DebounceEmitter, Emitter, Event } from '../../../base/common/event.js';
 import { DisposableStore, Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuItem, IMenuItemHide, IMenuService, isIMenuItem, isISubmenuItem, ISubmenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
+import { IMenu, IMenuActionOptions, IMenuChangeEvent, IMenuCreateOptions, IMenuItem, IMenuItemActionOptions, IMenuItemHide, IMenuService, isIMenuItem, isISubmenuItem, ISubmenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from './actions.js';
 import { ICommandAction, ILocalizedString } from '../../action/common/action.js';
 import { ICommandService } from '../../commands/common/commands.js';
 import { ContextKeyExpression, IContextKeyService } from '../../contextkey/common/contextkey.js';
@@ -87,6 +87,10 @@ class PersistedMenuHideState implements IDisposable {
 	dispose() {
 		this._onDidChange.dispose();
 		this._disposables.dispose();
+	}
+
+	isModifiedFromDefault(menu: MenuId, commandId: string): boolean {
+		return this.isHidden(menu, commandId) !== this._isHiddenByDefault(menu, commandId);
 	}
 
 	private _isHiddenByDefault(menu: MenuId, commandId: string) {
@@ -214,6 +218,8 @@ function createActionGroups(
 	const result: [string, Array<MenuItemAction | SubmenuItemAction>][] = [];
 
 	for (const [id, items] of menuGroups) {
+		const groupTitle = MenuRegistry.getMenuGroup(menuId, id)?.title;
+		const actionOptions: IMenuItemActionOptions | undefined = groupTitle ? { ...options, groupTitle } : options;
 		let activeActions: Array<MenuItemAction | SubmenuItemAction> | undefined;
 		for (const item of items) {
 			const isMenuItem = isIMenuItem(item);
@@ -224,12 +230,12 @@ function createActionGroups(
 			const menuHide = options?.skipMenuHideActions ? undefined : createMenuHide(menuId, isMenuItem ? item.command : item, hiddenStates);
 			if (isMenuItem) {
 				const menuKeybinding = options?.skipConfigureKeybindingAction ? undefined : () => createConfigureKeybindingAction(commandService, keybindingService, item.command.id, item.when);
-				(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, options, menuHide, menuKeybinding, contextKeyService, commandService));
+				(activeActions ??= []).push(new MenuItemAction(item.command, item.alt, actionOptions, menuHide, menuKeybinding, contextKeyService, commandService));
 			} else {
 				const groups = createMenuActionGroups(item.submenu, options, hiddenStates, commandService, keybindingService, contextKeyService);
 				const submenuActions = Separator.join(...groups.map(g => g[1]));
 				if (submenuActions.length > 0) {
-					(activeActions ??= []).push(new SubmenuItemAction(item, menuHide, submenuActions));
+					(activeActions ??= []).push(new SubmenuItemAction(item, menuHide, submenuActions, item.toggled ? contextKeyService.contextMatchesRules(item.toggled) : undefined, groupTitle));
 				}
 			}
 		}
@@ -312,6 +318,7 @@ class MenuInfoSnapshot {
 						}
 					}
 				} else {
+					MenuInfoSnapshot._fillInKbExprKeys(item.toggled, this.cacheContextKeys);
 					collect(item.submenu, MenuRegistry.getMenuItems(item.submenu));
 				}
 			}
@@ -339,12 +346,15 @@ class MenuInfoSnapshot {
 				MenuInfoSnapshot._fillInKbExprKeys(toggledExpression, this._toggledContextKeys);
 			}
 
-		} else if (this._collectContextKeysForSubmenus) {
-			// recursively collect context keys from submenus so that this
-			// menu fires events when context key changes affect submenus
-			MenuRegistry.getMenuItems(item.submenu).forEach(this._collectContextKeysAndSubmenuIds, this);
+		} else {
+			MenuInfoSnapshot._fillInKbExprKeys(item.toggled, this._toggledContextKeys);
+			if (this._collectContextKeysForSubmenus) {
+				// recursively collect context keys from submenus so that this
+				// menu fires events when context key changes affect submenus
+				MenuRegistry.getMenuItems(item.submenu).forEach(this._collectContextKeysAndSubmenuIds, this);
 
-			this._allMenuIds.add(item.submenu);
+				this._allMenuIds.add(item.submenu);
+			}
 		}
 	}
 
@@ -574,6 +584,10 @@ class MenuItemHide implements IMenuItemHide {
 
 	get isHidden(): boolean {
 		return this._states.isHidden(this._menu, this._id);
+	}
+
+	get isModifiedFromDefault(): boolean {
+		return this._states.isModifiedFromDefault(this._menu, this._id);
 	}
 
 	get hide(): IAction {
