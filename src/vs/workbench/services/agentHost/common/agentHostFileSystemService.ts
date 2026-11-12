@@ -6,7 +6,7 @@
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { OS } from '../../../../base/common/platform.js';
 import { AgentHostFileSystemProvider, type IRemoteFilesystemConnection } from '../../../../platform/agentHost/common/agentHostFileSystemProvider.js';
-import { SYNCED_CUSTOMIZATION_DISPLAY_NAME, SYNCED_CUSTOMIZATION_SCHEME } from '../../../../platform/agentHost/common/agentHostFileSystemService.js';
+import { SYNCED_CUSTOMIZATION_DISPLAY_NAME, SYNCED_CUSTOMIZATION_SCHEME } from '../../../../platform/agentHost/common/agentHostCustomizationUri.js';
 import { AGENT_HOST_LABEL_FORMATTER, AGENT_HOST_SCHEME, agentHostLabelFormatter, LOCAL_AGENT_HOST_AUTHORITY } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { InMemoryFileSystemProvider } from '../../../../platform/files/common/inMemoryFilesystemProvider.js';
@@ -15,7 +15,7 @@ import { createDecorator, IInstantiationService } from '../../../../platform/ins
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
 import { ISearchService, SearchProviderType } from '../../search/common/search.js';
-import { AgentHostFileSearchProvider } from './agentHostFileSearchProvider.js';
+import { FileSystemFileSearchProvider } from '../../search/common/fileSystemFileSearchProvider.js';
 
 export { SYNCED_CUSTOMIZATION_DISPLAY_NAME, SYNCED_CUSTOMIZATION_SCHEME };
 
@@ -56,7 +56,7 @@ class AgentHostFileSystemService extends Disposable implements IAgentHostFileSys
 		this._fsProvider = this._register(new AgentHostFileSystemProvider());
 		this._register(_fileService.registerProvider(AGENT_HOST_SCHEME, this._fsProvider));
 		this._register(browserResourceService.registerScheme(AGENT_HOST_SCHEME));
-		const searchProvider = this._register(instantiationService.createInstance(AgentHostFileSearchProvider));
+		const searchProvider = this._register(instantiationService.createInstance(FileSystemFileSearchProvider));
 		this._register(searchService.registerSearchResultProvider(AGENT_HOST_SCHEME, SearchProviderType.file, searchProvider));
 
 		// Two formatters: the scheme-wide fallback for hosts whose operating
