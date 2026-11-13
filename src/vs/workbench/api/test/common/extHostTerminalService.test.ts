@@ -88,7 +88,23 @@ suite('ExtHostTerminalService', () => {
 			registration.dispose();
 			await pending.complete([{ startIndex: 0, length: 5 }]);
 			const links = await request;
-			assert.deepStrictEqual({ links, cached: getLinkCache(service).get(42)?.size ?? 0 }, { links: [], cached: 0 });
+			assert.deepStrictEqual({ links, hasTerminalCache: getLinkCache(service).has(42) }, { links: [], hasTerminalCache: false });
+		});
+
+		test('releases cached links when their terminal closes with the provider still registered', async () => {
+			const service = createService();
+			let handled = 0;
+			store.add(service.registerLinkProvider({
+				provideTerminalLinks: () => [{ startIndex: 0, length: 5 }],
+				handleTerminalLink: () => { handled++; }
+			}));
+			const [link] = await service.$provideLinks(42, 'hello');
+			service.$activateLink(42, link.id);
+			assert.deepStrictEqual({ handled, cached: getLinkCache(service).get(42)?.size }, { handled: 1, cached: 1 });
+
+			await service.$acceptTerminalClosed(42, undefined, TerminalExitReason.Unknown);
+			service.$activateLink(42, link.id);
+			assert.deepStrictEqual({ handled, hasTerminalCache: getLinkCache(service).has(42) }, { handled: 1, hasTerminalCache: false });
 		});
 
 		test('normal live asynchronous links still work', async () => {
