@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'none'; script-src 'sha256-VY65u6y1DZWK8Cb4MlVpSVlMYcM338BRDVhygiwXLLg=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+		content="default-src 'none'; script-src 'sha256-T0kkoSMz4fTZl4565i2G0rrurdVXNaxMMNXprLI3Mmg=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
 
 	<!-- Disable pinch zooming -->
 	<meta name="viewport"
@@ -52,16 +52,15 @@
 		perfMark('scriptStart');
 
 		/**
-		 * Use polling to track focus of main webview and iframes within the webview
+		 * Track focus of the webview shell and its content window.
 		 *
 		 * @param {Object} handlers
 		 * @param {() => void} handlers.onFocus
 		 * @param {() => void} handlers.onBlur
 		 */
 		const trackFocus = ({ onFocus, onBlur }) => {
-			const interval = 250;
 			let isFocused = document.hasFocus();
-			setInterval(() => {
+			const updateFocus = () => queueMicrotask(() => {
 				const target = getActiveFrame();
 				const isCurrentlyFocused = document.hasFocus() || !!(target && target.contentDocument && target.contentDocument.body.classList.contains('vscode-context-menu-visible'));
 				if (isCurrentlyFocused === isFocused) {
@@ -73,7 +72,10 @@
 				} else {
 					onBlur();
 				}
-			}, interval);
+			});
+			window.addEventListener('focus', updateFocus, true);
+			window.addEventListener('blur', updateFocus, true);
+			return updateFocus;
 		};
 
 		const getActiveFrame = () => {
@@ -1178,6 +1180,8 @@
 
 						contentWindow.addEventListener('scroll', handleInnerScroll);
 						contentWindow.addEventListener('wheel', handleWheel);
+						contentWindow.addEventListener('focus', updateFocus, true);
+						contentWindow.addEventListener('blur', updateFocus, true);
 						contentWindow.addEventListener('focusin', () => {
 							const focused = /** @type {HTMLElement | null} */ (contentDocument.activeElement);
 							if (focused && focused !== contentDocument.body && focused !== contentDocument.documentElement) {
@@ -1298,6 +1302,7 @@
 				const target = getActiveFrame();
 				if (target && target.contentDocument) {
 					target.contentDocument.body.classList.toggle('vscode-context-menu-visible', data.visible);
+					updateFocus();
 				}
 			});
 
@@ -1389,7 +1394,7 @@
 				}
 			});
 
-			trackFocus({
+			const updateFocus = trackFocus({
 				onFocus: () => hostMessaging.postMessage('did-focus', undefined),
 				onBlur: () => hostMessaging.postMessage('did-blur', undefined)
 			});
