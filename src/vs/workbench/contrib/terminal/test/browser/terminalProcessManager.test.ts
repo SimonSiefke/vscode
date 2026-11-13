@@ -19,6 +19,8 @@ import { EnvironmentVariableMutatorType, type IEnvironmentVariableCollection } f
 import { ITerminalChildProcess, TitleEventSource, type IProcessReadyEvent, type ITerminalBackend, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
 import { ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalProcessManager } from '../../browser/terminalProcessManager.js';
+import { RemotePty } from '../../browser/remotePty.js';
+import { RemoteTerminalChannelClient } from '../../common/remote/remoteTerminalChannel.js';
 import { IEnvironmentVariableService } from '../../common/environmentVariable.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
@@ -296,6 +298,65 @@ suite('Workbench - TerminalProcessManager', () => {
 		await manager.createProcess({}, 80, 24, false);
 		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 1, replies: { prompt: 'reply' } }]);
 	});
+
+	for (const disposeDuringSetup of [true, false]) {
+		test(`shuts down a remote pty disposed ${disposeDuringSetup ? 'during auto-reply setup' : 'after startup'}`, async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			const shutdownComplete = new DeferredPromise<void>();
+			const calls: string[] = [];
+			instantiationService.stub(IRemoteAgentService, {
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const channel = new class extends mock<RemoteTerminalChannelClient>() {
+				override async start(id: number): Promise<undefined> {
+					calls.push(`start ${id}`);
+					return undefined;
+				}
+				override async shutdown(id: number, immediate: boolean): Promise<void> {
+					calls.push(`shutdown ${id} ${immediate}`);
+					await shutdownComplete.complete();
+				}
+			};
+			const pty = store.add(instantiationService.createInstance(RemotePty, 42, false, channel));
+			const backend = await terminalInstanceService.getBackend();
+			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
+				override async getBackend(): Promise<ITerminalBackend> {
+					return {
+						...backend,
+						createProcess: async () => pty,
+						setAutoReplies: async () => {
+							await setupStarted.complete();
+							await setupComplete.p;
+						}
+					};
+				}
+			});
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const creation = remoteManager.createProcess({}, 80, 24, false);
+			try {
+				await setupStarted.p;
+				if (disposeDuringSetup) {
+					remoteManager.dispose(true);
+					// Cleanup must reach the host while setup is still pending, without starting the shell.
+					deepStrictEqual(calls, ['shutdown 42 true']);
+				}
+				await setupComplete.complete();
+				await creation;
+				if (!disposeDuringSetup) {
+					remoteManager.dispose(true);
+				}
+				await shutdownComplete.p;
+				// A delayed caller must not start an allocation that has already been shut down.
+				await pty.start();
+				deepStrictEqual(calls, disposeDuringSetup ? ['shutdown 42 true'] : ['start 42', 'shutdown 42 true']);
+			} finally {
+				await setupComplete.complete();
+				await creation;
+			}
+		});
+	}
 
 	test('does not accumulate environment variable collection listeners when relaunching', async () => {
 		const changeCollectionsEmitter = (environmentVariableService as unknown as { _onDidChangeCollections: Emitter<unknown> })._onDidChangeCollections;

@@ -12,6 +12,8 @@ import { hasKey } from '../../../../base/common/types.js';
 
 export class RemotePty extends BasePty implements ITerminalChildProcess {
 	private readonly _startBarrier: Barrier;
+	private _startRequested = false;
+	private _isShutdown = false;
 
 	constructor(
 		id: number,
@@ -25,6 +27,10 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	async start(): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
+		if (this._isShutdown) {
+			return undefined;
+		}
+		this._startRequested = true;
 		// Fetch the environment to check shell permissions
 		const env = await this._remoteAgentService.getEnvironment();
 		if (!env) {
@@ -51,6 +57,12 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	shutdown(immediate: boolean): void {
+		this._isShutdown = true;
+		// The host already owns the process allocation before start() is called.
+		if (!this._startRequested) {
+			this._remoteTerminalChannel.shutdown(this.id, immediate);
+			return;
+		}
 		this._startBarrier.wait().then(_ => {
 			this._remoteTerminalChannel.shutdown(this.id, immediate);
 		});
