@@ -104,6 +104,7 @@ export class ChatContextService extends Disposable {
 
 	unregisterChatContextProvider(id: string): void {
 		this._providers.delete(id);
+		this._workspaceContext.delete(id);
 		this._registeredPickers.deleteAndDispose(id);
 	}
 

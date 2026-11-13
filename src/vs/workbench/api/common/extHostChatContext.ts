@@ -54,6 +54,9 @@ export class ExtHostChatContext extends Disposable implements ExtHostChatContext
 		}
 		const provider = entry.provider as vscode.ChatWorkspaceContextProvider;
 		const result = (await provider.provideWorkspaceChatContext?.(token)) ?? [];
+		if (this._providers.get(handle) !== entry) {
+			return [];
+		}
 		return this._convertItems(handle, result);
 	}
 
@@ -67,6 +70,9 @@ export class ExtHostChatContext extends Disposable implements ExtHostChatContext
 		}
 		const provider = entry.provider as vscode.ChatAttachContextProvider;
 		const result = (await provider.provideAttachChatContext?.(token)) ?? [];
+		if (this._providers.get(handle) !== entry) {
+			return [];
+		}
 		return this._convertItems(handle, result);
 	}
 
@@ -99,7 +105,7 @@ export class ExtHostChatContext extends Disposable implements ExtHostChatContext
 		}
 
 		const result = (await provider.provideChatTabContext?.({ tab }, token));
-		if (!result) {
+		if (!result || this._providers.get(handle) !== entry) {
 			return undefined;
 		}
 		if (result.label === undefined && result.resourceUri === undefined) {
@@ -301,6 +307,9 @@ export class ExtHostChatContext extends Disposable implements ExtHostChatContext
 		}
 		const provideWorkspaceContext = async () => {
 			const workspaceContexts = await provider.provideWorkspaceChatContext?.(CancellationToken.None);
+			if (disposables.isDisposed) {
+				return;
+			}
 			const resolvedContexts = this._convertItems(handle, workspaceContexts ?? []);
 			return this._proxy.$updateWorkspaceContextItems(handle, resolvedContexts);
 		};
