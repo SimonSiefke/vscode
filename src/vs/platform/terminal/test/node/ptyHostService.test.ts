@@ -70,4 +70,42 @@ suite('PtyHostService', () => {
 			'restarts should notify the local channel without accumulating startup listeners'
 		);
 	});
+
+	test('forwards process-scoped auto replies through the local pty channel', async () => {
+		const calls: { command: string; args: unknown }[] = [];
+		const channel: IChannel = {
+			call<T>(command: string, args: unknown): Promise<T> {
+				if (command === 'setAutoReplies') {
+					calls.push({ command, args });
+				}
+				return Promise.resolve([] as T);
+			},
+			listen: () => Event.None
+		};
+		const starter: IPtyHostStarter = {
+			start: () => ({
+				client: { getChannel: <T extends IChannel>() => channel as T },
+				store: new DisposableStore(),
+				onDidProcessExit: Event.None
+			}),
+			dispose: () => { }
+		};
+		const service = store.add(new PtyHostService(
+			starter,
+			new TestConfigurationService(),
+			new NullLogService(),
+			store.add(new NullLoggerService())
+		));
+		const localChannel = createLocalPtyChannel(service, store.add(new DisposableStore()));
+		await localChannel.call('window A', 'setAutoReplies', [1, { 'A prompt': 'A reply' }]);
+		await localChannel.call('window B', 'setAutoReplies', [2, { 'B prompt': 'B reply' }]);
+		await localChannel.call('window B', 'setAutoReplies', [2, {}]);
+		await timeout(0);
+
+		deepStrictEqual(calls, [
+			{ command: 'setAutoReplies', args: [1, { 'A prompt': 'A reply' }] },
+			{ command: 'setAutoReplies', args: [2, { 'B prompt': 'B reply' }] },
+			{ command: 'setAutoReplies', args: [2, {}] }
+		]);
+	});
 });
