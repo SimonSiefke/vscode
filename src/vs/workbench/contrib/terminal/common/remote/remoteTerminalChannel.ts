@@ -239,8 +239,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 	setNextCommandId(id: number, commandLine: string, commandId: string): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.SetNextCommandId, [id, commandLine, commandId]);
 	}
-	shutdown(id: number, immediate: boolean): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.Shutdown, [id, immediate]);
+	shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+		return this._channel.call(RemoteTerminalChannelRequest.Shutdown, [id, immediate, creationId]);
 	}
 	resize(id: number, cols: number, rows: number, pixelWidth?: number, pixelHeight?: number): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.Resize, [id, cols, rows, pixelWidth, pixelHeight]);

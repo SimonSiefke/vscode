@@ -10,6 +10,7 @@ import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { IProcessEnvironment, isWindows, OperatingSystem, OS } from '../../../base/common/platform.js';
 import { URI } from '../../../base/common/uri.js';
+import { generateUuid } from '../../../base/common/uuid.js';
 import { getSystemShell } from '../../../base/node/shell.js';
 import { ILogService, LogLevel } from '../../log/common/log.js';
 import { RequestStore } from '../common/requestStore.js';
@@ -295,7 +296,7 @@ export class PtyService extends Disposable implements IPtyService {
 			terminal.unicodeVersion,
 			terminal.processLaunchConfig.env,
 			terminal.processLaunchConfig.executableEnv,
-			terminal.processLaunchConfig.options,
+			{ ...terminal.processLaunchConfig.options, creationId: generateUuid() },
 			true,
 			terminal.processDetails.workspaceId,
 			terminal.processDetails.workspaceName,
@@ -445,9 +446,13 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async shutdown(id: number, immediate: boolean): Promise<void> {
+	async shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+		const pty = this._ptys.get(id);
+		if (creationId !== undefined && pty?.processLaunchOptions.options.creationId !== creationId) {
+			return;
+		}
 		// Don't throw if the pty is already shutdown
-		return this._ptys.get(id)?.shutdown(immediate);
+		return pty?.shutdown(immediate);
 	}
 	@traceRpc
 	async input(id: number, data: string): Promise<void> {

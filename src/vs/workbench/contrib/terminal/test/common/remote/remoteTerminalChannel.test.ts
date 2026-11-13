@@ -49,7 +49,7 @@ function isCreateTerminalProcessArguments(value: unknown): value is ICreateTermi
 suite('RemoteTerminalChannelClient', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('sends auto replies with attachment using the host PID argument slot', async () => {
+	test('sends attachment replies and shutdown allocation identity in their host argument slots', async () => {
 		const calls: { command: string; args: unknown }[] = [];
 		const channel: IChannel = {
 			call<T>(command: string, args?: unknown): Promise<T> {
@@ -61,7 +61,11 @@ suite('RemoteTerminalChannelClient', () => {
 		const instantiationService = store.add(new TestInstantiationService());
 		const client = instantiationService.createInstance(RemoteTerminalChannelClient, 'ssh-remote+test', channel);
 		await client.attachToProcess(12, { prompt: 'reply' });
-		deepStrictEqual(calls, [{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, undefined, { prompt: 'reply' }] }]);
+		await client.shutdown(12, true, 'creation');
+		deepStrictEqual(calls, [
+			{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, undefined, { prompt: 'reply' }] },
+			{ command: RemoteTerminalChannelRequest.Shutdown, args: [12, true, 'creation'] }
+		]);
 	});
 
 	test('serializes only target-eligible PATH mutations while retaining non-PATH mutations', async () => {

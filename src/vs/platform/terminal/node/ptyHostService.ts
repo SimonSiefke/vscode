@@ -242,8 +242,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 	start(id: number): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
 		return this._proxy.start(id);
 	}
-	shutdown(id: number, immediate: boolean): Promise<void> {
-		return this._proxy.shutdown(id, immediate);
+	shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+		return this._proxy.shutdown(id, immediate, creationId);
 	}
 	input(id: number, data: string): Promise<void> {
 		return this._proxy.input(id, data);

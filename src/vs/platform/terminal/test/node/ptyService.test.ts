@@ -74,6 +74,24 @@ suite('XtermSerializer', () => {
 suite('PtyService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('shutdown rejects a stale allocation identity and preserves legacy callers', async () => {
+		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
+		const shutdowns: boolean[] = [];
+		const allocations: Map<number, { processLaunchOptions: { options: { creationId: string } }; shutdown(immediate: boolean): void }> = Reflect.get(service, '_ptys');
+		allocations.set(1, { processLaunchOptions: { options: { creationId: 'new allocation' } }, shutdown: immediate => shutdowns.push(immediate) });
+		try {
+			await service.shutdown(1, true, 'old allocation');
+			deepStrictEqual(shutdowns, []);
+			await service.shutdown(1, true, 'new allocation');
+			deepStrictEqual(shutdowns, [true]);
+			await service.shutdown(1, false);
+			await service.shutdown(2, true, 'new allocation');
+			deepStrictEqual(shutdowns, [true, false]);
+		} finally {
+			allocations.clear();
+		}
+	});
+
 	test('rejected attachment preserves peer replies and accepted attachment replaces them before replay', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
 		const data = store.add(new Emitter<string>());

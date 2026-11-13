@@ -41,6 +41,7 @@ import { INativeWorkbenchEnvironmentService } from '../../../services/environmen
 import { shouldUseEnvironmentVariableCollection } from '../../../../platform/terminal/common/terminalEnvironment.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { serializeEnvironmentVariableCollections } from '../../../../platform/terminal/common/environmentVariableShared.js';
+import { generateUuid } from '../../../../base/common/uuid.js';
 
 export class LocalTerminalBackendContribution implements IWorkbenchContribution {
 
@@ -215,8 +216,10 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 	): Promise<ITerminalChildProcess> {
 		await this._connectToDirectProxy();
 		const executableEnv = await this._shellEnvironmentService.getShellEnv();
-		const id = await this._proxy.createProcess(shellLaunchConfig, cwd, cols, rows, unicodeVersion, env, executableEnv, options, shouldPersist, this._getWorkspaceId(), this._getWorkspaceName());
-		const pty = new LocalPty(id, shouldPersist, this._proxy);
+		const proxy = this._proxy;
+		const creationId = generateUuid();
+		const id = await proxy.createProcess(shellLaunchConfig, cwd, cols, rows, unicodeVersion, env, executableEnv, { ...options, creationId }, shouldPersist, this._getWorkspaceId(), this._getWorkspaceName());
+		const pty = new LocalPty(id, shouldPersist, proxy, creationId);
 		this._ptys.set(id, pty);
 		return pty;
 	}

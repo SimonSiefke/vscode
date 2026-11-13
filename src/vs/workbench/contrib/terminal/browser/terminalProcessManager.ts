@@ -270,10 +270,12 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		this._dimensions.rows = rows;
 
 		let newProcess: ITerminalChildProcess | undefined;
+		let isNewProcess = false;
 
 		if (shellLaunchConfig.customPtyImplementation) {
 			this._processType = ProcessType.PsuedoTerminal;
 			newProcess = shellLaunchConfig.customPtyImplementation(this._instanceId, cols, rows);
+			isNewProcess = true;
 		} else {
 			this._processType = ProcessType.Process;
 			const backend = await this._terminalInstanceService.getBackend(this.remoteAuthority);
@@ -353,6 +355,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 							options,
 							shouldPersist
 						);
+						isNewProcess = true;
 					} catch (e) {
 						if (e?.message === 'Could not fetch remote environment') {
 							this._logService.trace(`Could not fetch remote environment, silently failing`);
@@ -378,6 +381,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				}
 				if (!newProcess) {
 					newProcess = await this._launchLocalProcess(backend, shellLaunchConfig, cols, rows, this.userHome, variableResolver);
+					isNewProcess = true;
 				}
 			}
 		}
@@ -386,8 +390,16 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			await this._resolveParentWindowHandle();
 		}
 
-		// A restarted host has already lost this allocation; never send its ID to the new host.
 		if (ptyHostGeneration !== this._ptyHostGeneration) {
+			if (isNewProcess) {
+				// The backend may have allocated after restart. Its creation ID makes cleanup
+				// safe even if this numeric process ID now belongs to another allocation.
+				try {
+					await newProcess.shutdown(true);
+				} catch (error) {
+					this._logService.trace('Could not release a terminal allocation from a restarted host', error);
+				}
+			}
 			return undefined;
 		}
 

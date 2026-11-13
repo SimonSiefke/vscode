@@ -31,6 +31,7 @@ import { IHistoryService } from '../../../services/history/common/history.js';
 import { getWorkspaceForTerminal } from '../common/terminalEnvironment.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { IStatusbarService } from '../../../services/statusbar/browser/statusbar.js';
+import { generateUuid } from '../../../../base/common/uuid.js';
 
 export class RemoteTerminalBackendContribution implements IWorkbenchContribution {
 	static ID = 'remoteTerminalBackend';
@@ -197,18 +198,19 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		};
 		const activeWorkspaceRootUri = getWorkspaceForTerminal(shellLaunchConfig.cwd, this._workspaceContextService, this._historyService)?.uri;
 
+		const creationId = generateUuid();
 		const result = await this._remoteTerminalChannel.createProcess(
 			shellLaunchConfigDto,
 			configuration,
 			activeWorkspaceRootUri,
-			options,
+			{ ...options, creationId },
 			shouldPersist,
 			cols,
 			rows,
 			unicodeVersion,
 			remoteEnv.os
 		);
-		const pty = this._instantiationService.createInstance(RemotePty, result.persistentTerminalId, shouldPersist, this._remoteTerminalChannel);
+		const pty = this._instantiationService.createInstance(RemotePty, result.persistentTerminalId, shouldPersist, this._remoteTerminalChannel, creationId);
 		this._ptys.set(result.persistentTerminalId, pty);
 		return pty;
 	}
@@ -220,7 +222,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 
 		try {
 			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
-			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel);
+			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel, undefined);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {

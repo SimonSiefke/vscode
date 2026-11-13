@@ -20,6 +20,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 		id: number,
 		shouldPersist: boolean,
 		private readonly _remoteTerminalChannel: RemoteTerminalChannelClient,
+		private readonly _creationId: string | undefined,
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 		@ITerminalLogService private readonly _logService: ITerminalLogService
 	) {
@@ -60,16 +61,13 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 		return this._remoteTerminalChannel.detachFromProcess(this.id, forcePersist);
 	}
 
-	shutdown(immediate: boolean): void {
+	async shutdown(immediate: boolean): Promise<void> {
 		this._isShutdown = true;
 		// The host already owns the process allocation before start() is called.
-		if (!this._startRequested) {
-			this._remoteTerminalChannel.shutdown(this.id, immediate);
-			return;
+		if (this._startRequested) {
+			await this._startBarrier.wait();
 		}
-		this._startBarrier.wait().then(_ => {
-			this._remoteTerminalChannel.shutdown(this.id, immediate);
-		});
+		return this._remoteTerminalChannel.shutdown(this.id, immediate, this._creationId);
 	}
 
 	input(data: string): void {

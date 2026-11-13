@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, ok } from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -16,7 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { ExtensionIdentifier, type IExtensionDescription } from '../../../../../platform/extensions/common/extensions.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { EnvironmentVariableMutatorType, type ISerializableEnvironmentVariableCollections } from '../../../../../platform/terminal/common/environmentVariable.js';
-import { ILocalPtyService, IPtyService, ITerminalBackend, ITerminalChildProcess, ITerminalLogService, type ISerializedTerminalState } from '../../../../../platform/terminal/common/terminal.js';
+import { ILocalPtyService, IPtyService, ITerminalBackend, ITerminalChildProcess, ITerminalLogService, type ITerminalProcessOptions, type ISerializedTerminalState } from '../../../../../platform/terminal/common/terminal.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IConfigurationResolverService } from '../../../../services/configurationResolver/common/configurationResolver.js';
@@ -31,6 +31,8 @@ import { LocalTerminalBackend } from '../../electron-browser/localTerminalBacken
 import { ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalProcessManager } from '../../browser/terminalProcessManager.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ILabelService } from '../../../../../platform/label/common/label.js';
+import { IShellEnvironmentService } from '../../../../services/environment/electron-browser/shellEnvironmentService.js';
 
 class RecordingLogService extends NullLogService {
 	readonly warnings: { message: string; args: unknown[] }[] = [];
@@ -57,13 +59,14 @@ suite('LocalTerminalBackend', () => {
 					calls.push(`start ${id}`);
 					return undefined;
 				}
-				override async shutdown(id: number, immediate: boolean): Promise<void> {
+				override async shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+					deepStrictEqual(creationId, 'creation');
 					// Non-immediate host shutdown leaves the allocation live until its exit timer.
 					// Deliberately keep start callable so only the manager guard prevents a late spawn.
 					calls.push(`shutdown ${id} ${immediate}`);
 				}
 			};
-			const pty = store.add(new LocalPty(42, false, proxy));
+			const pty = store.add(new LocalPty(42, false, proxy, 'creation'));
 			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
 				override async getBackend(): Promise<ITerminalBackend> {
 					return upcastPartial<ITerminalBackend>({
@@ -101,6 +104,49 @@ suite('LocalTerminalBackend', () => {
 			}
 		});
 	}
+
+	test('binds distinct allocation identities to the host request and returned client cleanup', async () => {
+		const creationIds: (string | undefined)[] = [];
+		const shutdowns: { id: number; creationId: string | undefined }[] = [];
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(IWorkspaceContextService, new TestContextService());
+		instantiationService.stub(ITerminalLogService, new NullLogService());
+		instantiationService.stub(ILabelService, upcastPartial<ILabelService>({ getWorkspaceLabel: () => 'Workspace' }));
+		instantiationService.stub(IShellEnvironmentService, upcastPartial<IShellEnvironmentService>({ getShellEnv: async () => ({}) }));
+		instantiationService.stub(ILocalPtyService, upcastPartial<ILocalPtyService>({
+			onPtyHostExit: Event.None,
+			onPtyHostStart: Event.None,
+			onPtyHostUnresponsive: Event.None,
+			onPtyHostResponsive: Event.None,
+			onPtyHostRequestResolveVariables: Event.None,
+			createProcess: async (...args: Parameters<ILocalPtyService['createProcess']>) => {
+				creationIds.push(args[7].creationId);
+				return creationIds.length;
+			},
+			shutdown: async (id, _immediate, creationId) => { shutdowns.push({ id, creationId }); }
+		}));
+		const backend = store.add(instantiationService.createInstance(LocalTerminalBackend));
+		const connected = new DeferredPromise<void>();
+		await connected.complete();
+		Reflect.set(backend, '_directProxyClientEventually', connected);
+		const options: ITerminalProcessOptions = {
+			shellIntegration: { enabled: false, suggestEnabled: false, nonce: 'shell nonce' },
+			windowsUseConptyDll: false,
+			environmentVariableCollections: undefined,
+			workspaceFolder: undefined,
+			isScreenReaderOptimized: false
+		};
+		for (let index = 0; index < 2; index++) {
+			const pty = await backend.createProcess({}, '/tmp', 80, 24, '6', {}, options, false);
+			ok(pty instanceof LocalPty);
+			store.add(pty);
+			await pty.shutdown(true);
+		}
+		deepStrictEqual(creationIds.map(id => typeof id), ['string', 'string']);
+		ok(creationIds[0] !== creationIds[1]);
+		deepStrictEqual(shutdowns, [{ id: 1, creationId: creationIds[0] }, { id: 2, creationId: creationIds[1] }]);
+		deepStrictEqual(options.creationId, undefined);
+	});
 
 	test('attachToRevivedProcess only falls back to the original process when it still has the saved pid', async () => {
 		const livePids = new Map([[1, 101], [2, 202], [3, 303]]);

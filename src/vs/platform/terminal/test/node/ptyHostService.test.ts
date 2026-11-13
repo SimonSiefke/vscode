@@ -75,7 +75,7 @@ suite('PtyHostService', () => {
 		const calls: { command: string; args: unknown }[] = [];
 		const channel: IChannel = {
 			call<T>(command: string, args: unknown): Promise<T> {
-				if (command === 'setAutoReplies' || command === 'attachToProcess') {
+				if (command === 'setAutoReplies' || command === 'attachToProcess' || command === 'shutdown') {
 					calls.push({ command, args });
 				}
 				return Promise.resolve([] as T);
@@ -101,13 +101,15 @@ suite('PtyHostService', () => {
 		await localChannel.call('window B', 'setAutoReplies', [2, { 'B prompt': 'B reply' }]);
 		await localChannel.call('window B', 'setAutoReplies', [2, {}]);
 		await localChannel.call('window A', 'attachToProcess', [1, 1234, { prompt: 'restored' }]);
+		await localChannel.call('window A', 'shutdown', [1, true, 'creation']);
 		await timeout(0);
 
 		deepStrictEqual(calls, [
 			{ command: 'setAutoReplies', args: [1, { 'A prompt': 'A reply' }] },
 			{ command: 'setAutoReplies', args: [2, { 'B prompt': 'B reply' }] },
 			{ command: 'setAutoReplies', args: [2, {}] },
-			{ command: 'attachToProcess', args: [1, 1234, { prompt: 'restored' }] }
+			{ command: 'attachToProcess', args: [1, 1234, { prompt: 'restored' }] },
+			{ command: 'shutdown', args: [1, true, 'creation'] }
 		]);
 	});
 });

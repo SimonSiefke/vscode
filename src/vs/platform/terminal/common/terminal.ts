@@ -352,7 +352,7 @@ export interface IPtyService {
 	getLatency(): Promise<IPtyHostLatencyMeasurement[]>;
 
 	start(id: number): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined>;
-	shutdown(id: number, immediate: boolean): Promise<void>;
+	shutdown(id: number, immediate: boolean, creationId?: string): Promise<void>;
 	input(id: number, data: string): Promise<void>;
 	sendSignal(id: number, signal: string): Promise<void>;
 	resize(id: number, cols: number, rows: number, pixelWidth?: number, pixelHeight?: number): Promise<void>;
@@ -766,6 +766,8 @@ export interface IShellLaunchConfigDto {
  * are set internally to the terminal component, not from the outside.
  */
 export interface ITerminalProcessOptions {
+	/** Identifies the allocation request so delayed cleanup cannot release a reused process ID. */
+	creationId?: string;
 	shellIntegration: {
 		enabled: boolean;
 		suggestEnabled: boolean;
