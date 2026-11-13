@@ -6,7 +6,7 @@
 import { deepStrictEqual } from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
-import { upcastPartial } from '../../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
@@ -16,7 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { ExtensionIdentifier, type IExtensionDescription } from '../../../../../platform/extensions/common/extensions.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { EnvironmentVariableMutatorType, type ISerializableEnvironmentVariableCollections } from '../../../../../platform/terminal/common/environmentVariable.js';
-import { ILocalPtyService, ITerminalChildProcess, ITerminalLogService, type ISerializedTerminalState } from '../../../../../platform/terminal/common/terminal.js';
+import { ILocalPtyService, IPtyService, ITerminalBackend, ITerminalChildProcess, ITerminalLogService, type ISerializedTerminalState } from '../../../../../platform/terminal/common/terminal.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IConfigurationResolverService } from '../../../../services/configurationResolver/common/configurationResolver.js';
@@ -28,6 +28,9 @@ import { TerminalStorageKeys } from '../../common/terminalStorageKeys.js';
 import { TestContextService, TestHistoryService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { LocalPty } from '../../electron-browser/localPty.js';
 import { LocalTerminalBackend } from '../../electron-browser/localTerminalBackend.js';
+import { ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
+import { TerminalProcessManager } from '../../browser/terminalProcessManager.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 
 class RecordingLogService extends NullLogService {
 	readonly warnings: { message: string; args: unknown[] }[] = [];
@@ -40,14 +43,77 @@ class RecordingLogService extends NullLogService {
 suite('LocalTerminalBackend', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	for (const disposeDuringSetup of [true, false]) {
+		test(`local pty ${disposeDuringSetup ? 'does not start after default disposal during setup' : 'starts and then shuts down normally'}`, async () => {
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			const configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
+			await configurationService.setUserConfiguration('editor', { fontFamily: 'foo' });
+			await configurationService.setUserConfiguration('terminal', { integrated: { fontFamily: 'bar', enablePersistentSessions: true, shellIntegration: { enabled: false } } });
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			const calls: string[] = [];
+			const proxy = new class extends mock<IPtyService>() {
+				override async start(id: number): Promise<undefined> {
+					calls.push(`start ${id}`);
+					return undefined;
+				}
+				override async shutdown(id: number, immediate: boolean): Promise<void> {
+					// Non-immediate host shutdown leaves the allocation live until its exit timer.
+					// Deliberately keep start callable so only the manager guard prevents a late spawn.
+					calls.push(`shutdown ${id} ${immediate}`);
+				}
+			};
+			const pty = store.add(new LocalPty(42, false, proxy));
+			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
+				override async getBackend(): Promise<ITerminalBackend> {
+					return upcastPartial<ITerminalBackend>({
+						onPtyHostUnresponsive: Event.None,
+						onPtyHostResponsive: Event.None,
+						onPtyHostRestart: Event.None,
+						createProcess: async () => pty,
+						getShellEnvironment: async () => ({}),
+						getLatency: async () => [],
+						setAutoReplies: async () => {
+							await setupStarted.complete();
+							await setupComplete.p;
+						}
+					});
+				}
+			});
+			instantiationService.stub(ITerminalService, upcastPartial<ITerminalService>({ setNextCommandId: async () => { } }));
+			const manager = store.add(instantiationService.createInstance(TerminalProcessManager, 1, undefined, undefined, undefined));
+			const creation = manager.createProcess({}, 80, 24, false);
+			try {
+				await setupStarted.p;
+				if (disposeDuringSetup) {
+					manager.dispose();
+					deepStrictEqual(calls, ['shutdown 42 false']);
+				}
+				await setupComplete.complete();
+				await creation;
+				if (!disposeDuringSetup) {
+					manager.dispose();
+				}
+				deepStrictEqual(calls, disposeDuringSetup ? ['shutdown 42 false'] : ['start 42', 'shutdown 42 false']);
+			} finally {
+				await setupComplete.complete();
+				await creation;
+			}
+		});
+	}
+
 	test('attachToRevivedProcess only falls back to the original process when it still has the saved pid', async () => {
 		const livePids = new Map([[1, 101], [2, 202], [3, 303]]);
 		const revivedIds = new Map([[7, 1], [2, 2], [8, 5]]);
 		const attachRequests: [id: number, pid: number | undefined][] = [];
+		const autoReplyWrites: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
+		const configurationService = new TestConfigurationService();
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'restored reply' });
 
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IWorkspaceContextService, new TestContextService());
 		instantiationService.stub(ITerminalLogService, new NullLogService());
+		instantiationService.stub(IConfigurationService, configurationService);
 		instantiationService.stub(ILocalPtyService, upcastPartial<ILocalPtyService>({
 			onPtyHostExit: Event.None,
 			onPtyHostStart: Event.None,
@@ -55,7 +121,7 @@ suite('LocalTerminalBackend', () => {
 			onPtyHostResponsive: Event.None,
 			onPtyHostRequestResolveVariables: Event.None,
 			getRevivedPtyNewId: async (_workspaceId: string, id: number) => revivedIds.get(id),
-			attachToProcess: async (id: number, pid?: number) => {
+			attachToProcess: async (id: number, pid?: number, replies?: Readonly<Record<string, string | null>>) => {
 				attachRequests.push([id, pid]);
 				const livePid = livePids.get(id);
 				if (livePid === undefined) {
@@ -63,6 +129,9 @@ suite('LocalTerminalBackend', () => {
 				}
 				if (pid !== undefined && pid !== livePid) {
 					throw new Error(`Pty ${id} has pid ${livePid}, expected ${pid}`);
+				}
+				if (replies !== undefined) {
+					autoReplyWrites.push({ id, replies });
 				}
 			}
 		}));
@@ -102,6 +171,7 @@ suite('LocalTerminalBackend', () => {
 			originalMissing: { attachedId: undefined, requests: [[4, 404]] },
 			attachById: { attachedId: 3, requests: [[3, undefined]] },
 		});
+		deepStrictEqual(autoReplyWrites, [1, 2, 3, 3, 3, 3].map(id => ({ id, replies: { prompt: 'restored reply' } })));
 	});
 
 	test('revival refreshes both the environment and collection options before sending persisted state to the pty host', async () => {

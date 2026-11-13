@@ -337,7 +337,7 @@ export interface IPtyService {
 	 * Attaches to a persistent process, failing if `pid` is provided and differs from its process ID.
 	 * Persistent process IDs restart with the pty host, so a saved ID can later belong to another process.
 	 */
-	attachToProcess(id: number, pid?: number): Promise<void>;
+	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>): Promise<void>;
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void>;
 	shutdownAll(): Promise<void>;
 

@@ -363,11 +363,15 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async attachToProcess(id: number, pid?: number): Promise<void> {
+	async attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>): Promise<void> {
 		try {
 			const persistentProcess = this._throwIfNoPty(id);
 			if (pid !== undefined && persistentProcess.pid !== pid) {
 				throw new ErrorNoTelemetry(`Pty ${id} has pid ${persistentProcess.pid}, expected ${pid}`);
+			}
+			// Validate the saved allocation before replacing replies, and apply them before replay.
+			if (autoReplies !== undefined) {
+				this._autoRepliesContribution.setAutoReplies(id, autoReplies);
 			}
 			await persistentProcess.attach();
 			this._logService.info(`Persistent process reconnection "${id}"`);

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { spy } from 'sinon';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { encodeHex, VSBuffer } from '../../../../../base/common/buffer.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -34,6 +35,7 @@ function listenerCount(emitter: Emitter<unknown>): number {
 class TestTerminalChildProcess implements ITerminalChildProcess {
 	id: number = 0;
 	readonly calls: string[] = [];
+	detach?: (forcePersist?: boolean) => Promise<void>;
 	private readonly _onProcessReady = new Emitter<IProcessReadyEvent>();
 	get capabilities() { return []; }
 	constructor(
@@ -78,6 +80,9 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 	readonly createdProcesses: TestTerminalChildProcess[] = [];
 	readonly createProcessRequests: { env: IProcessEnvironment; options: ITerminalProcessOptions }[] = [];
 	refuseRevivedAttach = false;
+	beforeCreateProcess?: () => Promise<void>;
+	beforeSetAutoReplies?: (id: number) => Promise<void>;
+	readonly autoReplySettings = new Map<number, Readonly<Record<string, string | null>>>();
 	readonly autoReplyUpdates: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
 	async getBackend() {
 		return {
@@ -87,7 +92,7 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 			onPtyHostRestart: this.ptyHostRestartEmitter.event,
 			onDidMoveWindowInstance: Event.None,
 			onDidRequestDetach: Event.None,
-			createProcess: (
+			createProcess: async (
 				shellLaunchConfig: any,
 				cwd: string,
 				cols: number,
@@ -98,6 +103,7 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 				shouldPersist: boolean
 			) => {
 				this.createProcessRequests.push({ env: { ...env }, options });
+				await this.beforeCreateProcess?.();
 				const childProcess = new TestTerminalChildProcess(shouldPersist);
 				childProcess.id = this.createdProcesses.push(childProcess);
 				return childProcess;
@@ -106,7 +112,11 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 				this.revivedAttachArgs.push([id, pid]);
 				return this.refuseRevivedAttach ? undefined : new TestTerminalChildProcess(true);
 			},
-			setAutoReplies: async (id: number, replies: Readonly<Record<string, string | null>>) => { this.autoReplyUpdates.push({ id, replies }); },
+			setAutoReplies: async (id: number, replies: Readonly<Record<string, string | null>>) => {
+				this.autoReplyUpdates.push({ id, replies });
+				this.autoReplySettings.set(id, { ...replies });
+				await this.beforeSetAutoReplies?.(id);
+			},
 			getLatency: () => Promise.resolve([]),
 			getShellEnvironment: () => Promise.resolve({})
 		} as unknown as ITerminalBackend;
@@ -276,18 +286,34 @@ suite('Workbench - TerminalProcessManager', () => {
 		});
 	}
 
-	test('applies auto replies to its process and stops updating after detach', async () => {
+	test('stops updating a transferred process while detach is still pending', async () => {
 		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'initial' });
 		await manager.createProcess({}, 80, 24, false);
 		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'updated' });
 		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
-		await manager.detachFromProcess();
-		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', {});
+		const detachStarted = new DeferredPromise<void>();
+		const detachComplete = new DeferredPromise<void>();
+		terminalInstanceService.createdProcesses[0].detach = async () => {
+			await detachStarted.complete();
+			await detachComplete.p;
+		};
+		const detaching = manager.detachFromProcess();
+		try {
+			await detachStarted.p;
+			// Another window has attached and configured the process before the old reply returns.
+			terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', {});
+			configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			deepStrictEqual(terminalInstanceService.autoReplySettings.get(1), { prompt: 'peer' });
+		} finally {
+			await detachComplete.complete();
+			await detaching;
+		}
 		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
-		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [
-			{ id: 1, replies: { prompt: 'initial' } },
-			{ id: 1, replies: { prompt: 'updated' } }
-		]);
+		deepStrictEqual({ updates: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1) }, {
+			updates: [{ id: 1, replies: { prompt: 'initial' } }, { id: 1, replies: { prompt: 'updated' } }],
+			peer: { prompt: 'peer' }
+		});
 	});
 
 	test('does not send auto replies for a custom pty and applies them when replaced with a process', async () => {
@@ -446,6 +472,68 @@ suite('Workbench - TerminalProcessManager', () => {
 	});
 
 	suite('pty host restart', () => {
+		test('does not start the old process when restart replaces it during auto-reply setup', async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			terminalInstanceService.beforeSetAutoReplies = async id => {
+				if (id === 1) {
+					await setupStarted.complete();
+					await setupComplete.p;
+				}
+			};
+			const creation = manager.createProcess({}, 80, 24, false);
+			const relaunch = spy(manager, 'relaunch');
+			try {
+				await setupStarted.p;
+				terminalInstanceService.ptyHostRestartEmitter.fire();
+				await relaunch.firstCall.returnValue;
+			} finally {
+				await setupComplete.complete();
+				await creation;
+				relaunch.restore();
+			}
+			deepStrictEqual(terminalInstanceService.createdProcesses.map(process => process.calls), [[], ['start']]);
+			strictEqual(manager.persistentProcessId, 2);
+		});
+
+		test('preserves a new-host peer while relaunch is pending and updates the replacement', async () => {
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'initial' });
+			await manager.createProcess({}, 80, 24, false);
+			const creationStarted = new DeferredPromise<void>();
+			const creationComplete = new DeferredPromise<void>();
+			terminalInstanceService.beforeCreateProcess = async () => {
+				await creationStarted.complete();
+				await creationComplete.p;
+			};
+			const relaunch = spy(manager, 'relaunch');
+			terminalInstanceService.autoReplyUpdates.length = 0;
+			terminalInstanceService.autoReplySettings.clear();
+			terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+			// Also exercise a configuration notification re-entering from the disconnect event.
+			store.add(manager.onPtyDisconnect(() => {
+				configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			}));
+			terminalInstanceService.ptyHostRestartEmitter.fire();
+			try {
+				await creationStarted.p;
+				await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'replacement' });
+				configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+				deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1) }, {
+					writes: [], peer: { prompt: 'peer' }
+				});
+			} finally {
+				await creationComplete.complete();
+				await relaunch.firstCall.returnValue;
+				relaunch.restore();
+			}
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'latest' });
+			configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1), replacement: terminalInstanceService.autoReplySettings.get(2) }, {
+				writes: [{ id: 2, replies: { prompt: 'replacement' } }, { id: 2, replies: { prompt: 'latest' } }],
+				peer: { prompt: 'peer' }, replacement: { prompt: 'latest' }
+			});
+		});
+
 		async function fireRestartAndCaptureData(os: OperatingSystem, rows: number): Promise<string> {
 			await manager.createProcess({}, 80, rows, false);
 			manager.os = os;

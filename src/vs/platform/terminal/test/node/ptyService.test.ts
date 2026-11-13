@@ -7,12 +7,17 @@ import { deepStrictEqual, rejects } from 'assert';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import pkg from '@xterm/headless';
 import { createSandbox } from 'sinon';
+import { timeout } from '../../../../base/common/async.js';
+import { Emitter } from '../../../../base/common/event.js';
 import { toDisposable } from '../../../../base/common/lifecycle.js';
-import { upcastPartial } from '../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../base/test/common/mock.js';
+import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../log/common/log.js';
 import { IProductService } from '../../../product/common/productService.js';
 import { PtyService, XtermSerializer } from '../../node/ptyService.js';
+import { ITerminalChildProcess } from '../../common/terminal.js';
+import { AutoRepliesPtyServiceContribution } from '../../node/terminalContrib/autoReplies/autoRepliesContribController.js';
 
 suite('XtermSerializer', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -68,6 +73,32 @@ suite('XtermSerializer', () => {
 
 suite('PtyService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('rejected attachment preserves peer replies and accepted attachment replaces them before replay', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
+		const data = store.add(new Emitter<string>());
+		const replies: string[] = [];
+		const process = new class extends mock<ITerminalChildProcess>() {
+			override readonly onProcessData = data.event;
+			override input(value: string): void { replies.push(value); }
+		};
+		const contribution: AutoRepliesPtyServiceContribution = Reflect.get(service, '_autoRepliesContribution');
+		const ptys: Map<number, { pid: number; attach(): Promise<void>; shutdown(): void }> = Reflect.get(service, '_ptys');
+		let attaches = 0;
+		ptys.set(1, { pid: 1234, attach: async () => { attaches++; data.fire('prompt'); }, shutdown: () => { } });
+		contribution.handleProcessReady(1, process);
+		try {
+			await service.setAutoReplies(1, { prompt: 'live owner' });
+			await rejects(service.attachToProcess(1, 4321, { prompt: 'restoring window' }));
+			data.fire('prompt');
+			deepStrictEqual({ attaches, replies }, { attaches: 0, replies: ['live owner'] });
+			await service.attachToProcess(1, 1234, { prompt: 'restoring window' });
+			deepStrictEqual({ attaches, replies }, { attaches: 1, replies: ['live owner', 'restoring window'] });
+		} finally {
+			contribution.handleProcessDispose(1);
+			await timeout(1100);
+		}
+	}));
 
 	test('attachToProcess only attaches when the expected pid matches', async () => {
 		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));

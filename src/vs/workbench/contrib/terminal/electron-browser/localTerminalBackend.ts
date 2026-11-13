@@ -224,9 +224,9 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 	async attachToProcess(id: number, pid?: number): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
-			await this._proxy.setAutoReplies(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
-			await this._proxy.attachToProcess(id, pid);
-			const pty = new LocalPty(id, true, this._proxy);
+			const proxy = this._proxy;
+			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
+			const pty = new LocalPty(id, true, proxy);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {

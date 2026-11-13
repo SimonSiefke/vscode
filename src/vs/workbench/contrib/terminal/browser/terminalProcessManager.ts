@@ -454,7 +454,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		}, ProcessConstants.ErrorLaunchThresholdDuration);
 
 		await this._updateAutoReplies();
-		if (this._isDisposed) {
+		if (this._process !== newProcess) {
 			return undefined;
 		}
 		const result = await newProcess.start();
@@ -604,6 +604,8 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		// When the pty host restarts, reconnect is no longer possible so dispose the responsive
 		// listener
 		this._register(backend.onPtyHostRestart(async () => {
+			// Process IDs belong to the old host; stop updates before notifying listeners or awaiting relaunch.
+			this._process = null;
 			// When the pty host restarts, reconnect is no longer possible
 			if (!this._isDisconnected) {
 				this._isDisconnected = true;
