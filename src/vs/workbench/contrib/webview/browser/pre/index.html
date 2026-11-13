@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'none'; script-src 'sha256-T0kkoSMz4fTZl4565i2G0rrurdVXNaxMMNXprLI3Mmg=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+		content="default-src 'none'; script-src 'sha256-LD+ronvmU/ZVIMURCSLlOZj8UnaCinFLbl1l1sjCRTQ=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
 
 	<!-- Disable pinch zooming -->
 	<meta name="viewport"
@@ -75,6 +75,8 @@
 			});
 			window.addEventListener('focus', updateFocus, true);
 			window.addEventListener('blur', updateFocus, true);
+			// Nested frames can change focus without firing events in either ancestor window.
+			setInterval(updateFocus, 250);
 			return updateFocus;
 		};
 

@@ -240,6 +240,88 @@ suite('Webview shell messaging', () => {
 		}
 	}
 
+	function createFocusTracker() {
+		const compiledDir = FileAccess.asFileUri('vs/workbench/contrib/webview/test/node').fsPath;
+		const sourceDir = resolve(compiledDir).replaceAll('\\', '/').replace('/out/vs/workbench/', '/src/vs/workbench/');
+		const html = readFileSync(join(sourceDir, '../../browser/pre/index.html'), 'utf8');
+		const start = html.indexOf('const trackFocus =');
+		const end = html.indexOf('const getActiveFrame =', start);
+		assert.ok(start !== -1 && end > start);
+		const pending: (() => void)[] = [];
+		const states: boolean[] = [];
+		const target = new EventTarget();
+		let focused = false;
+		let menuVisible = false;
+		let tick: (() => void) | undefined;
+		const update = new Function('window', 'document', 'getActiveFrame', 'queueMicrotask', 'setInterval', `${html.slice(start, end)}\nreturn trackFocus;`)(
+			target,
+			{ hasFocus: () => focused },
+			() => ({ contentDocument: { body: { classList: { contains: () => menuVisible } } } }),
+			(callback: () => void) => pending.push(callback),
+			(callback: () => void, interval: number) => {
+				assert.strictEqual(interval, 250);
+				tick = callback;
+			},
+		)({ onFocus: () => states.push(true), onBlur: () => states.push(false) }) as () => void;
+		return {
+			states,
+			setFocused: (value: boolean) => { focused = value; },
+			setMenuVisible: (value: boolean) => { menuVisible = value; },
+			emit: (type: 'focus' | 'blur') => target.dispatchEvent(new globalThis.Event(type)),
+			flush: () => {
+				while (pending.length) {
+					pending.shift()!();
+				}
+			},
+			tick: () => {
+				assert.ok(tick, 'A fallback must observe focus changes without ancestor DOM events');
+				tick();
+			},
+			update,
+		};
+	}
+
+	test('reports observed focus changes before the fallback timer runs', () => {
+		const tracker = createFocusTracker();
+		tracker.setFocused(true);
+		tracker.emit('focus');
+		const beforeMicrotask = [...tracker.states];
+		tracker.flush();
+		const afterFocus = [...tracker.states];
+		tracker.setFocused(false);
+		tracker.emit('blur');
+		tracker.flush();
+		assert.deepStrictEqual({ beforeMicrotask, afterFocus, states: tracker.states }, {
+			beforeMicrotask: [], afterFocus: [true], states: [true, false],
+		});
+	});
+
+	test('reconciles focus changes that emit no ancestor DOM event', () => {
+		const tracker = createFocusTracker();
+		tracker.setFocused(true);
+		tracker.tick();
+		tracker.flush();
+		tracker.tick();
+		tracker.flush();
+		tracker.setFocused(false);
+		tracker.tick();
+		tracker.flush();
+		assert.deepStrictEqual(tracker.states, [true, false]);
+	});
+
+	test('reconciles context-menu visibility without a DOM focus change', () => {
+		const tracker = createFocusTracker();
+		tracker.setMenuVisible(true);
+		tracker.update();
+		tracker.flush();
+		tracker.tick();
+		tracker.flush();
+		tracker.setMenuVisible(false);
+		tracker.update();
+		tracker.flush();
+		assert.deepStrictEqual(tracker.states, [true, false]);
+	});
+
 	test('matches the preload script CSP hash', () => {
 		const compiledDir = FileAccess.asFileUri('vs/workbench/contrib/webview/test/node').fsPath;
 		const sourceDir = resolve(compiledDir).replaceAll('\\', '/').replace('/out/vs/workbench/', '/src/vs/workbench/');
