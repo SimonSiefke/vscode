@@ -640,6 +640,16 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		return undefined;
 	}
 
+	deleteSessionState(resource: URI): void {
+		const session = this._sessions.get(resource);
+		this.sessionStates.delete(resource);
+		if (session?.legacyResource) {
+			this.sessionStates.delete(session.legacyResource);
+		}
+		this._sessionObservables.delete(resource);
+		this._resolvedResources.delete(resource);
+	}
+
 	/**
 	 * Lists each legacy Copilot CLI session once. The extension-host `copilotcli:`
 	 * row is hidden once its agent-host `agent-host-copilotcli:` twin has been
