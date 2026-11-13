@@ -16,7 +16,8 @@ import { getPathLabel } from '../../../base/common/labels.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
 import { Schemas } from '../../../base/common/network.js';
 import { basename, join, normalize, posix } from '../../../base/common/path.js';
-import { getMarks, mark } from '../../../base/common/performance.js';
+import { getMarks } from '../../../base/common/performance.js';
+import { markWindowPerformance } from './windowPerformance.js';
 import { IProcessEnvironment, isMacintosh, isWindows, OS } from '../../../base/common/platform.js';
 import { cwd } from '../../../base/common/process.js';
 import { extUriBiasedIgnorePathCase, isEqual, isEqualAuthority, normalizePath, originalFSPath, removeTrailingPathSeparator } from '../../../base/common/resources.js';
@@ -1639,7 +1640,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 			const minimized = !!options.initialStartup && !!this.windowsStateHandler.exactRestore && !!state.minimized;
 
 			// Create the window
-			mark('code/willCreateCodeWindow');
+			markWindowPerformance('code/willCreateCodeWindow');
 			const createdWindow = window = this.instantiationService.createInstance(CodeWindow, {
 				state,
 				extensionDevelopmentPath: configuration.extensionDevelopmentPath,
@@ -1647,7 +1648,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				isSessionsWindow: configuration.isSessionsWindow,
 				minimized
 			});
-			mark('code/didCreateCodeWindow');
+			markWindowPerformance('code/didCreateCodeWindow');
 
 			// Add as window tab if configured (macOS only)
 			if (options.forceNewTabbedWindow) {

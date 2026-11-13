@@ -11,7 +11,8 @@ import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { FileAccess, Schemas } from '../../../base/common/network.js';
 import { join } from '../../../base/common/path.js';
-import { getMarks, mark } from '../../../base/common/performance.js';
+import { getMarks } from '../../../base/common/performance.js';
+import { markWindowPerformance } from './windowPerformance.js';
 import { isTahoeOrNewer, isLinux, isMacintosh, isWindows } from '../../../base/common/platform.js';
 import { URI } from '../../../base/common/uri.js';
 import { localize } from '../../../nls.js';
@@ -872,9 +873,9 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 			this._iconPath = iconPath ? URI.file(iconPath) : undefined;
 
 			// Create the browser window
-			mark('code/willCreateCodeBrowserWindow');
+			markWindowPerformance('code/willCreateCodeBrowserWindow');
 			this._win = new electron.BrowserWindow(options);
-			mark('code/didCreateCodeBrowserWindow');
+			markWindowPerformance('code/didCreateCodeBrowserWindow');
 
 			this._id = this._win.id;
 			this.setWin(this._win, options);
@@ -1459,7 +1460,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 		}
 
 		// Update with latest perf marks
-		mark('code/willOpenNewWindow');
+		markWindowPerformance('code/willOpenNewWindow');
 		configuration.perfMarks = getMarks();
 
 		// Update in config object URL for usage in renderer
@@ -1618,7 +1619,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	}
 
 	private restoreWindowState(state?: IWindowState): [IWindowState, boolean? /* has multiple displays */] {
-		mark('code/willRestoreCodeWindowState');
+		markWindowPerformance('code/willRestoreCodeWindowState');
 
 		const alwaysOnTop = state?.alwaysOnTop;
 		let hasMultipleDisplays = false;
@@ -1638,7 +1639,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 			}
 		}
 
-		mark('code/didRestoreCodeWindowState');
+		markWindowPerformance('code/didRestoreCodeWindowState');
 
 		return [{ ...(state || defaultWindowState()), alwaysOnTop }, hasMultipleDisplays];
 	}
