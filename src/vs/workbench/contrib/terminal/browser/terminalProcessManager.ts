@@ -98,6 +98,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	private _hasChildProcesses: boolean = false;
 	private _ptyResponsiveListener: IDisposable | undefined;
 	private _ptyListenersAttached: boolean = false;
+	private _ptyHostGeneration = 0;
 	private _dataFilter: SeamlessRelaunchDataFilter;
 	private _processListeners?: IDisposable[];
 	private _isDisconnected: boolean = false;
@@ -263,6 +264,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		rows: number,
 		reset: boolean = true
 	): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
+		const ptyHostGeneration = this._ptyHostGeneration;
 		this._shellLaunchConfig = shellLaunchConfig;
 		this._dimensions.cols = cols;
 		this._dimensions.rows = rows;
@@ -279,6 +281,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				throw new Error(`No terminal backend registered for remote authority '${this.remoteAuthority}'`);
 			}
 			this.backend = backend;
+			if (!this._isDisposed) {
+				this._setupPtyHostListeners(backend);
+			}
 
 			// Create variable resolver
 			// Start with the full base environment so that all standard variables (e.g. PATH) are
@@ -356,9 +361,6 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 						throw e;
 					}
 				}
-				if (!this._isDisposed) {
-					this._setupPtyHostListeners(backend);
-				}
 			} else {
 				if (shellLaunchConfig.attachPersistentProcess) {
 					const { id, pid, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
@@ -377,14 +379,16 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				if (!newProcess) {
 					newProcess = await this._launchLocalProcess(backend, shellLaunchConfig, cols, rows, this.userHome, variableResolver);
 				}
-				if (!this._isDisposed) {
-					this._setupPtyHostListeners(backend);
-				}
 			}
 		}
 
 		if (this._parentWindowId !== undefined && this._terminalConfigurationService.config.windowsReparentConsoleWindow) {
 			await this._resolveParentWindowHandle();
+		}
+
+		// A restarted host has already lost this allocation; never send its ID to the new host.
+		if (ptyHostGeneration !== this._ptyHostGeneration) {
+			return undefined;
 		}
 
 		// If the process was disposed during its creation, shut it down and return failure
@@ -604,6 +608,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		// When the pty host restarts, reconnect is no longer possible so dispose the responsive
 		// listener
 		this._register(backend.onPtyHostRestart(async () => {
+			this._ptyHostGeneration++;
 			// Process IDs belong to the old host; stop updates before notifying listeners or awaiting relaunch.
 			this._process = null;
 			// When the pty host restarts, reconnect is no longer possible

@@ -14,6 +14,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	private readonly _startBarrier: Barrier;
 	private _startRequested = false;
 	private _isShutdown = false;
+	private _isDetached = false;
 
 	constructor(
 		id: number,
@@ -27,7 +28,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	async start(): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
-		if (this._isShutdown) {
+		if (this._isShutdown || this._isDetached) {
 			return undefined;
 		}
 		this._startRequested = true;
@@ -52,7 +53,10 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 	}
 
 	async detach(forcePersist?: boolean): Promise<void> {
-		await this._startBarrier.wait();
+		this._isDetached = true;
+		if (this._startRequested) {
+			await this._startBarrier.wait();
+		}
 		return this._remoteTerminalChannel.detachFromProcess(this.id, forcePersist);
 	}
 

@@ -384,6 +384,79 @@ suite('Workbench - TerminalProcessManager', () => {
 		});
 	}
 
+	for (const detachAt of ['setup', 'start', 'ready'] as const) {
+		test(`detaches a remote pty during ${detachAt} without waiting for suppressed startup`, async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			const startRequested = new DeferredPromise<void>();
+			const startComplete = new DeferredPromise<void>();
+			const calls: string[] = [];
+			instantiationService.stub(IRemoteAgentService, {
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const channel = new class extends mock<RemoteTerminalChannelClient>() {
+				override async start(id: number): Promise<undefined> {
+					calls.push(`start ${id}`);
+					await startRequested.complete();
+					await startComplete.p;
+					return undefined;
+				}
+				override async detachFromProcess(id: number, forcePersist?: boolean): Promise<void> {
+					calls.push(`detach ${id} ${forcePersist}`);
+				}
+			};
+			const pty = store.add(instantiationService.createInstance(RemotePty, 42, true, channel));
+			const backend = await terminalInstanceService.getBackend();
+			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
+				override async getBackend(): Promise<ITerminalBackend> {
+					return {
+						...backend,
+						createProcess: async () => pty,
+						setAutoReplies: async () => {
+							await setupStarted.complete();
+							await setupComplete.p;
+						}
+					};
+				}
+			});
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const creation = remoteManager.createProcess({}, 80, 24, false);
+			try {
+				await setupStarted.p;
+				if (detachAt !== 'setup') {
+					await setupComplete.complete();
+					await startRequested.p;
+				}
+				if (detachAt === 'ready') {
+					await startComplete.complete();
+					await creation;
+				}
+				const detaching = remoteManager.detachFromProcess(true);
+				if (detachAt === 'setup') {
+					deepStrictEqual(calls, ['detach 42 true']);
+					await detaching;
+				} else {
+					if (detachAt === 'start') {
+						deepStrictEqual(calls, ['start 42']);
+						await startComplete.complete();
+					}
+					await detaching;
+				}
+				await setupComplete.complete();
+				await creation;
+				// A delayed caller cannot restart the old client after ownership was transferred.
+				await pty.start();
+				deepStrictEqual(calls, detachAt === 'setup' ? ['detach 42 true'] : ['start 42', 'detach 42 true']);
+				strictEqual(remoteManager.persistentProcessId, undefined);
+			} finally {
+				await setupComplete.complete();
+				await startComplete.complete();
+				await creation;
+			}
+		});
+	}
+
 	test('does not accumulate environment variable collection listeners when relaunching', async () => {
 		const changeCollectionsEmitter = (environmentVariableService as unknown as { _onDidChangeCollections: Emitter<unknown> })._onDidChangeCollections;
 		const initialListenerCount = listenerCount(changeCollectionsEmitter);
@@ -593,6 +666,62 @@ suite('Workbench - TerminalProcessManager', () => {
 			await setReparentConsoleWindow(true);
 			instantiationService.stub(IHostService, 'getNativeWindowHandle', async (windowId: number) => windowHandle(windowId));
 		});
+
+		for (const pendingAt of ['allocation', 'parent handle'] as const) {
+			test(`does not restore an old-host target when restart interrupts ${pendingAt}`, async () => {
+				const initialPending = new DeferredPromise<void>();
+				const initialComplete = new DeferredPromise<void>();
+				const replacementPending = new DeferredPromise<void>();
+				const replacementComplete = new DeferredPromise<void>();
+				await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'owner' });
+				if (pendingAt === 'parent handle') {
+					// Exercise the native-handle await on every test host without changing the public Windows guard.
+					Reflect.set(manager, '_parentWindowId', 4);
+					instantiationService.stub(IHostService, 'getNativeWindowHandle', async () => {
+						await initialPending.complete();
+						await initialComplete.p;
+						return windowHandle(4);
+					});
+				}
+				terminalInstanceService.beforeCreateProcess = async () => {
+					if (terminalInstanceService.createProcessRequests.length === 1) {
+						if (pendingAt === 'allocation') {
+							await initialPending.complete();
+							await initialComplete.p;
+						}
+					} else {
+						await replacementPending.complete();
+						await replacementComplete.p;
+					}
+				};
+				const relaunch = spy(manager, 'relaunch');
+				const creation = manager.createProcess({}, 80, 24, false);
+				try {
+					await initialPending.p;
+					terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+					terminalInstanceService.ptyHostRestartEmitter.fire();
+					strictEqual(relaunch.callCount, 1, 'restart is observed even before the first allocation returns');
+					await replacementPending.p;
+					await initialComplete.complete();
+					await creation;
+					deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1), target: manager.persistentProcessId }, {
+						writes: [], peer: { prompt: 'peer' }, target: undefined
+					});
+					deepStrictEqual(terminalInstanceService.createdProcesses[0].calls, []);
+				} finally {
+					await initialComplete.complete();
+					await replacementComplete.complete();
+					await creation;
+					if (relaunch.called) {
+						await relaunch.firstCall.returnValue;
+					}
+					relaunch.restore();
+				}
+				deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 2, replies: { prompt: 'owner' } }]);
+				deepStrictEqual(terminalInstanceService.autoReplySettings.get(1), { prompt: 'peer' });
+				strictEqual(manager.persistentProcessId, 2);
+			});
+		}
 
 		test('sets the parent window before the process starts', async () => {
 			await manager.setParentWindow(4);
