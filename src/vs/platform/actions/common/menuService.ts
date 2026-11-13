@@ -166,25 +166,6 @@ class PersistedMenuHideState implements IDisposable {
 }
 
 type MenuItemGroup = [string, Array<IMenuItem | ISubmenuItem>];
-type MenuActionGroups = [string, Array<MenuItemAction | SubmenuItemAction>][];
-
-function getCacheKey(options: IMenuActionOptions | undefined): string | undefined {
-	if (!options) {
-		return '';
-	}
-	if (options.arg !== undefined || options.args !== undefined || options.shouldForwardArgs) {
-		return undefined;
-	}
-	return [
-		options.renderShortTitle ? 1 : 0,
-		options.skipMenuHideActions ? 1 : 0,
-		options.skipConfigureKeybindingAction ? 1 : 0
-	].join(',');
-}
-
-function cloneActionGroups(groups: MenuActionGroups): MenuActionGroups {
-	return groups.map(([group, actions]) => [group, actions.slice()]);
-}
 
 function groupMenuItems(menuItems: (IMenuItem | ISubmenuItem)[]): MenuItemGroup[] {
 	return Array.from(
@@ -252,8 +233,6 @@ class MenuInfoSnapshot {
 	private _structureContextKeys: Set<string> = new Set();
 	private _preconditionContextKeys: Set<string> = new Set();
 	private _toggledContextKeys: Set<string> = new Set();
-	readonly cacheContextKeys = new Set<string>();
-	readonly cacheMenuIds = new Set<MenuId>();
 
 	constructor(
 		protected readonly _id: MenuId,
@@ -294,36 +273,6 @@ class MenuInfoSnapshot {
 			this._collectContextKeysAndSubmenuIds(item);
 		}
 		this._allMenuIds.add(this._id);
-		this.refreshCacheDependencies(menuItems);
-	}
-
-	refreshCacheDependencies(menuItems = MenuRegistry.getMenuItems(this._id)): void {
-		this.cacheContextKeys.clear();
-		this.cacheMenuIds.clear();
-		const collect = (id: MenuId, items: (IMenuItem | ISubmenuItem)[]) => {
-			if (this.cacheMenuIds.has(id)) {
-				return;
-			}
-			this.cacheMenuIds.add(id);
-			for (const item of items) {
-				MenuInfoSnapshot._fillInKbExprKeys(item.when, this.cacheContextKeys);
-				if (isIMenuItem(item)) {
-					for (const command of [item.command, item.alt]) {
-						if (command) {
-							MenuInfoSnapshot._fillInKbExprKeys(command.precondition, this.cacheContextKeys);
-							const toggled = command.toggled;
-							if (toggled) {
-								MenuInfoSnapshot._fillInKbExprKeys((toggled as { condition: ContextKeyExpression }).condition || toggled, this.cacheContextKeys);
-							}
-						}
-					}
-				} else {
-					MenuInfoSnapshot._fillInKbExprKeys(item.toggled, this.cacheContextKeys);
-					collect(item.submenu, MenuRegistry.getMenuItems(item.submenu));
-				}
-			}
-		};
-		collect(this._id, menuItems);
 	}
 
 	protected _sort(menuItems: (IMenuItem | ISubmenuItem)[]) {
@@ -447,8 +396,6 @@ class MenuImpl implements IMenu {
 
 	private readonly _menuInfo: MenuInfo;
 	private readonly _disposables = new DisposableStore();
-	private readonly _cachedActionGroups = new Map<string, MenuActionGroups>();
-	private _isChangeListenerActive = false;
 
 	private readonly _onDidChange: Emitter<IMenuChangeEvent>;
 	readonly onDidChange: Event<IMenuChangeEvent>;
@@ -468,18 +415,10 @@ class MenuImpl implements IMenu {
 		// structure of the menu
 		const rebuildMenuSoon = new RunOnceScheduler(() => {
 			this._menuInfo.refresh();
-			this._cachedActionGroups.clear();
 			this._onDidChange.fire({ menu: this, isStructuralChange: true, isEnablementChange: true, isToggleChange: true });
 		}, options.eventDebounceDelay);
 		this._disposables.add(rebuildMenuSoon);
 		this._disposables.add(MenuRegistry.onDidChangeMenu(e => {
-			for (const id of this._menuInfo.cacheMenuIds) {
-				if (e.has(id)) {
-					this._cachedActionGroups.clear();
-					this._menuInfo.refreshCacheDependencies();
-					break;
-				}
-			}
 			for (const id of this._menuInfo.allMenuIds) {
 				if (e.has(id)) {
 					rebuildMenuSoon.schedule();
@@ -513,35 +452,24 @@ class MenuImpl implements IMenu {
 		};
 
 		const startLazyListener = () => {
-			this._isChangeListenerActive = true;
 
 			lazyListener.add(contextKeyService.onDidChangeContext(e => {
-				if (e.affectsSome(this._menuInfo.cacheContextKeys)) {
-					this._cachedActionGroups.clear();
-				}
 				const isStructuralChange = e.affectsSome(this._menuInfo.structureContextKeys);
 				const isEnablementChange = e.affectsSome(this._menuInfo.preconditionContextKeys);
 				const isToggleChange = e.affectsSome(this._menuInfo.toggledContextKeys);
 				if (isStructuralChange || isEnablementChange || isToggleChange) {
-					this._cachedActionGroups.clear();
 					this._onDidChange.fire({ menu: this, isStructuralChange, isEnablementChange, isToggleChange });
 				}
 			}));
 			lazyListener.add(hiddenStates.onDidChange(e => {
-				this._cachedActionGroups.clear();
 				this._onDidChange.fire({ menu: this, isStructuralChange: true, isEnablementChange: false, isToggleChange: false });
 			}));
-		};
-		const stopLazyListener = () => {
-			this._isChangeListenerActive = false;
-			this._cachedActionGroups.clear();
-			lazyListener.clear();
 		};
 
 		this._onDidChange = new DebounceEmitter({
 			// start/stop context key listener
 			onWillAddFirstListener: startLazyListener,
-			onDidRemoveLastListener: stopLazyListener,
+			onDidRemoveLastListener: lazyListener.clear.bind(lazyListener),
 			delay: options.eventDebounceDelay,
 			merge
 		});
@@ -549,19 +477,7 @@ class MenuImpl implements IMenu {
 	}
 
 	getActions(options?: IMenuActionOptions | undefined): [string, (MenuItemAction | SubmenuItemAction)[]][] {
-		if (!this._isChangeListenerActive) {
-			return this._menuInfo.createActionGroups(options);
-		}
-		const cacheKey = getCacheKey(options);
-		if (cacheKey === undefined) {
-			return this._menuInfo.createActionGroups(options);
-		}
-		let cached = this._cachedActionGroups.get(cacheKey);
-		if (!cached) {
-			cached = this._menuInfo.createActionGroups(options);
-			this._cachedActionGroups.set(cacheKey, cached);
-		}
-		return cloneActionGroups(cached);
+		return this._menuInfo.createActionGroups(options);
 	}
 
 	dispose(): void {
@@ -572,6 +488,8 @@ class MenuImpl implements IMenu {
 
 class MenuItemHide implements IMenuItemHide {
 
+	readonly isHidden: boolean;
+
 	private _hide: IAction | undefined;
 	private _toggle: IAction | undefined;
 
@@ -580,10 +498,9 @@ class MenuItemHide implements IMenuItemHide {
 		private readonly _id: string,
 		private readonly _title: string,
 		private readonly _states: PersistedMenuHideState
-	) { }
-
-	get isHidden(): boolean {
-		return this._states.isHidden(this._menu, this._id);
+	) {
+		// Consumers compare old and new menu actions to detect visibility changes.
+		this.isHidden = _states.isHidden(_menu, _id);
 	}
 
 	get isModifiedFromDefault(): boolean {
