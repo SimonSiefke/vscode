@@ -8,8 +8,8 @@ import sinon from 'sinon';
 import { deepStrictEqual, strictEqual } from 'assert';
 import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { IAction } from '../../../../../../base/common/actions.js';
-import { timeout } from '../../../../../../base/common/async.js';
-import { toDisposable } from '../../../../../../base/common/lifecycle.js';
+import { DeferredPromise, timeout } from '../../../../../../base/common/async.js';
+import { MutableDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { isWindows } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -152,13 +152,12 @@ suite('QuickFixAddon', () => {
 			deepStrictEqual(options(), [[builtin.commandLineMatcher.toString(), [builtin.id]]]);
 		});
 
-		test('service contribution survives repeated public provider disposal and re-registration', async () => {
-			const contribution = selector('owned.provider');
+		async function createService(contributions: ITerminalCommandSelector[]): Promise<TerminalQuickFixService> {
 			const extensionPoint = ExtensionsRegistry.getExtensionPoints().find(point => point.name === 'terminalQuickFixes')!;
 			const handlerStub = sinon.stub(extensionPoint, 'setHandler').callsFake(handler => {
 				handler([{
 					description: { ...nullExtensionDescription, enabledApiProposals: ['terminalQuickFixProvider'] },
-					value: [contribution],
+					value: contributions,
 					collector: new ExtensionMessageCollector(() => { }, nullExtensionDescription, 'terminalQuickFixes')
 				}], { added: [], removed: [] });
 				return store.add(toDisposable(() => { }));
@@ -173,6 +172,12 @@ suite('QuickFixAddon', () => {
 			quickFixAddon = instantiationService.createInstance(TerminalQuickFixAddon, generateUuid(), [], store.add(new TerminalCapabilityStore()));
 			terminal.loadAddon(quickFixAddon);
 			await service.extensionQuickFixes;
+			return service;
+		}
+
+		test('service contribution survives repeated public provider disposal and re-registration', async () => {
+			const contribution = selector('owned.provider');
+			const service = await createService([contribution]);
 			for (let cycle = 0; cycle < 37; cycle++) {
 				const command = `replacement ${cycle}`;
 				const registration = store.add(service.registerQuickFixProvider(contribution.id, {
@@ -185,6 +190,72 @@ suite('QuickFixAddon', () => {
 				registration.dispose();
 				deepStrictEqual({ providers: service.providers.size, listeners: options() }, { providers: 0, listeners: [] });
 			}
+		});
+
+		test('does not revisit a provider replaced while its request is pending', async () => {
+			const contribution = selector('owned.provider');
+			const service = await createService([contribution]);
+			const registration = store.add(new MutableDisposable());
+			const pending = new DeferredPromise<void>();
+			const calls: string[] = [];
+			registration.value = service.registerQuickFixProvider(contribution.id, {
+				provideTerminalQuickFixes: async () => {
+					calls.push('original');
+					await pending.p;
+					return { id: contribution.id, source: 'test', type: TerminalQuickFixType.TerminalCommand, terminalCommand: 'original' };
+				}
+			});
+			await timeout(0);
+			const listeners = Reflect.get(quickFixAddon, '_commandListeners') as Map<string, ITerminalQuickFixOptions[]>;
+			const command = createCommand('owned command', 'owned error', 'owned error', 1, ['owned error']);
+			const request = getQuickFixesForCommand([], terminal, command, listeners, commandService, openerService, labelService);
+			try {
+				deepStrictEqual(calls, ['original']);
+				registration.clear();
+				deepStrictEqual(options(), []);
+				registration.value = service.registerQuickFixProvider(contribution.id, {
+					provideTerminalQuickFixes: async () => {
+						calls.push('replacement');
+						return { id: contribution.id, source: 'test', type: TerminalQuickFixType.TerminalCommand, terminalCommand: 'replacement' };
+					}
+				});
+				await timeout(0);
+			} finally {
+				await pending.complete();
+			}
+			const actions = await request;
+			deepStrictEqual({ calls, actions: actions?.map(action => action.label) }, { calls: ['original'], actions: ['Run: original'] });
+			const nextActions = await getQuickFixesForCommand([], terminal, command, listeners, commandService, openerService, labelService);
+			deepStrictEqual({ calls, actions: nextActions?.map(action => action.label) }, { calls: ['original', 'replacement'], actions: ['Run: replacement'] });
+			registration.clear();
+			deepStrictEqual({ providers: service.providers.size, listeners: options() }, { providers: 0, listeners: [] });
+		});
+
+		test('snapshots later option lists before awaiting the first provider', async () => {
+			const pending = new DeferredPromise<void>();
+			const calls: string[] = [];
+			quickFixAddon.registerCommandFinishedListener({
+				...selector('owned.first', 'first command'),
+				type: 'resolved',
+				getQuickFixes: async () => {
+					await pending.p;
+					return undefined;
+				}
+			});
+			register('owned.second', 'second command');
+			const listeners = Reflect.get(quickFixAddon, '_commandListeners') as Map<string, ITerminalQuickFixOptions[]>;
+			const command = createCommand('owned command', 'owned error', 'owned error', 1, ['owned error']);
+			const resolve = async (option: ITerminalQuickFixOptions) => {
+				calls.push(option.id);
+				return undefined;
+			};
+			const request = getQuickFixesForCommand([], terminal, command, listeners, commandService, openerService, labelService, undefined, resolve);
+			quickFixAddon.registerCommandSelector(selector('owned.added', 'second command'));
+			await pending.complete();
+			await request;
+			deepStrictEqual(calls, []);
+			await getQuickFixesForCommand([], terminal, command, listeners, commandService, openerService, labelService, undefined, resolve);
+			deepStrictEqual(calls, ['owned.added']);
 		});
 
 		test('unknown and repeated unregister events preserve live providers', () => {
