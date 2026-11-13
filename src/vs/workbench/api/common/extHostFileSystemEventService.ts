@@ -79,7 +79,10 @@ class FileSystemWatcher implements vscode.FileSystemWatcher {
 				? globPattern.toLowerCase()
 				: { base: globPattern.base.toLowerCase(), pattern: globPattern.pattern.toLowerCase() };
 		}
-		const parsedPattern = parse(matchGlob, { ignoreCase: false /* speeds up matching, but requires us to lowercase paths and patterns */ });
+		const parsedPattern = parse(matchGlob, {
+			ignoreCase: false, // speeds up matching, but requires us to lowercase paths and patterns
+			useCache: false // the watcher owns the parsed pattern for its lifetime
+		});
 
 		// 1.64.x behavior change: given the new support to watch any folder
 		// we start to ignore events outside the workspace when only a string
