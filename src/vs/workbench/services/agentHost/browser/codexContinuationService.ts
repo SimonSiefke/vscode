@@ -110,7 +110,6 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 		this._register(_entitlement.onDidChangeEntitlement(schedule));
 		this._register(_entitlement.onDidChangeQuotaRemaining(schedule));
 		this._register(_entitlement.onDidChangeQuotaExceeded(schedule));
-		this._register(_entitlement.onDidChangeSentiment(() => { bind(); this.refresh(); }));
 		this._register(_configuration.onDidChangeConfiguration(() => { bind(); this.refresh(); }));
 		this._register(_host.onDidChangeFocus(focused => { if (focused) { this.refresh(); } schedule(); }));
 		this._register(_storage.onDidChangeValue(StorageScope.APPLICATION_SHARED, CODEX_CONTINUATION_STORAGE_KEY, this._store)(() => {
@@ -129,6 +128,9 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 			}
 			schedule();
 		};
+		// Sentiment context keys are published separately; act on the settled state.
+		const updateEligibility = this._register(new RunOnceScheduler(() => { bind(); this.refresh(); }, 0));
+		this._register(_entitlement.onDidChangeSentiment(() => { schedule(); updateEligibility.schedule(); }));
 		this._register(_agentHost.onAgentHostStart(bind));
 		bind();
 		this.refresh();
