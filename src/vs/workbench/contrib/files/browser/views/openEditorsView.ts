@@ -5,6 +5,7 @@
 
 import './media/openeditors.css';
 import * as nls from '../../../../../nls.js';
+import { Event } from '../../../../../base/common/event.js';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
 import { IAction, ActionRunner, WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification } from '../../../../../base/common/actions.js';
 import * as dom from '../../../../../base/browser/dom.js';
@@ -26,7 +27,7 @@ import { IListVirtualDelegate, IListRenderer, IListContextMenuEvent, IListDragAn
 import { ResourceLabels, IResourceLabel } from '../../../../browser/labels.js';
 import { ActionBar } from '../../../../../base/browser/ui/actionbar/actionbar.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { DisposableMap, IDisposable, dispose } from '../../../../../base/common/lifecycle.js';
+import { DisposableMap, IDisposable, MutableDisposable, dispose } from '../../../../../base/common/lifecycle.js';
 import { MenuId, Action2, registerAction2, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { OpenEditorsDirtyEditorContext, OpenEditorsGroupContext, OpenEditorsReadonlyEditorContext, SAVE_ALL_LABEL, SAVE_ALL_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, OpenEditorsSelectedFileOrUntitledContext } from '../fileConstants.js';
 import { ResourceContextKey, MultipleEditorGroupsContext } from '../../../../common/contextkeys.js';
@@ -641,6 +642,7 @@ export class OpenEditorsView extends ViewPane {
 }
 
 interface IOpenEditorTemplateData {
+	editorListener: MutableDisposable<IDisposable>;
 	container: HTMLElement;
 	root: IResourceLabel;
 	actionBar: ActionBar;
@@ -725,7 +727,7 @@ class EditorGroupRenderer implements IListRenderer<IEditorGroup, IEditorGroupTem
 	}
 }
 
-class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplateData> {
+export class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplateData> {
 	static readonly ID = 'openeditor';
 
 	private readonly closeEditorAction;
@@ -749,6 +751,7 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 	renderTemplate(container: HTMLElement): IOpenEditorTemplateData {
 		const editorTemplate: IOpenEditorTemplateData = Object.create(null);
 		editorTemplate.container = container;
+		editorTemplate.editorListener = new MutableDisposable();
 		editorTemplate.actionRunner = new OpenEditorActionRunner();
 		editorTemplate.actionBar = new ActionBar(container, { actionRunner: editorTemplate.actionRunner });
 		editorTemplate.root = this.labels.create(container);
@@ -758,6 +761,14 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 
 	renderElement(openedEditor: OpenEditor, _index: number, templateData: IOpenEditorTemplateData): void {
 		const editor = openedEditor.editor;
+		if (editor.isDisposed()) {
+			this.disposeElement(openedEditor, _index, templateData);
+			return;
+		}
+		templateData.editorListener.value = Event.once(editor.onWillDispose)(() => {
+			templateData.root.clear();
+			templateData.actionRunner.editor = undefined;
+		});
 		templateData.actionRunner.editor = openedEditor;
 		templateData.container.classList.toggle('dirty', editor.isDirty() && !editor.isSaving());
 		templateData.container.classList.toggle('sticky', openedEditor.isSticky());
@@ -781,7 +792,14 @@ class OpenEditorRenderer implements IListRenderer<OpenEditor, IOpenEditorTemplat
 		}
 	}
 
+	disposeElement(_openedEditor: OpenEditor, _index: number, templateData: IOpenEditorTemplateData): void {
+		templateData.editorListener.clear();
+		templateData.root.clear();
+		templateData.actionRunner.editor = undefined;
+	}
+
 	disposeTemplate(templateData: IOpenEditorTemplateData): void {
+		templateData.editorListener.dispose();
 		templateData.actionBar.dispose();
 		templateData.root.dispose();
 		templateData.actionRunner.dispose();

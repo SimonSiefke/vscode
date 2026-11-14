@@ -38,11 +38,12 @@ import { IWorkingCopyBackupService } from '../../../../../workbench/services/wor
 import { IWorkingCopyService } from '../../../../../workbench/services/workingCopy/common/workingCopyService.js';
 import { INotebookSearchService } from '../../../../../workbench/contrib/search/common/notebookSearch.js';
 import { ComponentFixtureContext, createEditorServices, defineComponentFixture, defineThemedFixtureGroup, registerWorkbenchServices } from '../../../../../workbench/test/browser/componentFixtures/fixtureUtils.js';
-import { TestEditorGroupsService, TestEditorGroupView, TestEditorService, TestPathService, TestTextResourceConfigurationService, TestWorkingCopyService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
+import { TestDecorationsService, TestEditorGroupsService, TestEditorGroupView, TestEditorService, TestPathService, TestTextResourceConfigurationService, TestWorkingCopyService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { TestFileService } from '../../../../../workbench/test/common/workbenchTestServices.js';
 import { FixtureKeybindingService } from '../../../../test/browser/addTabFixtureUtils.js';
 import { NEW_FILE_TAB_COMMAND_ID } from '../../../../../workbench/contrib/sessions/common/sessionCommands.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { IDecorationsService } from '../../../../../workbench/services/decorations/common/decorations.js';
 
 let modelCounter = 0;
 
@@ -78,6 +79,7 @@ async function renderSearchEditor({ container, disposableStore, theme }: Compone
 			reg.defineInstance(IEditorGroupsService, new TestEditorGroupsService([group]));
 			reg.define(IEditorService, TestEditorService);
 			reg.define(IFileService, TestFileService);
+			reg.define(IDecorationsService, TestDecorationsService);
 			reg.define(IUriIdentityService, UriIdentityService);
 			reg.define(IWorkingCopyService, TestWorkingCopyService);
 			reg.define(IPathService, TestPathService);
