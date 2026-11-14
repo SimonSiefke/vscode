@@ -97,7 +97,11 @@ export class ExtHostEditors extends Disposable implements ExtHostEditorsShape {
 	}
 
 	createTextEditorDecorationType(extension: IExtensionDescription, options: vscode.DecorationRenderOptions): vscode.TextEditorDecorationType {
-		return new TextEditorDecorationType(this._proxy, extension, options).value;
+		return new TextEditorDecorationType(this._proxy, extension, options, key => {
+			for (const editor of this._extHostDocumentsAndEditors.allEditors()) {
+				editor._acceptDecorationTypeRemoved(key);
+			}
+		}).value;
 	}
 
 	// --- called from main thread
