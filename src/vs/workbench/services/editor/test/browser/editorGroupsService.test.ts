@@ -24,7 +24,7 @@ import { TestInstantiationService } from '../../../../../platform/instantiation/
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IContextKeyService, RawContextKey } from '../../../../../platform/contextkey/common/contextkey.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { isEqual } from '../../../../../base/common/resources.js';
 import { CloseAllEditorGroupsAction } from '../../../../browser/parts/editor/editorActions.js';
 import { IWorkbenchLayoutService, Parts, Position } from '../../../layout/browser/layoutService.js';
@@ -1001,9 +1001,12 @@ suite('EditorGroupsService', () => {
 		assert.ok(input1.gotDisposed);
 		assert.ok(!input2.gotDisposed);
 
+		// A pending reveal retains the input until the editor open completes.
+		const whenDisposed = Event.toPromise(input2.onWillDispose);
 		const forceCloseResult = await group.closeEditors([input2], { force: true });
 		assert.strictEqual(forceCloseResult, true);
 		assert.strictEqual(group.isEmpty, true);
+		await whenDisposed;
 		assert.ok(input2.gotDisposed);
 	});
 

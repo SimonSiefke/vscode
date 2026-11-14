@@ -1561,6 +1561,7 @@ suite('EditorResolverService', () => {
 			assert.fail(`Expected editor to resolve, got ${result}`);
 		}
 		disposables.add(result.editor);
+		disposables.add(result.reference);
 		assert.deepStrictEqual({ typeId: result.editor.typeId, override: result.options?.override }, { typeId: 'testCustomMarkdownEditorInput', override: 'CUSTOM_MD_EDITOR' });
 	});
 
