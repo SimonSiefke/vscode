@@ -224,12 +224,12 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		return pty;
 	}
 
-	async attachToProcess(id: number, pid?: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToProcess(id: number, pid?: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
 			const proxy = this._proxy;
 			const creationId = generateUuid();
-			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId);
+			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId, expectedCreationId);
 			const pty = new LocalPty(id, true, proxy, creationId);
 			this._ptys.set(id, pty);
 			return pty;
@@ -239,15 +239,15 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		return undefined;
 	}
 
-	async attachToRevivedProcess(id: number, pid: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
-			const newId = await this._proxy.getRevivedPtyNewId(this._getWorkspaceId(), id);
-			if (newId !== undefined) {
-				return await this.attachToProcess(newId);
+			const revived = await this._proxy.getRevivedPtyProcessIdentity(this._getWorkspaceId(), id);
+			if (revived !== undefined) {
+				return await this.attachToProcess(revived.id, undefined, revived.creationId);
 			}
 			// The original ID may belong to another window's process after a pty host restart
-			return await this.attachToProcess(id, pid > 0 ? pid : undefined);
+			return await this.attachToProcess(id, pid > 0 ? pid : undefined, expectedCreationId);
 		} catch (e) {
 			this._logService.warn(`Couldn't attach to process ${e.message}`);
 		}

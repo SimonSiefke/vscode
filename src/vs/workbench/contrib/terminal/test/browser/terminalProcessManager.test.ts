@@ -15,11 +15,13 @@ import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IConfigurationService, type IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { EnvironmentVariableMutatorType, type IEnvironmentVariableCollection } from '../../../../../platform/terminal/common/environmentVariable.js';
-import { ITerminalChildProcess, TitleEventSource, type IProcessReadyEvent, type ITerminalBackend, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
+import { ITerminalChildProcess, TitleEventSource, type IProcessReadyEvent, type ITerminalBackend, type ITerminalProcessOptions, ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
 import { ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalProcessManager } from '../../browser/terminalProcessManager.js';
+import { RemoteTerminalBackend } from '../../browser/remoteTerminalBackend.js';
 import { RemotePty } from '../../browser/remotePty.js';
 import { RemoteTerminalChannelClient } from '../../common/remote/remoteTerminalChannel.js';
 import { IEnvironmentVariableService } from '../../common/environmentVariable.js';
@@ -333,6 +335,108 @@ suite('Workbench - TerminalProcessManager', () => {
 		await manager.createProcess({}, 80, 24, false);
 		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 1, replies: { prompt: 'reply' } }]);
 	});
+
+	for (const remote of [false, true]) {
+		for (const findRevivedId of [false, true]) {
+			test(`forwards the saved allocation identity for ${remote ? 'remote' : 'local'} ${findRevivedId ? 'revived' : 'live'} attachment`, async () => {
+				instantiationService.stub(IRemoteAgentService, {
+					getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+				});
+				const calls: { revived: boolean; id: number; pid: number | undefined; creationId: string | undefined }[] = [];
+				const backend = await terminalInstanceService.getBackend();
+				const process = new TestTerminalChildProcess(true);
+				process.id = 17;
+				instantiationService.stub(ITerminalInstanceService, {
+					getBackend: async () => ({
+						...backend,
+						attachToProcess: async (id: number, pid?: number, creationId?: string) => {
+							calls.push({ revived: false, id, pid, creationId });
+							return process;
+						},
+						attachToRevivedProcess: async (id: number, pid: number, creationId?: string) => {
+							calls.push({ revived: true, id, pid, creationId });
+							return process;
+						}
+					})
+				});
+				const attachmentManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+					remote ? URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }) : undefined, undefined, undefined));
+				await attachmentManager.createProcess({ attachPersistentProcess: {
+					id: 17, pid: 1234, creationId: 'saved owner', findRevivedId, title: 'bash', titleSource: TitleEventSource.Process, cwd: '/tmp', shellIntegrationNonce: 'nonce'
+				} }, 80, 24, false);
+				deepStrictEqual({ calls, starts: process.calls }, { calls: [{ revived: findRevivedId, id: 17, pid: 1234, creationId: 'saved owner' }], starts: ['start'] });
+			});
+		}
+	}
+
+	for (const isFeatureTerminal of [false, true]) {
+		test(`first lazy remote host start preserves a ${isFeatureTerminal ? 'feature' : 'normal'} terminal and a later restart is handled`, async () => {
+			await configurationService.setUserConfiguration('terminal', { integrated: { enablePersistentSessions: false, shellIntegration: { enabled: false } } });
+			configurationService.onDidChangeConfigurationEmitter.fire(upcastPartial<IConfigurationChangeEvent>({ affectsConfiguration: () => true }));
+			instantiationService.stub(ITerminalLogService, new NullLogService());
+			instantiationService.stub(IRemoteAgentService, {
+				getConnection: () => null,
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const hostStarts = store.add(new Emitter<{ isRestart: boolean }>());
+			const processExits = store.add(new Emitter<{ id: number; event: number | undefined }>());
+			const started: number[] = [];
+			const shutdowns: number[] = [];
+			let allocations = 0;
+			const channel = upcastPartial<RemoteTerminalChannelClient>({
+				onPtyHostExit: Event.None,
+				onPtyHostStart: hostStarts.event,
+				onPtyHostUnresponsive: Event.None,
+				onPtyHostResponsive: Event.None,
+				onPtyHostRequestResolveVariables: Event.None,
+				onProcessData: Event.None,
+				onProcessReplay: Event.None,
+				onProcessOrphanQuestion: Event.None,
+				onDidRequestDetach: Event.None,
+				onProcessReady: Event.None,
+				onDidChangeProperty: Event.None,
+				onProcessExit: processExits.event,
+				onExecuteCommand: Event.None,
+				getEnvironment: async () => ({}),
+				getLatency: async () => [],
+				createProcess: async (_config, _settings, _root, _options, shouldPersist) => {
+					strictEqual(shouldPersist, false);
+					if (++allocations === 1) {
+						hostStarts.fire({ isRestart: false });
+					}
+					return { persistentTerminalId: allocations, resolvedShellLaunchConfig: {} };
+				},
+				start: async id => { started.push(id); return undefined; },
+				shutdown: async id => { shutdowns.push(id); },
+				setAutoReplies: async () => { }
+			});
+			const backend = store.add(instantiationService.createInstance(RemoteTerminalBackend, 'ssh-remote+test', channel));
+			instantiationService.stub(ITerminalInstanceService, { getBackend: async () => backend });
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const exits: (number | undefined)[] = [];
+			store.add(remoteManager.onProcessExit(e => exits.push(e)));
+			const relaunch = spy(remoteManager, 'relaunch');
+			try {
+				await remoteManager.createProcess({ isFeatureTerminal }, 80, 24, false);
+				deepStrictEqual({ allocations, started, shutdowns, exits, relaunches: relaunch.callCount, id: remoteManager.persistentProcessId },
+					{ allocations: 1, started: [1], shutdowns: [], exits: [], relaunches: 0, id: 1 });
+				hostStarts.fire({ isRestart: true });
+				if (!isFeatureTerminal) {
+					await relaunch.firstCall.returnValue;
+				}
+				deepStrictEqual({ allocations, started, exits, relaunches: relaunch.callCount, id: remoteManager.persistentProcessId }, isFeatureTerminal
+					? { allocations: 1, started: [1], exits: [-1], relaunches: 0, id: undefined }
+					: { allocations: 2, started: [1, 2], exits: [], relaunches: 1, id: 2 });
+			} finally {
+				await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+				relaunch.restore();
+				for (let id = 1; id <= allocations; id++) {
+					processExits.fire({ id, event: 0 });
+				}
+			}
+		});
+	}
 
 	for (const disposeDuringSetup of [true, false]) {
 		test(`shuts down a remote pty disposed ${disposeDuringSetup ? 'during auto-reply setup' : 'after startup'}`, async () => {

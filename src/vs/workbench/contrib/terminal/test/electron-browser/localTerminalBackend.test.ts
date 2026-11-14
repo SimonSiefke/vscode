@@ -167,8 +167,11 @@ suite('LocalTerminalBackend', () => {
 			onPtyHostUnresponsive: Event.None,
 			onPtyHostResponsive: Event.None,
 			onPtyHostRequestResolveVariables: Event.None,
-			getRevivedPtyNewId: async (_workspaceId: string, id: number) => revivedIds.get(id),
-			attachToProcess: async (id: number, pid?: number, replies?: Readonly<Record<string, string | null>>, creationId?: string) => {
+			getRevivedPtyProcessIdentity: async (_workspaceId: string, id: number) => {
+				const newId = revivedIds.get(id);
+				return newId === undefined ? undefined : { id: newId, creationId: attachmentOwners.get(newId) };
+			},
+			attachToProcess: async (id: number, pid?: number, replies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string) => {
 				attachRequests.push([id, pid]);
 				const livePid = livePids.get(id);
 				if (livePid === undefined) {
@@ -176,6 +179,9 @@ suite('LocalTerminalBackend', () => {
 				}
 				if (pid !== undefined && pid !== livePid) {
 					throw new Error(`Pty ${id} has pid ${livePid}, expected ${pid}`);
+				}
+				if (attachmentOwners.get(id) !== expectedCreationId) {
+					throw new Error('Allocation has changed');
 				}
 				ok(typeof creationId === 'string');
 				attachmentOwners.set(id, creationId);
@@ -204,12 +210,12 @@ suite('LocalTerminalBackend', () => {
 			revivedWithNewId: await attach(() => backend.attachToRevivedProcess(7, 7007)),
 			revivedWithSameId: await attach(() => backend.attachToRevivedProcess(2, 2002)),
 			revivedButMissing: await attach(() => backend.attachToRevivedProcess(8, 8008)),
-			originalWithSavedPid: await attach(() => backend.attachToRevivedProcess(3, 303)),
-			originalWithOtherPid: await attach(() => backend.attachToRevivedProcess(3, 9009)),
-			originalWithUnknownPid: await attach(() => backend.attachToRevivedProcess(3, 0)),
-			originalWithNegativePid: await attach(() => backend.attachToRevivedProcess(3, -1)),
+			originalWithSavedPid: await attach(() => backend.attachToRevivedProcess(3, 303, attachmentOwners.get(3))),
+			originalWithOtherPid: await attach(() => backend.attachToRevivedProcess(3, 9009, attachmentOwners.get(3))),
+			originalWithUnknownPid: await attach(() => backend.attachToRevivedProcess(3, 0, attachmentOwners.get(3))),
+			originalWithNegativePid: await attach(() => backend.attachToRevivedProcess(3, -1, attachmentOwners.get(3))),
 			originalMissing: await attach(() => backend.attachToRevivedProcess(4, 404)),
-			attachById: await attach(() => backend.attachToProcess(3)),
+			attachById: await attach(() => backend.attachToProcess(3, undefined, attachmentOwners.get(3))),
 		}, {
 			revivedWithNewId: { attachedId: 1, requests: [[1, undefined]] },
 			revivedWithSameId: { attachedId: 2, requests: [[2, undefined]] },

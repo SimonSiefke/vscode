@@ -273,6 +273,7 @@ export interface ITerminalProcessInfo {
 	readonly initialCwd: string;
 	readonly environmentVariableInfo: IEnvironmentVariableInfo | undefined;
 	readonly persistentProcessId: number | undefined;
+	readonly persistentProcessCreationId?: string;
 	readonly shouldPersist: boolean;
 	readonly hasWrittenData: boolean;
 	readonly hasChildProcesses: boolean;

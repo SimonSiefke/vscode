@@ -133,6 +133,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	private _cwdWorkspaceFolder: IWorkspaceFolder | undefined;
 
 	get persistentProcessId(): number | undefined { return this._process?.id; }
+	get persistentProcessCreationId(): string | undefined { return this._process?.creationId; }
 	get shouldPersist(): boolean { return !!this.reconnectionProperties || (this._process ? this._process.shouldPersist : false); }
 	get hasWrittenData(): boolean { return this._hasWrittenData; }
 	get hasChildProcesses(): boolean { return this._hasChildProcesses; }
@@ -312,7 +313,8 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 
 				const shouldPersist = ((this._configurationService.getValue(TaskSettingId.Reconnection) && shellLaunchConfig.reconnectionProperties) || !shellLaunchConfig.isFeatureTerminal) && this._terminalConfigurationService.config.enablePersistentSessions && !shellLaunchConfig.isTransient;
 				if (shellLaunchConfig.attachPersistentProcess) {
-					const result = await backend.attachToProcess(shellLaunchConfig.attachPersistentProcess.id);
+					const { id, pid, creationId, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
+					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid, creationId) : await backend.attachToProcess(id, pid > 0 ? pid : undefined, creationId);
 					if (result) {
 						newProcess = result;
 						if (this._extEnvironmentVariableCollection) {
@@ -366,8 +368,8 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				}
 			} else {
 				if (shellLaunchConfig.attachPersistentProcess) {
-					const { id, pid, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
-					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid) : await backend.attachToProcess(id);
+					const { id, pid, creationId, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
+					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid, creationId) : await backend.attachToProcess(id, pid > 0 ? pid : undefined, creationId);
 					if (result) {
 						newProcess = result;
 						if (this._extEnvironmentVariableCollection) {

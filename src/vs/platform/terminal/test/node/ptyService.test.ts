@@ -74,6 +74,36 @@ suite('XtermSerializer', () => {
 suite('PtyService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('publishes current allocation identity in live and revived process snapshots', async () => {
+		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
+		const allocation = {
+			pid: 1234,
+			shouldPersistTerminal: true,
+			processLaunchOptions: { options: { creationId: 'revived owner', shellIntegration: { nonce: 'nonce' } } },
+			shellLaunchConfig: {},
+			getCwd: async () => '/tmp',
+			isOrphaned: async () => true,
+			shutdown: () => { }
+		};
+		const ptys: Map<number, typeof allocation> = Reflect.get(service, '_ptys');
+		const revived: Map<string, { newId: number }> = Reflect.get(service, '_revivedPtyIdMap');
+		ptys.set(7, allocation);
+		revived.set('workspace-17', { newId: 7 });
+		try {
+			const snapshot = await service.listProcesses();
+			deepStrictEqual(snapshot.map(({ id, creationId }) => ({ id, creationId })), [{ id: 7, creationId: 'revived owner' }]);
+			deepStrictEqual(await service.getRevivedPtyProcessIdentity('workspace', 17), { id: 7, creationId: 'revived owner' });
+			allocation.processLaunchOptions.options.creationId = 'next owner';
+			deepStrictEqual(await service.getRevivedPtyProcessIdentity('workspace', 17), { id: 7, creationId: 'next owner' });
+			ptys.clear();
+			deepStrictEqual(await service.getRevivedPtyProcessIdentity('workspace', 17), { id: 7, creationId: undefined });
+			deepStrictEqual(await service.getRevivedPtyProcessIdentity('other workspace', 17), undefined);
+		} finally {
+			ptys.clear();
+			revived.clear();
+		}
+	});
+
 	test('shutdown rejects a stale allocation identity and preserves legacy callers', async () => {
 		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
 		const shutdowns: boolean[] = [];
@@ -108,12 +138,12 @@ suite('PtyService', () => {
 		contribution.handleProcessReady(1, process);
 		try {
 			await service.setAutoReplies(1, { prompt: 'live owner' }, 'owner');
-			await rejects(service.attachToProcess(1, 4321, { prompt: 'restoring window' }, 'restoring'));
+			await rejects(service.attachToProcess(1, 4321, { prompt: 'restoring window' }, 'restoring', 'owner'));
 			deepStrictEqual(allocation.processLaunchOptions.options.creationId, 'owner');
 			data.fire('prompt');
 			deepStrictEqual({ attaches, replies }, { attaches: 0, replies: ['live owner'] });
-			await service.attachToProcess(1, 1234, { prompt: 'restoring window' }, 'restoring');
-			deepStrictEqual(allocation.processLaunchOptions.options.creationId, 'restoring');
+			await service.attachToProcess(1, 1234, { prompt: 'restoring window' }, 'restoring', 'owner');
+			deepStrictEqual(allocation.processLaunchOptions.options.creationId, 'restoring', 'owner');
 			await service.setAutoReplies(1, {}, 'owner');
 			const settings: ReadonlyMap<number, Readonly<Record<string, string | null>>> = Reflect.get(contribution, '_autoReplies');
 			deepStrictEqual(settings.get(1), { prompt: 'restoring window' });
@@ -128,8 +158,8 @@ suite('PtyService', () => {
 		const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
 		let attachCount = 0;
 		// Stand in for a running persistent process to avoid spawning a pty
-		const ptys: Map<number, { pid: number; attach(): Promise<void>; shutdown(): void }> = Reflect.get(service, '_ptys');
-		ptys.set(1, { pid: 1234, attach: async () => { attachCount++; }, shutdown: () => { } });
+		const ptys: Map<number, { pid: number; processLaunchOptions: { options: { creationId?: string } }; attach(): Promise<void>; shutdown(): void }> = Reflect.get(service, '_ptys');
+		ptys.set(1, { pid: 1234, processLaunchOptions: { options: {} }, attach: async () => { attachCount++; }, shutdown: () => { } });
 
 		async function attach(pid?: number): Promise<string> {
 			try {

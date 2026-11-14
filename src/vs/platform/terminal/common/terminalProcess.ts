@@ -39,8 +39,12 @@ export interface IGetTerminalLayoutInfoArgs {
 	workspaceId: string;
 }
 
-export interface IProcessDetails {
+export interface IPtyProcessIdentity {
 	id: number;
+	creationId?: string;
+}
+
+export interface IProcessDetails extends IPtyProcessIdentity {
 	pid: number;
 	title: string;
 	titleSource: TitleEventSource;

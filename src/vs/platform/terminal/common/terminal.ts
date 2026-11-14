@@ -9,7 +9,7 @@ import { IProcessEnvironment, OperatingSystem } from '../../../base/common/platf
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability, ITerminalCapabilityStore, type ITerminalCommand } from './capabilities/capabilities.js';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from './terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs } from './terminalProcess.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ISerializableEnvironmentVariableCollections } from './environmentVariable.js';
 import { IWorkspaceFolder } from '../../workspace/common/workspace.js';
@@ -337,7 +337,7 @@ export interface IPtyService {
 	 * Attaches to a persistent process, failing if `pid` is provided and differs from its process ID.
 	 * Persistent process IDs restart with the pty host, so a saved ID can later belong to another process.
 	 */
-	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
+	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string): Promise<void>;
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void>;
 	shutdownAll(): Promise<void>;
 
@@ -375,7 +375,7 @@ export interface IPtyService {
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
 	getEnvironment(): Promise<IProcessEnvironment>;
 	getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string>;
-	getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined>;
+	getRevivedPtyProcessIdentity(workspaceId: string, id: number): Promise<IPtyProcessIdentity | undefined>;
 	setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void>;
 	getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined>;
 	reduceConnectionGraceTime(): Promise<void>;
@@ -415,7 +415,7 @@ export interface IPtyServiceContribution {
 
 export interface IPtyHostController {
 	readonly onPtyHostExit: Event<number>;
-	readonly onPtyHostStart: Event<void>;
+	readonly onPtyHostStart: Event<{ isRestart: boolean }>;
 	readonly onPtyHostUnresponsive: Event<void>;
 	readonly onPtyHostResponsive: Event<void>;
 	readonly onPtyHostRequestResolveVariables: Event<IRequestResolveVariablesEvent>;
@@ -589,6 +589,7 @@ export interface IShellLaunchConfig {
 	 */
 	attachPersistentProcess?: {
 		id: number;
+		creationId?: string;
 		findRevivedId?: boolean;
 		pid: number;
 		title: string;
@@ -1197,12 +1198,12 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 
 	readonly onDidRequestDetach: Event<{ requestId: number; workspaceId: string; instanceId: number }>;
 
-	attachToProcess(id: number): Promise<ITerminalChildProcess | undefined>;
+	attachToProcess(id: number, pid?: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined>;
 	/**
-	 * Attaches to the process revived for a restored terminal, otherwise to its original process. The
-	 * local backend refuses an original process whose pid differs from `pid`, unless `pid` is 0 (unknown).
+	 * Attaches to the revived allocation, otherwise validates the original allocation identity and any
+	 * positive saved pid before attaching.
 	 */
-	attachToRevivedProcess(id: number, pid: number): Promise<ITerminalChildProcess | undefined>;
+	attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined>;
 	listProcesses(): Promise<IProcessDetails[]>;
 	getLatency(): Promise<IPtyHostLatencyMeasurement[]>;
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;

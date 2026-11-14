@@ -33,6 +33,7 @@ suite('RemoteTerminalBackend', () => {
 		}));
 		const requestIds: (string | undefined)[] = [];
 		const attachmentIds: (string | undefined)[] = [];
+		const revivalLookups: number[] = [];
 		const shutdowns: { id: number; creationId: string | undefined }[] = [];
 		const updates: { id: number; creationId: string | undefined }[] = [];
 		const channel = upcastPartial<RemoteTerminalChannelClient>({
@@ -53,9 +54,16 @@ suite('RemoteTerminalBackend', () => {
 				requestIds.push(args[3].creationId);
 				return { persistentTerminalId: requestIds.length, resolvedShellLaunchConfig: {} };
 			},
-			attachToProcess: async (_id, replies, creationId) => {
+			attachToProcess: async (_id, replies, creationId, expectedCreationId, pid) => {
+				deepStrictEqual({ expectedCreationId, pid }, _id === 7
+					? { expectedCreationId: 'revived', pid: undefined }
+					: { expectedCreationId: 'original', pid: 1234 });
 				deepStrictEqual(replies, { prompt: 'reply' });
 				attachmentIds.push(creationId);
+			},
+			getRevivedPtyProcessIdentity: async id => {
+				revivalLookups.push(id);
+				return id === 23 ? { id: 7, creationId: 'revived' } : undefined;
 			},
 			setAutoReplies: async (id, _replies, creationId) => { updates.push({ id, creationId }); },
 			shutdown: async (id, _immediate, creationId) => { shutdowns.push({ id, creationId }); }
@@ -75,16 +83,23 @@ suite('RemoteTerminalBackend', () => {
 			await backend.setAutoReplies(pty.id, {}, pty.creationId);
 			await pty.shutdown(true);
 		}
-		const attached = await backend.attachToProcess(17);
-		ok(attached instanceof RemotePty);
-		store.add(attached);
-		await backend.setAutoReplies(attached.id, {}, attached.creationId);
-		await attached.shutdown(true);
+		for (const attachment of [
+			() => backend.attachToProcess(17, 1234, 'original'),
+			() => backend.attachToRevivedProcess(23, 9009, 'old serialized identity'),
+			() => backend.attachToRevivedProcess(18, 1234, 'original')
+		]) {
+			const attached = await attachment();
+			ok(attached instanceof RemotePty);
+			store.add(attached);
+			await backend.setAutoReplies(attached.id, {}, attached.creationId);
+			await attached.shutdown(true);
+		}
 		const identities = [...requestIds, ...attachmentIds];
-		deepStrictEqual(identities.map(id => typeof id), ['string', 'string', 'string']);
-		deepStrictEqual(new Set(identities).size, 3);
-		deepStrictEqual(shutdowns, [{ id: 1, creationId: identities[0] }, { id: 2, creationId: identities[1] }, { id: 17, creationId: identities[2] }]);
+		deepStrictEqual(identities.map(id => typeof id), Array(5).fill('string'));
+		deepStrictEqual(new Set(identities).size, 5);
+		deepStrictEqual(shutdowns, [{ id: 1, creationId: identities[0] }, { id: 2, creationId: identities[1] }, { id: 17, creationId: identities[2] }, { id: 7, creationId: identities[3] }, { id: 18, creationId: identities[4] }]);
 		deepStrictEqual(updates, shutdowns);
 		deepStrictEqual(options.creationId, undefined);
+		deepStrictEqual(revivalLookups, [23, 18]);
 	});
 });

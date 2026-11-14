@@ -215,14 +215,14 @@ export class RemoteTerminalBackend extends BaseTerminalBackend implements ITermi
 		return pty;
 	}
 
-	async attachToProcess(id: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToProcess(id: number, pid?: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot create remote terminal when there is no remote!`);
 		}
 
 		try {
 			const creationId = generateUuid();
-			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId);
+			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId, expectedCreationId, pid);
 			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel, creationId);
 			this._ptys.set(id, pty);
 			return pty;
@@ -232,14 +232,16 @@ export class RemoteTerminalBackend extends BaseTerminalBackend implements ITermi
 		return undefined;
 	}
 
-	async attachToRevivedProcess(id: number): Promise<ITerminalChildProcess | undefined> {
+	async attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot create remote terminal when there is no remote!`);
 		}
 
 		try {
-			const newId = await this._remoteTerminalChannel.getRevivedPtyNewId(id) ?? id;
-			return await this.attachToProcess(newId);
+			const revived = await this._remoteTerminalChannel.getRevivedPtyProcessIdentity(id);
+			return revived !== undefined
+				? await this.attachToProcess(revived.id, undefined, revived.creationId)
+				: await this.attachToProcess(id, pid > 0 ? pid : undefined, expectedCreationId);
 		} catch (e) {
 			this._logService.trace(`Couldn't attach to process ${e.message}`);
 		}

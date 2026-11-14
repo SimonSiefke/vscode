@@ -37,6 +37,7 @@ export class TerminalInputSerializer implements IEditorSerializer {
 	private _toJson(instance: ITerminalInstance): ISerializedTerminalEditorInput {
 		return {
 			id: instance.persistentProcessId!,
+			creationId: instance.persistentProcessCreationId,
 			pid: instance.processId || 0,
 			title: instance.title,
 			titleSource: instance.titleSource,
@@ -53,5 +54,5 @@ export class TerminalInputSerializer implements IEditorSerializer {
 }
 
 function isDeserializedTerminalEditorInput(obj: unknown): obj is IDeserializedTerminalEditorInput {
-	return isObject(obj) && 'id' in obj && 'pid' in obj;
+	return isObject(obj) && 'id' in obj && 'pid' in obj && (!('creationId' in obj) || typeof obj.creationId === 'string');
 }

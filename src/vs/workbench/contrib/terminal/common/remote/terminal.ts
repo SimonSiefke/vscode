@@ -87,7 +87,7 @@ export const enum RemoteTerminalChannelRequest {
 	SetTerminalLayoutInfo = '$setTerminalLayoutInfo',
 	SerializeTerminalState = '$serializeTerminalState',
 	ReviveTerminalProcesses = '$reviveTerminalProcesses',
-	GetRevivedPtyNewId = '$getRevivedPtyNewId',
+	GetRevivedPtyProcessIdentity = '$getRevivedPtyProcessIdentity',
 	SetUnicodeVersion = '$setUnicodeVersion',
 	SetNextCommandId = '$setNextCommandId',
 	ReduceConnectionGraceTime = '$reduceConnectionGraceTime',

@@ -18,7 +18,7 @@ import { Schemas } from '../../../../../base/common/network.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IEnvironmentVariableService } from '../environmentVariable.js';
 import { IProcessDataEvent, IRequestResolveVariablesEvent, IShellLaunchConfigDto, ITerminalLaunchError, ITerminalProfile, ITerminalsLayoutInfo, ITerminalsLayoutInfoById, TerminalIcon, IProcessProperty, ProcessPropertyType, IProcessPropertyMap, TitleEventSource, ISerializedTerminalState, IPtyHostController, ITerminalProcessOptions, IProcessReadyEvent, ITerminalLogService, IPtyHostLatencyMeasurement, ITerminalLaunchResult } from '../../../../../platform/terminal/common/terminal.js';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from '../../../../../platform/terminal/common/terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs } from '../../../../../platform/terminal/common/terminalProcess.js';
 import { IProcessEnvironment, OperatingSystem } from '../../../../../base/common/platform.js';
 import { ICompleteTerminalConfiguration } from '../terminal.js';
 import { IPtyHostProcessReplayEvent } from '../../../../../platform/terminal/common/capabilities/capabilities.js';
@@ -64,8 +64,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 	get onPtyHostExit(): Event<number> {
 		return this._channel.listen<number>(RemoteTerminalChannelEvent.OnPtyHostExitEvent);
 	}
-	get onPtyHostStart(): Event<void> {
-		return this._channel.listen<void>(RemoteTerminalChannelEvent.OnPtyHostStartEvent);
+	get onPtyHostStart(): Event<{ isRestart: boolean }> {
+		return this._channel.listen<{ isRestart: boolean }>(RemoteTerminalChannelEvent.OnPtyHostStartEvent);
 	}
 	get onPtyHostUnresponsive(): Event<void> {
 		return this._channel.listen<void>(RemoteTerminalChannelEvent.OnPtyHostUnresponsiveEvent);
@@ -200,8 +200,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 	acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.AcceptDetachInstanceReply, [requestId, persistentProcessId]);
 	}
-	attachToProcess(id: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.AttachToProcess, [id, undefined, autoReplies, creationId]);
+	attachToProcess(id: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string, pid?: number): Promise<void> {
+		return this._channel.call(RemoteTerminalChannelRequest.AttachToProcess, [id, pid, autoReplies, creationId, expectedCreationId]);
 	}
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.DetachFromProcess, [id, forcePersist]);
@@ -319,8 +319,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 		return this._channel.call(RemoteTerminalChannelRequest.ReviveTerminalProcesses, [workspaceId, state, dateTimeFormatLocate]);
 	}
 
-	getRevivedPtyNewId(id: number): Promise<number | undefined> {
-		return this._channel.call(RemoteTerminalChannelRequest.GetRevivedPtyNewId, [id]);
+	getRevivedPtyProcessIdentity(id: number): Promise<IPtyProcessIdentity | undefined> {
+		return this._channel.call(RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity, [this._workspaceContextService.getWorkspace().id, id]);
 	}
 
 	serializeTerminalState(ids: number[]): Promise<string> {
