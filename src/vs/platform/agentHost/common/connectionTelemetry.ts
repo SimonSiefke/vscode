@@ -21,6 +21,29 @@ export type ConnectionTelemetryErrorClassification = {
 };
 
 const knownProtocolCodes = [...Object.values(JsonRpcErrorCodes), ...Object.values(AhpErrorCodes)];
+const knownProtocolCodeSet = new Set<unknown>(knownProtocolCodes);
+const connectionTelemetryErrorCategories: Record<ConnectionTelemetryErrorCategory, true> = {
+	authentication: true, authorization: true, notFound: true, offline: true, timeout: true, cancelled: true, connectionClosed: true, dns: true,
+	tls: true, network: true, throttled: true, httpClient: true, httpServer: true, protocol: true, unknown: true,
+};
+
+function isConnectionTelemetryErrorCategory(value: unknown): value is ConnectionTelemetryErrorCategory {
+	return typeof value === 'string' && Object.hasOwn(connectionTelemetryErrorCategories, value);
+}
+
+function isHttpStatus(value: unknown): value is number {
+	return typeof value === 'number' && Number.isInteger(value) && value >= 100 && value <= 599;
+}
+
+/** Keeps only allowlisted fields and values, for telemetry errors that may not have come from {@link getConnectionTelemetryError}. */
+export function toConnectionTelemetryError(value: { readonly errorCategory?: unknown; readonly errorCode?: unknown; readonly statusCode?: unknown }): IConnectionTelemetryError {
+	const { errorCategory, errorCode, statusCode } = value;
+	return {
+		...(isConnectionTelemetryErrorCategory(errorCategory) ? { errorCategory } : {}),
+		...(typeof errorCode === 'number' && knownProtocolCodeSet.has(errorCode) ? { errorCode } : {}),
+		...(isHttpStatus(statusCode) ? { statusCode } : {}),
+	};
+}
 
 /** Reads structured metadata only; diagnostic messages, names, request IDs and details are never returned. */
 export function getConnectionTelemetryError(error: IConnectionDiagnosticError | undefined): IConnectionTelemetryError {
@@ -32,7 +55,7 @@ export function getConnectionTelemetryError(error: IConnectionDiagnosticError | 
 	let errorCategory: ConnectionTelemetryErrorCategory = 'unknown';
 	for (let current: IConnectionDiagnosticError | undefined = error, depth = 0; current && depth < 3; current = current.cause, depth++) {
 		const code = knownProtocolCodes.find(code => String(code) === current?.code);
-		const status = typeof current.status === 'number' && Number.isInteger(current.status) && current.status >= 100 && current.status <= 599 ? current.status : undefined;
+		const status = isHttpStatus(current.status) ? current.status : undefined;
 		errorCode ??= code;
 		statusCode ??= status;
 		let category: ConnectionTelemetryErrorCategory | undefined;
@@ -50,7 +73,8 @@ export function getConnectionTelemetryError(error: IConnectionDiagnosticError | 
 			category = 'connectionClosed';
 		} else if (current.code === 'ENOTFOUND' || current.code === 'EAI_AGAIN') {
 			category = 'dns';
-		} else if (current.code === 'CERT_HAS_EXPIRED' || current.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' || current.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || current.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
+		} else if (current.code === 'CERT_HAS_EXPIRED' || current.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' || current.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || current.code === 'ERR_TLS_CERT_ALTNAME_INVALID'
+			|| current.code === 'SELF_SIGNED_CERT_IN_CHAIN' || current.code === 'UNABLE_TO_GET_ISSUER_CERT' || current.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' || current.code === 'CERT_UNTRUSTED') {
 			category = 'tls';
 		} else if (current.code === 'ECONNRESET' || current.code === 'ECONNREFUSED' || current.code === 'ENETUNREACH' || current.code === 'EHOSTUNREACH' || current.code === 'EPIPE' || current.code === 'UND_ERR_SOCKET') {
 			category = 'network';
@@ -65,7 +89,11 @@ export function getConnectionTelemetryError(error: IConnectionDiagnosticError | 
 			errorCategory = category;
 		}
 	}
-	if (errorCategory === 'unknown' && errorCode !== undefined) {
+	if (errorCategory === 'unknown' && (error.name === 'InitialAuthenticationError' || error.name === 'CloudSandboxAuthenticationRequiredError')) {
+		errorCategory = 'authentication';
+	} else if (errorCategory === 'unknown' && error.name === 'CloudSandboxNetworkError') {
+		errorCategory = 'network';
+	} else if (errorCategory === 'unknown' && errorCode !== undefined) {
 		errorCategory = 'protocol';
 	}
 	return {
