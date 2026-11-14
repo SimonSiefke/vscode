@@ -183,6 +183,48 @@ suite('ExtHostEditorTabs', function () {
 		}]);
 	});
 
+	test('Reuse active-state callbacks across model reconciliations', function () {
+		const extHostEditorTabs = new ExtHostEditorTabs(
+			SingleProxyRPCProtocol(new class extends mock<MainThreadEditorTabsShape>() { })
+		);
+		type Internals = {
+			readonly _activeGroupIdGetter: () => number | undefined;
+			readonly _extHostTabGroups: readonly {
+				readonly _activeGroupIdGetter: () => number | undefined;
+				readonly _activeTabIdGetter: () => string;
+				readonly _tabs: readonly { readonly _activeTabIdGetter: () => string }[];
+			}[];
+		};
+		const internals = extHostEditorTabs as unknown as Internals;
+		const firstTab = createTabDto({ id: 'first' });
+		const secondTab = createTabDto({ id: 'second' });
+
+		extHostEditorTabs.$acceptEditorTabModel([{
+			isActive: true,
+			viewColumn: 0,
+			groupId: 1,
+			tabs: [firstTab]
+		}]);
+		const firstGroup = internals._extHostTabGroups[0];
+		assert.strictEqual(firstGroup._activeGroupIdGetter, internals._activeGroupIdGetter);
+		assert.strictEqual(firstGroup._tabs[0]._activeTabIdGetter, firstGroup._activeTabIdGetter);
+
+		extHostEditorTabs.$acceptEditorTabModel([{
+			isActive: false,
+			viewColumn: 0,
+			groupId: 1,
+			tabs: [firstTab]
+		}, {
+			isActive: true,
+			viewColumn: 1,
+			groupId: 2,
+			tabs: [secondTab]
+		}]);
+		const secondGroup = internals._extHostTabGroups[1];
+		assert.strictEqual(secondGroup._activeGroupIdGetter, internals._activeGroupIdGetter);
+		assert.strictEqual(secondGroup._tabs[0]._activeTabIdGetter, secondGroup._activeTabIdGetter);
+	});
+
 	test('Ensure reference equality for activeTab and activeGroup', function () {
 		const extHostEditorTabs = new ExtHostEditorTabs(
 			SingleProxyRPCProtocol(new class extends mock<MainThreadEditorTabsShape>() {
