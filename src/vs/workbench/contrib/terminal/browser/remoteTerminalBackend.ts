@@ -238,6 +238,7 @@ export class RemoteTerminalBackend extends BaseTerminalBackend implements ITermi
 		}
 
 		try {
+			await this.whenReady;
 			const revived = await this._remoteTerminalChannel.getRevivedPtyProcessIdentity(id);
 			return revived !== undefined
 				? await this.attachToProcess(revived.id, undefined, revived.creationId)

@@ -84,6 +84,7 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 	readonly createdProcesses: TestTerminalChildProcess[] = [];
 	readonly createProcessRequests: { env: IProcessEnvironment; options: ITerminalProcessOptions }[] = [];
 	refuseRevivedAttach = false;
+	whenReady: Promise<void> = Promise.resolve();
 	beforeCreateProcess?: () => Promise<void>;
 	beforeSetAutoReplies?: (id: number) => Promise<void>;
 	beforeGetShellEnvironment?: () => Promise<void>;
@@ -92,6 +93,7 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 	readonly autoReplyUpdates: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
 	async getBackend() {
 		return {
+			whenReady: this.whenReady,
 			onPtyHostExit: Event.None,
 			onPtyHostUnresponsive: Event.None,
 			onPtyHostResponsive: Event.None,
@@ -365,6 +367,55 @@ suite('Workbench - TerminalProcessManager', () => {
 					id: 17, pid: 1234, creationId: 'saved owner', findRevivedId, title: 'bash', titleSource: TitleEventSource.Process, cwd: '/tmp', shellIntegrationNonce: 'nonce'
 				} }, 80, 24, false);
 				deepStrictEqual({ calls, starts: process.calls }, { calls: [{ revived: findRevivedId, id: 17, pid: 1234, creationId: 'saved owner' }], starts: ['start'] });
+			});
+		}
+	}
+
+	for (const remote of [false, true]) {
+		for (const interruption of ['dispose', 'restart'] as const) {
+			test(`does not acquire a revived ${remote ? 'remote' : 'local'} process when ${interruption} interrupts backend readiness`, async () => {
+				const readiness = new DeferredPromise<void>();
+				const waiting = new DeferredPromise<void>();
+				const attachments: number[] = [];
+				const process = new TestTerminalChildProcess(true);
+				process.id = 42;
+				const backend = await terminalInstanceService.getBackend();
+				instantiationService.stub(IRemoteAgentService, {
+					getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+				});
+				instantiationService.stub(ITerminalInstanceService, {
+					getBackend: async () => ({
+						...backend,
+						get whenReady() { waiting.complete(); return readiness.p; },
+						attachToRevivedProcess: async (id: number) => { attachments.push(id); return process; }
+					})
+				});
+				const restoringManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+					remote ? URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }) : undefined, undefined, undefined));
+				const relaunch = spy(restoringManager, 'relaunch');
+				const restoring = restoringManager.createProcess({ attachPersistentProcess: {
+					id: 17, pid: 1234, creationId: 'saved owner', findRevivedId: true, title: 'bash', titleSource: TitleEventSource.Process, cwd: '/tmp', shellIntegrationNonce: 'nonce'
+				} }, 80, 24, false);
+				try {
+					await waiting.p;
+					deepStrictEqual(attachments, []);
+					if (interruption === 'dispose') {
+						restoringManager.dispose(true);
+					} else {
+						terminalInstanceService.ptyHostRestartEmitter.fire();
+					}
+					await readiness.complete();
+					await restoring;
+					await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+					deepStrictEqual({ attachments, starts: process.calls, id: restoringManager.persistentProcessId }, interruption === 'dispose'
+						? { attachments: [], starts: [], id: undefined }
+						: { attachments: [17], starts: ['start'], id: 42 });
+				} finally {
+					await readiness.complete();
+					await restoring;
+					await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+					relaunch.restore();
+				}
 			});
 		}
 	}

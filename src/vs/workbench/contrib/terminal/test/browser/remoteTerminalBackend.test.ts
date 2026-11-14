@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok } from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { OperatingSystem } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -14,6 +15,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { IRemoteAgentEnvironment } from '../../../../../platform/remote/common/remoteAgentEnvironment.js';
 import { ITerminalLogService, ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
+import { IPtyProcessIdentity } from '../../../../../platform/terminal/common/terminalProcess.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { RemoteTerminalBackend } from '../../browser/remoteTerminalBackend.js';
@@ -69,6 +71,7 @@ suite('RemoteTerminalBackend', () => {
 			shutdown: async (id, _immediate, creationId) => { shutdowns.push({ id, creationId }); }
 		});
 		const backend = store.add(instantiationService.createInstance(RemoteTerminalBackend, 'ssh-remote+test', channel));
+		backend.setReady();
 		const options: ITerminalProcessOptions = {
 			shellIntegration: { enabled: false, suggestEnabled: false, nonce: 'shell nonce' },
 			windowsUseConptyDll: false,
@@ -102,4 +105,65 @@ suite('RemoteTerminalBackend', () => {
 		deepStrictEqual(options.creationId, undefined);
 		deepStrictEqual(revivalLookups, [23, 18]);
 	});
+
+	for (const revivedId of [1, 7, undefined]) {
+		test(`waits for revival publication before ${revivedId === undefined ? 'live fallback' : `restoring ID 1 as ${revivedId}`}`, async () => {
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			const configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'restored' });
+			instantiationService.stub(ITerminalLogService, new NullLogService());
+			const revival = new DeferredPromise<IPtyProcessIdentity | undefined>();
+			const lookups: number[] = [];
+			const requests: { id: number; pid: number | undefined; expectedCreationId: string | undefined; creationId: string | undefined }[] = [];
+			const channel = upcastPartial<RemoteTerminalChannelClient>({
+				onPtyHostExit: Event.None,
+				onPtyHostStart: Event.None,
+				onPtyHostUnresponsive: Event.None,
+				onPtyHostResponsive: Event.None,
+				onPtyHostRequestResolveVariables: Event.None,
+				onProcessData: Event.None,
+				onProcessReplay: Event.None,
+				onProcessOrphanQuestion: Event.None,
+				onDidRequestDetach: Event.None,
+				onProcessReady: Event.None,
+				onDidChangeProperty: Event.None,
+				onProcessExit: Event.None,
+				onExecuteCommand: Event.None,
+				getRevivedPtyProcessIdentity: async id => { lookups.push(id); return revival.p; },
+				attachToProcess: async (id, replies, creationId, expectedCreationId, pid) => {
+					deepStrictEqual(replies, { prompt: 'restored' });
+					requests.push({ id, pid, expectedCreationId, creationId });
+				}
+			});
+			const backend = store.add(instantiationService.createInstance(RemoteTerminalBackend, 'ssh-remote+test', channel));
+			const published = revivedId === undefined ? undefined : { id: revivedId, creationId: 'revived owner' };
+			async function attachAndTrack() {
+				const pty = await backend.attachToRevivedProcess(1, 1234, 'saved owner');
+				if (pty instanceof RemotePty) {
+					store.add(pty);
+				}
+				return pty;
+			}
+			const attaching = attachAndTrack();
+			try {
+				deepStrictEqual({ lookups, requests }, { lookups: [], requests: [] });
+				await revival.complete(published);
+				backend.setReady();
+				const pty = await attaching;
+				ok(pty instanceof RemotePty);
+				deepStrictEqual({ lookups, requests }, { lookups: [1], requests: [{
+					id: revivedId ?? 1,
+					pid: revivedId === undefined ? 1234 : undefined,
+					expectedCreationId: published?.creationId ?? 'saved owner',
+					creationId: pty.creationId
+				}] });
+				ok(typeof pty.creationId === 'string');
+			} finally {
+				await revival.complete(published);
+				backend.setReady();
+				await attaching;
+			}
+		});
+	}
+
 });

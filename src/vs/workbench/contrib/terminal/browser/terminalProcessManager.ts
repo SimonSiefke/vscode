@@ -287,6 +287,12 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			if (!this._isDisposed) {
 				this._setupPtyHostListeners(backend);
 			}
+			if (shellLaunchConfig.attachPersistentProcess?.findRevivedId) {
+				await backend.whenReady;
+				if (this._isDisposed || ptyHostGeneration !== this._ptyHostGeneration) {
+					return undefined;
+				}
+			}
 
 			// Create variable resolver
 			// Start with the full base environment so that all standard variables (e.g. PATH) are
