@@ -24,7 +24,7 @@ import { IOverlayWebview, WebviewContentOptions, WebviewExtensionDescription } f
 import { WebviewInput } from '../../../contrib/webviewPanel/browser/webviewEditorInput.js';
 import { IWebviewWorkbenchService } from '../../../contrib/webviewPanel/browser/webviewWorkbenchService.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { TestEditorGroupsService, TestEditorService } from '../../../test/browser/workbenchTestServices.js';
+import { TestDecorationsService, TestEditorGroupsService, TestEditorService } from '../../../test/browser/workbenchTestServices.js';
 import { MainThreadWebviewPanels } from '../../browser/mainThreadWebviewPanels.js';
 import { MainThreadWebviews } from '../../browser/mainThreadWebviews.js';
 import { ExtHostWebviewPanelsShape, IWebviewContentOptions } from '../../common/extHost.protocol.js';
@@ -54,7 +54,7 @@ suite('MainThreadWebviewPanels', () => {
 			providedId: 'test',
 			name: 'Test',
 			iconPath: undefined,
-		}, webview, new TestThemeService()));
+		}, webview, new TestThemeService(), new TestDecorationsService()));
 		const resolvers: Parameters<IWebviewWorkbenchService['registerResolver']>[0][] = [];
 		let deserializedOptions: IWebviewContentOptions | undefined;
 		const panels = store.add(new MainThreadWebviewPanels(

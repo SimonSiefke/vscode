@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { escapeDoubleQuotes } from '../../../../base/common/htmlContent.js';
 import { getMediaMime } from '../../../../base/common/mime.js';
@@ -102,6 +103,7 @@ export class MediaPlayerEditorInput extends WebviewInput implements ICustomEdito
 		private readonly _resource: URI,
 		webview: IOverlayWebview,
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@ILabelService private readonly _labelService: ILabelService,
 		@IFileService private readonly _fileService: IFileService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -110,7 +112,7 @@ export class MediaPlayerEditorInput extends WebviewInput implements ICustomEdito
 		@IFileDialogService private readonly _fileDialogService: IFileDialogService,
 		@IOpenerService private readonly _openerService: IOpenerService,
 	) {
-		super({ viewType: getMediaPlayerEditorId(kind), providedId: undefined, name: basename(_resource), iconPath: undefined }, webview, themeService);
+		super({ viewType: getMediaPlayerEditorId(kind), providedId: undefined, name: basename(_resource), iconPath: undefined }, webview, themeService, decorationsService);
 
 		this._register(webview.onMessage(e => {
 			if (e.message?.type === 'reopen-as-text') {

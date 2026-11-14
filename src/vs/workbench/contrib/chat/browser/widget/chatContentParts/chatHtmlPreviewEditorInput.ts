@@ -13,6 +13,7 @@ import { ServicesAccessor } from '../../../../../../platform/instantiation/commo
 import { ILogService } from '../../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../../platform/notification/common/notification.js';
 import { IThemeService } from '../../../../../../platform/theme/common/themeService.js';
+import { IDecorationsService } from '../../../../../services/decorations/common/decorations.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
 import { AccessibilityVerbositySettingId } from '../../../../accessibility/browser/accessibilityConfiguration.js';
 import { IWebviewService, KEYBINDING_CONTEXT_WEBVIEW_FIND_WIDGET_FOCUSED, WebviewContentPurpose } from '../../../../webview/browser/webview.js';
@@ -30,6 +31,7 @@ export class ChatHtmlPreviewEditorInput extends WebviewInput {
 		readonly sourceId: string,
 		@IWebviewService webviewService: IWebviewService,
 		@IThemeService themeService: IThemeService,
+		@IDecorationsService decorationsService: IDecorationsService,
 		@ILogService logService: ILogService,
 		@INotificationService notificationService: INotificationService,
 	) {
@@ -44,7 +46,7 @@ export class ChatHtmlPreviewEditorInput extends WebviewInput {
 		}, webviewService.createWebviewOverlay({
 			...options,
 			options: { ...options.options, purpose: WebviewContentPurpose.CustomEditor, enableFindWidget: true, tryRestoreScrollPosition: true },
-		}), themeService);
+		}), themeService, decorationsService);
 		this.html = html;
 		this._register(this.webview.onFatalError(error => {
 			logService.error('Error loading expanded chat HTML preview', error.message);

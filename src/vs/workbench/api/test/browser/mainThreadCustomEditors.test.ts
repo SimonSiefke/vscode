@@ -23,6 +23,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { TestThemeService } from '../../../../platform/theme/test/common/testThemeService.js';
 import { IUndoRedoService } from '../../../../platform/undoRedo/common/undoRedo.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
+import { IDecorationsService } from '../../../services/decorations/common/decorations.js';
 import { createTextModel } from '../../../../editor/test/common/testTextModel.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { CustomEditorDiffInput } from '../../../contrib/customEditor/browser/customEditorDiffInput.js';
@@ -51,7 +52,7 @@ import { MainThreadWebviews } from '../../browser/mainThreadWebviews.js';
 import { CustomEditorProviderCapabilities, ExtHostCustomEditorsShape } from '../../common/extHost.protocol.js';
 import { SingleProxyRPCProtocol } from '../common/testRPCProtocol.js';
 import { WebviewEditor } from '../../../contrib/webviewPanel/browser/webviewEditor.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
+import { TestDecorationsService, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { Selection } from '../../../../editor/common/core/selection.js';
 import { TextEditorSelectionRevealType } from '../../../../platform/editor/common/editor.js';
 
@@ -157,6 +158,7 @@ suite('MainThreadCustomEditors', () => {
 
 		const models = new CustomEditorModelManager();
 		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(IDecorationsService, new TestDecorationsService());
 		instantiationService.stub(ICustomEditorService, new class extends mock<ICustomEditorService>() {
 			override readonly models = models;
 			override registerCustomEditorCapabilities() { return Disposable.None; }

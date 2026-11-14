@@ -50,6 +50,7 @@ import { isSafari } from '../../../../base/browser/browser.js';
 import { equals } from '../../../../base/common/objects.js';
 import { EditorActivation, IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { UNLOCK_GROUP_COMMAND_ID } from './editorCommands.js';
+import { Event as EventUtils } from '../../../../base/common/event.js';
 import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { ITreeViewsDnDService } from '../../../../editor/common/services/treeViewsDndService.js';
 import { DraggedTreeItemsIdentifier } from '../../../../editor/common/services/treeViewsDnd.js';
@@ -137,6 +138,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private tabActionBars: ActionBar[] = [];
 	private tabDisposables: IDisposable[] = [];
+	private tabLabelDisposables: MutableDisposable<IDisposable>[] = [];
 
 	private dimensions: IEditorTitleControlDimensions & { used?: Dimension } = {
 		container: Dimension.None,
@@ -775,6 +777,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 				// Remove associated tab label and widget
 				dispose(this.tabDisposables.pop());
+				this.tabLabelDisposables.pop();
 			}
 
 			// A removal of a label requires to recompute all labels
@@ -794,6 +797,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			}
 
 			this.tabDisposables = dispose(this.tabDisposables);
+			this.tabLabelDisposables = [];
 			this.tabResourceLabels.clear();
 			this.tabLabels = [];
 			this.activeTabLabel = undefined;
@@ -1066,7 +1070,9 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Eventing
 		const eventsDisposable = this.registerTabListeners(tabContainer, tabIndex, tabsContainer, tabsScrollbar);
 
-		this.tabDisposables.push(combinedDisposable(gestureDisposable, eventsDisposable, tabActionBarDisposable, editorLabel));
+		const labelDisposables = new MutableDisposable<IDisposable>();
+		this.tabLabelDisposables.push(labelDisposables);
+		this.tabDisposables.push(combinedDisposable(gestureDisposable, eventsDisposable, tabActionBarDisposable, editorLabel, labelDisposables));
 
 		return tabContainer;
 	}
@@ -1827,6 +1833,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	}
 
 	private redrawTabLabel(editor: EditorInput, tabIndex: number, tabContainer: HTMLElement, tabLabelWidget: IResourceLabel, tabLabel: IEditorInputLabel): void {
+		const labelDisposables = this.tabLabelDisposables[tabIndex];
+		labelDisposables.clear();
+		if (editor.isDisposed()) {
+			tabLabelWidget.clear();
+			return;
+		}
+		labelDisposables.value = EventUtils.once(editor.onWillDispose)(() => tabLabelWidget.clear());
+
 		tabContainer.style.removeProperty('--tab-sizing-fit-width');
 		const options = this.groupsView.partOptions;
 
@@ -2859,6 +2873,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		super.dispose();
 
 		this.tabDisposables = dispose(this.tabDisposables);
+		this.tabLabelDisposables = [];
 	}
 }
 

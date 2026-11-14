@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { TestDecorationsService } from '../../../../test/browser/workbenchTestServices.js';
 import { SinonStub, spy, stub } from 'sinon';
 import { $, addDisposableListener, getWindow } from '../../../../../base/browser/dom.js';
 import { safeSetInnerHtml } from '../../../../../base/browser/domSanitize.js';
@@ -114,7 +115,7 @@ suite('Release notes editor Try This integration', () => {
 			override focus(): void { focusCount++; }
 			override dispose(): void { onDispose.fire(); }
 		};
-		input = store.add(new WebviewInput({ viewType: 'releaseNotes', providedId: undefined, name: 'Release Notes', iconPath: undefined }, webview, new TestThemeService()));
+		input = store.add(new WebviewInput({ viewType: 'releaseNotes', providedId: undefined, name: 'Release Notes', iconPath: undefined }, webview, new TestThemeService(), new TestDecorationsService()));
 		activeEditor = input;
 		instantiationService.stub(IWebviewWorkbenchService, {
 			onDidChangeActiveWebviewEditor: Event.None,
