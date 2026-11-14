@@ -560,9 +560,9 @@ export interface IAuxiliaryEditorPart extends IEditorPart {
 	 * @param options `preserveFocus` keeps the focus where it is instead of
 	 * moving it to the group that received the editors.
 	 *
-	 * @returns `false` if an editor could not be moved back.
+	 * @returns `false` if moving an editor or confirming the close was vetoed.
 	 */
-	close(options?: { preserveFocus?: boolean }): boolean;
+	close(options?: { preserveFocus?: boolean }): Promise<boolean>;
 }
 
 /**

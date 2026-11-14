@@ -184,6 +184,7 @@ export class TestNativeHostService implements INativeHostService {
 	async relaunch(options?: { addArgs?: string[] | undefined; removeArgs?: string[] | undefined } | undefined): Promise<void> { }
 	async reload(): Promise<void> { }
 	async closeWindow(): Promise<void> { }
+	async closeAuxiliaryWindow(): Promise<boolean> { return true; }
 	async quit(): Promise<void> { }
 	async exit(code: number): Promise<void> { }
 	async openDevTools(options?: Partial<Electron.OpenDevToolsOptions> & INativeHostOptions | undefined): Promise<void> { }

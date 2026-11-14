@@ -7,6 +7,7 @@ import { onDidChangeFullscreen } from '../../../../base/browser/browser.js';
 import { $, getActiveWindow, hide, show } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore, markAsSingleton, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { isNative } from '../../../../base/common/platform.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -18,6 +19,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { hasCustomTitlebar } from '../../../../platform/window/common/window.js';
 import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { EditorPart, IEditorPartUIState } from './editorPart.js';
+import { EditorPane } from './editorPane.js';
 import { IAuxiliaryTitlebarPart } from '../titlebar/titlebarPart.js';
 import { WindowTitle } from '../titlebar/windowTitle.js';
 import { IAuxiliaryWindowOpenOptions, IAuxiliaryWindowService } from '../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
@@ -195,7 +197,7 @@ export class AuxiliaryEditorPart {
 		editorPartContainer.style.position = 'relative';
 		auxiliaryWindow.container.appendChild(editorPartContainer);
 
-		const editorPart = disposables.add(this.instantiationService.createInstance(AuxiliaryEditorPartImpl, auxiliaryWindow.window.vscodeWindowId, this.editorPartsView, options?.state, label));
+		const editorPart = disposables.add(this.instantiationService.createInstance(AuxiliaryEditorPartImpl, auxiliaryWindow.window.vscodeWindowId, this.editorPartsView, options?.state, label, () => auxiliaryWindow.confirmClose(), () => auxiliaryWindow.close()));
 		editorPart.updateOptions({ compact });
 		disposables.add(this.editorPartsView.registerPart(editorPart));
 		editorPart.create(editorPartContainer);
@@ -250,14 +252,13 @@ export class AuxiliaryEditorPart {
 		updateStatusbarVisibility(false);
 
 		// Lifecycle
-		const editorCloseListener = disposables.add(Event.once(editorPart.onWillClose)(() => auxiliaryWindow.window.close()));
+
 		disposables.add(Event.once(auxiliaryWindow.onUnload)(() => {
 			if (disposables.isDisposed) {
 				return; // the close happened as part of an earlier dispose call
 			}
 
-			editorCloseListener.dispose();
-			editorPart.close();
+			editorPart.handleWindowUnload();
 			disposables.dispose();
 		}));
 		disposables.add(Event.once(this.lifecycleService.onDidShutdown)(() => disposables.dispose()));
@@ -347,12 +348,16 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 	private readonly optionsDisposable = this._register(new MutableDisposable());
 
 	private isCompact = false;
+	private closing = false;
+	private closePromise: Promise<boolean> | undefined;
 
 	constructor(
 		windowId: number,
 		editorPartsView: IEditorPartsView,
 		private readonly state: IEditorPartUIState | undefined,
 		groupsLabel: string,
+		private readonly prepareClose: () => Promise<boolean>,
+		private readonly closeWindow: () => Promise<boolean>,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IThemeService themeService: IThemeService,
 		@IConfigurationService configurationService: IConfigurationService,
@@ -413,6 +418,10 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 	}
 
 	private doRemoveLastGroup(preserveFocus?: boolean): void {
+		if (this.closing) {
+			return; // the outer close is already merging this group into the main part
+		}
+
 		const restoreFocus = !preserveFocus && this.shouldRestoreFocus(this.container);
 
 		// Activate next group when closing
@@ -432,7 +441,7 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 			}
 		}
 
-		this.doClose(false /* do not merge any confirming editors to main part */);
+		void this.requestClose(false /* do not merge any confirming editors to main part */).catch(onUnexpectedError);
 	}
 
 	protected override loadState(): IEditorPartUIState | undefined {
@@ -443,28 +452,77 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 		return; // disabled, auxiliary editor part state is tracked outside
 	}
 
-	close(options?: { preserveFocus?: boolean }): boolean {
-		return this.doClose(true /* merge all confirming editors to main part */, options);
+	close(options?: { preserveFocus?: boolean }): Promise<boolean> {
+		return this.requestClose(true /* merge all confirming editors to main part */, options);
 	}
 
-	private doClose(mergeConfirmingEditorsToMainPart: boolean, options?: { preserveFocus?: boolean }): boolean {
-		let result = true;
-		if (mergeConfirmingEditorsToMainPart) {
+	private requestClose(mergeConfirmingEditorsToMainPart: boolean, options?: { preserveFocus?: boolean }): Promise<boolean> {
+		if (!this.closePromise) {
+			this.closePromise = this.doClose(mergeConfirmingEditorsToMainPart, options).finally(() => this.closePromise = undefined);
+		}
+		return this.closePromise;
+	}
 
-			// First close all editors that are non-confirming
+	private async doClose(mergeConfirmingEditorsToMainPart: boolean, options?: { preserveFocus?: boolean }): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return true;
+		}
+
+		this.closing = true;
+		try {
+			if (mergeConfirmingEditorsToMainPart) {
+				for (const group of this.groups) {
+					await group.closeAllEditors({ excludeConfirming: true, force: true });
+					if (this._store.isDisposed) {
+						return true;
+					}
+				}
+
+				if (!this.mergeGroupsToMainPart(undefined, options)) {
+					return false;
+				}
+			}
+
+			const confirmed = await this.prepareClose();
+			if (this._store.isDisposed) {
+				return true;
+			}
+			if (!confirmed) {
+				return false;
+			}
+
+			// Recheck editors opened while confirmation was pending before committing.
+			if (!this.mergeGroupsToMainPart(undefined, options)) {
+				return false;
+			}
+
+			// A successful result includes UNLOAD and synchronous owner disposal.
+			return await this.closeWindow();
+		} finally {
+			this.closing = false;
+		}
+	}
+
+	handleWindowUnload(): void {
+		// A native close has already passed BEFORE_UNLOAD and cannot await more work.
+		const wasClosing = this.closing;
+		this.closing = true;
+		try {
 			for (const group of this.groups) {
-				group.closeAllEditors({ excludeConfirming: true, force: true });
+				void group.closeAllEditors({ excludeConfirming: true, force: true });
 			}
+			this.mergeGroupsToMainPart();
+			this.commitClose();
+		} finally {
+			this.closing = wasClosing;
+		}
+	}
 
-			// Then merge remaining to main part
-			result = this.mergeGroupsToMainPart(undefined, options);
-			if (!result) {
-				return false; // Do not close when editors could not be merged back
-			}
+	private commitClose(): void {
+		for (const group of this.groups) {
+			EditorPane.clearEditorGroupState(group);
 		}
 
 		this._onWillClose.fire();
-
-		return result;
 	}
 }

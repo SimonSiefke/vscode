@@ -37,6 +37,7 @@ import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { EditorAreaFocusContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, EditorTabsVisibleContext, IsTopRightEditorGroupContext } from '../../../common/contextkeys.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { EditorPane } from './editorPane.js';
 import { getGroupTransferVeto } from './editorTransferVeto.js';
 
 /**
@@ -923,6 +924,8 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		this.gridWidget.removeView(groupView, this.getSplitSizingStyle());
 		groupView.dispose();
 
+		EditorPane.clearEditorGroupState(groupView);
+
 		// Restore focus if we had it previously after completing the grid
 		// operation. That operation might cause reparenting of grid views
 		// which moves focus to the <body> element otherwise.
@@ -1668,11 +1671,16 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		};
 	}
 
-	applyState(state: IEditorPartUIState | 'empty', options?: IEditorGroupViewOptions): Promise<void> {
-		if (state === 'empty') {
-			return this.doApplyEmptyState();
-		} else {
-			return this.doApplyState(state, options);
+	async applyState(state: IEditorPartUIState | 'empty', options?: IEditorGroupViewOptions): Promise<void> {
+		const preservedState = EditorPane.preserveEditorGroupState(this.groups);
+		try {
+			if (state === 'empty') {
+				await this.doApplyEmptyState();
+			} else {
+				await this.doApplyState(state, options);
+			}
+		} finally {
+			preservedState.dispose();
 		}
 	}
 
@@ -1787,6 +1795,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	private disposeGroups(): void {
 		for (const group of this.groups) {
 			group.dispose();
+			EditorPane.clearEditorGroupState(group, true);
 
 			this._onDidRemoveGroup.fire(group);
 		}

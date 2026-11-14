@@ -119,7 +119,7 @@ export async function transferToNewWindow(transfer: INewWindowTransfer): Promise
 				transfer.showVeto(veto);
 			}
 			if (!closed && part.groups.every(group => group.isEmpty)) {
-				part.close();
+				await part.close();
 			}
 			return undefined;
 		}

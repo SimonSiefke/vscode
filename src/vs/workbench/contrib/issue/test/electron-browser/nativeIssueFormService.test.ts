@@ -77,6 +77,9 @@ class TestNativeIssueFormService extends NativeIssueFormService {
 }
 
 class TestAuxiliaryWindow extends Disposable implements IAuxiliaryWindow {
+	async confirmClose(): Promise<boolean> { return true; }
+	async close(): Promise<boolean> { this.dispose(); return true; }
+
 	private readonly didLayout = this._register(new Emitter<Dimension>());
 	readonly onDidLayout = this.didLayout.event;
 	private readonly unloaded = this._register(new Emitter<void>());

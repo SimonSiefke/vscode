@@ -531,6 +531,8 @@ export interface ICommonNativeHostService {
 	relaunch(options?: { addArgs?: string[]; removeArgs?: string[] }): Promise<void>;
 	reload(options?: { disableExtensions?: boolean }): Promise<void>;
 	closeWindow(options?: INativeHostOptions): Promise<void>;
+	/** Close an owned auxiliary window after renderer confirmation, including native vetoes. */
+	closeAuxiliaryWindow(targetWindowId: number): Promise<boolean>;
 	quit(): Promise<void>;
 	exit(code: number): Promise<void>;
 
