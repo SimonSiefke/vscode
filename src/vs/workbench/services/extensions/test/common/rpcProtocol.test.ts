@@ -9,18 +9,32 @@ import { CancellationToken, CancellationTokenSource } from '../../../../../base/
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IMessagePassingProtocol } from '../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
-import { RPCProtocol } from '../../common/rpcProtocol.js';
+import { createProxyIdentifier, ProxyIdentifier, SerializableObjectWithBuffers } from '../../common/proxyIdentifier.js';
+import { RPCProtocol as ByteRPCProtocol } from '../../common/rpcProtocol.js';
+import { StructuredCloneRPCProtocol } from '../../common/structuredCloneRPCProtocol.js';
+import { IRPCMessage, IStructuredCloneRPCTransport } from '../../common/rpcMessagePort.js';
 
-suite('RPCProtocol', () => {
+const loggingIdentifier = createProxyIdentifier<{ $echo(value: string): Promise<string> }>('rpcLoggingTest');
+
+[false, true].forEach(native => suite(`RPCProtocol (${native ? 'structured clone' : 'byte'})`, () => {
+	const RPCProtocol = native ? StructuredCloneRPCProtocol : ByteRPCProtocol;
+	type RPCProtocol = StructuredCloneRPCProtocol | ByteRPCProtocol;
 
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	class MessagePassingProtocol implements IMessagePassingProtocol {
+	class MessagePassingProtocol implements IMessagePassingProtocol, IStructuredCloneRPCTransport {
 		private _pair?: MessagePassingProtocol;
 
 		private readonly _onMessage = new Emitter<VSBuffer>();
 		public readonly onMessage: Event<VSBuffer> = this._onMessage.event;
+
+		private readonly _onRPCMessage = new Emitter<IRPCMessage>();
+		public readonly onRPCMessage = this._onRPCMessage.event;
+
+		public sendRPCMessage(message: IRPCMessage): void {
+			const cloned = structuredClone(message);
+			Promise.resolve().then(() => this._pair!._onRPCMessage.fire(cloned));
+		}
 
 		public setPair(other: MessagePassingProtocol) {
 			this._pair = other;
@@ -32,6 +46,23 @@ suite('RPCProtocol', () => {
 			});
 		}
 	}
+
+
+	test('reports unknown native sizes and measured byte sizes', async () => {
+		const lengths: (number | undefined)[] = [];
+		const logger = { logIncoming: (length: number | undefined) => lengths.push(length), logOutgoing: (length: number | undefined) => lengths.push(length) };
+		const one = new MessagePassingProtocol();
+		const two = new MessagePassingProtocol();
+		one.setPair(two);
+		two.setPair(one);
+		const caller = disposables.add(new RPCProtocol(one, logger));
+		const receiver = disposables.add(new RPCProtocol(two, logger));
+		receiver.set(loggingIdentifier, { $echo: async value => value });
+
+		assert.strictEqual(await caller.getProxy(loggingIdentifier).$echo('nonempty'), 'nonempty');
+		assert.strictEqual(lengths.length, 6);
+		assert.ok(lengths.every(length => native ? length === undefined : typeof length === 'number' && length > 0));
+	});
 
 	let delegate: (a1: any, a2: any) => any;
 	let bProxy: BClass;
@@ -56,6 +87,48 @@ suite('RPCProtocol', () => {
 		const bInstance = new BClass();
 		bProtocol.set(bIdentifier, bInstance);
 		bProxy = A.getProxy(bIdentifier);
+	});
+
+
+	test('snapshots direct and wrapped shared binary values', async function () {
+		if (typeof SharedArrayBuffer === 'undefined') {
+			this.skip();
+		}
+		delegate = value => value;
+		const results: { bytes: number[]; shared: boolean }[] = [];
+		for (const wrapped of [false, true]) {
+			const allocation = new Uint8Array(new SharedArrayBuffer(3));
+			allocation.set([41, 42, 43]);
+			const bytes = VSBuffer.wrap(allocation);
+			const pending = bProxy.$m(wrapped ? new SerializableObjectWithBuffers({ bytes }) : bytes, undefined);
+			allocation.fill(0);
+			const value = await pending;
+			const buffer: VSBuffer = wrapped ? value.value.bytes : value;
+			results.push({ bytes: [...buffer.buffer], shared: buffer.buffer.buffer instanceof SharedArrayBuffer });
+		}
+		assert.deepStrictEqual(results, [{ bytes: [41, 42, 43], shared: false }, { bytes: [41, 42, 43], shared: false }]);
+	});
+
+
+	test('bounds a resizable backing store before a later argument grows it', async function () {
+		if (typeof ArrayBuffer.prototype.resize !== 'function') {
+			this.skip();
+		}
+		delegate = (value: VSBuffer | SerializableObjectWithBuffers<{ bytes: VSBuffer }>, marker: string) => {
+			const buffer = value instanceof VSBuffer ? value : value.value.bytes;
+			return { bytes: [...buffer.buffer], backing: buffer.buffer.buffer.byteLength, resizable: buffer.buffer.buffer instanceof ArrayBuffer && buffer.buffer.buffer.resizable, marker };
+		};
+		for (const wrapped of [false, true]) {
+			const backing = new ArrayBuffer(3, { maxByteLength: 1024 * 1024 });
+			const fixedView = new Uint8Array(backing, 0, 3);
+			fixedView.set([41, 42, 43]);
+			const bytes = VSBuffer.wrap(fixedView);
+			const later = { toJSON: () => { backing.resize(1024 * 1024); return 'resized'; } };
+			const result = await bProxy.$m(wrapped ? new SerializableObjectWithBuffers({ bytes }) : bytes, later);
+
+			assert.deepStrictEqual({ bytes: result.bytes, resizable: result.resizable, marker: result.marker }, { bytes: [41, 42, 43], resizable: false, marker: 'resized' });
+			assert.ok(native ? result.backing === 3 : result.backing < 1024 * 1024);
+		}
 	});
 
 	test('simple call', function (done) {
@@ -282,4 +355,4 @@ suite('RPCProtocol', () => {
 			done(null);
 		}, done);
 	});
-});
+}));

@@ -43,19 +43,41 @@ type Deserialize<T> = T extends UriComponents ? URI
 export type Revived<T> = { [K in keyof T]: Deserialize<T[K]> };
 
 export function revive<T = any>(obj: any, depth = 0): Revived<T> {
-	if (!obj || depth > 200) {
+	return obj && typeof obj === 'object' ? doRevive(obj, depth, new Map()) : obj;
+}
+
+function doRevive(obj: any, depth: number, seen: Map<object, { value: any; depth?: number }>): any {
+	if (!obj) {
 		return obj;
 	}
 
 	if (typeof obj === 'object') {
+		const cached = seen.get(obj);
+		// A shallower alias can reach members skipped by an earlier depth-limited visit.
+		if (cached && (cached.depth === undefined || cached.depth <= depth)) {
+			return cached.value;
+		}
+		if (depth > 200) {
+			return obj;
+		}
+		seen.set(obj, { value: obj, depth });
 
 		switch ((<MarshalledObject>obj).$mid) {
-			// eslint-disable-next-line local/code-no-any-casts
-			case MarshalledId.Uri: return <any>URI.revive(obj);
-			// eslint-disable-next-line local/code-no-any-casts
-			case MarshalledId.Regexp: return <any>new RegExp(obj.source, obj.flags);
-			// eslint-disable-next-line local/code-no-any-casts
-			case MarshalledId.Date: return <any>new Date(obj.source);
+			case MarshalledId.Uri: {
+				const uri = URI.revive(obj);
+				seen.set(obj, { value: uri });
+				return uri;
+			}
+			case MarshalledId.Regexp: {
+				const regexp = new RegExp(obj.source, obj.flags);
+				seen.set(obj, { value: regexp });
+				return regexp;
+			}
+			case MarshalledId.Date: {
+				const date = new Date(obj.source);
+				seen.set(obj, { value: date });
+				return date;
+			}
 		}
 
 		if (
@@ -68,13 +90,13 @@ export function revive<T = any>(obj: any, depth = 0): Revived<T> {
 
 		if (Array.isArray(obj)) {
 			for (let i = 0; i < obj.length; ++i) {
-				obj[i] = revive(obj[i], depth + 1);
+				obj[i] = doRevive(obj[i], depth + 1, seen);
 			}
 		} else {
 			// walk object
 			for (const key in obj) {
 				if (Object.hasOwnProperty.call(obj, key)) {
-					obj[key] = revive(obj[key], depth + 1);
+					obj[key] = doRevive(obj[key], depth + 1, seen);
 				}
 			}
 		}
