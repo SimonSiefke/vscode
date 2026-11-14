@@ -33,6 +33,7 @@ suite('RemoteTerminalBackend', () => {
 		instantiationService.stub(IRemoteAgentService, upcastPartial<IRemoteAgentService>({
 			getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
 		}));
+		const handoffs: Parameters<RemoteTerminalChannelClient['acceptDetachInstanceReply']>[] = [];
 		const requestIds: (string | undefined)[] = [];
 		const attachmentIds: (string | undefined)[] = [];
 		const revivalLookups: number[] = [];
@@ -52,6 +53,7 @@ suite('RemoteTerminalBackend', () => {
 			onDidChangeProperty: Event.None,
 			onProcessExit: Event.None,
 			onExecuteCommand: Event.None,
+			acceptDetachInstanceReply: async (...args) => { handoffs.push(args); },
 			createProcess: async (...args: Parameters<RemoteTerminalChannelClient['createProcess']>) => {
 				requestIds.push(args[3].creationId);
 				return { persistentTerminalId: requestIds.length, resolvedShellLaunchConfig: {} };
@@ -73,6 +75,8 @@ suite('RemoteTerminalBackend', () => {
 		});
 		const backend = store.add(instantiationService.createInstance(RemoteTerminalBackend, 'ssh-remote+test', channel));
 		backend.setReady();
+		await backend.acceptDetachInstanceReply(7, 1, 'source');
+		deepStrictEqual(handoffs, [[7, 1, 'source']]);
 		const options: ITerminalProcessOptions = {
 			shellIntegration: { enabled: false, suggestEnabled: false, nonce: 'shell nonce' },
 			windowsUseConptyDll: false,

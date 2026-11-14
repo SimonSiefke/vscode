@@ -338,8 +338,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		return this._proxy.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
-		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId);
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number, expectedCreationId?: string): Promise<void> {
+		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async freePortKillProcess(port: string): Promise<{ port: string; processId: string }> {

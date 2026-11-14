@@ -62,11 +62,13 @@ suite('RemoteTerminalChannelClient', () => {
 		instantiationService.stub(IWorkspaceContextService, new TestContextService());
 		const client = instantiationService.createInstance(RemoteTerminalChannelClient, 'ssh-remote+test', channel);
 		await client.getRevivedPtyProcessIdentity(34, 'saved owner');
+		await client.acceptDetachInstanceReply(7, 12, 'handoff source');
 		await client.attachToProcess(12, { prompt: 'reply' }, 'attachment', 'original', 1234);
 		await client.setAutoReplies(12, { prompt: 'updated' }, 'attachment');
 		await client.shutdown(12, true, 'creation');
 		deepStrictEqual(calls, [
 			{ command: RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity, args: [new TestContextService().getWorkspace().id, 34, 'saved owner'] },
+			{ command: RemoteTerminalChannelRequest.AcceptDetachInstanceReply, args: [7, 12, 'handoff source'] },
 			{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, 1234, { prompt: 'reply' }, 'attachment', 'original'] },
 			{ command: RemoteTerminalChannelRequest.SetAutoReplies, args: [12, { prompt: 'updated' }, 'attachment'] },
 			{ command: RemoteTerminalChannelRequest.Shutdown, args: [12, true, 'creation'] }

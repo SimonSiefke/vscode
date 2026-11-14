@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, rejects, strictEqual } from 'assert';
+import { createSandbox } from 'sinon';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { Event } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
@@ -17,6 +18,8 @@ import { NullLogService, NullLoggerService } from '../../../platform/log/common/
 import { IProductService } from '../../../platform/product/common/productService.js';
 import { RemoteAgentConnectionContext } from '../../../platform/remote/common/remoteAgentEnvironment.js';
 import { IPtyHostStarter } from '../../../platform/terminal/node/ptyHost.js';
+import type { IShellLaunchConfig } from '../../../platform/terminal/common/terminal.js';
+import type { IProcessDetails } from '../../../platform/terminal/common/terminalProcess.js';
 import { PtyHostService } from '../../../platform/terminal/node/ptyHostService.js';
 import { PtyService } from '../../../platform/terminal/node/ptyService.js';
 import { AutoRepliesPtyServiceContribution } from '../../../platform/terminal/node/terminalContrib/autoReplies/autoRepliesContribController.js';
@@ -29,18 +32,23 @@ suite('Remote terminal allocation ownership', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	for (const transfer of ['host restart', 'attachment'] as const) {
-		for (const operation of ['settings clear', 'attachment'] as const) {
+		for (const operation of ['settings clear', 'attachment', 'handoff reply'] as const) {
 			test(`a queued ${operation} cannot affect the new owner after ${transfer}`, async () => {
 				const cleanup: (() => void)[] = [];
 				const shutdowns: boolean[] = [];
 				function allocation(creationId: string) {
 					const service = store.add(new PtyService(new NullLogService(), upcastPartial<IProductService>({}), { graceTime: 60000, shortGraceTime: 6000, scrollback: 100 }, 0));
-					const allocations: Map<number, { pid: number; processLaunchOptions: { options: { creationId: string } }; attach(): Promise<void>; shutdown(immediate: boolean): void }> = Reflect.get(service, '_ptys');
+					const allocations: Map<number, { pid: number; processLaunchOptions: { options: { creationId: string; shellIntegration: { nonce: string } } }; shellLaunchConfig: IShellLaunchConfig; shouldPersistTerminal: boolean; getCwd(): Promise<string>; isOrphaned(): Promise<boolean>; attach(): Promise<void>; shutdown(immediate: boolean): void }> = Reflect.get(service, '_ptys');
 					const contribution: AutoRepliesPtyServiceContribution = Reflect.get(service, '_autoRepliesContribution');
 					const settings: ReadonlyMap<number, Readonly<Record<string, string | null>>> = Reflect.get(contribution, '_autoReplies');
-					allocations.set(1, { pid: 1234, processLaunchOptions: { options: { creationId } }, attach: async () => { }, shutdown: immediate => { shutdowns.push(immediate); allocations.delete(1); contribution.handleProcessDispose(1); } });
-					cleanup.push(() => { contribution.handleProcessDispose(1); allocations.clear(); });
-					return { service, settings, allocations };
+					let orphan = true;
+					allocations.set(1, { pid: 1234, processLaunchOptions: { options: { creationId, shellIntegration: { nonce: 'nonce' } } }, shellLaunchConfig: {}, shouldPersistTerminal: true, getCwd: async () => '/tmp', isOrphaned: async () => orphan, attach: async () => { orphan = false; }, shutdown: immediate => { shutdowns.push(immediate); allocations.delete(1); contribution.handleProcessDispose(1); } });
+					const handoffReplies: (IProcessDetails | undefined)[] = [];
+					const requests: { acceptReply(requestId: number, details: IProcessDetails | undefined): void } = Reflect.get(service, '_detachInstanceRequestStore');
+					const sandbox = createSandbox();
+					sandbox.stub(requests, 'acceptReply').callsFake((_requestId, details) => { handoffReplies.push(details); });
+					cleanup.push(() => { sandbox.restore(); contribution.handleProcessDispose(1); allocations.clear(); });
+					return { service, settings, allocations, handoffReplies };
 				}
 				let current = allocation('owner A');
 				const hostChannel: IChannel = {
@@ -53,6 +61,9 @@ suite('Remote terminal allocation ownership', () => {
 						}
 						if (command === 'shutdown') {
 							return current.service.shutdown(...args as Parameters<PtyService['shutdown']>) as Promise<T>;
+						}
+						if (command === 'acceptDetachInstanceReply') {
+							return current.service.acceptDetachInstanceReply(...args as Parameters<PtyService['acceptDetachInstanceReply']>) as Promise<T>;
 						}
 						return Promise.resolve([] as T);
 					},
@@ -79,7 +90,9 @@ suite('Remote terminal allocation ownership', () => {
 				await current.service.setAutoReplies(1, { prompt: 'original' }, 'owner A');
 				const pending = operation === 'attachment'
 					? client.attachToProcess(1, { prompt: 'stale' }, 'stale owner', 'owner A', 1234)
-					: client.setAutoReplies(1, {}, 'owner A');
+					: operation === 'handoff reply'
+						? client.acceptDetachInstanceReply(7, 1, 'owner A')
+						: client.setAutoReplies(1, {}, 'owner A');
 				try {
 					if (transfer === 'host restart') {
 						current = allocation('owner B');
@@ -95,6 +108,14 @@ suite('Remote terminal allocation ownership', () => {
 						await pending;
 					}
 					strictEqual(delivered, 1);
+					if (operation === 'handoff reply') {
+						deepStrictEqual([...current.handoffReplies], [undefined]);
+						await client.acceptDetachInstanceReply(8, 1, 'owner B');
+						const reply = current.handoffReplies[1];
+						deepStrictEqual(reply && { id: reply.id, creationId: reply.creationId }, { id: 1, creationId: 'owner B' });
+						await server.call(context, RemoteTerminalChannelRequest.AcceptDetachedInstance, [9, 1, 'owner B']);
+						deepStrictEqual(current.handoffReplies[2]?.creationId, 'owner B');
+					}
 					deepStrictEqual(current.settings.get(1), { prompt: 'peer' });
 					await client.setAutoReplies(1, { prompt: 'updated peer' }, 'owner B');
 					deepStrictEqual(current.settings.get(1), { prompt: 'updated peer' });

@@ -132,7 +132,7 @@ export class RemoteTerminalBackend extends BaseTerminalBackend implements ITermi
 		return this._remoteTerminalChannel.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void> {
 		if (!this._remoteTerminalChannel) {
 			throw new Error(`Cannot accept detached instance when there is no remote!`);
 		} else if (!persistentProcessId) {
@@ -140,7 +140,7 @@ export class RemoteTerminalBackend extends BaseTerminalBackend implements ITermi
 			return;
 		}
 
-		return this._remoteTerminalChannel.acceptDetachInstanceReply(requestId, persistentProcessId);
+		return this._remoteTerminalChannel.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async persistTerminalState(): Promise<void> {

@@ -379,7 +379,7 @@ export interface IPtyService {
 	getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined>;
 	reduceConnectionGraceTime(): Promise<void>;
 	requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined>;
-	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void>;
+	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void>;
 	freePortKillProcess(port: string): Promise<{ port: string; processId: string }>;
 	/**
 	 * Serializes and returns terminal state.
@@ -1218,7 +1218,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 	getPerformanceMarks(): Promise<performance.PerformanceMark[]>;
 	reduceConnectionGraceTime(): Promise<void>;
 	requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined>;
-	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void>;
+	acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void>;
 	persistTerminalState(): Promise<void>;
 
 	createProcess(

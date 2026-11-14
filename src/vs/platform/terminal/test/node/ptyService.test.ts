@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual, rejects } from 'assert';
+import { deepStrictEqual, rejects, strictEqual } from 'assert';
 import { SerializeAddon } from '@xterm/addon-serialize';
 import pkg from '@xterm/headless';
 import { createSandbox } from 'sinon';
@@ -17,6 +17,7 @@ import { NullLogService } from '../../../log/common/log.js';
 import { IProductService } from '../../../product/common/productService.js';
 import { PtyService, XtermSerializer } from '../../node/ptyService.js';
 import { ITerminalChildProcess, IShellLaunchConfig, ISerializedTerminalState } from '../../common/terminal.js';
+import type { IProcessDetails } from '../../common/terminalProcess.js';
 import { AutoRepliesPtyServiceContribution } from '../../node/terminalContrib/autoReplies/autoRepliesContribController.js';
 
 suite('XtermSerializer', () => {
@@ -77,7 +78,7 @@ suite('PtyService', () => {
 	interface ITestAllocation {
 		pid: number;
 		shouldPersistTerminal: boolean;
-		processLaunchOptions: { options: { creationId: string; shellIntegration: { nonce: string } } };
+		processLaunchOptions: { options: { creationId: string | undefined; shellIntegration: { nonce: string } } };
 		shellLaunchConfig: IShellLaunchConfig;
 		getCwd(): Promise<string>;
 		isOrphaned(): Promise<boolean>;
@@ -90,7 +91,7 @@ suite('PtyService', () => {
 		const contribution: AutoRepliesPtyServiceContribution = Reflect.get(service, '_autoRepliesContribution');
 		const settings: ReadonlyMap<number, Readonly<Record<string, string | null>>> = Reflect.get(contribution, '_autoReplies');
 		const shutdowns: number[] = [];
-		function allocation(id: number, creationId: string, pid = 1234): ITestAllocation {
+		function allocation(id: number, creationId: string | undefined, pid = 1234): ITestAllocation {
 			let orphan = true;
 			const process = {
 				pid,
@@ -125,6 +126,71 @@ suite('PtyService', () => {
 		}
 		return { service, allocation, remember, settings, shutdowns, verifyOwner, cleanup };
 	}
+
+	async function handoffReply(service: PtyService, expectedCreationId?: string): Promise<IProcessDetails | undefined> {
+		const requests: { acceptReply(requestId: number, details: IProcessDetails | undefined): void } = Reflect.get(service, '_detachInstanceRequestStore');
+		const sandbox = createSandbox();
+		let result: IProcessDetails | undefined;
+		const reply = sandbox.stub(requests, 'acceptReply').callsFake((_requestId, details) => { result = details; });
+		try {
+			await service.acceptDetachInstanceReply(7, 1, expectedCreationId);
+			strictEqual(reply.calledOnceWithExactly(7, result), true);
+			return result;
+		} finally {
+			sandbox.restore();
+		}
+	}
+
+	for (const generation of ['source', undefined]) {
+		test(`accepts a current ${generation === undefined ? 'legacy' : 'identified'} handoff source`, async () => {
+			const f = ownershipFixture();
+			f.allocation(1, generation);
+			try {
+				const details = await handoffReply(f.service, generation);
+				deepStrictEqual(details && { id: details.id, creationId: details.creationId }, { id: 1, creationId: generation });
+				await f.service.attachToProcess(details!.id, details!.pid, { prompt: 'recipient' }, 'recipient', details!.creationId);
+				await f.verifyOwner(1, 'recipient');
+			} finally {
+				f.cleanup();
+			}
+		});
+	}
+
+	test('a delayed handoff reply does not acquire a later owner generation', async () => {
+		const f = ownershipFixture();
+		f.allocation(1, 'source');
+		try {
+			await f.service.attachToProcess(1, 1234, { prompt: 'peer' }, 'peer', 'source');
+			const details = await handoffReply(f.service, 'source');
+			deepStrictEqual({ details, replies: f.settings.get(1) }, { details: undefined, replies: { prompt: 'peer' } });
+			await f.verifyOwner(1, 'peer');
+		} finally {
+			f.cleanup();
+		}
+	});
+
+	test('a handoff snapshot keeps its source generation across an intervening attachment', async () => {
+		const f = ownershipFixture();
+		const reading = new DeferredPromise<void>();
+		const cwd = new DeferredPromise<string>();
+		const process = f.allocation(1, 'source');
+		process.getCwd = async () => { await reading.complete(); return cwd.p; };
+		const reply = handoffReply(f.service, 'source');
+		try {
+			await reading.p;
+			await f.service.attachToProcess(1, 1234, { prompt: 'peer' }, 'peer', 'source');
+			await cwd.complete('/tmp');
+			const details = await reply;
+			deepStrictEqual(details && { id: details.id, creationId: details.creationId }, { id: 1, creationId: 'source' });
+			await rejects(f.service.attachToProcess(details!.id, details!.pid, { prompt: 'stale' }, 'stale', details!.creationId));
+			deepStrictEqual(f.settings.get(1), { prompt: 'peer' });
+			await f.verifyOwner(1, 'peer');
+		} finally {
+			await cwd.complete('/tmp');
+			await reply;
+			f.cleanup();
+		}
+	});
 
 	test('revival publication retains its original generation across an intervening attachment', async () => {
 		const f = ownershipFixture();
@@ -264,7 +330,15 @@ suite('PtyService', () => {
 					deepStrictEqual({ id: detail?.id, creationId: detail?.creationId, pid: detail?.pid }, { id: 2, creationId: 'panel', pid: 2222 });
 					await f.service.attachToProcess(detail!.id, detail!.pid, { prompt: 'new panel' }, 'new panel', detail!.creationId);
 					deepStrictEqual(f.settings.get(1), { prompt: 'editor' });
-					await f.verifyOwner(1, claimed ? 'editor' : 'revived');
+					const editor = await f.service.getRevivedPtyProcessIdentity('workspace', 2, 'saved editor');
+					deepStrictEqual(editor, { id: 1, creationId: 'revived' });
+					const attachment = f.service.attachToProcess(editor!.id, undefined, { prompt: 'editor' }, 'editor', editor!.creationId);
+					if (claimed) {
+						await rejects(attachment);
+					} else {
+						await attachment;
+					}
+					await f.verifyOwner(1, 'editor');
 					await f.verifyOwner(2, 'new panel');
 				} finally {
 					f.cleanup();

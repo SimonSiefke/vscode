@@ -12,10 +12,55 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { NullLogService } from '../../../log/common/log.js';
 import { ITerminalChildProcess } from '../../common/terminal.js';
 import { AutoRepliesPtyServiceContribution } from '../../node/terminalContrib/autoReplies/autoRepliesContribController.js';
+import type { TerminalAutoResponder } from '../../node/terminalContrib/autoReplies/terminalAutoResponder.js';
 
 suite('AutoRepliesPtyServiceContribution', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('reclaims replaced responders before replay and releases process indexes on disposal', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const contribution = new AutoRepliesPtyServiceContribution(new NullLogService());
+		const data = store.add(new Emitter<string>());
+		const replies: string[] = [];
+		const process = new class extends mock<ITerminalChildProcess>() {
+			override readonly onProcessData = data.event;
+			override input(value: string): void { replies.push(value); }
+		};
+		const responders: ReadonlyMap<number, ReadonlyMap<string, TerminalAutoResponder>> = Reflect.get(contribution, '_autoResponders');
+		const settings: ReadonlyMap<number, Readonly<Record<string, string | null>>> = Reflect.get(contribution, '_autoReplies');
+		const processes: ReadonlyMap<number, ITerminalChildProcess> = Reflect.get(contribution, '_terminalProcesses');
+		const retained: string[][] = [];
+		try {
+			contribution.handleProcessReady(1, process);
+			for (const match of ['first', 'second', 'third']) {
+				contribution.setAutoReplies(1, { [match]: `${match} reply` });
+				retained.push([...responders.get(1)!.keys()]);
+				data.fire(match);
+				await timeout(1100);
+			}
+			contribution.setAutoReplies(1, {});
+			retained.push([...responders.get(1)!.keys()]);
+			const listeningAfterRemoval = data.hasListeners();
+			contribution.setAutoReplies(1, { fresh: 'fresh reply' });
+			retained.push([...responders.get(1)!.keys()]);
+			data.fire('first second third fresh');
+			contribution.handleProcessDispose(1);
+			assert.deepStrictEqual({
+				retained, replies, listeningAfterRemoval,
+				indexesAfterDisposal: [responders.has(1), settings.has(1), processes.has(1)],
+				listeningAfterDisposal: data.hasListeners()
+			}, {
+				retained: [['first'], ['second'], ['third'], [], ['fresh']],
+				replies: ['first reply', 'second reply', 'third reply', 'fresh reply'],
+				listeningAfterRemoval: false,
+				indexesAfterDisposal: [false, false, false],
+				listeningAfterDisposal: false
+			});
+		} finally {
+			contribution.handleProcessDispose(1);
+			await timeout(1100);
+		}
+	}));
 
 	for (const configureBeforeReady of [true, false]) {
 		test(`isolates configuration changes across terminals configured ${configureBeforeReady ? 'before' : 'after'} ready`, () => runWithFakedTimers({ useFakeTimers: true }, async () => {

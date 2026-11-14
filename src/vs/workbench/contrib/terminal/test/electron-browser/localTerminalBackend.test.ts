@@ -106,6 +106,7 @@ suite('LocalTerminalBackend', () => {
 	}
 
 	test('binds distinct allocation identities to the host request and returned client cleanup', async () => {
+		const handoffs: Parameters<ILocalPtyService['acceptDetachInstanceReply']>[] = [];
 		const creationIds: (string | undefined)[] = [];
 		const shutdowns: { id: number; creationId: string | undefined }[] = [];
 		const instantiationService = store.add(new TestInstantiationService());
@@ -123,12 +124,15 @@ suite('LocalTerminalBackend', () => {
 				creationIds.push(args[7].creationId);
 				return creationIds.length;
 			},
+			acceptDetachInstanceReply: async (...args) => { handoffs.push(args); },
 			shutdown: async (id, _immediate, creationId) => { shutdowns.push({ id, creationId }); }
 		}));
 		const backend = store.add(instantiationService.createInstance(LocalTerminalBackend));
 		const connected = new DeferredPromise<void>();
 		await connected.complete();
 		Reflect.set(backend, '_directProxyClientEventually', connected);
+		await backend.acceptDetachInstanceReply(7, 1, 'source');
+		deepStrictEqual(handoffs, [[7, 1, 'source']]);
 		const options: ITerminalProcessOptions = {
 			shellIntegration: { enabled: false, suggestEnabled: false, nonce: 'shell nonce' },
 			windowsUseConptyDll: false,

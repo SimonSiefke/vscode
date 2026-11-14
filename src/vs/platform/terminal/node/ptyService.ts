@@ -198,10 +198,10 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number, expectedCreationId?: string): Promise<void> {
 		let processDetails: IProcessDetails | undefined = undefined;
 		const pty = this._ptys.get(persistentProcessId);
-		if (pty) {
+		if (pty && pty.processLaunchOptions.options.creationId === expectedCreationId) {
 			processDetails = await this._buildProcessDetails(persistentProcessId, pty);
 		}
 		this._detachInstanceRequestStore.acceptReply(requestId, processDetails);

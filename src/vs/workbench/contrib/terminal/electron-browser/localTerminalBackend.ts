@@ -174,12 +174,12 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		return this._proxy.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId?: number, expectedCreationId?: string): Promise<void> {
 		if (!persistentProcessId) {
 			this._logService.warn('Cannot attach to feature terminals, custom pty terminals, or those without a persistentProcessId');
 			return;
 		}
-		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId);
+		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async persistTerminalState(): Promise<void> {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, fail, strictEqual } from 'assert';
+import { createSandbox } from 'sinon';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
@@ -13,7 +14,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { TerminalLocation, TitleEventSource, type ITerminalBackend, type TerminalIcon } from '../../../../../platform/terminal/common/terminal.js';
-import { ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
+import { ITerminalEditorService, ITerminalGroupService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalService } from '../../browser/terminalService.js';
 import { TERMINAL_CONFIG_SECTION } from '../../common/terminal.js';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
@@ -50,7 +51,56 @@ suite('Workbench - TerminalService', () => {
 
 		terminalService = store.add(instantiationService.createInstance(TerminalService));
 		instantiationService.stub(ITerminalService, terminalService);
+		// The constructor queues style initialization with timeout(0), before this timer.
+		await timeout(0);
 	});
+
+	for (const target of [TerminalLocation.Panel, TerminalLocation.Editor]) {
+		test(`captures the source generation before detaching a ${target === TerminalLocation.Panel ? 'panel' : 'editor'} terminal`, () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+			await terminalService.whenConnected;
+			const request = store.add(new Emitter<{ requestId: number; workspaceId: string; instanceId: number }>());
+			const detaching = new DeferredPromise<void>();
+			const detached = new DeferredPromise<void>();
+			const accepted = new DeferredPromise<Parameters<ITerminalBackend['acceptDetachInstanceReply']>>();
+			const replies: Parameters<ITerminalBackend['acceptDetachInstanceReply']>[] = [];
+			let generation: string | undefined = 'source';
+			const instance = upcastPartial<ITerminalInstance>({
+				persistentProcessId: 1,
+				get persistentProcessCreationId() { return generation; },
+				target,
+				shellLaunchConfig: {},
+				detachProcessAndDispose: async () => {
+					generation = undefined;
+					await detaching.complete();
+					await detached.p;
+				}
+			});
+			const backend = upcastPartial<ITerminalBackend>({
+				onDidRequestDetach: request.event,
+				getTerminalLayoutInfo: async () => undefined,
+				acceptDetachInstanceReply: async (...args) => { replies.push(args); await accepted.complete(args); }
+			});
+			instantiationService.stub(ITerminalInstanceService, 'getBackend', backend);
+			instantiationService.stub(ITerminalGroupService, 'getGroupForInstance', undefined);
+			instantiationService.stub(ITerminalEditorService, 'detachInstance', () => { });
+			const service = store.add(instantiationService.createInstance(TerminalService));
+			await service.whenConnected;
+			// Complete the constructor's earlier queued style initialization on the test clock.
+			await timeout(0);
+			const sandbox = createSandbox();
+			sandbox.stub(service, 'getInstanceFromResource').returns(instance);
+			try {
+				request.fire({ requestId: 7, workspaceId: 'workspace', instanceId: 3 });
+				await detaching.p;
+				deepStrictEqual(replies, []);
+				await detached.complete();
+				deepStrictEqual(await accepted.p, [7, 1, 'source']);
+			} finally {
+				await detached.complete();
+				sandbox.restore();
+			}
+		}));
+	}
 
 	suite('background terminals', () => {
 		test('persists current generations for forced background processes', () => runWithFakedTimers({ useFakeTimers: true }, async () => {

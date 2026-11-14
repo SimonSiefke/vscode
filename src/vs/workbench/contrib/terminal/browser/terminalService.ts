@@ -291,7 +291,8 @@ export class TerminalService extends Disposable implements ITerminalService {
 			this._register(this._primaryBackend.onDidRequestDetach(async (e) => {
 				const instanceToDetach = this.getInstanceFromResource(getTerminalUri(e.workspaceId, e.instanceId));
 				if (instanceToDetach) {
-					const persistentProcessId = instanceToDetach?.persistentProcessId;
+					const persistentProcessId = instanceToDetach.persistentProcessId;
+					const persistentProcessCreationId = instanceToDetach.persistentProcessCreationId;
 					if (persistentProcessId && !instanceToDetach.shellLaunchConfig.isFeatureTerminal && !instanceToDetach.shellLaunchConfig.customPtyImplementation) {
 						if (instanceToDetach.target === TerminalLocation.Editor) {
 							this._terminalEditorService.detachInstance(instanceToDetach);
@@ -299,7 +300,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 							this._terminalGroupService.getGroupForInstance(instanceToDetach)?.removeInstance(instanceToDetach);
 						}
 						await instanceToDetach.detachProcessAndDispose(TerminalExitReason.User);
-						await this._primaryBackend?.acceptDetachInstanceReply(e.requestId, persistentProcessId);
+						await this._primaryBackend?.acceptDetachInstanceReply(e.requestId, persistentProcessId, persistentProcessCreationId);
 					} else {
 						// will get rejected without a persistentProcessId to attach to
 						await this._primaryBackend?.acceptDetachInstanceReply(e.requestId, undefined);
