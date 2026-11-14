@@ -16,7 +16,7 @@ import { IPtyHostProcessReplayEvent } from '../common/capabilities/capabilities.
 import { RequestStore } from '../common/requestStore.js';
 import { HeartbeatConstants, IHeartbeatService, ITerminalLaunchResult, IProcessDataEvent, IProcessProperty, IProcessPropertyMap, IProcessReadyEvent, IPtyHostLatencyMeasurement, IPtyHostService, IPtyService, IRequestResolveVariablesEvent, ISerializedTerminalState, IShellLaunchConfig, ITerminalLaunchError, ITerminalProcessOptions, ITerminalProfile, ITerminalsLayoutInfo, ProcessPropertyType, TerminalIcon, TerminalIpcChannels, TerminalSettingId, TitleEventSource } from '../common/terminal.js';
 import { registerTerminalPlatformConfiguration } from '../common/terminalPlatformConfiguration.js';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from '../common/terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs } from '../common/terminalProcess.js';
 import { IPtyHostConnection, IPtyHostStarter } from './ptyHost.js';
 import { detectAvailableProfiles } from './terminalProfiles.js';
 import * as performance from '../../../base/common/performance.js';
@@ -59,13 +59,14 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 	private readonly _resolveVariablesRequestStore: RequestStore<string[], { workspaceId: string; originalText: string[] }>;
 	private _wasQuitRequested = false;
 	private _restartCount = 0;
+	private _hasStarted = false;
 	private _isResponsive = true;
 	private _heartbeatFirstTimeout?: Timeout;
 	private _heartbeatSecondTimeout?: Timeout;
 
 	private readonly _onPtyHostExit = this._register(new Emitter<number>());
 	readonly onPtyHostExit = this._onPtyHostExit.event;
-	private readonly _onPtyHostStart = this._register(new Emitter<void>());
+	private readonly _onPtyHostStart = this._register(new Emitter<{ isRestart: boolean }>());
 	readonly onPtyHostStart = this._onPtyHostStart.event;
 	private readonly _onPtyHostUnresponsive = this._register(new Emitter<void>());
 	readonly onPtyHostUnresponsive = this._onPtyHostUnresponsive.event;
@@ -187,7 +188,9 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		this.__connection = connection;
 		this.__proxy = proxy;
 
-		this._onPtyHostStart.fire();
+		const isRestart = this._hasStarted;
+		this._hasStarted = true;
+		this._onPtyHostStart.fire({ isRestart });
 
 		store.add(this._configurationService.onDidChangeConfiguration(async e => {
 			if (e.affectsConfiguration(TerminalSettingId.IgnoreProcessNames)) {
@@ -221,8 +224,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 	updateIcon(id: number, userInitiated: boolean, icon: TerminalIcon, color?: string): Promise<void> {
 		return this._proxy.updateIcon(id, userInitiated, icon, color);
 	}
-	attachToProcess(id: number, pid?: number): Promise<void> {
-		return this._proxy.attachToProcess(id, pid);
+	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string): Promise<void> {
+		return this._proxy.attachToProcess(id, pid, autoReplies, creationId, expectedCreationId);
 	}
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void> {
 		return this._proxy.detachFromProcess(id, forcePersist);
@@ -242,8 +245,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 	start(id: number): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
 		return this._proxy.start(id);
 	}
-	shutdown(id: number, immediate: boolean): Promise<void> {
-		return this._proxy.shutdown(id, immediate);
+	shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+		return this._proxy.shutdown(id, immediate, creationId);
 	}
 	input(id: number, data: string): Promise<void> {
 		return this._proxy.input(id, data);
@@ -294,11 +297,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		return this._proxy.orphanQuestionReply(id);
 	}
 
-	installAutoReply(match: string, reply: string, ownerId: string): Promise<void> {
-		return this._proxy.installAutoReply(match, reply, ownerId);
-	}
-	uninstallAllAutoReplies(ownerId: string): Promise<void> {
-		return this._proxy.uninstallAllAutoReplies(ownerId);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._proxy.setAutoReplies(id, replies, creationId);
 	}
 
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string> {
@@ -320,8 +320,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		return this._proxy.getWslPath(original, direction);
 	}
 
-	getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined> {
-		return this._proxy.getRevivedPtyNewId(workspaceId, id);
+	getRevivedPtyProcessIdentity(workspaceId: string, id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined> {
+		return this._proxy.getRevivedPtyProcessIdentity(workspaceId, id, expectedCreationId);
 	}
 
 	setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
@@ -338,8 +338,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		return this._proxy.requestDetachInstance(workspaceId, instanceId);
 	}
 
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
-		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId);
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number, expectedCreationId?: string): Promise<void> {
+		return this._proxy.acceptDetachInstanceReply(requestId, persistentProcessId, expectedCreationId);
 	}
 
 	async freePortKillProcess(port: string): Promise<{ port: string; processId: string }> {

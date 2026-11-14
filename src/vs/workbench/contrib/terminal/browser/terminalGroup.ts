@@ -347,7 +347,7 @@ export class TerminalGroup extends Disposable implements ITerminalGroup {
 			terminals: instances.map(t => {
 				return {
 					relativeSize: totalSize > 0 ? this._splitPaneContainer!.getPaneSize(t) / totalSize : 0,
-					terminal: t.persistentProcessId || 0
+					terminal: t.persistentProcessCreationId === undefined ? t.persistentProcessId || 0 : { id: t.persistentProcessId || 0, creationId: t.persistentProcessCreationId }
 				};
 			})
 		};

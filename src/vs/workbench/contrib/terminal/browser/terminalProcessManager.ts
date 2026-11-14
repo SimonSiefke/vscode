@@ -100,6 +100,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	private _hasChildProcesses: boolean = false;
 	private _ptyResponsiveListener: IDisposable | undefined;
 	private _ptyListenersAttached: boolean = false;
+	private _ptyHostGeneration = 0;
 	private _dataFilter: SeamlessRelaunchDataFilter;
 	private _processListeners?: IDisposable[];
 	private _isDisconnected: boolean = false;
@@ -134,6 +135,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	private _cwdWorkspaceFolder: IWorkspaceFolder | undefined;
 
 	get persistentProcessId(): number | undefined { return this._process?.id; }
+	get persistentProcessCreationId(): string | undefined { return this._process?.creationId; }
 	get shouldPersist(): boolean { return !!this.reconnectionProperties || (this._process ? this._process.shouldPersist : false); }
 	get hasWrittenData(): boolean { return this._hasWrittenData; }
 	get hasChildProcesses(): boolean { return this._hasChildProcesses; }
@@ -202,6 +204,17 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		}
 
 		this.shellIntegrationNonce = shellIntegrationNonce ?? generateUuid();
+		this._register(this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration(TerminalContribSettingId.AutoReplies)) {
+				this._updateAutoReplies().catch(error => this._logService.error('Could not update terminal auto replies', error));
+			}
+		}));
+	}
+
+	private async _updateAutoReplies(): Promise<void> {
+		if (this._process && this._processType === ProcessType.Process && this.backend) {
+			await this.backend.setAutoReplies(this._process.id, this._configurationService.getValue<Record<string, string | null>>(TerminalContribSettingId.AutoReplies) ?? {}, this._process.creationId);
+		}
 	}
 
 	async freePortKillProcess(port: string): Promise<void> {
@@ -244,8 +257,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 	}
 
 	async detachFromProcess(forcePersist?: boolean): Promise<void> {
-		await this._process?.detach?.(forcePersist);
+		const process = this._process;
 		this._process = null;
+		await process?.detach?.(forcePersist);
 	}
 
 	async createProcess(
@@ -271,22 +285,35 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		rows: number,
 		reset: boolean = true
 	): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined> {
+		const ptyHostGeneration = this._ptyHostGeneration;
 		this._shellLaunchConfig = shellLaunchConfig;
 		this._dimensions.cols = cols;
 		this._dimensions.rows = rows;
 
 		let newProcess: ITerminalChildProcess | undefined;
+		let isNewProcess = false;
 		let isLiveAttachment = false;
 
 		if (shellLaunchConfig.customPtyImplementation) {
 			this._processType = ProcessType.PsuedoTerminal;
 			newProcess = shellLaunchConfig.customPtyImplementation(this._instanceId, cols, rows);
+			isNewProcess = true;
 		} else {
+			this._processType = ProcessType.Process;
 			const backend = await this._terminalInstanceService.getBackend(this.remoteAuthority);
 			if (!backend) {
 				throw new Error(`No terminal backend registered for remote authority '${this.remoteAuthority}'`);
 			}
 			this.backend = backend;
+			if (!this._isDisposed) {
+				this._setupPtyHostListeners(backend);
+			}
+			if (shellLaunchConfig.attachPersistentProcess?.findRevivedId) {
+				await backend.whenReady;
+				if (this._isDisposed || ptyHostGeneration !== this._ptyHostGeneration) {
+					return undefined;
+				}
+			}
 
 			// Create variable resolver
 			// Start with the full base environment so that all standard variables (e.g. PATH) are
@@ -313,7 +340,8 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 
 				const shouldPersist = ((this._configurationService.getValue(TaskSettingId.Reconnection) && shellLaunchConfig.reconnectionProperties) || !shellLaunchConfig.isFeatureTerminal) && this._terminalConfigurationService.config.enablePersistentSessions && !shellLaunchConfig.isTransient;
 				if (shellLaunchConfig.attachPersistentProcess) {
-					const result = await backend.attachToProcess(shellLaunchConfig.attachPersistentProcess.id);
+					const { id, pid, creationId, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
+					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid, creationId) : await backend.attachToProcess(id, pid > 0 ? pid : undefined, creationId);
 					if (result) {
 						newProcess = result;
 						isLiveAttachment = !result.isRevived && shellLaunchConfig.attachPersistentProcess.pid > 0;
@@ -360,6 +388,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 							options,
 							shouldPersist
 						);
+						isNewProcess = true;
 					} catch (e) {
 						if (e?.message === 'Could not fetch remote environment') {
 							this._logService.trace(`Could not fetch remote environment, silently failing`);
@@ -368,13 +397,10 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 						throw e;
 					}
 				}
-				if (!this._isDisposed) {
-					this._setupPtyHostListeners(backend);
-				}
 			} else {
 				if (shellLaunchConfig.attachPersistentProcess) {
-					const { id, pid, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
-					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid) : await backend.attachToProcess(id);
+					const { id, pid, creationId, findRevivedId } = shellLaunchConfig.attachPersistentProcess;
+					const result = findRevivedId ? await backend.attachToRevivedProcess(id, pid, creationId) : await backend.attachToProcess(id, pid > 0 ? pid : undefined, creationId);
 					if (result) {
 						newProcess = result;
 						isLiveAttachment = !(result.isRevived ?? findRevivedId) && pid > 0;
@@ -389,9 +415,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 				}
 				if (!newProcess) {
 					newProcess = await this._launchLocalProcess(backend, shellLaunchConfig, cols, rows, this.userHome, variableResolver);
-				}
-				if (!this._isDisposed) {
-					this._setupPtyHostListeners(backend);
+					isNewProcess = true;
 				}
 			}
 		}
@@ -400,6 +424,20 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			await this._resolveParentWindowHandle();
 		}
 
+		if (ptyHostGeneration !== this._ptyHostGeneration) {
+			if (isNewProcess) {
+				// The backend may have allocated after restart. Its creation ID makes cleanup
+				// safe even if this numeric process ID now belongs to another allocation.
+				try {
+					await newProcess.shutdown(true);
+				} catch (error) {
+					this._logService.trace('Could not release a terminal allocation from a restarted host', error);
+				}
+			}
+			return undefined;
+		}
+
+		// If the process was disposed during its creation, shut it down and return failure
 		if (this._isDisposed) {
 			await this._releaseProcessBeforeStart(newProcess, isLiveAttachment);
 			return undefined;
@@ -475,6 +513,10 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 			}
 		}, ProcessConstants.ErrorLaunchThresholdDuration);
 
+		await this._updateAutoReplies();
+		if (this._process !== newProcess) {
+			return undefined;
+		}
 		const result = await newProcess.start();
 		if (result) {
 			// Error
@@ -639,6 +681,9 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		// When the pty host restarts, reconnect is no longer possible so dispose the responsive
 		// listener
 		this._register(backend.onPtyHostRestart(async () => {
+			this._ptyHostGeneration++;
+			// Process IDs belong to the old host; stop updates before notifying listeners or awaiting relaunch.
+			this._process = null;
 			// When the pty host restarts, reconnect is no longer possible
 			if (!this._isDisconnected) {
 				this._isDisconnected = true;

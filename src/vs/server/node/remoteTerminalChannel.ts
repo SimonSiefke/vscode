@@ -141,8 +141,7 @@ export class RemoteTerminalChannel extends Disposable implements IServerChannel<
 			case RemoteTerminalChannelRequest.ProcessBinary: return this._ptyHostService.processBinary.apply(this._ptyHostService, args);
 
 			case RemoteTerminalChannelRequest.SendCommandResult: return this._sendCommandResult(args[0], args[1], args[2]);
-			case RemoteTerminalChannelRequest.InstallAutoReply: return this._ptyHostService.installAutoReply.apply(this._ptyHostService, args);
-			case RemoteTerminalChannelRequest.UninstallAllAutoReplies: return this._ptyHostService.uninstallAllAutoReplies.apply(this._ptyHostService, args);
+			case RemoteTerminalChannelRequest.SetAutoReplies: return this._ptyHostService.setAutoReplies(args[0], args[1], args[2]);
 			case RemoteTerminalChannelRequest.GetDefaultSystemShell: return this._getDefaultSystemShell.apply(this, args);
 			case RemoteTerminalChannelRequest.GetProfiles: return this._getProfiles.apply(this, args);
 			case RemoteTerminalChannelRequest.GetEnvironment: return this._getEnvironment();
@@ -151,7 +150,7 @@ export class RemoteTerminalChannel extends Disposable implements IServerChannel<
 			case RemoteTerminalChannelRequest.SetTerminalLayoutInfo: return this._ptyHostService.setTerminalLayoutInfo(<ISetTerminalLayoutInfoArgs>args);
 			case RemoteTerminalChannelRequest.SerializeTerminalState: return this._ptyHostService.serializeTerminalState.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.ReviveTerminalProcesses: return this._ptyHostService.reviveTerminalProcesses.apply(this._ptyHostService, args);
-			case RemoteTerminalChannelRequest.GetRevivedPtyNewId: return this._ptyHostService.getRevivedPtyNewId.apply(this._ptyHostService, args);
+			case RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity: return this._ptyHostService.getRevivedPtyProcessIdentity.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.SetUnicodeVersion: return this._ptyHostService.setUnicodeVersion.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.SetNextCommandId: return this._ptyHostService.setNextCommandId.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.ReduceConnectionGraceTime: return this._reduceConnectionGraceTime();
@@ -160,7 +159,7 @@ export class RemoteTerminalChannel extends Disposable implements IServerChannel<
 			case RemoteTerminalChannelRequest.UpdateProperty: return this._ptyHostService.updateProperty.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.RefreshProperty: return this._ptyHostService.refreshProperty.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.RequestDetachInstance: return this._ptyHostService.requestDetachInstance(args[0], args[1]);
-			case RemoteTerminalChannelRequest.AcceptDetachedInstance: return this._ptyHostService.acceptDetachInstanceReply(args[0], args[1]);
+			case RemoteTerminalChannelRequest.AcceptDetachedInstance: return this._ptyHostService.acceptDetachInstanceReply(args[0], args[1], args[2]);
 			case RemoteTerminalChannelRequest.FreePortKillProcess: return this._ptyHostService.freePortKillProcess.apply(this._ptyHostService, args);
 			case RemoteTerminalChannelRequest.AcceptDetachInstanceReply: return this._ptyHostService.acceptDetachInstanceReply.apply(this._ptyHostService, args);
 		}

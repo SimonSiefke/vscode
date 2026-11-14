@@ -10,6 +10,7 @@ import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { IProcessEnvironment, isWindows, OperatingSystem, OS } from '../../../base/common/platform.js';
 import { URI } from '../../../base/common/uri.js';
+import { generateUuid } from '../../../base/common/uuid.js';
 import { getSystemShell } from '../../../base/node/shell.js';
 import { ILogService, LogLevel } from '../../log/common/log.js';
 import { RequestStore } from '../common/requestStore.js';
@@ -18,7 +19,7 @@ import { TerminalDataBufferer } from '../common/terminalDataBuffering.js';
 import { escapeNonWindowsPath } from '../common/terminalEnvironment.js';
 import type { ISerializeOptions, SerializeAddon as XtermSerializeAddon } from '@xterm/addon-serialize';
 import type { Unicode11Addon as XtermUnicode11Addon } from '@xterm/addon-unicode11';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs, ITerminalTabLayoutInfoDto } from '../common/terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs, ITerminalTabLayoutInfoDto, TerminalProcessReference } from '../common/terminalProcess.js';
 import { sanitizeEnvForLogging } from './terminalEnvironment.js';
 import { TerminalProcess } from './terminalProcess.js';
 import { localize } from '../../../nls.js';
@@ -55,6 +56,12 @@ function sanitizeArgsForLogging(fnName: string, args: unknown[]): unknown[] {
 		return sanitizedArgs;
 	}
 	return args;
+}
+
+interface IRevivedPty {
+	readonly newId: number;
+	readonly creationId: string;
+	readonly state: ISerializedTerminalState;
 }
 
 interface ITraceRpcArgs {
@@ -101,18 +108,17 @@ export class PtyService extends Disposable implements IPtyService {
 	private readonly _ptys: Map<number, PersistentTerminalProcess> = new Map();
 	private readonly _workspaceLayoutInfos = new Map<WorkspaceId, ISetTerminalLayoutInfoArgs>();
 	private readonly _detachInstanceRequestStore: RequestStore<IProcessDetails | undefined, { workspaceId: string; instanceId: number }>;
-	private readonly _revivedPtyIdMap: Map<string, { newId: number; state: ISerializedTerminalState }> = new Map();
+	private readonly _revivedPtyIdMap: Map<string, IRevivedPty> = new Map();
 
 	// #region Pty service contribution RPC calls
 
 	private readonly _autoRepliesContribution: AutoRepliesPtyServiceContribution;
 	@traceRpc
-	async installAutoReply(match: string, reply: string, ownerId: string) {
-		await this._autoRepliesContribution.installAutoReply(match, reply, ownerId);
-	}
-	@traceRpc
-	async uninstallAllAutoReplies(ownerId: string) {
-		await this._autoRepliesContribution.uninstallAllAutoReplies(ownerId);
+	async setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		const pty = this._ptys.get(id);
+		if (pty && pty.processLaunchOptions.options.creationId === creationId) {
+			this._autoRepliesContribution.setAutoReplies(id, replies);
+		}
 	}
 
 	// #endregion
@@ -192,10 +198,10 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
+	async acceptDetachInstanceReply(requestId: number, persistentProcessId: number, expectedCreationId?: string): Promise<void> {
 		let processDetails: IProcessDetails | undefined = undefined;
 		const pty = this._ptys.get(persistentProcessId);
-		if (pty) {
+		if (pty && pty.processLaunchOptions.options.creationId === expectedCreationId) {
 			processDetails = await this._buildProcessDetails(persistentProcessId, pty);
 		}
 		this._detachInstanceRequestStore.acceptReply(requestId, processDetails);
@@ -282,6 +288,7 @@ export class PtyService extends Disposable implements IPtyService {
 		// TODO: We may at some point want to show date information in a hover via a custom sequence:
 		//   new Date(terminal.timestamp).toLocaleDateString(dateTimeFormatLocale)
 		//   new Date(terminal.timestamp).toLocaleTimeString(dateTimeFormatLocale)
+		const creationId = generateUuid();
 		const newId = await this.createProcess(
 			{
 				...terminal.shellLaunchConfig,
@@ -297,7 +304,7 @@ export class PtyService extends Disposable implements IPtyService {
 			terminal.unicodeVersion,
 			terminal.processLaunchConfig.env,
 			terminal.processLaunchConfig.executableEnv,
-			terminal.processLaunchConfig.options,
+			{ ...terminal.processLaunchConfig.options, creationId },
 			true,
 			terminal.processDetails.workspaceId,
 			terminal.processDetails.workspaceName,
@@ -306,7 +313,7 @@ export class PtyService extends Disposable implements IPtyService {
 		);
 		// Don't start the process here as there's no terminal to answer CPR
 		const oldId = this._getRevivingProcessId(workspaceId, terminal.id);
-		this._revivedPtyIdMap.set(oldId, { newId, state: terminal });
+		this._revivedPtyIdMap.set(oldId, { newId, creationId, state: terminal });
 		this._logService.info(`Revived process, old id ${oldId} -> new id ${newId}`);
 	}
 
@@ -365,11 +372,21 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async attachToProcess(id: number, pid?: number): Promise<void> {
+	async attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string, expectedCreationId?: string): Promise<void> {
 		try {
 			const persistentProcess = this._throwIfNoPty(id);
 			if (pid !== undefined && persistentProcess.pid !== pid) {
 				throw new ErrorNoTelemetry(`Pty ${id} has pid ${persistentProcess.pid}, expected ${pid}`);
+			}
+			if (persistentProcess.processLaunchOptions.options.creationId !== expectedCreationId) {
+				throw new ErrorNoTelemetry(`Pty ${id} allocation has changed`);
+			}
+			if (creationId !== undefined) {
+				persistentProcess.processLaunchOptions.options.creationId = creationId;
+			}
+			// Validate the saved allocation before replacing replies, and apply them before replay.
+			if (autoReplies !== undefined) {
+				this._autoRepliesContribution.setAutoReplies(id, autoReplies);
 			}
 			await persistentProcess.attach();
 			this._logService.info(`Persistent process reconnection "${id}"`);
@@ -443,9 +460,13 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async shutdown(id: number, immediate: boolean): Promise<void> {
+	async shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+		const pty = this._ptys.get(id);
+		if (creationId !== undefined && pty?.processLaunchOptions.options.creationId !== creationId) {
+			return;
+		}
 		// Don't throw if the pty is already shutdown
-		return this._ptys.get(id)?.shutdown(immediate);
+		return pty?.shutdown(immediate);
 	}
 	@traceRpc
 	async input(id: number, data: string): Promise<void> {
@@ -569,9 +590,12 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined> {
+	async getRevivedPtyProcessIdentity(workspaceId: string, id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined> {
 		try {
-			return this._revivedPtyIdMap.get(this._getRevivingProcessId(workspaceId, id))?.newId;
+			const revived = this._getRevivedPty(workspaceId, id, expectedCreationId);
+			if (revived) {
+				return { id: revived.newId, creationId: revived.creationId };
+			}
 		} catch (e) {
 			this._logService.warn(`Couldn't find terminal ID ${workspaceId}-${id}`, e.message);
 		}
@@ -609,23 +633,32 @@ export class PtyService extends Disposable implements IPtyService {
 		};
 	}
 
-	private async _expandTerminalInstance(workspaceId: string, t: ITerminalInstanceLayoutInfoById | number, doneSet: Set<number>): Promise<IRawTerminalInstanceLayoutInfo<IProcessDetails | null>> {
-		const hasLayout = !isNumber(t);
-		const ptyId = hasLayout ? t.terminal : t;
+	private async _expandTerminalInstance(workspaceId: string, t: ITerminalInstanceLayoutInfoById | TerminalProcessReference, doneSet: Set<number>): Promise<IRawTerminalInstanceLayoutInfo<IProcessDetails | null>> {
+		const hasLayout = !isNumber(t) && hasKey(t, { terminal: true });
+		const reference = hasLayout ? t.terminal : t;
+		const ptyId = isNumber(reference) ? reference : reference.id;
+		const expectedCreationId = isNumber(reference) ? undefined : reference.creationId;
 		try {
 			const oldId = this._getRevivingProcessId(workspaceId, ptyId);
-			const revivedPtyId = this._revivedPtyIdMap.get(oldId)?.newId;
+			const revived = this._getRevivedPty(workspaceId, ptyId, expectedCreationId);
+			const revivedPtyId = revived?.newId;
 			this._logService.info(`Expanding terminal instance, old id ${oldId} -> new id ${revivedPtyId}`);
-			this._revivedPtyIdMap.delete(oldId);
+			if (revived) {
+				this._revivedPtyIdMap.delete(oldId);
+			}
 			const persistentProcessId = revivedPtyId ?? ptyId;
 			if (doneSet.has(persistentProcessId)) {
 				throw new Error(`Terminal ${persistentProcessId} has already been expanded`);
 			}
 			doneSet.add(persistentProcessId);
 			const persistentProcess = this._throwIfNoPty(persistentProcessId);
-			const processDetails = persistentProcess && await this._buildProcessDetails(ptyId, persistentProcess, revivedPtyId !== undefined);
+			const creationId = revived?.creationId ?? expectedCreationId;
+			if (creationId !== undefined && persistentProcess.processLaunchOptions.options.creationId !== creationId) {
+				throw new ErrorNoTelemetry(`Pty ${persistentProcessId} allocation has changed`);
+			}
+			const processDetails = await this._buildProcessDetails(ptyId, persistentProcess, revivedPtyId !== undefined);
 			return {
-				terminal: { ...processDetails, id: persistentProcessId },
+				terminal: { ...processDetails, id: persistentProcessId, creationId: creationId ?? processDetails.creationId },
 				relativeSize: hasLayout ? t.relativeSize : 0
 			};
 		} catch (e) {
@@ -641,17 +674,30 @@ export class PtyService extends Disposable implements IPtyService {
 		}
 	}
 
+	private _getRevivedPty(workspaceId: string, id: number, expectedCreationId?: string): IRevivedPty | undefined {
+		const revived = this._revivedPtyIdMap.get(this._getRevivingProcessId(workspaceId, id));
+		if (!revived) {
+			return undefined;
+		}
+		if (expectedCreationId !== undefined) {
+			return revived.state.processLaunchConfig.options.creationId === expectedCreationId ? revived : undefined;
+		}
+		return revived;
+	}
+
 	private _getRevivingProcessId(workspaceId: string, ptyId: number): string {
 		return `${workspaceId}-${ptyId}`;
 	}
 
 	private async _buildProcessDetails(id: number, persistentProcess: PersistentTerminalProcess, wasRevived: boolean = false): Promise<IProcessDetails> {
 		performance.mark(`code/willBuildProcessDetails/${id}`);
+		const creationId = persistentProcess.processLaunchOptions.options.creationId;
 		// If the process was just revived, don't do the orphan check as it will
 		// take some time
 		const [cwd, isOrphan] = await Promise.all([persistentProcess.getCwd(), wasRevived ? true : persistentProcess.isOrphaned()]);
 		const result = {
 			id,
+			creationId,
 			title: persistentProcess.title,
 			titleSource: persistentProcess.titleSource,
 			pid: persistentProcess.pid,

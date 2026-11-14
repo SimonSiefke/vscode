@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { spy } from 'sinon';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { encodeHex, VSBuffer } from '../../../../../base/common/buffer.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -15,11 +16,13 @@ import { hasKey } from '../../../../../base/common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { IConfigurationService, type IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { EnvironmentVariableMutatorType, type IEnvironmentVariableCollection } from '../../../../../platform/terminal/common/environmentVariable.js';
-import { ITerminalChildProcess, TitleEventSource, type IProcessReadyEvent, type ITerminalBackend, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
+import { ITerminalChildProcess, TitleEventSource, type IProcessReadyEvent, type ITerminalBackend, type ITerminalProcessOptions, ITerminalLogService } from '../../../../../platform/terminal/common/terminal.js';
 import { ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalProcessManager } from '../../browser/terminalProcessManager.js';
+import { RemoteTerminalBackend } from '../../browser/remoteTerminalBackend.js';
 import { RemotePty } from '../../browser/remotePty.js';
 import { RemoteTerminalChannelClient } from '../../common/remote/remoteTerminalChannel.js';
 import { IEnvironmentVariableService } from '../../common/environmentVariable.js';
@@ -36,6 +39,9 @@ function listenerCount(emitter: Emitter<unknown>): number {
 class TestTerminalChildProcess implements ITerminalChildProcess {
 	id: number = 0;
 	readonly calls: string[] = [];
+	readonly shutdownCalls: boolean[] = [];
+	onShutdown?: () => void;
+	detach?: (forcePersist?: boolean) => Promise<void>;
 	private readonly _onProcessReady = new Emitter<IProcessReadyEvent>();
 	get capabilities() { return []; }
 	constructor(
@@ -60,7 +66,7 @@ class TestTerminalChildProcess implements ITerminalChildProcess {
 	onProcessTitleChanged = Event.None;
 	onProcessShellTypeChanged = Event.None;
 	async start(): Promise<undefined> { this.calls.push('start'); return undefined; }
-	shutdown(immediate: boolean): void { }
+	shutdown(immediate: boolean): void { this.shutdownCalls.push(immediate); this.onShutdown?.(); }
 	input(data: string): void { }
 	sendSignal(signal: string): void { }
 	resize(cols: number, rows: number): void { }
@@ -80,15 +86,23 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 	readonly createdProcesses: TestTerminalChildProcess[] = [];
 	readonly createProcessRequests: { env: IProcessEnvironment; options: ITerminalProcessOptions }[] = [];
 	refuseRevivedAttach = false;
+	whenReady: Promise<void> = Promise.resolve();
+	beforeCreateProcess?: () => Promise<void>;
+	beforeSetAutoReplies?: (id: number) => Promise<void>;
+	beforeGetShellEnvironment?: () => Promise<void>;
+	readonly liveProcesses = new Set<TestTerminalChildProcess>();
+	readonly autoReplySettings = new Map<number, Readonly<Record<string, string | null>>>();
+	readonly autoReplyUpdates: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
 	async getBackend() {
 		return {
+			whenReady: this.whenReady,
 			onPtyHostExit: Event.None,
 			onPtyHostUnresponsive: Event.None,
 			onPtyHostResponsive: Event.None,
 			onPtyHostRestart: this.ptyHostRestartEmitter.event,
 			onDidMoveWindowInstance: Event.None,
 			onDidRequestDetach: Event.None,
-			createProcess: (
+			createProcess: async (
 				shellLaunchConfig: any,
 				cwd: string,
 				cols: number,
@@ -99,16 +113,27 @@ class TestTerminalInstanceService implements Partial<ITerminalInstanceService> {
 				shouldPersist: boolean
 			) => {
 				this.createProcessRequests.push({ env: { ...env }, options });
+				await this.beforeCreateProcess?.();
 				const childProcess = new TestTerminalChildProcess(shouldPersist);
 				childProcess.id = this.createdProcesses.push(childProcess);
+				this.liveProcesses.add(childProcess);
+				childProcess.onShutdown = () => this.liveProcesses.delete(childProcess);
 				return childProcess;
 			},
 			attachToRevivedProcess: async (id: number, pid: number) => {
 				this.revivedAttachArgs.push([id, pid]);
 				return this.refuseRevivedAttach ? undefined : new TestTerminalChildProcess(true);
 			},
+			setAutoReplies: async (id: number, replies: Readonly<Record<string, string | null>>) => {
+				this.autoReplyUpdates.push({ id, replies });
+				this.autoReplySettings.set(id, { ...replies });
+				await this.beforeSetAutoReplies?.(id);
+			},
 			getLatency: () => Promise.resolve([]),
-			getShellEnvironment: () => Promise.resolve({})
+			getShellEnvironment: async () => {
+				await this.beforeGetShellEnvironment?.();
+				return {};
+			}
 		} as unknown as ITerminalBackend;
 	}
 }
@@ -118,12 +143,13 @@ suite('Workbench - TerminalProcessManager', () => {
 	let terminalInstanceService: TestTerminalInstanceService;
 	let environmentVariableService: IEnvironmentVariableService;
 	let instantiationService: ReturnType<typeof workbenchInstantiationService>;
+	let configurationService: TestConfigurationService;
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	setup(async () => {
 		instantiationService = workbenchInstantiationService(undefined, store);
-		const configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
 		await configurationService.setUserConfiguration('editor', { fontFamily: 'foo' });
 		await configurationService.setUserConfiguration('terminal', {
 			integrated: {
@@ -426,6 +452,330 @@ suite('Workbench - TerminalProcessManager', () => {
 		});
 	}
 
+	test('stops updating a transferred process while detach is still pending', async () => {
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'initial' });
+		await manager.createProcess({}, 80, 24, false);
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'updated' });
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		const detachStarted = new DeferredPromise<void>();
+		const detachComplete = new DeferredPromise<void>();
+		terminalInstanceService.createdProcesses[0].detach = async () => {
+			await detachStarted.complete();
+			await detachComplete.p;
+		};
+		const detaching = manager.detachFromProcess();
+		try {
+			await detachStarted.p;
+			// Another window has attached and configured the process before the old reply returns.
+			terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', {});
+			configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			deepStrictEqual(terminalInstanceService.autoReplySettings.get(1), { prompt: 'peer' });
+		} finally {
+			await detachComplete.complete();
+			await detaching;
+		}
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		deepStrictEqual({ updates: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1) }, {
+			updates: [{ id: 1, replies: { prompt: 'initial' } }, { id: 1, replies: { prompt: 'updated' } }],
+			peer: { prompt: 'peer' }
+		});
+	});
+
+	test('does not send auto replies for a custom pty and applies them when replaced with a process', async () => {
+		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'reply' });
+		await manager.createProcess({ customPtyImplementation: () => new TestTerminalChildProcess(false) }, 80, 24, false);
+		configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, []);
+		await manager.createProcess({}, 80, 24, false);
+		deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 1, replies: { prompt: 'reply' } }]);
+	});
+
+	for (const remote of [false, true]) {
+		for (const findRevivedId of [false, true]) {
+			test(`forwards the saved allocation identity for ${remote ? 'remote' : 'local'} ${findRevivedId ? 'revived' : 'live'} attachment`, async () => {
+				instantiationService.stub(IRemoteAgentService, {
+					getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+				});
+				const calls: { revived: boolean; id: number; pid: number | undefined; creationId: string | undefined }[] = [];
+				const backend = await terminalInstanceService.getBackend();
+				const process = new TestTerminalChildProcess(true);
+				process.id = 17;
+				instantiationService.stub(ITerminalInstanceService, {
+					getBackend: async () => ({
+						...backend,
+						attachToProcess: async (id: number, pid?: number, creationId?: string) => {
+							calls.push({ revived: false, id, pid, creationId });
+							return process;
+						},
+						attachToRevivedProcess: async (id: number, pid: number, creationId?: string) => {
+							calls.push({ revived: true, id, pid, creationId });
+							return process;
+						}
+					})
+				});
+				const attachmentManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+					remote ? URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }) : undefined, undefined, undefined));
+				await attachmentManager.createProcess({ attachPersistentProcess: {
+					id: 17, pid: 1234, creationId: 'saved owner', findRevivedId, title: 'bash', titleSource: TitleEventSource.Process, cwd: '/tmp', shellIntegrationNonce: 'nonce'
+				} }, 80, 24, false);
+				deepStrictEqual({ calls, starts: process.calls }, { calls: [{ revived: findRevivedId, id: 17, pid: 1234, creationId: 'saved owner' }], starts: ['start'] });
+			});
+		}
+	}
+
+	for (const remote of [false, true]) {
+		for (const interruption of ['dispose', 'restart'] as const) {
+			test(`does not acquire a revived ${remote ? 'remote' : 'local'} process when ${interruption} interrupts backend readiness`, async () => {
+				const readiness = new DeferredPromise<void>();
+				const waiting = new DeferredPromise<void>();
+				const attachments: number[] = [];
+				const process = new TestTerminalChildProcess(true);
+				process.id = 42;
+				const backend = await terminalInstanceService.getBackend();
+				instantiationService.stub(IRemoteAgentService, {
+					getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+				});
+				instantiationService.stub(ITerminalInstanceService, {
+					getBackend: async () => ({
+						...backend,
+						get whenReady() { waiting.complete(); return readiness.p; },
+						attachToRevivedProcess: async (id: number) => { attachments.push(id); return process; }
+					})
+				});
+				const restoringManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+					remote ? URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }) : undefined, undefined, undefined));
+				const relaunch = spy(restoringManager, 'relaunch');
+				const restoring = restoringManager.createProcess({ attachPersistentProcess: {
+					id: 17, pid: 1234, creationId: 'saved owner', findRevivedId: true, title: 'bash', titleSource: TitleEventSource.Process, cwd: '/tmp', shellIntegrationNonce: 'nonce'
+				} }, 80, 24, false);
+				try {
+					await waiting.p;
+					deepStrictEqual(attachments, []);
+					if (interruption === 'dispose') {
+						restoringManager.dispose(true);
+					} else {
+						terminalInstanceService.ptyHostRestartEmitter.fire();
+					}
+					await readiness.complete();
+					await restoring;
+					await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+					deepStrictEqual({ attachments, starts: process.calls, id: restoringManager.persistentProcessId }, interruption === 'dispose'
+						? { attachments: [], starts: [], id: undefined }
+						: { attachments: [17], starts: ['start'], id: 42 });
+				} finally {
+					await readiness.complete();
+					await restoring;
+					await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+					relaunch.restore();
+				}
+			});
+		}
+	}
+
+	for (const isFeatureTerminal of [false, true]) {
+		test(`first lazy remote host start preserves a ${isFeatureTerminal ? 'feature' : 'normal'} terminal and a later restart is handled`, async () => {
+			await configurationService.setUserConfiguration('terminal', { integrated: { enablePersistentSessions: false, shellIntegration: { enabled: false } } });
+			configurationService.onDidChangeConfigurationEmitter.fire(upcastPartial<IConfigurationChangeEvent>({ affectsConfiguration: () => true }));
+			instantiationService.stub(ITerminalLogService, new NullLogService());
+			instantiationService.stub(IRemoteAgentService, {
+				getConnection: () => null,
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const hostStarts = store.add(new Emitter<{ isRestart: boolean }>());
+			const processExits = store.add(new Emitter<{ id: number; event: number | undefined }>());
+			const started: number[] = [];
+			const shutdowns: number[] = [];
+			let allocations = 0;
+			const channel = upcastPartial<RemoteTerminalChannelClient>({
+				onPtyHostExit: Event.None,
+				onPtyHostStart: hostStarts.event,
+				onPtyHostUnresponsive: Event.None,
+				onPtyHostResponsive: Event.None,
+				onPtyHostRequestResolveVariables: Event.None,
+				onProcessData: Event.None,
+				onProcessReplay: Event.None,
+				onProcessOrphanQuestion: Event.None,
+				onDidRequestDetach: Event.None,
+				onProcessReady: Event.None,
+				onDidChangeProperty: Event.None,
+				onProcessExit: processExits.event,
+				onExecuteCommand: Event.None,
+				getEnvironment: async () => ({}),
+				getLatency: async () => [],
+				createProcess: async (_config, _settings, _root, _options, shouldPersist) => {
+					strictEqual(shouldPersist, false);
+					if (++allocations === 1) {
+						hostStarts.fire({ isRestart: false });
+					}
+					return { persistentTerminalId: allocations, resolvedShellLaunchConfig: {} };
+				},
+				start: async id => { started.push(id); return undefined; },
+				shutdown: async id => { shutdowns.push(id); },
+				setAutoReplies: async () => { }
+			});
+			const backend = store.add(instantiationService.createInstance(RemoteTerminalBackend, 'ssh-remote+test', channel));
+			instantiationService.stub(ITerminalInstanceService, { getBackend: async () => backend });
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const exits: (number | undefined)[] = [];
+			store.add(remoteManager.onProcessExit(e => exits.push(e)));
+			const relaunch = spy(remoteManager, 'relaunch');
+			try {
+				await remoteManager.createProcess({ isFeatureTerminal }, 80, 24, false);
+				deepStrictEqual({ allocations, started, shutdowns, exits, relaunches: relaunch.callCount, id: remoteManager.persistentProcessId },
+					{ allocations: 1, started: [1], shutdowns: [], exits: [], relaunches: 0, id: 1 });
+				hostStarts.fire({ isRestart: true });
+				if (!isFeatureTerminal) {
+					await relaunch.firstCall.returnValue;
+				}
+				deepStrictEqual({ allocations, started, exits, relaunches: relaunch.callCount, id: remoteManager.persistentProcessId }, isFeatureTerminal
+					? { allocations: 1, started: [1], exits: [-1], relaunches: 0, id: undefined }
+					: { allocations: 2, started: [1, 2], exits: [], relaunches: 1, id: 2 });
+			} finally {
+				await Promise.all(relaunch.getCalls().map(call => call.returnValue));
+				relaunch.restore();
+				for (let id = 1; id <= allocations; id++) {
+					processExits.fire({ id, event: 0 });
+				}
+			}
+		});
+	}
+
+	for (const disposeDuringSetup of [true, false]) {
+		test(`shuts down a remote pty disposed ${disposeDuringSetup ? 'during auto-reply setup' : 'after startup'}`, async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			const shutdownComplete = new DeferredPromise<void>();
+			const calls: string[] = [];
+			instantiationService.stub(IRemoteAgentService, {
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const channel = new class extends mock<RemoteTerminalChannelClient>() {
+				override async start(id: number): Promise<undefined> {
+					calls.push(`start ${id}`);
+					return undefined;
+				}
+				override async shutdown(id: number, immediate: boolean, creationId?: string): Promise<void> {
+					strictEqual(creationId, 'creation');
+					calls.push(`shutdown ${id} ${immediate}`);
+					await shutdownComplete.complete();
+				}
+			};
+			const pty = store.add(instantiationService.createInstance(RemotePty, 42, false, channel, 'creation'));
+			const backend = await terminalInstanceService.getBackend();
+			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
+				override async getBackend(): Promise<ITerminalBackend> {
+					return {
+						...backend,
+						createProcess: async () => pty,
+						setAutoReplies: async (_id: number, _replies: Readonly<Record<string, string | null>>, creationId?: string) => {
+							strictEqual(creationId, 'creation');
+							await setupStarted.complete();
+							await setupComplete.p;
+						}
+					};
+				}
+			});
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const creation = remoteManager.createProcess({}, 80, 24, false);
+			try {
+				await setupStarted.p;
+				if (disposeDuringSetup) {
+					remoteManager.dispose(true);
+					// Cleanup must reach the host while setup is still pending, without starting the shell.
+					deepStrictEqual(calls, ['shutdown 42 true']);
+				}
+				await setupComplete.complete();
+				await creation;
+				if (!disposeDuringSetup) {
+					remoteManager.dispose(true);
+				}
+				await shutdownComplete.p;
+				// A delayed caller must not start an allocation that has already been shut down.
+				await pty.start();
+				deepStrictEqual(calls, disposeDuringSetup ? ['shutdown 42 true'] : ['start 42', 'shutdown 42 true']);
+			} finally {
+				await setupComplete.complete();
+				await creation;
+			}
+		});
+	}
+
+	for (const detachAt of ['setup', 'start', 'ready'] as const) {
+		test(`detaches a remote pty during ${detachAt} without waiting for suppressed startup`, async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			const startRequested = new DeferredPromise<void>();
+			const startComplete = new DeferredPromise<void>();
+			const calls: string[] = [];
+			instantiationService.stub(IRemoteAgentService, {
+				getEnvironment: async () => upcastPartial<IRemoteAgentEnvironment>({ os: OperatingSystem.Linux, userHome: URI.file('/home/test') })
+			});
+			const channel = new class extends mock<RemoteTerminalChannelClient>() {
+				override async start(id: number): Promise<undefined> {
+					calls.push(`start ${id}`);
+					await startRequested.complete();
+					await startComplete.p;
+					return undefined;
+				}
+				override async detachFromProcess(id: number, forcePersist?: boolean): Promise<void> {
+					calls.push(`detach ${id} ${forcePersist}`);
+				}
+			};
+			const pty = store.add(instantiationService.createInstance(RemotePty, 42, true, channel, undefined));
+			const backend = await terminalInstanceService.getBackend();
+			instantiationService.stub(ITerminalInstanceService, new class extends mock<ITerminalInstanceService>() {
+				override async getBackend(): Promise<ITerminalBackend> {
+					return {
+						...backend,
+						createProcess: async () => pty,
+						setAutoReplies: async () => {
+							await setupStarted.complete();
+							await setupComplete.p;
+						}
+					};
+				}
+			});
+			const remoteManager = store.add(instantiationService.createInstance(TerminalProcessManager, 3,
+				URI.from({ scheme: Schemas.vscodeRemote, authority: 'ssh-remote+test', path: '/workspace' }), undefined, undefined));
+			const creation = remoteManager.createProcess({}, 80, 24, false);
+			try {
+				await setupStarted.p;
+				if (detachAt !== 'setup') {
+					await setupComplete.complete();
+					await startRequested.p;
+				}
+				if (detachAt === 'ready') {
+					await startComplete.complete();
+					await creation;
+				}
+				const detaching = remoteManager.detachFromProcess(true);
+				if (detachAt === 'setup') {
+					deepStrictEqual(calls, ['detach 42 true']);
+					await detaching;
+				} else {
+					if (detachAt === 'start') {
+						deepStrictEqual(calls, ['start 42']);
+						await startComplete.complete();
+					}
+					await detaching;
+				}
+				await setupComplete.complete();
+				await creation;
+				// A delayed caller cannot restart the old client after ownership was transferred.
+				await pty.start();
+				deepStrictEqual(calls, detachAt === 'setup' ? ['detach 42 true'] : ['start 42', 'detach 42 true']);
+				strictEqual(remoteManager.persistentProcessId, undefined);
+			} finally {
+				await setupComplete.complete();
+				await startComplete.complete();
+				await creation;
+			}
+		});
+	}
+
 	test('does not accumulate environment variable collection listeners when relaunching', async () => {
 		const changeCollectionsEmitter = (environmentVariableService as unknown as { _onDidChangeCollections: Emitter<unknown> })._onDidChangeCollections;
 		const initialListenerCount = listenerCount(changeCollectionsEmitter);
@@ -514,6 +864,110 @@ suite('Workbench - TerminalProcessManager', () => {
 	});
 
 	suite('pty host restart', () => {
+		test('releases a new-host allocation returned to a creation interrupted before allocation', async () => {
+			const initialPending = new DeferredPromise<void>();
+			const initialComplete = new DeferredPromise<void>();
+			const replacementPending = new DeferredPromise<void>();
+			const replacementComplete = new DeferredPromise<void>();
+			let environmentRequests = 0;
+			terminalInstanceService.beforeGetShellEnvironment = async () => {
+				if (++environmentRequests === 1) {
+					await initialPending.complete();
+					await initialComplete.p;
+				} else {
+					await replacementPending.complete();
+					await replacementComplete.p;
+				}
+			};
+			const relaunch = spy(manager, 'relaunch');
+			const creation = manager.createProcess({}, 80, 24, false);
+			try {
+				await initialPending.p;
+				terminalInstanceService.ptyHostRestartEmitter.fire();
+				strictEqual(relaunch.callCount, 1);
+				await replacementPending.p;
+				await initialComplete.complete();
+				await creation;
+				deepStrictEqual(terminalInstanceService.createdProcesses.map(process => ({ calls: process.calls, shutdown: process.shutdownCalls })), [{ calls: [], shutdown: [true] }]);
+				strictEqual(terminalInstanceService.liveProcesses.size, 0);
+				strictEqual(manager.persistentProcessId, undefined);
+			} finally {
+				await initialComplete.complete();
+				await replacementComplete.complete();
+				await creation;
+				if (relaunch.called) {
+					await relaunch.firstCall.returnValue;
+				}
+				relaunch.restore();
+			}
+			strictEqual(terminalInstanceService.liveProcesses.size, 1);
+			deepStrictEqual(terminalInstanceService.createdProcesses[1].calls, ['start']);
+			manager.dispose();
+			strictEqual(terminalInstanceService.liveProcesses.size, 0);
+		});
+
+		test('does not start the old process when restart replaces it during auto-reply setup', async () => {
+			const setupStarted = new DeferredPromise<void>();
+			const setupComplete = new DeferredPromise<void>();
+			terminalInstanceService.beforeSetAutoReplies = async id => {
+				if (id === 1) {
+					await setupStarted.complete();
+					await setupComplete.p;
+				}
+			};
+			const creation = manager.createProcess({}, 80, 24, false);
+			const relaunch = spy(manager, 'relaunch');
+			try {
+				await setupStarted.p;
+				terminalInstanceService.ptyHostRestartEmitter.fire();
+				await relaunch.firstCall.returnValue;
+			} finally {
+				await setupComplete.complete();
+				await creation;
+				relaunch.restore();
+			}
+			deepStrictEqual(terminalInstanceService.createdProcesses.map(process => process.calls), [[], ['start']]);
+			strictEqual(manager.persistentProcessId, 2);
+		});
+
+		test('preserves a new-host peer while relaunch is pending and updates the replacement', async () => {
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'initial' });
+			await manager.createProcess({}, 80, 24, false);
+			const creationStarted = new DeferredPromise<void>();
+			const creationComplete = new DeferredPromise<void>();
+			terminalInstanceService.beforeCreateProcess = async () => {
+				await creationStarted.complete();
+				await creationComplete.p;
+			};
+			const relaunch = spy(manager, 'relaunch');
+			terminalInstanceService.autoReplyUpdates.length = 0;
+			terminalInstanceService.autoReplySettings.clear();
+			terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+			// Also exercise a configuration notification re-entering from the disconnect event.
+			store.add(manager.onPtyDisconnect(() => {
+				configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			}));
+			terminalInstanceService.ptyHostRestartEmitter.fire();
+			try {
+				await creationStarted.p;
+				await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'replacement' });
+				configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+				deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1) }, {
+					writes: [], peer: { prompt: 'peer' }
+				});
+			} finally {
+				await creationComplete.complete();
+				await relaunch.firstCall.returnValue;
+				relaunch.restore();
+			}
+			await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'latest' });
+			configurationService.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() { override affectsConfiguration(): boolean { return true; } });
+			deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1), replacement: terminalInstanceService.autoReplySettings.get(2) }, {
+				writes: [{ id: 2, replies: { prompt: 'replacement' } }, { id: 2, replies: { prompt: 'latest' } }],
+				peer: { prompt: 'peer' }, replacement: { prompt: 'latest' }
+			});
+		});
+
 		async function fireRestartAndCaptureData(os: OperatingSystem, rows: number): Promise<string> {
 			await manager.createProcess({}, 80, rows, false);
 			manager.os = os;
@@ -573,6 +1027,62 @@ suite('Workbench - TerminalProcessManager', () => {
 			await setReparentConsoleWindow(true);
 			instantiationService.stub(IHostService, 'getNativeWindowHandle', async (windowId: number) => windowHandle(windowId));
 		});
+
+		for (const pendingAt of ['allocation', 'parent handle'] as const) {
+			test(`does not restore an old-host target when restart interrupts ${pendingAt}`, async () => {
+				const initialPending = new DeferredPromise<void>();
+				const initialComplete = new DeferredPromise<void>();
+				const replacementPending = new DeferredPromise<void>();
+				const replacementComplete = new DeferredPromise<void>();
+				await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'owner' });
+				if (pendingAt === 'parent handle') {
+					// Exercise the native-handle await on every test host without changing the public Windows guard.
+					Reflect.set(manager, '_parentWindowId', 4);
+					instantiationService.stub(IHostService, 'getNativeWindowHandle', async () => {
+						await initialPending.complete();
+						await initialComplete.p;
+						return windowHandle(4);
+					});
+				}
+				terminalInstanceService.beforeCreateProcess = async () => {
+					if (terminalInstanceService.createProcessRequests.length === 1) {
+						if (pendingAt === 'allocation') {
+							await initialPending.complete();
+							await initialComplete.p;
+						}
+					} else {
+						await replacementPending.complete();
+						await replacementComplete.p;
+					}
+				};
+				const relaunch = spy(manager, 'relaunch');
+				const creation = manager.createProcess({}, 80, 24, false);
+				try {
+					await initialPending.p;
+					terminalInstanceService.autoReplySettings.set(1, { prompt: 'peer' });
+					terminalInstanceService.ptyHostRestartEmitter.fire();
+					strictEqual(relaunch.callCount, 1, 'restart is observed even before the first allocation returns');
+					await replacementPending.p;
+					await initialComplete.complete();
+					await creation;
+					deepStrictEqual({ writes: terminalInstanceService.autoReplyUpdates, peer: terminalInstanceService.autoReplySettings.get(1), target: manager.persistentProcessId }, {
+						writes: [], peer: { prompt: 'peer' }, target: undefined
+					});
+					deepStrictEqual(terminalInstanceService.createdProcesses[0].calls, []);
+				} finally {
+					await initialComplete.complete();
+					await replacementComplete.complete();
+					await creation;
+					if (relaunch.called) {
+						await relaunch.firstCall.returnValue;
+					}
+					relaunch.restore();
+				}
+				deepStrictEqual(terminalInstanceService.autoReplyUpdates, [{ id: 2, replies: { prompt: 'owner' } }]);
+				deepStrictEqual(terminalInstanceService.autoReplySettings.get(1), { prompt: 'peer' });
+				strictEqual(manager.persistentProcessId, 2);
+			});
+		}
 
 		test('sets the parent window before the process starts', async () => {
 			await manager.setParentWindow(4);
