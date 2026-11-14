@@ -10,7 +10,7 @@
 	overflow-y: hidden;
 	background: var(--vscode-multiDiffEditor-background);
 
-	> .multi-diff-editor-layer {
+	> div:where(.multi-diff-editor-layer) {
 		position: absolute;
 		top: 0;
 		left: 0;

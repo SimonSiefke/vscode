@@ -162,7 +162,7 @@ suite('Sessions - Agents Part Card', () => {
 				session.style.cssText = 'width: 100%; height: 100%;';
 				const editor = append(row, $('.part.editor.editor-tabs-multiple'));
 				editor.style.cssText = 'width: 300px; height: 300px; flex-shrink: 0;';
-				const divider = append(row, $('.monaco-sash.vertical.sessions-side-pane-divider'));
+				const divider = append(row, $('.monaco-sash.vertical.monaco-vertical-sash.sessions-side-pane-divider'));
 				divider.style.left = '498px';
 				const targetWindow = mainWindow;
 				const actualGap = editor.getBoundingClientRect().left + sideInset - session.getBoundingClientRect().right;
@@ -265,9 +265,9 @@ suite('Sessions - Agents Part Card', () => {
 			append(view, $('.part.panel'));
 
 			const sashes = [
-				append(card, $('.monaco-sash.vertical.part-grid-gap-sash')),
+				append(card, $('.monaco-sash.vertical.monaco-vertical-sash.part-grid-gap-sash')),
 				append(card, $('.monaco-sash.horizontal.part-grid-gap-sash')),
-				append(container, $('.monaco-sash.vertical.sessions-side-pane-divider')),
+				append(container, $('.monaco-sash.vertical.monaco-vertical-sash.sessions-side-pane-divider')),
 				append(sashContainer, $('.monaco-sash.horizontal')),
 			];
 			const readGrip = (sash: HTMLElement) => {
@@ -332,7 +332,7 @@ suite('Sessions - Agents Part Card', () => {
 			editor.style.width = '300px';
 			editor.style.height = '400px';
 			editor.style.flex = '0 0 auto';
-			const divider = append(row, $('.monaco-sash.vertical.sessions-side-pane-divider'));
+			const divider = append(row, $('.monaco-sash.vertical.monaco-vertical-sash.sessions-side-pane-divider'));
 			const dividerStyle = mainWindow.getComputedStyle(divider);
 			const gripStyle = mainWindow.getComputedStyle(divider, '::after');
 			const editorBounds = editor.getBoundingClientRect();
