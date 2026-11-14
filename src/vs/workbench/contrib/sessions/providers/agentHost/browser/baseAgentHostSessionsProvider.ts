@@ -4648,6 +4648,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	private readonly _chatMoveTracker = this._register(new AgentHostChatMoveTracker<AgentHostSessionAdapter>());
 	readonly onDidMoveChat: Event<IChatMovedEvent> = this._chatMoveTracker.onDidMoveChat;
 	protected readonly _sessionCache: Map<string, AgentHostSessionAdapter> = new ChatMoveTrackingSessionCache(this._chatMoveTracker);
+	private readonly _deletedSessionResources = new WeakMap<AgentHostSessionAdapter, ResourceSet>();
 	private readonly _sessionKeysByResource = new ResourceMap<string>();
 
 	protected _refreshSessionWorkspaces(): void {
@@ -8464,13 +8465,13 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		if (!connection) {
 			return;
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
+		const targets: { rawId: string; cached: AgentHostSessionAdapter; chatResources: URI[] }[] = [];
 		for (const sessionId of sessionIds) {
 			this._assertSessionAvailable(sessionId);
 			const rawId = this._sessionKeyFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({ rawId, cached });
+				targets.push({ rawId, cached, chatResources: this._getSessionChatResources(cached) });
 			}
 		}
 		if (targets.length === 0) {
@@ -8478,9 +8479,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		}
 		const removed: AgentHostSessionAdapter[] = [];
 		try {
-			for (const { rawId, cached } of targets) {
+			for (const { rawId, cached, chatResources } of targets) {
 				await connection.disposeSession(cached.backendUri);
-				const removedSession = this._removeCachedSession(rawId, cached);
+				const removedSession = this._removeDeletedSession(rawId, cached, chatResources);
 				if (removedSession) {
 					removed.push(removedSession);
 				}
@@ -10743,7 +10744,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	private _handleSessionRemoved(session: URI | string): void {
 		const rawId = session.toString();
 		this._onBackendSessionRemoved(rawId);
-		const cached = this._removeCachedSession(rawId);
+		const cached = this._removeDeletedSession(rawId);
 		if (cached) {
 			this._onDidChangeSessionsFromNotifications.fire({ added: [], removed: [cached], changed: [] });
 			cached.dispose();
@@ -10752,6 +10753,37 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	}
 
 	protected _onBackendSessionRemoved(_rawId: string): void { }
+
+	private _getSessionChatResources(session: AgentHostSessionAdapter): URI[] {
+		const resources = new ResourceSet([session.resource, ...session.chats.get().map(chat => chat.resource)]);
+		return [...resources];
+	}
+
+	protected _removeDeletedSession(rawId: string, expected?: AgentHostSessionAdapter, chatResources?: readonly URI[]): AgentHostSessionAdapter | undefined {
+		const current = this._sessionCache.get(rawId);
+		if (expected && current && current !== expected) {
+			return undefined;
+		}
+		const stateOwner = current ?? expected;
+		const deletedResources = stateOwner ? chatResources ?? this._getSessionChatResources(stateOwner) : [];
+		const cached = this._removeCachedSession(rawId, expected);
+		if (!stateOwner) {
+			return cached;
+		}
+		let notifiedResources = this._deletedSessionResources.get(stateOwner);
+		if (!notifiedResources) {
+			notifiedResources = new ResourceSet();
+			this._deletedSessionResources.set(stateOwner, notifiedResources);
+		}
+		const resourcesToNotify = deletedResources.filter(resource => !notifiedResources.has(resource));
+		if (resourcesToNotify.length > 0) {
+			for (const resource of resourcesToNotify) {
+				notifiedResources.add(resource);
+			}
+			this._chatService.notifySessionDeleted(resourcesToNotify);
+		}
+		return cached;
+	}
 
 	protected _removeCachedSession(rawId: string, expected?: AgentHostSessionAdapter): AgentHostSessionAdapter | undefined {
 		const cached = this._sessionCache.get(rawId);

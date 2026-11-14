@@ -3548,7 +3548,8 @@ registerSingleton(IChatContextPickService, ChatContextPickService, Instantiation
 registerSingleton(IChatModeService, ChatModeService, InstantiationType.Delayed);
 registerSingleton(IChatAttachmentResolveService, ChatAttachmentResolveService, InstantiationType.Delayed);
 registerSingleton(IChatTodoListService, ChatTodoListService, InstantiationType.Delayed);
-registerSingleton(IChatArtifactsService, ChatArtifactsService, InstantiationType.Delayed);
+// Observe deletions of saved sessions even before any artifact UI has been opened.
+registerSingleton(IChatArtifactsService, ChatArtifactsService, InstantiationType.Eager);
 registerSingleton(IChatOutputRendererService, ChatOutputRendererService, InstantiationType.Delayed);
 registerSingleton(IChatLayoutService, ChatLayoutService, InstantiationType.Delayed);
 registerSingleton(IPlanReviewFeedbackService, PlanReviewFeedbackService, InstantiationType.Delayed);

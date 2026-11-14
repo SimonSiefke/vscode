@@ -72,6 +72,8 @@ import { IWorkspaceTrustManagementService, IWorkspaceTrustRequestService, Resour
 import { IChatWidget, IChatWidgetService } from '../../../../../../workbench/contrib/chat/browser/chat.js';
 import { buildLocalSessionStateUri } from '../../../../../../workbench/contrib/chat/browser/copilotCliEventsUri.js';
 import { IChatService, type ChatSendResult, type IChatModelReference, type IChatSendRequestData, type IChatSendRequestOptions } from '../../../../../../workbench/contrib/chat/common/chatService/chatService.js';
+import { ChatArtifactsService } from '../../../../../../workbench/contrib/chat/common/tools/chatArtifactsService.js';
+import { Memento } from '../../../../../../workbench/common/memento.js';
 import { IChatSessionsService } from '../../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { IChatWidgetHistoryService } from '../../../../../../workbench/contrib/chat/common/widget/chatWidgetHistoryService.js';
 import { CHAT_AUTOMATIONS_ENABLED_SETTING } from '../../../../../../workbench/contrib/chat/common/automations/automationsEnabled.js';
@@ -776,7 +778,7 @@ class BackendSchemeTestProvider extends LocalAgentHostSessionsProvider {
 
 function createProvider(disposables: DisposableStore, agentHostService: MockAgentHostService, contributions = [
 	{ type: 'agent-host-copilotcli', name: 'copilot', displayName: 'Copilot', description: 'test', icon: undefined },
-], options?: { chatSessionsService?: Partial<IChatSessionsService>; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelsService?: Partial<ILanguageModelsService>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; languageModelChanges?: Event<string>; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; getChatModel?: (resource: URI) => IChatModel | undefined; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<ITestSessionWithChat | undefined>; visibleSessions?: IObservable<readonly (ITestSessionWithChat | undefined)[]>; windowSessions?: IObservable<readonly ITestSessionWithChat[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; sessionTools?: (resource: URI) => readonly ToolDefinition[]; mcpAppTools?: (resource: URI) => readonly ToolDefinition[]; activeClientAgents?: IObservable<readonly AgentCustomization[]>; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; recentWorkspacesService?: ISessionsRecentWorkspacesService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService; pathService?: IPathService; labelService?: ILabelService; telemetryService?: ITelemetryService; providerCtor?: typeof LocalAgentHostSessionsProvider }): LocalAgentHostSessionsProvider {
+], options?: { notifySessionDeleted?: (resources: readonly URI[]) => void; chatSessionsService?: Partial<IChatSessionsService>; sendRequest?: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>; acquireOrLoadSession?: (resource: URI) => Promise<IChatModelReference | undefined>; languageModelsService?: Partial<ILanguageModelsService>; languageModelIds?: string[]; lookupLanguageModel?: (modelId: string) => ILanguageModelChatMetadata | undefined; languageModelChanges?: Event<string>; hiddenLanguageModelIds?: ReadonlySet<string>; languageModelVisibilityChanges?: Event<void>; getChatModel?: (resource: URI) => IChatModel | undefined; openSession?: boolean; configurationService?: IConfigurationService; activeSession?: IObservable<ITestSessionWithChat | undefined>; visibleSessions?: IObservable<readonly (ITestSessionWithChat | undefined)[]>; windowSessions?: IObservable<readonly ITestSessionWithChat[]>; activeClient?: Omit<SessionActiveClient, 'clientId'>; sessionTools?: (resource: URI) => readonly ToolDefinition[]; mcpAppTools?: (resource: URI) => readonly ToolDefinition[]; activeClientAgents?: IObservable<readonly AgentCustomization[]>; activeClientScope?: (sessionType: string, roots: readonly URI[]) => IAgentCustomizationScope; storageService?: IStorageService; recentWorkspacesService?: ISessionsRecentWorkspacesService; isSessionsWindow?: boolean; confirmDelete?: boolean; workspaceTrusted?: boolean; requestWorkspaceTrust?: (uri: URI) => Promise<boolean>; workspaceTrustBarrier?: DeferredPromise<void>; workspaceTrustError?: Error; setUrisTrust?: (uris: URI[], trusted: boolean) => Promise<void>; gitHubService?: IGitHubService; devContainerAgentHostService?: IDevContainerAgentHostService; sessionsProvidersService?: ISessionsProvidersService; pathService?: IPathService; labelService?: ILabelService; telemetryService?: ITelemetryService; providerCtor?: typeof LocalAgentHostSessionsProvider }): LocalAgentHostSessionsProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
 	instantiationService.stubInstance(AgentHostArtifactIntegrations, { setConnection: () => { }, dispose: () => { } });
@@ -843,6 +845,7 @@ function createProvider(disposables: DisposableStore, agentHostService: MockAgen
 		...options?.chatSessionsService,
 	});
 	instantiationService.stub(IChatService, {
+		notifySessionDeleted: options?.notifySessionDeleted ?? (() => { }),
 		acquireOrLoadSession: options?.acquireOrLoadSession ?? (async () => undefined),
 		getSession: options?.getChatModel ?? (() => undefined),
 		sendRequest: options?.sendRequest ?? (async (): Promise<ChatSendResult> => ({ kind: 'sent' as const, data: {} as ChatSendResult extends { kind: 'sent'; data: infer D } ? D : never })),
@@ -11379,6 +11382,152 @@ suite('LocalAgentHostSessionsProvider', () => {
 	});
 
 	// ---- Session actions -------
+
+	suite('artifact state deletion', () => {
+		setup(() => Memento.clear(StorageScope.WORKSPACE));
+		teardown(() => Memento.clear(StorageScope.WORKSPACE));
+
+		function createArtifacts() {
+			const storage = disposables.add(new InMemoryStorageService());
+			const disposed = disposables.add(new Emitter<{ sessionResources: readonly URI[]; reason: 'cleared' }>());
+			const deleted: string[][] = [];
+			const chat = upcastPartial<IChatService>({
+				onDidDisposeSession: disposed.event,
+				onDidCreateModel: Event.None,
+				getSession: () => undefined,
+			});
+			const configuration = new TestConfigurationService();
+			disposables.add(configuration.onDidChangeConfigurationEmitter);
+			const artifacts = disposables.add(new ChatArtifactsService(storage, chat, configuration));
+			const notifySessionDeleted = (sessionResources: readonly URI[]) => {
+				deleted.push(sessionResources.map(resource => resource.toString()));
+				disposed.fire({ sessionResources, reason: 'cleared' });
+			};
+			const seed = (resource: URI) => {
+				const instance = artifacts.getArtifacts(resource);
+				instance.setRuleOverrides({ byFilePath: { '**/*.md': { groupName: 'Documents' } } });
+				instance.setSubagentArtifacts('child', 'Child', [{ label: 'Child', uri: 'file:///child.md', type: 'plan' as const }]);
+			};
+			const recreate = () => {
+				artifacts.dispose();
+				Memento.clear(StorageScope.WORKSPACE);
+				return disposables.add(new ChatArtifactsService(storage, chat, configuration));
+			};
+			return { storage, artifacts, deleted, notifySessionDeleted, seed, recreate };
+		}
+
+		for (const hostNotifies of [false, true]) {
+			test(`confirmed deletion clears saved artifacts once with host notification ${hostNotifies}`, async () => {
+				const f = createArtifacts();
+				const provider = createProvider(disposables, agentHost, undefined, { notifySessionDeleted: f.notifySessionDeleted });
+				fireSessionAdded(agentHost, 'artifact-target');
+				fireSessionAdded(agentHost, 'artifact-survivor');
+				const target = provider.getSessions().find(session => AgentSession.id(session.resource) === 'artifact-target')!;
+				const survivor = provider.getSessions().find(session => AgentSession.id(session.resource) === 'artifact-survivor')!;
+				const resources = [...new ResourceSet([target.resource, ...target.chats.get().map(chat => chat.resource)])];
+				for (const resource of [...resources, survivor.resource]) {
+					f.seed(resource);
+				}
+				const expectedSurvivor = f.artifacts.getArtifacts(survivor.resource).artifactGroups.get();
+				// The saved state must also be cleaned up without any cached artifact containers.
+				f.artifacts.dispose();
+				const cleanup = f.recreate();
+				if (hostNotifies) {
+					agentHost.onDisposeSession = session => fireSessionRemoved(agentHost, AgentSession.id(session));
+				}
+
+				await provider.deleteSession(target.sessionId);
+				cleanup.dispose();
+				const restored = f.recreate();
+
+				assert.deepStrictEqual({
+					deleted: f.deleted,
+					targets: resources.map(resource => restored.getArtifacts(resource).artifactGroups.get()),
+					survivor: restored.getArtifacts(survivor.resource).artifactGroups.get(),
+					stored: Object.keys(f.storage.getObject('memento/chat-artifacts', StorageScope.WORKSPACE, {})),
+				}, {
+					deleted: [resources.map(resource => resource.toString())],
+					targets: resources.map(() => []),
+					survivor: expectedSurvivor,
+					stored: [survivor.resource.toString()],
+				});
+			});
+		}
+
+		test('deletion uses peer chat identities captured before the backend request', async () => {
+			const f = createArtifacts();
+			const main = URI.parse('conversation://opaque/main');
+			const peer = URI.parse('conversation://opaque/peer');
+			agentHost.addSession(createSession('artifact-multi', { chats: [{ chat: main, kind: 'default' }, { chat: peer, kind: 'peer' }] }));
+			const provider = createProvider(disposables, agentHost, undefined, { notifySessionDeleted: f.notifySessionDeleted });
+			await timeout(0);
+			const target = provider.getSessions()[0];
+			const resources = [...new ResourceSet([target.resource, ...target.chats.get().map(chat => chat.resource)])];
+			assert.strictEqual(resources.length, 2);
+			for (const resource of resources) {
+				f.seed(resource);
+			}
+			agentHost.onDisposeSession = () => {
+				fireSessionAdded(agentHost, 'artifact-multi', { listsMintedDefaultChat: true });
+				assert.strictEqual(target.chats.get().length, 1);
+				fireSessionRemoved(agentHost, 'artifact-multi');
+			};
+
+			await provider.deleteSession(target.sessionId);
+			const restored = f.recreate();
+
+			assert.deepStrictEqual({ deleted: f.deleted.flat().sort(), groups: resources.map(resource => restored.getArtifacts(resource).artifactGroups.get()) }, {
+				deleted: resources.map(resource => resource.toString()).sort(), groups: resources.map(() => []),
+			});
+		});
+
+		test('ordinary provider disposal preserves saved artifact state', () => {
+			const f = createArtifacts();
+			const provider = createProvider(disposables, agentHost, undefined, { notifySessionDeleted: f.notifySessionDeleted });
+			fireSessionAdded(agentHost, 'artifact-close');
+			const target = provider.getSessions()[0];
+			f.seed(target.resource);
+			const expected = f.artifacts.getArtifacts(target.resource).artifactGroups.get();
+
+			provider.dispose();
+			const restored = f.recreate();
+
+			assert.deepStrictEqual({ deleted: f.deleted, groups: restored.getArtifacts(target.resource).artifactGroups.get() }, { deleted: [], groups: expected });
+		});
+
+		test('partial bulk failure preserves failed and unattempted artifact state', async () => {
+			const f = createArtifacts();
+			const provider = createProvider(disposables, agentHost, undefined, { notifySessionDeleted: f.notifySessionDeleted });
+			const ids = ['artifact-success', 'artifact-failure', 'artifact-unattempted'];
+			for (const id of ids) {
+				fireSessionAdded(agentHost, id);
+			}
+			const targets = ids.map(id => provider.getSessions().find(session => AgentSession.id(session.resource) === id)!);
+			for (const target of targets) {
+				f.seed(target.resource);
+			}
+			const before = targets.map(target => f.artifacts.getArtifacts(target.resource).artifactGroups.get());
+			agentHost.failDisposeSessionFor = ids[1];
+
+			await assert.rejects(provider.deleteSessions(targets.map(target => target.sessionId)), /Failed to dispose/);
+			const restored = f.recreate();
+
+			assert.deepStrictEqual(targets.map(target => restored.getArtifacts(target.resource).artifactGroups.get()), [[], before[1], before[2]]);
+		});
+
+		test('authoritative backend removal clears artifact state without a client delete request', async () => {
+			const f = createArtifacts();
+			const provider = createProvider(disposables, agentHost, undefined, { notifySessionDeleted: f.notifySessionDeleted });
+			fireSessionAdded(agentHost, 'artifact-remote-delete');
+			const target = provider.getSessions()[0];
+			f.seed(target.resource);
+
+			fireSessionRemoved(agentHost, 'artifact-remote-delete');
+			const restored = f.recreate();
+
+			assert.deepStrictEqual(restored.getArtifacts(target.resource).artifactGroups.get(), []);
+		});
+	});
 
 	test('deleteSession releases all cached provider state', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		const provider = createProvider(disposables, agentHost);

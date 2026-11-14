@@ -258,9 +258,21 @@ suite('ChatSessionStore', () => {
 		index['../../../outside'] = { ...index['session-1'], sessionId: '../../../outside' };
 		assert.strictEqual(Object.keys(index).length, 3);
 
-		await store.clearAllSessions();
+		const cleared = await store.clearAllSessions();
 
-		assert.deepStrictEqual(index, {});
+		assert.deepStrictEqual({ index, cleared }, { index: {}, cleared: ['session-1', 'session-2', '../../../outside'] });
+	});
+
+	test('clearAllSessions reports local deletions without treating external mirrors as deleted sessions', async () => {
+		const store = createChatSessionStore();
+		const model = testDisposables.add(createMockChatModel(LocalChatSessionUri.forSession('local')));
+		await store.storeSessions([model]);
+		const index = await store.getIndex();
+		index['agent-host-copilotcli:/external'] = { ...index.local, isExternal: true };
+
+		const cleared = await store.clearAllSessions();
+
+		assert.deepStrictEqual({ cleared, index }, { cleared: ['local'], index: {} });
 	});
 
 	test('setSessionTitle updates existing session title', async () => {
