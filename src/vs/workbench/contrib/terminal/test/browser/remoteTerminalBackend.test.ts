@@ -63,7 +63,8 @@ suite('RemoteTerminalBackend', () => {
 				deepStrictEqual(replies, { prompt: 'reply' });
 				attachmentIds.push(creationId);
 			},
-			getRevivedPtyProcessIdentity: async id => {
+			getRevivedPtyProcessIdentity: async (id, expectedCreationId) => {
+				deepStrictEqual(expectedCreationId, id === 23 ? 'old serialized identity' : 'original');
 				revivalLookups.push(id);
 				return id === 23 ? { id: 7, creationId: 'revived' } : undefined;
 			},
@@ -129,7 +130,7 @@ suite('RemoteTerminalBackend', () => {
 				onDidChangeProperty: Event.None,
 				onProcessExit: Event.None,
 				onExecuteCommand: Event.None,
-				getRevivedPtyProcessIdentity: async id => { lookups.push(id); return revival.p; },
+				getRevivedPtyProcessIdentity: async (id, expectedCreationId) => { deepStrictEqual(expectedCreationId, 'saved owner'); lookups.push(id); return revival.p; },
 				attachToProcess: async (id, replies, creationId, expectedCreationId, pid) => {
 					deepStrictEqual(replies, { prompt: 'restored' });
 					requests.push({ id, pid, expectedCreationId, creationId });

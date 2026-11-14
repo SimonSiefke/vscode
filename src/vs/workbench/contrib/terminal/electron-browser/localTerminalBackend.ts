@@ -242,7 +242,7 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 	async attachToRevivedProcess(id: number, pid: number, expectedCreationId?: string): Promise<ITerminalChildProcess | undefined> {
 		await this._connectToDirectProxy();
 		try {
-			const revived = await this._proxy.getRevivedPtyProcessIdentity(this._getWorkspaceId(), id);
+			const revived = await this._proxy.getRevivedPtyProcessIdentity(this._getWorkspaceId(), id, expectedCreationId);
 			if (revived !== undefined) {
 				return await this.attachToProcess(revived.id, undefined, revived.creationId);
 			}

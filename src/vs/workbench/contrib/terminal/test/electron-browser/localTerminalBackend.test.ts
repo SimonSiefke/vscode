@@ -167,7 +167,8 @@ suite('LocalTerminalBackend', () => {
 			onPtyHostUnresponsive: Event.None,
 			onPtyHostResponsive: Event.None,
 			onPtyHostRequestResolveVariables: Event.None,
-			getRevivedPtyProcessIdentity: async (_workspaceId: string, id: number) => {
+			getRevivedPtyProcessIdentity: async (_workspaceId: string, id: number, expectedCreationId?: string) => {
+				deepStrictEqual(expectedCreationId, id === 3 ? attachmentOwners.get(3) : undefined);
 				const newId = revivedIds.get(id);
 				return newId === undefined ? undefined : { id: newId, creationId: attachmentOwners.get(newId) };
 			},

@@ -20,6 +20,7 @@ import { IContextKey, IContextKeyService } from '../../../../platform/contextkey
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { TerminalProcessReference } from '../../../../platform/terminal/common/terminalProcess.js';
 import { ICreateContributedTerminalProfileOptions, IExtensionTerminalProfile, IPtyHostAttachTarget, IRawTerminalInstanceLayoutInfo, IRawTerminalTabLayoutInfo, IShellLaunchConfig, ITerminalBackend, ITerminalLaunchError, ITerminalLogService, ITerminalsLayoutInfo, ITerminalsLayoutInfoById, TerminalExitReason, TerminalLocation, TerminalSettingId, TitleEventSource } from '../../../../platform/terminal/common/terminal.js';
 import { formatMessageForTerminal } from '../../../../platform/terminal/common/terminalStrings.js';
 import { iconForeground } from '../../../../platform/theme/common/colorRegistry.js';
@@ -730,7 +731,14 @@ export class TerminalService extends Disposable implements ITerminalService {
 			return;
 		}
 		const tabs = this._terminalGroupService.groups.map(g => g.getLayoutInfo(g === this._terminalGroupService.activeGroup));
-		const state: ITerminalsLayoutInfoById = { tabs, background: this._backgroundedTerminalInstances.map(bg => bg.instance).filter(i => i.shellLaunchConfig.forcePersist).map(i => i.persistentProcessId).filter((e): e is number => e !== undefined) };
+		const background: TerminalProcessReference[] = [];
+		for (const { instance } of this._backgroundedTerminalInstances) {
+			const id = instance.persistentProcessId;
+			if (instance.shellLaunchConfig.forcePersist && id !== undefined) {
+				background.push(instance.persistentProcessCreationId === undefined ? id : { id, creationId: instance.persistentProcessCreationId });
+			}
+		}
+		const state: ITerminalsLayoutInfoById = { tabs, background };
 		this._primaryBackend?.setTerminalLayoutInfo(state);
 	}
 

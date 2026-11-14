@@ -75,7 +75,7 @@ suite('PtyHostService', () => {
 		const calls: { command: string; args: unknown }[] = [];
 		const channel: IChannel = {
 			call<T>(command: string, args: unknown): Promise<T> {
-				if (command === 'setAutoReplies' || command === 'attachToProcess' || command === 'shutdown') {
+				if (command === 'setAutoReplies' || command === 'attachToProcess' || command === 'shutdown' || command === 'getRevivedPtyProcessIdentity') {
 					calls.push({ command, args });
 				}
 				return Promise.resolve([] as T);
@@ -102,6 +102,7 @@ suite('PtyHostService', () => {
 		await localChannel.call('window B', 'setAutoReplies', [2, {}, 'B']);
 		await localChannel.call('window A', 'attachToProcess', [1, 1234, { prompt: 'restored' }, 'restored', 'original']);
 		await localChannel.call('window A', 'shutdown', [1, true, 'creation']);
+		await localChannel.call('window A', 'getRevivedPtyProcessIdentity', ['workspace', 7, 'saved']);
 		await timeout(0);
 
 		deepStrictEqual(calls, [
@@ -109,7 +110,8 @@ suite('PtyHostService', () => {
 			{ command: 'setAutoReplies', args: [2, { 'B prompt': 'B reply' }, 'B'] },
 			{ command: 'setAutoReplies', args: [2, {}, 'B'] },
 			{ command: 'attachToProcess', args: [1, 1234, { prompt: 'restored' }, 'restored', 'original'] },
-			{ command: 'shutdown', args: [1, true, 'creation'] }
+			{ command: 'shutdown', args: [1, true, 'creation'] },
+			{ command: 'getRevivedPtyProcessIdentity', args: ['workspace', 7, 'saved'] }
 		]);
 	});
 });

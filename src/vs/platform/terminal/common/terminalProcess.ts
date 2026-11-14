@@ -32,7 +32,7 @@ export interface IWorkspaceFolderData {
 export interface ISetTerminalLayoutInfoArgs {
 	workspaceId: string;
 	tabs: ITerminalTabLayoutInfoById[];
-	background: number[] | null;
+	background: TerminalProcessReference[] | null;
 }
 
 export interface IGetTerminalLayoutInfoArgs {
@@ -43,6 +43,8 @@ export interface IPtyProcessIdentity {
 	id: number;
 	creationId?: string;
 }
+
+export type TerminalProcessReference = number | IPtyProcessIdentity;
 
 export interface IProcessDetails extends IPtyProcessIdentity {
 	pid: number;

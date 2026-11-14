@@ -319,8 +319,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 		return this._channel.call(RemoteTerminalChannelRequest.ReviveTerminalProcesses, [workspaceId, state, dateTimeFormatLocate]);
 	}
 
-	getRevivedPtyProcessIdentity(id: number): Promise<IPtyProcessIdentity | undefined> {
-		return this._channel.call(RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity, [this._workspaceContextService.getWorkspace().id, id]);
+	getRevivedPtyProcessIdentity(id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined> {
+		return this._channel.call(RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity, [this._workspaceContextService.getWorkspace().id, id, expectedCreationId]);
 	}
 
 	serializeTerminalState(ids: number[]): Promise<string> {

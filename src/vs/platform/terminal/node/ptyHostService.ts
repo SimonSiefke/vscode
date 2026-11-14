@@ -320,8 +320,8 @@ export class PtyHostService extends Disposable implements IPtyHostService {
 		return this._proxy.getWslPath(original, direction);
 	}
 
-	getRevivedPtyProcessIdentity(workspaceId: string, id: number): Promise<IPtyProcessIdentity | undefined> {
-		return this._proxy.getRevivedPtyProcessIdentity(workspaceId, id);
+	getRevivedPtyProcessIdentity(workspaceId: string, id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined> {
+		return this._proxy.getRevivedPtyProcessIdentity(workspaceId, id, expectedCreationId);
 	}
 
 	setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {

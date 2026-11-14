@@ -9,7 +9,7 @@ import { IProcessEnvironment, OperatingSystem } from '../../../base/common/platf
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability, ITerminalCapabilityStore, type ITerminalCommand } from './capabilities/capabilities.js';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs } from './terminalProcess.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyProcessIdentity, ISetTerminalLayoutInfoArgs, TerminalProcessReference } from './terminalProcess.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ISerializableEnvironmentVariableCollections } from './environmentVariable.js';
 import { IWorkspaceFolder } from '../../workspace/common/workspace.js';
@@ -175,7 +175,7 @@ export interface IRawTerminalInstanceLayoutInfo<T> {
 	relativeSize: number;
 	terminal: T;
 }
-export type ITerminalInstanceLayoutInfoById = IRawTerminalInstanceLayoutInfo<number>;
+export type ITerminalInstanceLayoutInfoById = IRawTerminalInstanceLayoutInfo<TerminalProcessReference>;
 export type ITerminalInstanceLayoutInfo = IRawTerminalInstanceLayoutInfo<IPtyHostAttachTarget>;
 
 export interface IRawTerminalTabLayoutInfo<T> {
@@ -184,15 +184,14 @@ export interface IRawTerminalTabLayoutInfo<T> {
 	terminals: IRawTerminalInstanceLayoutInfo<T>[];
 }
 
-export type ITerminalTabLayoutInfoById = IRawTerminalTabLayoutInfo<number>;
+export type ITerminalTabLayoutInfoById = IRawTerminalTabLayoutInfo<TerminalProcessReference>;
 
 export interface IRawTerminalsLayoutInfo<T> {
 	tabs: IRawTerminalTabLayoutInfo<T>[];
 	background: T[] | null;
 }
 
-export interface IPtyHostAttachTarget {
-	id: number;
+export interface IPtyHostAttachTarget extends IPtyProcessIdentity {
 	pid: number;
 	title: string;
 	titleSource: TitleEventSource;
@@ -232,7 +231,7 @@ export enum TitleEventSource {
 }
 
 export type ITerminalsLayoutInfo = IRawTerminalsLayoutInfo<IPtyHostAttachTarget | null>;
-export type ITerminalsLayoutInfoById = IRawTerminalsLayoutInfo<number>;
+export type ITerminalsLayoutInfoById = IRawTerminalsLayoutInfo<TerminalProcessReference>;
 
 export enum TerminalIpcChannels {
 	/**
@@ -375,7 +374,7 @@ export interface IPtyService {
 	getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
 	getEnvironment(): Promise<IProcessEnvironment>;
 	getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string>;
-	getRevivedPtyProcessIdentity(workspaceId: string, id: number): Promise<IPtyProcessIdentity | undefined>;
+	getRevivedPtyProcessIdentity(workspaceId: string, id: number, expectedCreationId?: string): Promise<IPtyProcessIdentity | undefined>;
 	setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void>;
 	getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined>;
 	reduceConnectionGraceTime(): Promise<void>;

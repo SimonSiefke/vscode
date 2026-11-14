@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { fail, strictEqual } from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { deepStrictEqual, fail, strictEqual } from 'assert';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
@@ -52,6 +53,39 @@ suite('Workbench - TerminalService', () => {
 	});
 
 	suite('background terminals', () => {
+		test('persists current generations for forced background processes', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+			await terminalService.whenConnected;
+			const saved = new DeferredPromise<void>();
+			let layout: Parameters<ITerminalBackend['setTerminalLayoutInfo']>[0];
+			const backend = upcastPartial<ITerminalBackend>({
+				onDidRequestDetach: Event.None,
+				getTerminalLayoutInfo: async () => undefined,
+				setTerminalLayoutInfo: async value => { layout = value; await saved.complete(); }
+			});
+			instantiationService.stub(ITerminalInstanceService, 'getBackend', backend);
+			const service = store.add(instantiationService.createInstance(TerminalService));
+			await service.whenConnected;
+			instantiationService.stub(ITerminalInstanceService, 'convertProfileToShellLaunchConfig', () => ({ hideFromUser: true }));
+			let next = 0;
+			const instances = [1, 2, 3, undefined].map((id, index) => upcastPartial<ITerminalInstance>({
+				instanceId: index + 1,
+				persistentProcessId: id,
+				persistentProcessCreationId: index === 0 ? 'current background' : undefined,
+				shellLaunchConfig: { forcePersist: index !== 2, hideFromUser: true },
+				onDisposed: Event.None,
+				onProcessIdReady: Event.None,
+				onTitleChanged: Event.None,
+				onIconChanged: Event.None
+			}));
+			instantiationService.stub(ITerminalInstanceService, 'createInstance', () => instances[next++]);
+			service.registerProcessSupport(true);
+			for (let index = 0; index < instances.length; index++) {
+				await service.createTerminal({ config: { hideFromUser: true }, skipContributedProfileCheck: true });
+			}
+			await saved.p;
+			deepStrictEqual(layout, { tabs: [], background: [{ id: 1, creationId: 'current background' }, 2] });
+		}));
+
 		test('should remove disposed hidden terminals and their listeners', async () => {
 			const disposalEmitters = Array.from({ length: 3 }, () => store.add(new Emitter<ITerminalInstance>()));
 			const instances = disposalEmitters.map((emitter, index) => ({
