@@ -950,7 +950,6 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	private readonly localSandboxSetting: IObservable<AgentSandboxEnabledSettingValue>;
 	private readonly localSandboxToggleChecked = derived(this, reader => this.localSandboxToggleAvailable.read(reader) && isAgentSandboxEnabledValue(this.localSandboxSetting.read(reader)));
 	private _localSandboxSupported = false;
-	private readonly permissionWidgetDisposeListener = this._register(new MutableDisposable<IDisposable>());
 	private readonly agentHostPickers = new Map<string, AgentHostChatInputPicker>();
 	private readonly overflowPickerWidget = this._register(new MutableDisposable<IDisposable>());
 	private sessionTargetWidget: SessionTypePickerActionItem | undefined;
@@ -4675,11 +4674,10 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 						secondaryOverflowPickerHandlers.set(action.id, anchor => showOverflowPicker(createPicker, anchor));
 						const widget = createPicker();
 						this.permissionWidget = widget;
-						this.permissionWidgetDisposeListener.value = widget.onDidDispose(() => {
+						Event.once(widget.onDidDispose)(() => {
 							if (this.permissionWidget === widget) {
 								this.permissionWidget = undefined;
 							}
-							this.permissionWidgetDisposeListener.clear();
 						});
 						return widget;
 					} else if (agentHostPickerProperty && action instanceof MenuItemAction) {
