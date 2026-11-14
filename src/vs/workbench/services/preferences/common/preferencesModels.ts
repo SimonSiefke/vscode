@@ -463,7 +463,7 @@ export class DefaultSettings extends Disposable {
 
 	getContent(forceUpdate = false): string {
 		if (!this._content || forceUpdate) {
-			this.initialize();
+			this.initialize(forceUpdate, true);
 		}
 
 		return this._content!;
@@ -471,7 +471,7 @@ export class DefaultSettings extends Disposable {
 
 	getContentWithoutMostCommonlyUsed(forceUpdate = false): string {
 		if (!this._contentWithoutMostCommonlyUsed || forceUpdate) {
-			this.initialize();
+			this.initialize(forceUpdate, true);
 		}
 
 		return this._contentWithoutMostCommonlyUsed!;
@@ -479,16 +479,24 @@ export class DefaultSettings extends Disposable {
 
 	getSettingsGroups(forceUpdate = false): ISettingsGroup[] {
 		if (!this._allSettingsGroups || forceUpdate) {
-			this.initialize();
+			this.initialize(forceUpdate, false);
 		}
 
 		return this._allSettingsGroups!;
 	}
 
-	private initialize(): void {
-		this._allSettingsGroups = this.parse();
-		this._content = this.toContent(this._allSettingsGroups, 0);
-		this._contentWithoutMostCommonlyUsed = this.toContent(this._allSettingsGroups, 1);
+	private initialize(forceUpdate: boolean, cacheContent: boolean): void {
+		if (forceUpdate) {
+			this.reset();
+		}
+		this._allSettingsGroups ??= this.parse();
+		// Both passes initialize the ranges, even when only the graphical editor needs the groups.
+		const content = this.toContent(this._allSettingsGroups, 0);
+		const contentWithoutMostCommonlyUsed = this.toContent(this._allSettingsGroups, 1);
+		if (cacheContent) {
+			this._content = content;
+			this._contentWithoutMostCommonlyUsed = contentWithoutMostCommonlyUsed;
+		}
 	}
 
 	private reset(): void {
