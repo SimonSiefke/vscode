@@ -32,7 +32,7 @@ import { automationTriggerChoices, canEditAutomationTriggers, hasAutomationEvent
 import { IChatEntitlementService } from '../../../../../services/chat/common/chatEntitlementService.js';
 import { IWorkbenchGitHubService } from '../../../../../services/github/common/githubService.js';
 import { AgentSessionProviders } from '../../../../chat/browser/agentSessions/agentSessions.js';
-import { GITHUB_REMOTE_FILE_SCHEME } from '../../../common/session.js';
+import { GITHUB_REMOTE_FILE_SCHEME } from '../../../../../services/sessions/common/session.js';
 import { ISessionsProviderAutomations } from '../../../common/sessionsProvider.js';
 import { CloudAutomationToolCatalog, GitHubCloudAutomationStore, ICloudAutomationEntry, ICloudAutomationHistoryEntry } from './githubCloudAutomationStore.js';
 
@@ -575,6 +575,9 @@ function toToolCatalog(catalog: CloudAutomationToolCatalog | undefined, availabl
 function validateLocalOptions(options: IUpdateAutomationOptions): void {
 	if (options.mode !== undefined || options.permissionLevel !== undefined) {
 		throw new Error(localize('cloudAutomations.localConfiguration', "Cloud automations do not support local mode or approval settings."));
+	}
+	if (options.disableConditions?.length) {
+		throw new Error(localize('cloudAutomations.endDates', "Cloud automations do not support end dates."));
 	}
 	if ((options.name !== undefined && !options.name.trim()) || (options.prompt !== undefined && !options.prompt.trim())) {
 		throw new Error(localize('cloudAutomations.requiredFields', "An automation name and prompt are required."));

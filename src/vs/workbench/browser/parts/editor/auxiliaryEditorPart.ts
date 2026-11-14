@@ -452,18 +452,18 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 		return; // disabled, auxiliary editor part state is tracked outside
 	}
 
-	close(): Promise<boolean> {
-		return this.requestClose(true /* merge all confirming editors to main part */);
+	close(options?: { preserveFocus?: boolean }): Promise<boolean> {
+		return this.requestClose(true /* merge all confirming editors to main part */, options);
 	}
 
-	private requestClose(mergeConfirmingEditorsToMainPart: boolean): Promise<boolean> {
+	private requestClose(mergeConfirmingEditorsToMainPart: boolean, options?: { preserveFocus?: boolean }): Promise<boolean> {
 		if (!this.closePromise) {
-			this.closePromise = this.doClose(mergeConfirmingEditorsToMainPart).finally(() => this.closePromise = undefined);
+			this.closePromise = this.doClose(mergeConfirmingEditorsToMainPart, options).finally(() => this.closePromise = undefined);
 		}
 		return this.closePromise;
 	}
 
-	private async doClose(mergeConfirmingEditorsToMainPart: boolean): Promise<boolean> {
+	private async doClose(mergeConfirmingEditorsToMainPart: boolean, options?: { preserveFocus?: boolean }): Promise<boolean> {
 		if (this._store.isDisposed) {
 			return true;
 		}
@@ -478,7 +478,7 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 					}
 				}
 
-				if (!this.mergeGroupsToMainPart()) {
+				if (!this.mergeGroupsToMainPart(undefined, options)) {
 					return false;
 				}
 			}
@@ -492,7 +492,7 @@ export class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEdi
 			}
 
 			// Recheck editors opened while confirmation was pending before committing.
-			if (!this.mergeGroupsToMainPart()) {
+			if (!this.mergeGroupsToMainPart(undefined, options)) {
 				return false;
 			}
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../../../base/common/event.js';
+import { Emitter, Event, Relay } from '../../../../../../base/common/event.js';
 import { raceCancellationError, raceTimeout } from '../../../../../../base/common/async.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { CancellationError, isCancellationError } from '../../../../../../base/common/errors.js';
@@ -17,7 +17,6 @@ import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
-import { AgentSession } from '../../../../../../platform/agentHost/common/agent.js';
 import { getGitHubRepositoryId, parseGitHubIssueUrl } from '../../../../../../platform/github/common/githubUrls.js';
 import { getAgentSessionPullRequestUri, IAgentSession } from '../../../../chat/browser/agentSessions/agentSessionsModel.js';
 import { getRepositoryName } from '../../../../chat/browser/agentSessions/agentSessionsViewer.js';
@@ -28,13 +27,14 @@ import { IChatModel, IChatResponseModel } from '../../../../chat/common/model/ch
 import { ChatSessionStatus, IChatSessionsService, IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, SessionType } from '../../../../chat/common/chatSessionsService.js';
 import { assertAutomationSessionTemplate, IAutomationSessionTemplate } from '../../../../chat/common/automations/automation.js';
 import { AutomationModelConfiguration } from '../../../browser/automationModelConfiguration.js';
-import { ChatModelSource, ISession, IChat, ISessionGitRepository, ISessionFolder, ISessionWorkspace, ISideChatSelection, SessionStatus, GITHUB_REMOTE_FILE_SCHEME, IGitHubInfo, IGitHubIssueRef, ISessionArtifact, SessionArtifactKind, ISessionType, ISessionWorkspaceBrowseAction, ISessionFileChange, sessionFileChangesEqual, gitHubInfoEqual, sessionWorkspaceEqual, toSessionId, SESSION_WORKSPACE_GROUP_LOCAL, SESSION_WORKSPACE_GROUP_GITHUB, IChatCheckpoints, ChatInteractivity, SessionTypeAuthRequirement, ISessionChangesSummary, ISessionCreationReference, ISessionPreparationProgress } from '../../../common/session.js';
+import { ChatModelSource, ISession, IChat, ISessionGitRepository, ISessionFolder, ISessionWorkspace, ISideChatSelection, SessionStatus, GITHUB_REMOTE_FILE_SCHEME, IGitHubInfo, IGitHubIssueRef, ISessionArtifact, SessionArtifactKind, ISessionType, ISessionWorkspaceBrowseAction, ISessionFileChange, sessionFileChangesEqual, gitHubInfoEqual, sessionWorkspaceEqual, toSessionId, SESSION_WORKSPACE_GROUP_LOCAL, SESSION_WORKSPACE_GROUP_GITHUB, IChatCheckpoints, ChatInteractivity, SessionTypeAuthRequirement, ISessionChangesSummary, ISessionCreationReference, ISessionPreparationProgress } from '../../../../../services/sessions/common/session.js';
 import { linkKey } from '../../../common/sessionLinks.js';
-import { getSessionApplication } from '../../../common/sessionApplication.js';
+import { getSessionApplication } from '../../../../../services/sessions/common/sessionApplication.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel, isChatPermissionLevel } from '../../../../chat/common/constants.js';
 import { basename, dirname, isEqual } from '../../../../../../base/common/resources.js';
-import { IAutomationSessionConfiguration, IChatMovedEvent, IDeleteChatOptions, IPreparedNewSession, ISessionChatMoveDestination, SessionMoveRefusedError, ISendRequestOptions, ISessionChangeEvent, ISessionConfigProvider, ISessionConfigurationSnapshot, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionsProvider, ISessionsProviderCreateSessionOptions, INestedChatFolderInfo, INestedChatWorkspace, INestedChatWorkspaceSupport, NestedChatWorkspaceError, ICreateNewChatOptions } from '../../../common/sessionsProvider.js';
+import { IAutomationSessionConfiguration, IChatMovedEvent, IDeleteChatOptions, IHarnessPresentation, IPreparedNewSession, ISessionChatMoveDestination, SessionMoveRefusedError, ISendRequestOptions, ISessionChangeEvent, ISessionConfigProvider, ISessionConfigurationSnapshot, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionsListingScope, ISessionsProvider, ISessionsProviderCreateSessionOptions, INestedChatFolderInfo, INestedChatWorkspace, INestedChatWorkspaceSupport, NestedChatWorkspaceError, ICreateNewChatOptions } from '../../../common/sessionsProvider.js';
 import { ISessionOptionGroup } from '../../../browser/newSession.js';
+import { SessionsListingScopeFilter } from '../../../browser/sessionScope.js';
 import { CancellationToken, CancellationTokenSource, cancelOnDispose } from '../../../../../../base/common/cancellation.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
 import { COPILOT_VENDOR_ID, ILanguageModelChatMetadataAndIdentifier, ILanguageModelsService } from '../../../../chat/common/languageModels.js';
@@ -44,6 +44,7 @@ import { ExtensionIdentifier } from '../../../../../../platform/extensions/commo
 import { IChatRequestVariableEntry } from '../../../../chat/common/attachments/chatVariableEntries.js';
 import { localize } from '../../../../../../nls.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
+import { IDefaultAccountService } from '../../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
 import { ILogService } from '../../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../../platform/notification/common/notification.js';
@@ -1086,7 +1087,16 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	readonly order = 0;
 
 	get sessionTypes(): readonly ISessionType[] {
+		if (!this._cloudSessionsEnabled) {
+			return [];
+		}
 		return this.providerMode === 'sandbox' ? [CopilotSandboxSessionType] : [CopilotCloudSessionType];
+	}
+
+	getHarnessPresentation(harness: string): IHarnessPresentation | undefined {
+		return harness === 'copilot'
+			? { label: localize('copilotHarness', "Copilot"), icon: Codicon.copilot }
+			: undefined;
 	}
 
 	private readonly _onDidChangeSessionTypes = this._register(new Emitter<void>());
@@ -1096,7 +1106,12 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	readonly onDidChangeCapabilities: Event<void> = this._onDidChangeCapabilities.event;
 
 	private readonly _onDidChangeSessions = this._register(new Emitter<ISessionChangeEvent>());
-	readonly onDidChangeSessions: Event<ISessionChangeEvent> = this._onDidChangeSessions.event;
+	/** The changes of every session, also of those the listing scope hides: see {@link getAllSessions}. */
+	readonly onDidChangeAllSessions: Event<ISessionChangeEvent> = this._onDidChangeSessions.event;
+	private readonly _listedSessionChanges = this._register(new Relay<ISessionChangeEvent>());
+	/** The changes of the sessions it lists: of every session, unless {@link setListingScope} scopes them. */
+	readonly onDidChangeSessions: Event<ISessionChangeEvent> = this._listedSessionChanges.event;
+	private readonly _listingScope = this._register(new MutableDisposable<SessionsListingScopeFilter>());
 	/** Copilot Chat sessions never move their chats. */
 	readonly onDidMoveChat: Event<IChatMovedEvent> = Event.None;
 
@@ -1134,12 +1149,16 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	}>();
 	private readonly _localGitRepositoryResolutionStarted = new Set<string>();
 
+	private get _cloudSessionsEnabled(): boolean {
+		return this.defaultAccountService.currentDefaultAccount?.entitlementsData?.cloud_sessions_enabled !== false;
+	}
+
 	get supportsLocalWorkspaces(): boolean { return this.providerMode !== 'sandbox'; }
 	readonly automations: CloudAutomationStore | undefined;
 	get supportsAutomationSessionConfiguration(): boolean { return this.providerMode === 'default' && this.automations?.enabled.get() === true; }
 
 	get supportsQuickChats(): boolean {
-		return isCloudSandboxEnabled(this.configurationService) && !this.configurationService.getValue<boolean>(ChatAIDisabledSettingId);
+		return this._cloudSessionsEnabled && isCloudSandboxEnabled(this.configurationService) && !this.configurationService.getValue<boolean>(ChatAIDisabledSettingId);
 	}
 
 	constructor(
@@ -1162,8 +1181,10 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		@IStorageService private readonly storageService: IStorageService,
 		@ICloudSandboxDraftPreparationService private readonly draftPreparationService: ICloudSandboxDraftPreparationService,
 		@ISessionRepositoryPicker private readonly sessionRepositoryPicker: ISessionRepositoryPicker,
+		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 	) {
 		super();
+		this._listedSessionChanges.input = this.onDidChangeAllSessions;
 
 		this._register(toDisposable(() => {
 			for (const sessionId of this._preparedSandboxes.keys()) {
@@ -1171,6 +1192,19 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 			}
 		}));
 		this._loadCreatedBySessions();
+		let cloudSessionsEnabled = this._cloudSessionsEnabled;
+		const updateAvailability = () => {
+			if (this._store.isDisposed || cloudSessionsEnabled === this._cloudSessionsEnabled) {
+				return;
+			}
+			cloudSessionsEnabled = this._cloudSessionsEnabled;
+			this._onDidChangeSessionTypes.fire();
+			this._onDidChangeCapabilities.fire();
+		};
+		this._register(this.defaultAccountService.onDidChangeDefaultAccount(updateAvailability));
+		void this.defaultAccountService.getDefaultAccount().then(updateAvailability, error => {
+			this.logService.error('[CopilotChatSessionsProvider] Failed to initialize account:', error);
+		});
 		if (providerMode === 'default') {
 			this.automations = this._register(this.instantiationService.createInstance(CloudAutomationStore, this.id, CopilotCloudSessionType.id, async uri => {
 				if (uri.scheme === GITHUB_REMOTE_FILE_SCHEME) {
@@ -1310,6 +1344,9 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	// -- Sessions --
 
 	getSessionTypes(workspaceUri: URI): ISessionType[] {
+		if (!this._cloudSessionsEnabled) {
+			return [];
+		}
 		if (this.providerMode === 'sandbox') {
 			return this.resolveWorkspace(workspaceUri) ? [CopilotSandboxSessionType] : [];
 		}
@@ -1327,7 +1364,35 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		return [];
 	}
 
+	/**
+	 * Reports that `event.from` was replaced by `event.to`, once its listing scope lists the sessions as they are now: who
+	 * learns of the replacement, such as the sessions management service, can look either up at once.
+	 */
+	private _replaceSession(event: { readonly from: ISession; readonly to: ISession }): void {
+		this._listingScope.value?.rematch();
+		this._onDidReplaceSession.fire(event);
+	}
+
+	/**
+	 * Lists only the sessions of `scope` from then on, such as those of an editor window's folders, in {@link getSessions}
+	 * and {@link onDidChangeSessions}. Lookups, such as {@link getAllSessions}, still find every session.
+	 */
+	setListingScope(scope: ISessionsListingScope): void {
+		const previous = this.getSessions();
+		const filter = new SessionsListingScopeFilter(scope, () => this.getAllSessions(), this.onDidChangeAllSessions);
+		this._listingScope.value = filter;
+		this._listedSessionChanges.input = filter.onDidChangeSessions;
+		// Who listens already learns how the listing changed, also the first time. A window should still set its scope before
+		// its views subscribe, so that they never list sessions outside it.
+		filter.announceFrom(previous);
+	}
+
 	getSessions(): ISession[] {
+		const listingScope = this._listingScope.value;
+		return listingScope ? listingScope.getSessions() : this.getAllSessions();
+	}
+
+	getAllSessions(): ISession[] {
 		this._ensureSessionCache();
 		return Array.from(this._sessionCache.values(), chat => this._chatToSession(chat));
 	}
@@ -1461,7 +1526,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 	prepareNewSessionWhileComposing(sessionId: string): void {
 		const session = this._newSessions.get(sessionId);
-		if (!session || session.isNewSessionRequestInProgress.get()) {
+		if (!session || session.isNewSessionRequestInProgress.get() || !this._cloudSessionsEnabled) {
 			return;
 		}
 		const repoNwo = session.repoNwo;
@@ -1473,6 +1538,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	}
 
 	private _createDraftSession(workspaceUri: URI | undefined, sessionTypeId: string, options?: ISessionsProviderCreateSessionOptions): ISession {
+		this._assertCloudSessionsEnabled();
 		if (this.providerMode === 'sandbox') {
 			if (!isCloudSandboxEnabled(this.configurationService) || this.configurationService.getValue<boolean>(ChatAIDisabledSettingId)) {
 				throw new Error(localize('sandbox.disabled', "GitHub sandbox sessions are not enabled."));
@@ -1485,7 +1551,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		if (workspaceUri && !workspace) {
 			throw new Error(`Cannot resolve workspace for URI: ${workspaceUri.toString()}`);
 		}
-		const automationConfiguration = options?.automationConfiguration;
+		const automationConfiguration = options?.draftConfiguration ?? options?.automationConfiguration;
 		assertAutomationSessionTemplate(automationConfiguration?.sessionTemplate);
 
 		if (this.providerMode !== 'sandbox' && sessionTypeId !== CopilotCloudSessionType.id) {
@@ -1555,6 +1621,18 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 				},
 			};
 		}
+		return this.getDraftSessionConfiguration(sessionId);
+	}
+
+	getDraftSessionConfiguration(sessionId: string): IAutomationSessionConfiguration | undefined {
+		const session = this._newSessions.get(sessionId);
+		if (!session) {
+			return undefined;
+		}
+		const modelId = session.modelId.get();
+		const modelConfiguration = session.modelConfiguration.captureModelConfiguration(modelId);
+		const initialConfiguration = session.initialAutomationSessionConfiguration;
+		const initialTemplate = initialConfiguration?.sessionTemplate;
 		// Cloud sessions have no client-side mode or permission pickers, so the initial
 		// Automation configuration is carried through unchanged.
 		const initialMode = initialConfiguration?.mode ?? initialTemplate?.config?.[SessionConfigKey.Mode];
@@ -1577,6 +1655,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	}
 
 	createQuickChat(sessionTypeId: string, options?: ISessionsProviderCreateSessionOptions): ISession {
+		this._assertCloudSessionsEnabled();
 		if (!this.supportsQuickChats) {
 			throw new Error(localize('sandbox.disabled', "GitHub sandbox sessions are not enabled."));
 		}
@@ -1914,6 +1993,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	}
 
 	async prepareNewSession(sessionId: string, token: CancellationToken, query: string): Promise<IPreparedNewSession> {
+		this._assertCloudSessionsEnabled();
 		const session = this._newSessions.get(sessionId);
 		if (!session) {
 			throw new Error(`Cannot prepare unknown new session '${sessionId}'.`);
@@ -1976,6 +2056,12 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		} finally {
 			store.dispose();
 			this._sandboxSends.delete(sessionId);
+		}
+	}
+
+	private _assertCloudSessionsEnabled(): void {
+		if (!this._cloudSessionsEnabled) {
+			throw new Error(localize('cloudSessions.unavailable', "Cloud session creation is not available for your account."));
 		}
 	}
 
@@ -2129,7 +2215,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 	/** Reveal the sandbox session that {@link CloudSandboxAgentHostContribution.provisionSession} withheld from listings. */
 	private _publishSandboxSession(provisioned: ICloudSandboxProvisionedSession, options?: { announce?: boolean }): void {
-		provisioned.provider.publishWithheldSession(AgentSession.id(provisioned.session.resource), options);
+		provisioned.provider.publishWithheldSession(provisioned.sessionId, options);
 	}
 	/** Carries the raw model ID and its preferences across the draft and connected host's identifier spaces. */
 	private _selectedCloudModel(session: RemoteNewSession): { readonly rawModelId: string; readonly label: string; readonly config?: IAutomationSessionTemplate['modelConfiguration']; readonly fromCloudCatalog?: boolean } | undefined {
@@ -2254,7 +2340,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		this._sessionCache.delete(session.resource.toString());
 		this._sessionWrapperCache.delete(session.sessionId);
 		this._clearCurrentNewSessionIfMatch(session);
-		this._onDidReplaceSession.fire({ from: placeholder, to: committed });
+		this._replaceSession({ from: placeholder, to: committed });
 	}
 
 	async sendRequest(sessionId: string, chatResource: URI, options: ISendRequestOptions): Promise<ISession> {
@@ -2263,6 +2349,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		}
 		const newSession = this._newSessions.get(sessionId);
 		if (newSession) {
+			this._assertCloudSessionsEnabled();
 			if (!this.uriIdentityService.extUri.isEqual(newSession.mainChat.get().resource, chatResource)) {
 				throw new Error('Chat resource does not match the main chat of the current new session');
 			}
@@ -2359,7 +2446,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 					const committedSession = this._chatToSession(committedChat);
 					this._sessionWrapperCache.delete(session.sessionId);
-					this._onDidReplaceSession.fire({ from: newSession, to: committedSession });
+					this._replaceSession({ from: newSession, to: committedSession });
 
 					return committedSession;
 				} finally {
@@ -2481,7 +2568,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		const disposables = new DisposableStore();
 		try {
 			const sessionPromise = new Promise<AgentSessionAdapter>(resolve => {
-				disposables.add(this.onDidChangeSessions(e => {
+				disposables.add(this.onDidChangeAllSessions(e => {
 					const cached = this._sessionCache.get(key);
 					if (cached instanceof AgentSessionAdapter) {
 						resolve(cached);

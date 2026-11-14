@@ -15,6 +15,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { disposableTimeout, Limiter, RunOnceScheduler } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';
+import { getOrSet } from '../../../../../base/common/map.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { autorun, IObservable, IReader, observableValue, waitForState } from '../../../../../base/common/observable.js';
@@ -39,7 +40,9 @@ import { INotificationService, Severity } from '../../../../../platform/notifica
 import { IProgressService, ProgressLocation } from '../../../../../platform/progress/common/progress.js';
 import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
-import { IGitHubInfo, isActiveSessionStatus, ISessionWorkspace, ISessionWorkspaceBrowseAction, SESSION_WORKSPACE_GROUP_GITHUB, SESSION_WORKSPACE_GROUP_LOCAL, SESSION_WORKSPACE_GROUP_REMOTE } from '../../common/session.js';
+import { IFolderLocation } from '../../../../../platform/workspace/common/folderLocations.js';
+import { SESSION_WORKTREE_ICON } from '../../common/sessionWorktreeIcon.js';
+import { IGitHubInfo, isActiveSessionStatus, ISessionWorkspace, ISessionWorkspaceBrowseAction, SESSION_WORKSPACE_GROUP_GITHUB, SESSION_WORKSPACE_GROUP_LOCAL, SESSION_WORKSPACE_GROUP_REMOTE } from '../../../../services/sessions/common/session.js';
 import { ISessionsProvidersService } from '../sessionsProvidersService.js';
 import { cloneRepository } from '../cloneRepository.js';
 import { IAgentHostFilterService } from '../../common/agentHostFilter.js';
@@ -56,7 +59,7 @@ import { reportNewChatPickerClosed } from '../newChatPickerTelemetry.js';
 import { Menus } from '../menus.js';
 import { markOnboardingTarget } from '../../../onboarding/browser/spotlight/onboardingTarget.js';
 import { NewSessionWorkspacePreselectionSource } from '../newSessionComposerService.js';
-import { IWorkspaceSelectionSnapshot, WorkspaceSelectionOrigin, WorkspaceSessionFallbackState } from '../../common/workspaceSelection.js';
+import { IWorkspaceSelectionSnapshot, WorkspaceSelectionOrigin, WorkspaceSessionFallbackState } from '../../../../services/sessions/common/workspaceSelection.js';
 import { type IResolvedFolderWorkspace, SessionWorkspaceFallback } from './sessionWorkspaceFallback.js';
 import { IChatRequestVariableEntry } from '../../../chat/common/attachments/chatVariableEntries.js';
 import { ADDITIONAL_FOLDER_CONTEXT_ID_PREFIX, ADDITIONAL_REPOSITORY_CONTEXT_ID_PREFIX, getAdditionalFolderContextId, getAdditionalRepositoryContextId } from '../../common/newChatContextIds.js';
@@ -137,6 +140,29 @@ export interface IWorkspacePickerOptions {
 	readonly sessionWorkspaceProviderFilter?: (providerId: string) => boolean;
 	readonly getWorkspaceGroupAction?: (group: string | undefined) => IWorkspacePickerGroupAction | undefined;
 	readonly getNoWorkspaceOption?: () => IWorkspacePickerNoWorkspaceOption | undefined;
+	/**
+	 * Whether the picker keeps whether No Workspace is selected itself, as a composer outside the main window does, rather
+	 * than reading it from the recent workspaces it shares with the main window's composer.
+	 */
+	readonly ownNoWorkspaceSelection?: boolean;
+	/**
+	 * The only folders the picker offers and selects, such as the folders of an editor window and their linked checkouts:
+	 * no recent workspace and no browse action. It offers No Workspace and {@link newWorktree} before and after them. With
+	 * a single folder and nothing else to offer, the picker shows it read-only. Unset or empty, it offers any workspace.
+	 */
+	readonly allowedFolders?: IObservable<readonly URI[]>;
+	/** How the picker shows an allowed folder, such as a linked checkout of a window's folder: by its name and branch. */
+	readonly getAllowedFolderPresentation?: (folderUri: URI) => IFolderLocation | undefined;
+	/** Offers New Worktree after the {@link allowedFolders}: a session that works in a new worktree of the selected folder. */
+	readonly newWorktree?: IWorkspacePickerNewWorktreeOption;
+}
+
+/** The New Worktree choice of a picker restricted to its allowed folders ({@link IWorkspacePickerOptions.newWorktree}). */
+export interface IWorkspacePickerNewWorktreeOption {
+	/** Whether the session of the selected folder can work in a new worktree. */
+	isAvailable(): boolean;
+	isSelected(): boolean;
+	setSelected(selected: boolean): void;
 }
 
 export interface IWorkspacePickerGroupAction {
@@ -255,6 +281,8 @@ export class WorkspacePicker extends Disposable {
 	readonly onDidRemoveAttachedContext: Event<string> = this._onDidRemoveAttachedContext.event;
 
 	private _selectedFolderUri: URI | undefined;
+	/** Whether No Workspace is selected, with {@link IWorkspacePickerOptions.ownNoWorkspaceSelection}. */
+	private _noWorkspaceSelected = false;
 	private _selectedResolved: IResolvedFolderWorkspace | undefined;
 	private _selectedDevContainerFolderUri: URI | undefined;
 	private _preselectionSource = NewSessionWorkspacePreselectionSource.None;
@@ -300,6 +328,7 @@ export class WorkspacePicker extends Disposable {
 	private readonly _triggerOptions = new Map<HTMLElement, IWorkspacePickerTrigger>();
 	private readonly _triggerContents = new Map<HTMLElement, IWorkspacePickerTriggerElements>();
 	private readonly _contextSelections = new Map<string, ISessionWorkspace[]>();
+	private readonly _workspaceItemIds = new Map<string, number>();
 	private readonly _renderDisposables = this._register(new DisposableStore());
 	private readonly _additionalRepositorySelections = new Map<string, IAttachedRepositorySelection>();
 	private readonly _additionalFolderSelections = new Map<string, IResolvedFolderWorkspace>();
@@ -448,6 +477,24 @@ export class WorkspacePicker extends Disposable {
 		return selectedRepositoryId !== undefined && selectedRepositoryId === this._getRepositoryId(workspace, reader);
 	}
 
+	/**
+	 * Whether {@link workspace}, such as a draft's, is the workspace of {@link folderUri}: that folder, or the GitHub
+	 * repository of that folder, such as the one a cloud agent works on for a local clone. Another local folder is
+	 * another workspace, even a clone of the same repository.
+	 */
+	isWorkspaceOfFolder(workspace: ISessionWorkspace, folderUri: URI, reader?: IReader): boolean {
+		const root = workspace.folders[0]?.root;
+		if (root && this.uriIdentityService.extUri.isEqual(root, folderUri)) {
+			return true;
+		}
+		if (workspace.group !== SESSION_WORKSPACE_GROUP_GITHUB) {
+			return false;
+		}
+		const resolved = this._isSelectedFolder(folderUri) && this._selectedResolved ? this._selectedResolved : this._resolveFolder(folderUri);
+		const repositoryId = resolved && this._getRepositoryIdForResolvedWorkspace(resolved, reader);
+		return repositoryId !== undefined && repositoryId === this._getRepositoryId(workspace, reader);
+	}
+
 	constructor(
 		protected readonly options: IWorkspacePickerOptions,
 		@IActionWidgetService protected readonly actionWidgetService: IActionWidgetService,
@@ -490,6 +537,19 @@ export class WorkspacePicker extends Disposable {
 				resolveWorkspace: (folderUri, preferredProviderId) => this._resolveFolder(folderUri, preferredProviderId),
 			}));
 		this._watchProviderSessionTypes();
+		const allowedFolders = this.options.allowedFolders;
+		if (allowedFolders) {
+			// Whether the picker is read-only follows its allowed folders, such as as a folder joins the window; a selected
+			// folder that leaves them, such as one removed from the window, gives way to the first of them
+			this._register(autorun(reader => {
+				allowedFolders.read(reader);
+				const allowed = this._getAllowedFolders();
+				if (allowed && this._selectedFolderUri && !this._isAllowedFolder(this._selectedFolderUri)) {
+					this.setSelectedWorkspace(allowed[0], { persist: false });
+				}
+				this._updateTriggerLabel();
+			}));
+		}
 		if (this._sessionWorkspaceFallback) {
 			this._register(this._sessionWorkspaceFallback.onDidChange(() => this._restoreAutomaticSelection()));
 		}
@@ -769,7 +829,7 @@ export class WorkspacePicker extends Disposable {
 	 */
 	showPicker(force = false, anchor?: HTMLElement, preferredGroup?: string, attachesContext?: boolean): void {
 		const triggerElement = anchor ?? this._triggerElement;
-		if (!triggerElement) {
+		if (!triggerElement || this._isReadOnly()) {
 			return;
 		}
 		const alreadyVisible = this.actionWidgetService.isVisible;
@@ -810,7 +870,7 @@ export class WorkspacePicker extends Disposable {
 		if (!alreadyVisible && (preferredGroup === undefined || preferredGroup === SESSION_WORKSPACE_GROUP_REMOTE)
 			&& this.configurationService.getValue<boolean>(RemoteAgentHostsEnabledSettingId)
 			&& !this.agentHostFilterService.isDiscovering) {
-			void this.agentHostFilterService.rediscover().then(success => {
+			void this.agentHostFilterService.rediscover('automatic').then(success => {
 				if (!success) {
 					this.notificationService.warn(localize('workspacePicker.refreshHostsFailed', "Could not refresh remote hosts. Showing the last known hosts."));
 				}
@@ -925,6 +985,8 @@ export class WorkspacePicker extends Disposable {
 			{
 				getAriaLabel: getWorkspacePickerItemAriaLabel,
 				getWidgetAriaLabel: () => localize('workspacePicker.ariaLabel', "Workspace Picker"),
+				// Restricted to its folders, it marks its selected choice ({@link _withSelectionMarks})
+				isChecked: item => this._getAllowedFolders() && item.kind === ActionListItemKind.Action ? !!item.item?.checked : undefined,
 			},
 			this._buildListOptions(items, undefined),
 			this._triggerOptions.get(triggerElement)?.contextViewLayer,
@@ -1038,6 +1100,11 @@ export class WorkspacePicker extends Disposable {
 			}
 			if (generation !== this._selectionGeneration) {
 				return false;
+			}
+			// A folder works in itself, not in a new worktree of it
+			if (this.options.newWorktree?.isSelected()) {
+				this.options.newWorktree.setSelected(false);
+				this._updateTriggerLabel();
 			}
 			this._selectedDevContainerFolderUri = item.preferDevContainer ? item.folderUri : undefined;
 			this._onDidSelectWorkspaceMode.fire({ folderUri: item.folderUri, preferDevContainer: item.preferDevContainer === true });
@@ -1289,6 +1356,10 @@ export class WorkspacePicker extends Disposable {
 	 * Clears the selected project.
 	 */
 	clearSelection(): void {
+		// Restricted to its allowed folders, it always has one of them
+		if (this._getAllowedFolders()) {
+			return;
+		}
 		this.options.onUserSelection?.();
 		this._selectionGeneration++;
 		this._hidePicker();
@@ -1296,6 +1367,7 @@ export class WorkspacePicker extends Disposable {
 		this._connectionStatusWatch.clear();
 		this._selectedFolderUri = undefined;
 		this._selectedResolved = undefined;
+		this._noWorkspaceSelected = false;
 		this._preselectionSource = NewSessionWorkspacePreselectionSource.None;
 		this._selectionOrigin = WorkspaceSelectionOrigin.None;
 		if (this._shouldPersistSelection()) {
@@ -1307,10 +1379,15 @@ export class WorkspacePicker extends Disposable {
 	}
 
 	isNoWorkspaceSelected(): boolean {
-		return !!this.options.getNoWorkspaceOption && this.recentWorkspacesService.isNoWorkspaceChecked();
+		return !!this.options.getNoWorkspaceOption && (this.options.ownNoWorkspaceSelection ? this._noWorkspaceSelected : this.recentWorkspacesService.isNoWorkspaceChecked());
 	}
 
-	selectNoWorkspace(userSelection = true): void {
+	/**
+	 * Selects No Workspace.
+	 * @param persist Whether to remember it as the selection of the recent workspaces, which the main window's composer
+	 *        starts from. Defaults to true.
+	 */
+	selectNoWorkspace(userSelection = true, persist = true): void {
 		if (userSelection) {
 			this.options.onUserSelection?.();
 		}
@@ -1320,7 +1397,10 @@ export class WorkspacePicker extends Disposable {
 		this._userHasPicked = true;
 		this._connectionStatusWatch.clear();
 		this._applySelection(undefined);
-		this.recentWorkspacesService.checkNoWorkspace();
+		this._noWorkspaceSelected = true;
+		if (persist) {
+			this.recentWorkspacesService.checkNoWorkspace();
+		}
 		this._updateTriggerLabel();
 		this._onDidChangeSelection.fire();
 	}
@@ -1342,6 +1422,9 @@ export class WorkspacePicker extends Disposable {
 		source = NewSessionWorkspacePreselectionSource.User,
 		origin = WorkspaceSelectionOrigin.User,
 	): void {
+		if (!this._isAllowedFolder(folderUri)) {
+			return;
+		}
 		if (source === NewSessionWorkspacePreselectionSource.User) {
 			this.options.onUserSelection?.();
 		}
@@ -1370,6 +1453,7 @@ export class WorkspacePicker extends Disposable {
 		}
 		this._selectedFolderUri = folderUri;
 		this._selectedResolved = resolved;
+		this._noWorkspaceSelected = false;
 		this._watchSelectedGitHubInfo();
 		this._preselectionSource = source;
 		this._selectionOrigin = origin;
@@ -1394,6 +1478,9 @@ export class WorkspacePicker extends Disposable {
 	private _applySelection(resolved: IResolvedFolderWorkspace | undefined, source = NewSessionWorkspacePreselectionSource.None, origin = WorkspaceSelectionOrigin.None): void {
 		this._selectedResolved = resolved;
 		this._selectedFolderUri = resolved?.workspace.folders[0]?.root;
+		if (resolved) {
+			this._noWorkspaceSelected = false;
+		}
 		this._watchSelectedGitHubInfo();
 		this._preselectionSource = resolved ? source : NewSessionWorkspacePreselectionSource.None;
 		this._selectionOrigin = resolved ? origin : WorkspaceSelectionOrigin.None;
@@ -1644,6 +1731,14 @@ export class WorkspacePicker extends Disposable {
 	}
 
 	private _getWorkspaceIcon(workspace: ISessionWorkspace): ThemeIcon {
+		const folderUri = workspace.folders[0]?.root;
+		if (folderUri && this._isSelectedFolder(folderUri) && this._isNewWorktreeSelected()) {
+			return SESSION_WORKTREE_ICON;
+		}
+		const presentationIcon = folderUri && this.options.getAllowedFolderPresentation?.(folderUri)?.icon;
+		if (presentationIcon) {
+			return presentationIcon;
+		}
 		if (this._getEnvironment()?.kind === 'remote' && workspace.group === SESSION_WORKSPACE_GROUP_REMOTE && !workspace.isVirtualWorkspace) {
 			return Codicon.folder;
 		}
@@ -1682,10 +1777,12 @@ export class WorkspacePicker extends Disposable {
 			return undefined;
 		}
 
+		const currentFolder = this._selectedFolderUri?.scheme === Schemas.file ? this._selectedFolderUri : undefined;
 		const result = await this.fileDialogService.showOpenDialog({
 			canSelectFolders: true,
 			canSelectFiles: false,
 			canSelectMany: false,
+			defaultUri: currentFolder ? this.uriIdentityService.extUri.dirname(currentFolder) : undefined,
 		});
 		if (!result?.length) {
 			return undefined;
@@ -1720,6 +1817,10 @@ export class WorkspacePicker extends Disposable {
 	 * recent folders.
 	 */
 	protected _buildItems(): IActionListItem<IWorkspacePickerItem>[] {
+		const restricted = this._buildRestrictedItems();
+		if (restricted) {
+			return restricted;
+		}
 		const items: IActionListItem<IWorkspacePickerItem>[] = [];
 		const environment = this._getEnvironment();
 		const hasEnvironmentPicker = !!environment || this.options.environmentPickerEnabled?.get() === true;
@@ -1854,7 +1955,7 @@ export class WorkspacePicker extends Disposable {
 			const attached = this._additionalFolderSelections.has(this.uriIdentityService.extUri.getComparisonKey(folderUri))
 				|| (repositoryId !== undefined && this._additionalRepositorySelections.has(repositoryId));
 			const item: IWorkspacePickerItem = {
-				id: `workspacePicker.workspace.${this.uriIdentityService.extUri.getComparisonKey(folderUri)}`,
+				id: `workspacePicker.workspace.${getOrSet(this._workspaceItemIds, this.uriIdentityService.extUri.getComparisonKey(folderUri), this._workspaceItemIds.size)}`,
 				folderUri,
 				providerId: environmentProvider ? environmentProvider.id : providerId,
 				checked: selected || attached || undefined,
@@ -2165,6 +2266,51 @@ export class WorkspacePicker extends Disposable {
 				item: {},
 			});
 		}
+		return this._withNewWorktreeItem(this._withNoWorkspaceItem(items));
+	}
+
+	/**
+	 * Marks the selected choice with a check in front of each choice's own icon, as a picker of a few choices does, such as
+	 * one restricted to a window's folders.
+	 */
+	private _withSelectionMarks(items: IActionListItem<IWorkspacePickerItem>[]): IActionListItem<IWorkspacePickerItem>[] {
+		return items.map(item => item.kind === ActionListItemKind.Action ? {
+			...item,
+			group: { ...item.group, title: item.group?.title ?? '', icon: item.item?.checked ? Codicon.check : Codicon.blank },
+			labelIcon: item.group?.icon,
+		} : item);
+	}
+
+	/** Puts New Worktree after `items`, when the composer offers it for the selected folder. */
+	private _withNewWorktreeItem(items: IActionListItem<IWorkspacePickerItem>[]): IActionListItem<IWorkspacePickerItem>[] {
+		const newWorktree = this.options.newWorktree;
+		const newWorktreeSelected = this._isNewWorktreeSelected();
+		if (newWorktree && this._directPickerAttachesContext !== true && this._selectedFolderUri && !this.isNoWorkspaceSelected() && newWorktree.isAvailable()) {
+			if (items.length) {
+				items.push({ kind: ActionListItemKind.Separator, label: '' });
+			}
+			items.push({
+				kind: ActionListItemKind.Action,
+				label: localize('workspacePicker.newWorktree', "New Worktree"),
+				description: undefined,
+				ariaDescription: localize('workspacePicker.newWorktreeDescription', "Start the session in a new worktree of the selected folder."),
+				group: { title: '', icon: SESSION_WORKTREE_ICON },
+				item: {
+					id: 'workspacePicker.newWorktree',
+					checked: newWorktreeSelected || undefined,
+					run: () => {
+						newWorktree.setSelected(true);
+						this._updateTriggerLabel();
+						this._onDidChangeSelection.fire();
+					},
+				},
+			});
+		}
+		return items;
+	}
+
+	/** Puts the No Workspace choice before `items`, when the composer offers one. */
+	private _withNoWorkspaceItem(items: IActionListItem<IWorkspacePickerItem>[]): IActionListItem<IWorkspacePickerItem>[] {
 		const noWorkspaceOption = this._getNoWorkspaceOption();
 		const hideNoWorkspaceOption = this._activeTriggerElement
 			? this._triggerOptions.get(this._activeTriggerElement)?.hideNoWorkspaceOption === true
@@ -2253,8 +2399,10 @@ export class WorkspacePicker extends Disposable {
 			const reflectsWorkspace = options.reflectsWorkspace === true;
 			const noWorkspaceSelected = reflectsWorkspace && this._getNoWorkspaceOption()?.isSelected === true;
 			const workspace = noWorkspaceSelected ? undefined : this._selectedResolved?.workspace;
-			const clearable = reflectsWorkspace && options.clearable?.get() === true;
+			// Restricted to its allowed folders, it has no No Workspace to clear to
+			const clearable = reflectsWorkspace && options.clearable?.get() === true && !this._getAllowedFolders();
 			const canClear = clearable && workspace !== undefined;
+			const readOnly = reflectsWorkspace && this._isReadOnly();
 			contents.slot.classList.toggle('workspace-clearable', canClear);
 			if (contents.clearButton) {
 				contents.clearButton.element.hidden = !canClear;
@@ -2312,9 +2460,14 @@ export class WorkspacePicker extends Disposable {
 				?? (relatedGitHubInfo ? `${relatedGitHubInfo.owner}/${relatedGitHubInfo.repo}` : (isSelectedCategory && workspace ? this._getWorkspaceLabel(workspace, this._selectedResolved?.providerId) : emptyLabel));
 			trigger.setAttribute('aria-label', badgeCount > 0
 				? localize('workspacePicker.attachedContextCountAriaLabel', "{0}, {1} attached", options.ariaLabel, badgeCount)
-				: label && label !== emptyLabel
-					? localize('workspacePicker.categorySelectionAriaLabel', "{0}: {1}", options.label ?? options.ariaLabel, label)
-					: options.ariaLabel);
+				: readOnly && workspace && label
+					? localize('workspacePicker.windowFolderAriaLabel', "New session in this window's folder {0}", label)
+					: label && label !== emptyLabel
+						? localize('workspacePicker.categorySelectionAriaLabel', "{0}: {1}", options.label ?? options.ariaLabel, label)
+						: options.ariaLabel);
+			if (reflectsWorkspace) {
+				this._setTriggerReadOnly(trigger, readOnly);
+			}
 			if (label) {
 				contents.label ??= dom.append(trigger, dom.$('span.sessions-chat-dropdown-label'));
 				contents.label.textContent = label;
@@ -2328,6 +2481,11 @@ export class WorkspacePicker extends Disposable {
 			} else {
 				contents.badge?.dispose();
 				contents.badge = undefined;
+			}
+			if (readOnly) {
+				contents.chevron?.remove();
+				contents.chevron = undefined;
+				return;
 			}
 			if (!contents.chevron) {
 				contents.chevron = renderIcon(Codicon.chevronDownCompact);
@@ -2346,19 +2504,42 @@ export class WorkspacePicker extends Disposable {
 			: workspace ? this._getWorkspaceLabel(workspace, this._selectedResolved?.providerId) : localize('pickWorkspace', "workspace");
 		const icon = noWorkspaceSelected ? Codicon.commentDiscussion : workspace?.icon ?? Codicon.project;
 
+		const readOnly = this._isReadOnly();
 		trigger.setAttribute('aria-label', noWorkspaceSelected
 			? localize('workspacePicker.noWorkspaceSelectedAriaLabel', "New session with no workspace")
 			: workspace
-				? localize('workspacePicker.selectedAriaLabel', "New session in {0}", label)
+				? readOnly
+					? localize('workspacePicker.windowFolderAriaLabel', "New session in this window's folder {0}", label)
+					: localize('workspacePicker.selectedAriaLabel', "New session in {0}", label)
 				: localize('workspacePicker.pickAriaLabel', "Start by picking a workspace"));
+		this._setTriggerReadOnly(trigger, readOnly);
 
 		contents.icon = dom.append(trigger, renderIcon(icon));
 		contents.label = dom.append(trigger, dom.$('span.sessions-chat-dropdown-label'));
 		contents.label.textContent = label;
-		dom.append(trigger, renderIcon(Codicon.chevronDownCompact)).classList.add('sessions-chat-dropdown-chevron');
+		if (!readOnly) {
+			dom.append(trigger, renderIcon(Codicon.chevronDownCompact)).classList.add('sessions-chat-dropdown-chevron');
+		}
+	}
+
+	/** Shows whether `trigger` is read-only; a trigger that never was keeps no `aria-disabled`, as a picker offering any workspace. */
+	private _setTriggerReadOnly(trigger: HTMLElement, readOnly: boolean): void {
+		if (readOnly || trigger.hasAttribute('aria-disabled')) {
+			trigger.setAttribute('aria-disabled', String(readOnly));
+		}
+		trigger.setAttribute('aria-haspopup', readOnly ? 'false' : 'listbox');
+		trigger.classList.toggle('read-only', readOnly);
 	}
 
 	private _getWorkspaceLabel(workspace: ISessionWorkspace, providerId: string | undefined): string {
+		const folderUri = workspace.folders[0]?.root;
+		const label = (folderUri && this.options.getAllowedFolderPresentation?.(folderUri)?.label) || this._getFolderWorkspaceLabel(workspace, providerId);
+		return folderUri && this._isNewWorktreeSelected() && this._isSelectedFolder(folderUri)
+			? localize('workspacePicker.newWorktree.label', "{0} - New Worktree", label)
+			: label;
+	}
+
+	private _getFolderWorkspaceLabel(workspace: ISessionWorkspace, providerId: string | undefined): string {
 		const environment = this.options.environment?.get();
 		if (environment && providerId && environment.providerIds.includes(providerId) && !workspace.isVirtualWorkspace) {
 			return workspace.folders[0]?.name ?? workspace.label;
@@ -2648,7 +2829,66 @@ export class WorkspacePicker extends Disposable {
 	}
 
 	private _canRestoreWorkspace(): boolean {
-		return !this.isNoWorkspaceSelected() && (this.options.canRestoreWorkspace?.() ?? true);
+		// Restricted to its allowed folders, the picker selects only what its composer asks for or the user picks
+		return !this._getAllowedFolders() && !this.isNoWorkspaceSelected() && (this.options.canRestoreWorkspace?.() ?? true);
+	}
+
+	/**
+	 * The items of a picker restricted to its allowed folders ({@link IWorkspacePickerOptions.allowedFolders}): No Workspace,
+	 * the folders and New Worktree, with no recent workspace and no browse action. Undefined for a picker that is not.
+	 */
+	protected _buildRestrictedItems(): IActionListItem<IWorkspacePickerItem>[] | undefined {
+		const allowedFolders = this._getAllowedFolders();
+		return allowedFolders && this._withSelectionMarks(this._withNewWorktreeItem(this._withNoWorkspaceItem(this._buildAllowedFolderItems(allowedFolders))));
+	}
+
+	/** The folders the picker is restricted to; none restrict it. */
+	protected _getAllowedFolders(): readonly URI[] | undefined {
+		const allowedFolders = this.options.allowedFolders?.get();
+		return allowedFolders?.length ? allowedFolders : undefined;
+	}
+
+	private _isAllowedFolder(folderUri: URI): boolean {
+		const allowedFolders = this._getAllowedFolders();
+		return !allowedFolders || allowedFolders.some(folder => this.uriIdentityService.extUri.isEqual(folder, folderUri));
+	}
+
+	/** Whether the picker only shows its one allowed folder, once selected, without offering any other choice, such as No Workspace. */
+	protected _isReadOnly(): boolean {
+		const allowedFolders = this._getAllowedFolders();
+		return !!allowedFolders && allowedFolders.length <= 1 && !!this._selectedFolderUri && !this._getNoWorkspaceOption() && !this.options.newWorktree?.isAvailable();
+	}
+
+	/** The items of a picker restricted to its allowed folders: one for each folder a provider resolves. */
+	private _buildAllowedFolderItems(allowedFolders: readonly URI[]): IActionListItem<IWorkspacePickerItem>[] {
+		const items: IActionListItem<IWorkspacePickerItem>[] = [];
+		const newWorktreeSelected = this._isNewWorktreeSelected();
+		for (const folderUri of allowedFolders) {
+			const resolved = this._resolveFolder(folderUri, this._isSelectedFolder(folderUri) ? this._selectedResolved?.providerId : undefined);
+			if (!resolved) {
+				continue;
+			}
+			const presentation = this.options.getAllowedFolderPresentation?.(folderUri);
+			items.push({
+				kind: ActionListItemKind.Action,
+				label: presentation?.label ?? resolved.workspace.label,
+				description: presentation ? presentation.description : resolved.workspace.description,
+				group: { title: '', icon: presentation?.icon ?? this._getWorkspaceIcon(resolved.workspace) },
+				disabled: this._isProviderUnavailable(resolved.providerId),
+				item: {
+					id: `workspacePicker.workspace.${this.uriIdentityService.extUri.getComparisonKey(folderUri)}`,
+					folderUri,
+					providerId: resolved.providerId,
+					checked: (!newWorktreeSelected && this._isSelectedFolder(folderUri)) || undefined,
+				},
+			});
+		}
+		return items;
+	}
+
+	/** Whether the selected folder's session works in a new worktree of it. */
+	private _isNewWorktreeSelected(): boolean {
+		return !!this._selectedFolderUri && !this.isNoWorkspaceSelected() && !!this.options.newWorktree?.isAvailable() && this.options.newWorktree.isSelected();
 	}
 
 	/**
