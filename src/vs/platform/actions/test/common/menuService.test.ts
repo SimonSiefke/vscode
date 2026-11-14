@@ -5,14 +5,14 @@
 
 import assert from 'assert';
 import sinon from 'sinon';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Separator } from '../../../../base/common/actions.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getMenuActionGroupTitle, IMenuItem, isIMenuItem, MenuId, MenuRegistry, SubmenuItemAction } from '../../common/actions.js';
+import { getMenuActionGroupTitle, IMenuItem, isIMenuItem, MenuId, MenuItemAction, MenuRegistry, SubmenuItemAction } from '../../common/actions.js';
 import { MenuService } from '../../common/menuService.js';
 import { NullCommandService } from '../../../commands/test/common/nullCommandService.js';
-import { ContextKeyExpr, ContextKeyExpression } from '../../../contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression, IContextKeyChangeEvent, IReadableSet } from '../../../contextkey/common/contextkey.js';
 import { MockContextKeyService, MockKeybindingService } from '../../../keybinding/test/common/mockKeybindingService.js';
 import { InMemoryStorageService } from '../../../storage/common/storage.js';
 
@@ -25,6 +25,32 @@ class TestContextKeyService extends MockContextKeyService {
 }
 
 const contextKeyService = new TestContextKeyService();
+
+class LiveTestContextKeyService extends MockContextKeyService {
+
+	private readonly _onDidChangeContext = new Emitter<IContextKeyChangeEvent>();
+	private readonly _values = new Map<string, unknown>();
+
+	override get onDidChangeContext() {
+		return this._onDidChangeContext.event;
+	}
+
+	override contextMatchesRules(rules: ContextKeyExpression | undefined): boolean {
+		return !rules || rules.evaluate({ getValue: <T>(key: string): T | undefined => this._values.get(key) as T | undefined });
+	}
+
+	setContext(key: string, value: unknown): void {
+		this._values.set(key, value);
+		this._onDidChangeContext.fire({
+			affectsSome: (keys: IReadableSet<string>) => keys.has(key),
+			allKeysContainedIn: (keys: IReadableSet<string>) => keys.has(key)
+		});
+	}
+
+	override dispose(): void {
+		this._onDidChangeContext.dispose();
+	}
+}
 
 // --- tests
 
@@ -48,6 +74,18 @@ suite('MenuService', function () {
 		disposables.add(menuService.createMenu(testMenuId, contextKeyService));
 
 		assert.strictEqual(getMenuItems.withArgs(testMenuId).callCount, 1);
+	});
+
+	test('getMenuContexts only reads the root menu', () => {
+		const childId = new MenuId(`testo/${generateUuid()}`);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Child', submenu: childId, when: ContextKeyExpr.has('rootVisible') }));
+		disposables.add(MenuRegistry.appendMenuItem(childId, { command: { id: 'leaf', title: 'Leaf', precondition: ContextKeyExpr.has('childEnabled') } }));
+		const getMenuItems = sinon.spy(MenuRegistry, 'getMenuItems');
+
+		assert.deepStrictEqual({
+			contexts: [...menuService.getMenuContexts(testMenuId)],
+			menusRead: getMenuItems.args.map(([id]) => id)
+		}, { contexts: ['rootVisible'], menusRead: [testMenuId] });
 	});
 
 	test('getMenuActions filters before sorting and does not collect event dependencies', () => {
@@ -631,6 +669,86 @@ suite('MenuService', function () {
 		}
 		assert.strictEqual(foundA, true);
 		assert.strictEqual(foundB, true);
+	});
+
+	test('refreshes default submenu reads without adding submenu notifications', async () => {
+		const clock = sinon.useFakeTimers();
+		const context = disposables.add(new LiveTestContextKeyService());
+		const childId = new MenuId(`testo/${generateUuid()}`);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Child', submenu: childId }));
+		disposables.add(MenuRegistry.appendMenuItem(childId, { command: { id: 'child', title: 'Child', precondition: ContextKeyExpr.has('childEnabled') } }));
+		await clock.tickAsync(100);
+		const menu = disposables.add(menuService.createMenu(testMenuId, context, { eventDebounceDelay: 0 }));
+		let notifications = 0;
+		disposables.add(menu.onDidChange(() => notifications++));
+		const snapshot = () => {
+			const submenu = menu.getActions()[0][1][0];
+			assert.ok(submenu instanceof SubmenuItemAction);
+			return submenu.actions.map(action => ({ id: action.id, enabled: action.enabled }));
+		};
+		const before = snapshot();
+		context.setContext('childEnabled', true);
+		const enabled = snapshot();
+		disposables.add(MenuRegistry.appendMenuItem(childId, { command: { id: 'new', title: 'New' } }));
+		const added = snapshot();
+		await clock.tickAsync(100);
+		assert.deepStrictEqual({ before, enabled, added, notifications }, {
+			before: [{ id: 'child', enabled: false }],
+			enabled: [{ id: 'child', enabled: true }],
+			added: [{ id: 'child', enabled: true }, { id: 'new', enabled: true }],
+			notifications: 0
+		});
+	});
+
+	test('refreshes nested submenu toggle state without adding submenu notifications', async () => {
+		const clock = sinon.useFakeTimers();
+		const context = disposables.add(new LiveTestContextKeyService());
+		const childId = new MenuId(`testo/${generateUuid()}`);
+		const nestedId = new MenuId(`testo/${generateUuid()}`);
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, { title: 'Child', submenu: childId }));
+		disposables.add(MenuRegistry.appendMenuItem(childId, { title: 'Nested', submenu: nestedId, toggled: ContextKeyExpr.has('nestedChecked') }));
+		disposables.add(MenuRegistry.appendMenuItem(nestedId, { command: { id: 'leaf', title: 'Leaf' } }));
+		await clock.tickAsync(100);
+		const menu = disposables.add(menuService.createMenu(testMenuId, context, { eventDebounceDelay: 0 }));
+		let notifications = 0;
+		disposables.add(menu.onDidChange(() => notifications++));
+		const checked = () => {
+			const child = menu.getActions()[0][1][0];
+			assert.ok(child instanceof SubmenuItemAction);
+			const nested = child.actions[0];
+			assert.ok(nested instanceof SubmenuItemAction);
+			return nested.checked;
+		};
+		const before = checked();
+		context.setContext('nestedChecked', true);
+		await clock.tickAsync(100);
+		assert.deepStrictEqual({ before, after: checked(), notifications }, { before: false, after: true, notifications: 0 });
+	});
+
+	test('refreshes alternate enablement and toggle without changing notification policy', async () => {
+		const clock = sinon.useFakeTimers();
+		const context = disposables.add(new LiveTestContextKeyService());
+		disposables.add(MenuRegistry.appendMenuItem(testMenuId, {
+			command: { id: 'main', title: 'Main' },
+			alt: { id: 'alt', title: 'Alt', precondition: ContextKeyExpr.has('altEnabled'), toggled: ContextKeyExpr.has('altChecked') }
+		}));
+		await clock.tickAsync(100);
+		const menu = disposables.add(menuService.createMenu(testMenuId, context, { emitEventsForSubmenuChanges: true, eventDebounceDelay: 0 }));
+		let notifications = 0;
+		disposables.add(menu.onDidChange(() => notifications++));
+		const snapshot = () => {
+			const action = menu.getActions()[0][1][0];
+			assert.ok(action instanceof MenuItemAction);
+			return { enabled: action.alt?.enabled, checked: action.alt?.checked };
+		};
+		const before = snapshot();
+		context.setContext('altEnabled', true);
+		assert.deepStrictEqual(snapshot(), { enabled: true, checked: false });
+		context.setContext('altChecked', true);
+		await clock.tickAsync(100);
+		assert.deepStrictEqual({ before, after: snapshot(), notifications }, {
+			before: { enabled: false, checked: false }, after: { enabled: true, checked: true }, notifications: 0
+		});
 	});
 
 	test('Extension contributed submenus missing with errors in output #155030', function () {
