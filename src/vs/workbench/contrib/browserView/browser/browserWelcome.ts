@@ -16,7 +16,7 @@ export function createBrowserWelcome(title: string, subtitle: string): HTMLEleme
 	const content = $('.browser-welcome-content');
 
 	const iconContainer = $('.browser-welcome-icon');
-	iconContainer.appendChild(renderIcon(Codicon.globe));
+	iconContainer.appendChild(renderIcon(Codicon.globe, undefined, 'browser-welcome-glyph'));
 	content.appendChild(iconContainer);
 
 	const titleElement = $('h2.browser-welcome-title');

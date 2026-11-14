@@ -882,7 +882,7 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 
 	renderTemplate(container: HTMLElement): IActionsColumnTemplateData {
 		const element = DOM.append(container, $('.actions'));
-		const actionBar = new ActionBar(element);
+		const actionBar = new ActionBar(element, { className: 'keybindings-row-action-bar' });
 		return { actionBar };
 	}
 
@@ -950,10 +950,13 @@ class CommandColumnRenderer implements ITableRenderer<IKeybindingItemEntry, ICom
 		const commandColumnHover = this._hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), commandColumn, '');
 		const commandLabelContainer = DOM.append(commandColumn, $('.command-label'));
 		const commandLabel = new HighlightedLabel(commandLabelContainer);
+		commandLabel.element.classList.add('keybindings-table-text-label');
 		const commandDefaultLabelContainer = DOM.append(commandColumn, $('.command-default-label'));
 		const commandDefaultLabel = new HighlightedLabel(commandDefaultLabelContainer);
+		commandDefaultLabel.element.classList.add('keybindings-table-text-label');
 		const commandIdLabelContainer = DOM.append(commandColumn, $('.command-id.code'));
 		const commandIdLabel = new HighlightedLabel(commandIdLabelContainer);
+		commandIdLabel.element.classList.add('keybindings-table-text-label');
 		return { commandColumn, commandColumnHover, commandLabelContainer, commandLabel, commandDefaultLabelContainer, commandDefaultLabel, commandIdLabelContainer, commandIdLabel };
 	}
 
@@ -1014,7 +1017,7 @@ class KeybindingColumnRenderer implements ITableRenderer<IKeybindingItemEntry, I
 
 	renderTemplate(container: HTMLElement): IKeybindingColumnTemplateData {
 		const element = DOM.append(container, $('.keybinding'));
-		const keybindingLabel = new KeybindingLabel(DOM.append(element, $('div.keybinding-label')), OS, defaultKeybindingLabelStyles);
+		const keybindingLabel = new KeybindingLabel(DOM.append(element, $('div.keybinding-label')), OS, { ...defaultKeybindingLabelStyles, keyClassName: 'keybindings-table-key' });
 		return { keybindingLabel };
 	}
 
@@ -1070,9 +1073,11 @@ class SourceColumnRenderer implements ITableRenderer<IKeybindingItemEntry, ISour
 		const sourceColumn = DOM.append(container, $('.source'));
 		const sourceColumnHover = this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), sourceColumn, '');
 		const sourceLabel = new HighlightedLabel(DOM.append(sourceColumn, $('.source-label')));
+		sourceLabel.element.classList.add('keybindings-table-text-label');
 		const extensionContainer = DOM.append(sourceColumn, $('.extension-container'));
 		const extensionLabel = DOM.append<HTMLAnchorElement>(extensionContainer, $('a.extension-label', { tabindex: 0 }));
 		const extensionId = new HighlightedLabel(DOM.append(extensionContainer, $('.extension-id-container.code')));
+		extensionId.element.classList.add('keybindings-table-text-label');
 		return { sourceColumn, sourceColumnHover, sourceLabel, extensionLabel, extensionContainer, extensionId, disposables: new DisposableStore() };
 	}
 

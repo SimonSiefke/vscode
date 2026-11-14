@@ -174,6 +174,7 @@ function mountRimLayers(host: HTMLElement, options: {
 	for (const cls of ['voice-glow-rim-corners', 'voice-glow-rim-bloom']) {
 		const el = $('div');
 		el.className = cls;
+		el.classList.add('voice-glow-rim-layer');
 		host.appendChild(el);
 		store.add(toDisposable(() => el.remove()));
 	}

@@ -109,17 +109,17 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 		const root = container;
 		root.classList.add('show-file-icons');
 
-		const icon = append(container, $('.icon'));
+		const icon = append(container, $('.icon.editor-suggest-row-icon'));
 		const colorspan = append(icon, $('span.colorspan'));
 
 		const text = append(container, $('.contents'));
 		const main = append(text, $('.main'));
 
-		const iconContainer = append(main, $('.icon-label.codicon'));
+		const iconContainer = append(main, $('.icon-label.codicon.editor-suggest-row-icon'));
 		const left = append(main, $('span.left'));
 		const right = append(main, $('span.right'));
 
-		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true });
+		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true, extraClasses: ['editor-suggest-item-label'], nameContainerClassName: 'editor-suggest-name-container' });
 		disposables.add(iconLabel);
 
 		const parametersLabel = append(left, $('span.signature-label'));
@@ -175,30 +175,30 @@ export class ItemRenderer implements IListRenderer<CompletionItem, ISuggestionTe
 		const color: string[] = [];
 		if (completion.kind === CompletionItemKind.Color && _completionItemColor.extract(element, color)) {
 			// special logic for 'color' completion items
-			data.icon.className = 'icon customcolor';
-			data.iconContainer.className = 'icon hide';
+			data.icon.className = 'icon customcolor editor-suggest-row-icon';
+			data.iconContainer.className = 'icon hide editor-suggest-row-icon';
 			data.colorspan.style.backgroundColor = color[0];
 
 		} else if (completion.kind === CompletionItemKind.File && this._themeService.getFileIconTheme().hasFileIcons) {
 			// special logic for 'file' completion items
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = 'icon hide';
+			data.icon.className = 'icon hide editor-suggest-row-icon';
+			data.iconContainer.className = 'icon hide editor-suggest-row-icon';
 			const labelClasses = getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: element.textLabel }), FileKind.FILE);
 			const detailClasses = getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: completion.detail }), FileKind.FILE);
 			labelOptions.extraClasses = labelClasses.length > detailClasses.length ? labelClasses : detailClasses;
 
 		} else if (completion.kind === CompletionItemKind.Folder && this._themeService.getFileIconTheme().hasFolderIcons) {
 			// special logic for 'folder' completion items
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = 'icon hide';
+			data.icon.className = 'icon hide editor-suggest-row-icon';
+			data.iconContainer.className = 'icon hide editor-suggest-row-icon';
 			labelOptions.extraClasses = [
 				getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: element.textLabel }), FileKind.FOLDER),
 				getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: completion.detail }), FileKind.FOLDER)
 			].flat();
 		} else {
 			// normal icon
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = '';
+			data.icon.className = 'icon hide editor-suggest-row-icon';
+			data.iconContainer.className = 'editor-suggest-row-icon';
 			data.iconContainer.classList.add('suggest-icon', ...ThemeIcon.asClassNameArray(CompletionItemKinds.toIcon(completion.kind)));
 		}
 

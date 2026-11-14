@@ -37,6 +37,12 @@ export interface MarkdownRenderOptions {
 
 	readonly actionHandler?: MarkdownActionHandler;
 
+	/** Class applied to link elements emitted by the Markdown parser. */
+	readonly linkClassName?: string;
+
+	/** Class applied to sanitized parser elements, excluding custom code-block renderer output. */
+	readonly elementClassName?: string;
+
 	/** Rewrites parsed Markdown link and image destinations before sanitization. */
 	readonly transformUri?: (href: string, kind: 'link' | 'image') => string;
 
@@ -255,7 +261,7 @@ export function renderMarkdown(markdown: IMarkdownString, options: MarkdownRende
 	}
 
 	const renderedContent = document.createElement('div');
-	const sanitizerConfig = getDomSanitizerConfig(markdown, options.sanitizerConfig ?? {});
+	const sanitizerConfig = getDomSanitizerConfig(markdown, options.sanitizerConfig ?? {}, options.elementClassName);
 	domSanitize.safeSetInnerHtml(renderedContent, renderedMarkdown, sanitizerConfig);
 
 	// Rewrite links and images before potentially inserting them into the real dom
@@ -496,6 +502,9 @@ function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRender
 			// drop the link
 			el.replaceWith(...el.childNodes);
 		} else {
+			if (options.linkClassName) {
+				el.classList.add(options.linkClassName);
+			}
 			let resolvedHref = massageHref(markdown, href, false);
 			if (markdown.baseUri) {
 				resolvedHref = resolveWithBaseUri(URI.from(markdown.baseUri), href);
@@ -768,7 +777,7 @@ export const allowedMarkdownHtmlAttributes = Object.freeze<Array<string | domSan
 	},
 ]);
 
-function getDomSanitizerConfig(mdStrConfig: MdStrConfig, options: MarkdownSanitizerConfig): domSanitize.DomSanitizerConfig {
+function getDomSanitizerConfig(mdStrConfig: MdStrConfig, options: MarkdownSanitizerConfig, elementClassName?: string): domSanitize.DomSanitizerConfig {
 	const isTrusted = mdStrConfig.isTrusted ?? false;
 	const remoteImageIsAllowed = options.remoteImageIsAllowed;
 	const allowedLinkSchemes = [
@@ -793,6 +802,7 @@ function getDomSanitizerConfig(mdStrConfig: MdStrConfig, options: MarkdownSaniti
 	}
 
 	return {
+		elementClassName,
 		// allowedTags should included everything that markdown renders to.
 		// Since we have our own sanitize function for marked, it's possible we missed some tag so let dompurify make sure.
 		// HTML tags that can result from markdown are from reading https://spec.commonmark.org/0.29/

@@ -91,6 +91,7 @@ class BrowserNavigationBar extends Disposable {
 			navContainer,
 			MenuId.BrowserNavigationToolbar,
 			{
+				actionsContainerClassName: 'browser-toolbar-actions',
 				hoverDelegate,
 				highlightToggledItems: true,
 				actionViewItemProvider: (action, options) => {
@@ -126,6 +127,7 @@ class BrowserNavigationBar extends Disposable {
 			actionsContainer,
 			MenuId.BrowserActionsToolbar,
 			{
+				actionsContainerClassName: 'browser-toolbar-actions',
 				hoverDelegate,
 				highlightToggledItems: true,
 				toolbarOptions: { primaryGroup: () => true, useSeparatorsInPrimaryActions: true },

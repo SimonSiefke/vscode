@@ -56,7 +56,10 @@
 	justify-content: safe center;
 }
 
-.chat-update-required-content .chat-welcome-view > :is(.chat-welcome-view-title, .chat-welcome-view-message, .chat-welcome-view-disclaimer, .chat-welcome-view-tips) {
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-title,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-message,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-disclaimer,
+.chat-update-required-content .chat-welcome-view > .chat-welcome-view-tips {
 	box-sizing: border-box;
 	overflow-wrap: anywhere;
 }
@@ -82,7 +85,7 @@
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.chat-update-required-content .chat-welcome-view > .monaco-button {
+.chat-update-required-content .chat-welcome-view > .chat-welcome-action-button {
 	margin-top: var(--vscode-spacing-size120);
 }
 
@@ -96,7 +99,7 @@ div.chat-welcome-view {
 		min-height: 40px;
 	}
 
-	& > .chat-welcome-view-icon .codicon {
+	& > .chat-welcome-view-icon .codicon:where(.chat-welcome-view-glyph) {
 		color: var(--vscode-descriptionForeground);
 		font-size: 40px;
 		margin-bottom: 24px;
@@ -112,7 +115,7 @@ div.chat-welcome-view {
 		min-height: 72px;
 	}
 
-	& > .chat-welcome-view-icon.large-icon .codicon {
+	& > .chat-welcome-view-icon.large-icon .codicon:where(.chat-welcome-view-glyph) {
 		font-size: 72px;
 		width: 72px;
 		height: 72px;
@@ -144,7 +147,7 @@ div.chat-welcome-view {
 		color: var(--vscode-descriptionForeground);
 		font-size: 12px;
 
-		a {
+		a:where(.chat-welcome-message-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 
@@ -159,7 +162,7 @@ div.chat-welcome-view {
 		}
 	}
 
-	.monaco-button {
+	.chat-welcome-action-button {
 		display: inline-block;
 		width: initial;
 	}
@@ -168,7 +171,7 @@ div.chat-welcome-view {
 		max-width: 250px;
 		margin: 10px 5px 0px;
 
-		a {
+		a:where(.chat-welcome-tip-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 
@@ -190,7 +193,7 @@ div.chat-welcome-view {
 			gap: 6px;
 			margin: 6px 0 0 0;
 
-			.codicon {
+			.codicon:where(.chat-welcome-tip-node) {
 				padding-top: 1px;
 			}
 		}
@@ -208,7 +211,7 @@ div.chat-welcome-view {
 			margin: 0;
 		}
 
-		a {
+		a:where(.chat-welcome-message-link) {
 			color: var(--vscode-textLink-foreground);
 		}
 

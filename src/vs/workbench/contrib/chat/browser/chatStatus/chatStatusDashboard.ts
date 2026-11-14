@@ -185,7 +185,7 @@ export class ChatStatusDashboard extends DomWidget {
 			const actionBarElement = header.lastElementChild;
 
 			if (canConfigureAdditionalSpend) {
-				headerAdditionalSpendButton = this._store.add(new Button(header, { ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
+				headerAdditionalSpendButton = this._store.add(new Button(header, { buttonClassName: 'chat-status-action-button', ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
 				headerAdditionalSpendButton.element.classList.add('header-cta-button');
 				headerAdditionalSpendButton.label = localize('manageBudget', "Manage Budget");
 				this._store.add(headerAdditionalSpendButton.onDidClick(() => {
@@ -198,7 +198,7 @@ export class ChatStatusDashboard extends DomWidget {
 			}
 
 			if (showUpgrade) {
-				headerUpgradeButton = this._store.add(new Button(header, { ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
+				headerUpgradeButton = this._store.add(new Button(header, { buttonClassName: 'chat-status-action-button', ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
 				headerUpgradeButton.element.classList.add('header-cta-button');
 				headerUpgradeButton.label = localize('upgrade', "Upgrade");
 				this._store.add(headerUpgradeButton.onDidClick(() => this.runCommandAndClose('workbench.action.chat.upgradePlan')));
@@ -215,7 +215,7 @@ export class ChatStatusDashboard extends DomWidget {
 			const showUpgrade = this.chatEntitlementService.quotas.canUpgradePlan ?? false;
 
 			if (canConfigureAdditionalSpend) {
-				headerAdditionalSpendButton = this._store.add(new Button(ctaContainer, { ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
+				headerAdditionalSpendButton = this._store.add(new Button(ctaContainer, { buttonClassName: 'chat-status-action-button', ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
 				headerAdditionalSpendButton.label = localize('manageBudget', "Manage Budget");
 				this._store.add(headerAdditionalSpendButton.onDidClick(() => {
 					this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: 'workbench.action.chat.manageAdditionalSpend', from: 'chat-status' });
@@ -224,7 +224,7 @@ export class ChatStatusDashboard extends DomWidget {
 			}
 
 			if (showUpgrade) {
-				headerUpgradeButton = this._store.add(new Button(ctaContainer, { ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
+				headerUpgradeButton = this._store.add(new Button(ctaContainer, { buttonClassName: 'chat-status-action-button', ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
 				headerUpgradeButton.label = localize('upgrade', "Upgrade");
 				this._store.add(headerUpgradeButton.onDidClick(() => this.runCommandAndClose('workbench.action.chat.upgradePlan')));
 			}
@@ -632,7 +632,7 @@ export class ChatStatusDashboard extends DomWidget {
 			this.element.appendChild($(`div${descriptionClass}`, undefined, this._store.add(this.markdownRendererService.render(descriptionText)).element));
 		}
 
-		const button = this._store.add(new Button(this.element, { ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
+		const button = this._store.add(new Button(this.element, { buttonClassName: 'chat-status-action-button', ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate }));
 		button.label = buttonLabel;
 		this._store.add(button.onDidClick(() => this.runCommandAndClose(commandId)));
 	}
@@ -729,7 +729,7 @@ export class ChatStatusDashboard extends DomWidget {
 		header.appendChild($('span.header-label', undefined, label));
 
 		if (action) {
-			const toolbar = disposables.add(new ActionBar(header, { hoverDelegate: nativeHoverDelegate }));
+			const toolbar = disposables.add(new ActionBar(header, { className: 'chat-status-header-action-bar', hoverDelegate: nativeHoverDelegate }));
 			toolbar.push([action], { icon: true, label: false });
 		}
 
@@ -1230,7 +1230,7 @@ export class ChatStatusDashboard extends DomWidget {
 			return completionsEnabled || completionsEnabledActiveLanguage;
 		};
 
-		const button = this._store.add(new Button(container, { disabled: !isEnabled(), ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
+		const button = this._store.add(new Button(container, { buttonClassName: 'chat-status-action-button', disabled: !isEnabled(), ...defaultButtonStyles, hoverDelegate: nativeHoverDelegate, secondary: true }));
 
 		const timerDisplay = container.appendChild($('span.snooze-label'));
 

@@ -20,7 +20,7 @@
 	max-width: 550px;
 }
 
-.monaco-editor .debug-hover-widget .complex-value .title,
+.monaco-editor .debug-hover-widget .complex-value .title:where(.debug-hover-complex-title),
 .monaco-editor .debug-hover-widget .complex-value .tip {
 	padding-left: 15px;
 	padding-right: 2px;
@@ -33,7 +33,7 @@
 	white-space: pre;
 }
 
-.monaco-editor .debug-hover-widget .complex-value .title {
+.monaco-editor .debug-hover-widget .complex-value .title:where(.debug-hover-complex-title) {
 	border-bottom: 1px solid rgba(128, 128, 128, 0.35);
 }
 
@@ -47,7 +47,7 @@
 	cursor: pointer;
 }
 
-.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row .monaco-tl-contents {
+.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row .debug-hover-tree-contents {
 	user-select: text;
 	-webkit-user-select: text;
 	white-space: pre;

@@ -718,7 +718,7 @@ suite('Sessions - Chat View', () => {
 			renderTemplate: container => dom.append(container, dom.$('.interactive-item-container.interactive-response')),
 			renderElement: (node, _index, container: HTMLElement) => { container.textContent = `Response ${node.element}`; },
 			disposeTemplate: () => { },
-		}], { horizontalScrolling: false }));
+		}], { horizontalScrolling: false, rowClassName: 'chat-message-list-row', twistieAdditionalCssClass: () => 'chat-message-tree-twistie' }));
 		tree.setChildren(null, Array.from({ length: 12 }, (_, element) => ({ element })));
 		const input = dom.append(widget, dom.$('.interactive-input-part'));
 		const suggestion = dom.append(widget, dom.$('.chat-suggest-next-widget'));

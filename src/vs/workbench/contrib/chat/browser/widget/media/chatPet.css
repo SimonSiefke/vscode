@@ -39,7 +39,7 @@
 	touch-action: none;
 }
 
-.chat-pet-button.hidden {
+.hidden.chat-pet-button {
 	display: none;
 }
 
@@ -75,7 +75,7 @@
 	transform: translate(-25%, -50%);
 }
 
-.chat-pet-bounce-counter.hidden {
+.hidden.chat-pet-bounce-counter {
 	display: none;
 }
 
@@ -182,7 +182,7 @@
 	pointer-events: none;
 }
 
-.chat-pet-sprite.hidden {
+.hidden.chat-pet-sprite {
 	display: none;
 }
 
@@ -229,7 +229,7 @@
 	transform-origin: 50% 12.5%;
 }
 
-.chat-pet-eye-accessory.hidden {
+.hidden.chat-pet-eye-accessory {
 	display: none;
 }
 
@@ -284,7 +284,7 @@
 	pointer-events: none;
 }
 
-.chat-pet-respawn-effect.hidden {
+.hidden.chat-pet-respawn-effect {
 	display: none;
 }
 
@@ -305,7 +305,7 @@
 	height: 72px;
 }
 
-.chat-pet-speech-bubble.hidden {
+.hidden.chat-pet-speech-bubble {
 	display: none;
 }
 

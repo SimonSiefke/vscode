@@ -101,17 +101,17 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 		});
 		const binaryFileChangedLabel = localize('binaryFileChanged', "Binary file changed");
 		this._elements = h('div.multiDiffEntry', [
-			h('div.header@header', [
+			h('div.header.multi-diff-file-header@header', [
 				h('div.header-content', [
 					h('div.collapse-button@collapseButton'),
 					h('div.file-path', [
 						// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
-						h('div.title.modified.show-file-icons@primaryPath', [] as any),
+						h('div.title.multi-diff-file-title.modified.show-file-icons@primaryPath', [] as any),
 						h('div.status.deleted@status', ['R']),
 						// eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
-						h('div.title.original.show-file-icons@secondaryPath', [] as any),
+						h('div.title.multi-diff-file-title.original.show-file-icons@secondaryPath', [] as any),
 					]),
-					h('div.actions@actions'),
+					h('div.actions.multi-diff-file-actions@actions'),
 				]),
 			]),
 
@@ -180,7 +180,7 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 		const activateItem = () => this._viewModel.get()?.setActive(undefined);
 
 		this._register(autorun(reader => {
-			btn.element.className = '';
+			btn.element.className = 'multi-diff-collapse-toggle';
 			btn.icon = this._collapsed.read(reader) ? Codicon.chevronRight : Codicon.chevronDown;
 		}));
 		this._register(btn.onDidClick(() => {
@@ -295,6 +295,7 @@ export class DiffEditorItemTemplate extends VirtualizedItemTemplate<DocumentDiff
 		}));
 		const instantiationService = this._register(this._instantiationService.createChild(new ServiceCollection([IContextKeyService, this._contextKeyService])));
 		this._register(instantiationService.createInstance(MenuWorkbenchToolBar, this._elements.actions, MenuId.MultiDiffEditorFileToolbar, {
+			actionsContainerClassName: 'multi-diff-file-toolbar-actions',
 			actionRunner: this._register(new ActionRunnerWithContext(() => (this._viewModel.get()?.modifiedUri ?? this._viewModel.get()?.originalUri))),
 			highlightToggledItems: true,
 			menuOptions: {

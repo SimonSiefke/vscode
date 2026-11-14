@@ -350,7 +350,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 			spinner.clear();
 			dom.clearNode(iconElement);
 			if (this._accessibilityService.isMotionReduced()) {
-				iconElement.appendChild(dom.$(ThemeIcon.asCSSSelector(Codicon.sessionInProgress)));
+				iconElement.appendChild(dom.$(ThemeIcon.asCSSSelector(Codicon.sessionInProgress) + '.chat-input-notification-busy-glyph'));
 			} else {
 				spinner.value = createPixelSpinner(iconElement, { variant: 'grid' });
 			}
@@ -537,6 +537,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 							buttonSecondaryBorder: undefined,
 						} : {}),
 						supportIcons: true,
+						contentClassName: 'chat-input-notification-action-part',
 						secondary: !isPrimary,
 					}));
 					button.element.classList.add('chat-input-notification-action-button');

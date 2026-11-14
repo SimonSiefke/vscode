@@ -49,7 +49,7 @@
 		vertical-align: middle;
 	}
 
-	.diff-review-spacer > .codicon {
+	.diff-review-spacer > .accessible-diff-spacer-glyph {
 		font-size: 9px !important;
 	}
 
@@ -61,7 +61,7 @@
 		z-index: 100;
 	}
 
-	.diff-review-actions .action-label {
+	.diff-review-actions .close-diff-review {
 		width: 16px;
 		height: 16px;
 		margin: 2px 0;
@@ -71,7 +71,7 @@
 		cursor: pointer;
 	}
 
-	.action-label {
+	.close-diff-review {
 		background: var(--vscode-editorActionList-background);
 	}
 }

@@ -10,7 +10,7 @@
 	overflow-y: hidden;
 	background: var(--vscode-multiDiffEditor-background);
 
-	> div {
+	> div:where(.multi-diff-editor-layer) {
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -23,7 +23,7 @@
 			place-content: center;
 			visibility: hidden;
 
-			&.visible {
+			&.visible:where(.multi-diff-editor-layer) {
 				visibility: visible;
 			}
 		}
@@ -49,7 +49,7 @@
 			cursor: pointer;
 		}
 
-		.header {
+		.header:where(.multi-diff-file-header) {
 			z-index: 1000;
 
 			.header-content {
@@ -67,7 +67,7 @@
 					min-width: 0;
 					overflow: hidden;
 
-					.title {
+					.title:where(.multi-diff-file-title) {
 						flex: 0 1 auto;
 						min-width: 0;
 						overflow: hidden;
@@ -98,7 +98,7 @@
 					}
 				}
 
-				.actions {
+				.actions:where(.multi-diff-file-actions) {
 					flex: 0 0 auto;
 				}
 			}
@@ -138,14 +138,14 @@
 	&.multiDiffEditor-standard {
 		.multiDiffEntry {
 			.collapse-button {
-				margin: 0 var(--vscode-spacing-size60);
-
-				a {
-					display: block;
-				}
+				margin: 0 var(--vscode-spacing-size60)
 			}
 
-			.header {
+			:where(.collapse-button) a.multi-diff-collapse-toggle {
+				display: block;
+			}
+
+			.header:where(.multi-diff-file-header) {
 				background: var(--vscode-editor-background);
 
 				&:not(.collapsed) .header-content {
@@ -159,7 +159,7 @@
 					background: var(--vscode-multiDiffEditor-headerBackground);
 
 					.file-path {
-						.title {
+						.title:where(.multi-diff-file-title) {
 							font-size: 14px;
 						}
 
@@ -171,7 +171,7 @@
 						}
 					}
 
-					.actions {
+					.actions:where(.multi-diff-file-actions) {
 						padding: 0 var(--vscode-spacing-size80);
 					}
 				}
@@ -231,35 +231,35 @@
 			}
 
 			.collapse-button {
-				margin: 0 var(--vscode-spacing-size60);
+				margin: 0 var(--vscode-spacing-size60)
+			}
 
-				a {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					padding: var(--vscode-spacing-size40);
-					border-radius: var(--vscode-cornerRadius-medium);
+			:where(.collapse-button) a.multi-diff-collapse-toggle {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: var(--vscode-spacing-size40);
+				border-radius: var(--vscode-cornerRadius-medium);
 
-					&:hover {
-						background: var(--vscode-toolbar-hoverBackground);
-					}
+				&:hover {
+					background: var(--vscode-toolbar-hoverBackground);
+				}
 
-					&:active {
-						background: var(--vscode-toolbar-activeBackground);
-					}
+				&:active {
+					background: var(--vscode-toolbar-activeBackground);
+				}
 
-					&:focus-visible {
-						outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-						outline-offset: calc(-1 * var(--vscode-strokeThickness));
-					}
+				&:focus-visible {
+					outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+					outline-offset: calc(-1 * var(--vscode-strokeThickness));
+				}
 
-					&:focus:not(:focus-visible) {
-						outline: none;
-					}
+				&:focus:not(:focus-visible) {
+					outline: none;
 				}
 			}
 
-			.header {
+			.header:where(.multi-diff-file-header) {
 				position: relative;
 				background: var(--vscode-multiDiffEditor-background);
 
@@ -276,7 +276,7 @@
 					background: transparent;
 
 					.file-path {
-						.title {
+						.title:where(.multi-diff-file-title) {
 							font-size: var(--vscode-fontSize-body1);
 						}
 
@@ -306,10 +306,10 @@
 						}
 					}
 
-					.actions {
+					.actions:where(.multi-diff-file-actions) {
 						padding: 0 var(--vscode-spacing-size80);
 
-						.actions-container {
+						.multi-diff-file-toolbar-actions {
 							gap: var(--vscode-spacing-size40);
 
 							.action-item:not(.multi-diff-action-always-visible) {
@@ -424,7 +424,7 @@
 				content: none;
 			}
 
-			.header {
+			.header:where(.multi-diff-file-header) {
 				.header-content {
 					margin: var(--vscode-spacing-size40) 0 0;
 					border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-editorWidget-border, transparent));

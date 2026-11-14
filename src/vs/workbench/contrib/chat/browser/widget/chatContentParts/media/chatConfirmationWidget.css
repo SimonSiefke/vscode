@@ -66,7 +66,7 @@
 	/* The container is the focusable element; match the card's radius so its focus outline follows the card's corners. */
 	border-radius: var(--vscode-cornerRadius-medium);
 
-	> .monaco-progress-container.active {
+	> .active.monaco-progress-container {
 		position: absolute;
 		left: 0px;
 		right: 0;
@@ -107,7 +107,7 @@
 	color: var(--vscode-errorForeground) !important;
 }
 
-.chat-confirmation-widget .chat-confirmation-widget-title.monaco-button {
+.chat-confirmation-widget .monaco-button.chat-confirmation-widget-title {
 
 	.monaco-button-mdlabel {
 		display: flex;
@@ -243,7 +243,7 @@
 .chat-confirmation-widget .chat-confirmation-widget-message .see-more {
 	margin-top: -4px;
 
-	a {
+	a:where(.chat-tool-see-more-link) {
 		color: var(--vscode-textLink-foreground);
 		text-decoration: underline;
 		display: block;
@@ -373,7 +373,7 @@
 			margin: 0 !important;
 		}
 
-		.codicon {
+		.codicon:where(.chat-confirmation-title-node) {
 			margin-right: 4px;
 		}
 	}
@@ -437,7 +437,7 @@
 		text-overflow: ellipsis;
 		align-content: center;
 
-		.monaco-button {
+		.chat-working-set-title-button {
 			width: fit-content;
 			max-width: 100%;
 			padding: 4px 6px 4px 0;
@@ -506,15 +506,15 @@
 		margin-top: 4px;
 	}
 
-	.chat-editing-session-list.collapsed {
+	.collapsed.chat-editing-session-list {
 		display: none;
 	}
 
-	.chat-editing-session-list .monaco-scrollable-element {
+	.chat-editing-session-list .chat-reference-list-scrollable {
 		border-radius: 0;
 	}
 
-	.chat-editing-session-list .monaco-list-row {
+	.chat-editing-session-list .chat-reference-file-row {
 		border-radius: 4px;
 	}
 
@@ -522,7 +522,7 @@
 		background-color: var(--vscode-list-hoverBackground) !important;
 	}
 
-	.chat-editing-session-list .monaco-icon-label {
+	.chat-editing-session-list .chat-file-list-label {
 		padding: 0 3px;
 	}
 
@@ -603,7 +603,7 @@
 		column-gap: 4px;
 		align-items: center;
 
-		.monaco-button {
+		.chat-confirmation-action-button {
 			overflow-wrap: break-word;
 			width: inherit;
 		}
@@ -613,13 +613,13 @@
 		padding: 0px 4px 0 3px;
 	}
 
-	.monaco-button-dropdown > .monaco-button.monaco-dropdown-button.codicon[class*='codicon-'] {
+	.monaco-button-dropdown > .monaco-button.codicon[class*='codicon-'].monaco-dropdown-button {
 		font-size: var(--vscode-codiconFontSize-compact);
 	}
 }
 
 .chat-confirmation-widget2 .interactive-result-code-block.compare {
-	.interactive-result-header .monaco-toolbar {
+	.interactive-result-header .chat-code-block-toolbar-root {
 		display: none;
 		/* Don't show keep/discard for diffs shown within confirmation */
 	}
@@ -661,7 +661,7 @@
 			font-feature-settings: "tnum";
 		}
 
-		.codicon {
+		.codicon:where(.chat-collapsible-leading-glyph, .chat-collapsible-hover-chevron, .chat-confirmation-title-node, .chat-file-reference-icon) {
 			font-size: var(--vscode-codiconFontSize-compact);
 		}
 

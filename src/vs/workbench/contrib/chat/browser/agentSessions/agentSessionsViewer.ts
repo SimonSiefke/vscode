@@ -319,7 +319,9 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 		const scopedInstantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyService])));
 		const titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.titleToolbar, MenuId.AgentSessionItemToolbar, {
 			menuOptions: { shouldForwardArgs: true },
+			actionsContainerClassName: 'agent-session-title-toolbar-actions',
 		}));
+		titleToolbar.getElement().classList.add('agent-session-title-toolbar-root');
 
 		container.appendChild(elements.item);
 
@@ -558,6 +560,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 			container.textContent = content;
 		} else {
 			disposables.add(this.markdownRendererService.render(content, {
+				linkClassName: 'agent-session-markdown-link',
 				sanitizerConfig: {
 					replaceWithPlaintext: true,
 					allowedTags: {
@@ -758,6 +761,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 				template.approvalButtonContainer.textContent = '';
 				const isActive = this._activeSessionResource.read(reader)?.toString() === session.element.resource.toString();
 				const button = buttonStore.add(new Button(template.approvalButtonContainer, {
+					buttonClassName: 'agent-session-approval-action-button',
 					title: localize('allowActionOnce', "Allow once"),
 					secondary: isActive,
 					...defaultButtonStyles
@@ -833,7 +837,9 @@ export class AgentSessionChatRenderer implements ICompressibleTreeRenderer<IAgen
 		const scopedInstantiationService = disposables.add(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, contextKeyService])));
 		const titleToolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.titleToolbar, AgentSessionChatToolbar, {
 			menuOptions: { shouldForwardArgs: true },
+			actionsContainerClassName: 'agent-session-title-toolbar-actions',
 		}));
+		titleToolbar.getElement().classList.add('agent-session-title-toolbar-root');
 		for (const type of ['pointerdown', 'pointerup', 'click', 'dblclick'] as const) {
 			disposables.add(addDisposableListener(elements.titleToolbar, type, event => event.stopPropagation()));
 		}
@@ -956,6 +962,7 @@ export class AgentSessionSectionRenderer implements ICompressibleTreeRenderer<IA
 		const toolbar = disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, elements.toolbar, MenuId.AgentSessionSectionToolbar, {
 			menuOptions: { shouldForwardArgs: true },
 		}));
+		toolbar.getElement().classList.add('agent-session-section-toolbar-root');
 
 		container.appendChild(elements.container);
 

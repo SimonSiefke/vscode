@@ -218,6 +218,7 @@ export class CodeBlockPart extends Disposable {
 		// blocks, so defer creation until the user actually interacts with
 		// this code block (hover, editor focus, or screen reader mode).
 		this._toolbarFactory = () => editorScopedInstantiationService.createInstance(MenuWorkbenchToolBar, toolbarElement, menuId, {
+			actionItemClassName: 'chat-code-block-action-item',
 			menuOptions: {
 				shouldForwardArgs: true
 			}
@@ -394,6 +395,7 @@ export class CodeBlockPart extends Disposable {
 			}
 			this._toolbarFactory = undefined;
 			const toolbar = this._register(factory());
+			toolbar.getElement().classList.add('chat-code-block-toolbar-root');
 			this.toolbar = toolbar;
 
 			this._register(toolbar.onDidChangeDropdownVisibility(e => {
@@ -779,15 +781,17 @@ export class CodeCompareBlockPart extends Disposable {
 			...this.getEditorOptionsFromConfig(),
 		});
 
-		this.resourceLabel = this._register(scopedInstantiationService.createInstance(ResourceLabel, editorHeader, { supportIcons: true }));
+		this.resourceLabel = this._register(scopedInstantiationService.createInstance(ResourceLabel, editorHeader, { supportIcons: true, extraClasses: ['chat-compare-resource-label'], descriptionContainerClassName: 'chat-compare-description-container', nameContainerClassName: 'chat-compare-name-container', labelContainerClassName: 'chat-compare-label-container' }));
 
 		const editorScopedService = this._register(this.diffEditor.getModifiedEditor().contextKeyService.createScoped(editorHeader));
 		const editorScopedInstantiationService = this._register(scopedInstantiationService.createChild(new ServiceCollection([IContextKeyService, editorScopedService])));
 		this.toolbar = this._register(editorScopedInstantiationService.createInstance(MenuWorkbenchToolBar, editorHeader, menuId, {
+			actionItemClassName: 'chat-code-block-action-item',
 			menuOptions: {
 				shouldForwardArgs: true
 			}
 		}));
+		this.toolbar.getElement().classList.add('chat-code-block-toolbar-root');
 
 		this._configureForScreenReader();
 		this._register(this.accessibilityService.onDidChangeScreenReaderOptimized(() => this._configureForScreenReader()));

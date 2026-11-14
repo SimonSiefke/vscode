@@ -719,6 +719,7 @@ export class ToolsListWidget extends Disposable {
 		this._searchRow = DOM.append(this.element, $('.tools-list-search-and-button-container'));
 		const searchContainer = DOM.append(this._searchRow, $('.tools-list-search-container'));
 		this._searchInput = this._register(new InputBox(searchContainer, this._contextViewService, {
+			inputBoxClassName: 'tools-list-search-box',
 			placeholder: localize('searchPlaceholder', "Type to search..."),
 			inputBoxStyles: defaultInputBoxStyles,
 			ariaLabel: localize('toolsSearchAria', "Search tools"),
@@ -770,6 +771,7 @@ export class ToolsListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				horizontalScrolling: false,
 				openOnSingleClick: true,
@@ -1191,6 +1193,7 @@ export class ToolsListWidget extends Disposable {
 		const browseLabel = localize('toolsBrowseExtensions', "Browse Extensions");
 		const actions = DOM.append(container, $('.tools-inventory-section-actions'));
 		const browseButton = disposables.add(new Button(actions, {
+			buttonClassName: 'tools-inventory-browse-button',
 			...getButtonStyles({
 				buttonSecondaryBackground: undefined,
 				buttonSecondaryForeground: undefined,

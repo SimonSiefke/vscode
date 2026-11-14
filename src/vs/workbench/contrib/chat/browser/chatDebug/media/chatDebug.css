@@ -268,10 +268,10 @@
 	gap: 10px;
 	flex-wrap: wrap;
 }
-.chat-debug-overview-action-button.monaco-button {
+.monaco-button.chat-debug-overview-action-button {
 	width: auto;
 }
-.chat-debug-icon-button.monaco-button {
+.monaco-button.chat-debug-icon-button {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
@@ -318,16 +318,16 @@
 	max-width: 500px;
 	margin-right: auto;
 }
-.chat-debug-editor-header .viewpane-filter-container .monaco-inputbox {
+.chat-debug-editor-header .viewpane-filter-container .viewpane-filter-input-box {
 	border-color: var(--vscode-panelInput-border, transparent) !important;
 }
-.chat-debug-view-mode-toggle.monaco-button {
+.monaco-button.chat-debug-view-mode-toggle {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 }
-.chat-debug-troubleshoot-button.monaco-button {
+.monaco-button.chat-debug-troubleshoot-button {
 	width: auto;
 	display: inline-flex;
 	align-items: center;
@@ -340,7 +340,7 @@
 	grid-row: 1;
 	grid-column: 1;
 }
-.chat-debug-view-mode-label.hidden {
+.hidden.chat-debug-view-mode-label {
 	visibility: hidden;
 }
 .chat-debug-table-header {
@@ -411,7 +411,7 @@
 	height: 28px;
 	font-size: 12px;
 }
-.chat-debug-log-row .chat-debug-log-created {
+.chat-debug-log-created {
 	width: 160px;
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
@@ -420,7 +420,7 @@
 .monaco-list:focus .monaco-list-row.focused .chat-debug-log-created {
 	color: inherit;
 }
-.chat-debug-log-row .chat-debug-log-name {
+.chat-debug-log-name {
 	width: 200px;
 	flex-shrink: 0;
 	font-weight: var(--vscode-fontWeight-semiBold);
@@ -428,31 +428,31 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.chat-debug-log-row .chat-debug-log-details {
+.chat-debug-log-details {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.chat-debug-log-row.chat-debug-log-error,
+.chat-debug-log-error,
 .chat-debug-log-row.chat-debug-log-error:hover {
 	background-color: var(--vscode-inputValidation-errorBackground,
 				rgba(255, 0, 0, 0.1)) !important;
 	color: var(--vscode-errorForeground) !important;
 }
-.monaco-tl-row:has(.chat-debug-log-row.chat-debug-log-error) {
+.chat-debug-log-error-row {
 	background-color: var(--vscode-inputValidation-errorBackground,
 				rgba(255, 0, 0, 0.1)) !important;
 }
-.chat-debug-log-row.chat-debug-log-warning {
+.chat-debug-log-warning {
 	background-color: var(--vscode-inputValidation-warningBackground,
 				rgba(255, 204, 0, 0.1)) !important;
 }
-.monaco-tl-row:has(.chat-debug-log-row.chat-debug-log-warning) {
+.chat-debug-log-warning-row {
 	background-color: var(--vscode-inputValidation-warningBackground,
 				rgba(255, 204, 0, 0.1)) !important;
 }
-.chat-debug-log-row.chat-debug-log-trace {
+.chat-debug-log-trace {
 	opacity: 0.7;
 }
 .chat-debug-detail-panel {
@@ -473,7 +473,7 @@
 	padding: 8px 16px 0;
 	flex-shrink: 0;
 }
-.chat-debug-detail-button.monaco-button {
+.monaco-button.chat-debug-detail-button {
 	width: auto;
 	border: none;
 	background: transparent;
@@ -688,8 +688,8 @@
 }
 
 /* ---- File list: settings gear button ---- */
-.chat-debug-settings-gear.monaco-button,
-.chat-debug-section-copy-btn.monaco-button {
+.monaco-button.chat-debug-settings-gear,
+.monaco-button.chat-debug-section-copy-btn {
 	flex-shrink: 0;
 	opacity: 0.7;
 	border-radius: 3px;
@@ -1197,7 +1197,7 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	border: 1px solid var(--vscode-widget-border, transparent);
 	color: var(--vscode-descriptionForeground);
 }
-.chat-debug-cache-session-health-chip .codicon {
+.chat-debug-cache-session-health-chip .codicon:where(.chat-cache-health-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 .chat-debug-cache-session-health-chip.cause-tools,
@@ -1223,7 +1223,7 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	color: var(--vscode-charts-yellow);
 	opacity: 0.9;
 }
-.chat-debug-cache-rail-gap .codicon {
+.chat-debug-cache-rail-gap .codicon:where(.chat-cache-rail-gap-glyph) {
 	font-size: 11px;
 }
 .chat-debug-cache-rail-gap::before,

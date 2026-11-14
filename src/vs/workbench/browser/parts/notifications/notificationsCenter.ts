@@ -226,6 +226,7 @@ export class NotificationsCenter extends Themable implements INotificationsCente
 
 		const that = this;
 		const notificationsToolBar = this._register(new ActionBar(toolbarContainer, {
+			actionsContainerClassName: 'notifications-center-header-actions',
 			ariaLabel: localize('notificationsToolbar', "Notification Center Actions"),
 			actionRunner,
 			actionViewItemProvider: (action, options) => {

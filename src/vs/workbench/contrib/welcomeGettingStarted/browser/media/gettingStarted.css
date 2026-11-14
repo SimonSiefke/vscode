@@ -28,7 +28,7 @@
 	outline-offset: -1px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer.loading {
+.monaco-workbench .part.editor > .content .loading.gettingStartedContainer {
 	display: none;
 }
 
@@ -156,12 +156,12 @@
 	display: unset;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > * {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > :where(.gettingStartedCategoriesContainer) > .getting-started-category-section {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > .categories-column > div {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > :where(.categories-column) > div.index-list {
 	margin-bottom: 32px;
 }
 
@@ -351,7 +351,7 @@
 	margin-left: 28px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlide .getting-started-category .description-content > .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlide .getting-started-category .description-content > .getting-started-description-glyph {
 	padding-right: 2px;
 	font-size: 16px;
 }
@@ -477,7 +477,7 @@
 	margin-bottom: 6px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .expanded.getting-started-step {
 	cursor: default !important;
 	border: 1px solid var(--vscode-welcomePage-tileBorder);
 }
@@ -486,7 +486,7 @@
 	color: var(--vscode-walkthrough-stepTitle-foreground);
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded > .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step.expanded > .getting-started-step-completion-glyph {
 	cursor: pointer !important;
 }
 
@@ -508,13 +508,9 @@
 	width: inherit;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-title .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-title .getting-started-step-title-glyph {
 	position: relative;
 	top: 2px;
-}
-
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-columns .getting-started-detail-left > div {
-	width: 100%;
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step:not(.expanded) .step-description-container {
@@ -547,7 +543,7 @@
 	font-weight: 600;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .shortcut-message .monaco-keybinding > .monaco-keybinding-key {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .shortcut-message .monaco-keybinding > .monaco-keybinding-key:where(.getting-started-shortcut-key) {
 	display: inline-block;
 	border-style: solid;
 	border-width: 1px;
@@ -802,7 +798,7 @@
 	top: -10px;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer.height-constrained .prev-button.button-link .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer.height-constrained .prev-button.button-link .getting-started-back-glyph {
 	font-size: 20px;
 }
 
@@ -814,7 +810,7 @@
 	cursor: pointer;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .prev-button .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .prev-button .getting-started-back-glyph {
 	position: relative;
 	top: 3px;
 	left: -4px;
@@ -841,7 +837,7 @@
 	margin: 0 0 8px 0;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails h2 .codicon {
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails h2 .codicon:where(.getting-started-category-title-glyph) {
 	font-size: 20px;
 }
 

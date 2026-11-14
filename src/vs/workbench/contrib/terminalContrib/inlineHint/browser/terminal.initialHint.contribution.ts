@@ -238,10 +238,10 @@ class TerminalInitialHintWidget extends Disposable {
 	 */
 	private _createWrappedHintElements(text: string, keybindingLabel: string, clickHandler: () => void): { before: HTMLAnchorElement; after: HTMLSpanElement } {
 		const [beforeText, afterText] = text.split(keybindingLabel);
-		const before = $('a', undefined, beforeText) as HTMLAnchorElement;
+		const before = $('a.terminal-initial-hint-link', undefined, beforeText) as HTMLAnchorElement;
 		this._toDispose.add(dom.addDisposableListener(before, dom.EventType.CLICK, clickHandler));
 		const after = $('span.terminal-initial-hint-prose', undefined) as HTMLSpanElement;
-		const afterLink = $('a', undefined, afterText);
+		const afterLink = $('a.terminal-initial-hint-link', undefined, afterText);
 		this._toDispose.add(dom.addDisposableListener(afterLink, dom.EventType.CLICK, clickHandler));
 		after.appendChild(afterLink);
 		return { before, after };
@@ -265,7 +265,7 @@ class TerminalInitialHintWidget extends Disposable {
 			}
 		};
 
-		const hintElement = $('div.terminal-initial-hint');
+		const hintElement = $('div.terminal-initial-hint.terminal-initial-hint-content');
 		hintElement.style.display = 'block';
 
 		const aiFeaturesHidden = this._chatEntitlementService.sentiment.hidden;
@@ -289,7 +289,7 @@ class TerminalInitialHintWidget extends Disposable {
 				callback: () => handleCopilotCliClick(),
 				disposables: this._toDispose
 			};
-			hintElement.appendChild(renderFormattedText(copilotCliHint, { actionHandler: copilotCliHintHandler }));
+			hintElement.appendChild(renderFormattedText(copilotCliHint, { actionHandler: copilotCliHintHandler, linkClassName: 'terminal-initial-hint-link' }));
 			ariaLabelParts.push(localize('copilotCliHintAriaLabel', "Type copilot to use Copilot CLI."));
 		}
 
@@ -334,7 +334,7 @@ class TerminalInitialHintWidget extends Disposable {
 				'Preserve double-square brackets and their order',
 			]
 		}, '[[don\'t show]] this again.');
-		const typeToDismissRendered = renderFormattedText(typeToDismiss, { actionHandler: dontShowHintHandler });
+		const typeToDismissRendered = renderFormattedText(typeToDismiss, { actionHandler: dontShowHintHandler, linkClassName: 'terminal-initial-hint-link' });
 		typeToDismissRendered.classList.add('detail', 'terminal-initial-hint-prose');
 
 		const proseBefore = $('span.terminal-initial-hint-prose', undefined, localize('hintTextDismissProse', " Start typing to dismiss or "));
@@ -348,10 +348,14 @@ class TerminalInitialHintWidget extends Disposable {
 				'Preserve double-square brackets and their order',
 			]
 		}, '[[Don\'t show this again]]');
-		const typeToDismissCompactRendered = renderFormattedText(typeToDismissCompact, { actionHandler: dontShowHintHandler });
+		const typeToDismissCompactRendered = renderFormattedText(typeToDismissCompact, { actionHandler: dontShowHintHandler, linkClassName: 'terminal-initial-hint-link' });
 		typeToDismissCompactRendered.classList.add('detail', 'terminal-initial-hint-compact');
 		hintElement.appendChild(typeToDismissCompactRendered);
 		ariaLabelParts.push(localize('hintTextDismissAriaLabel', 'Start typing to dismiss or don\'t show this again.'));
+
+		for (const child of hintElement.children) {
+			child.classList.add('terminal-initial-hint-content');
+		}
 
 		return { ariaLabel: ariaLabelParts.join(' '), hintElement };
 	}
@@ -364,7 +368,7 @@ class TerminalInitialHintWidget extends Disposable {
 			}
 			const { hintElement, ariaLabel } = result;
 
-			this._domNode = $('.terminal-initial-hint');
+			this._domNode = $('.terminal-initial-hint.terminal-initial-hint-content');
 			this._domNode!.style.paddingLeft = '4px';
 
 			this._domNode.append(hintElement);

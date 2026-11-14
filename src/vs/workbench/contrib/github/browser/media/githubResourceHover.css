@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-:is(.sessions-issue-hover-header, .sessions-pr-hover-header, .sessions-commit-hover-header) {
+.github-resource-hover-header {
 	display: flex;
 	align-items: baseline;
 	gap: var(--vscode-spacing-size40);
@@ -12,22 +12,22 @@
 	line-height: 1.4;
 }
 
-:is(.sessions-issue-hover-repository, .sessions-pr-hover-repository, .sessions-commit-hover-repository) {
+.github-resource-hover-repository {
 	min-width: 0;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 
-:is(.sessions-issue-hover-date, .sessions-pr-hover-date, .sessions-commit-hover-date, .sessions-issue-hover-author, .sessions-pr-hover-author, .sessions-commit-hover-author) {
+.github-resource-hover-metadata {
 	color: var(--vscode-descriptionForeground);
 }
 
-:is(.sessions-issue-hover-date, .sessions-pr-hover-date, .sessions-commit-hover-date) {
+.github-resource-hover-date {
 	flex-shrink: 0;
 }
 
-:is(.sessions-issue-hover-status-row, .sessions-pr-hover-status-row) {
+.github-resource-hover-status-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--vscode-spacing-size80);
@@ -38,7 +38,7 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-:is(.sessions-issue-hover-status, .sessions-pr-hover-status, .sessions-pr-hover-checks) {
+.github-resource-hover-status {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
@@ -51,60 +51,60 @@
 	color: var(--vscode-descriptionForeground);
 }
 
-:is(.sessions-issue-hover-status, .sessions-pr-hover-status, .sessions-pr-hover-checks) .codicon {
+.codicon.github-resource-hover-status-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.sessions-pr-hover-checks[data-status='pending'] .codicon {
+.sessions-pr-hover-checks[data-status='pending'] .codicon:where(.github-resource-hover-status-icon) {
 	color: var(--vscode-testing-iconQueued, var(--vscode-editorWarning-foreground));
 }
 
-.sessions-pr-hover-checks[data-status='failure'] .codicon {
+.sessions-pr-hover-checks[data-status='failure'] .codicon:where(.github-resource-hover-status-icon) {
 	color: var(--vscode-testing-iconFailed, var(--vscode-errorForeground));
 }
 
-.sessions-pr-hover-checks[data-status='success'] .codicon {
+.sessions-pr-hover-checks[data-status='success'] .codicon:where(.github-resource-hover-status-icon) {
 	color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
 }
 
-:is(.sessions-issue-hover-title, .sessions-pr-hover-title, .sessions-commit-hover-title) {
+.github-resource-hover-title {
 	min-width: 0;
 	font-size: var(--vscode-fontSize-body1);
 	font-weight: var(--vscode-fontWeight-semiBold);
 	line-height: 1.4;
 }
 
-:is(.sessions-issue-hover-title-content, .sessions-pr-hover-title-content, .sessions-commit-hover-title-content) {
+.github-resource-hover-title-content {
 	display: block;
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
 
-:is(.sessions-issue-hover-title-tail, .sessions-pr-hover-title-tail, .sessions-commit-hover-title-tail) {
+.github-resource-hover-title-tail {
 	white-space: nowrap;
 }
 
-.sessions-issue-hover .sessions-issue-hover-reference,
-.sessions-pr-hover .sessions-pr-hover-reference {
+.sessions-issue-hover-reference,
+.sessions-pr-hover-reference {
 	font-weight: var(--vscode-fontWeight-regular);
 	overflow-wrap: normal;
 	white-space: nowrap;
 }
 
-.sessions-commit-hover .sessions-commit-hover-reference {
+.sessions-commit-hover-reference {
 	font-weight: var(--vscode-fontWeight-regular);
 	overflow-wrap: normal;
 	white-space: nowrap;
 }
 
-:is(.sessions-issue-hover-description, .sessions-pr-hover-description, .sessions-commit-hover-description) {
+.github-resource-hover-description {
 	font-size: var(--vscode-fontSize-body1);
 	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
 }
 
-:is(.sessions-issue-hover-description-content, .sessions-pr-hover-description-content, .sessions-commit-hover-description-content) {
+.github-resource-hover-description-content {
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;

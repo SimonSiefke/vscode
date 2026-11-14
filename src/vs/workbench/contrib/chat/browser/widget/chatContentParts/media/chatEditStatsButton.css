@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.interactive-session .interactive-response .value .chat-thinking-box > .chat-used-context-label > .chat-thinking-title-diff.monaco-button,
-.interactive-session .interactive-response .value .completed-response-summary > .chat-edit-stats.monaco-button {
+.interactive-session .interactive-response .value .chat-thinking-box > .chat-used-context-label > .monaco-button.chat-thinking-title-diff,
+.interactive-session .interactive-response .value .completed-response-summary > .monaco-button.chat-edit-stats {
 	display: inline-flex;
 	align-items: center;
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size40);

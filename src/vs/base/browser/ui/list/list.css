@@ -16,7 +16,7 @@
 	-webkit-user-select: none;
 }
 
-.monaco-list > .monaco-scrollable-element {
+.monaco-list > .monaco-list-scrollable {
 	height: 100%;
 }
 

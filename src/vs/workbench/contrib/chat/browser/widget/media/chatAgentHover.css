@@ -14,15 +14,15 @@
 	margin-bottom: 4px;
 }
 
-.chat-agent-hover-icon img,
-.chat-agent-hover-icon .codicon {
+:where(.chat-agent-hover-icon) img.chat-agent-hover-avatar,
+.chat-agent-hover-icon .chat-agent-hover-glyph {
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
 	outline: 1px solid var(--vscode-chat-requestBorder);
 }
 
-.chat-agent-hover .chat-agent-hover-icon .codicon {
+.chat-agent-hover .chat-agent-hover-icon .chat-agent-hover-glyph {
 	font-size: 23px !important; /* Override workbench hover styles */
 	display: flex;
 	justify-content: center;
@@ -48,7 +48,7 @@
 	margin-top: 1px;
 }
 
-.chat-agent-hover .chat-agent-hover-warning .codicon {
+.chat-agent-hover .chat-agent-hover-warning .chat-agent-hover-warning-icon {
 	color: var(--vscode-notificationsWarningIcon-foreground) !important;
 	margin-right: 3px;
 }

@@ -136,7 +136,7 @@
 	cursor: pointer;
 }
 
-.customization-migration-dashboard .migration-icon-button .codicon {
+.customization-migration-dashboard .migration-icon-button .codicon:where(.migration-button-glyph) {
 	font-size: var(--vscode-codiconFontSize);
 }
 
@@ -172,7 +172,7 @@
 .customization-migration-dashboard .migration-guidance-card .mcp-detail-diagnostic-message + .mcp-detail-diagnostic-message {
 	margin-top: var(--vscode-spacing-size60);
 }
-.customization-migration-dashboard .migration-tree .monaco-list-row {
+.customization-migration-dashboard .migration-tree .ai-customization-tree-row {
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
@@ -212,7 +212,7 @@
 	white-space: nowrap;
 }
 
-.customization-migration-dashboard .migration-tree-group-destination.monaco-button {
+.customization-migration-dashboard .monaco-button.migration-tree-group-destination {
 	display: block;
 	padding: 0;
 	text-align: left;
@@ -287,7 +287,7 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
-.customization-migration-dashboard .migration-tree-item-more.monaco-button {
+.customization-migration-dashboard .monaco-button.migration-tree-item-more {
 	flex: 0 0 auto;
 	width: var(--vscode-spacing-size240);
 	min-width: var(--vscode-spacing-size240);
@@ -297,7 +297,7 @@
 	background: transparent;
 }
 
-.customization-migration-dashboard .migration-tree-item-review.monaco-button {
+.customization-migration-dashboard .monaco-button.migration-tree-item-review {
 	flex: 0 0 auto;
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size80);
 	font-size: var(--vscode-fontSize-label2);

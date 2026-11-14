@@ -41,12 +41,18 @@ export interface ActionTrigger {
 }
 
 export interface IActionBarOptions {
+	/** Class applied to the action bar root for component styling. */
+	readonly className?: string;
+	/** Class applied to each action item wrapper for component styling. */
+	readonly actionItemClassName?: string;
 	readonly orientation?: ActionsOrientation;
 	readonly context?: unknown;
 	readonly actionViewItemProvider?: IActionViewItemProvider;
 	readonly actionRunner?: IActionRunner;
 	readonly ariaLabel?: string;
 	readonly ariaRole?: string;
+	/** Class applied to the actions list for component styling. */
+	readonly actionsContainerClassName?: string;
 	readonly triggerKeys?: ActionTrigger;
 	readonly allowContextMenu?: boolean;
 	readonly preventLoopNavigation?: boolean;
@@ -61,6 +67,8 @@ export interface IActionBarOptions {
 }
 
 export interface IActionOptions extends IActionViewItemOptions {
+	/** Class applied to the action item wrapper for component styling. */
+	readonly itemClassName?: string;
 	index?: number;
 }
 
@@ -137,6 +145,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 
 		this.domNode = document.createElement('div');
 		this.domNode.className = 'monaco-action-bar';
+		if (options.className) {
+			this.domNode.classList.add(options.className);
+		}
 
 		let previousKeys: KeyCode[];
 		let nextKeys: KeyCode[];
@@ -149,7 +160,7 @@ export class ActionBar extends Disposable implements IActionRunner {
 			case ActionsOrientation.VERTICAL:
 				previousKeys = [KeyCode.UpArrow];
 				nextKeys = [KeyCode.DownArrow];
-				this.domNode.className += ' vertical';
+				this.domNode.className += ' vertical monaco-vertical-action-bar';
 				break;
 		}
 
@@ -222,6 +233,9 @@ export class ActionBar extends Disposable implements IActionRunner {
 
 		this.actionsList = document.createElement('ul');
 		this.actionsList.className = 'actions-container';
+		if (this.options.actionsContainerClassName) {
+			this.actionsList.classList.add(this.options.actionsContainerClassName);
+		}
 		if (this.options.highlightToggledItems) {
 			this.actionsList.classList.add('highlight-toggled');
 		}
@@ -381,6 +395,12 @@ export class ActionBar extends Disposable implements IActionRunner {
 			item.actionRunner = this._actionRunner;
 			item.setActionContext(this.context);
 			item.render(actionViewItemElement);
+			if (this.options.actionItemClassName) {
+				actionViewItemElement.classList.add(this.options.actionItemClassName);
+			}
+			if (options.itemClassName) {
+				actionViewItemElement.classList.add(options.itemClassName);
+			}
 
 			if (index === null || index < 0 || index >= this.actionsList.children.length) {
 				this.actionsList.appendChild(actionViewItemElement);

@@ -9,11 +9,11 @@
 	height: 100%;
 	min-height: 0;
 
-	.pane-body & .monaco-scrollable-element {
+	.pane-body & .agent-sessions-list-scrollable {
 		padding: 0 6px;
 	}
 
-	.agent-sessions-workbench .pane-body & .monaco-scrollable-element {
+	.agent-sessions-workbench .pane-body & .agent-sessions-list-scrollable {
 		padding: 0 12px;
 	}
 
@@ -22,7 +22,7 @@
 		width: calc(100% - 24px);
 	}
 
-	.monaco-list-row {
+	.agent-sessions-tree-row {
 		border-radius: 6px;
 	}
 
@@ -82,7 +82,7 @@
 		color: unset;
 
 		.rendered-markdown {
-			a {
+			a:where(.agent-session-markdown-link) {
 				color: unset;
 			}
 		}
@@ -120,7 +120,7 @@
 		pointer-events: none;
 		margin-right: 3px;
 
-		&.visible {
+		&.visible:where(.agent-session-pinned-indicator) {
 			display: flex;
 		}
 	}
@@ -134,7 +134,7 @@
 		font-size: var(--vscode-codiconFontSize-compact);
 		pointer-events: none;
 
-		&.visible {
+		&.visible:where(.agent-session-pending-voice-indicator) {
 			display: flex;
 		}
 	}
@@ -145,7 +145,7 @@
 		height: 16px;
 		display: none;
 
-		.monaco-toolbar {
+		.agent-session-title-toolbar-root {
 			/* this is required because the overal height (including the padding needed for hover feedback) would push down the title otherwise */
 			position: relative;
 			right: 0;
@@ -248,7 +248,7 @@
 					}
 				}
 
-				a {
+				a:where(.agent-session-markdown-link) {
 					color: var(--vscode-descriptionForeground);
 				}
 			}
@@ -362,7 +362,7 @@
 			background-color: var(--vscode-editor-background);
 			color: var(--vscode-editor-foreground);
 
-			&.visible {
+			&.visible:where(.agent-session-approval-row) {
 				display: flex;
 			}
 
@@ -390,7 +390,7 @@
 			.agent-session-approval-button {
 				flex-shrink: 0;
 
-				.monaco-button {
+				.agent-session-approval-action-button {
 					padding: var(--vscode-spacing-size20) var(--vscode-spacing-size100);
 					font-size: var(--vscode-fontSize-label1);
 					white-space: nowrap;
@@ -544,7 +544,7 @@
 			/* for the absolute positioning of the toolbar below */
 			position: relative;
 
-			.monaco-toolbar {
+			.agent-session-section-toolbar-root {
 				/* this is required because the overal height (including the padding needed for hover feedback) would push down the label otherwise */
 				position: absolute;
 				right: 0;

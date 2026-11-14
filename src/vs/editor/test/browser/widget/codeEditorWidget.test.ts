@@ -312,6 +312,39 @@ suite('CodeEditorWidget', () => {
 		});
 	});
 
+	test('rendered line content stays positioned across empty and edited lines without styling view zones', () => {
+		const disposables = new DisposableStore();
+		const container = document.body.appendChild(document.createElement('div'));
+		disposables.add(toDisposable(() => container.remove()));
+		try {
+			const instantiationService = createCodeEditorServices(disposables);
+			const editor = disposables.add(instantiationService.createInstance(CodeEditorWidget, container, {}, { contributions: [] }));
+			const model = disposables.add(createTextModel(''));
+			editor.setModel(model);
+			editor.layout({ width: 400, height: 200 });
+			const zone = document.createElement('div');
+			zone.classList.add('view-lines');
+			const zoneLine = zone.appendChild(document.createElement('div'));
+			zoneLine.classList.add('view-line');
+			const zoneContent = zoneLine.appendChild(document.createElement('span'));
+			for (const text of ['', 'first\n\nthird', 'updated']) {
+				model.setValue(text);
+				editor.changeViewZones(accessor => accessor.addZone({ afterLineNumber: 1, heightInLines: 1, domNode: zone }));
+				editor.render(true);
+				const contents = container.querySelectorAll<HTMLElement>('.lines-content > .view-lines > .view-line > span');
+				assert.strictEqual(contents.length, model.getLineCount());
+				for (const content of contents) {
+					assert.ok(content.classList.contains('editor-view-line-content'));
+					const style = content.ownerDocument.defaultView!.getComputedStyle(content);
+					assert.deepStrictEqual({ position: style.position, top: style.top, bottom: style.bottom }, { position: 'absolute', top: '0px', bottom: '0px' });
+				}
+				assert.strictEqual(zoneContent.ownerDocument.defaultView!.getComputedStyle(zoneContent).position, 'static');
+			}
+		} finally {
+			disposables.dispose();
+		}
+	});
+
 	test('issue #146841: widgets do not keep the DOM of a detached view alive', () => {
 		const disposables = new DisposableStore();
 		const container = document.createElement('div');

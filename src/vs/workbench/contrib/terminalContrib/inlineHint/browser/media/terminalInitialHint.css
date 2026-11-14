@@ -29,17 +29,17 @@
 }
 
 @container (max-width: 240px) {
-	.monaco-workbench .terminal-initial-hint > * {
+	.monaco-workbench :where(.terminal-initial-hint) > .terminal-initial-hint-content {
 		display: none !important;
 	}
 }
 
-.monaco-workbench .terminal-initial-hint a {
+.monaco-workbench .terminal-initial-hint a:where(.terminal-initial-hint-link) {
 	cursor: pointer;
 	color: var(--vscode-textLink-foreground);
 }
 
-.monaco-workbench .terminal-initial-hint a,
+.monaco-workbench .terminal-initial-hint a:where(.terminal-initial-hint-link),
 .monaco-workbench .terminal-initial-hint .detail {
 	font-style: italic;
 }

@@ -56,7 +56,7 @@ class BrowserZoomPill extends Disposable {
 	 * Briefly show the zoom level, then auto-hide after 750 ms.
 	 */
 	show(zoomLabel: string, isAtOrAboveDefault: boolean): void {
-		this._icon.className = ThemeIcon.asClassName(isAtOrAboveDefault ? Codicon.zoomIn : Codicon.zoomOut);
+		this._icon.className = 'browser-zoom-pill-icon ' + ThemeIcon.asClassName(isAtOrAboveDefault ? Codicon.zoomIn : Codicon.zoomOut);
 		this._label.textContent = zoomLabel;
 		this.element.classList.add('visible');
 		// Reset auto-hide timer so rapid zoom actions extend the display

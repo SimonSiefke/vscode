@@ -52,7 +52,7 @@
 	min-width: 0;
 }
 
-.monaco-workbench .dictation-onboarding-picker-icon.codicon[class*='codicon-'] {
+.monaco-workbench .codicon[class*='codicon-'].dictation-onboarding-picker-icon {
 	flex-shrink: 0;
 	font-size: var(--vscode-codiconFontSize-compact);
 	line-height: 1;

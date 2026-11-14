@@ -136,8 +136,6 @@
 .plan-review-feedback-overlay-widget .monaco-action-bar .action-item.disabled {
 
 	> .action-label.codicon::before,
-	> .action-label.codicon,
-	> .action-label,
 	> .action-label:hover {
 		color: var(--vscode-button-separator);
 		opacity: 1;

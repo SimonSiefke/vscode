@@ -718,8 +718,8 @@ class LinkOpenedHintPill extends BrowserEditorContribution {
 		this._pill.ariaHidden = 'true';
 
 		const icon = $('span');
-		icon.className = ThemeIcon.asClassName(Codicon.info);
-		const label = $('span');
+		icon.className = 'browser-link-opened-hint-icon browser-link-hint-content ' + ThemeIcon.asClassName(Codicon.info);
+		const label = $('span.browser-link-hint-content');
 		label.textContent = localize('browser.linkOpenedHint.label', "Link opened here");
 
 		this._pill.appendChild(icon);

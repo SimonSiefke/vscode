@@ -43,7 +43,7 @@
 	background-size: 16px;
 }
 
-.monaco-dropdown-with-default > .action-container.disabled {
+.monaco-dropdown-with-default > .disabled.action-container {
 	cursor: default;
 }
 

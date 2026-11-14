@@ -32,6 +32,28 @@ suite('chat input stack', () => {
 	const Docked = ChatInputStackSlot.Docked;
 	const Standalone = ChatInputStackSlot.Standalone;
 
+	test('late members reset their corners and stop participating when moved out', () => {
+		const s = stack(Empty);
+		s.root.style.setProperty('--chat-input-radius', '14px');
+		const member = dom.append(s.root, dom.$('div'));
+		const targetWindow = dom.getWindow(s.root);
+		targetWindow.document.body.appendChild(s.root);
+		const topRadius = () => targetWindow.getComputedStyle(member).getPropertyValue('--chat-input-stack-radius-top').trim();
+		try {
+			refreshChatInputStack(s.root);
+			const initial = topRadius();
+			s.set(0, Docked);
+			const docked = topRadius();
+			s.set(0, Empty);
+			const standalone = topRadius();
+			targetWindow.document.body.appendChild(member);
+			assert.deepStrictEqual({ initial, docked, standalone, moved: topRadius() }, { initial: '14px', docked: '0px', standalone: '14px', moved: '' });
+		} finally {
+			s.root.remove();
+			member.remove();
+		}
+	});
+
 	test('a docked slot squares everything below it, and nothing above', () => {
 		const { continues } = stack(Empty, Docked, Empty, Empty);
 

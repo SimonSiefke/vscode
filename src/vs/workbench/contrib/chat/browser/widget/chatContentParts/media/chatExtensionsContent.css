@@ -26,6 +26,6 @@
 	padding-left: 4px;
 }
 
-.chat-extensions-content-part .loading-extensions-element > .codicon {
+.chat-extensions-content-part .loading-extensions-element > .codicon:where(.chat-extensions-loading-glyph) {
 	font-size: var(--vscode-codiconFontSize-compact);
 }

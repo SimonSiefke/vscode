@@ -7,7 +7,7 @@ import './media/tunnelHost.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IManagedHover, IManagedHoverContent } from '../../../../base/browser/ui/hover/hover.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
-import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { BaseActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { Action, IAction, IActionRunner, toAction } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -39,7 +39,8 @@ class RemoteConnectionsDropdownActionViewItem extends ActionWidgetDropdownAction
 	protected override renderLabel(element: HTMLElement) {
 		element.classList.add('tunnel-host-toggle');
 		const icon = dom.append(element, dom.$('span.tunnel-host-icon', { 'aria-hidden': 'true' }));
-		icon.append(...renderLabelWithIcons(`$(${Codicon.radioTower.id})`));
+		const glyph = dom.append(icon, renderIcon(Codicon.radioTower));
+		glyph.classList.add('tunnel-host-glyph');
 		return super.renderLabel(element);
 	}
 
@@ -334,7 +335,8 @@ export class ToggleRemoteConnectionsActionViewItem extends BaseActionViewItem {
 		this.element.role = 'button';
 
 		this._iconElement = dom.append(this.element, dom.$('span.tunnel-host-icon'));
-		this._iconElement.append(...renderLabelWithIcons(`$(${Codicon.radioTower.id})`));
+		const glyph = dom.append(this._iconElement, renderIcon(Codicon.radioTower));
+		glyph.classList.add('tunnel-host-glyph');
 
 		const hoverDelegate = getDefaultHoverDelegate('element');
 		this._hover = this._register(this._hoverService.setupManagedHover(

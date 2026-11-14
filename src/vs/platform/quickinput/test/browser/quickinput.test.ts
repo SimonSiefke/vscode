@@ -275,6 +275,19 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		});
 	}
 
+	test('item and detail labels keep filling their rows after rendering and filtering', () => {
+		controller.layout({ height: 500, width: 600 }, 0);
+		const picker = store.add(controller.createQuickPick());
+		picker.items = [{ label: 'First item', detail: 'First detail' }, { label: 'Second item', detail: 'Second detail' }];
+		picker.show();
+		const read = () => [...fixture.querySelectorAll<HTMLElement>('.quick-input-list-row .monaco-icon-label')].map(label => mainWindow.getComputedStyle(label).flexGrow);
+		const before = read();
+		picker.value = 'Second';
+		const after = read();
+		assert.ok(before.length > 0 && after.length > 0);
+		assert.deepStrictEqual([before.every(value => value === '1'), after.every(value => value === '1')], [true, true]);
+	});
+
 	test('labelled separators keep their inline labels and button separators keep their header height', () => {
 		controller.layout({ height: 500, width: 600 }, 0);
 		const picker = store.add(controller.createQuickPick({ useSeparators: true }));

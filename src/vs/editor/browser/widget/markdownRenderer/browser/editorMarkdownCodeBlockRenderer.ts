@@ -47,16 +47,20 @@ export class EditorMarkdownCodeBlockRenderer implements IMarkdownCodeBlockRender
 		if (!languageId) {
 			languageId = PLAINTEXT_LANGUAGE_ID;
 		}
-		const html = await tokenizeToString(this._languageService, value, languageId);
+		const html = await tokenizeToString(this._languageService, value, languageId, options.elementClassName);
 
 		const content = EditorMarkdownCodeBlockRenderer._ttpTokenizer ? EditorMarkdownCodeBlockRenderer._ttpTokenizer.createHTML(html) ?? html : html;
 
 		const root = document.createElement('span');
+		if (options.elementClassName) {
+			root.classList.add(options.elementClassName);
+		}
 		root.innerHTML = content as string;
 		// eslint-disable-next-line eslint-js/no-restricted-syntax
 		const codeElement = root.querySelector('.monaco-tokenized-source');
 		if (!isHTMLElement(codeElement)) {
-			return document.createElement('span');
+			root.replaceChildren();
+			return root;
 		}
 
 		applyFontInfo(codeElement, this.getFontInfo(editor));

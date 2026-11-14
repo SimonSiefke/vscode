@@ -105,9 +105,9 @@
 .modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts,
 .modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notifications-list-container,
 .modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast,
-.modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-scrollable-element,
+.modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .notification-list-scrollable,
 .modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list:not(.element-focused):focus::before,
-.modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list-row {
+.modern-ui-notifications-dialogs.monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .notification-list-row {
 	border-radius: var(--vscode-cornerRadius-large);
 }
 

@@ -49,9 +49,9 @@ class SelectListRenderer implements IListRenderer<ISelectOptionItem, ISelectList
 	renderTemplate(container: HTMLElement): ISelectListTemplateData {
 		const data: ISelectListTemplateData = Object.create(null);
 		data.root = container;
-		data.text = dom.append(container, $('.option-text'));
-		data.detail = dom.append(container, $('.option-detail'));
-		data.decoratorRight = dom.append(container, $('.option-decorator-right'));
+		data.text = dom.append(container, $('.option-text.select-box-option-text'));
+		data.detail = dom.append(container, $('.option-detail.select-box-option-detail'));
+		data.decoratorRight = dom.append(container, $('.option-decorator-right.select-box-option-decorator-right'));
 
 		return data;
 	}
@@ -206,7 +206,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 
 		// Create span flex box item/div we can measure and control
 		const widthControlOuterDiv = dom.append(this.selectDropDownContainer, $('.select-box-dropdown-container-width-control'));
-		const widthControlInnerDiv = dom.append(widthControlOuterDiv, $('.width-control-div'));
+		const widthControlInnerDiv = dom.append(widthControlOuterDiv, $('.width-control-div.select-box-width-control-inner'));
 		this.widthControlElement = document.createElement('span');
 		this.widthControlElement.className = 'option-text-width-control';
 		dom.append(widthControlInnerDiv, this.widthControlElement);
@@ -797,6 +797,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 		this.listRenderer = new SelectListRenderer();
 
 		this.selectList = this._register(new List('SelectBoxCustom', this.selectDropDownListContainer, this, [this.listRenderer], {
+			rowClassName: 'select-box-list-row',
 			useShadows: false,
 			verticalScrollMode: ScrollbarVisibility.Visible,
 			keyboardSupport: false,
@@ -945,7 +946,7 @@ export class SelectBoxList extends Disposable implements ISelectBoxDelegate, ILi
 			}
 		};
 
-		const rendered = renderMarkdown({ value: text, supportThemeIcons: true }, { actionHandler });
+		const rendered = renderMarkdown({ value: text, supportThemeIcons: true }, { actionHandler, elementClassName: 'select-box-description-node' });
 
 		rendered.element.classList.add('select-box-description-markdown');
 		cleanRenderedMarkdown(rendered.element);

@@ -10,8 +10,8 @@
 	text-overflow: ellipsis;
 }
 
-.monaco-action-bar .action-item > .action-label.extension-action.label,
-.monaco-action-bar .action-dropdown-item > .action-label.extension-action.label {
+.monaco-action-bar .action-item > .action-label.label.extension-action,
+.monaco-action-bar .action-dropdown-item > .action-label.label.extension-action {
 	padding: 0 5px;
 }
 
@@ -19,13 +19,13 @@
 	padding: 0;
 }
 
-.monaco-action-bar .action-item .action-label.extension-action.label {
+.monaco-action-bar .action-item .action-label.label.extension-action {
 	outline-offset: 1px;
 }
 
 .monaco-action-bar .action-item .action-label.extension-action.text,
-.monaco-action-bar .action-item .action-label.extension-action.label,
-.monaco-action-bar .action-dropdown-item .action-label.extension-action.label {
+.monaco-action-bar .action-item .action-label.label.extension-action,
+.monaco-action-bar .action-dropdown-item .action-label.label.extension-action {
 	width: auto;
 	height: auto;
 	line-height: 14px;
@@ -35,17 +35,17 @@
 	border-color: var(--vscode-foreground);
 }
 
-.monaco-action-bar .action-item .action-label.extension-action.label,
+.monaco-action-bar .action-item .action-label.label.extension-action,
 .monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator {
 	background-color: var(--vscode-extensionButton-background);
 	border: 1px solid var(--vscode-extensionButton-border, transparent);
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item > .action-label.label.extension-action {
 	border-right-width: 0;
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .monaco-dropdown .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item > .monaco-dropdown .action-label.label.extension-action {
 	border-left-width: 0;
 }
 
@@ -54,7 +54,7 @@
 	border-right-width: 0;
 }
 
-.monaco-action-bar .action-item.action-dropdown-item.empty > .action-label.extension-action.label {
+.monaco-action-bar .action-item.action-dropdown-item.empty > .action-label.label.extension-action {
 	border-right-width: 1px;
 }
 
@@ -62,9 +62,9 @@
 	display: none;
 }
 
-.monaco-list-row.focused .extension-list-item .monaco-action-bar .action-item .action-label.extension-action.label,
-.monaco-list-row.selected .extension-list-item .monaco-action-bar .action-item .action-label.extension-action.label,
-.monaco-action-bar .action-item .action-label.extension-action.label {
+.monaco-list-row.focused .extension-list-item .monaco-action-bar .action-item .action-label.label.extension-action,
+.monaco-list-row.selected .extension-list-item .monaco-action-bar .action-item .action-label.label.extension-action,
+.monaco-action-bar .action-item .action-label.label.extension-action {
 	color: var(--vscode-extensionButton-foreground);
 }
 
@@ -72,11 +72,11 @@
 	background-color: var(--vscode-extensionButton-hoverBackground);
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.action-dropdown-item-separator-line {
 	background-color: var(--vscode-extensionButton-separator, var(--vscode-extensionButton-border));
 }
 
-.vscode-high-contrast .monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.vscode-high-contrast .action-dropdown-item-separator-line {
 	background-color: var(--vscode-button-border);
 }
 
@@ -106,9 +106,9 @@
 }
 
 .monaco-action-bar .action-item:not(.disabled) .action-label.extension-action.text,
-.monaco-action-bar .action-item:not(.disabled) .action-label.extension-action.label,
-.monaco-action-bar .action-item .action-label.extension-action.icon,
-.monaco-action-bar .action-dropdown-item .action-label.extension-action.label {
+.monaco-action-bar .action-item:not(.disabled) .action-label.label.extension-action,
+.monaco-action-bar .action-item .action-label.icon.extension-action,
+.monaco-action-bar .action-dropdown-item .action-label.label.extension-action {
 	margin-top: 2px;
 	/* margin for outline */
 }
@@ -135,15 +135,15 @@
 	display: none;
 }
 
-.monaco-action-bar .action-item.disabled .action-label.extension-action.label {
+.monaco-action-bar .action-item.disabled .action-label.label.extension-action {
 	opacity: 0.4 !important;
 }
 
-.monaco-action-bar .action-item.checkbox-action-item.disabled {
+.monaco-action-bar .action-item.disabled.checkbox-action-item {
 	display: none;
 }
 
-.monaco-action-bar .extension-action.label {
+.monaco-action-bar .label.extension-action {
 	display: inherit;
 }
 

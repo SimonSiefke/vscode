@@ -413,6 +413,8 @@ export class ModalEditorPart {
 		// Create editor toolbar
 		const editorActionsToolbarContainer = append(actionBarContainer, $('div.modal-editor-editor-actions'));
 		const editorActionsToolbar = disposables.add(scopedInstantiationService.createInstance(WorkbenchToolBar, editorActionsToolbarContainer, {
+			actionsContainerClassName: 'modal-editor-toolbar-actions',
+			actionLabelClassName: 'modal-editor-action-label',
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			highlightToggledItems: true,
 		}));
@@ -436,13 +438,15 @@ export class ModalEditorPart {
 
 		// Create global toolbar
 		disposables.add(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, actionBarContainer, MenuId.ModalEditorTitle, {
+			actionsContainerClassName: 'modal-editor-toolbar-actions',
+			actionLabelClassName: 'modal-editor-action-label',
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
 			highlightToggledItems: true,
 			menuOptions: { shouldForwardArgs: true }
 		}));
 
 		// Create label
-		const label = disposables.add(scopedInstantiationService.createInstance(ResourceLabel, titleElement, {}));
+		const label = disposables.add(scopedInstantiationService.createInstance(ResourceLabel, titleElement, { extraClasses: ['modal-editor-resource-label'] }));
 		const labelChangeDisposable = disposables.add(new MutableDisposable());
 		let trackedEditor: EditorInput | undefined;
 		const updateLabel = () => {

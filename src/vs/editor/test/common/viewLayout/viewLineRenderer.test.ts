@@ -8,11 +8,12 @@ import { CharCode } from '../../../../base/common/charCode.js';
 import * as strings from '../../../../base/common/strings.js';
 import { assertSnapshot } from '../../../../base/test/common/snapshot.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { StringBuilder } from '../../../common/core/stringBuilder.js';
 import { OffsetRange } from '../../../common/core/ranges/offsetRange.js';
 import { MetadataConsts } from '../../../common/encodedTokenAttributes.js';
 import { IViewLineTokens } from '../../../common/tokens/lineTokens.js';
 import { LineDecoration } from '../../../common/viewLayout/lineDecorations.js';
-import { CharacterMapping, DomPosition, IRenderLineInputOptions, RenderLineInput, RenderLineOutput2, renderViewLine2 as renderViewLine } from '../../../common/viewLayout/viewLineRenderer.js';
+import { CharacterMapping, DomPosition, IRenderLineInputOptions, RenderLineInput, RenderLineOutput2, renderViewLine as renderViewLineIntoBuilder, renderViewLine2 as renderViewLine } from '../../../common/viewLayout/viewLineRenderer.js';
 import { InlineDecorationType } from '../../../common/viewModel/inlineDecorations.js';
 import { TestLineToken, TestLineTokens } from '../core/testLineToken.js';
 
@@ -710,6 +711,24 @@ function assertCharacterMapping3(actual: CharacterMapping, expectedInfo: Charact
 suite('renderViewLine2', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('an optional outer class preserves empty, decorated and tokenized line mappings', () => {
+		const cases: IRelaxedRenderLineInputOptions[] = [
+			{},
+			{ renderNewLineWhenEmpty: true },
+			{ lineDecorations: [new LineDecoration(1, 1, 'before', InlineDecorationType.Before)] },
+			{ lineContent: 'a\tb', lineTokens: createViewLineTokens([createPart(3, 3)]), renderWhitespace: 'all' },
+		];
+		for (const options of cases) {
+			const input = createRenderLineInput(options);
+			const original = renderViewLine(input);
+			const builder = new StringBuilder(1000);
+			const styled = renderViewLineIntoBuilder(input, builder, 'line" <node>&');
+			assert.strictEqual(builder.build(), '<span class="line&quot; &lt;node&gt;&amp;">' + original.html.slice('<span>'.length));
+			assert.deepStrictEqual(styled.characterMapping.inflate(), original.characterMapping.inflate());
+			assert.strictEqual(styled.containsForeignElements, original.containsForeignElements);
+		}
+	});
 
 	function testCreateLineParts(fontIsMonospace: boolean, lineContent: string, tokens: TestLineToken[], fauxIndentLength: number, renderWhitespace: 'none' | 'boundary' | 'selection' | 'trailing' | 'all', selections: OffsetRange[] | null) {
 		const actual = renderViewLine(createRenderLineInput({

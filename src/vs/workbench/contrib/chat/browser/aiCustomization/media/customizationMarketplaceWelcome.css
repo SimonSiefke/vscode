@@ -33,7 +33,7 @@
 			padding: 0 var(--vscode-spacing-size200);
 			margin-top: var(--vscode-spacing-size160);
 
-			a {
+			a:where(.customization-marketplace-markdown-link) {
 				color: var(--vscode-textLink-foreground);
 			}
 		}

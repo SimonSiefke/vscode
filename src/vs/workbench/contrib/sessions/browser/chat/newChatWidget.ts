@@ -65,7 +65,7 @@ import { buildNewSessionPrompt } from '../agentFeedbackAttachmentEntry.js';
 import { SessionInputBannerWidget } from '../sessionInputBanners/sessionInputBannerWidget.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ChatInputTipPresenter } from '../../../chat/browser/widget/input/chatInputTipPresenter.js';
-import { chatInputStackClass, chatInputStackSlotClass, chatInputSurfaceStackClass, ChatInputStackSlot, setChatInputStackSlot } from '../../../chat/browser/widget/input/chatInputStack.js';
+import { chatInputStackClass, chatInputStackSlotClass, chatInputSurfaceStackClass, ChatInputStackSlot, refreshChatInputStack, setChatInputStackSlot } from '../../../chat/browser/widget/input/chatInputStack.js';
 import { IChatPetService } from '../../../chat/browser/chatPetService.js';
 import { IChatWidget } from '../../../chat/browser/chat.js';
 import type { IChatPetPlatformOccupation } from '../../../chat/browser/widget/chatPetWidget.js';
@@ -1128,6 +1128,7 @@ export class NewChatWidget extends Disposable {
 			}));
 		}
 
+		refreshChatInputStack(chatWidgetContent);
 		chatWidgetContainer.classList.add('revealed');
 	}
 

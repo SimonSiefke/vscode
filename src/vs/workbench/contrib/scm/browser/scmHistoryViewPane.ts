@@ -90,7 +90,7 @@ class SCMRepositoryActionViewItem extends ActionViewItem {
 		if (this.options.label && this.label) {
 			this.label.classList.add('scm-graph-repository-picker');
 
-			const icon = $('.icon');
+			const icon = $('.icon.scm-repository-picker-glyph');
 			const iconClassNameArray = ThemeIcon.isThemeIcon(this._repository.provider.iconPath)
 				? ThemeIcon.asClassNameArray(this._repository.provider.iconPath)
 				: ThemeIcon.asClassNameArray(Codicon.repo);
@@ -123,7 +123,7 @@ class SCMHistoryItemRefsActionViewItem extends ActionViewItem {
 		if (this.options.label && this.label) {
 			this.label.classList.add('scm-graph-history-item-picker');
 
-			const icon = $('.icon');
+			const icon = $('.icon.scm-history-picker-glyph');
 			icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.gitBranch));
 
 			const name = $('.name');
@@ -459,10 +459,10 @@ class HistoryItemRenderer implements ICompressibleTreeRenderer<SCMHistoryItemVie
 	}
 
 	renderTemplate(container: HTMLElement): HistoryItemTemplate {
-		const element = append(container, $('.history-item'));
+		const element = append(container, $('.history-item.scm-tree-item'));
 		const graphContainer = append(element, $('.graph-container'));
 		const iconLabel = new IconLabel(element, {
-			supportIcons: true, supportHighlights: true, supportDescriptionHighlights: true
+			extraClasses: ['scm-history-label'], supportIcons: true, supportHighlights: true, supportDescriptionHighlights: true
 		});
 
 		const labelContainer = append(element, $('.label-container'));
@@ -571,7 +571,7 @@ class HistoryItemRenderer implements ICompressibleTreeRenderer<SCMHistoryItemVie
 					display: historyItemRefs.length > 1 ? '' : 'none'
 				}
 			}),
-			h('div.icon@icon'),
+			h('div.icon.scm-history-ref-glyph@icon'),
 			h('div.description@description', {
 				style: {
 					display: showDescription ? '' : 'none'
@@ -673,7 +673,7 @@ class HistoryItemChangeRenderer implements ICompressibleTreeRenderer<SCMHistoryI
 
 	renderTemplate(container: HTMLElement): HistoryItemChangeTemplate {
 		const rowElement = container.parentElement! as HTMLElement;
-		const element = append(container, $('.history-item-change'));
+		const element = append(container, $('.history-item-change.scm-tree-item'));
 		const graphPlaceholder = append(element, $('.graph-placeholder'));
 
 		const labelContainer = append(element, $('.label-container'));
@@ -770,10 +770,10 @@ class HistoryItemLoadMoreRenderer implements ICompressibleTreeRenderer<SCMHistor
 	) { }
 
 	renderTemplate(container: HTMLElement): LoadMoreTemplate {
-		const element = append(container, $('.history-item-load-more'));
+		const element = append(container, $('.history-item-load-more.scm-tree-item'));
 		const graphPlaceholder = append(element, $('.graph-placeholder'));
 		const historyItemPlaceholderContainer = append(element, $('.history-item-placeholder'));
-		const historyItemPlaceholderLabel = new IconLabel(historyItemPlaceholderContainer, { supportIcons: true });
+		const historyItemPlaceholderLabel = new IconLabel(historyItemPlaceholderContainer, { supportIcons: true, highlightedLabelClassName: 'scm-history-placeholder-highlighted-label', labelContainerClassName: 'scm-history-placeholder-label-container' });
 
 		return { element, graphPlaceholder, historyItemPlaceholderContainer, historyItemPlaceholderLabel, elementDisposables: new DisposableStore(), disposables: historyItemPlaceholderLabel };
 	}

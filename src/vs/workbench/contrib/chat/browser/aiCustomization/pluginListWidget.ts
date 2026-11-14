@@ -1127,6 +1127,7 @@ export class PluginListWidget extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				setRowLineHeight: false,
 				horizontalScrolling: false,

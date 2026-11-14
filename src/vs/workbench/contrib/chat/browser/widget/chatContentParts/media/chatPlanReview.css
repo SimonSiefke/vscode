@@ -118,29 +118,29 @@
 /* Action button row sizing — shared between the inline (collapsed) action
  * slot in the title bar and the footer. Keep these two rule sets together so
  * any tweaks stay in sync. */
-.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button,
-.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button {
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .chat-plan-review-action-button,
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .chat-plan-review-action-button {
 	width: auto;
 	min-width: auto;
 	padding: 0 10px;
 	height: 22px;
 }
 
-.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown,
-.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown {
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .chat-plan-review-action-dropdown,
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .chat-plan-review-action-dropdown {
 	width: auto;
 	height: 22px;
 	align-items: center;
 }
 
-.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown > .monaco-button,
-.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .monaco-button {
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown > .chat-plan-review-action-button,
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .chat-plan-review-action-button {
 	height: 22px;
 	box-sizing: border-box;
 }
 
-.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown > .monaco-button.monaco-dropdown-button,
-.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .monaco-button.monaco-dropdown-button {
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown > .monaco-dropdown-button.chat-plan-review-action-button,
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button-dropdown > .monaco-dropdown-button.chat-plan-review-action-button {
 	padding: 0 4px;
 }
 

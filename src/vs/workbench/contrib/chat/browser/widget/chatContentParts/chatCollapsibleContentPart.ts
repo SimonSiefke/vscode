@@ -145,6 +145,7 @@ export abstract class ChatCollapsibleContentPart extends Disposable implements I
 
 	protected createCollapseButton(container: HTMLElement): ButtonWithIcon | undefined {
 		const button = this._register(new ButtonWithIcon(container, {
+			iconClassName: 'chat-collapsible-leading-glyph',
 			buttonBackground: undefined,
 			buttonBorder: undefined,
 			buttonForeground: undefined,

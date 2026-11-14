@@ -60,7 +60,7 @@ class InlineProgressWidget extends Disposable implements IContentWidget {
 		this.domNode.role = 'button';
 		this.domNode.title = title;
 
-		const iconElement = dom.$('span.icon');
+		const iconElement = dom.$('span.icon.inline-progress-glyph');
 		this.domNode.append(iconElement);
 
 		iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), 'codicon-modifier-spin');

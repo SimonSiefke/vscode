@@ -605,7 +605,7 @@ class View extends Disposable {
 
 		if (spacerIcon) {
 			const spacerCodicon = document.createElement('span');
-			spacerCodicon.className = ThemeIcon.asClassName(spacerIcon);
+			spacerCodicon.className = 'accessible-diff-spacer-glyph ' + ThemeIcon.asClassName(spacerIcon);
 			spacerCodicon.innerText = '\u00a0\u00a0';
 			spacer.appendChild(spacerCodicon);
 		} else {

@@ -616,16 +616,16 @@ suite('Sessions - New Nested Session composer', () => {
 		assert.deepStrictEqual({ experimentalLayout, noWorktree, unsupported, withHarness }, {
 			experimentalLayout: {
 				structure: [
-					['new-session-workspace-picker-container', 'nested-chat-folder-picker', 'new-chat-session-options-details', 'monaco-button new-chat-session-options-toggle codicon codicon-chevron-left-compact'],
-					['new-chat-input-container'],
+					['new-session-workspace-picker-container chat-input-stack-member', 'nested-chat-folder-picker', 'new-chat-session-options-details', 'monaco-button new-chat-session-options-toggle codicon codicon-chevron-left-compact'],
+					['new-chat-input-container chat-input-stack-member'],
 				],
 				// In the options tray, like New Session's experimental layout.
 				placements: ['new-chat-repository-controls-host'],
 			},
-			noWorktree: ['new-session-workspace-picker-container', 'nested-chat-folder-picker', 'new-chat-session-options-details[hidden]', 'monaco-button new-chat-session-options-toggle codicon codicon-chevron-left-compact[hidden]'],
-			unsupported: 'new-session-workspace-picker-container[hidden]',
+			noWorktree: ['new-session-workspace-picker-container chat-input-stack-member', 'nested-chat-folder-picker', 'new-chat-session-options-details[hidden]', 'monaco-button new-chat-session-options-toggle codicon codicon-chevron-left-compact[hidden]'],
+			unsupported: 'new-session-workspace-picker-container chat-input-stack-member[hidden]',
 			withHarness: {
-				row: 'new-session-workspace-picker-container',
+				row: 'new-session-workspace-picker-container chat-input-stack-member',
 				tray: 'new-chat-session-options-details',
 				trayChildren: ['new-chat-repository-controls-host', 'sessions-chat-picker-slot sessions-chat-session-type-picker sessions-workspace-category-picker-slot'],
 			},

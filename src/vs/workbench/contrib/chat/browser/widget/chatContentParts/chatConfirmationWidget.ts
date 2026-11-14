@@ -194,7 +194,7 @@ abstract class BaseSimpleChatConfirmationWidget<T> extends Disposable {
 			elements.title,
 			title,
 			subtitle,
-			undefined,
+			{ markdownRenderOptions: { elementClassName: 'chat-confirmation-title-node' } },
 		));
 
 		this.messageElement = elements.message;
@@ -213,7 +213,7 @@ abstract class BaseSimpleChatConfirmationWidget<T> extends Disposable {
 
 		// Create buttons
 		buttons.forEach(buttonData => {
-			const buttonOptions: IButtonOptions = { ...defaultButtonStyles, small: true, secondary: buttonData.isSecondary, title: buttonData.tooltip, disabled: buttonData.disabled };
+			const buttonOptions: IButtonOptions = { ...defaultButtonStyles, buttonClassName: 'chat-confirmation-action-button', small: true, secondary: buttonData.isSecondary, title: buttonData.tooltip, disabled: buttonData.disabled };
 
 			let button: IButton;
 			if (buttonData.moreActions?.some(action => !(action instanceof Separator))) {
@@ -394,7 +394,7 @@ abstract class BaseChatConfirmationWidget<T> extends Disposable {
 			elements.title,
 			new MarkdownString(icon ? `$(${icon.id}) ${typeof title === 'string' ? title : title.value}` : typeof title === 'string' ? title : title.value),
 			subtitle,
-			undefined,
+			{ markdownRenderOptions: { elementClassName: 'chat-confirmation-title-node' } },
 		));
 
 		this.messageElement = elements.message;
@@ -455,7 +455,7 @@ abstract class BaseChatConfirmationWidget<T> extends Disposable {
 		}
 
 		for (const buttonData of buttons) {
-			const buttonOptions: IButtonOptions = { ...defaultButtonStyles, small: true, secondary: buttonData.isSecondary, title: buttonData.tooltip, disabled: buttonData.disabled };
+			const buttonOptions: IButtonOptions = { ...defaultButtonStyles, buttonClassName: 'chat-confirmation-action-button', small: true, secondary: buttonData.isSecondary, title: buttonData.tooltip, disabled: buttonData.disabled };
 
 			let button: IButton;
 			if (buttonData.moreActions?.some(action => !(action instanceof Separator))) {

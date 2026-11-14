@@ -332,6 +332,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private createTabsScrollbar(scrollable: HTMLElement): ScrollableElement {
 		const tabsScrollbar = this._register(new ScrollableElement(scrollable, {
+			className: 'editor-tabs-scrollable',
 			horizontal: this.getTabsScrollbarVisibility(),
 			horizontalScrollbarSize: this.getTabsScrollbarSizing(),
 			vertical: ScrollbarVisibility.Hidden,
@@ -1033,7 +1034,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		tabContainer.appendChild(tabBorderTopContainer);
 
 		// Tab Editor Label
-		const editorLabel = this.tabResourceLabels.create(tabContainer, { hoverTargetOverride: tabContainer });
+		const editorLabel = this.tabResourceLabels.create(tabContainer, { hoverTargetOverride: tabContainer, extraClasses: ['editor-tab-resource-label'], descriptionContainerClassName: 'editor-tab-description-container', nameContainerClassName: 'editor-tab-name-container', labelContainerClassName: 'editor-tab-label-container' });
 
 		// Tab Actions
 		const tabActionsContainer = $('.tab-actions');
@@ -1045,7 +1046,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			get editorIndex() { return that.toEditorIndex(tabIndex); }
 		});
 
-		const tabActionBar = new ActionBar(tabActionsContainer, { ariaLabel: localize('ariaLabelTabActions', "Tab actions"), actionRunner: tabActionRunner });
+		const tabActionBar = new ActionBar(tabActionsContainer, { className: 'editor-tab-action-bar', actionsContainerClassName: 'editor-tab-toolbar-actions', ariaLabel: localize('ariaLabelTabActions', "Tab actions"), actionRunner: tabActionRunner });
 		const tabActionListener = tabActionBar.onWillRun(e => {
 			if (e.action.id === this.closeEditorAction.id || e.action.id === this.closeOtherEditorTabsInGroupAction.id) {
 				this.blockRevealActiveTabOnce();

@@ -27,12 +27,18 @@ import { IActionProvider } from '../dropdown/dropdown.js';
 import { safeSetInnerHtml, DomSanitizerConfig } from '../../domSanitize.js';
 
 export interface IButtonOptions extends Partial<IButtonStyles> {
+	/** CSS class applied to the button during creation. */
+	readonly buttonClassName?: string;
 	readonly title?: boolean | string;
 	/**
 	 * Will fallback to `title` if not set.
 	 */
 	readonly ariaLabel?: string;
 	readonly supportIcons?: boolean;
+	/** Class applied to element parts of icon-supported string labels. */
+	readonly contentClassName?: string;
+	/** Class applied to the separate icon element in ButtonWithIcon. */
+	readonly iconClassName?: string;
 	readonly supportShortLabel?: boolean;
 	readonly secondary?: boolean;
 	readonly small?: boolean;
@@ -128,6 +134,9 @@ export class Button extends Disposable implements IButton {
 
 		this._element = document.createElement('a');
 		this._element.classList.add('monaco-button');
+		if (options.buttonClassName) {
+			this._element.classList.add(options.buttonClassName);
+		}
 		this._element.tabIndex = 0;
 		this._element.setAttribute('role', 'button');
 
@@ -233,6 +242,12 @@ export class Button extends Disposable implements IButton {
 				elements.push(node);
 			} else {
 				elements.push(segment);
+			}
+		}
+
+		if (this.options.contentClassName) {
+			for (const element of elements) {
+				element.classList.add(this.options.contentClassName);
 			}
 		}
 
@@ -437,6 +452,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		}
 
 		this.primaryButton = this._register(new Button(this.element, options));
+		this.primaryButton.element.classList.add('monaco-dropdown-action-button');
 		this._register(this.primaryButton.onDidClick(e => this._onDidClick.fire(e)));
 		this.action = toAction({ id: 'primaryAction', label: renderAsPlaintext(this.primaryButton.label), run: async () => this._onDidClick.fire(undefined) });
 
@@ -444,6 +460,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		this.separatorContainer.classList.add('monaco-button-dropdown-separator');
 
 		this.separator = document.createElement('div');
+		this.separator.classList.add('monaco-button-dropdown-separator-line');
 		this.separatorContainer.appendChild(this.separator);
 		this.element.appendChild(this.separatorContainer);
 
@@ -459,6 +476,7 @@ export class ButtonWithDropdown extends Disposable implements IButton {
 		this.separator.style.backgroundColor = options.buttonSeparator ?? '';
 
 		this.dropdownButton = this._register(new Button(this.element, { ...options, title: localize("button dropdown more actions", 'More Actions...'), supportIcons: true }));
+		this.dropdownButton.element.classList.add('monaco-dropdown-action-button');
 		this.dropdownButton.element.setAttribute('aria-haspopup', 'true');
 		this.dropdownButton.element.setAttribute('aria-expanded', 'false');
 		this.dropdownButton.element.classList.add('monaco-dropdown-button');
@@ -693,6 +711,9 @@ export class ButtonWithIcon extends Button {
 
 		this._element.classList.add('monaco-icon-button');
 		this._iconElement = $('');
+		if (options.iconClassName) {
+			this._iconElement.classList.add(options.iconClassName);
+		}
 		this._mdlabelElement = $('.monaco-button-mdlabel');
 		this._element.append(this._iconElement, this._mdlabelElement);
 	}
@@ -747,7 +768,7 @@ export class ButtonWithIcon extends Button {
 	}
 
 	override set icon(icon: ThemeIcon) {
-		this._iconElement.classList.value = '';
+		this._iconElement.className = this.options.iconClassName ?? '';
 		this._iconElement.classList.add(...ThemeIcon.asClassNameArray(icon));
 		this._setAriaLabel();
 	}

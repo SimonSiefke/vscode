@@ -4,6 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { $ } from '../../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { EditorMarkdownCodeBlockRenderer } from '../../../../../editor/browser/widget/markdownRenderer/browser/editorMarkdownCodeBlockRenderer.js';
+import { LanguageService } from '../../../../../editor/common/services/languageService.js';
+import { IMarkdownRendererService, MarkdownRendererService } from '../../../../../platform/markdown/browser/markdownRenderer.js';
+import { NullOpenerService } from '../../../../../platform/opener/test/common/nullOpenerService.js';
+import '../../browser/media/settingsEditor2.css';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { ToolBar } from '../../../../../base/browser/ui/toolbar/toolbar.js';
 import { IAction } from '../../../../../base/common/actions.js';
@@ -37,7 +45,7 @@ class TestSettingRenderer extends AbstractSettingRenderer {
 	readonly templateId = 'test';
 	toolbarDisposed = false;
 
-	constructor() {
+	constructor(markdownRendererService?: IMarkdownRendererService) {
 		super(
 			[],
 			(_setting: ISetting, _settingTarget: SettingsTarget): IAction[] => [],
@@ -64,7 +72,7 @@ class TestSettingRenderer extends AbstractSettingRenderer {
 			undefined!,
 			undefined!,
 			{ setupDelayedHover: () => Disposable.None } as never,
-			undefined!,
+			markdownRendererService!,
 		);
 	}
 
@@ -378,6 +386,40 @@ suite('SettingsTree renderer', () => {
 			});
 		});
 	}
+
+	test('resets every Markdown description element including asynchronously highlighted code', async () => {
+		const completed = new DeferredPromise<void>();
+		const service = new class extends MarkdownRendererService {
+			override render(...[markdown, options, outElement]: Parameters<MarkdownRendererService['render']>) {
+				return super.render(markdown, { ...options, asyncRenderCallback: () => { options?.asyncRenderCallback?.(); void completed.complete(); } }, outElement);
+			}
+		}(NullOpenerService);
+		const languageService = store.add(new LanguageService());
+		service.setDefaultCodeBlockRenderer(new EditorMarkdownCodeBlockRenderer(new TestConfigurationService({ editor: { fontFamily: 'monospace' } }), languageService));
+		const renderer = store.add(new TestSettingRenderer(service));
+		const host = $('.settings-editor');
+		const container = host.appendChild($('.settings-body')).appendChild($('.settings-tree-container')).appendChild($('div'));
+		mainWindow.document.body.appendChild(host);
+		store.add(toDisposable(() => host.remove()));
+		const template = renderer.renderTemplate(container);
+		store.add(toDisposable(() => renderer.disposeTemplate(template)));
+		const element = store.add(createSettingElement('warning'));
+		store.add(element.parent!);
+		element.setting.descriptionIsMarkdown = true;
+		element.description = '# Heading\n\nParagraph [link](https://example.com) `code`\n\n- Item\n\n```text\nfirst\nsecond\n```';
+		renderer.renderElement({ element } as never, 0, template);
+		const description = template.descriptionElement.querySelector('.setting-item-markdown')!;
+		const read = () => Array.from(description.querySelectorAll('*'), element => ({ marked: element.classList.contains('setting-description-node'), margin: mainWindow.getComputedStyle(element).marginTop }));
+		const initial = read();
+		assert.ok(initial.length > 5);
+		assert.ok(initial.every(element => element.marked && element.margin === '0px'));
+		await completed.p;
+		const highlighted = read();
+		assert.ok(description.querySelector('.monaco-tokenized-source br'));
+		assert.ok(highlighted.length > initial.length);
+		assert.ok(highlighted.every(element => element.marked && element.margin === '0px'));
+		assert.strictEqual(description.querySelector('a')?.getAttribute('data-href'), 'https://example.com');
+	});
 
 	test('disposes the setting toolbar with its template', () => {
 		const renderer = new TestSettingRenderer();

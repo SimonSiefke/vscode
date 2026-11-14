@@ -18,7 +18,7 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { safeIntl } from '../../../../../../base/common/date.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { Disposable, DisposableMap, DisposableStore, MutableDisposable, toDisposable, trackDisposable } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable, trackDisposable } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
 import { revive } from '../../../../../../base/common/marshalling.js';
 import { Schemas } from '../../../../../../base/common/network.js';
@@ -3405,6 +3405,69 @@ suite('ChatListRenderer', () => {
 		}
 	}
 
+	function configureImageRevealGlyphs(container: HTMLElement): void {
+		container.classList.add('chat-image-layout-test');
+		const style = mainWindow.document.createElement('style');
+		// Bound glyph raster work while preserving the image and reveal frame geometry.
+		style.textContent = '.chat-image-layout-test .chat-image-loading-glyphs { font-size: 40px !important; }';
+		container.appendChild(style);
+	}
+
+	function waitForImageState(root: HTMLElement, disposables: DisposableStore, ready: () => boolean): Promise<void> {
+		const result = new Promise<void>((resolve, reject) => {
+			let settled = false;
+			const finish = (error?: Error) => {
+				if (settled) {
+					return;
+				}
+				settled = true;
+				observer.disconnect();
+				if (error) {
+					reject(error);
+				} else {
+					resolve();
+				}
+			};
+			const check = () => {
+				if (ready()) {
+					finish();
+				}
+			};
+			const observer = new mainWindow.MutationObserver(check);
+			disposables.add(toDisposable(() => finish(new Error('Image readiness cancelled by fixture disposal'))));
+			observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'aria-busy', 'src'] });
+			disposables.add(dom.addDisposableListener(root, 'load', () => queueMicrotask(check), true));
+			disposables.add(dom.addDisposableListener(root, 'error', event => {
+				if (event.target instanceof mainWindow.HTMLImageElement) {
+					finish(new Error('Generated image failed to load'));
+				}
+			}, true));
+			check();
+		});
+		// A fixture can fail before its readiness promise is awaited.
+		result.catch(() => { });
+		return result;
+	}
+
+	function freezeImageRevealTimers(disposables: DisposableStore, additionalDisposables: () => DisposableStore | undefined = () => undefined): IDisposable {
+		const options: Partial<sinon.SinonFakeTimersConfig> & { shouldClearNativeTimers: boolean } = {
+			toFake: ['setTimeout', 'clearTimeout'],
+			shouldClearNativeTimers: true,
+		};
+		const clock = sinon.useFakeTimers(options);
+		return store.add(toDisposable(() => {
+			try {
+				disposables.dispose();
+			} finally {
+				try {
+					additionalDisposables()?.dispose();
+				} finally {
+					clock.restore();
+				}
+			}
+		}));
+	}
+
 	function getTextBaseline(element: Element): number {
 		const probe = element.appendChild(dom.$('span', { style: 'display: inline-block; width: 0; height: 0; line-height: 0;' }));
 		const baseline = probe.getBoundingClientRect().top;
@@ -4153,7 +4216,7 @@ suite('ChatListRenderer', () => {
 				pastTenseMessage: success ? 'Generated image' : '"Generate Image" failed',
 				content: success ? [{
 					type: ToolResultContentType.EmbeddedResource,
-					data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=',
+					data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
 					contentType: 'image/png',
 				}] : [],
 				error: success ? undefined : { message: 'Image generation returned no usable image.' },
@@ -4388,7 +4451,7 @@ suite('ChatListRenderer', () => {
 				status: ToolCallStatus.Completed,
 				success: true,
 				pastTenseMessage: 'Generated image',
-				content: [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=', contentType: 'image/png' }],
+				content: [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', contentType: 'image/png' }],
 			}, backendSession, 'remote');
 			const hasReveal = !!template.value.querySelector('.chat-image-reveal');
 			request.response?.complete();
@@ -4466,7 +4529,7 @@ suite('ChatListRenderer', () => {
 				status: ToolCallStatus.Completed,
 				success: true,
 				pastTenseMessage: 'Generated image',
-				content: [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=', contentType: 'image/png' }],
+				content: [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', contentType: 'image/png' }],
 			}, backendSession, 'remote');
 			await timeout(0);
 			const title = (value: HTMLElement) => ({
@@ -4665,6 +4728,7 @@ suite('ChatListRenderer', () => {
 		test(`image tool icon alignment survives the reveal and restore (${toolId}, width=${width})`, async () => {
 			const { disposables, instantiationService, model, request, container, renderer, template, node } = createPersistentProgressRenderer();
 			configurePersistentProgressTypography(container, 13);
+			configureImageRevealGlyphs(container);
 			container.style.width = `${width}px`;
 			container.classList.remove('monaco-reduce-motion');
 			let reducedMotion = false;
@@ -4694,69 +4758,80 @@ suite('ChatListRenderer', () => {
 			const context = canvas.getContext('2d')!;
 			context.fillStyle = '#4682b4';
 			context.fillRect(0, 0, canvas.width, canvas.height);
-			await tool.didExecuteTool({
-				content: [],
-				toolSpecificData: { kind: 'generatedImage' },
-				toolResultDetails: {
-					input: '{"prompt":"Draw a puppy"}',
-					output: [{ type: 'embed', value: canvas.toDataURL('image/png').split(',')[1], mimeType: 'image/png' }],
-				},
-			});
-			await retry(async () => assert.ok(template.value.querySelector('.chat-image-reveal.revealing')), 10, 50);
-			const image = template.value.querySelector<HTMLImageElement>('.chat-generated-image-result img')!;
-			const field = template.value.querySelector<HTMLCanvasElement>('.chat-image-loading-glyphs')!;
-			const clock = field.getAnimations()[0];
-			assert.ok(clock);
-			clock.pause();
-			const revealOffsets = [];
-			for (const fraction of [0, 0.5, 1]) {
-				clock.currentTime = Number(clock.effect?.getTiming().duration) * fraction;
-				await new Promise<void>(resolve => disposables.add(dom.scheduleAtNextAnimationFrame(mainWindow, () => resolve())));
-				revealOffsets.push(offset(template.value, '.chat-image-reveal'));
+			let restored: ReturnType<typeof createPersistentProgressRenderer> | undefined;
+			const cleanup = freezeImageRevealTimers(disposables, () => restored?.disposables);
+			try {
+				const imageReady = waitForImageState(template.value, disposables, () => {
+					const image = template.value.querySelector<HTMLImageElement>('.chat-generated-image-result img');
+					return !!template.value.querySelector('.chat-image-reveal.revealing') && !!image?.complete && image.naturalWidth > 0
+						&& image.closest('.image-attachment')?.getAttribute('aria-busy') === 'false';
+				});
+				await tool.didExecuteTool({
+					content: [],
+					toolSpecificData: { kind: 'generatedImage' },
+					toolResultDetails: {
+						input: '{"prompt":"Draw a puppy"}',
+						output: [{ type: 'embed', value: canvas.toDataURL('image/png').split(',')[1], mimeType: 'image/png' }],
+					},
+				});
+				await imageReady;
+				const image = template.value.querySelector<HTMLImageElement>('.chat-generated-image-result img')!;
+				const field = template.value.querySelector<HTMLCanvasElement>('.chat-image-loading-glyphs')!;
+				const clock = field.getAnimations()[0];
+				assert.ok(clock);
+				clock.pause();
+				const revealOffsets = [];
+				for (const fraction of [0, 0.5, 1]) {
+					clock.currentTime = Number(clock.effect?.getTiming().duration) * fraction;
+					await new Promise<void>(resolve => disposables.add(dom.scheduleAtNextAnimationFrame(mainWindow, () => resolve())));
+					revealOffsets.push(offset(template.value, '.chat-image-reveal'));
+				}
+				const imageSize = () => [image.getBoundingClientRect().width, image.getBoundingClientRect().height];
+				const finalFrameSize = imageSize();
+				const save = template.value.querySelector('.chat-collapsible-io-resource-actions')!;
+				const saveOffset = () => save.getBoundingClientRect().left - image.getBoundingClientRect().right;
+				const finalSaveOffset = saveOffset();
+				reducedMotion = true;
+				motionChanged.fire();
+				const completedOffset = offset(template.value, '.chat-generated-image-result img');
+				request.response?.complete();
+				restored = createPersistentProgressRenderer();
+				configurePersistentProgressTypography(restored.container, 13);
+				restored.container.style.width = `${width}px`;
+				restored.model.acceptResponseProgress(restored.request, tool.toJSON());
+				restored.request.response?.complete();
+				restored.renderer.renderElement(restored.node, 0, restored.template);
+				const restoredImage = restored.template.value.querySelector<HTMLImageElement>('.chat-generated-image-result img')!;
+				await restoredImage.decode();
+				await waitForImageState(restored.template.value, restored.disposables, () => restoredImage.closest('.image-attachment')?.getAttribute('aria-busy') === 'false');
+				const restoredSize = restoredImage.getBoundingClientRect();
+				assert.deepStrictEqual({
+					runningOffset,
+					revealOffsets,
+					completedOffset,
+					restoredOffset: offset(restored.template.value, '.chat-generated-image-result img'),
+					titleUnchanged: titleLeft() === runningTitleLeft,
+					sizeUnchanged: imageSize(),
+					// Wrapped and bare images can differ by one CSS layout unit in intrinsic width.
+					restoredWidthMatches: Math.abs(restoredSize.width - finalFrameSize[0]) <= 1 / 64,
+					restoredHeight: restoredSize.height,
+					saveOffset: saveOffset(),
+					restoredReveal: !!restored.template.value.querySelector('.chat-image-loading-glyphs'),
+				}, {
+					runningOffset: 0,
+					revealOffsets: [0, 0, 0],
+					completedOffset: 0,
+					restoredOffset: 0,
+					titleUnchanged: true,
+					sizeUnchanged: finalFrameSize,
+					restoredWidthMatches: true,
+					restoredHeight: finalFrameSize[1],
+					saveOffset: finalSaveOffset,
+					restoredReveal: false,
+				});
+			} finally {
+				cleanup.dispose();
 			}
-			const imageSize = () => [image.getBoundingClientRect().width, image.getBoundingClientRect().height];
-			const finalFrameSize = imageSize();
-			const save = template.value.querySelector('.chat-collapsible-io-resource-actions')!;
-			const saveOffset = () => save.getBoundingClientRect().left - image.getBoundingClientRect().right;
-			const finalSaveOffset = saveOffset();
-			reducedMotion = true;
-			motionChanged.fire();
-			const completedOffset = offset(template.value, '.chat-generated-image-result img');
-			request.response?.complete();
-			const restored = createPersistentProgressRenderer();
-			configurePersistentProgressTypography(restored.container, 13);
-			restored.container.style.width = `${width}px`;
-			restored.model.acceptResponseProgress(restored.request, tool.toJSON());
-			restored.request.response?.complete();
-			restored.renderer.renderElement(restored.node, 0, restored.template);
-			const restoredImage = restored.template.value.querySelector<HTMLImageElement>('.chat-generated-image-result img')!;
-			await restoredImage.decode();
-			await retry(async () => assert.strictEqual(restoredImage.closest('.image-attachment')?.getAttribute('aria-busy'), 'false'), 10, 50);
-			const restoredSize = restoredImage.getBoundingClientRect();
-			assert.deepStrictEqual({
-				runningOffset,
-				revealOffsets,
-				completedOffset,
-				restoredOffset: offset(restored.template.value, '.chat-generated-image-result img'),
-				titleUnchanged: titleLeft() === runningTitleLeft,
-				sizeUnchanged: imageSize(),
-				// Wrapped and bare images can differ by one CSS layout unit in intrinsic width.
-				restoredWidthMatches: Math.abs(restoredSize.width - finalFrameSize[0]) <= 1 / 64,
-				restoredHeight: restoredSize.height,
-				saveOffset: saveOffset(),
-				restoredReveal: !!restored.template.value.querySelector('.chat-image-loading-glyphs'),
-			}, {
-				runningOffset: 0,
-				revealOffsets: [0, 0, 0],
-				completedOffset: 0,
-				restoredOffset: 0,
-				titleUnchanged: true,
-				sizeUnchanged: finalFrameSize,
-				restoredWidthMatches: true,
-				restoredHeight: finalFrameSize[1],
-				saveOffset: finalSaveOffset,
-				restoredReveal: false,
-			});
 		});
 	}
 
@@ -5055,7 +5130,7 @@ suite('ChatListRenderer', () => {
 			collapsedTools: CollapsedToolsDisplayMode.Always,
 		});
 		const backend = URI.parse('remote-images:/subagent');
-		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=';
+		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
 		const createCall = (toolCallId: string): ToolCallRunningState => ({
 			toolCallId,
 			toolName: 'image_generation',
@@ -5157,7 +5232,7 @@ suite('ChatListRenderer', () => {
 				status: ToolCallStatus.Completed,
 				success,
 				pastTenseMessage: 'Generated image',
-				content: success ? [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=', contentType: 'image/png' }] : [],
+				content: success ? [{ type: ToolResultContentType.EmbeddedResource, data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', contentType: 'image/png' }] : [],
 				error: success ? undefined : { message: 'Image request failed' },
 			}, backend, 'remote');
 			renderer.renderElement(node, 0, template);
@@ -5696,7 +5771,7 @@ suite('ChatListRenderer', () => {
 						pastTenseMessage: success ? 'Generated image' : 'Generated image failed',
 						content: success ? [{
 							type: ToolResultContentType.EmbeddedResource,
-							data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=',
+							data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
 							contentType: 'image/png',
 						}] : [],
 						error: success ? undefined : { message: 'Image generation returned no usable image.' },
@@ -7820,7 +7895,7 @@ suite('ChatListRenderer', () => {
 			const iconRules = getLoadedStyleRules(rule =>
 				(rule.selectorText.startsWith('.monaco-workbench .chat-pill-icon.codicon') && !!rule.style.display)
 				|| (rule.selectorText === '.monaco-action-bar .action-item .codicon' && !!rule.style.width)
-				|| (rule.selectorText.startsWith('.monaco-workbench .codicon[') && !!rule.style.fontSize)
+				|| (rule.selectorText === '.monaco-workbench .codicon[class*="codicon-"]' && !!rule.style.fontSize)
 			);
 			assert.strictEqual(iconRules.length, 3, iconRules.map(rule => rule.cssText).join('\n'));
 			// Exercise the product ordering with the shared icon rules loaded after chat.
@@ -10365,7 +10440,7 @@ suite('ChatListRenderer', () => {
 			configurePersistentProgressTypography(container, fontSize);
 			// Exercise the product ordering, where the workbench's base codicon size loads after chat.
 			container.classList.add('monaco-workbench');
-			const workbenchCodiconSize = getLoadedStyleRules(rule => rule.selectorText.startsWith('.monaco-workbench .codicon[') && !!rule.style.fontSize);
+			const workbenchCodiconSize = getLoadedStyleRules(rule => rule.selectorText === '.monaco-workbench .codicon[class*="codicon-"]' && !!rule.style.fontSize);
 			assert.strictEqual(workbenchCodiconSize.length, 1, workbenchCodiconSize.map(rule => rule.cssText).join('\n'));
 			dom.append(container, dom.$('style')).textContent = workbenchCodiconSize[0].cssText;
 			configurationService.setUserConfiguration(ChatConfiguration.CollapseCompletedResponses, true);
@@ -14287,7 +14362,7 @@ suite('ChatListRenderer', () => {
 	}
 
 	suite('generated image preview loading', () => {
-		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=';
+		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
 
 		function createImageTool(toolId: string, requestId: string) {
 			return new ChatToolInvocation({
@@ -14469,6 +14544,7 @@ suite('ChatListRenderer', () => {
 		test(`generated image ${name} is height-capped and keeps its download action beside it`, async () => {
 			const { disposables, instantiationService, configurationService, container, model, request, renderer, template, node } = createPersistentProgressRenderer();
 			configurePersistentProgressTypography(container, 13);
+			configureImageRevealGlyphs(container);
 			container.style.width = `${width}px`;
 			configurationService.setUserConfiguration(ChatConfiguration.PersistentProgress, ChatProgressAnimation.Off);
 			const reducedMotionChanged = disposables.add(new Emitter<void>());
@@ -14504,128 +14580,135 @@ suite('ChatListRenderer', () => {
 				source: ToolDataSource.Internal,
 			}, `image-layout-${index}`, undefined, {}, {}, request.id));
 			const tool = tools[0];
-			if (animate) {
-				for (const tool of tools) {
-					model.acceptResponseProgress(request, tool);
+			const cleanup = freezeImageRevealTimers(disposables);
+			try {
+				const imageReady = waitForImageState(template.value, disposables, () => {
+					const images = [...template.value.querySelectorAll<HTMLImageElement>('.chat-generated-image-result img')];
+					return images.length === imageCount && images.every(image => image.complete && image.naturalWidth > 0
+						&& image.closest('.image-attachment')?.getAttribute('aria-busy') === 'false')
+						&& (!animate || !!template.value.querySelector('.chat-image-reveal.revealing'));
+				});
+				if (animate) {
+					for (const tool of tools) {
+						model.acceptResponseProgress(request, tool);
+					}
+					renderer.renderElement(node, 0, template);
+				}
+				await tool.didExecuteTool({
+					content: [],
+					toolSpecificData: { kind: 'generatedImage' },
+					toolResultDetails: {
+						input: '{}',
+						output: Array.from({ length: imageCount }, () => ({ type: 'embed' as const, value: imageData, mimeType: 'image/png' })),
+					},
+				});
+				if (!animate) {
+					for (const tool of tools) {
+						model.acceptResponseProgress(request, tool);
+					}
+				}
+				if (!batch) {
+					request.response?.complete();
 				}
 				renderer.renderElement(node, 0, template);
-			}
-			await tool.didExecuteTool({
-				content: [],
-				toolSpecificData: { kind: 'generatedImage' },
-				toolResultDetails: {
-					input: '{}',
-					output: Array.from({ length: imageCount }, () => ({ type: 'embed' as const, value: imageData, mimeType: 'image/png' })),
-				},
-			});
-			if (!animate) {
-				for (const tool of tools) {
-					model.acceptResponseProgress(request, tool);
-				}
-			}
-			if (!batch) {
-				request.response?.complete();
-			}
-			renderer.renderElement(node, 0, template);
 
-			const gallery = template.value.querySelector<HTMLElement>('.chat-generated-image-result');
-			const saveButton = gallery?.querySelector<HTMLElement>('.chat-collapsible-io-resource-actions [role="button"]');
-			assert.ok(gallery && saveButton);
-			const group = saveButton.closest('.chat-collapsible-io-resource-group')!;
-			const imageReveal = gallery.querySelector<HTMLElement>('.chat-image-reveal');
-			const revealState = () => ({
-				direction: mainWindow.getComputedStyle(group).flexDirection,
-				actionVisibility: mainWindow.getComputedStyle(saveButton).visibility,
-				actionOnRight: saveButton.getBoundingClientRect().left >= imageReveal!.getBoundingClientRect().right,
-				extraHeight: group.getBoundingClientRect().height - imageReveal!.getBoundingClientRect().height,
-			});
-			const revealStates = animate ? [revealState()] : [];
-			await retry(async () => {
-				const images = [...template.value.querySelectorAll<HTMLImageElement>('.chat-generated-image-result img')];
-				assert.ok(images.length === imageCount && images.every(image => image.complete && image.naturalWidth > 0
-					&& image.closest('.image-attachment')?.getAttribute('aria-busy') === 'false'));
-			}, 20, 50);
-			if (animate) {
-				assert.ok(imageReveal);
-				assert.ok(imageReveal.classList.contains('revealing'));
-				const field = imageReveal.querySelector<HTMLCanvasElement>('.chat-image-loading-glyphs');
-				const clock = field?.getAnimations()[0];
-				assert.ok(clock);
-				const animations = gallery.getAnimations({ subtree: true });
-				for (const fraction of [0, 0.5, 0.9, 1]) {
-					for (const animation of animations) {
-						animation.pause();
-						animation.currentTime = Number(animation.effect?.getTiming().duration) * fraction;
-					}
-					await new Promise<void>(resolve => disposables.add(dom.scheduleAtNextAnimationFrame(mainWindow, () => resolve())));
-					revealStates.push(revealState());
-				}
-				const bounds = () => {
-					const frame = imageReveal.getBoundingClientRect();
-					const image = gallery.querySelector('img')!.getBoundingClientRect();
-					const action = saveButton.getBoundingClientRect();
-					return {
-						layout: [frame.left, frame.top, frame.width, frame.height, group.getBoundingClientRect().height, template.rowContainer.getBoundingClientRect().height],
-						imageSize: [image.width, image.height],
-						actionPosition: [action.left, action.top],
-						batchLayout: [...template.value.querySelectorAll('.chat-image-generation-batch-preview, .chat-image-generation-batch-thumbnails, .chat-image-generation-batch-summary')].map(element => {
-							const bounds = element.getBoundingClientRect();
-							return [bounds.top, bounds.height];
-						}),
-					};
-				};
-				const beforeFinish = bounds();
-				// The clock is paused at its end. Finish through the reveal's reduced-motion cleanup, which is the
-				// same cleanup its real-time deadline runs (covered with virtual time in chatImageReveal.test.ts).
-				motionReduced = true;
-				reducedMotionChanged.fire();
-				assert.ok(!imageReveal.classList.contains('revealing'));
-				const afterFinish = bounds();
-				assert.deepStrictEqual({
-					revealStates,
-					finalBounds: afterFinish,
+				const gallery = template.value.querySelector<HTMLElement>('.chat-generated-image-result');
+				const saveButton = gallery?.querySelector<HTMLElement>('.chat-collapsible-io-resource-actions [role="button"]');
+				assert.ok(gallery && saveButton);
+				const group = saveButton.closest('.chat-collapsible-io-resource-group')!;
+				const imageReveal = gallery.querySelector<HTMLElement>('.chat-image-reveal');
+				const revealState = () => ({
+					direction: mainWindow.getComputedStyle(group).flexDirection,
 					actionVisibility: mainWindow.getComputedStyle(saveButton).visibility,
-				}, {
-					revealStates: Array.from({ length: 5 }, () => ({ direction: 'row', actionVisibility: 'hidden', actionOnRight: true, extraHeight: 0 })),
-					finalBounds: beforeFinish,
-					actionVisibility: 'visible',
+					actionOnRight: saveButton.getBoundingClientRect().left >= imageReveal!.getBoundingClientRect().right,
+					extraHeight: group.getBoundingClientRect().height - imageReveal!.getBoundingClientRect().height,
 				});
-			}
-			const imageRects = [...gallery.querySelectorAll('img')].map(image => image.getBoundingClientRect());
-			const galleryRect = gallery.getBoundingClientRect();
-			const buttonRect = saveButton.getBoundingClientRect();
-			const gap = buttonRect.left - Math.max(...imageRects.map(rect => rect.right));
-			const leftInset = Math.min(...imageRects.map(rect => rect.left)) - galleryRect.left;
-			const alignmentOffset = Math.abs(buttonRect.top + buttonRect.height / 2 - (imageRects[0].top + imageRects[0].height / 2));
-			saveButton.focus();
+				const revealStates = animate ? [revealState()] : [];
+				await imageReady;
+				if (animate) {
+					assert.ok(imageReveal);
+					assert.ok(imageReveal.classList.contains('revealing'));
+					const field = imageReveal.querySelector<HTMLCanvasElement>('.chat-image-loading-glyphs');
+					const clock = field?.getAnimations()[0];
+					assert.ok(clock);
+					const animations = gallery.getAnimations({ subtree: true });
+					for (const fraction of [0, 0.5, 0.9, 1]) {
+						for (const animation of animations) {
+							animation.pause();
+							animation.currentTime = Number(animation.effect?.getTiming().duration) * fraction;
+						}
+						await new Promise<void>(resolve => disposables.add(dom.scheduleAtNextAnimationFrame(mainWindow, () => resolve())));
+						revealStates.push(revealState());
+					}
+					const bounds = () => {
+						const frame = imageReveal.getBoundingClientRect();
+						const image = gallery.querySelector('img')!.getBoundingClientRect();
+						const action = saveButton.getBoundingClientRect();
+						return {
+							layout: [frame.left, frame.top, frame.width, frame.height, group.getBoundingClientRect().height, template.rowContainer.getBoundingClientRect().height],
+							imageSize: [image.width, image.height],
+							actionPosition: [action.left, action.top],
+							batchLayout: [...template.value.querySelectorAll('.chat-image-generation-batch-preview, .chat-image-generation-batch-thumbnails, .chat-image-generation-batch-summary')].map(element => {
+								const bounds = element.getBoundingClientRect();
+								return [bounds.top, bounds.height];
+							}),
+						};
+					};
+					const beforeFinish = bounds();
+					// The clock is paused at its end. Finish through the reveal's reduced-motion cleanup, which is the
+					// same cleanup its real-time deadline runs (covered with virtual time in chatImageReveal.test.ts).
+					motionReduced = true;
+					reducedMotionChanged.fire();
+					assert.ok(!imageReveal.classList.contains('revealing'));
+					const afterFinish = bounds();
+					assert.deepStrictEqual({
+						revealStates,
+						finalBounds: afterFinish,
+						actionVisibility: mainWindow.getComputedStyle(saveButton).visibility,
+					}, {
+						revealStates: Array.from({ length: 5 }, () => ({ direction: 'row', actionVisibility: 'hidden', actionOnRight: true, extraHeight: 0 })),
+						finalBounds: beforeFinish,
+						actionVisibility: 'visible',
+					});
+				}
+				const imageRects = [...gallery.querySelectorAll('img')].map(image => image.getBoundingClientRect());
+				const galleryRect = gallery.getBoundingClientRect();
+				const buttonRect = saveButton.getBoundingClientRect();
+				const gap = buttonRect.left - Math.max(...imageRects.map(rect => rect.right));
+				const leftInset = Math.min(...imageRects.map(rect => rect.left)) - galleryRect.left;
+				const alignmentOffset = Math.abs(buttonRect.top + buttonRect.height / 2 - (imageRects[0].top + imageRects[0].height / 2));
+				saveButton.focus();
 
-			assert.deepStrictEqual({
-				heightCapped: imageRects.every(rect => rect.height > 0 && rect.height <= Math.min(400, mainWindow.innerHeight * 0.6) + 1),
-				aspectRatioPreserved: imageRects.every(rect => Math.abs(rect.width / rect.height - imageWidth / imageHeight) < 0.01),
-				leftAligned: leftInset >= 0 && leftInset <= 2,
-				adjacent: gap >= 8 && gap <= 10,
-				actionAligned: alignmentOffset <= 1,
-				batchToolGapMatchesSingle: !batch || Math.abs(imageRects[0].top - template.value.querySelector('.chat-confirmation-widget')!.getBoundingClientRect().bottom - 16) < 1,
-				noOverflow: buttonRect.right <= galleryRect.right + 1,
-				keyboardAccessible: mainWindow.document.activeElement === saveButton,
-			}, {
-				heightCapped: true,
-				aspectRatioPreserved: true,
-				leftAligned: true,
-				adjacent: true,
-				actionAligned: true,
-				batchToolGapMatchesSingle: true,
-				noOverflow: true,
-				keyboardAccessible: true,
-			});
-			disposables.dispose();
+				assert.deepStrictEqual({
+					heightCapped: imageRects.every(rect => rect.height > 0 && rect.height <= Math.min(400, mainWindow.innerHeight * 0.6) + 1),
+					aspectRatioPreserved: imageRects.every(rect => Math.abs(rect.width / rect.height - imageWidth / imageHeight) < 0.01),
+					leftAligned: leftInset >= 0 && leftInset <= 2,
+					adjacent: gap >= 8 && gap <= 10,
+					actionAligned: alignmentOffset <= 1,
+					batchToolGapMatchesSingle: !batch || Math.abs(imageRects[0].top - template.value.querySelector('.chat-confirmation-widget')!.getBoundingClientRect().bottom - 16) < 1,
+					noOverflow: buttonRect.right <= galleryRect.right + 1,
+					keyboardAccessible: mainWindow.document.activeElement === saveButton,
+				}, {
+					heightCapped: true,
+					aspectRatioPreserved: true,
+					leftAligned: true,
+					adjacent: true,
+					actionAligned: true,
+					batchToolGapMatchesSingle: true,
+					noOverflow: true,
+					keyboardAccessible: true,
+				});
+				disposables.dispose();
+			} finally {
+				cleanup.dispose();
+			}
 		}).timeout(10_000);
 	}
 
 	test('generated image completion renders embedded and referenced images without duplicate previews or hidden placeholders', async () => {
 		const disposables = store.add(new DisposableStore());
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
-		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a79cAAAAASUVORK5CYII=';
+		const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=';
 		const imageUri = toAgentHostContentUri(URI.parse('generated-images:/session/generated-image.png?version=1'), 'remote');
 		const fileService = disposables.add(new class extends TestFileService {
 			override async readFile(resource: URI) {
@@ -15464,7 +15547,7 @@ suite('ChatListRenderer', () => {
 					backgroundShellCount.set(i + 1, undefined);
 				}
 				progressLookups = 0;
-				await timeout(0);
+				await new Promise<void>(resolve => queueMicrotask(resolve));
 				assert.deepStrictEqual({ progressLookups, hasProgress: !!template.value.querySelector('.chat-working-progress') }, {
 					progressLookups: complete ? 0 : 1,
 					hasProgress: !complete,

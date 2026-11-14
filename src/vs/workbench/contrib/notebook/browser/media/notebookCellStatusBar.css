@@ -57,7 +57,7 @@
 	margin-left: 10px;
 }
 
-.monaco-workbench .notebookOverlay .cell-statusbar-container .codicon {
+.monaco-workbench .notebookOverlay .cell-statusbar-container .codicon:where(.notebook-status-item-glyph) {
 	font-size: 14px;
 	color: unset; /* Inherit from parent cell-status-item */
 }

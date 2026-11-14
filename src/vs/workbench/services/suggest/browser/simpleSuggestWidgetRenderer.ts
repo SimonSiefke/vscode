@@ -83,17 +83,17 @@ export class SimpleSuggestWidgetItemRenderer implements IListRenderer<SimpleComp
 		const root = container;
 		root.classList.add('show-file-icons');
 
-		const icon = append(container, $('.icon'));
+		const icon = append(container, $('.icon.simple-suggest-row-icon'));
 		const colorspan = append(icon, $('span.colorspan'));
 
 		const text = append(container, $('.contents'));
 		const main = append(text, $('.main'));
 
-		const iconContainer = append(main, $('.icon-label.codicon'));
+		const iconContainer = append(main, $('.icon-label.codicon.simple-suggest-row-icon'));
 		const left = append(main, $('span.left'));
 		const right = append(main, $('span.right'));
 
-		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true });
+		const iconLabel = new IconLabel(left, { supportHighlights: true, supportIcons: true, extraClasses: ['workbench-suggest-item-label'], nameContainerClassName: 'workbench-suggest-name-container' });
 		disposables.add(iconLabel);
 
 		const parametersLabel = append(left, $('span.signature-label'));
@@ -147,24 +147,24 @@ export class SimpleSuggestWidgetItemRenderer implements IListRenderer<SimpleComp
 		// } else
 		if (completion.kindLabel === 'File' && this._themeService.getFileIconTheme().hasFileIcons) {
 			// special logic for 'file' completion items
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = 'icon hide';
+			data.icon.className = 'icon hide simple-suggest-row-icon';
+			data.iconContainer.className = 'icon hide simple-suggest-row-icon';
 			const labelClasses = getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: element.textLabel }), FileKind.FILE);
 			const detailClasses = getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: completion.detail }), FileKind.FILE);
 			labelOptions.extraClasses = labelClasses.length > detailClasses.length ? labelClasses : detailClasses;
 
 		} else if (completion.kindLabel === 'Folder' && this._themeService.getFileIconTheme().hasFolderIcons) {
 			// special logic for 'folder' completion items
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = 'icon hide';
+			data.icon.className = 'icon hide simple-suggest-row-icon';
+			data.iconContainer.className = 'icon hide simple-suggest-row-icon';
 			labelOptions.extraClasses = [
 				getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: element.textLabel }), FileKind.FOLDER),
 				getIconClasses(this._modelService, this._languageService, URI.from({ scheme: 'fake', path: completion.detail }), FileKind.FOLDER)
 			].flat();
 		} else {
 			// normal icon
-			data.icon.className = 'icon hide';
-			data.iconContainer.className = '';
+			data.icon.className = 'icon hide simple-suggest-row-icon';
+			data.iconContainer.className = 'simple-suggest-row-icon';
 			data.iconContainer.classList.add('suggest-icon', ...ThemeIcon.asClassNameArray(completion.icon || Codicon.symbolText));
 		}
 

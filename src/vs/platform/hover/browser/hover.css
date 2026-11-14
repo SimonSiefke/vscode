@@ -34,7 +34,7 @@
 	border-bottom: none;
 }
 
-.monaco-hover.workbench-hover.compact {
+.monaco-hover.compact.workbench-hover {
 	font-size: 12px;
 }
 

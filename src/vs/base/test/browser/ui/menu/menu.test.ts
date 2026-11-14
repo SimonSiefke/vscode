@@ -41,6 +41,23 @@ suite('Menu', () => {
 		ModifierKeyEmitter.getInstance().resetKeyStatus();
 	});
 
+	test('component label styling survives nested submenus and action updates', () => {
+		const host = append(document.body, $('div'));
+		disposables.add(toDisposable(() => host.remove()));
+		const style = append(host, $('style'));
+		style.textContent = '.test-menu-label { padding-left: 13px !important; }';
+		const action = disposables.add(new Action('action', 'Action', 'initial-icon'));
+		const menu = disposables.add(new Menu(host, [new SubmenuAction('outer', 'Outer', [new SubmenuAction('inner', 'Inner', [action])])], { labelClassName: 'test-menu-label' }, unthemedMenuStyles));
+		menu.trigger(0);
+		const inner = host.querySelector<HTMLElement>('.monaco-submenu .action-item')!;
+		inner.dispatchEvent(new KeyboardEvent(EventType.KEY_UP, { key: 'RightArrow', keyCode: 39, bubbles: true }));
+		action.label = 'Updated';
+		action.class = 'updated-icon';
+		const labels = Array.from(host.querySelectorAll<HTMLElement>('.action-label'));
+		assert.deepStrictEqual(labels.map(label => getWindow(label).getComputedStyle(label).paddingLeft), ['13px', '13px', '13px']);
+		assert.strictEqual(labels[2].textContent, 'Updated');
+	});
+
 	for (const submenu of [false, true]) {
 		for (const keyboard of [false, true]) {
 			test(`selects alternatives at ${keyboard ? 'keyboard' : 'mouse'} activation time in a ${submenu ? 'submenu' : 'menu'}`, async () => {

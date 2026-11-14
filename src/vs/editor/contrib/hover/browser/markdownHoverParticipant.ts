@@ -336,6 +336,7 @@ class MarkdownRenderedHoverParts implements IRenderedHoverParts<MarkdownHover> {
 		const store = new DisposableStore();
 		const isActionIncrease = action === HoverVerbosityAction.Increase;
 		const actionElement = dom.append(container, $(ThemeIcon.asCSSSelector(isActionIncrease ? increaseHoverVerbosityIcon : decreaseHoverVerbosityIcon)));
+		actionElement.classList.add('hover-verbosity-action-icon');
 		actionElement.tabIndex = 0;
 		const hoverDelegate = store.add(new WorkbenchHoverDelegate('mouse', undefined, { target: container, position: { hoverPosition: HoverPosition.LEFT } }, this._configurationService, this._hoverService));
 		store.add(this._hoverService.setupManagedHover(hoverDelegate, actionElement, labelForHoverVerbosityAction(this._keybindingService, action)));

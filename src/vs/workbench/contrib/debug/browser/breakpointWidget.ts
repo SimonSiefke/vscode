@@ -313,6 +313,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 		dom.append(container, this.selectBreakpointContainer);
 
 		const closeButton = new Button(this.selectBreakpointContainer, defaultButtonStyles);
+		closeButton.element.classList.add('breakpoint-selection-button');
 		closeButton.label = nls.localize('ok', "OK");
 		this.store.add(closeButton.onDidClick(() => this.close(true)));
 		this.store.add(closeButton);

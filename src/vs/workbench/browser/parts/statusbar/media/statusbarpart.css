@@ -153,7 +153,7 @@
 	cursor: default;
 }
 
-.monaco-workbench .part.statusbar > .items-container > .statusbar-item span.codicon {
+.monaco-workbench .part.statusbar > .items-container > .statusbar-item span.statusbar-item-glyph {
 	text-align: center;
 	color: inherit;
 }

@@ -232,6 +232,7 @@ export class CollapsibleListPool extends Disposable {
 			[this.instantiationService.createInstance(CollapsibleListRenderer, resourceLabels, this.menuId)],
 			{
 				...this.listOptions,
+				scrollableClassName: 'chat-reference-list-scrollable',
 				alwaysConsumeMouseWheel: false,
 				accessibilityProvider: {
 					getAriaLabel: (element: IChatCollapsibleListItem) => {
@@ -338,8 +339,9 @@ class CollapsibleListRenderer implements IListRenderer<IChatCollapsibleListItem,
 	) { }
 
 	renderTemplate(container: HTMLElement): ICollapsibleListTemplate {
+		container.classList.add('chat-reference-file-row');
 		const templateDisposables = new DisposableStore();
-		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true, supportIcons: true }));
+		const label = templateDisposables.add(this.labels.create(container, { supportHighlights: true, supportIcons: true, extraClasses: ['chat-file-list-label'], labelContainerClassName: 'chat-reference-label-container' }));
 
 		const fileDiffsContainer = $('.working-set-line-counts');
 		const addedSpan = dom.$('.working-set-lines-added');

@@ -203,8 +203,8 @@ export class InputCodeEditorView extends CodeEditorView {
 				: vm.model.input2.detail;
 
 			reset(this.htmlElements.title, ...renderLabelWithIcons(title));
-			reset(this.htmlElements.description, ...(description ? renderLabelWithIcons(description) : []));
-			reset(this.htmlElements.detail, ...(detail ? renderLabelWithIcons(detail) : []));
+			reset(this.htmlElements.description, ...(description ? renderLabelWithIcons(description, undefined, 'merge-editor-description-glyph') : []));
+			reset(this.htmlElements.detail, ...(detail ? renderLabelWithIcons(detail, undefined, 'merge-editor-detail-glyph') : []));
 		}));
 
 

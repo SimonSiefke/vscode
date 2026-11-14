@@ -27,6 +27,6 @@
 	border-color: var(--vscode-contrastBorder);
 }
 
-.monaco-workbench .terminal-resize-overlay.visible {
+.monaco-workbench .visible.terminal-resize-overlay {
 	opacity: 1;
 }

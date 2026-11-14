@@ -39,7 +39,7 @@ export class EditorGutter<T extends IGutterItemInfo = IGutterItemInfo> extends D
 		this.views = new Map<string, ManagedGutterItemView>();
 		this._domNode.className = 'gutter monaco-editor';
 		const scrollDecoration = this._domNode.appendChild(
-			h('div.scroll-decoration', { role: 'presentation', ariaHidden: 'true', style: { width: '100%' } })
+			h('div.scroll-decoration.merge-gutter-child', { role: 'presentation', ariaHidden: 'true', style: { width: '100%' } })
 				.root
 		);
 
@@ -54,7 +54,7 @@ export class EditorGutter<T extends IGutterItemInfo = IGutterItemInfo> extends D
 
 		this._register(autorun(reader => {
 			/** @description update scroll decoration */
-			scrollDecoration.className = this.isScrollTopZero.read(reader) ? '' : 'scroll-decoration';
+			scrollDecoration.className = this.isScrollTopZero.read(reader) ? 'merge-gutter-child' : 'merge-gutter-child scroll-decoration';
 		}));
 
 		this._register(autorun(reader => /** @description EditorGutter.Render */ this.render(reader)));
@@ -105,6 +105,7 @@ export class EditorGutter<T extends IGutterItemInfo = IGutterItemInfo> extends D
 				let view = this.views.get(gutterItem.id);
 				if (!view) {
 					const viewDomNode = document.createElement('div');
+					viewDomNode.classList.add('merge-gutter-child');
 					this._domNode.appendChild(viewDomNode);
 					const itemView = this.itemProvider.createView(
 						gutterItem,

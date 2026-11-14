@@ -15,11 +15,12 @@ export class SimpleIconLabel implements IDisposable {
 	private hover?: IManagedHover;
 
 	constructor(
-		private readonly _container: HTMLElement
+		private readonly _container: HTMLElement,
+		private readonly iconClassName?: string
 	) { }
 
 	set text(text: string) {
-		reset(this._container, ...renderLabelWithIcons(text ?? ''));
+		reset(this._container, ...renderLabelWithIcons(text ?? '', undefined, this.iconClassName));
 	}
 
 	set title(title: string) {

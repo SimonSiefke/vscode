@@ -36,7 +36,7 @@ export class CustomizationMarketplaceWelcome extends Disposable {
 		title.textContent = options.title;
 
 		const description = dom.append(content, dom.$('.customizations-marketplace-welcome-description'));
-		const markdown = this._register(markdownRendererService.render(options.description));
+		const markdown = this._register(markdownRendererService.render(options.description, { linkClassName: 'customization-marketplace-markdown-link' }));
 		description.appendChild(markdown.element);
 
 		const buttonContainer = dom.append(content, dom.$('.customizations-marketplace-welcome-button-container'));

@@ -463,7 +463,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 		const disposables = new DisposableStore();
 		const elementDisposables = new DisposableStore();
 		container.classList.add('models-gutter-column');
-		const actionBar = disposables.add(new ActionBar(container));
+		const actionBar = disposables.add(new ActionBar(container, { className: 'models-gutter-action-bar', actionsContainerClassName: 'models-table-gutter-actions' }));
 		return {
 			listRowElement: container.parentElement?.parentElement ?? null,
 			container,
@@ -521,7 +521,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 			class: `model-visibility-toggle ${ThemeIcon.asClassName(hidden ? Codicon.eyeClosed : Codicon.eye)}`,
 			enabled: true,
 			run: () => this.viewModel.toggleGroupHidden(entry),
-		}, { icon: true, label: false });
+		}, { icon: true, label: false, itemClassName: 'model-visibility-toggle-item' });
 	}
 
 	private renderModelVisibilityElement(entry: ILanguageModelEntry, templateData: IToggleCollapseColumnTemplateData): void {
@@ -537,7 +537,7 @@ class GutterColumnRenderer extends ModelsTableColumnRenderer<IToggleCollapseColu
 			class: `model-visibility-toggle ${ThemeIcon.asClassName(hidden ? Codicon.eyeClosed : Codicon.eye)}`,
 			enabled: true,
 			run: () => this.viewModel.toggleModelHidden(entry),
-		}, { icon: true, label: false });
+		}, { icon: true, label: false, itemClassName: 'model-visibility-toggle-item' });
 	}
 }
 
@@ -617,7 +617,7 @@ class ModelNameColumnRenderer extends ModelsTableColumnRenderer<IModelNameColumn
 
 		const deprecationLink = entry.vendorEntry.vendor.deprecation?.link;
 		if (deprecationLink && !this.environmentService.isSessionsWindow) {
-			const icon = $('span');
+			const icon = $('span.model-deprecation-link-icon');
 			icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.linkExternal));
 			icon.setAttribute('aria-hidden', 'true');
 			const label = $('span.model-deprecation-link-label', undefined, localize('models.deprecation.link.label', "Migrate"), icon);
@@ -1004,13 +1004,15 @@ class ActionsColumnRenderer extends ModelsTableColumnRenderer<IActionsColumnTemp
 		const disposables = new DisposableStore();
 		const elementDisposables = new DisposableStore();
 		container.classList.add('models-actions-column');
-		const parent = DOM.append(container, $('.actions-container'));
+		const parent = DOM.append(container, $('.actions-container.models-table-row-actions'));
 		const actionBar = disposables.add(this.instantiationService.createInstance(ToolBar,
 			parent,
 			this.contextMenuService,
 			{
 				icon: true,
 				label: false,
+				actionBarClassName: 'models-row-action-bar',
+				actionsContainerClassName: 'models-table-row-actions',
 				moreIcon: Codicon.gear,
 				anchorAlignmentProvider: () => AnchorAlignment.RIGHT
 			}
@@ -1346,6 +1348,7 @@ export class ChatModelsWidget extends Disposable {
 		this.tableViewport = $('.models-table-viewport');
 		this.tableInner = DOM.append(this.tableViewport, $('.models-table-inner'));
 		this.tableScrollable = this.tableDisposables.add(new DomScrollableElement(this.tableViewport, {
+			className: 'chat-models-table-scrollable',
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: ScrollbarVisibility.Hidden,
 			useShadows: false,

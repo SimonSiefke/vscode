@@ -100,7 +100,7 @@
 }
 
 /** Styles for each row in the list element **/
-.action-widget .monaco-list .monaco-list-row {
+.action-widget .monaco-list .action-widget-list-row {
 	padding: 0 12px 0 6px;
 	white-space: nowrap;
 	cursor: pointer;
@@ -108,7 +108,7 @@
 	border-radius: var(--vscode-cornerRadius-medium);
 }
 
-.action-widget .monaco-list .monaco-list-row.action.focused:not(.option-disabled) {
+.action-widget .monaco-list .action.focused:not(.option-disabled).action-widget-list-row {
 	background-color: var(--vscode-list-hoverBackground) !important;
 	color: var(--vscode-list-hoverForeground);
 	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-menu-selectionBorder, transparent);
@@ -116,18 +116,18 @@
 }
 
 /* Pointer navigation uses the dashed hover boundary. */
-.action-widget .monaco-list.mouse-navigation .monaco-list-row.action.focused:is(:hover, .hovered):not(.option-disabled) {
+.action-widget .monaco-list.mouse-navigation .action.focused:is(:hover, .hovered):not(.option-disabled).action-widget-list-row {
 	outline-style: dashed;
 	outline-color: var(--vscode-contrastActiveBorder, transparent);
 }
 
-.action-widget .monaco-list.mouse-navigation .monaco-list-row.action.focused:is([aria-expanded='true'], [aria-pressed='true']):not(.option-disabled) {
+.action-widget .monaco-list.mouse-navigation .action.focused:is([aria-expanded='true'], [aria-pressed='true']):not(.option-disabled).action-widget-list-row {
 	outline-style: solid;
 }
 
 /* Before either modality is observed, keep the solid focus boundary. This includes
  * filtered popups whose combobox owns DOM focus while the first row is highlighted. */
-.action-widget .monaco-list:not(.keyboard-navigation):not(.mouse-navigation):not(:focus-visible) .monaco-list-row.action.focused:not(.option-disabled) {
+.action-widget .monaco-list:not(.keyboard-navigation):not(.mouse-navigation):not(:focus-visible) .action.focused:not(.option-disabled).action-widget-list-row {
 	outline-color: var(--vscode-contrastActiveBorder, transparent);
 }
 
@@ -187,7 +187,7 @@
 	outline: 0 solid !important;
 }
 
-.action-widget .monaco-list-row.action {
+.action-widget .action.action-widget-list-row {
 	display: flex;
 	gap: 6px;
 	align-items: center;
@@ -217,7 +217,7 @@
 }
 
 /* The submenu indicator keeps the regular codicon size even in compact lists */
-.action-widget .actionList.compact-icons .monaco-list-row.action .action-list-submenu-indicator.codicon {
+.action-widget .actionList.compact-icons .monaco-list-row.action .codicon.action-list-submenu-indicator {
 	font-size: var(--vscode-codiconFontSize, 16px);
 }
 
@@ -294,7 +294,7 @@
 	flex-shrink: 0;
 }
 
-.action-widget .monaco-list-row.action .monaco-keybinding > .monaco-keybinding-key {
+.action-widget .monaco-list-row.action .monaco-keybinding > .monaco-keybinding-key:where(.action-list-key) {
 	background-color: var(--vscode-keybindingLabel-background);
 	color: var(--vscode-keybindingLabel-foreground);
 	border-style: solid;
@@ -324,7 +324,7 @@
 	width: auto;
 }
 
-.action-widget-action-bar .action-label {
+.action-widget-action-bar .action-widget-footer-label {
 	color: var(--vscode-textLink-activeForeground);
 	font-size: 12px;
 	line-height: 22px;
@@ -332,7 +332,7 @@
 	pointer-events: all;
 }
 
-.action-widget-action-bar .action-item {
+.action-widget-action-bar .action-widget-footer-item {
 	margin-right: 16px;
 	pointer-events: none;
 }
@@ -375,7 +375,7 @@
 	align-content: center;
 	padding-right: 6px;
 
-	.title {
+	.title:where(.action-widget-title) {
 		line-height: 14px;
 	}
 }
@@ -386,7 +386,7 @@
 	align-content: center;
 	padding-right: 6px;
 
-	.title {
+	.title:where(.action-widget-title) {
 		line-height: 14px;
 	}
 }
@@ -397,8 +397,8 @@
 	font-weight: var(--vscode-fontWeight-regular);
 }
 
-.action-widget .monaco-list-row.action .title:has(> .action-list-item-toggle-info),
-.action-widget .monaco-list-row.action .action-list-item-inline-toggle-label:has(> .action-list-item-toggle-info) {
+.action-widget .monaco-list-row.action .title.action-list-toggle-info-label,
+.action-widget .monaco-list-row.action .action-list-item-inline-toggle-label.action-list-toggle-info-label {
 	display: flex;
 	align-items: center;
 }
@@ -409,7 +409,7 @@
 	text-overflow: ellipsis;
 }
 
-.action-widget .monaco-list-row.action .action-list-item-toggle-info.codicon {
+.action-widget .monaco-list-row.action .codicon.action-list-item-toggle-info {
 	flex-shrink: 0;
 	margin-left: 6px;
 	font-size: 12px;
@@ -446,11 +446,11 @@
 }
 
 /* Inline description mode — description rendered right after the label */
-.action-widget .inline-description .monaco-list-row.action {
+.action-widget .inline-description .action.action-widget-list-row {
 	/* Override the row gap so group-title and toolbar sit flush */
 	gap: 0;
 
-	.title {
+	.title:where(.action-widget-title) {
 		flex: 0 1 auto;
 		min-width: 0;
 		margin-left: 6px;
@@ -654,7 +654,7 @@
 	opacity: 0.6;
 }
 
-.action-widget .monaco-list-row.action .action-list-submenu-indicator.codicon {
+.action-widget .monaco-list-row.action .codicon.action-list-submenu-indicator {
 	display: flex;
 	font-size: 16px;
 }

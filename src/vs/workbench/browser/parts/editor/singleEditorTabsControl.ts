@@ -56,7 +56,7 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 		singleTabAndActionsContainer.appendChild(labelContainer);
 
 		// Editor Label
-		this.editorLabel = this._register(this.instantiationService.createInstance(ResourceLabel, labelContainer, {})).element;
+		this.editorLabel = this._register(this.instantiationService.createInstance(ResourceLabel, labelContainer, { labelContainerClassName: 'single-editor-title-label-container' })).element;
 		this._register(addDisposableListener(this.editorLabel.element, EventType.CLICK, e => this.onTitleLabelClick(e)));
 
 		if (!this.breadcrumbsInHeader) {

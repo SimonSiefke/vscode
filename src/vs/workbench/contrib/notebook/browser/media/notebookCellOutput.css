@@ -92,13 +92,13 @@
 	font-style: italic;
 }
 
-.output-show-more a {
+.output-show-more a:where(.notebook-output-more-link) {
 	cursor: pointer;
 }
 
 /** Cell output show more*/
-.notebookOverlay .output-show-more-container a,
-.notebookOverlay div.output-show-more a {
+.notebookOverlay .output-show-more-container a:where(.notebook-output-more-link),
+.notebookOverlay div.output-show-more a:where(.notebook-output-more-link) {
 	color: var(--vscode-textLink-foreground);
 }
 

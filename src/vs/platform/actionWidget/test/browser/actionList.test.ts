@@ -1314,9 +1314,11 @@ suite('ActionListWidget', () => {
 			}],
 			listOptions: { showFilter: false },
 		});
+		widget.domNode.classList.add('action-widget');
 		const labelElement = widget.domNode.querySelector('.title');
 		const icon = labelElement?.querySelector('.codicon-info');
 		assert.ok(icon);
+		assert.strictEqual(mainWindow.getComputedStyle(labelElement!).display, 'flex');
 		assert.deepStrictEqual({
 			label: labelElement?.firstChild?.textContent,
 			iconAfterLabel: labelElement?.lastChild === icon,
@@ -1329,6 +1331,7 @@ suite('ActionListWidget', () => {
 			standaloneToggle: { label: 'Sandboxing for terminal', checked: true, onChange: () => { } },
 		}]);
 		assert.strictEqual(widget.domNode.querySelector('.action-list-item-toggle-info'), null);
+		assert.notStrictEqual(mainWindow.getComputedStyle(widget.domNode.querySelector('.title')!).display, 'flex');
 	});
 
 	for (const fontSize of [13, 16, 18]) {

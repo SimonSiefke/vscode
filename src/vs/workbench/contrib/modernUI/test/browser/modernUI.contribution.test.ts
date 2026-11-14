@@ -107,6 +107,31 @@ function appendElement(parent: HTMLElement, className: string): HTMLElement {
 	const element = document.createElement('div');
 	element.className = className;
 	parent.appendChild(element);
+	if (element.classList.contains('monaco-action-bar') && parent.classList.contains('tab-actions')) {
+		element.classList.add('editor-tab-action-bar');
+	}
+	if (element.classList.contains('actions-container') && parent.classList.contains('editor-tab-action-bar')) {
+		element.classList.add('editor-tab-toolbar-actions');
+	}
+	if (element.classList.contains('monaco-list-row') && parent.closest('.notifications-list-container')) {
+		element.classList.add('notification-list-row');
+	}
+	if (element.classList.contains('monaco-list-row') && parent.closest('.multi-diff-editor-with-file-list-files')) {
+		element.classList.add('multi-diff-file-list-row');
+	}
+	if (element.classList.contains('title') && parent.classList.contains('part')) {
+		element.classList.add('workbench-part-title');
+	}
+	if (element.classList.contains('monaco-action-bar') && parent.classList.contains('composite-bar')) {
+		element.classList.add('composite-switcher-action-bar');
+	}
+	if (element.classList.contains('actions-container') && parent.closest('.composite-bar')) {
+		element.classList.add('composite-bar-toolbar-actions');
+	}
+	if (element.classList.contains('action-label') && parent.closest('.composite-bar')) {
+		// CompositeBarActionViewItem supplies this class in the product.
+		element.classList.add('composite-bar-action-label');
+	}
 	return element;
 }
 
@@ -115,11 +140,11 @@ function createEditorTabLabel(parent: HTMLElement, extraClasses?: string): { lab
 	const labelContainer = appendElement(label, 'monaco-icon-label-container');
 	const nameContainer = appendElement(labelContainer, 'monaco-icon-name-container');
 	const name = document.createElement('a');
-	name.className = 'label-name';
+	name.className = 'label-name monaco-icon-label-name';
 	nameContainer.appendChild(name);
 	const descriptionContainer = appendElement(labelContainer, 'monaco-icon-description-container');
 	const description = document.createElement('span');
-	description.className = 'label-description';
+	description.className = 'label-description monaco-icon-label-description';
 	descriptionContainer.appendChild(description);
 	return { label, name, description };
 }
@@ -3019,10 +3044,10 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const workbenchSash = appendElement(root, 'monaco-sash vertical');
+		const workbenchSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const modal = appendElement(root, 'monaco-modal-editor-block');
 		const resizable = appendElement(modal, 'modal-editor-resizable');
-		const verticalSash = appendElement(resizable, 'monaco-sash vertical');
+		const verticalSash = appendElement(resizable, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(resizable, 'monaco-sash horizontal');
 		const sashes = [verticalSash, horizontalSash];
 		const targetWindow = getWindow(root);
@@ -3054,7 +3079,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(root, 'monaco-sash horizontal');
 		const targetWindow = getWindow(root);
 
@@ -3074,7 +3099,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const horizontalSash = appendElement(root, 'monaco-sash horizontal');
 		const targetWindow = getWindow(root);
 		const verticalStyle = targetWindow.getComputedStyle(verticalSash, '::after');
@@ -3110,7 +3135,7 @@ suite('ModernUIContribution', () => {
 		document.body.appendChild(root);
 		store.add(toDisposable(() => root.remove()));
 
-		const verticalSash = appendElement(root, 'monaco-sash vertical');
+		const verticalSash = appendElement(root, 'monaco-sash vertical monaco-vertical-sash');
 		const targetWindow = getWindow(root);
 		const attachedStyle = targetWindow.getComputedStyle(verticalSash, '::before');
 		const attachedInsets = [attachedStyle.top, attachedStyle.bottom];

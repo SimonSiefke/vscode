@@ -313,7 +313,7 @@ class MultiDiffEditorContentMenuOverlay extends Disposable {
 			MenuId.MultiDiffEditorContent,
 			contextKeyService,
 			this.resourceObs);
-		widget.element.classList.add('multi-diff-root-floating-menu');
+		widget.element.classList.add('multi-diff-root-floating-menu', 'multi-diff-editor-layer');
 		this._register(widget);
 
 		// Derived to show/hide

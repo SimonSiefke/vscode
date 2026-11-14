@@ -41,6 +41,6 @@
 	white-space: nowrap;
 }
 
-.chat-customization-migration-notice > .monaco-action-bar {
+.chat-customization-migration-notice > .monaco-action-bar:where(.customization-migration-action-bar) {
 	flex-shrink: 0;
 }

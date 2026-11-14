@@ -2016,7 +2016,7 @@ suite('ChatThinkingContentPart', () => {
 				thinkingAgain: { title: 'Thinking: Compare the results.', ariaLabel: 'Thinking: Compare the results.', expanded: false },
 				finished: { title: 'Finished with 1 step - 4s', ariaLabel: 'Finished with 1 step - 4s', expanded: false },
 				sectionClasses: ['chat-thinking-conversation'],
-				headerIcons: ['codicon-chevron-right-compact'],
+				headerIcons: ['chat-collapsible-leading-glyph codicon-chevron-right-compact'],
 				rows: ['Thought for 2s', 'Read renderer.ts', 'Thought for 2s'],
 				expandedReasoning: ['Planning the fix', 'Check the renderer.'],
 			});

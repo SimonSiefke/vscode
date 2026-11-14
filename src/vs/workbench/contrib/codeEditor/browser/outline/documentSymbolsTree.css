@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-list .monaco-list-row.focused.selected .outline-element .monaco-highlighted-label,
+.monaco-list .monaco-list-row.focused.selected .outline-element .outline-highlighted-label,
 .monaco-list .monaco-list-row.focused.selected .outline-element-decoration {
 	/* make sure selection color wins when a label is being selected */
 	color: inherit !important;
@@ -16,7 +16,7 @@
 	align-items: center;
 }
 
-.monaco-list .outline-element .monaco-highlighted-label {
+.monaco-list .outline-element .outline-highlighted-label {
 	color: var(--outline-element-color);
 }
 

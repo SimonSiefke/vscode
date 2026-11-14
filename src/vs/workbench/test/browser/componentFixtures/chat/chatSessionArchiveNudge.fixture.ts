@@ -67,7 +67,7 @@ function renderArchiveNudge(context: ComponentFixtureContext, options: {
 				const persistentContent = inputPart.persistentContentContainerElement;
 				persistentContent.appendChild(row.element);
 				persistentContent.classList.add('chat-persistent-content-visible');
-				row.content.appendChild(pills.element);
+				row.appendChild(pills.element);
 				row.observe(persistentContent);
 				row.observe(pills.element, () => pills.getPillElements());
 			}

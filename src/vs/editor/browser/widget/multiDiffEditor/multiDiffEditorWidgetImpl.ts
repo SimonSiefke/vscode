@@ -217,9 +217,10 @@ export class MultiDiffEditorWidgetImpl extends Disposable {
 				.map(item => item.viewModel);
 		});
 		const variantClassNames = this._variantConfiguration.classNames.map(className => `.${className}`).join('');
+		this._scrollView.domNode.classList.add('multi-diff-editor-layer');
 		this._elements = h(`div.monaco-component.multiDiffEditor${variantClassNames}`, {}, [
 			this._scrollView.domNode,
-			h('div.placeholder@placeholder', {}, [h('div')]),
+			h('div.placeholder.multi-diff-editor-layer@placeholder', {}, [h('div')]),
 		]);
 		this.activeControl = derived(this, reader => {
 			const activeDiffItem = this._viewModel.read(reader)?.activeDiffItem.read(reader);

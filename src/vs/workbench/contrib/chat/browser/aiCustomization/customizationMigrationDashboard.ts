@@ -771,6 +771,7 @@ export class CustomizationMigrationDashboard extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				horizontalScrolling: false,
 				// Rows with migration warnings grow to fit all of them instead of clipping at a fixed height.
@@ -1056,7 +1057,7 @@ export class CustomizationMigrationDashboard extends Disposable {
 		button.element.classList.add(`migration-${kind}-button`);
 		button.label = label;
 		if (icon) {
-			DOM.append(button.element, $('span', { class: ThemeIcon.asClassName(icon), 'aria-hidden': 'true' }));
+			DOM.append(button.element, $('span', { class: ThemeIcon.asClassName(icon) + ' migration-button-glyph', 'aria-hidden': 'true' }));
 		}
 		this.focusTargets.set(key, button.element);
 		this.hover(button.element, hoverContent, disposables);

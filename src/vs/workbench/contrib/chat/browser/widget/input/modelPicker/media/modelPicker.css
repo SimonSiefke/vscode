@@ -47,7 +47,7 @@
 	overflow: hidden;
 }
 
-.interactive-session .chat-input-toolbar .chat-input-picker-item.compact-picker .action-label.model-picker-split.compact {
+.interactive-session .chat-input-toolbar .chat-input-picker-item.compact-picker .action-label.compact.model-picker-split {
 	justify-content: flex-start;
 }
 
@@ -73,7 +73,7 @@
 	justify-content: center;
 }
 
-.chat-input-picker-item .action-label.model-picker-split.compact .model-picker-name > .codicon {
+.chat-input-picker-item .action-label.model-picker-split.compact .model-picker-name > .chat-input-picker-glyph {
 	width: var(--vscode-codiconFontSize-compact);
 	height: var(--vscode-codiconFontSize-compact);
 	line-height: var(--vscode-codiconFontSize-compact);
@@ -96,7 +96,7 @@
 	flex-shrink: 0;
 }
 
-.chat-input-picker-item .action-label.model-picker-split .model-picker-section .codicon {
+.chat-input-picker-item .action-label.model-picker-split .model-picker-section .chat-input-picker-glyph {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
@@ -112,7 +112,7 @@
 	background-color: transparent;
 }
 
-.chat-input-picker-item .action-label.model-picker-split.disabled .codicon {
+.chat-input-picker-item .action-label.model-picker-split.disabled .chat-input-picker-glyph {
 	color: var(--vscode-disabledForeground);
 }
 
@@ -160,19 +160,19 @@
 	padding: 6px 8px;
 }
 
-.chat-model-hover-warning-text > .codicon,
-.chat-model-hover-info-text > .codicon,
-.chat-model-hover-promo-text > .codicon {
+.chat-model-hover-warning-text > .chat-model-banner-icon,
+.chat-model-hover-info-text > .chat-model-banner-icon,
+.chat-model-hover-promo-text > .chat-model-banner-icon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.chat-model-hover-warning-text > .codicon {
+.chat-model-hover-warning-text > .chat-model-banner-icon {
 	flex-shrink: 0;
 	color: var(--vscode-notificationsWarningIcon-foreground);
 }
 
-.chat-model-hover-info-text > .codicon,
-.chat-model-hover-promo-text > .codicon {
+.chat-model-hover-info-text > .chat-model-banner-icon,
+.chat-model-hover-promo-text > .chat-model-banner-icon {
 	flex-shrink: 0;
 	color: var(--vscode-notificationsInfoIcon-foreground);
 }
@@ -352,14 +352,10 @@
 	gap: 6px;
 }
 
-.chat-model-hover-configurable-buttons > .monaco-button {
+.chat-model-hover-configurable-buttons > .chat-model-configuration-button {
 	width: auto;
 	padding: 2px 8px;
 	font-size: 11px;
-}
-
-.monaco-workbench .chat-model-hover-configurable-buttons > .monaco-button .codicon[class*='codicon-'] {
-	font-size: var(--vscode-codiconFontSize-compact);
 }
 
 .action-widget.chat-model-picker-widget {
@@ -464,7 +460,7 @@
 	padding: var(--vscode-spacing-sizeNone) var(--vscode-spacing-size60);
 }
 
-.action-widget .chat-model-picker-tabbar .monaco-custom-radio .monaco-button.active > span:not(.codicon) {
+.action-widget .chat-model-picker-tabbar .monaco-custom-radio .monaco-button.active > span:where(.monaco-radio-button-content):not(.codicon) {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -484,7 +480,7 @@
 
 .action-widget .chat-model-picker-tabbar .monaco-custom-radio .monaco-button.active,
 .action-widget .chat-model-picker-tabbar .monaco-custom-radio .monaco-button.active:hover,
-.action-widget.search-mode .chat-model-picker-tabbar .tabbed-action-list-tabbar-action.checked {
+.action-widget.search-mode .chat-model-picker-tabbar .checked.tabbed-action-list-tabbar-action {
 	color: var(--vscode-modernTab-activeForeground);
 	background: var(--vscode-modernTab-activeBackground);
 	box-shadow: inset 0 0 0 var(--vscode-strokeThickness) var(--vscode-contrastActiveBorder, transparent);
@@ -495,7 +491,7 @@
 	border: var(--vscode-strokeThickness) solid transparent;
 }
 
-.action-widget .chat-model-picker-tabbar .tabbed-action-list-tabbar-action[data-id='comparison'].checked {
+.action-widget .chat-model-picker-tabbar [data-id='comparison'].checked.tabbed-action-list-tabbar-action {
 	color: var(--vscode-inputOption-activeForeground);
 	background: var(--vscode-inputOption-activeBackground);
 	border-color: var(--vscode-inputOption-activeBorder);
@@ -523,7 +519,7 @@
 	background: transparent;
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row {
+.action-widget .chat-model-picker-tabbed .action-widget-list-row {
 	box-sizing: border-box;
 	width: calc(100% - var(--vscode-spacing-size80));
 	margin-left: var(--vscode-spacing-size40);
@@ -531,7 +527,7 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row.action {
+.action-widget .chat-model-picker-tabbed .action.action-widget-list-row {
 	gap: 0;
 }
 
@@ -594,7 +590,7 @@
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row.action.checked {
+.action-widget .chat-model-picker-tabbed .action.checked.action-widget-list-row {
 	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--vscode-button-background) 18%, var(--vscode-menu-background));
 }
@@ -623,7 +619,7 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
-.action-widget .chat-model-picker-tabbed .monaco-list-row.separator.has-detail > span {
+.action-widget .chat-model-picker-tabbed .monaco-list-row.separator.has-detail > span:where(.action-list-separator-text, .action-item-additional-badges, .detail) {
 	display: block;
 	height: auto;
 	line-height: 1.4;
@@ -989,7 +985,7 @@
 	gap: var(--vscode-spacing-size80);
 }
 
-.chat-model-picker-welcome-icon.codicon {
+.codicon.chat-model-picker-welcome-icon {
 	font-size: 32px;
 	color: var(--vscode-descriptionForeground);
 }
@@ -1210,7 +1206,7 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.chat-model-card-option.checked {
+.checked.chat-model-card-option {
 	background-color: color-mix(in srgb, var(--vscode-button-background) 18%, var(--vscode-menu-background));
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
@@ -1295,7 +1291,7 @@
 	visibility: hidden;
 }
 
-.chat-model-card-pricing-body.expanded {
+.expanded.chat-model-card-pricing-body {
 	grid-template-rows: 1fr;
 	visibility: visible;
 }
@@ -1321,7 +1317,7 @@
 		transition: grid-template-rows 150ms ease-out, visibility 0s linear 150ms;
 	}
 
-	.chat-model-card-pricing-body.expanded {
+	.expanded.chat-model-card-pricing-body {
 		transition-delay: 0s;
 	}
 }
@@ -1359,7 +1355,7 @@
 	margin: 0;
 }
 
-.chat-model-card-description a,
+.chat-model-card-description a:where(.chat-model-description-link),
 .chat-model-card-description a:visited {
 	color: var(--vscode-textLink-foreground);
 }
@@ -1397,7 +1393,7 @@
 	margin-bottom: var(--vscode-spacing-size80);
 }
 
-.model-picker-comparison .model-picker-comparison-count > span {
+.model-picker-comparison .model-picker-comparison-count > span:where(.model-picker-comparison-count-label) {
 	flex-shrink: 0;
 }
 
@@ -1470,7 +1466,7 @@
 	font-size: var(--vscode-fontSize-label3);
 }
 
-.action-widget.chat-model-picker-widget.model-picker-comparison .monaco-list-row.action .icon.chat-model-picker-comparison-checkbox.checked {
+.action-widget.chat-model-picker-widget.model-picker-comparison .monaco-list-row.action .icon.checked.chat-model-picker-comparison-checkbox {
 	border-color: var(--vscode-button-background);
 	background-color: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
@@ -1500,7 +1496,7 @@
 	pointer-events: none;
 }
 
-.chat-local-model-card-header .chat-local-model-card-busy .codicon {
+.chat-local-model-card-header .chat-local-model-card-busy .codicon:where(.chat-local-model-busy-glyph) {
 	color: inherit;
 }
 
@@ -1541,17 +1537,17 @@
 	border-radius: var(--vscode-cornerRadius-medium);
 }
 
-.chat-local-model-card-message > .codicon {
+.chat-local-model-card-message > .codicon:where(.chat-local-model-message-glyph) {
 	flex-shrink: 0;
 	line-height: var(--vscode-spacing-size160);
 	font-size: var(--vscode-codiconFontSize-compact);
 }
 
-.chat-local-model-card-message.error > .codicon {
+.chat-local-model-card-message.error > .codicon:where(.chat-local-model-message-glyph) {
 	color: var(--vscode-notificationsErrorIcon-foreground);
 }
 
-.chat-local-model-card-message.warning > .codicon {
+.chat-local-model-card-message.warning > .codicon:where(.chat-local-model-message-glyph) {
 	color: var(--vscode-notificationsWarningIcon-foreground);
 }
 

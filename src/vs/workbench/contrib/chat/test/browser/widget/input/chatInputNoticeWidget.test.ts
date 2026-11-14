@@ -164,7 +164,7 @@ suite('ChatInputNoticeWidget', () => {
 				inHeader: housing.parentElement === header,
 			},
 			{
-				classes: ['action-label', 'codicon', 'codicon-close-compact', 'chat-input-notice-dismiss'],
+				classes: ['action-label', 'chat-input-notice-action-label', 'codicon', 'codicon-close-compact', 'chat-input-notice-dismiss'],
 				role: 'button',
 				label: 'Dismiss',
 				tabIndex: 0,

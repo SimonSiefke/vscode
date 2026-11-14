@@ -13,8 +13,7 @@
 	pointer-events: none;
 }
 
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-action-bar,
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-toolbar {
+.interactive-result-code-block .interactive-result-code-block-toolbar > .chat-code-block-toolbar-root {
 	position: absolute;
 	top: -15px;
 	height: 26px;
@@ -28,15 +27,11 @@
 	overflow: hidden;
 }
 
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-action-bar {
-	left: 0px
-}
-
-.interactive-result-code-block .interactive-result-code-block-toolbar > .monaco-toolbar {
+.interactive-result-code-block .interactive-result-code-block-toolbar > .chat-code-block-toolbar-root {
 	right: 10px;
 }
 
-.interactive-result-code-block .monaco-toolbar .action-item {
+.interactive-result-code-block .monaco-toolbar .chat-code-block-action-item {
 	height: 24px;
 	width: 24px;
 	margin: 1px 2px;
@@ -164,15 +159,15 @@
 		box-sizing: border-box;
 		border-bottom: solid 1px var(--vscode-chat-requestBorder);
 
-		& .monaco-icon-label {
+		& .chat-compare-resource-label {
 			flex: 1;
 			min-width: 0;
 
-			& > .monaco-icon-label-container {
+			& > .chat-compare-label-container {
 				display: flex;
 				align-items: baseline;
 
-				& > .monaco-icon-name-container {
+				& > .chat-compare-name-container {
 					flex-shrink: 0;
 
 					& > .label-name {
@@ -180,7 +175,7 @@
 					}
 				}
 
-				& > .monaco-icon-description-container {
+				& > .chat-compare-description-container {
 					min-width: 0;
 					flex: 1;
 

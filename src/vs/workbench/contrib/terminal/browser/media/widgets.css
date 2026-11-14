@@ -40,6 +40,6 @@
 	opacity: 1;
 }
 
-.monaco-workbench .terminal-env-var-info.codicon {
+.monaco-workbench .codicon.terminal-env-var-info {
 	line-height: 28px;
 }

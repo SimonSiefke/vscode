@@ -68,7 +68,7 @@
 
 /* Vertical actions */
 
-.monaco-action-bar.vertical {
+.monaco-action-bar.vertical:where(.monaco-vertical-action-bar) {
 	text-align: left;
 }
 
@@ -122,6 +122,6 @@
 	cursor: default;
 }
 
-.monaco-action-bar .action-item.action-dropdown-item > .action-dropdown-item-separator > div {
+.action-dropdown-item-separator-line {
 	width: 1px;
 }

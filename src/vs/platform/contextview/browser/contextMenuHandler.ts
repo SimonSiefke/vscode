@@ -94,6 +94,7 @@ export class ContextMenuHandler {
 				menu = new Menu(container, actions, {
 					actionViewItemProvider: delegate.getActionViewItem,
 					context: delegate.getActionsContext ? delegate.getActionsContext() : null,
+					labelClassName: delegate.labelClassName,
 					actionRunner,
 					getKeyBinding: delegate.getKeyBinding ? delegate.getKeyBinding : action => this.keybindingService.lookupKeybinding(action.id),
 					getGroupTitle: getMenuActionGroupTitle,

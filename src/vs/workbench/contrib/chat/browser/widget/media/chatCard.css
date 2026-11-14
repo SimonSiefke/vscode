@@ -101,7 +101,7 @@
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-button.chat-card-icon-button.disabled {
+.monaco-button.disabled.chat-card-icon-button {
 	opacity: 0.4;
 }
 

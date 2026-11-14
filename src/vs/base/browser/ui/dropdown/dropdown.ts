@@ -233,6 +233,7 @@ export class DropdownMenu extends BaseDropdown {
 			getActionViewItem: (action, options) => this.menuOptions && this.menuOptions.actionViewItemProvider ? this.menuOptions.actionViewItemProvider(action, options) : undefined,
 			getKeyBinding: action => this.menuOptions && this.menuOptions.getKeyBinding ? this.menuOptions.getKeyBinding(action) : undefined,
 			getMenuClassName: () => this.getMenuClassName(),
+			labelClassName: this.menuOptions?.labelClassName,
 			closeAnimation: this._options.closeAnimation ?? contextViewMenuCloseAnimation,
 			onHide: () => this.onHide(),
 			actionRunner: this.menuOptions ? this.menuOptions.actionRunner : undefined,

@@ -515,6 +515,7 @@ export class CopilotCanvasesWidget extends Disposable implements IAICustomizatio
 		const createLabel = localize('copilotCanvases.create', "Create a Canvas...");
 		const createAriaLabel = localize('copilotCanvases.createAriaLabel', "Create a Canvas");
 		this.createCanvasButton = this._register(new Button(titleActions, {
+			buttonClassName: 'copilot-canvas-header-button',
 			...defaultButtonStyles,
 			secondary: true,
 			small: true,
@@ -528,6 +529,7 @@ export class CopilotCanvasesWidget extends Disposable implements IAICustomizatio
 		const browseLabel = localize('copilotCanvases.browse', "Browse");
 		const browseAriaLabel = localize('copilotCanvases.browseAriaLabel', "Browse Canvas Extensions");
 		this.browseCanvasesButton = this._register(new Button(titleActions, {
+			buttonClassName: 'copilot-canvas-header-button',
 			...defaultButtonStyles,
 			secondary: true,
 			small: true,
@@ -613,6 +615,7 @@ export class CopilotCanvasesWidget extends Disposable implements IAICustomizatio
 				renderIndentGuides: RenderIndentGuides.None,
 				hideTwistiesOfChildlessElements: false,
 				overrideStyles: customizationTreeStyles,
+				rowClassName: 'ai-customization-tree-row',
 				multipleSelectionSupport: false,
 				setRowLineHeight: false,
 				horizontalScrolling: false,

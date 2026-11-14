@@ -86,6 +86,10 @@ export interface IListViewOptionsUpdate {
 }
 
 export interface IListViewOptions<T> extends IListViewOptionsUpdate {
+	/** CSS class applied to each row before its renderer creates the template. */
+	readonly rowClassName?: string;
+	/** CSS class applied to the scrollable viewport during creation. */
+	readonly scrollableClassName?: string;
 	readonly dnd?: IListViewDragAndDrop<T>;
 	readonly useShadows?: boolean;
 	readonly verticalScrollMode?: ScrollbarVisibility;
@@ -400,7 +404,7 @@ export class ListView<T> implements IListView<T> {
 			this.renderers.set(renderer.templateId, renderer);
 		}
 
-		this.cache = this.disposables.add(new RowCache(this.renderers));
+		this.cache = this.disposables.add(new RowCache(this.renderers, options.rowClassName));
 
 		this.lastRenderTop = 0;
 		this.lastRenderHeight = 0;
@@ -438,6 +442,7 @@ export class ListView<T> implements IListView<T> {
 			scheduleAtNextAnimationFrame: cb => scheduleAtNextAnimationFrame(getWindow(this.domNode), cb)
 		}));
 		this.scrollableElement = this.disposables.add(new SmoothScrollableElement(this.rowsContainer, {
+			className: options.scrollableClassName ? `monaco-list-scrollable ${options.scrollableClassName}` : 'monaco-list-scrollable',
 			alwaysConsumeMouseWheel: options.alwaysConsumeMouseWheel ?? DefaultOptions.alwaysConsumeMouseWheel,
 			horizontal: ScrollbarVisibility.Auto,
 			vertical: options.verticalScrollMode ?? DefaultOptions.verticalScrollMode,

@@ -890,7 +890,7 @@ export class GettingStartedPage extends EditorPane {
 
 		this.categoriesSlide = $('.gettingStartedSlideCategories.gettingStartedSlide');
 
-		const prevButton = $('button.prev-button.button-link', { 'x-dispatch': 'scrollPrev' }, $('span.scroll-button.codicon.codicon-chevron-left'), $('span.moreText', {}, localize('goBack', "Go Back")));
+		const prevButton = $('button.prev-button.button-link', { 'x-dispatch': 'scrollPrev' }, $('span.scroll-button.codicon.codicon-chevron-left.getting-started-back-glyph'), $('span.moreText', {}, localize('goBack', "Go Back")));
 		this.stepsSlide = $('.gettingStartedSlideDetails.gettingStartedSlide', {}, prevButton);
 
 		this.stepsContent = $('.gettingStartedDetailsContent', {});
@@ -972,6 +972,9 @@ export class GettingStartedPage extends EditorPane {
 		));
 
 		const footer = $('.footer', {}, ...footerChildren);
+		for (const section of [header, leftColumn, rightColumn, footer]) {
+			section.classList.add('getting-started-category-section');
+		}
 		const categoriesContainer = $('.gettingStartedCategoriesContainer', {}, header, leftColumn, rightColumn, footer,);
 		const graphic = derived(reader => agentsBanner.visible.read(reader) ? agentsWindowGraphic.shownDesign.read(reader) : undefined);
 		const layoutAgentsWindowGraphic = () => this.fitAgentsWindowGraphic(categoriesContainer, graphic.get() !== undefined);
@@ -1225,11 +1228,11 @@ export class GettingStartedPage extends EditorPane {
 
 			if (category.isFeatured && this.showFeaturedWalkthrough) {
 				reset(featuredBadge, $('.featured', {}, $('span.featured-icon.codicon.codicon-star-full')));
-				reset(descriptionContent, ...renderLabelWithIcons(category.description));
+				reset(descriptionContent, ...renderLabelWithIcons(category.description, undefined, 'getting-started-description-glyph'));
 			}
 
 			const titleContent = $('h3.category-title.max-lines-3', { 'x-category-title-for': category.id });
-			reset(titleContent, ...renderLabelWithIcons(category.title));
+			reset(titleContent, ...renderLabelWithIcons(category.title, undefined, 'getting-started-category-title-glyph'));
 
 			return $('button.getting-started-category' + (category.isFeatured && this.showFeaturedWalkthrough ? '.featured' : ''),
 				{
@@ -1519,7 +1522,7 @@ export class GettingStartedPage extends EditorPane {
 					if (keybinding) {
 						const shortcutMessage = $('span.shortcut-message', {}, localize('gettingStarted.keyboardTip', 'Tip: Use keyboard shortcut '));
 						container.appendChild(shortcutMessage);
-						const label = new KeybindingLabel(shortcutMessage, OS, { ...defaultKeybindingLabelStyles });
+						const label = new KeybindingLabel(shortcutMessage, OS, { ...defaultKeybindingLabelStyles, keyClassName: 'getting-started-shortcut-key' });
 						label.set(keybinding);
 						this.detailsPageDisposables.add(label);
 					}
@@ -1580,7 +1583,7 @@ export class GettingStartedPage extends EditorPane {
 			$('.getting-started-category',
 				{},
 				$('.category-description-container', {},
-					$('h2.category-title.max-lines-3', { 'x-category-title-for': category.id }, ...renderLabelWithIcons(category.title)),
+					$('h2.category-title.max-lines-3', { 'x-category-title-for': category.id }, ...renderLabelWithIcons(category.title, undefined, 'getting-started-category-title-glyph')),
 					descriptionContainer));
 
 		const stepListContainer = $('.step-list-container');
@@ -1622,7 +1625,7 @@ export class GettingStartedPage extends EditorPane {
 
 			reset(stepListContainer, ...renderedSteps
 				.map(step => {
-					const codicon = $('.codicon' + (step.done ? '.complete' + ThemeIcon.asCSSSelector(gettingStartedCheckedCodicon) : ThemeIcon.asCSSSelector(gettingStartedUncheckedCodicon)),
+					const codicon = $('.codicon.getting-started-step-completion-glyph' + (step.done ? '.complete' + ThemeIcon.asCSSSelector(gettingStartedCheckedCodicon) : ThemeIcon.asCSSSelector(gettingStartedUncheckedCodicon)),
 						{
 							'data-done-step-id': step.id,
 							'x-dispatch': 'toggleStepCompletion:' + step.id,
@@ -1637,7 +1640,7 @@ export class GettingStartedPage extends EditorPane {
 					this.buildMarkdownDescription(container, step.description);
 
 					const stepTitle = $('h3.step-title.max-lines-3', { 'x-step-title-for': step.id });
-					reset(stepTitle, ...renderLabelWithIcons(step.title));
+					reset(stepTitle, ...renderLabelWithIcons(step.title, undefined, 'getting-started-step-title-glyph'));
 
 					const stepDescription = $('.step-container', {},
 						stepTitle,

@@ -447,14 +447,14 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 		}
 
 		const labelElements = [];
-		labelElements.push(...renderLabelWithIcons(`$(${getCompactCodicon(icon).id})`));
+		labelElements.push(...renderLabelWithIcons(`$(${getCompactCodicon(icon).id})`, undefined, 'chat-input-picker-glyph'));
 		const compact = this.pickerOptions.compact.get();
 		element.classList.toggle('icon-only', compact);
 		if (!compact) {
 			labelElements.push(dom.$('span.chat-input-picker-label', undefined, label));
 		}
 		if (sandboxIcon) {
-			labelElements.push(dom.$(`span.codicon.codicon-${getCompactCodicon(Codicon.shield).id}.chat-input-picker-sandbox-icon`, { 'aria-hidden': 'true' }));
+			labelElements.push(dom.$(`span.codicon.codicon-${getCompactCodicon(Codicon.shield).id}.chat-input-picker-sandbox-icon.chat-input-picker-glyph`, { 'aria-hidden': 'true' }));
 		}
 
 		dom.reset(element, ...labelElements);

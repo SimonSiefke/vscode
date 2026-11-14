@@ -174,7 +174,7 @@ export class WorkspaceTrustedUrisTable extends Disposable {
 		}));
 
 		const buttonBar = this._register(new ButtonBar(addButtonBarElement));
-		const addButton = this._register(buttonBar.addButton({ title: localize('addButton', "Add Folder"), ...defaultButtonStyles }));
+		const addButton = this._register(buttonBar.addButton({ title: localize('addButton', "Add Folder"), ...defaultButtonStyles, buttonClassName: 'workspace-trust-add-folder-button' }));
 		addButton.label = localize('addButton', "Add Folder");
 
 		this._register(addButton.onDidClick(async () => {
@@ -462,7 +462,7 @@ class TrustedUriActionsColumnRenderer implements ITableRenderer<ITrustedUriItem,
 
 	renderTemplate(container: HTMLElement): IActionsColumnTemplateData {
 		const element = container.appendChild($('.actions'));
-		const actionBar = new ActionBar(element);
+		const actionBar = new ActionBar(element, { className: 'workspace-trust-row-action-bar', actionsContainerClassName: 'workspace-trust-uri-actions' });
 		return { actionBar };
 	}
 
@@ -482,7 +482,7 @@ class TrustedUriActionsColumnRenderer implements ITableRenderer<ITrustedUriItem,
 		}
 		actions.push(this.createEditAction(item));
 		actions.push(this.createDeleteAction(item));
-		templateData.actionBar.push(actions, { icon: true });
+		templateData.actionBar.push(actions, { icon: true, labelClassName: 'workspace-trust-action-label' });
 	}
 
 	private createEditAction(item: ITrustedUriItem): IAction {

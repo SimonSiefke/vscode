@@ -190,6 +190,7 @@ export class ChatModifiedFilesConfirmationSubPart extends AbstractToolConfirmati
 		const overview = dom.append(container, dom.$('.chat-editing-session-overview'));
 		const title = dom.append(overview, dom.$('.working-set-title'));
 		const titleButton = this._register(new ButtonWithIcon(title, {
+			buttonClassName: 'chat-working-set-title-button',
 			buttonBackground: undefined,
 			buttonBorder: undefined,
 			buttonForeground: undefined,

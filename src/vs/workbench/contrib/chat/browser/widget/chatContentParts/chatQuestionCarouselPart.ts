@@ -1031,6 +1031,9 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 		const answersContainer = dom.append(bodyContent, dom.$('.chat-question-answers'));
 		this._answersContainer = answersContainer;
 		this.renderInput(answersContainer, question);
+		for (const child of answersContainer.children) {
+			child.classList.add('chat-question-input-section');
+		}
 
 		const bodyScrollable = questionRenderStore.add(new DomScrollableElement(bodyContent, {
 			vertical: ScrollbarVisibility.Auto,
@@ -2100,7 +2103,7 @@ export class ChatQuestionCarouselPart extends Disposable implements IChatContent
 
 	private renderSelectedOptionState(): HTMLElement {
 		const selectedState = dom.$('span.chat-question-summary-option-selected');
-		const selectedIcon = dom.$('span');
+		const selectedIcon = dom.$('span.chat-question-selected-glyph');
 		selectedIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.checkCompact));
 		selectedIcon.setAttribute('aria-hidden', 'true');
 		selectedState.appendChild(selectedIcon);

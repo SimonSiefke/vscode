@@ -304,6 +304,7 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 
 		// Toolbar Widget
 		this.editorActionsToolbar = this.editorActionsToolbarDisposables.add(this.instantiationService.createInstance(WorkbenchToolBar, container, {
+			actionItemClassName: 'editor-title-action-item',
 			actionViewItemProvider: (action, options) => this.actionViewItemProvider(action, options),
 			orientation: ActionsOrientation.HORIZONTAL,
 			ariaLabel: localize('ariaLabelEditorActions', "Editor actions"),
@@ -336,6 +337,7 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 		// Toolbar Widget (no overflow, no hidden-item "..." button so layout actions
 		// are always rendered inline after the primary toolbar's own overflow).
 		this.editorLayoutActionsToolbar = this.editorLayoutActionsToolbarDisposables.add(this.instantiationService.createInstance(WorkbenchToolBar, container, {
+			actionItemClassName: 'editor-title-action-item',
 			actionViewItemProvider: (action, options) => this.actionViewItemProvider(action, options),
 			orientation: ActionsOrientation.HORIZONTAL,
 			ariaLabel: localize('ariaLabelEditorActionsLayout', "Editor layout actions"),

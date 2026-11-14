@@ -684,6 +684,9 @@ class DiscoveryResultRenderer implements IListRenderer<DiscoveryListEntry, IDisc
 		verified.appendChild(renderIcon(verifiedPublisherIcon));
 		const description = DOM.append(identity, $('.customization-discovery-result-description'));
 		const aside = DOM.append(root, $('.customization-discovery-result-aside'));
+		for (const child of [primaryAction, linkedConnectionLabel, icon, identity, aside]) {
+			child.classList.add('customization-discovery-result-body');
+		}
 		const stats = DOM.append(aside, $('.customization-discovery-result-stats'));
 		const actions = DOM.append(aside, $('.customization-discovery-result-actions'));
 		return {
@@ -816,7 +819,7 @@ class DiscoveryResultRenderer implements IListRenderer<DiscoveryListEntry, IDisc
 			if (element.resource.stars !== undefined) {
 				const starsLabel = localize('customizationDiscovery.stars', "{0} stars", element.resource.stars.toLocaleString());
 				templateData.stats.setAttribute('aria-label', starsLabel);
-				const star = DOM.append(templateData.stats, $('.codicon'));
+				const star = DOM.append(templateData.stats, $('.codicon.customization-discovery-stats-glyph'));
 				star.classList.add(...ThemeIcon.asClassNameArray(Codicon.starFull));
 				star.setAttribute('aria-hidden', 'true');
 				DOM.append(templateData.stats, $('span')).textContent = formatCompactCount(element.resource.stars);
@@ -1348,6 +1351,7 @@ export class AICustomizationDiscoveryPage extends Disposable implements IAICusto
 			},
 		}, this.titleDescription);
 		for (const link of this.titleDescription.children) {
+			link.classList.add('customization-discovery-description-link');
 			link.setAttribute('href', docsUrl);
 			link.setAttribute('aria-label', localize('customizationDiscovery.learnMore', "Learn more about agent customizations"));
 		}

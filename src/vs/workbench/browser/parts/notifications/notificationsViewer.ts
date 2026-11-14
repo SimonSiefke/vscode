@@ -181,7 +181,7 @@ class NotificationMessageRenderer {
 					title = node.href;
 				}
 
-				const anchor = $('a', { href: node.href, title, tabIndex: 0 }, node.label);
+				const anchor = $('a.notification-message-link', { href: node.href, title, tabIndex: 0 }, node.label);
 
 				if (actionHandler) {
 					const handleOpen = (e: unknown) => {
@@ -253,6 +253,7 @@ export class NotificationRenderer implements IListRenderer<INotificationViewItem
 		data.toolbar = new ActionBar(
 			toolbarContainer,
 			{
+				actionItemClassName: 'notification-row-action-item',
 				ariaLabel: localize('notificationActions', "Notification Actions"),
 				actionViewItemProvider: (action, options) => {
 					if (action instanceof ConfigureNotificationAction) {

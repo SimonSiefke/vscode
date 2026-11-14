@@ -90,7 +90,7 @@
 	z-index: 1;
 }
 
-.xterm .composition-view.active {
+.xterm .active.composition-view {
 	display: block;
 }
 

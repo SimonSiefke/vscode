@@ -114,6 +114,8 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 	override render(container: HTMLElement): void {
 		super.render(container);
 		container.classList.add('command-center-center');
+		const commandCenterContainer = container;
+		commandCenterContainer.classList.remove('command-center-compact');
 		container.classList.toggle('multiple', (this._submenu.actions.length > 1));
 
 		const hover = this._store.add(this._hoverService.setupManagedHover(this._hoverDelegate, container, this.getTooltip()));
@@ -138,6 +140,8 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 
 			// nested toolbar
 			const toolbar = this._instaService.createInstance(WorkbenchToolBar, container, {
+				actionBarClassName: 'command-center-action-bar',
+				actionsContainerClassName: 'command-center-toolbar-actions',
 				hiddenItemStrategy: HiddenItemStrategy.NoHide,
 				telemetrySource: 'commandCenterCenter',
 				actionViewItemProvider: (action, options) => {
@@ -173,6 +177,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 							const agentControlValue = that._configurationService.getValue(AGENT_STATUS_ENABLED_SETTING);
 							const isCompactMode = !forcedHidden && (agentControlValue === true || agentControlValue === undefined || agentControlValue === 'compact');
 							container.classList.toggle('compact-mode', isCompactMode);
+							commandCenterContainer.classList.toggle('command-center-compact', isCompactMode);
 
 							const action = this.action;
 
@@ -226,6 +231,7 @@ class CommandCenterCenterViewItem extends BaseActionViewItem {
 					});
 				}
 			});
+			toolbar.getElement().classList.add('command-center-toolbar');
 			toolbar.setActions(group);
 			this._store.add(toolbar);
 

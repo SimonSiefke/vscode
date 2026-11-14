@@ -25,6 +25,8 @@ export interface IHighlightedLabelOptions {
 	readonly hoverDelegate?: IHoverDelegate;
 }
 
+const partClassName = 'monaco-highlighted-label-part';
+
 /**
  * A widget which can render a label with substring highlights, often
  * originating from a filter function like the fuzzy matcher.
@@ -98,7 +100,7 @@ export class HighlightedLabel extends Disposable {
 			if (pos < highlight.start) {
 				const substring = this.text.substring(pos, highlight.start);
 				if (supportIcons) {
-					children.push(...renderLabelWithIcons(substring, true));
+					children.push(...renderLabelWithIcons(substring, true, partClassName));
 				} else {
 					children.push(substring);
 				}
@@ -106,7 +108,9 @@ export class HighlightedLabel extends Disposable {
 			}
 
 			const substring = this.text.substring(pos, highlight.end);
-			const element = dom.$('span.highlight', undefined, ...supportIcons ? renderLabelWithIcons(substring, true) : [substring]);
+			const element = dom.$('span.highlight', undefined, ...supportIcons ? renderLabelWithIcons(substring, true, partClassName) : [substring]);
+
+			element.classList.add(partClassName);
 
 			if (highlight.extraClasses) {
 				element.classList.add(...highlight.extraClasses);
@@ -119,7 +123,7 @@ export class HighlightedLabel extends Disposable {
 		if (pos < this.text.length) {
 			const substring = this.text.substring(pos,);
 			if (supportIcons) {
-				children.push(...renderLabelWithIcons(substring, true));
+				children.push(...renderLabelWithIcons(substring, true, partClassName));
 			} else {
 				children.push(substring);
 			}

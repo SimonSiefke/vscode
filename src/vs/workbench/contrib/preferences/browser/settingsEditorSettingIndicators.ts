@@ -114,7 +114,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 	private createWorkspaceTrustIndicator(): SettingIndicator {
 		const disposables = new DisposableStore();
 		const workspaceTrustElement = $('span.setting-indicator.setting-item-workspace-trust');
-		const workspaceTrustLabel = disposables.add(new SimpleIconLabel(workspaceTrustElement));
+		const workspaceTrustLabel = disposables.add(new SimpleIconLabel(workspaceTrustElement, 'setting-title-glyph'));
 		workspaceTrustLabel.text = '$(shield) ' + localize('workspaceUntrustedLabel', "Requires workspace trust");
 
 		const content = localize('trustLabel', "The setting value can only be applied in a trusted workspace.");
@@ -140,7 +140,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 		const disposables = new DisposableStore();
 		// Don't add .setting-indicator class here, because it gets conditionally added later.
 		const otherOverridesElement = $('span.setting-item-overrides');
-		const otherOverridesLabel = disposables.add(new SimpleIconLabel(otherOverridesElement));
+		const otherOverridesLabel = disposables.add(new SimpleIconLabel(otherOverridesElement, 'setting-title-glyph'));
 		return {
 			element: otherOverridesElement,
 			label: otherOverridesLabel,
@@ -151,7 +151,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 	private createSyncIgnoredIndicator(): SettingIndicator {
 		const disposables = new DisposableStore();
 		const syncIgnoredElement = $('span.setting-indicator.setting-item-ignored');
-		const syncIgnoredLabel = disposables.add(new SimpleIconLabel(syncIgnoredElement));
+		const syncIgnoredLabel = disposables.add(new SimpleIconLabel(syncIgnoredElement, 'setting-title-glyph'));
 		syncIgnoredLabel.text = localize('extensionSyncIgnoredLabel', 'Not synced');
 
 		const syncIgnoredHoverContent = localize('syncIgnoredTitle', "This setting is ignored during sync");
@@ -170,7 +170,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 	private createDefaultOverrideIndicator(): SettingIndicator {
 		const disposables = new DisposableStore();
 		const defaultOverrideIndicator = $('span.setting-indicator.setting-item-default-overridden');
-		const defaultOverrideLabel = disposables.add(new SimpleIconLabel(defaultOverrideIndicator));
+		const defaultOverrideLabel = disposables.add(new SimpleIconLabel(defaultOverrideIndicator, 'setting-title-glyph'));
 		defaultOverrideLabel.text = localize('defaultOverriddenLabel', "Default value changed");
 
 		return {
@@ -183,7 +183,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 	private createPreviewIndicator(): SettingIndicator {
 		const disposables = new DisposableStore();
 		const previewIndicator = $('span.setting-indicator.setting-item-preview');
-		const previewLabel = disposables.add(new SimpleIconLabel(previewIndicator));
+		const previewLabel = disposables.add(new SimpleIconLabel(previewIndicator, 'setting-title-glyph'));
 
 		return {
 			element: previewIndicator,
@@ -195,7 +195,7 @@ export class SettingsTreeIndicatorsLabel implements IDisposable {
 	private createAdvancedIndicator(): SettingIndicator {
 		const disposables = new DisposableStore();
 		const advancedIndicator = $('span.setting-indicator.setting-item-preview');
-		const advancedLabel = disposables.add(new SimpleIconLabel(advancedIndicator));
+		const advancedLabel = disposables.add(new SimpleIconLabel(advancedIndicator, 'setting-title-glyph'));
 		advancedLabel.text = localize('advancedLabel', "Advanced");
 
 		disposables.add(this.hoverService.setupDelayedHover(advancedIndicator, {

@@ -933,7 +933,7 @@ export class TabbedModelPicker extends Disposable {
 		if (step.count) {
 			const count = step.count;
 			const row = dom.append(container, dom.$('.model-picker-comparison-count'));
-			dom.append(row, dom.$('span')).textContent = count.label;
+			dom.append(row, dom.$('span.model-picker-comparison-count-label')).textContent = count.label;
 			const select = store.add(new SelectBox(
 				Array.from({ length: count.max - count.min + 1 }, (_, index) => ({ text: String(index + count.min) })),
 				count.value - count.min, this._contextViewService, defaultSelectBoxStyles,

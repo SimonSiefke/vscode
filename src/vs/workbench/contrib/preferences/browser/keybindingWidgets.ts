@@ -172,7 +172,7 @@ export class DefineKeybindingWidget extends Widget {
 		this._domNode.domNode.style.backgroundColor = asCssVariable(editorWidgetBackground);
 		this._domNode.domNode.style.color = asCssVariable(editorWidgetForeground);
 
-		this._keybindingInputWidget = this._register(this.instantiationService.createInstance(KeybindingsSearchWidget, this._domNode.domNode, { ariaLabel: message, history: new Set([]), inputBoxStyles: defaultInputBoxStyles }));
+		this._keybindingInputWidget = this._register(this.instantiationService.createInstance(KeybindingsSearchWidget, this._domNode.domNode, { inputBoxClassName: 'define-keybinding-input-box', ariaLabel: message, history: new Set([]), inputBoxStyles: defaultInputBoxStyles }));
 		this._keybindingInputWidget.startRecordingKeys();
 		this._register(this._keybindingInputWidget.onKeybinding(keybinding => this.onKeybinding(keybinding)));
 		this._register(this._keybindingInputWidget.onEnter(() => this.hide()));

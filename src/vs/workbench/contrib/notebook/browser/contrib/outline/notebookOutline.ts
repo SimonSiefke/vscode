@@ -90,7 +90,7 @@ class NotebookOutlineRenderer implements ITreeRenderer<OutlineEntry, FuzzyScore,
 		container.classList.add('notebook-outline-element', 'show-file-icons');
 		const iconClass = document.createElement('div');
 		container.append(iconClass);
-		const iconLabel = new IconLabel(container, { supportHighlights: true });
+		const iconLabel = new IconLabel(container, { supportHighlights: true, highlightedLabelClassName: 'notebook-outline-highlighted-label' });
 		const decoration = document.createElement('div');
 		decoration.className = 'element-decoration';
 		container.append(decoration);

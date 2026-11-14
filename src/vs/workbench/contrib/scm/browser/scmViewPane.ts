@@ -179,7 +179,7 @@ export class ActionButtonRenderer implements ICompressibleTreeRenderer<ISCMActio
 		// Use default cursor & disable hover for list item
 		container.parentElement!.parentElement!.classList.add('cursor-default', 'force-no-hover');
 
-		const buttonContainer = append(container, $('.button-container'));
+		const buttonContainer = append(container, $('.button-container.scm-tree-item'));
 		const actionButton = new SCMActionButton(buttonContainer, this.contextMenuService, this.commandService, this.notificationService);
 
 		return { actionButton, disposable: Disposable.None, templateDisposable: actionButton };
@@ -301,7 +301,7 @@ class InputRenderer implements ICompressibleTreeRenderer<ISCMInput, FuzzyScore, 
 		container.parentElement!.parentElement!.classList.add('force-no-hover');
 
 		const templateDisposable = new DisposableStore();
-		const inputElement = append(container, $('.scm-input'));
+		const inputElement = append(container, $('.scm-input.scm-tree-item'));
 		const inputWidget = this.instantiationService.createInstance(SCMInputWidget, inputElement, this.overflowWidgetsDomNode);
 		templateDisposable.add(inputWidget);
 
@@ -426,7 +426,7 @@ class ResourceGroupRenderer implements ICompressibleTreeRenderer<ISCMResourceGro
 	) { }
 
 	renderTemplate(container: HTMLElement): ResourceGroupTemplate {
-		const element = append(container, $('.resource-group'));
+		const element = append(container, $('.resource-group.scm-tree-item'));
 		const name = append(element, $('.name'));
 		const actionsContainer = append(element, $('.actions'));
 		const actionBar = new WorkbenchToolBar(actionsContainer, {
@@ -533,7 +533,7 @@ class ResourceRenderer implements ICompressibleTreeRenderer<ISCMResource | IReso
 	}
 
 	renderTemplate(container: HTMLElement): ResourceTemplate {
-		const element = append(container, $('.resource'));
+		const element = append(container, $('.resource.scm-tree-item'));
 		const name = append(element, $('.name'));
 		const fileLabel = this.labels.create(name, { supportDescriptionHighlights: true, supportHighlights: true });
 		const actionsContainer = append(fileLabel.element, $('.actions'));
@@ -2525,6 +2525,7 @@ export class SCMActionButton implements IDisposable {
 				actions: actions,
 				addPrimaryActionToDropdown: false,
 				contextMenuProvider: this.contextMenuService,
+				contentClassName: 'scm-command-button-content',
 				title: button.command.tooltip,
 				supportIcons: true,
 				...defaultButtonStyles
