@@ -10760,6 +10760,32 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	}
 
 	protected _removeDeletedSession(rawId: string, expected?: AgentHostSessionAdapter, chatResources?: readonly URI[]): AgentHostSessionAdapter | undefined {
+		const current = this._sessionCache.get(rawId);
+		if (expected && current && current !== expected) {
+			return undefined;
+		}
+		const stateOwner = current ?? expected;
+		const deletedResources = stateOwner ? chatResources ?? this._getSessionChatResources(stateOwner) : [];
+		const cached = this._removeCachedSession(rawId, expected);
+		if (!stateOwner) {
+			return cached;
+		}
+		let notifiedResources = this._deletedSessionResources.get(stateOwner);
+		if (!notifiedResources) {
+			notifiedResources = new ResourceSet();
+			this._deletedSessionResources.set(stateOwner, notifiedResources);
+		}
+		const resourcesToNotify = deletedResources.filter(resource => !notifiedResources.has(resource));
+		if (resourcesToNotify.length > 0) {
+			for (const resource of resourcesToNotify) {
+				notifiedResources.add(resource);
+			}
+			this._chatService.notifySessionDeleted(resourcesToNotify);
+		}
+		return cached;
+	}
+
+	protected _removeCachedSession(rawId: string, expected?: AgentHostSessionAdapter): AgentHostSessionAdapter | undefined {
 		const cached = this._sessionCache.get(rawId);
 		if (expected && cached && cached !== expected) {
 			return undefined;
@@ -10770,7 +10796,6 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		if (!stateOwner) {
 			return undefined;
 		}
-		const deletedResources = chatResources ?? this._getSessionChatResources(stateOwner);
 		this._lastPublishedActiveClients.delete(stateOwner.backendUri.toString());
 		if (cached) {
 			this._sessionCache.delete(rawId);
@@ -10793,18 +10818,6 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		this._agentMergeFolders.delete(stateOwner.sessionId);
 		this._lastSessionStates.delete(stateOwner.sessionId);
 		this._backendSessionsChanged.trigger(undefined);
-		let notifiedResources = this._deletedSessionResources.get(stateOwner);
-		if (!notifiedResources) {
-			notifiedResources = new ResourceSet();
-			this._deletedSessionResources.set(stateOwner, notifiedResources);
-		}
-		const resourcesToNotify = deletedResources.filter(resource => !notifiedResources.has(resource));
-		if (resourcesToNotify.length > 0) {
-			for (const resource of resourcesToNotify) {
-				notifiedResources.add(resource);
-			}
-			this._chatService.notifySessionDeleted(resourcesToNotify);
-		}
 		return cached;
 	}
 

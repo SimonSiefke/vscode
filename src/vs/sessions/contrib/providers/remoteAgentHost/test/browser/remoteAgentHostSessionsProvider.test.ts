@@ -769,10 +769,11 @@ suite('RemoteAgentHostSessionsProvider', () => {
 
 	test('rebinds a host-discovered session after its task binding is learned, preserving state and model targets', async () => {
 		const tasks = new Map<string, URI>();
+		const deleted: string[] = [];
 		const first = cloudSandboxTaskResource('first-task');
 		const second = cloudSandboxTaskResource('second-task');
 		tasks.set('first-session', first);
-		const runtime = createProvider(disposables, connection, { noConnection: true, ctor: CloudSandboxSessionsProvider }, {
+		const runtime = createProvider(disposables, connection, { noConnection: true, ctor: CloudSandboxSessionsProvider, notifySessionDeleted: resources => deleted.push(...resources.map(resource => resource.toString())) }, {
 			providerId: CLOUD_SANDBOX_TASK_PROVIDER_ID,
 			mapSessionResource: session => tasks.get(AgentSession.id(session)),
 		});
@@ -795,6 +796,7 @@ suite('RemoteAgentHostSessionsProvider', () => {
 			backend: runtime.getBackendSessionResource(rebound.sessionId)?.toString(),
 			modelTarget: runtime.getModelsSnapshot(rebound.sessionId).modelTarget,
 			subscribed: [...connection.sessionSubscribeCounts],
+			deleted,
 		}, {
 			resources: [first.toString(), second.toString()],
 			replacements: [[previous.resource.toString(), second.toString()]],
@@ -802,6 +804,7 @@ suite('RemoteAgentHostSessionsProvider', () => {
 			backend: 'ahp-session:/second-session',
 			modelTarget: scheme,
 			subscribed: [],
+			deleted: [],
 		});
 	});
 
