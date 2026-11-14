@@ -99,6 +99,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 
 	private unAssignedKeybindingItemToRevealAndFocus: IKeybindingItemEntry | null = null;
 	private tableEntries: IKeybindingItemEntry[] = [];
+	private tableViewState: { selection: readonly number[]; focus: readonly number[]; scrollTop: number } | undefined;
 	private keybindingsTableContainer!: HTMLElement;
 	private keybindingsTable!: WorkbenchTable<IKeybindingItemEntry>;
 
@@ -179,11 +180,25 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	override setInput(input: KeybindingsEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		this.keybindingsEditorContextKey.set(true);
 		return super.setInput(input, options, context, token)
-			.then(() => this.render(!!(options && options.preserveFocus)));
+			.then(() => this.render(!!(options && options.preserveFocus), input));
 	}
 
 	override clearInput(): void {
+		const hadInput = !!this.input;
 		super.clearInput();
+		this.keybindingsEditorModel = null;
+		this.tableEntries = [];
+		this.unAssignedKeybindingItemToRevealAndFocus = null;
+		if (this.keybindingsTable) {
+			if (hadInput) {
+				this.tableViewState = {
+					selection: this.keybindingsTable.getSelection(),
+					focus: this.keybindingsTable.getFocus(),
+					scrollTop: this.keybindingsTable.scrollTop
+				};
+			}
+			this.keybindingsTable.splice(0, this.keybindingsTable.length);
+		}
 		this.keybindingsEditorContextKey.reset();
 		this.keybindingFocusContextKey.reset();
 	}
@@ -558,11 +573,17 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		DOM.append(this.keybindingsTableContainer, this.overflowWidgetsDomNode);
 	}
 
-	private async render(preserveFocus: boolean): Promise<void> {
-		if (this.input) {
-			const input: KeybindingsEditorInput = this.input as KeybindingsEditorInput;
-			this.keybindingsEditorModel = await input.resolve();
-			await this.keybindingsEditorModel.resolve(this.getActionsLabels());
+	private async render(preserveFocus: boolean, input: KeybindingsEditorInput | undefined = this.input as KeybindingsEditorInput | undefined): Promise<void> {
+		if (input && this.input === input) {
+			const model = await input.resolve();
+			if (this.input !== input || model.isDisposed()) {
+				return;
+			}
+			await model.resolve(this.getActionsLabels());
+			if (this.input !== input || model.isDisposed()) {
+				return;
+			}
+			this.keybindingsEditorModel = model;
 			this.renderKeybindingsEntries(false, preserveFocus);
 			if (input.searchOptions) {
 				this.recordKeysAction.checked = input.searchOptions.recordKeybindings;
@@ -612,9 +633,16 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			this.accessibilityService.alert(ariaLabel);
 			this.ariaLabelElement.textContent = ariaLabel;
 
-			const currentSelectedIndex = this.keybindingsTable.getSelection()[0];
+			const viewState = this.tableViewState;
+			this.tableViewState = undefined;
+			const currentSelectedIndex = this.keybindingsTable.getSelection()[0] ?? viewState?.selection[0];
 			this.tableEntries = keybindingsEntries;
 			this.keybindingsTable.splice(0, this.keybindingsTable.length, this.tableEntries);
+			if (viewState) {
+				this.keybindingsTable.setSelection(viewState.selection.filter(index => index < this.tableEntries.length));
+				this.keybindingsTable.setFocus(viewState.focus.filter(index => index < this.tableEntries.length));
+				this.keybindingsTable.scrollTop = viewState.scrollTop;
+			}
 			this.layoutKeybindingsTable();
 
 			if (reset) {
@@ -917,6 +945,10 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 		};
 	}
 
+	disposeElement(_entry: IKeybindingItemEntry, _index: number, templateData: IActionsColumnTemplateData): void {
+		templateData.actionBar.clear();
+	}
+
 	disposeTemplate(templateData: IActionsColumnTemplateData): void {
 		templateData.actionBar.dispose();
 	}
@@ -1198,7 +1230,7 @@ class WhenColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IWhenCo
 	}
 
 	renderElement(keybindingItemEntry: IKeybindingItemEntry, index: number, templateData: IWhenColumnTemplateData): void {
-		templateData.disposables.clear();
+		this.disposeElement(keybindingItemEntry, index, templateData);
 		const whenInputDisposables = templateData.disposables.add(new DisposableStore());
 		templateData.disposables.add(this.keybindingsEditor.onDefineWhenExpression(e => {
 			if (keybindingItemEntry === e) {
@@ -1239,6 +1271,16 @@ class WhenColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IWhenCo
 		} else {
 			templateData.whenLabel.set('-');
 		}
+	}
+
+	disposeElement(_entry: IKeybindingItemEntry, _index: number, templateData: IWhenColumnTemplateData): void {
+		templateData.disposables.clear();
+		templateData.whenLabel.set(undefined);
+		templateData.element.classList.remove('input-mode');
+		if (templateData.element.parentElement) {
+			templateData.element.parentElement.style.paddingLeft = '10px';
+		}
+		DOM.clearNode(templateData.whenInputContainer);
 	}
 
 	disposeTemplate(templateData: IWhenColumnTemplateData): void {
