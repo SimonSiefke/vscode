@@ -51,7 +51,7 @@ export class RemoteTerminalBackendContribution implements IWorkbenchContribution
 	}
 }
 
-class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBackend {
+export class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBackend {
 	private readonly _ptys: Map<number, RemotePty> = new Map();
 
 	private readonly _whenConnected = new DeferredPromise<void>();
@@ -221,8 +221,9 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		}
 
 		try {
-			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
-			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel, undefined);
+			const creationId = generateUuid();
+			await this._remoteTerminalChannel.attachToProcess(id, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId);
+			const pty = this._instantiationService.createInstance(RemotePty, id, true, this._remoteTerminalChannel, creationId);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {
@@ -369,7 +370,7 @@ class RemoteTerminalBackend extends BaseTerminalBackend implements ITerminalBack
 		return this._remoteTerminalChannel.getPerformanceMarks();
 	}
 
-	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
-		return this._remoteTerminalChannel.setAutoReplies(id, replies);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._remoteTerminalChannel.setAutoReplies(id, replies, creationId);
 	}
 }

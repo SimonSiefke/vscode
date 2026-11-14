@@ -60,10 +60,12 @@ suite('RemoteTerminalChannelClient', () => {
 		};
 		const instantiationService = store.add(new TestInstantiationService());
 		const client = instantiationService.createInstance(RemoteTerminalChannelClient, 'ssh-remote+test', channel);
-		await client.attachToProcess(12, { prompt: 'reply' });
+		await client.attachToProcess(12, { prompt: 'reply' }, 'attachment');
+		await client.setAutoReplies(12, { prompt: 'updated' }, 'attachment');
 		await client.shutdown(12, true, 'creation');
 		deepStrictEqual(calls, [
-			{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, undefined, { prompt: 'reply' }] },
+			{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, undefined, { prompt: 'reply' }, 'attachment'] },
+			{ command: RemoteTerminalChannelRequest.SetAutoReplies, args: [12, { prompt: 'updated' }, 'attachment'] },
 			{ command: RemoteTerminalChannelRequest.Shutdown, args: [12, true, 'creation'] }
 		]);
 	});

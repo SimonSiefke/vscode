@@ -337,7 +337,7 @@ export interface IPtyService {
 	 * Attaches to a persistent process, failing if `pid` is provided and differs from its process ID.
 	 * Persistent process IDs restart with the pty host, so a saved ID can later belong to another process.
 	 */
-	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>): Promise<void>;
+	attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void>;
 	shutdownAll(): Promise<void>;
 
@@ -400,7 +400,7 @@ export interface IPtyService {
 
 	// #region Pty service contribution RPC calls
 
-	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void>;
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
 
 	// #endregion
 }
@@ -766,7 +766,7 @@ export interface IShellLaunchConfigDto {
  * are set internally to the terminal component, not from the outside.
  */
 export interface ITerminalProcessOptions {
-	/** Identifies the allocation request so delayed cleanup cannot release a reused process ID. */
+	/** Identifies the owning create or attach request so delayed messages cannot affect a different owner. */
 	creationId?: string;
 	shellIntegration: {
 		enabled: boolean;
@@ -821,6 +821,9 @@ export interface ITerminalChildProcess {
 	 * Whether the process should be persisted across reloads.
 	 */
 	shouldPersist: boolean;
+
+	/** Identity of the owning host allocation or attachment request. */
+	readonly creationId?: string;
 
 	readonly onProcessData: Event<IProcessDataEvent | string>;
 	readonly onProcessReady: Event<IProcessReadyEvent>;
@@ -1233,7 +1236,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
 }
 
 export interface ITerminalBackendPtyServiceContributions {
-	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void>;
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void>;
 }
 
 export const TerminalExtensions = {

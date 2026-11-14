@@ -361,7 +361,8 @@ suite('Workbench - TerminalProcessManager', () => {
 					return {
 						...backend,
 						createProcess: async () => pty,
-						setAutoReplies: async () => {
+						setAutoReplies: async (_id: number, _replies: Readonly<Record<string, string | null>>, creationId?: string) => {
+							strictEqual(creationId, 'creation');
 							await setupStarted.complete();
 							await setupComplete.p;
 						}

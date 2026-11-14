@@ -97,18 +97,18 @@ suite('PtyHostService', () => {
 			store.add(new NullLoggerService())
 		));
 		const localChannel = createLocalPtyChannel(service, store.add(new DisposableStore()));
-		await localChannel.call('window A', 'setAutoReplies', [1, { 'A prompt': 'A reply' }]);
-		await localChannel.call('window B', 'setAutoReplies', [2, { 'B prompt': 'B reply' }]);
-		await localChannel.call('window B', 'setAutoReplies', [2, {}]);
-		await localChannel.call('window A', 'attachToProcess', [1, 1234, { prompt: 'restored' }]);
+		await localChannel.call('window A', 'setAutoReplies', [1, { 'A prompt': 'A reply' }, 'A']);
+		await localChannel.call('window B', 'setAutoReplies', [2, { 'B prompt': 'B reply' }, 'B']);
+		await localChannel.call('window B', 'setAutoReplies', [2, {}, 'B']);
+		await localChannel.call('window A', 'attachToProcess', [1, 1234, { prompt: 'restored' }, 'restored']);
 		await localChannel.call('window A', 'shutdown', [1, true, 'creation']);
 		await timeout(0);
 
 		deepStrictEqual(calls, [
-			{ command: 'setAutoReplies', args: [1, { 'A prompt': 'A reply' }] },
-			{ command: 'setAutoReplies', args: [2, { 'B prompt': 'B reply' }] },
-			{ command: 'setAutoReplies', args: [2, {}] },
-			{ command: 'attachToProcess', args: [1, 1234, { prompt: 'restored' }] },
+			{ command: 'setAutoReplies', args: [1, { 'A prompt': 'A reply' }, 'A'] },
+			{ command: 'setAutoReplies', args: [2, { 'B prompt': 'B reply' }, 'B'] },
+			{ command: 'setAutoReplies', args: [2, {}, 'B'] },
+			{ command: 'attachToProcess', args: [1, 1234, { prompt: 'restored' }, 'restored'] },
 			{ command: 'shutdown', args: [1, true, 'creation'] }
 		]);
 	});

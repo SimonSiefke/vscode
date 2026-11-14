@@ -228,8 +228,9 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 		await this._connectToDirectProxy();
 		try {
 			const proxy = this._proxy;
-			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {});
-			const pty = new LocalPty(id, true, proxy);
+			const creationId = generateUuid();
+			await proxy.attachToProcess(id, pid, this._configurationService.getValue<Record<string, string | null>>('terminal.integrated.autoReplies') ?? {}, creationId);
+			const pty = new LocalPty(id, true, proxy, creationId);
 			this._ptys.set(id, pty);
 			return pty;
 		} catch (e) {
@@ -397,8 +398,8 @@ export class LocalTerminalBackend extends BaseTerminalBackend implements ITermin
 
 	// #region Pty service contribution RPC calls
 
-	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
-		return this._proxy.setAutoReplies(id, replies);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._proxy.setAutoReplies(id, replies, creationId);
 	}
 
 	// #endregion

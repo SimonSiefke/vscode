@@ -101,16 +101,22 @@ suite('PtyService', () => {
 			override input(value: string): void { replies.push(value); }
 		};
 		const contribution: AutoRepliesPtyServiceContribution = Reflect.get(service, '_autoRepliesContribution');
-		const ptys: Map<number, { pid: number; attach(): Promise<void>; shutdown(): void }> = Reflect.get(service, '_ptys');
+		const ptys: Map<number, { pid: number; processLaunchOptions: { options: { creationId: string } }; attach(): Promise<void>; shutdown(): void }> = Reflect.get(service, '_ptys');
 		let attaches = 0;
-		ptys.set(1, { pid: 1234, attach: async () => { attaches++; data.fire('prompt'); }, shutdown: () => { } });
+		const allocation = { pid: 1234, processLaunchOptions: { options: { creationId: 'owner' } }, attach: async () => { attaches++; data.fire('prompt'); }, shutdown: () => { } };
+		ptys.set(1, allocation);
 		contribution.handleProcessReady(1, process);
 		try {
-			await service.setAutoReplies(1, { prompt: 'live owner' });
-			await rejects(service.attachToProcess(1, 4321, { prompt: 'restoring window' }));
+			await service.setAutoReplies(1, { prompt: 'live owner' }, 'owner');
+			await rejects(service.attachToProcess(1, 4321, { prompt: 'restoring window' }, 'restoring'));
+			deepStrictEqual(allocation.processLaunchOptions.options.creationId, 'owner');
 			data.fire('prompt');
 			deepStrictEqual({ attaches, replies }, { attaches: 0, replies: ['live owner'] });
-			await service.attachToProcess(1, 1234, { prompt: 'restoring window' });
+			await service.attachToProcess(1, 1234, { prompt: 'restoring window' }, 'restoring');
+			deepStrictEqual(allocation.processLaunchOptions.options.creationId, 'restoring');
+			await service.setAutoReplies(1, {}, 'owner');
+			const settings: ReadonlyMap<number, Readonly<Record<string, string | null>>> = Reflect.get(contribution, '_autoReplies');
+			deepStrictEqual(settings.get(1), { prompt: 'restoring window' });
 			deepStrictEqual({ attaches, replies }, { attaches: 1, replies: ['live owner', 'restoring window'] });
 		} finally {
 			contribution.handleProcessDispose(1);

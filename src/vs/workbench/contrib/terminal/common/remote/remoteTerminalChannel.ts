@@ -200,8 +200,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 	acceptDetachInstanceReply(requestId: number, persistentProcessId: number): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.AcceptDetachInstanceReply, [requestId, persistentProcessId]);
 	}
-	attachToProcess(id: number, autoReplies?: Readonly<Record<string, string | null>>): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.AttachToProcess, [id, undefined, autoReplies]);
+	attachToProcess(id: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._channel.call(RemoteTerminalChannelRequest.AttachToProcess, [id, undefined, autoReplies, creationId]);
 	}
 	detachFromProcess(id: number, forcePersist?: boolean): Promise<void> {
 		return this._channel.call(RemoteTerminalChannelRequest.DetachFromProcess, [id, forcePersist]);
@@ -329,8 +329,8 @@ export class RemoteTerminalChannelClient implements IPtyHostController {
 
 	// #region Pty service contribution RPC calls
 
-	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
-		return this._channel.call(RemoteTerminalChannelRequest.SetAutoReplies, [id, replies]);
+	setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		return this._channel.call(RemoteTerminalChannelRequest.SetAutoReplies, [id, replies, creationId]);
 	}
 
 	// #endregion

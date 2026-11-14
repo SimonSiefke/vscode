@@ -20,7 +20,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 		id: number,
 		shouldPersist: boolean,
 		private readonly _remoteTerminalChannel: RemoteTerminalChannelClient,
-		private readonly _creationId: string | undefined,
+		readonly creationId: string | undefined,
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 		@ITerminalLogService private readonly _logService: ITerminalLogService
 	) {
@@ -67,7 +67,7 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 		if (this._startRequested) {
 			await this._startBarrier.wait();
 		}
-		return this._remoteTerminalChannel.shutdown(this.id, immediate, this._creationId);
+		return this._remoteTerminalChannel.shutdown(this.id, immediate, this.creationId);
 	}
 
 	input(data: string): void {

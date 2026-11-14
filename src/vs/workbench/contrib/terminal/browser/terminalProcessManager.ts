@@ -209,7 +209,7 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 
 	private async _updateAutoReplies(): Promise<void> {
 		if (this._process && this._processType === ProcessType.Process && this.backend) {
-			await this.backend.setAutoReplies(this._process.id, this._configurationService.getValue<Record<string, string | null>>(TerminalContribSettingId.AutoReplies) ?? {});
+			await this.backend.setAutoReplies(this._process.id, this._configurationService.getValue<Record<string, string | null>>(TerminalContribSettingId.AutoReplies) ?? {}, this._process.creationId);
 		}
 	}
 

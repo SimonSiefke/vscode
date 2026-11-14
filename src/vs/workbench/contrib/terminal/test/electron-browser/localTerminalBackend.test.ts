@@ -153,6 +153,7 @@ suite('LocalTerminalBackend', () => {
 		const revivedIds = new Map([[7, 1], [2, 2], [8, 5]]);
 		const attachRequests: [id: number, pid: number | undefined][] = [];
 		const autoReplyWrites: { id: number; replies: Readonly<Record<string, string | null>> }[] = [];
+		const attachmentOwners = new Map<number, string>();
 		const configurationService = new TestConfigurationService();
 		await configurationService.setUserConfiguration('terminal.integrated.autoReplies', { prompt: 'restored reply' });
 
@@ -167,7 +168,7 @@ suite('LocalTerminalBackend', () => {
 			onPtyHostResponsive: Event.None,
 			onPtyHostRequestResolveVariables: Event.None,
 			getRevivedPtyNewId: async (_workspaceId: string, id: number) => revivedIds.get(id),
-			attachToProcess: async (id: number, pid?: number, replies?: Readonly<Record<string, string | null>>) => {
+			attachToProcess: async (id: number, pid?: number, replies?: Readonly<Record<string, string | null>>, creationId?: string) => {
 				attachRequests.push([id, pid]);
 				const livePid = livePids.get(id);
 				if (livePid === undefined) {
@@ -176,6 +177,8 @@ suite('LocalTerminalBackend', () => {
 				if (pid !== undefined && pid !== livePid) {
 					throw new Error(`Pty ${id} has pid ${livePid}, expected ${pid}`);
 				}
+				ok(typeof creationId === 'string');
+				attachmentOwners.set(id, creationId);
 				if (replies !== undefined) {
 					autoReplyWrites.push({ id, replies });
 				}
@@ -191,6 +194,7 @@ suite('LocalTerminalBackend', () => {
 			attachRequests.length = 0;
 			const pty = await attachToProcess();
 			if (pty instanceof LocalPty) {
+				deepStrictEqual(pty.creationId, attachmentOwners.get(pty.id));
 				store.add(pty);
 			}
 			return { attachedId: pty?.id, requests: [...attachRequests] };

@@ -108,8 +108,9 @@ export class PtyService extends Disposable implements IPtyService {
 
 	private readonly _autoRepliesContribution: AutoRepliesPtyServiceContribution;
 	@traceRpc
-	async setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>): Promise<void> {
-		if (this._ptys.has(id)) {
+	async setAutoReplies(id: number, replies: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
+		const pty = this._ptys.get(id);
+		if (pty && pty.processLaunchOptions.options.creationId === creationId) {
 			this._autoRepliesContribution.setAutoReplies(id, replies);
 		}
 	}
@@ -364,11 +365,14 @@ export class PtyService extends Disposable implements IPtyService {
 	}
 
 	@traceRpc
-	async attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>): Promise<void> {
+	async attachToProcess(id: number, pid?: number, autoReplies?: Readonly<Record<string, string | null>>, creationId?: string): Promise<void> {
 		try {
 			const persistentProcess = this._throwIfNoPty(id);
 			if (pid !== undefined && persistentProcess.pid !== pid) {
 				throw new ErrorNoTelemetry(`Pty ${id} has pid ${persistentProcess.pid}, expected ${pid}`);
+			}
+			if (creationId !== undefined) {
+				persistentProcess.processLaunchOptions.options.creationId = creationId;
 			}
 			// Validate the saved allocation before replacing replies, and apply them before replay.
 			if (autoReplies !== undefined) {
