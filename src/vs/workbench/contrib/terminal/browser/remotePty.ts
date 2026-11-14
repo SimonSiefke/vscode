@@ -61,6 +61,10 @@ export class RemotePty extends BasePty implements ITerminalChildProcess {
 		return this._remoteTerminalChannel.detachFromProcess(this.id, forcePersist);
 	}
 
+	cancelBeforeStart(): Promise<void> {
+		return this.shutdown(true);
+	}
+
 	async shutdown(immediate: boolean): Promise<void> {
 		this._isShutdown = true;
 		// The host already owns the process allocation before start() is called.

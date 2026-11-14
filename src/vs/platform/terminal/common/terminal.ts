@@ -825,6 +825,11 @@ export interface ITerminalChildProcess {
 	/** Identity of the owning host allocation or attachment request. */
 	readonly creationId?: string;
 
+	/**
+	 * Whether this attachment resolves to a revived process that still needs to start.
+	 */
+	readonly isRevived?: boolean;
+
 	readonly onProcessData: Event<IProcessDataEvent | string>;
 	readonly onProcessReady: Event<IProcessReadyEvent>;
 	readonly onProcessReplayComplete?: Event<void>;
@@ -839,6 +844,11 @@ export interface ITerminalChildProcess {
 	 * information on what went wrong.
 	 */
 	start(): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined>;
+
+	/**
+	 * Releases an allocated process without waiting for it to start.
+	 */
+	cancelBeforeStart?(): Promise<void>;
 
 	/**
 	 * Detach the process from the UI and await reconnect.
