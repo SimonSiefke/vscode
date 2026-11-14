@@ -8,7 +8,6 @@ import sinon from 'sinon';
 import { allowedMarkdownHtmlAttributes } from '../../../../../../base/browser/markdownRenderer.js';
 import { DeferredPromise, timeout } from '../../../../../../base/common/async.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
-import { OperatingSystem } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { assertSnapshot } from '../../../../../../base/test/common/snapshot.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -21,6 +20,7 @@ import { ILabelService } from '../../../../../../platform/label/common/label.js'
 import { IMarkdownRendererService, MarkdownRendererService } from '../../../../../../platform/markdown/browser/markdownRenderer.js';
 import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
 import { IOpenerService } from '../../../../../../platform/opener/common/opener.js';
+import { PathStyle } from '../../../../../../platform/agentHost/common/state/protocol/common/commands.js';
 import { MarkedKatexSupport } from '../../../../markdown/browser/markedKatexSupport.js';
 import { allowedChatMarkdownHtmlTags, ChatContentMarkdownRenderer, getChatMarkdownRenderOptions } from '../../../browser/widget/chatContentMarkdownRenderer.js';
 import { ChatMarkdownAnchorService, IChatMarkdownAnchorService } from '../../../browser/widget/chatContentParts/chatMarkdownAnchorService.js';
@@ -125,6 +125,19 @@ suite('ChatMarkdownRenderer', () => {
 		assert.deepStrictEqual({ globalOpened, scopeOpened }, { globalOpened: [], scopeOpened: ['file:///workspace/notes.ts'] });
 	});
 
+	test('a link clicked in the chat output is a user gesture, which lets a chat window open it in itself', async () => {
+		const opened: { target: string; fromUserGesture: boolean | undefined }[] = [];
+		instantiationService.stub(IOpenerService, { open: async (target: URI | string, options?: { fromUserGesture?: boolean }) => { opened.push({ target: target.toString(), fromUserGesture: options?.fromUserGesture }); return true; } });
+		instantiationService.stub(IMarkdownRendererService, instantiationService.createInstance(MarkdownRendererService));
+		const renderer = instantiationService.createInstance(ChatContentMarkdownRenderer);
+		const result = store.add(renderer.render(new MarkdownString('[chat](file:///workspace/session-1)')));
+
+		result.element.querySelector<HTMLAnchorElement>('a[data-href]')!.click();
+		await timeout(0);
+
+		assert.deepStrictEqual(opened, [{ target: 'file:///workspace/session-1', fromUserGesture: true }]);
+	});
+
 	test('workspace edits render canonical file links without trusting imported content', () => {
 		const resource = URI.file('/workspace/example.ts');
 		const cachedResourceData = {
@@ -165,7 +178,7 @@ suite('ChatMarkdownRenderer', () => {
 
 		test('shows host paths for transformed and already mapped links without changing their targets', () => {
 			const authority = agentHostAuthority('vscode-remote://wsl+Ubuntu');
-			store.add(instantiationService.get(ILabelService).registerFormatter(agentHostLabelFormatter(authority, OperatingSystem.Linux)));
+			store.add(instantiationService.get(ILabelService).registerFormatter(agentHostLabelFormatter(authority, PathStyle.Posix)));
 			const file = URI.file('/home/user/my project/a&b.ts').with({ fragment: 'L42,7' });
 			const target = toAgentHostUri(file, authority).toString();
 			const links = [
@@ -192,9 +205,9 @@ suite('ChatMarkdownRenderer', () => {
 			})));
 		});
 
-		test('uses the remote host operating system for path formatting', () => {
+		test('uses the remote host path style for formatting', () => {
 			const labelService = instantiationService.get(ILabelService);
-			store.add(labelService.registerFormatter(agentHostLabelFormatter('windows-host', OperatingSystem.Windows)));
+			store.add(labelService.registerFormatter(agentHostLabelFormatter('windows-host', PathStyle.Windows)));
 			const target = toAgentHostUri(URI.file('C:/my project/file.ts'), 'windows-host').toString();
 			store.add(testRenderer.render(new MarkdownString(`[file](${target})`)));
 
