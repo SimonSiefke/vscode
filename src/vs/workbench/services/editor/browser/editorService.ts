@@ -622,42 +622,42 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 			}
 
 			return await group.openEditor(typedEditor, options);
-		}
-
-		/**
-		 * A scoped editor service opens an editor without a specific group (the
-		 * active group or to the side) in its own groups. While one of its groups
-		 * is the active group, that is what the editor groups service resolves
-		 * anyway, so nothing is done then: `undefined` is returned synchronously,
-		 * so that opening is as synchronous as before.
-		 */
-		private resolveScopedPreferredGroup(editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined): Promise<{ preferredGroup: PreferredGroup | undefined; options: IEditorOptions | undefined }> | undefined {
-			if (
-				!this.isScoped ||
-				(preferredGroup !== undefined && preferredGroup !== ACTIVE_GROUP && preferredGroup !== SIDE_GROUP) ||
-				this.editorGroupsContainer.groups.some(group => group.id === this.editorGroupService.activeGroup.id)
-			) {
-				return undefined;
-			}
-
-			return this.doResolveScopedPreferredGroup(editor, preferredGroup);
-		}
-
-		private async doResolveScopedPreferredGroup(editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined): Promise<{ preferredGroup: PreferredGroup | undefined; options: IEditorOptions | undefined }> {
-			const options = editor.options;
-
-			let [group, activation] = await this.instantiationService.invokeFunction(findGroup, editor, preferredGroup, this.editorGroupsContainer);
-
-			// Keep the activation of an editor opened to the side: the group is
-			// restored but not activated when focus is preserved
-			if (!activation && preferredGroup === SIDE_GROUP && options?.preserveFocus && !options.inactive && typeof options.activation !== 'number') {
-				activation = EditorActivation.RESTORE;
-			}
-
-			return { preferredGroup: group, options: activation ? { ...options, activation } : options };
 		} finally {
 			references.dispose();
 		}
+	}
+
+	/**
+	 * A scoped editor service opens an editor without a specific group (the
+	 * active group or to the side) in its own groups. While one of its groups
+	 * is the active group, that is what the editor groups service resolves
+	 * anyway, so nothing is done then: `undefined` is returned synchronously,
+	 * so that opening is as synchronous as before.
+	 */
+	private resolveScopedPreferredGroup(editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined): Promise<{ preferredGroup: PreferredGroup | undefined; options: IEditorOptions | undefined }> | undefined {
+		if (
+			!this.isScoped ||
+			(preferredGroup !== undefined && preferredGroup !== ACTIVE_GROUP && preferredGroup !== SIDE_GROUP) ||
+			this.editorGroupsContainer.groups.some(group => group.id === this.editorGroupService.activeGroup.id)
+		) {
+			return undefined;
+		}
+
+		return this.doResolveScopedPreferredGroup(editor, preferredGroup);
+	}
+
+	private async doResolveScopedPreferredGroup(editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined): Promise<{ preferredGroup: PreferredGroup | undefined; options: IEditorOptions | undefined }> {
+		const options = editor.options;
+
+		let [group, activation] = await this.instantiationService.invokeFunction(findGroup, editor, preferredGroup, this.editorGroupsContainer);
+
+		// Keep the activation of an editor opened to the side: the group is
+		// restored but not activated when focus is preserved
+		if (!activation && preferredGroup === SIDE_GROUP && options?.preserveFocus && !options.inactive && typeof options.activation !== 'number') {
+			activation = EditorActivation.RESTORE;
+		}
+
+		return { preferredGroup: group, options: activation ? { ...options, activation } : options };
 	}
 
 	//#endregion
