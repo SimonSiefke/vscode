@@ -6,7 +6,7 @@
 import { DefaultURITransformer } from '../../../base/common/uriIpc.js';
 import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { Server as ChildProcessServer } from '../../../base/parts/ipc/node/ipc.cp.js';
-import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.mp.js';
+import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc.structuredClone.mp.js';
 import { localize } from '../../../nls.js';
 import { OPTIONS, parseArgs } from '../../environment/node/argv.js';
 import { NativeEnvironmentService } from '../../environment/node/environmentService.js';

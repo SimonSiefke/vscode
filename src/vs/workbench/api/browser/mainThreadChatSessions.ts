@@ -894,6 +894,10 @@ export class MainThreadChatSessions extends Disposable implements MainThreadChat
 		}
 	}
 
+	$handleProgressChunkNotification(handle: number, sessionResource: UriComponents, requestId: string, chunks: (IChatProgressDto | [IChatProgressDto, number])[]): Promise<void> {
+		return this.$handleProgressChunk(handle, sessionResource, requestId, chunks);
+	}
+
 	async $handleProgressChunk(handle: number, sessionResource: UriComponents, requestId: string, chunks: (IChatProgressDto | [IChatProgressDto, number])[]): Promise<void> {
 		const resource = URI.revive(sessionResource);
 		const observableSession = this._activeSessions.get(resource);

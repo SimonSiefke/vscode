@@ -15,7 +15,6 @@ import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
-import { BufferedEmitter } from '../../../../base/parts/ipc/common/ipc.net.js';
 import { acquirePort } from '../../../../base/parts/ipc/electron-browser/ipc.mp.js';
 import * as nls from '../../../../nls.js';
 import { IExtensionHostDebugService } from '../../../../platform/debug/common/extensionHostDebug.js';
@@ -32,6 +31,7 @@ import { IWorkspaceContextService, WorkbenchState, isUntitledWorkspace } from '.
 import { INativeWorkbenchEnvironmentService } from '../../environment/electron-browser/environmentService.js';
 import { IShellEnvironmentService } from '../../environment/electron-browser/shellEnvironmentService.js';
 import { MessagePortExtHostConnection, writeExtHostConnection } from '../common/extensionHostEnv.js';
+import { RPCMessagePort } from '../common/rpcMessagePort.js';
 import { createMessageOfType, IExtensionHostInitData, MessageType, NativeLogMarkers, UIKind, isMessageOfType } from '../common/extensionHostProtocol.js';
 import { LocalProcessRunningLocation } from '../common/extensionRunningLocation.js';
 import { ExtensionHostExtensions, ExtensionHostStartup, IExtensionHost, IExtensionInspectInfo } from '../common/extensions.js';
@@ -430,18 +430,14 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				}));
 				clearTimeout(handle);
 
-				const onMessage = new BufferedEmitter<VSBuffer>();
-				port.onmessage = ((e) => {
+				const protocol = this._register(new RPCMessagePort(message => port.postMessage(message)));
+				port.onmessage = e => {
 					if (e.data) {
-						onMessage.fire(VSBuffer.wrap(e.data));
+						protocol.acceptMessage(e.data);
 					}
-				});
+				};
 				port.start();
-
-				resolve({
-					onMessage: onMessage.event,
-					send: message => port.postMessage(message.buffer),
-				});
+				resolve(protocol);
 			});
 
 			// Now that the message port listener is installed, start the ext host process
