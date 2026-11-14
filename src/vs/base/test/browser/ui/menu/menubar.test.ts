@@ -8,7 +8,6 @@ import { $, getWindow, ModifierKeyEmitter } from '../../../../browser/dom.js';
 import { HorizontalDirection, unthemedMenuStyles, VerticalDirection } from '../../../../browser/ui/menu/menu.js';
 import { MenuBar } from '../../../../browser/ui/menu/menubar.js';
 import { mainWindow } from '../../../../browser/window.js';
-import { toDisposable } from '../../../../common/lifecycle.js';
 import { toAction } from '../../../../common/actions.js';
 import { toDisposable } from '../../../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
