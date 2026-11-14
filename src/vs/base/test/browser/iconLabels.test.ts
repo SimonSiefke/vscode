@@ -5,10 +5,34 @@
 
 import assert from 'assert';
 import { isHTMLElement } from '../../browser/dom.js';
-import { renderLabelWithIcons } from '../../browser/ui/iconLabel/iconLabels.js';
+import { renderIcon, renderLabelWithIcons } from '../../browser/ui/iconLabel/iconLabels.js';
+import { ThemeIcon } from '../../common/themables.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../common/utils.js';
 
 suite('renderLabelWithIcons', () => {
+
+	test('default color does not change cached icon classes', () => {
+		const icon = { id: 'symbol-class' };
+		const classes = ThemeIcon.asClassNameArray(icon);
+		for (let i = 0; i < 1000; i++) {
+			renderIcon(icon, true);
+		}
+		assert.deepStrictEqual({
+			colored: renderIcon(icon, true).className,
+			ordinary: renderIcon(icon).className,
+			selector: ThemeIcon.asCSSSelector(icon),
+			classes: [...classes],
+			shared: classes === ThemeIcon.asClassNameArray(icon),
+			frozen: Object.isFrozen(classes)
+		}, {
+			colored: 'codicon codicon-symbol-class codicon-colored',
+			ordinary: 'codicon codicon-symbol-class',
+			selector: '.codicon.codicon-symbol-class',
+			classes: ['codicon', 'codicon-symbol-class'],
+			shared: true,
+			frozen: true
+		});
+	});
 
 	test('no icons', () => {
 		const result = renderLabelWithIcons(' hello World .');
