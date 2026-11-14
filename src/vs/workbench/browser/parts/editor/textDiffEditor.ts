@@ -231,16 +231,20 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 					options: { ...options, override: fallbackEditorId }
 				}, this.group);
 				if (isEditorInputWithOptionsAndGroup(resolved)) {
-					this.group.replaceEditors([{
-						editor: input,
-						replacement: resolved.editor,
-						options: {
-							...resolved.options,
-							activation: EditorActivation.PRESERVE,
-							pinned: this.group.isPinned(input),
-							sticky: this.group.isSticky(input)
-						}
-					}]);
+					try {
+						await this.group.replaceEditors([{
+							editor: input,
+							replacement: resolved.editor,
+							options: {
+								...resolved.options,
+								activation: EditorActivation.PRESERVE,
+								pinned: this.group.isPinned(input),
+								sticky: this.group.isSticky(input)
+							}
+						}]);
+					} finally {
+						resolved.reference.dispose();
+					}
 					return;
 				}
 			}

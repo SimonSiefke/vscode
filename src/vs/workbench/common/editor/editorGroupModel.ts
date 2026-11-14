@@ -224,7 +224,17 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 		super();
 
 		if (isSerializedEditorGroupModel(labelOrSerializedGroup)) {
-			this._id = this.deserialize(labelOrSerializedGroup);
+			try {
+				this._id = this.deserialize(labelOrSerializedGroup);
+			} catch (error) {
+				this.dispose();
+				for (const editor of this.editors) {
+					if (!editor.isDisposed()) {
+						editor.acquire().dispose();
+					}
+				}
+				throw error;
+			}
 		} else {
 			this._id = EditorGroupModel.IDS++;
 		}
@@ -1230,7 +1240,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 			this.locked = true;
 		}
 
-		this.editors = coalesce(data.editors.map((e, index) => {
+		for (const [index, e] of data.editors.entries()) {
 			let editor: EditorInput | undefined;
 
 			const editorSerializer = registry.getEditorSerializer(e.id);
@@ -1238,6 +1248,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 				const deserializedEditor = editorSerializer.deserialize(this.instantiationService, e.value);
 				if (deserializedEditor instanceof EditorInput) {
 					editor = deserializedEditor;
+					this.editors.push(editor);
 					this.registerEditorListeners(editor);
 				}
 			}
@@ -1245,9 +1256,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 			if (!editor && typeof data.sticky === 'number' && index <= data.sticky) {
 				data.sticky--; // if editor cannot be deserialized but was sticky, we need to decrease sticky index
 			}
-
-			return editor;
-		}));
+		}
 
 		this.mru = coalesce(data.mru.map(i => this.editors[i]));
 

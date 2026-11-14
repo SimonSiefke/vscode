@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { EditorInput } from '../../../common/editor/editorInput.js';
 import * as glob from '../../../../base/common/glob.js';
 import { Event } from '../../../../base/common/event.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, IReference } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { posix } from '../../../../base/common/path.js';
 import { isWeb } from '../../../../base/common/platform.js';
@@ -149,7 +150,8 @@ export const enum ResolvedStatus {
 	NONE = 2,
 }
 
-export type ResolvedEditor = EditorInputWithOptionsAndGroup | ResolvedStatus;
+/** A successful resolution owns a reference that the caller must release after opening. */
+export type ResolvedEditor = (EditorInputWithOptionsAndGroup & { readonly reference: IReference<EditorInput> }) | ResolvedStatus;
 
 export type RegisteredEditorOptions = {
 	/**
