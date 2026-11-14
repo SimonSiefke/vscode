@@ -1713,6 +1713,28 @@ suite('ExtHost Testing', () => {
 			));
 		});
 
+		test('removes disposed runs from published results', async () => {
+			const onResultsChanged = sinon.spy();
+			ds.add(ctrl.onResultsChanged(onResultsChanged));
+			ctrl.$publishTestResults([{
+				id: 'run-id',
+				completedAt: 1,
+				items: [],
+				name: 'run',
+				request: { group: TestRunProfileBitset.Run, targets: [] },
+				tasks: [],
+			}]);
+
+			assert.strictEqual(ctrl.results.length, 1);
+			sinon.assert.calledOnce(onResultsChanged);
+
+			await ctrl.$disposeRun('run-id');
+
+			assert.strictEqual(ctrl.results.length, 0);
+			assert.strictEqual((Reflect.get(ctrl, 'testResultInternalIDs') as ReadonlyMap<object, string>).size, 0);
+			sinon.assert.calledTwice(onResultsChanged);
+		});
+
 		for (const command of ['vscode.peekTestError', 'testing.openOutputPeek']) {
 			test(`publishes pending failures before executing ${command}`, async () => {
 				const controller = ds.add(ctrl.createTestController(nullExtensionDescription, 'ctrl', 'tests'));
