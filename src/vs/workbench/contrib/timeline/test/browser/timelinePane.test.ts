@@ -15,7 +15,6 @@ import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IProgressService, Progress } from '../../../../../platform/progress/common/progress.js';
 import { TimelineActionRunner, TimelineKeyboardNavigationLabelProvider, TimelinePane, TimelinePaneCommands, TimelineTreeRenderer } from '../../browser/timelinePane.js';
 import { Event } from '../../../../../base/common/event.js';
-import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IMenuService } from '../../../../../platform/actions/common/actions.js';
 import { ITimelineService, Timeline, TimelineEditable, TimelineItem, TimelineRequest, TimelineTriggerKind } from '../../common/timeline.js';
@@ -293,13 +292,12 @@ suite('TimelinePane', () => {
 
 	test('inline and context menus of an item get the same selection context', () => {
 		const overlays: Record<string, unknown>[] = [];
-		const commands = store.add(new TimelinePaneCommands(
-			upcastPartial<TimelinePane>({ id: 'timeline' }),
-			upcastPartial<ITimelineService>({ onDidChangeProviders: Event.None, getSources: () => [] }),
-			upcastPartial<IStorageService>({ get: () => '[]' }),
-			upcastPartial<IContextKeyService>({ createOverlay: overlay => { overlays.push(Object.fromEntries(overlay)); return upcastPartial<IContextKeyService>({}); } }),
-			upcastPartial<IMenuService>({ getMenuActions: () => [] }),
-		));
+		// Exercise the item contexts without registering process-wide timeline actions.
+		const commands: Pick<TimelinePaneCommands, 'getItemActions' | 'getItemContextActions'> = Object.assign(Object.create(TimelinePaneCommands.prototype), {
+			pane: upcastPartial<TimelinePane>({ id: 'timeline' }),
+			contextKeyService: upcastPartial<IContextKeyService>({ createOverlay: overlay => { overlays.push(Object.fromEntries(overlay)); return upcastPartial<IContextKeyService>({}); } }),
+			menuService: upcastPartial<IMenuService>({ getMenuActions: () => [] }),
+		});
 		const item = (handle: string, resourceUri?: URI): TimelineItem => ({ source: 'B', handle, label: handle, timestamp: 1, contextValue: 'commit', resourceUri });
 		const selection = [item('B|1', uri), item('B|2', uri)];
 
