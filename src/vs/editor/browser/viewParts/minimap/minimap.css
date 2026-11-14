@@ -65,4 +65,6 @@
 	 * but stays below the editor group border (z-index 5), which it would otherwise cover when on the left.
 	 */
 	z-index: 4;
+	/* The minimap owns explicit dimensions; its shadow must remain outside the box. */
+	contain: size layout style;
 }
