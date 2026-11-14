@@ -3,37 +3,34 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
-import { basename, extUriBiasedIgnorePathCase } from '../../../base/common/resources.js';
+import { basename } from '../../../base/common/resources.js';
 import { URI } from '../../../base/common/uri.js';
 import { localize } from '../../../nls.js';
 import { ILogService } from '../../log/common/log.js';
 import { AGENT_HOST_ACCEPT_CHANGES_OPERATION_ID, type IChangesetOperationHandler } from '../common/agentHostChangesetOperationService.js';
-import { IAgentHostChangesetService, type ITrackedEditSource } from '../common/agentHostChangesetService.js';
+import { IAgentHostChangesetService } from '../common/agentHostChangesetService.js';
 import { ChangesetKind, parseChangesetUri } from '../common/changesetUri.js';
-import type { IFileEditRecord, ISessionDatabase } from '../common/sessionDataService.js';
+import { IDiffComputeService } from '../common/diffComputeService.js';
+import type { IFileEditContent, IFileEditRecord } from '../common/sessionDataService.js';
 import { ChangesetOperationTargetKind, type InvokeChangesetOperationParams, type InvokeChangesetOperationResult } from '../common/state/protocol/channels-changeset/commands.js';
 import { AHP_SESSION_NOT_FOUND, JsonRpcErrorCodes, ProtocolError } from '../common/state/sessionProtocol.js';
-import { FileEditKind, type URI as ProtocolURI } from '../common/state/sessionState.js';
-import { resolveChangesetOwnerScope } from './agentHostBranchChangesetScope.js';
+import { FileEditKind, type TextRange, type URI as ProtocolURI } from '../common/state/sessionState.js';
 import { AgentHostStateManager, IAgentHostStateManager } from './agentHostStateManager.js';
-import { createFileEditAcceptRecord, isFileEditAcceptRecord, readFileEditEndContent } from './fileEditAccept.js';
+import { createFileEditAcceptRecord, createPartialFileEditAcceptRecord, storeFileEditAcceptRecord } from './fileEditAccept.js';
+import { isFileEditPath } from './fileEditPath.js';
 import { isPathWithinFolderScope } from './sessionDiffAggregator.js';
-
-function isFilePath(path: string | undefined, resource: URI): boolean {
-	return path !== undefined && extUriBiasedIgnorePathCase.isEqual(URI.file(path), resource);
-}
-
-/** Identifies an edit row across databases, as the Working Set does. */
-function getFileEditKey(record: IFileEditRecord): string {
-	return `${record.toolCallId}\0${record.filePath}`;
-}
+import { createChangedSinceShownError } from './workingSetNonce.js';
+import { computeWorkingSetRangeChanges, type IWorkingSetFileContents } from './workingSetFileContents.js';
+import { computeWorkingSetSources, getWorkingSetNonce } from './workingSetSources.js';
 
 /**
- * Accepts every change to a file in a Working Set changeset: records the
- * content of the file's last tracked edit as accepted, after which the Working
- * Set compares the file's later edits with it. The file on disk is unchanged.
+ * Accepts changes to a file in a Working Set changeset: every change, or the
+ * hunks that a range touches. Accepting records the content the file's
+ * Working Set then compares its changes with: the content of the file's last
+ * tracked edit, or the baseline with the accepted hunks. The file on disk is
+ * unchanged. Every chat whose database has unaccepted records of the file
+ * records its own, as records are only ordered within a database.
  */
 export class AgentHostAcceptChangesOperationHandler implements IChangesetOperationHandler {
 
@@ -43,6 +40,7 @@ export class AgentHostAcceptChangesOperationHandler implements IChangesetOperati
 		@ILogService private readonly _logService: ILogService,
 		@IAgentHostStateManager private readonly _stateManager: AgentHostStateManager,
 		@IAgentHostChangesetService private readonly _changesets: IAgentHostChangesetService,
+		@IDiffComputeService private readonly _diffComputeService: IDiffComputeService,
 	) { }
 
 	async invoke(params: InvokeChangesetOperationParams, token: CancellationToken): Promise<InvokeChangesetOperationResult> {
@@ -50,67 +48,52 @@ export class AgentHostAcceptChangesOperationHandler implements IChangesetOperati
 		if (parsed?.kind !== ChangesetKind.WorkingSet) {
 			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, `Not a working set changeset URI: ${params.channel}`);
 		}
-		if (params.target?.kind !== ChangesetOperationTargetKind.Resource) {
-			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, `Operation '${AgentHostAcceptChangesOperationHandler.OPERATION_ACCEPT_CHANGES}' requires a resource target.`);
+		const target = params.target;
+		if (target?.kind !== ChangesetOperationTargetKind.Resource && target?.kind !== ChangesetOperationTargetKind.Range) {
+			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, `Operation '${AgentHostAcceptChangesOperationHandler.OPERATION_ACCEPT_CHANGES}' requires a resource or range target.`);
 		}
 		const owner = parsed.ownerUri;
 		if (!this._stateManager.getSessionState(owner)) {
 			throw new ProtocolError(AHP_SESSION_NOT_FOUND, `Session not found: ${owner}`);
 		}
-		const resource = URI.parse(params.target.resource);
-		const session = resolveChangesetOwnerScope(this._stateManager, owner).sessionUri;
-		this._throwIfTurnActive(session);
+		const resource = URI.parse(target.resource);
+		const shownNonce = target.nonce;
 		this._throwIfCancelled(token);
 
 		const tracked = this._changesets.openTrackedSessionDatabases(owner);
-		let acceptedChat: ProtocolURI;
+		const acceptedChats: ProtocolURI[] = [];
 		try {
-			// A forked chat's database starts as a copy of its parent's rows. Like
-			// the Working Set, count a row once, in the first database holding it.
-			const seen = new Set<string>();
-			const matches: { readonly source: ITrackedEditSource; readonly records: readonly IFileEditRecord[] }[] = [];
+			const rowsPerSource: IFileEditRecord[][] = [];
 			for (const source of tracked.sources) {
-				const records = this._getFileEditRecords(await source.db.getAllFileEdits(), resource, tracked.folderScope);
-				if (records.some(record => !seen.has(getFileEditKey(record)))) {
-					matches.push({ source, records });
-				}
-				for (const record of records) {
-					seen.add(getFileEditKey(record));
-				}
+				rowsPerSource.push(this._getFileEditRecords(await source.db.getAllFileEdits(), resource, tracked.folderScope));
 			}
-			const [match, ...otherMatches] = matches;
-			if (!match) {
+			if (rowsPerSource.every(rows => rows.length === 0)) {
 				throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.notInWorkingSet', "'{0}' has no changes to accept.", basename(resource)));
 			}
-			if (otherMatches.length > 0) {
-				throw this._createEditedByOtherChatsError(resource);
+			const { pending, unchanged } = await computeWorkingSetSources(tracked.sources.map(source => source.db), rowsPerSource, this._diffComputeService);
+			if (shownNonce !== undefined && shownNonce !== getWorkingSetNonce(pending)) {
+				throw createChangedSinceShownError(resource);
 			}
-			await this._throwIfEditedByOtherChats(tracked.otherChatDatabases, resource, seen);
-
-			const { source, records } = match;
-			const last = records[records.length - 1];
-			// The file is unchanged since its changes were last accepted.
-			if (isFileEditAcceptRecord(last)) {
-				return this._createResult(resource);
+			if (target.kind === ChangesetOperationTargetKind.Range && pending.length > 1) {
+				throw this._createWholeFileOnlyError(resource);
 			}
-			const accepted = await readFileEditEndContent(source.db, last);
 			this._throwIfCancelled(token);
 
-			this._logService.info(`[AgentHostAcceptChangesOperationHandler] Accepting changes to '${resource.fsPath}' for ${owner}`);
-			await source.db.storeFileEdits([createFileEditAcceptRecord(last.turnId, last.filePath, accepted)], async readContent => {
-				this._throwIfTurnActive(session);
-				// Accepting must not cover an edit recorded since the file's rows were read.
-				const rows = (await source.db.getAllFileEdits()).filter(record => isFilePath(record.filePath, resource));
-				const current = rows.at(-2);
-				const content = current && await readFileEditEndContent({ readFileEditContent: readContent }, current);
-				const contentMatches = accepted === undefined
-					? content === undefined
-					: content !== undefined && VSBuffer.wrap(accepted).equals(VSBuffer.wrap(content));
-				if (current?.toolCallId !== last.toolCallId || !contentMatches) {
-					throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.changedDuringAccept', "'{0}' changed while its changes were being accepted. Try again.", basename(resource)));
-				}
-			});
-			acceptedChat = source.chat;
+			for (const workingSet of pending.length > 0 ? [...pending, ...unchanged] : []) {
+				const source = tracked.sources[workingSet.sourceIdx];
+				const last = workingSet.rows[workingSet.rows.length - 1];
+				// The content read with the rows, so a record rewritten since then fails the check in the transaction.
+				const current = workingSet.contents.current;
+				const row = target.kind === ChangesetOperationTargetKind.Range && pending.includes(workingSet)
+					? await this._createRangeAcceptRecord(last, workingSet.contents, target, resource)
+					: createFileEditAcceptRecord(last.turnId, last.filePath, current);
+
+				this._logService.info(`[AgentHostAcceptChangesOperationHandler] Accepting ${target.kind === ChangesetOperationTargetKind.Range ? 'a range of the ' : ''}changes to '${resource.fsPath}' for ${source.chat}`);
+				await storeFileEditAcceptRecord(source.db, row, resource, last, current, recordAdded => shownNonce !== undefined && recordAdded
+					? createChangedSinceShownError(resource)
+					: new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.changedDuringAccept', "'{0}' changed while its changes were being accepted. Try again.", basename(resource))));
+				acceptedChats.push(source.chat);
+			}
 		} catch (err) {
 			if (err instanceof ProtocolError) {
 				throw err;
@@ -118,10 +101,35 @@ export class AgentHostAcceptChangesOperationHandler implements IChangesetOperati
 			throw new ProtocolError(JsonRpcErrorCodes.InternalError, `Failed to accept changes: ${err instanceof Error ? err.message : String(err)}`);
 		} finally {
 			tracked.dispose();
+			// A chat whose changes were accepted before another one's failed shows that too.
+			for (const chat of acceptedChats) {
+				this._changesets.onFileEditsAccepted(chat);
+			}
 		}
 
-		this._changesets.onFileEditsAccepted(acceptedChat);
 		return this._createResult(resource);
+	}
+
+	/**
+	 * Builds the row that accepts the hunks that `target` touches of a file's unaccepted changes, `contents`,
+	 * which its `last` record ends. A range that touches every hunk accepts every change.
+	 */
+	private async _createRangeAcceptRecord(last: IFileEditRecord, contents: IWorkingSetFileContents, target: { readonly side?: 'before' | 'after'; readonly range: TextRange }, resource: URI): Promise<IFileEditRecord & IFileEditContent> {
+		const changes = await computeWorkingSetRangeChanges(contents, target.side, target.range, this._diffComputeService);
+		const current = contents.current;
+		if (!changes || !current) {
+			throw this._createWholeFileOnlyError(resource);
+		}
+		if (changes.selected === 0) {
+			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.notInRange', "'{0}' has no changes to accept in the given range.", basename(resource)));
+		}
+		return changes.selected === changes.total
+			? createFileEditAcceptRecord(last.turnId, last.filePath, current)
+			: createPartialFileEditAcceptRecord(last.turnId, last.filePath, changes.baselineWithRange, current);
+	}
+
+	private _createWholeFileOnlyError(resource: URI): ProtocolError {
+		return new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.wholeFileOnly', "Changes to '{0}' can only be accepted for the whole file.", basename(resource)));
 	}
 
 	private _createResult(resource: URI): InvokeChangesetOperationResult {
@@ -135,36 +143,10 @@ export class AgentHostAcceptChangesOperationHandler implements IChangesetOperati
 	 * rename that touches `resource` is rejected.
 	 */
 	private _getFileEditRecords(records: readonly IFileEditRecord[], resource: URI, folderScope: readonly URI[] | undefined): IFileEditRecord[] {
-		if (records.some(record => record.kind === FileEditKind.Rename && (isFilePath(record.filePath, resource) || isFilePath(record.originalPath, resource)))) {
+		if (records.some(record => record.kind === FileEditKind.Rename && (isFileEditPath(record.filePath, resource) || isFileEditPath(record.originalPath, resource)))) {
 			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.renamed', "Changes to a renamed file can't be accepted."));
 		}
-		return records.filter(record => isFilePath(record.filePath, resource) && (!folderScope || isPathWithinFolderScope(record.filePath, folderScope)));
-	}
-
-	/**
-	 * The Working Set of a session combines every chat's edits without ordering
-	 * them by time, so accepting a file's changes in one chat's database could
-	 * hide another chat's later changes to it. Rows in `copied`, which a forked
-	 * chat's database shares with its parent's, are the same edits.
-	 */
-	private async _throwIfEditedByOtherChats(otherChatDatabases: readonly ISessionDatabase[], resource: URI, copied: ReadonlySet<string>): Promise<void> {
-		for (const db of otherChatDatabases) {
-			const records = await db.getAllFileEdits();
-			if (records.some(record => (isFilePath(record.filePath, resource) || isFilePath(record.originalPath, resource)) && !copied.has(getFileEditKey(record)))) {
-				throw this._createEditedByOtherChatsError(resource);
-			}
-		}
-	}
-
-	private _createEditedByOtherChatsError(resource: URI): ProtocolError {
-		return new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.otherChat', "Changes to '{0}' can't be accepted because another chat in this session also changed it.", basename(resource)));
-	}
-
-	/** Throws while a turn runs in any chat of `session`: its edits could be accepted unseen. */
-	private _throwIfTurnActive(session: ProtocolURI): void {
-		if (this._stateManager.hasActiveTurn(session)) {
-			throw new ProtocolError(JsonRpcErrorCodes.InvalidParams, localize('agentHost.changeset.acceptChanges.turnInProgress', "Changes can't be accepted while a turn is running."));
-		}
+		return records.filter(record => isFileEditPath(record.filePath, resource) && (!folderScope || isPathWithinFolderScope(record.filePath, folderScope)));
 	}
 
 	private _throwIfCancelled(token: CancellationToken): void {
