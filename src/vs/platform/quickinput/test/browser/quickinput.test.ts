@@ -159,6 +159,91 @@ suite('QuickInput', () => { // https://github.com/microsoft/vscode/issues/147543
 		sinon.restore();
 	});
 
+	function getCachedTemplates(tree: ObjectTree<unknown, unknown>): object[] {
+		const cache = Reflect.get(Reflect.get(Reflect.get(tree, 'view'), 'view'), 'cache');
+		const rows = Reflect.get(cache, 'cache') as Map<string, readonly { templateData: unknown }[]>;
+		const unwrap = (data: unknown): object[] => {
+			if (Array.isArray(data)) {
+				return data.flatMap(unwrap);
+			}
+			if (typeof data !== 'object' || data === null) {
+				return [];
+			}
+			if (Reflect.has(data, 'toDisposeElement')) {
+				return [data];
+			}
+			return unwrap(Reflect.get(data, 'templateData'));
+		};
+		return [...rows.values()].flatMap(rows => rows.flatMap(row => unwrap(row.templateData)));
+	}
+
+	for (const operation of ['filter', 'replace']) {
+		test(`releases items and labels from pooled quick pick rows on ${operation}`, () => {
+			controller.layout({ height: 500, width: 600 }, 0);
+			const picker = store.add(controller.createQuickPick({ useSeparators: true }));
+			picker.canSelectMany = true;
+			picker.items = [
+				{ type: 'separator', label: 'old section', buttons: [{ iconClass: 'codicon-add', tooltip: 'old section action' }] },
+				{ label: 'old first item', description: 'old description', detail: 'old detail' },
+				{ label: 'old second item' },
+			];
+			picker.show();
+			const list = fixture.querySelector<HTMLElement>('.quick-input-list > .monaco-list')!;
+			const tree = getRegisteredLists().find(widget => widget.getHTMLElement() === list);
+			if (!(tree instanceof ObjectTree)) {
+				throw new Error('Expected the Quick Input tree');
+			}
+
+			if (operation === 'filter') {
+				picker.value = 'unmatched query';
+			} else {
+				picker.items = [{ label: 'current item' }];
+			}
+
+			const templates = getCachedTemplates(tree);
+			assert.ok(templates.length >= 2, 'Expected released item and separator rows in the pool');
+			assert.deepStrictEqual(templates.map(data => Reflect.get(data, 'element')), templates.map(() => undefined));
+			assert.ok(templates.every(data => !(Reflect.get(data, 'entry') as HTMLElement).textContent?.includes('old ')));
+		});
+	}
+
+	test('reused checkbox rows toggle the current item after hiding', () => {
+		controller.layout({ height: 500, width: 600 }, 0);
+		const picker = store.add(controller.createQuickPick());
+		picker.canSelectMany = true;
+		picker.items = [{ label: 'old item' }];
+		picker.show();
+		const oldLabel = fixture.querySelector<HTMLElement>('.quick-input-list-entry > label')!;
+		picker.items = [];
+		picker.hide();
+		assert.doesNotThrow(() => oldLabel.click());
+
+		const current = { label: 'current item' };
+		picker.items = [current];
+		picker.show();
+		fixture.querySelector<HTMLElement>('.quick-input-list-entry > label')!.click();
+		assert.deepStrictEqual(picker.selectedItems, [current]);
+	});
+
+	test('reuses main labels without creating labels for missing details', () => {
+		controller.layout({ height: 500, width: 600 }, 0);
+		const picker = store.add(controller.createQuickPick());
+		picker.items = [{ label: 'old command' }];
+		picker.show();
+		const initialLabel = fixture.querySelector<HTMLElement>('.quick-input-list .monaco-list-row .label-name');
+		assert.ok(initialLabel);
+		picker.items = [];
+		const rowReleased = !fixture.querySelector('.quick-input-list .monaco-list-row');
+		picker.items = [{ label: 'current command' }];
+		const row = fixture.querySelector<HTMLElement>('.quick-input-list .monaco-list-row')!;
+		const labels = [...row.querySelectorAll('.label-name')];
+		assert.deepStrictEqual({
+			rowReleased,
+			mainLabelReused: labels[0] === initialLabel,
+			labels: labels.map(label => label.textContent)
+		}, { rowReleased: true, mainLabelReused: true, labels: ['current command'] });
+	});
+
 	test('tracks the modifier keys of a window registered before it was created, such as an auxiliary window opened before the first quick input, as of the windows registered after', () => {
 		const iframe = mainWindow.document.body.appendChild(mainWindow.document.createElement('iframe'));
 		store.add(toDisposable(() => iframe.remove()));
