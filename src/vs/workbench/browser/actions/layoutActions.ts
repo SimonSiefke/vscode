@@ -1405,9 +1405,7 @@ const MiscLayoutOptions: CustomizeLayoutItem[] = [
 
 const LayoutContextKeySet = new Set<string>();
 for (const { active } of [...ToggleVisibilityActions, ...MoveSideBarActions, ...AlignPanelActions, ...QuickInputActions, ...LayoutDensityActions, ...MiscLayoutOptions]) {
-	for (const key of active.keys()) {
-		LayoutContextKeySet.add(key);
-	}
+	active.collectKeys(LayoutContextKeySet);
 }
 for (const key of ModernUIEnabledContext.keys()) {
 	LayoutContextKeySet.add(key);

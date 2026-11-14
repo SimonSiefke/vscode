@@ -286,6 +286,7 @@ interface IViewDescriptorItem {
 export class ViewContainerModel extends Disposable implements IViewContainerModel {
 
 	private readonly contextKeys = new CounterSet<string>();
+	private readonly contextKeyRemover = { add: (key: string) => this.contextKeys.delete(key) };
 	private viewDescriptorItems: IViewDescriptorItem[] = [];
 	private viewDescriptorsState: ViewDescriptorsState;
 
@@ -497,9 +498,7 @@ export class ViewContainerModel extends Disposable implements IViewContainerMode
 			const viewDescriptor = addedViewDescriptorState.viewDescriptor;
 
 			if (viewDescriptor.when) {
-				for (const key of viewDescriptor.when.keys()) {
-					this.contextKeys.add(key);
-				}
+				viewDescriptor.when.collectKeys(this.contextKeys);
 			}
 
 			let state = this.viewDescriptorsState.get(viewDescriptor.id);
@@ -559,9 +558,7 @@ export class ViewContainerModel extends Disposable implements IViewContainerMode
 
 		for (const viewDescriptor of viewDescriptors) {
 			if (viewDescriptor.when) {
-				for (const key of viewDescriptor.when.keys()) {
-					this.contextKeys.delete(key);
-				}
+				viewDescriptor.when.collectKeys(this.contextKeyRemover);
 			}
 			const index = this.viewDescriptorItems.findIndex(i => i.viewDescriptor.id === viewDescriptor.id);
 			if (index !== -1) {

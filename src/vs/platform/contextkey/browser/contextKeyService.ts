@@ -308,6 +308,9 @@ class SimpleContextKeyChangeEvent implements IContextKeyChangeEvent {
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.affectsSome(keys);
 	}
+	allKeysContainedInContext(context: Context): boolean {
+		return context.hasOwnValue(this.key);
+	}
 }
 
 class ArrayContextKeyChangeEvent implements IContextKeyChangeEvent {
@@ -322,6 +325,9 @@ class ArrayContextKeyChangeEvent implements IContextKeyChangeEvent {
 	}
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.keys.every(key => keys.has(key));
+	}
+	allKeysContainedInContext(context: Context): boolean {
+		return this.keys.every(key => context.hasOwnValue(key));
 	}
 }
 
@@ -338,6 +344,16 @@ class CompositeContextKeyChangeEvent implements IContextKeyChangeEvent {
 	allKeysContainedIn(keys: IReadableSet<string>): boolean {
 		return this.events.every(evt => evt.allKeysContainedIn(keys));
 	}
+	allKeysContainedInContext(context: Context): boolean {
+		return this.events.every(evt => allEventKeysInContext(evt, context));
+	}
+}
+
+function allEventKeysInContext(event: IContextKeyChangeEvent, context: Context): boolean {
+	if ('allKeysContainedInContext' in event && typeof event.allKeysContainedInContext === 'function') {
+		return event.allKeysContainedInContext(context);
+	}
+	return event.allKeysContainedIn({ has: key => context.hasOwnValue(key) });
 }
 
 export abstract class AbstractContextKeyService extends Disposable implements IContextKeyService {
@@ -569,7 +585,8 @@ class ScopedContextKeyService extends AbstractContextKeyService {
 		// Forward parent events to this listener. Parent will change.
 		this._parentChangeListener.value = this._parent.onDidChangeContext(e => {
 			const thisContainer = this._parent.getContextValuesContainer(this._myContextId);
-			if (!e.allKeysContainedIn({ has: key => thisContainer.hasOwnValue(key) })) {
+
+			if (!allEventKeysInContext(e, thisContainer)) {
 				this._onDidChangeContext.fire(e);
 			}
 		});
