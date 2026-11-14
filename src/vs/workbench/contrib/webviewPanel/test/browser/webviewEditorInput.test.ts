@@ -17,6 +17,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
+import { IWorkspaceFolderLocationService } from '../../../../../platform/workspace/common/folderLocations.js';
 import { DecorationsService } from '../../../../services/decorations/browser/decorationsService.js';
 import { TestViewsService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IOverlayWebview } from '../../../webview/browser/webview.js';
@@ -66,6 +67,10 @@ suite('WebviewInput', () => {
 			let activeEditor: EditorInput | undefined = input;
 			instantiationService.stub(IDecorationsService, decorations);
 			instantiationService.stub(IViewsService, new TestViewsService());
+			instantiationService.stub(IWorkspaceFolderLocationService, new class extends mock<IWorkspaceFolderLocationService>() {
+				override readonly onDidChangeLocation = Event.None;
+				override getLocation() { return undefined; }
+			});
 			instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
 				override get activeEditor() { return activeEditor; }
 				override readonly onDidActiveEditorChange = activeChanges.event;
