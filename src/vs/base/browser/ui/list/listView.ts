@@ -1808,7 +1808,7 @@ export class ListView<T> implements IListView<T> {
 			return delegateHeightDiff;
 		}
 
-		if (!this.shouldProbeDynamicHeight(item)) {
+		if (!this.shouldProbeDynamicHeight(item) || !this.canMeasureRows()) {
 			return 0;
 		}
 
@@ -1855,6 +1855,7 @@ export class ListView<T> implements IListView<T> {
 	private probeDynamicHeights(range: IRange, retainedMeasurements: Map<number, IDynamicHeightMeasurement<T>>): number[] {
 		const diffs = new Array<number>(range.end - range.start).fill(0);
 		const measurements: IDynamicHeightMeasurement<T>[] = [];
+		let canMeasureRows: boolean | undefined;
 
 		// Re-check `this.items.length` each iteration so a reentrant splice that shrinks the model mid-loop cannot read out of bounds.
 		for (let index = range.start; index < range.end && index < this.items.length; index++) {
@@ -1865,7 +1866,7 @@ export class ListView<T> implements IListView<T> {
 				continue;
 			}
 
-			if (!this.shouldProbeDynamicHeight(item) || retainedMeasurements.has(index)) {
+			if (!this.shouldProbeDynamicHeight(item) || retainedMeasurements.has(index) || !(canMeasureRows ??= this.canMeasureRows())) {
 				continue;
 			}
 
@@ -1940,6 +1941,10 @@ export class ListView<T> implements IListView<T> {
 		item.lastDynamicHeightWidth = this.renderWidth;
 		this.publishDynamicHeight(item);
 		return newSize - size;
+	}
+
+	private canMeasureRows(): boolean {
+		return this.domNode.isConnected && this.domNode.getClientRects().length > 0;
 	}
 
 	private shouldProbeDynamicHeight(item: IItem<T>): boolean {

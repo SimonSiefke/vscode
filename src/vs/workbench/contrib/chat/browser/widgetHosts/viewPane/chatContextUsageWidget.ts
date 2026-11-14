@@ -448,6 +448,9 @@ export class ChatContextUsageWidget extends Disposable {
 	}
 
 	private render(data: IChatContextUsageData): void {
+		if (isSameContextUsageData(this._currentData.get(), data)) {
+			return;
+		}
 		this._currentData.set(data, undefined);
 
 		// Pie chart shows actual usage percentage only

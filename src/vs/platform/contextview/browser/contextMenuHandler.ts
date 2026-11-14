@@ -11,6 +11,7 @@ import { ActionRunner, IRunEvent, WorkbenchActionExecutedClassification, Workben
 import { isCancellationError } from '../../../base/common/errors.js';
 import { combinedDisposable, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
 import { isPopoverDOMPosition } from '../../../base/browser/ui/contextview/contextview.js';
+import { getMenuActionGroupTitle } from '../../actions/common/actions.js';
 import { IContextViewService } from './contextView.js';
 import { IKeybindingService } from '../../keybinding/common/keybinding.js';
 import { INotificationService } from '../../notification/common/notification.js';
@@ -41,10 +42,10 @@ export class ContextMenuHandler {
 		this.options = options;
 	}
 
-	showContextMenu(delegate: IContextMenuDelegate): void {
+	showContextMenu(delegate: IContextMenuDelegate): boolean {
 		const actions = delegate.getActions();
 		if (!actions.length) {
-			return; // Don't render an empty context menu
+			return false; // Don't render an empty context menu
 		}
 
 		this.focusToReturn = getActiveElement() as HTMLElement;
@@ -95,7 +96,8 @@ export class ContextMenuHandler {
 					context: delegate.getActionsContext ? delegate.getActionsContext() : null,
 					labelClassName: delegate.labelClassName,
 					actionRunner,
-					getKeyBinding: delegate.getKeyBinding ? delegate.getKeyBinding : action => this.keybindingService.lookupKeybinding(action.id)
+					getKeyBinding: delegate.getKeyBinding ? delegate.getKeyBinding : action => this.keybindingService.lookupKeybinding(action.id),
+					getGroupTitle: getMenuActionGroupTitle,
 				},
 					defaultMenuStyles
 				);
@@ -134,7 +136,9 @@ export class ContextMenuHandler {
 			focus: () => {
 				const selection = getContextMenuAutoSelectItem(delegate, actions);
 				if (typeof selection === 'number') {
-					menu?.focus(selection);
+					// The menu adds group headers and removes redundant separators, which can move the selected action
+					const index = menu?.indexOfAction(actions[selection]) ?? -1;
+					menu?.focus(index >= 0 ? index : selection);
 				} else {
 					menu?.focus(selection);
 				}
@@ -159,6 +163,7 @@ export class ContextMenuHandler {
 				this.lastHostedAsPopover = false;
 			}
 		}, shadowRootElement, !!shadowRootElement, delegate.useWindowContainerForShadowRoot);
+		return true;
 	}
 
 	private onActionRun(e: IRunEvent, logTelemetry: boolean): void {
