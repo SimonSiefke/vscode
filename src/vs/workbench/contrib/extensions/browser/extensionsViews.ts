@@ -253,21 +253,25 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 
 		const request = createCancelablePromise(async token => {
 			try {
-				this.queryResult = await this.query(parsedQuery, options, token);
-				const model = this.queryResult.model;
-				this.setModel(model, this.queryResult.message);
-				if (this.queryResult.onDidChangeModel) {
-					this.queryResult.disposables.add(this.queryResult.onDidChangeModel(model => {
-						if (this.queryResult) {
-							this.queryResult.model = model;
-							this.updateModel(model);
-						}
+				const result = await this.query(parsedQuery, options, token);
+				const model = result.model;
+				if (token.isCancellationRequested) {
+					result.disposables.dispose();
+					return model;
+				}
+
+				this.queryResult = result;
+				if (result.onDidChangeModel) {
+					result.disposables.add(result.onDidChangeModel(model => {
+						result.model = model;
+						this.updateModel(model);
 					}));
 				}
+				this.setModel(model, result.message);
 				return model;
 			} catch (e) {
 				const model = new PagedModel([]);
-				if (!isCancellationError(e)) {
+				if (!token.isCancellationRequested && !isCancellationError(e)) {
 					this.logService.error(e);
 					this.setModel(model, this.getMessage(e));
 				}
@@ -275,8 +279,13 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			}
 		});
 
-		request.finally(() => this.queryRequest = null);
 		this.queryRequest = { query, request };
+		const clearRequest = () => {
+			if (this.queryRequest?.request === request) {
+				this.queryRequest = null;
+			}
+		};
+		request.then(clearRequest, clearRequest);
 		return request;
 	}
 
