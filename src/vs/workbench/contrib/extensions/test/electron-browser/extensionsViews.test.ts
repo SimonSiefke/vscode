@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { isCancellationError } from '../../../../../base/common/errors.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
 import { ExtensionsListView } from '../../browser/extensionsViews.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { IExtensionsWorkbenchService } from '../../common/extensions.js';
 import { ExtensionsWorkbenchService } from '../../browser/extensionsWorkbenchService.js';
 import {
@@ -19,7 +22,7 @@ import { getGalleryExtensionId } from '../../../../../platform/extensionManageme
 import { TestExtensionEnablementService } from '../../../../services/extensionManagement/test/browser/extensionEnablementService.test.js';
 import { ExtensionGalleryService } from '../../../../../platform/extensionManagement/common/extensionGalleryService.js';
 import { IURLService } from '../../../../../platform/url/common/url.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IPager } from '../../../../../base/common/paging.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
@@ -32,7 +35,7 @@ import { ILogService, NullLogService } from '../../../../../platform/log/common/
 import { NativeURLService } from '../../../../../platform/url/common/urlService.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { SinonStub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
 import { RemoteAgentService } from '../../../../services/remote/electron-browser/remoteAgentService.js';
 import { ExtensionType, IExtension } from '../../../../../platform/extensions/common/extensions.js';
@@ -266,6 +269,41 @@ suite('ExtensionsViews Tests', () => {
 		assert.ok(target.calledOnce);
 		const options: IQueryOptions = target.args[0][0];
 		assert.strictEqual(options.sortBy, SortBy.InstallCount);
+	});
+
+	test('releases listeners when an installed extensions query completes after disposal', async () => {
+		const extensionsChanged = disposableStore.add(new Emitter<never>());
+		const extensionService = {
+			...instantiationService.get(IExtensionService),
+			onDidChangeExtensions: extensionsChanged.event
+		};
+		const viewInstantiationService = disposableStore.add(instantiationService.createChild(new ServiceCollection([IExtensionService, extensionService])));
+		const view = disposableStore.add(viewInstantiationService.createInstance(ExtensionsListView, {}, { id: '', title: '' }));
+		const installed = new DeferredPromise<[]>();
+		stub(instantiationService.get(IExtensionsWorkbenchService), 'queryLocal').returns(installed.p);
+
+		const cancelled = assert.rejects(view.show('@installed'), isCancellationError);
+		view.dispose();
+
+		// Wait for a second query through the same local pipeline. Its result is
+		// handled after the disposed view's result and adds no change listener.
+		const replacement = disposableStore.add(viewInstantiationService.createInstance(ExtensionsListView, {}, { id: '', title: '' }));
+		const builtins = replacement.show('@builtin');
+		await installed.complete([]);
+		await Promise.all([cancelled, builtins]);
+		assert.strictEqual(extensionsChanged.hasListeners(), false);
+	});
+
+	test('still cancels the current query on disposal after a previous query was cancelled', async () => {
+		const installed = new DeferredPromise<[]>();
+		stub(instantiationService.get(IExtensionsWorkbenchService), 'queryLocal').returns(installed.p);
+
+		const previous = assert.rejects(testableView.show('@installed'), isCancellationError);
+		const current = assert.rejects(testableView.show('@builtin'), isCancellationError);
+		await previous;
+		testableView.dispose();
+		await installed.complete([]);
+		await current;
 	});
 
 	test('Test non empty query without sort doesnt use sortBy', async () => {
