@@ -19,10 +19,15 @@ import { INotification, NotificationType } from '../../../../../platform/agentHo
 import { ROOT_STATE_URI, RootState, SessionModelInfo } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ContextKeyService } from '../../../../../platform/contextkey/browser/contextKeyService.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { InMemoryStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryData } from '../../../../../platform/telemetry/common/telemetry.js';
+import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
-import { ChatEntitlement, IChatEntitlementService } from '../../../chat/common/chatEntitlementService.js';
+import { ChatEntitlement, ChatEntitlementContext, ChatEntitlementService, IChatEntitlementService, IChatSentiment } from '../../../chat/common/chatEntitlementService.js';
 import { IWorkbenchEnvironmentService } from '../../../environment/common/environmentService.js';
 import { IHostService } from '../../../host/browser/host.js';
 import { ICodexAccountService } from '../../browser/codexAccountService.js';
@@ -33,21 +38,23 @@ suite('Codex continuation coordination', () => {
 	const source: SessionModelInfo = { provider: 'codex', id: '@provider=openai:gpt', name: 'GPT', _meta: { modelSourceId: 'chatgptSubscription' } };
 	const target: SessionModelInfo = { provider: 'codex', id: '@provider=vscode-proxy:gpt', name: 'GPT Copilot' };
 
-	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true) {
+	function create(storage: InMemoryStorageService, treatment = true, canMapSession = true, initialAccount?: ICodexAccountInfo, initialSentiment: IChatSentiment = { installed: true }, entitlementService?: IChatEntitlementService) {
 		const order: string[] = [];
-		const activity = { listSessions: 0 };
+		const activity = { listSessions: 0, refreshAccount: 0 };
 		const backend = AgentSession.uri('codex', 'existing');
 		const session: { session: URI; provider?: string; startTime: number; modifiedTime: number; model?: { id: string } } = { session: backend, startTime: 1, modifiedTime: 2, model: { id: source.id } };
 		const registered = new Map<string, URI>();
-		const notifications = store.add(new Emitter<INotification>());
+		const listeners = { root: 0, notifications: 0 };
+		const notifications = store.add(new Emitter<INotification>({ onDidAddListener: () => listeners.notifications++, onWillRemoveListener: () => listeners.notifications-- }));
+		const rootChanged = store.add(new Emitter<RootState>({ onDidAddListener: () => listeners.root++, onWillRemoveListener: () => listeners.root-- }));
 		const root = new class extends mock<IAgentSubscription<RootState>>() {
-			override onDidChange = Event.None;
+			override onDidChange = rootChanged.event;
 			override value = new class extends mock<RootState>() { override agents = [{ provider: 'codex', displayName: 'Codex', description: '', models: [source, target] }]; }();
 		}();
 		const agent = new class extends NullAgentHostService {
 			override get rootState() { return root; }
 			override readonly onDidNotification = notifications.event;
-			override dispatch(): void { }
+			override dispatch(): void { activity.refreshAccount++; }
 			override async listSessions() { activity.listSessions++; return [session]; }
 		}();
 		const connections = new class extends mock<IAgentHostConnectionsService>() {
@@ -65,16 +72,17 @@ suite('Codex continuation coordination', () => {
 		const accountChanged = store.add(new Emitter<ICodexAccountInfo>());
 		const account = new class extends mock<ICodexAccountService>() {
 			override onDidChangeAccount = accountChanged.event;
-			override account: ICodexAccountInfo = { status: 'signedIn', planType: 'plus', observedAt: Date.now(), rateLimits: [{ usedPercent: 95, windowDurationMins: 300 }] };
+			override account: ICodexAccountInfo = initialAccount ?? { status: 'signedIn', planType: 'plus', observedAt: Date.now(), rateLimits: [{ usedPercent: 95, windowDurationMins: 300 }] };
 		}();
 		const quotaChanged = store.add(new Emitter<void>());
+		const sentimentChanged = store.add(new Emitter<void>());
 		const entitlement = new class extends mock<IChatEntitlementService>() {
 			override onDidChangeEntitlement = Event.None;
 			override onDidChangeQuotaRemaining = quotaChanged.event;
 			override onDidChangeQuotaExceeded = Event.None;
-			override onDidChangeSentiment = Event.None;
+			override onDidChangeSentiment = sentimentChanged.event;
 			override entitlement = ChatEntitlement.Pro;
-			override sentiment = { installed: true };
+			override sentiment = initialSentiment;
 			override quotas: IChatEntitlementService['quotas'] = { premiumChat: { unlimited: false, percentRemaining: 0 }, additionalUsageEnabled: true };
 		}();
 		const host = new class extends mock<IHostService>() {
@@ -94,9 +102,150 @@ suite('Codex continuation coordination', () => {
 			override isSessionsWindow = true;
 		}();
 
-		const service = store.add(new CodexContinuationService(agent, connections, account, entitlement, host, storage, telemetry, config, environment));
+		const service = store.add(new CodexContinuationService(agent, connections, account, entitlementService ?? entitlement, host, storage, telemetry, config, environment));
 		service.setSelectableModels([{ id: target.id, vendor: 'agent-host-codex' }]);
-		return { service, order, telemetry, config, host, account, accountChanged, entitlement, session, activity, notifications, quotaChanged, registered };
+		return { service, order, telemetry, config, host, account, accountChanged, entitlement, session, activity, notifications, quotaChanged, sentimentChanged, registered, root, rootChanged, listeners };
+	}
+
+	for (const [state, sentiment] of [
+		['not installed', {}],
+		['disabled globally', { installed: true, disabled: true }],
+		['disabled in the workspace', { installed: true, disabledInWorkspace: true }],
+		['blocked by workspace trust', { installed: true, untrusted: true }],
+	] satisfies [string, IChatSentiment][]) {
+		test(`does not refresh or resolve while Copilot is ${state}`, () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+			const { service, activity, entitlement, sentimentChanged } = create(store.add(new InMemoryStorageService()), true, true, undefined, sentiment);
+			service.refresh();
+			assert.deepStrictEqual({ candidate: await service.resolve(), ...activity }, { candidate: undefined, listSessions: 0, refreshAccount: 0 });
+
+			entitlement.sentiment = { installed: true };
+			sentimentChanged.fire();
+			assert.strictEqual(activity.refreshAccount, 0);
+			await timeout(1);
+			assert.strictEqual(activity.refreshAccount, 1);
+			service.refresh();
+			assert.deepStrictEqual({ candidate: !!await service.resolve(), ...activity }, { candidate: true, listSessions: 1, refreshAccount: 1 });
+		}));
+	}
+
+	test('does not refresh during a real disabled-to-untrusted sentiment update', () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+		const config = new TestConfigurationService();
+		const contextKeys = store.add(new ContextKeyService(config));
+		const storage = store.add(new InMemoryStorageService());
+		const context = store.add(new ChatEntitlementContext(contextKeys, storage, new NullLogService(), config, NullTelemetryService));
+		await context.update({ installed: true, disabled: true, untrusted: false, disabledInWorkspace: false });
+		const entitlement = store.add(new ChatEntitlementService(
+			store.add(new TestInstantiationService()), new class extends mock<IProductService>() { }(),
+			new class extends mock<IWorkbenchEnvironmentService>() { override isSessionsWindow = true; }(),
+			contextKeys, config, NullTelemetryService, new NullLogService(), storage,
+		));
+		const { activity } = create(store.add(new InMemoryStorageService()), true, true, undefined, undefined, entitlement);
+		await context.update({ installed: true, disabled: false, untrusted: true, disabledInWorkspace: false });
+		await timeout(101);
+		assert.deepStrictEqual(activity, { listSessions: 0, refreshAccount: 0 });
+
+		await context.update({ installed: true, disabled: false, untrusted: false, disabledInWorkspace: false });
+		await timeout(1);
+		assert.strictEqual(activity.refreshAccount, 1);
+	}));
+
+	test('restores live subscriptions after Copilot becomes available', () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+		const { service, activity, entitlement, sentimentChanged, session, notifications, root, rootChanged } = create(store.add(new InMemoryStorageService()), true, true, undefined, {});
+		await timeout(101);
+		assert.deepStrictEqual(activity, { listSessions: 0, refreshAccount: 0 });
+
+		entitlement.sentiment = { installed: true };
+		sentimentChanged.fire();
+		await timeout(101);
+		assert.deepStrictEqual({ candidate: service.candidate.get()?.session.session.toString(), ...activity }, { candidate: session.session.toString(), listSessions: 1, refreshAccount: 1 });
+
+		delete session.model;
+		notifications.fire({ type: NotificationType.SessionSummaryChanged, channel: ROOT_STATE_URI, session: session.session.toString(), changes: { _meta: {} } });
+		await timeout(101);
+		assert.deepStrictEqual({ candidate: service.candidate.get(), listSessions: activity.listSessions }, { candidate: undefined, listSessions: 2 });
+
+		session.model = { id: source.id };
+		root.value.agents[0].models = [source];
+		rootChanged.fire(root.value);
+		await timeout(101);
+		assert.deepStrictEqual({ candidate: service.candidate.get(), listSessions: activity.listSessions }, { candidate: undefined, listSessions: 3 });
+
+		root.value.agents[0].models = [source, target];
+		rootChanged.fire(root.value);
+		await timeout(101);
+		assert.deepStrictEqual({ candidate: service.candidate.get()?.session.session.toString(), listSessions: activity.listSessions }, { candidate: session.session.toString(), listSessions: 4 });
+	}));
+
+	test('replaces eligibility subscriptions and disposes pending work', () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+		const { service, activity, entitlement, sentimentChanged, listeners } = create(store.add(new InMemoryStorageService()), true, true, undefined, {});
+		assert.deepStrictEqual(listeners, { root: 0, notifications: 0 });
+		entitlement.sentiment = { installed: true };
+		sentimentChanged.fire();
+		await timeout(101);
+		assert.deepStrictEqual(listeners, { root: 1, notifications: 1 });
+
+		sentimentChanged.fire();
+		sentimentChanged.fire();
+		await timeout(101);
+		assert.deepStrictEqual(listeners, { root: 1, notifications: 1 });
+
+		entitlement.sentiment = { installed: true, disabled: true };
+		sentimentChanged.fire();
+		await timeout(101);
+		assert.deepStrictEqual({ candidate: service.candidate.get(), ...listeners }, { candidate: undefined, root: 0, notifications: 0 });
+
+		entitlement.sentiment = { installed: true };
+		sentimentChanged.fire();
+		await timeout(101);
+		assert.deepStrictEqual(listeners, { root: 1, notifications: 1 });
+
+		sentimentChanged.fire();
+		const beforeDispose = { ...activity };
+		service.dispose();
+		await timeout(101);
+		assert.deepStrictEqual({ ...listeners, ...activity }, { root: 0, notifications: 0, ...beforeDispose });
+	}));
+
+	test('does not refresh after disposal with an eligibility update pending', () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+		const { service, activity, entitlement, sentimentChanged, listeners } = create(store.add(new InMemoryStorageService()), true, true, undefined, {});
+		entitlement.sentiment = { installed: true };
+		sentimentChanged.fire();
+		service.dispose();
+		await timeout(101);
+		assert.deepStrictEqual({ ...activity, ...listeners }, { listSessions: 0, refreshAccount: 0, root: 0, notifications: 0 });
+	}));
+
+	for (const change of ['account becomes unknown', 'window loses focus']) {
+		test(`rechecks eligibility before a queued refresh when the ${change}`, () => runWithFakedTimers({ startTime: Date.now() }, async () => {
+			const { account, activity, entitlement, host, sentimentChanged } = create(store.add(new InMemoryStorageService()), true, true, undefined, {});
+			entitlement.sentiment = { installed: true };
+			sentimentChanged.fire();
+			if (change === 'account becomes unknown') {
+				account.account = { status: 'unknown' };
+			} else {
+				host.hasFocus = false;
+			}
+			await timeout(101);
+			assert.strictEqual(activity.refreshAccount, 0);
+		}));
+	}
+
+	test('does not discover an unknown account before explicit Codex use', () => {
+		const { service, account, activity } = create(store.add(new InMemoryStorageService()), true, true, { status: 'unknown' });
+		service.refresh();
+		assert.strictEqual(activity.refreshAccount, 0);
+
+		account.account = { status: 'signedIn', planType: 'plus' };
+		service.refresh();
+		service.refresh();
+		assert.strictEqual(activity.refreshAccount, 1);
+	});
+
+	for (const status of ['signedIn', 'signedOut', 'error'] as const) {
+		test(`refreshes a known ${status} account`, () => {
+			const { activity } = create(store.add(new InMemoryStorageService()), true, true, { status });
+			assert.strictEqual(activity.refreshAccount, 1);
+		});
 	}
 
 	for (const resource of ['ahp-session:/existing', 'session-store://tenant/opaque?revision=2']) {
