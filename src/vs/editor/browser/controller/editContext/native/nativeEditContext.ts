@@ -298,9 +298,7 @@ export class NativeEditContext extends AbstractEditContext {
 	}
 
 	public override onBeforeRender(viewportData: ViewportData): void {
-		// We need to read the position of the container dom node
-		// It is best to do this before we begin touching the DOM at all
-		// Because the sync layout will be fast if we do it here
+		// The editor can move without changing its layout dimensions.
 		this._parentBounds = this._parent.getBoundingClientRect();
 	}
 
@@ -323,7 +321,9 @@ export class NativeEditContext extends AbstractEditContext {
 
 	public override onConfigurationChanged(e: ViewConfigurationChangedEvent): boolean {
 		this._screenReaderSupport.onConfigurationChanged(e);
-		this._updateDomAttributes();
+		if (e.hasChanged(EditorOption.tabIndex)) {
+			this._updateDomAttributes();
+		}
 		return true;
 	}
 

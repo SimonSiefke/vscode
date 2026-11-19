@@ -222,7 +222,15 @@ export class ViewOverlayWidgets extends ViewPart {
 	}
 
 	public prepareRender(ctx: RenderingContext): void {
-		this._viewDomNodeRect = dom.getDomNodePagePosition(this._viewDomNode.domNode);
+		const fixedOverflowWidgets = this._context.configuration.options.get(EditorOption.fixedOverflowWidgets);
+		if (fixedOverflowWidgets) {
+			for (const widgetData of Object.values(this._widgets)) {
+				if (widgetData.preference !== null && typeof widgetData.preference === 'object' && this._widgetCanOverflow(widgetData.widget)) {
+					this._viewDomNodeRect = dom.getDomNodePagePosition(this._viewDomNode.domNode);
+					break;
+				}
+			}
+		}
 	}
 
 	public render(ctx: RestrictedRenderingContext): void {

@@ -64,9 +64,28 @@ export class ScreenReaderSupport extends Disposable {
 	}
 
 	public onConfigurationChanged(e: ViewConfigurationChangedEvent): void {
-		this._instantiateScreenReaderContent();
-		this._updateConfigurationSettings();
-		this._updateDomAttributes();
+		if (e.hasChanged(EditorOption.renderRichScreenReaderContent)) {
+			this._instantiateScreenReaderContent();
+		}
+		if (
+			e.hasChanged(EditorOption.layoutInfo)
+			|| e.hasChanged(EditorOption.fontInfo)
+			|| e.hasChanged(EditorOption.accessibilityPageSize)
+		) {
+			this._updateConfigurationSettings();
+		}
+		if (
+			e.hasChanged(EditorOption.ariaRequired)
+			|| e.hasChanged(EditorOption.readOnly)
+			|| e.hasChanged(EditorOption.accessibilitySupport)
+			|| e.hasChanged(EditorOption.ariaLabel)
+			|| e.hasChanged(EditorOption.fontInfo)
+			|| e.hasChanged(EditorOption.wordWrapOverride1)
+			|| e.hasChanged(EditorOption.wordWrapOverride2)
+			|| e.hasChanged(EditorOption.wordWrap)
+		) {
+			this._updateDomAttributes();
+		}
 		if (e.hasChanged(EditorOption.accessibilitySupport)) {
 			this.writeScreenReaderContent();
 		}
