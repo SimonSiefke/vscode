@@ -28,7 +28,7 @@ suite('LocalPtyChannel', () => {
 			onDidRequestDetach: store.add(new Emitter<PtyEventData<'onDidRequestDetach'>>()),
 		};
 		const lifecycleEvents = {
-			onPtyHostStart: store.add(new Emitter<void>()),
+			onPtyHostStart: store.add(new Emitter<PtyEventData<'onPtyHostStart'>>()),
 			onPtyHostExit: store.add(new Emitter<number>()),
 			onPtyHostUnresponsive: store.add(new Emitter<void>()),
 			onPtyHostResponsive: store.add(new Emitter<void>()),
@@ -111,27 +111,27 @@ suite('LocalPtyChannel', () => {
 		const earlyRequest = { requestId: 1, workspaceId: 'workspace', originalText: ['${workspaceFolder}'] };
 		const liveRequest = { requestId: 2, workspaceId: 'workspace', originalText: ['${env:HOME}'] };
 
-		lifecycleEvents.onPtyHostStart.fire();
+		lifecycleEvents.onPtyHostStart.fire({ isRestart: true });
 		lifecycleEvents.onPtyHostExit.fire(1);
 		lifecycleEvents.onPtyHostUnresponsive.fire();
 		lifecycleEvents.onPtyHostResponsive.fire();
 		lifecycleEvents.onPtyHostRequestResolveVariables.fire(earlyRequest);
 
-		store.add(channel.listen<void>('window', 'onPtyHostStart')(e => received.onPtyHostStart.push(e)));
+		store.add(channel.listen<PtyEventData<'onPtyHostStart'>>('window', 'onPtyHostStart')(e => received.onPtyHostStart.push(e)));
 		store.add(channel.listen<number>('window', 'onPtyHostExit')(e => received.onPtyHostExit.push(e)));
 		store.add(channel.listen<void>('window', 'onPtyHostUnresponsive')(e => received.onPtyHostUnresponsive.push(e)));
 		store.add(channel.listen<void>('window', 'onPtyHostResponsive')(e => received.onPtyHostResponsive.push(e)));
 		store.add(channel.listen<PtyEventData<'onPtyHostRequestResolveVariables'>>('window', 'onPtyHostRequestResolveVariables')(e => received.onPtyHostRequestResolveVariables.push(e)));
 		await timeout(0);
 
-		lifecycleEvents.onPtyHostStart.fire();
+		lifecycleEvents.onPtyHostStart.fire({ isRestart: true });
 		lifecycleEvents.onPtyHostExit.fire(2);
 		lifecycleEvents.onPtyHostUnresponsive.fire();
 		lifecycleEvents.onPtyHostResponsive.fire();
 		lifecycleEvents.onPtyHostRequestResolveVariables.fire(liveRequest);
 
 		deepStrictEqual(received, {
-			onPtyHostStart: [undefined, undefined],
+			onPtyHostStart: [{ isRestart: true }, { isRestart: true }],
 			onPtyHostExit: [1, 2],
 			onPtyHostUnresponsive: [undefined, undefined],
 			onPtyHostResponsive: [undefined, undefined],

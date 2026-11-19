@@ -16,6 +16,7 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 		id: number,
 		shouldPersist: boolean,
 		private readonly _proxy: IPtyService,
+		readonly creationId?: string,
 		readonly isRevived: boolean = false
 	) {
 		super(id, shouldPersist);
@@ -29,8 +30,8 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 		return this._proxy.detachFromProcess(this.id, forcePersist);
 	}
 
-	shutdown(immediate: boolean): void {
-		this._proxy.shutdown(this.id, immediate);
+	shutdown(immediate: boolean): Promise<void> {
+		return this._proxy.shutdown(this.id, immediate, this.creationId);
 	}
 
 	async processBinary(data: string): Promise<void> {

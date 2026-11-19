@@ -49,6 +49,32 @@ function isCreateTerminalProcessArguments(value: unknown): value is ICreateTermi
 suite('RemoteTerminalChannelClient', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('sends attachment replies and shutdown allocation identity in their host argument slots', async () => {
+		const calls: { command: string; args: unknown }[] = [];
+		const channel: IChannel = {
+			call<T>(command: string, args?: unknown): Promise<T> {
+				calls.push({ command, args });
+				return Promise.resolve(undefined!);
+			},
+			listen: () => Event.None
+		};
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(IWorkspaceContextService, new TestContextService());
+		const client = instantiationService.createInstance(RemoteTerminalChannelClient, 'ssh-remote+test', channel);
+		await client.getRevivedPtyProcessIdentity(34, 'saved owner');
+		await client.acceptDetachInstanceReply(7, 12, 'handoff source');
+		await client.attachToProcess(12, { prompt: 'reply' }, 'attachment', 'original', 1234);
+		await client.setAutoReplies(12, { prompt: 'updated' }, 'attachment');
+		await client.shutdown(12, true, 'creation');
+		deepStrictEqual(calls, [
+			{ command: RemoteTerminalChannelRequest.GetRevivedPtyProcessIdentity, args: [new TestContextService().getWorkspace().id, 34, 'saved owner'] },
+			{ command: RemoteTerminalChannelRequest.AcceptDetachInstanceReply, args: [7, 12, 'handoff source'] },
+			{ command: RemoteTerminalChannelRequest.AttachToProcess, args: [12, 1234, { prompt: 'reply' }, 'attachment', 'original'] },
+			{ command: RemoteTerminalChannelRequest.SetAutoReplies, args: [12, { prompt: 'updated' }, 'attachment'] },
+			{ command: RemoteTerminalChannelRequest.Shutdown, args: [12, true, 'creation'] }
+		]);
+	});
+
 	test('serializes only target-eligible PATH mutations while retaining non-PATH mutations', async () => {
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IExtensionService, new TestExtensionService());

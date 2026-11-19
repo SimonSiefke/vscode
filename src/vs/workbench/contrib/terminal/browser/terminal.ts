@@ -721,6 +721,7 @@ export const terminalEditorId = 'terminalEditor';
 
 interface ITerminalEditorInputObject {
 	readonly id: number;
+	readonly creationId?: string;
 	readonly pid: number;
 	readonly title: string;
 	readonly titleSource: TitleEventSource;
@@ -963,6 +964,7 @@ export interface ITerminalInstance extends IBaseTerminalInstance {
 	 * that supports reconnection.
 	 */
 	readonly persistentProcessId: number | undefined;
+	readonly persistentProcessCreationId?: string;
 
 	/**
 	 * Whether the process should be persisted across reloads.
