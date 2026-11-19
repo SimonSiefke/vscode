@@ -123,20 +123,39 @@ function _define() {
 
 function _factory(sharedObj: any) {
 	if (!sharedObj.MonacoPerformanceMarks) {
-		sharedObj.MonacoPerformanceMarks = _define();
+		sharedObj.MonacoPerformanceMarks = {
+			..._define(),
+			latestMarks: new Map<string, number>()
+		};
 	}
 	return sharedObj.MonacoPerformanceMarks;
 }
 
 const perf = _factory(globalThis);
+const latestMarks: Map<string, number> = perf.latestMarks;
 
 export const mark: (name: string, markOptions?: { startTime?: number }) => void = perf.mark;
+
+/**
+ * Stores only the latest timestamp for a fixed mark name, using `Date.now()`
+ * without adding an entry to the native performance timeline.
+ */
+export function markLatest(name: string): void {
+	latestMarks.set(name, Date.now());
+}
 
 /**
  * Clears performance marks. If a name is given, only marks with that exact
  * name are removed. If no name is given, all marks are removed.
  */
-export const clearMarks: (name?: string) => void = perf.clearMarks;
+export function clearMarks(name?: string): void {
+	perf.clearMarks(name);
+	if (typeof name === 'undefined') {
+		latestMarks.clear();
+	} else {
+		latestMarks.delete(name);
+	}
+}
 
 export interface PerformanceMark {
 	readonly name: string;
@@ -146,4 +165,10 @@ export interface PerformanceMark {
 /**
  * Returns all marks, sorted by `startTime`.
  */
-export const getMarks: () => PerformanceMark[] = perf.getMarks;
+export function getMarks(): PerformanceMark[] {
+	const result: PerformanceMark[] = perf.getMarks();
+	for (const [name, startTime] of latestMarks) {
+		result.push({ name, startTime });
+	}
+	return result.sort((a, b) => a.startTime - b.startTime);
+}

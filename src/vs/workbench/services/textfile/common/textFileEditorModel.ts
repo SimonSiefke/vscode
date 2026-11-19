@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
-import { mark } from '../../../../base/common/performance.js';
+import { markLatest } from '../../../../base/common/performance.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { EncodingMode, ITextFileService, TextFileEditorModelState, ITextFileEditorModel, ITextFileStreamContent, ITextFileResolveOptions, IResolvedTextFileEditorModel, TextFileResolveReason, ITextFileEditorModelSaveEvent, ITextFileSaveAsOptions, TextFileReconcileResult } from './textfiles.js';
 import { IRevertOptions, SaveReason, SaveSourceRegistry } from '../../../common/editor.js';
@@ -294,7 +294,6 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 
 	override async resolve(options?: ITextFileResolveOptions): Promise<void> {
 		this.trace('resolve() - enter');
-		mark('code/willResolveTextFileEditorModel');
 
 		// Return early if we are disposed
 		if (this.isDisposed()) {
@@ -312,10 +311,12 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 			return;
 		}
 
+		markLatest('code/willResolveTextFileEditorModel');
+
 		// Resolve either from backup or from file
 		await this.doResolve(options);
 
-		mark('code/didResolveTextFileEditorModel');
+		markLatest('code/didResolveTextFileEditorModel');
 	}
 
 	private async doResolve(options?: ITextFileResolveOptions): Promise<void> {
