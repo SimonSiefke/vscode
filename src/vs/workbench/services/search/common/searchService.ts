@@ -32,6 +32,7 @@ export class SearchService extends Disposable implements ISearchService {
 	private readonly fileSearchProviders = new Map<string, ISearchResultProvider>();
 	private readonly textSearchProviders = new Map<string, ISearchResultProvider>();
 	private readonly aiTextSearchProviders = new Map<string, ISearchResultProvider>();
+	private readonly pendingFileSearches = new Map<string, Set<Promise<unknown>>>();
 
 	private deferredFileSearchesByScheme = new Map<string, DeferredPromise<ISearchResultProvider>>();
 	private deferredTextSearchesByScheme = new Map<string, DeferredPromise<ISearchResultProvider>>();
@@ -179,7 +180,7 @@ export class SearchService extends Disposable implements ISearchService {
 		schemesInQuery.forEach(scheme => providerActivations.push(this.extensionService.activateByEvent(`onSearch:${scheme}`)));
 		providerActivations.push(this.extensionService.activateByEvent('onSearch:file'));
 
-		const providerPromise = (async () => {
+		const providerPromise: Promise<ISearchComplete> = (async () => {
 			await Promise.all(providerActivations);
 			await this.extensionService.whenInstalledExtensionsRegistered();
 
@@ -218,7 +219,26 @@ export class SearchService extends Disposable implements ISearchService {
 			};
 		})();
 
-		return token ? raceCancellationError<ISearchComplete>(providerPromise, token) : providerPromise;
+		const tracked = this.trackFileSearch(query, providerPromise);
+		return token ? raceCancellationError<ISearchComplete>(tracked, token) : tracked;
+	}
+
+	private trackFileSearch<T>(query: ISearchQuery, promise: Promise<T>): Promise<T> {
+		if (query.type === QueryType.File && query.cacheKey) {
+			const cacheKey = query.cacheKey;
+			const pending = this.pendingFileSearches.get(cacheKey) ?? new Set<Promise<unknown>>();
+			this.pendingFileSearches.set(cacheKey, pending);
+			const tracked: Promise<T> = promise.finally(() => {
+				pending.delete(tracked);
+				if (pending.size === 0) {
+					this.pendingFileSearches.delete(cacheKey);
+				}
+			});
+			pending.add(tracked);
+			return tracked;
+		}
+
+		return promise;
 	}
 
 	private getSchemesInQuery(query: ISearchQuery): Set<string> {
@@ -278,7 +298,7 @@ export class SearchService extends Disposable implements ISearchService {
 			return this.getSearchProvider(query.type).has(scheme);
 		});
 
-		await Promise.all([...fqs.keys()].map(async scheme => {
+		const searchWithProvider = async (scheme: string) => {
 			if (query.onlyFileScheme && scheme !== Schemas.file) {
 				return;
 			}
@@ -319,10 +339,14 @@ export class SearchService extends Disposable implements ISearchService {
 				}
 			};
 
-			searchPs.push(doProviderSearch());
-		}));
+			const search = doProviderSearch();
+			searchPs.push(search);
+			await search;
+		};
 
-		return Promise.all(searchPs).then(completes => {
+		// Keep each provider tracked even when a sibling rejects the aggregate.
+		const providerSearches = [...fqs.keys()].map(scheme => this.trackFileSearch(query, searchWithProvider(scheme)));
+		return Promise.all(providerSearches).then(() => Promise.all(searchPs)).then(completes => {
 			const endToEndTime = e2eSW.elapsed();
 			this.logService.trace(`SearchService#search: ${endToEndTime}ms`);
 			completes.forEach(complete => {
@@ -590,6 +614,12 @@ export class SearchService extends Disposable implements ISearchService {
 	}
 
 	async clearCache(cacheKey: string): Promise<void> {
+		// A search can still be waiting for activation or filesystem checks before
+		// reaching its provider. Clearing earlier would let it recreate the cache.
+		while (this.pendingFileSearches.has(cacheKey)) {
+			await Promise.allSettled(this.pendingFileSearches.get(cacheKey)!);
+		}
+
 		const clearPs = Array.from(this.fileSearchProviders.values())
 			.map(provider => provider && provider.clearCache(cacheKey));
 		await Promise.all(clearPs);
