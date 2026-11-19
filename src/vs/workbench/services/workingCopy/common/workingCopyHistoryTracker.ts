@@ -100,6 +100,15 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 	}
 
 	private onDidChangeContent(workingCopy: IWorkingCopy): void {
+		// Preserve tracked versions across workspace scheme changes.
+		if (
+			!this.isSupportedResource(workingCopy.resource) &&
+			!this.workingCopyContentVersion.has(workingCopy.resource) &&
+			!this.historyEntryContentVersion.has(workingCopy.resource) &&
+			!this.pendingAddHistoryEntryOperations.has(workingCopy.resource)
+		) {
+			return;
+		}
 
 		// Increment content version ID for resource
 		const contentVersionId = this.getContentVersion(workingCopy.resource);
@@ -190,12 +199,12 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 		return this.shouldTrackHistory(e.target.resource, e.target);
 	}
 
+	private isSupportedResource(resource: URI): boolean {
+		return resource.scheme === this.pathService.defaultUriScheme || resource.scheme === Schemas.vscodeUserData || resource.scheme === Schemas.inMemory;
+	}
+
 	private shouldTrackHistory(resource: URI, stat: IFileStatWithMetadata): boolean {
-		if (
-			resource.scheme !== this.pathService.defaultUriScheme && 	// track history for all workspace resources
-			resource.scheme !== Schemas.vscodeUserData &&				// track history for all settings
-			resource.scheme !== Schemas.inMemory	 					// track history for tests that use in-memory
-		) {
+		if (!this.isSupportedResource(resource)) {
 			return false; // do not support unknown resources
 		}
 
