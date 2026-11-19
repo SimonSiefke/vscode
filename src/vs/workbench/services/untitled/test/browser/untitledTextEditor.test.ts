@@ -258,6 +258,79 @@ suite('Untitled text editors', () => {
 		assert.strictEqual(workingCopyService.dirtyCount, 1);
 	});
 
+	test('initial contents are released after resolving', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Initial contents' }));
+		await model.resolve();
+
+		assert.deepStrictEqual({
+			initialValue: Reflect.get(model, 'initialValue'),
+			contents: snapshotToString(model.createSnapshot()!),
+			dirty: model.isDirty()
+		}, { initialValue: undefined, contents: 'Initial contents', dirty: true });
+	});
+
+	test('resolved backups use current contents after releasing initial contents', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Initial contents' }));
+		await model.resolve();
+		model.textEditorModel!.setValue('Current contents');
+
+		const backup = (await model.backup(CancellationToken.None)).content;
+		let contents: string;
+		if (isReadableStream(backup)) {
+			contents = (await streamToBuffer(backup as VSBufferReadableStream)).toString();
+		} else if (isReadable(backup)) {
+			contents = readableToBuffer(backup as VSBufferReadable).toString();
+		} else {
+			assert.fail('Missing untitled backup');
+		}
+
+		assert.deepStrictEqual({ initialValue: Reflect.get(model, 'initialValue'), contents }, { initialValue: undefined, contents: 'Current contents' });
+	});
+
+	test('concurrent resolutions preserve their initial contents', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Initial contents' }));
+		const firstBackup = new DeferredPromise<void>();
+		const secondBackup = new DeferredPromise<void>();
+		let requests = 0;
+		const stub = sinon.stub(accessor.workingCopyBackupService, 'resolve').callsFake(async () => {
+			await (requests++ === 0 ? firstBackup.p : secondBackup.p);
+			return undefined;
+		});
+		const resolving: Promise<void>[] = [];
+		try {
+			resolving.push(model.resolve(), model.resolve());
+			await firstBackup.complete();
+			await resolving[0];
+			assert.strictEqual(Reflect.get(model, 'initialValue'), undefined);
+			await secondBackup.complete();
+			await resolving[1];
+
+			assert.deepStrictEqual({ contents: snapshotToString(model.createSnapshot()!), dirty: model.isDirty() }, { contents: 'Initial contents', dirty: true });
+		} finally {
+			await firstBackup.complete();
+			await secondBackup.complete();
+			await Promise.allSettled(resolving);
+			stub.restore();
+		}
+	});
+
+	test('failed resolution preserves initial contents for retry', async () => {
+		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Initial contents' }));
+		const stub = sinon.stub(accessor.workingCopyBackupService, 'resolve');
+		stub.onFirstCall().rejects(new Error('Backup unavailable'));
+		stub.onSecondCall().resolves(undefined);
+		try {
+			await assert.rejects(model.resolve(), /Backup unavailable/);
+			assert.strictEqual(Reflect.get(model, 'initialValue'), 'Initial contents');
+
+			await model.resolve();
+
+			assert.deepStrictEqual({ initialValue: Reflect.get(model, 'initialValue'), contents: snapshotToString(model.createSnapshot()!) }, { initialValue: undefined, contents: 'Initial contents' });
+		} finally {
+			stub.restore();
+		}
+	});
+
 	test('disposed models do not resolve', async () => {
 		const model = disposables.add(accessor.untitledTextEditorService.create({ initialValue: 'Discarded initial contents' }));
 		model.dispose();
