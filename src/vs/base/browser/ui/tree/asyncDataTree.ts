@@ -293,7 +293,7 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 	private activeFindMetadata: IAsyncFindResult<T> | undefined;
 	private activeSession = false;
 	private asyncWorkInProgress = false;
-	private taskQueue = new ThrottledDelayer(250);
+	private taskQueue = this.disposables.add(new ThrottledDelayer(250));
 
 	constructor(
 		tree: ObjectTree<IAsyncDataTreeNode<TInput, T>, TFilterData>,
