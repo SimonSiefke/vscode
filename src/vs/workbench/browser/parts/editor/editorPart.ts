@@ -1678,13 +1678,13 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	private async doApplyState(state: IEditorPartUIState, options?: IEditorGroupViewOptions): Promise<void> {
 		const groups = await this.doPrepareApplyState();
+		const retainedByGroup = new Map(groups.map(group => [group.id, group.editors]));
+		const retainedEditors = new Set(Array.from(retainedByGroup.values()).flat());
 
 		const references = new DisposableStore();
 		try {
-			for (const group of groups) {
-				for (const editor of group.editors) {
-					references.add(editor.acquire());
-				}
+			for (const editor of retainedEditors) {
+				references.add(editor.acquire());
 			}
 
 			// Pause add/remove events for groups during the duration of applying the state
@@ -1704,7 +1704,18 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 			// Grid Widget
 			let restoreFailure: { error: unknown } | undefined;
 			try {
-				this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, options);
+				this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, {
+					...options,
+					resolveRestoredEditor: (groupId, editor) => {
+						const editorFromGroup = retainedByGroup.get(groupId)?.find(candidate => editor.matches(candidate));
+						if (editorFromGroup) {
+							return editorFromGroup;
+						}
+
+						const matches = Array.from(retainedEditors).filter(candidate => editor.matches(candidate));
+						return matches.length === 1 ? matches[0] : editor;
+					}
+				});
 			} catch (error) {
 				restoreFailure = { error };
 
@@ -1729,15 +1740,17 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 				this._onDidAddGroup.resume();
 			}
 
-			// Restore editors that were not closed before and are now opened now
-			await this.activeGroup.openEditors(
-				groups
-					.flatMap(group => group.editors)
-					.filter(editor => this.editorPartsView.groups.every(groupView => !groupView.contains(editor)))
-					.map(editor => ({
-						editor, options: { pinned: true, preserveFocus: true, inactive: true }
-					}))
-			);
+			// Recover retained editors that were not adopted by a restored group.
+			for (const editor of retainedEditors) {
+				if (this.editorPartsView.groups.some(group => group.contains(editor, { strictEquals: true }))) {
+					continue;
+				}
+
+				const group = this.activeGroup.contains(editor)
+					? this.groups.find(group => !group.contains(editor)) ?? this.addGroup(this.activeGroup, GroupDirection.RIGHT)
+					: this.activeGroup;
+				await group.openEditor(editor, { pinned: true, preserveFocus: true, inactive: true });
+			}
 
 			if (restoreFailure) {
 				throw restoreFailure.error;

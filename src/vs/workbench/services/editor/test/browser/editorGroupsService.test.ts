@@ -30,7 +30,7 @@ import { CloseAllEditorGroupsAction } from '../../../../browser/parts/editor/edi
 import { IWorkbenchLayoutService, Parts, Position } from '../../../layout/browser/layoutService.js';
 import { SearchEditorInput } from '../../../../contrib/searchEditor/browser/searchEditorInput.js';
 import { searchEditorModelFactory } from '../../../../contrib/searchEditor/browser/searchEditorModel.js';
-import { defaultSearchConfig } from '../../../../contrib/searchEditor/browser/searchEditorSerialization.js';
+import { defaultSearchConfig, serializeSearchConfiguration } from '../../../../contrib/searchEditor/browser/searchEditorSerialization.js';
 import { SearchEditorWorkingCopyTypeId } from '../../../../contrib/searchEditor/browser/constants.js';
 import { IWorkingCopyService } from '../../../workingCopy/common/workingCopyService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -2413,6 +2413,84 @@ suite('EditorGroupsService', () => {
 
 		assert.strictEqual(part.count, 1);
 		assert.strictEqual(part.activeGroup.isEmpty, true);
+	});
+
+	test('working sets - a restored backing file keeps the original dirty Search Editor', async () => {
+		const [part, instantiationService] = await createPart();
+		const backingUri = URI.file('/working-set.code-search');
+		const resource = URI.from({ scheme: 'search-editor', fragment: 'original-working-set' });
+		const restoredResource = URI.from({ scheme: 'search-editor', fragment: 'restored-working-set' });
+		const config = defaultSearchConfig();
+		let restored: SearchEditorInput | undefined;
+
+		class WorkingSetSearchInput extends SearchEditorInput {
+			override get typeId(): string { return 'workingSetSearchInput'; }
+		}
+
+		class Serializer implements IEditorSerializer {
+			canSerialize(): boolean { return true; }
+			serialize(): string { return backingUri.toString(); }
+			deserialize(instantiationService: IInstantiationService, value: string): SearchEditorInput {
+				instantiationService.invokeFunction(accessor => searchEditorModelFactory.initializeModelFromRawData(accessor, restoredResource, config, 'saved results'));
+				restored = disposables.add(instantiationService.createInstance(WorkingSetSearchInput, restoredResource, URI.parse(value)));
+				return restored;
+			}
+		}
+
+		disposables.add(Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEditorSerializer('workingSetSearchInput', Serializer));
+		disposables.add(registerTestEditor('matchingSearchWorkingSetTest', [new SyncDescriptor(WorkingSetSearchInput)]));
+		instantiationService.invokeFunction(accessor => searchEditorModelFactory.initializeModelFromRawData(accessor, resource, config, 'saved results'));
+		const input = disposables.add(instantiationService.createInstance(WorkingSetSearchInput, resource, backingUri));
+		const { resultsModel } = await input.resolveModels();
+		await part.activeGroup.openEditor(input, { pinned: true, sticky: true });
+		const state = part.createState();
+
+		resultsModel.setValue('unsaved results');
+		input.setDirty(true);
+		await part.applyState(state);
+
+		const workingCopyService = instantiationService.get(IWorkingCopyService);
+		assert.ok(part.activeGroup.activeEditor === input, 'The restored slot must use the dirty original input');
+		assert.strictEqual(part.activeGroup.isSticky(input), true);
+		assert.strictEqual(input.isDirty(), true);
+		assert.strictEqual(resultsModel.getValue(), 'unsaved results');
+		assert.strictEqual(workingCopyService.has({ resource, typeId: SearchEditorWorkingCopyTypeId }), true);
+		assert.strictEqual(restored?.isDisposed(), true);
+		assert.strictEqual(workingCopyService.has(restoredResource), false);
+		assert.strictEqual(searchEditorModelFactory.models.has(restoredResource), false);
+		input.setDirty(false);
+		await part.activeGroup.closeEditor(input);
+		assert.strictEqual(resultsModel.isDisposed(), true);
+	});
+
+	test('close editor - saving untitled search results releases the unused destination input', async () => {
+		const [part, instantiationService] = await createPart();
+		const accessor = instantiationService.createInstance(TestServiceAccessor);
+		const resource = URI.from({ scheme: 'search-editor', fragment: 'save-search-on-close' });
+		const destination = URI.file('/save-search-on-close.code-search');
+		const config = defaultSearchConfig();
+		const contents = serializeSearchConfiguration(config) + '\nsearch results';
+		disposables.add(registerTestEditor('saveSearchOnCloseTest', [new SyncDescriptor(SearchEditorInput)]));
+		instantiationService.invokeFunction(accessor => searchEditorModelFactory.initializeModelFromRawData(accessor, resource, config, 'search results'));
+		const input = disposables.add(instantiationService.createInstance(SearchEditorInput, resource, undefined));
+		await part.activeGroup.openEditor(input, { pinned: true });
+		input.setDirty(true);
+
+		const sandbox = createSandbox();
+		disposables.add(toDisposable(() => sandbox.restore()));
+		const createStub = sandbox.stub(accessor.textFileService, 'create').resolves([]);
+		sandbox.stub(accessor.textFileService, 'read').resolves({
+			resource: destination, name: 'save-search-on-close.code-search', size: 0, mtime: 0, ctime: 0, etag: '',
+			readonly: false, locked: false, executable: false, encoding: 'utf8', value: contents
+		});
+		accessor.fileDialogService.setConfirmResult(ConfirmResult.SAVE);
+		accessor.fileDialogService.setPickFileToSave(destination);
+
+		await part.activeGroup.closeEditor(input);
+
+		assert.strictEqual(createStub.firstCall.args[0][0].value, contents);
+		assert.strictEqual(part.activeGroup.isEmpty, true);
+		assert.strictEqual(accessor.workingCopyService.workingCopies.length, 0);
 	});
 
 	test('working sets - failed restoration preserves dirty search results in a recovery group', async () => {

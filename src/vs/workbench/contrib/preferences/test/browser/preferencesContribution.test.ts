@@ -41,12 +41,8 @@ suite('PreferencesContribution', () => {
 		const options: ISettingsEditorOptions = { override: SplitSettingsEditorInput.EDITOR_ID, target: ConfigurationTarget.WORKSPACE };
 		const resolved = await instantiationService.get(IEditorResolverService).resolveEditor({ resource: workspaceConfiguration, options }, instantiationService.get(IEditorGroupsService).activeGroup);
 
-		assert.deepStrictEqual({
-			resolved: isEditorInputWithOptionsAndGroup(resolved),
-			requests
-		}, {
-			resolved: true,
-			requests: [{ target: ConfigurationTarget.WORKSPACE, resource: workspaceConfiguration.toString() }]
-		});
+		assert.ok(isEditorInputWithOptionsAndGroup(resolved));
+		disposables.add(resolved.reference);
+		assert.deepStrictEqual(requests, [{ target: ConfigurationTarget.WORKSPACE, resource: workspaceConfiguration.toString() }]);
 	});
 });

@@ -194,7 +194,9 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			if (from instanceof EditorGroupView) {
 				this.model = this._register(from.model.clone());
 			} else if (isSerializedEditorGroupModel(from)) {
-				this.model = this._register(instantiationService.createInstance(EditorGroupModel, from));
+				const resolveRestoredEditor = options?.resolveRestoredEditor;
+				const state = resolveRestoredEditor ? { ...from, resolveRestoredEditor: (editor: EditorInput) => resolveRestoredEditor(from.id, editor) } : from;
+				this.model = this._register(instantiationService.createInstance(EditorGroupModel, state));
 			} else {
 				this.model = this._register(instantiationService.createInstance(EditorGroupModel, undefined));
 			}
@@ -1940,6 +1942,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		switch (confirmation) {
 			case ConfirmResult.SAVE: {
 				const result = await editor.save(this.id, { reason: saveReason });
+				if (result instanceof EditorInput && result !== editor && !result.isDisposed()) {
+					// Closing the source does not open a replacement returned by Save As.
+					result.acquire().dispose();
+				}
+
 				if (!result && autoSave) {
 					// Save failed and we need to signal this back to the user, so
 					// we handle the dirty editor again but this time ensuring to

@@ -19,6 +19,80 @@ suite('SearchEditorInput', () => {
 	teardown(() => disposables.clear());
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('Save As to the backing file keeps the existing input and working copy', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const accessor = instantiationService.createInstance(TestServiceAccessor);
+		const resource = URI.from({ scheme: 'search-editor', fragment: 'same-file-save-as' });
+		const target = URI.file('/saved.code-search');
+		const config = defaultSearchConfig();
+		const contents = serializeSearchConfiguration(config) + '\nsearch results';
+		instantiationService.invokeFunction(accessor => searchEditorModelFactory.initializeModelFromRawData(accessor, resource, config, 'search results'));
+		const source = disposables.add(instantiationService.createInstance(SearchEditorInput, resource, target));
+		const { resultsModel } = await source.resolveModels();
+		source.setDirty(true);
+
+		accessor.fileDialogService.setPickFileToSave(URI.file(target.fsPath));
+		const workingCopies = accessor.workingCopyService.workingCopies;
+		const modelUris = [...searchEditorModelFactory.models.keys()];
+		const createStub = stub(accessor.textFileService, 'create').resolves([]);
+		const readStub = stub(accessor.textFileService, 'read').resolves({
+			resource: target, name: 'saved.code-search', size: 0, mtime: 0, ctime: 0, etag: '', readonly: false,
+			locked: false, executable: false, encoding: 'utf8', value: contents
+		});
+		try {
+			const saved = await source.saveAs(0);
+			if (saved && saved !== source) {
+				disposables.add(saved);
+			}
+
+			assert.strictEqual(createStub.firstCall.args[0][0].value, contents);
+			assert.strictEqual(source.isDirty(), false);
+			assert.ok(saved === source, 'Save As must keep the original input');
+			assert.strictEqual(readStub.called, false);
+			assert.deepStrictEqual(accessor.workingCopyService.workingCopies, workingCopies);
+			assert.deepStrictEqual([...searchEditorModelFactory.models.keys()], modelUris);
+
+			source.dispose();
+			assert.strictEqual(resultsModel.isDisposed(), true);
+			assert.strictEqual(accessor.workingCopyService.has(resource), false);
+			assert.strictEqual(searchEditorModelFactory.models.has(resource), false);
+		} finally {
+			createStub.restore();
+			readStub.restore();
+		}
+	});
+
+	test('disposing during backup lookup prevents an orphan results model', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const accessor = instantiationService.createInstance(TestServiceAccessor);
+		const resource = URI.from({ scheme: 'search-editor', fragment: 'disposed-restore' });
+		instantiationService.invokeFunction(accessor => searchEditorModelFactory.initializeModelFromExistingModel(accessor, resource, defaultSearchConfig()));
+		const input = disposables.add(instantiationService.createInstance(SearchEditorInput, resource, URI.file('/restored.code-search')));
+		const lookupStarted = new DeferredPromise<void>();
+		const completeLookup = new DeferredPromise<void>();
+		const backupStub = stub(accessor.workingCopyBackupService, 'resolve').callsFake(async () => {
+			await lookupStarted.complete();
+			await completeLookup.p;
+			return undefined;
+		});
+		const restore = input.setMatchRanges([]);
+		try {
+			await lookupStarted.p;
+			input.dispose();
+			await completeLookup.complete();
+			await restore;
+
+			assert.strictEqual(accessor.modelService.getModel(resource) === null, true);
+			assert.strictEqual(searchEditorModelFactory.models.has(resource), false);
+			assert.strictEqual(accessor.workingCopyService.has(resource), false);
+		} finally {
+			await completeLookup.complete();
+			await restore;
+			accessor.modelService.destroyModel(resource);
+			backupStub.restore();
+		}
+	});
+
 	test('Save As waits for a pending destination read before handing off ownership', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		const accessor = instantiationService.createInstance(TestServiceAccessor);
