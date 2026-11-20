@@ -14,7 +14,6 @@ import { MockContextKeyService } from '../../../../../platform/keybinding/test/c
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { IProgressService, Progress } from '../../../../../platform/progress/common/progress.js';
 import { TimelineActionRunner, TimelineKeyboardNavigationLabelProvider, TimelinePane, TimelinePaneCommands, TimelineTreeRenderer } from '../../browser/timelinePane.js';
-import { Event } from '../../../../../base/common/event.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IMenuService } from '../../../../../platform/actions/common/actions.js';
 import { ITimelineService, Timeline, TimelineEditable, TimelineItem, TimelineRequest, TimelineTriggerKind } from '../../common/timeline.js';
