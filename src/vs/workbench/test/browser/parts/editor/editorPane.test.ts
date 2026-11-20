@@ -12,9 +12,12 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
-import { workbenchInstantiationService, TestEditorGroupView, TestEditorGroupsService, registerTestResourceEditor, TestEditorInput, createEditorPart, createEditorParts, TestTextResourceConfigurationService } from '../../workbenchTestServices.js';
+import { workbenchInstantiationService, TestEditorGroupView, TestEditorGroupsService, registerTestResourceEditor, TestEditorInput, createEditorPart, createEditorParts, TestEditorParts, TestTextResourceConfigurationService } from '../../workbenchTestServices.js';
+import { isSerializedEditorGroupModel } from '../../../../common/editor/editorGroupModel.js';
+import { Memento } from '../../../../common/memento.js';
 import { TextResourceEditorInput } from '../../../../common/editor/textResourceEditorInput.js';
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { EditorPaneDescriptor, EditorPaneRegistry } from '../../../../browser/editor.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
@@ -41,7 +44,7 @@ const NullThemeService = new TestThemeService();
 const editorRegistry: EditorPaneRegistry = Registry.as(EditorExtensions.EditorPane);
 const editorInputRegistry: IEditorFactoryRegistry = Registry.as(EditorExtensions.EditorFactory);
 
-class TestEditor extends EditorPane {
+class TestEditor extends EditorPane<Record<string, unknown>> {
 
 	constructor(group: IEditorGroup,) {
 		const disposables = new DisposableStore();
@@ -56,6 +59,20 @@ class TestEditor extends EditorPane {
 	}
 	saveTestState(): void {
 		this.saveState();
+	}
+	readSavedTestState(key: string): unknown {
+		return JSON.parse(JSON.stringify(this.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE)[key]));
+	}
+	static clearTestMementos(): void {
+		// eslint-disable-next-line local/code-no-bracket-notation-for-identifiers -- Remove this fixture's cache without exposing a test API.
+		const registry = EditorPane['EDITOR_MEMENTOS'];
+		for (const [key, memento] of registry) {
+			if (memento.id === 'testEditor') {
+				registry.delete(key);
+			}
+		}
+		// eslint-disable-next-line local/code-no-bracket-notation-for-identifiers -- Reset only the fixture's serialized state.
+		Memento['workspaceMementos'].delete('memento/TestEditor');
 	}
 	layout(): void { }
 	protected createEditor(): any { }
@@ -128,6 +145,7 @@ suite('EditorPane', () => {
 
 	teardown(() => {
 		disposables.clear();
+		TestEditor.clearTestMementos();
 	});
 
 	test('EditorPane API', async () => {
@@ -270,17 +288,19 @@ suite('EditorPane', () => {
 
 	test('EditorMemento - working-set round trips preserve view state', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
-		const part = await createEditorPart(instantiationService, disposables);
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const parts = await createEditorParts(instantiationService, disposables);
+		const part = parts.testMainPart;
 		const originalGroup = part.activeGroup;
 		const otherGroup = part.addGroup(originalGroup, GroupDirection.RIGHT);
 		const editor = disposables.add(new TestEditor(originalGroup));
-		const memento = editor.getTestMemento<{ line: number }>(part, new TestTextResourceConfigurationService(), 'workingSetRoundTrip');
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'workingSetRoundTrip');
 		const resource = URI.file('/working-set.txt');
 		memento.saveEditorState(originalGroup, resource, { line: 42 });
 		memento.saveEditorState(otherGroup, resource, { line: 84 });
-		const originalState = part.createState();
+		const originalState = parts.saveWorkingSet('original layout');
 
-		await part.applyState(originalState);
+		assert.strictEqual(await parts.applyWorkingSet(originalState), true);
 		const replacement = part.activeGroup;
 		const otherReplacement = part.getGroup(otherGroup.id)!;
 		memento.saveEditorState(originalGroup, resource, { line: 100 });
@@ -290,11 +310,12 @@ suite('EditorPane', () => {
 		const otherState = memento.loadEditorState(otherReplacement, resource);
 		part.addGroup(replacement, GroupDirection.RIGHT);
 		part.removeGroup(replacement);
-		const differentState = part.createState();
-		await part.applyState(originalState);
+		const differentState = parts.saveWorkingSet('different layout');
+		assert.strictEqual(await parts.applyWorkingSet(originalState), true);
+		assert.deepStrictEqual(memento.loadEditorState(part.activeGroup, resource), { line: 42 });
 		memento.saveEditorState(part.activeGroup, resource, { line: 43 });
-		await part.applyState(differentState);
-		await part.applyState(originalState);
+		assert.strictEqual(await parts.applyWorkingSet(differentState), true);
+		assert.strictEqual(await parts.applyWorkingSet(originalState), true);
 
 		assert.deepStrictEqual({
 			replaced: replacement !== originalGroup,
@@ -302,6 +323,167 @@ suite('EditorPane', () => {
 			other: otherState,
 			roundTrip: memento.loadEditorState(part.activeGroup, resource)
 		}, { replaced: true, sameId: { line: 42 }, other: { line: 84 }, roundTrip: { line: 43 } });
+	});
+
+	test('EditorMemento - saved working set restores a group removed outside the transition', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const parts = await createEditorParts(instantiationService, disposables);
+		const root = parts.activeGroup;
+		const split = parts.addGroup(root, GroupDirection.RIGHT);
+		const editor = disposables.add(new TestEditor(root));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'savedWorkingSetGroupRemoval');
+		const resource = URI.file('/saved-working-set-group.txt');
+
+		memento.saveEditorState(root, resource, { line: 1 });
+		memento.saveEditorState(split, resource, { line: 42 });
+		editor.saveTestState();
+		const saved = parts.saveWorkingSet('saved split');
+		const secondReference = parts.saveWorkingSet('same split');
+		try {
+			parts.removeGroup(split);
+			assert.strictEqual(parts.getGroup(split.id), undefined);
+			assert.strictEqual(await parts.applyWorkingSet(saved), true);
+			const restored = parts.getGroup(split.id);
+			assert.ok(restored && restored !== split);
+			assert.deepStrictEqual(memento.loadEditorState(restored, resource), { line: 42 });
+
+			parts.removeGroup(restored);
+			parts.deleteWorkingSet(saved);
+			assert.deepStrictEqual(memento.loadEditorState(restored, resource), { line: 42 });
+			parts.deleteWorkingSet(secondReference);
+			assert.strictEqual(memento.loadEditorState(restored, resource), undefined);
+		} finally {
+			parts.deleteWorkingSet(saved);
+			parts.deleteWorkingSet(secondReference);
+		}
+	});
+
+	test('EditorMemento - deleting a working set during application preserves the pending restoration', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const parts = await createEditorParts(instantiationService, disposables);
+		const root = parts.activeGroup;
+		const split = parts.addGroup(root, GroupDirection.RIGHT);
+		const editor = disposables.add(new TestEditor(root));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'pendingWorkingSetGroupRemoval');
+		const resource = URI.file('/pending-working-set-group.txt');
+
+		memento.saveEditorState(split, resource, { line: 42 });
+		const saved = parts.saveWorkingSet('pending split');
+		parts.removeGroup(split);
+		const applying = parts.applyWorkingSet(saved);
+		parts.deleteWorkingSet(saved);
+
+		assert.strictEqual(await applying, true);
+		const restored = parts.getGroup(split.id);
+		assert.ok(restored && restored !== split);
+		assert.deepStrictEqual(memento.loadEditorState(restored, resource), { line: 42 });
+		parts.removeGroup(restored);
+		assert.strictEqual(memento.loadEditorState(restored, resource), undefined);
+	});
+
+	test('EditorMemento - an inactive persisted working set reserves its group ID', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const initialPart = await createEditorPart(instantiationService, disposables);
+		const main = initialPart.createState();
+		const root = main.serializedGrid.root;
+		assert.strictEqual(root.type, 'branch');
+		const leaf = root.data[0];
+		assert.strictEqual(leaf.type, 'leaf');
+		assert.ok(isSerializedEditorGroupModel(leaf.data));
+		const savedGroupId = initialPart.activeGroup.id + 100;
+		const workingSet = { id: 'persisted-set', name: 'persisted layout' };
+		const storage = disposables.add(new TestStorageService());
+		storage.store('editor.workingSets', JSON.stringify([{
+			...workingSet,
+			main: {
+				...main,
+				activeGroup: savedGroupId,
+				mostRecentActiveGroups: [savedGroupId],
+				serializedGrid: { ...main.serializedGrid, root: { ...root, data: [{ ...leaf, data: { ...leaf.data, id: savedGroupId } }] } }
+			},
+			auxiliary: { auxiliary: [], mru: [] }
+		}]), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		instantiationService.stub(IStorageService, storage);
+		const parts = await createEditorParts(instantiationService, disposables);
+		const editor = disposables.add(new TestEditor(parts.activeGroup));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'persistedWorkingSetGroup');
+		const resource = URI.file('/persisted-working-set-group.txt');
+		memento.saveEditorState(new TestEditorGroupView(savedGroupId), resource, { line: 42 });
+
+		const unrelated = parts.addGroup(parts.activeGroup, GroupDirection.RIGHT);
+		assert.ok(unrelated.id > savedGroupId);
+		assert.strictEqual(parts.getGroup(savedGroupId), undefined);
+		editor.saveTestState();
+		try {
+			assert.strictEqual(await parts.applyWorkingSet(workingSet), true);
+			assert.strictEqual(parts.activeGroup.id, savedGroupId);
+			assert.deepStrictEqual(memento.loadEditorState(parts.activeGroup, resource), { line: 42 });
+		} finally {
+			parts.deleteWorkingSet(workingSet);
+		}
+		assert.ok(storage.getNumber('editor.workingSets.lastGroupId', StorageScope.WORKSPACE, -1) >= savedGroupId);
+	});
+
+	test('EditorMemento - startup without restoring tabs preserves the main group identity below the working-set watermark', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		const storage = disposables.add(new TestStorageService());
+		instantiationService.stub(IStorageService, storage);
+		const first = await createEditorParts(instantiationService, disposables);
+		const originalGroupId = first.activeGroup.id;
+		first.testMainPart.testSaveState();
+		first.dispose();
+		storage.store('editor.workingSets.lastGroupId', originalGroupId + 100, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+
+		const restored = disposables.add(instantiationService.createInstance(TestEditorParts));
+		restored.testMainPart.create(mainWindow.document.createElement('div'), { restorePreviousState: false });
+		restored.testMainPart.layout(1080, 800, 0, 0);
+		await restored.whenReady;
+		try {
+			assert.deepStrictEqual({
+				groups: restored.groups.map(group => group.id),
+				hasRestorableLayout: restored.mainPart.hasRestorableState
+			}, { groups: [originalGroupId], hasRestorableLayout: false });
+		} finally {
+			restored.testMainPart.clearState();
+		}
+	});
+
+	test('EditorMemento - applying a working set removes unsaved group state', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IAuxiliaryWindowService, new class extends mock<IAuxiliaryWindowService>() { override getWindow() { return undefined; } }());
+		const parts = await createEditorParts(instantiationService, disposables);
+		const editor = disposables.add(new TestEditor(parts.activeGroup));
+		const memento = editor.getTestMemento<{ line: number }>(parts, new TestTextResourceConfigurationService(), 'unsavedWorkingSetGroupRemoval');
+		const resource = URI.file('/unsaved-working-set-group.txt');
+
+		memento.saveEditorState(parts.activeGroup, resource, { line: 1 });
+		editor.saveTestState();
+		const saved = parts.saveWorkingSet('root only');
+		try {
+			const retiredGroups: IEditorGroup[] = [];
+			for (const line of [42, 43]) {
+				const split = parts.addGroup(parts.activeGroup, GroupDirection.RIGHT);
+				retiredGroups.push(split);
+				memento.saveEditorState(split, resource, { line });
+				assert.strictEqual(await parts.applyWorkingSet(saved), true);
+				assert.strictEqual(parts.getGroup(split.id), undefined);
+			}
+			editor.saveTestState();
+			assert.deepStrictEqual({
+				stored: editor.readSavedTestState('unsavedWorkingSetGroupRemoval'),
+				retired: retiredGroups.map(group => memento.loadEditorState(group, resource)),
+				live: memento.loadEditorState(parts.activeGroup, resource),
+			}, {
+				stored: [[resource.toString(), { [parts.activeGroup.id]: { line: 1 } }]],
+				retired: [undefined, undefined],
+				live: { line: 1 }
+			});
+		} finally {
+			parts.deleteWorkingSet(saved);
+		}
 	});
 
 	test('EditorMemento - working sets clear permanently closed modal groups', async () => {

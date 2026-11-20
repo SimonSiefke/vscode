@@ -46,6 +46,8 @@ import { getWindowById } from '../../../../base/browser/dom.js';
  *
  * This class is only intended to be subclassed and not instantiated.
  */
+const disposedEditorGroups = new WeakSet<IEditorGroup>();
+
 export abstract class EditorPane<MementoType extends object = object> extends Composite<MementoType> implements IEditorPane {
 
 	//#region Events
@@ -61,34 +63,51 @@ export abstract class EditorPane<MementoType extends object = object> extends Co
 	//#endregion
 
 	private static readonly EDITOR_MEMENTOS = new Map<string, EditorMemento<unknown>>();
-	private static readonly PRESERVED_GROUP_STATES = new WeakMap<IEditorGroup, number>();
-	private static readonly DISPOSED_GROUPS = new WeakSet<IEditorGroup>();
+	private static readonly PRESERVED_GROUP_STATES = new Map<GroupIdentifier, number>();
 
-	static preserveEditorGroupState(groups: readonly IEditorGroup[]): IDisposable {
-		for (const group of groups) {
-			EditorPane.PRESERVED_GROUP_STATES.set(group, (EditorPane.PRESERVED_GROUP_STATES.get(group) ?? 0) + 1);
+	static preserveEditorGroupState(groupIds: ReadonlySet<GroupIdentifier>): IDisposable {
+		for (const id of groupIds) {
+			EditorPane.PRESERVED_GROUP_STATES.set(id, (EditorPane.PRESERVED_GROUP_STATES.get(id) ?? 0) + 1);
 		}
 
 		return toDisposable(() => {
-			for (const group of groups) {
-				const remaining = (EditorPane.PRESERVED_GROUP_STATES.get(group) ?? 1) - 1;
+			for (const id of groupIds) {
+				const remaining = (EditorPane.PRESERVED_GROUP_STATES.get(id) ?? 1) - 1;
 				if (remaining > 0) {
-					EditorPane.PRESERVED_GROUP_STATES.set(group, remaining);
+					EditorPane.PRESERVED_GROUP_STATES.set(id, remaining);
 				} else {
-					EditorPane.PRESERVED_GROUP_STATES.delete(group);
+					EditorPane.PRESERVED_GROUP_STATES.delete(id);
 				}
 			}
+
+			EditorPane.clearUnusedEditorGroupStates(groupIds);
 		});
 	}
 
+	static isEditorGroupStatePreserved(id: GroupIdentifier): boolean {
+		return EditorPane.PRESERVED_GROUP_STATES.has(id);
+	}
+
 	static clearEditorGroupState(group: IEditorGroup, preserveState = false): void {
-		if (EditorPane.DISPOSED_GROUPS.has(group)) {
+		if (disposedEditorGroups.has(group)) {
 			return;
 		}
-		EditorPane.DISPOSED_GROUPS.add(group);
+		disposedEditorGroups.add(group);
 
-		for (const editorMemento of EditorPane.EDITOR_MEMENTOS.values()) {
-			editorMemento.clearEditorGroupState(group, preserveState || EditorPane.PRESERVED_GROUP_STATES.has(group));
+		if (!preserveState) {
+			for (const memento of EditorPane.EDITOR_MEMENTOS.values()) {
+				memento.clearEditorGroupState(group.id);
+			}
+		}
+	}
+
+	static clearUnusedEditorGroupStates(groupIds: ReadonlySet<GroupIdentifier>): void {
+		if (groupIds.size === 0) {
+			return;
+		}
+
+		for (const memento of EditorPane.EDITOR_MEMENTOS.values()) {
+			memento.clearUnusedEditorGroupStates(groupIds);
 		}
 	}
 
@@ -268,7 +287,6 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 	private cleanedUp = false;
 	private editorDisposables: Map<EditorInput, IDisposable> | undefined;
 	private shareEditorState = false;
-	private readonly disposedGroups = new WeakSet<IEditorGroup>();
 
 	constructor(
 		readonly id: string,
@@ -298,7 +316,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 	saveEditorState(group: IEditorGroup, editor: EditorInput, state: T): void;
 	saveEditorState(group: IEditorGroup, resourceOrEditor: URI | EditorInput, state: T): void {
 		const resource = this.doGetResource(resourceOrEditor);
-		if (!resource || !group || this.disposedGroups.has(group)) {
+		if (!resource || !group || disposedEditorGroups.has(group)) {
 			return; // we are not in a good state to save any state for a resource
 		}
 
@@ -325,25 +343,33 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 		}
 	}
 
-	/**
-	 * Releases a closing group's states and prevents late saves from restoring them.
-	 */
-	clearEditorGroupState(group: IEditorGroup, preserveState = false): void {
-		if (this.disposedGroups.has(group)) {
-			return;
+	clearEditorGroupState(id: GroupIdentifier): void {
+		if (!this.hasRestorableGroupState(id)) {
+			this.deleteGroupStates([id]);
 		}
-		this.disposedGroups.add(group);
-		if (preserveState) {
-			return;
-		}
+	}
 
+	clearUnusedEditorGroupStates(groupIds: ReadonlySet<GroupIdentifier>): void {
+		const retiredIds = [...groupIds].filter(id => !this.editorGroupService.getGroup(id) && !this.hasRestorableGroupState(id));
+		if (retiredIds.length > 0) {
+			this.deleteGroupStates(retiredIds);
+		}
+	}
+
+	private hasRestorableGroupState(id: GroupIdentifier): boolean {
+		return EditorPane.isEditorGroupStatePreserved(id) || this.editorGroupService.hasSavedWorkingSetGroup?.(id) === true;
+	}
+
+	private deleteGroupStates(groupIds: readonly GroupIdentifier[]): void {
 		const cache = this.cache;
 		if (!cache) {
 			return;
 		}
 
 		for (const [resource, mementosForResource] of [...cache.entries()]) {
-			delete mementosForResource[group.id];
+			for (const id of groupIds) {
+				delete mementosForResource[id];
+			}
 			if (isEmptyObject(mementosForResource)) {
 				cache.delete(resource);
 			}
@@ -499,7 +525,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 					continue; // skip over shared entries if sharing is enabled
 				}
 
-				if (!this.editorGroupService.getGroup(groupId)) {
+				if (!this.editorGroupService.getGroup(groupId) && !this.hasRestorableGroupState(groupId)) {
 					delete mapGroupToMementos[groupId];
 					if (isEmptyObject(mapGroupToMementos)) {
 						cache.delete(resource);

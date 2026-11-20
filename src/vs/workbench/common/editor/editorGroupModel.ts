@@ -186,6 +186,10 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 
 	private static IDS = 0;
 
+	static reserveId(id: GroupIdentifier): void {
+		EditorGroupModel.IDS = Math.max(id + 1, EditorGroupModel.IDS);
+	}
+
 	//#region events
 
 	private readonly _onDidModelChange = this._register(new Emitter<IGroupModelChangeEvent>({ leakWarningThreshold: 500, leakWarningName: 'EditorGroupModel._onDidModelChange' /* increased for users with hundreds of inputs opened */ }));
@@ -1221,7 +1225,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 		if (typeof data.id === 'number') {
 			this._id = data.id;
 
-			EditorGroupModel.IDS = Math.max(data.id + 1, EditorGroupModel.IDS); // make sure our ID generator is always larger
+			EditorGroupModel.reserveId(data.id);
 		} else {
 			this._id = EditorGroupModel.IDS++; // backwards compatibility
 		}
