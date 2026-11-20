@@ -23,7 +23,7 @@ import { ICodeEditor, IOverlayWidget, IOverlayWidgetPosition } from '../../../..
 import { asCssVariable, editorWidgetBackground, editorWidgetForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { ScrollType } from '../../../../editor/common/editorCommon.js';
 import { SearchWidget, SearchOptions } from './preferencesWidgets.js';
-import { Promises, timeout } from '../../../../base/common/async.js';
+import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { defaultInputBoxStyles, defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 
@@ -146,7 +146,8 @@ export class DefineKeybindingWidget extends Widget {
 	private _chords: ResolvedKeybinding[] | null = null;
 	private _isVisible: boolean = false;
 
-	private _onHide = this._register(new Emitter<void>());
+	private readonly _onHide = this._register(new Emitter<string | null>());
+	private readonly _focusScheduler = this._register(new RunOnceScheduler(() => this._keybindingInputWidget.focus(), 0));
 
 	private _onDidChange = this._register(new Emitter<string>());
 	readonly onDidChange: Event<string> = this._onDidChange.event;
@@ -177,7 +178,7 @@ export class DefineKeybindingWidget extends Widget {
 		this._register(this._keybindingInputWidget.onKeybinding(keybinding => this.onKeybinding(keybinding)));
 		this._register(this._keybindingInputWidget.onEnter(() => this.hide()));
 		this._register(this._keybindingInputWidget.onEscape(() => this.clearOrHide()));
-		this._register(this._keybindingInputWidget.onBlur(() => this.onCancel()));
+		this._register(this._keybindingInputWidget.onBlur(() => this.cancel()));
 
 		this._outputNode = dom.append(this._domNode.domNode, dom.$('.output'));
 		this._showExistingKeybindingsNode = dom.append(this._domNode.domNode, dom.$('.existing'));
@@ -192,28 +193,21 @@ export class DefineKeybindingWidget extends Widget {
 	}
 
 	define(): Promise<string | null> {
+		const result = Event.toPromise(this._onHide.event);
 		this._keybindingInputWidget.clear();
-		return Promises.withAsyncBody<string | null>(async (c) => {
-			if (!this._isVisible) {
-				this._isVisible = true;
-				this._domNode.setDisplay('block');
+		if (!this._isVisible) {
+			this._isVisible = true;
+			this._domNode.setDisplay('block');
 
-				this._chords = null;
-				this._keybindingInputWidget.setInputValue('');
-				dom.clearNode(this._outputNode);
-				dom.clearNode(this._showExistingKeybindingsNode);
+			this._chords = null;
+			this._keybindingInputWidget.setInputValue('');
+			dom.clearNode(this._outputNode);
+			dom.clearNode(this._showExistingKeybindingsNode);
 
-				// Input is not getting focus without timeout in safari
-				// https://github.com/microsoft/vscode/issues/108817
-				await timeout(0);
-
-				this._keybindingInputWidget.focus();
-			}
-			const disposable = this._onHide.event(() => {
-				c(this.getUserSettingsLabel());
-				disposable.dispose();
-			});
-		});
+			// Safari needs to defer focus until the input is visible.
+			this._focusScheduler.schedule();
+		}
+		return result;
 	}
 
 	layout(layout: dom.Dimension): void {
@@ -268,9 +262,16 @@ export class DefineKeybindingWidget extends Widget {
 		return label;
 	}
 
-	private onCancel(): void {
-		this._chords = null;
-		this.hide();
+	cancel(): void {
+		if (this._isVisible) {
+			this._chords = null;
+			this.hide();
+		}
+	}
+
+	override dispose(): void {
+		this.cancel();
+		super.dispose();
 	}
 
 	private clearOrHide(): void {
@@ -285,9 +286,13 @@ export class DefineKeybindingWidget extends Widget {
 	}
 
 	private hide(): void {
-		this._domNode.setDisplay('none');
+		if (!this._isVisible) {
+			return;
+		}
 		this._isVisible = false;
-		this._onHide.fire();
+		this._focusScheduler.cancel();
+		this._domNode.setDisplay('none');
+		this._onHide.fire(this.getUserSettingsLabel());
 	}
 }
 
