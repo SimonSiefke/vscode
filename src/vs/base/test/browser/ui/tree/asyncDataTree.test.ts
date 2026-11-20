@@ -5,11 +5,13 @@
 
 import assert from 'assert';
 import { IIdentityProvider, IListVirtualDelegate } from '../../../../browser/ui/list/list.js';
-import { AsyncDataTree, CompressibleAsyncDataTree, ITreeCompressionDelegate } from '../../../../browser/ui/tree/asyncDataTree.js';
+import { AsyncDataTree, CompressibleAsyncDataTree, IAsyncFindProvider, ITreeCompressionDelegate } from '../../../../browser/ui/tree/asyncDataTree.js';
 import { ICompressedTreeNode } from '../../../../browser/ui/tree/compressedObjectTreeModel.js';
 import { ICompressibleTreeRenderer } from '../../../../browser/ui/tree/objectTree.js';
 import { IAsyncDataSource, ITreeNode } from '../../../../browser/ui/tree/tree.js';
-import { timeout } from '../../../../common/async.js';
+import { DeferredPromise, timeout } from '../../../../common/async.js';
+import { DisposableStore } from '../../../../common/lifecycle.js';
+import { errorHandler } from '../../../../common/errors.js';
 import { Iterable } from '../../../../common/iterator.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 import { runWithFakedTimers } from '../../../common/timeTravelScheduler.js';
@@ -100,6 +102,88 @@ class Model {
 suite('AsyncDataTree', function () {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('dispose cancels pending find work while the provider session ends', async () => {
+		let firedDebounces: number[] = [];
+		let normalDeadline = 0;
+		let disposedDeadline = 0;
+		await runWithFakedTimers({
+			onHistory: history => firedDebounces = history.filter(event => event.trace?.label === 'setTimeout(250ms)').map(event => event.time)
+		}, async () => {
+			const calls: string[] = [];
+			let sessionClosed = new DeferredPromise<void>();
+			const findProvider: IAsyncFindProvider<Element> = {
+				startSession() { calls.push('start'); },
+				async find(pattern) {
+					calls.push(pattern);
+					return pattern === 'file' ? { matchCount: 1, isMatch: element => element.id === pattern } : undefined;
+				},
+				async endSession() {
+					calls.push('end');
+					await sessionClosed.p;
+				}
+			};
+			const createTree = async () => {
+				const owner = store.add(new DisposableStore());
+				let filterCalls = 0;
+				const container = document.createElement('div');
+				const tree = owner.add(new AsyncDataTree<Element, Element>('test', container, new VirtualDelegate(), [new Renderer()], new DataSource(), {
+					contextViewProvider: { showContextView() { }, hideContextView() { }, layout() { } },
+					filter: { filter() { filterCalls++; return true; } },
+					findProvider,
+					keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: element => element.id }
+				}));
+				tree.layout(200);
+				await tree.setInput({ id: 'root', children: [{ id: 'file' }] });
+				tree.openFind();
+
+				const input = container.querySelector<HTMLInputElement>('.monaco-tree-type-filter-input input');
+				assert.ok(input);
+				return { owner, tree, input, get filterCalls() { return filterCalls; } };
+			};
+
+			const { owner, input } = await createTree();
+			input.value = 'file';
+			input.dispatchEvent(new Event('input'));
+			normalDeadline = Date.now() + 250;
+			await timeout(251);
+
+			input.value = 'discarded';
+			input.dispatchEvent(new Event('input'));
+			await timeout(249);
+			assert.deepStrictEqual(calls, ['start', 'file']);
+			owner.dispose();
+			// Disposal closes the widget synchronously and queues its last empty-pattern update.
+			disposedDeadline = Date.now() + 250;
+			await timeout(251);
+			assert.deepStrictEqual(calls, ['start', 'file', 'end']);
+			await sessionClosed.complete();
+
+			sessionClosed = new DeferredPromise<void>();
+			const replacement = await createTree();
+			replacement.input.value = 'file';
+			replacement.input.dispatchEvent(new Event('input'));
+			await timeout(251);
+			replacement.tree.closeFind();
+			await timeout(251);
+			assert.deepStrictEqual(calls, ['start', 'file', 'end', 'start', 'file', 'end']);
+
+			const unexpectedErrors: unknown[] = [];
+			const originalHandler = errorHandler.getUnexpectedErrorHandler();
+			errorHandler.setUnexpectedErrorHandler(error => unexpectedErrors.push(error));
+			try {
+				replacement.owner.dispose();
+				const filterCalls = replacement.filterCalls;
+				await sessionClosed.complete();
+				await timeout(1);
+				assert.deepStrictEqual({ filterCalls: replacement.filterCalls, unexpectedErrors }, { filterCalls, unexpectedErrors: [] });
+			} finally {
+				errorHandler.setUnexpectedErrorHandler(originalHandler);
+			}
+		});
+		assert.ok(firedDebounces.includes(normalDeadline), 'a live find should execute its debounce');
+		assert.ok(!firedDebounces.includes(disposedDeadline), 'disposing the tree should cancel its queued debounce');
+	});
 
 	test('Collapse state should be preserved across refresh calls', async () => {
 		const container = document.createElement('div');

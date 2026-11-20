@@ -18,7 +18,7 @@ import { Delayer, disposableTimeout } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
-import { toDisposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
 import * as platform from '../../../../base/common/platform.js';
 import * as strings from '../../../../base/common/strings.js';
 import './findWidget.css';
@@ -190,7 +190,6 @@ export class FindWidget extends Widget implements IOverlayWidget, IVerticalSashL
 		this._accessibilityHelpHintAnnounced = false;
 
 		this._updateHistoryDelayer = this._register(new Delayer<void>(500));
-		this._register(toDisposable(() => this._updateHistoryDelayer.cancel()));
 		this._register(this._state.onFindReplaceStateChange((e) => this._onStateChanged(e)));
 		this._buildDomNode();
 		this._updateButtons();

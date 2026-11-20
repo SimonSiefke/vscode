@@ -11,11 +11,14 @@ import { ITreeCompressionDelegate } from '../../../../../base/browser/ui/tree/as
 import { ICompressedTreeNode } from '../../../../../base/browser/ui/tree/compressedObjectTreeModel.js';
 import { ICompressibleTreeRenderer } from '../../../../../base/browser/ui/tree/objectTree.js';
 import { IAsyncDataSource, ITreeFilter, ITreeNode, TreeFilterResult } from '../../../../../base/browser/ui/tree/tree.js';
-import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { errorHandler } from '../../../../../base/common/errors.js';
 import { FuzzyScore } from '../../../../../base/common/filters.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { basename } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -140,6 +143,7 @@ suite('Find Provider - ExplorerView', () => {
 
 	let instantiationService: TestInstantiationService;
 
+	const providerFailure = new Error('Explorer search provider failed');
 	const searchMappings = new Map<string, URI[]>([
 		['bb', [URI.file('/root/b/bb/bbb.txt'), URI.file('/root/a/ab/abb.txt'), URI.file('/root/b/bb/bba.txt')]],
 	]);
@@ -171,6 +175,7 @@ suite('Find Provider - ExplorerView', () => {
 		instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IExplorerService, {
 			roots: [root],
+			isEditable: () => false,
 			refresh: () => Promise.resolve(),
 			findClosest: (resource: URI) => {
 				return find(root, basename(resource)) ?? null;
@@ -183,6 +188,9 @@ suite('Find Provider - ExplorerView', () => {
 					.replace(/\[/g, '')
 					.replace(/\]/g, '')
 					.replace(/[A-Z]/g, '') ?? '';
+				if (filePattern === 'failed') {
+					return Promise.reject(providerFailure);
+				}
 				const fileMatches: IFileMatch[] = (searchMappings.get(filePattern) ?? []).map(u => ({ resource: u }));
 				return Promise.resolve({ results: fileMatches, messages: [] });
 			},
@@ -192,8 +200,8 @@ suite('Find Provider - ExplorerView', () => {
 		});
 	});
 
-	test('find provider', async function () {
-		const disposables = new DisposableStore();
+	test('the tree find widget filters with the Explorer provider and restores the tree on close', () => runWithFakedTimers({}, async () => {
+		const owner = disposables.add(new DisposableStore());
 
 		// Tree Stuff
 		const container = document.createElement('div');
@@ -204,15 +212,19 @@ suite('Find Provider - ExplorerView', () => {
 		const accessibilityProvider = new AccessibilityProvider();
 		const filter = instantiationService.createInstance(TestFilesFilter) as unknown as FilesFilter;
 
-		const options: IWorkbenchCompressibleAsyncDataTreeOptions<ExplorerItem, FuzzyScore> = { identityProvider: new IdentityProvider(), keyboardNavigationLabelProvider, accessibilityProvider };
-		const tree = disposables.add(instantiationService.createInstance(WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, 'test', container, new VirtualDelegate(), compressionDelegate, [new Renderer()], dataSource, options));
+		const findProvider = instantiationService.createInstance(ExplorerFindProvider, filter, () => tree);
+		const options: IWorkbenchCompressibleAsyncDataTreeOptions<ExplorerItem, FuzzyScore> = {
+			identityProvider: new IdentityProvider(),
+			keyboardNavigationLabelProvider,
+			accessibilityProvider,
+			findProvider,
+			defaultFindMode: TreeFindMode.Filter,
+			defaultFindMatchType: TreeFindMatchType.Contiguous
+		};
+		const tree = owner.add(instantiationService.createInstance(WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, 'test', container, new VirtualDelegate(), compressionDelegate, [new Renderer()], dataSource, options));
 		tree.layout(200);
 
 		await tree.setInput(root);
-
-		const findProvider = instantiationService.createInstance(ExplorerFindProvider, filter, () => tree);
-
-		findProvider.startSession();
 
 		assert.strictEqual(find(root, 'abb.txt') !== undefined, true);
 		assert.strictEqual(find(root, 'bba.txt') !== undefined, false);
@@ -222,7 +234,29 @@ suite('Find Provider - ExplorerView', () => {
 		assert.strictEqual(find(root, 'a')?.isMarkedAsFiltered(), false);
 		assert.strictEqual(find(root, 'ab')?.isMarkedAsFiltered(), false);
 
-		await findProvider.find('bb', { matchType: TreeFindMatchType.Contiguous, findMode: TreeFindMode.Filter }, new CancellationTokenSource().token);
+		tree.openFind();
+		const input = container.querySelector<HTMLInputElement>('.monaco-tree-type-filter-input input');
+		assert.ok(input);
+		const setSearch = (pattern: string) => {
+			input.value = pattern;
+			input.dispatchEvent(new Event('input'));
+		};
+
+		const reportedErrors: unknown[] = [];
+		const originalHandler = errorHandler.getUnexpectedErrorHandler();
+		errorHandler.setUnexpectedErrorHandler(error => reportedErrors.push(error));
+		try {
+			setSearch('f');
+			setSearch('failed');
+			await timeout(251);
+			assert.deepStrictEqual(reportedErrors, [providerFailure]);
+			assert.strictEqual(find(root, 'bbb.txt'), undefined);
+		} finally {
+			errorHandler.setUnexpectedErrorHandler(originalHandler);
+		}
+
+		setSearch('bb');
+		await timeout(251);
 
 		assert.strictEqual(find(root, 'abb.txt') !== undefined, true);
 		assert.strictEqual(find(root, 'bba.txt') !== undefined, true);
@@ -241,7 +275,8 @@ suite('Find Provider - ExplorerView', () => {
 		assert.strictEqual(find(root, 'ba')?.isMarkedAsFiltered(), false);
 		assert.strictEqual(find(root, 'aba.txt')?.isMarkedAsFiltered(), false);
 
-		await findProvider.endSession();
+		tree.closeFind();
+		await timeout(251);
 
 		assert.strictEqual(find(root, 'abb.txt') !== undefined, true);
 		assert.strictEqual(find(root, 'baa.txt') !== undefined, true);
@@ -254,6 +289,6 @@ suite('Find Provider - ExplorerView', () => {
 		assert.strictEqual(find(root, 'b')?.isMarkedAsFiltered(), false);
 		assert.strictEqual(find(root, 'bb')?.isMarkedAsFiltered(), false);
 
-		disposables.dispose();
-	});
+		owner.dispose();
+	}));
 });

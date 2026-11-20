@@ -10,7 +10,7 @@ import { IMouseWheelEvent } from '../../mouseEvent.js';
 import { EventType as TouchEventType, Gesture, GestureEvent } from '../../touch.js';
 import { SmoothScrollableElement } from '../scrollbar/scrollableElement.js';
 import { distinct, equals, splice } from '../../../common/arrays.js';
-import { Delayer, disposableTimeout } from '../../../common/async.js';
+import { disposableTimeout, RunOnceScheduler } from '../../../common/async.js';
 import { memoize } from '../../../common/decorators.js';
 import { Emitter, Event, IValueWithChangeEvent } from '../../../common/event.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../common/lifecycle.js';
@@ -316,7 +316,7 @@ export class ListView<T> implements IListView<T> {
 	private scrollableElement: SmoothScrollableElement;
 	private _scrollHeight: number = 0;
 	private scrollableElementUpdateDisposable: IDisposable | null = null;
-	private scrollableElementWidthDelayer = new Delayer<void>(50);
+	private readonly scrollableElementWidthScheduler = new RunOnceScheduler(() => this.updateScrollWidth(), 50);
 	private splicing = false;
 	private dragOverAnimationDisposable: IDisposable | undefined;
 	private dragOverAnimationStopDisposable: IDisposable = Disposable.None;
@@ -375,7 +375,7 @@ export class ListView<T> implements IListView<T> {
 			this.scrollableElement.setScrollDimensions({ width: getContentWidth(this.domNode) });
 			this.rowsContainer.style.width = `${Math.max(this.scrollWidth || 0, this.renderWidth)}px`;
 		} else {
-			this.scrollableElementWidthDelayer.cancel();
+			this.scrollableElementWidthScheduler.cancel();
 			this.scrollableElement.setScrollDimensions({ width: this.renderWidth, scrollWidth: this.renderWidth });
 			this.rowsContainer.style.width = '';
 			this.domNode.style.removeProperty('--list-scroll-right-offset');
@@ -391,7 +391,7 @@ export class ListView<T> implements IListView<T> {
 		if (options.horizontalScrolling && options.supportDynamicHeights) {
 			throw new Error('Horizontal scrolling and dynamic heights not supported simultaneously');
 		}
-		this.disposables.add(this.scrollableElementWidthDelayer);
+		this.disposables.add(this.scrollableElementWidthScheduler);
 
 		this.items = [];
 		this.itemId = 0;
@@ -796,11 +796,11 @@ export class ListView<T> implements IListView<T> {
 
 	private eventuallyUpdateScrollWidth(): void {
 		if (!this.horizontalScrolling) {
-			this.scrollableElementWidthDelayer.cancel();
+			this.scrollableElementWidthScheduler.cancel();
 			return;
 		}
 
-		this.scrollableElementWidthDelayer.trigger(() => this.updateScrollWidth());
+		this.scrollableElementWidthScheduler.schedule();
 	}
 
 	private updateScrollWidth(): void {

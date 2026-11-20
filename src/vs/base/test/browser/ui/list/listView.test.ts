@@ -7,12 +7,63 @@ import assert from 'assert';
 import { CachedListVirtualDelegate, IListRenderer, IListVirtualDelegate } from '../../../../browser/ui/list/list.js';
 import { ListView } from '../../../../browser/ui/list/listView.js';
 import { range } from '../../../../common/arrays.js';
+import { timeout } from '../../../../common/async.js';
 import { DisposableStore, toDisposable } from '../../../../common/lifecycle.js';
 import { IRange } from '../../../../common/range.js';
+import { runWithFakedTimers } from '../../../common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 
 suite('ListView', function () {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('dispose cancels a pending horizontal scroll width update', () => runWithFakedTimers({}, async () => {
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const renderer: IListRenderer<number, HTMLElement> = {
+			templateId: 'template',
+			renderTemplate(element) {
+				const content = document.createElement('div');
+				element.appendChild(content);
+				return content;
+			},
+			renderElement(width, _index, content) {
+				content.style.width = width + 'px';
+			},
+			disposeTemplate() { }
+		};
+		const createList = () => {
+			const owner = store.add(new DisposableStore());
+			const list = owner.add(new ListView<number>(container, {
+				getHeight() { return 20; },
+				getTemplateId() { return 'template'; }
+			}, [renderer], { horizontalScrolling: true }));
+			list.layout(200, 100);
+			return { owner, list };
+		};
+		const insert = (list: ListView<number>, width: number) => {
+			list.splice(0, list.length, [width]);
+			// Flush the scroll-height frame so only the debounced width update remains.
+			list.setScrollTop(0);
+		};
+
+		const { owner, list } = createList();
+		insert(list, 240);
+		await timeout(51);
+		assert.ok(list.contentWidth >= 240);
+		const width = list.contentWidth;
+
+		insert(list, 360);
+		owner.dispose();
+		await timeout(51);
+		assert.strictEqual(list.contentWidth, width);
+
+		const replacement = createList().list;
+		insert(replacement, 360);
+		await timeout(51);
+		assert.ok(replacement.contentWidth >= 360);
+	}));
 
 	for (const horizontalScrolling of [false, true]) {
 		for (const supportDynamicHeights of [false, true]) {
