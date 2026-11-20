@@ -37,6 +37,7 @@ import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { EditorAreaFocusContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, EditorTabsVisibleContext, IsTopRightEditorGroupContext } from '../../../common/contextkeys.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { EditorPane } from './editorPane.js';
 import { getGroupTransferVeto } from './editorTransferVeto.js';
 
 /**
@@ -54,8 +55,31 @@ export interface IEditorPartUIState {
 	readonly mostRecentActiveGroups: GroupIdentifier[];
 }
 
+export function getSerializedEditorGroupIds(states: readonly (IEditorPartUIState | undefined)[]): Set<GroupIdentifier> {
+	const ids = new Set<GroupIdentifier>();
+	function collect(node: ISerializedNode | undefined): void {
+		if (!node) {
+			return;
+		}
+		if (node.type === 'branch') {
+			if (Array.isArray(node.data)) {
+				node.data.forEach(collect);
+			}
+		} else if (isSerializedEditorGroupModel(node.data) && Number.isSafeInteger(node.data.id) && node.data.id >= 0 && node.data.id < Number.MAX_SAFE_INTEGER) {
+			ids.add(node.data.id);
+		}
+	}
+
+	for (const state of states) {
+		collect(state?.serializedGrid?.root);
+	}
+
+	return ids;
+}
+
 interface IEditorPartMemento {
 	'editorpart.state'?: IEditorPartUIState;
+	'editorpart.singleGroupId'?: GroupIdentifier;
 	'editorpart.centeredview'?: CenteredViewState;
 }
 
@@ -129,6 +153,7 @@ class GridWidgetView<T extends IView> implements IView {
 export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart, IEditorGroupsView {
 
 	private static readonly EDITOR_PART_UI_STATE_STORAGE_KEY = 'editorpart.state';
+	private static readonly EDITOR_PART_SINGLE_GROUP_ID_STORAGE_KEY = 'editorpart.singleGroupId';
 	private static readonly EDITOR_PART_CENTERED_VIEW_STORAGE_KEY = 'editorpart.centeredview';
 
 	//#region Events
@@ -923,6 +948,8 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		this.gridWidget.removeView(groupView, this.getSplitSizingStyle());
 		groupView.dispose();
 
+		EditorPane.clearEditorGroupState(groupView);
+
 		// Restore focus if we had it previously after completing the grid
 		// operation. That operation might cause reparenting of grid views
 		// which moves focus to the <body> element otherwise.
@@ -1442,7 +1469,12 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 		// Grid Widget (no previous UI state or failed to restore)
 		if (!this.gridWidget || restoreError) {
-			const initialGroup = this.doCreateGroupView();
+			const singleGroupId = this === this.editorPartsView.mainPart
+				? this.workspaceMemento[EditorPart.EDITOR_PART_SINGLE_GROUP_ID_STORAGE_KEY]
+				: undefined;
+			const initialGroup = this.doCreateGroupView(typeof singleGroupId === 'number' && Number.isSafeInteger(singleGroupId) && singleGroupId >= 0 && singleGroupId < Number.MAX_SAFE_INTEGER
+				? { id: singleGroupId, editors: [], mru: [] }
+				: undefined);
 			this.doSetGridWidget(new SerializableGrid(initialGroup));
 
 			// Ensure a group is active
@@ -1636,6 +1668,13 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 		// Persist grid UI state
 		if (this.gridWidget) {
+			if (this === this.editorPartsView.mainPart && this.count === 1) {
+				// Keep view-state identity even when startup skips restoring tabs.
+				this.workspaceMemento[EditorPart.EDITOR_PART_SINGLE_GROUP_ID_STORAGE_KEY] = this.activeGroup.id;
+			} else {
+				delete this.workspaceMemento[EditorPart.EDITOR_PART_SINGLE_GROUP_ID_STORAGE_KEY];
+			}
+
 			if (this.isEmpty) {
 				delete this.workspaceMemento[EditorPart.EDITOR_PART_UI_STATE_STORAGE_KEY];
 			} else {
@@ -1668,11 +1707,16 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		};
 	}
 
-	applyState(state: IEditorPartUIState | 'empty', options?: IEditorGroupViewOptions): Promise<void> {
+	async applyState(state: IEditorPartUIState | 'empty', options?: IEditorGroupViewOptions): Promise<void> {
 		if (state === 'empty') {
 			return this.doApplyEmptyState();
-		} else {
-			return this.doApplyState(state, options);
+		}
+
+		const preservedState = EditorPane.preserveEditorGroupState(getSerializedEditorGroupIds([state]));
+		try {
+			await this.doApplyState(state, options);
+		} finally {
+			preservedState.dispose();
 		}
 	}
 
@@ -1688,7 +1732,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		this._onDidAddGroup.pause();
 		this._onDidRemoveGroup.pause();
 
-		this.disposeGroups();
+		this.disposeGroups(false);
 
 		// MRU
 		this.mostRecentActiveGroups = state.mostRecentActiveGroups;
@@ -1784,9 +1828,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		};
 	}
 
-	private disposeGroups(): void {
+	private disposeGroups(preserveState = true): void {
 		for (const group of this.groups) {
 			group.dispose();
+			EditorPane.clearEditorGroupState(group, preserveState);
 
 			this._onDidRemoveGroup.fire(group);
 		}

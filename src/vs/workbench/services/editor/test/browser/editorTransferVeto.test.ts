@@ -7,6 +7,7 @@ import assert from 'assert';
 import { EventType } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { Emitter } from '../../../../../base/common/event.js';
+import { DeferredPromise } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { isMacintosh } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -120,9 +121,9 @@ suite('Editor transfer vetoes', () => {
 		const container = mainWindow.document.createElement('div');
 		mainWindow.document.body.appendChild(container);
 		disposables.add({ dispose: () => container.remove() });
-		const part = disposables.add(instantiationService.createInstance(AuxiliaryEditorPartImpl, mainWindow.vscodeWindowId, parts, undefined, 'Auxiliary'));
+		const part = disposables.add(instantiationService.createInstance(AuxiliaryEditorPartImpl, mainWindow.vscodeWindowId, parts, undefined, 'Auxiliary', async () => true, async () => { part.handleWindowUnload(); registration.dispose(); part.dispose(); return true; }));
 		part.updateOptions({ compact });
-		disposables.add(parts.registerPart(part));
+		const registration = disposables.add(parts.registerPart(part));
 		part.create(container);
 		part.layout(800, 600, 0, 0);
 
@@ -185,7 +186,7 @@ suite('Editor transfer vetoes', () => {
 
 	suite('into a new window', () => {
 
-		function createFakePart(options?: { readonly content?: boolean }): { part: IAuxiliaryEditorPart; closed: () => number } {
+		function createFakePart(options?: { readonly content?: boolean; readonly close?: () => Promise<boolean> }): { part: IAuxiliaryEditorPart; closed: () => number } {
 			let closed = 0;
 			const onWillClose = disposables.add(new Emitter<void>());
 			const group = new class extends mock<IEditorGroup>() {
@@ -196,7 +197,14 @@ suite('Editor transfer vetoes', () => {
 				override readonly onWillClose = onWillClose.event;
 				override readonly activeGroup = group;
 				override readonly groups = [group];
-				override close(): boolean { closed++; onWillClose.fire(); return true; }
+				override async close(): Promise<boolean> {
+					closed++;
+					const result = await (options?.close?.() ?? Promise.resolve(true));
+					if (result) {
+						onWillClose.fire();
+					}
+					return result;
+				}
 			}();
 
 			return { part, closed: () => closed };
@@ -233,6 +241,32 @@ suite('Editor transfer vetoes', () => {
 			const result = await run({ veto: target => target === NEW_WINDOW_TARGET ? undefined : VETO, part: fake.part });
 
 			assert.deepStrictEqual({ ...result, closed: fake.closed() }, { created: 1, vetoes: [VETO], transferred: 0, result: false, closed: 1 });
+		});
+
+		test('a failed transfer waits for closing its empty window', async () => {
+			const entered = new DeferredPromise<void>();
+			const closing = new DeferredPromise<boolean>();
+			const fake = createFakePart({ close: () => { entered.complete(); return closing.p; } });
+			const editor = createInput('/editor');
+			const transfer = transferToNewWindow({
+				getVeto: target => target === NEW_WINDOW_TARGET ? undefined : { editor, message: VETO, dirty: false },
+				showVeto: () => { },
+				createPart: async () => fake.part,
+				isSourceAlive: () => true,
+				transfer: () => assert.fail('A vetoed transfer must not move editors')
+			});
+			await entered.p;
+			const before = await Promise.race([transfer, Promise.resolve('pending')]);
+			closing.complete(true);
+			const after = await transfer;
+
+			assert.deepStrictEqual({ before, after, closed: fake.closed() }, { before: 'pending', after: undefined, closed: 1 });
+		});
+
+		test('a failed transfer reports a rejected empty-window close', async () => {
+			const fake = createFakePart({ close: async () => { throw new Error('close failed'); } });
+			await assert.rejects(run({ sourceAlive: false, part: fake.part }), /close failed/);
+			assert.strictEqual(fake.closed(), 1);
 		});
 
 		test('a window that got an editor meanwhile is neither closed nor merged on a late veto', async () => {

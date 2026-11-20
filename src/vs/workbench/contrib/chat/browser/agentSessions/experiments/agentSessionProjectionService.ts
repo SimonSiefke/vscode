@@ -106,9 +106,6 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 	/** Working set saved when entering projection mode (to restore on exit) */
 	private _preProjectionWorkingSet: IEditorWorkingSet | undefined;
 
-	/** Working sets per session, keyed by session resource URI string */
-	private readonly _sessionWorkingSets = new Map<string, IEditorWorkingSet>();
-
 	/** Whether the auxiliary bar was maximized when entering projection mode */
 	private _wasAuxiliaryBarMaximized = false;
 
@@ -225,10 +222,6 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 
 				this.logService.trace(`[AgentSessionProjection] Multi-diff editor opened successfully in modal view`);
 
-				// Save this as the session's working set
-				const sessionKey = session.resource.toString();
-				const newWorkingSet = this.editorGroupsService.saveWorkingSet(`agent-session-projection-${sessionKey}`);
-				this._sessionWorkingSets.set(sessionKey, newWorkingSet);
 				return true;
 			} else {
 				this.logService.trace(`[AgentSessionProjection] No files with diffs to display (all changes missing originalUri)`);
@@ -324,10 +317,6 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 			const isSwapping = this._isActive && this._activeSession;
 			if (isSwapping) {
 				this._isSwappingSessions = true;
-				// Already in projection mode, switching sessions - save the current session's working set
-				const previousSessionKey = this._activeSession!.resource.toString();
-				const previousWorkingSet = this.editorGroupsService.saveWorkingSet(`agent-session-projection-${previousSessionKey}`);
-				this._sessionWorkingSets.set(previousSessionKey, previousWorkingSet);
 			}
 
 			try {
@@ -412,13 +401,6 @@ export class AgentSessionProjectionService extends Disposable implements IAgentS
 			startNewChat,
 			wasAuxiliaryBarMaximized: this._wasAuxiliaryBarMaximized
 		});
-
-		// Save the current session's working set before exiting
-		if (this._activeSession) {
-			const sessionKey = this._activeSession.resource.toString();
-			const workingSet = this.editorGroupsService.saveWorkingSet(`agent-session-projection-${sessionKey}`);
-			this._sessionWorkingSets.set(sessionKey, workingSet);
-		}
 
 		// Close projection editors (multi-diff, etc.) so the restored set is clean
 		for (const group of this.editorGroupsService.groups) {
