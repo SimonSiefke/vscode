@@ -8,7 +8,7 @@ import { localize } from '../../../nls.js';
 import { Action, IAction, Separator } from '../../../base/common/actions.js';
 import { $, addDisposableListener, append, clearNode, EventHelper, EventType, getDomNodePagePosition, hide, show } from '../../../base/browser/dom.js';
 import { ICommandService } from '../../../platform/commands/common/commands.js';
-import { toDisposable, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { toDisposable, Disposable, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
 import { IThemeService, IColorTheme } from '../../../platform/theme/common/themeService.js';
 import { NumberBadge, IBadge, IActivity, ProgressBadge, IconBadge } from '../../services/activity/common/activity.js';
@@ -515,7 +515,31 @@ export class CompositeOverflowActivityActionViewItem extends CompositeBarActionV
 	}
 }
 
+export class CompositeConfigureKeybindingAction extends Disposable {
+	private _action: IAction | undefined;
+
+	constructor(
+		compositeActivityAction: CompositeBarAction,
+		private readonly commandService: ICommandService,
+		private readonly keybindingService: IKeybindingService,
+	) {
+		super();
+		this._register(compositeActivityAction.onDidChangeCompositeBarActionItem(this.update, this));
+		this.update(compositeActivityAction);
+	}
+
+	get action(): IAction | undefined {
+		return this._action;
+	}
+
+	private update(compositeActivityAction: CompositeBarAction): void {
+		const commandId = compositeActivityAction.compositeBarActionItem.keybindingId;
+		this._action = commandId ? createConfigureKeybindingAction(this.commandService, this.keybindingService, commandId) : undefined;
+	}
+}
+
 export class CompositeActionViewItem extends CompositeBarActionViewItem {
+	private readonly configureKeybindingAction: CompositeConfigureKeybindingAction;
 
 	constructor(
 		options: ICompositeBarActionViewItemOptions,
@@ -543,6 +567,8 @@ export class CompositeActionViewItem extends CompositeBarActionViewItem {
 			configurationService,
 			keybindingService
 		);
+
+		this.configureKeybindingAction = this._register(new CompositeConfigureKeybindingAction(compositeActivityAction, this.commandService, this.keybindingService));
 	}
 
 	override render(container: HTMLElement): void {
@@ -640,8 +666,8 @@ export class CompositeActionViewItem extends CompositeBarActionViewItem {
 	private showContextMenu(container: HTMLElement): void {
 		const actions: IAction[] = [];
 
-		if (this.compositeBarActionItem.keybindingId) {
-			actions.push(createConfigureKeybindingAction(this.commandService, this.keybindingService, this.compositeBarActionItem.keybindingId));
+		if (this.configureKeybindingAction.action) {
+			actions.push(this.configureKeybindingAction.action);
 		}
 
 		actions.push(this.toggleCompositePinnedAction, this.toggleCompositeBadgeAction);

@@ -25,7 +25,7 @@ import { assertNever } from '../../../util/vs/base/common/assert';
 import { Codicon } from '../../../util/vs/base/common/codicons';
 import { Emitter } from '../../../util/vs/base/common/event';
 import { Iterable } from '../../../util/vs/base/common/iterator';
-import { IDisposable } from '../../../util/vs/base/common/lifecycle';
+import { DisposableStore, IDisposable, toDisposable } from '../../../util/vs/base/common/lifecycle';
 import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { renderDataPartToString, renderToolResultToStringNoBudget } from './requestLoggerToolResult';
@@ -407,7 +407,14 @@ export class RequestLogger extends AbstractRequestLogger {
 					// Subscribe to live entry changes for dynamic content/icon refresh
 					if (entry.type === LoggedRequestKind.MarkdownContentRequest && entry.onDidChange) {
 						let treeRefreshTimeout: ReturnType<typeof setTimeout> | undefined;
-						const subscription = entry.onDidChange(() => {
+						const entryDisposables = new DisposableStore();
+						entryDisposables.add(toDisposable(() => {
+							if (treeRefreshTimeout !== undefined) {
+								clearTimeout(treeRefreshTimeout);
+								treeRefreshTimeout = undefined;
+							}
+						}));
+						entryDisposables.add(entry.onDidChange(() => {
 							// Always update the virtual document immediately for streaming content
 							this._onDidChangeDocument.fire(Uri.parse(ChatRequestScheme.buildUri({ kind: 'request', id })));
 
@@ -424,8 +431,8 @@ export class RequestLogger extends AbstractRequestLogger {
 								this._onDidChangeRequests.fire();
 								treeRefreshTimeout = undefined;
 							}, 200);
-						});
-						this._entryDisposables.set(id, subscription);
+						}));
+						this._entryDisposables.set(id, entryDisposables);
 					}
 
 					let extraData: string;
