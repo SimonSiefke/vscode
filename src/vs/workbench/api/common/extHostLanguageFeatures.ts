@@ -1558,29 +1558,31 @@ class InlineCompletionAdapter {
 
 	disposeCompletions(pid: number, reason: languages.InlineCompletionsDisposeReason) {
 		const completionList = this._references.get(pid);
-		if (this._provider.handleListEndOfLifetime && this._isAdditionsProposedApiEnabled && completionList?.list) {
-			function translateReason(reason: languages.InlineCompletionsDisposeReason): vscode.InlineCompletionsDisposeReason {
-				switch (reason.kind) {
-					case 'lostRace':
-						return { kind: InlineCompletionsDisposeReasonKind.LostRace };
-					case 'tokenCancellation':
-						return { kind: InlineCompletionsDisposeReasonKind.TokenCancellation };
-					case 'other':
-						return { kind: InlineCompletionsDisposeReasonKind.Other };
-					case 'empty':
-						return { kind: InlineCompletionsDisposeReasonKind.Empty };
-					case 'notTaken':
-						return { kind: InlineCompletionsDisposeReasonKind.NotTaken };
-					default:
-						return { kind: InlineCompletionsDisposeReasonKind.Other };
+		try {
+			if (this._provider.handleListEndOfLifetime && this._isAdditionsProposedApiEnabled && completionList?.list) {
+				function translateReason(reason: languages.InlineCompletionsDisposeReason): vscode.InlineCompletionsDisposeReason {
+					switch (reason.kind) {
+						case 'lostRace':
+							return { kind: InlineCompletionsDisposeReasonKind.LostRace };
+						case 'tokenCancellation':
+							return { kind: InlineCompletionsDisposeReasonKind.TokenCancellation };
+						case 'other':
+							return { kind: InlineCompletionsDisposeReasonKind.Other };
+						case 'empty':
+							return { kind: InlineCompletionsDisposeReasonKind.Empty };
+						case 'notTaken':
+							return { kind: InlineCompletionsDisposeReasonKind.NotTaken };
+						default:
+							return { kind: InlineCompletionsDisposeReasonKind.Other };
+					}
 				}
+
+				this._provider.handleListEndOfLifetime(completionList.list, translateReason(reason));
 			}
-
-			this._provider.handleListEndOfLifetime(completionList.list, translateReason(reason));
+		} finally {
+			const data = this._references.disposeReferenceId(pid);
+			data?.dispose();
 		}
-
-		const data = this._references.disposeReferenceId(pid);
-		data?.dispose();
 	}
 
 	handleDidShowCompletionItem(pid: number, idx: number, updatedInsertText: string): void {
@@ -2772,7 +2774,9 @@ export class ExtHostLanguageFeatures extends CoreDisposable implements extHostPr
 	}
 
 	$freeInlineCompletionsList(handle: number, pid: number, reason: languages.InlineCompletionsDisposeReason): void {
-		this._withAdapter(handle, InlineCompletionAdapter, async adapter => { adapter.disposeCompletions(pid, reason); }, undefined, undefined);
+		void this._withAdapter(handle, InlineCompletionAdapter, async adapter => { adapter.disposeCompletions(pid, reason); }, undefined, undefined).catch(() => {
+			// The adapter has already logged and reported the provider error.
+		});
 	}
 
 	$acceptInlineCompletionsUnificationState(state: IInlineCompletionsUnificationState): void {
