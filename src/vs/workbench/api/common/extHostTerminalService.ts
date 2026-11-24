@@ -904,12 +904,27 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 	}
 
 	public registerLinkProvider(provider: vscode.TerminalLinkProvider): vscode.Disposable {
-		this._linkProviders.add(provider);
+		// Give each registration its own identity, including when a provider is registered again.
+		const registeredProvider: vscode.TerminalLinkProvider = {
+			provideTerminalLinks: (context, token) => provider.provideTerminalLinks(context, token),
+			handleTerminalLink: link => provider.handleTerminalLink(link)
+		};
+		this._linkProviders.add(registeredProvider);
 		if (this._linkProviders.size === 1) {
 			this._proxy.$startLinkProvider();
 		}
 		return new VSCodeDisposable(() => {
-			this._linkProviders.delete(provider);
+			this._linkProviders.delete(registeredProvider);
+			for (const [terminalId, links] of this._terminalLinkCache) {
+				for (const [linkId, entry] of links) {
+					if (entry.provider === registeredProvider) {
+						links.delete(linkId);
+					}
+				}
+				if (links.size === 0) {
+					this._terminalLinkCache.delete(terminalId);
+				}
+			}
 			if (this._linkProviders.size === 0) {
 				this._proxy.$stopLinkProvider();
 			}
@@ -957,7 +972,7 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 
 		const cacheLinkMap = new Map<number, ICachedLinkEntry>();
 		for (const provideResult of provideResults) {
-			if (provideResult && provideResult.links.length > 0) {
+			if (provideResult && this._linkProviders.has(provideResult.provider) && provideResult.links.length > 0) {
 				result.push(...provideResult.links.map(providerLink => {
 					const link = {
 						id: nextLinkId++,
@@ -974,7 +989,9 @@ export abstract class BaseExtHostTerminalService extends Disposable implements I
 			}
 		}
 
-		this._terminalLinkCache.set(terminalId, cacheLinkMap);
+		if (cacheLinkMap.size > 0) {
+			this._terminalLinkCache.set(terminalId, cacheLinkMap);
+		}
 
 		return result;
 	}
