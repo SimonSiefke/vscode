@@ -111,7 +111,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		this._capabilityDisposables.deleteAndDispose(c);
 	}
 
-	registerMarkDecoration(mark: IMarkProperties): void {
+	registerMarkDecoration(mark: IMarkProperties): IDecoration | undefined {
 		if (!this._terminal || (!this._showGutterDecorations && !this._showOverviewRulerDecorations)) {
 			return undefined;
 		}
@@ -273,7 +273,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		this._attachToCommandCapability();
 	}
 
-	registerCommandDecoration(command?: ITerminalCommand, beforeCommandExecution?: boolean, markProperties?: IMarkProperties): void {
+	registerCommandDecoration(command?: ITerminalCommand, beforeCommandExecution?: boolean, markProperties?: IMarkProperties): IDecoration | undefined {
 		if (!this._terminal || (beforeCommandExecution && !command) || (!this._showGutterDecorations && !this._showOverviewRulerDecorations)) {
 			return undefined;
 		}
@@ -320,6 +320,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 				this._updateClasses(element, command, command?.markProperties || markProperties);
 			}
 		}));
+		return decoration;
 	}
 
 	registerMenuItems(command: ITerminalCommand, items: IAction[]): IDisposable {
