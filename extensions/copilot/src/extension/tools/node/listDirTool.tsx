@@ -38,7 +38,7 @@ class ListDirTool implements vscode.LanguageModelTool<IListDirParams> {
 	) { }
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<IListDirParams>, token: CancellationToken) {
-		const uri = resolveToolInputPath(options.input.path, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.path, this.promptPathRepresentationService, options.workingDirectory);
 
 		checkCancellation(token);
 		const contents = await this.fsService.readDirectory(uri);
@@ -50,7 +50,7 @@ class ListDirTool implements vscode.LanguageModelTool<IListDirParams> {
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IListDirParams>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation | undefined> {
-		const uri = resolveToolInputPath(options.input.path, this.promptPathRepresentationService);
+		const uri = resolveToolInputPath(options.input.path, this.promptPathRepresentationService, options.workingDirectory);
 
 		// Check if directory is external (outside workspace)
 		const isExternal = this.instantiationService.invokeFunction(

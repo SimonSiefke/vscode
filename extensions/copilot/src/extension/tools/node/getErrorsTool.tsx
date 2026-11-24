@@ -154,7 +154,7 @@ export class GetErrorsTool extends Disposable implements ICopilotTool<IGetErrors
 
 		const getSome = (filePaths: string[]) =>
 			this.getDiagnostics(filePaths.map((filePath, i) => {
-				const uri = resolveToolInputPath(filePath, this.promptPathRepresentationService);
+				const uri = resolveToolInputPath(filePath, this.promptPathRepresentationService, options.workingDirectory);
 				const range = options.input.ranges?.[i];
 				if (!uri) {
 					throw new Error(`Invalid input path ${filePath}`);
@@ -225,7 +225,7 @@ export class GetErrorsTool extends Disposable implements ICopilotTool<IGetErrors
 			};
 		}
 		else {
-			const uris = options.input.filePaths.map(filePath => resolveToolInputPath(filePath, this.promptPathRepresentationService));
+			const uris = options.input.filePaths.map(filePath => resolveToolInputPath(filePath, this.promptPathRepresentationService, options.workingDirectory));
 			if (uris.some(uri => uri === undefined)) {
 				throw new Error('Invalid file path provided');
 			}

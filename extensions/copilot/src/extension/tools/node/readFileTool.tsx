@@ -247,7 +247,7 @@ export class ReadFileTool extends Disposable implements ICopilotTool<ReadFilePar
 		let ranges: IParamRanges | undefined;
 		let uri: URI | undefined;
 		try {
-			uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService);
+			uri = resolveToolInputPath(options.input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 
 			if (getImageMimeType(uri)) {
 				throw new Error(`Cannot read image files with ${ToolName.ReadFile}. Use ${ToolName.ViewImage} instead.`);
@@ -391,7 +391,7 @@ export class ReadFileTool extends Disposable implements ICopilotTool<ReadFilePar
 		let uri: URI | undefined;
 		let documentSnapshot: NotebookDocumentSnapshot | TextDocumentSnapshot;
 		try {
-			uri = resolveToolInputPath(input.filePath, this.promptPathRepresentationService);
+			uri = resolveToolInputPath(input.filePath, this.promptPathRepresentationService, options.workingDirectory);
 			if (getImageMimeType(uri)) {
 				throw new Error(`Cannot read image files with ${ToolName.ReadFile}. Use ${ToolName.ViewImage} instead.`);
 			}
