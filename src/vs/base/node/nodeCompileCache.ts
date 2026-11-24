@@ -62,31 +62,6 @@ export function enableNodeCompileCache(kind: NodeCompileCacheKind): boolean {
 		return false;
 	}
 
-	// Portable, eager, read-only caches remain disabled on POSIX. A writable,
-	// non-portable cache can still be populated by normal application launches.
-	if (process.platform !== 'win32') {
-		if (process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1') {
-			setNodeCompileCacheStatus({ kind, status: 'disabled', configuredDirectory: cacheDirectory, isPackagedCacheEnabled: false });
-			return false;
-		}
-
-		const result = enableCompileCache();
-		const activeDirectory = getCompileCacheDir() ?? result.directory;
-		const isRuntimeCacheEnabled = result.status === constants.compileCacheStatus.ENABLED || result.status === constants.compileCacheStatus.ALREADY_ENABLED;
-		setNodeCompileCacheStatus({
-			kind,
-			status: result.status === constants.compileCacheStatus.ENABLED ? 'enabled'
-				: result.status === constants.compileCacheStatus.ALREADY_ENABLED ? 'already-enabled'
-					: result.status === constants.compileCacheStatus.DISABLED ? 'disabled' : 'failed',
-			configuredDirectory: activeDirectory ?? cacheDirectory,
-			activeDirectory,
-			isPackagedCacheEnabled: false,
-			isRuntimeCacheEnabled,
-			message: result.message
-		});
-		return false;
-	}
-
 	const isGeneratingCache = process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1';
 	const runtimeCachePrefix = `${process.version}-${process.arch}-`;
 	// eslint-disable-next-line local/code-no-sync-fs -- The cache must be validated before enableCompileCache and subsequent module imports; an async probe would miss compilation of those startup modules.

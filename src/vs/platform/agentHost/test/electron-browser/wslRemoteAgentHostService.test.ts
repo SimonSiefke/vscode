@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { DeferredPromise } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import type { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -27,12 +27,13 @@ import { IWorkspaceTrustEnablementService, IWorkspaceTrustManagementService, IWo
 import { AgentHostProtocolClient } from '../../browser/agentHostProtocolClient.js';
 import { EditorWindowRemoteAgentHostService } from '../../browser/remoteAgentHostServiceImpl.js';
 import { IAgentHostResourceService } from '../../common/agentHostResourceService.js';
-import { IRemoteAgentHostService, RemoteAgentHostAutoConnectSettingId, RemoteAgentHostsEnabledSettingId } from '../../common/remoteAgentHostService.js';
+import { getEntryAddress, IRemoteAgentHostService, RemoteAgentHostAutoConnectSettingId, RemoteAgentHostsEnabledSettingId } from '../../common/remoteAgentHostService.js';
 import { type IProtocolTransport } from '../../common/state/sessionTransport.js';
 import { PROTOCOL_VERSION } from '../../common/state/protocol/version/registry.js';
 import { AHP_UNSUPPORTED_PROTOCOL_VERSION, JsonRpcErrorCodes, isJsonRpcRequest, type JsonRpcRequest, type ProtocolMessage } from '../../common/state/sessionProtocol.js';
 import { type IWSLAgentHostConfig, type IWSLConnectResult, type IWSLConnectProgress, type IWSLRemoteAgentHostMainService } from '../../common/wslRemoteAgentHost.js';
 import { IWSLRelayClientFactory, WSLRelayClientFactory, WSLRemoteAgentHostService } from '../../electron-browser/wslRemoteAgentHostServiceImpl.js';
+import { IRequestService } from '../../../request/common/request.js';
 
 class TestProtocolTransport extends Disposable implements IProtocolTransport {
 	private readonly _onMessage = this._register(new Emitter<ProtocolMessage>());
@@ -128,6 +129,8 @@ class MockWSLMainService extends Disposable implements IWSLRemoteAgentHostMainSe
 	listRunningDistros(): Promise<string[]> {
 		return this.runningDistros;
 	}
+
+	async terminateDistro(): Promise<void> { }
 
 	async connect(config: IWSLAgentHostConfig): Promise<IWSLConnectResult> {
 		this.connectCalls.push(config);
@@ -226,7 +229,7 @@ function asChannel(target: object): IChannel {
 }
 
 suite('WSLRemoteAgentHostService (renderer)', () => {
-	const disposables = new DisposableStore();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	let mainService: MockWSLMainService;
 	let instantiationService: TestInstantiationService;
 	let remoteAgentHostService: EditorWindowRemoteAgentHostService;
@@ -244,6 +247,7 @@ suite('WSLRemoteAgentHostService (renderer)', () => {
 		transports = [];
 
 		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IRequestService, { resolveProxy: async () => undefined });
 		instantiationService.stub(IConfigurationService, configurationService);
 		instantiationService.stub(IDefaultAccountService, { policyData: null, onDidChangePolicyData: Event.None });
 		instantiationService.stub(IStorageService, disposables.add(new InMemoryStorageService()));
@@ -289,8 +293,17 @@ suite('WSLRemoteAgentHostService (renderer)', () => {
 		service = disposables.add(instantiationService.createInstance(WSLRemoteAgentHostService));
 	});
 
-	teardown(() => disposables.clear());
-	ensureNoDisposablesAreLeakedInTestSuite();
+	test('registers a distro persistently without explicitly connecting', () => {
+		service.cacheDistro({ distro: 'Ubuntu', name: 'Ubuntu' });
+		service.cacheDistro({ distro: 'Ubuntu', name: 'Work Ubuntu' });
+		assert.deepStrictEqual({
+			cached: service.getCachedDistros(),
+			entries: remoteAgentHostService.configuredEntries.map(entry => entry.name),
+			connectCalls: mainService.connectCalls,
+			transports: transports.length,
+		}, { cached: [{ distro: 'Ubuntu', name: 'Work Ubuntu' }], entries: ['Work Ubuntu'], connectCalls: [], transports: 0 });
+	});
+
 
 	async function connect(config: IWSLAgentHostConfig = { distro: 'Ubuntu', name: 'Ubuntu' }): Promise<void> {
 		const promise = service.connect(config);
@@ -406,6 +419,30 @@ suite('WSLRemoteAgentHostService (renderer)', () => {
 			connectCalls: 2,
 			transportCount: 1,
 			connectionCount: 1,
+		});
+	});
+
+	test('disconnect keeping the entry stops dialing the distro until a user reconnect', async () => {
+		await connect();
+		const snapshot = () => ({
+			cached: service.getCachedDistros().map(cached => cached.distro),
+			entries: remoteAgentHostService.configuredEntries.map(getEntryAddress),
+			disconnected: service.isDisconnected('Ubuntu'),
+			connections: service.connections.length,
+		});
+
+		await service.disconnect('Ubuntu', { keepEntry: true });
+		const afterDisconnect = snapshot();
+		const reconnect = service.reconnect('Ubuntu', 'Ubuntu');
+		while (transports.length < 2) {
+			await Event.toPromise(remoteAgentHostService.onDidChangeConnections);
+		}
+		await transports[1].completeInitialize();
+		await reconnect;
+
+		assert.deepStrictEqual({ afterDisconnect, afterReconnect: snapshot() }, {
+			afterDisconnect: { cached: ['Ubuntu'], entries: [], disconnected: true, connections: 0 },
+			afterReconnect: { cached: ['Ubuntu'], entries: ['wsl:Ubuntu'], disconnected: false, connections: 1 },
 		});
 	});
 
