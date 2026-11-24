@@ -153,6 +153,22 @@ suite('ModelCard', () => {
 		return Array.from(card.element.querySelectorAll('[role="radio"][aria-checked="true"]'), option => option.textContent ?? '');
 	}
 
+	test('an unspecified effort remains unchecked until the user chooses it', async () => {
+		let accepted = new DeferredPromise<void>();
+		const model = createModel({ configurationSchema: { properties: { reasoningEffort: { type: 'string', group: 'navigation', enum: ['low', 'high'], enumItemLabels: ['Low', 'High'] } } } });
+		const fixture = createCard({}, { model, onDidAccept: () => accepted.complete() });
+		const before = { selected: selectedOptions(fixture.card), value: fixture.card.element.querySelector('.chat-model-card-section-value')?.textContent };
+		element(fixture.card.element, '[role="radio"]').click();
+		await accepted.p;
+		const after = selectedOptions(fixture.card);
+		accepted = new DeferredPromise<void>();
+		element(fixture.card.element, '[aria-label="Reset to Default"]').click();
+		await accepted.p;
+		assert.deepStrictEqual({ before, after, reset: selectedOptions(fixture.card), writes: fixture.writes }, {
+			before: { selected: [], value: 'Model default' }, after: ['Low'], reset: [], writes: [{ reasoningEffort: 'low' }, { reasoningEffort: undefined }],
+		});
+	});
+
 	/** The option labels of the first segmented control, split where a row break sits. */
 	function segmentRows(card: ModelCard): string[][] {
 		const rows: string[][] = [[]];
@@ -682,6 +698,49 @@ suite('ModelCard', () => {
 		}
 	}
 
+	for (const contextTiers of [['long_context', 'default'], ['long_context'], ['default']]) {
+		test(`named context tiers use their own prices regardless of enum order: ${contextTiers.join(', ')}`, async () => {
+			const model = createModel({
+				cacheCost: 4, cacheWriteCost: 8,
+				longContextOutputCost: 400, longContextCacheCost: 8, longContextCacheWriteCost: 16,
+				configurationSchema: {
+					properties: {
+						contextTier: {
+							type: 'string', group: 'tokens', enum: contextTiers, default: contextTiers[0],
+							enumItemLabels: contextTiers.map(tier => tier === 'long_context' ? '1M' : '264K'),
+						},
+					},
+				},
+			});
+			const accepted = new DeferredPromise<void>();
+			const { card, writes } = createCard({}, { model, onDidAccept: () => accepted.complete() });
+			const read = () => ({
+				selected: selectedOptions(card),
+				prices: Array.from(card.element.querySelectorAll('.chat-model-card-pricing-value'), element => element.textContent),
+			});
+			const initial = read();
+			const standardPrices = ['40', '200', '4', '8'];
+			const longPrices = ['80', '400', '8', '16'];
+			if (contextTiers.length > 1) {
+				element(card.element, '[role="radio"]:last-child').click();
+				await accepted.p;
+			}
+			assert.deepStrictEqual({ initial, after: read(), writes }, {
+				initial: contextTiers[0] === 'long_context' ? { selected: ['1M'], prices: longPrices } : { selected: ['264K'], prices: standardPrices },
+				after: contextTiers.length === 1 && contextTiers[0] === 'long_context' ? { selected: ['1M'], prices: longPrices } : { selected: ['264K'], prices: standardPrices },
+				writes: contextTiers.length > 1 ? [{ contextTier: 'default' }] : [],
+			});
+		});
+	}
+
+	test('numeric context windows retain their existing tier pricing and missing-rate fallback', () => {
+		const prices = [264000, 1000000].map(context => {
+			const { card } = createCard({ context });
+			return Array.from(card.element.querySelectorAll('.chat-model-card-pricing-value'), element => element.textContent);
+		});
+		assert.deepStrictEqual(prices, [['40', '200'], ['80', '200']]);
+	});
+
 	test('the pricing pill stays with its disclosure heading when collapsed and expanded', () => {
 		const { card } = createCard();
 		const controls = Array.from(card.element.querySelectorAll('[role="radio"]'));
@@ -1102,6 +1161,25 @@ suite('ModelCard', () => {
 		}, { description: 'A model for careful reasoning.', context: '200K', settings: 0 });
 	});
 
+	test('a warning given as the model\'s tooltip is shown once, as its banner, and HydraFusion keeps its Learn More link', () => {
+		const deprecation = 'This model has a planned deprecation date of 2026-12-14.';
+		const results = [
+			{ id: 'gemini-3.8-flash', modelGroup: undefined },
+			{ id: 'hydrafusion', modelGroup: { id: 'copilotcli' } },
+		].map(({ id, modelGroup }) => {
+			const { card } = createCard({}, { model: createModel({ id, modelGroup, configurationSchema: undefined, tooltip: deprecation, warningText: { model_pending_deprecation: deprecation } }) });
+			return {
+				descriptions: Array.from(card.element.querySelectorAll('.chat-model-card-description'), element => element.textContent?.trim()),
+				learnMore: card.element.querySelector('.chat-model-card-description a')?.getAttribute('href'),
+				warnings: Array.from(card.element.querySelectorAll('.chat-model-hover-warning-text'), element => element.textContent?.trim()),
+			};
+		});
+		assert.deepStrictEqual(results, [
+			{ descriptions: [], learnMore: undefined, warnings: [deprecation] },
+			{ descriptions: ['Learn more'], learnMore: 'https://aka.ms/hydrafusion-blog', warnings: [deprecation] },
+		]);
+	});
+
 	test('routing models retain their descriptive badge without advertising a fixed context window', () => {
 		const result = createCard({}, {
 			model: createModel({
@@ -1175,7 +1253,10 @@ suite('ModelCard', () => {
 	});
 
 	test('configuration is applied before animation completes, then accepted without an extra click', async () => {
-		const result = createCard();
+		let refresh = () => { };
+		// The picker refreshes the card as soon as the change is reported, while the selection still slides.
+		const result = createCard({}, { onDidChangeConfiguration: () => refresh() });
+		refresh = () => result.card.refresh();
 		const group = element(result.card.element, '[role="radiogroup"]');
 		const indicator = element(group, '.monaco-radio-selection');
 		const animation = indicator.animate([{ opacity: 1 }, { opacity: 0.9 }], { duration: 160 });
@@ -1366,6 +1447,21 @@ suite('ModelCard', () => {
 		await timeout(0);
 		assert.deepStrictEqual({ duringAnimation, accepted: result.accepted }, {
 			duringAnimation: { selected: [fast.identifier], accepted: 0 }, accepted: 1,
+		});
+	});
+
+	test('what a kind of model adds follows the card\'s own sections, and is replaced when the card renders again', () => {
+		const events: string[] = [];
+		const { card } = createCard({}, {
+			renderAdditionalSections: container => {
+				container.appendChild(mainWindow.document.createElement('footer')).textContent = 'Routes';
+				events.push('render');
+				return toDisposable(() => events.push('dispose'));
+			},
+		});
+		card.refresh();
+		assert.deepStrictEqual({ last: card.element.lastElementChild?.textContent, count: card.element.querySelectorAll('footer').length, events }, {
+			last: 'Routes', count: 1, events: ['render', 'dispose', 'render'],
 		});
 	});
 });

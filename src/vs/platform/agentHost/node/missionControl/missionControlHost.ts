@@ -26,6 +26,8 @@ import { ISessionDataService } from '../../common/sessionDataService.js';
 import { isAhpChatChannel, readSessionExternal } from '../../common/state/sessionState.js';
 import { IAgentHostGitHubEndpointService } from '../agentHostGitHubEndpointService.js';
 import { IAgentHostAuthenticationService } from '../agentHostAuthenticationService.js';
+import { BANG_COMMAND_PREFIX } from '../agentHostBangCommand.js';
+import { IAgentHostCompletions } from '../agentHostCompletions.js';
 import { IAgentHostProviderService } from '../agentHostProviderService.js';
 import { IAgentHostProxyResolver } from '../agentHostProxyResolver.js';
 import { AgentHostStateManager, IAgentHostStateManager } from '../agentHostStateManager.js';
@@ -42,10 +44,11 @@ import { toMissionControlSessionList } from './missionControlSessionList.js';
 import { isObject } from '../../../../base/common/types.js';
 import { ActionType } from '../../common/state/sessionActions.js';
 import { AgentHostAhpJsonlLoggingEnvVar, AhpJsonlLogger, AhpJsonlLogRetention, isAhpJsonlLoggingEnabled } from '../../common/ahpJsonlLogger.js';
-import { MISSION_CONTROL_AHP_LOG_ID } from '../../common/missionControlEnvironment.js';
+import { MISSION_CONTROL_AHP_LOG_ID, MissionControlUseLocalCredentialsConfigKey } from '../../common/missionControlEnvironment.js';
 import { IAgentHostChatOwnershipService } from '../agentHostChatOwnershipService.js';
 import { IAgentConfigurationService } from '../agentConfigurationService.js';
 import { AgentHostAhpJsonlLoggingEnabledConfigKey, platformRootSchema } from '../../common/agentHostSchema.js';
+import { localProcessPathStyle } from '../../common/agentHostPathStyle.js';
 
 interface IMissionControlHostOptions {
 	readonly hostLaunchKind: AgentHostLaunchKind;
@@ -265,10 +268,15 @@ class MissionControlPublishTelemetry extends Disposable {
 }
 
 export function getMissionControlEnvironmentName(product: IProductService, machineName = hostname()): string {
+	return formatMissionControlEnvironmentName(product, machineName.replace(/\.local$/i, ''));
+}
+
+/** Adds the application name to an environment name, keeping the name itself as given. */
+export function formatMissionControlEnvironmentName(product: IProductService, name: string): string {
 	const applicationName = product.quality === 'stable' ? 'VS Code'
 		: product.quality === 'insider' ? 'VS Code Insiders'
 			: product.nameShort === 'Code - OSS' || product.nameShort === 'Code - OSS Dev' ? 'VS Code OSS' : product.nameShort;
-	return `${machineName.replace(/\.local$/i, '')} (${applicationName})`;
+	return `${name} (${applicationName})`;
 }
 
 /** Entry-owned adapter from the native runtime graph to the registration lifecycle. */
@@ -296,6 +304,7 @@ export class MissionControlHost extends Disposable {
 		@IAgentHostChatOwnershipService private readonly _chatOwnership: IAgentHostChatOwnershipService,
 		@IAgentConfigurationService configurationService: IAgentConfigurationService,
 		@IAgentHostAuthenticationService private readonly _authenticationService: IAgentHostAuthenticationService,
+		@IAgentHostCompletions private readonly _completions: IAgentHostCompletions,
 	) {
 		super();
 		this._ahpLogDirectory = URI.joinPath(environmentService.logsHome, 'ahp');
@@ -314,6 +323,7 @@ export class MissionControlHost extends Disposable {
 		this._projects = this._register(this._instantiationService.createInstance(MissionControlProjects, {
 			getRoots: () => this._grantedRoots(),
 			getProjectRoots: () => this._projectRoots(),
+			getCloneRoot: () => this.environment.cloneRoot,
 		}));
 		this.environment = this._register(this._instantiationService.createInstance(MissionControlEnvironment, {
 			userDataPath: environmentService.userDataPath,
@@ -321,8 +331,19 @@ export class MissionControlHost extends Disposable {
 			fetch: (input, init) => proxyResolver.fetch(input, init),
 			// The relay must honor the same proxy and certificate configuration as registration requests.
 			socketFactory: (url, protocol) => toMissionControlSocket(proxyResolver.createWebSocket(url, protocol)),
-			attach: (relay, roots, getRoots, getProjects, defaultDirectory, useLocalCredentials) => this._attachRelay(relay, roots, getRoots, getProjects, defaultDirectory, useLocalCredentials),
+			attach: (relay, roots, getRoots, getProjects, defaultDirectory) => this._attachRelay(relay, roots, getRoots, getProjects, defaultDirectory),
+			configureExecutionAuthentication: useLocalCredentials => {
+				if (this._authenticationService.useLocalCredentials === useLocalCredentials) {
+					return false;
+				}
+				if (!configurationService.publishRootTransientValues) {
+					throw new Error('Host credential configuration is unavailable');
+				}
+				configurationService.publishRootTransientValues({ [MissionControlUseLocalCredentialsConfigKey]: useLocalCredentials });
+				return true;
+			},
 			updateProjects: () => this._projects.initialize(),
+			onExcludedDirectory: path => this._logService.info(`[AgentHost] Mission Control is not sharing a network-backed directory; path=${path}`),
 			onError: error => {
 				this._publishTelemetry.flush();
 				this._logService.error(`[AgentHost] Mission Control failure: ${formatConnectionDiagnosticError(getConnectionDiagnosticError(error))}`);
@@ -332,6 +353,8 @@ export class MissionControlHost extends Disposable {
 				this._publishTelemetry.record(event);
 				if (event.phase === 'relayPublish' && event.outcome === 'succeeded') {
 					this._logService.trace(`[AgentHost] Mission Control publish ${event.detail}; durationMs=${event.durationMs}`);
+				} else if (event.phase === 'relayPublish' && event.outcome === 'failed' && event.failure !== 'mirrorBackpressure') {
+					this._logService.warn(`[AgentHost] Mission Control publish failed; reason=${event.failure}${event.detail ? `; ${event.detail}` : ''}`);
 				}
 			},
 			getSessionCount: () => this._agentService.getSessionCount(),
@@ -352,6 +375,13 @@ export class MissionControlHost extends Disposable {
 	}
 
 	private _reportOperation(event: IConnectionDiagnosticEvent): void {
+		if (event.phase === 'heartbeat' && event.outcome === 'started') {
+			this._logService.debug('[AgentHost] Mission Control heartbeat started');
+		}
+		if (event.phase === 'heartbeatResponse') {
+			this._logService.info(`[AgentHost] Mission Control heartbeat response; ${event.detail ?? ''}`);
+			return;
+		}
 		if (event.phase === 'relayDisconnected') {
 			this._publishTelemetry.flush();
 		}
@@ -406,7 +436,7 @@ export class MissionControlHost extends Disposable {
 		return provider.getRemoteControlManagedSettings();
 	}
 
-	private _attachRelay(relay: MissionControlProtocolServer, roots: readonly string[], getRoots: () => readonly string[], getProjects: () => readonly string[], defaultDirectory?: string, useLocalCredentials = false): IDisposable {
+	private _attachRelay(relay: MissionControlProtocolServer, roots: readonly string[], getRoots: () => readonly string[], getProjects: () => readonly string[], defaultDirectory?: string): IDisposable {
 		this._grantedRoots = getRoots;
 		this._projectRoots = getProjects;
 		const directory = defaultDirectory ?? roots[0];
@@ -417,12 +447,13 @@ export class MissionControlHost extends Disposable {
 			relay,
 			{
 				hostLaunchKind: this._options.hostLaunchKind,
-				allowExtensionMethods: false,
+				environment: { pathStyle: localProcessPathStyle },
+				allowExtensionMethods: true,
 				scopedRelayCredentials: true,
-				resolveRelayCredentials: useLocalCredentials ? async (principal, resource) => {
-					const copilotResource = this._gitHubEndpoints.getCopilotResource();
-					return resource === copilotResource.resource
-						? this._authenticationService.createLocalCredentialSource(principal, [copilotResource])
+				resolveRelayCredentials: this._authenticationService.useLocalCredentials ? (principal, resource) => {
+					const metadata = [this._gitHubEndpoints.getCopilotResource(), this._gitHubEndpoints.getRepoResource()].find(candidate => candidate.resource === resource);
+					return metadata
+						? { principal, getCredential: request => this._authenticationService.getSharedCredential(request) }
 						: undefined;
 				} : undefined,
 				relayRoots: relay.rootMeta ? undefined : roots,
@@ -435,6 +466,8 @@ export class MissionControlHost extends Disposable {
 				extension: relay.rootMeta ? this._instantiationService.createInstance(MissionControlCopilotExtension, this._projects) : undefined,
 				relayResourceRoots: readOnly => this._resourceRoots(readOnly, getRoots()),
 				defaultDirectory: directory ? URI.file(directory).toString() : undefined,
+				completionTriggerCharacters: this._completions.triggerCharacters,
+				terminalCommandPrefix: BANG_COMMAND_PREFIX,
 			},
 			this._options.clientFileSystemProvider,
 		);
@@ -459,7 +492,7 @@ export class MissionControlHost extends Disposable {
 		const mirror = this._instantiationService.createInstance(MissionControlSessionMirror, environmentId, {});
 		const sources = new DisposableStore();
 		try {
-			const publisher = sources.add(this._instantiationService.createInstance(MissionControlSessionPublisher, mirror, () => this.environment.isEnabled));
+			const publisher = sources.add(this._instantiationService.createInstance(MissionControlSessionPublisher, mirror, () => this.environment.isEnabled, () => this.environment.isRepositoryMetadataEnabled));
 			const sdk = sources.add(this._instantiationService.createInstance(MissionControlSdkEventSource, environmentId, mirror, () => this.environment.isEnabled, session => publisher.registerSession(session)));
 			const attachPlanHints = (provider: IAgent) => {
 				if (provider.getSessionPlan && provider.onDidChatSessionEvent) {
@@ -512,7 +545,7 @@ export class MissionControlHost extends Disposable {
 			_meta: {
 				...this._stateManager.getSessionState(summary.resource)?._meta,
 				[event.type === 'session.plan_changed' ? 'copilot.planHint' : 'copilot.todosHint']:
-					{ eventId: event.id, ...(event.type === 'session.plan_changed' ? { operation } : {}) },
+				{ eventId: event.id, ...(event.type === 'session.plan_changed' ? { operation } : {}) },
 			},
 		});
 	}
