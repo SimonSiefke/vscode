@@ -110,7 +110,6 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 		this._register(_entitlement.onDidChangeEntitlement(schedule));
 		this._register(_entitlement.onDidChangeQuotaRemaining(schedule));
 		this._register(_entitlement.onDidChangeQuotaExceeded(schedule));
-		this._register(_entitlement.onDidChangeSentiment(schedule));
 		this._register(_configuration.onDidChangeConfiguration(() => { bind(); this.refresh(); }));
 		this._register(_host.onDidChangeFocus(focused => { if (focused) { this.refresh(); } schedule(); }));
 		this._register(_storage.onDidChangeValue(StorageScope.APPLICATION_SHARED, CODEX_CONTINUATION_STORAGE_KEY, this._store)(() => {
@@ -129,6 +128,9 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 			}
 			schedule();
 		};
+		// Sentiment context keys are published separately; act on the settled state.
+		const updateEligibility = this._register(new RunOnceScheduler(() => { bind(); this.refresh(); }, 0));
+		this._register(_entitlement.onDidChangeSentiment(() => { schedule(); updateEligibility.schedule(); }));
 		this._register(_agentHost.onAgentHostStart(bind));
 		bind();
 		this.refresh();
@@ -152,7 +154,8 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 	}
 
 	refresh(): void {
-		if (!this._host.hasFocus || !this._enabled() || Date.now() - this._lastRefresh < CODEX_CONTINUATION_MAX_AGE) {
+		// Account discovery starts Codex; leave it to explicit use while the account is unknown.
+		if (this._account.account.status === 'unknown' || !this._host.hasFocus || !this._enabled() || Date.now() - this._lastRefresh < CODEX_CONTINUATION_MAX_AGE) {
 			return;
 		}
 		this._lastRefresh = Date.now();
@@ -194,8 +197,10 @@ export class CodexContinuationService extends Disposable implements ICodexContin
 	}
 
 	private _enabled(): boolean {
+		const sentiment = this._entitlement.sentiment;
 		return shouldShowCodexAccount(this._configuration, this._environment.isSessionsWindow)
-			&& !this._entitlement.sentiment.hidden && !this._entitlement.sentiment.disabledInWorkspace;
+			&& sentiment.installed === true && !sentiment.disabled && !sentiment.untrusted
+			&& !sentiment.hidden && !sentiment.disabledInWorkspace;
 	}
 
 	private _baseEligible(): boolean {
