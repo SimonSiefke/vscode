@@ -69,6 +69,9 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 						return;
 					}
 					const value = widgets.splice(index, 1)[0];
+					if (widgets.length === 0) {
+						widgetMap.delete(input.resource);
+					}
 					value.token = undefined;
 					this._disposeWidget(value.widget);
 					value.disposableStore.dispose();
@@ -171,11 +174,15 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 		}
 
 		// don't allow the widget to be retrieved at its previous location any more
-		const sourceWidgets = this._borrowableEditors.get(sourceID)?.get(input.resource);
+		const sourceMap = this._borrowableEditors.get(sourceID);
+		const sourceWidgets = sourceMap?.get(input.resource);
 		if (sourceWidgets) {
 			const indexToRemove = sourceWidgets.findIndex(widget => widget.editorType === input.typeId);
 			if (indexToRemove !== -1) {
 				sourceWidgets.splice(indexToRemove, 1);
+				if (sourceWidgets.length === 0) {
+					sourceMap!.delete(input.resource);
+				}
 			}
 		}
 
