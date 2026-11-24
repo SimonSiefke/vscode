@@ -18,6 +18,7 @@ import { Iterable } from '../../../../base/common/iterator.js';
 import { WindowIdleValue, getActiveWindow } from '../../../../base/browser/dom.js';
 import { match as matchGlob } from '../../../../base/common/glob.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
 
 class SnippetBodyInsights {
 
@@ -99,7 +100,7 @@ class SnippetBodyInsights {
 	}
 }
 
-export class Snippet {
+export class Snippet implements IDisposable {
 
 	private readonly _bodyInsights: WindowIdleValue<SnippetBodyInsights>;
 
@@ -170,6 +171,10 @@ export class Snippet {
 
 		return true;
 	}
+
+	dispose(): void {
+		this._bodyInsights.dispose();
+	}
 }
 
 
@@ -197,7 +202,7 @@ export const enum SnippetSource {
 	Extension = 3,
 }
 
-export class SnippetFile {
+export class SnippetFile implements IDisposable {
 
 	readonly data: Snippet[] = [];
 	readonly isGlobalSnippets: boolean;
@@ -289,7 +294,14 @@ export class SnippetFile {
 
 	reset(): void {
 		this._loadPromise = undefined;
+		this.dispose();
 		this.data.length = 0;
+	}
+
+	dispose(): void {
+		for (const snippet of this.data) {
+			snippet.dispose();
+		}
 	}
 
 	private _parseSnippet(name: string, snippet: JsonSerializedSnippet, bucket: Snippet[]): void {
