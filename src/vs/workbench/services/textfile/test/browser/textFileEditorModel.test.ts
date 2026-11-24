@@ -32,6 +32,7 @@ import { computeStringDiffWithMetadata } from '../../../../../editor/common/serv
 import { TestEditorWorkerService } from '../../../../../editor/test/common/services/testEditorWorkerService.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { EndOfLineSequence } from '../../../../../editor/common/model.js';
+import { clearMarks, getMarks, mark } from '../../../../../base/common/performance.js';
 
 suite('Files - TextFileEditorModel', () => {
 
@@ -92,6 +93,34 @@ suite('Files - TextFileEditorModel', () => {
 		await model.revert();
 
 		assert.strictEqual(onDidChangeDirtyCounter, 2);
+	});
+
+	test('resolve does not accumulate performance marks', async function () {
+		const names = ['code/willResolveTextFileEditorModel', 'code/didResolveTextFileEditorModel'];
+		const unrelatedMark = 'test/textFileEditorModel/unrelated';
+		mark(unrelatedMark);
+
+		try {
+			for (let i = 0; i < 3; i++) {
+				const model = disposables.add(instantiationService.createInstance(TextFileEditorModel, toResource.call(this, `/path/marks-${i}.txt`), 'utf8', undefined));
+				for (let j = 0; j < 3; j++) {
+					await model.resolve();
+				}
+
+				model.updateTextEditorModel(createTextBufferFactory('dirty'));
+				await model.resolve();
+				model.dispose();
+				await model.resolve();
+			}
+
+			const marks = getMarks();
+			assert.deepStrictEqual([...names, unrelatedMark].map(name => marks.filter(mark => mark.name === name).length), [1, 1, 1]);
+			assert.deepStrictEqual(names.map(name => performance.getEntriesByName(name, 'mark').length), [0, 0]);
+		} finally {
+			for (const name of [...names, unrelatedMark]) {
+				clearMarks(name);
+			}
+		}
 	});
 
 	test('isTextFileEditorModel', async function () {
