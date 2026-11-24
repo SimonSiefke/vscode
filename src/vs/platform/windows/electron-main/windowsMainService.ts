@@ -1751,7 +1751,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		// not vetoed
 		if (window.isReady) {
 			this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {
-				if (!veto) {
+				if (!veto && window.win && !window.win.isDestroyed()) {
 					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 				}
 			});
