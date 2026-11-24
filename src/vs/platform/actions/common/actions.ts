@@ -5,7 +5,7 @@
 
 import { IAction, SubmenuAction } from '../../../base/common/actions.js';
 import { Emitter, Event, MicrotaskEmitter } from '../../../base/common/event.js';
-import { DisposableStore, dispose, IDisposable, markAsDisposed, markAsSingleton, trackDisposable } from '../../../base/common/lifecycle.js';
+import { DisposableStore, dispose, IDisposable, markAsDisposed, markAsSingleton, toDisposable, trackDisposable } from '../../../base/common/lifecycle.js';
 import { LinkedList } from '../../../base/common/linkedList.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ICommandAction, ICommandActionTitle, Icon, ILocalizedString } from '../../action/common/action.js';

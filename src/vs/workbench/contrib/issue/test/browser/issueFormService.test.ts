@@ -926,6 +926,7 @@ suite('IssueFormService', () => {
 			const iframe = document.createElement('iframe');
 			document.body.appendChild(iframe);
 			store.add(toDisposable(() => iframe.remove()));
+			store.add(registerTestIframe(iframe));
 			const targetWindow = iframe.contentWindow as CodeWindow;
 			const events: string[] = [];
 			instantiationService.stub(IAuxiliaryWindowService, {
