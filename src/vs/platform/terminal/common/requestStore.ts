@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from '../../../base/common/async.js';
-import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { disposableTimeout } from '../../../base/common/async.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, dispose, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
 import { ILogService } from '../../log/common/log.js';
@@ -36,6 +35,8 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 			for (const d of this._pendingRequestDisposables.values()) {
 				dispose(d);
 			}
+			this._pendingRequests.clear();
+			this._pendingRequestDisposables.clear();
 		}));
 	}
 
@@ -47,11 +48,23 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 		return new Promise<T>((resolve, reject) => {
 			const requestId = ++this._lastRequestId;
 			this._pendingRequests.set(requestId, resolve);
+			this._pendingRequestDisposables.set(requestId, [disposableTimeout(() => {
+				if (this._deleteRequest(requestId)) {
+					reject(`Request ${requestId} timed out (${this._timeout}ms)`);
+				}
+			}, this._timeout)]);
 			this._onCreateRequest.fire({ requestId, ...args });
-			const tokenSource = new CancellationTokenSource();
-			timeout(this._timeout, tokenSource.token).then(() => reject(`Request ${requestId} timed out (${this._timeout}ms)`));
-			this._pendingRequestDisposables.set(requestId, [toDisposable(() => tokenSource.cancel())]);
 		});
+	}
+
+	private _deleteRequest(requestId: number): ((resolved: T) => void) | undefined {
+		const resolveRequest = this._pendingRequests.get(requestId);
+		if (resolveRequest) {
+			this._pendingRequests.delete(requestId);
+			dispose(this._pendingRequestDisposables.get(requestId) || []);
+			this._pendingRequestDisposables.delete(requestId);
+		}
+		return resolveRequest;
 	}
 
 	/**
@@ -60,11 +73,8 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 	 * @param data The reply data.
 	 */
 	acceptReply(requestId: number, data: T) {
-		const resolveRequest = this._pendingRequests.get(requestId);
+		const resolveRequest = this._deleteRequest(requestId);
 		if (resolveRequest) {
-			this._pendingRequests.delete(requestId);
-			dispose(this._pendingRequestDisposables.get(requestId) || []);
-			this._pendingRequestDisposables.delete(requestId);
 			resolveRequest(data);
 		} else {
 			this._logService.warn(`RequestStore#acceptReply was called without receiving a matching request ${requestId}`);
