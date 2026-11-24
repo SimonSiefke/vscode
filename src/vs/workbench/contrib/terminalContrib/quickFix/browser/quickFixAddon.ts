@@ -111,7 +111,17 @@ export class TerminalQuickFixAddon extends Disposable implements ITerminalAddon,
 			}
 		});
 		this._register(this._quickFixService.onDidRegisterCommandSelector(selector => this.registerCommandSelector(selector)));
-		this._register(this._quickFixService.onDidUnregisterProvider(id => this._commandListeners.delete(id)));
+		this._register(this._quickFixService.onDidUnregisterProvider(id => {
+			this._registeredSelectors.delete(id);
+			for (const [matcher, options] of this._commandListeners) {
+				const remainingOptions = options.filter(option => option.type === 'internal' || option.id !== id);
+				if (remainingOptions.length === 0) {
+					this._commandListeners.delete(matcher);
+				} else {
+					this._commandListeners.set(matcher, remainingOptions);
+				}
+			}
+		}));
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TerminalSettingId.ShellIntegrationQuickFixEnabled)) {
 				// Clear existing decorations when setting changes
@@ -347,7 +357,9 @@ export async function getQuickFixesForCommand(
 
 	const fixes: ITerminalAction[] = [];
 	const newCommand = terminalCommand.command;
-	for (const options of quickFixOptions.values()) {
+	// Provider registration can change while an earlier provider is being awaited.
+	const optionsSnapshot = Array.from(quickFixOptions.values(), options => [...options]);
+	for (const options of optionsSnapshot) {
 		for (const option of options) {
 			if ((option.commandExitResult === 'success' && terminalCommand.exitCode !== 0) || (option.commandExitResult === 'error' && terminalCommand.exitCode === 0)) {
 				continue;
