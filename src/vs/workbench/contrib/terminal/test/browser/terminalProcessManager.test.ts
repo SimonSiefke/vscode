@@ -263,7 +263,7 @@ suite('Workbench - TerminalProcessManager', () => {
 						override async detachFromProcess() { calls.push('detach'); }
 					};
 					const child = remote
-						? store.add(instantiationService.createInstance(RemotePty, 1, true, channel))
+						? store.add(instantiationService.createInstance(RemotePty, 1, true, channel, undefined))
 						: Object.assign(new TestTerminalChildProcess(true), {
 							isRevived: attachment === 'revived',
 							async detach() { calls.push('detach'); },
