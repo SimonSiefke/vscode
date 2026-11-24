@@ -194,6 +194,7 @@ function toActionItems(property: string, items: readonly IConfigPickerItem[], cu
 			label: sandboxToggle.label,
 			group: { title: '', icon: Codicon.shield },
 			standaloneToggle: sandboxToggle,
+			hover: sandboxToggle.title ? { content: sandboxToggle.title } : undefined,
 			item: { value: '__sandboxToggle', label: sandboxToggle.label, checked: false },
 		});
 	}
@@ -1278,7 +1279,7 @@ export class AgentHostChatInputPicker extends Disposable {
 				}
 				previousToggle = standaloneToggle;
 				this._actionWidgetService.updateItems(actionItems.map(item => item.standaloneToggle
-					? { ...item, standaloneToggle }
+					? { ...item, standaloneToggle, hover: standaloneToggle?.title ? { content: standaloneToggle.title } : undefined }
 					: item));
 			}));
 		}
