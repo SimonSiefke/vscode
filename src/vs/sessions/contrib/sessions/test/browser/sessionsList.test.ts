@@ -21,7 +21,7 @@ import { extractChatReferenceDropData } from '../../../../../platform/dnd/browse
 import { ExtUri, extUriBiasedIgnorePathCase, isEqual } from '../../../../../base/common/resources.js';
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
-import { autorun, constObservable, derived, IObservable, IReader, ISettableObservable, observableFromEvent, observableValue, transaction } from '../../../../../base/common/observable.js';
+import { autorun, constObservable, derived, derivedWithStore, IObservable, IReader, ISettableObservable, observableFromEvent, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { isLinux, isMacintosh, isWindows, OS } from '../../../../../base/common/platform.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -48,7 +48,7 @@ import { SessionGroupAppearancePicker } from '../../../../../workbench/contrib/s
 import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { NullHoverService } from '../../../../../platform/hover/test/browser/nullHoverService.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
+import { createDecorator, IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
 import { createUSLayoutResolvedKeybinding } from '../../../../../platform/keybinding/test/common/keybindingsTestUtils.js';
@@ -545,6 +545,37 @@ suite('Sessions - SessionsList', () => {
 
 		assert.deepStrictEqual({ cleared, archived, deletedLast, archivedIntoSection, shownArchived: list.getVisibleSessions().map(session => session.sessionId) }, {
 			cleared: ['B'], archived: ['C'], deletedLast: ['D'], archivedIntoSection: ['C'], shownArchived: ['C', 'D', 'A', 'B'],
+		});
+	});
+
+	test('releases session observations when list rows are removed', () => {
+		const session = createTestSession('Observed session').session;
+		const observed = new Set<string>();
+		const harness = createListHarness(disposables, [session], instantiationService => {
+			instantiationService.stub(createDecorator<object>('agentSessions'), {
+				model: {
+					observeSession: (resource: URI) => derivedWithStore((_reader, store) => {
+						observed.add(resource.toString());
+						store.add(toDisposable(() => observed.delete(resource.toString())));
+						return undefined;
+					}),
+				},
+			});
+		});
+		const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, harness.createContainer(), {
+			grouping: () => SessionsGrouping.Workspace,
+			sorting: () => SessionsSorting.Created,
+			onSessionOpen: () => { },
+		}));
+		list.layout(400, 300);
+		const whileVisible = [...observed];
+
+		harness.managementService.sessions = [];
+		list.refresh();
+
+		assert.deepStrictEqual({ whileVisible, afterRemoval: [...observed] }, {
+			whileVisible: [session.resource.toString()],
+			afterRemoval: [],
 		});
 	});
 

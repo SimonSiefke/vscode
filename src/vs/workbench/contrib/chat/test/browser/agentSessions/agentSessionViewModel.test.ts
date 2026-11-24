@@ -8,6 +8,7 @@ import { DeferredPromise, timeout } from '../../../../../../base/common/async.js
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { DisposableStore } from '../../../../../../base/common/lifecycle.js';
+import { autorun, observableValue } from '../../../../../../base/common/observable.js';
 import { extUriBiasedIgnorePathCase, isEqual } from '../../../../../../base/common/resources.js';
 import { ThemeIcon } from '../../../../../../base/common/themables.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -22,7 +23,6 @@ import { AgentSessionsService, IAgentSessionsService } from '../../../browser/ag
 import { AgentSessionsControl } from '../../../browser/agentSessions/agentSessionsControl.js';
 import { HoverPosition } from '../../../../../../base/browser/ui/hover/hoverWidget.js';
 import { IVoicePlaybackService } from '../../../common/voicePlaybackService.js';
-import { observableValue } from '../../../../../../base/common/observable.js';
 import { AgentSessionsFilter } from '../../../browser/agentSessions/agentSessionsFilter.js';
 import { ChatSessionRefreshReason, ChatSessionStatus, IChatSessionItemController, IChatSessionItem, IChatSessionItemsDelta, IChatSessionsService, localChatSessionType } from '../../../common/chatSessionsService.js';
 import { IChatService } from '../../../common/chatService/chatService.js';
@@ -131,6 +131,40 @@ suite('AgentSessions', () => {
 		});
 
 		ensureNoDisposablesAreLeakedInTestSuite();
+
+		test('releases session observations after the last observer leaves', () => {
+			let resolves = 0;
+			mockChatSessionsService.resolveChatSessionItem = async () => { resolves++; return undefined; };
+			viewModel = createViewModel();
+			const resource = URI.parse(`${chatSessionTestType}:/observed`);
+			const previous = viewModel.observeSession(resource);
+			const first = disposables.add(autorun(reader => previous.read(reader)));
+			const second = disposables.add(autorun(reader => previous.read(reader)));
+
+			first.dispose();
+			const preservedWhileObserved = viewModel.observeSession(resource) === previous;
+			second.dispose();
+
+			assert.deepStrictEqual({
+				preservedWhileObserved,
+				reusesUnobservedSession: viewModel.observeSession(resource) === previous,
+				resolves,
+			}, { preservedWhileObserved: true, reusesUnobservedSession: false, resolves: 2 });
+		});
+
+		test('an old unobserved session cannot remove a newer observation', () => {
+			viewModel = createViewModel();
+			const resource = URI.parse(`${chatSessionTestType}:/observed`);
+			const previous = viewModel.observeSession(resource);
+			const first = disposables.add(autorun(reader => previous.read(reader)));
+			first.dispose();
+			const current = viewModel.observeSession(resource);
+			disposables.add(autorun(reader => current.read(reader)));
+
+			previous.get();
+
+			assert.strictEqual(viewModel.observeSession(resource), current);
+		});
 
 		test('should initialize with empty sessions', () => {
 			viewModel = createViewModel();
