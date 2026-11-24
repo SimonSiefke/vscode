@@ -3,16 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import '../../../../browser/media/style.css';
 import assert from 'assert';
-import { $ } from '../../../../../base/browser/dom.js';
+import { $, append } from '../../../../../base/browser/dom.js';
+import { BaseActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IManagedHover, IManagedHoverContent } from '../../../../../base/browser/ui/hover/hover.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { Action } from '../../../../../base/common/actions.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
-import { Emitter } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { upcastPartial } from '../../../../../base/test/common/mock.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IActionViewItemFactory, IActionViewItemService } from '../../../../../platform/actions/browser/actionViewItemService.js';
+import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -23,6 +28,7 @@ import { IProductService } from '../../../../../platform/product/common/productS
 import { InMemoryStorageService, IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { TestExperimentTriggerTelemetryService } from '../../../../../platform/telemetry/test/common/experimentTriggerTestUtils.js';
+import { AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING } from '../../../../../platform/chat/common/chatSettings.js';
 import { IWorkbenchAssignmentService } from '../../../../services/assignment/common/assignmentService.js';
 import { NullWorkbenchAssignmentService } from '../../../../services/assignment/test/common/nullAssignmentService.js';
 import { AGENTS_WINDOW_TOTAL_SESSIONS_STORAGE_KEY } from '../../common/constants.js';
@@ -33,7 +39,26 @@ suite('Agents Window titlebar copy experiment', () => {
 	const treatmentName = 'chatOpenInAgentsTitleBarLabel';
 	const expansionTreatmentName = 'chatOpenInAgentsTitleBarExpandOnHover';
 
-	function createHarness(sessionCount?: number) {
+	function attach(container: HTMLElement): HTMLElement {
+		const root = append(mainWindow.document.body, $('.monaco-workbench'));
+		root.style.cssText = 'position: fixed; top: 0; left: 0';
+		disposables.add(toDisposable(() => root.remove()));
+		append(root, container);
+		return root;
+	}
+
+	async function waitForObservation(element: HTMLElement): Promise<boolean> {
+		await Promise.resolve();
+		return new Promise(resolve => {
+			const observer = new mainWindow.IntersectionObserver(entries => {
+				observer.disconnect();
+				resolve(entries[0].isIntersecting);
+			});
+			observer.observe(element);
+		});
+	}
+
+	function createHarness(sessionCount?: number, iconConfiguration?: TestConfigurationService) {
 		const instantiation = disposables.add(new TestInstantiationService());
 		const storage = disposables.add(new InMemoryStorageService());
 		if (sessionCount !== undefined) {
@@ -69,6 +94,9 @@ suite('Agents Window titlebar copy experiment', () => {
 			dispose: () => { },
 			update: content => { hoverContent = content; },
 		});
+		const configuration = iconConfiguration ?? new TestConfigurationService({ [AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING]: true });
+		disposables.add(configuration.onDidChangeConfigurationEmitter);
+		instantiation.stub(IConfigurationService, configuration);
 		instantiation.stub(IStorageService, storage);
 		instantiation.stub(IContextKeyService, disposables.add(new MockContextKeyService()));
 		instantiation.stub(IProductService, upcastPartial<IProductService>({}));
@@ -88,7 +116,7 @@ suite('Agents Window titlebar copy experiment', () => {
 		let actionRuns = 0;
 		const action = disposables.add(new Action('test', 'Open in Agents', undefined, true, async () => { actionRuns++; }));
 		const item = factory(action, {}, instantiation, 1);
-		assert.ok(item);
+		assert.ok(item instanceof BaseActionViewItem);
 		disposables.add(item);
 		const container = $('div');
 		item.render(container);
@@ -108,8 +136,96 @@ suite('Agents Window titlebar copy experiment', () => {
 			await expansionRequests[index].complete(value);
 			await timeout(0);
 		};
-		return { storage, createFirstSession, refetched, requests, expansionRequests, queriedTreatments, warnings, item, container, resolve, resolveExpansion, snapshot, getActionRuns: () => actionRuns };
+		return { storage, telemetry, createFirstSession, refetched, requests, expansionRequests, queriedTreatments, warnings, item, container, resolve, resolveExpansion, snapshot, getActionRuns: () => actionRuns };
 	}
+
+	for (const useCodicons of [false, true]) {
+		test(`uses the ${useCodicons ? 'codicon' : 'branded'} title-bar icon in the ${useCodicons ? 'treatment' : 'control'} arm and logs its trigger`, async () => {
+			const configuration = new class extends TestConfigurationService {
+				override inspect<T>(key: string) {
+					const inspected = super.inspect<T>(key);
+					return key === AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING
+						? { ...inspected, userValue: undefined, userLocalValue: undefined }
+						: inspected;
+				}
+			}({ [AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING]: useCodicons });
+			const h = createHarness(undefined, configuration);
+			const icon = h.container.querySelector<HTMLElement>('.open-in-agents-titlebar-widget-icon')!;
+			icon.style.cssText = 'width: 16px; height: 16px';
+			const triggered = Event.toPromise(h.telemetry.onDidTrigger);
+			const root = attach(h.container);
+			root.style.display = 'none';
+			assert.strictEqual(await waitForObservation(h.container), false);
+			assert.deepStrictEqual(h.snapshot().triggers, []);
+			root.style.display = '';
+			await triggered;
+			assert.deepStrictEqual({
+				hasCodicon: icon?.classList.contains('codicon'),
+				triggerLogged: h.snapshot().triggers.includes(`config.${AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING}`),
+			}, { hasCodicon: useCodicons, triggerLogged: true });
+
+			await configuration.setUserConfiguration(AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING, !useCodicons);
+			configuration.onDidChangeConfigurationEmitter.fire(new class extends mock<IConfigurationChangeEvent>() {
+				override affectsConfiguration(section: string): boolean {
+					return section === AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING;
+				}
+			}());
+			assert.strictEqual(icon?.classList.contains('codicon'), !useCodicons);
+		});
+
+		test(`logs the Agents icon trigger when a user resets to the ${useCodicons ? 'codicon' : 'branded'} default`, async () => {
+			const setting = AGENTS_WINDOW_TITLE_BAR_ICONS_SETTING;
+			const configuration = new class extends TestConfigurationService {
+				usingDefault = false;
+				override inspect<T>(key: string) {
+					const inspected = super.inspect<T>(key);
+					return key === setting && this.usingDefault ? { ...inspected, userValue: undefined, userLocalValue: undefined } : inspected;
+				}
+			}({ [setting]: !useCodicons });
+			const h = createHarness(undefined, configuration);
+			h.container.querySelector<HTMLElement>('.open-in-agents-titlebar-widget-icon')!.style.cssText = 'width: 16px; height: 16px';
+			attach(h.container);
+			assert.strictEqual(await waitForObservation(h.container), true);
+			const beforeReset = h.snapshot().triggers;
+			await configuration.setUserConfiguration(setting, useCodicons);
+			configuration.usingDefault = true;
+			const triggered = Event.toPromise(h.telemetry.onDidTrigger);
+			const change = new class extends mock<IConfigurationChangeEvent>() {
+				override affectsConfiguration(section: string): boolean {
+					return section === setting;
+				}
+			}();
+			configuration.onDidChangeConfigurationEmitter.fire(change);
+			configuration.onDidChangeConfigurationEmitter.fire(change);
+			await triggered;
+			assert.deepStrictEqual({
+				beforeReset,
+				hasCodicon: h.container.querySelector('.open-in-agents-titlebar-widget-icon')?.classList.contains('codicon'),
+				triggers: h.snapshot().triggers,
+			}, { beforeReset: [], hasCodicon: useCodicons, triggers: [`config.${setting}`] });
+		});
+	}
+
+	test('Agents icon uses the title bar foreground in active and inactive windows', () => {
+		const root = append(mainWindow.document.body, $('.monaco-workbench'));
+		root.style.cssText = '--vscode-titleBar-activeForeground: #ffffff; --vscode-titleBar-inactiveForeground: #aabbcc; --vscode-icon-foreground: #000000';
+		disposables.add(toDisposable(() => root.remove()));
+		const titlebar = append(root, $('.part.titlebar'));
+		const h = createHarness();
+		append(titlebar, h.container);
+		const icon = h.container.querySelector<HTMLElement>('.open-in-agents-titlebar-widget-icon')!;
+		const colors = ['vs', 'vs-dark', 'hc-black', 'hc-light'].map(theme => {
+			root.classList.add(theme);
+			const active = mainWindow.getComputedStyle(icon).color;
+			titlebar.classList.add('inactive');
+			const inactive = mainWindow.getComputedStyle(icon).color;
+			titlebar.classList.remove('inactive');
+			root.classList.remove(theme);
+			return { active, inactive };
+		});
+		const expected = { active: 'rgb(255, 255, 255)', inactive: 'rgb(170, 187, 204)' };
+		assert.deepStrictEqual(colors, [expected, expected, expected, expected]);
+	});
 
 	for (const value of [undefined, 'Try Agents']) {
 		test(`renders and triggers for an eligible user in ${value === undefined ? 'control' : 'treatment'}`, async () => {
