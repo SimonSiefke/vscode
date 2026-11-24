@@ -282,7 +282,7 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 			}));
 			window.controller = controller;
 			window.add(auxiliaryWindow.onDidLayout(dimension => controller.layout(dimension)));
-			controller.setInput(input);
+			await controller.setInput(input);
 			auxiliaryWindow.layout();
 		} catch (error) {
 			if (auxiliaryWindow && reporterWindow) {
@@ -450,6 +450,7 @@ export class NativeIssueFormService extends IssueFormService implements IIssueFo
 	 * window on the active window via `getActiveWindowPosition()`.
 	 */
 	override async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
+		const { IssueReporter } = await import('./issueReporterService.js');
 		const { IssueReporter } = await import('./issueReporterService.js');
 		const bounds = await this.nativeHostService.getActiveWindowPosition();
 		await this.openAuxIssueReporter(data, bounds);

@@ -24,7 +24,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { FileAccess, Schemas } from '../../../../base/common/network.js';
 import { IssueReporterEditorInput } from '../browser/issueReporterEditorInput.js';
-import { IIssueReporterAttachmentImport, IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
+import type { IIssueReporterAttachmentImport, IssueReporterOverlay } from '../browser/issueReporterOverlay.js';
 import { getIssueReporterMediaFormat, readIssueReporterMediaFile } from '../browser/issueReporterMedia.js';
 import { IRecordingService, IRecordingData, RecordingState, ScreenCapturePermissionStatus, shouldShowScreenCapturePermissionSettings } from '../browser/recordingService.js';
 import { IIssueFormService } from '../common/issue.js';
@@ -135,7 +135,7 @@ export class IssueReporterController extends Disposable {
 			|| this.updateService.state.type === StateType.Downloaded;
 	}
 
-	setInput(input: IssueReporterEditorInput): void {
+	async setInput(input: IssueReporterEditorInput): Promise<void> {
 		if (input.isDisposed() || this._store.isDisposed) {
 			return;
 		}
@@ -167,6 +167,11 @@ export class IssueReporterController extends Disposable {
 		if (!data) {
 			const msg = append(this.container, $('p'));
 			msg.textContent = localize('noData', "No issue reporter data available.");
+			return;
+		}
+
+		const { IssueReporterOverlay } = await import('../browser/issueReporterOverlay.js');
+		if (this._store.isDisposed || this.wizardInput !== input || input.isDisposed() || this.wizard) {
 			return;
 		}
 
