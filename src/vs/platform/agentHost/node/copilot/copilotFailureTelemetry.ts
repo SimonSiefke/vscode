@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { SessionEventPayload } from '@github/copilot-sdk';
+import type { SessionEventPayload } from '@microsoft/copilot-sdk';
 import { getErrorCode } from '../../../../base/common/errors.js';
 import type { URI } from '../../../../base/common/uri.js';
 import { packErrorForTelemetry } from '../../../telemetry/common/errorTelemetry.js';
@@ -14,7 +14,7 @@ import type { IAgentHostClientTelemetryContext } from '../../common/agentHostTel
 import { getTelemetryChatSessionId } from '../../common/agentTelemetryCorrelation.js';
 import { toInitiatorTelemetry, type IAgentHostCopilotSkuClassification, type IAgentHostCopilotSkuTelemetry, type IAgentHostEventClassification, type IAgentHostEventTelemetry } from '../agentHostTelemetryReporter.js';
 
-export type CopilotClientOperation = 'abort' | 'addPluginMarketplace' | 'browsePluginMarketplace' | 'changeAgent' | 'changeModel' | 'getSessionMetadata' | 'installPlugin' | 'listExtensions' | 'listPluginInstallations' | 'listPluginMarketplaces' | 'listSessions' | 'modelRefresh' | 'refreshPluginMarketplaces' | 'removePluginMarketplace' | 'resumeTurn' | 'sendMessage' | 'setExtensionEnabled' | 'uninstallPlugin';
+export type CopilotClientOperation = 'abort' | 'addPluginMarketplace' | 'browsePluginMarketplace' | 'changeAgent' | 'changeModel' | 'getSessionMetadata' | 'installPlugin' | 'listExtensions' | 'listPluginInstallations' | 'listPluginMarketplaces' | 'listSessions' | 'modelRefresh' | 'refreshPluginMarketplaces' | 'removePluginMarketplace' | 'resumeTurn' | 'sendMessage' | 'setExtensionEnabled' | 'setPluginEnabled' | 'uninstallPlugin';
 export type CopilotClientOperationFailureKind = 'clientNotConnected' | 'connectionClosed' | 'connectionDisposed' | 'runtimeConnectionClosed';
 type CopilotClientStartupOutcome = 'success' | 'failure' | 'cancelled';
 type CopilotStartupFailureCause = 'nativeModuleProcedureNotFound' | 'nativeModuleInitializationFailed' | 'nativeModuleNotFound' | 'permissionDenied' | 'timeout' | 'spawnFailed' | 'processExitedUnexpectedly' | 'processExited' | 'configurationChanged' | 'other';

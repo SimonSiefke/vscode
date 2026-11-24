@@ -19,22 +19,24 @@ import { generateUuid } from '../../../../../base/common/uuid.js';
 import { localize } from '../../../../../nls.js';
 import { IAgentHostService } from '../../../../../platform/agentHost/common/agentService.js';
 import { gitHubCopilotResource } from '../../../../../platform/agentHost/common/githubEndpoints.js';
-import { IGitHubAccountClient } from '../../../../../platform/github/common/account/account.js';
-import { ConnectorCatalog, ConnectorPlugin, copilotConnectorsScope } from '../../../../../platform/github/common/connectors/connectors.js';
-import { deriveGitHubEndpoints } from '../../../../../platform/github/common/githubEndpoints.js';
-import { GitHubAuthorizationContext, GitHubRequestError, isEqualAuthorization } from '../../../../../platform/github/common/githubTypes.js';
-import { SchemaError } from '../../../../../platform/github/common/client/schema.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { CustomizationMarketplaceMediaType, ICustomizationMarketplaceEntry, ICustomizationMarketplaceProvider, ICustomizationMarketplaceSourcePage, ICustomizationMarketplaceSourceQuery } from '../../../../../platform/customizationMarketplace/common/customizationMarketplaceService.js';
 import { CustomizationMarketplaceConfiguration, CustomizationMarketplaceSources } from '../../../../../platform/customizationMarketplace/common/customizationMarketplaceSources.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
+import { IGitHubAccountClient } from '../../../../../platform/github/common/account/account.js';
+import { SchemaError } from '../../../../../platform/github/common/client/schema.js';
+import { ConnectorCatalog, ConnectorPlugin, copilotConnectorsScope, copilotCredentialBaselineScopes } from '../../../../../platform/github/common/connectors/connectors.js';
+import { deriveGitHubEndpoints } from '../../../../../platform/github/common/githubEndpoints.js';
+import { GitHubRequestError, isEqualAuthorization } from '../../../../../platform/github/common/githubTypes.js';
+import { RequestPriority } from '../../../../../platform/github/common/types.js';
 import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { AuthenticationSession, AuthenticationSessionsChangeEvent, IAuthenticationService } from '../../../../services/authentication/common/authentication.js';
-import { IWorkbenchGitHubService } from '../../../../services/github/common/githubService.js';
+import { IWorkbenchGitHubService, toGitHubAuthorizationContext } from '../../../../services/github/common/githubService.js';
+import { splitCustomizationSearchWords } from '../../common/aiCustomizationSearch.js';
 
 const maxSearchQueryLength = 256;
 const maxSearchWords = 16;
@@ -324,9 +326,11 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 			throw connectorSignInRequired();
 		}
 		// Connector-owned Agent Host servers use the Copilot credential the Agent Host is given, which is resolved for
-		// the Copilot resource's scopes. Only a session that keeps those and the default session's scopes can become
-		// that credential; a narrower Connector session is never forwarded, even when it covers a narrow default session.
-		const requiredScopes = distinct([...authentication.session.scopes, ...copilotCredentialScopes]);
+		// the Copilot resource's scopes and never downgraded to a session with fewer scopes than the account's
+		// credential without Connector authorization. Only a session that keeps those, the Copilot scopes and the
+		// default session's scopes can become that credential.
+		const baselineScopes = copilotCredentialBaselineScopes(authentication.sessions, copilotCredentialScopes) ?? [];
+		const requiredScopes = distinct([...authentication.session.scopes, ...copilotCredentialScopes, ...baselineScopes]);
 		const authorized = authentication.sessions.find(session => hasConnectorScope(session, false) && requiredScopes.every(scope => session.scopes.includes(scope)));
 		if (authorized) {
 			this._authorizationRequired = false;
@@ -400,14 +404,14 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 		}
 	}
 
-	async refresh(token: CancellationToken): Promise<readonly ICopilotConnector[]> {
+	async refresh(token: CancellationToken, priority?: RequestPriority): Promise<readonly ICopilotConnector[]> {
 		if (!this.isEnabled()) {
 			return [];
 		}
 		const generation = ++this.refreshGeneration;
 		const operation = await this.createOperation(token);
 		try {
-			const { document, scoped } = await this.query(operation.token);
+			const { document, scoped } = await this.query(operation.token, priority);
 			if (operation.token.isCancellationRequested) {
 				throw new CancellationError();
 			}
@@ -490,7 +494,7 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 		const document = await this.withClient(
 			await this.getAuthentication(token, true),
 			token,
-			(client, signal, deadline) => client.connectors.connect(name, signal, { caller: 'copilotConnectors.connect', deadline })
+			(client, cancellationToken, deadline) => client.connectors.connect(name, cancellationToken, { caller: 'copilotConnectors.connect', deadline })
 		);
 		const consentLink = parseHttpsUri(document.consent_link);
 		if (consentLink && !await this.openerService.open(consentLink)) {
@@ -505,7 +509,7 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 		// that was already present before connecting) is only treated as terminal once this
 		// connect has been observed as `pending`; a new `error` is terminal immediately.
 		while (Date.now() < state.deadline) {
-			const refreshed = await this.refresh(token);
+			const refreshed = await this.refresh(token, 'mutationReconciliation');
 			const connector = refreshed.find(connector => connector.name === name);
 			switch (connector?.connectionStatus) {
 				case 'connected':
@@ -541,15 +545,15 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 				await this.withClient(
 					await this.getAuthentication(operation.token, true),
 					operation.token,
-					(client, signal, deadline) => client.connectors.disconnect(
+					(client, cancellationToken, deadline) => client.connectors.disconnect(
 						name,
-						signal,
+						cancellationToken,
 						{ caller: 'copilotConnectors.disconnect', deadline }
 					)
 				);
 				const deadline = Date.now() + connectionTimeout;
 				while (Date.now() < deadline) {
-					const connectors = await this.refresh(operation.token);
+					const connectors = await this.refresh(operation.token, 'mutationReconciliation');
 					if (!connectors.some(connector => connector.name === name && connector.connectionStatus === 'connected')) {
 						this._onDidDisconnect.fire(name);
 						return;
@@ -734,7 +738,7 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 		};
 	}
 
-	private async query(token: CancellationToken): Promise<{ readonly document: ConnectorCatalog | undefined; readonly scoped: boolean }> {
+	private async query(token: CancellationToken, priority?: RequestPriority): Promise<{ readonly document: ConnectorCatalog | undefined; readonly scoped: boolean }> {
 		const authentication = await this.getAuthentication(token, false);
 		if (!authentication) {
 			return { document: undefined, scoped: false };
@@ -744,9 +748,9 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 			const document = await this.withClient(
 				authentication,
 				token,
-				(client, signal, deadline) => client.connectors.getCatalog(
-					signal,
-					{ caller: 'copilotConnectors.query', deadline }
+				(client, cancellationToken, deadline) => client.connectors.getCatalog(
+					cancellationToken,
+					{ caller: 'copilotConnectors.query', deadline, priority }
 				),
 				true
 			);
@@ -762,7 +766,7 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 	private async withClient<T>(
 		authentication: ICopilotConnectorsAuthentication | undefined,
 		token: CancellationToken,
-		task: (client: IGitHubAccountClient, signal: AbortSignal, deadline: number) => Promise<T>,
+		task: (client: IGitHubAccountClient, cancellationToken: CancellationToken, deadline: number) => Promise<T>,
 		readOnly = false,
 	): Promise<T> {
 		if (!authentication) {
@@ -775,24 +779,20 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 			throw connectorSignInRequired();
 		}
 		this._authorizationRequired = false;
-		const authorization: GitHubAuthorizationContext = {
-			providerId: authentication.account.authenticationProvider.id,
-			sessionId: selectedSession.id, accountId: selectedSession.account.id, scopes: selectedSession.scopes,
-			authorizationServer: selectedSession.authorizationServer?.toString(),
-		};
+		const authorization = toGitHubAuthorizationContext(authentication.account.authenticationProvider.id, selectedSession);
 		const lifetime = new DisposableStore();
 		const cancellation = lifetime.add(new CancellationTokenSource(token));
 		const deadline = Date.now() + requestTimeout;
 		lifetime.add(disposableTimeout(() => cancellation.cancel(), requestTimeout));
-		const signal = CancellationToken.toAbortSignal(cancellation.token, lifetime);
+		const cancellationToken = cancellation.token;
 		const run = async () => {
-			signal.throwIfAborted();
+			CancellationToken.throwIfCanceled(cancellationToken);
 			let client = this.apiClient.value?.object;
 			if (!client || !isEqualAuthorization(client.authorization, authorization)) {
 				const clientLifetime = new DisposableStore();
 				try {
-					const acquired = clientLifetime.add(await this.gitHubService.acquireAccountApiClient(authorization, signal));
-					signal.throwIfAborted();
+					const acquired = clientLifetime.add(await this.gitHubService.acquireAccountApiClient(authorization.providerId, selectedSession, cancellationToken));
+					CancellationToken.throwIfCanceled(cancellationToken);
 					const existing = this.apiClient.value?.object;
 					if (existing && isEqualAuthorization(existing.authorization, authorization)) {
 						clientLifetime.dispose();
@@ -807,11 +807,11 @@ export class CopilotConnectorsService extends Disposable implements ICopilotConn
 					throw error;
 				}
 			}
-			return task(client, signal, deadline);
+			return task(client, cancellationToken, deadline);
 		};
 		try {
 			const result = await raceCancellationError(run(), cancellation.token);
-			signal.throwIfAborted();
+			CancellationToken.throwIfCanceled(cancellationToken);
 			return result;
 		} catch (error) {
 			if (token.isCancellationRequested) {
@@ -935,7 +935,7 @@ export class CopilotConnectorsMarketplaceProvider implements ICustomizationMarke
 			return { items: [], total: 0 };
 		}
 		const text = options.query?.trim() ?? '';
-		const words = text ? text.toLowerCase().split(/\s+/) : [];
+		const words = splitCustomizationSearchWords(text);
 		const requestedPageSize = options.pageSize ?? 30;
 		if (text.length > maxSearchQueryLength || words.length > maxSearchWords || !Number.isSafeInteger(requestedPageSize) || requestedPageSize <= 0) {
 			throw new CopilotConnectorsError(localize('copilotConnectors.invalidQuery', "Use a positive page size and at most {0} characters and {1} words to search Copilot connectors.", maxSearchQueryLength, maxSearchWords));
@@ -1022,7 +1022,7 @@ function connectorSignInRequired(): CopilotConnectorsError {
 /** Exact names score 100; otherwise average each word's best name (70-95), keyword (40-65), or descriptive (10-35) match. */
 function scoreConnector(connector: ICopilotConnector, words: readonly string[]): number | undefined {
 	const names = [connector.name, connector.displayName];
-	if (names.some(name => name.toLowerCase().replace(/\s+/g, ' ') === words.join(' '))) {
+	if (names.some(name => splitCustomizationSearchWords(name).join(' ') === words.join(' '))) {
 		return 100;
 	}
 	const fields = [

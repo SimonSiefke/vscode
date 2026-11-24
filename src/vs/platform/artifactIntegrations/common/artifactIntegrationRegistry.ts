@@ -25,6 +25,8 @@ export interface IRegisteredArtifactIntegration {
 	readonly id: string;
 	readonly label: string;
 	readonly description?: string;
+	readonly groupLabel?: string;
+	readonly artifactKind?: string;
 	readonly runtimeId: string;
 	readonly options: readonly ArtifactAutomationOption[];
 	readonly presentationPriority: number;
@@ -87,6 +89,8 @@ export class ArtifactIntegrationRegistry extends Disposable implements IArtifact
 	register<T extends IDisposable>(integration: IArtifactIntegration<T>, runtimeId: string): IDisposable {
 		if (!integration.id.trim() || !runtimeId.trim() || this.registrations.has(integration.id) || !Number.isFinite(integration.presentationPriority ?? 0)
 			|| !isArtifactIntegrationLabel(integration.label) || (integration.description !== undefined && !isArtifactIntegrationDescription(integration.description))
+			|| (integration.groupLabel !== undefined && !isArtifactIntegrationLabel(integration.groupLabel))
+			|| (integration.artifactKind !== undefined && !isArtifactIntegrationLabel(integration.artifactKind))
 			|| (integration.getAuthenticationRequest && integration.signIn)) {
 			throw new Error(`Invalid or duplicate artifact integration: ${integration.id}`);
 		}
@@ -98,6 +102,8 @@ export class ArtifactIntegrationRegistry extends Disposable implements IArtifact
 			id: integration.id,
 			label: integration.label,
 			...(integration.description ? { description: integration.description } : {}),
+			...(integration.groupLabel ? { groupLabel: integration.groupLabel } : {}),
+			...(integration.artifactKind ? { artifactKind: integration.artifactKind } : {}),
 			runtimeId,
 			options: integration.automationOptions,
 			presentationPriority: integration.presentationPriority ?? 0,

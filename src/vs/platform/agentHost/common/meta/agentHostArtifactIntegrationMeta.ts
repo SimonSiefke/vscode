@@ -5,10 +5,12 @@
 
 import type { InitializeResult } from '../state/protocol/common/commands.js';
 import { MessageKind, type Message } from '../state/sessionState.js';
-import type { ArtifactAutomationNotice } from '../../../artifactIntegrations/common/artifactRuntime.js';
+import type { ArtifactAutomationEnabledRules, ArtifactAutomationNotice, ArtifactAutomationNoticeChange } from '../../../artifactIntegrations/common/artifactRuntime.js';
 import { isObject } from '../../../../base/common/types.js';
 import { ArtifactRequestPresentation, ArtifactRunInitiator } from '../../../artifactIntegrations/common/artifactIntegration.js';
 import { isArtifactRequestPresentation } from '../../../artifactIntegrations/common/artifactPresentationValidation.js';
+import { hasArtifactAutomationEnabledRules, isArtifactAutomationEnabledRules, isArtifactAutomationNoticeChanges } from '../../../artifactIntegrations/common/artifactIntegrationNotices.js';
+import { isArtifactIntegrationLabel } from '../../../artifactIntegrations/common/artifactIntegrationValidation.js';
 
 export const AgentHostArtifactIntegrationsCapabilityMetaKey = 'vscode.artifactIntegrations';
 export const AgentHostArtifactNoticesCapabilityMetaKey = 'vscode.artifactIntegrationNotices';
@@ -51,8 +53,32 @@ export function readArtifactIntegrationNotice(source: { readonly _meta?: Record<
 		return undefined;
 	}
 	const { kind, iconId } = value as Record<string, unknown>;
-	if (kind !== 'enabled' && kind !== 'changed' && kind !== 'disabled') {
+	if (kind !== 'enabled' && kind !== 'changed' && kind !== 'disabled' && kind !== 'status') {
 		return undefined;
 	}
 	return { kind, iconId: typeof iconId === 'string' ? iconId : undefined };
+}
+
+/** The rule changes of a notice, which let the host merge later changes of the same artifact into it. */
+export interface IArtifactIntegrationNoticeChanges {
+	readonly artifactId: string;
+	readonly artifactLabel: string;
+	readonly artifactKind?: string;
+	readonly changes: readonly ArtifactAutomationNoticeChange[];
+	readonly enabledRules: readonly ArtifactAutomationEnabledRules[];
+}
+
+export function toArtifactIntegrationNoticeMeta(notice: Pick<ArtifactAutomationNotice, 'kind' | 'iconId'>, changes: IArtifactIntegrationNoticeChanges | undefined): Record<string, unknown> {
+	return { [AgentHostArtifactNoticeMetaKey]: { kind: notice.kind, iconId: notice.iconId, ...changes } };
+}
+
+export function readArtifactIntegrationNoticeChanges(source: { readonly _meta?: Record<string, unknown> }): IArtifactIntegrationNoticeChanges | undefined {
+	const value = source._meta?.[AgentHostArtifactNoticeMetaKey];
+	if (!readArtifactIntegrationNotice(source) || !isObject(value)) {
+		return undefined;
+	}
+	const { artifactId, artifactLabel, artifactKind, changes, enabledRules } = value as Record<string, unknown>;
+	return typeof artifactId === 'string' && typeof artifactLabel === 'string' && isArtifactAutomationNoticeChanges(changes) && isArtifactAutomationEnabledRules(enabledRules)
+		&& hasArtifactAutomationEnabledRules(changes, enabledRules)
+		? { artifactId, artifactLabel, ...(isArtifactIntegrationLabel(artifactKind) ? { artifactKind } : {}), changes, enabledRules } : undefined;
 }

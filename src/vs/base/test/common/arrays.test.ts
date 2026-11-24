@@ -66,6 +66,21 @@ suite('Arrays', () => {
 		assertMedian(13, [13, 4, 8], 2);
 	});
 
+	test('quickSelect validates nth', () => {
+		const compare = (a: number, b: number) => a - b;
+		assert.strictEqual(arrays.quickSelect(0.9, [2, 1, 3], compare), 1);
+		assert.throws(() => arrays.quickSelect(-1, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(-0.5, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(-10, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(3, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(NaN, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(NaN, [], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(Infinity, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(undefined as unknown as number, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(null as unknown as number, [1, 2, 3], compare), TypeError);
+		assert.throws(() => arrays.quickSelect(0, [], compare), TypeError);
+	});
+
 	test('sortedDiff', () => {
 		function compare(a: number, b: number): number {
 			return a - b;
@@ -142,6 +157,21 @@ suite('Arrays', () => {
 		d = arrays.delta([1, 3, 7], [5, 9, 11], compare);
 		assert.deepStrictEqual(d.removed, [1, 3, 7]);
 		assert.deepStrictEqual(d.added, [5, 9, 11]);
+	});
+
+	test('sortedDiff and delta handle large arrays without overflowing the call stack (#349117)', () => {
+		function compare(a: number, b: number): number {
+			return a - b;
+		}
+
+		const large = Array.from({ length: 200_000 }, (_, i) => i + 1);
+		const removedResult = arrays.delta(large, [], compare);
+		assert.strictEqual(removedResult.removed.length, 200_000);
+		assert.strictEqual(removedResult.added.length, 0);
+
+		const insertedResult = arrays.delta([0], large, compare);
+		assert.strictEqual(insertedResult.removed.length, 1);
+		assert.strictEqual(insertedResult.added.length, 200_000);
 	});
 
 	test('binarySearch', () => {
