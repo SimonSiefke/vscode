@@ -75,7 +75,7 @@ export class AgentHostFileMonitorService extends Disposable implements IAgentHos
 
 	private static readonly _DEFAULT_DEBOUNCE_MS = 750;
 
-	private readonly _entries = this._register(new SharedResourceMap<string, IMonitorEntry, () => void>(undefined, (_key, entry) => entry.dispose()));
+	private readonly _entries = this._register(new SharedResourceMap<string, IMonitorEntry, AgentHostFileMonitorCallback>(undefined, (_key, entry) => entry.dispose()));
 
 	constructor(
 		@IFileService private readonly _fileService: IFileService,
