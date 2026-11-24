@@ -88,6 +88,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	readonly onLayout: Event<void> = this._onLayout.event;
 
 	private keybindingsEditorModel: KeybindingsEditorModel | null = null;
+	private inputVersion = 0;
 
 	private headerContainer!: HTMLElement;
 	private actionsContainer!: HTMLElement;
@@ -99,6 +100,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 
 	private unAssignedKeybindingItemToRevealAndFocus: IKeybindingItemEntry | null = null;
 	private tableEntries: IKeybindingItemEntry[] = [];
+	private tableViewState: { selection: string | undefined; focus: string | undefined; scrollTop: number } | undefined;
 	private keybindingsTableContainer!: HTMLElement;
 	private keybindingsTable!: WorkbenchTable<IKeybindingItemEntry>;
 
@@ -177,15 +179,40 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	}
 
 	override setInput(input: KeybindingsEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const inputVersion = ++this.inputVersion;
 		this.keybindingsEditorContextKey.set(true);
 		return super.setInput(input, options, context, token)
-			.then(() => this.render(!!(options && options.preserveFocus)));
+			.then(() => this.render(!!options?.preserveFocus, input, inputVersion));
 	}
 
 	override clearInput(): void {
+		const hadInput = !!this.input;
+		this.inputVersion++;
 		super.clearInput();
+		this.keybindingsEditorModel = null;
+		this.tableEntries = [];
+		this.unAssignedKeybindingItemToRevealAndFocus = null;
+		if (this.defineKeybindingWidget) {
+			this.defineKeybindingWidget.cancel();
+			this.hideOverlayContainer();
+		}
+		if (this.keybindingsTable) {
+			if (hadInput) {
+				this.tableViewState ??= {
+					selection: this.keybindingsTable.getSelectedElements()[0]?.id,
+					focus: this.keybindingsTable.getFocusedElements()[0]?.id,
+					scrollTop: this.keybindingsTable.scrollTop
+				};
+			}
+			this.keybindingsTable.splice(0, this.keybindingsTable.length);
+		}
 		this.keybindingsEditorContextKey.reset();
 		this.keybindingFocusContextKey.reset();
+	}
+
+	override dispose(): void {
+		this.inputVersion++;
+		super.dispose();
 	}
 
 	layout(dimension: DOM.Dimension): void {
@@ -217,18 +244,21 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	}
 
 	async defineKeybinding(keybindingEntry: IKeybindingItemEntry, add: boolean): Promise<void> {
+		const inputVersion = this.inputVersion;
 		this.selectEntry(keybindingEntry);
 		this.showOverlayContainer();
 		try {
 			const key = await this.defineKeybindingWidget.define();
-			if (key) {
+			if (key && this.inputVersion === inputVersion) {
 				await this.updateKeybinding(keybindingEntry, key, keybindingEntry.keybindingItem.when, add);
 			}
 		} catch (error) {
 			this.onKeybindingEditingError(error);
 		} finally {
-			this.hideOverlayContainer();
-			this.selectEntry(keybindingEntry);
+			if (this.inputVersion === inputVersion) {
+				this.hideOverlayContainer();
+				this.selectEntry(keybindingEntry);
+			}
 		}
 	}
 
@@ -248,6 +278,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	}
 
 	async updateKeybinding(keybindingEntry: IKeybindingItemEntry, key: string, when: string | undefined, add?: boolean): Promise<void> {
+		const inputVersion = this.inputVersion;
 		const currentKey = keybindingEntry.keybindingItem.keybinding ? keybindingEntry.keybindingItem.keybinding.getUserSettingsLabel() : '';
 		if (currentKey !== key || keybindingEntry.keybindingItem.when !== when) {
 			if (add) {
@@ -255,35 +286,42 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			} else {
 				await this.keybindingEditingService.editKeybinding(keybindingEntry.keybindingItem.keybindingItem, key, when || undefined);
 			}
-			if (!keybindingEntry.keybindingItem.keybinding) { // reveal only if keybinding was added to unassinged. Because the entry will be placed in different position after rendering
+			if (this.inputVersion === inputVersion && !keybindingEntry.keybindingItem.keybinding) {
 				this.unAssignedKeybindingItemToRevealAndFocus = keybindingEntry;
 			}
 		}
 	}
 
 	async removeKeybinding(keybindingEntry: IKeybindingItemEntry): Promise<void> {
+		const inputVersion = this.inputVersion;
 		this.selectEntry(keybindingEntry);
 		if (keybindingEntry.keybindingItem.keybinding) { // This should be a pre-condition
 			try {
 				await this.keybindingEditingService.removeKeybinding(keybindingEntry.keybindingItem.keybindingItem);
-				this.focus();
+				if (this.inputVersion === inputVersion) {
+					this.focus();
+				}
 			} catch (error) {
 				this.onKeybindingEditingError(error);
-				this.selectEntry(keybindingEntry);
+				if (this.inputVersion === inputVersion) {
+					this.selectEntry(keybindingEntry);
+				}
 			}
 		}
 	}
 
 	async resetKeybinding(keybindingEntry: IKeybindingItemEntry): Promise<void> {
+		const inputVersion = this.inputVersion;
 		this.selectEntry(keybindingEntry);
 		try {
 			await this.keybindingEditingService.resetKeybinding(keybindingEntry.keybindingItem.keybindingItem);
-			if (!keybindingEntry.keybindingItem.keybinding) { // reveal only if keybinding was added to unassinged. Because the entry will be placed in different position after rendering
+			if (this.inputVersion === inputVersion && !keybindingEntry.keybindingItem.keybinding) {
 				this.unAssignedKeybindingItemToRevealAndFocus = keybindingEntry;
 			}
-			this.selectEntry(keybindingEntry);
 		} catch (error) {
 			this.onKeybindingEditingError(error);
+		}
+		if (this.inputVersion === inputVersion) {
 			this.selectEntry(keybindingEntry);
 		}
 	}
@@ -558,19 +596,26 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		DOM.append(this.keybindingsTableContainer, this.overflowWidgetsDomNode);
 	}
 
-	private async render(preserveFocus: boolean): Promise<void> {
-		if (this.input) {
-			const input: KeybindingsEditorInput = this.input as KeybindingsEditorInput;
-			this.keybindingsEditorModel = await input.resolve();
-			await this.keybindingsEditorModel.resolve(this.getActionsLabels());
-			this.renderKeybindingsEntries(false, preserveFocus);
-			if (input.searchOptions) {
-				this.recordKeysAction.checked = input.searchOptions.recordKeybindings;
-				this.sortByPrecedenceAction.checked = input.searchOptions.sortByPrecedence;
-				this.searchWidget.setValue(input.searchOptions.searchValue);
-			} else {
-				this.updateSearchOptions();
-			}
+	private async render(preserveFocus: boolean, input = this.input as KeybindingsEditorInput | undefined, inputVersion = this.inputVersion): Promise<void> {
+		if (!input || this.inputVersion !== inputVersion) {
+			return;
+		}
+		const model = await input.resolve();
+		if (this.inputVersion !== inputVersion || model.isDisposed()) {
+			return;
+		}
+		await model.resolve(this.getActionsLabels());
+		if (this.inputVersion !== inputVersion || model.isDisposed()) {
+			return;
+		}
+		this.keybindingsEditorModel = model;
+		this.renderKeybindingsEntries(false, preserveFocus);
+		if (input.searchOptions) {
+			this.recordKeysAction.checked = input.searchOptions.recordKeybindings;
+			this.sortByPrecedenceAction.checked = input.searchOptions.sortByPrecedence;
+			this.searchWidget.setValue(input.searchOptions.searchValue);
+		} else {
+			this.updateSearchOptions();
 		}
 	}
 
@@ -612,6 +657,8 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			this.accessibilityService.alert(ariaLabel);
 			this.ariaLabelElement.textContent = ariaLabel;
 
+			const viewState = this.tableViewState;
+			this.tableViewState = undefined;
 			const currentSelectedIndex = this.keybindingsTable.getSelection()[0];
 			this.tableEntries = keybindingsEntries;
 			this.keybindingsTable.splice(0, this.keybindingsTable.length, this.tableEntries);
@@ -628,6 +675,12 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 						this.selectEntry(index);
 					}
 					this.unAssignedKeybindingItemToRevealAndFocus = null;
+				} else if (viewState) {
+					const selectedIndex = this.tableEntries.findIndex(entry => entry.id === viewState.selection);
+					const focusedIndex = this.tableEntries.findIndex(entry => entry.id === viewState.focus);
+					this.keybindingsTable.setSelection(selectedIndex === -1 ? [] : [selectedIndex]);
+					this.keybindingsTable.setFocus(focusedIndex === -1 ? [] : [focusedIndex]);
+					this.keybindingsTable.scrollTop = viewState.scrollTop;
 				} else if (currentSelectedIndex !== -1 && currentSelectedIndex < this.tableEntries.length) {
 					this.selectEntry(currentSelectedIndex, preserveFocus);
 				} else if (this.editorService.activeEditorPane === this && !preserveFocus) {
@@ -917,6 +970,10 @@ class ActionsColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IAct
 		};
 	}
 
+	disposeElement(_entry: IKeybindingItemEntry, _index: number, templateData: IActionsColumnTemplateData): void {
+		templateData.actionBar.clear();
+	}
+
 	disposeTemplate(templateData: IActionsColumnTemplateData): void {
 		templateData.actionBar.dispose();
 	}
@@ -1198,7 +1255,7 @@ class WhenColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IWhenCo
 	}
 
 	renderElement(keybindingItemEntry: IKeybindingItemEntry, index: number, templateData: IWhenColumnTemplateData): void {
-		templateData.disposables.clear();
+		this.disposeElement(keybindingItemEntry, index, templateData);
 		const whenInputDisposables = templateData.disposables.add(new DisposableStore());
 		templateData.disposables.add(this.keybindingsEditor.onDefineWhenExpression(e => {
 			if (keybindingItemEntry === e) {
@@ -1239,6 +1296,16 @@ class WhenColumnRenderer implements ITableRenderer<IKeybindingItemEntry, IWhenCo
 		} else {
 			templateData.whenLabel.set('-');
 		}
+	}
+
+	disposeElement(_entry: IKeybindingItemEntry, _index: number, templateData: IWhenColumnTemplateData): void {
+		templateData.disposables.clear();
+		templateData.whenLabel.set(undefined);
+		templateData.element.classList.remove('input-mode');
+		if (templateData.element.parentElement) {
+			templateData.element.parentElement.style.paddingLeft = '10px';
+		}
+		DOM.clearNode(templateData.whenInputContainer);
 	}
 
 	disposeTemplate(templateData: IWhenColumnTemplateData): void {
