@@ -4,16 +4,57 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
+import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
 import { Position } from '../../../../common/core/position.js';
 import { Range } from '../../../../common/core/range.js';
 import { getSelectionSearchString } from '../../browser/findController.js';
-import { withTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
+import { FindReplaceState } from '../../browser/findState.js';
+import { FindWidget } from '../../browser/findWidget.js';
+import { createCodeEditorServices, instantiateTestCodeEditor, withTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
+import { instantiateTextModel } from '../../../../test/common/testTextModel.js';
 
 
 suite('Find', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('disposing the find widget cancels the pending history update', () => runWithFakedTimers({}, async () => {
+		const instantiationService = createCodeEditorServices(store);
+		const model = store.add(instantiateTextModel(instantiationService, 'first second'));
+		const editor = store.add(instantiateTestCodeEditor(instantiationService, model));
+		const searchHistory = new Set<string>();
+		const state = store.add(new FindReplaceState());
+		const widget = store.add(instantiationService.invokeFunction(accessor => new FindWidget(
+			editor,
+			{ replace() { }, replaceAll() { }, async getGlobalBufferTerm() { return ''; } },
+			state,
+			{ showContextView() { }, hideContextView() { }, layout() { } },
+			accessor.get(IKeybindingService),
+			accessor.get(IContextKeyService),
+			accessor.get(IHoverService),
+			searchHistory,
+			undefined,
+			accessor.get(IConfigurationService),
+			accessor.get(IAccessibilityService),
+		)));
+
+		state.change({ searchString: 'first' }, false);
+		assert.deepStrictEqual([...searchHistory], []);
+		await timeout(501);
+		assert.deepStrictEqual([...searchHistory], ['first']);
+
+		state.change({ searchString: 'second' }, false);
+		widget.dispose();
+		await timeout(501);
+		assert.deepStrictEqual([...searchHistory], ['first']);
+	}));
 
 	test('search string at position', () => {
 		withTestCodeEditor([

@@ -293,7 +293,7 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 	private activeFindMetadata: IAsyncFindResult<T> | undefined;
 	private activeSession = false;
 	private asyncWorkInProgress = false;
-	private taskQueue = new ThrottledDelayer(250);
+	private taskQueue = this.disposables.add(new ThrottledDelayer(250));
 
 	constructor(
 		tree: ObjectTree<IAsyncDataTreeNode<TInput, T>, TFilterData>,
@@ -303,10 +303,11 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 		options: IAbstractTreeOptions<IAsyncDataTreeNode<TInput, T>, TFilterData>,
 	) {
 		super(tree as unknown as AbstractTree<T, TFilterData, unknown>, filter, contextViewProvider, options);
-		// Always make sure to end the session before disposing
-		this.disposables.add(toDisposable(async () => {
+		this.disposables.add(toDisposable(() => {
+			this.activeTokenSource?.dispose(true);
+			this.activeTokenSource = undefined;
 			if (this.activeSession) {
-				await this.findProvider.endSession?.();
+				this.deactivateFindSession().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -314,10 +315,15 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 	protected override applyPattern(_pattern: string): void {
 		this.renderMessage(false);
 
-		this.activeTokenSource?.cancel();
+		this.activeTokenSource?.dispose(true);
 		this.activeTokenSource = new CancellationTokenSource();
 
-		this.taskQueue.trigger(() => this.applyPatternAsync());
+		// Coalesced triggers share their promise, so handle scheduler rejection once.
+		const alreadyScheduled = this.taskQueue.isTriggered();
+		const update = this.taskQueue.trigger(() => this.applyPatternAsync().catch(onUnexpectedError));
+		if (!alreadyScheduled) {
+			update.catch(onUnexpectedError);
+		}
 	}
 
 	private async applyPatternAsync(): Promise<void> {
@@ -614,7 +620,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		let findFilter: AsyncFindFilter<T> | undefined;
 		if (options.findProvider && (options.findWidgetEnabled ?? true) && options.keyboardNavigationLabelProvider && options.contextViewProvider) {
 			asyncFindEnabled = true;
-			findFilter = new AsyncFindFilter<T>(options.findProvider, options.keyboardNavigationLabelProvider, options.filter as ITreeFilter<T, FuzzyScore>);
+			findFilter = this.disposables.add(new AsyncFindFilter<T>(options.findProvider, options.keyboardNavigationLabelProvider, options.filter as ITreeFilter<T, FuzzyScore>));
 		}
 
 		this.tree = this.createTree(user, container, delegate, renderers, { ...options, findWidgetEnabled: !asyncFindEnabled, filter: findFilter as ITreeFilter<T, TFilterData> ?? options.filter });

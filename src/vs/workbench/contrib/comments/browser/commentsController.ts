@@ -1031,10 +1031,9 @@ export class CommentController extends Disposable implements IEditorContribution
 			this.registerEditorListeners();
 		}
 
-		this._computeCommentingRangeScheduler = new Delayer<ICommentInfo[]>(200);
+		this._computeCommentingRangeScheduler = this.localToDispose.add(new Delayer<ICommentInfo[]>(200));
 		this.localToDispose.add({
 			dispose: () => {
-				this._computeCommentingRangeScheduler?.cancel();
 				this._computeCommentingRangeScheduler = null;
 			}
 		});

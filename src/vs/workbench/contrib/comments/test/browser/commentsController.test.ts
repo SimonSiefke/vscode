@@ -3,15 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { TestViewsService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { instantiateTextModel } from '../../../../../editor/test/common/testTextModel.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
+import { stub } from 'sinon';
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Range } from '../../../../../editor/common/core/range.js';
-import { withAsyncTestCodeEditor } from '../../../../../editor/test/browser/testCodeEditor.js';
+import { withAsyncTestCodeEditor, createCodeEditorServices, instantiateTestCodeEditor } from '../../../../../editor/test/browser/testCodeEditor.js';
 import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
@@ -24,11 +28,11 @@ import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { CommentController } from '../../browser/commentsController.js';
-import { ICommentInfo, ICommentService } from '../../browser/commentService.js';
+import { ICommentInfo, ICommentService, CommentService } from '../../browser/commentService.js';
 import { AGENTS_WINDOW_EDITOR_COMMENTS_SETTING } from '../../common/commentsConfiguration.js';
 
 suite('CommentController', () => {
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('shows comments in the Agents window only while its setting is enabled', async () => {
 		const configurationService = new TestConfigurationService({ [AGENTS_WINDOW_EDITOR_COMMENTS_SETTING]: false });
@@ -93,4 +97,34 @@ suite('CommentController', () => {
 			}
 		});
 	});
+
+	test('cancels a pending range refresh when the editor switches models', () => runWithFakedTimers({}, async () => {
+		const editorServices = createCodeEditorServices(store);
+		const first = store.add(instantiateTextModel(editorServices, 'first', undefined, undefined, URI.file('/first.txt')));
+		const second = store.add(instantiateTextModel(editorServices, 'second', undefined, undefined, URI.file('/second.txt')));
+		const editor = store.add(instantiateTestCodeEditor(editorServices, first));
+		const workbenchServices = workbenchInstantiationService({}, store);
+		workbenchServices.stub(IViewsService, new TestViewsService());
+		const commentService = store.add(workbenchServices.createInstance(CommentService));
+		workbenchServices.stub(ICommentService, commentService);
+		const requests: URI[] = [];
+		const getDocumentComments = stub(commentService, 'getDocumentComments').callsFake(async resource => {
+			requests.push(resource);
+			return [];
+		});
+		store.add(toDisposable(() => getDocumentComments.restore()));
+		const controller = store.add(workbenchServices.createInstance(CommentController, editor));
+
+		first.setValue('edited first');
+		assert.deepStrictEqual(requests, [first.uri]);
+		editor.setModel(second);
+		await timeout(201);
+		assert.deepStrictEqual(requests, [first.uri, second.uri]);
+
+		second.setValue('edited second');
+		await timeout(201);
+		assert.deepStrictEqual(requests, [first.uri, second.uri, second.uri]);
+
+		controller.dispose();
+	}));
 });
