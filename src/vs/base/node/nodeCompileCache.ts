@@ -68,6 +68,24 @@ export function enableNodeCompileCache(kind: NodeCompileCacheKind): boolean {
 	const hasRuntimeCache = fs.existsSync(cacheDirectory) && fs.readdirSync(cacheDirectory).some(entry => entry.startsWith(runtimeCachePrefix));
 
 	if (!isGeneratingCache && !hasRuntimeCache) {
+		if (process.platform !== 'win32') {
+			const result = enableCompileCache();
+			const activeDirectory = getCompileCacheDir() ?? result.directory;
+			const isRuntimeCacheEnabled = result.status === constants.compileCacheStatus.ENABLED || result.status === constants.compileCacheStatus.ALREADY_ENABLED;
+			setNodeCompileCacheStatus({
+				kind,
+				status: result.status === constants.compileCacheStatus.ENABLED ? 'enabled'
+					: result.status === constants.compileCacheStatus.ALREADY_ENABLED ? 'already-enabled'
+						: result.status === constants.compileCacheStatus.DISABLED ? 'disabled' : 'failed',
+				configuredDirectory: activeDirectory ?? cacheDirectory,
+				activeDirectory,
+				isPackagedCacheEnabled: false,
+				isRuntimeCacheEnabled,
+				message: result.message,
+			});
+			return false;
+		}
+
 		setNodeCompileCacheStatus({
 			kind,
 			status: 'missing',

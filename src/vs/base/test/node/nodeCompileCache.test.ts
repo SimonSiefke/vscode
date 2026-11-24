@@ -43,7 +43,7 @@ suite('Node compile cache', () => {
 		`;
 		return JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', script], {
 			encoding: 'utf8',
-			env: { ...env, ELECTRON_RUN_AS_NODE: '1', TMPDIR: testDirectory, VSCODE_NODE_COMPILE_CACHE_MEASUREMENTS: join(testDirectory, 'measurements'), ...environment }
+			env: { ...env, ELECTRON_RUN_AS_NODE: '1', TMPDIR: testDirectory, VSCODE_NODE_COMPILE_CACHE_ROOT: join(testDirectory, 'packaged'), VSCODE_NODE_COMPILE_CACHE_MEASUREMENTS: join(testDirectory, 'measurements'), ...environment }
 		}));
 	}
 
@@ -53,10 +53,11 @@ suite('Node compile cache', () => {
 		assert.deepStrictEqual(run(), { generating: false, enabled: true, runtimeCache: true, status: 'enabled' });
 	});
 
-	posixTest('does not generate a packaged cache on POSIX', () => {
+	posixTest('prefers a packaged cache on POSIX when one is available', () => {
 		const root = join(testDirectory, 'packaged');
-		assert.deepStrictEqual(run({ VSCODE_GENERATE_NODE_COMPILE_CACHE: '1', VSCODE_NODE_COMPILE_CACHE_ROOT: root }), { generating: false, enabled: false, runtimeCache: false, status: 'disabled' });
-		assert.strictEqual(fs.existsSync(join(root, 'main', '.ready')), false);
+		assert.deepStrictEqual(run({ VSCODE_GENERATE_NODE_COMPILE_CACHE: '1' }), { generating: true, enabled: true, runtimeCache: false, status: 'enabled' });
+		assert.strictEqual(fs.existsSync(join(root, 'main', '.ready')), true);
+		assert.deepStrictEqual(run(), { generating: false, enabled: true, runtimeCache: false, status: 'enabled' });
 	});
 
 	test('records readiness from another helper module instance', () => {
