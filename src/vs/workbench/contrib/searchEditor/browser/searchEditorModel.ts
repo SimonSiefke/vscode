@@ -16,6 +16,7 @@ import { createTextBufferFactoryFromStream } from '../../../../editor/common/mod
 import { Emitter } from '../../../../base/common/event.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { SEARCH_RESULT_LANGUAGE_ID } from '../../../services/search/common/search.js';
+import { CancellationError } from '../../../../base/common/errors.js';
 
 export type SearchEditorData = { resultsModel: ITextModel; configurationModel: SearchConfigurationModel };
 
@@ -68,12 +69,13 @@ class SearchEditorModelFactory {
 
 		let ongoingResolve: Promise<SearchEditorData> | undefined;
 
-		this.models.set(resource, {
+		const modelReference: ISearchEditorModelReference = {
 			resolve: () => {
 				if (!ongoingResolve) {
 					ongoingResolve = (async () => {
 
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+						const backup = await this.tryFetchModelFromBackupService(resource, modelReference, languageService, modelService, workingCopyBackupService, instantiationService);
+						this.assertModelReferenceIsCurrent(resource, modelReference);
 						if (backup) {
 							return backup;
 						}
@@ -86,7 +88,8 @@ class SearchEditorModelFactory {
 				}
 				return ongoingResolve;
 			}
-		});
+		};
+		this.models.set(resource, modelReference);
 	}
 
 	initializeModelFromRawData(accessor: ServicesAccessor, resource: URI, config: SearchConfiguration, contents: string | undefined) {
@@ -101,12 +104,13 @@ class SearchEditorModelFactory {
 
 		let ongoingResolve: Promise<SearchEditorData> | undefined;
 
-		this.models.set(resource, {
+		const modelReference: ISearchEditorModelReference = {
 			resolve: () => {
 				if (!ongoingResolve) {
 					ongoingResolve = (async () => {
 
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+						const backup = await this.tryFetchModelFromBackupService(resource, modelReference, languageService, modelService, workingCopyBackupService, instantiationService);
+						this.assertModelReferenceIsCurrent(resource, modelReference);
 						if (backup) {
 							return backup;
 						}
@@ -119,7 +123,8 @@ class SearchEditorModelFactory {
 				}
 				return ongoingResolve;
 			}
-		});
+		};
+		this.models.set(resource, modelReference);
 	}
 
 	initializeModelFromExistingFile(accessor: ServicesAccessor, resource: URI, existingFile: URI) {
@@ -134,17 +139,19 @@ class SearchEditorModelFactory {
 
 		let ongoingResolve: Promise<SearchEditorData> | undefined;
 
-		this.models.set(resource, {
+		const modelReference: ISearchEditorModelReference = {
 			resolve: async () => {
 				if (!ongoingResolve) {
 					ongoingResolve = (async () => {
 
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+						const backup = await this.tryFetchModelFromBackupService(resource, modelReference, languageService, modelService, workingCopyBackupService, instantiationService);
+						this.assertModelReferenceIsCurrent(resource, modelReference);
 						if (backup) {
 							return backup;
 						}
 
 						const { text, config } = await instantiationService.invokeFunction(parseSavedSearchEditor, existingFile);
+						this.assertModelReferenceIsCurrent(resource, modelReference);
 						return ({
 							resultsModel: modelService.createModel(text ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
 							configurationModel: new SearchConfigurationModel(config)
@@ -153,16 +160,23 @@ class SearchEditorModelFactory {
 				}
 				return ongoingResolve;
 			}
-		});
+		};
+		this.models.set(resource, modelReference);
 	}
 
-	private async tryFetchModelFromBackupService(resource: URI, languageService: ILanguageService, modelService: IModelService, workingCopyBackupService: IWorkingCopyBackupService, instantiationService: IInstantiationService): Promise<SearchEditorData | undefined> {
+	private assertModelReferenceIsCurrent(resource: URI, modelReference: ISearchEditorModelReference): void {
+		if (this.models.get(resource) !== modelReference) {
+			throw new CancellationError();
+		}
+	}
+
+	private async tryFetchModelFromBackupService(resource: URI, modelReference: ISearchEditorModelReference, languageService: ILanguageService, modelService: IModelService, workingCopyBackupService: IWorkingCopyBackupService, instantiationService: IInstantiationService): Promise<SearchEditorData | undefined> {
 		const backup = await workingCopyBackupService.resolve({ resource, typeId: SearchEditorWorkingCopyTypeId });
+		const factory = backup ? await createTextBufferFactoryFromStream(backup.value) : undefined;
+		this.assertModelReferenceIsCurrent(resource, modelReference);
 
 		let model = modelService.getModel(resource);
-		if (!model && backup) {
-			const factory = await createTextBufferFactoryFromStream(backup.value);
-
+		if (!model && factory) {
 			model = modelService.createModel(factory, languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource);
 		}
 
@@ -170,6 +184,7 @@ class SearchEditorModelFactory {
 			const existingFile = model.getValue();
 			const { text, config } = parseSerializedSearchEditor(existingFile);
 			modelService.destroyModel(resource);
+			this.assertModelReferenceIsCurrent(resource, modelReference);
 			return ({
 				resultsModel: modelService.createModel(text ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
 				configurationModel: new SearchConfigurationModel(config)

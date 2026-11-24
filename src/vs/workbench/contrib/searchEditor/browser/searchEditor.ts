@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { Delayer } from '../../../../base/common/async.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -46,6 +47,7 @@ import { getOutOfWorkspaceEditorResources } from '../../search/common/search.js'
 import { SearchModelImpl } from '../../search/browser/searchTreeModel/searchModel.js';
 import { InSearchEditor, SearchEditorID, SearchEditorInputTypeId, SearchConfiguration } from './constants.js';
 import type { SearchEditorInput } from './searchEditorInput.js';
+import type { SearchEditorData } from './searchEditorModel.js';
 import { serializeSearchResultForEditor } from './searchEditorSerialization.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -728,8 +730,17 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 		// A new input can replace the current one without clearInput being called first.
 		this.inputDisposables.clear();
 
-		const { configurationModel, resultsModel } = await newInput.resolveModels();
+		let models: SearchEditorData;
+		try {
+			models = await newInput.resolveModels();
+		} catch (error) {
+			if (isCancellationError(error) && (token.isCancellationRequested || newInput.isDisposed())) {
+				return;
+			}
+			throw error;
+		}
 		if (token.isCancellationRequested) { return; }
+		const { configurationModel, resultsModel } = models;
 
 		this.searchResultEditor.setModel(resultsModel);
 		this.pauseSearching = true;
