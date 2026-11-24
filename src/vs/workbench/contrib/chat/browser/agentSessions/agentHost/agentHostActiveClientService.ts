@@ -9,10 +9,10 @@ import { CancellationToken } from '../../../../../../base/common/cancellation.js
 import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Event } from '../../../../../../base/common/event.js';
 import { hash } from '../../../../../../base/common/hash.js';
-import { Disposable, IDisposable, IReference } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable, IReference } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap, ResourceSet } from '../../../../../../base/common/map.js';
 import { equals } from '../../../../../../base/common/objects.js';
-import { autorun, derived, IObservable, ISettableObservable, observableValue, transaction } from '../../../../../../base/common/observable.js';
+import { autorun, derived, IObservable, ISettableObservable, observableSignal, observableValue, transaction } from '../../../../../../base/common/observable.js';
 import { type IExtUri, joinPath } from '../../../../../../base/common/resources.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { isCopilotAgentHostSessionType, isRemoteAgentHostSessionType } from '../../../../../../platform/agentHost/common/agentHostSessionType.js';
@@ -86,6 +86,8 @@ export interface IAgentHostActiveClientService {
 	 * `undefined` roots stand for the window's workspace (the ambient management UI) while an empty array means no workspace.
 	 */
 	acquireScope(sessionType: string, roots: readonly URI[] | undefined): IAgentCustomizationScope;
+	/** Retains existing scopes referenced by a published client, without resolving new scopes. */
+	retainPublishedScopes(customizations: readonly ClientPluginCustomization[]): IDisposable;
 	/**
 	 * Acquires a shared MCP support scope for a Copilot CLI harness; `undefined` roots mean unknown applicability while an empty array means no workspace.
 	 * Returns `undefined` for harnesses whose MCP delivery is not assessed by the client.
@@ -275,6 +277,11 @@ class AgentCustomizationScope extends Disposable {
 		};
 	}
 
+	/** Matches bundle identities even while a replacement resolution is pending. */
+	ownsBundle(uri: string): boolean {
+		return uri === this._bundler.rootUri.toString() || uri === this._standaloneBundler.rootUri.toString();
+	}
+
 	getOrigin(syncedUri: URI): ISyncedCustomizationOrigin | undefined {
 		return this._bundler.getOrigin(syncedUri) ?? this._standaloneBundler.getOrigin(syncedUri);
 	}
@@ -331,6 +338,7 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 	private readonly _sessionToolObservers = new ResourceMap<number>();
 	private readonly _sessionToolAliases = new ResourceMap<readonly URI[]>();
 	private readonly _scopes = new Map<string, AgentCustomizationScope>();
+	private readonly _scopesChanged = observableSignal(this);
 	private readonly _mcpServerSupportScopes = new Map<string, AgentHostMcpServerSupportScope>();
 	private readonly _syncProviders = new Map<string, AgentCustomizationSyncProvider>();
 	private _isDisposed = false;
@@ -369,8 +377,29 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 			);
 			scope = createdScope;
 			this._scopes.set(serviceScopeKey, scope);
+			this._scopesChanged.trigger(undefined);
 		}
 		return scope.acquire();
+	}
+
+	retainPublishedScopes(customizations: readonly ClientPluginCustomization[]): IDisposable {
+		if (customizations.length === 0) {
+			return Disposable.None;
+		}
+		const store = new DisposableStore();
+		const leases = new DisposableMap<AgentCustomizationScope, IAgentCustomizationScope>();
+		const publishedUris = new Set(customizations.map(customization => customization.uri));
+		store.add(autorun(reader => {
+			this._scopesChanged.read(reader);
+			for (const scope of this._scopes.values()) {
+				if (!leases.has(scope) && [...publishedUris].some(uri => scope.ownsBundle(uri))) {
+					leases.set(scope, scope.acquire());
+				}
+			}
+		}));
+		// Stop observing before releasing leases, which can remove scopes.
+		store.add(leases);
+		return store;
 	}
 
 	acquireMcpServerSupportScope(sessionType: string, roots: readonly URI[] | undefined): IAgentHostMcpServerSupportScope | undefined {
@@ -566,6 +595,7 @@ export class AgentHostActiveClientService extends Disposable implements IAgentHo
 	private _removeScope(scopeKey: string, scope: AgentCustomizationScope): void {
 		if (this._scopes.get(scopeKey) === scope) {
 			this._scopes.delete(scopeKey);
+			this._scopesChanged.trigger(undefined);
 		}
 	}
 

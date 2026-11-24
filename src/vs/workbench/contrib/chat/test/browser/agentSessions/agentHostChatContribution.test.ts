@@ -1355,6 +1355,7 @@ function createTestServices(disposables: DisposableStore, workingDirectoryResolv
 	};
 	const activeClientService: IAgentHostActiveClientService = {
 		_serviceBrand: undefined,
+		retainPublishedScopes: () => Disposable.None,
 		getSyncProvider: () => syncProvider,
 		getOrigin: () => undefined,
 		acquireScope,

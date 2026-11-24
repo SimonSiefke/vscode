@@ -445,6 +445,7 @@ function createProvider(disposables: DisposableStore, connection: MockAgentConne
 	instantiationService.stub(ISessionHostService, sessionHostServiceOf(disposables, instantiationService.get(ISessionsService)));
 	stubFocusedSessionHostFromSessionsService(instantiationService);
 	instantiationService.stub(IAgentHostActiveClientService, new class extends mock<IAgentHostActiveClientService>() {
+		override retainPublishedScopes = () => new DisposableStore();
 		override acquireSessionTools = () => new ImmortalReference(constObservable([]));
 		override acquireScope = (_sessionType: string, _roots: readonly URI[] | undefined) => ({
 			customizations: constObservable([]),

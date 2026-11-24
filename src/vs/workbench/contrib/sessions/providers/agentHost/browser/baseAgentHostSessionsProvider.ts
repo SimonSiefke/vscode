@@ -10019,10 +10019,22 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			return;
 		}
 		const store = new DisposableStore();
+		// Unsubscribe before releasing the published bundle: the host remains a
+		// consumer while this summary reference outlives the local chat model.
 		// Releasing this subscription removes the client on the host, so the next activation must republish.
 		store.add(toDisposable(() => this._lastPublishedActiveClients.delete(sessionUri.toString())));
 		store.add(ref);
+		const publishedScopes = store.add(new MutableDisposable<IDisposable>());
+		const retainPublishedScopes = (state: SessionState): void => {
+			// Keep the confirmed client's bundles during an optimistic replacement,
+			// and the proposed bundles until the host accepts or rejects it.
+			const clients = [...state.activeClients, ...(ref.object.verifiedValue?.activeClients ?? [])];
+			publishedScopes.value = this._activeClientService.retainPublishedScopes(
+				clients.filter(client => client.clientId === connection.clientId).flatMap(client => client.customizations ?? []),
+			);
+		};
 		store.add(ref.object.onDidChange(state => {
+			retainPublishedScopes(state);
 			this._sessionStateErrorRetries.delete(sessionId);
 			this._applySessionStateUpdate(sessionId, state);
 		}));
@@ -10058,6 +10070,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 
 		const value = ref.object.value;
 		if (value && !(value instanceof Error)) {
+			retainPublishedScopes(value);
 			this._sessionStateErrorRetries.delete(sessionId);
 			this._applySessionStateUpdate(sessionId, value);
 		}
