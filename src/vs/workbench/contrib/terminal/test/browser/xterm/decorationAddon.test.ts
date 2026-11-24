@@ -6,6 +6,7 @@
 import type { IDecoration, IDecorationOptions, Terminal as RawXtermTerminal } from '@xterm/xterm';
 import { deepStrictEqual, notEqual, strictEqual, throws } from 'assert';
 import { importAMDNodeModule } from '../../../../../../amdX.js';
+import { Action } from '../../../../../../base/common/actions.js';
 import { mock } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -113,6 +114,63 @@ suite('DecorationAddon', () => {
 		capabilities.add(TerminalCapability.CommandDetection, store.add(instantiationService.createInstance(CommandDetectionCapability, xterm)));
 		decorationAddon = store.add(instantiationService.createInstance(DecorationAddon, undefined, capabilities));
 		xterm.loadAddon(decorationAddon);
+	});
+
+	suite('registerMenuItems', () => {
+		function getRegisteredMenuItems() {
+			// eslint-disable-next-line local/code-no-bracket-notation-for-identifiers -- Check retained command keys before addon teardown.
+			return decorationAddon['_registeredMenuItems'];
+		}
+
+		test('releases the command key when its registration is disposed', () => {
+			const command = new class extends mock<ITerminalCommand>() { }();
+			const action = store.add(new Action('quickFix', 'Quick Fix'));
+			const registration = store.add(decorationAddon.registerMenuItems(command, [action]));
+			const items = getRegisteredMenuItems();
+			deepStrictEqual(items.get(command), [action]);
+
+			registration.dispose();
+
+			deepStrictEqual({ hasCommand: items.has(command), size: items.size }, { hasCommand: false, size: 0 });
+		});
+
+		test('preserves overlapping registrations until the last handle is disposed', () => {
+			const command = new class extends mock<ITerminalCommand>() { }();
+			const first = store.add(new Action('first', 'First'));
+			const second = store.add(new Action('second', 'Second'));
+			const firstRegistration = store.add(decorationAddon.registerMenuItems(command, [first]));
+			const secondRegistration = store.add(decorationAddon.registerMenuItems(command, [second]));
+			const items = getRegisteredMenuItems();
+
+			firstRegistration.dispose();
+			deepStrictEqual(items.get(command), [second]);
+			secondRegistration.dispose();
+			strictEqual(items.has(command), false);
+		});
+
+		test('keeps a fresh registration and other commands when an old handle is disposed again', () => {
+			const command = new class extends mock<ITerminalCommand>() { }();
+			const otherCommand = new class extends mock<ITerminalCommand>() { }();
+			const first = store.add(new Action('first', 'First'));
+			const other = store.add(new Action('other', 'Other'));
+			const fresh = store.add(new Action('fresh', 'Fresh'));
+			const oldRegistration = store.add(decorationAddon.registerMenuItems(command, [first]));
+			const otherRegistration = store.add(decorationAddon.registerMenuItems(otherCommand, [other]));
+			const items = getRegisteredMenuItems();
+
+			oldRegistration.dispose();
+			const freshRegistration = store.add(decorationAddon.registerMenuItems(command, [fresh]));
+			oldRegistration.dispose();
+			deepStrictEqual({ current: items.get(command), other: items.get(otherCommand), size: items.size }, {
+				current: [fresh], other: [other], size: 2,
+			});
+			freshRegistration.dispose();
+			deepStrictEqual({ hasCommand: items.has(command), other: items.get(otherCommand), size: items.size }, {
+				hasCommand: false, other: [other], size: 1,
+			});
+			otherRegistration.dispose();
+			strictEqual(items.size, 0);
+		});
 	});
 
 	suite('registerDecoration', () => {
