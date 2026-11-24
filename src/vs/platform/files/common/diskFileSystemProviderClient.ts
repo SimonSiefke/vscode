@@ -124,8 +124,8 @@ export class DiskFileSystemProviderClient extends Disposable implements
 
 	//#region File Reading/Writing
 
-	async readFile(resource: URI, opts?: IFileAtomicReadOptions): Promise<Uint8Array> {
-		const content = await this.channel.call<IPCFileData>('readFile', [resource, opts]);
+	async readFile(resource: URI, opts?: IFileAtomicReadOptions, token?: CancellationToken): Promise<Uint8Array> {
+		const content = await this.channel.call<IPCFileData>('readFile', [resource, opts], token);
 
 		return decodeIPCFileData(content);
 	}
