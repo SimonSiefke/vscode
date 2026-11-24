@@ -46,8 +46,12 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 
 		this._store.add(autorun(reader => {
 			if (!this._enabledConfig.read(reader)) {
-				this.storageService.remove('scm.workingSets', StorageScope.WORKSPACE);
+				const workingSets = Array.from(this._loadWorkingSets().values()).flatMap(repository => [...repository.editorWorkingSets.values()]);
 				this._repositoryDisposables.clearAndDisposeAll();
+				this.storageService.remove('scm.workingSets', StorageScope.WORKSPACE);
+				if (workingSets.length > 0) {
+					this.editorGroupsService.deleteWorkingSets(workingSets);
+				}
 				return;
 			}
 
@@ -113,11 +117,15 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 			return workingSets;
 		}
 
-		for (const serializedWorkingSet of JSON.parse(workingSetsRaw) as ISCMSerializedWorkingSet[]) {
-			workingSets.set(serializedWorkingSet.providerKey, {
-				currentHistoryItemGroupId: serializedWorkingSet.currentHistoryItemGroupId,
-				editorWorkingSets: new Map(serializedWorkingSet.editorWorkingSets)
-			});
+		try {
+			for (const serializedWorkingSet of JSON.parse(workingSetsRaw) as ISCMSerializedWorkingSet[]) {
+				workingSets.set(serializedWorkingSet.providerKey, {
+					currentHistoryItemGroupId: serializedWorkingSet.currentHistoryItemGroupId,
+					editorWorkingSets: new Map(serializedWorkingSet.editorWorkingSets.filter(([, workingSet]) => typeof workingSet?.id === 'string'))
+				});
+			}
+		} catch {
+			// A damaged snapshot cannot be restored.
 		}
 
 		return workingSets;
@@ -127,6 +135,7 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 		const previousHistoryItemGroupId = repositoryWorkingSets.currentHistoryItemGroupId;
 		const editorWorkingSets = repositoryWorkingSets.editorWorkingSets;
 
+		const replacedWorkingSet = editorWorkingSets.get(previousHistoryItemGroupId);
 		const editorWorkingSet = this.editorGroupsService.saveWorkingSet(previousHistoryItemGroupId);
 		this._workingSets.set(providerKey, { currentHistoryItemGroupId, editorWorkingSets: editorWorkingSets.set(previousHistoryItemGroupId, editorWorkingSet) });
 
@@ -136,6 +145,9 @@ export class SCMWorkingSetController extends Disposable implements IWorkbenchCon
 			workingSets.push({ providerKey, currentHistoryItemGroupId, editorWorkingSets: [...editorWorkingSets] });
 		}
 		this.storageService.store('scm.workingSets', JSON.stringify(workingSets), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		if (replacedWorkingSet) {
+			this.editorGroupsService.deleteWorkingSet(replacedWorkingSet);
+		}
 	}
 
 	private async _restoreWorkingSet(providerKey: string, currentHistoryItemGroupId: string): Promise<void> {

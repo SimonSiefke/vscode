@@ -18,7 +18,7 @@ import { isEmptyObject } from '../../../../base/common/types.js';
 import { DEFAULT_EDITOR_MIN_DIMENSIONS, DEFAULT_EDITOR_MAX_DIMENSIONS, IEditorPaneTitleMenu } from './editor.js';
 import { joinPath, IExtUri, isEqual } from '../../../../base/common/resources.js';
 import { indexOfPath } from '../../../../base/common/extpath.js';
-import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { ITextResourceConfigurationChangeEvent, ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
@@ -46,6 +46,8 @@ import { getWindowById } from '../../../../base/browser/dom.js';
  *
  * This class is only intended to be subclassed and not instantiated.
  */
+const disposedEditorGroups = new WeakSet<IEditorGroup>();
+
 export abstract class EditorPane<MementoType extends object = object> extends Composite<MementoType> implements IEditorPane {
 
 	//#region Events
@@ -61,6 +63,53 @@ export abstract class EditorPane<MementoType extends object = object> extends Co
 	//#endregion
 
 	private static readonly EDITOR_MEMENTOS = new Map<string, EditorMemento<unknown>>();
+	private static readonly PRESERVED_GROUP_STATES = new Map<GroupIdentifier, number>();
+
+	static preserveEditorGroupState(groupIds: ReadonlySet<GroupIdentifier>): IDisposable {
+		for (const id of groupIds) {
+			EditorPane.PRESERVED_GROUP_STATES.set(id, (EditorPane.PRESERVED_GROUP_STATES.get(id) ?? 0) + 1);
+		}
+
+		return toDisposable(() => {
+			for (const id of groupIds) {
+				const remaining = (EditorPane.PRESERVED_GROUP_STATES.get(id) ?? 1) - 1;
+				if (remaining > 0) {
+					EditorPane.PRESERVED_GROUP_STATES.set(id, remaining);
+				} else {
+					EditorPane.PRESERVED_GROUP_STATES.delete(id);
+				}
+			}
+
+			EditorPane.clearUnusedEditorGroupStates(groupIds);
+		});
+	}
+
+	static isEditorGroupStatePreserved(id: GroupIdentifier): boolean {
+		return EditorPane.PRESERVED_GROUP_STATES.has(id);
+	}
+
+	static clearEditorGroupState(group: IEditorGroup, preserveState = false): void {
+		if (disposedEditorGroups.has(group)) {
+			return;
+		}
+		disposedEditorGroups.add(group);
+
+		if (!preserveState) {
+			for (const memento of EditorPane.EDITOR_MEMENTOS.values()) {
+				memento.clearEditorGroupState(group.id);
+			}
+		}
+	}
+
+	static clearUnusedEditorGroupStates(groupIds: ReadonlySet<GroupIdentifier>): void {
+		if (groupIds.size === 0) {
+			return;
+		}
+
+		for (const memento of EditorPane.EDITOR_MEMENTOS.values()) {
+			memento.clearUnusedEditorGroupStates(groupIds);
+		}
+	}
 
 	get minimumWidth() { return DEFAULT_EDITOR_MIN_DIMENSIONS.width; }
 	get maximumWidth() { return DEFAULT_EDITOR_MAX_DIMENSIONS.width; }
@@ -267,7 +316,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 	saveEditorState(group: IEditorGroup, editor: EditorInput, state: T): void;
 	saveEditorState(group: IEditorGroup, resourceOrEditor: URI | EditorInput, state: T): void {
 		const resource = this.doGetResource(resourceOrEditor);
-		if (!resource || !group) {
+		if (!resource || !group || disposedEditorGroups.has(group)) {
 			return; // we are not in a good state to save any state for a resource
 		}
 
@@ -291,6 +340,39 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 		// Automatically clear when editor input gets disposed if any
 		if (isEditorInput(resourceOrEditor)) {
 			this.clearEditorStateOnDispose(resource, resourceOrEditor);
+		}
+	}
+
+	clearEditorGroupState(id: GroupIdentifier): void {
+		if (!this.hasRestorableGroupState(id)) {
+			this.deleteGroupStates([id]);
+		}
+	}
+
+	clearUnusedEditorGroupStates(groupIds: ReadonlySet<GroupIdentifier>): void {
+		const retiredIds = [...groupIds].filter(id => !this.editorGroupService.getGroup(id) && !this.hasRestorableGroupState(id));
+		if (retiredIds.length > 0) {
+			this.deleteGroupStates(retiredIds);
+		}
+	}
+
+	private hasRestorableGroupState(id: GroupIdentifier): boolean {
+		return EditorPane.isEditorGroupStatePreserved(id) || this.editorGroupService.hasSavedWorkingSetGroup?.(id) === true;
+	}
+
+	private deleteGroupStates(groupIds: readonly GroupIdentifier[]): void {
+		const cache = this.cache;
+		if (!cache) {
+			return;
+		}
+
+		for (const [resource, mementosForResource] of [...cache.entries()]) {
+			for (const id of groupIds) {
+				delete mementosForResource[id];
+			}
+			if (isEmptyObject(mementosForResource)) {
+				cache.delete(resource);
+			}
 		}
 	}
 
@@ -443,7 +525,7 @@ export class EditorMemento<T> extends Disposable implements IEditorMemento<T> {
 					continue; // skip over shared entries if sharing is enabled
 				}
 
-				if (!this.editorGroupService.getGroup(groupId)) {
+				if (!this.editorGroupService.getGroup(groupId) && !this.hasRestorableGroupState(groupId)) {
 					delete mapGroupToMementos[groupId];
 					if (isEmptyObject(mapGroupToMementos)) {
 						cache.delete(resource);

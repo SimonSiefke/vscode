@@ -12,7 +12,8 @@ import { ISerializedNode } from '../../../../base/browser/ui/grid/gridview.js';
 import { EditorGroupModel, isSerializedEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { deepClone } from '../../../../base/common/objects.js';
-import { EditorPart, IEditorPartUIState, MainEditorPart } from './editorPart.js';
+import { EditorPart, getSerializedEditorGroupIds, IEditorPartUIState, MainEditorPart } from './editorPart.js';
+import { EditorPane } from './editorPane.js';
 import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -102,11 +103,23 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		this.editorWorkingSets = (() => {
 			const workingSetsRaw = this.storageService.get(EditorParts.EDITOR_WORKING_SETS_STORAGE_KEY, StorageScope.WORKSPACE);
 			if (workingSetsRaw) {
-				return JSON.parse(workingSetsRaw);
+				const workingSets = JSON.parse(workingSetsRaw);
+				if (Array.isArray(workingSets)) {
+					return workingSets.filter(set => typeof set?.id === 'string');
+				}
 			}
 
 			return [];
 		})();
+		const savedGroupId = this.storageService.getNumber(EditorParts.EDITOR_WORKING_SET_GROUP_ID_STORAGE_KEY, StorageScope.WORKSPACE, -1);
+		if (Number.isSafeInteger(savedGroupId) && savedGroupId >= 0 && savedGroupId < Number.MAX_SAFE_INTEGER) {
+			this.lastWorkingSetGroupId = savedGroupId;
+		}
+		const hasStoredGroupId = this.lastWorkingSetGroupId >= 0;
+		this.updateSavedWorkingSetGroups();
+		if (hasStoredGroupId) {
+			EditorGroupModel.reserveId(this.lastWorkingSetGroupId);
+		}
 
 		const modalState = this.profileMemento[EditorParts.MODAL_EDITOR_STATE_STORAGE_KEY];
 		if (modalState) {
@@ -615,6 +628,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		// as part of the overall startup process.
 		await this.mainPart.whenReady;
 
+		// Older workspaces rely on the implicit ID of the initial main group.
+		// Reserve their saved IDs after that group has been created.
+		EditorGroupModel.reserveId(this.lastWorkingSetGroupId);
+
 		// Only attempt to restore auxiliary editor parts
 		// when the main part did restore. It is possible
 		// that restoring was not attempted because specific
@@ -739,6 +756,19 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	private async applyState(state: IEditorPartsUIState | 'empty', options?: { preserveFocus?: boolean }): Promise<boolean> {
+		if (state === 'empty') {
+			return this.doApplyState(state, options);
+		}
+
+		const preservedState = EditorPane.preserveEditorGroupState(getSerializedEditorGroupIds(state.auxiliary.map(part => part.state)));
+		try {
+			return await this.doApplyState(state, options);
+		} finally {
+			preservedState.dispose();
+		}
+	}
+
+	private async doApplyState(state: IEditorPartsUIState | 'empty', options?: { preserveFocus?: boolean }): Promise<boolean> {
 
 		// Before closing windows, try to close as many editors as
 		// possible, but skip over those that would trigger a dialog
@@ -750,11 +780,14 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 				continue; // main part takes care on its own and transient parts are managed by their owner
 			}
 
-			for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
-				await group.closeAllEditors({ excludeConfirming: true, force: true });
+			// Auxiliary parts own this preparation, including last-group auto-close.
+			if (!this.auxiliaryWindowService.getWindow(part.windowId)) {
+				for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
+					await group.closeAllEditors({ excludeConfirming: true, force: true });
+				}
 			}
 
-			const closed = (part as unknown as IAuxiliaryEditorPart).close(options); // will move remaining editors to main part
+			const closed = await (part as unknown as IAuxiliaryEditorPart).close(options); // will move remaining editors to main part
 			if (!closed) {
 				return false; // this indicates that closing was vetoed
 			}
@@ -773,8 +806,27 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	//#region Working Sets
 
 	private static readonly EDITOR_WORKING_SETS_STORAGE_KEY = 'editor.workingSets';
+	private static readonly EDITOR_WORKING_SET_GROUP_ID_STORAGE_KEY = 'editor.workingSets.lastGroupId';
 
 	private editorWorkingSets: IEditorWorkingSetState[];
+	private lastWorkingSetGroupId = -1;
+	private savedWorkingSetGroupIds = new Set<GroupIdentifier>();
+
+	hasSavedWorkingSetGroup(id: GroupIdentifier): boolean {
+		return this.savedWorkingSetGroupIds.has(id);
+	}
+
+	private updateSavedWorkingSetGroups(): void {
+		this.savedWorkingSetGroupIds = getSerializedEditorGroupIds(this.editorWorkingSets.flatMap(set => this.getWorkingSetLayouts(set)));
+		for (const id of this.savedWorkingSetGroupIds) {
+			this.lastWorkingSetGroupId = Math.max(this.lastWorkingSetGroupId, id);
+		}
+	}
+
+	private getWorkingSetLayouts(state: IEditorWorkingSetState): (IEditorPartUIState | undefined)[] {
+		const auxiliary = state?.auxiliary?.auxiliary;
+		return [state?.main, ...(Array.isArray(auxiliary) ? auxiliary.map(part => part?.state) : [])];
+	}
 
 	saveWorkingSet(name: string): IEditorWorkingSet {
 		const workingSet: IEditorWorkingSetState = {
@@ -866,12 +918,20 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	deleteWorkingSet(workingSet: IEditorWorkingSet): void {
-		const index = this.indexOfWorkingSet(workingSet);
-		if (typeof index === 'number') {
-			this.editorWorkingSets.splice(index, 1);
+		this.deleteWorkingSets([workingSet]);
+	}
 
-			this.saveWorkingSets();
+	deleteWorkingSets(workingSets: readonly IEditorWorkingSet[]): void {
+		const deletedIds = new Set(workingSets.map(workingSet => workingSet.id));
+		const remaining = this.editorWorkingSets.filter(workingSet => !deletedIds.has(workingSet.id));
+		if (remaining.length === this.editorWorkingSets.length) {
+			return;
 		}
+
+		const previousIds = this.savedWorkingSetGroupIds;
+		this.editorWorkingSets = remaining;
+		this.saveWorkingSets();
+		EditorPane.clearUnusedEditorGroupStates(new Set([...previousIds].filter(id => !this.savedWorkingSetGroupIds.has(id))));
 	}
 
 	private applyingWorkingSets = 0;
@@ -905,6 +965,15 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			return false;
 		}
 
+		const preservedState = workingSetState === 'empty' ? undefined : EditorPane.preserveEditorGroupState(getSerializedEditorGroupIds(this.getWorkingSetLayouts(workingSetState)));
+		try {
+			return await this.applyResolvedWorkingSet(workingSetState, options);
+		} finally {
+			preservedState?.dispose();
+		}
+	}
+
+	private async applyResolvedWorkingSet(workingSetState: IEditorWorkingSetState | 'empty', options?: IEditorWorkingSetOptions): Promise<boolean> {
 		// Applying removes the editors in place, so focus that is inside of an editor
 		// part would be lost: it is recovered afterwards if it ended up lost or still in an editor.
 		const isEditorFocus = () => this.parts.some(part => {
@@ -955,6 +1024,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	private saveWorkingSets(): void {
+		this.updateSavedWorkingSetGroups();
+		// Dormant editor mementos may still contain a removed working set's IDs on disk.
+		// Keep those IDs unavailable to unrelated new groups after restart.
+		this.storageService.store(EditorParts.EDITOR_WORKING_SET_GROUP_ID_STORAGE_KEY, this.lastWorkingSetGroupId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		this.storageService.store(EditorParts.EDITOR_WORKING_SETS_STORAGE_KEY, JSON.stringify(this.editorWorkingSets), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	}
 

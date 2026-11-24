@@ -560,9 +560,9 @@ export interface IAuxiliaryEditorPart extends IEditorPart {
 	 * @param options `preserveFocus` keeps the focus where it is instead of
 	 * moving it to the group that received the editors.
 	 *
-	 * @returns `false` if an editor could not be moved back.
+	 * @returns `false` if moving an editor or confirming the close was vetoed.
 	 */
-	close(options?: { preserveFocus?: boolean }): boolean;
+	close(options?: { preserveFocus?: boolean }): Promise<boolean>;
 }
 
 /**
@@ -901,6 +901,11 @@ export interface IEditorGroupsService extends IEditorGroupsContainer {
 	getWorkingSets(): IEditorWorkingSet[];
 
 	/**
+	 * Whether a saved working set can restore the group and its view state.
+	 */
+	hasSavedWorkingSetGroup?(id: GroupIdentifier): boolean;
+
+	/**
 	 * Applies the working set. Use `empty` to apply an empty working set.
 	 *
 	 * @returns `true` when the working set as applied.
@@ -929,6 +934,11 @@ export interface IEditorGroupsService extends IEditorGroupsContainer {
 	 * Deletes a working set.
 	 */
 	deleteWorkingSet(workingSet: IEditorWorkingSet): void;
+
+	/**
+	 * Deletes working sets in one storage update.
+	 */
+	deleteWorkingSets(workingSets: readonly IEditorWorkingSet[]): void;
 
 	/**
 	 * Registers a context key provider. This provider sets a context key for each scoped editor group context and the global context.
