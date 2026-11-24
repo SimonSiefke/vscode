@@ -9,7 +9,7 @@ import { EditorInputCapabilities, Verbosity, GroupIdentifier, ISaveOptions, IRev
 import { isEqual } from '../../../base/common/resources.js';
 import { ConfirmResult } from '../../../platform/dialogs/common/dialogs.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
-import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IDisposable, IReference, toDisposable } from '../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
 
 export interface IEditorCloseHandler {
@@ -59,6 +59,34 @@ export interface IUntypedEditorOptions {
  * Each editor input is mapped to an editor that is capable of opening it through the Platform facade.
  */
 export abstract class EditorInput extends AbstractEditorInput {
+
+	private references = 0;
+	private disposingReferences = false;
+	private didFireWillDispose = false;
+
+	/**
+	 * Holds this input alive until the returned reference is released. Open requests,
+	 * editor groups and composite inputs each hold their own reference. The final
+	 * release disposes the input; explicit disposal still invalidates all owners.
+	 */
+	acquire(): IReference<this> {
+		if (this.isDisposed() || this.disposingReferences) {
+			throw new Error('Cannot acquire a disposed editor input');
+		}
+
+		this.references++;
+		return Object.assign(toDisposable(() => {
+			if (--this.references === 0 && !this.isDisposed() && !this.disposingReferences) {
+				this.disposingReferences = true;
+				try {
+					this.dispose();
+				} finally {
+					// Subclasses can veto disposal and remain available to future owners.
+					this.disposingReferences = false;
+				}
+			}
+		}), { object: this });
+	}
 
 	protected readonly _onDidChangeDirty = this._register(new Emitter<void>());
 	protected readonly _onDidChangeLabel = this._register(new Emitter<void>());
@@ -373,7 +401,9 @@ export abstract class EditorInput extends AbstractEditorInput {
 	}
 
 	override dispose(): void {
-		if (!this.isDisposed()) {
+		this.disposingReferences = true;
+		if (!this.didFireWillDispose) {
+			this.didFireWillDispose = true;
 			this._onWillDispose.fire();
 		}
 

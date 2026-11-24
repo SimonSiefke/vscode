@@ -297,6 +297,9 @@ export interface IEditorGroupTitleHeight {
 
 export interface IEditorGroupViewOptions {
 
+	/** Reuse a live editor input while restoring a serialized group. */
+	readonly resolveRestoredEditor?: (groupId: GroupIdentifier, editor: EditorInput) => EditorInput;
+
 	/**
 	 * Whether the editor group should receive keyboard focus
 	 * after creation or not.

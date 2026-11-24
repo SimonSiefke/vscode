@@ -11,11 +11,11 @@ import { extname } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { EditorPart } from '../../../../browser/parts/editor/editorPart.js';
-import { DEFAULT_EDITOR_ASSOCIATION } from '../../../../common/editor.js';
+import { DEFAULT_EDITOR_ASSOCIATION, IUntypedEditorInput, isEditorInputWithOptionsAndGroup } from '../../../../common/editor.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { IExtensionService } from '../../../extensions/common/extensions.js';
 import { EditorResolverService } from '../../browser/editorResolverService.js';
-import { IEditorGroupsService } from '../../common/editorGroupsService.js';
+import { IEditorGroup, IEditorGroupsService } from '../../common/editorGroupsService.js';
 import { diffEditorsAssociationsAgentsWindowDefault, EditorInputFactoryObject, EditorMatchRuleSource, EditorMatches, IEditorResolverService, ResolvedStatus, RegisteredEditorPriority, diffEditorsAssociationsSettingId, editorsAssociationsAgentsWindowDefault, editorsAssociationsSettingId, markdownDefaultEditorAgentsWindowSettingId, MarkdownDefaultEditorMode } from '../../common/editorResolverService.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { createEditorPart, ITestInstantiationService, TestFileEditorInput, TestServiceAccessor, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -24,6 +24,14 @@ import { ConfigurationMigration, Extensions as WorkbenchExtensions, IConfigurati
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 
 suite('EditorResolverService', () => {
+	async function resolveEditor(service: IEditorResolverService, editor: IUntypedEditorInput, group: IEditorGroup | undefined) {
+		const result = await service.resolveEditor(editor, group);
+		if (isEditorInputWithOptionsAndGroup(result)) {
+			disposables.add(result.reference);
+		}
+		return result;
+	}
+
 	test('Agents window editor defaults use the Integrated Browser for HTML when available and follow the Markdown editor setting', () => {
 		assert.deepStrictEqual({
 			enabled: editorsAssociationsAgentsWindowDefault({ markdownDefaultEditor: 'on', integratedBrowserAvailable: true }),
@@ -178,7 +186,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const resultingResolution = await service.resolveEditor({ resource: URI.file('my://resource-basics.test') }, part.activeGroup);
+		const resultingResolution = await resolveEditor(service, { resource: URI.file('my://resource-basics.test') }, part.activeGroup);
 		assert.ok(resultingResolution);
 		assert.notStrictEqual(typeof resultingResolution, 'number');
 		if (resultingResolution !== ResolvedStatus.ABORT && resultingResolution !== ResolvedStatus.NONE) {
@@ -213,7 +221,7 @@ suite('EditorResolverService', () => {
 			}
 		));
 
-		const result = await service.resolveEditor({ resource, options: { override: editorId } }, part.activeGroup);
+		const result = await resolveEditor(service, { resource, options: { override: editorId } }, part.activeGroup);
 
 		assert.ok(result && result !== ResolvedStatus.ABORT && result !== ResolvedStatus.NONE);
 		assert.deepStrictEqual({
@@ -243,13 +251,13 @@ suite('EditorResolverService', () => {
 		);
 
 		// Untyped untitled - no resource
-		let resultingResolution = await service.resolveEditor({ resource: undefined }, part.activeGroup);
+		let resultingResolution = await resolveEditor(service, { resource: undefined }, part.activeGroup);
 		assert.ok(resultingResolution);
 		// We don't expect untitled to match the *.test glob
 		assert.strictEqual(typeof resultingResolution, 'number');
 
 		// Untyped untitled - with untitled resource
-		resultingResolution = await service.resolveEditor({ resource: URI.from({ scheme: Schemas.untitled, path: 'foo.test' }) }, part.activeGroup);
+		resultingResolution = await resolveEditor(service, { resource: URI.from({ scheme: Schemas.untitled, path: 'foo.test' }) }, part.activeGroup);
 		assert.ok(resultingResolution);
 		assert.notStrictEqual(typeof resultingResolution, 'number');
 		if (resultingResolution !== ResolvedStatus.ABORT && resultingResolution !== ResolvedStatus.NONE) {
@@ -258,7 +266,7 @@ suite('EditorResolverService', () => {
 		}
 
 		// Untyped untitled - file resource with forceUntitled
-		resultingResolution = await service.resolveEditor({ resource: URI.file('/fake.test'), forceUntitled: true }, part.activeGroup);
+		resultingResolution = await resolveEditor(service, { resource: URI.file('/fake.test'), forceUntitled: true }, part.activeGroup);
 		assert.ok(resultingResolution);
 		assert.notStrictEqual(typeof resultingResolution, 'number');
 		if (resultingResolution !== ResolvedStatus.ABORT && resultingResolution !== ResolvedStatus.NONE) {
@@ -297,7 +305,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const resultingResolution = await service.resolveEditor({
+		const resultingResolution = await resolveEditor(service, {
 			primary: { resource: URI.file('my://resource-basics.test-primary') },
 			secondary: { resource: URI.file('my://resource-basics.test-secondary') }
 		}, part.activeGroup);
@@ -337,7 +345,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const resultingResolution = await service.resolveEditor({
+		const resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-diff') },
 			modified: { resource: URI.file('my://resource-basics.test-diff') }
 		}, part.activeGroup);
@@ -399,7 +407,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const resultingResolution = await service.resolveEditor({
+		const resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('resource-basics.test-diff-association') },
 			modified: { resource: URI.file('resource-basics.test-diff-association') }
 		}, part.activeGroup);
@@ -468,7 +476,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const diffResolution = await service.resolveEditor({
+		const diffResolution = await resolveEditor(service, {
 			original: { resource: URI.file('resource-basics.test-diff-association') },
 			modified: { resource: URI.file('resource-basics.test-diff-association') }
 		}, part.activeGroup);
@@ -482,7 +490,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		const editorResolution = await service.resolveEditor({ resource: URI.file('resource-basics.test-diff-association') }, part.activeGroup);
+		const editorResolution = await resolveEditor(service, { resource: URI.file('resource-basics.test-diff-association') }, part.activeGroup);
 		assert.ok(editorResolution);
 		assert.notStrictEqual(typeof editorResolution, 'number');
 		if (editorResolution !== ResolvedStatus.ABORT && editorResolution !== ResolvedStatus.NONE) {
@@ -548,7 +556,7 @@ suite('EditorResolverService', () => {
 		);
 
 		// The text-mode association does not opt the editor into diff mode.
-		const diffResolution = await service.resolveEditor({
+		const diffResolution = await resolveEditor(service, {
 			original: { resource: URI.file('resource-basics.test-explicit-diff') },
 			modified: { resource: URI.file('resource-basics.test-explicit-diff') }
 		}, part.activeGroup);
@@ -562,7 +570,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		const editorResolution = await service.resolveEditor({ resource: URI.file('resource-basics.test-explicit-diff') }, part.activeGroup);
+		const editorResolution = await resolveEditor(service, { resource: URI.file('resource-basics.test-explicit-diff') }, part.activeGroup);
 		assert.ok(editorResolution);
 		assert.notStrictEqual(typeof editorResolution, 'number');
 		if (editorResolution !== ResolvedStatus.ABORT && editorResolution !== ResolvedStatus.NONE) {
@@ -627,7 +635,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		const diffResolution = await service.resolveEditor({
+		const diffResolution = await resolveEditor(service, {
 			original: { resource: URI.file('resource-basics.test-explicit-diff') },
 			modified: { resource: URI.file('resource-basics.test-explicit-diff') }
 		}, part.activeGroup);
@@ -767,7 +775,7 @@ suite('EditorResolverService', () => {
 			}
 		);
 
-		let resultingResolution = await service.resolveEditor({
+		let resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-diff') },
 			modified: { resource: URI.file('my://resource-basics.test-diff') }
 		}, part.activeGroup);
@@ -783,7 +791,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		resultingResolution = await service.resolveEditor({
+		resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-secondDiff') },
 			modified: { resource: URI.file('my://resource-basics.test-secondDiff') }
 		}, part.activeGroup);
@@ -799,7 +807,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		resultingResolution = await service.resolveEditor({
+		resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-secondDiff') },
 			modified: { resource: URI.file('my://resource-basics.test-diff') }
 		}, part.activeGroup);
@@ -815,7 +823,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		resultingResolution = await service.resolveEditor({
+		resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-diff') },
 			modified: { resource: URI.file('my://resource-basics.test-secondDiff') }
 		}, part.activeGroup);
@@ -831,7 +839,7 @@ suite('EditorResolverService', () => {
 			assert.fail();
 		}
 
-		resultingResolution = await service.resolveEditor({
+		resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test-secondDiff') },
 			modified: { resource: URI.file('my://resource-basics.test-diff') },
 			options: { override: 'TEST_EDITOR' }
@@ -980,10 +988,10 @@ suite('EditorResolverService', () => {
 			createEditorInput: ({ resource }) => ({ editor: new TestFileEditorInput(resource, 'test.fileOnlyInput') })
 		}));
 
-		const fileResult = await service.resolveEditor({ resource: URI.file('/workspace/index.html') }, part.activeGroup);
+		const fileResult = await resolveEditor(service, { resource: URI.file('/workspace/index.html') }, part.activeGroup);
 		const remoteResource = URI.parse('vscode-remote://host/workspace/index.html');
 		const remoteCandidates = service.getEditors(remoteResource).map(editor => editor.id);
-		const remoteResult = await service.resolveEditor({ resource: remoteResource }, part.activeGroup);
+		const remoteResult = await resolveEditor(service, { resource: remoteResource }, part.activeGroup);
 		assert.ok(fileResult !== ResolvedStatus.ABORT && fileResult !== ResolvedStatus.NONE);
 		assert.ok(remoteResult !== ResolvedStatus.ABORT && remoteResult !== ResolvedStatus.NONE);
 
@@ -1510,7 +1518,7 @@ suite('EditorResolverService', () => {
 		);
 
 		// Resolve a diff
-		let resultingResolution = await service.resolveEditor({
+		let resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test') },
 			modified: { resource: URI.file('my://resource-basics.test') }
 		}, part.activeGroup);
@@ -1527,7 +1535,7 @@ suite('EditorResolverService', () => {
 		registeredDiffEditor.dispose();
 
 		// Resolve a diff again, expected failure
-		resultingResolution = await service.resolveEditor({
+		resultingResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource-basics.test') },
 			modified: { resource: URI.file('my://resource-basics.test') }
 		}, part.activeGroup);
@@ -1587,7 +1595,7 @@ suite('EditorResolverService', () => {
 		);
 
 		// Resolve a .md file - should use the custom editor due to user association
-		const resultingResolution = await editorResolverService.resolveEditor(
+		const resultingResolution = await resolveEditor(editorResolverService,
 			{ resource: URI.file('test.md') },
 			part.activeGroup
 		);
@@ -1639,6 +1647,7 @@ suite('EditorResolverService', () => {
 			assert.fail(`Expected editor to resolve, got ${result}`);
 		}
 		disposables.add(result.editor);
+		disposables.add(result.reference);
 		assert.deepStrictEqual({ typeId: result.editor.typeId, override: result.options?.override }, { typeId: 'testCustomMarkdownEditorInput', override: 'CUSTOM_MD_EDITOR' });
 	});
 
@@ -1672,7 +1681,7 @@ suite('EditorResolverService', () => {
 		);
 
 		// Regular editor should use custom editor (priority.editor: default)
-		const editorResolution = await service.resolveEditor({ resource: URI.file('my://resource.test-diff-priority') }, part.activeGroup);
+		const editorResolution = await resolveEditor(service, { resource: URI.file('my://resource.test-diff-priority') }, part.activeGroup);
 		assert.ok(editorResolution);
 		assert.notStrictEqual(typeof editorResolution, 'number');
 		if (editorResolution !== ResolvedStatus.ABORT && editorResolution !== ResolvedStatus.NONE) {
@@ -1683,7 +1692,7 @@ suite('EditorResolverService', () => {
 		}
 
 		// Diff editor should NOT use custom editor (priority.diff: option)
-		const diffResolution = await service.resolveEditor({
+		const diffResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource.test-diff-priority') },
 			modified: { resource: URI.file('my://resource.test-diff-priority') }
 		}, part.activeGroup);
@@ -1724,7 +1733,7 @@ suite('EditorResolverService', () => {
 		);
 
 		// Diff editor should use custom editor since string priority expands to priority.diff: default
-		const diffResolution = await service.resolveEditor({
+		const diffResolution = await resolveEditor(service, {
 			original: { resource: URI.file('my://resource.test-no-diff-priority') },
 			modified: { resource: URI.file('my://resource.test-no-diff-priority') }
 		}, part.activeGroup);

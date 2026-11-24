@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
 import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Schemas, matchesScheme } from '../../../../base/common/network.js';
@@ -968,67 +969,71 @@ function registerCloseEditorCommands() {
 		const editorPicker = accessor.get(IInstantiationService).createInstance(OpenWithEditorPicker);
 
 		const resolvedContext = resolveCommandsContext(args, editorService, accessor.get(IEditorGroupsService), accessor.get(IListService));
-		const editorReplacements = new Map<IEditorGroup, IEditorReplacement[]>();
+		const references = new DisposableStore();
+		try {
+			const editorReplacements = new Map<IEditorGroup, IEditorReplacement[]>();
 
-		for (const { group, editors } of resolvedContext.groupedEditors) {
-			for (const editor of editors) {
-				const isDiffEditor = isDiffEditorInput(editor);
-				const editorToResolve = isDiffEditor ? editor.modified : editor;
-				const untypedEditor = isDiffEditor ? editor.toUntyped() : editorToResolve.toUntyped();
-				if (!untypedEditor) {
-					return; // Resolver can only resolve untyped editors
-				}
+			for (const { group, editors } of resolvedContext.groupedEditors) {
+				for (const editor of editors) {
+					const isDiffEditor = isDiffEditorInput(editor);
+					const editorToResolve = isDiffEditor ? editor.modified : editor;
+					const untypedEditor = isDiffEditor ? editor.toUntyped() : editorToResolve.toUntyped();
+					if (!untypedEditor) {
+						return; // Resolver can only resolve untyped editors
+					}
 
-				const options = fillActiveEditorSelection(group, editor, {
-					...untypedEditor.options,
-					...(group.activeEditor === editor ? group.activeEditorPane?.options : undefined),
-					override: editorOverride
-				});
-				const resolvedOptions = editorOverride === undefined ? await editorPicker.pick({ ...untypedEditor, options }) : options;
-				if (!resolvedOptions) {
-					return; // Picker was cancelled
-				}
+					const options = fillActiveEditorSelection(group, editor, {
+						...untypedEditor.options,
+						...(group.activeEditor === editor ? group.activeEditorPane?.options : undefined),
+						override: editorOverride
+					});
+					const resolvedOptions = editorOverride === undefined ? await editorPicker.pick({ ...untypedEditor, options }) : options;
+					if (!resolvedOptions) {
+						return; // Picker was cancelled
+					}
 
-				untypedEditor.options = resolvedOptions;
-				const resolvedEditor = await editorResolverService.resolveEditor(untypedEditor, group);
-				if (!isEditorInputWithOptionsAndGroup(resolvedEditor)) {
-					return;
-				}
+					untypedEditor.options = resolvedOptions;
+					const resolvedEditor = await editorResolverService.resolveEditor(untypedEditor, group);
+					if (!isEditorInputWithOptionsAndGroup(resolvedEditor)) {
+						return;
+					}
 
-				let editorReplacementsInGroup = editorReplacements.get(group);
-				if (!editorReplacementsInGroup) {
-					editorReplacementsInGroup = [];
-					editorReplacements.set(group, editorReplacementsInGroup);
-				}
+					references.add(resolvedEditor.reference);
 
-				// Force replace when closing the editor without saving cannot
-				// lose data. This is the case when the dirty state lives in a
-				// working copy whose lifetime is independent of the editor:
-				// `TextFileEditorModel`s and `UntitledTextEditorModel`s are
-				// kept alive while dirty by their owning service.
-				//
-				// This way switching between a text editor and a text-document
-				// based custom editor (such as the Markdown preview) for the
-				// same resource does not trigger a save dialog.
-				//
-				// Custom-document custom editors (e.g. hex editors) maintain
-				// their dirty state in a working copy whose lifetime is tied
-				// to the editor input, so we must not skip the save prompt
-				// for those — detect this by looking for any dirty working
-				// copy that backs this editor at a different resource.
-				const resource = editorToResolve.resource;
-				let forceReplaceDirty = !!resource && (resource.scheme === Schemas.untitled || textFileService.isDirty(resource));
-				if (forceReplaceDirty && editorToResolve.isDirty()) {
-					for (const workingCopy of workingCopyService.dirtyWorkingCopies) {
-						if (isEqual(workingCopy.resource, resource)) {
-							continue; // working copy at the editor's own resource is text-based and survives close
-						}
-						if (workingCopyEditorService.findEditor(workingCopy)?.editor === editorToResolve) {
-							forceReplaceDirty = false;
-							break;
+					let editorReplacementsInGroup = editorReplacements.get(group);
+					if (!editorReplacementsInGroup) {
+						editorReplacementsInGroup = [];
+						editorReplacements.set(group, editorReplacementsInGroup);
+					}
+
+					// Force replace when closing the editor without saving cannot
+					// lose data. This is the case when the dirty state lives in a
+					// working copy whose lifetime is independent of the editor:
+					// `TextFileEditorModel`s and `UntitledTextEditorModel`s are
+					// kept alive while dirty by their owning service.
+					//
+					// This way switching between a text editor and a text-document
+					// based custom editor (such as the Markdown preview) for the
+					// same resource does not trigger a save dialog.
+					//
+					// Custom-document custom editors (e.g. hex editors) maintain
+					// their dirty state in a working copy whose lifetime is tied
+					// to the editor input, so we must not skip the save prompt
+					// for those — detect this by looking for any dirty working
+					// copy that backs this editor at a different resource.
+					const resource = editorToResolve.resource;
+					let forceReplaceDirty = !!resource && (resource.scheme === Schemas.untitled || textFileService.isDirty(resource));
+					if (forceReplaceDirty && editorToResolve.isDirty()) {
+						for (const workingCopy of workingCopyService.dirtyWorkingCopies) {
+							if (isEqual(workingCopy.resource, resource)) {
+								continue; // working copy at the editor's own resource is text-based and survives close
+							}
+							if (workingCopyEditorService.findEditor(workingCopy)?.editor === editorToResolve) {
+								forceReplaceDirty = false;
+								break;
+							}
 						}
 					}
-				}
 
 				editorReplacementsInGroup.push({
 					editor: editor,
@@ -1063,13 +1068,16 @@ function registerCloseEditorCommands() {
 					to: getEditorTelemetryId(resolvedEditor.editor.editorId),
 					untitledDocumentId: untitledDocumentTelemetryService.getUntitledDocumentId(editorToResolve.resource),
 				});
+				}
 			}
-		}
 
-		// Replace editor with resolved one and make active
-		for (const [group, replacements] of editorReplacements) {
-			await group.replaceEditors(replacements);
-			await group.openEditor(replacements[0].replacement);
+			// Replace editor with resolved one and make active
+			for (const [group, replacements] of editorReplacements) {
+				await group.replaceEditors(replacements);
+				await group.openEditor(replacements[0].replacement);
+			}
+		} finally {
+			references.dispose();
 		}
 	}
 

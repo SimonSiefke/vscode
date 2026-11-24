@@ -76,7 +76,14 @@ export class SideBySideEditorInput extends EditorInput implements ISideBySideEdi
 	) {
 		super();
 
-		this.hasIdenticalSides = this.primary.matches(this.secondary);
+		try {
+			this._register(this.primary.acquire());
+			this._register(this.secondary.acquire());
+			this.hasIdenticalSides = this.primary.matches(this.secondary);
+		} catch (error) {
+			super.dispose();
+			throw error;
+		}
 
 		this.registerListeners();
 	}

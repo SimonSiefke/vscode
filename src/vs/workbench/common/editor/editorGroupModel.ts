@@ -49,6 +49,10 @@ export interface ISerializedEditorGroupModel {
 	sticky?: number;
 }
 
+interface IEditorGroupModelRestoreState extends ISerializedEditorGroupModel {
+	readonly resolveRestoredEditor?: (editor: EditorInput) => EditorInput;
+}
+
 export function isSerializedEditorGroupModel(group?: unknown): group is ISerializedEditorGroupModel {
 	const candidate = group as ISerializedEditorGroupModel | undefined;
 
@@ -217,14 +221,24 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 	private focusRecentEditorAfterClose: boolean | undefined;
 
 	constructor(
-		labelOrSerializedGroup: ISerializedEditorGroupModel | undefined,
+		labelOrSerializedGroup: IEditorGroupModelRestoreState | undefined,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IConfigurationService private readonly configurationService: IConfigurationService
 	) {
 		super();
 
 		if (isSerializedEditorGroupModel(labelOrSerializedGroup)) {
-			this._id = this.deserialize(labelOrSerializedGroup);
+			try {
+				this._id = this.deserialize(labelOrSerializedGroup);
+			} catch (error) {
+				this.dispose();
+				for (const editor of this.editors) {
+					if (!editor.isDisposed()) {
+						editor.acquire().dispose();
+					}
+				}
+				throw error;
+			}
 		} else {
 			this._id = EditorGroupModel.IDS++;
 		}
@@ -1215,7 +1229,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 		};
 	}
 
-	private deserialize(data: ISerializedEditorGroupModel): number {
+	private deserialize(data: IEditorGroupModelRestoreState): number {
 		const registry = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
 
 		if (typeof data.id === 'number') {
@@ -1230,14 +1244,18 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 			this.locked = true;
 		}
 
-		this.editors = coalesce(data.editors.map((e, index) => {
+		for (const [index, e] of data.editors.entries()) {
 			let editor: EditorInput | undefined;
 
 			const editorSerializer = registry.getEditorSerializer(e.id);
 			if (editorSerializer) {
 				const deserializedEditor = editorSerializer.deserialize(this.instantiationService, e.value);
 				if (deserializedEditor instanceof EditorInput) {
-					editor = deserializedEditor;
+					editor = data.resolveRestoredEditor?.(deserializedEditor) ?? deserializedEditor;
+					if (editor !== deserializedEditor && !this.editors.includes(deserializedEditor)) {
+						deserializedEditor.acquire().dispose();
+					}
+					this.editors.push(editor);
 					this.registerEditorListeners(editor);
 				}
 			}
@@ -1245,9 +1263,7 @@ export class EditorGroupModel extends Disposable implements IEditorGroupModel {
 			if (!editor && typeof data.sticky === 'number' && index <= data.sticky) {
 				data.sticky--; // if editor cannot be deserialized but was sticky, we need to decrease sticky index
 			}
-
-			return editor;
-		}));
+		}
 
 		this.mru = coalesce(data.mru.map(i => this.editors[i]));
 

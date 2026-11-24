@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/searchEditor.css';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { basename } from '../../../../base/common/path.js';
 import { extname, isEqual, joinPath } from '../../../../base/common/resources.js';
@@ -127,7 +128,13 @@ export class SearchEditorInput extends EditorInput {
 			revert(options?: IRevertOptions): Promise<void> { return input.revert(0, options); }
 		};
 
-		this._register(this.workingCopyService.registerWorkingCopy(workingCopyAdapter));
+		try {
+			this._register(this.workingCopyService.registerWorkingCopy(workingCopyAdapter));
+		} catch (error) {
+			// A failed reconstruction must not destroy an existing input's shared model.
+			super.dispose();
+			throw error;
+		}
 	}
 
 	override async save(group: GroupIdentifier, options?: ITextFileSaveOptions): Promise<EditorInput | undefined> {
@@ -193,12 +200,18 @@ export class SearchEditorInput extends EditorInput {
 			const toWrite = await this.serializeForDisk();
 			if (await this.textFileService.create([{ resource: path, value: toWrite, options: { overwrite: true } }])) {
 				this.setDirty(false);
-				if (!isEqual(path, this.modelUri)) {
-					const input = this.instantiationService.invokeFunction(getOrMakeSearchEditorInput, { fileUri: path, from: 'existingFile' });
-					input.setMatchRanges(this.getMatchRanges());
-					return input;
+				if (isEqual(path, this.backingUri) || isEqual(path, this.modelUri)) {
+					return this;
 				}
-				return this;
+
+				const input = this.instantiationService.invokeFunction(getOrMakeSearchEditorInput, { fileUri: path, from: 'existingFile' });
+				try {
+					await input.setMatchRanges(this.getMatchRanges());
+				} catch (error) {
+					input.dispose();
+					throw error;
+				}
+				return input;
 			}
 		}
 		return undefined;
@@ -242,8 +255,9 @@ export class SearchEditorInput extends EditorInput {
 	}
 
 	override dispose() {
-		this.model.dispose();
-		this.modelService.destroyModel(this.modelUri);
+		if (this.model.dispose()) {
+			this.modelService.destroyModel(this.modelUri);
+		}
 		super.dispose();
 	}
 
@@ -266,8 +280,17 @@ export class SearchEditorInput extends EditorInput {
 	}
 
 	async setMatchRanges(ranges: Range[]) {
-		this.oldDecorationsIDs = (await this.resolveModels()).resultsModel.deltaDecorations(this.oldDecorationsIDs, ranges.map(range =>
-		({ range, options: { description: 'search-editor-find-match', className: SearchEditorFindMatchClass, stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges } })));
+		try {
+			const { resultsModel } = await this.resolveModels();
+			if (!resultsModel.isDisposed()) {
+				this.oldDecorationsIDs = resultsModel.deltaDecorations(this.oldDecorationsIDs, ranges.map(range =>
+				({ range, options: { description: 'search-editor-find-match', className: SearchEditorFindMatchClass, stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges } })));
+			}
+		} catch (error) {
+			if (!this.isDisposed() || !isCancellationError(error)) {
+				throw error;
+			}
+		}
 	}
 
 	override async revert(group: GroupIdentifier, options?: IRevertOptions) {

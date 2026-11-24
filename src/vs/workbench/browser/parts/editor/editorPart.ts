@@ -1678,42 +1678,86 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	private async doApplyState(state: IEditorPartUIState, options?: IEditorGroupViewOptions): Promise<void> {
 		const groups = await this.doPrepareApplyState();
+		const retainedByGroup = new Map(groups.map(group => [group.id, group.editors]));
+		const retainedEditors = new Set(Array.from(retainedByGroup.values()).flat());
 
-		// Pause add/remove events for groups during the duration of applying the state
-		// This ensures that we can do this transition atomically with the new state
-		// being ready when the events are fired. This is important because usually there
-		// is never the state where no groups are present, but for this transition we
-		// need to temporarily dispose all groups to restore the new set.
-
-		this._onDidAddGroup.pause();
-		this._onDidRemoveGroup.pause();
-
-		this.disposeGroups();
-
-		// MRU
-		this.mostRecentActiveGroups = state.mostRecentActiveGroups;
-
-		// Grid Widget
+		const references = new DisposableStore();
 		try {
-			this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, options);
-		} finally {
-			// It is very important to keep this order: first resume the events for
-			// removed groups and then for added groups. Many listeners may store
-			// groups in sets by their identifier and groups can have the same
-			// identifier before and after.
-			this._onDidRemoveGroup.resume();
-			this._onDidAddGroup.resume();
-		}
+			for (const editor of retainedEditors) {
+				references.add(editor.acquire());
+			}
 
-		// Restore editors that were not closed before and are now opened now
-		await this.activeGroup.openEditors(
-			groups
-				.flatMap(group => group.editors)
-				.filter(editor => this.editorPartsView.groups.every(groupView => !groupView.contains(editor)))
-				.map(editor => ({
-					editor, options: { pinned: true, preserveFocus: true, inactive: true }
-				}))
-		);
+			// Pause add/remove events for groups during the duration of applying the state
+			// This ensures that we can do this transition atomically with the new state
+			// being ready when the events are fired. This is important because usually there
+			// is never the state where no groups are present, but for this transition we
+			// need to temporarily dispose all groups to restore the new set.
+
+			this._onDidAddGroup.pause();
+			this._onDidRemoveGroup.pause();
+
+			this.disposeGroups();
+
+			// MRU
+			this.mostRecentActiveGroups = state.mostRecentActiveGroups;
+
+			// Grid Widget
+			let restoreFailure: { error: unknown } | undefined;
+			try {
+				this.doApplyGridState(state.serializedGrid, state.activeGroup, undefined, {
+					...options,
+					resolveRestoredEditor: (groupId, editor) => {
+						const editorFromGroup = retainedByGroup.get(groupId)?.find(candidate => editor.matches(candidate));
+						if (editorFromGroup) {
+							return editorFromGroup;
+						}
+
+						const matches = Array.from(retainedEditors).filter(candidate => editor.matches(candidate));
+						return matches.length === 1 ? matches[0] : editor;
+					}
+				});
+			} catch (error) {
+				restoreFailure = { error };
+
+				// Discard partially restored groups and give the preserved dirty
+				// editors a live group before releasing their temporary references.
+				this.disposeGroups();
+				const initialGroup = this.doCreateGroupView();
+				this.doSetGridWidget(new SerializableGrid(initialGroup));
+				this.doSetGroupActive(initialGroup);
+				if (this._contentDimension) {
+					this.doLayout(this._contentDimension);
+				}
+				this.updateContainer();
+				this._onDidAddGroup.fire(initialGroup);
+				this.notifyGroupIndexChange();
+			} finally {
+				// It is very important to keep this order: first resume the events for
+				// removed groups and then for added groups. Many listeners may store
+				// groups in sets by their identifier and groups can have the same
+				// identifier before and after.
+				this._onDidRemoveGroup.resume();
+				this._onDidAddGroup.resume();
+			}
+
+			// Recover retained editors that were not adopted by a restored group.
+			for (const editor of retainedEditors) {
+				if (this.editorPartsView.groups.some(group => group.contains(editor, { strictEquals: true }))) {
+					continue;
+				}
+
+				const group = this.activeGroup.contains(editor)
+					? this.groups.find(group => !group.contains(editor)) ?? this.addGroup(this.activeGroup, GroupDirection.RIGHT)
+					: this.activeGroup;
+				await group.openEditor(editor, { pinned: true, preserveFocus: true, inactive: true });
+			}
+
+			if (restoreFailure) {
+				throw restoreFailure.error;
+			}
+		} finally {
+			references.dispose();
+		}
 	}
 
 	private async doApplyEmptyState(): Promise<void> {

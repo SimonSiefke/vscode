@@ -251,10 +251,14 @@ CommandsRegistry.registerCommand(CONFIGURE_DEFAULT_EDITOR_COMMAND_ID, async (acc
 		return;
 	}
 
-	// Replace the current editor with the picked one
-	await group.replaceEditors([{
-		editor: currentEditor,
-		replacement: replacementEditor.editor,
-		options: replacementEditor.options ?? picked
-	}]);
+	try {
+		// Replace the current editor with the picked one
+		await group.replaceEditors([{
+			editor: currentEditor,
+			replacement: replacementEditor.editor,
+			options: replacementEditor.options ?? picked
+		}]);
+	} finally {
+		replacementEditor.reference.dispose();
+	}
 });

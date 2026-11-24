@@ -13,6 +13,7 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { DEFAULT_EDITOR_ASSOCIATION, IResourceDiffEditorInput, IResourceMergeEditorInput, IResourceSideBySideEditorInput, isEditorInput, isResourceDiffEditorInput, isResourceEditorInput, isResourceMergeEditorInput, isResourceSideBySideEditorInput, isUntitledResourceEditorInput, IUntitledTextResourceEditorInput } from '../../../../common/editor.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { TextResourceEditorInput } from '../../../../common/editor/textResourceEditorInput.js';
 import { FileEditorInput } from '../../../../contrib/files/browser/editors/fileEditorInput.js';
 import { MergeEditorInput, MergeEditorInputData } from '../../../../contrib/mergeEditor/browser/mergeEditorInput.js';
@@ -112,6 +113,62 @@ suite('EditorInput', () => {
 
 		input.dispose();
 		assert.strictEqual(counter, 1);
+	});
+
+	test('references keep an input alive until the final owner releases it', () => {
+		const input = disposables.add(new MyEditorInput());
+		const opener = disposables.add(input.acquire());
+		const group = disposables.add(input.acquire());
+		const split = disposables.add(input.acquire());
+		opener.dispose();
+		group.dispose();
+		assert.strictEqual(input.isDisposed(), false);
+		split.dispose();
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('releasing a reference twice does not release another owner', () => {
+		const input = disposables.add(new MyEditorInput());
+		const first = disposables.add(input.acquire());
+		const second = disposables.add(input.acquire());
+		first.dispose();
+		first.dispose();
+		assert.strictEqual(input.isDisposed(), false);
+		second.dispose();
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('explicit disposal invalidates an input while references remain', () => {
+		const input = disposables.add(new MyEditorInput());
+		const reference = disposables.add(input.acquire());
+		let disposed = 0;
+		disposables.add(input.onWillDispose(() => { disposed++; }));
+		input.dispose();
+		reference.dispose();
+		assert.strictEqual(disposed, 1);
+		assert.throws(() => input.acquire());
+	});
+
+	test('the final release prevents acquiring an input during subclass teardown', () => {
+		const input = disposables.add(new class extends MyEditorInput {
+			override dispose(): void {
+				assert.throws(() => this.acquire());
+				super.dispose();
+			}
+		});
+		disposables.add(input.acquire()).dispose();
+		assert.strictEqual(input.isDisposed(), true);
+	});
+
+	test('failed side by side construction releases previously acquired children', () => {
+		const primary = disposables.add(new MyEditorInput());
+		const secondary = disposables.add(new MyEditorInput());
+		const caller = disposables.add(primary.acquire());
+		secondary.dispose();
+		assert.throws(() => instantiationService.createInstance(SideBySideEditorInput, undefined, undefined, secondary, primary));
+		assert.strictEqual(primary.isDisposed(), false);
+		caller.dispose();
+		assert.strictEqual(primary.isDisposed(), true);
 	});
 
 	test('untyped matches', () => {

@@ -1754,7 +1754,12 @@ export class GridView implements IDisposable {
 		const height = json.height;
 
 		const result = new GridView(options);
-		result._deserialize(json.root, orientation, deserializer, height);
+		try {
+			result._deserialize(json.root, orientation, deserializer, height);
+		} catch (error) {
+			result.dispose();
+			throw error;
+		}
 
 		return result;
 	}
@@ -1767,14 +1772,21 @@ export class GridView implements IDisposable {
 		let result: Node;
 		if (node.type === 'branch') {
 			const serializedChildren = node.data;
-			const children = serializedChildren.map(serializedChild => {
-				return {
-					node: this._deserializeNode(serializedChild, orthogonal(orientation), deserializer, node.size),
-					visible: (serializedChild as { visible?: boolean }).visible
-				} satisfies INodeDescriptor;
-			});
-
-			result = new BranchNode(orientation, this.layoutController, this.styles, this.proportionalLayout, node.size, orthogonalSize, undefined, children);
+			const children: INodeDescriptor[] = [];
+			try {
+				for (const serializedChild of serializedChildren) {
+					children.push({
+						node: this._deserializeNode(serializedChild, orthogonal(orientation), deserializer, node.size),
+						visible: (serializedChild as { visible?: boolean }).visible
+					});
+				}
+				result = new BranchNode(orientation, this.layoutController, this.styles, this.proportionalLayout, node.size, orthogonalSize, undefined, children);
+			} catch (error) {
+				for (const child of children) {
+					child.node.dispose();
+				}
+				throw error;
+			}
 		} else {
 			result = new LeafNode(deserializer.fromJSON(node.data), orientation, this.layoutController, orthogonalSize, node.size);
 			if (node.maximized && !this.maximizedNode) {
