@@ -12374,7 +12374,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 					upcastPartial<IUriIdentityService>({ extUri: extUriIgnorePathCase }),
 				));
 				visibility.setActive(first);
-				const originalPane = visibility.activeSession.get();
+				const originalPane = visibility.activePane.get();
 				disposables.add(provider.onDidChangeSessions(event => visibility.removeMany(event.removed.map(session => session.sessionId))));
 				disposables.add(provider.onDidReplaceSession(({ from, to }) => visibility.updateSession(from, to)));
 				const deletion = provider.deleteSessions([first.sessionId, second.sessionId]).then(() => undefined, error => error);
@@ -12388,11 +12388,11 @@ suite('LocalAgentHostSessionsProvider', () => {
 				assert.strictEqual(error?.message, rejectSecond ? 'second deletion rejected' : undefined);
 				await timeout(100);
 
-				const active = visibility.activeSession.get();
+				const active = visibility.activePane.get()?.session.get();
 				assert.strictEqual(active, undefined, 'the deleted original pane must close instead of wrapping its disposed facade');
 				visibility.setActive(replacement);
-				assert.notStrictEqual(visibility.activeSession.get(), originalPane);
-				assert.strictEqual(visibility.activeSession.get()?.title.get(), 'Replacement');
+				assert.notStrictEqual(visibility.activePane.get(), originalPane);
+				assert.strictEqual(visibility.activePane.get()?.session.get()?.title.get(), 'Replacement');
 				assert.deepStrictEqual({
 					deleted: changes.flatMap(event => event.deleted?.map(session => session.sessionId) ?? []),
 					removedFirst: changes.some(event => event.removed.includes(first)),
