@@ -93,6 +93,9 @@ export class SearchService implements IRawSearchService {
 	}
 
 	doFileSearchWithEngine(EngineClass: { new(config: IFileQuery, numThreads?: number | undefined): ISearchEngine<IRawFileMatch> }, config: IFileQuery, progressCallback: IProgressCallback, token?: CancellationToken, batchSize = SearchService.BATCH_SIZE, threads?: number): Promise<ISerializedSearchSuccess> {
+		if (token?.isCancellationRequested) {
+			return Promise.reject(canceled());
+		}
 		let resultCount = 0;
 		const fileProgressCallback: IFileProgressCallback = progress => {
 			if (Array.isArray(progress)) {
