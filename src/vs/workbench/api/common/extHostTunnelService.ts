@@ -88,6 +88,7 @@ export class ExtHostTunnelService extends Disposable implements IExtHostTunnelSe
 		const tunnel = await this._proxy.$openTunnel(forward, extension.displayName);
 		if (tunnel) {
 			const disposableTunnel: vscode.Tunnel = new ExtensionTunnel(tunnel.remoteAddress, tunnel.localAddress, () => {
+				this._store.deleteAndLeak(disposableTunnel);
 				return this._proxy.$closeTunnel(tunnel.remoteAddress);
 			});
 			this._register(disposableTunnel);
@@ -237,10 +238,12 @@ export class ExtHostTunnelService extends Disposable implements IExtHostTunnelSe
 		if (this._extensionTunnels.has(remote.host)) {
 			const hostMap = this._extensionTunnels.get(remote.host)!;
 			if (hostMap.has(remote.port)) {
+				const entry = hostMap.get(remote.port)!;
 				if (silent) {
-					hostMap.get(remote.port)!.disposeListener.dispose();
+					entry.disposeListener.dispose();
 				}
-				await hostMap.get(remote.port)!.tunnel.dispose();
+				await entry.tunnel.dispose();
+				this._store.delete(entry.disposeListener);
 				hostMap.delete(remote.port);
 			}
 		}
