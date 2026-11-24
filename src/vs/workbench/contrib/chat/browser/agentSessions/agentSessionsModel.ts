@@ -862,8 +862,9 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		}
 		const replacementsByLegacyResource = new Map<string, IInternalAgentSession>();
 		for (const session of sessions.values()) {
-			if (session.legacyResource) {
-				replacementsByLegacyResource.set(session.legacyResource.toString(), session);
+			const previous = this.chatSessionsService.getPreviousChatSessionResource?.(session.resource) ?? session.legacyResource;
+			if (previous) {
+				replacementsByLegacyResource.set(previous.toString(), session);
 			}
 		}
 
