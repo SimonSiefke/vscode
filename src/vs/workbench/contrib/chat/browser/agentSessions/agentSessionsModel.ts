@@ -626,10 +626,11 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 			const changedChatSessionTypes = new Set<string>();
 			const replacementsByLegacyResource = new Map<string, IChatSessionItem>();
 
-			for (const resource of delta.addedOrUpdated ?? []) {
-				changedChatSessionTypes.add(getChatSessionType(resource.resource));
-				if (resource.legacyResource) {
-					replacementsByLegacyResource.set(resource.legacyResource.toString(), resource);
+			for (const item of delta.addedOrUpdated ?? []) {
+				changedChatSessionTypes.add(getChatSessionType(item.resource));
+				const previous = this.chatSessionsService.getPreviousChatSessionResource?.(item.resource) ?? item.legacyResource;
+				if (previous) {
+					replacementsByLegacyResource.set(previous.toString(), item);
 				}
 			}
 
@@ -881,8 +882,9 @@ export class AgentSessionsModel extends Disposable implements IAgentSessionsMode
 		}
 		const replacementsByLegacyResource = new Map<string, IInternalAgentSession>();
 		for (const session of sessions.values()) {
-			if (session.legacyResource) {
-				replacementsByLegacyResource.set(session.legacyResource.toString(), session);
+			const previous = this.chatSessionsService.getPreviousChatSessionResource?.(session.resource) ?? session.legacyResource;
+			if (previous) {
+				replacementsByLegacyResource.set(previous.toString(), session);
 			}
 		}
 
