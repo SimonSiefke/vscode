@@ -68,6 +68,77 @@ suite('Menubar', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const container = $('.container');
 
+	for (const resizedElement of ['container', 'sibling'] as const) {
+		test(`expands automatically when its ${resizedElement} releases space`, async () => {
+			const parent = document.createElement('div');
+			parent.style.cssText = 'display: flex; width: 600px; height: 30px; font: 13px sans-serif;';
+			const menuContainer = parent.appendChild(document.createElement('div'));
+			menuContainer.style.cssText = 'display: flex; flex: 1; min-width: 0;';
+			const sibling = parent.appendChild(document.createElement('div'));
+			sibling.style.cssText = 'width: 0; flex-shrink: 0;';
+			const element = menuContainer.appendChild($('.menubar'));
+			document.body.appendChild(parent);
+			store.add(toDisposable(() => parent.remove()));
+			store.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
+			const menubar = store.add(new MenuBar(element, { visibility: 'visible' }, unthemedMenuStyles));
+			const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
+			menubar.push(labels.map(label => ({ label, actions: [] })));
+			const settle = async () => {
+				for (let frame = 0; frame < 4; frame++) {
+					await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+				}
+			};
+			const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), labels);
+
+			if (resizedElement === 'container') {
+				parent.style.width = '70px';
+			} else {
+				sibling.style.width = '530px';
+			}
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), []);
+
+			if (resizedElement === 'container') {
+				parent.style.width = '600px';
+			} else {
+				sibling.style.width = '0';
+			}
+			await settle();
+			assert.deepStrictEqual(visibleMenus(), labels);
+			assert.strictEqual(element.classList.contains('overflow-menu-only'), false);
+		});
+	}
+
+	test('a hidden-first toggle menubar measures overflow on reveal and re-expands', async () => {
+		const parent = document.createElement('div');
+		parent.style.cssText = 'display: flex; width: 70px; height: 30px; font: 13px sans-serif;';
+		const element = parent.appendChild($('.menubar'));
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		store.add(toDisposable(() => ModifierKeyEmitter.disposeInstance()));
+		const menubar = store.add(new MenuBar(element, { visibility: 'toggle' }, unthemedMenuStyles));
+		const labels = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help'];
+		menubar.push(labels.map(label => ({ label, actions: [] })));
+		const settle = async () => {
+			for (let frame = 0; frame < 4; frame++) {
+				await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
+			}
+		};
+		const visibleMenus = () => labels.filter(label => getButtonElementByAriaLabel(element, label)?.style.visibility !== 'hidden');
+		await settle();
+		assert.strictEqual(element.style.display, 'none');
+
+		menubar.toggleFocus();
+		await settle();
+		assert.deepStrictEqual({ menus: visibleMenus(), overflowOnly: element.classList.contains('overflow-menu-only') }, { menus: [], overflowOnly: true });
+
+		parent.style.width = '600px';
+		await settle();
+		assert.deepStrictEqual({ menus: visibleMenus(), overflowOnly: element.classList.contains('overflow-menu-only') }, { menus: labels, overflowOnly: false });
+	});
+
 	const withMenuMenubar = (callback: (menubar: MenuBar) => void) => {
 		const menubar = new MenuBar(container, {
 			enableMnemonics: true,
