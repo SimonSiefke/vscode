@@ -335,6 +335,35 @@ suite('CodeReviewService', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('releases PR review state when an unsent draft is discarded', () => {
+		const draft = sessionsManagement.addSession(session);
+		const previous = service.getPRReviewState(session);
+		const otherResource = URI.parse('test://session/other');
+		const other = service.getPRReviewState(otherResource);
+
+		sessionsManagement.fireDiscardNewSession(draft);
+
+		assert.deepStrictEqual({
+			reusesDiscardedState: service.getPRReviewState(session) === previous,
+			preservesOtherState: service.getPRReviewState(otherResource) === other,
+		}, { reusesDiscardedState: false, preservesOtherState: true });
+	});
+
+	test('releases PR review state when an unsent draft is replaced', () => {
+		const draft = sessionsManagement.addSession(session);
+		const nextResource = URI.parse('test://session/next');
+		const next = sessionsManagement.addSession(nextResource);
+		const previous = service.getPRReviewState(session);
+		const replacement = service.getPRReviewState(nextResource);
+
+		sessionsManagement.fireReplaceNewDraftSession(draft, next);
+
+		assert.deepStrictEqual({
+			reusesReplacedState: service.getPRReviewState(session) === previous,
+			preservesReplacementState: service.getPRReviewState(nextResource) === replacement,
+		}, { reusesReplacedState: false, preservesReplacementState: true });
+	});
+
 	test('PR review state uses dedicated review threads model', async () => {
 		sessionsManagement.addSession(session);
 		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
