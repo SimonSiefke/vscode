@@ -11,6 +11,8 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
+import { StructuredCloneRPCProtocol } from './structuredCloneRPCProtocol.js';
+import { isStructuredCloneRPCTransport } from './rpcMessagePort.js';
 import * as nls from '../../../../nls.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -29,11 +31,11 @@ import { IExtensionHostProxy, IResolveAuthorityResult } from './extensionHostPro
 import { ExtensionRunningLocation } from './extensionRunningLocation.js';
 import { ActivationKind, ExtensionActivationReason, ExtensionHostStartup, IExtensionHost, IExtensionInspectInfo, IInternalExtensionService } from './extensions.js';
 import { Proxied, ProxyIdentifier } from './proxyIdentifier.js';
-import { IRPCProtocolLogger, RPCProtocol, RequestInitiator, ResponsiveState } from './rpcProtocol.js';
+import { IRPCProtocolLogger, RPCProtocol, ResponsiveState } from './rpcProtocol.js';
+import { RPCLogger, TelemetryRPCLogger } from './rpcLogger.js';
 
 // Enable to see detailed message communication between window and extension host
 const LOG_EXTENSION_HOST_COMMUNICATION = false;
-const LOG_USE_COLORS = true;
 
 type ExtensionHostStartupClassification = {
 	owner: 'alexdima';
@@ -67,7 +69,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 	 */
 	private readonly _cachedActivationEvents: Map<string, Promise<void>>;
 	private readonly _resolvedActivationEvents: Set<string>;
-	private _rpcProtocol: RPCProtocol | null;
+	private _rpcProtocol: RPCProtocol | StructuredCloneRPCProtocol | null;
 	private readonly _customers: IDisposable[];
 	private readonly _extensionHost: IExtensionHost;
 	private _proxy: Promise<IExtensionHostProxy | null> | null;
@@ -255,7 +257,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			logger = new TelemetryRPCLogger(this._telemetryService);
 		}
 
-		this._rpcProtocol = new RPCProtocol(protocol, logger);
+		this._rpcProtocol = isStructuredCloneRPCTransport(protocol) ? new StructuredCloneRPCProtocol(protocol, logger) : new RPCProtocol(protocol, logger);
 		this._register(this._rpcProtocol.onDidChangeResponsiveState((responsiveState: ResponsiveState) => this._onDidChangeResponsiveState.fire(responsiveState)));
 		let extensionHostProxy: IExtensionHostProxy | null = null as IExtensionHostProxy | null;
 		let mainProxyIdentifiers: ProxyIdentifier<any>[] = [];
@@ -476,121 +478,6 @@ export function friendlyExtHostName(kind: ExtensionHostKind, pid: number | null)
 		return `${extensionHostKindToString(kind)} pid: ${pid}`;
 	}
 	return `${extensionHostKindToString(kind)}`;
-}
-
-const colorTables = [
-	['#2977B1', '#FC802D', '#34A13A', '#D3282F', '#9366BA'],
-	['#8B564C', '#E177C0', '#7F7F7F', '#BBBE3D', '#2EBECD']
-];
-
-function prettyWithoutArrays(data: any): any {
-	if (Array.isArray(data)) {
-		return data;
-	}
-	if (data && typeof data === 'object' && typeof data.toString === 'function') {
-		const result = data.toString();
-		if (result !== '[object Object]') {
-			return result;
-		}
-	}
-	return data;
-}
-
-function pretty(data: any): any {
-	if (Array.isArray(data)) {
-		return data.map(prettyWithoutArrays);
-	}
-	return prettyWithoutArrays(data);
-}
-
-class RPCLogger implements IRPCProtocolLogger {
-
-	private _totalIncoming = 0;
-	private _totalOutgoing = 0;
-
-	constructor(
-		private readonly _kind: ExtensionHostKind
-	) { }
-
-	private _log(direction: string, totalLength: number, msgLength: number, req: number, initiator: RequestInitiator, str: string, data: any): void {
-		data = pretty(data);
-
-		const colorTable = colorTables[initiator];
-		const color = LOG_USE_COLORS ? colorTable[req % colorTable.length] : '#000000';
-		let args = [`%c[${extensionHostKindToString(this._kind)}][${direction}]%c[${String(totalLength).padStart(7)}]%c[len: ${String(msgLength).padStart(5)}]%c${String(req).padStart(5)} - ${str}`, 'color: darkgreen', 'color: grey', 'color: grey', `color: ${color}`];
-		if (/\($/.test(str)) {
-			args = args.concat(data);
-			args.push(')');
-		} else {
-			args.push(data);
-		}
-		console.log.apply(console, args as [string, ...string[]]);
-	}
-
-	logIncoming(msgLength: number, req: number, initiator: RequestInitiator, str: string, data?: any): void {
-		this._totalIncoming += msgLength;
-		this._log('Ext \u2192 Win', this._totalIncoming, msgLength, req, initiator, str, data);
-	}
-
-	logOutgoing(msgLength: number, req: number, initiator: RequestInitiator, str: string, data?: any): void {
-		this._totalOutgoing += msgLength;
-		this._log('Win \u2192 Ext', this._totalOutgoing, msgLength, req, initiator, str, data);
-	}
-}
-
-interface RPCTelemetryData {
-	type: string;
-	length: number;
-}
-
-type RPCTelemetryDataClassification = {
-	owner: 'jrieken';
-	comment: 'Insights about RPC message sizes';
-	type: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The type of the RPC message' };
-	length: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The byte-length of the RPC message' };
-};
-
-class TelemetryRPCLogger implements IRPCProtocolLogger {
-
-	static isEnabled(): boolean {
-		return Math.random() < 0.0001; // 0.01% of users
-	}
-
-	private readonly _pendingRequests = new Map<number, string>();
-
-	constructor(@ITelemetryService private readonly _telemetryService: ITelemetryService) { }
-
-	logIncoming(msgLength: number, req: number, initiator: RequestInitiator, str: string): void {
-
-		if (initiator === RequestInitiator.LocalSide && /^receiveReply(Err)?:/.test(str)) {
-			// log the size of reply messages
-			const requestStr = this._pendingRequests.get(req) ?? 'unknown_reply';
-			this._pendingRequests.delete(req);
-			this._telemetryService.publicLog2<RPCTelemetryData, RPCTelemetryDataClassification>('extensionhost.incoming', {
-				type: `${str} ${requestStr}`,
-				length: msgLength
-			});
-		}
-
-		if (initiator === RequestInitiator.OtherSide && /^receiveRequest /.test(str)) {
-			// incoming request
-			this._telemetryService.publicLog2<RPCTelemetryData, RPCTelemetryDataClassification>('extensionhost.incoming', {
-				type: `${str}`,
-				length: msgLength
-			});
-		}
-	}
-
-	logOutgoing(msgLength: number, req: number, initiator: RequestInitiator, str: string): void {
-
-		if (initiator === RequestInitiator.LocalSide && str.startsWith('request: ')) {
-			this._pendingRequests.set(req, str);
-			this._telemetryService.publicLog2<RPCTelemetryData, RPCTelemetryDataClassification>('extensionhost.outgoing', {
-				type: str,
-				length: msgLength
-			});
-		}
-	}
 }
 
 interface ExtHostLatencyResult {
