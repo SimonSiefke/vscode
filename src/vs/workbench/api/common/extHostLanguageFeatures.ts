@@ -2774,7 +2774,9 @@ export class ExtHostLanguageFeatures extends CoreDisposable implements extHostPr
 	}
 
 	$freeInlineCompletionsList(handle: number, pid: number, reason: languages.InlineCompletionsDisposeReason): void {
-		this._withAdapter(handle, InlineCompletionAdapter, async adapter => { adapter.disposeCompletions(pid, reason); }, undefined, undefined);
+		void this._withAdapter(handle, InlineCompletionAdapter, async adapter => { adapter.disposeCompletions(pid, reason); }, undefined, undefined).catch(() => {
+			// The adapter has already logged and reported the provider error.
+		});
 	}
 
 	$acceptInlineCompletionsUnificationState(state: IInlineCompletionsUnificationState): void {
