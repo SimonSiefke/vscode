@@ -107,13 +107,13 @@ suite('GitHubService', () => {
 						object: lease.object,
 						dispose: () => lease.dispose(),
 						read: async () => {
-							const response = await lease.object.rest.request({ method: 'GET', path: '/resource', expectedStatus: 200, responseBody: 'text' }, signal(), value => String(value));
+							const response = await lease.object.rest.request({ method: 'GET', path: '/resource', expectedStatus: 200, responseBody: 'text' }, cancellationToken(), value => String(value));
 							return JSON.parse(String(response.data));
 						}
 					};
 				}
 				const lease = disposables.add(service.acquireBootstrapClient({ apiBaseUri: 'https://api.github.com', token: 'bootstrap' }));
-				return { object: lease.object, dispose: () => lease.dispose(), read: async () => (await lease.object.get('/resource', signal())).data };
+				return { object: lease.object, dispose: () => lease.dispose(), read: async () => (await lease.object.get('/resource', cancellationToken())).data };
 			};
 			const first = acquire();
 			const second = acquire();
